@@ -509,7 +509,7 @@ keywords         #f      Style of keyword recognition: #f, 'prefix or 'postfix
 case-insensitive no      Convert symbols to lower case.
 positions        yes     Record positions of source code expressions.
 copy             no      Copy source code expressions.
-r6rs-hex-escapes no      Use R6RS-style string and character hex escapes
+r6rs-hex-escapes no      Use R6RS-style string hex escapes
 @end smalllisp
 
 Notice that while Standard Scheme is case insensitive, to ease
@@ -523,7 +523,7 @@ To make Guile case insensitive, you can type
 @end lisp
 
 For more information on the effect of the @code{r6rs-hex-escapes} option, see
-(@pxref{Characters}) and (@pxref{String Syntax}).
+(@pxref{String Syntax}).
 
 @node Printing options
 @subsubsection Printing options

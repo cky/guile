@@ -966,16 +966,16 @@ scm_read_character (scm_t_wchar chr, SCM port)
           if (SCM_IS_UNICODE_CHAR (c))
             return SCM_MAKE_CHAR (c);
           else
-            scm_i_input_error (FUNC_NAME, port, 
+            scm_i_input_error (FUNC_NAME, port,
                                "out-of-range octal character escape: ~a",
                                scm_list_1 (charname));
         }
     }
 
-  if (cp == 'x' && (charname_len > 1) && SCM_R6RS_ESCAPES_P)
+  if (cp == 'x' && (charname_len > 1))
     {
       SCM p;
-      
+
       /* Convert from hex, skipping the initial 'x' character in CHARNAME */
       p = scm_string_to_number (scm_c_substring (charname, 1, charname_len),
                                 scm_from_uint (16));

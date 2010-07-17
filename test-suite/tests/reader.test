@@ -332,28 +332,21 @@
        "\\xff;\\x100;\\xfff;\\x1000;\\xffff;\\x10000;"))
 
     (pass-if "one-digit hex escape"
-      (eqv? (with-read-options '(r6rs-hex-escapes)
-              (lambda ()
-                (with-input-from-string "#\\xA" read)))
+      (eqv? (with-input-from-string "#\\xA" read)
             (integer->char #x0A)))
 
     (pass-if "two-digit hex escape"
-      (eqv? (with-read-options '(r6rs-hex-escapes)
-              (lambda ()
-                (with-input-from-string "#\\xFF" read)))
+      (eqv? (with-input-from-string "#\\xFF" read)
             (integer->char #xFF)))
 
     (pass-if "four-digit hex escape"
-      (eqv? (with-read-options '(r6rs-hex-escapes)
-              (lambda ()
-                (with-input-from-string "#\\x00FF" read)))
+      (eqv? (with-input-from-string "#\\x00FF" read)
             (integer->char #xFF)))
 
     (pass-if "eight-digit hex escape"
-      (eqv? (with-read-options '(r6rs-hex-escapes)
-              (lambda ()
-                (with-input-from-string "#\\x00006587" read)))
+      (eqv? (with-input-from-string "#\\x00006587" read)
             (integer->char #x6587)))
+
     (pass-if "write R6RS escapes"
       (string=?
        (with-read-options '(r6rs-hex-escapes)

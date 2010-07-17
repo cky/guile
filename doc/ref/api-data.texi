@@ -1763,17 +1763,9 @@ Characters may also be written using their code point values.  They can
 be written with as an octal number, such as @code{#\10} for
 @code{#\bs} or @code{#\177} for @code{#\del}.
 
-When the @code{r6rs-hex-escapes} reader option is enabled, there is an
-additional syntax for character escapes: @code{#\xHHHH} -- the letter 'x'
-followed by a hexadecimal number of one to eight digits.
-
-@lisp
-(read-enable 'r6rs-hex-escapes)
-@end lisp
-
-Enabling this option will also change the hex escape format for strings.  More
-on string escapes can be found at (@pxref{String Syntax}).  More on reader
-options in general can be found at (@pxref{Reader options}).
+If one prefers hex to octal, there is an additional syntax for character
+escapes: @code{#\xHHHH} -- the letter 'x' followed by a hexadecimal
+number of one to eight digits.
 
 @rnindex char?
 @deffn {Scheme Procedure} char? x
@@ -2698,9 +2690,8 @@ it can be enabled with the reader option @code{r6rs-hex-escapes}.
 (read-enable 'r6rs-hex-escapes)
 @end lisp
 
-Enabling this option will also change the hex escape format for characters.
-More on character escapes can be found at (@pxref{Characters}).  More on
-reader options in general can be found at (@pxref{Reader options}).
+More on reader options in general can be found at (@pxref{Reader
+options}).
 
 @node String Predicates
 @subsubsection String Predicates
