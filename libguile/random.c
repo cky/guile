@@ -223,7 +223,8 @@ unsigned char scm_masktab[256];
 unsigned long
 scm_c_random (scm_t_rstate *state, unsigned long m)
 {
-  unsigned int r, mask;
+  unsigned long r, mask;
+#if SCM_SIZEOF_UNSIGNED_LONG == 4
   mask = (m < 0x100
 	  ? scm_masktab[m]
 	  : (m < 0x10000
@@ -232,6 +233,31 @@ scm_c_random (scm_t_rstate *state, unsigned long m)
 		? scm_masktab[m >> 16] << 16 | 0xffff
 		: scm_masktab[m >> 24] << 24 | 0xffffff)));
   while ((r = scm_the_rng.random_bits (state) & mask) >= m);
+#elif SCM_SIZEOF_UNSIGNED_LONG == 8
+  mask = (m < 0x100
+	  ? scm_masktab[m]
+	  : (m < 0x10000
+	     ? scm_masktab[m >> 8] << 8 | 0xff
+	     : (m < 0x1000000
+		? scm_masktab[m >> 16] << 16 | 0xffff
+                : (m < (1UL << 32)
+                   ? scm_masktab[m >> 24] << 24 | 0xffffff
+                   : (m < (1UL << 40)
+                      ? ((unsigned long) scm_masktab[m >> 32] << 32
+                         | 0xffffffffUL)
+                      : (m < (1UL << 48)
+                         ? ((unsigned long) scm_masktab[m >> 40] << 40
+                            | 0xffffffffffUL)
+                         : (m < (1UL << 56)
+                            ? ((unsigned long) scm_masktab[m >> 48] << 48
+                               | 0xffffffffffffUL)
+                            : ((unsigned long) scm_masktab[m >> 56] << 56
+                               | 0xffffffffffffffUL))))))));
+  while ((r = ((scm_the_rng.random_bits (state) << 32
+                | scm_the_rng.random_bits (state))) & mask) >= m);
+#else
+#error "Cannot deal with this platform's unsigned long size"
+#endif
   return r;
 }
 
