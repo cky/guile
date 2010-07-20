@@ -3300,6 +3300,32 @@ Fold over the key/pair elements of @var{vhash}.  For each pair call @var{proc}
 as @code{(@var{proc} key value result)}.
 @end deffn
 
+@deffn {Scheme Procedure} vhash-fold* proc init key vhash [equal? [hash]]
+@deffnx {Scheme Procedure} vhash-foldq* proc init key vhash
+@deffnx {Scheme Procedure} vhash-foldv* proc init key vhash
+Fold over all the values associated with @var{key} in @var{vhash}, with each
+call to @var{proc} having the form @code{(proc value result)}, where
+@var{result} is the result of the previous call to @var{proc} and @var{init} the
+value of @var{result} for the first call to @var{proc}.
+
+Keys in @var{vhash} are hashed using @var{hash} are compared using @var{equal?}.
+The second form uses @code{eq?} as the equality predicate and @code{hashq} as
+the hash function; the third one uses @code{eqv?} and @code{hashv}.
+
+Example:
+
+@example
+(define vh
+  (alist->vhash '((a . 1) (a . 2) (z . 0) (a . 3))))
+
+(vhash-fold* cons '() 'a vh)
+@result{} (3 2 1)
+
+(vhash-fold* cons '() 'z vh)
+@result{} (0)
+@end example
+@end deffn
+
 @deffn {Scheme Procedure} alist->vhash alist [hash-proc]
 Return the vhash corresponding to @var{alist}, an association list, using
 @var{hash-proc} to compute key hashes.  When omitted, @var{hash-proc} defaults

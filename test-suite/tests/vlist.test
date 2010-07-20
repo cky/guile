@@ -19,9 +19,10 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-vlist)
-  :use-module (test-suite lib)
-  :use-module (ice-9 vlist)
-  :use-module (srfi srfi-1))
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 vlist)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26))
 
 
 ;;;
@@ -300,4 +301,38 @@
                         (equal? (assq k alist)
                                 (vhash-assoc k vh eq?))))
                  #t
-                 keys)))))
+                 keys))))
+
+  (pass-if "vhash-fold*"
+    (let* ((keys   (make-list 10 'a))
+           (values (iota 10))
+           (vh     (fold vhash-cons vlist-null keys values)))
+      (equal? (vhash-fold* cons '() 'a vh)
+              values)))
+
+  (pass-if "vhash-fold* tail"
+    (let* ((keys   (make-list 100 'a))
+           (values (iota 100))
+           (vh     (fold vhash-cons vlist-null keys values)))
+      (equal? (vhash-fold* cons '() 'a (vlist-drop vh 42))
+              (take values (- 100 42)))))
+
+  (pass-if "vhash-fold* interleaved"
+    (let* ((keys   '(a b a b a b a b a b c d e a b))
+           (values '(1 0 2 0 3 0 4 0 5 0 0 0 0 6 0))
+           (vh     (fold vhash-cons vlist-null keys values)))
+      (equal? (vhash-fold* cons '() 'a vh)
+              (filter (cut > <> 0) values))))
+
+  (pass-if "vhash-foldq* degenerate"
+    (let* ((keys   '(a b a b a a a b a b a a a z))
+           (values '(1 0 2 0 3 4 5 0 6 0 7 8 9 0))
+           (vh     (fold (lambda (k v vh)
+                           ;; Degenerate case where VH2 contains only
+                           ;; 1-element blocks.
+                           (let* ((vh1 (vhash-consq 'x 'x vh))
+                                  (vh2 (vlist-tail vh1)))
+                             (vhash-consq k v vh2)))
+                         vlist-null keys values)))
+      (equal? (vhash-foldq* cons '() 'a vh)
+              (filter (cut > <> 0) values)))))

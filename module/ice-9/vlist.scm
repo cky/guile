@@ -31,7 +31,9 @@
 
             vhash? vhash-cons vhash-consq vhash-consv
             vhash-assoc vhash-assq vhash-assv
-            vhash-delete vhash-fold alist->vhash))
+            vhash-delete vhash-fold
+            vhash-fold* vhash-foldq* vhash-foldv*
+            alist->vhash))
 
 ;;; Author: Ludovic Courtès <ludo@gnu.org>
 ;;;
@@ -408,9 +410,62 @@ with @var{value}.  Use @var{hash} to compute @var{key}'s hash."
 (define vhash-consq (cut vhash-cons <> <> <> hashq))
 (define vhash-consv (cut vhash-cons <> <> <> hashv))
 
-;; This hack to make sure `vhash-assq' gets to use the `eq?' instruction instead
-;; of calling the `eq?' subr.
+(define-inline (%vhash-fold* proc init key vhash equal? hash)
+  ;; Fold over all the values associated with KEY in VHASH.
+  (define khash
+    (let ((size (block-size (vlist-base vhash))))
+      (and (> size 0) (hash key size))))
+
+  (let loop ((base       (vlist-base vhash))
+             (khash      khash)
+             (offset     (and khash
+                              (block-hash-table-ref (vlist-base vhash)
+                                                    khash)))
+             (max-offset (vlist-offset vhash))
+             (result     init))
+
+    (let ((answer (and offset (block-ref base offset))))
+      (cond ((and (pair? answer)
+                  (<= offset max-offset)
+                  (let ((answer-key (caar answer)))
+                    (equal? key answer-key)))
+             (let ((result      (proc (cdar answer) result))
+                   (next-offset (cdr answer)))
+               (loop base khash next-offset max-offset result)))
+            ((and (pair? answer) (cdr answer))
+             =>
+             (lambda (next-offset)
+               (loop base khash next-offset max-offset result)))
+            (else
+             (let ((next-base (block-base base)))
+               (if (and next-base (> (block-size next-base) 0))
+                   (let* ((khash  (hash key (block-size next-base)))
+                          (offset (block-hash-table-ref next-base khash)))
+                     (loop next-base khash offset (block-offset base)
+                           result))
+                   result)))))))
+
+(define* (vhash-fold* proc init key vhash
+                      #:optional (equal? equal?) (hash hash))
+  "Fold over all the values associated with @var{key} in @var{vhash}, with each
+call to @var{proc} having the form @code{(proc value result)}, where
+@var{result} is the result of the previous call to @var{proc} and @var{init} the
+value of @var{result} for the first call to @var{proc}."
+  (%vhash-fold* proc init key vhash equal? hash))
+
+(define (vhash-foldq* proc init key vhash)
+  "Same as @code{vhash-fold*}, but using @code{hashq} and @code{eq?}."
+  (%vhash-fold* proc init key vhash eq? hashq))
+
+(define (vhash-foldv* proc init key vhash)
+  "Same as @code{vhash-fold*}, but using @code{hashv} and @code{eqv?}."
+  (%vhash-fold* proc init key vhash eqv? hashv))
+
 (define-inline (%vhash-assoc key vhash equal? hash)
+  ;; A specialization of `vhash-fold*' that stops when the first value
+  ;; associated with KEY is found or when the end-of-list is reached.  Inline to
+  ;; make sure `vhash-assq' gets to use the `eq?' instruction instead of calling
+  ;; the `eq?'  subr.
   (define khash
     (let ((size (block-size (vlist-base vhash))))
       (and (> size 0) (hash key size))))
