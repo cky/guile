@@ -30,7 +30,7 @@ AC_PREREQ(2.61)
 AC_INIT([GNU Guile],
         m4_esyscmd([build-aux/git-version-gen					\
           .tarball-version							\
-          's/^release_\([0-9]\+\)-\([0-9]\+\)-\([0-9]\+\)/v\1.\2\.\3/g']),
+          's/^release_\([0-9][0-9]*\)-\([0-9][0-9]*\)-\([0-9][0-9]*\)/v\1.\2\.\3/g']),
         [bug-guile@gnu.org])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
