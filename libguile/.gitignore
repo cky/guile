@@ -4,7 +4,6 @@ cpp_sig_symbols.c
 gen-scmconfig
 gen-scmconfig.h
 guile
-guile-doc-snarf
 guile-func-name-check
 guile-procedures.texi
 guile-snarf

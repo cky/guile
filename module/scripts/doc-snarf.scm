@@ -70,7 +70,7 @@ This procedure foos, or bars, depending on the argument @var{braz}.
 
 ;; TODO: Convert option lines to alist.
 ;;       More parameterization.
-;;       ../libguile/guile-doc-snarf emulation
+;;       (maybe) Use in Guile build itself.
 
 (define doc-snarf-version "0.0.2") ; please update before publishing!
 

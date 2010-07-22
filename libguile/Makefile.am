@@ -593,7 +593,7 @@ bin_SCRIPTS = guile-snarf
 
 # We can re-enable install for some of these if/when they are documented
 # and people feel like maintaining them.  For now, this is not the case.
-noinst_SCRIPTS = guile-doc-snarf guile-snarf-docs guile-func-name-check
+noinst_SCRIPTS = guile-snarf-docs guile-func-name-check
 
 EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008	\

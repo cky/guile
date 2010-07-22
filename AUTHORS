@@ -270,7 +270,7 @@ In the subdirectory scripts, wrote:
 In the subdirectory scripts, changes to:
     doc-snarf
 In the subdirectory libguile, changes to:
-    guile-doc-snarf.in	regex-posix.c
+    regex-posix.c
 In the subdirectory doc, changes to:
     intro.texi			preface.texi
     scheme-modules.texi		scheme-procedures.texi

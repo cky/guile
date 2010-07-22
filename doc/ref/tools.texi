@@ -288,7 +288,6 @@ Here is a list of what does what according to @file{libguile/Makefile.am}:
 @item ../scripts/snarf-check-and-output-texi makes guile.texi
 @item ../scripts/snarf-check-and-output-texi makes guile-procedures.txt
 @item guile-func-name-check checks source snarf-syntax integrity (optional?)
-@item guile-doc-snarf calls guile-snarf-docs (to make .doc) and guile-snarf
 @end itemize
 
 Note that for guile-1.4, a completely different approach was used!  All this
