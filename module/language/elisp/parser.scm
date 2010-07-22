@@ -183,6 +183,8 @@
        (parse-error token "end of file during parsing"))
       ((integer float symbol character string)
        (return (cdr token)))
+      ((function)
+       (return `(function ,(get-expression lex))))
       ((quote backquote unquote unquote-splicing)
        (return (list (assq-ref quotation-symbols type)
                      (get-expression lex))))

@@ -313,10 +313,15 @@
                       (cons (integer->char (get-character port #t))
                             result-chars))))))
                (else (iterate (cons cur result-chars)))))))
-        ;; Circular markers (either reference or definition).
         ((#\#)
-         (let ((mark (get-circular-marker port)))
-           (return (car mark) (cdr mark))))
+         (let ((c (read-char port)))
+          (case c
+            ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)
+             (unread-char c port)
+             (let ((mark (get-circular-marker port)))
+               (return (car mark) (cdr mark))))
+            ((#\')
+             (return 'function #f)))))
         ;; Parentheses and other special-meaning single characters.
         ((#\() (return 'paren-open #f))
         ((#\)) (return 'paren-close #f))
