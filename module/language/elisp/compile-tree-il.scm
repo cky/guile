@@ -823,7 +823,9 @@
 (defspecial function (loc args)
   (pmatch args
     (((lambda ,args . ,body))
-     (compile-lambda loc args body))))
+     (compile-lambda loc args body))
+    ((,sym) (guard (symbol? sym))
+     (reference-with-check loc sym function-slot))))
 
 (defspecial defmacro (loc args)
   (pmatch args
