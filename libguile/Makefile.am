@@ -63,7 +63,7 @@ gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 	fi
 
 ## Override default rule; this should run on BUILD host.
-gen-scmconfig$(EXEEXT): $(gen_scmconfig_OBJECTS) $(gen_scmconfig_DEPENDENCIES) 
+gen-scmconfig$(EXEEXT): $(gen_scmconfig_OBJECTS) $(gen_scmconfig_DEPENDENCIES)
 	$(AM_V_GEN) \
 	rm -f gen-scmconfig$(EXEEXT); \
 	if [ "$(cross_compiling)" = "yes" ]; then \
@@ -94,7 +94,7 @@ c-tokenize.$(OBJEXT): c-tokenize.c
 	fi
 
 ## Override default rule; this should run on BUILD host.
-guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile_filter_doc_snarfage_DEPENDENCIES) 
+guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile_filter_doc_snarfage_DEPENDENCIES)
 	$(AM_V_GEN) \
 	rm -f guile_filter_doc_snarfage$(EXEEXT); \
 	if [ "$(cross_compiling)" = "yes" ]; then \
@@ -466,7 +466,7 @@ endif HAVE_LD_VERSION_SCRIPT
 
 
 # These are headers visible as <guile/mumble.h>
-pkginclude_HEADERS = 
+pkginclude_HEADERS =
 
 # These are headers visible as <libguile/mumble.h>.
 modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)/libguile
@@ -667,7 +667,7 @@ AM_V_FILTER_0 = @echo "  FILTER" $@;
 .c.x:
 	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 .c.doc:
-	-$(AM_V_FILTER)$(AWK) -f ./guile-func-name-check $< && (./guile-snarf-docs $(snarfcppopts) $< | ./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
+	-$(AM_V_FILTER)$(AWK) -f $(srcdir)/guile-func-name-check $< && (./guile-snarf-docs $(snarfcppopts) $< | ./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 
 $(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in
 
