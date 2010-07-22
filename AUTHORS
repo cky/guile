@@ -122,7 +122,7 @@ Implemented support for double-word heap cells and converted some
 smobs to use them.
 In the subdirectory libguile, wrote:
     guardians.c guardians.h filter-doc-snarfage.c
-    guile-snarf-docs.in guile-snarf-docs-texi.in
+    guile-snarf-docs.in
 In the subdirectory libguile, changed extensively:
     gc.c gc.h
 In the subdirectory ice-9, wrote:
