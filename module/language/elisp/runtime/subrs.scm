@@ -265,12 +265,16 @@
 
 (built-in-func setcar
   (lambda (cell val)
-    (prim set-car! cell val)
+    (if (and (null? cell) (null? val))
+        #nil
+        (prim set-car! cell val))
     val))
 
 (built-in-func setcdr
   (lambda (cell val)
-    (prim set-cdr! cell val)
+    (if (and (null? cell) (null? val))
+        #nil
+        (prim set-cdr! cell val))
     val))
 
 ;;; Accessing symbol bindings for symbols known only at runtime.
