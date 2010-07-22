@@ -1,5 +1,26 @@
 dnl -*- Autoconf -*-
 
+dnl Copyright (C) 1997, 1999, 2000, 2001, 2002, 2004, 2006,
+dnl   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+dnl
+dnl This file is part of GUILE
+dnl
+dnl GUILE is free software; you can redistribute it and/or modify it under
+dnl the terms of the GNU Lesser General Public License as published by the
+dnl Free Software Foundation; either version 3, or (at your option) any
+dnl later version.
+dnl
+dnl GUILE is distributed in the hope that it will be useful, but WITHOUT
+dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+dnl FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser General Public
+dnl License for more details.
+dnl
+dnl You should have received a copy of the GNU Lesser General Public
+dnl License along with GUILE; see the file COPYING.LESSER.  If not, write
+dnl to the Free Software Foundation, Inc., 51 Franklin Street, Fifth
+dnl Floor, Boston, MA 02110-1301, USA.
+
+
 dnl  On the NeXT, #including <utime.h> doesn't give you a definition for
 dnl  struct utime, unless you #define _POSIX_SOURCE.
 
