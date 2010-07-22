@@ -415,7 +415,7 @@ DOT_I_FILES = vm-i-system.i vm-i-scheme.i vm-i-loader.i
 .c.i:
 	$(AM_V_GEN)$(GREP) '^VM_DEFINE' $< > $@
 
-BUILT_SOURCES = cpp_err_symbols.c cpp_sig_symbols.c libpath.h \
+BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h \
     version.h scmconfig.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
@@ -596,9 +596,8 @@ bin_SCRIPTS = guile-snarf
 noinst_SCRIPTS = guile-doc-snarf guile-snarf-docs guile-func-name-check
 
 EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
-    ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008 cpp_signal.c	\
-    cpp_errno.c cpp_err_symbols.in cpp_err_symbols.c			\
-    cpp_sig_symbols.c cpp_sig_symbols.in cpp_cnvt.awk			\
+    ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008	\
+    cpp-E.syms cpp-E.c cpp-SIG.syms cpp-SIG.c			\
     c-tokenize.lex version.h.in						\
     scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
@@ -674,8 +673,8 @@ $(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in
 
 $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): scmconfig.h snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
 
-error.x: cpp_err_symbols.c
-posix.x: cpp_sig_symbols.c
+error.x: cpp-E.c
+posix.x: cpp-SIG.c
 load.x: libpath.h
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
@@ -710,50 +709,57 @@ schemelib_DATA = guile-procedures.txt
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
-cpp_err_symbols.c: cpp_err_symbols.in cpp_cnvt.awk
-	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_err_symbols.in > \
-		cpp_err_symbols.tmp
-	mv cpp_err_symbols.tmp cpp_err_symbols.c
+
+# This page is for maintenance of the lists of CPP symbols that are eventually
+# included in error.c (‘errno’ values: E*) and posix.c (signal names: SIG*),
+# in the funcs scm_init_{error,posix}, respectively.
+#
+# The lists (files cpp-{E,SIG}.syms) are not included verbatim, but processed
+# (via pattern rule ‘.syms.c’ below) so that each CPP symbol is transformed to
+# fragment of #ifdef'd C code that defines a Scheme variable of the same name.
+# The resulting files, cpp-{E,SIG}.c, are the ones #include:d.
+#
+# To maintain the (source) lists of symbols, we use a GCC-specific feature
+# to list all symbols #define:d when expanding <{errno,signal}.h>, grep
+# the output for {E,SIG}*, massage the result into a usable form, and
+# construct a union of the current and new symbols.  This is written to
+# files cpp-{E,SIG}.syms.NEW for review.  If things look ok, you can then
+# "mv foo.NEW foo" and commit.  Generating the foo.NEW files and showing
+# an informative message is the job of targets chknew-{E,SIG}.
 
-cpp_sig_symbols.c: cpp_sig_symbols.in cpp_cnvt.awk
-	$(AWK) -f $(srcdir)/cpp_cnvt.awk < $(srcdir)/cpp_sig_symbols.in > \
-		cpp_sig_symbols.tmp
-	mv cpp_sig_symbols.tmp cpp_sig_symbols.c
+# For each line in foo.syms, transform:
+#	SYMBOL
+# to:
+#	#ifdef SYMBOL
+#	scm_c_define ("SYMBOL", scm_from_int (SYMBOL));
+#	#endif
+# writing output to foo.c.
+.syms.c:
+	sed 's/.*/#ifdef &\nscm_c_define ("&", scm_from_int (&));\n#endif/' \
+	  $< > $@T
+	mv $@T $@
 
-## Create a new version of the cpp_sig_symbols.in file, including all SIGXXX
-## macros defined on this platform.
-check_signals:
-	gcc -undef -dM -E $(srcdir)/cpp_signal.c | $(EGREP) ' SIG[A-Z]+' \
-	  | cut -f2 -d' ' | sort > cpp_sig_symbols_here
-	diff -u $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_here \
-          | $(EGREP) '^\+S' \
-	  | cut -c2- > cpp_sig_symbols_diff
-	if test -s cpp_sig_symbols_diff ; then \
-	  cat $(srcdir)/cpp_sig_symbols.in cpp_sig_symbols_diff \
-	    | sort > cpp_sig_symbols_new ;\
-	  echo "cpp_sig_symbols_new has the following additions:" ;\
-	  cat cpp_sig_symbols_diff ;\
-	else echo "No new symbols found."; \
-	fi
+# Write $(srcdir)/cpp-{E,SIG}.syms.NEW if there are any not-yet-seen
+# ("new" to us) E* or SIG* symbols in <errno.h> or <signal.h>, respectively.
+chknew-E chknew-SIG:
+	@bit=`echo $@ | sed s/^chknew-//` ;			\
+	old="$(srcdir)/cpp-$$bit.syms" ;			\
+	echo "#include <$${bit}.h>"				\
+	 | sed 's/E/errno/;s/SIG/signal/'			\
+	 | gcc -undef -dM -E -					\
+	 | sed 's/^#define //;/^'$$bit'[A-Z][A-Z]*/!d;s/ .*//'	\
+	 | sort | diff -u $$old - | sed '1,2d;/^+/!d;s/^.//'	\
+	 > TMP ;						\
+	if [ -s TMP ] ; then new="$$old.NEW" ;			\
+	  cat $$old TMP | sort > $$new ;			\
+	  echo "$$new: `sed -n '$$=' TMP` new symbol(s)." ;	\
+	  sed 's/^/  /' TMP ;					\
+	else echo "No new symbols found." ;			\
+	fi ; rm TMP
 
-## Likewise for cpp_err_symbols.in.
-check_errnos:
-	gcc -undef -dM -E $(srcdir)/cpp_errno.c | $(EGREP) ' E.+' \
-	  | cut -f2 -d' ' | sort > cpp_err_symbols_here
-	diff -u $(srcdir)/cpp_err_symbols.in cpp_err_symbols_here \
-          | $(EGREP) '^\+E' \
-	  | cut -c2- > cpp_err_symbols_diff
-	if test -s cpp_err_symbols_diff ; then \
-	  cat $(srcdir)/cpp_err_symbols.in cpp_err_symbols_diff \
-	    | sort > cpp_err_symbols_new ;\
-	  echo "cpp_err_symbols_new has the following additions:" ;\
-	  cat cpp_err_symbols_diff ;\
-	else echo "No new symbols found."; \
-	fi
+
 
 MOSTLYCLEANFILES = \
-	cpp_err_symbols_here cpp_err_symbols_diff cpp_err_symbols_new \
-	cpp_sig_symbols_here cpp_sig_symbols_diff cpp_sig_symbols_new \
 	version.h version.h.tmp \
 	scmconfig.h scmconfig.h.tmp
 

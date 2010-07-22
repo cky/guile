@@ -285,7 +285,7 @@ scm_misc_error (const char *subr, const char *message, SCM args)
 void
 scm_init_error ()
 {
-#include "libguile/cpp_err_symbols.c"
+#include "libguile/cpp-E.c"
 #include "libguile/error.x"
 }
 

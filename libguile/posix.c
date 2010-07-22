@@ -2195,7 +2195,7 @@ scm_init_posix ()
   scm_c_define ("LOCK_NB", scm_from_int (LOCK_NB));
 #endif
 
-#include "libguile/cpp_sig_symbols.c"
+#include "libguile/cpp-SIG.c"
 #include "libguile/posix.x"
 }
 
