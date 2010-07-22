@@ -442,3 +442,7 @@ AC_DEFUN([GUILE_READLINE], [
   AC_SUBST(LIBGUILEREADLINE_INTERFACE_AGE)
   AC_SUBST(LIBGUILEREADLINE_INTERFACE)
 ])
+
+dnl Declare file $1 to be a script that needs configuring,
+dnl and arrange to make it executable in the process.
+AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])

@@ -1643,11 +1643,6 @@ AC_CONFIG_FILES([meta/guile-2.0.pc])
 AC_CONFIG_FILES([meta/guile-2.0-uninstalled.pc])
 AC_CONFIG_FILES([doc/ref/effective-version.texi])
 
-dnl We can get fancy with m4sugar (m4_foreach et al) later.
-dnl NB: We don't jam everything into one GUILE_CONFIG_SCRIPT call
-dnl since that expands "chmod +x LONG-LIST-OF-FILES" multiply.  --ttn
-AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
-
 GUILE_CONFIG_SCRIPT([check-guile])
 GUILE_CONFIG_SCRIPT([benchmark-guile])
 GUILE_CONFIG_SCRIPT([meta/guile])
