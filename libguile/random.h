@@ -3,7 +3,7 @@
 #ifndef SCM_RANDOM_H
 #define SCM_RANDOM_H
 
-/* Copyright (C) 1999,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -49,6 +49,8 @@ typedef struct scm_t_rng {
   unsigned long (*random_bits) (scm_t_rstate *state); /* gives 32 random bits */
   void (*init_rstate) (scm_t_rstate *state, const char *seed, int n);
   scm_t_rstate *(*copy_rstate) (scm_t_rstate *state);
+  void (*init_rstate_scm) (scm_t_rstate *state, SCM exposed);
+  SCM (*expose_rstate) (scm_t_rstate *state);
 } scm_t_rng;
 
 SCM_API scm_t_rng scm_the_rng;
@@ -66,12 +68,15 @@ typedef struct scm_t_i_rstate {
 SCM_INTERNAL unsigned long scm_i_uniform32 (scm_t_i_rstate *);
 SCM_INTERNAL void scm_i_init_rstate (scm_t_i_rstate *, const char *seed, int n);
 SCM_INTERNAL scm_t_i_rstate *scm_i_copy_rstate (scm_t_i_rstate *);
+SCM_INTERNAL void scm_i_init_rstate_scm (scm_t_i_rstate *state, SCM value);
+SCM_INTERNAL SCM scm_i_expose_rstate (scm_t_i_rstate *state);
 
 
 /*
  * Random number library functions
  */
 SCM_API scm_t_rstate *scm_c_make_rstate (const char *, int);
+SCM_API scm_t_rstate *scm_c_make_rstate_scm (SCM external);
 SCM_API scm_t_rstate *scm_c_default_rstate (void);
 #define scm_c_uniform32(RSTATE) scm_the_rng.random_bits (RSTATE)
 SCM_API double scm_c_uniform01 (scm_t_rstate *);

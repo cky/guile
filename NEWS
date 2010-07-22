@@ -8,6 +8,16 @@ Please send Guile bug reports to bug-guile@gnu.org.
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
+Changes in 1.9.12 (since the 1.9.11 prerelease):
+
+** Random generator state has an external form
+
+Now the random number generator state can be obtained in external
+(i.e. `read'/`write'-able) form via the new procedure
+`random-state->external'.  An externalized state can be reinstantiated by
+calling `external->random-state'.
+
+
 Changes in 1.9.11 (since the 1.9.10 prerelease):
 
 ** Renamed module: (rnrs bytevectors)

@@ -1511,9 +1511,13 @@ through @var{end} (exclusive) bits of @var{n}.  The
 @subsubsection Random Number Generation
 
 Pseudo-random numbers are generated from a random state object, which
-can be created with @code{seed->random-state}.  The @var{state}
-parameter to the various functions below is optional, it defaults to
-the state object in the @code{*random-state*} variable.
+can be created with @code{seed->random-state} or
+@code{external->random-state}.  An external representation (i.e. one
+which can written with @code{write} and read with @code{read}) of a
+random state object can be obtained via
+@code{random-state->external}.  The @var{state} parameter to the
+various functions below is optional, it defaults to the state object
+in the @code{*random-state*} variable.
 
 @deffn {Scheme Procedure} copy-random-state [state]
 @deffnx {C Function} scm_copy_random_state (state)
@@ -1580,6 +1584,22 @@ Return a uniformly distributed inexact real random number in
 @deffn {Scheme Procedure} seed->random-state seed
 @deffnx {C Function} scm_seed_to_random_state (seed)
 Return a new random state using @var{seed}.
+@end deffn
+
+@deffn {Scheme Procedure} external->random-state external
+@deffnx {C Function} scm_external_to_random_state (external)
+Return a new random state from the external representation
+@var{external}, which must have been obtained by
+@code{random-state->external}.
+@end deffn
+
+@deffn {Scheme Procedure} random-state->external state
+@deffnx {C Function} scm_random_state_to_external (state)
+Return an external representation of @var{state}.  You cannot make
+any assumtions on the structure of the returned object besides that
+it will be an acceptable argument to @code{external->random-state}
+and that it will be able to be written and read back by the Scheme
+reader.
 @end deffn
 
 @defvar *random-state*

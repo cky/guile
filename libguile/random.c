@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001, 2003, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2003, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -151,6 +151,35 @@ scm_i_copy_rstate (scm_t_i_rstate *state)
   return memcpy (new_state, state, scm_the_rng.rstate_size);
 }
 
+SCM_SYMBOL(scm_i_rstate_tag, "multiply-with-carry");
+
+void
+scm_i_init_rstate_scm (scm_t_i_rstate *state, SCM value)
+#define FUNC_NAME "scm_i_init_rstate_scm"
+{
+  unsigned long w, c;
+  long length;
+  
+  SCM_VALIDATE_LIST_COPYLEN (SCM_ARG1, value, length);
+  SCM_ASSERT (length == 3, value, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (scm_is_eq (SCM_CAR (value), scm_i_rstate_tag),
+              value, SCM_ARG1, FUNC_NAME);
+  SCM_VALIDATE_ULONG_COPY (SCM_ARG1, SCM_CADR (value), w);
+  SCM_VALIDATE_ULONG_COPY (SCM_ARG1, SCM_CADDR (value), c);
+
+  state->w = w;
+  state->c = c;
+}
+#undef FUNC_NAME
+
+SCM
+scm_i_expose_rstate (scm_t_i_rstate *state)
+{
+  return scm_list_3 (scm_i_rstate_tag,
+                     scm_from_ulong (state->w),
+                     scm_from_ulong (state->c));
+}
+
 
 /*
  * Random number library functions
@@ -168,6 +197,17 @@ scm_c_make_rstate (const char *seed, int n)
   return state;
 }
 
+scm_t_rstate *
+scm_c_make_rstate_scm (SCM external)
+{
+  scm_t_rstate *state;
+
+  state = scm_gc_malloc_pointerless (scm_the_rng.rstate_size,
+				     "random-state");
+  state->reserved0 = 0;
+  scm_the_rng.init_rstate_scm (state, external);
+  return state;
+}
 
 scm_t_rstate *
 scm_c_default_rstate ()
@@ -420,6 +460,28 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_external_to_random_state, "external->random-state", 1, 0, 0, 
+            (SCM external),
+            "Return a new random state using @var{external}.\n"
+            "\n"
+            "@var{external} must be an external state representation obtained\n"
+            "from @code{random-state->external}.")
+#define FUNC_NAME s_scm_external_to_random_state
+{
+  return make_rstate (scm_c_make_rstate_scm (external));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_random_state_to_external, "random-state->external", 1, 0, 0, 
+            (SCM state),
+            "Return an external representation of @var{state}.")
+#define FUNC_NAME s_scm_random_state_to_external
+{
+  SCM_VALIDATE_RSTATE (1, state);
+  return scm_the_rng.expose_rstate (SCM_RSTATE (state));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_random_uniform, "random:uniform", 0, 1, 0, 
             (SCM state),
 	    "Return a uniformly distributed inexact real random number in\n"
@@ -616,9 +678,11 @@ scm_init_random ()
   scm_t_rng rng =
   {
     sizeof (scm_t_i_rstate),
-    (unsigned long (*)()) scm_i_uniform32,
-    (void (*)())          scm_i_init_rstate,
-    (scm_t_rstate *(*)())    scm_i_copy_rstate
+    (unsigned long (*)())           scm_i_uniform32,
+    (void (*)())                    scm_i_init_rstate,
+    (scm_t_rstate *(*)())           scm_i_copy_rstate,
+    (void (*)(scm_t_rstate *, SCM)) scm_i_init_rstate_scm,
+    (SCM (*)(scm_t_rstate *))       scm_i_expose_rstate
   };
   scm_the_rng = rng;
   
