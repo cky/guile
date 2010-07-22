@@ -2,7 +2,7 @@
 #define SCM_SRFI_4_H
 /* srfi-4.c --- Homogeneous numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -161,7 +161,6 @@ SCM_API SCM scm_u64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_u64vector (SCM l);
 SCM_API SCM scm_any_to_u64vector (SCM obj);
 
-#if SCM_HAVE_T_UINT64
 SCM_API SCM scm_take_u64vector (scm_t_uint64 *data, size_t n);
 SCM_API const scm_t_uint64 *scm_array_handle_u64_elements (scm_t_array_handle *h);
 SCM_API scm_t_uint64 *scm_array_handle_u64_writable_elements (scm_t_array_handle *h);
@@ -173,7 +172,6 @@ SCM_API scm_t_uint64 *scm_u64vector_writable_elements (SCM uvec,
 						       scm_t_array_handle *h,
 						       size_t *lenp,
 						       ssize_t *incp);
-#endif
 
 SCM_API SCM scm_s64vector_p (SCM obj);
 SCM_API SCM scm_make_s64vector (SCM n, SCM fill);
@@ -185,7 +183,6 @@ SCM_API SCM scm_s64vector_to_list (SCM uvec);
 SCM_API SCM scm_list_to_s64vector (SCM l);
 SCM_API SCM scm_any_to_s64vector (SCM obj);
 
-#if SCM_HAVE_T_INT64
 SCM_API SCM scm_take_s64vector (scm_t_int64 *data, size_t n);
 SCM_API const scm_t_int64 *scm_array_handle_s64_elements (scm_t_array_handle *h);
 SCM_API scm_t_int64 *scm_array_handle_s64_writable_elements (scm_t_array_handle *h);
@@ -196,7 +193,6 @@ SCM_API scm_t_int64 *scm_s64vector_writable_elements (SCM uvec,
 						      scm_t_array_handle *h,
 						      size_t *lenp,
 						      ssize_t *incp);
-#endif
 
 SCM_API SCM scm_f32vector_p (SCM obj);
 SCM_API SCM scm_make_f32vector (SCM n, SCM fill);

@@ -77,8 +77,6 @@ scm_t_rng scm_the_rng;
 #define M_PI 3.14159265359
 #endif
 
-#if SCM_HAVE_T_UINT64
-
 unsigned long
 scm_i_uniform32 (scm_t_i_rstate *state)
 {
@@ -88,38 +86,6 @@ scm_i_uniform32 (scm_t_i_rstate *state)
   state->c = x >> 32L;
   return w;
 }
-
-#else
-
-/*     ww  This is a portable version of the same RNG without 64 bit
- *   * aa  arithmetic.
- *   ----
- *     xx  It is only intended to provide identical behaviour on
- *    xx   platforms without 8 byte longs or long longs until
- *    xx   someone has implemented the routine in assembler code.
- *   xxcc
- *   ----
- *   ccww
- */
-
-#define L(x) ((x) & 0xffff)
-#define H(x) ((x) >> 16)
-
-unsigned long
-scm_i_uniform32 (scm_t_i_rstate *state)
-{
-  scm_t_uint32 x1 = L (A) * L (state->w);
-  scm_t_uint32 x2 = L (A) * H (state->w);
-  scm_t_uint32 x3 = H (A) * L (state->w);
-  scm_t_uint32 w = L (x1) + L (state->c);
-  scm_t_uint32 m = H (x1) + L (x2) + L (x3) + H (state->c) + H (w);
-  scm_t_uint32 x4 = H (A) * H (state->w);
-  state->w = w = (L (m) << 16) + L (w);
-  state->c = H (x2) + H (x3) + x4 + H (m);
-  return w;
-}
-
-#endif
 
 void
 scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)

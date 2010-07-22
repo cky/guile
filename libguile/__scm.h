@@ -390,11 +390,9 @@
 #define SCM_T_INT32_MIN   SCM_I_TYPE_MIN(scm_t_int32,SCM_T_UINT32_MAX)
 #define SCM_T_INT32_MAX   SCM_I_TYPE_MAX(scm_t_int32,SCM_T_UINT32_MAX)
 
-#if SCM_HAVE_T_INT64
 #define SCM_T_UINT64_MAX  SCM_I_UTYPE_MAX(scm_t_uint64)
 #define SCM_T_INT64_MIN   SCM_I_TYPE_MIN(scm_t_int64,SCM_T_UINT64_MAX)
 #define SCM_T_INT64_MAX   SCM_I_TYPE_MAX(scm_t_int64,SCM_T_UINT64_MAX)
-#endif
 
 #if SCM_SIZEOF_LONG_LONG
 #define SCM_I_ULLONG_MAX  SCM_I_UTYPE_MAX(unsigned long long)

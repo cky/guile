@@ -6285,8 +6285,6 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_wchar (arg)
 #include "libguile/conv-integer.i.c"
 
-#if SCM_HAVE_T_INT64
-
 #define TYPE                     scm_t_int64
 #define TYPE_MIN                 SCM_T_INT64_MIN
 #define TYPE_MAX                 SCM_T_INT64_MAX
@@ -6302,8 +6300,6 @@ scm_i_range_error (SCM bad_val, SCM min, SCM max)
 #define SCM_TO_TYPE_PROTO(arg)   scm_to_uint64 (arg)
 #define SCM_FROM_TYPE_PROTO(arg) scm_from_uint64 (arg)
 #include "libguile/conv-uinteger.i.c"
-
-#endif
 
 void
 scm_to_mpz (SCM val, mpz_t rop)

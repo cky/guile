@@ -3,7 +3,7 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -353,15 +353,11 @@ SCM_API SCM          scm_from_uint32 (scm_t_uint32 x);
 SCM_API scm_t_wchar  scm_to_wchar    (SCM x);
 SCM_API SCM          scm_from_wchar  (scm_t_wchar x);
 
-#if SCM_HAVE_T_INT64
-
 SCM_API scm_t_int64  scm_to_int64    (SCM x);
 SCM_API SCM          scm_from_int64  (scm_t_int64 x);
 
 SCM_API scm_t_uint64 scm_to_uint64   (SCM x);
 SCM_API SCM          scm_from_uint64 (scm_t_uint64 x);
-
-#endif
 
 SCM_API void scm_to_mpz (SCM x, mpz_t rop);
 SCM_API SCM  scm_from_mpz (mpz_t rop);

@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2003,2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2003,2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -702,10 +702,8 @@ DEFSTST (scm_to_int16)
 DEFUTST (scm_to_uint16)
 DEFSTST (scm_to_int32)
 DEFUTST (scm_to_uint32)
-#ifdef SCM_HAVE_T_INT64
 DEFSTST (scm_to_int64)
 DEFUTST (scm_to_uint64)
-#endif
 
 #define TEST_8S(v,f,r,re,te) test_8s (v, tst_##f, #f, r, re, te)
 #define TEST_8U(v,f,r,re,te) test_8u (v, tst_##f, #f, r, re, te)
@@ -745,11 +743,9 @@ test_int_sizes ()
   TEST_7S (scm_from_int32,  SCM_T_INT32_MAX+1LL, "-2147483648");
   TEST_7U (scm_from_uint32, SCM_T_UINT32_MAX,     "4294967295");
 
-#if SCM_HAVE_T_INT64
   TEST_7S (scm_from_int64,  SCM_T_INT64_MIN,  "-9223372036854775808");
   TEST_7S (scm_from_int64,  SCM_T_INT64_MAX,   "9223372036854775807");
   TEST_7U (scm_from_uint64, SCM_T_UINT64_MAX, "18446744073709551615");
-#endif
 
   TEST_8S ("91",   scm_to_schar,   91, 0, 0);
   TEST_8U ("91",   scm_to_uchar,   91, 0, 0);
@@ -794,7 +790,6 @@ test_int_sizes ()
   TEST_8U ("-1",          scm_to_uint32,                0, 1, 0);
   TEST_8U ("#f",          scm_to_uint32,                0, 0, 1);
 
-#if SCM_HAVE_T_INT64
   TEST_8S ("-9223372036854775808", scm_to_int64,   SCM_T_INT64_MIN, 0, 0);
   TEST_8S ("9223372036854775807",  scm_to_int64,   SCM_T_INT64_MAX, 0, 0);
   TEST_8S ("9223372036854775808",  scm_to_int64,                 0, 1, 0);
@@ -803,7 +798,6 @@ test_int_sizes ()
   TEST_8U ("18446744073709551616", scm_to_uint64,                0, 1, 0);
   TEST_8U ("-1",                   scm_to_uint64,                0, 1, 0);
   TEST_8U ("#f",                   scm_to_uint64,                0, 0, 1);
-#endif
 
 }
 
