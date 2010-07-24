@@ -593,10 +593,11 @@ bin_SCRIPTS = guile-snarf
 
 # We can re-enable install for some of these if/when they are documented
 # and people feel like maintaining them.  For now, this is not the case.
-noinst_SCRIPTS = guile-snarf-docs guile-func-name-check
+noinst_SCRIPTS = guile-snarf-docs
 
 EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008	\
+    guile-func-name-check				\
     cpp-E.syms cpp-E.c cpp-SIG.syms cpp-SIG.c			\
     c-tokenize.lex version.h.in						\
     scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map
