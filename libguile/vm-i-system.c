@@ -307,10 +307,13 @@ VM_DEFINE_INSTRUCTION (26, variable_ref, "variable-ref", 0, 1, 1)
 {
   SCM x = *sp;
 
-  if (!VARIABLE_BOUNDP (x))
+  if (SCM_UNLIKELY (!VARIABLE_BOUNDP (x)))
     {
-      finish_args = scm_list_1 (x);
-      /* Was: finish_args = SCM_LIST1 (SCM_CAR (x)); */
+      SCM var_name;
+
+      /* Attempt to provide the variable name in the error message.  */
+      var_name = scm_module_reverse_lookup (scm_current_module (), x);
+      finish_args = scm_list_1 (scm_is_true (var_name) ? var_name : x);
       goto vm_error_unbound;
     }
   else

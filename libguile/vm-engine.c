@@ -140,6 +140,8 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     goto vm_error;
 
   vm_error_unbound:
+    /* At this point FINISH_ARGS should be a one-element list containing
+       the name of the unbound variable.  */
     err_msg  = scm_from_locale_string ("VM: Unbound variable: ~s");
     goto vm_error;
 
