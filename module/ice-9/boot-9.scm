@@ -1116,7 +1116,7 @@ If there is no handler at all, Guile prints an error and then exits."
       (lambda ()
         (let* ((scmstat (stat name))
                (gostat (stat go-path #f)))
-          (if (and gostat (= (stat:mtime gostat) (stat:mtime scmstat)))
+          (if (and gostat (>= (stat:mtime gostat) (stat:mtime scmstat)))
               go-path
               (begin
                 (if gostat

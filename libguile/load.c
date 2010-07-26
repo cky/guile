@@ -614,10 +614,10 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 
   source = scm_to_locale_string (full_filename);
   compiled = scm_to_locale_string (compiled_filename);
-    
+
   if (stat (source, &stat_source) == 0
       && stat (compiled, &stat_compiled) == 0
-      && stat_source.st_mtime == stat_compiled.st_mtime) 
+      && stat_source.st_mtime <= stat_compiled.st_mtime)
     {
       res = 1;
     }

@@ -81,11 +81,6 @@
            (proc tmp)
            (chmod tmp (logand #o0666 (lognot (umask))))
            (close-port tmp)
-           (if reference
-               (let ((st (stat reference)))
-                 (utime template
-                        (stat:atime st) (stat:mtime st)
-                        (stat:atimensec st) (stat:mtimensec st))))
            (rename-file template filename))
          (lambda args
            (delete-file template)))))))
