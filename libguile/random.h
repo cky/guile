@@ -39,8 +39,8 @@
  */
 
 typedef struct scm_t_rstate {
-  int reserved0;
-  double reserved1;
+  struct scm_t_rng *rng;
+  double normal_next; /* For scm_c_uniform01 */
   /* Custom fields follow here */
 } scm_t_rstate;
 
@@ -62,7 +62,7 @@ SCM_API scm_t_rng scm_the_rng;
 SCM_API scm_t_rstate *scm_c_make_rstate (const char *, int);
 SCM_API scm_t_rstate *scm_c_rstate_from_datum (SCM datum);
 SCM_API scm_t_rstate *scm_c_default_rstate (void);
-#define scm_c_uniform32(RSTATE) scm_the_rng.random_bits (RSTATE)
+#define scm_c_uniform32(RSTATE) ((RSTATE)->rng->random_bits (RSTATE))
 SCM_API double scm_c_uniform01 (scm_t_rstate *);
 SCM_API double scm_c_normal01 (scm_t_rstate *);
 SCM_API double scm_c_exp1 (scm_t_rstate *);

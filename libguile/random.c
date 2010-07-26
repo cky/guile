@@ -121,9 +121,9 @@ scm_i_copy_rstate (scm_t_rstate *state)
 {
   scm_t_rstate *new_state;
 
-  new_state = scm_gc_malloc_pointerless (scm_the_rng.rstate_size,
+  new_state = scm_gc_malloc_pointerless (state->rng->rstate_size,
 					 "random-state");
-  return memcpy (new_state, state, scm_the_rng.rstate_size);
+  return memcpy (new_state, state, state->rng->rstate_size);
 }
 
 SCM_SYMBOL(scm_i_rstate_tag, "multiply-with-carry");
@@ -169,8 +169,9 @@ scm_c_make_rstate (const char *seed, int n)
 
   state = scm_gc_malloc_pointerless (scm_the_rng.rstate_size,
 				     "random-state");
-  state->reserved0 = 0;
-  scm_the_rng.init_rstate (state, seed, n);
+  state->rng = &scm_the_rng;
+  state->normal_next = 0.0;
+  state->rng->init_rstate (state, seed, n);
   return state;
 }
 
@@ -181,8 +182,9 @@ scm_c_rstate_from_datum (SCM datum)
 
   state = scm_gc_malloc_pointerless (scm_the_rng.rstate_size,
 				     "random-state");
-  state->reserved0 = 0;
-  scm_the_rng.from_datum (state, datum);
+  state->rng = &scm_the_rng;
+  state->normal_next = 0.0;
+  state->rng->from_datum (state, datum);
   return state;
 }
 
@@ -198,21 +200,24 @@ scm_c_default_rstate ()
 #undef FUNC_NAME
 
 
-inline double
+double
 scm_c_uniform01 (scm_t_rstate *state)
 {
-  double x = (double) scm_the_rng.random_bits (state) / (double) 0xffffffffUL;
-  return ((x + (double) scm_the_rng.random_bits (state))
+  double x = (double) state->rng->random_bits (state) / (double) 0xffffffffUL;
+  return ((x + (double) state->rng->random_bits (state))
 	  / (double) 0xffffffffUL);
 }
 
 double
 scm_c_normal01 (scm_t_rstate *state)
 {
-  if (state->reserved0)
+  if (state->normal_next != 0.0)
     {
-      state->reserved0 = 0;
-      return state->reserved1;
+      double ret = state->normal_next;
+
+      state->normal_next = 0.0;
+
+      return ret;
     }
   else
     {
@@ -222,8 +227,7 @@ scm_c_normal01 (scm_t_rstate *state)
       a = 2.0 * M_PI * scm_c_uniform01 (state);
       
       n = r * sin (a);
-      state->reserved1 = r * cos (a);
-      state->reserved0 = 1;
+      state->normal_next = r * cos (a);
       
       return n;
     }
@@ -248,7 +252,7 @@ scm_c_random (scm_t_rstate *state, scm_t_uint32 m)
 	     : (m < 0x1000000
 		? scm_masktab[m >> 16] << 16 | 0xffff
 		: scm_masktab[m >> 24] << 24 | 0xffffff)));
-  while ((r = scm_the_rng.random_bits (state) & mask) >= m);
+  while ((r = state->rng->random_bits (state) & mask) >= m);
   return r;
 }
 
@@ -297,7 +301,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
         {
           /* generate a mask with ones in the end_bits position, i.e. if
              end_bits is 3, then we'd have a mask of ...0000000111 */
-          const scm_t_uint32 rndbits = scm_the_rng.random_bits (state);
+          const scm_t_uint32 rndbits = state->rng->random_bits (state);
           int rshift = (sizeof (scm_t_uint32) * SCM_CHAR_BIT) - end_bits;
           scm_t_uint32 mask = ((scm_t_uint32)-1) >> rshift;
           scm_t_uint32 highest_bits = rndbits & mask;
@@ -308,7 +312,7 @@ scm_c_random_bignum (scm_t_rstate *state, SCM m)
       while (chunks_left)
         {
           /* now fill in the remaining scm_t_uint32 sized chunks */
-          *current_chunk-- = scm_the_rng.random_bits (state);
+          *current_chunk-- = state->rng->random_bits (state);
           chunks_left--;
         }
       mpz_import (SCM_I_BIG_MPZ (result),
@@ -390,7 +394,7 @@ SCM_DEFINE (scm_copy_random_state, "copy-random-state", 0, 1, 0,
   if (SCM_UNBNDP (state))
     state = SCM_VARIABLE_REF (scm_var_random_state);
   SCM_VALIDATE_RSTATE (1, state);
-  return make_rstate (scm_the_rng.copy_rstate (SCM_RSTATE (state)));
+  return make_rstate (SCM_RSTATE (state)->rng->copy_rstate (SCM_RSTATE (state)));
 }
 #undef FUNC_NAME
 
@@ -428,7 +432,7 @@ SCM_DEFINE (scm_random_state_to_datum, "random-state->datum", 1, 0, 0,
 #define FUNC_NAME s_scm_random_state_to_datum
 {
   SCM_VALIDATE_RSTATE (1, state);
-  return scm_the_rng.to_datum (SCM_RSTATE (state));
+  return SCM_RSTATE (state)->rng->to_datum (SCM_RSTATE (state));
 }
 #undef FUNC_NAME
 
