@@ -23,35 +23,47 @@
 (define-module (test-foreign)
   #:use-module (system foreign)
   #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-1)
   #:use-module (test-suite lib))
 
 
 (with-test-prefix "null pointer"
 
   (pass-if "zero"
-    (= 0 (foreign-ref %null-pointer)))
+    (= 0 (foreign-address %null-pointer)))
 
-  (pass-if-exception "foreign-set! %null-pointer"
-    exception:null-pointer-error
-    (foreign-set! %null-pointer 2))
+  (pass-if "null pointer identity"
+    (eq? %null-pointer (make-pointer 0)))
 
-  (pass-if "foreign-set! other-null-pointer"
-    (let ((f (bytevector->foreign (make-bytevector 2))))
-      (and (not (= 0 (foreign-ref f)))
-           (begin
-             (foreign-set! f 0)
-             (= 0 (foreign-ref f)))
-           (begin
-             ;; Here changing the pointer value of F is perfectly valid.
-             (foreign-set! f 777)
-             (= 777 (foreign-ref f))))))
+  (pass-if "null-pointer? %null-pointer"
+    (null-pointer? %null-pointer))
 
   (pass-if-exception "foreign->bytevector %null-pointer"
     exception:null-pointer-error
-    (foreign->bytevector %null-pointer))
+    (foreign->bytevector %null-pointer 7)))
 
-  (pass-if-exception "foreign->bytevector other-null-pointer"
-    exception:null-pointer-error
-    (let ((f (bytevector->foreign (make-bytevector 2))))
-      (foreign-set! f 0)
-      (foreign->bytevector f))))
+
+(with-test-prefix "make-pointer"
+
+  (pass-if "address preserved"
+    (= 123 (foreign-address (make-pointer 123)))))
+
+
+(with-test-prefix "foreign<->bytevector"
+
+  (pass-if "bijection"
+    (let ((bv #vu8(0 1 2 3 4 5 6 7)))
+      (equal? (foreign->bytevector (bytevector->foreign bv)
+                                   (bytevector-length bv))
+              bv)))
+
+  (pass-if "pointer from bits"
+    (let* ((bytes (iota (sizeof '*)))
+           (bv    (u8-list->bytevector bytes)))
+      (= (foreign-address
+          (make-pointer (bytevector-uint-ref bv 0 (native-endianness)
+                                             (sizeof '*))))
+         (fold-right (lambda (byte address)
+                       (+ byte (* 256 address)))
+                     0
+                     bytes)))))

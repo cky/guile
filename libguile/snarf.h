@@ -361,10 +361,8 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 			     (scm_t_bits) 0,				\
 			     (scm_t_bits) sizeof (contents) - 1)
 
-#define SCM_IMMUTABLE_FOREIGN(c_name, ptr)                              \
-  SCM_IMMUTABLE_CELL (c_name,                                           \
-                      scm_tc7_foreign | (SCM_FOREIGN_TYPE_VOID << 8),   \
-                      ptr)
+#define SCM_IMMUTABLE_FOREIGN(c_name, ptr)		\
+  SCM_IMMUTABLE_CELL (c_name, scm_tc7_foreign, ptr)
 
 /* for primitive-generics, add a foreign to the end */
 #define SCM_STATIC_SUBR_OBJVECT(c_name, foreign)                        \

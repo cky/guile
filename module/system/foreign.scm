@@ -25,11 +25,14 @@
             uint16 int16
             uint32 int32
             uint64 int64
-            %null-pointer
 
             sizeof alignof
 
-            foreign-ref foreign-set!
+            %null-pointer
+            null-pointer?
+            make-pointer
+            foreign-address
+
             foreign->bytevector bytevector->foreign
             foreign-set-finalizer!
             make-foreign-function
@@ -37,6 +40,20 @@
 
 (load-extension (string-append "libguile-" (effective-version))
                 "scm_init_foreign")
+
+
+;;;
+;;; Pointers.
+;;;
+
+(define (null-pointer? pointer)
+  (= (foreign-address pointer) 0))
+
+
+
+;;;
+;;; Structures.
+;;;
 
 (define *writers*
   `((,float . ,bytevector-ieee-single-native-set!)

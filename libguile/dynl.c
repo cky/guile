@@ -235,13 +235,11 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 3, 1, 0, 
-            (SCM name, SCM type, SCM dobj, SCM len),
+SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 2, 0, 0,
+            (SCM name, SCM dobj),
 	    "Return a ``handle'' for the pointer @var{name} in the\n"
 	    "shared object referred to by @var{dobj}.  The handle\n"
-	    "aliases a C value, and is declared to be of type\n"
-            "@var{type}. Valid types are defined in the\n"
-            "@code{(system foreign)} module.\n\n"
+	    "aliases a C object.\n\n"
             "This facility works by asking the dynamic linker for\n"
             "the address of a symbol, then assuming that it aliases a\n"
             "value of a given type. Obviously, the user must be very\n"
@@ -254,11 +252,9 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 3, 1, 0,
 #define FUNC_NAME s_scm_dynamic_pointer
 {
   void *val;
-  scm_t_foreign_type t;
 
   SCM_VALIDATE_STRING (1, name);
-  t = scm_to_unsigned_integer (type, 0, SCM_FOREIGN_TYPE_LAST);
-  SCM_VALIDATE_SMOB (SCM_ARG3, dobj, dynamic_obj);
+  SCM_VALIDATE_SMOB (SCM_ARG2, dobj, dynamic_obj);
 
   if (DYNL_HANDLE (dobj) == NULL)
     SCM_MISC_ERROR ("Already unlinked: ~S", dobj);
@@ -272,9 +268,7 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 3, 1, 0,
       val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
       scm_dynwind_end ();
 
-      return scm_take_foreign_pointer (t, val,
-				       SCM_UNBNDP (len) ? 0 : scm_to_size_t (len),
-				       NULL);
+      return scm_take_foreign_pointer (val, NULL);
     }
 }
 #undef FUNC_NAME
@@ -292,10 +286,7 @@ SCM_DEFINE (scm_dynamic_func, "dynamic-func", 2, 0, 0,
 	    "since it will be added automatically when necessary.")
 #define FUNC_NAME s_scm_dynamic_func
 {
-  return scm_dynamic_pointer (name,
-                              scm_from_uint (SCM_FOREIGN_TYPE_VOID),
-                              dobj,
-                              SCM_UNDEFINED);
+  return scm_dynamic_pointer (name, dobj);
 }
 #undef FUNC_NAME
 
@@ -324,9 +315,9 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
   
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  SCM_VALIDATE_FOREIGN_TYPED (SCM_ARG1, func, VOID);
+  SCM_VALIDATE_FOREIGN (SCM_ARG1, func);
 
-  fptr = SCM_FOREIGN_POINTER (func, void);
+  fptr = SCM_FOREIGN_POINTER (func);
   fptr ();
   return SCM_UNSPECIFIED;
 }

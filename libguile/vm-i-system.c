@@ -845,7 +845,7 @@ VM_DEFINE_INSTRUCTION (56, subr_call, "subr-call", 1, -1, -1)
   nargs = FETCH ();
   POP (foreign);
 
-  subr = SCM_FOREIGN_POINTER (foreign, void);
+  subr = SCM_FOREIGN_POINTER (foreign);
 
   VM_HANDLE_INTERRUPTS;
   SYNC_REGISTER ();
