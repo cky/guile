@@ -71,25 +71,34 @@ scm_t_rng scm_the_rng;
  * (http://stat.fsu.edu/~geo/diehard.html)
  */
 
+typedef struct scm_t_i_rstate {
+  scm_t_rstate rstate;
+  scm_t_uint32 w;
+  scm_t_uint32 c;
+} scm_t_i_rstate;
+
+
 #define A 2131995753UL
 
 #ifndef M_PI
 #define M_PI 3.14159265359
 #endif
 
-scm_t_uint32
-scm_i_uniform32 (scm_t_i_rstate *state)
+static scm_t_uint32
+scm_i_uniform32 (scm_t_rstate *state)
 {
-  scm_t_uint64 x = (scm_t_uint64) A * state->w + state->c;
+  scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
+  scm_t_uint64 x = (scm_t_uint64) A * istate->w + istate->c;
   scm_t_uint32 w = x & 0xffffffffUL;
-  state->w = w;
-  state->c = x >> 32L;
+  istate->w = w;
+  istate->c = x >> 32L;
   return w;
 }
 
-void
-scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)
+static void
+scm_i_init_rstate (scm_t_rstate *state, const char *seed, int n)
 {
+  scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
   scm_t_uint32 w = 0L;
   scm_t_uint32 c = 0L;
   int i, m;
@@ -103,12 +112,12 @@ scm_i_init_rstate (scm_t_i_rstate *state, const char *seed, int n)
     }
   if ((w == 0 && c == 0) || (w == -1 && c == A - 1))
     ++c;
-  state->w = w;
-  state->c = c;
+  istate->w = w;
+  istate->c = c;
 }
 
-scm_t_i_rstate *
-scm_i_copy_rstate (scm_t_i_rstate *state)
+static scm_t_rstate *
+scm_i_copy_rstate (scm_t_rstate *state)
 {
   scm_t_rstate *new_state;
 
@@ -119,10 +128,11 @@ scm_i_copy_rstate (scm_t_i_rstate *state)
 
 SCM_SYMBOL(scm_i_rstate_tag, "multiply-with-carry");
 
-void
-scm_i_init_rstate_scm (scm_t_i_rstate *state, SCM value)
-#define FUNC_NAME "scm_i_init_rstate_scm"
+static void
+scm_i_rstate_from_datum (scm_t_rstate *state, SCM value)
+#define FUNC_NAME "scm_i_rstate_from_datum"
 {
+  scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
   scm_t_uint32 w, c;
   long length;
   
@@ -133,17 +143,18 @@ scm_i_init_rstate_scm (scm_t_i_rstate *state, SCM value)
   SCM_VALIDATE_UINT_COPY (SCM_ARG1, SCM_CADR (value), w);
   SCM_VALIDATE_UINT_COPY (SCM_ARG1, SCM_CADDR (value), c);
 
-  state->w = w;
-  state->c = c;
+  istate->w = w;
+  istate->c = c;
 }
 #undef FUNC_NAME
 
-SCM
-scm_i_expose_rstate (scm_t_i_rstate *state)
+static SCM
+scm_i_rstate_to_datum (scm_t_rstate *state)
 {
+  scm_t_i_rstate *istate = (scm_t_i_rstate*) state;
   return scm_list_3 (scm_i_rstate_tag,
-                     scm_from_uint32 (state->w),
-                     scm_from_uint32 (state->c));
+                     scm_from_uint32 (istate->w),
+                     scm_from_uint32 (istate->c));
 }
 
 
@@ -164,14 +175,14 @@ scm_c_make_rstate (const char *seed, int n)
 }
 
 scm_t_rstate *
-scm_c_make_rstate_scm (SCM external)
+scm_c_rstate_from_datum (SCM datum)
 {
   scm_t_rstate *state;
 
   state = scm_gc_malloc_pointerless (scm_the_rng.rstate_size,
 				     "random-state");
   state->reserved0 = 0;
-  scm_the_rng.init_rstate_scm (state, external);
+  scm_the_rng.from_datum (state, datum);
   return state;
 }
 
@@ -400,25 +411,26 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_external_to_random_state, "external->random-state", 1, 0, 0, 
-            (SCM external),
-            "Return a new random state using @var{external}.\n"
+SCM_DEFINE (scm_datum_to_random_state, "datum->random-state", 1, 0, 0, 
+            (SCM datum),
+            "Return a new random state using @var{datum}.\n"
             "\n"
-            "@var{external} must be an external state representation obtained\n"
-            "from @code{random-state->external}.")
-#define FUNC_NAME s_scm_external_to_random_state
+            "@var{datum} must be an external state representation obtained\n"
+            "from @code{random-state->datum}.")
+#define FUNC_NAME s_scm_datum_to_random_state
 {
-  return make_rstate (scm_c_make_rstate_scm (external));
+  return make_rstate (scm_c_rstate_from_datum (datum));
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_random_state_to_external, "random-state->external", 1, 0, 0, 
+SCM_DEFINE (scm_random_state_to_datum, "random-state->datum", 1, 0, 0, 
             (SCM state),
-            "Return an external representation of @var{state}.")
-#define FUNC_NAME s_scm_random_state_to_external
+            "Return a datum representation of @var{state} that may be\n"
+            "written out and read back with the Scheme reader.")
+#define FUNC_NAME s_scm_random_state_to_datum
 {
   SCM_VALIDATE_RSTATE (1, state);
-  return scm_the_rng.expose_rstate (SCM_RSTATE (state));
+  return scm_the_rng.to_datum (SCM_RSTATE (state));
 }
 #undef FUNC_NAME
 
@@ -618,11 +630,11 @@ scm_init_random ()
   scm_t_rng rng =
   {
     sizeof (scm_t_i_rstate),
-    (scm_t_uint32 (*)())            scm_i_uniform32,
-    (void (*)())                    scm_i_init_rstate,
-    (scm_t_rstate *(*)())           scm_i_copy_rstate,
-    (void (*)(scm_t_rstate *, SCM)) scm_i_init_rstate_scm,
-    (SCM (*)(scm_t_rstate *))       scm_i_expose_rstate
+    scm_i_uniform32,
+    scm_i_init_rstate,
+    scm_i_copy_rstate,
+    scm_i_rstate_from_datum,
+    scm_i_rstate_to_datum
   };
   scm_the_rng = rng;
   
