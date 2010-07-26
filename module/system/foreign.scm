@@ -32,6 +32,7 @@
             null-pointer?
             make-pointer
             foreign-address
+            dereference-pointer
 
             foreign->bytevector bytevector->foreign
             foreign-set-finalizer!

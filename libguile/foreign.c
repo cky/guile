@@ -162,6 +162,19 @@ SCM_DEFINE (scm_foreign_address, "foreign-address", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
+	    (SCM foreign),
+	    "Return the a foreign object representing the pointer "
+	    "pointed to by @var{foreign}.")
+#define FUNC_NAME s_scm_dereference_pointer
+{
+  SCM_VALIDATE_FOREIGN (1, foreign);
+
+  return scm_take_foreign_pointer (* (void **) SCM_FOREIGN_POINTER (foreign),
+				   NULL);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_foreign_to_bytevector, "foreign->bytevector", 2, 2, 0,
 	    (SCM foreign, SCM len, SCM offset, SCM uvec_type),
 	    "Return a bytevector aliasing the memory pointed to by\n"

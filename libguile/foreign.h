@@ -69,6 +69,7 @@ SCM_API SCM scm_foreign_set_finalizer_x (SCM foreign, SCM finalizer);
 SCM_API SCM scm_bytevector_to_foreign (SCM bv, SCM offset, SCM len);
 
 SCM_INTERNAL SCM scm_make_pointer (SCM address, SCM finalizer);
+SCM_INTERNAL SCM scm_dereference_pointer (SCM pointer);
 SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,
                                        scm_print_state *pstate);
 
