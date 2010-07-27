@@ -248,36 +248,25 @@ SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_bytevector_to_pointer, "bytevector->pointer", 1, 2, 0,
-	    (SCM bv, SCM offset, SCM len),
+SCM_DEFINE (scm_bytevector_to_pointer, "bytevector->pointer", 1, 1, 0,
+	    (SCM bv, SCM offset),
 	    "Return a pointer pointer aliasing the memory pointed to by\n"
-            "@var{bv}.\n\n"
-            "The resulting pointer will be a void pointer, a pointer whose\n"
-            "type is @code{void}. By default it will alias all of the\n"
-            "memory pointed to by @var{bv}, from beginning to end.\n\n"
-            "Users may explicily specify that the pointer should only alias a\n"
-            "subset of the memory, by specifying @var{offset} and @var{len}\n"
-            "arguments.")
+            "@var{bv} or @var{offset} bytes after @var{bv} when @var{offset}\n"
+	    "is passed.")
 #define FUNC_NAME s_scm_bytevector_to_pointer
 {
   SCM ret;
   scm_t_int8 *ptr;
-  size_t boffset, blen;
+  size_t boffset;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
   ptr = SCM_BYTEVECTOR_CONTENTS (bv);
-  
+
   if (SCM_UNBNDP (offset))
     boffset = 0;
   else
     boffset = scm_to_unsigned_integer (offset, 0,
                                        SCM_BYTEVECTOR_LENGTH (bv) - 1);
-
-  if (SCM_UNBNDP (len))
-    blen = SCM_BYTEVECTOR_LENGTH (bv) - boffset;
-  else
-    blen = scm_to_unsigned_integer (len, 0,
-                                    SCM_BYTEVECTOR_LENGTH (bv) - boffset);
 
   ret = scm_from_pointer (ptr + boffset, NULL);
   register_weak_reference (ret, bv);

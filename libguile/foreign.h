@@ -66,7 +66,7 @@ SCM_API SCM scm_pointer_address (SCM pointer);
 SCM_API SCM scm_pointer_to_bytevector (SCM pointer, SCM type,
                                        SCM offset, SCM len);
 SCM_API SCM scm_set_pointer_finalizer_x (SCM pointer, SCM finalizer);
-SCM_API SCM scm_bytevector_to_pointer (SCM bv, SCM offset, SCM len);
+SCM_API SCM scm_bytevector_to_pointer (SCM bv, SCM offset);
 
 SCM_INTERNAL SCM scm_make_pointer (SCM address, SCM finalizer);
 SCM_INTERNAL SCM scm_dereference_pointer (SCM pointer);
