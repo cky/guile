@@ -371,9 +371,26 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
   SCM_VALIDATE_RSTATE (2, state);
   if (SCM_I_INUMP (n))
     {
-      scm_t_uint32 m = SCM_I_INUM (n);
-      SCM_ASSERT_RANGE (1, n, m > 0);
-      return scm_from_uint32 (scm_c_random (SCM_RSTATE (state), m));
+      unsigned long m = (unsigned long) SCM_I_INUM (n);
+      SCM_ASSERT_RANGE (1, n, SCM_I_INUM (n) > 0);
+#if SCM_SIZEOF_UNSIGNED_LONG <= 4
+      return scm_from_uint32 (scm_c_random (SCM_RSTATE (state),
+                                            (scm_t_uint32) m));
+#elif SCM_SIZEOF_UNSIGNED_LONG <= 8
+      if (m <= SCM_T_UINT32_MAX)
+        return scm_from_uint32 (scm_c_random (SCM_RSTATE (state),
+                                              (scm_t_uint32) m));
+      else
+        {
+          scm_t_uint64 upper, lower;
+          
+          upper = scm_c_random (SCM_RSTATE (state), (scm_t_uint32) (m >> 32));
+          lower = scm_c_random (SCM_RSTATE (state), SCM_T_UINT32_MAX);
+          return scm_from_uint64 ((upper << 32) | lower);
+        }
+#else
+#error "Cannot deal with this platform's unsigned long size"
+#endif
     }
   SCM_VALIDATE_NIM (1, n);
   if (SCM_REALP (n))

@@ -40,7 +40,7 @@
 
 typedef struct scm_t_rstate {
   struct scm_t_rng *rng;
-  double normal_next; /* For scm_c_uniform01 */
+  double normal_next; /* For scm_c_normal01 */
   /* Custom fields follow here */
 } scm_t_rstate;
 
