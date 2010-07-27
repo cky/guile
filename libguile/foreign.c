@@ -107,7 +107,6 @@ SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
 {
   void *c_finalizer;
   scm_t_uintptr c_address;
-  SCM result;
 
   c_address = scm_to_uintptr (address);
   if (SCM_UNBNDP (finalizer))
@@ -118,12 +117,7 @@ SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
       c_finalizer = SCM_POINTER_VALUE (finalizer);
     }
 
-  if (c_address == 0 && c_finalizer == NULL)
-    result = null_pointer;
-  else
-    result = scm_from_pointer ((void *) c_address, c_finalizer);
-
-  return result;
+  return scm_from_pointer ((void *) c_address, c_finalizer);
 }
 #undef FUNC_NAME
 
@@ -131,21 +125,27 @@ SCM
 scm_from_pointer (void *ptr, scm_t_pointer_finalizer finalizer)
 {
   SCM ret;
-  scm_t_bits word0;
 
-  word0 = scm_tc7_pointer | (finalizer ? (1 << 16UL) : 0UL);
-
-  ret = scm_cell (word0, (scm_t_bits) ptr);
-  if (finalizer)
+  if (ptr == NULL && finalizer == NULL)
+    ret = null_pointer;
+  else
     {
-      /* Register a finalizer for the newly created instance.  */
-      GC_finalization_proc prev_finalizer;
-      GC_PTR prev_finalizer_data;
-      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
-                                      pointer_finalizer_trampoline,
-                                      finalizer,
-                                      &prev_finalizer,
-                                      &prev_finalizer_data);
+      scm_t_bits type;
+
+      type = scm_tc7_pointer | (finalizer ? (1 << 16UL) : 0UL);
+      ret = scm_cell (type, (scm_t_bits) ptr);
+
+      if (finalizer)
+	{
+	  /* Register a finalizer for the newly created instance.  */
+	  GC_finalization_proc prev_finalizer;
+	  GC_PTR prev_finalizer_data;
+	  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
+					  pointer_finalizer_trampoline,
+					  finalizer,
+					  &prev_finalizer,
+					  &prev_finalizer_data);
+	}
     }
 
   return ret;
