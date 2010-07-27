@@ -1,5 +1,5 @@
 /* Copyright (C) 2010  Free Software Foundation, Inc.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -82,19 +82,19 @@ null_pointer_error (const char *func_name)
 static SCM cif_to_procedure (SCM cif, SCM func_ptr);
 
 
-static SCM foreign_weak_refs = SCM_BOOL_F;
+static SCM pointer_weak_refs = SCM_BOOL_F;
 
 static void
 register_weak_reference (SCM from, SCM to)
 {
-  scm_hashq_set_x (foreign_weak_refs, from, to);
+  scm_hashq_set_x (pointer_weak_refs, from, to);
 }
 
 static void
-foreign_finalizer_trampoline (GC_PTR ptr, GC_PTR data)
+pointer_finalizer_trampoline (GC_PTR ptr, GC_PTR data)
 {
-  scm_t_foreign_finalizer finalizer = data;
-  finalizer (SCM_FOREIGN_POINTER (PTR2SCM (ptr)));
+  scm_t_pointer_finalizer finalizer = data;
+  finalizer (SCM_POINTER_VALUE (PTR2SCM (ptr)));
 }
 
 SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
@@ -114,26 +114,26 @@ SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
     c_finalizer = NULL;
   else
     {
-      SCM_VALIDATE_FOREIGN (2, finalizer);
-      c_finalizer = SCM_FOREIGN_POINTER (finalizer);
+      SCM_VALIDATE_POINTER (2, finalizer);
+      c_finalizer = SCM_POINTER_VALUE (finalizer);
     }
 
   if (c_address == 0 && c_finalizer == NULL)
     result = null_pointer;
   else
-    result = scm_take_foreign_pointer ((void *) c_address, c_finalizer);
+    result = scm_from_pointer ((void *) c_address, c_finalizer);
 
   return result;
 }
 #undef FUNC_NAME
 
 SCM
-scm_take_foreign_pointer (void *ptr, scm_t_foreign_finalizer finalizer)
+scm_from_pointer (void *ptr, scm_t_pointer_finalizer finalizer)
 {
   SCM ret;
   scm_t_bits word0;
 
-  word0 = scm_tc7_foreign | (finalizer ? (1 << 16UL) : 0UL);
+  word0 = scm_tc7_pointer | (finalizer ? (1 << 16UL) : 0UL);
 
   ret = scm_cell (word0, (scm_t_bits) ptr);
   if (finalizer)
@@ -142,7 +142,7 @@ scm_take_foreign_pointer (void *ptr, scm_t_foreign_finalizer finalizer)
       GC_finalization_proc prev_finalizer;
       GC_PTR prev_finalizer_data;
       GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
-                                      foreign_finalizer_trampoline,
+                                      pointer_finalizer_trampoline,
                                       finalizer,
                                       &prev_finalizer,
                                       &prev_finalizer_data);
@@ -151,37 +151,36 @@ scm_take_foreign_pointer (void *ptr, scm_t_foreign_finalizer finalizer)
   return ret;
 }
 
-SCM_DEFINE (scm_foreign_address, "foreign-address", 1, 0, 0,
-	    (SCM foreign),
-	    "Return the numerical value of @var{foreign}.")
-#define FUNC_NAME s_scm_foreign_address
+SCM_DEFINE (scm_pointer_address, "pointer-address", 1, 0, 0,
+	    (SCM pointer),
+	    "Return the numerical value of @var{pointer}.")
+#define FUNC_NAME s_scm_pointer_address
 {
-  SCM_VALIDATE_FOREIGN (1, foreign);
+  SCM_VALIDATE_POINTER (1, pointer);
 
-  return scm_from_uintptr ((scm_t_uintptr) SCM_FOREIGN_POINTER (foreign));
+  return scm_from_uintptr ((scm_t_uintptr) SCM_POINTER_VALUE (pointer));
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
-	    (SCM foreign),
-	    "Return the a foreign object representing the pointer "
-	    "pointed to by @var{foreign}.")
+	    (SCM pointer),
+	    "Return the a pointer object representing the pointer "
+	    "pointed to by @var{pointer}.")
 #define FUNC_NAME s_scm_dereference_pointer
 {
-  SCM_VALIDATE_FOREIGN (1, foreign);
+  SCM_VALIDATE_POINTER (1, pointer);
 
-  return scm_take_foreign_pointer (* (void **) SCM_FOREIGN_POINTER (foreign),
-				   NULL);
+  return scm_from_pointer (* (void **) SCM_POINTER_VALUE (pointer), NULL);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_foreign_to_bytevector, "foreign->bytevector", 2, 2, 0,
-	    (SCM foreign, SCM len, SCM offset, SCM uvec_type),
+SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
+	    (SCM pointer, SCM len, SCM offset, SCM uvec_type),
 	    "Return a bytevector aliasing the memory pointed to by\n"
-            "@var{foreign}.\n\n"
-            "@var{foreign} must be a void pointer, a foreign whose type is\n"
+            "@var{pointer}.\n\n"
+            "@var{pointer} must be a void pointer, a pointer whose type is\n"
             "@var{void}. By default, the resulting bytevector will alias\n"
-            "all of the memory pointed to by @var{foreign}, from beginning\n"
+            "all of the memory pointed to by @var{pointer}, from beginning\n"
             "to end, treated as a @code{vu8} array.\n\n"
             "The user may specify an alternate default interpretation for\n"
             "the memory by passing the @var{uvec_type} argument, to indicate\n"
@@ -192,15 +191,15 @@ SCM_DEFINE (scm_foreign_to_bytevector, "foreign->bytevector", 2, 2, 0,
             "Users may also specify that the bytevector should only alias a\n"
             "subset of the memory, by specifying @var{offset} and @var{len}\n"
             "arguments.")
-#define FUNC_NAME s_scm_foreign_to_bytevector
+#define FUNC_NAME s_scm_pointer_to_bytevector
 {
   SCM ret;
   scm_t_int8 *ptr;
   size_t boffset, blen;
   scm_t_array_element_type btype;
 
-  SCM_VALIDATE_FOREIGN (1, foreign);
-  ptr = SCM_FOREIGN_POINTER (foreign);
+  SCM_VALIDATE_POINTER (1, pointer);
+  ptr = SCM_POINTER_VALUE (pointer);
 
   if (SCM_UNLIKELY (ptr == NULL))
     null_pointer_error (FUNC_NAME);
@@ -244,22 +243,22 @@ SCM_DEFINE (scm_foreign_to_bytevector, "foreign->bytevector", 2, 2, 0,
   blen = scm_to_size_t (len);
 
   ret = scm_c_take_typed_bytevector (ptr + boffset, blen, btype);
-  register_weak_reference (ret, foreign);
+  register_weak_reference (ret, pointer);
   return ret;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_bytevector_to_foreign, "bytevector->foreign", 1, 2, 0,
+SCM_DEFINE (scm_bytevector_to_pointer, "bytevector->pointer", 1, 2, 0,
 	    (SCM bv, SCM offset, SCM len),
-	    "Return a foreign pointer aliasing the memory pointed to by\n"
+	    "Return a pointer pointer aliasing the memory pointed to by\n"
             "@var{bv}.\n\n"
-            "The resulting foreign will be a void pointer, a foreign whose\n"
+            "The resulting pointer will be a void pointer, a pointer whose\n"
             "type is @code{void}. By default it will alias all of the\n"
             "memory pointed to by @var{bv}, from beginning to end.\n\n"
-            "Users may explicily specify that the foreign should only alias a\n"
+            "Users may explicily specify that the pointer should only alias a\n"
             "subset of the memory, by specifying @var{offset} and @var{len}\n"
             "arguments.")
-#define FUNC_NAME s_scm_bytevector_to_foreign
+#define FUNC_NAME s_scm_bytevector_to_pointer
 {
   SCM ret;
   scm_t_int8 *ptr;
@@ -280,33 +279,33 @@ SCM_DEFINE (scm_bytevector_to_foreign, "bytevector->foreign", 1, 2, 0,
     blen = scm_to_unsigned_integer (len, 0,
                                     SCM_BYTEVECTOR_LENGTH (bv) - boffset);
 
-  ret = scm_take_foreign_pointer (ptr + boffset, NULL);
+  ret = scm_from_pointer (ptr + boffset, NULL);
   register_weak_reference (ret, bv);
   return ret;
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_foreign_set_finalizer_x, "foreign-set-finalizer!", 2, 0, 0,
-            (SCM foreign, SCM finalizer),
+SCM_DEFINE (scm_set_pointer_finalizer_x, "set-pointer-finalizer!", 2, 0, 0,
+            (SCM pointer, SCM finalizer),
             "Arrange for the C procedure wrapped by @var{finalizer} to be\n"
-            "called on the pointer wrapped by @var{foreign} when @var{foreign}\n"
+            "called on the pointer wrapped by @var{pointer} when @var{pointer}\n"
             "becomes unreachable. Note: the C procedure should not call into\n"
             "Scheme. If you need a Scheme finalizer, use guardians.")
-#define FUNC_NAME s_scm_foreign_set_finalizer_x
+#define FUNC_NAME s_scm_set_pointer_finalizer_x
 {
   void *c_finalizer;
   GC_finalization_proc prev_finalizer;
   GC_PTR prev_finalizer_data;
 
-  SCM_VALIDATE_FOREIGN (1, foreign);
-  SCM_VALIDATE_FOREIGN (2, finalizer);
+  SCM_VALIDATE_POINTER (1, pointer);
+  SCM_VALIDATE_POINTER (2, finalizer);
 
-  c_finalizer = SCM_FOREIGN_POINTER (finalizer);
+  c_finalizer = SCM_POINTER_VALUE (finalizer);
 
-  SCM_SET_CELL_WORD_0 (foreign, SCM_CELL_WORD_0 (foreign) | (1<<16));
+  SCM_SET_CELL_WORD_0 (pointer, SCM_CELL_WORD_0 (pointer) | (1 << 16UL));
 
-  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (foreign),
-                                  foreign_finalizer_trampoline,
+  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (pointer),
+                                  pointer_finalizer_trampoline,
                                   c_finalizer,
                                   &prev_finalizer,
                                   &prev_finalizer_data);
@@ -318,10 +317,10 @@ SCM_DEFINE (scm_foreign_set_finalizer_x, "foreign-set-finalizer!", 2, 0, 0,
 
 
 void
-scm_i_foreign_print (SCM foreign, SCM port, scm_print_state *pstate)
+scm_i_pointer_print (SCM pointer, SCM port, scm_print_state *pstate)
 {
-  scm_puts ("#<foreign ", port);
-  scm_display (scm_foreign_address (foreign), port);
+  scm_puts ("#<pointer ", port);
+  scm_display (scm_pointer_address (pointer), port);
   scm_putc ('>', port);
 }
 
@@ -563,8 +562,8 @@ SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
   ffi_cif *cif;
   ffi_type **type_ptrs;
   ffi_type *types;
-  
-  SCM_VALIDATE_FOREIGN (2, func_ptr);
+
+  SCM_VALIDATE_POINTER (2, func_ptr);
 
   nargs = scm_ilength (arg_types);
   SCM_ASSERT (nargs >= 0, arg_types, 3, FUNC_NAME);
@@ -594,7 +593,7 @@ SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
              + (nargs + n_struct_elts + 1)*sizeof(ffi_type));
 
   mem = scm_gc_malloc_pointerless (cif_len, "foreign");
-  scm_cif = scm_take_foreign_pointer (mem, NULL);
+  scm_cif = scm_from_pointer (mem, NULL);
   cif = (ffi_cif *) mem;
 
   /* reuse cif_len to walk through the mem */
@@ -750,7 +749,7 @@ cif_to_procedure (SCM cif, SCM func_ptr)
   unsigned int nargs;
   SCM objcode, table, ret;
 
-  c_cif = (ffi_cif *) SCM_FOREIGN_POINTER (cif);
+  c_cif = (ffi_cif *) SCM_POINTER_VALUE (cif);
   nargs = c_cif->nargs;
 
   if (nargs < 10)
@@ -804,10 +803,10 @@ unpack (const ffi_type *type, void *loc, SCM x)
       *(scm_t_int64 *) loc = scm_to_int64 (x);
       break;
     case FFI_TYPE_STRUCT:
-      memcpy (loc, SCM_FOREIGN_POINTER (x), type->size);
+      memcpy (loc, SCM_POINTER_VALUE (x), type->size);
       break;
     case FFI_TYPE_POINTER:
-      *(void **) loc = SCM_FOREIGN_POINTER (x);
+      *(void **) loc = SCM_POINTER_VALUE (x);
       break;
     default:
       abort ();
@@ -846,10 +845,10 @@ pack (const ffi_type * type, const void *loc)
       {
 	void *mem = scm_gc_malloc_pointerless (type->size, "foreign");
 	memcpy (mem, loc, type->size);
-	return scm_take_foreign_pointer (mem, NULL);
+	return scm_from_pointer (mem, NULL);
       }
     case FFI_TYPE_POINTER:
-      return scm_take_foreign_pointer (*(void **) loc, NULL);
+      return scm_from_pointer (*(void **) loc, NULL);
     default:
       abort ();
     }
@@ -870,8 +869,8 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
   size_t arg_size;
   scm_t_ptrdiff off;
 
-  cif = SCM_FOREIGN_POINTER (SCM_CAR (foreign));
-  func = SCM_FOREIGN_POINTER (SCM_CDR (foreign));
+  cif = SCM_POINTER_VALUE (SCM_CAR (foreign));
+  func = SCM_POINTER_VALUE (SCM_CDR (foreign));
 
   /* Argument pointers.  */
   args = alloca (sizeof (void *) * cif->nargs);
@@ -982,7 +981,7 @@ scm_init_foreign (void)
 #endif
 	      );
 
-  null_pointer = scm_cell (scm_tc7_foreign, 0);
+  null_pointer = scm_cell (scm_tc7_pointer, 0);
   scm_define (sym_null, null_pointer);
 }
 
@@ -993,7 +992,7 @@ scm_register_foreign (void)
                             "scm_init_foreign",
                             (scm_t_extension_init_func)scm_init_foreign,
                             NULL);
-  foreign_weak_refs = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  pointer_weak_refs = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 }
 
 /*

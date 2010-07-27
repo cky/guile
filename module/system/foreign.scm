@@ -31,11 +31,13 @@
             %null-pointer
             null-pointer?
             make-pointer
-            foreign-address
+            pointer-address
             dereference-pointer
 
-            foreign->bytevector bytevector->foreign
-            foreign-set-finalizer!
+            pointer->bytevector
+            bytevector->pointer
+            set-pointer-finalizer!
+
             make-foreign-function
             make-c-struct parse-c-struct))
 
@@ -48,7 +50,7 @@
 ;;;
 
 (define (null-pointer? pointer)
-  (= (foreign-address pointer) 0))
+  (= (pointer-address pointer) 0))
 
 
 
@@ -118,7 +120,7 @@
 (define (make-c-struct types vals)
   (let ((bv (make-bytevector (sizeof types) 0)))
     (write-c-struct bv 0 types vals)
-    (bytevector->foreign bv)))
+    (bytevector->pointer bv)))
 
 (define (parse-c-struct foreign types)
-  (read-c-struct (foreign->bytevector foreign) 0 types))
+  (read-c-struct (pointer->bytevector foreign) 0 types))

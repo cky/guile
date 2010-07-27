@@ -268,7 +268,7 @@ SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 2, 0, 0,
       val = sysdep_dynl_value (chars, DYNL_HANDLE (dobj), FUNC_NAME);
       scm_dynwind_end ();
 
-      return scm_take_foreign_pointer (val, NULL);
+      return scm_from_pointer (val, NULL);
     }
 }
 #undef FUNC_NAME
@@ -311,13 +311,13 @@ SCM_DEFINE (scm_dynamic_call, "dynamic-call", 2, 0, 0,
 	    "and its return value is ignored.")
 #define FUNC_NAME s_scm_dynamic_call
 {
-  void (*fptr) ();
-  
+  void (*fptr) (void);
+
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  SCM_VALIDATE_FOREIGN (SCM_ARG1, func);
+  SCM_VALIDATE_POINTER (SCM_ARG1, func);
 
-  fptr = SCM_FOREIGN_POINTER (func);
+  fptr = SCM_POINTER_VALUE (func);
   fptr ();
   return SCM_UNSPECIFIED;
 }

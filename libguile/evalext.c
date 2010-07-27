@@ -77,7 +77,7 @@ SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,
 	{
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
-	case scm_tc7_foreign:
+	case scm_tc7_pointer:
 	case scm_tc7_hashtable:
 	case scm_tc7_fluid:
 	case scm_tc7_dynamic_state:

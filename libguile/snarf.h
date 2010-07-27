@@ -105,7 +105,7 @@ SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
 SCM_SNARF_HERE(							        \
   static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
   SCM_API SCM FNAME ARGLIST;						\
-  SCM_IMMUTABLE_FOREIGN (scm_i_paste (FNAME, __subr_foreign),           \
+  SCM_IMMUTABLE_POINTER (scm_i_paste (FNAME, __subr_foreign),           \
                          (scm_t_bits) &FNAME); /* the subr */           \
   SCM_STATIC_SUBR_OBJVECT (scm_i_paste (FNAME, __raw_objtable),         \
                            /* FIXME: directly be the foreign */         \
@@ -361,8 +361,8 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 			     (scm_t_bits) 0,				\
 			     (scm_t_bits) sizeof (contents) - 1)
 
-#define SCM_IMMUTABLE_FOREIGN(c_name, ptr)		\
-  SCM_IMMUTABLE_CELL (c_name, scm_tc7_foreign, ptr)
+#define SCM_IMMUTABLE_POINTER(c_name, ptr)		\
+  SCM_IMMUTABLE_CELL (c_name, scm_tc7_pointer, ptr)
 
 /* for primitive-generics, add a foreign to the end */
 #define SCM_STATIC_SUBR_OBJVECT(c_name, foreign)                        \

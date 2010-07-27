@@ -751,8 +751,8 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_program:
 	  scm_i_program_print (exp, port, pstate);
 	  break;
-	case scm_tc7_foreign:
-	  scm_i_foreign_print (exp, port, pstate);
+	case scm_tc7_pointer:
+	  scm_i_pointer_print (exp, port, pstate);
 	  break;
 	case scm_tc7_hashtable:
 	  scm_i_hashtable_print (exp, port, pstate);

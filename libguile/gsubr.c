@@ -793,12 +793,11 @@ create_gsubr (int define, const char *name,
   /* make objtable */
   sname = scm_from_locale_symbol (name);
   table = scm_c_make_vector (generic_loc ? 3 : 2, SCM_UNDEFINED);
-  SCM_SIMPLE_VECTOR_SET (table, 0,
-                         scm_take_foreign_pointer (fcn, NULL));
+  SCM_SIMPLE_VECTOR_SET (table, 0, scm_from_pointer (fcn, NULL));
   SCM_SIMPLE_VECTOR_SET (table, 1, sname);
   if (generic_loc)
     SCM_SIMPLE_VECTOR_SET (table, 2,
-                           scm_take_foreign_pointer (generic_loc, NULL));
+                           scm_from_pointer (generic_loc, NULL));
 
   /* make program */
   ret = scm_make_program (scm_subr_objcode_trampoline (nreq, nopt, rest),

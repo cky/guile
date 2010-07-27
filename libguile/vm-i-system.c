@@ -840,12 +840,13 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
 
 VM_DEFINE_INSTRUCTION (56, subr_call, "subr-call", 1, -1, -1)
 {
-  SCM foreign, ret;
+  SCM pointer, ret;
   SCM (*subr)();
-  nargs = FETCH ();
-  POP (foreign);
 
-  subr = SCM_FOREIGN_POINTER (foreign);
+  nargs = FETCH ();
+  POP (pointer);
+
+  subr = SCM_POINTER_VALUE (pointer);
 
   VM_HANDLE_INTERRUPTS;
   SYNC_REGISTER ();

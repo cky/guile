@@ -746,7 +746,7 @@ scm_i_tag_name (scm_t_bits tag)
       return "cons (immediate car)";
     case scm_tcs_cons_nimcar:
       return "cons (non-immediate car)";
-    case scm_tc7_foreign:
+    case scm_tc7_pointer:
       return "foreign";
     case scm_tc7_hashtable:
       return "hashtable";

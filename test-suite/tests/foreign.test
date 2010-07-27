@@ -30,7 +30,7 @@
 (with-test-prefix "null pointer"
 
   (pass-if "zero"
-    (= 0 (foreign-address %null-pointer)))
+    (= 0 (pointer-address %null-pointer)))
 
   (pass-if "null pointer identity"
     (eq? %null-pointer (make-pointer 0)))
@@ -38,29 +38,29 @@
   (pass-if "null-pointer? %null-pointer"
     (null-pointer? %null-pointer))
 
-  (pass-if-exception "foreign->bytevector %null-pointer"
+  (pass-if-exception "pointer->bytevector %null-pointer"
     exception:null-pointer-error
-    (foreign->bytevector %null-pointer 7)))
+    (pointer->bytevector %null-pointer 7)))
 
 
 (with-test-prefix "make-pointer"
 
   (pass-if "address preserved"
-    (= 123 (foreign-address (make-pointer 123)))))
+    (= 123 (pointer-address (make-pointer 123)))))
 
 
-(with-test-prefix "foreign<->bytevector"
+(with-test-prefix "pointer<->bytevector"
 
   (pass-if "bijection"
     (let ((bv #vu8(0 1 2 3 4 5 6 7)))
-      (equal? (foreign->bytevector (bytevector->foreign bv)
+      (equal? (pointer->bytevector (bytevector->pointer bv)
                                    (bytevector-length bv))
               bv)))
 
   (pass-if "pointer from bits"
     (let* ((bytes (iota (sizeof '*)))
            (bv    (u8-list->bytevector bytes)))
-      (= (foreign-address
+      (= (pointer-address
           (make-pointer (bytevector-uint-ref bv 0 (native-endianness)
                                              (sizeof '*))))
          (fold-right (lambda (byte address)
@@ -71,8 +71,8 @@
   (pass-if "dereference-pointer"
     (let* ((bytes (iota (sizeof '*)))
            (bv    (u8-list->bytevector bytes)))
-      (= (foreign-address
-          (dereference-pointer (bytevector->foreign bv)))
+      (= (pointer-address
+          (dereference-pointer (bytevector->pointer bv)))
          (fold-right (lambda (byte address)
                        (+ byte (* 256 address)))
                      0

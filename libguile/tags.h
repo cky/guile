@@ -411,7 +411,7 @@ typedef scm_t_uintptr scm_t_bits;
 #define scm_tc7_stringbuf       39
 #define scm_tc7_bytevector	77
 
-#define scm_tc7_foreign		31
+#define scm_tc7_pointer		31
 #define scm_tc7_hashtable	29
 #define scm_tc7_fluid		37
 #define scm_tc7_dynamic_state	45

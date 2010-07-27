@@ -1900,9 +1900,9 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
 
   if (scm_is_string (func))
     func = scm_dynamic_func (func, dobj);
-  SCM_VALIDATE_FOREIGN (SCM_ARG1, func);
+  SCM_VALIDATE_POINTER (SCM_ARG1, func);
 
-  fptr = SCM_FOREIGN_POINTER (func);
+  fptr = SCM_POINTER_VALUE (func);
 
   argv = scm_i_allocate_string_pointers (args);
   for (argc = 0; argv[argc]; argc++)

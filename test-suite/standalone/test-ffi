@@ -166,12 +166,12 @@ exec guile -q -s "$0" "$@"
   (make-foreign-function '* (dynamic-func "test_ffi_memcpy" lib)
                          (list '* '* int32)))
 (let* ((src* '(0 1 2 3 4 5 6 7))
-       (src  (bytevector->foreign (u8-list->bytevector src*)))
-       (dest (bytevector->foreign (make-bytevector 16 0)))
+       (src  (bytevector->pointer (u8-list->bytevector src*)))
+       (dest (bytevector->pointer (make-bytevector 16 0)))
        (res  (f-memcpy dest src (length src*))))
-  (or (= (foreign-address dest) (foreign-address res))
+  (or (= (pointer-address dest) (pointer-address res))
       (error "memcpy res not equal to dest"))
-  (or (equal? (bytevector->u8-list (foreign->bytevector dest 16))
+  (or (equal? (bytevector->u8-list (pointer->bytevector dest 16))
               '(0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0))
       (error "unexpected dest")))
 
@@ -197,7 +197,7 @@ exec guile -q -s "$0" "$@"
 
 (let* ((ptr (strerror ENOENT))
        (len (strlen ptr))
-       (bv  (foreign->bytevector ptr len 0 'u8))
+       (bv  (pointer->bytevector ptr len 0 'u8))
        (str (utf8->string bv)))
   (test #t (not (not (string-contains str "file")))))
 

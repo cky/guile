@@ -21,10 +21,10 @@
 
 #include "libguile/__scm.h"
 
-/* A foreign value is some value that exists outside of Guile. It is represented
-   by a cell whose second word is a pointer. The first word has the
-   scm_tc7_foreign typecode and type of the aliased (pointed-to) value in its
-   lower 16 bits.
+/* A "foreign pointer" is a wrapped C pointer.  It is represented by a
+   cell whose second word is a pointer.  The first word has the
+   `scm_tc7_pointer' type code and a bit saying whether it has an
+   associated finalizer or not.
 
    The basic idea is that we can help the programmer to avoid cutting herself,
    but we won't take away her knives.  */
@@ -47,30 +47,30 @@ enum scm_t_foreign_type
 
 typedef enum scm_t_foreign_type scm_t_foreign_type;
 
-typedef void (*scm_t_foreign_finalizer) (void *);
+typedef void (*scm_t_pointer_finalizer) (void *);
 
-#define SCM_FOREIGN_P(x)                                                \
-  (!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_foreign)
-#define SCM_VALIDATE_FOREIGN(pos, x)		\
-  SCM_MAKE_VALIDATE (pos, x, FOREIGN_P)
-#define SCM_FOREIGN_POINTER(x)			\
+#define SCM_POINTER_P(x)                                                \
+  (!SCM_IMP (x) && SCM_TYP7(x) == scm_tc7_pointer)
+#define SCM_VALIDATE_POINTER(pos, x)		\
+  SCM_MAKE_VALIDATE (pos, x, POINTER_P)
+#define SCM_POINTER_VALUE(x)			\
   ((void *) SCM_CELL_WORD_1 (x))
-#define SCM_FOREIGN_HAS_FINALIZER(x)		\
+#define SCM_POINTER_HAS_FINALIZER(x)		\
   ((SCM_CELL_WORD_0 (x) >> 16) & 0x1)
 
-SCM_API SCM scm_take_foreign_pointer (void *, scm_t_foreign_finalizer);
+SCM_API SCM scm_from_pointer (void *, scm_t_pointer_finalizer);
 
 SCM_API SCM scm_alignof (SCM type);
 SCM_API SCM scm_sizeof (SCM type);
-SCM_API SCM scm_foreign_address (SCM foreign);
-SCM_API SCM scm_foreign_to_bytevector (SCM foreign, SCM type,
+SCM_API SCM scm_pointer_address (SCM pointer);
+SCM_API SCM scm_pointer_to_bytevector (SCM pointer, SCM type,
                                        SCM offset, SCM len);
-SCM_API SCM scm_foreign_set_finalizer_x (SCM foreign, SCM finalizer);
-SCM_API SCM scm_bytevector_to_foreign (SCM bv, SCM offset, SCM len);
+SCM_API SCM scm_set_pointer_finalizer_x (SCM pointer, SCM finalizer);
+SCM_API SCM scm_bytevector_to_pointer (SCM bv, SCM offset, SCM len);
 
 SCM_INTERNAL SCM scm_make_pointer (SCM address, SCM finalizer);
 SCM_INTERNAL SCM scm_dereference_pointer (SCM pointer);
-SCM_INTERNAL void scm_i_foreign_print (SCM foreign, SCM port,
+SCM_INTERNAL void scm_i_pointer_print (SCM pointer, SCM port,
                                        scm_print_state *pstate);
 
 

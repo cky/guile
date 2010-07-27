@@ -221,7 +221,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	case scm_tc7_vector:
 	case scm_tc7_wvect:
 	  return scm_class_vector;
-	case scm_tc7_foreign:
+	case scm_tc7_pointer:
 	  return class_foreign;
 	case scm_tc7_hashtable:
 	  return class_hashtable;
