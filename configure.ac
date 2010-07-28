@@ -1620,6 +1620,7 @@ AC_CONFIG_FILES([
   emacs/Makefile
   examples/Makefile
   libguile/Makefile
+  libguile/version.h
   srfi/Makefile
   guile-readline/Makefile
   test-suite/Makefile

@@ -413,7 +413,7 @@ DOT_I_FILES = vm-i-system.i vm-i-scheme.i vm-i-loader.i
 	$(AM_V_GEN)$(GREP) '^VM_DEFINE' $< > $@
 
 BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h \
-    version.h scmconfig.h \
+    scmconfig.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
@@ -595,20 +595,10 @@ EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
     ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008	\
     guile-func-name-check				\
     cpp-E.syms cpp-E.c cpp-SIG.syms cpp-SIG.c			\
-    c-tokenize.lex version.h.in						\
+    c-tokenize.lex						\
     scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
-
-## We use @-...-@ as the substitution brackets here, instead of the
-## usual @...@, so autoconf doesn't go and substitute the values
-## directly into the left-hand sides of the sed substitutions.  *sigh*
-version.h: version.h.in $(top_builddir)/config.status
-	$(AM_V_GEN)sed < $(srcdir)/version.h.in > $@.tmp \
-	  -e s:@-GUILE_MAJOR_VERSION-@:${GUILE_MAJOR_VERSION}: \
-	  -e s:@-GUILE_MINOR_VERSION-@:${GUILE_MINOR_VERSION}: \
-	  -e s:@-GUILE_MICRO_VERSION-@:${GUILE_MICRO_VERSION}: \
-	  -e s:@-GUILE_EFFECTIVE_VERSION-@:${GUILE_EFFECTIVE_VERSION}: && mv $@.tmp $@
 
 ## FIXME: Consider using timestamp file, to avoid unnecessary rebuilds.
 libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
@@ -758,7 +748,6 @@ chknew-E chknew-SIG:
 
 
 MOSTLYCLEANFILES = \
-	version.h version.h.tmp \
 	scmconfig.h scmconfig.h.tmp
 
 CLEANFILES = libpath.h *.x *.doc guile-procedures.txt guile-procedures.texi guile.texi \
