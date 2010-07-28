@@ -164,8 +164,8 @@ SCM_DEFINE (scm_pointer_address, "pointer-address", 1, 0, 0,
 
 SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
 	    (SCM pointer),
-	    "Return the a pointer object representing the pointer "
-	    "pointed to by @var{pointer}.")
+	    "Assuming @var{pointer} points to a memory region that\n"
+	    "holds a pointer, return this pointer.")
 #define FUNC_NAME s_scm_dereference_pointer
 {
   SCM_VALIDATE_POINTER (1, pointer);
@@ -176,21 +176,17 @@ SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
 
 SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
 	    (SCM pointer, SCM len, SCM offset, SCM uvec_type),
-	    "Return a bytevector aliasing the memory pointed to by\n"
-            "@var{pointer}.\n\n"
-            "@var{pointer} must be a void pointer, a pointer whose type is\n"
-            "@var{void}. By default, the resulting bytevector will alias\n"
-            "all of the memory pointed to by @var{pointer}, from beginning\n"
-            "to end, treated as a @code{vu8} array.\n\n"
+	    "Return a bytevector aliasing the @var{len} bytes pointed\n"
+	    "to by @var{pointer}.\n\n"
             "The user may specify an alternate default interpretation for\n"
             "the memory by passing the @var{uvec_type} argument, to indicate\n"
             "that the memory is an array of elements of that type.\n"
             "@var{uvec_type} should be something that\n"
             "@code{uniform-vector-element-type} would return, like @code{f32}\n"
             "or @code{s16}.\n\n"
-            "Users may also specify that the bytevector should only alias a\n"
-            "subset of the memory, by specifying @var{offset} and @var{len}\n"
-            "arguments.")
+	    "When @var{offset} is passed, it specifies the offset in bytes\n"
+	    "relative to @var{pointer} of the memory region aliased by the\n"
+	    "returned bytevector.")
 #define FUNC_NAME s_scm_pointer_to_bytevector
 {
   SCM ret;

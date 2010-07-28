@@ -50,6 +50,7 @@
 ;;;
 
 (define (null-pointer? pointer)
+  "Return true if POINTER is the null pointer."
   (= (pointer-address pointer) 0))
 
 

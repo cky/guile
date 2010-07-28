@@ -237,9 +237,9 @@ SCM_DEFINE (scm_dynamic_unlink, "dynamic-unlink", 1, 0, 0,
 
 SCM_DEFINE (scm_dynamic_pointer, "dynamic-pointer", 2, 0, 0,
             (SCM name, SCM dobj),
-	    "Return a ``handle'' for the pointer @var{name} in the\n"
-	    "shared object referred to by @var{dobj}.  The handle\n"
-	    "aliases a C object.\n\n"
+	    "Return a ``wrapped pointer'' to the symbol @var{name}\n"
+	    "in the shared object referred to by @var{dobj}.  The returned\n"
+	    "pointer points to a C object.\n\n"
             "This facility works by asking the dynamic linker for\n"
             "the address of a symbol, then assuming that it aliases a\n"
             "value of a given type. Obviously, the user must be very\n"

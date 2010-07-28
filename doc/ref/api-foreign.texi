@@ -443,7 +443,7 @@ next discusses C functions.
 
 @menu
 * Foreign Types::                  Expressing C types in Scheme.
-* Foreign Variables::              Typed pointers.
+* Foreign Variables::              Pointers to C symbols.
 * Void Pointers and Byte Access::  Pointers into the ether.
 * Foreign Structs::                Packing and unpacking structs.
 @end menu
@@ -455,9 +455,9 @@ The first impedance mismatch that one sees between C and Scheme is that
 in C, the storage locations (variables) are typed, but in Scheme types
 are associated with values, not variables. @xref{Values and Variables}.
 
-So when accessing a C value through a Scheme pointer, we must give the
-type of the pointed-to value explicitly, as a parameter to any Scheme
-procedure that accesses the value.
+So when describing a C function or a C structure so that it can be
+accessed from Scheme, the data types of the parameters or fields must be
+passed explicitly.
 
 These ``C type values'' may be constructed using the constants and
 procedures from the @code{(system foreign)} module, which may be loaded
@@ -480,8 +480,8 @@ C types:
 @defvrx {Scheme Variable} int64
 @defvrx {Scheme Variable} float
 @defvrx {Scheme Variable} double
-Values exported by the @code{(system foreign)} module, representing C
-numeric types of the specified sizes and signednesses.
+These values represent the C numeric types of the specified sizes and
+signednesses.
 @end defvr
 
 In addition there are some convenience bindings for indicating types of
@@ -497,17 +497,22 @@ numeric types. For example, @code{long} may be @code{equal?} to
 @code{int64} on a 64-bit platform.
 @end defvr
 
+@defvr {Scheme Variable} void
+The @code{void} type.  It can be used as the first argument to
+@code{make-foreign-function} to wrap a C function that returns nothing.
+@end defvr
+
 @node Foreign Variables
 @subsubsection Foreign Variables
 
 Given the types defined in the previous section, C pointers may be
 looked up dynamically using @code{dynamic-pointer}.
 
-@deffn {Scheme Procedure} dynamic-pointer name type dobj [len]
-@deffnx {C Function} scm_dynamic_pointer (name, type, dobj, len)
-Return a ``handle'' for the pointer @var{name} in the shared object referred to
-by @var{dobj}. The handle aliases a C value, and is declared to be of type
-@var{type}. Valid types are defined in the @code{(system foreign)} module.
+@deffn {Scheme Procedure} dynamic-pointer name dobj
+@deffnx {C Function} scm_dynamic_pointer (name, dobj)
+Return a ``wrapped pointer'' for the symbol @var{name} in the shared
+object referred to by @var{dobj}.  The returned pointer points to a C
+object.
 
 This facility works by asking the dynamic linker for the address of a symbol,
 then assuming that it aliases a value of a given type. Obviously, the user must
@@ -525,98 +530,56 @@ pointing to that foreign value, we do:
 
 @example
 (use-modules (system foreign))
-(define numptob (dynamic-pointer "scm_numptob" long (dynamic-link)))
+(define numptob (dynamic-pointer "scm_numptob" (dynamic-link)))
 numptob
-@result{} #<foreign int32 8>
+@result{} #<pointer 139984413364296>
 @end example
 
 A value returned by @code{dynamic-pointer} is a Scheme wrapper for a C
-pointer, with additional type information. A foreign pointer prints
-according to its type. This example showed that a @code{long} on this
-platform is an @code{int32}, and that the value pointed to by
-@code{numptob} is 8.
+pointer.
 
-Typed pointers may be referenced using the @code{foreign-ref} and
-@code{foreign-set!} functions.
-
-@deffn {Scheme Procedure} foreign-ref foreign
-@deffnx {C Function} scm_foreign_ref foreign
-Reference the foreign value pointed to by @var{foreign}.
-
-The value will be referenced according to its type.
+@deffn {Scheme Procedure} pointer-address pointer
+@deffnx {C Function} scm_pointer_address pointer
+Return the numerical value of @var{pointer}.
 
 @example
-(foreign-ref numptob) @result{} 8 ; YMMV
+(pointer-address numptob)
+@result{} 139984413364296 ; YMMV
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} foreign-set! foreign val
-@deffnx {C Function} scm_foreign_set_x foreign val
-Set the foreign value pointed to by @var{foreign}.
-
-The value will be set according to its type.
-
-@example
-(foreign-set! numptob 120) ; Don't try this at home!
-@end example
+@deffn {Scheme Procedure} make-pointer address [finalizer]
+Return a foreign pointer object pointing to @var{address}.  If
+@var{finalizer} is passed, it should be a pointer to a one-argument C
+function that will be called when the pointer object becomes
+unreachable.
 @end deffn
 
-If we wanted to corrupt Guile's internal state, we could set
-@code{scm_numptob} to another value; but we shouldn't, because that
-variable is not meant to be set. Indeed this point applies more widely:
-the C API is a dangerous place to be. Not only might setting a value
-crash your program, simply referencing a value with a wrong-sized type
-can prove equally disastrous.
+@defvr {Scheme Variable} %null-pointer
+A foreign pointer whose value is 0.
+@end defvr
+
+@deffn {Scheme Procedure} null-pointer? pointer
+Return @code{#t} if @var{pointer} is the null pointer, @code{#f} otherwise.
+@end deffn
 
 
 @node Void Pointers and Byte Access
 @subsubsection Void Pointers and Byte Access
 
-As a special case, a dynamic pointer may be declared to point to type
-@code{void}, in which case it is treated as a void pointer. A void
-pointer prints its value as a pointer, without dereferencing the
-pointer.
+Wrapped pointers are untyped, so they are essentially equivalent to C
+@code{void} pointers.  As in C, the memory region pointed to by a
+pointer can be accessed at the byte level.  This is achieved using
+@emph{bytevectors} (@pxref{Bytevectors}).  The @code{(rnrs bytevector)}
+module contains procedures that can be used to convert byte sequences to
+Scheme objects such as strings, floating pointer numbers, or integers.
 
-It's important at this point to conceptually separate foreign values
-from foreign pointers. @code{dynamic-pointer} gives you a foreign
-pointer. A foreign value is the semantic meaning of the bytes pointed to
-by a pointer. Only foreign pointers may be wrapped in Scheme. One may
-make a pointer to a foreign value, and wrap that as a Scheme object, but
-a bare foreign value may not be wrapped.
+Pointers may be accessed as bytevectors.
 
-When you call @code{dynamic-pointer}, the @var{type} argument indicates
-the type to which the given symbol points, but sometimes you don't know
-that type. Sometimes you have a pointer, and you don't know what kind of
-object it references. It's simply a pointer out into the ether, into the
-@code{void}.
-
-Guile can wrap such a pointer, by declaring that it points to
-@code{void}.
-
-@defvr {Scheme Variable} void
-A foreign type value representing nothing.
-
-@code{void} has two uses: for a foreign pointer, declaring it to be of
-type @code{void} is like having a @code{void*} in C. For a function, a
-return type of @code{void} indicates that the function returns no
-values. A function argument type of @code{void} is invalid.
-@end defvr
-
-As an example, @code{(dynamic-pointer "foo" void bar-lib)} links in the
-@var{foo} symbol in the @var{bar-lib} library as a pointer to
-@code{void}: a @code{void*}.
-
-Void pointers may be accessed as bytevectors.
-
-@deffn {Scheme Procedure} foreign->bytevector foreign [uvec_type [offset [len]]]
-@deffnx {C Function} scm_foreign_to_bytevector foreign uvec_type offset len
-Return a bytevector aliasing the memory pointed to by
-@var{foreign}.
-
-@var{foreign} must be a void pointer, a foreign whose type is
-@var{void}. By default, the resulting bytevector will alias
-all of the memory pointed to by @var{foreign}, from beginning
-to end, treated as a @code{vu8} array.
+@deffn {Scheme Procedure} pointer->bytevector pointer len [offset [uvec_type]]
+@deffnx {C Function} scm_foreign_to_bytevector pointer len offset uvec_type
+Return a bytevector aliasing the @var{len} bytes pointed to by
+@var{pointer}.
 
 The user may specify an alternate default interpretation for
 the memory by passing the @var{uvec_type} argument, to indicate
@@ -625,28 +588,45 @@ that the memory is an array of elements of that type.
 @code{uniform-vector-element-type} would return, like @code{f32}
 or @code{s16}.
 
-Users may also specify that the bytevector should only alias a
-subset of the memory, by specifying @var{offset} and @var{len}
-arguments.
+When @var{offset} is passed, it specifies the offset in bytes relative
+to @var{pointer} of the memory region aliased by the returned
+bytevector.
 
 Mutating the returned bytevector mutates the memory pointed to by
-@var{foreign}, so buckle your seatbelts.
+@var{pointer}, so buckle your seatbelts.
 @end deffn
 
-@deffn {Scheme Procedure} bytevector->foreign bv [offset [len]]
-@deffnx {C Function} scm_bytevector_to_foreign bv offset len
-Return a foreign pointer aliasing the memory pointed to by
-@var{bv}.
-
-The resulting foreign will be a void pointer, a foreign whose
-type is @code{void}. By default it will alias all of the
-memory pointed to by @var{bv}, from beginning to end.
-
-Users may explicily specify that the foreign should only alias a
-subset of the memory, by specifying @var{offset} and @var{len}
-arguments.
+@deffn {Scheme Procedure} bytevector->pointer bv [offset]
+@deffnx {C Function} scm_bytevector_to_pointer bv offset
+Return a pointer pointer aliasing the memory pointed to by @var{bv} or
+@var{offset} bytes after @var{bv} when @var{offset} is passed.
 @end deffn
 
+In addition to these primitives, convenience procedures are available:
+
+@deffn {Scheme Procedure} dereference-pointer pointer
+Assuming @var{pointer} points to a memory region that holds a pointer,
+return this pointer.
+@end deffn
+
+Going back to the @code{scm_numptob} example above, here is how we can
+read its value as a C @code{long} integer:
+
+@example
+(use-modules (rnrs bytevectors))
+
+(bytevector-uint-ref (pointer->bytevector numptob (sizeof long))
+                     0 (native-endianness)
+                     (sizeof long))
+@result{} 8
+@end example
+
+If we wanted to corrupt Guile's internal state, we could set
+@code{scm_numptob} to another value; but we shouldn't, because that
+variable is not meant to be set.  Indeed this point applies more widely:
+the C API is a dangerous place to be.  Not only might setting a value
+crash your program, simply accessing the data pointed to by a dangling
+pointer or similar can prove equally disastrous.
 
 @node Foreign Structs
 @subsubsection Foreign Structs
@@ -772,14 +752,16 @@ To invoke @code{memcpy}, one must pass it foreign pointers:
 @example
 (use-modules (rnrs bytevectors))
 
+(define src-bits
+  (u8-list->bytevector '(0 1 2 3 4 5 6 7)))
 (define src
-  (bytevector->foreign (u8-list->bytevector '(0 1 2 3 4 5 6 7))))
+  (bytevector->pointer src-bits))
 (define dest
-  (bytevector->foreign (make-bytevector 16 0)))
+  (bytevector->pointer (make-bytevector 16 0)))
 
-(memcpy dest src (bytevector-length (foreign->bytevector src)))))
+(memcpy dest src (bytevector-length src-bits))
 
-(bytevector->u8-list (foreign->bytevector dest))
+(bytevector->u8-list (pointer->bytevector dest 16))
 @result{} (0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0)
 @end example
 
@@ -814,13 +796,6 @@ by the foreign pointer is mutated in place.
 @result{} 1270587589
 @result{} 499553
 @end example
-
-This example also shows use of @code{%null-pointer}, which is a null
-foreign pointer, exported by @code{(system foreign)}.
-
-@defvr {Scheme Variable} %null-pointer
-A foreign pointer whose value is 0.
-@end defvr
 
 As you can see, this interface to foreign functions is at a very low,
 somewhat dangerous level. A contribution to Guile in the form of a
