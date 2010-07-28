@@ -18,6 +18,7 @@
 
 (define-module (system foreign)
   #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-1)
   #:export (void
             float double
             int unsigned-int long unsigned-long size_t
@@ -124,4 +125,8 @@
     (bytevector->pointer bv)))
 
 (define (parse-c-struct foreign types)
-  (read-c-struct (pointer->bytevector foreign) 0 types))
+  (let ((size (fold (lambda (type total)
+                      (+ (sizeof type) total))
+                    0
+                    types)))
+    (read-c-struct (pointer->bytevector foreign size) 0 types)))
