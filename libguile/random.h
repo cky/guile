@@ -67,6 +67,7 @@ SCM_API double scm_c_uniform01 (scm_t_rstate *);
 SCM_API double scm_c_normal01 (scm_t_rstate *);
 SCM_API double scm_c_exp1 (scm_t_rstate *);
 SCM_API scm_t_uint32 scm_c_random (scm_t_rstate *, scm_t_uint32 m);
+SCM_API scm_t_uint64 scm_c_random64 (scm_t_rstate *state, scm_t_uint64 m);
 SCM_API SCM scm_c_random_bignum (scm_t_rstate *, SCM m);
 
 

@@ -241,18 +241,39 @@ scm_c_exp1 (scm_t_rstate *state)
 
 unsigned char scm_masktab[256];
 
-scm_t_uint32
-scm_c_random (scm_t_rstate *state, scm_t_uint32 m)
+static inline scm_t_uint32
+scm_i_mask32 (scm_t_uint32 m)
 {
-  scm_t_uint32 r, mask;
-  mask = (m < 0x100
+  return (m < 0x100
 	  ? scm_masktab[m]
 	  : (m < 0x10000
 	     ? scm_masktab[m >> 8] << 8 | 0xff
 	     : (m < 0x1000000
 		? scm_masktab[m >> 16] << 16 | 0xffff
 		: scm_masktab[m >> 24] << 24 | 0xffffff)));
+}
+
+scm_t_uint32
+scm_c_random (scm_t_rstate *state, scm_t_uint32 m)
+{
+  scm_t_uint32 r, mask = scm_i_mask32 (m);
   while ((r = state->rng->random_bits (state) & mask) >= m);
+  return r;
+}
+
+scm_t_uint64
+scm_c_random64 (scm_t_rstate *state, scm_t_uint64 m)
+{
+  scm_t_uint64 r;
+  scm_t_uint32 mask;
+
+  if (m <= SCM_T_UINT32_MAX)
+    return scm_c_random (state, (scm_t_uint32) m);
+  
+  mask = scm_i_mask32 (m >> 32);
+  while ((r = ((scm_t_uint64) (state->rng->random_bits (state) & mask) << 32)
+          | state->rng->random_bits (state)) >= m)
+    ;
   return r;
 }
 
@@ -377,17 +398,8 @@ SCM_DEFINE (scm_random, "random", 1, 1, 0,
       return scm_from_uint32 (scm_c_random (SCM_RSTATE (state),
                                             (scm_t_uint32) m));
 #elif SCM_SIZEOF_UNSIGNED_LONG <= 8
-      if (m <= SCM_T_UINT32_MAX)
-        return scm_from_uint32 (scm_c_random (SCM_RSTATE (state),
-                                              (scm_t_uint32) m));
-      else
-        {
-          scm_t_uint64 upper, lower;
-          
-          upper = scm_c_random (SCM_RSTATE (state), (scm_t_uint32) (m >> 32));
-          lower = scm_c_random (SCM_RSTATE (state), SCM_T_UINT32_MAX);
-          return scm_from_uint64 ((upper << 32) | lower);
-        }
+      return scm_from_uint64 (scm_c_random64 (SCM_RSTATE (state),
+                                              (scm_t_uint64) m));
 #else
 #error "Cannot deal with this platform's unsigned long size"
 #endif
