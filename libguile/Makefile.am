@@ -670,7 +670,7 @@ AM_V_FILTER_0 = @echo "  FILTER" $@;
 .c.doc:
 	-$(AM_V_FILTER)$(AWK) -f $(srcdir)/guile-func-name-check $< && (./guile-snarf-docs $(snarfcppopts) $< | ./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
 
-$(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in
+$(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in version.h
 
 $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES): scmconfig.h snarf.h guile-snarf-docs.in guile_filter_doc_snarfage$(EXEEXT)
 
