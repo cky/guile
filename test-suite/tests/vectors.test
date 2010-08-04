@@ -1,6 +1,6 @@
 ;;;; vectors.test --- test suite for Guile's vector functions -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -62,3 +62,82 @@
     (equal? #("ab\u0100" "ab\u0100" "ab\u0100") 
             (make-vector 3 "ab\u0100"))))
 
+(with-test-prefix "vector-move-left!"
+
+  (pass-if-exception "before start" exception:out-of-range
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-left! a 3 5 b -1)))
+
+  (pass-if "beginning"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-left! a 3 5 b 0)
+      (equal? b #(4 5 30 40 50 60 70 80 90))))
+
+  (pass-if "middle"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-left! a 3 5 b 2)
+      (equal? b #(10 20 4 5 50 60 70 80 90))))
+
+  (pass-if "overlap -"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9)))
+      (vector-move-left! a 3 5 a 2)
+      (equal? a #(1 2 4 5 5 6 7 8 9))))
+
+  (pass-if "overlap +"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9)))
+      (vector-move-left! a 3 5 a 4)
+      (equal? a #(1 2 3 4 4 4 7 8 9))))
+
+  (pass-if "end"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+       (vector-move-left! a 3 5 b 7)
+       (equal? b #(10 20 30 40 50 60 70 4 5))))
+
+  (pass-if-exception "past end" exception:out-of-range
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-left! a 3 5 b 8))))
+
+(with-test-prefix "vector-move-right!"
+
+  (pass-if-exception "before start" exception:out-of-range
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-right! a 3 5 b -1)))
+
+  (pass-if "beginning"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-right! a 3 5 b 0)
+      (equal? b #(4 5 30 40 50 60 70 80 90))))
+
+  (pass-if "middle"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-right! a 3 5 b 2)
+      (equal? b #(10 20 4 5 50 60 70 80 90))))
+
+  (pass-if "overlap -"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9)))
+      (vector-move-right! a 3 5 a 2)
+      (equal? a #(1 2 5 5 5 6 7 8 9))))
+
+  (pass-if "overlap +"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9)))
+      (vector-move-right! a 3 5 a 4)
+      (equal? a #(1 2 3 4 4 5 7 8 9))))
+
+  (pass-if "end"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+       (vector-move-right! a 3 5 b 7)
+       (equal? b #(10 20 30 40 50 60 70 4 5))))
+
+  (pass-if-exception "past end" exception:out-of-range
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+      (vector-move-right! a 3 5 b 8))))
