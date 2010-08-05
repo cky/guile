@@ -10,257 +10,11 @@ prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.12 (since the 1.9.11 prerelease):
 
-** Random generator state has an external form
+** Random generator state may be serialized to a datum
 
-Now the random number generator state can be obtained in external
-(i.e. `read'/`write'-able) form via the new procedure
-`random-state->external'.  An externalized state can be reinstantiated by
-calling `external->random-state'.
-
-
-Changes in 1.9.11 (since the 1.9.10 prerelease):
-
-** Renamed module: (rnrs bytevectors)
-    
-This module was called (rnrs bytevector), its name from earlier drafts
-of the R6RS. Its name has been changed. Users of previous 1.9 preleases
-may want to search for any stale rnrs/bytevector .go or .scm file, and
-delete them.
-
-** New module: (sxml match)
-    
-Guile has incorporated Jim Bender's `sxml-match' library. See
-"sxml-match' in the manual for more information. Thanks, Jim!
-
-** New module: (srfi srfi-9 gnu)
-
-This module adds an extension to srfi-9, `set-record-type-printer!'. See
-"SRFI-9" in the manual for more information.
-
-** Support for R6RS libraries
-
-The `library' and `import' forms from the latest Scheme report have been
-added to Guile, in such a way that R6RS libraries share a namespace with
-Guile modules. R6RS modules may import Guile modules, and are available
-for Guile modules to import via use-modules and all the rest. See "R6RS
-Libraries" in the manual for more information.
-
-** Implementations of R6RS libraries
-
-Guile now has implementations for all of the libraries defined in the
-R6RS. Thanks to Julian Graham for this excellent hack. See "R6RS
-Standard Libraries" in the manual for a full list of libraries.
-
-** Partial R6RS compatibility
-
-Guile now has enough support for R6RS to run a reasonably large subset
-of R6RS programs.
-
-Guile is not fully R6RS compatible. Many incompatibilities are simply
-bugs, though some parts of Guile will remain R6RS-incompatible for the
-foreseeable future. See "R6RS Incompatibilities" in the manual, for more
-information.
-
-Please contact bug-guile@gnu.org if you have found an issue not
-mentioned in that compatibility list.
-    
-** Macro expansion produces structures instead of s-expressions
-
-In the olden days, macroexpanding an s-expression would yield another
-s-expression. Though the lexical variables were renamed, expansions of
-core forms like `if' and `begin' were still non-hygienic, as they relied
-on the toplevel definitions of `if' et al being the conventional ones.
-
-The solution is to expand to structures instead of s-expressions. There
-is an `if' structure, a `begin' structure, a `toplevel-ref' structure,
-etc. The expander already did this for compilation, producing Tree-IL
-directly; it has been changed now to do so when expanding for the
-evaluator as well.
-
-The real truth is somewhat more involved: Tree-IL doesn't exist until
-modules have been booted, but we need the expander to boot modules, and
-additionally we need a boot expander before psyntax is loaded. So a
-subset of Tree-IL is defined in C, and the boot expander produces these
-"macroexpanded" structures. Psyntax has been modified to produce those
-structures as well. When Tree-IL loads, it incorporates those structures
-directly as part of its language.
-
-Finally, the evaluator has been adapted to accept these "expanded"
-structures, and enhanced to better support the gamut of this subset of
-Tree-IL, including `lambda*' and `case-lambda'. This was a much-needed
-harmonization between the compiler, expander, and evaluator.
-
-** Deprecated `scm_badargsp'
-
-This function is unused in Guile, but was part of its API.
-
-** `sxml->xml' enhancement
-    
-`sxml->xml' from `(sxml simple)' can now handle the result of
-`xml->sxml'. See bug #29260 for more information.
-
-** New module: (system vm coverage)
-
-This new module can produce code coverage reports for compiled Scheme
-code on a line-by-line level. See "Code Coverage" in the manual for more
-information.
-
-** Faster VM hooks.
-
-The frame objects passed to VM hook procedures are now allocated on the
-stack instead of the heap, making the next-instruction hook practical to
-use.
-
-** New `eval-when' situation: `expand'
-
-Sometimes it's important to cause side-effects while expanding an
-expression, even in eval mode. This situation is used in
-`define-module', `use-modules', et al, in order to affect the current
-module and its set of syntax expanders.
-
-** Better module-level hygiene
-
-Instead of attempting to track changes to the current module when
-expanding toplevel sequences, we instead preserve referential
-transparency relative to where the macro itself was defined. If the
-macro should expand to expressions in the context of the new module, it
-should wrap those expressions in `@@', which has been enhanced to accept
-generic expressions, not just identifier references. For example, part
-of the definition of the R6RS `library' form:
-
-  #'(begin
-      (define-module (name name* ...) #:pure #:version (version ...))
-      (import ispec) ...
-      (re-export r ...) (export e ...)
-      (@@ (name name* ...) body)
-      ...)
-
-In this example the `import' refers to the `import' definition in the
-module where the `library' macro is defined, not in the new module.
-
-** Module system macros rewritten as hygienic macros
-
-`define-module', `use-modules', `export', and other such macros have
-been rewritten as hygienic macros. This allows the necessary referential
-transparency for the R6RS `library' form to do the right thing.
-    
-** Compiler and VM documentation updated
-
-The documentation for the compiler and VM had slipped out of date; it
-has been brought back... to the future!
-
-** Tree-IL field renaming: `vars' -> `gensyms'
-    
-The `vars' fields of <let>, <letrec>, <fix>, and <lambda-case> has been
-renamed to `gensyms', for clarity, and to match <lexical-ref>.
-
-** Removed `version' field from <language>
-    
-Language versions weren't being updated or used in any worthwhile way;
-they have been removed, for now at least.
-
-** New procedure: `module-export-all!'
-
-This procedure exports all current and future bindings from a module.
-Use as `(module-export-all! (current-module))'.
-    
-** Updates to manual
-
-The introductory sections of the manual have been reorganized
-significantly, making it more accessible to new users of Guile. Check it
-out!
-
-** The module namespace is now separate from the value namespace
-
-It was a little-known implementation detail of Guile's module system
-that it was built on a single hierarchical namespace of values -- that
-if there was a module named `(foo bar)', then in the module named
-`(foo)' there was a binding from `bar' to the `(foo bar)' module.
-
-This was a neat trick, but presented a number of problems. One problem
-was that the bindings in a module were not apparent from the module
-itself; perhaps the `(foo)' module had a private binding for `bar', and
-then an external contributor defined `(foo bar)'. In the end there can
-be only one binding, so one of the two will see the wrong thing, and
-produce an obtuse error of unclear provenance.
-
-Also, the public interface of a module was also bound in the value
-namespace, as `%module-public-interface'. This was a hack from the early
-days of Guile's modules.
-
-Both of these warts have been fixed by the addition of fields in the
-`module' data type. Access to modules and their interfaces from the
-value namespace has been deprecated, and all accessors use the new
-record accessors appropriately.
-
-When Guile is built with support for deprecated code, as is the default,
-the value namespace is still searched for modules and public interfaces,
-and a deprecation warning is raised as appropriate.
-
-Finally, to support lazy loading of modules as one used to be able to do
-with module binder procedures, Guile now has submodule binders, called
-if a given submodule is not found. See boot-9.scm for more information.
-    
-** New procedures: module-ref-submodule, module-define-submodule,
-   nested-ref-module, nested-define-module!, local-ref-module,
-   local-define-module
-
-These new accessors are like their bare variants, but operate on
-namespaces instead of values.
-
-** The (app modules) module tree is officially deprecated
-
-It used to be that one could access a module named `(foo bar)' via
-`(nested-ref the-root-module '(app modules foo bar))'. The `(app
-modules)' bit was a never-used and never-documented abstraction, and has
-been deprecated. See the following mail for a full discussion:
-
-    http://lists.gnu.org/archive/html/guile-devel/2010-04/msg00168.html
-
-The `%app' binding is also deprecated.
-
-** Deprecated `@bind' syntax
-
-`@bind' was part of an older implementation of the Emacs Lisp language,
-and is no longer used.
-    
-** New fluid: `%file-port-name-canonicalization'
-    
-This fluid parameterizes the file names that are associated with file
-ports. If %file-port-name-canonicalization is 'absolute, then file names
-are canonicalized to be absolute paths. If it is 'relative, then the
-name is canonicalized, but any prefix corresponding to a member of
-`%load-path' is stripped off. Otherwise the names are passed through
-unchanged.
-
-** Source file name canonicalization in `compile-file', `compile-and-load'
-    
-These file-compiling procedures now bind
-%file-port-name-canonicalization to their `#:canonicalization' keyword
-argument, which defaults to 'relative. In this way, one might compile
-"../module/ice-9/boot-9.scm", but the path that gets residualized into
-the .go is "ice-9/boot-9.scm".
-
-** Deprecate arity access via (procedure-properties proc 'arity)
-
-Instead of accessing a procedure's arity as a property, use the new
-`procedure-minimum-arity' function, which gives the most permissive
-arity that the the function has, in the same format as the old arity
-accessor.
-
-** Remove redundant accessors: program-name, program-documentation,
-   program-properties, program-property
-    
-Instead, just use procedure-name, procedure-documentation,
-procedure-properties, and procedure-property.
-
-** Enhance documentation for support of Emacs Lisp's `nil'
-
-See "Nil" in the manual, for more details.
-    
-** Enhance documentation for support of other languages
-
-See "Other Languages" in the manual, for more details.
+`random-state->datum' will serialize a random state to a datum, which
+may be written out and read back in later.  That datum may be used to
+construct an equivalent random state by calling `datum->random-state'.
 
 ** And of course, the usual collection of bugfixes
  
@@ -279,7 +33,9 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
 ** `(ice-9 vlist)', lists with constant-time random access; hash lists
 ** `(system foreign)', foreign function interface
-
+** `(sxml match)', a pattern matcher for SXML
+** `(srfi srfi-9 gnu)', extensions to the SRFI-9 record library
+** `(system vm coverage)', a line-by-line code coverage library
 ** Imported statprof, SSAX, and texinfo modules from Guile-Lib
     
 The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
@@ -375,6 +131,33 @@ warranty disclaimer on startup, along with pointers to more information.
 
 * Changes to Scheme functions and syntax
 
+** Support for R6RS libraries
+
+The `library' and `import' forms from the latest Scheme report have been
+added to Guile, in such a way that R6RS libraries share a namespace with
+Guile modules. R6RS modules may import Guile modules, and are available
+for Guile modules to import via use-modules and all the rest. See "R6RS
+Libraries" in the manual for more information.
+
+** Implementations of R6RS libraries
+
+Guile now has implementations for all of the libraries defined in the
+R6RS. Thanks to Julian Graham for this excellent hack. See "R6RS
+Standard Libraries" in the manual for a full list of libraries.
+
+** Partial R6RS compatibility
+
+Guile now has enough support for R6RS to run a reasonably large subset
+of R6RS programs.
+
+Guile is not fully R6RS compatible. Many incompatibilities are simply
+bugs, though some parts of Guile will remain R6RS-incompatible for the
+foreseeable future. See "R6RS Incompatibilities" in the manual, for more
+information.
+
+Please contact bug-guile@gnu.org if you have found an issue not
+mentioned in that compatibility list.
+    
 ** New implementation of `primitive-eval'
 
 Guile's `primitive-eval' is now implemented in Scheme. Actually there is
@@ -562,6 +345,11 @@ export, it now also accepts a pair of symbols, indicating that a binding
 should be renamed on export. See "Creating Guile Modules" in the manual
 for more information.
 
+** New procedure: `module-export-all!'
+
+This procedure exports all current and future bindings from a module.
+Use as `(module-export-all! (current-module))'.
+    
 ** `eval-case' has been deprecated, and replaced by `eval-when'.
 
 The semantics of `eval-when' are easier to understand. See "Eval When"
@@ -584,6 +372,19 @@ It is certainly possible to circumvent this resriction with e.g.
 feedback about this change (a consequence of using psyntax as the
 default expander), and may choose to revisit this situation before 2.0
 in response to user feedback.
+
+** Macro expansion produces structures instead of s-expressions
+
+In the olden days, macroexpanding an s-expression would yield another
+s-expression. Though the lexical variables were renamed, expansions of
+core forms like `if' and `begin' were still non-hygienic, as they relied
+on the toplevel definitions of `if' et al being the conventional ones.
+
+The solution is to expand to structures instead of s-expressions. There
+is an `if' structure, a `begin' structure, a `toplevel-ref' structure,
+etc. The expander already did this for compilation, producing Tree-IL
+directly; it has been changed now to do so when expanding for the
+evaluator as well.
 
 ** Defmacros must now produce valid Scheme expressions.
 
@@ -743,6 +544,55 @@ Before, you could have anonymous modules: modules without names. Now,
 because of hygiene and macros, all modules have names. If a module was
 created without a name, the first time `module-name' is called on it, a
 fresh name will be lazily generated for it.
+
+** The module namespace is now separate from the value namespace
+
+It was a little-known implementation detail of Guile's module system
+that it was built on a single hierarchical namespace of values -- that
+if there was a module named `(foo bar)', then in the module named
+`(foo)' there was a binding from `bar' to the `(foo bar)' module.
+
+This was a neat trick, but presented a number of problems. One problem
+was that the bindings in a module were not apparent from the module
+itself; perhaps the `(foo)' module had a private binding for `bar', and
+then an external contributor defined `(foo bar)'. In the end there can
+be only one binding, so one of the two will see the wrong thing, and
+produce an obtuse error of unclear provenance.
+
+Also, the public interface of a module was also bound in the value
+namespace, as `%module-public-interface'. This was a hack from the early
+days of Guile's modules.
+
+Both of these warts have been fixed by the addition of fields in the
+`module' data type. Access to modules and their interfaces from the
+value namespace has been deprecated, and all accessors use the new
+record accessors appropriately.
+
+When Guile is built with support for deprecated code, as is the default,
+the value namespace is still searched for modules and public interfaces,
+and a deprecation warning is raised as appropriate.
+
+Finally, to support lazy loading of modules as one used to be able to do
+with module binder procedures, Guile now has submodule binders, called
+if a given submodule is not found. See boot-9.scm for more information.
+    
+** New procedures: module-ref-submodule, module-define-submodule,
+   nested-ref-module, nested-define-module!, local-ref-module,
+   local-define-module
+
+These new accessors are like their bare variants, but operate on
+namespaces instead of values.
+
+** The (app modules) module tree is officially deprecated
+
+It used to be that one could access a module named `(foo bar)' via
+`(nested-ref the-root-module '(app modules foo bar))'. The `(app
+modules)' bit was a never-used and never-documented abstraction, and has
+been deprecated. See the following mail for a full discussion:
+
+    http://lists.gnu.org/archive/html/guile-devel/2010-04/msg00168.html
+
+The `%app' binding is also deprecated.
 
 ** Many syntax errors have different texts now
 
@@ -904,6 +754,13 @@ This can be the case, for example, in case-lambda procedures. The
 arities of compiled procedures may be accessed via procedures from the
 `(system vm program)' module; see "Compiled Procedures", "Optional
 Arguments", and "Case-lambda" in the manual. 
+
+** Deprecate arity access via (procedure-properties proc 'arity)
+
+Instead of accessing a procedure's arity as a property, use the new
+`procedure-minimum-arity' function, which gives the most permissive
+arity that the the function has, in the same format as the old arity
+accessor.
 
 ** `lambda*' and `define*' are now available in the default environment
 
@@ -1162,6 +1019,21 @@ backtrace. This has been fixed.
 
 These are analogous to %load-path and %load-extensions.
 
+** New fluid: `%file-port-name-canonicalization'
+    
+This fluid parameterizes the file names that are associated with file
+ports. If %file-port-name-canonicalization is 'absolute, then file names
+are canonicalized to be absolute paths. If it is 'relative, then the
+name is canonicalized, but any prefix corresponding to a member of
+`%load-path' is stripped off. Otherwise the names are passed through
+unchanged.
+
+In addition, the `compile-file' and `compile-and-load' procedures bind
+%file-port-name-canonicalization to their `#:canonicalization' keyword
+argument, which defaults to 'relative. In this way, one might compile
+"../module/ice-9/boot-9.scm", but the path that gets residualized into
+the .go is "ice-9/boot-9.scm".
+
 ** New procedure, `make-promise'
 
 `(make-promise (lambda () foo))' is equivalent to `(delay foo)'.
@@ -1202,6 +1074,11 @@ respectively.
 crazy. Please change to use `catch', possibly with a throw-handler, or
 `with-throw-handler'.
 
+** Deprecated `@bind' syntax
+
+`@bind' was part of an older implementation of the Emacs Lisp language,
+and is no longer used.
+    
 ** Last but not least, the `λ' macro can be used in lieu of `lambda'
 
 * Changes to the C interface
@@ -1383,6 +1260,10 @@ so on. The point was to do some precomputation on the type of the
 procedure, then return a specialized "call" procedure. However this
 optimization wasn't actually an optimization, so it is now deprecated.
 Just use `scm_call_0', etc instead.
+
+** Deprecated `scm_badargsp'
+
+This function is unused in Guile, but was part of its API.
 
 ** Better support for Lisp `nil'.
 
