@@ -195,7 +195,11 @@
     v))
 
 (define (narrow-stack->vector stack . args)
-  (stack->vector (apply make-stack (stack-ref stack 0) args)))
+  (let ((narrowed (apply make-stack (stack-ref stack 0) args)))
+    (if narrowed
+        (stack->vector narrowed)
+        #()))) ; ? Can be the case for a tail-call to `throw' tho
+
 
 ;; (define (debug)
 ;;   (run-debugger
