@@ -8,7 +8,7 @@ pkgdatadir=@datadir@/guile
 pkgincludedir=@includedir@/guile
 
 sitedir=@sitedir@
-extensionsdir=@libdir@/guile/@GUILE_EFFECTIVE_VERSION@/extensions
+extensiondir=@libdir@/guile/@GUILE_EFFECTIVE_VERSION@/extensions
 libguileinterface=@LIBGUILE_INTERFACE@
 
 Name: GNU Guile

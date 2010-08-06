@@ -647,7 +647,7 @@ libpath.h: $(srcdir)/Makefile.in  $(top_builddir)/config.status
 	@echo '	{ "pkglibdir",	   "$(pkglibdir)" }, \' >> libpath.tmp
 	@echo '	{ "pkgincludedir", "$(pkgincludedir)" }, \' \
 		>> libpath.tmp
-	@echo ' { "extensionsdir", "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/extensions" }, \' >> libpath.tmp
+	@echo '	{ "extensiondir", "$(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/extensions" }, \' >> libpath.tmp
 	@echo '	{ "guileversion", "@GUILE_VERSION@" }, \' >> libpath.tmp
 	@echo '	{ "libguileinterface", "@LIBGUILE_INTERFACE@" }, \' \
 		>> libpath.tmp
