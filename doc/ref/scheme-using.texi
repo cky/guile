@@ -36,7 +36,7 @@ support for languages other than Scheme.
 
 @menu
 * Readline::                    
-* Value Historyx::              
+* Value History::              
 * REPL Commands::               
 * Error Handling::              
 * Interactive Debugging::       
@@ -63,7 +63,7 @@ starts up interactively, so anything in this file has the same effect
 as if you type it in by hand at the ``scheme@@(guile-user)>'' prompt.
 
 
-@node Value Historyx
+@node Value History
 @subsection Value History
 
 Just as Readline helps you to reuse a previous input line, @dfn{value

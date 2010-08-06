@@ -352,7 +352,6 @@ available through both Scheme and C interfaces.
 * SRFI Support::                Support for various SRFIs.
 * R6RS Support::                Modules defined by the R6RS.
 * Readline Support::            Module for using the readline library.
-* Value History::               Maintaining a value history in the REPL.
 * Pretty Printing::             Nicely formatting Scheme objects for output.
 * Formatted Output::            The @code{format} procedure.
 * File Tree Walk::              Traversing the file system.

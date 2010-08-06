@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -252,38 +252,6 @@ Functions,,, readline, GNU Readline Library}).
 Return a completion function which offers completions from the
 possibilities in @var{string-list}.  Matching is case-sensitive.
 @end defun
-
-
-@node Value History
-@section Value History
-
-@c FIXME::martin: Review me!
-
-@cindex value history
-Another module which makes command line usage more convenient is
-@code{(ice-9 history)}.  This module will change the REPL so that each
-value which is evaluated and printed will be remembered under a name
-constructed from the dollar character (@code{$}) and the number of the
-evaluated expression.
-
-Consider an example session.
-
-@example
-guile> (use-modules (ice-9 history))
-guile> 1
-$1 = 1
-guile> (+ $1 $1)
-$2 = 2
-guile> (* $2 $2)
-$3 = 4
-@end example
-
-After loading the value history module @code{(ice-9 history)}, one
-(trivial) expression is evaluated.  The result is stored into the
-variable @code{$1}.  This fact is indicated by the output @code{$1 = },
-which is also caused by @code{(ice-9 history)}.  In the next line, this
-variable is used two times, to produce the value @code{$2}, which in
-turn is used in the calculation for @code{$3}.
 
 
 @c Local Variables:
