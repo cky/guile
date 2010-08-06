@@ -4,17 +4,345 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+FIXME:
+
+  * ,x of failing computation
+  * (quit)
+
 
 (During the 1.9 series, we will keep an incremental NEWS for the latest
 prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
 
 Changes in 1.9.12 (since the 1.9.11 prerelease):
 
+** Many R6RS bugfixes
+
+`(rnrs bytevectors)' and `(rnrs io ports)' now have version information,
+like the rest of the modules. The `(rnrs unicode)' module is now
+re-exported by `(rnrs)'. Top-level `import' forms may have more than one
+clause. Warnings about duplicate bindings have been fixed, along with
+some typos in the modules. There were a number of other bugfixes as well.
+    
+For the current list of known R6RS incompatibilities, see "R6RS
+Incompatibilities" in the manual.
+
+** Documentation for standard R6RS libraries
+
+See "R6RS Standard Libraries" in the manual, for more details.
+
+** Support for `letrec*'
+
+Guile now supports letrec*, a form of letrec in which the identifiers
+are bound in order. See "Local Bindings" in the manual, for more
+details.
+
+** Internal definitions now expand to `letrec*'
+
+Following the R6RS, internal definitions now expand to letrec* instead
+of letrec. The following program is invalid for R5RS, but valid for
+R6RS:
+
+    (define (foo)
+      (define bar 10)
+      (define baz (+ bar 20))
+      baz)
+
+    ;; R5RS and Guile <= 1.8:
+    (foo) => Unbound variable: bar
+    ;; R6RS and Guile >= 2.0:
+    (foo) => 30
+
+This change should not affect correct R5RS programs, or programs written
+in earlier Guile dialects.
+
+** Recursive debugging REPL on error
+
+When Guile sees an error, instead of dropping into a special debugging
+prompt, it will enter a recursive REPL in the dynamic context of the
+error. See "Error Handling" in the manual, for more information.
+
+A recursive REPL is the same as any other REPL, except that it
+has been augmented with debugging information, so that one can inspect
+the context of the error. The debugger has been integrated with the REPL
+via a set of debugging meta-commands.
+
+For example, one may access a backtrace with `,backtrace' (or
+`,bt'). See "Interactive Debugging" in the manual, for more
+information.
+
+** Readline tab completion for arguments
+
+When readline is enabled, tab completion works for arguments too, not
+just for the operator position.
+
+** Various REPL robustness fixes
+
+The REPL no longer enters the debugger when an error occurs at read-time
+and compile-time, or when executing meta-commands. Additionally, the
+REPL is more strict about the ports that it uses, saving the current
+input and output ports at startup and using those ports when entering
+recursive prompts. This allows debugging of an error within
+e.g. `call-with-input-port'.
+
+Finally, Ctrl-d can now be used to exit a recursive REPL, dropping the
+user back to the parent REPL.
+
+** Better procedure name and source location propagation
+
+There was a bug in 1.9.11 which would leave most procedures un-named;
+this and other previous deficiencies have been fixed.
+
+** New macro: `current-source-location'
+
+See FIXME in the manual, for more information.
+
+** module-filename field and accessor
+
+Modules now record the file in which they are defined. This field may be
+accessed with the new `module-filename' procedure.
+
+** call-with-error-handling / with-error-handling
+
+FIXME: document?
+
+** Deprecate the old scm-style-repl
+
+The following bindings from boot-9 are now found in `(ice-9
+scm-style-repl)': `scm-style-repl', `error-catching-loop',
+`error-catching-repl', `bad-throw', `scm-repl-silent'
+`assert-repl-silence', `repl-print-unspecified',
+`assert-repl-print-unspecified', `scm-repl-verbose',
+`assert-repl-verbosity', `scm-repl-prompt', `set-repl-prompt!', `repl',
+`default-pre-unwind-handler', `handle-system-error',
+
+The following bindings have been deprecated, with no replacement:
+`pre-unwind-handler-dispatch'.
+
+The following bindings have been totally removed:
+`before-signal-stack'.
+
+Deprecated forwarding shims have been installed so that users that
+expect these bindings in the main namespace will still work, but receive
+a deprecation warning.
+    
+** Miscellaneous other deprecations
+
+`apply-to-args', `has-suffix?', `scheme-file-suffix'
+`get-option', `for-next-option', `display-usage-report',
+`transform-usage-lambda', `collect', `set-batch-mode?!'
+
+** All core defmacros reimplemented hygienically
+
+All macros present in the default environment are now implemented with
+syntax-case. This should not have practical ramifications, beyond those
+listed below in "Lexical bindings introduced by hygienic macros may not
+be referenced by nonhygienic macros".
+
 ** Random generator state may be serialized to a datum
 
 `random-state->datum' will serialize a random state to a datum, which
-may be written out and read back in later.  That datum may be used to
-construct an equivalent random state by calling `datum->random-state'.
+may be written out, read back in later, and revivified using
+`datum->random-state'.  See "Random" in the manual, for more details.
+
+** New primitive: `tmpfile'.
+    
+See "File System" in the manual.
+
+** Modules load within a known environment
+
+It takes a few procedure calls to define a module, and those procedure
+calls need to be in scope. Now we ensure that the current module when
+loading a module is one that has the needed bindings, instead of relying
+on chance.
+
+** Remove encoding of versions into the file system
+
+It used to be that, when loading a module, if the user specified a
+version, Guile would grovel about in the filesystem to find the
+module. This process was slow and not robust. This support has been
+removed:  modules are once more always loaded via `primitive-load-path'.
+
+Module versions in the filesystem may be added again in the future, in
+an extensible way. Contact bug-guile@gnu.org with patches.
+    
+** Alex Shinn's pattern matcher for (ice-9 match).
+    
+Guile's copy of Andrew K. Wright's `match' library has been replaced by
+a compatible hygienic implementation by Alex Shinn.
+
+Compared to Andrew K. Wright's `match', the new `match' lacks
+`match-define', `match:error-control', `match:set-error-control',
+`match:error', `match:set-error', and all structure-related procedures.
+
+** Better debugging for psyntax
+
+We now build psyntax-pp.go directly from psyntax.scm, which allows us to
+preserve the original source locations and variable names. Git users
+will also be please to note that psyntax-pp.scm is no longer
+automatically regenerated from a normal `make' invocation.
+    
+** AM_SILENT_RULES
+
+Guile's build is visually quieter, due to the use of Automake 1.11's
+AM_SILENT_RULES. Build as `make V=1' to see all of the output.
+    
+** Better REPL options interface
+
+The set of REPL options is now fixed and typechecked -- you can't
+mistakenly set an option that doesn't exist, or set an value with an
+incorrect type. The following options have been added: `prompt',
+`compile-options', and `value-history'.
+
+The new `repl-default-option-set!' procedure from `(system repl common)'
+can set default options for future REPLs. `repl-default-prompt-set!' is
+a convenience procedure to set default prompts.
+
+** `*unspecified*' is identifier syntax
+    
+`*unspecified*' is no longer a variable, so it is optimized properly by
+the compiler, and is not `set!'-able.
+
+** `set-batch-mode?!' replaced by `ensure-batch-mode!'
+
+"Batch mode" is a flag used to tell a program that it is not running
+interactively. One usually turns it on after a fork. It may not be
+turned off. `ensure-batch-mode!' deprecates the old `set-batch-mode?!',
+because it is a better interface, as it can only turn on batch mode, not
+turn it off.
+
+** `(debug)' gone (fix?)
+    
+    * module/system/vm/debug.scm (debug): Change to debug the current stack
+      instead of the last stack.
+
+** Support for settable identifier syntax
+
+Following the R6RS, "variable transformers" are settable
+identifier-syntax. See "Identifier macros" in the manual, for more
+information.
+    
+** Deprecate `save-stack', `the-last-stack'
+
+It used to be that the way to debug programs in Guile was to capture the
+stack at the time of error, drop back to the REPL, then debug that
+stack. But this approach didn't compose, was tricky to get right in the
+presence of threads, and was not very powerful.
+
+So `save-stack', `stack-saved?', and `the-last-stack' have been moved to
+`(ice-9 save-stack)', with deprecated bindings left in the root module.
+
+** Compilation warnings at the REPL
+    
+By default, Guile now prints compile-time warnings for code entered at
+the REPL. Current warnings are for unbound variables and mismatched
+arities.
+
+** syntax-case treats `_' as a placeholder
+    
+Following R6RS, a `_' in a syntax-rules or syntax-case pattern matches
+anything, and binds no pattern variables. Unlike the R6RS, Guile also
+permits `_' to be in the literals list for a pattern.
+
+** Remove old Emacs interface
+
+Guile had an unused `--emacs' command line argument that was supposed to
+help when running Guile inside Emacs. This option has been removed, and
+the helper functions `named-module-use!' and `load-emacs-interface' have
+been deprecated.
+    
+** `top-repl' has its own module
+    
+The `top-repl' binding, called with Guile is run interactively, is now
+is its own module, `(ice-9 top-repl)'. A deprecated forwarding shim was
+left in the default environment.
+
+** Value history in the REPL on by default
+
+By default, the REPL will save computed values in variables like `$1',
+`$2', and the like. There are programmatic and interactive interfaces to
+control this. See "Value History" in the manual, for more information.
+
+** New threads are in `(guile-user)' by default, not `(guile)'
+
+It used to be that a new thread entering Guile would do so in the
+`(guile)' module, unless this was the first time Guile was initialized,
+in which case it was `(guile-user)'. This has been fixed to have all
+new threads unknown to Guile default to `(guile-user)'.
+
+** Backtrace improvements
+
+It used to be that backtraces showed a couple of extra frames, from the
+implementation of prompts. This has been fixed. Also, backtraces now
+print column numbers in addition to line numbers, if possible.
+
+** `display-error' takes a frame
+
+The `display-error' / `scm_display_error' helper now takes a frame as an
+argument instead of a stack. Stacks are still supported in deprecated
+builds. Additionally, `display-error' will again source location
+information for the error.
+
+** Better error reporting from the VM
+    
+If a value of the wrong type is passed to `car', `cdr', `set-car!',
+`set-cdr!', `apply', a struct accessor, or a bytevector accessors, the
+error from the VM now indicates which procedure failed, instead of
+lumping them all into the non-helpful "VM error". In addition, unbound
+variable reporting is now more helpful.
+
+** No more `(ice-9 debug)'
+    
+This module had some debugging helpers that are no longer applicable to
+the current debugging model. Importing this module will produce a
+deprecation warning. Users should contact bug-guile for support.
+
+** No more `(system vm debug)'
+
+This module is replaced by the recursive debugging REPL.
+    
+** File ports handle binary mode and coding declarations
+    
+Binary file ports are supported again, by opening files in the
+ISO-8859-1 encoding. If an encoding is not specified for textual ports,
+Guile now grovels the file for a "coding:" directive, and uses that if
+possible. See the documentation for `open-file', for more information.
+
+** R6RS character hex escapes on by default
+    
+However, R6RS character escapes within strings are incompatible with
+older Guile escape sequences, so they still need the reader option
+turned on. See "Reader Options" in the manual, for more information.
+
+** Fix random number generator on 64-bit platforms
+    
+There was a nasty bug on 64-bit platforms in which asking for a random
+integer with a range between 2**32 and 2**64 caused a segfault. After
+many embarrassing iterations, this was fixed.
+
+** Add `vhash-fold*' in `(ice-9 vlist)'.
+
+See "VLists" in the manual, for more information.
+    
+** Timestamps on autocompiled files checked for freshness, not equality
+    
+It used to be that to load a `.go' file instead of a `.scm' file, we
+required that the timestamp of the `.go' file be equal to that of the
+`.scm'. This has been relaxed to accept newer `.go' files, to integrate
+better with `make' tools.
+
+** Simplifications to the `(system foreign)' API.
+    
+Guile's foreign function interface was simplified a great
+deal. Interested users should see the documentation for 
+
+** User Scheme code may be placed in a version-specific path
+
+Before, there was only one way to install user Scheme code to a
+version-specific Guile directory: install to Guile's own path,
+e.g. /usr/share/guile/2.0. The site directory,
+e.g. /usr/share/guile/site, was unversioned. This has been changed to
+add a version-specific site directory, e.g. /usr/share/guile/site/2.0,
+searched before the global site directory.
 
 ** And of course, the usual collection of bugfixes
  
@@ -36,6 +364,7 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(sxml match)', a pattern matcher for SXML
 ** `(srfi srfi-9 gnu)', extensions to the SRFI-9 record library
 ** `(system vm coverage)', a line-by-line code coverage library
+
 ** Imported statprof, SSAX, and texinfo modules from Guile-Lib
     
 The statprof statistical profiler, the SSAX XML toolkit, and the texinfo
@@ -722,9 +1051,10 @@ But this does not:
 
 It is not normal to run into this situation with existing code. However,
 as code is ported over from defmacros to syntax-case, it is possible to
-run into situations like this. In the future, Guile will probably port
-its `while' macro to syntax-case, which makes this issue one to know
-about.
+run into situations like this. For example, if you have a defmacro that
+generates a `while' expression, the `break' bound by the `while' may not
+be visible within other parts of your defmacro. The solution is to port
+from defmacros to syntax-rules or syntax-case.
 
 ** Macros may no longer be referenced as first-class values.
 
@@ -1351,7 +1681,7 @@ environments.
 Before, Guile only searched the system library paths for extensions
 (e.g. /usr/lib), which meant that the names of Guile extensions had to
 be globally unique. Installing them to a Guile-specific extensions
-directory is cleaner. Use `pkg-config --variable=extensionsdir
+directory is cleaner. Use `pkg-config --variable=extensiondir
 guile-2.0' to get the location of the extensions directory.
 
 ** New dependency: libgc
