@@ -167,8 +167,9 @@ SCM_DEFINE (scm_sys_library_dir, "%library-dir", 0,0,0,
 #ifdef SCM_SITE_DIR
 SCM_DEFINE (scm_sys_site_dir, "%site-dir", 0,0,0,
             (),
-	    "Return the directory where the Guile site files are installed.\n"
-	    "E.g., may return \"/usr/share/guile/site\".")
+	    "Return the directory where users should install Scheme code for use\n"
+            "with this version of Guile.\n\n"
+	    "E.g., may return \"/usr/share/guile/site/" SCM_EFFECTIVE_VERSION "\".")
 #define FUNC_NAME s_scm_sys_site_dir
 {
   return scm_from_locale_string (SCM_SITE_DIR);
@@ -176,6 +177,18 @@ SCM_DEFINE (scm_sys_site_dir, "%site-dir", 0,0,0,
 #undef FUNC_NAME
 #endif /* SCM_SITE_DIR */
 
+#ifdef SCM_GLOBAL_SITE_DIR
+SCM_DEFINE (scm_sys_global_site_dir, "%global-site-dir", 0,0,0,
+            (),
+	    "Return the directory where users should install Scheme code for use\n"
+            "with all versions of Guile.\n\n"
+	    "E.g., may return \"/usr/share/guile/site\".")
+#define FUNC_NAME s_scm_sys_global_site_dir
+{
+  return scm_from_locale_string (SCM_GLOBAL_SITE_DIR);
+}
+#undef FUNC_NAME
+#endif /* SCM_GLOBAL_SITE_DIR */
 
 
 
@@ -239,8 +252,9 @@ scm_init_load_path ()
   else if (env)
     path = scm_parse_path (scm_from_locale_string (env), path);
   else
-    path = scm_list_3 (scm_from_locale_string (SCM_LIBRARY_DIR),
+    path = scm_list_4 (scm_from_locale_string (SCM_LIBRARY_DIR),
                        scm_from_locale_string (SCM_SITE_DIR),
+                       scm_from_locale_string (SCM_GLOBAL_SITE_DIR),
                        scm_from_locale_string (SCM_PKGDATA_DIR));
 
   env = getenv ("GUILE_SYSTEM_COMPILED_PATH");
