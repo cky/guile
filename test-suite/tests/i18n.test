@@ -1,6 +1,6 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
-;;;; Copyright (C) 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -363,3 +363,44 @@
                     (string-ci=? result "Tuesday"))))
            (lambda ()
              (setlocale LC_ALL "C")))))))
+
+
+;;;
+;;; Numbers.
+;;;
+
+(with-test-prefix "number->locale-string"
+
+  ;; We assume the global locale is "C" at this point.
+
+  (with-test-prefix "C"
+
+    (pass-if "no thousand separator"
+      ;; Unlike in English, the "C" locale has no thousand separator.
+      ;; If this doesn't hold, the following tests will fail.
+      (string=? "" (locale-thousands-separator)))
+
+    (pass-if "integer"
+      (string=? "123456" (number->locale-string 123456)))
+
+    (pass-if "fraction"
+      (string=? "1234.567" (number->locale-string 1234.567)))
+
+    (pass-if "fraction, 1 digit"
+      (string=? "1234.5" (number->locale-string 1234.567 1))))
+
+  (with-test-prefix "French"
+
+    (under-french-locale-or-unresolved
+     (lambda ()
+       (let ((fr (make-locale LC_ALL %french-locale-name)))
+
+        (pass-if "integer"
+          (string=? "123 456" (number->locale-string 123456 #t fr)))
+
+        (pass-if "fraction"
+          (string=? "1 234,567" (number->locale-string 1234.567 #t fr)))
+
+        (pass-if "fraction, 1 digit"
+          (string=? "1 234,5"
+                    (number->locale-string 1234.567 1 fr))))))))
