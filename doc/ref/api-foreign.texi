@@ -356,10 +356,24 @@ To define C primitives within a specific module, the simplest way is:
 (load-extension "foobar-c-code" "foo_bar_init")
 @end example
 
+@cindex extensiondir
 When loaded with @code{(use-modules (foo bar))}, the
 @code{load-extension} call looks for the @file{foobar-c-code.so} (etc)
-object file in the standard system locations, such as @file{/usr/lib}
-or @file{/usr/local/lib}.
+object file in Guile's @code{extensiondir}, which is usually a
+subdirectory of the @code{libdir}. For example, if your libdir is
+@file{/usr/lib}, the @code{extensiondir} for the Guile 2.0.@var{x}
+series will be @file{/usr/lib/guile/2.0/}.
+
+The extension path includes the major and minor version of Guile (the
+``effective version''), because Guile guarantees compatibility within a
+given effective version. This allows you to install different versions
+of the same extension for different versions of Guile.
+
+If the extension is not found in the @code{extensiondir}, Guile will
+also search the standard system locations, such as @file{/usr/lib} or
+@file{/usr/local/lib}. It is preferable, however, to keep your extension
+out of the system library path, to prevent unintended interference with
+other dynamically-linked C libraries.
 
 If someone installs your module to a non-standard location then the
 object file won't be found.  You can address this by inserting the
@@ -377,7 +391,7 @@ can by substituted into a source file like @file{foo.scm.in}
 
 @example
 (define-module (foo bar))
-(load-extension "XXlibdirXX/foobar-c-code" "foo_bar_init")
+(load-extension "XXextensiondirXX/foobar-c-code" "foo_bar_init")
 @end example
 
 @noindent
@@ -386,17 +400,17 @@ with the following in a @file{Makefile}, using @command{sed}
 
 @example
 foo.scm: foo.scm.in
-        sed 's|XXlibdirXX|$(libdir)|' <foo.scm.in >foo.scm
+        sed 's|XXextensiondirXX|$(libdir)/guile/2.0|' <foo.scm.in >foo.scm
 @end example
 
-The actual pattern @code{XXlibdirXX} is arbitrary, it's only something
+The actual pattern @code{XXextensiondirXX} is arbitrary, it's only something
 which doesn't otherwise occur.  If several modules need the value, it
 can be easier to create one @file{foo/config.scm} with a define of the
-@code{libdir} location, and use that as required.
+@code{extensiondir} location, and use that as required.
 
 @example
 (define-module (foo config))
-(define-public foo-config-libdir "XXlibdirXX"")
+(define-public foo-config-extensiondir "XXextensiondirXX"")
 @end example
 
 Such a file might have other locations too, for instance a data
@@ -404,32 +418,12 @@ directory for auxiliary files, or @code{localedir} if the module has
 its own @code{gettext} message catalogue
 (@pxref{Internationalization}).
 
-When installing multiple C code objects, it can be convenient to put
-them in a subdirectory of @code{libdir}, thus giving for example
-@code{/usr/lib/foo/some-obj.so}.  If the objects are only meant to be
-used through the module, then a subdirectory keeps them out of sight.
-
 It will be noted all of the above requires that the Scheme code to be
 found in @code{%load-path} (@pxref{Build Config}).  Presently it's
 left up to the system administrator or each user to augment that path
 when installing Guile modules in non-default locations.  But having
 reached the Scheme code, that code should take care of hitting any of
 its own private files etc.
-
-Presently there's no convention for having a Guile version number in
-module C code filenames or directories.  This is primarily because
-there's no established principles for two versions of Guile to be
-installed under the same prefix (eg. two both under @file{/usr}).
-Assuming upward compatibility is maintained then this should be
-unnecessary, and if compatibility is not maintained then it's highly
-likely a package will need to be revisited anyway.
-
-The present suggestion is that modules should assume when they're
-installed under a particular @code{prefix} that there's a single
-version of Guile there, and the @code{guile-config} at build time has
-the necessary information about it.  C code or Scheme code might adapt
-itself accordingly (allowing for features not available in an older
-version for instance).
 
 
 @node Foreign Pointers
@@ -505,8 +499,8 @@ The @code{void} type.  It can be used as the first argument to
 @node Foreign Variables
 @subsubsection Foreign Variables
 
-Given the types defined in the previous section, C pointers may be
-looked up dynamically using @code{dynamic-pointer}.
+Pointers to variables in the current address space may be looked up
+dynamically using @code{dynamic-pointer}.
 
 @deffn {Scheme Procedure} dynamic-pointer name dobj
 @deffnx {C Function} scm_dynamic_pointer (name, dobj)
@@ -527,8 +521,10 @@ pointing to that foreign value, we do:
 (use-modules (system foreign))
 (define numptob (dynamic-pointer "scm_numptob" (dynamic-link)))
 numptob
-@result{} #<pointer 139984413364296>
+@result{} #<pointer 0x7fb35b1b4688>
 @end example
+
+(The next section discusses ways to dereference pointers.)
 
 A value returned by @code{dynamic-pointer} is a Scheme wrapper for a C
 pointer.
@@ -567,9 +563,7 @@ Wrapped pointers are untyped, so they are essentially equivalent to C
 pointer can be accessed at the byte level.  This is achieved using
 @emph{bytevectors} (@pxref{Bytevectors}).  The @code{(rnrs bytevector)}
 module contains procedures that can be used to convert byte sequences to
-Scheme objects such as strings, floating pointer numbers, or integers.
-
-Pointers may be accessed as bytevectors.
+Scheme objects such as strings, floating point numbers, or integers.
 
 @deffn {Scheme Procedure} pointer->bytevector pointer len [offset [uvec_type]]
 @deffnx {C Function} scm_foreign_to_bytevector pointer len offset uvec_type
