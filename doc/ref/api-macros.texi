@@ -772,10 +772,68 @@ following to replace @code{fx+} with @code{+}:
 (define-syntax fx+ (identifier-syntax +))
 @end example
 
-Later versions of the @code{psyntax} @code{syntax-case} expander, on which
-Guile's syntax expander is based, include @code{identifier-syntax} support for
-recognizing identifiers on the left-hand side of a @code{set!} expression as
-well. Guile should port that code to its expander.
+There is also special support for recognizing identifiers on the
+left-hand side of a @code{set!} expression, as in the following:
+
+@example
+(define-syntax foo foo-transformer)
+(set! foo @var{val})
+;; expands via
+(foo-transformer #'(set! foo @var{val}))
+;; iff foo-transformer is a "variable transformer"
+@end example
+
+As the example notes, the transformer procedure must be explicitly
+marked as being a ``variable transformer'', as most macros aren't
+written to discriminate on the form in the operand position.
+
+@deffn {Scheme Procedure} make-variable-transformer transformer
+Mark the @var{transformer} procedure as being a ``variable
+transformer''. In practice this means that, when bound to a syntactic
+keyword, it may detect references to that keyword on the left-hand-side
+of a @code{set!}.
+
+@example
+(define bar 10)
+(define-syntax bar-alias
+  (make-variable-transformer
+   (lambda (x)
+     (syntax-case x (set!)
+       ((set! var val) #'(set! bar val))
+       ((var arg ...) #'(bar arg ...))
+       (var (identifier? #'var) #'bar)))))
+
+bar-alias @result{} 10
+(set! bar-alias 20)
+bar @result{} 20
+(set! bar 30)
+bar-alias @result{} 30
+@end example
+@end deffn
+
+There is an extension to identifer-syntax which allows it to handle the
+@code{set!} case as well:
+
+@deffn {Syntax} identifier-syntax (var exp1) ((set! var val) exp2)
+Create a variable transformer. The first clause is used for references
+to the variable in operator or operand position, and the second for
+appearances of the variable on the left-hand-side of an assignment.
+
+For example, the previous @code{bar-alias} example could be expressed
+more succinctly like this:
+
+@example
+(define-syntax bar-alias
+  (identifier-syntax
+    (var bar)
+    ((set! var val) (set! bar val))))
+@end example
+
+@noindent
+As before, the templates in @code{identifier-syntax} forms do not need
+wrapping in @code{#'} syntax forms.
+@end deffn
+
 
 @node Eval When
 @subsection Eval-when
