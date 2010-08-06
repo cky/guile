@@ -21,7 +21,7 @@
   (export boolean? symbol? char? vector? null? pair? number? string? procedure?
 	 
 	  define define-syntax syntax-rules lambda let let* let-values 
-	  let*-values letrec begin 
+	  let*-values letrec letrec* begin 
 
 	  quote lambda if set! cond case 
 	 

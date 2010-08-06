@@ -1,13 +1,11 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Binding Constructs
 @section Definitions and Variable Bindings
-
-@c FIXME::martin: Review me!
 
 Scheme supports the definition of variables in different contexts.
 Variables can be defined at the top level, so that they are visible in
@@ -27,8 +25,7 @@ and expressions.  This is important for modularity and data abstraction.
 
 @cindex variable definition
 
-On the top level of a program (i.e. when not inside the body of a
-procedure definition or a @code{let}, @code{let*} or @code{letrec}
+At the top level of a program (i.e., not nested within any other
 expression), a definition of the form
 
 @lisp
@@ -38,10 +35,10 @@ expression), a definition of the form
 @noindent
 defines a variable called @code{a} and sets it to the value @var{value}.
 
-If the variable already exists, because it has already been created by a
-previous @code{define} expression with the same name, its value is
-simply changed to the new @var{value}.  In this case, then, the above
-form is completely equivalent to
+If the variable already exists in the current module, because it has
+already been created by a previous @code{define} expression with the
+same name, its value is simply changed to the new @var{value}.  In this
+case, then, the above form is completely equivalent to
 
 @lisp
 (set! a @var{value})
@@ -95,27 +92,23 @@ Attention: Scheme definitions inside local binding constructs
 @node Local Bindings
 @subsection Local Variable Bindings
 
-@c FIXME::martin: Review me!
-
 @cindex local bindings
 @cindex local variables
 
-As opposed to definitions at the top level, which are visible in the
-whole program (or current module, when Guile modules are used), it is
-also possible to define variables which are only visible in a
-well-defined part of the program.  Normally, this part of a program
-will be a procedure or a subexpression of a procedure.
+As opposed to definitions at the top level, which creates bindings that
+are visible to all code in a module, it is also possible to define
+variables which are only visible in a well-defined part of the program.
+Normally, this part of a program will be a procedure or a subexpression
+of a procedure.
 
-With the constructs for local binding (@code{let}, @code{let*} and
-@code{letrec}), the Scheme language has a block structure like most
-other programming languages since the days of @sc{Algol 60}.  Readers
-familiar to languages like C or Java should already be used to this
-concept, but the family of @code{let} expressions has a few properties
-which are well worth knowing.
+With the constructs for local binding (@code{let}, @code{let*},
+@code{letrec}, and @code{letrec*}), the Scheme language has a block
+structure like most other programming languages since the days of
+@sc{Algol 60}.  Readers familiar to languages like C or Java should
+already be used to this concept, but the family of @code{let}
+expressions has a few properties which are well worth knowing.
 
-The first local binding construct is @code{let}.  The other constructs
-@code{let*} and @code{letrec} are specialized versions for usage where
-using plain @code{let} is a bit inconvenient.
+The most basic local binding construct is @code{let}.
 
 @deffn syntax let bindings body
 @var{bindings} has the form
@@ -143,14 +136,15 @@ The values of the @var{init} expressions are stored into the variables.
 The expressions in @var{body} are evaluated in order, and the value of
 the last expression is returned as the value of the @code{let}
 expression.
-
-@item
-The storage for the @var{variables} is freed.
 @end itemize
 
 The @var{init} expressions are not allowed to refer to any of the
 @var{variables}.
 @end deffn
+
+The other binding contructs are variations on the same theme: making new
+values, binding them to variables, and executing a body in that new,
+extended lexical context.
 
 @deffn syntax let* bindings body
 Similar to @code{let}, but the variable bindings are performed
@@ -177,19 +171,44 @@ procedures created in the @var{init} expression can recursively refer to
 the defined variables.
 
 @lisp
-(letrec ((even?
-          (lambda (n)
-              (if (zero? n)
-                  #t
-                  (odd? (- n 1)))))
-         (odd?
-          (lambda (n)
-              (if (zero? n)
-                  #f
-                  (even? (- n 1))))))
+(letrec ((even? (lambda (n)
+                  (if (zero? n)
+                      #t
+                      (odd? (- n 1)))))
+         (odd? (lambda (n)
+                  (if (zero? n)
+                      #f
+                      (even? (- n 1))))))
   (even? 88))
 @result{}
 #t
+@end lisp
+
+Note that while the @var{init} expressions may refer to the new
+variables, they may not access their values.  For example, making the
+@code{even?} function above creates a closure (@pxref{About Closure})
+referencing the @code{odd?} variable.  But @code{odd?} can't be called
+until after execution has entered the body.
+@end deffn
+
+@deffn syntax letrec* bindings body
+Similar to @code{letrec}, except the @var{init} expressions are bound to
+their variables in order.
+
+@code{letrec*} thus relaxes the letrec restriction, in that later
+@var{init} expressions may refer to the values of previously bound
+variables.
+
+@lisp
+(letrec ((a 42)
+         (b (+ a 10)))
+  (* a b))
+@result{} ;; Error: unbound variable: a
+
+(letrec* ((a 42)
+          (b (+ a 10)))
+  (* a b))
+@result{} 2184
 @end lisp
 @end deffn
 
@@ -204,11 +223,11 @@ iteration (@pxref{while do, Iteration})
 @c FIXME::martin: Review me!
 
 A @code{define} form which appears inside the body of a @code{lambda},
-@code{let}, @code{let*}, @code{letrec} or equivalent expression is
-called an @dfn{internal definition}.  An internal definition differs
-from a top level definition (@pxref{Top Level}), because the definition
-is only visible inside the complete body of the enclosing form.  Let us
-examine the following example.
+@code{let}, @code{let*}, @code{letrec}, @code{letrec*} or equivalent
+expression is called an @dfn{internal definition}.  An internal
+definition differs from a top level definition (@pxref{Top Level}),
+because the definition is only visible inside the complete body of the
+enclosing form.  Let us examine the following example.
 
 @lisp
 (let ((frumble "froz"))
@@ -222,11 +241,11 @@ peach
 Here the enclosing form is a @code{let}, so the @code{define}s in the
 @code{let}-body are internal definitions.  Because the scope of the
 internal definitions is the @strong{complete} body of the
-@code{let}-expression, the @code{lambda}-expression which gets bound
-to the variable @code{banana} may refer to the variable @code{apple},
-even though it's definition appears lexically @emph{after} the definition
-of @code{banana}.  This is because a sequence of internal definition
-acts as if it were a @code{letrec} expression.
+@code{let}-expression, the @code{lambda}-expression which gets bound to
+the variable @code{banana} may refer to the variable @code{apple}, even
+though its definition appears lexically @emph{after} the definition of
+@code{banana}.  This is because a sequence of internal definition acts
+as if it were a @code{letrec*} expression.
 
 @lisp
 (let ()
@@ -240,9 +259,12 @@ is equivalent to
 
 @lisp
 (let ()
-  (letrec ((a 1) (b 2))
+  (letrec* ((a 1) (b 2))
     (+ a b)))
 @end lisp
+
+Internal definitions are only allowed at the beginning of the body of an
+enclosing expression.  They may not be mixed with other expressions.
 
 Another noteworthy difference to top level definitions is that within
 one group of internal definitions all variable names must be distinct.
@@ -250,19 +272,23 @@ That means where on the top level a second define for a given variable
 acts like a @code{set!}, an exception is thrown for internal definitions
 with duplicate bindings.
 
-@c FIXME::martin: The following is required by R5RS, but Guile does not
-@c   signal an error.  Document it anyway, saying that Guile is sloppy?
+As a historical note, it used to be that internal bindings were expanded
+in terms of @code{letrec}, not @code{letrec*}. This was the situation
+for the R5RS report and before. However with the R6RS, it was recognized
+that sequential definition was a more intuitive expansion, as in the
+following case:
 
-@c  Internal definitions are only allowed at the beginning of the body of an
-@c  enclosing expression.  They may not be mixed with other expressions.
+@lisp
+(let ()
+  (define a 1)
+  (define b (+ a a))
+  (+ a b))
+@end lisp  
 
-@c  @lisp
-@c  (let ()
-@c    (define a 1)
-@c    a
-@c    (define b 2)
-@c    b)
-@c  @end lisp
+@noindent
+Guile decided to follow the R6RS in this regard, and now expands
+internal definitions using @code{letrec*}.
+
 
 @node Binding Reflection
 @subsection Querying variable bindings
@@ -275,11 +301,6 @@ top level environment.
 Return @code{#t} if @var{sym} is defined in the module @var{module} or
 the current module when @var{module} is not specified; otherwise return
 @code{#f}.
-
-Up to Guile 1.8, the second optional argument had to be @dfn{lexical
-environment} as returned by @code{the-environment}, for example.  The
-behavior of this function remains unchanged when the second argument is
-omitted.
 @end deffn
 
 

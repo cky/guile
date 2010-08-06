@@ -233,6 +233,7 @@ grouped below by the existing manual sections to which they correspond.
 @deffn {Scheme Syntax} let bindings body
 @deffnx {Scheme Syntax} let* bindings body
 @deffnx {Scheme Syntax} letrec bindings body
+@deffnx {Scheme Syntax} letrec* bindings body
 @xref{Local Bindings}, for documentation.
 @end deffn
 

@@ -52,7 +52,7 @@
 
 	  boolean? symbol? char? vector? null? pair? number? string? procedure?
 	  define define-syntax syntax-rules lambda let let* let-values
-	  let*-values letrec begin quote lambda if set! cond case or and not
+	  let*-values letrec letrec* begin quote lambda if set! cond case or and not
 	  eqv? equal? eq? + - * / max min abs numerator denominator gcd lcm 
 	  floor ceiling truncate round rationalize real-part imag-part 
 	  make-rectangular angle div mod div-and-mod div0 mod0 div0-and-mod0
