@@ -4,14 +4,9 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-FIXME:
 
-  * ,x of failing computation
-  * (quit)
-
-
-(During the 1.9 series, we will keep an incremental NEWS for the latest
-prerelease, and a full NEWS corresponding to 1.8 -> 2.0.)
+Note: During the 1.9 series, we will keep an incremental NEWS for the
+latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.12 (since the 1.9.11 prerelease):
 
@@ -333,7 +328,8 @@ better with `make' tools.
 ** Simplifications to the `(system foreign)' API.
     
 Guile's foreign function interface was simplified a great
-deal. Interested users should see the documentation for 
+deal. Interested users should see "Foreign Function Interface" in the
+manual, for full details.
 
 ** User Scheme code may be placed in a version-specific path
 
