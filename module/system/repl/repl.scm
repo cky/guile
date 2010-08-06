@@ -121,10 +121,20 @@
            (cond
             ((eqv? exp *unspecified*))  ; read error, pass
             ((eq? exp meta-command-token)
-             (catch 'quit
-               (lambda () (meta-command repl))
+             (catch #t
+               (lambda ()
+                 (meta-command repl))
                (lambda (k . args)
-                 (abort args))))
+                 (if (eq? k 'quit)
+                     (abort args)
+                     (begin
+                       (format #t "While executing meta-command:~%" string)
+                       (pmatch args
+                         ((,subr ,msg ,args . ,rest)
+                          (display-error #f (current-output-port) subr msg args rest))
+                         (else
+                          (format #t "ERROR: Throw to key `~a' with args `~s'.\n" key args)))
+                       (force-output))))))
             ((eof-object? exp)
              (newline)
              (abort '()))
