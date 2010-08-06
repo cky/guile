@@ -514,11 +514,6 @@ Return a ``wrapped pointer'' for the symbol @var{name} in the shared
 object referred to by @var{dobj}.  The returned pointer points to a C
 object.
 
-This facility works by asking the dynamic linker for the address of a symbol,
-then assuming that it aliases a value of a given type. Obviously, the user must
-be very careful to ensure that the value actually is of the declared type, or
-bad things will happen.
-
 Regardless whether your C compiler prepends an underscore @samp{_} to the global
 names in a program, you should @strong{not} include this underscore in
 @var{name} since it will be added automatically when necessary.
