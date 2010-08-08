@@ -640,6 +640,95 @@ SCM_DEPRECATED SCM scm_internal_stack_catch (SCM tag,
 
 
 
+/* These functions were "discouraged" in 1.8, and now are deprecated. */
+
+/* scm_to_int, scm_from_int are the official functions to do the job,
+   but there is nothing wrong with using scm_num2int, etc.
+
+   These could be trivially defined via macros, but we leave them as
+   functions since existing code may take their addresses.
+*/
+
+SCM_DEPRECATED SCM scm_short2num (short n);
+SCM_DEPRECATED SCM scm_ushort2num (unsigned short n);
+SCM_DEPRECATED SCM scm_int2num (int n);
+SCM_DEPRECATED SCM scm_uint2num (unsigned int n);
+SCM_DEPRECATED SCM scm_long2num (long n);
+SCM_DEPRECATED SCM scm_ulong2num (unsigned long n);
+SCM_DEPRECATED SCM scm_size2num (size_t n);
+SCM_DEPRECATED SCM scm_ptrdiff2num (scm_t_ptrdiff n);
+SCM_DEPRECATED short scm_num2short (SCM num, unsigned long int pos,
+			     const char *s_caller);
+SCM_DEPRECATED unsigned short scm_num2ushort (SCM num, unsigned long int pos,
+				       const char *s_caller);
+SCM_DEPRECATED int scm_num2int (SCM num, unsigned long int pos,
+			 const char *s_caller);
+SCM_DEPRECATED unsigned int scm_num2uint (SCM num, unsigned long int pos,
+				   const char *s_caller);
+SCM_DEPRECATED long scm_num2long (SCM num, unsigned long int pos,
+			   const char *s_caller);
+SCM_DEPRECATED unsigned long scm_num2ulong (SCM num, unsigned long int pos,
+				     const char *s_caller);
+SCM_DEPRECATED scm_t_ptrdiff scm_num2ptrdiff (SCM num, unsigned long int pos,
+                                       const char *s_caller);
+SCM_DEPRECATED size_t scm_num2size (SCM num, unsigned long int pos,
+			     const char *s_caller);
+#if SCM_SIZEOF_LONG_LONG != 0
+SCM_DEPRECATED SCM scm_long_long2num (long long sl);
+SCM_DEPRECATED SCM scm_ulong_long2num (unsigned long long sl);
+SCM_DEPRECATED long long scm_num2long_long (SCM num, unsigned long int pos,
+				     const char *s_caller);
+SCM_DEPRECATED unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
+					       const char *s_caller);
+#endif
+
+SCM_DEPRECATED SCM scm_make_real (double x);
+SCM_DEPRECATED double scm_num2dbl (SCM a, const char * why);
+SCM_DEPRECATED SCM scm_float2num (float n);
+SCM_DEPRECATED SCM scm_double2num (double n);
+
+/* The next two are implemented in numbers.c since they use features
+   only available there.
+*/
+SCM_DEPRECATED float scm_num2float (SCM num, unsigned long int pos,
+			     const char *s_caller);
+SCM_DEPRECATED double scm_num2double (SCM num, unsigned long int pos,
+			       const char *s_caller);
+
+SCM_DEPRECATED SCM scm_make_complex (double x, double y);
+
+/* Discouraged because they don't make the encoding explicit.
+ */
+
+SCM_DEPRECATED SCM scm_mem2symbol (const char *mem, size_t len);
+SCM_DEPRECATED SCM scm_mem2uninterned_symbol (const char *mem, size_t len);
+SCM_DEPRECATED SCM scm_str2symbol (const char *str);
+
+SCM_DEPRECATED SCM scm_take_str (char *s, size_t len);
+SCM_DEPRECATED SCM scm_take0str (char *s);
+SCM_DEPRECATED SCM scm_mem2string (const char *src, size_t len);
+SCM_DEPRECATED SCM scm_str2string (const char *src);
+SCM_DEPRECATED SCM scm_makfrom0str (const char *src);
+SCM_DEPRECATED SCM scm_makfrom0str_opt (const char *src);
+
+/* Discouraged because scm_c_make_string has a better name and is more
+   consistent with make-string.
+ */
+SCM_DEPRECATED SCM scm_allocate_string (size_t len);
+
+/* Discouraged because they are just strange.
+ */
+
+SCM_DEPRECATED SCM scm_make_keyword_from_dash_symbol (SCM symbol);
+SCM_DEPRECATED SCM scm_keyword_dash_symbol (SCM keyword);
+
+/* Discouraged because it does not state what encoding S is in.
+ */
+
+SCM_DEPRECATED SCM scm_c_make_keyword (const char *s);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

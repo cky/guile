@@ -562,10 +562,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
 
   scm_init_goops ();
 
-#if SCM_ENABLE_DISCOURAGED == 1
-  scm_i_init_discouraged ();
-#endif
-
 #if SCM_ENABLE_DEPRECATED == 1
   scm_i_init_deprecated ();
 #endif

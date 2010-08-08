@@ -128,7 +128,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	debug.c					\
 	deprecated.c				\
 	deprecation.c				\
-	discouraged.c				\
 	dynwind.c				\
 	eq.c					\
 	error.c					\
@@ -230,7 +229,6 @@ DOT_X_FILES =					\
 	debug.x					\
 	deprecated.x				\
 	deprecation.x				\
-	discouraged.x				\
 	dynl.x					\
 	dynwind.x				\
 	eq.x					\
@@ -330,7 +328,6 @@ DOT_DOC_FILES = 				\
 	debug.doc				\
 	deprecated.doc				\
 	deprecation.doc				\
-	discouraged.doc				\
 	dynl.doc				\
 	dynwind.doc				\
 	eq.doc					\

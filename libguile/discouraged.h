@@ -59,80 +59,6 @@
 					   ^ (SCM_UNPACK (SCM_BOOL_T) \
 					      ^ SCM_UNPACK (SCM_BOOL_F))))
 
-/* scm_to_int, scm_from_int are the official functions to do the job,
-   but there is nothing wrong with using scm_num2int, etc.
-
-   These could be trivially defined via macros, but we leave them as
-   functions since existing code may take their addresses.
-*/
-
-SCM_API SCM scm_short2num (short n);
-SCM_API SCM scm_ushort2num (unsigned short n);
-SCM_API SCM scm_int2num (int n);
-SCM_API SCM scm_uint2num (unsigned int n);
-SCM_API SCM scm_long2num (long n);
-SCM_API SCM scm_ulong2num (unsigned long n);
-SCM_API SCM scm_size2num (size_t n);
-SCM_API SCM scm_ptrdiff2num (scm_t_ptrdiff n);
-SCM_API short scm_num2short (SCM num, unsigned long int pos,
-			     const char *s_caller);
-SCM_API unsigned short scm_num2ushort (SCM num, unsigned long int pos,
-				       const char *s_caller);
-SCM_API int scm_num2int (SCM num, unsigned long int pos,
-			 const char *s_caller);
-SCM_API unsigned int scm_num2uint (SCM num, unsigned long int pos,
-				   const char *s_caller);
-SCM_API long scm_num2long (SCM num, unsigned long int pos,
-			   const char *s_caller);
-SCM_API unsigned long scm_num2ulong (SCM num, unsigned long int pos,
-				     const char *s_caller);
-SCM_API scm_t_ptrdiff scm_num2ptrdiff (SCM num, unsigned long int pos,
-                                       const char *s_caller);
-SCM_API size_t scm_num2size (SCM num, unsigned long int pos,
-			     const char *s_caller);
-#if SCM_SIZEOF_LONG_LONG != 0
-SCM_API SCM scm_long_long2num (long long sl);
-SCM_API SCM scm_ulong_long2num (unsigned long long sl);
-SCM_API long long scm_num2long_long (SCM num, unsigned long int pos,
-				     const char *s_caller);
-SCM_API unsigned long long scm_num2ulong_long (SCM num, unsigned long int pos,
-					       const char *s_caller);
-#endif
-
-SCM_API SCM scm_make_real (double x);
-SCM_API double scm_num2dbl (SCM a, const char * why);
-SCM_API SCM scm_float2num (float n);
-SCM_API SCM scm_double2num (double n);
-
-/* The next two are implemented in numbers.c since they use features
-   only available there.
-*/
-SCM_API float scm_num2float (SCM num, unsigned long int pos,
-			     const char *s_caller);
-SCM_API double scm_num2double (SCM num, unsigned long int pos,
-			       const char *s_caller);
-
-SCM_API SCM scm_make_complex (double x, double y);
-
-/* Discouraged because they don't make the encoding explicit.
- */
-
-SCM_API SCM scm_mem2symbol (const char *mem, size_t len);
-SCM_API SCM scm_mem2uninterned_symbol (const char *mem, size_t len);
-SCM_API SCM scm_str2symbol (const char *str);
-
-SCM_API SCM scm_take_str (char *s, size_t len);
-SCM_API SCM scm_take0str (char *s);
-SCM_API SCM scm_mem2string (const char *src, size_t len);
-SCM_API SCM scm_str2string (const char *src);
-SCM_API SCM scm_makfrom0str (const char *src);
-SCM_API SCM scm_makfrom0str_opt (const char *src);
-
-/* Discouraged because scm_c_make_string has a better name and is more
-   consistent with make-string.
- */
-SCM_API SCM scm_allocate_string (size_t len);
-
 /* Discouraged because scm_is_symbol has a better name,
  */
 #define SCM_SYMBOLP scm_is_symbol
@@ -158,17 +84,6 @@ SCM_API SCM scm_allocate_string (size_t len);
 #define SCM_NULLP(x)		(scm_is_null (x))
 #define SCM_NNULLP(x)		(!scm_is_null (x))
 
-/* Discouraged because they are just strange.
- */
-
-SCM_API SCM scm_make_keyword_from_dash_symbol (SCM symbol);
-SCM_API SCM scm_keyword_dash_symbol (SCM keyword);
-
-/* Discouraged because it does not state what encoding S is in.
- */
-
-SCM_API SCM scm_c_make_keyword (const char *s);
-
 /* Discouraged because the 'internal' and 'thread' moniker is
    confusing.
  */
@@ -176,8 +91,6 @@ SCM_API SCM scm_c_make_keyword (const char *s);
 #define scm_internal_select scm_std_select
 #define scm_thread_sleep    scm_std_sleep
 #define scm_thread_usleep   scm_std_usleep
-
-SCM_INTERNAL void scm_i_init_discouraged (void);
 
 #endif /* SCM_ENABLE_DISCOURAGED == 1 */
 

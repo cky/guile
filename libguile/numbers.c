@@ -6353,11 +6353,14 @@ scm_from_double (double val)
   return z;
 }
 
-#if SCM_ENABLE_DISCOURAGED == 1
+#if SCM_ENABLE_DEPRECATED == 1
 
 float
 scm_num2float (SCM num, unsigned long int pos, const char *s_caller)
 {
+  scm_c_issue_deprecation_warning
+    ("`scm_num2float' is deprecated. Use scm_to_double instead.");
+
   if (SCM_BIGP (num))
     {
       float res = mpz_get_d (SCM_I_BIG_MPZ (num));
@@ -6373,6 +6376,9 @@ scm_num2float (SCM num, unsigned long int pos, const char *s_caller)
 double
 scm_num2double (SCM num, unsigned long int pos, const char *s_caller)
 {
+  scm_c_issue_deprecation_warning
+    ("`scm_num2double' is deprecated. Use scm_to_double instead.");
+
   if (SCM_BIGP (num))
     {
       double res = mpz_get_d (SCM_I_BIG_MPZ (num));
