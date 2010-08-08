@@ -1,0 +1,31 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Deprecation
+@section Deprecation
+
+From time to time functions and other features of Guile become obsolete.
+Guile's @dfn{deprecation} is a mechanism that can help you cope with
+this.
+
+When you use a feature that is deprecated, you will likely get a
+warning message at run-time.  Also, deprecated features are not ready
+for production use: they might be very slow.
+
+Additionally, if you have a new enough toolchain, using a deprecated
+function from @code{libguile} will cause a link-time warning.
+
+The primary source for information about just what things are deprecated
+in a given release is the file @file{NEWS}.  That file also documents
+what you should use instead of the obsoleted things.
+
+The file @file{README} contains instructions on how to control the
+inclusion or removal of the deprecated features from the public API of
+Guile, and how to control the deprecation warning messages.
+
+The idea behind those mechanisms is that normally all deprecated are
+available, but you get feedback when compiling and running code that
+uses them, so that you can migrate to the newer APIs at your leisure.

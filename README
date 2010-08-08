@@ -145,10 +145,6 @@ switches specific to Guile you may find useful in some circumstances.
   implementation and helps to keep Guile reasonably clean of historic
   baggage.
 
-  Deprecated features are considered harmful; using them is likely a
-  bug.  See below for the related notion of `discouraged' features,
-  which are OK but have fallen out of favor.
-
   See the file NEWS for a list of features that are currently
   deprecated.  Each entry will also tell you what you should replace
   your code with.
@@ -198,16 +194,9 @@ switches specific to Guile you may find useful in some circumstances.
   'warn-deprecated) to enable and disable the detailed messaged at run
   time.
 
---disable-discouraged
-
-  In addition to deprecated features, Guile can also contain things
-  that are merely `discouraged'.  It is OK to continue to use these
-  features in old code, but new code should avoid them since there are
-  better alternatives.
-
-  There is nothing wrong with a discouraged feature per se, but they
-  might have strange names, or be non-standard, for example.  Avoiding
-  them will make your code better.
+  Additionally, if your toolchain is new enough, you will receive
+  warnings at link time if you have a Guile extension that uses
+  deprecated functions provided by Guile.
 
 --disable-shared  ---  Do not build shared libraries.
 --disable-static  ---  Do not build static libraries.

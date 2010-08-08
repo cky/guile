@@ -61,7 +61,7 @@ guile_TEXINFOS = preface.texi			\
 		 sxml-match.texi		\
 		 scheme-scripts.texi		\
 		 api-overview.texi		\
-		 api-discdepr.texi		\
+		 api-deprecated.texi		\
 		 scheme-debugging.texi		\
 		 scheme-using.texi		\
 		 indices.texi			\
