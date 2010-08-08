@@ -3,7 +3,7 @@
 #ifndef SCM_EQ_H
 #define SCM_EQ_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,13 @@
 
 
 #include "libguile/__scm.h"
+
+
+
+/* scm_is_eq is defined in tags.h for some reason. */
+
+/* An older spelling for scm_is_eq. */
+#define SCM_EQ_P(x,y) (scm_is_eq (x, y))
 
 
 

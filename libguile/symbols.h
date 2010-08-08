@@ -3,7 +3,7 @@
 #ifndef SCM_SYMBOLS_H
 #define SCM_SYMBOLS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,6 +33,18 @@
   (!(SCM_CELL_WORD_0 (x) & SCM_I_F_SYMBOL_UNINTERNED))
 
 #define SCM_I_F_SYMBOL_UNINTERNED   0x100
+
+
+
+/* Older spellings; don't use in new code.
+ */
+#define SCM_SYMBOLP(x)			(scm_is_symbol (x))
+#define SCM_SYMBOL_FUNC(x)		(scm_symbol_fref (x))
+#define SCM_SET_SYMBOL_FUNC(x,f)	(scm_symbol_fset_x (x, f))
+#define SCM_SYMBOL_PROPS(x)		(scm_symbol_pref (x))
+#define SCM_SET_SYMBOL_PROPS(x,p)	(scm_symbol_pset_x (x, p))
+#define SCM_SYMBOL_HASH(x)		(scm_i_symbol_hash (x))
+#define SCM_SYMBOL_INTERNED_P(x)	(scm_i_symbol_is_interned (x))
 
 
 

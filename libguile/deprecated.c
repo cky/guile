@@ -34,7 +34,6 @@
 #include "libguile/bytevectors.h"
 #include "libguile/bitvectors.h"
 #include "libguile/deprecated.h"
-#include "libguile/discouraged.h"
 #include "libguile/deprecation.h"
 #include "libguile/snarf.h"
 #include "libguile/validate.h"
@@ -2331,6 +2330,33 @@ scm_c_make_keyword (const char *s)
   scm_c_issue_deprecation_warning
     ("`scm_c_make_keyword' is deprecated. Use scm_from_locale_keyword instead.");
   return scm_from_locale_keyword (s);
+}
+
+unsigned int
+scm_thread_sleep (unsigned int t)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_thread_sleep' is deprecated. Use scm_std_sleep instead.");
+  return scm_std_sleep (t);
+}
+
+unsigned long
+scm_thread_usleep (unsigned long t)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_thread_usleep' is deprecated. Use scm_std_usleep instead.");
+  return scm_std_usleep (t);
+}
+
+int scm_internal_select (int fds,
+                         SELECT_TYPE *rfds,
+                         SELECT_TYPE *wfds,
+                         SELECT_TYPE *efds,
+                         struct timeval *timeout)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_internal_select' is deprecated. Use scm_std_select instead.");
+  return scm_std_select (fds, rfds, wfds, efds, timeout);
 }
 
 

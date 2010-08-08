@@ -487,7 +487,6 @@ modinclude_HEADERS =				\
 	debug.h					\
 	deprecated.h				\
 	deprecation.h				\
-	discouraged.h				\
 	dynl.h					\
 	dynwind.h				\
 	eq.h					\

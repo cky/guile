@@ -123,7 +123,6 @@ extern "C" {
 #include "libguile/threads.h"
 #include "libguile/inline.h"
 
-#include "libguile/discouraged.h"
 #include "libguile/deprecated.h"
 
 #ifdef __cplusplus

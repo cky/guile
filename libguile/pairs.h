@@ -56,10 +56,18 @@
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_EOL))
 
 
-/* Older spellings for these nil predicates. */
+
+
+/* Older spellings for these null, nil, and pair predicates. */
 #define SCM_NILP(x) (scm_is_eq ((x), SCM_ELISP_NIL))
 #define SCM_NULL_OR_NIL_P(x) (scm_is_null_or_nil (x))
+#define SCM_NULLP(x) (scm_is_null (x))
+#define SCM_NNULLP(x) (!scm_is_null (x))
+#define SCM_CONSP(x)            (scm_is_pair (x))
+#define SCM_NCONSP(x)           (!SCM_CONSP (x))
 
+
+
 
 /* #nil is null. */
 #define scm_is_null(x)		(scm_is_null_or_nil(x))

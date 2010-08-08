@@ -67,8 +67,6 @@
 
 #include "libguile/eq.h"
 
-#include "libguile/discouraged.h"
-
 /* values per glibc, if not already defined */
 #ifndef M_LOG10E
 #define M_LOG10E   0.43429448190325182765

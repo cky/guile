@@ -56,8 +56,7 @@
   (SCM_MATCHES_BITS_IN_COMMON ((x), SCM_ELISP_NIL, SCM_BOOL_F))
 #define scm_is_true_and_not_nil(x) (!scm_is_false_or_nil (x))
 
-/* 
-#nil is false. */
+/* #nil is false. */
 #define scm_is_false(x)  (scm_is_false_or_nil (x))
 #define scm_is_true(x)   (!scm_is_false (x))
 
@@ -88,6 +87,17 @@ SCM_API int scm_is_bool (SCM);
 
 #define scm_from_bool(x) ((x) ? SCM_BOOL_T : SCM_BOOL_F)
 SCM_API int scm_to_bool (SCM x);
+
+
+
+/* Older spellings for the above routines, kept around for
+   compatibility. */
+#define SCM_FALSEP(x)		(scm_is_false (x))
+#define SCM_NFALSEP(x)		(scm_is_true (x))
+#define SCM_BOOLP(x)            (scm_is_bool (x))
+#define SCM_BOOL(x)		(scm_from_bool (x))
+#define SCM_NEGATE_BOOL(f)	(scm_from_bool (!(f)))
+#define SCM_BOOL_NOT(x)		(scm_not (x))
 
 
 

@@ -27,6 +27,7 @@
 #include "libguile/strings.h"
 #include "libguile/eval.h"
 #include "libguile/throw.h"
+#include "libguile/iselect.h"
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -727,6 +728,13 @@ SCM_DEPRECATED SCM scm_keyword_dash_symbol (SCM keyword);
 
 SCM_DEPRECATED SCM scm_c_make_keyword (const char *s);
 
+SCM_DEPRECATED unsigned int scm_thread_sleep (unsigned int);
+SCM_DEPRECATED unsigned long scm_thread_usleep (unsigned long);
+SCM_DEPRECATED int scm_internal_select (int fds,
+                                        SELECT_TYPE *rfds,
+                                        SELECT_TYPE *wfds,
+                                        SELECT_TYPE *efds,
+                                        struct timeval *timeout);
 
 
 void scm_i_init_deprecated (void);

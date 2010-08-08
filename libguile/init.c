@@ -134,7 +134,6 @@
 #include "libguile/extensions.h"
 #include "libguile/uniform.h"
 #include "libguile/srfi-4.h"
-#include "libguile/discouraged.h"
 #include "libguile/deprecated.h"
 
 #include "libguile/init.h"

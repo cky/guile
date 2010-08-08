@@ -218,12 +218,6 @@ main (int argc, char *argv[])
   else
     pf ("/* #undef GUILE_DEBUG */\n");
 
-  /*** SCM_ENABLE_DISCOURAGED (0 or 1) ***/
-  pf ("\n");
-  pf ("/* Set to 1 if you want to enable discouraged features. */\n");
-  pf ("/* (value will be 0 or 1). */\n");
-  pf ("#define SCM_ENABLE_DISCOURAGED %d\n", SCM_I_GSC_ENABLE_DISCOURAGED);
-  
   /*** SCM_ENABLE_DEPRECATED (0 or 1) ***/
   pf ("\n");
   pf ("/* Set to 1 if you want to enable deprecated features. */\n");

@@ -130,15 +130,6 @@ AC_ARG_ENABLE(regex,
   [  --disable-regex         omit regular expression interfaces],,
   enable_regex=yes)
 
-AC_ARG_ENABLE([discouraged],
-  AS_HELP_STRING([--disable-discouraged],[omit discouraged features]))
-
-if test "$enable_discouraged" = no; then
-  SCM_I_GSC_ENABLE_DISCOURAGED=0
-else
-  SCM_I_GSC_ENABLE_DISCOURAGED=1
-fi
-
 AC_ARG_ENABLE([deprecated],
   AS_HELP_STRING([--disable-deprecated],[omit deprecated features]))
 
