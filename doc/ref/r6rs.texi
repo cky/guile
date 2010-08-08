@@ -90,6 +90,10 @@ While it is likely that we can fix the case of toplevel forms nested in
 a @code{begin} or a @code{library} form, a fix for toplevel programs
 seems trickier to implement in a backward-compatible way. Suggestions
 and/or patches would be appreciated.
+
+@item
+The @code{(rnrs io ports)} module is mostly unimplemented. Work is
+ongoing to fix this.
 @end itemize
 
 @node R6RS Standard Libraries
