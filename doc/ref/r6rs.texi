@@ -37,6 +37,12 @@ is because the expansion of @code{library} sets the current module, but
 does not restore it.  This is a bug.
 
 @item
+R6RS unicode escapes within strings are disabled by default, because
+they conflict with Guile's already-existing escapes. R6RS behavior can
+be turned on via a reader option. @xref{String Syntax}, for more
+information.
+
+@item
 A @code{set!} to a variable transformer may only expand to an 
 expression, not a definition---even if the original @code{set!} 
 expression was in definition context.
