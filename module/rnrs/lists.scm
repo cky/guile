@@ -44,6 +44,6 @@
   (define (remv obj list) (remp (lambda (elt) (eqv? obj elt)) list))
   (define (remq obj list) (remp (lambda (elt) (eq? obj elt)) list))
 
-  (define (memp pred list) (memp-internal #f list pred))
-  (define (assp pred list) (assp-internal #f list pred))
+  (define (memp pred list) (memp-internal #f list (lambda (x y) (pred y))))
+  (define (assp pred list) (assp-internal #f list (lambda (x y) (pred y))))
 )
