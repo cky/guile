@@ -19,16 +19,8 @@
 
 
 ;;; Portable implementation of syntax-case
-;;; Extracted from Chez Scheme Version 5.9f
+;;; Originally extracted from Chez Scheme Version 5.9f
 ;;; Authors: R. Kent Dybvig, Oscar Waddell, Bob Hieb, Carl Bruggeman
-
-;;; Modified by Andy Wingo <wingo@pobox.com> according to the Git
-;;; revision control logs corresponding to this file: 2009, 2010.
-
-;;; Modified by Mikael Djurfeldt <djurfeldt@nada.kth.se> according
-;;; to the ChangeLog distributed in the same directory as this file:
-;;; 1997-08-19, 1997-09-03, 1997-09-10, 2000-08-13, 2000-08-24,
-;;; 2000-09-12, 2001-03-08
 
 ;;; Copyright (c) 1992-1997 Cadence Research Systems
 ;;; Permission to copy this software, in whole or in part, to use this
@@ -41,15 +33,20 @@
 ;;; AUTHORS BE LIABLE FOR CONSEQUENTIAL OR INCIDENTAL DAMAGES OF ANY
 ;;; NATURE WHATSOEVER.
 
-;;; Before attempting to port this code to a new implementation of
-;;; Scheme, please read the notes below carefully.
+;;; Modified by Mikael Djurfeldt <djurfeldt@nada.kth.se> according
+;;; to the ChangeLog distributed in the same directory as this file:
+;;; 1997-08-19, 1997-09-03, 1997-09-10, 2000-08-13, 2000-08-24,
+;;; 2000-09-12, 2001-03-08
+
+;;; Modified by Andy Wingo <wingo@pobox.com> according to the Git
+;;; revision control logs corresponding to this file: 2009, 2010.
 
 
 ;;; This file defines the syntax-case expander, macroexpand, and a set
 ;;; of associated syntactic forms and procedures.  Of these, the
 ;;; following are documented in The Scheme Programming Language,
-;;; Second Edition (R. Kent Dybvig, Prentice Hall, 1996).  Most are
-;;; also documented in the R4RS and draft R5RS.
+;;; Fourth Edition (R. Kent Dybvig, MIT Press, 2009), and in the 
+;;; R6RS:
 ;;;
 ;;;   bound-identifier=?
 ;;;   datum->syntax
@@ -67,9 +64,8 @@
 ;;;   syntax-rules
 ;;;   with-syntax
 ;;;
-;;; All standard Scheme syntactic forms are supported by the expander
-;;; or syntactic abstractions defined in this file.  Only the R4RS
-;;; delay is omitted, since its expansion is implementation-dependent.
+;;; Additionally, the expander provides definitions for a number of core
+;;; Scheme syntactic bindings, such as `let', `lambda', and the like.
 
 ;;; The remaining exports are listed below:
 ;;;
@@ -87,83 +83,40 @@
 ;;;   ($sc-dispatch e p)
 ;;;      used by expanded code to handle syntax-case matching
 
-;;; The following nonstandard procedures must be provided by the
-;;; implementation for this code to run using the standard portable
-;;; hooks and output constructors. They are not used by expanded code,
-;;; and so need be present only at expansion time.
+;;; This file is shipped along with an expanded version of itself,
+;;; psyntax-pp.scm, which is loaded when psyntax.scm has not yet been
+;;; compiled.  In this way, psyntax bootstraps off of an expanded
+;;; version of itself.
+
+;;; This implementation of the expander sometimes uses syntactic
+;;; abstractions when procedural abstractions would suffice.  For
+;;; example, we define top-wrap and top-marked? as
 ;;;
-;;; (eval x)
-;;; where x is always in the form ("noexpand" expr).
-;;; returns the value of expr.  the "noexpand" flag is used to tell the
-;;; evaluator/expander that no expansion is necessary, since expr has
-;;; already been fully expanded to core forms.
-;;;
-;;; eval will not be invoked during the loading of psyntax.pp.  After
-;;; psyntax.pp has been loaded, the expansion of any macro definition,
-;;; whether local or global, will result in a call to eval.  If, however,
-;;; macroexpand has already been registered as the expander to be used
-;;; by eval, and eval accepts one argument, nothing special must be done
-;;; to support the "noexpand" flag, since it is handled by macroexpand.
-;;;
-;;; (gensym)
-;;; returns a unique symbol each time it's called
-
-;;; When porting to a new Scheme implementation, you should define the
-;;; procedures listed above, load the expanded version of psyntax.ss
-;;; (psyntax.pp, which should be available whereever you found
-;;; psyntax.ss), and register macroexpand as the current expander (how
-;;; you do this depends upon your implementation of Scheme).  You may
-;;; change the hooks and constructors defined toward the beginning of
-;;; the code below, but to avoid bootstrapping problems, do so only
-;;; after you have a working version of the expander.
-
-;;; Chez Scheme allows the syntactic form (syntax <template>) to be
-;;; abbreviated to #'<template>, just as (quote <datum>) may be
-;;; abbreviated to '<datum>.  The #' syntax makes programs written
-;;; using syntax-case shorter and more readable and draws out the
-;;; intuitive connection between syntax and quote.
-
-;;; If you find that this code loads or runs slowly, consider
-;;; switching to faster hardware or a faster implementation of
-;;; Scheme.  In Chez Scheme on a 200Mhz Pentium Pro, expanding,
-;;; compiling (with full optimization), and loading this file takes
-;;; between one and two seconds.
-
-;;; In the expander implementation, we sometimes use syntactic abstractions
-;;; when procedural abstractions would suffice.  For example, we define
-;;; top-wrap and top-marked? as
 ;;;   (define-syntax top-wrap (identifier-syntax '((top))))
 ;;;   (define-syntax top-marked?
 ;;;     (syntax-rules ()
 ;;;       ((_ w) (memq 'top (wrap-marks w)))))
+;;;
 ;;; rather than
+;;;
 ;;;   (define top-wrap '((top)))
 ;;;   (define top-marked?
 ;;;     (lambda (w) (memq 'top (wrap-marks w))))
-;;; On ther other hand, we don't do this consistently; we define make-wrap,
-;;; wrap-marks, and wrap-subst simply as
+;;;
+;;; On the other hand, we don't do this consistently; we define
+;;; make-wrap, wrap-marks, and wrap-subst simply as
+;;;
 ;;;   (define make-wrap cons)
 ;;;   (define wrap-marks car)
 ;;;   (define wrap-subst cdr)
+;;;
 ;;; In Chez Scheme, the syntactic and procedural forms of these
 ;;; abstractions are equivalent, since the optimizer consistently
-;;; integrates constants and small procedures.  Some Scheme
-;;; implementations, however, may benefit from more consistent use 
-;;; of one form or the other.
+;;; integrates constants and small procedures.  This will be true of
+;;; Guile as well, once we implement a proper inliner.
 
 
-;;; implementation information:
-
-;;; "begin" is treated as a splicing construct at top level and at
-;;; the beginning of bodies.  Any sequence of expressions that would
-;;; be allowed where the "begin" occurs is allowed.
-
-;;; "let-syntax" and "letrec-syntax" are also treated as splicing
-;;; constructs, in violation of the R4RS appendix and probably the R5RS
-;;; when it comes out.  A consequence, let-syntax and letrec-syntax do
-;;; not create local contours, as do let and letrec.  Although the
-;;; functionality is greater as it is presently implemented, we will
-;;; probably change it to conform to the R4RS/expected R5RS.
+;;; Implementation notes:
 
 ;;; Objects with no standard print syntax, including objects containing
 ;;; cycles and syntax object, are allowed in quoted data as long as they
@@ -171,30 +124,23 @@
 ;;; Such objects are never copied.
 
 ;;; All identifiers that don't have macro definitions and are not bound
-;;; lexically are assumed to be global variables
+;;; lexically are assumed to be global variables.
 
 ;;; Top-level definitions of macro-introduced identifiers are allowed.
 ;;; This may not be appropriate for implementations in which the
 ;;; model is that bindings are created by definitions, as opposed to
 ;;; one in which initial values are assigned by definitions.
 
-;;; Top-level variable definitions of syntax keywords is not permitted.
-;;; Any solution allowing this would be kludgey and would yield
-;;; surprising results in some cases.  We can provide an undefine-syntax
-;;; form.  The questions is, should define be an implicit undefine-syntax?
-;;; We've decided no for now.
-
 ;;; Identifiers and syntax objects are implemented as vectors for
-;;; portability.  As a result, it is possible to "forge" syntax
-;;; objects.
+;;; portability.  As a result, it is possible to "forge" syntax objects.
 
-;;; The implementation of generate-temporaries assumes that it is possible
-;;; to generate globally unique symbols (gensyms).
+;;; The implementation of generate-temporaries assumes that it is
+;;; possible to generate globally unique symbols (gensyms).
 
-;;; The source location associated with incoming expressions is tracked via the
-;;; source-properties mechanism, a weak map from expression to source
-;;; information. At times the source is separated from the expression; see the
-;;; note below about "efficiency and confusion".
+;;; The source location associated with incoming expressions is tracked
+;;; via the source-properties mechanism, a weak map from expression to
+;;; source information. At times the source is separated from the
+;;; expression; see the note below about "efficiency and confusion".
 
 
 ;;; Bootstrapping:
@@ -226,8 +172,8 @@
                     (first (cdr first))
                     (rest (map cdr rest)))
                 (if (null? first)
-                    (apply f (cons x xr))
-                    (and (apply f (cons x xr)) (andmap first rest)))))))))
+                    (apply f x xr)
+                    (and (apply f x xr) (andmap first rest)))))))))
 
 (define-syntax define-expansion-constructors
   (lambda (x)
@@ -367,9 +313,7 @@
                (let ((val (variable-ref v)))
                  (and (macro? val) (macro-type val)
                       (cons (macro-type val)
-                            (macro-binding val))))))))
-
-    )
+                            (macro-binding val)))))))))
 
 
   (define (decorate-source e s)
@@ -409,14 +353,6 @@
       (maybe-name-value! name exp)
       (make-lexical-set source name var exp)))
   
-  ;; Before modules are booted, we can't expand into data structures from
-  ;; (language tree-il) -- we need to give the evaluator the
-  ;; s-expressions that it understands natively. Actually the real truth
-  ;; of the matter is that the evaluator doesn't understand tree-il
-  ;; structures at all. So until we fix the evaluator, if ever, the
-  ;; conflation that we should use tree-il iff we are compiling
-  ;; holds true.
-  ;;
   (define (analyze-variable mod var modref-cont bare-cont)
     (if (not mod)
         (bare-cont var)
@@ -458,11 +394,6 @@
       (maybe-name-value! var exp)
       (make-toplevel-define source var exp)))
 
-  ;; Ideally we would have all lambdas be case lambdas, but that would
-  ;; need special support in the interpreter for the full capabilities
-  ;; of case-lambda, with optional and keyword args and else clauses.
-  ;; This will come with the new interpreter, but for now we separate
-  ;; the cases.
   (define build-simple-lambda
     (lambda (src req rest vars meta exp)
       (make-lambda src
@@ -636,7 +567,7 @@
                       (cons (cons (car labels) (car bindings)) r)))))
 
   (define extend-var-env
-                                        ; variant of extend-env that forms "lexical" binding
+    ;; variant of extend-env that forms "lexical" binding
     (lambda (labels vars r)
       (if (null? labels)
           r
@@ -767,7 +698,7 @@
       ((_) (make-ribcage '() '() '()))))
 
   (define extend-ribcage!
-                                        ; must receive ids with complete wraps
+    ;; must receive ids with complete wraps
     (lambda (ribcage id label)
       (set-ribcage-symnames! ribcage
                              (cons (syntax-object-expression id)
@@ -986,7 +917,7 @@
   
   (define chi-when-list
     (lambda (e when-list w)
-                                        ; when-list is syntax'd version of list of situations
+      ;; when-list is syntax'd version of list of situations
       (let f ((when-list when-list) (situations '()))
         (if (null? when-list)
             situations
@@ -1091,7 +1022,7 @@
                    ((_ (name . args) e1 e2 ...)
                     (and (id? #'name)
                          (valid-bound-ids? (lambda-var-list #'args)))
-                                        ; need lambda here...
+                    ;; need lambda here...
                     (values 'define-form (wrap #'name w mod)
                             (decorate-source
                              (cons #'lambda (wrap #'(args e1 e2 ...) w mod))
@@ -1457,7 +1388,7 @@
                                                         (cons (cons er (wrap (car forms) w mod))
                                                               (f (cdr forms)))))
                                                   ids labels var-ids vars vals bindings))))
-                      (else             ; found a non-definition
+                      (else              ; found a non-definition
                        (if (null? ids)
                            (build-sequence no-source
                                            (map (lambda (x)
@@ -1793,8 +1724,8 @@
           (lvl (syntax-object-expression vars)
                ls
                (join-wraps w (syntax-object-wrap vars))))
-                                        ; include anything else to be caught by subsequent error
-                                        ; checking
+         ;; include anything else to be caught by subsequent error
+         ;; checking
          (else (cons vars ls))))))
 
 ;;; core transformers
@@ -1865,8 +1796,8 @@
                               (ellipsis? #'dots)
                               (gen-syntax src #'e r maps (lambda (x) #f) mod))
                              ((x dots . y)
-                                        ; this could be about a dozen lines of code, except that we
-                                        ; choose to handle #'(x ... ...) forms
+                              ;; this could be about a dozen lines of code, except that we
+                              ;; choose to handle #'(x ... ...) forms
                               (ellipsis? #'dots)
                               (let f ((y #'y)
                                       (k (lambda (maps)
@@ -1941,14 +1872,14 @@
                              (actuals (map (lambda (x) `(ref ,(car x))) map-env)))
                          (cond
                           ((eq? (car e) 'ref)
-                                        ; identity map equivalence:
-                                        ; (map (lambda (x) x) y) == y
+                           ;; identity map equivalence:
+                           ;; (map (lambda (x) x) y) == y
                            (car actuals))
                           ((and-map
                             (lambda (x) (and (eq? (car x) 'ref) (memq (cadr x) formals)))
                             (cdr e))
-                                        ; eta map equivalence:
-                                        ; (map (lambda (x ...) (f x ...)) y ...) == (map f y ...)
+                           ;; eta map equivalence:
+                           ;; (map (lambda (x ...) (f x ...)) y ...) == (map f y ...)
                            `(map (primitive ,(car e))
                                  ,@(map (let ((r (map cons formals actuals)))
                                           (lambda (x) (cdr (assq (cadr x) r))))
@@ -2264,8 +2195,8 @@
   (global-extend 'core 'syntax-case
                  (let ()
                    (define convert-pattern
-                                        ; accepts pattern & keys
-                                        ; returns $sc-dispatch pattern & ids
+                     ;; accepts pattern & keys
+                     ;; returns $sc-dispatch pattern & ids
                      (lambda (pattern keys)
                        (define cvt*
                          (lambda (p* n ids)
@@ -2352,7 +2283,7 @@
                              (syntax-violation 'syntax-case "misplaced ellipsis" pat))
                             (else
                              (let ((y (gen-var 'tmp)))
-                                        ; fat finger binding and references to temp variable y
+                               ;; fat finger binding and references to temp variable y
                                (build-application no-source
                                                   (build-simple-lambda no-source (list 'tmp) #f (list y) '()
                                                                        (let ((y (build-lexical-reference 'value no-source
@@ -2419,7 +2350,7 @@
                           (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x))))
                                        #'(key ...))
                               (let ((x (gen-var 'tmp)))
-                                        ; fat finger binding and references to temp variable x
+                                ;; fat finger binding and references to temp variable x
                                 (build-application s
                                                    (build-simple-lambda no-source (list 'tmp) #f (list x) '()
                                                                         (gen-syntax-case (build-lexical-reference 'value no-source
@@ -2454,8 +2385,8 @@
                               (syntax-object-module id))))
 
   (set! syntax->datum
-                                        ; accepts any object, since syntax objects may consist partially
-                                        ; or entirely of unwrapped, nonsymbolic data
+        ;; accepts any object, since syntax objects may consist partially
+        ;; or entirely of unwrapped, nonsymbolic data
         (lambda (x)
           (strip x empty-wrap)))
 

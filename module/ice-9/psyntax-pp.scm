@@ -30,10 +30,8 @@
                               (#{first\ 231}# (cdr #{first\ 223}#))
                               (#{rest\ 232}# (map cdr #{rest\ 224}#)))
                           (if (null? #{first\ 231}#)
-                            (@apply #{f\ 199}# (cons #{x\ 229}# #{xr\ 230}#))
-                            (if (@apply
-                                  #{f\ 199}#
-                                  (cons #{x\ 229}# #{xr\ 230}#))
+                            (@apply #{f\ 199}# #{x\ 229}# #{xr\ 230}#)
+                            (if (@apply #{f\ 199}# #{x\ 229}# #{xr\ 230}#)
                               (#{andmap\ 222}# #{first\ 231}# #{rest\ 232}#)
                               #f)))))))
                  (begin
