@@ -8,6 +8,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 Note: During the 1.9 series, we will keep an incremental NEWS for the
 latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
+
 Changes in 1.9.12 (since the 1.9.11 prerelease):
 
 ** Many R6RS bugfixes
@@ -27,9 +28,9 @@ See "R6RS Standard Libraries" in the manual, for more details.
 
 ** Support for `letrec*'
 
-Guile now supports letrec*, a form of letrec in which the identifiers
-are bound in order. See "Local Bindings" in the manual, for more
-details.
+Guile now supports `letrec*', a recursive lexical binding operator in
+which the identifiers are bound in order. See "Local Bindings" in the
+manual, for more details.
 
 ** Internal definitions now expand to `letrec*'
 
