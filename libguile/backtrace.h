@@ -26,7 +26,7 @@
 #include "libguile/__scm.h"
 
 SCM_API void scm_display_error_message (SCM message, SCM args, SCM port);
-SCM_INTERNAL void scm_i_display_error (SCM stack, SCM port, SCM subr,
+SCM_INTERNAL void scm_i_display_error (SCM frame, SCM port, SCM subr,
 				       SCM message, SCM args, SCM rest);
 SCM_API SCM scm_display_error (SCM frame, SCM port, SCM subr, SCM message, SCM args, SCM rest);
 SCM_API SCM scm_display_application (SCM frame, SCM port, SCM indent);

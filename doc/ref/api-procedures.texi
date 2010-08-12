@@ -121,22 +121,18 @@ same way as @code{scm_c_make_gsubr}, which is usually not further
 required.
 @end deftypefun
 
-@code{scm_c_make_gsubr} and @code{scm_c_define_gsubr} automatically
-use @code{scm_c_make_subr} and also @code{scm_makcclo} if necessary.
-It is advisable to use the gsubr variants since they provide a
-slightly higher-level abstraction of the Guile implementation.
-
 @node Compiled Procedures
 @subsection Compiled Procedures
 
-In Guile, procedures can be executed by directly interpreting their
-source code. Scheme source code is a set of nested lists, after all,
-with each list representing a procedure call.
+The evaluation strategy given in @ref{Lambda} describes how procedures
+are @dfn{interpreted}. Interpretation operates directly on expanded
+Scheme source code, recursively calling the evaluator to obtain the
+value of nested expressions.
 
 Most procedures are compiled, however. This means that Guile has done
-some pre-computation on the procedure, to determine what it will need
-to do each time the procedure runs. Compiled procedures run faster
-than interpreted procedures.
+some pre-computation on the procedure, to determine what it will need to
+do each time the procedure runs. Compiled procedures run faster than
+interpreted procedures.
 
 Loading files is the normal way that compiled procedures come to
 being. If Guile sees that a file is uncompiled, or that its compiled
@@ -597,15 +593,6 @@ returns @code{#t} for procedures which do not accept any arguments.
 @deffn {Scheme Procedure} procedure? obj
 @deffnx {C Function} scm_procedure_p (obj)
 Return @code{#t} if @var{obj} is a procedure.
-@end deffn
-
-@deffn {Scheme Procedure} closure? obj
-@deffnx {C Function} scm_closure_p (obj)
-Return @code{#t} if @var{obj} is a closure. This category somewhat
-misnamed, actually, as it applies only to interpreted procedures, not
-compiled procedures. But since it has historically been used more to
-select on implementation details than on essence (closure or not), we
-keep it here for compatibility. Don't use it in new code, though.
 @end deffn
 
 @deffn {Scheme Procedure} thunk? obj

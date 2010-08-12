@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -475,38 +475,6 @@ Consequently, when the key is only accessible from within a guardian,
 the reference from the key to the value is also considered to be
 coming from within a guardian.  Thus, if there is no other reference
 to the value, it is eligible to be returned from a guardian.
-@end deffn
-
-
-@node Objects
-@section Objects
-
-@deffn {Scheme Procedure} entity? obj
-@deffnx {C Function} scm_entity_p (obj)
-Return @code{#t} if @var{obj} is an entity.
-@end deffn
-
-@deffn {Scheme Procedure} operator? obj
-@deffnx {C Function} scm_operator_p (obj)
-Return @code{#t} if @var{obj} is an operator.
-@end deffn
-
-@deffn {Scheme Procedure} set-object-procedure! obj proc
-@deffnx {C Function} scm_set_object_procedure_x (obj, proc)
-Set the object procedure of @var{obj} to @var{proc}.
-@var{obj} must be either an entity or an operator.
-@end deffn
-
-@deffn {Scheme Procedure} make-class-object metaclass layout
-@deffnx {C Function} scm_make_class_object (metaclass, layout)
-Create a new class object of class @var{metaclass}, with the
-slot layout specified by @var{layout}.
-@end deffn
-
-@deffn {Scheme Procedure} make-subclass-object class layout
-@deffnx {C Function} scm_make_subclass_object (class, layout)
-Create a subclass object of @var{class}, with the slot layout
-specified by @var{layout}.
 @end deffn
 
 

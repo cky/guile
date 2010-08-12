@@ -447,12 +447,12 @@ output from a @code{syntax-case} expression.
 It is not strictly necessary for a @code{syntax-case} expression to return a
 syntax object, because @code{syntax-case} expressions can be used in helper
 functions, or otherwise used outside of syntax expansion itself. However a
-syntax transformer procedure  must return a syntax object, so most uses of
+syntax transformer procedure must return a syntax object, so most uses of
 @code{syntax-case} do end up returning syntax objects.
 
 Here in this case, the form that built the return value was @code{(syntax (+ exp
 1))}. The interesting thing about this is that within a @code{syntax}
-expression, any appearance of a pattern variable is substitued into the
+expression, any appearance of a pattern variable is substituted into the
 resulting syntax object, carrying with it all relevant metadata from the source
 expression, such as lexical identity and source location.
 
@@ -498,6 +498,7 @@ Returns @code{#t} iff @var{syntax-object} is an identifier.
 @end deffn
 
 @example
+;; relying on previous add1 definition
 (define-syntax add1!
   (lambda (x)
     (syntax-case x ()
@@ -785,7 +786,7 @@ left-hand side of a @code{set!} expression, as in the following:
 
 As the example notes, the transformer procedure must be explicitly
 marked as being a ``variable transformer'', as most macros aren't
-written to discriminate on the form in the operand position.
+written to discriminate on the form in the operator position.
 
 @deffn {Scheme Procedure} make-variable-transformer transformer
 Mark the @var{transformer} procedure as being a ``variable

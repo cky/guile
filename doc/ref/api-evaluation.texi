@@ -18,7 +18,6 @@ loading, evaluating, and compiling Scheme code at run time.
 * Loading::                     Loading Scheme code from file.
 * Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
-* Local Evaluation::            Evaluation in a local environment.
 * Evaluator Behaviour::         Modifying Guile's evaluator.
 * VM Behaviour::                Modifying Guile's virtual machine.
 @end menu
@@ -787,20 +786,6 @@ its own promise, resulting in a recursive evaluation of that
 promise.  Higher evaluations run to completion in the normal way, but
 their results are ignored, @code{force} always returns the first
 value.
-@end deffn
-
-
-@node Local Evaluation
-@subsection Local Evaluation
-
-[the-environment]
-
-@deffn {Scheme Procedure} local-eval exp [env]
-@deffnx {C Function} scm_local_eval (exp, env)
-Evaluate @var{exp} in its environment.  If @var{env} is supplied,
-it is the environment in which to evaluate @var{exp}.  Otherwise,
-@var{exp} must be a memoized code object (in which case, its environment
-is implicit).
 @end deffn
 
 

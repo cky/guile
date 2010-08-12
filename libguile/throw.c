@@ -365,7 +365,9 @@ handler_message (void *handler_data, SCM tag, SCM args)
 						 highlights);
 	  scm_newline (p);
 	}
-      scm_i_display_error (stack, p, subr, message, parts, rest);
+      scm_i_display_error (scm_is_true (stack)
+                           ? scm_stack_ref (stack, SCM_INUM0) : SCM_BOOL_F,
+                           p, subr, message, parts, rest);
     }
   else
     {

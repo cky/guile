@@ -304,7 +304,6 @@ available through both Scheme and C interfaces.
 * LALR(1) Parsing::             Generating LALR(1) parsers.		
 * Read/Load/Eval/Compile::      Reading and evaluating Scheme code.
 * Memory Management::           Memory management and garbage collection.
-* Objects::                     Low level object orientation support.
 * Modules::                     Designing reusable code libraries.
 * Foreign Function Interface::  Interacting with C procedures and data.
 * Scheduling::                  Threads, mutexes, asyncs and dynamic roots.
