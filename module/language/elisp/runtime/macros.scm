@@ -37,10 +37,9 @@
 (built-in-macro prog1
   (lambda (form1 . rest)
     (let ((temp (gensym)))
-      `(without-void-checks (,temp)
-         (lexical-let ((,temp ,form1))
-           ,@rest
-           ,temp)))))
+      `(lexical-let ((,temp ,form1))
+         ,@rest
+         ,temp))))
 
 (built-in-macro prog2
   (lambda (form1 form2 . rest)
@@ -73,11 +72,10 @@
                    (macro-error "invalid clause in cond" cur))
                   ((null? (cdr cur))
                    (let ((var (gensym)))
-                     `(without-void-checks (,var)
-                        (lexical-let ((,var ,(car cur)))
-                          (if ,var
-                              ,var
-                              ,rest)))))
+                     `(lexical-let ((,var ,(car cur)))
+                        (if ,var
+                            ,var
+                            ,rest))))
                   (else
                    `(if ,(car cur)
                         (progn ,@(cdr cur))
@@ -106,12 +104,10 @@
        (if (null? tail)
            x
            (let ((var (gensym)))
-             `(without-void-checks
-                  (,var)
-                (lexical-let ((,var ,x))
-                  (if ,var
-                      ,var
-                      ,(iterate (car tail) (cdr tail)))))))))))
+             `(lexical-let ((,var ,x))
+                (if ,var
+                    ,var
+                    ,(iterate (car tail) (cdr tail))))))))))
 
 ;;; Define the dotimes and dolist iteration macros.
 
@@ -147,16 +143,15 @@
           (if (not (symbol? var))
               (macro-error "expected symbol as dolist variable")
               `(let (,var)
-                 (without-void-checks (,tailvar)
-                   (lexical-let ((,tailvar ,iter-list))
-                     (while ((guile-primitive not)
-                             ((guile-primitive null?) ,tailvar))
-                       (setq ,var ((guile-primitive car) ,tailvar))
-                       ,@body
-                       (setq ,tailvar ((guile-primitive cdr) ,tailvar)))
-                     ,@(if (= (length args) 3)
-                           (list (caddr args))
-                           '())))))))))
+                 (lexical-let ((,tailvar ,iter-list))
+                   (while ((guile-primitive not)
+                           ((guile-primitive null?) ,tailvar))
+                          (setq ,var ((guile-primitive car) ,tailvar))
+                          ,@body
+                          (setq ,tailvar ((guile-primitive cdr) ,tailvar)))
+                   ,@(if (= (length args) 3)
+                         (list (caddr args))
+                         '()))))))))
 
 ;;; Exception handling.  unwind-protect and catch are implemented as
 ;;; macros (throw is a built-in function).

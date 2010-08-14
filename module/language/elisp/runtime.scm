@@ -19,25 +19,19 @@
 ;;; Code:
 
 (define-module (language elisp runtime)
-  #:export (void
-            nil-value
+  #:export (nil-value
             t-value
             value-slot-module
             function-slot-module
             elisp-bool
             ensure-fluid!
             reference-variable
-            reference-variable-with-check
             set-variable!
             runtime-error
             macro-error)
   #:export-syntax (built-in-func built-in-macro defspecial prim))
 
 ;;; This module provides runtime support for the Elisp front-end.
-
-;;; The reserved value to mean (when eq?) void.
-
-(define void (list 42))
 
 ;;; Values for t and nil. (FIXME remove this abstraction)
 
@@ -79,8 +73,7 @@
   (let ((intf (resolve-interface module))
         (resolved (resolve-module module)))
     (if (not (module-defined? intf sym))
-        (let ((fluid (make-fluid)))
-          (fluid-set! fluid void)
+        (let ((fluid (make-undefined-fluid)))
           (module-define! resolved sym fluid)
           (module-export! resolved `(,sym))))))
 
@@ -88,12 +81,6 @@
   (ensure-fluid! module sym)
   (let ((resolved (resolve-module module)))
     (fluid-ref (module-ref resolved sym))))
-
-(define (reference-variable-with-check module sym)
-  (let ((value (reference-variable module sym)))
-    (if (eq? value void)
-        (runtime-error "variable is void:" sym)
-        value)))
 
 (define (set-variable! module sym value)
   (ensure-fluid! module sym)

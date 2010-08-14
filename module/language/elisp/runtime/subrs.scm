@@ -281,11 +281,11 @@
 
 (built-in-func symbol-value
   (lambda (sym)
-    (reference-variable-with-check value-slot-module sym)))
+    (reference-variable value-slot-module sym)))
 
 (built-in-func symbol-function
   (lambda (sym)
-    (reference-variable-with-check function-slot-module sym)))
+    (reference-variable function-slot-module sym)))
 
 (built-in-func set
   (lambda (sym value)
@@ -297,27 +297,48 @@
 
 (built-in-func makunbound
   (lambda (sym)
-    (set-variable! value-slot-module sym void)
+    (if (module-bound? (resolve-interface value-slot-module) sym)
+      (let ((var (module-variable (resolve-module value-slot-module)
+                                  sym)))
+        (if (and (variable-bound? var) (fluid? (variable-ref var)))
+            (fluid-unset! (variable-ref var))
+            (variable-unset! var))))
     sym))
 
 (built-in-func fmakunbound
   (lambda (sym)
-    (set-variable! function-slot-module sym void)
+    (if (module-bound? (resolve-interface function-slot-module) sym)
+        (let ((var (module-variable
+                    (resolve-module function-slot-module)
+                    sym)))
+          (if (and (variable-bound? var) (fluid? (variable-ref var)))
+              (fluid-unset! (variable-ref var))
+              (variable-unset! var))))
     sym))
 
 (built-in-func boundp
   (lambda (sym)
-    (elisp-bool (prim not
-                      (eq? void
-                           (reference-variable value-slot-module
-                                               sym))))))
+    (elisp-bool
+     (and
+      (module-bound? (resolve-interface value-slot-module) sym)
+      (let ((var (module-variable (resolve-module value-slot-module)
+                                  sym)))
+        (and (variable-bound? var)
+             (if (fluid? (variable-ref var))
+                 (fluid-bound? (variable-ref var))
+                 #t)))))))
 
 (built-in-func fboundp
   (lambda (sym)
-    (elisp-bool (prim not
-                      (eq? void
-                           (reference-variable function-slot-module
-                                               sym))))))
+    (elisp-bool
+     (and
+      (module-bound? (resolve-interface function-slot-module) sym)
+      (let* ((var (module-variable (resolve-module function-slot-module)
+                                   sym)))
+       (and (variable-bound? var)
+            (if (fluid? (variable-ref var))
+                (fluid-bound? (variable-ref var))
+                #t)))))))
 
 ;;; Function calls. These must take care of special cases, like using
 ;;; symbols or raw lambda-lists as functions!
@@ -326,9 +347,7 @@
   (lambda (func . args)
     (let ((real-func (cond
                       ((symbol? func)
-                       (reference-variable-with-check
-                        function-slot-module
-                        func))
+                       (reference-variable function-slot-module func))
                       ((list? func)
                        (if (and (prim not (null? func))
                                 (eq? (prim car func) 'lambda))

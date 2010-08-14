@@ -234,17 +234,7 @@
     (progn (setq a 1 b 2)
            (and (eq (makunbound 'b) 'b)
                 (boundp 'a)
-                (not (boundp 'b)))))
-
-  (pass-if "disabled void check (all)"
-    (progn (makunbound 'a) a t)
-    #:opts '(#:disable-void-check all))
-  (pass-if "disabled void check (symbol list)"
-    (progn (makunbound 'a) a t)
-    #:opts '(#:disable-void-check (x y a b)))
-  (pass-if "without-void-checks"
-    (progn (makunbound 'a)
-           (= (without-void-checks (a) a 5) 5))))
+                (not (boundp 'b))))))
 
 (with-test-prefix/compile "Let and Let*"
 

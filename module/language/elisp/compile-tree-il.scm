@@ -142,17 +142,6 @@
                              (generate-ensure-global loc sym mod)))
      ,body)))
 
-;;; See if we should do a void-check for a given variable.  That means,
-;;; check that this check is not disabled via the compiler options for
-;;; this symbol.  Disabling of void check is only done for the value-slot
-;;; module!
-
-(define (want-void-check? sym module)
-  (let ((disabled (fluid-ref disable-void-check)))
-    (or (not (equal? module value-slot))
-        (and (not (eq? disabled 'all))
-             (not (memq sym disabled))))))
-
 ;;; Build a construct that establishes dynamic bindings for certain
 ;;; variables.  We may want to choose between binding with fluids and
 ;;; with-fluids* and using just ordinary module symbols and
@@ -197,26 +186,6 @@
      (call-primitive loc
                      'fluid-ref
                      (make-module-ref loc module sym #t)))))
-
-;;; Reference a variable and error if the value is void.
-
-(define (reference-with-check loc sym module)
-  (if (want-void-check? sym module)
-      (let ((var (gensym)))
-        (make-let
-         loc
-         '(value)
-         `(,var)
-         `(,(reference-variable loc sym module))
-         (make-conditional
-          loc
-          (call-primitive loc
-                          'eq?
-                          (make-module-ref loc runtime 'void #t)
-                          (make-lexical-ref loc 'value var))
-          (runtime-error loc "variable is void:" (make-const loc sym))
-          (make-lexical-ref loc 'value var))))
-      (reference-variable loc sym module)))
 
 ;;; Generate code to set a variable.  Just as with reference-variable, in
 ;;; case of a reference to value-slot, we want to generate a lexical set
@@ -683,15 +652,25 @@
      (if (handle-var-def loc sym doc)
          (make-sequence
           loc
-          (list (make-conditional
-                 loc
-                 (call-primitive loc
-                                 'eq?
-                                 (make-module-ref loc runtime 'void #t)
-                                 (reference-variable loc sym value-slot))
-                 (set-variable! loc sym value-slot (compile-expr value))
-                 (make-void loc))
-                (make-const loc sym)))))))
+          (list
+           (make-conditional
+            loc
+            (make-conditional
+             loc
+             (call-primitive
+              loc
+              'module-bound?
+              (call-primitive loc
+                              'resolve-interface
+                              (make-const loc value-slot))
+              (make-const loc sym))
+             (call-primitive loc
+                             'fluid-bound?
+                             (make-module-ref loc value-slot sym #t))
+             (make-const loc #f))
+            (make-void loc)
+            (set-variable! loc sym value-slot (compile-expr value)))
+           (make-const loc sym)))))))
 
 (defspecial setq (loc args)
   (define (car* x) (if (null? x) '() (car x)))
@@ -742,13 +721,8 @@
     ((,bindings . ,body)
      (generate-let* loc function-slot bindings body))))
 
-;;; Temporarily disable void checks or set symbols as always lexical
-;;; only for the lexical scope of a construct.
-
-(defspecial without-void-checks (loc args)
-  (pmatch args
-    ((,syms . ,body)
-     (with-added-symbols loc disable-void-check syms body))))
+;;; Temporarily set symbols as always lexical only for the lexical scope
+;;; of a construct.
 
 (defspecial with-always-lexical (loc args)
   (pmatch args
@@ -825,7 +799,7 @@
     (((lambda ,args . ,body))
      (compile-lambda loc args body))
     ((,sym) (guard (symbol? sym))
-     (reference-with-check loc sym function-slot))))
+     (reference-variable loc sym function-slot))))
 
 (defspecial defmacro (loc args)
   (pmatch args
@@ -890,9 +864,9 @@
      (else
       (make-application loc
                         (if (symbol? operator)
-                            (reference-with-check loc
-                                                  operator
-                                                  function-slot)
+                            (reference-variable loc
+                                                operator
+                                                function-slot)
                             (compile-expr operator))
                         (map compile-expr arguments))))))
 
@@ -903,7 +877,7 @@
   (case sym
     ((nil) (nil-value loc))
     ((t) (t-value loc))
-    (else (reference-with-check loc sym value-slot))))
+    (else (reference-variable loc sym value-slot))))
 
 ;;; Compile a single expression to TreeIL.
 
@@ -933,12 +907,6 @@
             (case key
               ((#:warnings)             ; ignore
                #f)
-              ((#:disable-void-check)
-               (if (valid-symbol-list-arg? value)
-                   (fluid-set! disable-void-check value)
-                   (report-error #f
-                                 "Invalid value for #:disable-void-check"
-                                 value)))
               ((#:always-lexical)
                (if (valid-symbol-list-arg? value)
                    (fluid-set! always-lexical value)
