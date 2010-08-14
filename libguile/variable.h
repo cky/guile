@@ -42,6 +42,7 @@ SCM_API SCM scm_make_undefined_variable (void);
 SCM_API SCM scm_variable_p (SCM obj);
 SCM_API SCM scm_variable_ref (SCM var);
 SCM_API SCM scm_variable_set_x (SCM var, SCM val);
+SCM_API SCM scm_variable_unset_x (SCM var);
 SCM_API SCM scm_variable_bound_p (SCM var);
 
 SCM_INTERNAL void scm_i_variable_print (SCM var, SCM port, scm_print_state *pstate);

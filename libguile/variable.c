@@ -111,6 +111,18 @@ SCM_DEFINE (scm_variable_set_x, "variable-set!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_variable_unset_x, "variable-unset!", 1, 0, 0,
+            (SCM var),
+            "Ensure that @var{var} is not bound to a value.\n"
+            "@var{var} must be a variable object.")
+#define FUNC_NAME s_scm_variable_unset_x
+{
+  SCM_VALIDATE_VARIABLE (1, var);
+  SCM_VARIABLE_SET (var, SCM_UNDEFINED);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0, 
             (SCM var),
             "Return @code{#t} iff @var{var} is bound to a value.\n"
