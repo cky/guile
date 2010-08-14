@@ -147,3 +147,23 @@
 	    (and (eq? inside-a 'inside)
 		 (eq? outside-a 'outside)
 		 (eq? inside-a2 'inside))))))))
+
+(with-test-prefix "unbound fluids"
+  (pass-if "fluid-ref of unbound fluid"
+    (catch #t
+           (lambda () (fluid-ref (make-undefined-fluid)))
+           (lambda (key . args) #t)))
+  (pass-if "fluid-bound? of bound fluid"
+    (fluid-bound? (make-fluid)))
+  (pass-if "fluid-bound? of unbound fluid"
+    (not (fluid-bound? (make-undefined-fluid))))
+  (pass-if "unbound fluids can be set"
+    (let ((fluid (make-undefined-fluid)))
+      (fluid-set! fluid #t)
+      (fluid-ref fluid)))
+  (pass-if "bound fluids can be unset"
+    (let ((fluid (make-fluid)))
+      (fluid-unset! fluid)
+      (catch #t
+             (lambda () (fluid-ref fluid))
+             (lambda (key . args) #t)))))

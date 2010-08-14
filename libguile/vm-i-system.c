@@ -1612,7 +1612,15 @@ VM_DEFINE_INSTRUCTION (91, fluid_ref, "fluid-ref", 0, 1, 1)
       *sp = scm_fluid_ref (*sp);
     }
   else
-    *sp = SCM_SIMPLE_VECTOR_REF (fluids, num);
+    {
+      SCM val = SCM_SIMPLE_VECTOR_REF (fluids, num);
+      if (SCM_UNLIKELY (val == SCM_UNDEFINED))
+        {
+          finish_args = *sp;
+          goto vm_error_unbound_fluid;
+        }
+      *sp = val;
+    }
   
   NEXT;
 }

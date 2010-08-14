@@ -146,6 +146,13 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
                    scm_list_1 (finish_args), SCM_BOOL_F);
     goto vm_error;
 
+  vm_error_unbound_fluid:
+    SYNC_ALL ();
+    err_msg = scm_from_locale_string ("Unbound fluid: ~s");
+    scm_error_scm (scm_misc_error_key, program, err_msg,
+                   scm_list_1 (finish_args), SCM_BOOL_F);
+    goto vm_error;
+
   vm_error_apply_to_non_list:
     scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
                finish_args, finish_args);

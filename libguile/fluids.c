@@ -181,6 +181,17 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_make_undefined_fluid, "make-undefined-fluid", 0, 0, 0,
+            (),
+            "")
+#define FUNC_NAME s_scm_make_undefined_fluid
+{
+  SCM f = new_fluid ();
+  scm_fluid_set_x (f, SCM_UNDEFINED);
+  return f;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_fluid_p, "fluid?", 1, 0, 0, 
 	    (SCM obj),
 	    "Return @code{#t} iff @var{obj} is a fluid; otherwise, return\n"
@@ -197,18 +208,11 @@ scm_is_fluid (SCM obj)
   return IS_FLUID (obj);
 }
 
-
-
-SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
-	    (SCM fluid),
-	    "Return the value associated with @var{fluid} in the current\n"
-	    "dynamic root.  If @var{fluid} has not been set, then return\n"
-	    "@code{#f}.")
-#define FUNC_NAME s_scm_fluid_ref
+/* Does not check type of `fluid'! */
+static SCM
+fluid_ref (SCM fluid)
 {
   SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
-
-  SCM_VALIDATE_FLUID (1, fluid);
 
   if (SCM_UNLIKELY (FLUID_NUM (fluid) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
@@ -219,6 +223,22 @@ SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0,
     }
 
   return SCM_SIMPLE_VECTOR_REF (fluids, FLUID_NUM (fluid));
+}
+
+SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
+	    (SCM fluid),
+	    "Return the value associated with @var{fluid} in the current\n"
+	    "dynamic root.  If @var{fluid} has not been set, then return\n"
+	    "@code{#f}.")
+#define FUNC_NAME s_scm_fluid_ref
+{
+  SCM val;
+  SCM_VALIDATE_FLUID (1, fluid);
+  val = fluid_ref (fluid);
+  if (SCM_UNBNDP (val))
+    SCM_MISC_ERROR ("unbound fluid: ~S",
+                    scm_list_1 (fluid));
+  return val;
 }
 #undef FUNC_NAME
 
@@ -241,6 +261,28 @@ SCM_DEFINE (scm_fluid_set_x, "fluid-set!", 2, 0, 0,
 
   SCM_SIMPLE_VECTOR_SET (fluids, FLUID_NUM (fluid), value);
   return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_fluid_unset_x, "fluid-unset!", 1, 0, 0,
+            (SCM fluid),
+            "Unset the value associated with @var{fluid}.")
+#define FUNC_NAME s_scm_fluid_unset_x
+{
+  return scm_fluid_set_x (fluid, SCM_UNDEFINED);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_fluid_bound_p, "fluid-bound?", 1, 0, 0,
+	    (SCM fluid),
+	    "Return @code{#t} iff @var{fluid} is bound to a value.\n"
+	    "Throw an error if @var{fluid} is not a fluid.")
+#define FUNC_NAME s_scm_fluid_bound_p
+{
+  SCM val;
+  SCM_VALIDATE_FLUID (1, fluid);
+  val = fluid_ref (fluid);
+  return scm_from_bool (! (SCM_UNBNDP (val)));
 }
 #undef FUNC_NAME
 
@@ -406,7 +448,7 @@ static void
 swap_fluid (SCM data)
 {
   SCM f = SCM_CAR (data);
-  SCM t = scm_fluid_ref (f);
+  SCM t = fluid_ref (f);
   scm_fluid_set_x (f, SCM_CDR (data));
   SCM_SETCDR (data, t);
 }
