@@ -79,6 +79,18 @@
                      bytes)))))
 
 
+(with-test-prefix "pointer<->string"
+
+  (pass-if "bijection"
+    (let ((s "hello, world"))
+      (string=? s (pointer->string (string->pointer s)))))
+
+  (pass-if "bijection [latin1]"
+    (with-latin1-locale
+      (let ((s "Szép jó napot!"))
+        (string=? s (pointer->string (string->pointer s)))))))
+
+
 (with-test-prefix "structs"
 
   (pass-if "parse-c-struct"

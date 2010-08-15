@@ -33,11 +33,14 @@
             null-pointer?
             make-pointer
             pointer-address
-            dereference-pointer
 
             pointer->bytevector
             bytevector->pointer
             set-pointer-finalizer!
+
+            dereference-pointer
+            string->pointer
+            pointer->string
 
             make-foreign-function
             make-c-struct parse-c-struct))

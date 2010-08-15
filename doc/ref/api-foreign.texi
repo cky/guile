@@ -598,6 +598,22 @@ Assuming @var{pointer} points to a memory region that holds a pointer,
 return this pointer.
 @end deffn
 
+@deffn {Scheme Procedure} string->pointer string
+Return a foreign pointer to a nul-terminated copy of @var{string} in the
+current locale encoding.  The C string is freed when the returned
+foreign pointer becomes unreachable.
+
+This is the Scheme equivalent of @code{scm_to_locale_string}.
+@end deffn
+
+@deffn {Scheme Procedure} pointer->string pointer
+Return the string representing the C nul-terminated string
+pointed to by @var{pointer}.  The C string is assumed to be
+in the current locale encoding.
+
+This is the Scheme equivalent of @code{scm_from_locale_string}.
+@end deffn
+
 Going back to the @code{scm_numptob} example above, here is how we can
 read its value as a C @code{long} integer:
 

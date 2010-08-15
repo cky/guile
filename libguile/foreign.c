@@ -162,18 +162,6 @@ SCM_DEFINE (scm_pointer_address, "pointer-address", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
-	    (SCM pointer),
-	    "Assuming @var{pointer} points to a memory region that\n"
-	    "holds a pointer, return this pointer.")
-#define FUNC_NAME s_scm_dereference_pointer
-{
-  SCM_VALIDATE_POINTER (1, pointer);
-
-  return scm_from_pointer (* (void **) SCM_POINTER_VALUE (pointer), NULL);
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
 	    (SCM pointer, SCM len, SCM offset, SCM uvec_type),
 	    "Return a bytevector aliasing the @var{len} bytes pointed\n"
@@ -299,8 +287,6 @@ SCM_DEFINE (scm_set_pointer_finalizer_x, "set-pointer-finalizer!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-
-
 void
 scm_i_pointer_print (SCM pointer, SCM port, scm_print_state *pstate)
 {
@@ -308,6 +294,55 @@ scm_i_pointer_print (SCM pointer, SCM port, scm_print_state *pstate)
   scm_uintprint (scm_to_uintptr (scm_pointer_address (pointer)), 16, port);
   scm_putc ('>', port);
 }
+
+
+/* Non-primitive helpers functions.  These procedures could be
+   implemented in terms of the primitives above but would be inefficient
+   (heap allocation overhead, Scheme/C round trips, etc.)  */
+
+SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
+	    (SCM pointer),
+	    "Assuming @var{pointer} points to a memory region that\n"
+	    "holds a pointer, return this pointer.")
+#define FUNC_NAME s_scm_dereference_pointer
+{
+  SCM_VALIDATE_POINTER (1, pointer);
+
+  return scm_from_pointer (* (void **) SCM_POINTER_VALUE (pointer), NULL);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_to_pointer, "string->pointer", 1, 0, 0,
+	    (SCM string),
+	    "Return a foreign pointer to a nul-terminated copy of\n"
+	    "@var{string} in the current locale encoding.  The C\n"
+	    "string is freed when the returned foreign pointer\n"
+	    "becomes unreachable.\n\n"
+            "This is the Scheme equivalent of @code{scm_to_locale_string}.")
+#define FUNC_NAME s_scm_string_to_pointer
+{
+  SCM_VALIDATE_STRING (1, string);
+
+  /* XXX: Finalizers slow down libgc; they could be avoided if
+     `scm_to_string' & co. were able to use libgc-allocated memory.  */
+
+  return scm_from_pointer (scm_to_locale_string (string), free);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_pointer_to_string, "pointer->string", 1, 0, 0,
+	    (SCM pointer),
+	    "Return the string representing the C nul-terminated string\n"
+	    "pointed to by @var{pointer}.  The C string is assumed to be\n"
+	    "in the current locale encoding.\n\n"
+	    "This is the Scheme equivalent of @code{scm_from_locale_string}.")
+#define FUNC_NAME s_scm_pointer_to_string
+{
+  SCM_VALIDATE_POINTER (1, pointer);
+
+  return scm_from_locale_string (SCM_POINTER_VALUE (pointer));
+}
+#undef FUNC_NAME
 
 
 
