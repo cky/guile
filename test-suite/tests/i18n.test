@@ -391,16 +391,21 @@
 
   (with-test-prefix "French"
 
-    (under-french-locale-or-unresolved
-     (lambda ()
-       (let ((fr (make-locale LC_ALL %french-locale-name)))
+    (pass-if "integer"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (string=? "123 456" (number->locale-string 123456 #t fr))))))
 
-        (pass-if "integer"
-          (string=? "123 456" (number->locale-string 123456 #t fr)))
+    (pass-if "fraction"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (string=? "1 234,567" (number->locale-string 1234.567 #t fr))))))
 
-        (pass-if "fraction"
-          (string=? "1 234,567" (number->locale-string 1234.567 #t fr)))
-
-        (pass-if "fraction, 1 digit"
-          (string=? "1 234,5"
-                    (number->locale-string 1234.567 1 fr))))))))
+    (pass-if "fraction, 1 digit"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (string=? "1 234,5"
+                     (number->locale-string 1234.567 1 fr))))))))
