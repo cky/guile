@@ -460,13 +460,13 @@
                 (flet ((foobar (lambda () 0))
                        (myfoo (symbol-function 'foobar)))
                   (and (= (myfoo) 42)
-                       (= (test) 0)))
+                       (= (test) 42)))
                 (flet* ((foobar (lambda () 0))
                         (myfoo (symbol-function 'foobar)))
-                  (= (myfoo) 0))
+                  (= (myfoo) 42))
                 (flet (foobar)
                   (defun foobar () 0)
-                  (= (test) 0))
+                  (= (test) 42))
                 (= (test) 42)))))
 
 (with-test-prefix/compile "Calling Functions"

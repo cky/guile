@@ -358,9 +358,8 @@
       (prim apply (@ (guile) apply) real-func args))))
 
 (built-in-func funcall
-  (let ((myapply (fluid-ref apply)))
-    (lambda (func . args)
-      (myapply func args))))
+  (lambda (func . args)
+    (apply func args)))
 
 ;;; Throw can be implemented as built-in function.
 

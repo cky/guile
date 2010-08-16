@@ -78,15 +78,29 @@
           (module-export! resolved `(,sym))))))
 
 (define (reference-variable module sym)
-  (ensure-fluid! module sym)
   (let ((resolved (resolve-module module)))
-    (fluid-ref (module-ref resolved sym))))
+   (cond
+    ((equal? module function-slot-module)
+     (module-ref resolved sym))
+    (else
+     (ensure-fluid! module sym)
+     (fluid-ref (module-ref resolved sym))))))
 
 (define (set-variable! module sym value)
-  (ensure-fluid! module sym)
-  (let ((resolved (resolve-module module)))
-    (fluid-set! (module-ref resolved sym) value)
-    value))
+  (let ((intf (resolve-interface module))
+        (resolved (resolve-module module)))
+    (cond
+     ((equal? module function-slot-module)
+      (cond
+       ((module-defined? intf sym)
+        (module-set! resolved sym value))
+      (else
+       (module-define! resolved sym value)
+       (module-export! resolved `(,sym)))))
+    (else
+     (ensure-fluid! module sym)
+     (fluid-set! (module-ref resolved sym) value))))
+  value)
 
 ;;; Define a predefined function or predefined macro for use in the
 ;;; function-slot and macro-slot modules, respectively.
@@ -95,8 +109,7 @@
   (syntax-rules ()
     ((_ name value)
      (begin
-       (define-public name (make-fluid))
-       (fluid-set! name value)))))
+       (define-public name value)))))
 
 (define (make-id template-id . data)
   (let ((append-symbols

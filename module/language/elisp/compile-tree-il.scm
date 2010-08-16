@@ -165,11 +165,17 @@
 ;;; on whether it is currently lexically or dynamically bound.  lexical
 ;;; access is done only for references to the value-slot module!
 
-(define (access-variable loc sym module handle-lexical handle-dynamic)
+(define (access-variable loc
+                         sym
+                         module
+                         handle-global
+                         handle-lexical
+                         handle-dynamic)
   (let ((lexical (get-lexical-binding (fluid-ref bindings-data) sym)))
-    (if (and lexical (equal? module value-slot))
-        (handle-lexical lexical)
-        (handle-dynamic))))
+    (cond
+     (lexical (handle-lexical lexical))
+     ((equal? module function-slot) (handle-global))
+     (else (handle-dynamic)))))
 
 ;;; Generate code to reference a variable.  For references in the
 ;;; value-slot module, we may want to generate a lexical reference
@@ -180,6 +186,7 @@
    loc
    sym
    module
+   (lambda () (make-module-ref loc module sym #t))
    (lambda (lexical) (make-lexical-ref loc lexical lexical))
    (lambda ()
      (mark-global-needed! (fluid-ref bindings-data) sym module)
@@ -196,6 +203,11 @@
    loc
    sym
    module
+   (lambda ()
+     (make-application
+      loc
+      (make-module-ref loc runtime 'set-variable! #t)
+      (list (make-const loc module) (make-const loc sym) value)))
    (lambda (lexical) (make-lexical-set loc lexical lexical value))
    (lambda ()
      (mark-global-needed! (fluid-ref bindings-data) sym module)
@@ -227,10 +239,12 @@
 ;;; dynamically.  A symbol will be bound lexically if and only if: We're
 ;;; processing a lexical-let (i.e. module is 'lexical), OR we're
 ;;; processing a value-slot binding AND the symbol is already lexically
-;;; bound or it is always lexical.
+;;; bound or is always lexical, OR we're processing a function-slot
+;;; binding.
 
 (define (bind-lexically? sym module)
   (or (eq? module 'lexical)
+      (eq? module function-slot)
       (and (equal? module value-slot)
            (let ((always (fluid-ref always-lexical)))
              (or (eq? always 'all)
