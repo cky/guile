@@ -452,13 +452,19 @@ SCM_DEFINE (scm_memoize_expression, "memoize-expression", 1, 0, 0,
 #define SCM_DEFINE_MEMOIZER(STR, MEMOIZER, N)                           \
 SCM_SNARF_INIT(scm_c_define (STR, SCM_MAKE_MEMOIZER (STR, MEMOIZER, N)))
 
-static SCM m_apply (SCM proc, SCM args);
+#define SCM_MAKE_REST_MEMOIZER(STR, MEMOIZER, N)                        \
+  (scm_cell (scm_tc16_memoizer,                                         \
+             (scm_t_bits)(scm_c_make_gsubr (STR, N, 0, 1, MEMOIZER))))
+#define SCM_DEFINE_REST_MEMOIZER(STR, MEMOIZER, N)                      \
+SCM_SNARF_INIT(scm_c_define (STR, SCM_MAKE_REST_MEMOIZER (STR, MEMOIZER, N)))
+
+static SCM m_apply (SCM proc, SCM arg, SCM rest);
 static SCM m_call_cc (SCM proc);
 static SCM m_call_values (SCM prod, SCM cons);
 static SCM m_dynamic_wind (SCM pre, SCM exp, SCM post);
 static SCM m_prompt (SCM tag, SCM exp, SCM handler);
 
-SCM_DEFINE_MEMOIZER ("@apply", m_apply, 2);
+SCM_DEFINE_REST_MEMOIZER ("@apply", m_apply, 2);
 SCM_DEFINE_MEMOIZER ("@call-with-current-continuation", m_call_cc, 1);
 SCM_DEFINE_MEMOIZER ("@call-with-values", m_call_values, 2);
 SCM_DEFINE_MEMOIZER ("@dynamic-wind", m_dynamic_wind, 3);
@@ -467,12 +473,38 @@ SCM_DEFINE_MEMOIZER ("@prompt", m_prompt, 3);
 
 
 
-static SCM m_apply (SCM proc, SCM args)
+static SCM m_apply (SCM proc, SCM arg, SCM rest)
 #define FUNC_NAME "@apply"
 {
+  long len;
+  
   SCM_VALIDATE_MEMOIZED (1, proc);
-  SCM_VALIDATE_MEMOIZED (2, args);
-  return MAKMEMO_APPLY (proc, args);
+  SCM_VALIDATE_MEMOIZED (2, arg);
+  len = scm_ilength (rest);
+  if (len < 0)
+    abort ();
+  else if (len == 0)
+    return MAKMEMO_APPLY (proc, arg);
+  else
+    {
+      SCM tail;
+
+      rest = scm_reverse (rest);
+      tail = scm_car (rest);
+      rest = scm_cdr (rest);
+      len--;
+      
+      while (scm_is_pair (rest))
+        {
+          tail = MAKMEMO_CALL (MAKMEMO_MOD_REF (scm_list_1 (scm_from_locale_symbol ("guile")),
+                                                scm_from_locale_symbol ("cons"),
+                                                SCM_BOOL_F),
+                               2,
+                               scm_list_2 (scm_car (rest), tail));
+          rest = scm_cdr (rest);
+        }
+      return MAKMEMO_APPLY (proc, tail);
+    }
 }
 #undef FUNC_NAME
 
