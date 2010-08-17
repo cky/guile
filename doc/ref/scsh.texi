@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -9,17 +9,16 @@
 @cindex SCSH
 @cindex Scheme Shell
 
-An incomplete port of the Scheme shell (scsh) is available for Guile
-as a separate package.  The current status of guile-scsh can be found at
-@url{http://arglist.com/guile/}.
+An incomplete port of the Scheme shell (scsh) was once available for
+Guile as a separate package.  However this code has bitrotten
+somewhat.  The pieces are available in Guile's legacy CVS repository,
+which may be browsed at
+@url{http://cvs.savannah.gnu.org/viewvc/guile/guile-scsh/?root=guile}.
 
 For information about scsh see
 @url{http://www.scsh.net/}.
 
-The closest emulation of scsh can be obtained by running:
-
-@lisp
-(load-from-path "scsh/init")
-@end lisp
-
-See the USAGE file supplied with guile-scsh for more details.
+This bitrotting is a bit of a shame, as there is a good deal of
+well-written Scheme code in scsh.  Adopting this code and porting it to
+current Guile should be an educational experience, in addition to
+providing something of value to Guile folks.
