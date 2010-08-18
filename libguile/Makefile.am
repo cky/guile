@@ -721,10 +721,15 @@ MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 #	#ifdef SYMBOL
 #	scm_c_define ("SYMBOL", scm_from_int (SYMBOL));
 #	#endif
-# writing output to foo.c.
+# writing output to foo.c.  We use a while-read loop instead of a
+# one-line sed script because some seds (e.g., FreeBSD) don't read
+# '\n' as a newline (like GNU sed does).  Sad, but true.
 .syms.c:
-	sed 's/.*/#ifdef &\nscm_c_define ("&", scm_from_int (&));\n#endif/' \
-	  $< > $@T
+	cat $< | while read sym ; do					\
+	  echo "#ifdef $$sym" ;						\
+	  echo "scm_c_define (\"$$sym\", scm_from_int ($$sym));" ;	\
+	  echo "#endif" ;						\
+	done > $@T
 	mv $@T $@
 
 # Write $(srcdir)/cpp-{E,SIG}.syms.NEW if there are any not-yet-seen
