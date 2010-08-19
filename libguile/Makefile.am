@@ -725,12 +725,13 @@ MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 # one-line sed script because some seds (e.g., FreeBSD) don't read
 # '\n' as a newline (like GNU sed does).  Sad, but true.
 .syms.c:
+	$(AM_V_GEN) 							\
 	cat $< | while read sym ; do					\
 	  echo "#ifdef $$sym" ;						\
 	  echo "scm_c_define (\"$$sym\", scm_from_int ($$sym));" ;	\
 	  echo "#endif" ;						\
 	done > $@T
-	mv $@T $@
+	@mv $@T $@
 
 # Write $(srcdir)/cpp-{E,SIG}.syms.NEW if there are any not-yet-seen
 # ("new" to us) E* or SIG* symbols in <errno.h> or <signal.h>, respectively.
