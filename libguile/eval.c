@@ -24,7 +24,6 @@
 #endif
 
 #include <alloca.h>
-#include <assert.h>
 
 #include "libguile/__scm.h"
 

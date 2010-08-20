@@ -22,6 +22,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
@@ -643,7 +644,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	       || ! strcmp (argv[i], "--help"))
 	{
 	  scm_shell_usage (0, 0);
-	  exit (0);
+	  exit (EXIT_SUCCESS);
 	}
 
       else if (! strcmp (argv[i], "-v")
@@ -653,7 +654,7 @@ scm_compile_shell_switches (int argc, char **argv)
 	  version_etc (stdout, scm_usage_name, PACKAGE_NAME, PACKAGE_VERSION,
 		       /* XXX: Use gettext for the string below.  */
 		       "the Guile developers", NULL);
-	  exit (0);
+	  exit (EXIT_SUCCESS);
 	}
 
       else

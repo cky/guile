@@ -136,3 +136,4 @@ INSTALL
 /lib/unistr.h
 /lib/unitypes.h
 /lib/c++defs.h
+/.sc-start-*

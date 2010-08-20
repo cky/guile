@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2006, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,6 +23,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 
@@ -94,7 +95,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
   
   /* No return, but just in case: */
   fprintf (stderr, "Guile scm_ithrow returned!\n");
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 #undef FUNC_NAME
 

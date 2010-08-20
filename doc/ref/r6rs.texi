@@ -1442,7 +1442,7 @@ library.  @xref{Writing}, for documentation.
 
 The @code{(rnrs files (6))} library provides the @code{file-exists?} and
 @code{delete-file} procedures, which test for the existence of a file
-and allow the deletion of files from the filesystem, respectively.
+and allow the deletion of files from the file system, respectively.
 
 These procedures are identical to the ones provided by Guile's core 
 library.  @xref{File System}, for documentation.

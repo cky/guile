@@ -1,6 +1,6 @@
 /* test-list.c - exercise libguile/list.c functions */
 
-/* Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,6 +24,7 @@
 
 #include <libguile.h>
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -36,7 +37,7 @@ test_scm_list (void)
     if (! scm_is_eq (SCM_EOL, scm_list (SCM_EOL)))
       {
         fprintf (stderr, "fail: scm_list SCM_EOL\n");
-        exit (1);
+        exit (EXIT_FAILURE);
       }
   }
 
@@ -45,7 +46,7 @@ test_scm_list (void)
     if (! scm_is_true (scm_equal_p (lst, scm_list (lst))))
       {
         fprintf (stderr, "fail: scm_list '(1 2)\n");
-        exit (1);
+        exit (EXIT_FAILURE);
       }
   }
 }

@@ -1,0 +1,4 @@
+doc/*
+lib/flock.c
+libguile/filesys.c
+libguile/ChangeLog-2008

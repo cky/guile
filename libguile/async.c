@@ -24,7 +24,6 @@
 
 #define SCM_BUILDING_DEPRECATED_CODE
 
-#include <signal.h>
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/throw.h"

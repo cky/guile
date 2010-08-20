@@ -154,11 +154,11 @@ on chance.
 ** Remove encoding of versions into the file system
 
 It used to be that, when loading a module, if the user specified a
-version, Guile would grovel about in the filesystem to find the
+version, Guile would grovel about in the file system to find the
 module. This process was slow and not robust. This support has been
 removed:  modules are once more always loaded via `primitive-load-path'.
 
-Module versions in the filesystem may be added again in the future, in
+Module versions in the file system may be added again in the future, in
 an extensible way. Contact bug-guile@gnu.org with patches.
     
 ** Alex Shinn's pattern matcher for (ice-9 match).

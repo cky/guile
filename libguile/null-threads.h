@@ -3,7 +3,7 @@
 #ifndef SCM_NULL_THREADS_H
 #define SCM_NULL_THREADS_H
 
-/* Copyright (C) 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2005, 2006, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,15 +33,16 @@
    goal.
 */
 
+#include <stdlib.h>
 #include <errno.h>
 
-/* Threads 
+/* Threads
 */
 #define scm_i_pthread_t                     int
 #define scm_i_pthread_self()                0
 #define scm_i_pthread_create(t,a,f,d)       (*(t)=0, (void)(f), ENOSYS)
 #define scm_i_pthread_detach(t)             do { } while (0)
-#define scm_i_pthread_exit(v)               exit(0)
+#define scm_i_pthread_exit(v)               exit (EXIT_SUCCESS)
 #define scm_i_pthread_cancel(t)             0
 #define scm_i_pthread_cleanup_push(t,v)     0
 #define scm_i_pthread_cleanup_pop(e)        0

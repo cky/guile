@@ -25,6 +25,7 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -160,7 +161,7 @@ fixconfig (char *s1, char *s2, int s)
   fputs ("\nin ", stderr);
   fputs (s ? "setjump" : "scmfig", stderr);
   fputs (".h and recompile scm\n", stderr);
-  exit (1);
+  exit (EXIT_FAILURE);
 }
 
 
@@ -326,8 +327,8 @@ static void *invoke_main_func(void *body_data);
    Call MAIN_FUNC, passing it CLOSURE, ARGC, and ARGV.  MAIN_FUNC
    should do all the work of the program (initializing other packages,
    reading user input, etc.) before returning.  When MAIN_FUNC
-   returns, call exit (0); this function never returns.  If you want
-   some other exit value, MAIN_FUNC may call exit itself.
+   returns, call exit (EXIT_FAILURE); this function never returns.
+   If you want some other exit value, MAIN_FUNC may call exit itself.
 
    scm_boot_guile arranges for program-arguments to return the strings
    given by ARGC and ARGV.  If MAIN_FUNC modifies ARGC/ARGV, should
@@ -368,7 +369,7 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
   if (res == NULL)
     exit (EXIT_FAILURE);
   else
-    exit (0);
+    exit (EXIT_SUCCESS);
 }
 
 static void *

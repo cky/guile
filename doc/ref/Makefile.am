@@ -146,9 +146,9 @@ $(snarf_doc).am: $(snarf_doc).scm
 	 (format #t \"# Automatically generated, do not edit.~%\")		\
 	 (format #t \"$$variable = \")						\
 	 (for-each (lambda (m)							\
-	             (format #t \"$$""(top_srcdir)/module/~a.scm \"		\
-	                     (string-join (map symbol->string m) \"/\")))	\
-	           (map car *modules*))" > "$@.tmp"
+		     (format #t \"$$""(top_srcdir)/module/~a.scm \"		\
+			     (string-join (map symbol->string m) \"/\")))	\
+		   (map car *modules*))" > "$@.tmp"
 	mv "$@.tmp" "$@"
 
 # The following line leads to the definition of $(standard_library_scm_files).

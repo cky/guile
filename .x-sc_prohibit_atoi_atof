@@ -1,0 +1,2 @@
+lib/*
+libguile/win32-socket.c
