@@ -1596,10 +1596,9 @@ AC_SUBST(top_builddir_absolute)
 top_srcdir_absolute=`(cd $srcdir && pwd)`
 AC_SUBST(top_srcdir_absolute)
 
-dnl We need `sitedir' in `guile-1.8.pc'.
-dnl Note: `sitedir' must be kept in sync with `GUILE_SITE_DIR' in `guile.m4'.
+dnl `sitedir' goes into libpath.h and the pkg-config file.
 pkgdatadir="$datadir/$PACKAGE_TARNAME"
-sitedir="$pkgdatadir/site"
+sitedir="$pkgdatadir/site/$GUILE_EFFECTIVE_VERSION"
 AC_SUBST([sitedir])
 
 # Additional SCM_I_GSC definitions are above.
