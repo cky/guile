@@ -198,7 +198,7 @@ Guile can be obtained from the main GNU archive site
 guile-@var{version}.tar.gz.  The current version is @value{VERSION}, so the
 file you should grab is:
 
-@url{ftp://ftp.gnu.org/pub/gnu/guile/guile-@value{VERSION}.tar.gz}
+@url{ftp://ftp.gnu.org/gnu/guile/guile-@value{VERSION}.tar.gz}
 
 To unbundle Guile use the instruction
 
