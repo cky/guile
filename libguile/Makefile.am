@@ -648,14 +648,10 @@ snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x .doc
 
-AM_V_FILTER = $(AM_V_FILTER_$(V))
-AM_V_FILTER_ = $(AM_V_FILTER_$(AM_DEFAULT_VERBOSITY))
-AM_V_FILTER_0 = @echo "  FILTER" $@;
-
 .c.x:
 	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 .c.doc:
-	-$(AM_V_FILTER)$(AWK) -f $(srcdir)/guile-func-name-check $< && (./guile-snarf-docs $(snarfcppopts) $< | ./guile_filter_doc_snarfage$(EXEEXT) --filter-snarfage) > $@ || { rm $@; false; }
+	$(AM_V_SNARF)./guile-snarf-docs -o $@ $< -- $(snarfcppopts)
 
 $(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in version.h
 

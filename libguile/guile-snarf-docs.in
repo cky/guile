@@ -1,26 +1,68 @@
 #!/bin/sh
-# Extract the doc stuff for builtin things.
+# guile-snarf-docs --- Extract the doc stuff for builtin things.
+##
+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001,
+#   2006, 2010 Free Software Foundation, Inc.
 #
-#  Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
-# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
 # published by the Free Software Foundation; either version 3, or (at
 # your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; see the file COPYING.LESSER.  If
 # not, write to the Free Software Foundation, Inc., 51 Franklin
 # Street, Fifth Floor, Boston, MA 02110-1301 USA
+##
+# Usage: guile-snarf-docs -o DOC SRC -- [CPPSNARFOPTS...]
+##
 
-bindir=`dirname $0`
+filter='./guile_filter_doc_snarfage@EXEEXT@'
 
 ## Let the user override the preprocessor autoconf found.
 test -n "${CPP+set}" || CPP="@CPP@"
 
-${CPP} -DSCM_MAGIC_SNARF_DOCS "$@"
+## Likewise for AWK.
+test -n "${AWK+set}" || AWK="@AWK@"
+
+bummer ()
+{
+    echo 'Bad command-line' $1
+    exit 1
+}
+
+test "x$1" = x-o || bummer
+shift
+
+test "x$1" = x && bummer ': missing DOC'
+output="$1"
+temout="$output"T
+shift
+
+test "x$1" && test -r "$1" || bummer ': missing SRC'
+input="$1"
+shift
+
+test "x$1" = x-- || bummer
+shift
+
+# Before snarfing, do the function name check.
+${AWK} -f '@srcdir@/guile-func-name-check' "$input" || exit 1
+
+# Snarfing takes two steps: cpp and tokenization.
+# If cpp fails, don't bother with tokenization.
+if ${CPP} -DSCM_MAGIC_SNARF_DOCS "$@" "$input" > "$temout" ; then
+    $filter --filter-snarfage < "$temout" > "$output"
+    rv=0
+else
+    rv=1
+fi
+rm -f "$temout"
+exit $rv
+
+# guile-snarf-docs ends here
