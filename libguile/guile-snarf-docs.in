@@ -52,7 +52,7 @@ test "x$1" = x-- || bummer
 shift
 
 # Before snarfing, do the function name check.
-${AWK} -f '@srcdir@/guile-func-name-check' "$input" || exit 1
+'@top_builddir@/meta/guile' -s '@srcdir@/guile-func-name-check' "$input" || exit 1
 
 # Snarfing takes two steps: cpp and tokenization.
 # If cpp fails, don't bother with tokenization.

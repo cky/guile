@@ -142,6 +142,7 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
   while (pattern_var);                                                  \
   return tree
 
+/* guile-func-name-check: no thanks (rest of file: c[ad]r procs) */
 
 SCM_DEFINE (scm_cdr, "cdr", 1, 0, 0, (SCM x), "")
 {
