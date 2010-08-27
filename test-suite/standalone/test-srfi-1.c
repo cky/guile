@@ -27,10 +27,18 @@
 
 #include <stdlib.h>
 
+static void
+failure (const char *proc, SCM result)
+{
+  scm_simple_format (scm_current_error_port (),
+		     scm_from_locale_string ("`~S' failed: ~S~%"),
+		     scm_list_2 (scm_from_locale_symbol (proc), result));
+}
+
 static void *
 tests (void *data)
 {
-  SCM times, lst, result;
+  SCM times, negative_p, lst, result;
 
   scm_init_srfi_1 ();
 
@@ -41,9 +49,27 @@ tests (void *data)
   result = scm_srfi1_fold (times, scm_from_int (1), lst, scm_list_1 (lst));
 
   if (scm_to_int (result) == 36)
-    * (int *) data = EXIT_SUCCESS;
+    {
+      negative_p = SCM_VARIABLE_REF (scm_c_lookup ("negative?"));
+      result = scm_srfi1_break (negative_p,
+				scm_list_3 (scm_from_int (1),
+					    scm_from_int (2),
+					    scm_from_int (-1)));
+
+      if (SCM_VALUESP (result))
+	/* There's no API to access the values, so assume this is OK.  */
+	* (int *) data = EXIT_SUCCESS;
+      else
+	{
+	  failure ("break", result);
+	  * (int *) data = EXIT_FAILURE;
+	}
+    }
   else
-    * (int *) data = EXIT_FAILURE;
+    {
+      failure ("fold", result);
+      * (int *) data = EXIT_FAILURE;
+    }
 
   return data;
 }

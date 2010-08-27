@@ -472,6 +472,30 @@ that result.  See the manual for details."
 
 ;;; Searching
 
+(define (break pred clist)
+  "Return two values, the longest initial prefix of LST whose elements
+all fail the predicate PRED, and the remainder of LST."
+  (let lp ((clist clist) (rl '()))
+    (if (or (null? clist)
+	    (pred (car clist)))
+	(values (reverse! rl) clist)
+	(lp (cdr clist) (cons (car clist) rl)))))
+
+(define (break! pred list)
+  "Linear-update variant of `break'."
+  (let loop ((l    list)
+             (prev #f))
+    (cond ((null? l)
+           (values list '()))
+          ((pred (car l))
+           (if (pair? prev)
+               (begin
+                 (set-cdr! prev '())
+                 (values list l))
+               (values '() list)))
+          (else
+           (loop (cdr l) l)))))
+
 (define (any pred ls . lists)
   (if (null? lists)
       (any1 pred ls)

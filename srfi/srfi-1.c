@@ -207,72 +207,19 @@ SCM_DEFINE (scm_srfi1_append_reverse_x, "append-reverse!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_break, "break", 2, 0, 0,
-            (SCM pred, SCM lst),
-	    "Return two values, the longest initial prefix of @var{lst}\n"
-	    "whose elements all fail the predicate @var{pred}, and the\n"
-	    "remainder of @var{lst}.\n"
-	    "\n"
-	    "Note that the name @code{break} conflicts with the @code{break}\n"
-	    "binding established by @code{while}.  Applications wanting to\n"
-	    "use @code{break} from within a @code{while} loop will need to\n"
-	    "make a new define under a different name.")
-#define FUNC_NAME s_scm_srfi1_break
+SCM
+scm_srfi1_break (SCM pred, SCM lst)
 {
-  SCM ret, *p;
-
-  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
-
-  ret = SCM_EOL;
-  p = &ret;
-  for ( ; scm_is_pair (lst); lst = SCM_CDR (lst))
-    {
-      SCM elem = SCM_CAR (lst);
-      if (scm_is_true (scm_call_1 (pred, elem)))
-        goto done;
-
-      /* want this elem, tack it onto the end of ret */
-      *p = scm_cons (elem, SCM_EOL);
-      p = SCM_CDRLOC (*p);
-    }
-  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (lst), lst, SCM_ARG2, FUNC_NAME, "list");
-
- done:
-  return scm_values (scm_list_2 (ret, lst));
+  CACHE_VAR (break_proc, "break");
+  return scm_call_2 (break_proc, pred, lst);
 }
-#undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_break_x, "break!", 2, 0, 0,
-            (SCM pred, SCM lst),
-	    "Return two values, the longest initial prefix of @var{lst}\n"
-	    "whose elements all fail the predicate @var{pred}, and the\n"
-	    "remainder of @var{lst}.  @var{lst} may be modified to form the\n"
-	    "return.")
-#define FUNC_NAME s_scm_srfi1_break_x
+SCM
+scm_srfi1_break_x (SCM pred, SCM lst)
 {
-  SCM upto, *p;
-
-  SCM_ASSERT (scm_is_true (scm_procedure_p (pred)), pred, SCM_ARG1, FUNC_NAME);
-
-  p = &lst;
-  for (upto = lst; scm_is_pair (upto); upto = SCM_CDR (upto))
-    {
-      if (scm_is_true (scm_call_1 (pred, SCM_CAR (upto))))
-        goto done;
-
-      /* want this element */
-      p = SCM_CDRLOC (upto);
-    }
-  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P (upto), lst, SCM_ARG2, FUNC_NAME, "list");
-
- done:
-  *p = SCM_EOL;
-  return scm_values (scm_list_2 (lst, upto));
+  CACHE_VAR (break_x, "break!");
+  return scm_call_2 (break_x, pred, lst);
 }
-#undef FUNC_NAME
-
 
 SCM
 scm_srfi1_car_plus_cdr (SCM pair)
