@@ -38,8 +38,8 @@ illustration, transforming a music album catalog language into HTML.
 Three macros are provided: @code{sxml-match}, @code{sxml-match-let}, and
 @code{sxml-match-let*}.
 
-Compared to a standard s-expression pattern matcher, @code{sxml-match} provides
-the following benefits:
+Compared to a standard s-expression pattern matcher (@pxref{Pattern
+Matching}), @code{sxml-match} provides the following benefits:
 
 @itemize
 @item

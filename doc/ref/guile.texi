@@ -301,7 +301,7 @@ available through both Scheme and C interfaces.
 * Binding Constructs::          Definitions and variable bindings.
 * Control Mechanisms::          Controlling the flow of program execution.
 * Input and Output::            Ports, reading and writing.
-* LALR(1) Parsing::             Generating LALR(1) parsers.		
+* LALR(1) Parsing::             Generating LALR(1) parsers.
 * Read/Load/Eval/Compile::      Reading and evaluating Scheme code.
 * Memory Management::           Memory management and garbage collection.
 * Modules::                     Designing reusable code libraries.
@@ -350,6 +350,7 @@ available through both Scheme and C interfaces.
 * getopt-long::                 Command line handling.
 * SRFI Support::                Support for various SRFIs.
 * R6RS Support::                Modules defined by the R6RS.
+* Pattern Matching::            Generic pattern matching constructs.
 * Readline Support::            Module for using the readline library.
 * Pretty Printing::             Nicely formatting Scheme objects for output.
 * Formatted Output::            The @code{format} procedure.
@@ -368,6 +369,7 @@ available through both Scheme and C interfaces.
 @include mod-getopt-long.texi
 @include srfi-modules.texi
 @include r6rs.texi
+@include match.texi
 @include repl-modules.texi
 @include misc-modules.texi
 @include expect.texi

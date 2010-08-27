@@ -30,7 +30,8 @@
 
 ;; Compared to Andrew K. Wright's `match', this one lacks `match-define',
 ;; `match:error-control', `match:set-error-control', `match:error',
-;; `match:set-error', and all structure-related procedures.
+;; `match:set-error', and all structure-related procedures.  Also,
+;; `match' doesn't support clauses of the form `(pat => exp)'.
 
 ;; Unmodified public domain code by Alex Shinn retrieved from
 ;; <http://synthcode.com/scheme/match.scm>.

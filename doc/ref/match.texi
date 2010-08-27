@@ -1,0 +1,159 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C) 2010  Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+@c
+
+@c The pattern syntax is taken from the documentation available in
+@c Andrew K. Wright's implementation of `match.scm', which is in the
+@c public domain.  See Guile before commit
+@c d967913f05301a35573c5d3f7217d0994bbb1016 (Thu Jun 17 2010) or
+@c <http://www.cs.indiana.edu/scheme-repository/code.match.html>.
+
+@c FIXME: This section is a bit rough on the edges.  The introduction
+@c could be improved, e.g., by adding examples.
+
+@node Pattern Matching
+@section Pattern Matching
+
+@cindex pattern matching
+@cindex (ice-9 match)
+
+The @code{(ice-9 match)} module provides a @dfn{pattern matcher},
+written by Alex Shinn, and compatible with Andrew K. Wright's pattern
+matcher found in many Scheme implementations.
+
+@cindex pattern variable
+A pattern matcher can match an object against several patterns and
+extract the elements that make it up.  Patterns can represent any Scheme
+object: lists, strings, symbols, etc.  They can optionally contain
+@dfn{pattern variables}.  When a matching pattern is found, an
+expression associated with the pattern is evaluated, optionally with all
+pattern variables bound to the corresponding elements of the object:
+
+@example
+(let ((l '(hello (world))))
+  (match l           ;; <- the input object
+    (('hello (who))  ;; <- the pattern
+     who)))          ;; <- the expression evaluated upon matching
+@result{} world
+@end example
+
+In this example, list @var{l} matches the pattern @code{('hello (who))},
+because it is a two-element list whose first element is the symbol
+@code{hello} and whose second element is a one-element list.  Here
+@var{who} is a pattern variable.  @code{match}, the pattern matcher,
+locally binds @var{who} to the value contained in this one-element list,
+i.e., the symbol @code{world}.
+
+The same object can be matched against a simpler pattern:
+
+@example
+(let ((l '(hello (world))))
+  (match l
+    ((x y)
+     (values x y))))
+@result{} hello
+@result{} (world)
+@end example
+
+Here pattern @code{(x y)} matches any two-element list, regardless of
+the types of these elements.  Pattern variables @var{x} and @var{y} are
+bound to, respectively, the first and second element of @var{l}.
+
+
+The pattern matcher is defined as follows:
+
+@deffn {Scheme Syntax} match exp clause ...
+Match object @var{exp} against the patterns in the given @var{clause}s,
+in the order in which they appear.  Return the value produced by the
+first matching clause.  If no @var{clause} matches, throw an exception
+with key @code{match-error}.
+
+Each @var{clause} has the form @code{(pattern body)}.  Each
+@var{pattern} must follow the syntax described below.  Each @var{body}
+is an arbitrary Scheme expression, possibly referring to pattern
+variables of @var{pattern}.
+@end deffn
+
+@c FIXME: Document other forms:
+@c
+@c exp ::= ...
+@c       | (match exp clause ...)
+@c       | (match-lambda clause ...)
+@c       | (match-lambda* clause ...)
+@c       | (match-let ((pat exp) ...) body)
+@c       | (match-let* ((pat exp) ...) body)
+@c       | (match-letrec ((pat exp) ...) body)
+@c       | (match-define pat exp)
+@c
+@c clause ::= (pat body) | (pat => exp)
+
+The syntax and interpretation of patterns is as follows:
+
+@verbatim
+        patterns:                       matches:
+
+pat ::= identifier                      anything, and binds identifier
+      | _                               anything
+      | ()                              the empty list
+      | #t                              #t
+      | #f                              #f
+      | string                          a string
+      | number                          a number
+      | character                       a character
+      | 'sexp                           an s-expression
+      | 'symbol                         a symbol (special case of s-expr)
+      | (pat_1 ... pat_n)               list of n elements
+      | (pat_1 ... pat_n . pat_{n+1})   list of n or more
+      | (pat_1 ... pat_n pat_n+1 ooo)   list of n or more, each element
+                                          of remainder must match pat_n+1
+      | #(pat_1 ... pat_n)              vector of n elements
+      | #(pat_1 ... pat_n pat_n+1 ooo)  vector of n or more, each element
+                                          of remainder must match pat_n+1
+      | #&pat                           box
+      | ($ struct-name pat_1 ... pat_n) a structure
+      | (= field pat)                   a field of a structure
+      | (and pat_1 ... pat_n)           if all of pat_1 thru pat_n match
+      | (or pat_1 ... pat_n)            if any of pat_1 thru pat_n match
+      | (not pat_1 ... pat_n)           if all pat_1 thru pat_n don't match
+      | (? predicate pat_1 ... pat_n)   if predicate true and all of
+                                          pat_1 thru pat_n match
+      | (set! identifier)               anything, and binds setter
+      | (get! identifier)               anything, and binds getter
+      | `qp                             a quasi-pattern
+
+ooo ::= ...                             zero or more
+      | ___                             zero or more
+      | ..k                             k or more
+      | __k                             k or more
+
+        quasi-patterns:                 matches:
+
+qp  ::= ()                              the empty list
+      | #t                              #t
+      | #f                              #f
+      | string                          a string
+      | number                          a number
+      | character                       a character
+      | identifier                      a symbol
+      | (qp_1 ... qp_n)                 list of n elements
+      | (qp_1 ... qp_n . qp_{n+1})      list of n or more
+      | (qp_1 ... qp_n qp_n+1 ooo)      list of n or more, each element
+                                          of remainder must match qp_n+1
+      | #(qp_1 ... qp_n)                vector of n elements
+      | #(qp_1 ... qp_n qp_n+1 ooo)     vector of n or more, each element
+                                          of remainder must match qp_n+1
+      | #&qp                            box
+      | ,pat                            a pattern
+      | ,@pat                           a pattern
+@end verbatim
+
+The names @code{quote}, @code{quasiquote}, @code{unquote},
+@code{unquote-splicing}, @code{?}, @code{_}, @code{$}, @code{and},
+@code{or}, @code{not}, @code{set!}, @code{get!}, @code{...}, and
+@code{___} cannot be used as pattern variables.
+
+
+Guile also comes with a pattern matcher specifically tailored to SXML
+trees, @xref{sxml-match}.
