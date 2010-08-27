@@ -31,8 +31,8 @@
 
 (with-benchmark-prefix "fold"
 
-  (benchmark "fold" 30
+  (benchmark "big" 30
     (fold (lambda (x y) y) #f %big-list))
 
-  (benchmark "fold" 2000000
+  (benchmark "small" 2000000
     (fold (lambda (x y) y) #f %small-list)))
