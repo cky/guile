@@ -23,7 +23,6 @@
   #:use-module (system vm program)
   #:use-module (system vm instruction)
   #:use-module (system vm objcode)
-  #:use-module ((srfi srfi-1) #:select (fold))
   #:export (frame-bindings
             frame-lookup-binding
             frame-binding-ref frame-binding-set!
