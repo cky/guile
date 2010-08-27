@@ -783,24 +783,19 @@ SCM_DEFINE (scm_srfi1_drop_while, "drop-while", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_eighth, "eighth", 1, 0, 0,
-            (SCM lst),
-	    "Return the eighth element of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_eighth
+SCM
+scm_srfi1_eighth (SCM lst)
 {
-  return scm_list_ref (lst, SCM_I_MAKINUM (7));
+  CACHE_VAR (eighth, "eighth");
+  return scm_call_1 (eighth, lst);
 }
-#undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_fifth, "fifth", 1, 0, 0,
-            (SCM lst),
-	    "Return the fifth element of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_fifth
+SCM
+scm_srfi1_fifth (SCM lst)
 {
-  return scm_list_ref (lst, SCM_I_MAKINUM (4));
+  CACHE_VAR (fifth, "fifth");
+  return scm_call_1 (fifth, lst);
 }
-#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
@@ -1398,14 +1393,12 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_ninth, "ninth", 1, 0, 0,
-            (SCM lst),
-	    "Return the ninth element of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_ninth
+SCM
+scm_srfi1_ninth (SCM lst)
 {
-  return scm_list_ref (lst, scm_from_int (8));
+  CACHE_VAR (ninth, "ninth");
+  return scm_call_1 (ninth, lst);
 }
-#undef FUNC_NAME
 
 SCM
 scm_srfi1_not_pair_p (SCM obj)
@@ -1696,24 +1689,19 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_seventh, "seventh", 1, 0, 0,
-            (SCM lst),
-	    "Return the seventh element of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_seventh
+SCM
+scm_srfi1_seventh (SCM lst)
 {
-  return scm_list_ref (lst, scm_from_int (6));
+  CACHE_VAR (seventh, "seventh");
+  return scm_call_1 (seventh, lst);
 }
-#undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_sixth, "sixth", 1, 0, 0,
-            (SCM lst),
-	    "Return the sixth element of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_sixth
+SCM
+scm_srfi1_sixth (SCM lst)
 {
-  return scm_list_ref (lst, scm_from_int (5));
+  CACHE_VAR (sixth, "sixth");
+  return scm_call_1 (sixth, lst);
 }
-#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_srfi1_span, "span", 2, 0, 0,
@@ -1931,16 +1919,12 @@ SCM_DEFINE (scm_srfi1_take_while_x, "take-while!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM_DEFINE (scm_srfi1_tenth, "tenth", 1, 0, 0,
-            (SCM lst),
-	    "Return the tenth element of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_tenth
+SCM
+scm_srfi1_tenth (SCM lst)
 {
-  return scm_list_ref (lst, scm_from_int (9));
+  CACHE_VAR (tenth, "tenth");
+  return scm_call_1 (tenth, lst);
 }
-#undef FUNC_NAME
-
 
 SCM
 scm_srfi1_xcons (SCM d, SCM a)

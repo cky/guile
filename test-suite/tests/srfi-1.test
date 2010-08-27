@@ -964,7 +964,7 @@
 ;;
 
 (with-test-prefix "eighth"
-  (pass-if-exception "() -1" exception:out-of-range
+  (pass-if-exception "() -1" exception:wrong-type-arg
     (eighth '(a b c d e f g)))
   (pass-if (eq? 'h (eighth '(a b c d e f g h))))
   (pass-if (eq? 'h (eighth '(a b c d e f g h i)))))
@@ -974,7 +974,7 @@
 ;;
 
 (with-test-prefix "fifth"
-  (pass-if-exception "() -1" exception:out-of-range
+  (pass-if-exception "() -1" exception:wrong-type-arg
     (fifth '(a b c d)))
   (pass-if (eq? 'e (fifth '(a b c d e))))
   (pass-if (eq? 'e (fifth '(a b c d e f)))))
@@ -1900,7 +1900,7 @@
 ;;
 
 (with-test-prefix "ninth"
-  (pass-if-exception "() -1" exception:out-of-range
+  (pass-if-exception "() -1" exception:wrong-type-arg
     (ninth '(a b c d e f g h)))
   (pass-if (eq? 'i (ninth '(a b c d e f g h i))))
   (pass-if (eq? 'i (ninth '(a b c d e f g h i j)))))
@@ -2283,7 +2283,7 @@
 ;;
 
 (with-test-prefix "seventh"
-  (pass-if-exception "() -1" exception:out-of-range
+  (pass-if-exception "() -1" exception:wrong-type-arg
     (seventh '(a b c d e f)))
   (pass-if (eq? 'g (seventh '(a b c d e f g))))
   (pass-if (eq? 'g (seventh '(a b c d e f g h)))))
@@ -2293,7 +2293,7 @@
 ;;
 
 (with-test-prefix "sixth"
-  (pass-if-exception "() -1" exception:out-of-range
+  (pass-if-exception "() -1" exception:wrong-type-arg
     (sixth '(a b c d e)))
   (pass-if (eq? 'f (sixth '(a b c d e f))))
   (pass-if (eq? 'f (sixth '(a b c d e f g)))))
@@ -2578,7 +2578,7 @@
 ;;
 
 (with-test-prefix "tenth"
-  (pass-if-exception "() -1" exception:out-of-range
+  (pass-if-exception "() -1" exception:wrong-type-arg
     (tenth '(a b c d e f g h i)))
   (pass-if (eq? 'j (tenth '(a b c d e f g h i j))))
   (pass-if (eq? 'j (tenth '(a b c d e f g h i j k)))))
