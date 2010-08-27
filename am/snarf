@@ -1,6 +1,6 @@
 # -*- makefile -*-
 
-GUILE_SNARF = $(top_builddir)/libguile/guile-snarf
+GUILE_SNARF = GUILE_AUTO_COMPILE=0 $(top_builddir)/libguile/guile-snarf
 
 AM_V_SNARF = $(AM_V_SNARF_$(V))
 AM_V_SNARF_ = $(AM_V_SNARF_$(AM_DEFAULT_VERBOSITY))
