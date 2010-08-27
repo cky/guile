@@ -442,7 +442,8 @@ original binding names, @var{gensyms} are gensyms corresponding to the
 @var{exp} is a single Tree-IL expression.
 @end deftp
 @deftp {Scheme Variable} <letrec> in-order? src names gensyms vals exp
-@deftpx {External Representation} (letrec @var{in-order?} @var{names} @var{gensyms} @var{vals} @var{exp})
+@deftpx {External Representation} (letrec @var{names} @var{gensyms} @var{vals} @var{exp})
+@deftpx {External Representation} (letrec* @var{names} @var{gensyms} @var{vals} @var{exp})
 A version of @code{<let>} that creates recursive bindings, like
 Scheme's @code{letrec}, or @code{letrec*} if @var{in-order?} is true.
 @end deftp
