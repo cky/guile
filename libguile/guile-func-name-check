@@ -1,146 +1,65 @@
-;;; guile-func-name-check				-*- scheme -*-
+#!/usr/bin/awk -f
+#
+#  Copyright (C) 2000, 2001, 2006 Free Software Foundation, Inc.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3, or (at
+# your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; see the file COPYING.LESSER.  If
+# not, write to the Free Software Foundation, Inc., 51 Franklin
+# Street, Fifth Floor, Boston, MA 02110-1301 USA
+#
+# Written by Greg J. Badros, <gjb@cs.washington.edu>
+# 11-Jan-2000
 
-;; Copyright (C) 2000, 2001, 2006, 2010 Free Software Foundation, Inc.
-;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU Lesser General Public License as
-;; published by the Free Software Foundation; either version 3, or (at
-;; your option) any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; Lesser General Public License for more details.
-;;
-;; You should have received a copy of the GNU Lesser General Public
-;; License along with this software; see the file COPYING.LESSER.  If
-;; not, write to the Free Software Foundation, Inc., 51 Franklin
-;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+BEGIN {
+  filename = ARGV[1];
+  in_a_func = 0;
+}
 
-;;; Commentary:
+/^SCM_DEFINE/ { 
+  func_name = $0;
+  sub(/^[^\(\n]*\([ \t]*/,"", func_name);
+  sub(/[ \t]*,.*/,"", func_name);
+#  print func_name;  # GJB:FIXME:: flag to do this to list primitives?
+  in_a_func = 1;
+}
 
-;; This is a Guile Scheme script based on the AWK script
-;; originally by Greg J. Badros <gjb@cs.washington.edu>.
-;; It has the following improvements:
-;;  - handle inhibition directives
-;;  - ignore a string literal ‘FUNC_NAME’
-;;  - on error, exit failurefully (after file is scanned)
-;;  - written in Scheme :-D
+/^\{/ && in_a_func {
+  if (!match(last_line,/^#define[ \t]+FUNC_NAME[ \t]+/)) {
+    printf filename ":" NR ":***" > "/dev/stderr";
+    print "Missing or erroneous `#define FUNC_NAME s_" func_name "'" > "/dev/stderr";
+  } else {
+    sub(/^#define[ \t]+FUNC_NAME[ \t]+s_/, "", last_line);
+    sub(/[ \t]*$/,"",last_line);
+    if (last_line != func_name) {
+      printf filename ":" NR ":***" > "/dev/stderr";
+      print "Mismatching FUNC_NAME.  Should be: `#define FUNC_NAME s_" func_name "'" > "/dev/stderr";
+    }
+  }
+}
 
-;;; Code:
+1 == next_line_better_be_undef {
+  if (!match($0,/^#undef FUNC_NAME[ \t]*$/)) {
+    printf filename ":" NR ":***" > "/dev/stderr";
+    print "Missing or erroneous #undef for " func_name ": "
+          "Got `" $0 "' instead." > "/dev/stderr";
+  }
+  in_a_func = "";
+  func_name = "";
+  next_line_better_be_undef = 0;
+}
 
-(use-modules
- ((ice-9 regex) #:select (match:substring
-                          match:end))
- ((ice-9 rdelim) #:select (read-line)))
+/^\}/ && in_a_func {
+  next_line_better_be_undef = 1;
+}
 
-(define fse                             ; "format string to error-port"
-  (let ((cep (current-error-port)))
-    (lambda (s . args)
-      (apply simple-format cep s args))))
-
-;; Global non-procedure variables have LOUD names.
-(define FILENAME (cadr (command-line)))
-(define FUNC-NAME "")
-(define IN-A-FUNC? #f)
-(define INHIBIT? #f)
-(define LAST-LINE #f)
-(define NEXT-LINE-BETTER-BE-UNDEF #f)
-(define EXIT-VALUE #t)
-
-(define (fatal lno s . args)
-  (fse "~A:~A:*** " FILENAME lno)
-  (apply fse s args)
-  (fse "~%")
-  (set! EXIT-VALUE #f))
-
-(define MOE "Missing or erroneous")     ; constant
-
-;; By default, processing is uninhibited.  In the scanned file, the comment:
-;;   /* guile-func-name-check: TEXT */
-;; inhibits processing if TEXT is anything but "ok", and displays TEXT to stderr.
-;; This is used in pairs.c, for example.
-(define check-directive
-  (let ((rx (make-regexp "^.. guile-func-name-check: (.+) ..$")))
-    (lambda (line lno)
-      (and=> (regexp-exec rx line)
-             (lambda (m)
-               (set! INHIBIT? (not (string=? "ok" (match:substring m 1))))
-               (fse "~A:~A: ~A~%" FILENAME lno
-                    (substring line 3 (match:end m 1))))))))
-
-;; Extract the function name from "SCM_DEFINE (foo, ...".
-;; FIXME: This loses if the open paren is on the next line.
-(define check-SCM_DEFINE
-  (let ((rx (make-regexp "^SCM_DEFINE *.([^,]+)")))
-    (lambda (line)
-      (and=> (regexp-exec rx line)
-             (lambda (m)
-               (set! FUNC-NAME (match:substring m 1))
-               (or INHIBIT? (set! IN-A-FUNC? #t)))))))
-
-;; Check that for "SCM_DEFINE (foo, ...)", we see:
-;;   #define FUNC_NAME s_foo
-;;   {
-;; FIXME: This loses if #define is inside the curly brace.
-(define check-curly-open
-  (let ((rx-curly (make-regexp "^\\{"))
-        (rx-string (make-regexp "\".+\""))
-        (rx-hash-define (make-regexp "^#define[ \t]+FUNC_NAME[ \t]+s_([^ \t]+)")))
-    (define (proper)
-      (string-append "#define FUNC_NAME s_" FUNC-NAME))
-    (lambda (line lno)
-      (and=> (and IN-A-FUNC? (regexp-exec rx-curly line))
-             (lambda (m)
-               (cond
-                ((regexp-exec rx-string LAST-LINE)
-                 ;; Do nothing for C string-literal:
-                 ;;  #define FUNC_NAME "foo"
-                 )
-                ((regexp-exec rx-hash-define LAST-LINE)
-                 ;; Found a well-formed #define, but does its name match?
-                 => (lambda (m)
-                      (or (string=? (match:substring m 1) FUNC-NAME)
-                          (fatal lno "Mismatching FUNC_NAME.  Should be: `~A'"
-                                 (proper)))))
-                (else
-                 (fatal lno "~A `~A'" MOE (proper)))))))))
-
-;; If previous line closed the function, check that we see "#undef FUNC_NAME".
-;; FIXME: This loses if #undef is inside the curly brace.
-(define check-undef
-  (let ((rx (make-regexp "^#undef FUNC_NAME[ \t]*$")))
-    (lambda (line lno)
-      (cond (NEXT-LINE-BETTER-BE-UNDEF
-             (or (regexp-exec rx line)
-                 (fatal lno "~A #undef for ~A: Got `~A' instead."
-                        MOE FUNC-NAME line))
-             (set! IN-A-FUNC? #f)
-             (set! FUNC-NAME "")
-             (set! NEXT-LINE-BETTER-BE-UNDEF #f))))))
-
-;; Note function closing.
-(define check-curly-close
-  (let ((rx (make-regexp "^\\}")))
-    (lambda (line)
-      (and IN-A-FUNC? (regexp-exec rx line)
-           (set! NEXT-LINE-BETTER-BE-UNDEF #t)))))
-
-;; The main loop.
-(let ((p (open-input-file FILENAME)))
-  (let loop ((lno 1))
-    (let ((line (read-line p)))
-      (or (eof-object? line)
-          (begin (check-directive line lno)
-                 (check-SCM_DEFINE line)
-                 (check-curly-open line lno)
-                 (check-undef line lno)
-                 (check-curly-close line)
-                 ;; Remember this line for the next cycle.
-                 (set! LAST-LINE line)
-                 (loop (1+ lno))))))
-  (close-port p))
-
-(exit EXIT-VALUE)
-
-;;; guile-func-name-check ends here
+{ last_line = $0; }
