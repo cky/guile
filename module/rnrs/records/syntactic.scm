@@ -177,10 +177,13 @@
 		      (record-constructor
 		       (make-record-constructor-descriptor 
 			record-name #,parent-cd #,protocol)))
-		    (register-record-type 
-		     #,record-name-sym 
-		     record-name (make-record-constructor-descriptor 
-				  record-name #,parent-cd #,protocol))
+                    (define dummy
+                      (let ()
+                        (register-record-type 
+                         #,record-name-sym 
+                         record-name (make-record-constructor-descriptor 
+                                      record-name #,parent-cd #,protocol))
+                        'dummy))
 		    (define predicate-name (record-predicate record-name))
 		    #,@field-accessors
 		    #,@field-mutators))

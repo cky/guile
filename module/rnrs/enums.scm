@@ -137,7 +137,6 @@
 	 (define-syntax constructor-syntax
 	   (lambda (s)
 	     (syntax-case s ()
-	       ((_) (syntax #f))
 	       ((_ sym (... ...))
 		(let* ((universe '(symbol ...))
 		       (syms (syntax->datum #'(sym (... ...))))

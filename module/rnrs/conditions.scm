@@ -95,7 +95,17 @@
   (define make-compound-condition 
     (record-constructor (make-record-constructor-descriptor 
 			 &compound-condition #f #f)))
-  (define simple-conditions (record-accessor &compound-condition 0))
+  (define simple-conditions
+    (let ((compound-ref (record-accessor &compound-condition 0)))
+      (lambda (condition)
+        (cond ((compound-condition? condition)
+               (compound-ref condition))
+              ((condition-internal? condition)
+               (list condition))
+              (else
+               (assertion-violation 'simple-conditions
+                                    "not a condition"
+                                    condition))))))
 
   (define (condition? obj) 
     (or (compound-condition? obj) (condition-internal? obj)))

@@ -51,17 +51,17 @@
 
   (define-syntax guard0
     (syntax-rules ()
-      ((_ (variable cond-clause ...) body)
+      ((_ (variable cond-clause ...) . body)
        (call/cc (lambda (continuation)
 		  (with-exception-handler
 		   (lambda (variable)
 		     (continuation (cond cond-clause ...)))
-		   (lambda () body)))))))
+		   (lambda () . body)))))))
 
   (define-syntax guard
     (syntax-rules (else)
-      ((_ (variable cond-clause ... . ((else else-clause ...))) body)
-       (guard0 (variable cond-clause ... (else else-clause ...)) body))
-      ((_ (variable cond-clause ...) body)
-       (guard0 (variable cond-clause ... (else (raise variable))) body))))
+      ((_ (variable cond-clause ... . ((else else-clause ...))) . body)
+       (guard0 (variable cond-clause ... (else else-clause ...)) . body))
+      ((_ (variable cond-clause ...) . body)
+       (guard0 (variable cond-clause ... (else (raise variable))) . body))))
 )

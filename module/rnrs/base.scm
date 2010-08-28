@@ -94,4 +94,24 @@
 	     ((negative? y) (values (- q 1) (+ r y)))
 	     (else (values (+ q 1) (+ r y)))))))
 
+ (define raise
+   (@ (rnrs exceptions) raise))
+ (define condition
+   (@ (rnrs conditions) condition))
+ (define make-assertion-violation
+   (@ (rnrs conditions) make-assertion-violation))
+ (define make-who-condition
+   (@ (rnrs conditions) make-who-condition))
+ (define make-message-condition
+   (@ (rnrs conditions) make-message-condition))
+ (define make-irritants-condition
+   (@ (rnrs conditions) make-irritants-condition))
+ 
+ (define (assertion-violation who message . irritants)
+   (raise (condition
+           (make-assertion-violation)
+           (make-who-condition who)
+           (make-message-condition message)
+           (make-irritants-condition irritants))))
+
 )
