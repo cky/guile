@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -47,6 +47,7 @@ struct issued_warning {
   const char *message;
 };
 
+static scm_i_pthread_mutex_t warn_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 static struct issued_warning *issued_warnings;
 static int print_summary = 0;
 
@@ -58,9 +59,11 @@ scm_c_issue_deprecation_warning (const char *msg)
   else
     {
       struct issued_warning *iw;
+
+      scm_i_pthread_mutex_lock (&warn_lock);
       for (iw = issued_warnings; iw; iw = iw->prev)
 	if (!strcmp (iw->message, msg))
-	  return;
+	  goto done;
       if (scm_gc_running_p)
 	fprintf (stderr, "%s\n", msg);
       else
@@ -71,10 +74,13 @@ scm_c_issue_deprecation_warning (const char *msg)
       msg = strdup (msg);
       iw = malloc (sizeof (struct issued_warning));
       if (msg == NULL || iw == NULL)
-	return;
+	goto done;
       iw->message = msg;
       iw->prev = issued_warnings;
       issued_warnings = iw;
+
+    done:
+      scm_i_pthread_mutex_unlock (&warn_lock);
     }
 }
 

@@ -1,6 +1,6 @@
 /* extensions.c - registering and loading extensions.
  *
- * Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -42,6 +42,7 @@ typedef struct extension_t
 } extension_t;
 
 static extension_t *registered_extensions = NULL;
+static scm_i_pthread_mutex_t ext_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* Register a LIB/INIT pair for use by `scm_load_extension'.  LIB is
    allowed to be NULL and then only INIT is used to identify the
@@ -65,15 +66,23 @@ scm_c_register_extension (const char *lib, const char *init,
   ext->func = func;
   ext->data = data;
 
+  scm_i_pthread_mutex_lock (&ext_lock);
   ext->next = registered_extensions;
   registered_extensions = ext;
+  scm_i_pthread_mutex_unlock (&ext_lock);
 }
 
 static void
 load_extension (SCM lib, SCM init)
 {
+  extension_t *head;
+
+  scm_i_pthread_mutex_lock (&ext_lock);
+  head = registered_extensions;
+  scm_i_pthread_mutex_unlock (&ext_lock);
+
   /* Search the registry. */
-  if (registered_extensions != NULL)
+  if (head != NULL)
     {
       extension_t *ext;
       char *clib, *cinit;
@@ -86,7 +95,7 @@ load_extension (SCM lib, SCM init)
       cinit = scm_to_locale_string (init);
       scm_dynwind_free (cinit);
 
-      for (ext = registered_extensions; ext; ext = ext->next)
+      for (ext = head; ext; ext = ext->next)
 	if ((ext->lib == NULL || !strcmp (ext->lib, clib))
 	    && !strcmp (ext->init, cinit))
 	  {
