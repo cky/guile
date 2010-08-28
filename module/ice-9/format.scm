@@ -167,13 +167,17 @@
 	      (cond
 	       ((or (and (boolean? destination)	; port output
 			 destination)
-		    (output-port? destination)
-		    (number? destination))
+		    (output-port? destination))
 		(format:out (cond
 			     ((boolean? destination) (current-output-port))
 			     ((output-port? destination) destination)
 			     ((number? destination) (current-error-port)))
 			    (car arglist) (cdr arglist)))
+	       ((number? destination)
+                (issue-deprecation-warning
+                 "Passing a number to format as the destination is deprecated."
+                 "Pass (current-error-port) instead.")
+		(format:out (current-error-port) (car arglist) (cdr arglist)))
 	       ((and (boolean? destination)	; string output
 		     (not destination))
 		(call-with-output-string

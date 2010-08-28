@@ -159,9 +159,8 @@ instead of @nicode{%}, and are more powerful.
 @deffn {Scheme Procedure} format dest fmt [args@dots{}]
 Write output specified by the @var{fmt} string to @var{dest}.
 @var{dest} can be an output port, @code{#t} for
-@code{current-output-port} (@pxref{Default Ports}), a number for
-@code{current-error-port}, or @code{#f} to return the output as a
-string.
+@code{current-output-port} (@pxref{Default Ports}), or @code{#f} to
+return the output as a string.
 
 @var{fmt} can contain literal text to be output, and @nicode{~}
 escapes.  Each escape has the form
