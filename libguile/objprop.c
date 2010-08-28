@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 2000, 2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001, 2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,13 +36,20 @@
  */
 
 static SCM object_whash;
+static scm_i_pthread_mutex_t whash_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 SCM_DEFINE (scm_object_properties, "object-properties", 1, 0, 0, 
            (SCM obj),
 	    "Return @var{obj}'s property list.")
 #define FUNC_NAME s_scm_object_properties
 {
-  return scm_hashq_ref (object_whash, obj, SCM_EOL);
+  SCM ret;
+
+  scm_i_pthread_mutex_lock (&whash_mutex);
+  ret = scm_hashq_ref (object_whash, obj, SCM_EOL);
+  scm_i_pthread_mutex_unlock (&whash_mutex);
+
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -52,8 +59,13 @@ SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
 	    "Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_object_properties_x
 {
-  SCM handle = scm_hashq_create_handle_x (object_whash, obj, alist);
+  SCM handle;
+
+  scm_i_pthread_mutex_lock (&whash_mutex);
+  handle = scm_hashq_create_handle_x (object_whash, obj, alist);
   SCM_SETCDR (handle, alist);
+  scm_i_pthread_mutex_unlock (&whash_mutex);
+
   return alist;
 }
 #undef FUNC_NAME
@@ -77,8 +89,9 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
 {
   SCM h;
   SCM assoc;
+
+  scm_i_pthread_mutex_lock (&whash_mutex);
   h = scm_hashq_create_handle_x (object_whash, obj, SCM_EOL);
-  SCM_CRITICAL_SECTION_START;
   assoc = scm_assq (key, SCM_CDR (h));
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, value);
@@ -87,7 +100,8 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
       assoc = scm_acons (key, value, SCM_CDR (h));
       SCM_SETCDR (h, assoc);
     }
-  SCM_CRITICAL_SECTION_END;
+  scm_i_pthread_mutex_unlock (&whash_mutex);
+
   return value;
 }
 #undef FUNC_NAME
