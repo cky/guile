@@ -68,8 +68,9 @@
       (pass-if "no name"
         (catch 'getaddrinfo-error
           (lambda ()
-            (getaddrinfo "does-not-exist")
-            #f)
+            (pk "getaddrinfo for \"does-not-exist\" succeeded!"
+                (getaddrinfo "does-not-exist"))
+            (throw 'unresolved))
           (lambda (key errcode)
             ;; In some cases (e.g., in a chroot without
             ;; /etc/{hosts,resolv.conf}), this can result in `EAI_EAGAIN'.
