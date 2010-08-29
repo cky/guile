@@ -260,7 +260,7 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
 
   /* Verify that OBJ is a valid vtable.  */
   if (! scm_is_valid_vtable_layout (SCM_VTABLE_LAYOUT (obj)))
-    scm_misc_error (FUNC_NAME, "invalid layout for new vtable: ~a",
+    SCM_MISC_ERROR ("invalid layout for new vtable: ~a",
                     scm_list_1 (SCM_VTABLE_LAYOUT (obj)));
 
   set_vtable_layout_flags (obj);
@@ -286,7 +286,7 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
                                        scm_from_size_t (4), 
                                        scm_from_size_t (0),
                                        scm_from_size_t (4))))
-        scm_misc_error (FUNC_NAME, "invalid applicable-with-setter struct layout",
+        SCM_MISC_ERROR ("invalid applicable-with-setter struct layout",
                         scm_list_1 (olayout));
       SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE | SCM_VTABLE_FLAG_SETTER);
     }
@@ -297,10 +297,12 @@ scm_i_struct_inherit_vtable_magic (SCM vtable, SCM obj)
                                        scm_from_size_t (2), 
                                        scm_from_size_t (0),
                                        scm_from_size_t (2))))
-        scm_misc_error (FUNC_NAME, "invalid applicable struct layout",
+        SCM_MISC_ERROR ("invalid applicable struct layout",
                         scm_list_1 (olayout));
       SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_APPLICABLE);
     }
+
+  SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VALIDATED);
 }
 #undef FUNC_NAME
 
@@ -396,9 +398,13 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 	    "Return @code{#t} iff @var{x} is a vtable structure.")
 #define FUNC_NAME s_scm_struct_vtable_p
 {
-  return scm_from_bool
-    (SCM_STRUCTP (x)
-     && SCM_STRUCT_VTABLE_FLAG_IS_SET (x, SCM_VTABLE_FLAG_VTABLE));
+  if (!SCM_STRUCTP (x)
+      || !SCM_STRUCT_VTABLE_FLAG_IS_SET (x, SCM_VTABLE_FLAG_VTABLE))
+    return SCM_BOOL_F;
+  if (!SCM_VTABLE_FLAG_IS_SET (x, SCM_VTABLE_FLAG_VALIDATED))
+    SCM_MISC_ERROR ("vtable has invalid layout: ~A",
+                    scm_list_1 (SCM_VTABLE_LAYOUT (x)));
+  return SCM_BOOL_T;
 }
 #undef FUNC_NAME
 
@@ -487,8 +493,10 @@ scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits *init)
 
   scm_struct_init (obj, layout, n_tail, n_init, init);
 
-  /* only check things and inherit magic if the layout was passed as an initarg.
-     something of a hack, but it's for back-compatibility. */
+  /* If we're making a vtable, validate its layout and inherit
+     flags. However we allow for separation of allocation and
+     initialization, to humor GOOPS, so only validate if the layout was
+     passed as an initarg. */
   if (SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_VTABLE)
       && scm_is_true (SCM_VTABLE_LAYOUT (obj)))
     scm_i_struct_inherit_vtable_magic (vtable, obj);
@@ -633,6 +641,9 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   fields = scm_string_append (scm_list_2 (required_vtable_fields,
 					  user_fields));
   layout = scm_make_struct_layout (fields);
+  if (!scm_is_valid_vtable_layout (layout))
+    SCM_MISC_ERROR ("invalid user fields", scm_list_1 (user_fields));
+
   basic_size = scm_i_symbol_length (layout) / 2;
   n_tail = scm_to_size_t (tail_array_size);
 
@@ -648,7 +659,8 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   SCM_CRITICAL_SECTION_END;
 
   scm_struct_init (obj, layout, n_tail, n_init, v);
-  SCM_SET_VTABLE_FLAGS (obj, SCM_VTABLE_FLAG_VTABLE);
+  SCM_SET_VTABLE_FLAGS (obj,
+                        SCM_VTABLE_FLAG_VTABLE | SCM_VTABLE_FLAG_VALIDATED);
 
   return obj;
 }

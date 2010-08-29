@@ -102,22 +102,22 @@
                                                    struct's vtable has the
                                                    setter flag set. */
 
-#define SCM_VTABLE_FLAG_VTABLE (1L << 0) /* instances of this vtable are themselves vtables? */
-#define SCM_VTABLE_FLAG_APPLICABLE_VTABLE (1L << 1) /* instances of this vtable are applicable vtables? */
-#define SCM_VTABLE_FLAG_APPLICABLE (1L << 2) /* instances of this vtable are applicable? */
-#define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 3) /* instances of this vtable are applicable-with-setter vtables? */
-#define SCM_VTABLE_FLAG_SETTER (1L << 4) /* instances of this vtable are applicable-with-setters? */
-#define SCM_VTABLE_FLAG_SIMPLE (1L << 5) /* instances of this vtable have only "p" fields */
-#define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 6) /* instances of this vtable have only "pw" fields */
-#define SCM_VTABLE_FLAG_SMOB_0 (1L << 7)
-#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 8)
-#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 9)
-#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 10)
-#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 11)
-#define SCM_VTABLE_FLAG_GOOPS_4 (1L << 12)
-#define SCM_VTABLE_FLAG_GOOPS_5 (1L << 13)
-#define SCM_VTABLE_FLAG_GOOPS_6 (1L << 14)
-#define SCM_VTABLE_FLAG_GOOPS_7 (1L << 15)
+#define SCM_VTABLE_FLAG_VALIDATED (1L << 0) /* the layout of this vtable been validated? */
+#define SCM_VTABLE_FLAG_VTABLE (1L << 1) /* instances of this vtable are themselves vtables? */
+#define SCM_VTABLE_FLAG_APPLICABLE_VTABLE (1L << 2) /* instances of this vtable are applicable vtables? */
+#define SCM_VTABLE_FLAG_APPLICABLE (1L << 3) /* instances of this vtable are applicable? */
+#define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 4) /* instances of this vtable are applicable-with-setter vtables? */
+#define SCM_VTABLE_FLAG_SETTER (1L << 5) /* instances of this vtable are applicable-with-setters? */
+#define SCM_VTABLE_FLAG_SIMPLE (1L << 6) /* instances of this vtable have only "p" fields */
+#define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 7) /* instances of this vtable have only "pw" fields */
+#define SCM_VTABLE_FLAG_RESERVED_0 (1L << 8)
+#define SCM_VTABLE_FLAG_RESERVED_1 (1L << 9)
+#define SCM_VTABLE_FLAG_RESERVED_2 (1L << 10)
+#define SCM_VTABLE_FLAG_SMOB_0 (1L << 11)
+#define SCM_VTABLE_FLAG_GOOPS_0 (1L << 12)
+#define SCM_VTABLE_FLAG_GOOPS_1 (1L << 13)
+#define SCM_VTABLE_FLAG_GOOPS_2 (1L << 14)
+#define SCM_VTABLE_FLAG_GOOPS_3 (1L << 15)
 #define SCM_VTABLE_USER_FLAG_SHIFT 16
 
 typedef void (*scm_t_struct_finalize) (SCM obj);
