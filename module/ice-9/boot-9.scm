@@ -1461,48 +1461,34 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; Create a new module, perhaps with a particular size of obarray,
 ;; initial uses list, or binding procedure.
 ;;
-(define make-module
-    (lambda args
+(define* (make-module #:optional (size 31) (uses '()) (binder #f))
+  (define %default-import-size
+    ;; Typical number of imported bindings actually used by a module.
+    600)
 
-      (define (parse-arg index default)
-        (if (> (length args) index)
-            (list-ref args index)
-            default))
+  (if (not (integer? size))
+      (error "Illegal size to make-module." size))
+  (if (not (and (list? uses)
+                (and-map module? uses)))
+      (error "Incorrect use list." uses))
+  (if (and binder (not (procedure? binder)))
+      (error
+       "Lazy-binder expected to be a procedure or #f." binder))
 
-      (define %default-import-size
-        ;; Typical number of imported bindings actually used by a module.
-        600)
+  (let ((module (module-constructor (make-hash-table size)
+                                    uses binder #f macroexpand
+                                    #f #f #f
+                                    (make-hash-table %default-import-size)
+                                    '()
+                                    (make-weak-key-hash-table 31) #f
+                                    (make-hash-table 7) #f #f #f)))
 
-      (if (> (length args) 3)
-          (error "Too many args to make-module." args))
+    ;; We can't pass this as an argument to module-constructor,
+    ;; because we need it to close over a pointer to the module
+    ;; itself.
+    (set-module-eval-closure! module (standard-eval-closure module))
 
-      (let ((size (parse-arg 0 31))
-            (uses (parse-arg 1 '()))
-            (binder (parse-arg 2 #f)))
-
-        (if (not (integer? size))
-            (error "Illegal size to make-module." size))
-        (if (not (and (list? uses)
-                      (and-map module? uses)))
-            (error "Incorrect use list." uses))
-        (if (and binder (not (procedure? binder)))
-            (error
-             "Lazy-binder expected to be a procedure or #f." binder))
-
-        (let ((module (module-constructor (make-hash-table size)
-                                          uses binder #f macroexpand
-                                          #f #f #f
-                                          (make-hash-table %default-import-size)
-                                          '()
-                                          (make-weak-key-hash-table 31) #f
-                                          (make-hash-table 7) #f #f #f)))
-
-          ;; We can't pass this as an argument to module-constructor,
-          ;; because we need it to close over a pointer to the module
-          ;; itself.
-          (set-module-eval-closure! module (standard-eval-closure module))
-
-          module))))
+    module))
 
 
 
@@ -3080,16 +3066,13 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Parameters}
 ;;;
 
-(define make-mutable-parameter
-  (let ((make (lambda (fluid converter)
-                (lambda args
-                  (if (null? args)
-                      (fluid-ref fluid)
-                      (fluid-set! fluid (converter (car args))))))))
-    (lambda* (init #:optional (converter identity))
-      (let ((fluid (make-fluid)))
-        (fluid-set! fluid (converter init))
-        (make fluid converter)))))
+(define* (make-mutable-parameter init #:optional (converter identity))
+  (let ((fluid (make-fluid)))
+    (fluid-set! fluid (converter init))
+    (case-lambda
+      (() (fluid-ref fluid))
+      ((val) (fluid-set! fluid (converter val))))))
+
 
 
 
