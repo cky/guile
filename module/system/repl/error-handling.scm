@@ -32,6 +32,16 @@
 ;;; Error handling via repl debugging
 ;;;
 
+(define (error-string stack key args)
+  (with-output-to-string
+    (lambda ()
+      (pmatch args
+        ((,subr ,msg ,args . ,rest)
+         (display-error (vector-ref stack 0) (current-output-port)
+                        subr msg args rest))
+        (else
+         (format #t "Throw to key `~a' with args `~s'." key args))))))
+
 (define* (call-with-error-handling thunk #:key
                                    (on-error 'debug) (post-error 'catch)
                                    (pass-keys '(quit)))
@@ -45,7 +55,7 @@
             (lambda ()
               (with-error-to-port err
                 thunk))))))
-    
+
     (catch #t
       (lambda () (%start-stack #t thunk))
 
@@ -75,7 +85,7 @@
          (if (procedure? post-error)
              post-error ; a handler proc
              (error "Unknown post-error strategy" post-error))))
-    
+
       (case on-error
         ((debug)
          (lambda (key . args)
@@ -85,22 +95,18 @@
                           (make-stack #t)
                           ;; Cut three frames from the top of the stack:
                           ;; make-stack, this one, and the throw handler.
-                          3 
+                          3
                           ;; Narrow the end of the stack to the most recent
                           ;; start-stack.
                           tag
                           ;; And one more frame, because %start-stack invoking
                           ;; the start-stack thunk has its own frame too.
                           0 (and tag 1)))
-                  (debug (make-debug stack 0)))
+                  (error-msg (error-string stack key args))
+                  (debug (make-debug stack 0 error-msg)))
              (with-saved-ports
               (lambda ()
-                (pmatch args
-                  ((,subr ,msg ,args . ,rest)
-                   (display-error (vector-ref stack 0) (current-output-port)
-                                  subr msg args rest))
-                  (else
-                   (format #t "Throw to key `~a' with args `~s'." key args)))
+                (format #t error-msg)
                 (format #t "Entering a new prompt.  ")
                 (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
                 ((@ (system repl repl) start-repl) #:debug debug))))))

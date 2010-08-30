@@ -6,12 +6,12 @@
 ;; modify it under the terms of the GNU Lesser General Public
 ;; License as published by the Free Software Foundation; either
 ;; version 3 of the License, or (at your option) any later version.
-;; 
+;;
 ;; This library is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;; Lesser General Public License for more details.
-;; 
+;;
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this library; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
@@ -55,7 +55,7 @@
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
-              (procedure proc) (locals))
+              (procedure proc) (locals) (error-message error))
     (inspect  (inspect i) (pretty-print pp))
     (system   (gc) (statistics stat) (option o)
               (quit q continue cont))))
@@ -171,7 +171,7 @@
             (format #t "Throw to key `~a' with args `~s' while reading ~@[ argument `~A' of ~]command `~A'.\n"
                     key args form-name 'name)))
          (abort))
-       
+
        (% (let* ((expression0
                   (catch #t
                     (lambda ()
@@ -463,6 +463,8 @@ Trace execution."
                  (letrec-syntax
                      ((#,(datum->syntax #'repl 'frames)
                        (identifier-syntax (debug-frames debug)))
+                      (#,(datum->syntax #'repl 'message)
+                       (identifier-syntax (debug-error-message debug)))
                       (#,(datum->syntax #'repl 'index)
                        (identifier-syntax
                         (id (debug-index debug))
@@ -474,6 +476,14 @@ Trace execution."
                    body body* ...)
                  (format #t "Nothing to debug.~%"))))))))
 
+(define-stack-command (error-message repl)
+  "error-message
+Show error message.
+
+Display the message associated with the error that started the current
+debugging REPL."
+  (format #t "~a~%" (if (string? message) message "No error message")))
+
 (define-stack-command (backtrace repl #:optional count
                                  #:key (width 72) full?)
   "backtrace [COUNT] [#:width W] [#:full? F]
@@ -481,11 +491,11 @@ Print a backtrace.
 
 Print a backtrace of all stack frames, or innermost COUNT frames.
 If COUNT is negative, the last COUNT frames will be shown."
-  (print-frames frames 
+  (print-frames frames
                 #:count count
                 #:width width
                 #:full? full?))
-      
+
 (define-stack-command (up repl #:optional (count 1))
   "up [COUNT]
 Select a calling stack frame.
@@ -548,14 +558,14 @@ With an argument, select a frame by index, then show it."
   "procedure
 Print the procedure for the selected frame."
   (repl-print repl (frame-procedure cur)))
-      
+
 (define-stack-command (locals repl)
   "locals
 Show local variables.
 
 Show locally-bound variables in the selected frame."
   (print-locals cur))
-      
+
 
 ;;;
 ;;; Inspection commands
@@ -581,7 +591,7 @@ Pretty-print the result(s) of evaluating EXP."
 
 
 ;;;
-;;; System commands 
+;;; System commands
 ;;;
 
 (define guile:gc gc)

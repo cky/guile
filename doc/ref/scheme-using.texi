@@ -311,6 +311,14 @@ Show local variables.
 Show locally-bound variables in the selected frame.
 @end deffn
 
+@deffn {REPL Command} error-message
+@deffnx {REPL Command} error
+Show error message.
+
+Display the message associated with the error that started the current
+debugging REPL.
+@end deffn
+
 @c FIXME: whenever we regain support for stepping, here are the docs..
 
 @c The commands in this subsection all apply only when the stack is
