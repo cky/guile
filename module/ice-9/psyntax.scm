@@ -2611,6 +2611,16 @@
              (patterns pattern ...))
            (syntax-case x (k ...)
              ((dummy . pattern) #'template)
+             ...)))
+      ((_ (k ...) docstring ((keyword . pattern) template) ...)
+       (string? (syntax->datum #'docstring))
+       #'(lambda (x)
+           ;; the same, but allow a docstring
+           docstring
+           #((macro-type . syntax-rules)
+             (patterns pattern ...))
+           (syntax-case x (k ...)
+             ((dummy . pattern) #'template)
              ...))))))
 
 (define-syntax let*
