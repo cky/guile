@@ -1,0 +1,59 @@
+;;;; bitvectors.test --- tests guile's bitvectors     -*- scheme -*-
+;;;;
+;;;; Copyright 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-bitvectors)
+  #:use-module (test-suite lib))
+
+
+(with-test-prefix "predicates"
+  (pass-if (bitvector? #*1010101010))
+  (pass-if (generalized-vector? #*1010101010))
+  (pass-if (uniform-vector? #*1010101010))
+  (pass-if (array? #*1010101010)))
+
+
+(with-test-prefix "equality"
+  (pass-if (equal? #*1010101 #*1010101))
+  (pass-if (array-equal? #*1010101 #*1010101))
+
+  (pass-if (not (equal? #*10101010 #*1010101)))
+  (pass-if (not (array-equal? #*10101010 #*1010101))))
+
+(with-test-prefix "lists"
+  (pass-if (equal? (bitvector->list #*10010) '(#t #f #f #t #f)))
+  (pass-if (equal? (array->list #*10010) '(#t #f #f #t #f)))
+  (pass-if (equal? (uniform-vector->list #*10010) '(#t #f #f #t #f)))
+  (pass-if (equal? #*10010 (list->bitvector '(#t #f #f #t #f)))))
+
+(with-test-prefix "ref and set"
+  (with-test-prefix "bv"
+    (let ((bv (list->bitvector '(#f #f #t #f #t))))
+      (pass-if (eqv? (bitvector-ref bv 0) #f))
+      (pass-if (eqv? (bitvector-ref bv 2) #t))
+      (bitvector-set! bv 0 #t)
+      (pass-if (eqv? (bitvector-ref bv 0) #t))))
+
+  (with-test-prefix "uv"
+    (let ((bv (list->bitvector '(#f #f #t #f #t))))
+      (pass-if (eqv? (uniform-vector-ref bv 0) #f))
+      (pass-if (eqv? (uniform-vector-ref bv 2) #t))
+      (uniform-vector-set! bv 0 #t)
+      (pass-if (eqv? (uniform-vector-ref bv 0) #t)))))
+
+
+

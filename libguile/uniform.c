@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -99,13 +99,11 @@ scm_is_uniform_vector (SCM obj)
 size_t
 scm_c_uniform_vector_length (SCM uvec)
 {
-  scm_t_array_handle h;
-  size_t len;
-  ssize_t inc;
-  
-  scm_uniform_vector_elements (uvec, &h, &len, &inc);
-  scm_array_handle_release (&h);
-  return len;
+  if (!scm_is_uniform_vector (uvec))
+    scm_wrong_type_arg_msg ("uniform-vector-length", 1, uvec,
+                            "uniform vector");
+
+  return scm_c_generalized_vector_length (uvec);
 }
 
 SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,

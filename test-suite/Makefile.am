@@ -28,6 +28,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/arrays.test			\
 	    tests/asm-to-bytecode.test		\
 	    tests/bit-operations.test		\
+	    tests/bitvectors.test		\
 	    tests/brainfuck.test		\
 	    tests/bytevectors.test		\
 	    tests/c-api.test			\
