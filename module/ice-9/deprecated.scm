@@ -250,18 +250,11 @@
  #\y
  (lambda (c port)
    (issue-deprecation-warning
-    "The `#y' bitvector syntax is deprecated.  Use `#*' instead.")
+    "The `#y' bytevector syntax is deprecated.  Use `#s8' instead.")
    (let ((x (read port)))
      (cond
-      ((list? x)
-       (list->bitvector
-        (map (lambda (x)
-               (cond ((zero? x) #f)
-                     ((eqv? x 1) #t)
-                     (else (error "invalid #y element" x))))
-             x)))
-      (else
-       (error "#y needs to be followed by a list" x))))))
+      ((list? x) (list->s8vector x))
+      (else (error "#y needs to be followed by a list" x))))))
 
 (define (unmemoize-expr . args)
   (issue-deprecation-warning
