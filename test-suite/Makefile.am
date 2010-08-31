@@ -101,6 +101,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/reader.test			\
 	    tests/receive.test			\
 	    tests/regexp.test			\
+	    tests/session.test			\
 	    tests/signals.test			\
 	    tests/socket.test			\
 	    tests/srcprop.test			\

@@ -1,0 +1,53 @@
+;;;; session.test --- test suite for (ice-9 session)   -*- scheme -*-
+;;;; Jose Antonio Ortega Ruiz <jao@gnu.org> -- August 2010
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+;;;; 02110-1301 USA
+
+(define-module (test-suite session)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 session))
+
+(define (find-module mod)
+  (call/cc (lambda (k)
+             (apropos-fold-all (lambda (m _)
+                                 (and (not (module? m)) (k #f))
+                                 (and (eq? m mod) (k #t)))
+                               #f))))
+(define (find-mod-name mod-name)
+  (find-module (resolve-module mod-name #f #:ensure #f)))
+
+
+(with-test-prefix "apropos-fold-all"
+  (pass-if "a root module: ice-9" (find-mod-name '(ice-9)))
+  (pass-if "a child of test-suite" (find-mod-name '(test-suite lib)))
+  (pass-if "a non-module" (not (find-mod-name '(ice-999-0))))
+  (pass-if "a childish non-module" (not (find-mod-name '(ice-9 ice-999-0))))
+  (pass-if "an anonymous module" (find-mod-name (module-name (make-module)))))
+
+(define (find-interface mod-name)
+  (let* ((mod (resolve-module mod-name #f #:ensure #f))
+         (ifc (and mod (module-public-interface mod))))
+    (and ifc
+         (call/cc (lambda (k)
+                    (apropos-fold-exported (lambda (i _)
+                                             (and (eq? i ifc) (k #t)))
+                                           #f))))))
+
+(with-test-prefix "apropos-fold-exported"
+  (pass-if "a child of test-suite" (find-interface '(test-suite lib)))
+  (pass-if "a child of ice-9" (find-interface '(ice-9 session))))

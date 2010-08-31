@@ -406,15 +406,8 @@ It is an image under the mapping EXTRACT."
 (define (root-modules)
   (submodules (resolve-module '() #f)))
 
-(define (submodules m)
-  (hash-fold (lambda (name var data)
-	       (let ((obj (and (variable-bound? var) (variable-ref var))))
-		 (if (and (module? obj)
-			  (eq? (module-kind obj) 'directory))
-		     (cons obj data)
-		     data)))
-	     '()
-	     (module-obarray m)))
+(define (submodules mod)
+  (hash-map->list (lambda (k v) v) (module-submodules mod)))
 
 (define apropos-fold-exported
   (make-fold-modules root-modules submodules module-public-interface))
