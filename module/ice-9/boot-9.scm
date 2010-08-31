@@ -1803,6 +1803,33 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (module-define-submodule! module name submodule)
   (hashq-set! (module-submodules module) name submodule))
 
+;; It used to be, however, that module names were also present in the
+;; value namespace. When we enable deprecated code, we preserve this
+;; legacy behavior.
+;;
+;; These shims are defined here instead of in deprecated.scm because we
+;; need their definitions before loading other modules.
+;;
+(begin-deprecated
+ (define (module-ref-submodule module name)
+   (or (hashq-ref (module-submodules module) name)
+       (and (module-submodule-binder module)
+            ((module-submodule-binder module) module name))
+       (let ((var (module-local-variable module name)))
+         (and var (variable-bound? var) (module? (variable-ref var))
+              (begin
+                (warn "module" module "not in submodules table")
+                (variable-ref var))))))
+
+ (define (module-define-submodule! module name submodule)
+   (let ((var (module-local-variable module name)))
+     (if (and var
+              (or (not (variable-bound? var))
+                  (not (module? (variable-ref var)))))
+         (warn "defining module" module ": not overriding local definition" var)
+         (module-define! module name submodule)))
+   (hashq-set! (module-submodules module) name submodule)))
+
 
 
 ;;; {Low Level Bootstrapping}
