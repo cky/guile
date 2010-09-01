@@ -1,6 +1,6 @@
 ;;;; popen.test --- exercise ice-9/popen.scm      -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -167,9 +167,10 @@
     (let* ((c2p (pipe))
 	   (port (with-error-to-port (cdr c2p)
 		   (lambda ()
-		     (open-output-pipe (format #f
-                                               "guile -s ~a/tests/popen-child.scm"
-                                               (getenv "TEST_SUITE_DIR")))))))
+		     (open-output-pipe
+                      (string-append "guile --no-autocompile -s \""
+                                     (getenv "TEST_SUITE_DIR")
+                                     "/tests/popen-child.scm\""))))))
       (close-port (cdr c2p))   ;; write side
       (with-epipe
        (lambda ()
