@@ -1,6 +1,6 @@
 ;;;; (texinfo docbook) -- translating sdocbook into stexinfo
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2007, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -30,12 +30,13 @@
 ;;; Code:
 
 (define-module (texinfo docbook)
-  :use-module (sxml fold)
-  :export (*sdocbook->stexi-rules*
-           *sdocbook-block-commands*
-           sdocbook-flatten
-           filter-empty-elements
-           replace-titles))
+  #:use-module (sxml fold)
+  #:use-module ((srfi srfi-1) #:select (fold))
+  #:export (*sdocbook->stexi-rules*
+            *sdocbook-block-commands*
+            sdocbook-flatten
+            filter-empty-elements
+            replace-titles))
 
 (define (identity . args)
   args)

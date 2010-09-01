@@ -133,7 +133,7 @@
                          ((,subr ,msg ,args . ,rest)
                           (display-error #f (current-output-port) subr msg args rest))
                          (else
-                          (format #t "ERROR: Throw to key `~a' with args `~s'.\n" key args)))
+                          (format #t "ERROR: Throw to key `~a' with args `~s'.\n" k args)))
                        (force-output))))))
             ((eof-object? exp)
              (newline)
