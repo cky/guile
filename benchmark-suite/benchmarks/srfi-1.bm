@@ -36,3 +36,12 @@
 
   (benchmark "small" 2000000
     (fold (lambda (x y) y) #f %small-list)))
+
+
+(with-benchmark-prefix "drop-while"
+
+  (benchmark "big" 30
+    (drop-while (lambda (n) #t) %big-list))
+
+  (benchmark "small" 2000000
+    (drop-while (lambda (n) #t) %small-list)))
