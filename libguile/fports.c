@@ -52,6 +52,8 @@
 #include <errno.h>
 #include <sys/types.h>
 
+#include <full-write.h>
+
 #include "libguile/iselect.h"
 
 /* Some defines for Windows (native port, not Cygwin). */
@@ -823,45 +825,15 @@ fport_write (SCM port, const void *data, size_t size)
 static void
 fport_flush (SCM port)
 {
+  size_t written;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
-  unsigned char *ptr = pt->write_buf;
-  long init_size = pt->write_pos - pt->write_buf;
-  long remaining = init_size;
+  size_t count = pt->write_pos - pt->write_buf;
 
-  while (remaining > 0)
-    {
-      long count;
+  written = full_write (fp->fdes, pt->write_buf, count);
+  if (written < count)
+    scm_syserror ("scm_flush");
 
-      SCM_SYSCALL (count = write (fp->fdes, ptr, remaining));
-      if (count < 0)
-	{
-	  /* error.  assume nothing was written this call, but
-	     fix up the buffer for any previous successful writes.  */
-	  long done = init_size - remaining;
-	      
-	  if (done > 0)
-	    {
-	      int i;
-
-	      for (i = 0; i < remaining; i++)
-		{
-		  *(pt->write_buf + i) = *(pt->write_buf + done + i);
-		}
-	      pt->write_pos = pt->write_buf + remaining;
-	    }
-	  if (scm_gc_running_p)
-	    {
-	      /* silently ignore the error.  scm_error would abort if we
-		 called it now.  */
-	      count = remaining;
-	    }
-	  else
-	    scm_syserror ("fport_flush");
-	}
-      ptr += count;
-      remaining -= count;
-    }
   pt->write_pos = pt->write_buf;
   pt->rw_active = SCM_PORT_NEITHER;
 }
