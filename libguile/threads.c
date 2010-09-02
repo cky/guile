@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1381,7 +1381,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 
   owner = m->owner;
 
-  if (!scm_is_eq (owner, scm_current_thread ()))
+  if (!scm_is_eq (owner, t->handle))
     {
       if (m->level == 0)
 	{
@@ -1390,7 +1390,7 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	      scm_i_pthread_mutex_unlock (&m->lock);
 	      scm_misc_error (NULL, "mutex not locked", SCM_EOL);
 	    }
-	  owner = scm_current_thread ();
+	  owner = t->handle;
 	}
       else if (!m->allow_external_unlock)
 	{
