@@ -209,10 +209,17 @@
 
 	  ;; (rnrs syntax-case)
 
-	  make-variable-transformer syntax syntax-case identifier?
-	  bound-identifier=? free-identifier=? syntax->datum datum->syntax
-	  generate-temporaries with-syntax quasisyntax unsyntax
-	  unsyntax-splicing syntax-violation
+	  make-variable-transformer syntax
+          ;; Until the deprecated support for a unified modules and
+          ;; bindings namespace is removed, we need to manually resolve
+          ;; a conflict between two bindings: that of the (rnrs
+          ;; syntax-case) module, and the imported `syntax-case'
+          ;; binding. We do so here and below by renaming the macro
+          ;; import.
+          (rename (syntax-case-hack syntax-case))
+          identifier?  bound-identifier=? free-identifier=?
+          syntax->datum datum->syntax generate-temporaries with-syntax
+          quasisyntax unsyntax unsyntax-splicing syntax-violation
 
 	  ;; (rnrs unicode)
 	  
@@ -288,5 +295,7 @@
 	  (rnrs records procedural (6))
 	  (rnrs records syntactic (6))
 	  (rnrs sorting (6))
-	  (rnrs syntax-case (6))
+          ;; See note above on exporting syntax-case.
+	  (rename (rnrs syntax-case (6))
+                  (syntax-case syntax-case-hack))
 	  (rnrs unicode (6))))
