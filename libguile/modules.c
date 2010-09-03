@@ -412,19 +412,34 @@ SCM_DEFINE (scm_module_local_variable, "module-local-variable", 2, 0, 0,
   if (SCM_BOUND_THING_P (b))
     return b;
 
-  /* 2. Search imported bindings.  In order to be consistent with
-     `module-variable', the binder gets called only when no imported binding
-     matches SYM.  */
-  b = module_imported_variable (module, sym);
-  if (SCM_BOUND_THING_P (b))
-    return SCM_BOOL_F;
+  /* At this point we should just be able to return #f, but there is the
+     possibility that a custom binder establishes a mapping for this
+     variable.
+
+     However a custom binder should be called only if there is no
+     imported binding with the name SYM. So here instead of the order:
+
+       2. Search imported bindings.  In order to be consistent with
+          `module-variable', the binder gets called only when no
+          imported binding matches SYM.
+  
+       3. Query the custom binder.
+
+     we first check if there is a binder at all, and if not, just return
+     #f directly.
+  */
 
   {
-    /* 3. Query the custom binder.  */
     SCM binder = SCM_MODULE_BINDER (module);
 
     if (scm_is_true (binder))
       {
+        /* 2. */
+        b = module_imported_variable (module, sym);
+        if (SCM_BOUND_THING_P (b))
+          return SCM_BOOL_F;
+
+        /* 3. */
 	b = scm_call_3 (binder, module, sym, SCM_BOOL_F);
 	if (SCM_BOUND_THING_P (b))
 	  return b;
