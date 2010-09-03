@@ -185,32 +185,41 @@
       (put-u8 port 77)
       (equal? (get-u8 port) 77)))
 
+  ;; Note: The `put-bytevector' tests below require a Latin-1 locale so
+  ;; that the `scm_from_locale_stringn' call in `sf_write' will let all
+  ;; the bytes through, unmodified.  This is hacky, but we can't use
+  ;; "custom binary output ports" here because they're only tested
+  ;; later.
+
   (pass-if "put-bytevector [2 args]"
-    (let ((port (make-soft-output-port))
-          (bv   (make-bytevector 256)))
-      (put-bytevector port bv)
-      (equal? (bytevector->u8-list bv)
-              (bytevector->u8-list
-               (get-bytevector-n port (bytevector-length bv))))))
+    (with-latin1-locale
+     (let ((port (make-soft-output-port))
+           (bv   (make-bytevector 256)))
+       (put-bytevector port bv)
+       (equal? (bytevector->u8-list bv)
+               (bytevector->u8-list
+                (get-bytevector-n port (bytevector-length bv)))))))
 
   (pass-if "put-bytevector [3 args]"
-    (let ((port  (make-soft-output-port))
-          (bv    (make-bytevector 256))
-          (start 10))
-      (put-bytevector port bv start)
-      (equal? (drop (bytevector->u8-list bv) start)
-              (bytevector->u8-list
-               (get-bytevector-n port (- (bytevector-length bv) start))))))
+    (with-latin1-locale
+     (let ((port  (make-soft-output-port))
+           (bv    (make-bytevector 256))
+           (start 10))
+       (put-bytevector port bv start)
+       (equal? (drop (bytevector->u8-list bv) start)
+               (bytevector->u8-list
+                (get-bytevector-n port (- (bytevector-length bv) start)))))))
 
   (pass-if "put-bytevector [4 args]"
-    (let ((port  (make-soft-output-port))
-          (bv    (make-bytevector 256))
-          (start 10)
-          (count 77))
-      (put-bytevector port bv start count)
-      (equal? (take (drop (bytevector->u8-list bv) start) count)
-              (bytevector->u8-list
-               (get-bytevector-n port count)))))
+    (with-latin1-locale
+     (let ((port  (make-soft-output-port))
+           (bv    (make-bytevector 256))
+           (start 10)
+           (count 77))
+       (put-bytevector port bv start count)
+       (equal? (take (drop (bytevector->u8-list bv) start) count)
+               (bytevector->u8-list
+                (get-bytevector-n port count))))))
 
   (pass-if-exception "put-bytevector with closed port"
     exception:wrong-type-arg

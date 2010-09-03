@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2002, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -78,6 +78,10 @@ sf_write (SCM port, const void *data, size_t size)
 {
   SCM p = SCM_PACK (SCM_STREAM (port));
 
+  /* DATA is assumed to be a locale-encoded C string, which makes it
+     hard to reliably pass binary data to a soft port.  It can be
+     achieved by choosing a Latin-1 locale, though, but the recommended
+     approach is to use an R6RS "custom binary output port" instead.  */
   scm_call_1 (SCM_SIMPLE_VECTOR_REF (p, 1),
 	      scm_from_locale_stringn ((char *) data, size));
 }
