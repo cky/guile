@@ -803,8 +803,72 @@ by the foreign pointer is mutated in place.
 @end example
 
 As you can see, this interface to foreign functions is at a very low,
-somewhat dangerous level. A contribution to Guile in the form of a
-high-level FFI would be most welcome.
+somewhat dangerous level@footnote{A contribution to Guile in the form of
+a high-level FFI would be most welcome.}.
+
+@cindex callbacks
+The FFI can also work in the opposite direction: making Scheme
+procedures callable from C.  This makes it possible to use Scheme
+procedures as ``callbacks'' expected by C function.
+
+@deffn {Scheme Procedure} procedure->pointer return-type proc arg-types
+@deffnx {C Function} scm_procedure_to_pointer (return_type, proc, arg_types)
+Return a pointer to a C function of type @var{return-type}
+taking arguments of types @var{arg-types} (a list) and
+behaving as a proxy to procedure @var{proc}.  Thus
+@var{proc}'s arity, supported argument types, and return
+type should match @var{return-type} and @var{arg-types}.
+@end deffn
+
+As an example, here's how the C library's @code{qsort} array sorting
+function can be made accessible to Scheme (@pxref{Array Sort Function,
+@code{qsort},, libc, The GNU C Library Reference Manual}):
+
+@example
+(define qsort!
+  (let ((qsort (make-foreign-function void
+                                      (dynamic-func "qsort"
+                                                    (dynamic-link))
+                                      (list '* size_t size_t '*))))
+    (lambda (bv compare)
+      ;; Sort bytevector BV in-place according to comparison
+      ;; procedure COMPARE.
+      (let ((ptr (procedure->pointer int
+                                     (lambda (x y)
+                                       ;; X and Y are pointers so,
+                                       ;; for convenience, dereference
+                                       ;; them before calling COMPARE.
+                                       (compare (dereference-uint8* x)
+                                                (dereference-uint8* y)))
+                                     (list '* '*))))
+        (qsort (bytevector->pointer bv)
+               (bytevector-length bv) 1 ;; we're sorting bytes
+               ptr)))))
+
+(define (dereference-uint8* ptr)
+  ;; Helper function: dereference the byte pointed to by PTR.
+  (let ((b (pointer->bytevector ptr 1)))
+    (bytevector-u8-ref b 0)))
+
+(define bv
+  ;; An unsorted array of bytes.
+  (u8-list->bytevector '(7 1 127 3 5 4 77 2 9 0)))
+
+;; Sort BV.
+(qsort! bv (lambda (x y) (- x y)))
+
+;; Let's see what the sorted array looks like:
+(bytevector->u8-list bv)
+@result{} (0 1 2 3 4 5 7 9 77 127)
+@end example
+
+And voil@`a!
+
+Note that @code{procedure->pointer} is not supported (and not defined)
+on a few exotic architectures.  Thus, user code may need to check
+@code{(defined? 'procedure->pointer)}.  Nevertheless, it is available on
+many architectures, including (as of libffi 3.0.9) x86, ia64, SPARC,
+PowerPC, ARM, and MIPS, to name a few.
 
 @c Local Variables:
 @c TeX-master: "guile.texi"

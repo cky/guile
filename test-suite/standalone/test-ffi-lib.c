@@ -213,3 +213,17 @@ void* test_ffi_memcpy (void *dest, void *src, scm_t_int32 n)
 {
   return memcpy (dest, src, n);
 }
+
+int test_ffi_callback_1 (int (*f) (int), int x);
+int test_ffi_callback_1 (int (*f) (int), int x)
+{
+  return f (x) + 7;
+}
+
+double test_ffi_callback_2 (double (*f) (float, int, double),
+			    float x, int y, double z);
+double test_ffi_callback_2 (double (*f) (float, int, double),
+			    float x, int y, double z)
+{
+  return f (x, y, z);
+}

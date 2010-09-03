@@ -563,27 +563,20 @@ fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
       ftype->elements[i] = NULL;
     }
 }
-    
-SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
-            (SCM return_type, SCM func_ptr, SCM arg_types),
-            "Make a foreign function.\n\n"
-            "Given the foreign void pointer @var{func_ptr}, its argument and\n"
-            "return types @var{arg_types} and @var{return_type}, return a\n"
-            "procedure that will pass arguments to the foreign function\n"
-            "and return appropriate values.\n\n"
-            "@var{arg_types} should be a list of foreign types.\n"
-            "@code{return_type} should be a foreign type.")
-#define FUNC_NAME s_scm_make_foreign_function
+
+/* Return a "cif" (call interface) for the given RETURN_TYPE and
+   ARG_TYPES.  */
+static ffi_cif *
+make_cif (SCM return_type, SCM arg_types, const char *caller)
+#define FUNC_NAME caller
 {
-  SCM walk, scm_cif;
+  SCM walk;
   long i, nargs, n_structs, n_struct_elts;
   size_t cif_len;
   char *mem;
   ffi_cif *cif;
   ffi_type **type_ptrs;
   ffi_type *types;
-
-  SCM_VALIDATE_POINTER (2, func_ptr);
 
   nargs = scm_ilength (arg_types);
   SCM_ASSERT (nargs >= 0, arg_types, 3, FUNC_NAME);
@@ -598,32 +591,31 @@ SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
   for (walk = arg_types; scm_is_pair (walk); walk = scm_cdr (walk))
     if (!parse_ffi_type (scm_car (walk), 0, &n_structs, &n_struct_elts))
       scm_wrong_type_arg (FUNC_NAME, 3, scm_car (walk));
-  
+
   /* the memory: with space for the cif itself */
   cif_len = sizeof (ffi_cif);
 
   /* then ffi_type pointers: one for each arg, one for each struct
      element, and one for each struct (for null-termination) */
   cif_len = (ROUND_UP (cif_len, alignof(void*))
-             + (nargs + n_structs + n_struct_elts)*sizeof(void*));
-  
+	     + (nargs + n_structs + n_struct_elts)*sizeof(void*));
+
   /* then the ffi_type structs themselves, one per arg and struct element, and
      one for the return val */
   cif_len = (ROUND_UP (cif_len, alignof(ffi_type))
-             + (nargs + n_struct_elts + 1)*sizeof(ffi_type));
+	     + (nargs + n_struct_elts + 1)*sizeof(ffi_type));
 
   mem = scm_gc_malloc_pointerless (cif_len, "foreign");
-  scm_cif = scm_from_pointer (mem, NULL);
   cif = (ffi_cif *) mem;
 
   /* reuse cif_len to walk through the mem */
   cif_len = ROUND_UP (sizeof (ffi_cif), alignof(void*));
   type_ptrs = (ffi_type**)(mem + cif_len);
   cif_len = ROUND_UP (cif_len
-                      + (nargs + n_structs + n_struct_elts)*sizeof(void*),
-                      alignof(ffi_type));
+		      + (nargs + n_structs + n_struct_elts)*sizeof(void*),
+		      alignof(ffi_type));
   types = (ffi_type*)(mem + cif_len);
-  
+
   /* whew. now knit the pointers together. */
   cif->rtype = types++;
   fill_ffi_type (return_type, cif->rtype, &type_ptrs, &types);
@@ -640,12 +632,33 @@ SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
   cif->nargs = nargs;
   cif->bytes = 0;
   cif->flags = 0;
-  
-  if (FFI_OK != ffi_prep_cif (cif, FFI_DEFAULT_ABI, cif->nargs, cif->rtype,
-                              cif->arg_types))
-    scm_misc_error (FUNC_NAME, "ffi_prep_cif failed", SCM_EOL);
 
-  return cif_to_procedure (scm_cif, func_ptr);
+  if (FFI_OK != ffi_prep_cif (cif, FFI_DEFAULT_ABI, cif->nargs, cif->rtype,
+			      cif->arg_types))
+    SCM_MISC_ERROR ("ffi_prep_cif failed", SCM_EOL);
+
+  return cif;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
+            (SCM return_type, SCM func_ptr, SCM arg_types),
+            "Make a foreign function.\n\n"
+            "Given the foreign void pointer @var{func_ptr}, its argument and\n"
+            "return types @var{arg_types} and @var{return_type}, return a\n"
+            "procedure that will pass arguments to the foreign function\n"
+            "and return appropriate values.\n\n"
+            "@var{arg_types} should be a list of foreign types.\n"
+            "@code{return_type} should be a foreign type.")
+#define FUNC_NAME s_scm_make_foreign_function
+{
+  ffi_cif *cif;
+
+  SCM_VALIDATE_POINTER (2, func_ptr);
+
+  cif = make_cif (return_type, arg_types, FUNC_NAME);
+
+  return cif_to_procedure (scm_from_pointer (cif, NULL), func_ptr);
 }
 #undef FUNC_NAME
 
@@ -930,6 +943,81 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
 
   return pack (cif->rtype, rvalue);
 }
+
+
+/* Function pointers aka. "callbacks" or "closures".  */
+
+#ifdef FFI_CLOSURES
+
+/* Trampoline to invoke a libffi closure that wraps a Scheme
+   procedure.  */
+static void
+invoke_closure (ffi_cif *cif, void *ret, void **args, void *data)
+{
+  size_t i;
+  SCM proc, *argv, result;
+
+  proc = PTR2SCM (data);
+
+  argv = alloca (cif->nargs * sizeof (*argv));
+
+  /* Pack ARGS to SCM values, setting ARGV pointers.  */
+  for (i = 0; i < cif->nargs; i++)
+    argv[i] = pack (cif->arg_types[i], args[i]);
+
+  result = scm_call_n (proc, argv, cif->nargs);
+
+  unpack (cif->rtype, ret, result);
+}
+
+SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
+	    (SCM return_type, SCM proc, SCM arg_types),
+	    "Return a pointer to a C function of type @var{return-type}\n"
+	    "taking arguments of types @var{arg-types} (a list) and\n"
+	    "behaving as a proxy to procedure @var{proc}.  Thus\n"
+	    "@var{proc}'s arity, supported argument types, and return\n"
+	    "type should match @var{return-type} and @var{arg-types}.\n")
+#define FUNC_NAME s_scm_procedure_to_pointer
+{
+  SCM pointer;
+  ffi_cif *cif;
+  ffi_status err;
+  void *closure, *executable;
+
+  cif = make_cif (return_type, arg_types, FUNC_NAME);
+
+  closure = ffi_closure_alloc (sizeof (ffi_closure), &executable);
+  err = ffi_prep_closure_loc ((ffi_closure *) closure, cif,
+			      invoke_closure, SCM2PTR (proc),
+			      executable);
+  if (err != FFI_OK)
+    {
+      ffi_closure_free (closure);
+      SCM_MISC_ERROR ("`ffi_prep_closure_loc' failed", SCM_EOL);
+    }
+
+  if (closure == executable)
+    pointer = scm_from_pointer (executable, ffi_closure_free);
+  else
+    {
+      /* CLOSURE needs to be freed eventually.  However, since
+	 `GC_all_interior_pointers' is disabled, we can't just register
+	 a finalizer for CLOSURE.  Instead, we create a pointer object
+	 for CLOSURE, with a finalizer, and register it as a weak
+	 reference of POINTER.  */
+      SCM friend;
+
+      pointer = scm_from_pointer (executable, NULL);
+      friend = scm_from_pointer (closure, ffi_closure_free);
+
+      register_weak_reference (pointer, friend);
+    }
+
+  return pointer;
+}
+#undef FUNC_NAME
+
+#endif /* FFI_CLOSURES */
 
 
 

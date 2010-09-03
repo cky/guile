@@ -95,6 +95,8 @@ SCM_INTERNAL SCM scm_pointer_to_string (SCM pointer);
 
 SCM_API SCM scm_make_foreign_function (SCM return_type, SCM func_ptr,
                                        SCM arg_types);
+SCM_API SCM scm_procedure_to_pointer (SCM return_type, SCM func_ptr,
+				      SCM arg_types);
 SCM_INTERNAL SCM scm_i_foreign_call (SCM foreign, const SCM *argv);
 
 

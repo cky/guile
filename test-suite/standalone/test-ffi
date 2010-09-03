@@ -3,7 +3,9 @@ exec guile -q -s "$0" "$@"
 !#
 
 (use-modules (system foreign)
-             (rnrs bytevectors))
+             (rnrs bytevectors)
+             (srfi srfi-1)
+             (srfi srfi-26))
 
 (define lib
   (dynamic-link (string-append (getenv "builddir") "/libtest-ffi")))
@@ -174,6 +176,50 @@ exec guile -q -s "$0" "$@"
   (or (equal? (bytevector->u8-list (pointer->bytevector dest 16))
               '(0 1 2 3 4 5 6 7 0 0 0 0 0 0 0 0))
       (error "unexpected dest")))
+
+;;
+;; Function pointers
+;;
+
+(define f-callback-1
+  (make-foreign-function int (dynamic-func "test_ffi_callback_1" lib)
+                         (list '* int)))
+
+(if (defined? 'procedure->pointer)
+    (let* ((calls 0)
+           (ptr   (procedure->pointer int
+                                      (lambda (x)
+                                        (set! calls (+ 1 calls))
+                                        (* x 3))
+                                      (list int)))
+           (input (iota 123)))
+      (define (expected-result x)
+        (+ 7 (* x 3)))
+
+      (let ((result (map (cut f-callback-1 ptr <>) input)))
+        (and (or (= calls (length input))
+                 (error "incorrect number of callback calls" calls))
+             (or (equal? (map expected-result input) result)
+                 (error "incorrect result" result))))))
+
+(define f-callback-2
+  (make-foreign-function double (dynamic-func "test_ffi_callback_2" lib)
+                         (list '* float int double)))
+
+(if (defined? 'procedure->pointer)
+    (let* ((proc  (lambda (x y z)
+                    (* (+ x (exact->inexact y)) z)))
+           (ptr   (procedure->pointer double proc
+                                      (list float int double)))
+           (arg1 (map (cut * <> 1.25) (iota 123 500)))
+           (arg2 (iota 123))
+           (arg3 (map (cut / <> 2.0) (iota 123 0 -10))))
+      (define result
+        (map (cut f-callback-2 ptr <> <> <>)
+             arg1 arg2 arg3))
+
+      (or (equal? result (map proc arg1 arg2 arg3))
+          (error "incorrect result" result))))
 
 
 ;;;
