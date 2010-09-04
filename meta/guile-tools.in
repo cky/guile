@@ -39,7 +39,7 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
       seed
       (fold kons (kons (car seq) seed) (cdr seq))))
 
-(define (help)
+(define (display-help)
   (display "\
 Usage: guile-tools --version
        guile-tools --help
@@ -48,6 +48,14 @@ Usage: guile-tools --version
 If PROGRAM is \"list\" or omitted, display available scripts, otherwise
 PROGRAM is run with ARGS.
 "))
+
+(define (display-version)
+  (format #t "guile-tools (GNU Guile ~A) ~A
+Copyright (C) 2010 Free Software Foundation, Inc.
+License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+" (version) (effective-version)))
 
 (define (directory-files dir)
   (if (and (file-exists? dir) (file-is-directory? dir))
@@ -110,8 +118,22 @@ PROGRAM is run with ARGS.
 
 (define (main args)
   (setlocale LC_ALL "")
-  (if (or (equal? (cdr args) '())
-          (equal? (cdr args) '("list")))
-      (list-scripts)
-      (let ((mod (find-script (cadr args))))
-        (exit (apply (module-ref mod 'main) (cddr args))))))
+  (cond
+   ((or (equal? (cdr args) '())
+        (equal? (cdr args) '("list")))
+    (list-scripts))
+   ((string-prefix? "-" (cadr args))
+    (let ((option (cadr args)))
+      (cond
+       ((equal? option "--help")
+        (display-help)
+        (exit 0))
+       ((equal? option "--version")
+        (display-version)
+        (exit 0))
+       (else
+        (format (current-error-port) "Unrecognized option: ~an" option)
+        (exit 1)))))
+   (else
+    (let ((mod (find-script (cadr args))))
+      (exit (apply (module-ref mod 'main) (cddr args)))))))
