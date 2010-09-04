@@ -1836,37 +1836,6 @@ If there is no handler at all, Guile prints an error and then exits."
 
 
 
-;;; {Low Level Bootstrapping}
-;;;
-
-;; make-root-module
-
-;; A root module uses the pre-modules-obarray as its obarray.  This
-;; special obarray accumulates all bindings that have been established
-;; before the module system is fully booted.
-;;
-;; (The obarray continues to be used by code that has been closed over
-;;  before the module system has been booted.)
-
-(define (make-root-module)
-  (let ((m (make-module 0)))
-    (set-module-obarray! m (%get-pre-modules-obarray))
-    m))
-
-;; make-scm-module
-
-;; The root interface is a module that uses the same obarray as the
-;; root module.  It does not allow new definitions, tho.
-
-(define (make-scm-module)
-  (let ((m (make-module 0)))
-    (set-module-obarray! m (%get-pre-modules-obarray))
-    (set-module-eval-closure! m (standard-interface-eval-closure m))
-    m))
-
-
-
-
 ;;; {Module-based Loading}
 ;;;
 
@@ -2131,15 +2100,34 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define (set-system-module! m s)
   (set-procedure-property! (module-eval-closure m) 'system-module s))
-(define the-root-module (make-root-module))
-(define the-scm-module (make-scm-module))
-(set-module-public-interface! the-root-module the-scm-module)
-(set-module-name! the-root-module '(guile))
-(set-module-name! the-scm-module '(guile))
-(set-module-kind! the-scm-module 'interface)
-(set-system-module! the-root-module #t)
-(set-system-module! the-scm-module #t)
 
+;; The root module uses the pre-modules-obarray as its obarray.  This
+;; special obarray accumulates all bindings that have been established
+;; before the module system is fully booted.
+;;
+;; (The obarray continues to be used by code that has been closed over
+;;  before the module system has been booted.)
+;;
+(define the-root-module
+  (let ((m (make-module 0)))
+    (set-module-obarray! m (%get-pre-modules-obarray))
+    (set-module-name! m '(guile))
+    (set-system-module! m #t)
+    m))
+
+;; The root interface is a module that uses the same obarray as the
+;; root module.  It does not allow new definitions, tho.
+;;
+(define the-scm-module
+  (let ((m (make-module 0)))
+    (set-module-obarray! m (%get-pre-modules-obarray))
+    (set-module-eval-closure! m (standard-interface-eval-closure m))
+    (set-module-name! m '(guile))
+    (set-module-kind! m 'interface)
+    (set-system-module! m #t)
+    m))
+
+(set-module-public-interface! the-root-module the-scm-module)
 
 
 
