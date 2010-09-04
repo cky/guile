@@ -1,4 +1,4 @@
-# mbrtowc.m4 serial 17
+# mbrtowc.m4 serial 18
 dnl Copyright (C) 2001-2002, 2004-2005, 2008-2010 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
@@ -101,14 +101,15 @@ AC_DEFUN([gl_MBRTOWC_INCOMPLETE_STATE],
       dnl is present.
 changequote(,)dnl
       case "$host_os" in
-              # Guess no on AIX and OSF/1.
-        osf*) gl_cv_func_mbrtowc_incomplete_state="guessing no" ;;
-              # Guess yes otherwise.
-        *)    gl_cv_func_mbrtowc_incomplete_state="guessing yes" ;;
+                     # Guess no on AIX and OSF/1.
+        aix* | osf*) gl_cv_func_mbrtowc_incomplete_state="guessing no" ;;
+                     # Guess yes otherwise.
+        *)           gl_cv_func_mbrtowc_incomplete_state="guessing yes" ;;
       esac
 changequote([,])dnl
       if test $LOCALE_JA != none; then
-        AC_TRY_RUN([
+        AC_RUN_IFELSE(
+          [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <string.h>
 #include <wchar.h>
@@ -126,7 +127,7 @@ int main ()
           return 1;
     }
   return 0;
-}],
+}]])],
           [gl_cv_func_mbrtowc_incomplete_state=yes],
           [gl_cv_func_mbrtowc_incomplete_state=no],
           [:])
@@ -156,7 +157,8 @@ changequote(,)dnl
       esac
 changequote([,])dnl
       if test $LOCALE_ZH_CN != none; then
-        AC_TRY_RUN([
+        AC_RUN_IFELSE(
+          [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
@@ -178,7 +180,7 @@ int main ()
         return 1;
     }
   return 0;
-}],
+}]])],
           [gl_cv_func_mbrtowc_sanitycheck=yes],
           [gl_cv_func_mbrtowc_sanitycheck=no],
           [:])
@@ -208,7 +210,8 @@ changequote(,)dnl
       esac
 changequote([,])dnl
       if test $LOCALE_FR_UTF8 != none; then
-        AC_TRY_RUN([
+        AC_RUN_IFELSE(
+          [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <string.h>
 #include <wchar.h>
@@ -228,7 +231,10 @@ int main ()
         return 1;
     }
   return 0;
-}], [gl_cv_func_mbrtowc_null_arg=yes], [gl_cv_func_mbrtowc_null_arg=no], [:])
+}]])],
+          [gl_cv_func_mbrtowc_null_arg=yes],
+          [gl_cv_func_mbrtowc_null_arg=no],
+          [:])
       fi
     ])
 ])
@@ -258,7 +264,8 @@ changequote(,)dnl
       esac
 changequote([,])dnl
       if test $LOCALE_FR_UTF8 != none || test $LOCALE_JA != none; then
-        AC_TRY_RUN([
+        AC_RUN_IFELSE(
+          [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <string.h>
 #include <wchar.h>
@@ -295,7 +302,7 @@ int main ()
         }
     }
   return 0;
-}],
+}]])],
           [gl_cv_func_mbrtowc_retval=yes],
           [gl_cv_func_mbrtowc_retval=no],
           [:])
@@ -325,7 +332,8 @@ changequote(,)dnl
       esac
 changequote([,])dnl
       if test $LOCALE_ZH_CN != none; then
-        AC_TRY_RUN([
+        AC_RUN_IFELSE(
+          [AC_LANG_SOURCE([[
 #include <locale.h>
 #include <string.h>
 #include <wchar.h>
@@ -342,7 +350,7 @@ int main ()
         return 1;
     }
   return 0;
-}],
+}]])],
           [gl_cv_func_mbrtowc_nul_retval=yes],
           [gl_cv_func_mbrtowc_nul_retval=no],
           [:])
