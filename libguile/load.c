@@ -629,7 +629,7 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 {
   char *source, *compiled;
   struct stat stat_source, stat_compiled;
-  int compiled_is_newer = 0;
+  int compiled_is_newer;
 
   source = scm_to_locale_string (full_filename);
   compiled = scm_to_locale_string (compiled_filename);
@@ -646,16 +646,19 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 	  || (source_mtime.tv_sec == compiled_mtime.tv_sec
 	      && source_mtime.tv_nsec <= compiled_mtime.tv_nsec))
 	compiled_is_newer = 1;
+      else
+	{
+	  compiled_is_newer = 0;
+	  scm_puts (";;; note: source file ", scm_current_error_port ());
+	  scm_puts (source, scm_current_error_port ());
+	  scm_puts ("\n;;;       newer than compiled ", scm_current_error_port ());
+	  scm_puts (compiled, scm_current_error_port ());
+	  scm_puts ("\n", scm_current_error_port ());
+	}
     }
-
-  if (!compiled_is_newer)
-    {
-      scm_puts (";;; note: source file ", scm_current_error_port ());
-      scm_puts (source, scm_current_error_port ());
-      scm_puts ("\n;;;       newer than compiled ", scm_current_error_port ());
-      scm_puts (compiled, scm_current_error_port ());
-      scm_puts ("\n", scm_current_error_port ());
-    }
+  else
+    /* At least one of the files isn't accessible.  */
+    compiled_is_newer = 0;
 
   free (source);
   free (compiled);
