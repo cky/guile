@@ -62,6 +62,8 @@
 #define R_OK 4
 #endif
 
+#include <stat-time.h>
+
 
 /* Loading a file, given an absolute filename.  */
 
@@ -619,35 +621,46 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 #undef FUNC_NAME
 
 
+/* Return true if COMPILED_FILENAME is newer than source file
+   FULL_FILENAME, false otherwise.  Also return false if one of the
+   files cannot be stat'd.  */
 static int
 compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 {
   char *source, *compiled;
   struct stat stat_source, stat_compiled;
-  int res;
+  int compiled_is_newer = 0;
 
   source = scm_to_locale_string (full_filename);
   compiled = scm_to_locale_string (compiled_filename);
 
   if (stat (source, &stat_source) == 0
-      && stat (compiled, &stat_compiled) == 0
-      && stat_source.st_mtime <= stat_compiled.st_mtime)
+      && stat (compiled, &stat_compiled) == 0)
     {
-      res = 1;
+      struct timespec source_mtime, compiled_mtime;
+
+      source_mtime = get_stat_mtime (&stat_source);
+      compiled_mtime = get_stat_mtime (&stat_compiled);
+
+      if (source_mtime.tv_sec < compiled_mtime.tv_sec
+	  || (source_mtime.tv_sec == compiled_mtime.tv_sec
+	      && source_mtime.tv_nsec <= compiled_mtime.tv_nsec))
+	compiled_is_newer = 1;
     }
-  else
+
+  if (!compiled_is_newer)
     {
       scm_puts (";;; note: source file ", scm_current_error_port ());
       scm_puts (source, scm_current_error_port ());
       scm_puts ("\n;;;       newer than compiled ", scm_current_error_port ());
       scm_puts (compiled, scm_current_error_port ());
       scm_puts ("\n", scm_current_error_port ());
-      res = 0;
     }
 
   free (source);
   free (compiled);
-  return res;
+
+  return compiled_is_newer;
 }
 
 SCM_KEYWORD (kw_env, "env");
