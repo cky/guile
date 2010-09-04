@@ -66,6 +66,12 @@ For example, one may access a backtrace with `,backtrace' (or
 `,bt'). See "Interactive Debugging" in the manual, for more
 information.
 
+** New `error-message' meta-command at the REPL
+
+The new `error-message' meta-command displays the message associated
+with the error that started the current debugging REPL.  See "Debug
+Commands" in the manual.
+
 ** Readline tab completion for arguments
 
 When readline is enabled, tab completion works for arguments too, not
@@ -90,18 +96,14 @@ this and other previous deficiencies have been fixed.
 
 ** New macro: `current-source-location'
 
-See FIXME in the manual, for more information.
+The macro returns the current source location (to be documented).
 
-** module-filename field and accessor
+** `module-filename' field and accessor
 
 Modules now record the file in which they are defined. This field may be
 accessed with the new `module-filename' procedure.
 
-** call-with-error-handling / with-error-handling
-
-FIXME: document?
-
-** Deprecate the old scm-style-repl
+** Deprecate the old `scm-style-repl'
 
 The following bindings from boot-9 are now found in `(ice-9
 scm-style-repl)': `scm-style-repl', `error-catching-loop',
@@ -121,6 +123,11 @@ Deprecated forwarding shims have been installed so that users that
 expect these bindings in the main namespace will still work, but receive
 a deprecation warning.
     
+** Passing a number as the destination of `format' is deprecated
+
+The `format' procedure in `(ice-9 format)' now emits a deprecation
+warning if a number is passed as its first argument.
+
 ** Miscellaneous other deprecations
 
 `apply-to-args', `has-suffix?', `scheme-file-suffix'
@@ -164,7 +171,8 @@ an extensible way. Contact bug-guile@gnu.org with patches.
 ** Alex Shinn's pattern matcher for (ice-9 match).
     
 Guile's copy of Andrew K. Wright's `match' library has been replaced by
-a compatible hygienic implementation by Alex Shinn.
+a compatible hygienic implementation by Alex Shinn.  It is now
+documented, see "Pattern Matching" in the manual.
 
 Compared to Andrew K. Wright's `match', the new `match' lacks
 `match-define', `match:error-control', `match:set-error-control',
@@ -174,7 +182,7 @@ Compared to Andrew K. Wright's `match', the new `match' lacks
 
 We now build psyntax-pp.go directly from psyntax.scm, which allows us to
 preserve the original source locations and variable names. Git users
-will also be please to note that psyntax-pp.scm is no longer
+will also be pleased to note that psyntax-pp.scm is no longer
 automatically regenerated from a normal `make' invocation.
     
 ** AM_SILENT_RULES
@@ -205,11 +213,6 @@ interactively. One usually turns it on after a fork. It may not be
 turned off. `ensure-batch-mode!' deprecates the old `set-batch-mode?!',
 because it is a better interface, as it can only turn on batch mode, not
 turn it off.
-
-** `(debug)' gone (fix?)
-    
-    * module/system/vm/debug.scm (debug): Change to debug the current stack
-      instead of the last stack.
 
 ** Support for settable identifier syntax
 
@@ -315,7 +318,7 @@ There was a nasty bug on 64-bit platforms in which asking for a random
 integer with a range between 2**32 and 2**64 caused a segfault. After
 many embarrassing iterations, this was fixed.
 
-** Add `vhash-fold*' in `(ice-9 vlist)'.
+** Add `vhash-fold*' in `(ice-9 vlist)'
 
 See "VLists" in the manual, for more information.
     
@@ -326,11 +329,19 @@ required that the timestamp of the `.go' file be equal to that of the
 `.scm'. This has been relaxed to accept newer `.go' files, to integrate
 better with `make' tools.
 
-** Simplifications to the `(system foreign)' API.
+** Use of nanosecond-resolution timestamps
+
+The auto-compilation logic now compares the source and compiled file
+timestamps using nano-second resolution, when available.
+
+** Simplifications and callback support added to the `(system foreign)'.
     
 Guile's foreign function interface was simplified a great
 deal. Interested users should see "Foreign Function Interface" in the
 manual, for full details.
+
+In addition, the new procedure `procedure->pointer' makes it possible to
+use Scheme procedures as "callbacks" to C functions.
 
 ** User Scheme code may be placed in a version-specific path
 
@@ -340,6 +351,16 @@ e.g. /usr/share/guile/2.0. The site directory,
 e.g. /usr/share/guile/site, was unversioned. This has been changed to
 add a version-specific site directory, e.g. /usr/share/guile/site/2.0,
 searched before the global site directory.
+
+** Docstrings for `syntax-rules' macros
+
+The `syntax-rules' form now accepts a docstring between the literals and
+the first clause.
+
+** SRFI-1 partly rewritten in Scheme
+
+Some of the SRFI-1 procedures that were written in C "for efficiency"
+have been rewritten in Scheme.
 
 ** And of course, the usual collection of bugfixes
  
