@@ -35,11 +35,13 @@ Guile depends on the following external libraries.
 - libunistring
 - libgc
 - libffi
-It will also use the libreadline library if it is available.  For each
-of these there is a corresponding --with-XXX-prefix option that you
-can use when invoking ./configure, if you have these libraries
-installed in a location other than the standard places (/usr and
-/usr/local).
+It will also use the libreadline library if it is available.
+
+There is a corresponding `--with-XXX-prefix' option for each of these
+libraries (except for libgc and libffi which use `pkg-config', see
+below) that you can use when invoking ./configure, if you have these
+libraries installed in a location other than the standard places (/usr
+and /usr/local).
 
 These options are provided by the Gnulib `havelib' module, and details
 of how they work are documented in `Searching for Libraries' in the

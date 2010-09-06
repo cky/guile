@@ -74,10 +74,13 @@ AM_PROG_CC_C_O
 
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
-AC_CHECK_LIB([ltdl], [lt_dlinit], ,
-  [AC_MSG_ERROR([libltdl not found.  See README.])])
-AC_CHECK_HEADER([ltdl.h], [],
-  [AC_MSG_ERROR([<ltdl.h> not found.  See README.])])
+
+dnl Check for libltdl.
+AC_LIB_HAVE_LINKFLAGS([ltdl], [], [#include <ltdl.h>],
+  [lt_dlopenext ("foo");])
+if text "x$HAVE_LIBLTDL" != "xyes"; then
+  AC_MSG_ERROR([GNU libltdl (Libtool) not found, see README.])
+fi
 
 AC_CHECK_PROG(have_makeinfo, makeinfo, yes, no)
 AM_CONDITIONAL(HAVE_MAKEINFO, test "$have_makeinfo" = yes)
