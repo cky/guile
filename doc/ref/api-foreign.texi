@@ -493,7 +493,7 @@ numeric types. For example, @code{long} may be @code{equal?} to
 
 @defvr {Scheme Variable} void
 The @code{void} type.  It can be used as the first argument to
-@code{make-foreign-function} to wrap a C function that returns nothing.
+@code{pointer->procedure} to wrap a C function that returns nothing.
 @end defvr
 
 @node Foreign Variables
@@ -703,8 +703,8 @@ tightly packed structs and unions by hand. See the code for
 Of course, the land of C is not all nouns and no verbs: there are
 functions too, and Guile allows you to call them.
 
-@deffn {Scheme Procedure} make-foreign-function return_type func_ptr arg_types
-@deffnx {C Procedure} scm_make_foreign_function return_type func_ptr arg_types
+@deffn {Scheme Procedure} pointer->procedure return_type func_ptr arg_types
+@deffnx {C Procedure} scm_pointer_to_procedure return_type func_ptr arg_types
 Make a foreign function.
 
 Given the foreign void pointer @var{func_ptr}, its argument and
@@ -727,9 +727,9 @@ Here is a better definition of @code{(math bessel)}:
 (define libm (dynamic-link "libm"))
 
 (define j0
-  (make-foreign-function double
-                         (dynamic-func "j0" libm)
-                         (list double)))
+  (pointer->procedure double
+                      (dynamic-func "j0" libm)
+                      (list double)))
 @end example
 
 That's it! No C at all.
@@ -747,9 +747,9 @@ code makes @code{memcpy} available to Scheme:
 @example
 (define memcpy
   (let ((this (dynamic-link)))
-    (make-foreign-function '*
-                           (dynamic-func "memcpy" this)
-                           (list '* '* size_t))))
+    (pointer->procedure '*
+                        (dynamic-func "memcpy" this)
+                        (list '* '* size_t))))
 @end example
 
 To invoke @code{memcpy}, one must pass it foreign pointers:
@@ -785,7 +785,7 @@ by the foreign pointer is mutated in place.
 ;; assuming fields are of type "long"
 
 (define gettimeofday
-  (let ((f (make-foreign-function
+  (let ((f (pointer->procedure
             int
             (dynamic-func "gettimeofday" (dynamic-link))
             (list '* '*)))
@@ -826,10 +826,10 @@ function can be made accessible to Scheme (@pxref{Array Sort Function,
 
 @example
 (define qsort!
-  (let ((qsort (make-foreign-function void
-                                      (dynamic-func "qsort"
-                                                    (dynamic-link))
-                                      (list '* size_t size_t '*))))
+  (let ((qsort (pointer->procedure void
+                                   (dynamic-func "qsort"
+                                                 (dynamic-link))
+                                   (list '* size_t size_t '*))))
     (lambda (bv compare)
       ;; Sort bytevector BV in-place according to comparison
       ;; procedure COMPARE.

@@ -42,7 +42,7 @@
             string->pointer
             pointer->string
 
-            make-foreign-function
+            pointer->procedure
             ;; procedure->pointer (see below)
             make-c-struct parse-c-struct))
 

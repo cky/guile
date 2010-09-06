@@ -530,7 +530,7 @@ fill_ffi_type (SCM type, ffi_type *ftype, ffi_type ***type_ptrs,
           *ftype = ffi_type_void;
           return;
         default:
-          scm_wrong_type_arg_msg ("make-foreign-function", 0, type,
+          scm_wrong_type_arg_msg ("pointer->procedure", 0, type,
                                   "foreign type");
         }
     }
@@ -641,7 +641,7 @@ make_cif (SCM return_type, SCM arg_types, const char *caller)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
+SCM_DEFINE (scm_pointer_to_procedure, "pointer->procedure", 3, 0, 0,
             (SCM return_type, SCM func_ptr, SCM arg_types),
             "Make a foreign function.\n\n"
             "Given the foreign void pointer @var{func_ptr}, its argument and\n"
@@ -650,7 +650,7 @@ SCM_DEFINE (scm_make_foreign_function, "make-foreign-function", 3, 0, 0,
             "and return appropriate values.\n\n"
             "@var{arg_types} should be a list of foreign types.\n"
             "@code{return_type} should be a foreign type.")
-#define FUNC_NAME s_scm_make_foreign_function
+#define FUNC_NAME s_scm_pointer_to_procedure
 {
   ffi_cif *cif;
 
