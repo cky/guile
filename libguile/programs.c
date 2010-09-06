@@ -150,10 +150,17 @@ SCM_DEFINE (scm_program_module, "program-module", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_program_module
 {
-  SCM objs;
+  SCM objs, mod;
   SCM_VALIDATE_PROGRAM (1, program);
   objs = SCM_PROGRAM_OBJTABLE (program);
-  return scm_is_true (objs) ? scm_c_vector_ref (objs, 0) : SCM_BOOL_F;
+  /* If a program is the result of compiling GLIL to assembly, then if
+     it has an objtable, the first entry will be a module.  But some
+     programs are hand-coded trampolines, like boot programs and
+     primitives and the like.  So if a program happens to have a
+     non-module in the first slot of the objtable, assume that it is
+     such a trampoline, and just return #f for the module.  */
+  mod = scm_is_true (objs) ? scm_c_vector_ref (objs, 0) : SCM_BOOL_F;
+  return SCM_MODULEP (mod) ? mod : SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
