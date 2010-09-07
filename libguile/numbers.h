@@ -33,24 +33,6 @@ typedef scm_t_int32 scm_t_wchar;
 #define SCM_T_WCHAR_DEFINED
 #endif /* SCM_T_WCHAR_DEFINED */
 
-#if SCM_HAVE_FLOATINGPOINT_H
-# include <floatingpoint.h>
-#endif
-
-#if SCM_HAVE_IEEEFP_H
-# include <ieeefp.h>
-#endif
-
-#if SCM_HAVE_NAN_H
-# if defined (SCO)
-#   define _IEEE 1
-# endif
-# include <nan.h>
-# if defined (SCO)
-#   undef _IEEE
-# endif
-#endif /* SCM_HAVE_NAN_H */
-
 
 
 /* Immediate Numbers, also known as fixnums

@@ -1115,8 +1115,6 @@ fi
 
 AC_REPLACE_FUNCS([strerror memmove mkstemp])
 
-AC_CHECK_HEADERS(floatingpoint.h ieeefp.h nan.h)
-
 # Reasons for testing:
 #   asinh, acosh, atanh, trunc - C99 standard, generally not available on
 #                                older systems

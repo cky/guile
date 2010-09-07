@@ -10,12 +10,12 @@
 #
 # This file represents the specification of how gnulib-tool is used.
 # It acts as a cache: It is written and read by gnulib-tool.
-# In projects using CVS, this file is meant to be stored in CVS,
-# like the configure.ac and various Makefile.am files.
+# In projects that use version control, this file is meant to be put under
+# version control, like the configure.ac and various Makefile.am files.
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files alignof alloca-opt announce-gen autobuild byteswap canonicalize-lgpl duplocale environ extensions flock fpieee full-read full-write func gendocs getaddrinfo git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton lib-symbol-versions lib-symbol-visibility libunistring locale maintainer-makefile putenv stat-time stdlib strcase strftime striconveh string sys_stat verify version-etc-fsf vsnprintf warnings
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files alignof alloca-opt announce-gen autobuild byteswap canonicalize-lgpl duplocale environ extensions flock fpieee full-read full-write func gendocs getaddrinfo git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan lib-symbol-versions lib-symbol-visibility libunistring locale maintainer-makefile putenv stat-time stdlib strcase strftime striconveh string sys_stat verify version-etc-fsf vsnprintf warnings
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
@@ -44,6 +44,8 @@ gl_MODULES([
   iconv_open-utf
   inet_ntop
   inet_pton
+  isinf
+  isnan
   lib-symbol-versions
   lib-symbol-visibility
   libunistring

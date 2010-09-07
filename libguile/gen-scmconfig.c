@@ -185,24 +185,6 @@ main (int argc, char *argv[])
   pf ("#define SCM_HAVE_SYS_SELECT_H 0 /* 0 or 1 */\n");
 #endif
 
-#ifdef HAVE_FLOATINGPOINT_H
-  pf ("#define SCM_HAVE_FLOATINGPOINT_H 1 /* 0 or 1 */\n");
-#else
-  pf ("#define SCM_HAVE_FLOATINGPOINT_H 0 /* 0 or 1 */\n");
-#endif
-
-#ifdef HAVE_IEEEFP_H
-  pf ("#define SCM_HAVE_IEEEFP_H 1 /* 0 or 1 */\n");
-#else
-  pf ("#define SCM_HAVE_IEEEFP_H 0 /* 0 or 1 */\n");
-#endif
-
-#ifdef HAVE_NAN_H
-  pf ("#define SCM_HAVE_NAN_H 1 /* 0 or 1 */\n");
-#else
-  pf ("#define SCM_HAVE_NAN_H 0 /* 0 or 1 */\n");
-#endif
-
 #ifdef HAVE_WINSOCK2_H
   pf ("#define SCM_HAVE_WINSOCK2_H 1 /* 0 or 1 */\n");
 #else
