@@ -25,6 +25,10 @@
             procedure-callees
             procedure-callers))
 
+;;;
+;;; The cross-reference database: who calls whom.
+;;;
+
 (define (program-callee-rev-vars prog)
   (define (cons-uniq x y)
     (if (memq x y) y (cons x y)))
@@ -134,7 +138,7 @@
 (define (ensure-callers-db mod-name)
   (let ((mod (and mod-name (resolve-module mod-name)))
         (visited #f))
-    (define (visit-variable var recurse mod-name)
+    (define (visit-variable var mod-name)
       (if (variable-bound? var)
           (let ((x (variable-ref var)))
             (cond
@@ -146,24 +150,31 @@
                 (for-each (lambda (callee)
                             (add-caller callee x mod-name))
                           callees)
-                (add-callees callees mod-name)))
-             ((and recurse (module? x))
-              (visit-module x #t))))))
+                (add-callees callees mod-name)))))))
 
-    (define (visit-module mod recurse)
+    (define (visit-module mod)
       (if visited (hashq-set! visited mod #t))
       (if (not (memq on-module-modified (module-observers mod)))
           (module-observe mod on-module-modified))
       (let ((name (module-name mod)))
         (module-for-each (lambda (sym var)
-                           (visit-variable var recurse name))
+                           (visit-variable var name))
                          mod)))
+
+    (define (visit-submodules mod)
+      (hash-for-each
+       (lambda (name sub)
+         (if (not (and visited (hashq-ref visited sub)))
+             (begin
+               (visit-module sub)
+               (visit-submodules sub))))
+       (module-submodules mod)))
 
     (cond ((and (not mod-name) (not *callers-db*))
            (set! *callers-db* (make-hash-table 1000))
            (set! visited (make-hash-table 1000))
-           (visit-module the-root-module #t))
-          (mod-name (visit-module mod #f)))))
+           (visit-submodules (resolve-module '() #f)))
+          (mod-name (visit-module mod)))))
 
 (define (procedure-callers var)
   "Returns an association list, keyed by module name, of known callers
