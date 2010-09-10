@@ -24,14 +24,9 @@ include $(top_srcdir)/am/guilec
 # We're at the root of the module hierarchy.
 modpath =
 
-BEGINNING_OF_TIME=198001010100
-
-$(GOBJECTS): ice-9/eval.go.stamp
-ice-9/eval.go.stamp: ice-9/eval.go
-	touch -t $(BEGINNING_OF_TIME) $(srcdir)/ice-9/eval.scm 
-	touch -r $(srcdir)/ice-9/eval.scm ice-9/eval.go
-	touch -r $(srcdir)/ice-9/eval.scm ice-9/eval.go.stamp
-CLEANFILES += ice-9/eval.go ice-9/eval.go.stamp
+# Build eval.go first.
+$(GOBJECTS): ice-9/eval.go
+CLEANFILES += ice-9/eval.go
 nobase_mod_DATA += ice-9/eval.scm
 nobase_ccache_DATA += ice-9/eval.go
 EXTRA_DIST += ice-9/eval.scm
@@ -76,15 +71,13 @@ include $(top_srcdir)/am/pre-inst-guile
 ice-9/psyntax-pp.scm.gen:
 	$(preinstguile) --no-autocompile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
-	touch -r "$(srcdir)/ice-9/psyntax.scm" "$(srcdir)/ice-9/psyntax-pp.scm"
 
 .PHONY: ice-9/psyntax-pp.scm.gen
 
-ice-9/psyntax-pp.go: ice-9/psyntax.scm
-	GUILE_AUTO_COMPILE=0					\
+ice-9/psyntax-pp.go: ice-9/psyntax.scm ice-9/psyntax-pp.scm
+	$(AM_V_GUILEC) GUILE_AUTO_COMPILE=0			\
 	$(top_builddir)/meta/uninstalled-env			\
 	guile-tools compile $(GUILE_WARNINGS) -o "ice-9/psyntax-pp.go" "$(srcdir)/ice-9/psyntax.scm"
-	touch -r "$(srcdir)/ice-9/psyntax.scm" "$(srcdir)/ice-9/psyntax-pp.scm"
 
 SCHEME_LANG_SOURCES =						\
   language/scheme/spec.scm					\
