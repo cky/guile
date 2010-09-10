@@ -23,7 +23,8 @@
   #:use-module (srfi srfi-1)
   #:export (*xref-ignored-modules*
             procedure-callees
-            procedure-callers))
+            procedure-callers
+            source-procedures))
 
 ;;;
 ;;; The cross-reference database: who calls whom.
@@ -191,3 +192,162 @@ pair of the form (module-name . variable-name), "
                      (error "expected a variable, symbol, or (modname . sym)" var)))))))
     (untaint-modules)
     (hashq-ref *callers-db* v '())))
+
+
+
+;;;
+;;; The source database: procedures defined at a given source location.
+;;;
+
+;; FIXME: refactor to share code with the xref database.
+
+;; ((ip file line . col) ...)
+(define (procedure-sources proc)
+  (cond
+   ((program? proc) (program-sources proc))
+   (else '())))
+
+;; file -> line -> (proc ...)
+(define *sources-db* #f)
+;; module-name -> proc -> sources
+(define *module-sources-db* (make-hash-table))
+;; (module-name ...)
+(define *tainted-sources* '())
+
+(define (on-source-modified m)
+  (let ((name (module-name m)))
+    (if (and (not (member name *xref-ignored-modules*))
+             (not (member name *tainted-sources*))
+             (pair? name))
+        (set! *tainted-sources* (cons name *tainted-sources*)))))
+
+(define (add-source proc file line)
+  (let ((file-table (or (hash-ref *sources-db* file)
+                        (let ((table (make-hash-table)))
+                          (hash-set! *sources-db* file table)
+                          table))))
+    (hashv-set! file-table
+                line
+                (cons proc (hashv-ref file-table line '())))))
+
+(define (forget-source proc file line)
+  (let ((file-table (hash-ref *sources-db* file)))
+    (if file-table
+        (let ((procs (delq proc (hashv-ref file-table line '()))))
+          (if (pair? procs)
+              (hashv-set! file-table line procs)
+              (hashv-remove! file-table line))))))
+
+(define (add-sources proc mod-name)
+  (let ((sources (procedure-sources proc)))
+    (if (pair? sources)
+        (begin
+          ;; Add proc to *module-sources-db*, for book-keeping.
+          (hashq-set! (or (hash-ref *module-sources-db* mod-name)
+                          (let ((table (make-hash-table)))
+                            (hash-set! *module-sources-db* mod-name table)
+                            table))
+                      proc
+                      sources)
+          ;; Actually add the source entries.
+          (for-each (lambda (source)
+                      (pmatch source
+                        ((,ip ,file ,line . ,col)
+                         (add-source proc file line))
+                        (else (error "unexpected source format" source))))
+                    sources)))))
+
+(define (forget-sources proc mod-name)
+  (let ((mod-table (hash-ref *module-sources-db* mod-name)))
+    (if mod-table
+        (begin
+          ;; Forget source entries.
+          (for-each (lambda (source)
+                      (pmatch source
+                        ((,ip ,file ,line . ,col)
+                         (forget-source proc file line))
+                        (else (error "unexpected source format" source))))
+                    (hashq-ref mod-table proc '()))
+          ;; Forget the proc.
+          (hashq-remove! mod-table proc)))))
+
+(define (untaint-sources)
+  (define (untaint m)
+    (for-each (lambda (proc) (forget-sources proc m))
+              (cond
+               ((hash-ref *module-sources-db* m)
+                => (lambda (table)
+                     (hash-for-each (lambda (proc sources) proc) table)))
+               (else '())))
+    (ensure-sources-db m))
+  (ensure-sources-db #f)
+  (for-each untaint *tainted-sources*)
+  (set! *tainted-sources* '()))
+
+(define (ensure-sources-db mod-name)
+  (define (visit-module mod)
+    (if (not (memq on-source-modified (module-observers mod)))
+        (module-observe mod on-source-modified))
+    (let ((name (module-name mod)))
+      (module-for-each
+       (lambda (sym var)
+         (if (variable-bound? var)
+             (let ((x (variable-ref var)))
+               (if (procedure? x)
+                   (add-sources x name)))))
+       mod)))
+
+  (define visit-submodules
+    (let ((visited #f))
+      (lambda (mod)
+        (if (not visited)
+            (set! visited (make-hash-table)))
+        (hash-for-each
+         (lambda (name sub)
+           (if (not (hashq-ref visited sub))
+               (begin
+                 (hashq-set! visited sub #t)
+                 (visit-module sub)
+                 (visit-submodules sub))))
+         (module-submodules mod)))))
+
+  (cond ((and (not mod-name) (not *sources-db*))
+         (set! *sources-db* (make-hash-table 1000))
+         (visit-submodules (resolve-module '() #f)))
+        (mod-name (visit-module (resolve-module mod-name)))))
+
+(define (lines->ranges file-table)
+  (let ((ranges (make-hash-table)))
+    (hash-for-each
+     (lambda (line procs)
+       (for-each
+        (lambda (proc)
+          (cond
+           ((hashq-ref ranges proc)
+            => (lambda (pair)
+                 (if (< line (car pair))
+                     (set-car! pair line))
+                 (if (> line (cdr pair))
+                     (set-cdr! pair line))))
+           (else
+            (hashq-set! ranges proc (cons line line)))))
+        procs))
+     file-table)
+    (sort! (hash-map->list cons ranges)
+           (lambda (x y) (< (cadr x) (cadr y))))))
+
+(define* (source-procedures file line #:key (canonicalization 'relative))
+  (ensure-sources-db #f)
+  (let* ((port (with-fluids ((%file-port-name-canonicalization canonicalization))
+                 (false-if-exception (open-input-file file))))
+         (file (if port (port-filename port) file))
+         (file-table (hash-ref *sources-db* file)))
+    (if file-table
+        (let lp ((ranges (lines->ranges file-table))
+                 (procs '()))
+          (cond
+           ((null? ranges) (reverse procs))
+           ((<= (cadar ranges) line (cddar ranges))
+            (lp (cdr ranges) (cons (caar ranges) procs)))
+           (else
+            (lp (cdr ranges) procs)))))))
