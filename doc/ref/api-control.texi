@@ -1490,11 +1490,16 @@ and the call to these routines doesn't change @code{errno}.
 @deftypefnx {C Function} void scm_out_of_range (char *@var{subr}, SCM @var{bad_value})
 @deftypefnx {C Function} void scm_wrong_num_args (SCM @var{proc})
 @deftypefnx {C Function} void scm_wrong_type_arg (char *@var{subr}, int @var{argnum}, SCM @var{bad_value})
+@deftypefnx {C Function} void scm_wrong_type_arg_msg (char *@var{subr}, int @var{argnum}, SCM @var{bad_value}, const char *@var{expected})
 @deftypefnx {C Function} void scm_memory_error (char *@var{subr})
 Throw an error with the various keys described above.
 
 For @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
-which is the name of the procedure incorrectly invoked.
+which is the name of the procedure incorrectly invoked.  The other
+routines take the name of the invoked procedure as a C string.
+
+In @code{scm_wrong_type_arg_msg}, @var{expected} is a C string
+describing the type of argument that was expected.
 @end deftypefn
 
 
