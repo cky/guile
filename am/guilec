@@ -8,6 +8,7 @@ nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 ccachedir = $(pkglibdir)/$(GUILE_EFFECTIVE_VERSION)/ccache/$(modpath)
 nobase_ccache_DATA = $(GOBJECTS)
 EXTRA_DIST = $(SOURCES) $(NOCOMP_SOURCES)
+ETAGS_ARGS = $(SOURCES) $(NOCOMP_SOURCES)
 
 CLEANFILES = $(GOBJECTS)
 

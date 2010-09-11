@@ -30,6 +30,7 @@ CLEANFILES += ice-9/eval.go
 nobase_mod_DATA += ice-9/eval.scm
 nobase_ccache_DATA += ice-9/eval.go
 EXTRA_DIST += ice-9/eval.scm
+ETAGS_ARGS += ice-9/eval.scm
 
 # We can compile these in any order, but it's fastest if we compile
 # psyntax and boot-9 first, then the compiler itself, then the rest of
@@ -63,6 +64,10 @@ SOURCES =					\
 
 ## test.scm is not currently installed.
 EXTRA_DIST +=					\
+  ice-9/test.scm				\
+  ice-9/compile-psyntax.scm			\
+  ice-9/ChangeLog-2008
+ETAGS_ARGS +=					\
   ice-9/test.scm				\
   ice-9/compile-psyntax.scm			\
   ice-9/ChangeLog-2008
