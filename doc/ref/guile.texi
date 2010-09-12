@@ -7,7 +7,6 @@
 @set MANUAL-REVISION 1
 @c %**end of header
 @include version.texi
-@include lib-version.texi
 @include effective-version.texi
 
 @copying

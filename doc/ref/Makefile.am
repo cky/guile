@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-BUILT_SOURCES = lib-version.texi standard-library.texi
+BUILT_SOURCES = standard-library.texi
 
 info_TEXINFOS = guile.texi
 
@@ -119,23 +119,7 @@ autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
 	  snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
 	  > $(srcdir)/$@
 
-lib-version.texi: $(top_srcdir)/GUILE-VERSION
-	cat "$^" | grep '^LIBGUILE_.*_MAJOR' |				\
-	sed 's/^LIBGUILE_\([A-Z0-9_]*\)_MAJOR=\([0-9]\+\)/@set LIBGUILE_\1_MAJOR \2/'	\
-	> "$@"
-
 MAINTAINERCLEANFILES = autoconf-macros.texi
-
-# To allow "make distcheck" to succeed, lib-version.texi must either
-# be cleaned or be included in the distribution.  Or both - and in
-# fact both are good.  There's no point forcing a distribution build
-# to regenerate lib-version.texi, because it can't possibly be
-# different on the build machine than where the distribution was
-# generated, so we might as well include it in the distribution.
-EXTRA_DIST += lib-version.texi
-# But when we want to get back to a clean tree, lib-version.texi
-# should be cleaned.
-CLEANFILES = lib-version.texi
 
 # Support for snarfing docs out of Scheme modules.
 snarf_doc = standard-library
@@ -161,5 +145,5 @@ $(snarf_doc).texi: $(standard_library_scm_files)
 	  "$(abs_srcdir)/$(snarf_doc).scm" > "$@.tmp"
 	mv "$@.tmp" "$@"
 
-CLEANFILES += $(snarf_doc).texi
+CLEANFILES = $(snarf_doc).texi
 EXTRA_DIST += $(snarf_doc).scm make-texinfo.scm $(snarf_doc).texi $(snarf_doc).am
