@@ -18,16 +18,15 @@ Guile
 @goops{} is the object oriented extension to @guile{}. Its
 implementation is derived from @w{STk-3.99.3} by Erick Gallesio and
 version 1.3 of Gregor Kiczales' @cite{Tiny-Clos}.  It is very close in
-spirit to CLOS, the Common Lisp Object System (@cite{CLtL2}) but is
-adapted for the Scheme language.  While GOOPS is not compatible with any
-of these systems, GOOPS contains a compatibility module which allows for
-execution of STKlos programs.
+spirit to CLOS, the Common Lisp Object System, but is adapted for the
+Scheme language.
 
-Briefly stated, the @goops{} extension gives the user a full object
-oriented system with multiple inheritance and generic functions with
-multi-method dispatch.  Furthermore, the implementation relies on a true
-meta object protocol, in the spirit of the one defined for CLOS
-(@cite{Gregor Kiczales: A Metaobject Protocol}).
+@goops{} is a full object oriented system, with classes, objects,
+multiple inheritance, and generic functions with multi-method
+dispatch.  Furthermore its implementation relies on a meta object
+protocol --- which means that @goops{}'s core operations are themselves
+defined as methods on relevant classes, and can be customised by
+overriding or redefining those methods.
 
 @menu
 * Quick Start::
