@@ -220,7 +220,8 @@
 
 ;; Load the compiled primitives from the shared library.
 ;;
-(load-extension "libguile-srfi-srfi-1-v-4" "scm_init_srfi_1")
+(load-extension (string-append "libguile-" (effective-version))
+                "scm_init_srfi_1")
 
 
 ;;; Constructors

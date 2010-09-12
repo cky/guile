@@ -163,15 +163,6 @@ libtest_extensions_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIV
 check_SCRIPTS += test-extensions
 TESTS += test-extensions
 
-# test-srfi-1
-test_srfi_1_SOURCES = test-srfi-1.c
-test_srfi_1_CFLAGS = ${test_cflags}
-test_srfi_1_LDADD =	\
-  ${top_builddir}/srfi/libguile-srfi-srfi-1-v-@LIBGUILE_SRFI_SRFI_1_MAJOR@.la \
-  ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
-check_PROGRAMS += test-srfi-1
-TESTS += test-srfi-1
-
 if BUILD_PTHREAD_SUPPORT
 
 # test-with-guile-module

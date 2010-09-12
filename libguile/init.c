@@ -115,8 +115,11 @@
 #include "libguile/stacks.h"
 #include "libguile/stime.h"
 #include "libguile/strings.h"
+#include "libguile/srfi-1.h"
+#include "libguile/srfi-4.h"
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-14.h"
+#include "libguile/srfi-60.h"
 #include "libguile/strorder.h"
 #include "libguile/strports.h"
 #include "libguile/struct.h"
@@ -134,7 +137,6 @@
 #include "libguile/guardians.h"
 #include "libguile/extensions.h"
 #include "libguile/uniform.h"
-#include "libguile/srfi-4.h"
 #include "libguile/deprecated.h"
 
 #include "libguile/init.h"
@@ -454,6 +456,8 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
   scm_register_foreign ();
+  scm_register_srfi_1 ();
+  scm_register_srfi_60 ();
 
   scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */

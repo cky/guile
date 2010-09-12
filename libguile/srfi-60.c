@@ -1,6 +1,6 @@
 /* srfi-60.c --- Integers as Bits
  *
- * Copyright (C) 2005, 2006, 2008 Free Software Foundation, Inc.
+ * Copyright (C) 2005, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -18,12 +18,19 @@
  * 02110-1301 USA
  */
 
+
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <libguile.h>
-#include <srfi/srfi-60.h>
+#include "libguile/_scm.h"
+#include "libguile/eq.h"
+
+#include "libguile/validate.h"
+#include "libguile/numbers.h"
+
+#include "libguile/srfi-60.h"
 
 
 SCM_DEFINE (scm_srfi60_log2_binary_factors, "log2-binary-factors", 1, 0, 0,
@@ -415,9 +422,17 @@ SCM_REGISTER_PROC (s_srfi60_booleans_to_integer, "booleans->integer", 0, 0, 1, s
 
 
 void
+scm_register_srfi_60 (void)
+{
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_srfi_60",
+                            (scm_t_extension_init_func)scm_init_srfi_60, NULL);
+}
+
+void
 scm_init_srfi_60 (void)
 {
 #ifndef SCM_MAGIC_SNARFER
-#include "srfi/srfi-60.x"
+#include "libguile/srfi-60.x"
 #endif
 }

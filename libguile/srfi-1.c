@@ -19,17 +19,25 @@
  * 02110-1301 USA
  */
 
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-#include <libguile.h>
+#include "libguile/_scm.h"
+#include "libguile/eq.h"
 
-#include "srfi-1.h"
+#include "libguile/validate.h"
+#include "libguile/list.h"
+#include "libguile/eval.h"
+#include "libguile/srfi-1.h"
+
+#include <stdarg.h>
+
 
 /* The intent of this file was to gradually replace those Scheme
  * procedures in srfi-1.scm that extend core primitive procedures,
- * so that using srfi-1 won't have performance penalties.
+ * so that using srfi-1 wouldn't have performance penalties.
  *
  * However, we now prefer to write these procedures in Scheme, let the compiler
  * optimize them, and have the VM execute them efficiently.
@@ -1586,11 +1594,19 @@ scm_srfi1_xcons (SCM d, SCM a)
 
 
 void
+scm_register_srfi_1 (void)
+{
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_srfi_1",
+                            (scm_t_extension_init_func)scm_init_srfi_1, NULL);
+}
+
+void
 scm_init_srfi_1 (void)
 {
   SCM the_root_module = scm_lookup_closure_module (SCM_BOOL_F);
 #ifndef SCM_MAGIC_SNARFER
-#include "srfi/srfi-1.x"
+#include "libguile/srfi-1.x"
 #endif
   scm_c_extend_primitive_generic
     (SCM_VARIABLE_REF (scm_c_module_lookup (the_root_module, "map")),
