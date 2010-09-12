@@ -1502,6 +1502,12 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
 }
 
 SCM
+scm_from_latin1_stringn (const char *str, size_t len)
+{
+  return scm_from_stringn (str, len, NULL, SCM_FAILED_CONVERSION_ERROR);
+}
+
+SCM
 scm_from_locale_stringn (const char *str, size_t len)
 {
   const char *enc;
@@ -1697,6 +1703,11 @@ unistring_escapes_to_r6rs_escapes (char **bufp, size_t *lenp)
   memcpy (before, after, j);
 }
 
+char *
+scm_to_latin1_stringn (SCM str, size_t *lenp)
+{
+  return scm_to_stringn (str, lenp, NULL, SCM_FAILED_CONVERSION_ERROR);
+}
 
 char *
 scm_to_locale_stringn (SCM str, size_t *lenp)

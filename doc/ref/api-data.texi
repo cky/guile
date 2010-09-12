@@ -3969,6 +3969,74 @@ is larger than @var{max_len}, only @var{max_len} bytes have been
 stored and you probably need to try again with a larger buffer.
 @end deftypefn
 
+For most situations, string conversion should occur using the current
+locale, such as with the functions above.  But there may be cases where
+one wants to convert strings from a character encoding other than the
+locale's character encoding.  For these cases, the lower-level functions
+@code{scm_to_stringn} and @code{scm_from_stringn} are provided.  These
+functions should seldom be necessary if one is properly using locales.
+
+@deftp {C Type} scm_t_string_failed_conversion_handler
+This is an enumerated type that can take one of three values:
+@code{SCM_FAILED_CONVERSION_ERROR},
+@code{SCM_FAILED_CONVERSION_QUESTION_MARK}, and
+@code{SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE}.  They are used to indicate
+a strategy for handling characters that cannot be converted to or from a
+given character encoding.  @code{SCM_FAILED_CONVERSION_ERROR} indicates
+that a conversion should throw an error if some characters cannot be
+converted.  @code{SCM_FAILED_CONVERSION_QUESTION_MARK} indicates that a
+conversion should replace unconvertable characters with the question
+mark character.  And, @code{SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE}
+requests that a conversion should replace an unconvertable character
+with an escape sequence.
+
+While all three strategies apply when converting Scheme strings to C,
+only @code{SCM_FAILED_CONVERSION_ERROR} and
+@code{SCM_FAILED_CONVERSION_QUESTION_MARK} can be used when converting C
+strings to Scheme.
+@end deftp
+
+@deftypefn {C Function} char *scm_to_stringn (SCM str, size_t *lenp, const char *encoding, scm_t_string_failed_conversion_handler handler)
+This function returns a newly allocated C string from the Guile string
+@var{str}.  The length of the string will be returned in @var{lenp}.
+The character encoding of the C string is passed as the ASCII,
+null-terminated C string @var{encoding}.  The @var{handler} parameter
+gives a strategy for dealing with characters that cannot be converted
+into @var{encoding}.
+
+If @var{lenp} is NULL, this function will return a null-terminated C
+string.  It will throw an error if the string contains a null
+character.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_from_stringn (const char *str, size_t len, const char *encoding, scm_t_string_failed_conversion_handler handler)
+This function returns a scheme string from the C string @var{str}.  The
+length of the C string is input as @var{len}.  The encoding of the C
+string is passed as the ASCII, null-terminated C string @code{encoding}.
+The @var{handler} parameters suggests a strategy for dealing with
+unconvertable characters.
+@end deftypefn
+
+ISO-8859-1 is the most common 8-bit character encoding.  This encoding
+is also referred to as the Latin-1 encoding.  The following two
+conversion functions are provided to convert between Latin-1 C strings
+and Guile strings.
+
+@deftypefn {C Function} SCM scm_from_latin1_stringn (const char *str, size_t len)
+This function returns a scheme string from an ISO-8859-1-encoded C
+string @var{str} of length @var{len}.
+@end deftypefn
+
+@deftypefn {C function} char * scm_to_latin1_stringn (SCM str, size_t *lenp)
+This function returns a newly allocated, ISO-8859-1-encoded C string
+from the scheme string @var{str}.  An error will be thrown if the scheme
+string cannot be converted to the ISO-8859-1 encoding.  If @var{lenp} is
+@code{NULL}, the returned C string will be null terminated, and an error
+will be thrown if the C string would otherwise contain null
+characters. If @var{lenp} is not NULL, the length of the string is
+returned in @var{lenp}, and the string is not null terminated.
+@end deftypefn
+
 @node String Internals
 @subsubsection String Internals
 

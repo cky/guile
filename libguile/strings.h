@@ -113,10 +113,8 @@ SCM_API SCM scm_substring_shared (SCM str, SCM start, SCM end);
 SCM_API SCM scm_substring_copy (SCM str, SCM start, SCM end);
 SCM_API SCM scm_string_append (SCM args);
 
-SCM_API SCM scm_from_stringn (const char *str, size_t len, 
-                                     const char *encoding,
-                                     scm_t_string_failed_conversion_handler 
-                                     handler);
+SCM_API SCM scm_from_stringn (const char *str, size_t len, const char *encoding,
+                              scm_t_string_failed_conversion_handler handler);
 SCM_API SCM scm_c_make_string (size_t len, SCM chr);
 SCM_API size_t scm_c_string_length (SCM str);
 SCM_API size_t scm_c_symbol_length (SCM sym);
@@ -128,17 +126,17 @@ SCM_API SCM scm_c_substring_shared (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_copy (SCM str, size_t start, size_t end);
 
 SCM_API int scm_is_string (SCM x);
+SCM_API SCM scm_from_latin1_stringn (const char *str, size_t len);
 SCM_API SCM scm_from_locale_string (const char *str);
 SCM_API SCM scm_from_locale_stringn (const char *str, size_t len);
 SCM_INTERNAL SCM scm_i_from_utf8_string (const scm_t_uint8 *str);
 SCM_API SCM scm_take_locale_string (char *str);
 SCM_API SCM scm_take_locale_stringn (char *str, size_t len);
+SCM_API char *scm_to_latin1_stringn (SCM str, size_t *lenp);
 SCM_API char *scm_to_locale_string (SCM str);
 SCM_API char *scm_to_locale_stringn (SCM str, size_t *lenp);
-SCM_INTERNAL char *scm_to_stringn (SCM str, size_t *lenp, 
-                                   const char *encoding,
-                                   scm_t_string_failed_conversion_handler
-                                   handler);
+SCM_API char *scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
+                              scm_t_string_failed_conversion_handler handler);
 SCM_INTERNAL scm_t_uint8 *scm_i_to_utf8_string (SCM str);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
@@ -214,6 +212,8 @@ SCM_API SCM scm_sys_symbol_dump (SCM);
 #ifdef SCM_STRING_LENGTH_HISTOGRAM
 SCM_API SCM scm_sys_stringbuf_hist (void);
 #endif
+
+
 
 /* deprecated stuff */
 
