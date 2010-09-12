@@ -1,6 +1,6 @@
 c-tokenize.c
-cpp_err_symbols.c
-cpp_sig_symbols.c
+cpp-E.c
+cpp-SIG.c
 gen-scmconfig
 gen-scmconfig.h
 guile
