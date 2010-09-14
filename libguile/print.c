@@ -54,6 +54,14 @@
 
 
 
+/* Character printers.  */
+
+static int display_character (scm_t_wchar, SCM,
+			      scm_t_string_failed_conversion_handler);
+static void write_character (scm_t_wchar, SCM, int);
+
+
+
 /* {Names of immediate symbols}
  * 
  * This table must agree with the declarations in scm.h: {Immediate Symbols}.
@@ -461,79 +469,17 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
     case scm_tc3_imm24:
       if (SCM_CHARP (exp))
 	{
-	  scm_t_wchar i = SCM_CHAR (exp);
-          const char *name;
-
 	  if (SCM_WRITINGP (pstate))
-	    {
-	      scm_puts ("#\\", port);
-	      name = scm_i_charname (exp);
-	      if (name != NULL)
-		scm_puts (name, port);
-	      else if (uc_is_general_category_withtable (i, UC_CATEGORY_MASK_L
-                                                         | UC_CATEGORY_MASK_M 
-                                                         | UC_CATEGORY_MASK_N 
-                                                         | UC_CATEGORY_MASK_P 
-                                                         | UC_CATEGORY_MASK_S))
-                /* Print the character if is graphic character.  */
-                {
-                  scm_t_wchar *wbuf;
-                  SCM wstr;
-                  char *buf;
-                  size_t len;
-                  const char *enc;
-
-                  enc = scm_i_get_port_encoding (port);
-                  if (uc_combining_class (i) == UC_CCC_NR)
-                    {
-                      wstr = scm_i_make_wide_string (1, &wbuf);
-                      wbuf[0] = i;
-                    }
-                  else
-                    {
-                      /* Character is a combining character: print it connected
-                         to a dotted circle instead of connecting it to the 
-                         backslash in '#\'  */
-                      wstr = scm_i_make_wide_string (2, &wbuf);
-                      wbuf[0] = SCM_CODEPOINT_DOTTED_CIRCLE;
-                      wbuf[1] = i;
-                    }
-                  if (enc == NULL)
-                    {
-                      if (i <= 0xFF)
-                        /* Character is graphic and Latin-1.  Print it  */
-                        scm_lfwrite_str (wstr, port);
-                      else
-                        /* Character is graphic but unrepresentable in
-                           this port's encoding.  */
-                        PRINT_CHAR_ESCAPE (i, port);
-                    }
-                  else
-                    {
-                      buf = u32_conv_to_encoding (enc, 
-                                                  iconveh_error,
-                                                  (scm_t_uint32 *) wbuf, 
-                                                  1,
-                                                  NULL,
-                                                  NULL, &len);
-                      if (buf != NULL)
-                        {
-                          /* Character is graphic.  Print it.  */
-                          scm_lfwrite_str (wstr, port);
-                          free (buf);
-                        }
-                      else
-                        /* Character is graphic but unrepresentable in
-                           this port's encoding.  */
-                        PRINT_CHAR_ESCAPE (i, port);
-                    }
-                }
-              else
-                /* Character is a non-graphical character.  */
-                PRINT_CHAR_ESCAPE (i, port);
-	    }
+	    write_character (SCM_CHAR (exp), port, 0);
 	  else
-	    scm_i_charprint (i, port);
+	    {
+	      if (!display_character (SCM_CHAR (exp), port,
+				      scm_i_get_conversion_strategy (port)))
+		scm_encoding_error (__func__, errno,
+				    "cannot convert to output locale",
+				    "UTF-32", scm_i_get_port_encoding (port),
+				    scm_string (scm_list_1 (exp)));
+	    }
 	}
       else if (SCM_IFLAGP (exp)
 	       && ((size_t) SCM_IFLAGNUM (exp) < (sizeof iflagnames / sizeof (char *))))
@@ -597,132 +543,13 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
         case scm_tc7_string:
           if (SCM_WRITINGP (pstate))
             {
-              size_t i, len;
-              static char const hex[] = "0123456789abcdef";
-              char buf[9];
-
+              size_t len, i;
 
               scm_putc ('"', port);
               len = scm_i_string_length (exp);
               for (i = 0; i < len; ++i)
-                {
-                  scm_t_wchar ch = scm_i_string_ref (exp, i);
-                  int printed = 0;
+		write_character (scm_i_string_ref (exp, i), port, 1);
 
-                  if (ch == ' ' || ch == '\n')
-                    {
-                      scm_putc (ch, port);
-                      printed = 1;
-                    }
-                  else if (ch == '"' || ch == '\\')
-                    {
-                      scm_putc ('\\', port);
-                      scm_i_charprint (ch, port);
-                      printed = 1;
-                    }
-                  else
-                    if (uc_is_general_category_withtable
-                        (ch,
-                         UC_CATEGORY_MASK_L | UC_CATEGORY_MASK_M |
-                         UC_CATEGORY_MASK_N | UC_CATEGORY_MASK_P |
-                         UC_CATEGORY_MASK_S))
-                    {
-                      /* Print the character since it is a graphic
-                         character.  */
-                      scm_t_wchar *wbuf;
-                      SCM wstr = scm_i_make_wide_string (1, &wbuf);
-                      char *buf;
-                      size_t len;
-                      
-                      if (scm_i_get_port_encoding (port))
-                        {
-                          wstr = scm_i_make_wide_string (1, &wbuf);
-                          wbuf[0] = ch;
-                          buf = u32_conv_to_encoding (scm_i_get_port_encoding (port), 
-                                                      iconveh_error,
-                                                      (scm_t_uint32 *) wbuf, 
-                                                      1   ,
-                                                      NULL,
-                                                      NULL, &len);
-                          if (buf != NULL)
-                            {
-                              /* Character is graphic and representable in
-                                 this encoding.  Print it.  */
-                              scm_lfwrite_str (wstr, port);
-                              free (buf);
-                              printed = 1;
-                            }
-                        }
-                      else
-                        if (ch <= 0xFF)
-                          {
-                            scm_putc (ch, port);
-                            printed = 1;
-                          }
-                    }
-
-                  if (!printed)
-                    {
-                      /* Character is graphic but unrepresentable in
-                         this port's encoding or is not graphic.  */
-                      if (!SCM_R6RS_ESCAPES_P)
-                        {
-                          if (ch <= 0xFF)
-                            {
-                              buf[0] = '\\';
-                              buf[1] = 'x';
-                              buf[2] = hex[ch / 16];
-                              buf[3] = hex[ch % 16];
-                              scm_lfwrite (buf, 4, port);
-                            }
-                          else if (ch <= 0xFFFF)
-                            {
-                              buf[0] = '\\';
-                              buf[1] = 'u';
-                              buf[2] = hex[(ch & 0xF000) >> 12];
-                              buf[3] = hex[(ch & 0xF00) >> 8];
-                              buf[4] = hex[(ch & 0xF0) >> 4];
-                              buf[5] = hex[(ch & 0xF)];
-                              scm_lfwrite (buf, 6, port);
-                            }
-                          else if (ch > 0xFFFF)
-                            {
-                              buf[0] = '\\';
-                              buf[1] = 'U';
-                              buf[2] = hex[(ch & 0xF00000) >> 20];
-                              buf[3] = hex[(ch & 0xF0000) >> 16];
-                              buf[4] = hex[(ch & 0xF000) >> 12];
-                              buf[5] = hex[(ch & 0xF00) >> 8];
-                              buf[6] = hex[(ch & 0xF0) >> 4];
-                              buf[7] = hex[(ch & 0xF)];
-                              scm_lfwrite (buf, 8, port);
-                            }
-                        }
-                      else
-                        {
-                          scm_t_wchar ch2 = ch;
-                          
-                          /* Print an R6RS variable-length hex escape: "\xNNNN;"
-                          */
-                          int i = 8;
-                          buf[i] = ';';
-                          i --;
-                          if (ch == 0)
-                            buf[i--] = '0';
-                          else
-                            while (ch2 > 0)
-                              {
-                                buf[i] = hex[ch2 & 0xF];
-                                ch2 >>= 4;
-                                i --;
-                              }
-                          buf[i] = 'x';
-                          i --;
-                          buf[i] = '\\';
-                          scm_lfwrite (buf + i, 9 - i, port);
-                        }
-                    }
-                }
               scm_putc ('"', port);
               scm_remember_upto_here_1 (exp);
             }
@@ -917,16 +744,179 @@ scm_prin1 (SCM exp, SCM port, int writingp)
     }
 }
 
-/* Print a character.
- */
-void
-scm_i_charprint (scm_t_wchar ch, SCM port)
+/* Attempt to display CH to PORT according to STRATEGY.  Return non-zero
+   if CH was successfully displayed, zero otherwise (e.g., if it was not
+   representable in PORT's encoding.)  */
+static int
+display_character (scm_t_wchar ch, SCM port,
+		   scm_t_string_failed_conversion_handler strategy)
 {
-  scm_t_wchar *wbuf;
-  SCM wstr = scm_i_make_wide_string (1, &wbuf);
+  int printed;
+  const char *encoding;
 
-  wbuf[0] = ch;
-  scm_lfwrite_str (wstr, port);
+  encoding = scm_i_get_port_encoding (port);
+  if (encoding == NULL)
+    {
+      if (ch <= 0xff)
+	{
+	  scm_putc (ch, port);
+	  printed = 1;
+	}
+      else
+	printed = 0;
+    }
+  else
+    {
+      size_t len;
+      char locale_encoded[sizeof (ch)], *result;
+
+      len = sizeof (locale_encoded);
+      result = u32_conv_to_encoding (encoding, strategy,
+				     (scm_t_uint32 *) &ch, 1,
+				     NULL, locale_encoded, &len);
+      if (result != NULL)
+	{
+	  /* CH is graphic; print it.  */
+
+	  if (strategy == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
+	    {
+	      /* Apply the same escaping syntax as in `write_character'.  */
+	      if (SCM_R6RS_ESCAPES_P)
+		scm_i_unistring_escapes_to_r6rs_escapes (result, &len);
+	      else
+		scm_i_unistring_escapes_to_guile_escapes (result, &len);
+	    }
+
+	  scm_lfwrite (result, len, port);
+	  printed = 1;
+
+	  if (SCM_UNLIKELY (result != locale_encoded))
+	    free (result);
+	}
+      else
+	printed = 0;
+    }
+
+  return printed;
+}
+
+/* Write CH to PORT, escaping it if it's non-graphic or not
+   representable in PORT's encoding.  If STRING_ESCAPES_P is true and CH
+   needs to be escaped, it is escaped using the in-string escape syntax;
+   otherwise the character escape syntax is used.  */
+static void
+write_character (scm_t_wchar ch, SCM port, int string_escapes_p)
+{
+  int printed = 0;
+
+  if (string_escapes_p)
+    {
+      /* Check if CH deserves special treatment.  */
+      if (ch == '"' || ch == '\\')
+	{
+	  scm_putc ('\\', port);
+	  scm_putc (ch, port);
+	  printed = 1;
+	}
+      else if (ch == ' ' || ch == '\n')
+	{
+	  scm_putc (ch, port);
+	  printed = 1;
+	}
+    }
+  else
+    scm_puts ("#\\", port);
+
+  if (!printed
+      && uc_is_general_category_withtable (ch,
+					   UC_CATEGORY_MASK_L |
+					   UC_CATEGORY_MASK_M |
+					   UC_CATEGORY_MASK_N |
+					   UC_CATEGORY_MASK_P |
+					   UC_CATEGORY_MASK_S))
+    /* CH is graphic; attempt to display it.  */
+    printed = display_character (ch, port, iconveh_error);
+
+  if (!printed)
+    {
+      /* CH isn't graphic or cannot be represented in PORT's
+	 encoding.  */
+
+      if (string_escapes_p)
+	{
+	  /* Represent CH using the in-string escape syntax.  */
+
+	  static const char hex[] = "0123456789abcdef";
+	  char buf[9];
+
+	  if (!SCM_R6RS_ESCAPES_P)
+	    {
+	      if (ch <= 0xFF)
+		{
+		  buf[0] = '\\';
+		  buf[1] = 'x';
+		  buf[2] = hex[ch / 16];
+		  buf[3] = hex[ch % 16];
+		  scm_lfwrite (buf, 4, port);
+		}
+	      else if (ch <= 0xFFFF)
+		{
+		  buf[0] = '\\';
+		  buf[1] = 'u';
+		  buf[2] = hex[(ch & 0xF000) >> 12];
+		  buf[3] = hex[(ch & 0xF00) >> 8];
+		  buf[4] = hex[(ch & 0xF0) >> 4];
+		  buf[5] = hex[(ch & 0xF)];
+		  scm_lfwrite (buf, 6, port);
+		}
+	      else if (ch > 0xFFFF)
+		{
+		  buf[0] = '\\';
+		  buf[1] = 'U';
+		  buf[2] = hex[(ch & 0xF00000) >> 20];
+		  buf[3] = hex[(ch & 0xF0000) >> 16];
+		  buf[4] = hex[(ch & 0xF000) >> 12];
+		  buf[5] = hex[(ch & 0xF00) >> 8];
+		  buf[6] = hex[(ch & 0xF0) >> 4];
+		  buf[7] = hex[(ch & 0xF)];
+		  scm_lfwrite (buf, 8, port);
+		}
+	    }
+	  else
+	    {
+	      /* Print an R6RS variable-length hex escape: "\xNNNN;".  */
+	      scm_t_wchar ch2 = ch;
+
+	      int i = 8;
+	      buf[i] = ';';
+	      i --;
+	      if (ch == 0)
+		buf[i--] = '0';
+	      else
+		while (ch2 > 0)
+		  {
+		    buf[i] = hex[ch2 & 0xF];
+		    ch2 >>= 4;
+		    i --;
+		  }
+	      buf[i] = 'x';
+	      i --;
+	      buf[i] = '\\';
+	      scm_lfwrite (buf + i, 9 - i, port);
+	    }
+	}
+      else
+	{
+	  /* Represent CH using the character escape syntax.  */
+	  const char *name;
+
+	  name = scm_i_charname (SCM_MAKE_CHAR (ch));
+	  if (name != NULL)
+	    scm_puts (name, port);
+	  else
+	    PRINT_CHAR_ESCAPE (ch, port);
+	}
+    }
 }
 
 /* Print an integer.
@@ -1248,8 +1238,15 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
 
   SCM_VALIDATE_CHAR (1, chr);
   SCM_VALIDATE_OPORT_VALUE (2, port);
-  
-  scm_i_charprint (SCM_CHAR (chr), SCM_COERCE_OUTPORT (port));
+
+  port = SCM_COERCE_OUTPORT (port);
+  if (!display_character (SCM_CHAR (chr), port,
+			  scm_i_get_conversion_strategy (port)))
+    scm_encoding_error (__func__, errno,
+			"cannot convert to output locale",
+			"UTF-32", scm_i_get_port_encoding (port),
+			scm_string (scm_list_1 (chr)));
+
 #if 0
 #ifdef HAVE_PIPE
 # ifdef EPIPE
