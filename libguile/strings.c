@@ -1577,14 +1577,14 @@ scm_take_locale_string (char *str)
 
 /* Change libunistring escapes (\uXXXX and \UXXXXXXXX) to \xXX \uXXXX
    and \UXXXXXX.  */
-static void
-unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
+void
+scm_i_unistring_escapes_to_guile_escapes (char *buf, size_t *lenp)
 {
   char *before, *after;
   size_t i, j;
 
-  before = *bufp;
-  after = *bufp;
+  before = buf;
+  after = buf;
   i = 0;
   j = 0;
   while (i < *lenp)
@@ -1627,12 +1627,11 @@ unistring_escapes_to_guile_escapes (char **bufp, size_t *lenp)
         }
     }
   *lenp = j;
-  after = scm_realloc (after, j);
 }
 
 /* Change libunistring escapes (\uXXXX and \UXXXXXXXX) to \xXXXX; */
-static void
-unistring_escapes_to_r6rs_escapes (char **bufp, size_t *lenp)
+void
+scm_i_unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
 {
   char *before, *after;
   size_t i, j;
@@ -1641,7 +1640,7 @@ unistring_escapes_to_r6rs_escapes (char **bufp, size_t *lenp)
   size_t max_out_len = (*lenp * 7) / 6 + 1;
   size_t nzeros, ndigits;
 
-  before = *bufp;
+  before = buf;
   after = alloca (max_out_len);
   i = 0;
   j = 0;
@@ -1699,7 +1698,6 @@ unistring_escapes_to_r6rs_escapes (char **bufp, size_t *lenp)
         }
     }
   *lenp = j;
-  before = scm_realloc (before, j);
   memcpy (before, after, j);
 }
 
@@ -1817,9 +1815,11 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
   if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
     {
       if (SCM_R6RS_ESCAPES_P)
-        unistring_escapes_to_r6rs_escapes (&buf, &len);
+        scm_i_unistring_escapes_to_r6rs_escapes (buf, &len);
       else
-        unistring_escapes_to_guile_escapes (&buf, &len);
+        scm_i_unistring_escapes_to_guile_escapes (buf, &len);
+
+      buf = scm_realloc (buf, len);
     }
   if (lenp)
     *lenp = len;
