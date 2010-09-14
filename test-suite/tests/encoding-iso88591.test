@@ -87,7 +87,15 @@
              (set-port-conversion-strategy! pt 'escape)
              (write a-acute pt)
              (string=? "#\\Á"
-                       (get-output-string pt)))))
+                       (get-output-string pt))))
+
+  (pass-if "write A followed by combining accent"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "ISO-8859-1")
+             (set-port-conversion-strategy! pt 'escape)
+             (write (string #\A (integer->char #x030f)) pt)
+             (string-ci=? "\"A\\u030f\""
+                          (get-output-string pt)))))
 
 
 (define s1 "última")

@@ -800,6 +800,47 @@ display_character (scm_t_wchar ch, SCM port,
   return printed;
 }
 
+/* Attempt to pretty-print CH, a combining character, to PORT.  Return
+   zero upon failure, non-zero otherwise.  The idea is to print CH above
+   a dotted circle to make it more visible.  */
+static int
+write_combining_character (scm_t_wchar ch, SCM port)
+{
+  int printed;
+  const char *encoding;
+
+  encoding = scm_i_get_port_encoding (port);
+  if (encoding != NULL)
+    {
+      scm_t_wchar str[2];
+      char locale_encoded[sizeof (str)], *result;
+      size_t len;
+
+      str[0] = SCM_CODEPOINT_DOTTED_CIRCLE;
+      str[1] = ch;
+
+      len = sizeof (locale_encoded);
+      result = u32_conv_to_encoding (encoding, iconveh_error,
+				     (scm_t_uint32 *) str, 2,
+				     NULL, locale_encoded, &len);
+      if (result != NULL)
+	{
+	  scm_lfwrite (result, len, port);
+	  printed = 1;
+	  if (SCM_UNLIKELY (result != locale_encoded))
+	    free (result);
+	}
+      else
+	/* Can't write the result to PORT.  */
+	printed = 0;
+    }
+  else
+    /* PORT is Latin-1-encoded and can't display the fancy things.  */
+    printed = 0;
+
+  return printed;
+}
+
 /* Write CH to PORT, escaping it if it's non-graphic or not
    representable in PORT's encoding.  If STRING_ESCAPES_P is true and CH
    needs to be escaped, it is escaped using the in-string escape syntax;
@@ -825,7 +866,14 @@ write_character (scm_t_wchar ch, SCM port, int string_escapes_p)
 	}
     }
   else
-    scm_puts ("#\\", port);
+    {
+      scm_puts ("#\\", port);
+
+      if (uc_combining_class (ch) != UC_CCC_NR)
+	/* Character is a combining character, so attempt to
+	   pretty-print it.  */
+	printed = write_combining_character (ch, port);
+    }
 
   if (!printed
       && uc_is_general_category_withtable (ch,

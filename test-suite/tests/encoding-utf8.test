@@ -94,6 +94,14 @@
              (string=? "#\\Á"
                        (get-output-string pt))))
 
+  (pass-if "write A followed by combining accent"
+           (let ((pt (open-output-string)))
+             (set-port-encoding! pt "UTF-8")
+             (set-port-conversion-strategy! pt 'escape)
+             (write (string #\A (integer->char #x030f)) pt)
+             (string-ci=? "\"Ȁ\""
+                          (get-output-string pt))))
+
   (pass-if "write alpha"
            (let ((pt (open-output-string)))
              (set-port-encoding! pt "UTF-8")
