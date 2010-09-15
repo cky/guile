@@ -1023,13 +1023,15 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
 
 #define SCM_MBCHAR_BUF_SIZE (4)
 
-/* Get one codepoint from a file, using the port's encoding.  */
-scm_t_wchar
-scm_getc (SCM port)
+/* Read a codepoint from PORT and return it.  Fill BUF with the byte
+   representation of the codepoint in PORT's encoding, and set *LEN to
+   the length in bytes of that representation.  Raise an error on
+   failure.  */
+static scm_t_wchar
+get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 {
   int c;
-  unsigned int bufcount = 0;
-  char buf[SCM_MBCHAR_BUF_SIZE];
+  size_t bufcount = 0;
   scm_t_uint32 result_buf;
   scm_t_wchar codepoint = 0;
   scm_t_uint32 *u32;
@@ -1133,6 +1135,8 @@ scm_getc (SCM port)
       break;
     }
 
+  *len = bufcount;
+
   return codepoint;
 
  failure:
@@ -1155,6 +1159,15 @@ scm_getc (SCM port)
   return 0;
 }
 
+/* Read a codepoint from PORT and return it.  */
+scm_t_wchar
+scm_getc (SCM port)
+{
+  size_t len;
+  char buf[SCM_MBCHAR_BUF_SIZE];
+
+  return get_codepoint (port, buf, &len);
+}
 
 /* this should only be called when the read buffer is empty.  it
    tries to refill the read buffer.  it returns the first char from
@@ -1635,18 +1648,37 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 	    "to @code{read-char} would have hung.")
 #define FUNC_NAME s_scm_peek_char
 {
-  scm_t_wchar c, column;
+  SCM result;
+  scm_t_wchar c;
+  char bytes[SCM_MBCHAR_BUF_SIZE];
+  long column, line;
+  size_t len;
+
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
   else
     SCM_VALIDATE_OPINPORT (1, port);
-  column = SCM_COL(port);
-  c = scm_getc (port);
-  if (EOF == c)
-    return SCM_EOF_VAL;
-  scm_ungetc (c, port);
-  SCM_COL(port) = column;
-  return SCM_MAKE_CHAR (c);
+
+  column = SCM_COL (port);
+  line = SCM_LINUM (port);
+
+  c = get_codepoint (port, bytes, &len);
+  if (c == EOF)
+    result = SCM_EOF_VAL;
+  else
+    {
+      long i;
+
+      result = SCM_MAKE_CHAR (c);
+
+      for (i = len - 1; i >= 0; i--)
+	scm_unget_byte (bytes[i], port);
+
+      SCM_COL (port) = column;
+      SCM_LINUM (port) = line;
+    }
+
+  return result;
 }
 #undef FUNC_NAME
 

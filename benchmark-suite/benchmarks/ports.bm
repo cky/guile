@@ -1,0 +1,67 @@
+;;; ports.bm --- Port I/O.         -*- mode: scheme; coding: utf-8; -*-
+;;;
+;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public License
+;;; as published by the Free Software Foundation; either version 3, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this software; see the file COPYING.LESSER.  If
+;;; not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (benchmarks ports)
+  #:use-module (benchmark-suite lib))
+
+(define %latin1-port
+  (with-fluids ((%default-port-encoding #f))
+    (open-input-string "hello, world")))
+
+(define %utf8/ascii-port
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    (open-input-string "hello, world")))
+
+(define %utf8/wide-port
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    (open-input-string "안녕하세요")))
+
+
+(with-benchmark-prefix "peek-char"
+
+  (benchmark "latin-1 port" 700000
+    (peek-char %latin1-port))
+
+  (benchmark "utf-8 port, ascii character" 700000
+    (peek-char %utf8/ascii-port))
+
+  (benchmark "utf-8 port, Korean character" 700000
+    (peek-char %utf8/wide-port)))
+
+(with-benchmark-prefix "read-char"
+
+  (benchmark "latin-1 port" 10000000
+    (read-char %latin1-port))
+
+  (benchmark "utf-8 port, ascii character" 10000000
+    (read-char %utf8/ascii-port))
+
+  (benchmark "utf-8 port, Korean character" 10000000
+    (read-char %utf8/wide-port)))
+
+(with-benchmark-prefix "char-ready?"
+
+  (benchmark "latin-1 port" 10000000
+    (char-ready? %latin1-port))
+
+  (benchmark "utf-8 port, ascii character" 10000000
+    (char-ready? %utf8/ascii-port))
+
+  (benchmark "utf-8 port, Korean character" 10000000
+    (char-ready? %utf8/wide-port)))

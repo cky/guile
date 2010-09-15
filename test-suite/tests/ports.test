@@ -422,7 +422,25 @@
           (and (eq? faulty-str str)
                (string=? from "UTF-32")
                (string=? to "ISO-8859-1")
-               (string? (strerror errno))))))))
+               (string? (strerror errno)))))))
+
+  (pass-if "peek-char [latin-1]"
+    (let ((p (with-fluids ((%default-port-encoding #f))
+               (open-input-string "hello, world"))))
+      (and (char=? (peek-char p) #\h)
+           (char=? (peek-char p) #\h)
+           (char=? (peek-char p) #\h)
+           (= (port-line p) 0)
+           (= (port-column p) 0))))
+
+  (pass-if "peek-char [utf-8]"
+    (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
+               (open-input-string "안녕하세요"))))
+      (and (char=? (peek-char p) #\안)
+           (char=? (peek-char p) #\안)
+           (char=? (peek-char p) #\안)
+           (= (port-line p) 0)
+           (= (port-column p) 0)))))
 
 (with-test-prefix "call-with-output-string"
 
