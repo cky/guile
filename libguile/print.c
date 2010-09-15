@@ -768,7 +768,7 @@ display_character (scm_t_wchar ch, SCM port,
   else
     {
       size_t len;
-      char locale_encoded[sizeof (ch)], *result;
+      char locale_encoded[8 * sizeof (ch)], *result;
 
       len = sizeof (locale_encoded);
       result = u32_conv_to_encoding (encoding, strategy,
@@ -782,7 +782,16 @@ display_character (scm_t_wchar ch, SCM port,
 	    {
 	      /* Apply the same escaping syntax as in `write_character'.  */
 	      if (SCM_R6RS_ESCAPES_P)
-		scm_i_unistring_escapes_to_r6rs_escapes (result, &len);
+		{
+		  /* LOCALE_ENCODED is large enough to store an R6RS
+		     `\xNNNN;' escape sequence.  However, libunistring
+		     up to 0.9.3 (included) always returns a
+		     heap-allocated RESULT.  */
+		  if (SCM_UNLIKELY (result != locale_encoded))
+		    result = scm_realloc (result, len * 7);
+
+		  scm_i_unistring_escapes_to_r6rs_escapes (result, &len);
+		}
 	      else
 		scm_i_unistring_escapes_to_guile_escapes (result, &len);
 	    }
