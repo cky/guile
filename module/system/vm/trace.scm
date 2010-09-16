@@ -89,9 +89,8 @@
         (let* ((ip (frame-instruction-pointer frame))
                (objcode (program-objcode (frame-procedure frame)))
                (opcode (bytevector-u8-ref (objcode->bytecode objcode)
-                                          (+ ip *objcode-header-len*)))
-               (inst (opcode->instruction opcode)))
-          (format #t "0x~8X: ~a: ~a\n" ip opcode inst))))
+                                          (+ ip *objcode-header-len*))))
+          (format #t "~8d: ~a\n" ip (opcode->instruction opcode)))))
   
   (define (vm-trace-on!)
     (if calls?
