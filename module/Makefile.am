@@ -311,13 +311,13 @@ SYSTEM_SOURCES =				\
   system/vm/frame.scm				\
   system/vm/instruction.scm			\
   system/vm/objcode.scm				\
-  system/vm/profile.scm				\
   system/vm/program.scm				\
   system/vm/trace.scm				\
   system/vm/vm.scm				\
   system/foreign.scm				\
   system/xref.scm				\
   system/repl/debug.scm				\
+  system/repl/hook-state.scm			\
   system/repl/error-handling.scm		\
   system/repl/common.scm			\
   system/repl/command.scm			\
