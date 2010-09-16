@@ -875,14 +875,12 @@ virtual machine's predefined hooks:
 
 @deffn {Scheme Procedure} vm-next-hook vm
 @deffnx {Scheme Procedure} vm-apply-hook vm
-@deffnx {Scheme Procedure} vm-boot-hook vm
-@deffnx {Scheme Procedure} vm-return-hook vm
-@deffnx {Scheme Procedure} vm-break-hook vm
-@deffnx {Scheme Procedure} vm-exit-hook vm
-@deffnx {Scheme Procedure} vm-halt-hook vm
-@deffnx {Scheme Procedure} vm-enter-hook vm
-Accessors to a virtual machine's hooks. Usually you pass
-@code{(the-vm)} as the @var{vm}.
+@deffnx {Scheme Procedure} vm-push-continuation-hook vm
+@deffnx {Scheme Procedure} vm-pop-continuation-hook vm
+@deffnx {Scheme Procedure} vm-abort-continuation-hook vm
+@deffnx {Scheme Procedure} vm-restore-continuation-hook vm
+Accessors to a virtual machine's hooks. Usually you pass @code{(the-vm)}
+as the @var{vm}.
 @end deffn
 
 @deffn {Scheme Procedure} vm-trace-level vm
