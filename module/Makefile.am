@@ -317,7 +317,6 @@ SYSTEM_SOURCES =				\
   system/foreign.scm				\
   system/xref.scm				\
   system/repl/debug.scm				\
-  system/repl/hook-state.scm			\
   system/repl/error-handling.scm		\
   system/repl/common.scm			\
   system/repl/command.scm			\
