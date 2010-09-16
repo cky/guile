@@ -704,6 +704,24 @@ SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_vm_abort_continuation_hook, "vm-abort-continuation-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_abort_continuation_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_ABORT_CONTINUATION_HOOK);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_restore_continuation_hook, "vm-restore-continuation-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_restore_continuation_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_RESTORE_CONTINUATION_HOOK);
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_vm_option, "vm-option", 2, 0, 0,
 	    (SCM vm, SCM key),
 	    "")

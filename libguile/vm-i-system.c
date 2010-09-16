@@ -1142,12 +1142,17 @@ VM_DEFINE_INSTRUCTION (64, call_cc, "call/cc", 0, 1, 1)
     }
   else 
     {
-      /* otherwise, the vm continuation was reinstated, and
-         scm_i_vm_return_to_continuation pushed on one value. So pull our regs
-         back down from the vp, and march on to the next instruction. */
+      /* Otherwise, the vm continuation was reinstated, and
+         vm_return_to_continuation pushed on one value. We know only one
+         value was returned because we are in value context -- the
+         previous block jumped to vm_call, not vm_mv_call, after all.
+
+         So, pull our regs back down from the vp, and march on to the
+         next instruction. */
       CACHE_REGISTER ();
       program = SCM_FRAME_PROGRAM (fp);
       CACHE_PROGRAM ();
+      RESTORE_CONTINUATION_HOOK ();
       NEXT;
     }
 }
@@ -1177,10 +1182,17 @@ VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
   else
     {
       /* Otherwise, cache regs and NEXT, as above. Invoking the continuation
-         does a return from the frame, either to the RA or MVRA. */
+         does a return from the frame, either to the RA or
+         MVRA. */
       CACHE_REGISTER ();
       program = SCM_FRAME_PROGRAM (fp);
       CACHE_PROGRAM ();
+      /* Unfortunately we don't know whether we are at the RA, and thus
+         have one value without an nvalues marker, or we are at the
+         MVRA and thus have multiple values and the nvalues
+         marker. Instead of adding heuristics here, we will let hook
+         client code do that. */
+      RESTORE_CONTINUATION_HOOK ();
       NEXT;
     }
 }
@@ -1505,6 +1517,9 @@ VM_DEFINE_INSTRUCTION (83, prompt, "prompt", 4, 2, 0)
       CACHE_REGISTER ();
       program = SCM_FRAME_PROGRAM (fp);
       CACHE_PROGRAM ();
+      /* The stack contains the values returned to this prompt, along
+         with a number-of-values marker -- like an MV return. */
+      ABORT_CONTINUATION_HOOK ();
       NEXT;
     }
       
