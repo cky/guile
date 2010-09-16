@@ -668,51 +668,6 @@ SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
   return vp->hooks[n];					\
 }
 
-SCM_DEFINE (scm_vm_boot_hook, "vm-boot-hook", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_boot_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_BOOT_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_halt_hook, "vm-halt-hook", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_halt_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_HALT_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_next_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_NEXT_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_break_hook, "vm-break-hook", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_break_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_BREAK_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_enter_hook, "vm-enter-hook", 1, 0, 0,
-	    (SCM vm),
-	    "")
-#define FUNC_NAME s_scm_vm_enter_hook
-{
-  VM_DEFINE_HOOK (SCM_VM_ENTER_HOOK);
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 1, 0, 0,
 	    (SCM vm),
 	    "")
@@ -722,21 +677,30 @@ SCM_DEFINE (scm_vm_apply_hook, "vm-apply-hook", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_exit_hook, "vm-exit-hook", 1, 0, 0,
+SCM_DEFINE (scm_vm_push_continuation_hook, "vm-push-continuation-hook", 1, 0, 0,
 	    (SCM vm),
 	    "")
-#define FUNC_NAME s_scm_vm_exit_hook
+#define FUNC_NAME s_scm_vm_push_continuation_hook
 {
-  VM_DEFINE_HOOK (SCM_VM_EXIT_HOOK);
+  VM_DEFINE_HOOK (SCM_VM_PUSH_CONTINUATION_HOOK);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_vm_return_hook, "vm-return-hook", 1, 0, 0,
+SCM_DEFINE (scm_vm_pop_continuation_hook, "vm-pop-continuation-hook", 1, 0, 0,
 	    (SCM vm),
 	    "")
-#define FUNC_NAME s_scm_vm_return_hook
+#define FUNC_NAME s_scm_vm_pop_continuation_hook
 {
-  VM_DEFINE_HOOK (SCM_VM_RETURN_HOOK);
+  VM_DEFINE_HOOK (SCM_VM_POP_CONTINUATION_HOOK);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_vm_next_hook, "vm-next-hook", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_next_hook
+{
+  VM_DEFINE_HOOK (SCM_VM_NEXT_HOOK);
 }
 #undef FUNC_NAME
 

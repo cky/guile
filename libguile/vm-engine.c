@@ -104,7 +104,6 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
   }
 
   /* Let's go! */
-  BOOT_HOOK ();
   NEXT;
 
 #ifndef HAVE_LABELS_AS_VALUES

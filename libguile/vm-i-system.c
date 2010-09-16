@@ -31,7 +31,6 @@ VM_DEFINE_INSTRUCTION (0, nop, "nop", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
 {
-  HALT_HOOK ();
   nvalues = SCM_I_INUM (*sp--);
   NULLSTACK (1);
   if (nvalues == 1)
@@ -60,12 +59,6 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
   }
   
   goto vm_done;
-}
-
-VM_DEFINE_INSTRUCTION (2, break, "break", 0, 0, 0)
-{
-  BREAK_HOOK ();
-  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (3, drop, "drop", 0, 1, 0)
@@ -779,7 +772,7 @@ VM_DEFINE_INSTRUCTION (54, call, "call", 1, -1, 1)
   SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
   SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
   ip = SCM_C_OBJCODE_BASE (bp);
-  ENTER_HOOK ();
+  PUSH_CONTINUATION_HOOK ();
   APPLY_HOOK ();
   NEXT;
 }
@@ -818,8 +811,6 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
       CHECK_STACK_LEAK ();
 #endif
 
-      EXIT_HOOK ();
-
       /* switch programs */
       CACHE_PROGRAM ();
       /* shuffle down the program and the arguments */
@@ -832,7 +823,6 @@ VM_DEFINE_INSTRUCTION (55, tail_call, "tail-call", 1, -1, 1)
 
       ip = SCM_C_OBJCODE_BASE (bp);
 
-      ENTER_HOOK ();
       APPLY_HOOK ();
       NEXT;
     }
@@ -1083,7 +1073,7 @@ VM_DEFINE_INSTRUCTION (61, mv_call, "mv-call", 4, -1, 1)
   SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
   SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
   ip = SCM_C_OBJCODE_BASE (bp);
-  ENTER_HOOK ();
+  PUSH_CONTINUATION_HOOK ();
   APPLY_HOOK ();
   NEXT;
 }
@@ -1198,8 +1188,7 @@ VM_DEFINE_INSTRUCTION (65, tail_call_cc, "tail-call/cc", 0, 1, 1)
 VM_DEFINE_INSTRUCTION (66, return, "return", 0, 1, 1)
 {
  vm_return:
-  EXIT_HOOK ();
-  RETURN_HOOK (1);
+  POP_CONTINUATION_HOOK (1);
 
   VM_HANDLE_INTERRUPTS;
 
@@ -1238,8 +1227,7 @@ VM_DEFINE_INSTRUCTION (67, return_values, "return/values", 1, -1, -1)
      that perhaps it might be used without declaration. Fooey to that, I say. */
   nvalues = FETCH ();
  vm_return_values:
-  EXIT_HOOK ();
-  RETURN_HOOK (nvalues);
+  POP_CONTINUATION_HOOK (nvalues);
 
   VM_HANDLE_INTERRUPTS;
 

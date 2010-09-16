@@ -28,8 +28,9 @@
             vms:time vms:clock
 
             vm-trace-level set-vm-trace-level!
-            vm-next-hook vm-apply-hook vm-boot-hook vm-return-hook
-            vm-break-hook vm-exit-hook vm-halt-hook vm-enter-hook))
+            vm-push-continuation-hook vm-pop-continuation-hook
+            vm-apply-hook
+            vm-next-hook))
 
 (load-extension (string-append "libguile-" (effective-version))
                 "scm_init_vm")

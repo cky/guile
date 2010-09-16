@@ -22,15 +22,13 @@
 #include <libguile.h>
 #include <libguile/programs.h>
 
-#define SCM_VM_BOOT_HOOK	0
-#define SCM_VM_HALT_HOOK	1
-#define SCM_VM_NEXT_HOOK	2
-#define SCM_VM_BREAK_HOOK	3
-#define SCM_VM_ENTER_HOOK	4
-#define SCM_VM_APPLY_HOOK	5
-#define SCM_VM_EXIT_HOOK	6
-#define SCM_VM_RETURN_HOOK	7
-#define SCM_VM_NUM_HOOKS	8
+enum {
+  SCM_VM_APPLY_HOOK,
+  SCM_VM_PUSH_CONTINUATION_HOOK,
+  SCM_VM_POP_CONTINUATION_HOOK,
+  SCM_VM_NEXT_HOOK,
+  SCM_VM_NUM_HOOKS,
+};
 
 struct scm_vm;
 
@@ -73,14 +71,10 @@ SCM_API SCM scm_vm_p (SCM obj);
 SCM_API SCM scm_vm_ip (SCM vm);
 SCM_API SCM scm_vm_sp (SCM vm);
 SCM_API SCM scm_vm_fp (SCM vm);
-SCM_API SCM scm_vm_boot_hook (SCM vm);
-SCM_API SCM scm_vm_halt_hook (SCM vm);
-SCM_API SCM scm_vm_next_hook (SCM vm);
-SCM_API SCM scm_vm_break_hook (SCM vm);
-SCM_API SCM scm_vm_enter_hook (SCM vm);
 SCM_API SCM scm_vm_apply_hook (SCM vm);
-SCM_API SCM scm_vm_exit_hook (SCM vm);
-SCM_API SCM scm_vm_return_hook (SCM vm);
+SCM_API SCM scm_vm_push_continuation_hook (SCM vm);
+SCM_API SCM scm_vm_pop_continuation_hook (SCM vm);
+SCM_API SCM scm_vm_next_hook (SCM vm);
 SCM_API SCM scm_vm_option (SCM vm, SCM key);
 SCM_API SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
 SCM_API SCM scm_vm_trace_level (SCM vm);
