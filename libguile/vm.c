@@ -193,6 +193,7 @@ vm_dispatch_hook (SCM vm, int hook_num)
   struct scm_frame c_frame;
   scm_t_aligned_cell frame;
   SCM args[1];
+  int saved_trace_level;
 
   vp = SCM_VM_DATA (vm);
   hook = vp->hooks[hook_num];
@@ -201,7 +202,8 @@ vm_dispatch_hook (SCM vm, int hook_num)
       || scm_is_null (SCM_HOOK_PROCEDURES (hook)))
     return;
 
-  vp->trace_level--;
+  saved_trace_level = vp->trace_level;
+  vp->trace_level = 0;
 
   /* Allocate a frame object on the stack.  This is more efficient than calling
      `scm_c_make_frame ()' to allocate on the heap, but it forces hooks to not
@@ -222,7 +224,7 @@ vm_dispatch_hook (SCM vm, int hook_num)
 
   scm_c_run_hookn (hook, args, 1);
 
-  vp->trace_level++;
+  vp->trace_level = saved_trace_level;
 }
 
 static void vm_abort (SCM vm, size_t n, scm_t_int64 cookie) SCM_NORETURN;
