@@ -36,7 +36,8 @@
 	  unsyntax-splicing
 
 	  syntax-violation)
-  (import (only (guile) syntax-case
+  (import (only (guile) make-variable-transformer
+		        syntax-case
 		        syntax
 		        
 		        identifier?
