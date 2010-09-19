@@ -42,9 +42,10 @@
     (thunk)))
 
 (define (default-trap-handler frame idx trap-name)
-  (if %default-trap-handler
-      ((fluid-ref %default-trap-handler) frame idx trap-name)
-      (warn "Trap with no handler installed" frame idx trap-name)))
+  (let ((default-handler (fluid-ref %default-trap-handler)))
+    (if default-handler
+        (default-handler frame idx trap-name)
+        (warn "Trap with no handler installed" frame idx trap-name))))
 
 (define-record <trap-wrapper>
   index
