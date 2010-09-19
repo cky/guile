@@ -27,6 +27,7 @@
   #:use-module (system repl debug)
   #:use-module (system vm objcode)
   #:use-module (system vm program)
+  #:use-module (system vm trap-state)
   #:use-module (system vm vm)
   #:autoload (system base language) (lookup-language language-reader)
   #:autoload (system vm trace) (vm-trace)
@@ -55,7 +56,8 @@
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
-              (procedure proc) (locals) (error-message error))
+              (procedure proc) (locals) (error-message error)
+              (break br))
     (inspect  (inspect i) (pretty-print pp))
     (system   (gc) (statistics stat) (option o)
               (quit q continue cont))))
@@ -476,14 +478,6 @@ Trace execution."
                    body body* ...)
                  (format #t "Nothing to debug.~%"))))))))
 
-(define-stack-command (error-message repl)
-  "error-message
-Show error message.
-
-Display the message associated with the error that started the current
-debugging REPL."
-  (format #t "~a~%" (if (string? message) message "No error message")))
-
 (define-stack-command (backtrace repl #:optional count
                                  #:key (width 72) full?)
   "backtrace [COUNT] [#:width W] [#:full? F]
@@ -565,6 +559,26 @@ Show local variables.
 
 Show locally-bound variables in the selected frame."
   (print-locals cur))
+
+(define-stack-command (error-message repl)
+  "error-message
+Show error message.
+
+Display the message associated with the error that started the current
+debugging REPL."
+  (format #t "~a~%" (if (string? message) message "No error message")))
+
+(define-meta-command (break repl (form))
+  "break PROCEDURE
+Break on calls to PROCEDURE.
+
+Starts a recursive prompt when PROCEDURE is called."
+  (let ((proc (repl-eval repl (repl-parse repl form))))
+    (if (not (procedure? proc))
+        (error "Not a procedure: ~a" proc)
+        (let ((idx (add-trap-at-procedure-call! proc)))
+          (format #t "Added breakpoint ~a at ~a.~%" idx proc)))))
+
 
 
 ;;;

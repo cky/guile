@@ -314,6 +314,7 @@ SYSTEM_SOURCES =				\
   system/vm/program.scm				\
   system/vm/trace.scm				\
   system/vm/traps.scm				\
+  system/vm/trap-state.scm			\
   system/vm/vm.scm				\
   system/foreign.scm				\
   system/xref.scm				\

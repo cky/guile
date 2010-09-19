@@ -21,6 +21,7 @@
 
 (define-module (system repl error-handling)
   #:use-module (system base pmatch)
+  #:use-module (system vm trap-state)
   #:use-module (system repl debug)
   #:export (call-with-error-handling
             with-error-handling))
@@ -56,8 +57,34 @@
               (with-error-to-port err
                 thunk))))))
 
+    (define (debug-trap-handler frame trap-idx trap-name)
+      (let* ((tag (and (pair? (fluid-ref %stacks))
+                       (cdar (fluid-ref %stacks))))
+             (stack (narrow-stack->vector
+                     (make-stack frame)
+                     ;; Take the stack from the given frame, cutting 0
+                     ;; frames.
+                     0
+                     ;; Narrow the end of the stack to the most recent
+                     ;; start-stack.
+                     tag
+                     ;; And one more frame, because %start-stack
+                     ;; invoking the start-stack thunk has its own frame
+                     ;; too.
+                     0 (and tag 1)))
+             (error-msg (format #f "Trap ~d: ~a" trap-idx trap-name))
+             (debug (make-debug stack 0 error-msg)))
+        (with-saved-ports
+         (lambda ()
+           (format #t "~a~%" error-msg)
+           (format #t "Entering a new prompt.  ")
+           (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
+           ((@ (system repl repl) start-repl) #:debug debug)))))
+
     (catch #t
-      (lambda () (%start-stack #t thunk))
+      (lambda () 
+        (with-default-trap-handler debug-trap-handler
+          (lambda () (%start-stack #t thunk))))
 
       (case post-error
         ((report)
