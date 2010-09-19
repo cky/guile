@@ -24,7 +24,6 @@
 
 #include "libguile/__scm.h"
 
-SCM_INTERNAL SCM scm_srfi1_alist_copy (SCM alist);
 SCM_INTERNAL SCM scm_srfi1_append_reverse (SCM revhead, SCM tail);
 SCM_INTERNAL SCM scm_srfi1_append_reverse_x (SCM revhead, SCM tail);
 SCM_INTERNAL SCM scm_srfi1_concatenate (SCM lstlst);

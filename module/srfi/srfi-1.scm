@@ -664,6 +664,15 @@ CLIST1 ... CLISTN, that satisfies PRED."
 
 (define alist-cons acons)
 
+(define (alist-copy alist)
+  "Return a copy of ALIST, copying both the pairs comprising the list
+and those making the associations."
+  (let lp ((a  alist)
+           (rl '()))
+    (if (null? a)
+        (reverse! rl)
+        (lp (cdr a) (alist-cons (caar a) (cdar a) rl)))))
+
 (define* (alist-delete key alist #:optional (k= equal?))
   (let lp ((a alist) (rl '()))
     (if (null? a)
