@@ -57,7 +57,8 @@
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
               (procedure proc) (locals) (error-message error)
-              (break br))
+              (break br)
+              (traps) (delete del) (disable) (enable))
     (inspect  (inspect i) (pretty-print pp))
     (system   (gc) (statistics stat) (option o)
               (quit q continue cont))))
@@ -578,6 +579,47 @@ Starts a recursive prompt when PROCEDURE is called."
         (error "Not a procedure: ~a" proc)
         (let ((idx (add-trap-at-procedure-call! proc)))
           (format #t "Added breakpoint ~a at ~a.~%" idx proc)))))
+
+(define-meta-command (traps repl)
+  "traps
+Show the set of currently attached traps.
+
+Show the set of currently attached traps (breakpoints)."
+  (let ((traps (list-traps)))
+    (if (null? traps)
+        (format #t "No traps enabled.~%")
+        (for-each (lambda (idx name)
+                    (format #t "  ~a: ~a~a~%"
+                            idx name
+                            (if (trap-enabled? idx) "" " (disabled)")))
+                  (map car traps) (map cdr traps)))))
+
+(define-meta-command (delete repl idx)
+  "delete IDX
+Delete a trap.
+
+Delete a trap."
+  (if (not (integer? idx))
+      (error "expected a trap index (a non-negative integer)" idx)
+      (delete-trap! idx)))
+
+(define-meta-command (disable repl idx)
+  "disable IDX
+Disable a trap.
+
+Disable a trap."
+  (if (not (integer? idx))
+      (error "expected a trap index (a non-negative integer)" idx)
+      (disable-trap! idx)))
+
+(define-meta-command (enable repl idx)
+  "enable IDX
+Enable a trap.
+
+Enable a trap."
+  (if (not (integer? idx))
+      (error "expected a trap index (a non-negative integer)" idx)
+      (enable-trap! idx)))
 
 
 
