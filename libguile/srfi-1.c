@@ -44,25 +44,6 @@
  */
 
 
-/* The `(srfi srfi-1)' module.  */
-static SCM srfi1_module = SCM_BOOL_F;
-
-/* Cache variable NAME in C variable VAR.  */
-#define CACHE_VAR(var, name)						\
-  static SCM var = SCM_BOOL_F;						\
-  if (scm_is_false (var))						\
-    {									\
-      if (SCM_UNLIKELY (scm_is_false (srfi1_module)))			\
-	srfi1_module = scm_c_resolve_module ("srfi srfi-1");		\
-									\
-      var = scm_module_variable (srfi1_module,				\
-                                 scm_from_locale_symbol (name));	\
-      if (SCM_UNLIKELY (scm_is_false (var)))				\
-        abort ();							\
-									\
-      var = SCM_VARIABLE_REF (var);					\
-    }
-
 static long
 srfi1_ilength (SCM sx)
 {
@@ -214,27 +195,6 @@ SCM_DEFINE (scm_srfi1_append_reverse_x, "append-reverse!", 2, 0, 0,
   return tail;
 }
 #undef FUNC_NAME
-
-SCM
-scm_srfi1_break (SCM pred, SCM lst)
-{
-  CACHE_VAR (break_proc, "break");
-  return scm_call_2 (break_proc, pred, lst);
-}
-
-SCM
-scm_srfi1_break_x (SCM pred, SCM lst)
-{
-  CACHE_VAR (break_x, "break!");
-  return scm_call_2 (break_x, pred, lst);
-}
-
-SCM
-scm_srfi1_car_plus_cdr (SCM pair)
-{
-  CACHE_VAR (car_plus_cdr, "car+cdr");
-  return scm_call_1 (car_plus_cdr, pair);
-}
 
 SCM_DEFINE (scm_srfi1_concatenate, "concatenate", 1, 0, 0,
             (SCM lstlst),
@@ -691,35 +651,6 @@ SCM_DEFINE (scm_srfi1_drop_right, "drop-right", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_srfi1_drop_right_x (SCM lst, SCM n)
-{
-  CACHE_VAR (drop_right_x, "drop-right!");
-  return scm_call_2 (drop_right_x, lst, n);
-}
-
-SCM
-scm_srfi1_drop_while (SCM pred, SCM lst)
-{
-  CACHE_VAR (drop_while, "drop-while");
-  return scm_call_2 (drop_while, pred, lst);
-}
-
-SCM
-scm_srfi1_eighth (SCM lst)
-{
-  CACHE_VAR (eighth, "eighth");
-  return scm_call_1 (eighth, lst);
-}
-
-SCM
-scm_srfi1_fifth (SCM lst)
-{
-  CACHE_VAR (fifth, "fifth");
-  return scm_call_1 (fifth, lst);
-}
-
-
 SCM_DEFINE (scm_srfi1_filter_map, "filter-map", 2, 0, 1,
             (SCM proc, SCM list1, SCM rest),
 	    "Apply @var{proc} to to the elements of @var{list1} @dots{} and\n"
@@ -869,20 +800,6 @@ SCM_DEFINE (scm_srfi1_find_tail, "find-tail", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_srfi1_fold (SCM proc, SCM init, SCM list1, SCM rest)
-{
-  CACHE_VAR (fold, "fold");
-  return scm_apply_3 (fold, proc, init, list1, rest);
-}
-
-SCM
-scm_srfi1_last (SCM lst)
-{
-  CACHE_VAR (last, "last");
-  return scm_call_1 (last, lst);
-}
-
 SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
             (SCM lst),
 	    "Return the length of @var{lst}, or @code{#f} if @var{lst} is\n"
@@ -894,13 +811,6 @@ SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-
-SCM
-scm_srfi1_list_index (SCM pred, SCM list1, SCM rest)
-{
-  CACHE_VAR (list_index, "list-index");
-  return scm_apply_2 (list_index, pred, list1, rest);
-}
 
 /* This routine differs from the core list-copy in allowing improper lists.
    Maybe the core could allow them similarly.  */
@@ -933,20 +843,6 @@ SCM_DEFINE (scm_srfi1_list_copy, "list-copy", 1, 0, 0,
   return newlst;
 }
 #undef FUNC_NAME
-
-SCM
-scm_srfi1_list_tabulate (SCM n, SCM proc)
-{
-  CACHE_VAR (list_tabulate, "list-tabulate");
-  return scm_call_2 (list_tabulate, n, proc);
-}
-
-SCM
-scm_srfi1_lset_adjoin (SCM equal, SCM lst, SCM rest)
-{
-  CACHE_VAR (lset_adjoin, "lset-adjoin");
-  return scm_apply_1 (lset_adjoin, lst, rest);
-}
 
 SCM_DEFINE (scm_srfi1_lset_difference_x, "lset-difference!", 2, 0, 1,
             (SCM equal, SCM lst, SCM rest),
@@ -1271,21 +1167,6 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 }
 #undef FUNC_NAME
 
-
-SCM
-scm_srfi1_ninth (SCM lst)
-{
-  CACHE_VAR (ninth, "ninth");
-  return scm_call_1 (ninth, lst);
-}
-
-SCM
-scm_srfi1_not_pair_p (SCM obj)
-{
-  CACHE_VAR (not_pair_p, "not-pair?");
-  return scm_call_1 (not_pair_p, obj);
-}
-
 SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 	    (SCM pred, SCM list),
 	    "Partition the elements of @var{list} with predicate @var{pred}.\n"
@@ -1386,20 +1267,6 @@ SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_srfi1_reduce (SCM proc, SCM def, SCM lst)
-{
-  CACHE_VAR (reduce, "reduce");
-  return scm_call_3 (reduce, proc, def, lst);
-}
-
-SCM
-scm_srfi1_reduce_right (SCM proc, SCM def, SCM lst)
-{
-  CACHE_VAR (reduce_right, "reduce-right");
-  return scm_call_3 (reduce_right, proc, def, lst);
-}
-
 SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
 	    (SCM pred, SCM list),
 	    "Return a list containing all elements from @var{lst} which do\n"
@@ -1461,34 +1328,6 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM
-scm_srfi1_seventh (SCM lst)
-{
-  CACHE_VAR (seventh, "seventh");
-  return scm_call_1 (seventh, lst);
-}
-
-SCM
-scm_srfi1_sixth (SCM lst)
-{
-  CACHE_VAR (sixth, "sixth");
-  return scm_call_1 (sixth, lst);
-}
-
-SCM
-scm_srfi1_span (SCM pred, SCM lst)
-{
-  CACHE_VAR (span, "span");
-  return scm_call_2 (span, pred, lst);
-}
-
-SCM
-scm_srfi1_span_x (SCM pred, SCM lst)
-{
-  CACHE_VAR (span_x, "span!");
-  return scm_call_2 (span_x, pred, lst);
-}
-
 SCM_DEFINE (scm_srfi1_split_at, "split-at", 2, 0, 0,
             (SCM lst, SCM n),
 	    "Return two values (multiple values), being a list of the\n"
@@ -1539,13 +1378,6 @@ SCM_DEFINE (scm_srfi1_split_at_x, "split-at!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_srfi1_take_x (SCM lst, SCM n)
-{
-  CACHE_VAR (take_x, "take!");
-  return scm_call_2 (take_x, lst, n);
-}
-
 SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
             (SCM lst, SCM n),
 	    "Return the a list containing the @var{n} last elements of\n"
@@ -1562,35 +1394,6 @@ SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
   return lst;
 }
 #undef FUNC_NAME
-
-
-SCM
-scm_srfi1_take_while (SCM pred, SCM lst)
-{
-  CACHE_VAR (take_while, "take-while");
-  return scm_call_2 (take_while, pred, lst);
-}
-
-SCM
-scm_srfi1_take_while_x (SCM pred, SCM lst)
-{
-  CACHE_VAR (take_while_x, "take-while!");
-  return scm_call_2 (take_while_x, pred, lst);
-}
-
-SCM
-scm_srfi1_tenth (SCM lst)
-{
-  CACHE_VAR (tenth, "tenth");
-  return scm_call_1 (tenth, lst);
-}
-
-SCM
-scm_srfi1_xcons (SCM d, SCM a)
-{
-  CACHE_VAR (xcons, "xcons");
-  return scm_call_2 (xcons, d, a);
-}
 
 
 void
