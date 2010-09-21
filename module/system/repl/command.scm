@@ -438,7 +438,7 @@ Time execution."
 Profile execution."
   ;; FIXME opts
   (apply statprof
-         (make-program (repl-compile repl (repl-parse repl form)))
+         (repl-prepare-eval-thunk repl (repl-parse repl form))
          opts))
 
 (define-meta-command (trace repl (form) . opts)
@@ -447,7 +447,7 @@ Trace execution."
   ;; FIXME: doc options, or somehow deal with them better
   (apply vm-trace
          (the-vm)
-         (make-program (repl-compile repl (repl-parse repl form)))
+         (repl-prepare-eval-thunk repl (repl-parse repl form))
          opts))
 
 
@@ -630,14 +630,14 @@ Enable a trap."
 (define-stack-command (inspect repl (form))
   "inspect EXP
 Inspect the result(s) of evaluating EXP."
-  (call-with-values (make-program (repl-compile repl (repl-parse repl form)))
+  (call-with-values (repl-prepare-eval-thunk repl (repl-parse repl form))
     (lambda args
       (for-each %inspect args))))
 
 (define-meta-command (pretty-print repl (form))
   "pretty-print EXP
 Pretty-print the result(s) of evaluating EXP."
-  (call-with-values (make-program (repl-compile repl (repl-parse repl form)))
+  (call-with-values (repl-prepare-eval-thunk repl (repl-parse repl form))
     (lambda args
       (for-each
        (lambda (x)
