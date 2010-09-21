@@ -69,8 +69,8 @@ We're now ready to try some basic GOOPS functionality.
 
 @menu
 * Methods::
+* Built-in classes::
 * User-defined classes::
-* Asking for the class of an object::
 @end menu
 
 
@@ -95,6 +95,32 @@ classes, Guile falls back to using the normal Scheme @code{+} procedure.
 @end lisp
 
 
+@node Built-in classes
+@subsection Built-in classes
+
+There are built-in classes like @code{<string>}, @code{<list>} and
+@code{<number>} corresponding to all the Guile Scheme types.  You can
+use the @code{is-a?} predicate to ask whether any given value belongs to
+a given class, or @code{class-of} to discover the class of a given
+value.
+
+@lisp
+(is-a? 2.3 <number>) @result{} #t
+(is-a? 2.3 <real>) @result{} #t
+(is-a? 2.3 <string>) @result{} #f
+(is-a? '("a" "b") <string>) @result{} #f
+(is-a? '("a" "b") <list>) @result{} #t
+(is-a? (car '("a" "b")) <string>) @result{} #t
+(is-a? <string> <class>) @result{} #t
+(is-a? <class> <string>) @result{} #f
+
+(class-of 2.3) @result{} #<<class> <real> 908c708>
+(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
+(class-of <string>) @result{} #<<class> <class> 8bd3e10>
+(class-of <class>) @result{} #<<class> <class> 8bd3e10>
+@end lisp
+
+
 @node User-defined classes
 @subsection User-defined classes
 
@@ -112,6 +138,8 @@ classes, Guile falls back to using the normal Scheme @code{+} procedure.
 (define v (make <2D-vector> #:x 3 #:y 4))
 
 v @result{} <3, 4>
+(is-a? v <2D-vector>) @result{} #t
+(class-of v) @result{} #<<class> <2D-vector> 40241ac0>
 @end group
 
 @group
@@ -124,17 +152,6 @@ v @result{} <3, 4>
 @end group
 @end lisp
 
-@node Asking for the class of an object
-@subsection Classes
-
-@example
-(class-of v) @result{} #<<class> <2D-vector> 40241ac0>
-<2D-vector>  @result{} #<<class> <2D-vector> 40241ac0>
-(class-of 1) @result{} #<<class> <integer> 401b2a98>
-<integer>    @result{} #<<class> <integer> 401b2a98>
-
-(is-a? v <2D-vector>) @result{} #t
-@end example
 
 @node Tutorial
 @section Tutorial
