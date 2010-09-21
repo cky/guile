@@ -59,9 +59,6 @@ permission.
 @node Quick Start
 @section Quick Start
 
-To give an immediate flavour of what GOOPS can do, here is a very
-brief introduction to its main operations.
-
 To start using GOOPS, load the @code{(oop goops)} module:
 
 @lisp
@@ -72,15 +69,16 @@ We're now ready to try some basic GOOPS functionality.
 
 @menu
 * Methods::
-* User-defined types::
-* Asking for the type of an object::
+* User-defined classes::
+* Asking for the class of an object::
 @end menu
+
 
 @node Methods
 @subsection Methods
 
 A GOOPS method is like a Scheme procedure except that it is
-specialized for a particular set of argument types.
+specialized for a particular set of argument classes.
 
 @lisp
 (define-method (+ (x <string>) (y <string>))
@@ -90,15 +88,15 @@ specialized for a particular set of argument types.
 @end lisp
 
 If @code{+} is used with arguments that do not match the method's
-types, Guile falls back to using the normal Scheme @code{+} procedure.
+classes, Guile falls back to using the normal Scheme @code{+} procedure.
 
 @lisp
 (+ 1 2) @result{} 3
 @end lisp
 
 
-@node User-defined types
-@subsection User-defined types
+@node User-defined classes
+@subsection User-defined classes
 
 @lisp
 (define-class <2D-vector> ()
@@ -126,8 +124,8 @@ v @result{} <3, 4>
 @end group
 @end lisp
 
-@node Asking for the type of an object
-@subsection Types
+@node Asking for the class of an object
+@subsection Classes
 
 @example
 (class-of v) @result{} #<<class> <2D-vector> 40241ac0>
