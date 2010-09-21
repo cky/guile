@@ -47,32 +47,12 @@ The main @goops{} module is imported by evaluating:
 @cindex preparing
 
 @menu
-* Copyright::
 * Class definition::  
 * Instance creation and slot access::  
 * Slot description::            
 * Inheritance::                 
 * Generic functions::           
 @end menu
-
-@node Copyright
-@subsection Copyright
-
-Original attribution:
-
-STk Reference manual (Appendix: An Introduction to STklos)
-
-Copyright © 1993-1999 Erick Gallesio - I3S-CNRS/ESSI <eg@@unice.fr>
-Permission to use, copy, modify, distribute,and license this
-software and its documentation for any purpose is hereby granted,
-provided that existing copyright notices are retained in all
-copies and that this notice is included verbatim in any
-distributions.  No written agreement, license, or royalty fee is
-required for any of the authorized uses.
-This software is provided ``AS IS'' without express or implied
-warranty.
-
-Adapted for use in Guile with the author's permission
 
 @node Class definition
 @subsection Class definition
