@@ -22,6 +22,7 @@
 
 (define-module (system vm trap-state)
   #:use-module (system base syntax)
+  #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module (system vm vm)
   #:use-module (system vm traps)
   #:export (list-traps
@@ -36,10 +37,6 @@
             add-trap-at-procedure-call!))
 
 (define %default-trap-handler (make-fluid))
-
-(define (with-default-trap-handler handler thunk)
-  (with-fluids ((%default-trap-handler handler))
-    (thunk)))
 
 (define (default-trap-handler frame idx trap-name)
   (let ((default-handler (fluid-ref %default-trap-handler)))
@@ -86,6 +83,14 @@
 
 (define (remove-trap-wrapper! trap-state wrapper)
   (delq wrapper (trap-state-wrappers trap-state)))
+
+(define (trap-state->trace-level trap-state)
+  (fold (lambda (wrapper level)
+          (if (trap-wrapper-enabled? wrapper)
+              (1+ level)
+              level))
+        0
+        (trap-state-wrappers trap-state)))
 
 (define (wrapper-at-index trap-state idx)
   (let lp ((wrappers (trap-state-wrappers trap-state)))
@@ -134,6 +139,16 @@
 ;;;
 ;;; API
 ;;;
+
+(define* (with-default-trap-handler handler thunk
+                                    #:optional (trap-state (the-trap-state)))
+  (with-fluids ((%default-trap-handler handler))
+    (dynamic-wind
+      (lambda ()
+        (set-vm-trace-level! (the-vm) (trap-state->trace-level trap-state)))
+      thunk
+      (lambda ()
+        (set-vm-trace-level! (the-vm) 0)))))
 
 (define* (list-traps #:optional (trap-state (the-trap-state)))
   (map (lambda (wrapper)

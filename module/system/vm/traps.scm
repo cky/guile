@@ -87,14 +87,12 @@
     (define* (enable-trap #:optional frame)
       (if enabled? (error "trap already enabled"))
       (enable frame)
-      (set-vm-trace-level! vm (1+ (vm-trace-level vm)))
       (set! enabled? #t)
       disable-trap)
     
     (define* (disable-trap #:optional frame)
       (if disabled? (error "trap already disabled"))
       (disable frame)
-      (set-vm-trace-level! vm (1- (vm-trace-level vm)))
       (set! disabled? #t)
       enable-trap)
 
