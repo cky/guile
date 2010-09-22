@@ -124,32 +124,57 @@ value.
 @node User-defined classes
 @subsection User-defined classes
 
+You can, of course, also define new classes.  The GOOPS term for
+``fields'' or ``member variables'' is @dfn{slots}, and the main thing
+you have to specify, when defining a new class, is what its slots will
+be, and how they will be initialised and accessed.
+
 @lisp
 (define-class <2D-vector> ()
   (x #:init-value 0 #:accessor x-component #:init-keyword #:x)
   (y #:init-value 0 #:accessor y-component #:init-keyword #:y))
+@end lisp
 
-@group
+Methods are not (formally) part of a specific class's definition,
+because a single method can be associated with several classes.  If
+you've studied object orientation in non-Lispy languages, you may
+remember discussions such as whether a method to stretch a graphical
+image around a surface should be a method of the image class, with a
+surface as a parameter, or a method of the surface class, with an image
+as a parameter.  In the generic function approach that GOOPS provides,
+this question does not arise.
+
+Here we customise @code{write} for the new class, so that
+@code{<2D-vector>} objects will be nicely printed:
+
+@lisp
 (use-modules (ice-9 format))
 
 (define-method (write (obj <2D-vector>) port)
   (format port "<~S, ~S>" (x-component obj) (y-component obj)))
+@end lisp
 
+To make an @dfn{instance} or @dfn{object} of your new class, use
+@code{make} together with the class and any initialisation arguments:
+
+@lisp
 (define v (make <2D-vector> #:x 3 #:y 4))
 
 v @result{} <3, 4>
 (is-a? v <2D-vector>) @result{} #t
 (class-of v) @result{} #<<class> <2D-vector> 40241ac0>
-@end group
+@end lisp
 
-@group
+Here is another method that is specialised for @code{<2D-vector>}
+objects, to add two of them together:
+
+@lisp
 (define-method (+ (x <2D-vector>) (y <2D-vector>))
   (make <2D-vector>
         #:x (+ (x-component x) (x-component y))
         #:y (+ (y-component x) (y-component y))))
 
 (+ v v) @result{} <6, 8>
-@end group
 @end lisp
 
 
