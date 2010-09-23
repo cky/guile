@@ -163,7 +163,8 @@
                                     (repl-print repl v))
                                   l))))
                   (lambda (k . args)
-                    (abort args)))))))
+                    (abort args))))
+              #:trap-handler 'disabled)))
            (next-char #f) ;; consume trailing whitespace
            (prompt-loop))))
      (lambda (k status)

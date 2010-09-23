@@ -145,10 +145,13 @@
   (with-fluids ((%default-trap-handler handler))
     (dynamic-wind
       (lambda ()
-        (set-vm-trace-level! (the-vm) (trap-state->trace-level trap-state)))
+        ;; Don't enable hooks if the handler is #f.
+        (if handler
+            (set-vm-trace-level! (the-vm) (trap-state->trace-level trap-state))))
       thunk
       (lambda ()
-        (set-vm-trace-level! (the-vm) 0)))))
+        (if handler
+            (set-vm-trace-level! (the-vm) 0))))))
 
 (define* (list-traps #:optional (trap-state (the-trap-state)))
   (map (lambda (wrapper)

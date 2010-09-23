@@ -45,7 +45,7 @@
 
 (define* (call-with-error-handling thunk #:key
                                    (on-error 'debug) (post-error 'catch)
-                                   (pass-keys '(quit)))
+                                   (pass-keys '(quit)) (trap-handler 'debug))
   (let ((in (current-input-port))
         (out (current-output-port))
         (err (current-error-port)))
@@ -81,9 +81,19 @@
            (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
            ((@ (system repl repl) start-repl) #:debug debug)))))
 
+    (define (null-trap-handler frame trap-idx trap-name)
+      #t)
+
+    (define le-trap-handler
+      (case trap-handler
+        ((debug) debug-trap-handler)
+        ((pass) null-trap-handler)
+        ((disabled) #f)
+        (else (error "Unknown trap-handler strategy" trap-handler))))
+
     (catch #t
       (lambda () 
-        (with-default-trap-handler debug-trap-handler
+        (with-default-trap-handler le-trap-handler
           (lambda () (%start-stack #t thunk))))
 
       (case post-error
@@ -93,16 +103,16 @@
                (apply throw key args)
                (begin
                  (pmatch args
-                  ((,subr ,msg ,args . ,rest)
-                   (with-saved-ports
-                    (lambda ()
-                      (run-hook before-error-hook)
-                      (display-error #f err subr msg args rest)
-                      (run-hook after-error-hook)
-                      (force-output err))))
-                  (else
-                   (format err "\nERROR: uncaught throw to `~a', args: ~a\n"
-                           key args)))
+                   ((,subr ,msg ,args . ,rest)
+                    (with-saved-ports
+                     (lambda ()
+                       (run-hook before-error-hook)
+                       (display-error #f err subr msg args rest)
+                       (run-hook after-error-hook)
+                       (force-output err))))
+                   (else
+                    (format err "\nERROR: uncaught throw to `~a', args: ~a\n"
+                            key args)))
                  (if #f #f)))))
         ((catch)
          (lambda (key . args)
@@ -110,7 +120,7 @@
                (apply throw key args))))
         (else
          (if (procedure? post-error)
-             post-error ; a handler proc
+             post-error                 ; a handler proc
              (error "Unknown post-error strategy" post-error))))
 
       (case on-error
@@ -143,7 +153,7 @@
            #t))
         (else
          (if (procedure? on-error)
-             on-error ; pre-unwind handler
+             on-error                   ; pre-unwind handler
              (error "Unknown on-error strategy" on-error)))))))
 
 (define-syntax with-error-handling
