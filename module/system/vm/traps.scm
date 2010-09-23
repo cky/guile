@@ -70,7 +70,8 @@
             trap-frame-finish
             trap-in-dynamic-extent
             trap-calls-in-dynamic-extent
-            trap-instructions-in-dynamic-extent))
+            trap-instructions-in-dynamic-extent
+            trap-calls-to-procedure))
 
 (define-syntax arg-check
   (syntax-rules ()
@@ -350,15 +351,15 @@
   (arg-check frame frame?)
   (arg-check return-handler procedure?)
   (arg-check abort-handler procedure?)
-  (let ((fp (frame-dynamic-link frame)))
+  (let ((fp (frame-address frame)))
     (define (pop-cont-hook frame)
-      (if (and fp (eq? (frame-dynamic-link frame) fp))
+      (if (and fp (eq? (frame-address frame) fp))
           (begin
             (set! fp #f)
             (return-handler frame))))
     
     (define (abort-hook frame)
-      (if (and fp (<= (frame-dynamic-link frame) fp))
+      (if (and fp (< (frame-address frame) fp))
           (begin
             (set! fp #f)
             (abort-handler frame))))
@@ -480,3 +481,65 @@
 
     (trap-in-dynamic-extent proc enter return abort
                             #:current-frame current-frame #:vm vm)))
+
+;; Traps calls and returns for a given procedure, keeping track of the call depth.
+;;
+(define* (trap-calls-to-procedure proc apply-handler return-handler
+                                  #:key (width 80) (vm (the-vm)))
+  (arg-check proc procedure?)
+  (arg-check apply-handler procedure?)
+  (arg-check return-handler procedure?)
+  (let ((pending-finish-traps '())
+        (last-fp #f))
+    (define (apply-hook frame)
+      (let ((depth (length pending-finish-traps)))
+
+        (apply-handler frame depth)
+
+        (if (not (eq? (frame-address frame) last-fp))
+            (let ((finish-trap #f))
+              (define (frame-finished frame)
+                (finish-trap frame) ;; disables the trap.
+                (set! pending-finish-traps
+                      (delq finish-trap pending-finish-traps))
+                (set! finish-trap #f))
+              
+              (define (return-hook frame)
+                (frame-finished frame)
+                (return-handler frame depth))
+        
+              ;; FIXME: abort handler?
+              (define (abort-hook frame)
+                (frame-finished frame))
+        
+              (set! finish-trap
+                    (trap-frame-finish frame return-hook abort-hook #:vm vm))
+              (set! pending-finish-traps
+                    (cons finish-trap pending-finish-traps))))))
+
+    ;; The basic idea is that we install one trap that fires for calls,
+    ;; but that each call installs its own finish trap. Those finish
+    ;; traps remove themselves as their frames finish or abort.
+    ;;
+    ;; However since to the outside world we present the interface of
+    ;; just being one trap, disabling this calls-to-procedure trap
+    ;; should take care of disabling all of the pending finish traps. We
+    ;; keep track of pending traps through the pending-finish-traps
+    ;; list.
+    ;;
+    ;; So since we know that the trap-at-procedure will be enabled, and
+    ;; thus returning a disable closure, we make sure to wrap that
+    ;; closure in something that will disable pending finish traps.
+    (define (with-pending-finish-disablers trap)
+      (define (with-pending-finish-enablers trap)
+        (lambda* (#:optional frame)
+          (with-pending-finish-disablers (trap frame))))
+      
+      (lambda* (#:optional frame)
+        (for-each (lambda (disable) (disable frame))
+                  pending-finish-traps)
+        (set! pending-finish-traps '())
+        (with-pending-finish-enablers (trap frame))))
+
+    (with-pending-finish-disablers
+     (trap-at-procedure-call proc apply-hook #:vm vm))))
