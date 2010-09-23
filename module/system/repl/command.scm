@@ -578,7 +578,7 @@ Starts a recursive prompt when PROCEDURE is called."
     (if (not (procedure? proc))
         (error "Not a procedure: ~a" proc)
         (let ((idx (add-trap-at-procedure-call! proc)))
-          (format #t "Added breakpoint ~a at ~a.~%" idx proc)))))
+          (format #t "Trap ~a: ~a.~%" idx (trap-name idx))))))
 
 (define-meta-command (tracepoint repl (form))
   "tracepoint PROCEDURE
@@ -590,7 +590,7 @@ called, and its return value(s) when it returns."
     (if (not (procedure? proc))
         (error "Not a procedure: ~a" proc)
         (let ((idx (add-trace-at-procedure-call! proc)))
-          (format #t "Added tracepoint ~a at ~a.~%" idx proc)))))
+          (format #t "Trap ~a: ~a.~%" idx (trap-name idx))))))
 
 (define-meta-command (traps repl)
   "traps
