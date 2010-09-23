@@ -194,7 +194,7 @@
      trap-state
      (make-trap-wrapper
       idx #t trap
-      (format #f "breakpoint at ~a" proc)))))
+      (format #f "Breakpoint at ~a" proc)))))
 
 (define* (add-trace-at-procedure-call! proc
                                        #:optional (trap-state (the-trap-state)))
@@ -206,7 +206,7 @@
      trap-state
      (make-trap-wrapper
       idx #t trap
-      (format #f "tracepoint at ~a" proc)))))
+      (format #f "Tracepoint at ~a" proc)))))
 
 (define* (add-trap! trap name #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state)))
