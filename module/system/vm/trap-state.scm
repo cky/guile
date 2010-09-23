@@ -28,6 +28,7 @@
   #:use-module (system vm trace)
   #:export (list-traps
             trap-enabled?
+            trap-name
             enable-trap!
             disable-trap!
             delete-trap!
@@ -160,6 +161,10 @@
          (cons (trap-wrapper-index wrapper)
                (trap-wrapper-name wrapper)))
        (trap-state-wrappers trap-state)))
+
+(define* (trap-name idx #:optional (trap-state (the-trap-state)))
+  (and=> (wrapper-at-index trap-state idx)
+         trap-wrapper-name))
 
 (define* (trap-enabled? idx #:optional (trap-state (the-trap-state)))
   (and=> (wrapper-at-index trap-state idx)
