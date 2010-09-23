@@ -188,3 +188,9 @@
      (make-trap-wrapper
       idx #t trap
       (format #f "breakpoint at ~a" proc)))))
+
+(define* (add-trap! trap name #:optional (trap-state (the-trap-state)))
+  (let* ((idx (next-index! trap-state)))
+    (add-trap-wrapper!
+     trap-state
+     (make-trap-wrapper idx #t trap name))))

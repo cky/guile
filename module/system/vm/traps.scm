@@ -66,7 +66,11 @@
             trap-in-procedure
             trap-instructions-in-procedure
             trap-at-procedure-ip-in-range
-            trap-at-source-location))
+            trap-at-source-location
+            trap-frame-finish
+            trap-in-dynamic-extent
+            trap-calls-in-dynamic-extent
+            trap-instructions-in-dynamic-extent))
 
 (define-syntax arg-check
   (syntax-rules ()
@@ -334,3 +338,145 @@
      (lambda (frame)
        (for-each (lambda (trap) (trap frame)) traps)
        (set! traps #f)))))
+
+
+
+;; On a different tack, now we're going to build up a set of traps that
+;; do useful things during the dynamic extent of a procedure's
+;; application. First, a trap for when a frame returns.
+;;
+(define* (trap-frame-finish frame return-handler abort-handler
+                            #:key (vm (the-vm)))
+  (arg-check frame frame?)
+  (arg-check return-handler procedure?)
+  (arg-check abort-handler procedure?)
+  (let ((fp (frame-dynamic-link frame)))
+    (define (pop-cont-hook frame)
+      (if (and fp (eq? (frame-dynamic-link frame) fp))
+          (begin
+            (set! fp #f)
+            (return-handler frame))))
+    
+    (define (abort-hook frame)
+      (if (and fp (<= (frame-dynamic-link frame) fp))
+          (begin
+            (set! fp #f)
+            (abort-handler frame))))
+    
+    (new-enabled-trap
+     vm frame
+     (lambda (frame)
+       (if (not fp)
+           (error "return-or-abort traps may only be enabled once"))
+       (add-hook! (vm-pop-continuation-hook vm) pop-cont-hook)
+       (add-hook! (vm-abort-continuation-hook vm) abort-hook)
+       (add-hook! (vm-restore-continuation-hook vm) abort-hook))
+     (lambda (frame)
+       (set! fp #f)
+       (remove-hook! (vm-pop-continuation-hook vm) pop-cont-hook)
+       (remove-hook! (vm-abort-continuation-hook vm) abort-hook)
+       (remove-hook! (vm-restore-continuation-hook vm) abort-hook)))))
+
+;; A more traditional dynamic-wind trap. Perhaps this should not be
+;; based on the above trap-frame-finish?
+;;
+(define* (trap-in-dynamic-extent proc enter-handler return-handler abort-handler
+                                 #:key current-frame (vm (the-vm)))
+  (arg-check proc procedure?)
+  (arg-check enter-handler procedure?)
+  (arg-check return-handler procedure?)
+  (arg-check abort-handler procedure?)
+  (let ((exit-trap #f))
+    (define (return-hook frame)
+      (exit-trap frame) ; disable the return/abort trap.
+      (set! exit-trap #f)
+      (return-handler frame))
+    
+    (define (abort-hook frame)
+      (exit-trap frame) ; disable the return/abort trap.
+      (set! exit-trap #f)
+      (abort-handler frame))
+    
+    (define (apply-hook frame)
+      (if (and (not exit-trap)
+               (eq? (frame-procedure frame) proc))
+          (begin
+            (enter-handler frame)
+            (set! exit-trap
+                  (trap-frame-finish frame return-hook abort-hook
+                                     #:vm vm)))))
+    
+    (new-enabled-trap
+     vm current-frame
+     (lambda (frame)
+       (add-hook! (vm-apply-hook vm) apply-hook))
+     (lambda (frame)
+       (if exit-trap
+           (abort-hook frame))
+       (set! exit-trap #f)
+       (remove-hook! (vm-apply-hook vm) apply-hook)))))
+
+;; Trapping all procedure calls within a dynamic extent, recording the
+;; depth of the call stack relative to the original procedure.
+;;
+(define* (trap-calls-in-dynamic-extent proc apply-handler return-handler
+                                       #:key current-frame (vm (the-vm)))
+  (arg-check proc procedure?)
+  (arg-check apply-handler procedure?)
+  (arg-check return-handler procedure?)
+  (let ((*call-depth* 0))
+    (define (trace-push frame)
+      (set! *call-depth* (1+ *call-depth*)))
+  
+    (define (trace-pop frame)
+      (return-handler frame *call-depth*)
+      (set! *call-depth* (1- *call-depth*)))
+  
+    (define (trace-apply frame)
+      (apply-handler frame *call-depth*))
+  
+    ;; FIXME: recalc depth on abort
+
+    (define (enter frame)
+      (add-hook! (vm-push-continuation-hook vm) trace-push)
+      (add-hook! (vm-pop-continuation-hook vm) trace-pop)
+      (add-hook! (vm-apply-hook vm) trace-apply))
+  
+    (define (leave frame)
+      (remove-hook! (vm-push-continuation-hook vm) trace-push)
+      (remove-hook! (vm-pop-continuation-hook vm) trace-pop)
+      (remove-hook! (vm-apply-hook vm) trace-apply))
+  
+    (define (return frame)
+      (leave frame))
+  
+    (define (abort frame)
+      (leave frame))
+
+    (trap-in-dynamic-extent proc enter return abort
+                            #:current-frame current-frame #:vm vm)))
+
+;; Trapping all retired intructions within a dynamic extent.
+;;
+(define* (trap-instructions-in-dynamic-extent proc next-handler
+                                              #:key current-frame (vm (the-vm)))
+  (arg-check proc procedure?)
+  (arg-check next-handler procedure?)
+  (let ()
+    (define (trace-next frame)
+      (next-handler frame))
+  
+    (define (enter frame)
+      (add-hook! (vm-next-hook vm) trace-next))
+  
+    (define (leave frame)
+      (remove-hook! (vm-next-hook vm) trace-next))
+  
+    (define (return frame)
+      (leave frame))
+  
+    (define (abort frame)
+      (leave frame))
+
+    (trap-in-dynamic-extent proc enter return abort
+                            #:current-frame current-frame #:vm vm)))
