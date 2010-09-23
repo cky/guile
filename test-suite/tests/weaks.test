@@ -33,8 +33,12 @@
 ;;; other reasons why they might not work as tested here, so if you
 ;;; haven't done anything to weaks, don't sweat it :)
 
-(use-modules (test-suite lib)
-	     (ice-9 weak-vector))
+(define-module (test-weaks)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 weak-vector)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26))
+
 
 ;;; Creation functions 
 
@@ -122,6 +126,18 @@
 		       (not (vector-ref global-weak 4)))
 		  (throw 'unresolved))))))
 
+
+;;;
+;;; Weak hash tables & weak alist vectors.
+;;;
+
+(define (valid? value initial-value)
+  ;; Return true if VALUE is "valid", i.e., if it's either #f or
+  ;; INITIAL-VALUE.  The idea is to make sure `hash-ref' doesn't return
+  ;; garbage.
+  (or (not value)
+      (equal? val initial-value)))
+
  (let ((x (make-weak-key-alist-vector 17))
       (y (make-weak-value-alist-vector 17))
       (z (make-doubly-weak-alist-vector 17))
@@ -152,14 +168,13 @@
               (hash-set! x (string-copy "emergency") "weak")
               (hash-set! x (string-copy "key") "hash system")
               (gc)
-              (and
-               (or (not (hash-ref x "this"))
-                   (not (hash-ref x "a"))
-                   (not (hash-ref x "of"))
-                   (not (hash-ref x "emergency"))
-                   (not (hash-ref x "key")))
-               (hash-ref x test-key)
-               #t)))
+              (let ((values (map (cut hash-ref x <>)
+                                 '("this" "a" "of" "emergency" "key"))))
+                (and (every valid? values
+                            '("is" "test" "the" "weak" "hash system"))
+                     (any not values)
+                     (hash-ref x test-key)
+                     #t))))
 
    (pass-if "weak-value dies"
             (begin
@@ -169,13 +184,13 @@
               (hash-set! y "emergency" (string-copy "weak"))
               (hash-set! y "value" (string-copy "hash system"))
               (gc)
-              (and (or (not (hash-ref y "this"))
-                       (not (hash-ref y "a"))
-                       (not (hash-ref y "of"))
-                       (not (hash-ref y "emergency"))
-                       (not (hash-ref y "value")))
-                   (hash-ref y test-key)
-                   #t)))
+              (let ((values (map (cut hash-ref y <>)
+                                 '("this" "a" "of" "emergency" "key"))))
+                (and (every valid? values
+                            '("is" "test" "the" "weak" "hash system"))
+                     (any not values)
+                     (hash-ref y test-key)
+                     #t))))
 
    (pass-if "doubly-weak dies"
             (begin
@@ -185,10 +200,10 @@
               (hash-set! z "emergency" (string-copy "weak"))
               (hash-set! z (string-copy "all") (string-copy "hash system"))
               (gc)
-              (and (or (not (hash-ref z "this"))
-                       (not (hash-ref z "a"))
-                       (not (hash-ref z "of"))
-                       (not (hash-ref z "emergency"))
-                       (not (hash-ref z "all")))
-                   (hash-ref z test-key)
-                   #t)))))
+              (let ((values (map (cut hash-ref z <>)
+                                 '("this" "a" "of" "emergency" "key"))))
+                (and (every valid? values
+                            '("is" "test" "the" "weak" "hash system"))
+                     (any not values)
+                     (hash-ref z test-key)
+                     #t))))))
