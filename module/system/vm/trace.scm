@@ -29,52 +29,58 @@
   #:use-module (system vm instruction)
   #:use-module (ice-9 format)
   #:export (trace-calls-in-procedure
+            trace-calls-to-procedure
             trace-instructions-in-procedure
             vm-trace))
 
 ;; FIXME: this constant needs to go in system vm objcode
 (define *objcode-header-len* 8)
 
-(define* (trace-calls-in-procedure proc #:key (width 80) (vm (the-vm)))
-  (define (frame-return-values frame)
-    (let* ((len (frame-num-locals frame))
-           (nvalues (frame-local-ref frame (1- len))))
-      (map (lambda (i)
-             (frame-local-ref frame (+ (- len nvalues) i)))
-           (iota nvalues))))
+(define (frame-return-values frame)
+  (let* ((len (frame-num-locals frame))
+         (nvalues (frame-local-ref frame (1- len))))
+    (map (lambda (i)
+           (frame-local-ref frame (+ (- len nvalues) i)))
+         (iota nvalues))))
   
-  (define (print-application frame depth)
-    (format (current-error-port) "~a~v:@y\n"
-            (make-string depth #\|)
-            (max (- width depth) 1)
-            (frame-call-representation frame)))
+(define (print-application frame depth width)
+  (format (current-error-port) "~a~v:@y\n"
+          (make-string depth #\|)
+          (max (- width depth) 1)
+          (frame-call-representation frame)))
 
-  (define (print-return frame depth)
-    (let* ((len (frame-num-locals frame))
-           (nvalues (frame-local-ref frame (1- len))))
-      (cond
-       ((= nvalues 1)
-        (format (current-error-port) "~a~v:@y\n"
-                (make-string depth #\|)
-                width (frame-local-ref frame (- len 2))))
-       (else
-        ;; this should work, but there appears to be a bug
-        ;; "~a~d values:~:{ ~v:@y~}\n"
-        (format (current-error-port) "~a~d values:~{ ~a~}\n"
-                (make-string depth #\|)
-                nvalues
-                (map (lambda (val)
-                       (format #f "~v:@y" width val))
-                     (frame-return-values frame)))))))
+(define (print-return frame depth width)
+  (let* ((len (frame-num-locals frame))
+         (nvalues (frame-local-ref frame (1- len))))
+    (cond
+     ((= nvalues 1)
+      (format (current-error-port) "~a~v:@y\n"
+              (make-string depth #\|)
+              width (frame-local-ref frame (- len 2))))
+     (else
+      ;; this should work, but there appears to be a bug
+      ;; "~a~d values:~:{ ~v:@y~}\n"
+      (format (current-error-port) "~a~d values:~{ ~a~}\n"
+              (make-string depth #\|)
+              nvalues
+              (map (lambda (val)
+                     (format #f "~v:@y" width val))
+                   (frame-return-values frame)))))))
   
-  (define (trace-next frame)
-    (let* ((ip (frame-instruction-pointer frame))
-           (objcode (program-objcode (frame-procedure frame)))
-           (opcode (bytevector-u8-ref (objcode->bytecode objcode)
-                                      (+ ip *objcode-header-len*))))
-      (format #t "~8d: ~a\n" ip (opcode->instruction opcode))))
-  
-  (trap-calls-in-dynamic-extent proc print-application print-return
+(define* (trace-calls-to-procedure proc #:key (width 80) (vm (the-vm)))
+  (define (apply-handler frame depth)
+    (print-application frame depth width))
+  (define (return-handler frame depth)
+    (print-return frame depth width))
+  (trap-calls-to-procedure proc apply-handler return-handler
+                           #:vm vm))
+
+(define* (trace-calls-in-procedure proc #:key (width 80) (vm (the-vm)))
+  (define (apply-handler frame depth)
+    (print-application frame depth width))
+  (define (return-handler frame depth)
+    (print-return frame depth width))
+  (trap-calls-in-dynamic-extent proc apply-handler return-handler
                                 #:vm vm))
 
 (define* (trace-instructions-in-procedure proc #:key (width 80) (vm (the-vm)))

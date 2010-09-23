@@ -25,6 +25,7 @@
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module (system vm vm)
   #:use-module (system vm traps)
+  #:use-module (system vm trace)
   #:export (list-traps
             trap-enabled?
             enable-trap!
@@ -34,7 +35,8 @@
             with-default-trap-handler
             install-trap-handler!
 
-            add-trap-at-procedure-call!))
+            add-trap-at-procedure-call!
+            add-trace-at-procedure-call!))
 
 (define %default-trap-handler (make-fluid))
 
@@ -191,6 +193,16 @@
      (make-trap-wrapper
       idx #t trap
       (format #f "breakpoint at ~a" proc)))))
+
+(define* (add-trace-at-procedure-call! proc
+                                       #:optional (trap-state (the-trap-state)))
+  (let* ((idx (next-index! trap-state))
+         (trap (trace-calls-to-procedure proc)))
+    (add-trap-wrapper!
+     trap-state
+     (make-trap-wrapper
+      idx #t trap
+      (format #f "tracepoint at ~a" proc)))))
 
 (define* (add-trap! trap name #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state)))

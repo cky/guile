@@ -57,7 +57,7 @@
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
               (procedure proc) (locals) (error-message error)
-              (break br)
+              (break br bp) (tracepoint tp)
               (traps) (delete del) (disable) (enable))
     (inspect  (inspect i) (pretty-print pp))
     (system   (gc) (statistics stat) (option o)
@@ -579,6 +579,18 @@ Starts a recursive prompt when PROCEDURE is called."
         (error "Not a procedure: ~a" proc)
         (let ((idx (add-trap-at-procedure-call! proc)))
           (format #t "Added breakpoint ~a at ~a.~%" idx proc)))))
+
+(define-meta-command (tracepoint repl (form))
+  "tracepoint PROCEDURE
+Add a tracepoint to PROCEDURE.
+
+A tracepoint will print out the procedure and its arguments, when it is
+called, and its return value(s) when it returns."
+  (let ((proc (repl-eval repl (repl-parse repl form))))
+    (if (not (procedure? proc))
+        (error "Not a procedure: ~a" proc)
+        (let ((idx (add-trace-at-procedure-call! proc)))
+          (format #t "Added tracepoint ~a at ~a.~%" idx proc)))))
 
 (define-meta-command (traps repl)
   "traps
