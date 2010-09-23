@@ -157,10 +157,7 @@
             (set-vm-trace-level! (the-vm) 0))))))
 
 (define* (list-traps #:optional (trap-state (the-trap-state)))
-  (map (lambda (wrapper)
-         (cons (trap-wrapper-index wrapper)
-               (trap-wrapper-name wrapper)))
-       (trap-state-wrappers trap-state)))
+  (map trap-wrapper-index (trap-state-wrappers trap-state)))
 
 (define* (trap-name idx #:optional (trap-state (the-trap-state)))
   (and=> (wrapper-at-index trap-state idx)
