@@ -1,4 +1,4 @@
-/* Copyright (C) 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -447,7 +447,7 @@ SCM_DEFINE (scm_lookahead_u8, "lookahead-u8", 1, 0, 0,
 
   result = scm_peek_char (port);
   if (SCM_CHARP (result))
-    result = SCM_I_MAKINUM ((signed char) SCM_CHAR (result));
+    result = SCM_I_MAKINUM ((unsigned char) SCM_CHAR (result));
   else
     result = SCM_EOF_VAL;
 

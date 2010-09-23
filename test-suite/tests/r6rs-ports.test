@@ -52,6 +52,11 @@
            (= (char->integer #\A) (get-u8 port))
            (eof-object? (get-u8 port)))))
 
+  (pass-if "lookahead-u8: result is unsigned"
+    ;; Bug #31081.
+    (let ((port (open-bytevector-input-port #vu8(255))))
+      (= (lookahead-u8 port) 255)))
+
   (pass-if "get-bytevector-n [short]"
     (let* ((port (open-input-string "GNU Guile"))
            (bv (get-bytevector-n port 4)))
