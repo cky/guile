@@ -203,6 +203,16 @@ SCM_DEFINE (scm_frame_local_set_x, "frame-local-set!", 3, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_frame_address, "frame-address", 1, 0, 0,
+	    (SCM frame),
+	    "Return the frame pointer for @var{frame}.")
+#define FUNC_NAME s_scm_frame_address
+{
+  SCM_VALIDATE_VM_FRAME (1, frame);
+  return scm_from_ulong ((unsigned long) SCM_VM_FRAME_FP (frame));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_frame_instruction_pointer, "frame-instruction-pointer", 1, 0, 0,
 	    (SCM frame),
 	    "")
