@@ -57,7 +57,8 @@
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
               (procedure proc) (locals) (error-message error)
-              (break br bp) (tracepoint tp)
+              (break br bp) (break-at-source break-at bs)
+              (tracepoint tp)
               (traps) (delete del) (disable) (enable))
     (inspect  (inspect i) (pretty-print pp))
     (system   (gc) (statistics stat) (option o)
@@ -579,6 +580,16 @@ Starts a recursive prompt when PROCEDURE is called."
         (error "Not a procedure: ~a" proc)
         (let ((idx (add-trap-at-procedure-call! proc)))
           (format #t "Trap ~a: ~a.~%" idx (trap-name idx))))))
+
+(define-meta-command (break-at-source repl file line)
+  "break-at-source FILE LINE
+Break when control reaches the given source location.
+
+Starts a recursive prompt when control reaches line LINE of file FILE.
+Note that the given source location must be inside a procedure."
+  (let ((file (if (symbol? file) (symbol->string file) file)))
+    (let ((idx (add-trap-at-source-location! file line)))
+      (format #t "Trap ~a: ~a.~%" idx (trap-name idx)))))
 
 (define-meta-command (tracepoint repl (form))
   "tracepoint PROCEDURE
