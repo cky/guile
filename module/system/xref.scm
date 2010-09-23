@@ -24,6 +24,7 @@
   #:export (*xref-ignored-modules*
             procedure-callees
             procedure-callers
+            source-closures
             source-procedures))
 
 ;;;
@@ -208,6 +209,8 @@ pair of the form (module-name . variable-name), "
    (else '())))
 
 ;; file -> line -> (proc ...)
+(define *closure-sources-db* #f)
+;; file -> line -> (proc ...)
 (define *sources-db* #f)
 ;; module-name -> proc -> sources
 (define *module-sources-db* (make-hash-table))
@@ -221,24 +224,24 @@ pair of the form (module-name . variable-name), "
              (pair? name))
         (set! *tainted-sources* (cons name *tainted-sources*)))))
 
-(define (add-source proc file line)
-  (let ((file-table (or (hash-ref *sources-db* file)
+(define (add-source proc file line db)
+  (let ((file-table (or (hash-ref db file)
                         (let ((table (make-hash-table)))
-                          (hash-set! *sources-db* file table)
+                          (hash-set! db file table)
                           table))))
     (hashv-set! file-table
                 line
                 (cons proc (hashv-ref file-table line '())))))
 
-(define (forget-source proc file line)
-  (let ((file-table (hash-ref *sources-db* file)))
+(define (forget-source proc file line db)
+  (let ((file-table (hash-ref db file)))
     (if file-table
         (let ((procs (delq proc (hashv-ref file-table line '()))))
           (if (pair? procs)
               (hashv-set! file-table line procs)
               (hashv-remove! file-table line))))))
 
-(define (add-sources proc mod-name)
+(define (add-sources proc mod-name db)
   (let ((sources (procedure-sources proc)))
     (if (pair? sources)
         (begin
@@ -253,11 +256,18 @@ pair of the form (module-name . variable-name), "
           (for-each (lambda (source)
                       (pmatch source
                         ((,ip ,file ,line . ,col)
-                         (add-source proc file line))
+                         (add-source proc file line db))
                         (else (error "unexpected source format" source))))
-                    sources)))))
+                    sources)))
+    ;; Add source entries for nested procedures.
+    (for-each (lambda (obj)
+                (if (procedure? obj)
+                    (add-sources obj mod-name *closure-sources-db*)))
+              (or (and (program? proc)
+                       (and=> (program-objects proc) vector->list))
+                  '()))))
 
-(define (forget-sources proc mod-name)
+(define (forget-sources proc mod-name db)
   (let ((mod-table (hash-ref *module-sources-db* mod-name)))
     (if mod-table
         (begin
@@ -265,15 +275,22 @@ pair of the form (module-name . variable-name), "
           (for-each (lambda (source)
                       (pmatch source
                         ((,ip ,file ,line . ,col)
-                         (forget-source proc file line))
+                         (forget-source proc file line db))
                         (else (error "unexpected source format" source))))
                     (hashq-ref mod-table proc '()))
           ;; Forget the proc.
-          (hashq-remove! mod-table proc)))))
+          (hashq-remove! mod-table proc)
+          ;; Forget source entries for nested procedures.
+          (for-each (lambda (obj)
+                (if (procedure? obj)
+                    (forget-sources obj mod-name *closure-sources-db*)))
+              (or (and (program? proc)
+                       (and=> (program-objects proc) vector->list))
+                  '()))))))
 
 (define (untaint-sources)
   (define (untaint m)
-    (for-each (lambda (proc) (forget-sources proc m))
+    (for-each (lambda (proc) (forget-sources proc m *sources-db*))
               (cond
                ((hash-ref *module-sources-db* m)
                 => (lambda (table)
@@ -294,7 +311,7 @@ pair of the form (module-name . variable-name), "
          (if (variable-bound? var)
              (let ((x (variable-ref var)))
                (if (procedure? x)
-                   (add-sources x name)))))
+                   (add-sources x name *sources-db*)))))
        mod)))
 
   (define visit-submodules
@@ -311,7 +328,8 @@ pair of the form (module-name . variable-name), "
                  (visit-submodules sub))))
          (module-submodules mod)))))
 
-  (cond ((and (not mod-name) (not *sources-db*))
+  (cond ((and (not mod-name) (not *sources-db*) (not *closure-sources-db*))
+         (set! *closure-sources-db* (make-hash-table 1000))
          (set! *sources-db* (make-hash-table 1000))
          (visit-submodules (resolve-module '() #f)))
         (mod-name (visit-module (resolve-module mod-name)))))
@@ -336,18 +354,27 @@ pair of the form (module-name . variable-name), "
     (sort! (hash-map->list cons ranges)
            (lambda (x y) (< (cadr x) (cadr y))))))
 
+(define* (lookup-source-procedures canon-file line db)
+  (let ((file-table (hash-ref db canon-file)))
+    (let lp ((ranges (if file-table (lines->ranges file-table) '()))
+             (procs '()))
+      (cond
+       ((null? ranges) (reverse procs))
+       ((<= (cadar ranges) line (cddar ranges))
+        (lp (cdr ranges) (cons (caar ranges) procs)))
+       (else
+        (lp (cdr ranges) procs))))))
+
+(define* (source-closures file line #:key (canonicalization 'relative))
+  (ensure-sources-db #f)
+  (let* ((port (with-fluids ((%file-port-name-canonicalization canonicalization))
+                 (false-if-exception (open-input-file file))))
+         (file (if port (port-filename port) file)))
+    (lookup-source-procedures file line *closure-sources-db*)))
+
 (define* (source-procedures file line #:key (canonicalization 'relative))
   (ensure-sources-db #f)
   (let* ((port (with-fluids ((%file-port-name-canonicalization canonicalization))
                  (false-if-exception (open-input-file file))))
-         (file (if port (port-filename port) file))
-         (file-table (hash-ref *sources-db* file)))
-    (if file-table
-        (let lp ((ranges (lines->ranges file-table))
-                 (procs '()))
-          (cond
-           ((null? ranges) (reverse procs))
-           ((<= (cadar ranges) line (cddar ranges))
-            (lp (cdr ranges) (cons (caar ranges) procs)))
-           (else
-            (lp (cdr ranges) procs)))))))
+         (file (if port (port-filename port) file)))
+    (lookup-source-procedures file line *sources-db*)))
