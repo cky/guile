@@ -47,7 +47,18 @@
 (with-test-prefix "make-pointer"
 
   (pass-if "address preserved"
-    (= 123 (pointer-address (make-pointer 123)))))
+    (= 123 (pointer-address (make-pointer 123))))
+
+  (pass-if "equal?"
+    (equal? (make-pointer 123) (make-pointer 123)))
+
+  (pass-if "equal? modulo finalizer"
+    (let ((finalizer (dynamic-func "scm_is_pair" (dynamic-link))))
+      (equal? (make-pointer 123)
+              (make-pointer 123 finalizer))))
+
+  (pass-if "not equal?"
+    (not (equal? (make-pointer 123) (make-pointer 456)))))
 
 
 (with-test-prefix "pointer<->bytevector"

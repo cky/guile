@@ -303,6 +303,9 @@ scm_equal_p (SCM x, SCM y)
       else
 	goto generic_equal;
     }
+  if (SCM_POINTER_P (x) && SCM_POINTER_P (y))
+    return scm_from_bool (SCM_POINTER_VALUE (x) == SCM_POINTER_VALUE (y));
+
   /* This ensures that types and scm_length are the same.  */
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
