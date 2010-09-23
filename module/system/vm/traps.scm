@@ -106,14 +106,27 @@
 (define (new-enabled-trap vm frame enable disable)
   ((new-disabled-trap vm enable disable) frame))
 
+(define (frame-matcher proc match-objcode?)
+  (if match-objcode?
+      (lambda (frame)
+        (let ((frame-proc (frame-procedure frame)))
+          (or (eq? frame-proc proc)
+              (and (program? frame-proc)
+                   (eq? (program-objcode frame-proc)
+                        (program-objcode proc))))))
+      (lambda (frame)
+        (eq? (frame-procedure frame) proc))))
+
 ;; A basic trap, fires when a procedure is called.
 ;;
-(define* (trap-at-procedure-call proc handler #:key (vm (the-vm)))
+(define* (trap-at-procedure-call proc handler #:key (vm (the-vm))
+                                 (closure? #f)
+                                 (our-frame? (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check handler procedure?)
   (let ()
     (define (apply-hook frame)
-      (if (eq? (frame-procedure frame) proc)
+      (if (our-frame? frame)
           (handler frame)))
 
     (new-enabled-trap
@@ -138,7 +151,9 @@
 ;;  * An abort.
 ;;
 (define* (trap-in-procedure proc enter-handler exit-handler
-                            #:key current-frame (vm (the-vm)))
+                            #:key current-frame (vm (the-vm))
+                            (closure? #f)
+                            (our-frame? (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check enter-handler procedure?)
   (arg-check exit-handler procedure?)
@@ -160,7 +175,7 @@
     (define (apply-hook frame)
       (if in-proc?
           (exit-proc frame))
-      (if (eq? (frame-procedure frame) proc)
+      (if (our-frame? frame)
           (enter-proc frame)))
 
     (define (push-cont-hook frame)
@@ -170,19 +185,19 @@
     (define (pop-cont-hook frame)
       (if in-proc?
           (exit-proc frame))
-      (if (eq? (frame-procedure (frame-previous frame)) proc)
+      (if (our-frame? (frame-previous frame))
           (enter-proc frame)))
 
     (define (abort-hook frame)
       (if in-proc?
           (exit-proc frame))
-      (if (eq? (frame-procedure frame) proc)
+      (if (our-frame? frame)
           (enter-proc frame)))
 
     (define (restore-hook frame)
       (if in-proc?
           (exit-proc frame))
-      (if (eq? (frame-procedure frame) proc)
+      (if (our-frame? frame)
           (enter-proc frame)))
 
     (new-enabled-trap
@@ -193,7 +208,7 @@
        (add-hook! (vm-pop-continuation-hook vm) pop-cont-hook)
        (add-hook! (vm-abort-continuation-hook vm) abort-hook)
        (add-hook! (vm-restore-continuation-hook vm) restore-hook)
-       (if (and frame (eq? (frame-procedure frame) proc))
+       (if (and frame (our-frame? frame))
            (enter-proc frame)))
      (lambda (frame)
        (if in-proc?
@@ -207,13 +222,16 @@
 ;; Building on trap-in-procedure, we have trap-instructions-in-procedure
 ;;
 (define* (trap-instructions-in-procedure proc next-handler exit-handler
-                                         #:key current-frame (vm (the-vm)))
+                                         #:key current-frame (vm (the-vm))
+                                         (closure? #f)
+                                         (our-frame?
+                                          (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check next-handler procedure?)
   (arg-check exit-handler procedure?)
   (let ()
     (define (next-hook frame)
-      (if (eq? (frame-procedure frame) proc)
+      (if (our-frame? frame)
           (next-handler frame)))
     
     (define (enter frame)
@@ -225,7 +243,8 @@
       (remove-hook! (vm-next-hook vm) next-hook))
 
     (trap-in-procedure proc enter exit
-                       #:current-frame current-frame #:vm vm)))
+                       #:current-frame current-frame #:vm vm
+                       #:our-frame? our-frame?)))
 
 (define (non-negative-integer? x)
   (and (number? x) (integer? x) (exact? x) (not (negative? x))))
@@ -247,7 +266,10 @@
 ;; trap-instructions-in-procedure.
 ;;
 (define* (trap-at-procedure-ip-in-range proc range handler
-                                        #:key current-frame (vm (the-vm)))
+                                        #:key current-frame (vm (the-vm))
+                                        (closure? #f)
+                                        (our-frame?
+                                         (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check range range?)
   (arg-check handler procedure?)
@@ -262,7 +284,8 @@
       (set! was-in-range? #f))
     
     (trap-instructions-in-procedure proc next-handler exit-handler
-                                    #:current-frame current-frame #:vm vm)))
+                                    #:current-frame current-frame #:vm vm
+                                    #:our-frame? our-frame?)))
 
 ;; FIXME: define this in objcode somehow. We are reffing the first
 ;; uint32 in the objcode, which is the length of the program (without
@@ -315,6 +338,12 @@
         (warn "no instructions found for" file ":" line)
         '())))
 
+(define (source-closures-or-procedures file line)
+  (let ((closures (source-closures file line)))
+    (if (pair? closures)
+        (values closures #t)
+        (values (source-procedures file line) #f))))
+
 ;; Building on trap-on-instructions-in-procedure, we have
 ;; trap-at-source-location.
 ;;
@@ -324,21 +353,26 @@
   (arg-check line non-negative-integer?)
   (arg-check handler procedure?)
   (let ((traps #f))
-    (new-enabled-trap
-     vm current-frame
-     (lambda (frame)
-       (set! traps (map
-                    (lambda (proc)
-                      (let ((range (source->ip-range proc file line)))
-                        (trap-at-procedure-ip-in-range proc range handler
-                                                       #:current-frame current-frame
-                                                       #:vm vm)))
-                    (source-procedures file line)))
-       (if (null? traps)
-           (error "No procedures found at ~a:~a." file line)))
-     (lambda (frame)
-       (for-each (lambda (trap) (trap frame)) traps)
-       (set! traps #f)))))
+    (call-with-values
+        (lambda () (source-closures-or-procedures file line))
+      (lambda (procs closures?)
+        (new-enabled-trap
+         vm current-frame
+         (lambda (frame)
+           (set! traps
+                 (map
+                  (lambda (proc)
+                    (let ((range (source->ip-range proc file line)))
+                      (trap-at-procedure-ip-in-range proc range handler
+                                                     #:current-frame current-frame
+                                                     #:vm vm
+                                                     #:closure? closures?)))
+                  procs))
+           (if (null? traps)
+               (error "No procedures found at ~a:~a." file line)))
+         (lambda (frame)
+           (for-each (lambda (trap) (trap frame)) traps)
+           (set! traps #f)))))))
 
 
 
@@ -382,7 +416,9 @@
 ;; based on the above trap-frame-finish?
 ;;
 (define* (trap-in-dynamic-extent proc enter-handler return-handler abort-handler
-                                 #:key current-frame (vm (the-vm)))
+                                 #:key current-frame (vm (the-vm))
+                                 (closure? #f)
+                                 (our-frame? (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check enter-handler procedure?)
   (arg-check return-handler procedure?)
@@ -399,8 +435,7 @@
       (abort-handler frame))
     
     (define (apply-hook frame)
-      (if (and (not exit-trap)
-               (eq? (frame-procedure frame) proc))
+      (if (and (not exit-trap) (our-frame? frame))
           (begin
             (enter-handler frame)
             (set! exit-trap
@@ -421,7 +456,10 @@
 ;; depth of the call stack relative to the original procedure.
 ;;
 (define* (trap-calls-in-dynamic-extent proc apply-handler return-handler
-                                       #:key current-frame (vm (the-vm)))
+                                       #:key current-frame (vm (the-vm))
+                                       (closure? #f)
+                                       (our-frame?
+                                        (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check apply-handler procedure?)
   (arg-check return-handler procedure?)
@@ -455,12 +493,16 @@
       (leave frame))
 
     (trap-in-dynamic-extent proc enter return abort
-                            #:current-frame current-frame #:vm vm)))
+                            #:current-frame current-frame #:vm vm
+                            #:our-frame? our-frame?)))
 
 ;; Trapping all retired intructions within a dynamic extent.
 ;;
 (define* (trap-instructions-in-dynamic-extent proc next-handler
-                                              #:key current-frame (vm (the-vm)))
+                                              #:key current-frame (vm (the-vm))
+                                              (closure? #f)
+                                              (our-frame?
+                                               (frame-matcher proc closure?)))
   (arg-check proc procedure?)
   (arg-check next-handler procedure?)
   (let ()
@@ -480,7 +522,8 @@
       (leave frame))
 
     (trap-in-dynamic-extent proc enter return abort
-                            #:current-frame current-frame #:vm vm)))
+                            #:current-frame current-frame #:vm vm
+                            #:our-frame? our-frame?)))
 
 ;; Traps calls and returns for a given procedure, keeping track of the call depth.
 ;;
