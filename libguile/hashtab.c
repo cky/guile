@@ -623,6 +623,13 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
 
   it = scm_hash_fn_create_handle_x (table, obj, SCM_BOOL_F, hash_fn, assoc_fn, closure);
   SCM_SETCDR (it, val);
+
+  if (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_VALUE_P (table)
+      && SCM_NIMP (val))
+    /* IT is a weak-cdr pair.  Register a disappearing link from IT's
+       cdr to VAL like `scm_weak_cdr_pair' does.  */
+    SCM_I_REGISTER_DISAPPEARING_LINK ((void *) SCM_CDRLOC (it), SCM2PTR (val));
+
   return val;
 }
 

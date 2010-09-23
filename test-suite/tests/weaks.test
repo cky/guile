@@ -1,5 +1,5 @@
 ;;;; weaks.test --- tests guile's weaks     -*- scheme -*-
-;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -131,59 +131,64 @@
    "weak-hash"
    (pass-if "lives"
 	    (begin
-	      (hashq-set! x test-key test-value)
-	      (hashq-set! y test-key test-value)
-	      (hashq-set! z test-key test-value)
+	      (hash-set! x test-key test-value)
+	      (hash-set! y test-key test-value)
+	      (hash-set! z test-key test-value)
 	      (gc)
 	      (gc)
-	      (and (hashq-ref x test-key)
-		   (hashq-ref y test-key)
-		   (hashq-ref z test-key)
+	      (and (hash-ref x test-key)
+		   (hash-ref y test-key)
+		   (hash-ref z test-key)
 		   #t)))
+
+   ;; In the tests below we use `string-copy' to avoid the risk of
+   ;; unintended retention of a string that we want to be GC'd.
+
    (pass-if "weak-key dies"
-	    (begin
-	      (hashq-set! x "this" "is")
-	      (hashq-set! x "a" "test")
-	      (hashq-set! x "of" "the")
-	      (hashq-set! x "emergency" "weak")
-	      (hashq-set! x "key" "hash system")
-	      (gc)
-	      (and 
-	       (or (not (hashq-ref x "this"))
-		   (not (hashq-ref x "a"))
-		   (not (hashq-ref x "of"))
-		   (not (hashq-ref x "emergency"))
-		   (not (hashq-ref x "key")))
-	       (hashq-ref x test-key)
-	       #t)))
+            (begin
+              (hash-set! x (string-copy "this") "is")
+              (hash-set! x (string-copy "a") "test")
+              (hash-set! x (string-copy "of") "the")
+              (hash-set! x (string-copy "emergency") "weak")
+              (hash-set! x (string-copy "key") "hash system")
+              (gc)
+              (and
+               (or (not (hash-ref x "this"))
+                   (not (hash-ref x "a"))
+                   (not (hash-ref x "of"))
+                   (not (hash-ref x "emergency"))
+                   (not (hash-ref x "key")))
+               (hash-ref x test-key)
+               #t)))
 
    (pass-if "weak-value dies"
-	    (begin
-	      (hashq-set! y "this" "is")
-	      (hashq-set! y "a" "test")
-	      (hashq-set! y "of" "the")
-	      (hashq-set! y "emergency" "weak")
-	      (hashq-set! y "value" "hash system")
-	      (gc)
-	      (and (or (not (hashq-ref y "this"))
-		       (not (hashq-ref y "a"))
-		       (not (hashq-ref y "of"))
-		       (not (hashq-ref y "emergency"))
-		       (not (hashq-ref y "value")))
-		   (hashq-ref y test-key)
-		   #t)))
+            (begin
+              (hash-set! y "this" (string-copy "is"))
+              (hash-set! y "a" (string-copy "test"))
+              (hash-set! y "of" (string-copy "the"))
+              (hash-set! y "emergency" (string-copy "weak"))
+              (hash-set! y "value" (string-copy "hash system"))
+              (gc)
+              (and (or (not (hash-ref y "this"))
+                       (not (hash-ref y "a"))
+                       (not (hash-ref y "of"))
+                       (not (hash-ref y "emergency"))
+                       (not (hash-ref y "value")))
+                   (hash-ref y test-key)
+                   #t)))
+
    (pass-if "doubly-weak dies"
-	    (begin
-	      (hashq-set! z "this" "is")
-	      (hashq-set! z "a" "test")
-	      (hashq-set! z "of" "the")
-	      (hashq-set! z "emergency" "weak")
-	      (hashq-set! z "all" "hash system")
-	      (gc)
-	      (and (or (not (hashq-ref z "this"))
-		       (not (hashq-ref z "a"))
-		       (not (hashq-ref z "of"))
-		       (not (hashq-ref z "emergency"))
-		       (not (hashq-ref z "all")))
-		   (hashq-ref z test-key)
-		   #t)))))
+            (begin
+              (hash-set! z (string-copy "this") (string-copy "is"))
+              (hash-set! z "a" (string-copy "test"))
+              (hash-set! z (string-copy "of") "the")
+              (hash-set! z "emergency" (string-copy "weak"))
+              (hash-set! z (string-copy "all") (string-copy "hash system"))
+              (gc)
+              (and (or (not (hash-ref z "this"))
+                       (not (hash-ref z "a"))
+                       (not (hash-ref z "of"))
+                       (not (hash-ref z "emergency"))
+                       (not (hash-ref z "all")))
+                   (hash-ref z test-key)
+                   #t)))))
