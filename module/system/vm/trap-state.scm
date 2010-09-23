@@ -197,7 +197,9 @@
 (define* (add-trace-at-procedure-call! proc
                                        #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state))
-         (trap (trace-calls-to-procedure proc)))
+         (trap (trace-calls-to-procedure
+                proc
+                #:prefix (format #f "trace trap ~a: " idx))))
     (add-trap-wrapper!
      trap-state
      (make-trap-wrapper
