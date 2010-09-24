@@ -199,12 +199,14 @@ coverage data.  Return code coverage data and the values returned by THUNK."
 if PROC was not executed.  When PROC is a closure, the number of times its code
 was executed is returned, not the number of times this code associated with this
 particular closure was executed."
-  (and=> (hashx-ref hashq-proc assq-proc
-                    (data-procedure->ip-counts data) proc)
-         (let ((sources (program-sources* data proc)))
-           (lambda (ip-counts)
-             (let ((entry-ip (source:addr (car sources)))) ;; FIXME: broken with lambda*
-               (hashv-ref ip-counts entry-ip 0))))))
+  (let ((sources (program-sources* data proc)))
+    (and (pair? sources)
+         (and=> (hashx-ref hashq-proc assq-proc
+                           (data-procedure->ip-counts data) proc)
+                (lambda (ip-counts)
+                  ;; FIXME: broken with lambda*
+                  (let ((entry-ip (source:addr (car sources))))
+                    (hashv-ref ip-counts entry-ip 0)))))))
 
 (define (program-sources* data proc)
   ;; A memoizing version of `program-sources'.
