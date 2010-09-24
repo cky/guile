@@ -446,8 +446,7 @@
   (let ((dopts #f))
     (dynamic-wind
 	(lambda ()
-	  (set! dopts (debug-options))
-	  (debug-enable 'debug))
+	  (set! dopts (debug-options)))
 	thunk
 	(lambda ()
 	  (debug-options dopts)))))

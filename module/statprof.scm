@@ -399,7 +399,6 @@ Enables traps and debugging as necessary."
   (set! procedure-data (make-hash-table 131))
   (set! record-full-stacks? (and (pair? full-stacks?) (car full-stacks?)))
   (set! stacks '())
-  (debug-enable 'debug)
   (sigaction SIGPROF profile-signal-handler)
   #t)
 

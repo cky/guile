@@ -663,3 +663,14 @@ it.")
   (issue-deprecation-warning
    "`top-repl' has moved to the `(ice-9 top-repl)' module.")
   ((module-ref (resolve-module '(ice-9 top-repl)) 'top-repl)))
+
+(set! debug-enable
+      (let ((debug-enable debug-enable))
+        (lambda opts
+          (if (memq 'debug opts)
+              (begin
+                (issue-deprecation-warning
+                 "`(debug-enable 'debug)' is obsolete and has no effect."
+                 "Remove it from your code.")
+                (apply debug-enable (delq 'debug opts)))
+              (apply debug-enable opts)))))

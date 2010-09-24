@@ -75,11 +75,6 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
   scm_dynwind_critical_section (SCM_BOOL_F);
 
   ans = scm_options (setting, scm_debug_opts, FUNC_NAME);
-  if (SCM_N_FRAMES < 1)
-    {
-      scm_options (ans, scm_debug_opts, FUNC_NAME);
-      SCM_OUT_OF_RANGE (1, setting);
-    }
 #ifdef STACK_CHECKING
   scm_stack_checking_enabled_p = SCM_STACK_CHECKING_P;
 #endif

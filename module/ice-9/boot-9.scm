@@ -1029,7 +1029,6 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; scm_compile_shell_switches.
 
 (define (turn-on-debugging)
-  (debug-enable 'debug)
   (debug-enable 'backtrace)
   (read-enable 'positions))
 

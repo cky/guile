@@ -436,25 +436,11 @@ eval (SCM x, SCM env)
 }
 
 scm_t_option scm_debug_opts[] = {
-  { SCM_OPTION_BOOLEAN, "cheap", 1,
-    "*This option is now obsolete.  Setting it has no effect." },
-  { SCM_OPTION_BOOLEAN, "breakpoints", 0,
-    "*This option is now obsolete.  Setting it has no effect." },
-  { SCM_OPTION_BOOLEAN, "trace", 0,
-    "*This option is now obsolete.  Setting it has no effect." },
-  { SCM_OPTION_BOOLEAN, "procnames", 1,
-    "*This option is now obsolete.  Setting it has no effect." },
   { SCM_OPTION_BOOLEAN, "backwards", 0,
     "Display backtrace in anti-chronological order." },
   { SCM_OPTION_INTEGER, "width", 79, "Maximal width of backtrace." },
-  { SCM_OPTION_INTEGER, "indent", 10, "Maximal indentation in backtrace." },
-  { SCM_OPTION_INTEGER, "frames", 3,
-    "Maximum number of tail-recursive frames in backtrace." },
-  { SCM_OPTION_INTEGER, "maxdepth", 1000,
-    "Maximal number of stored backtrace frames." },
   { SCM_OPTION_INTEGER, "depth", 20, "Maximal length of printed backtrace." },
   { SCM_OPTION_BOOLEAN, "backtrace", 0, "Show backtrace on error." },
-  { SCM_OPTION_BOOLEAN, "debug", 0, "Use the debugging evaluator." },
   /* This default stack limit will be overridden by debug.c:init_stack_limit(),
      if we have getrlimit() and the stack limit is not INFINITY. But it is still
      important, as some systems have both the soft and the hard limits set to
