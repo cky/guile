@@ -18,7 +18,6 @@ loading, evaluating, and compiling Scheme code at run time.
 * Loading::                     Loading Scheme code from file.
 * Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
-* Evaluator Behaviour::         Modifying Guile's evaluator.
 * VM Behaviour::                Modifying Guile's virtual machine.
 @end menu
 
@@ -788,48 +787,6 @@ their results are ignored, @code{force} always returns the first
 value.
 @end deffn
 
-
-@node Evaluator Behaviour
-@subsection Evaluator Behaviour
-
-@c FIXME::martin: Maybe this node name is bad, but the old name clashed with
-@c `Evaluator options' under `Options and Config'.
-
-The behaviour of Guile's evaluator can be modified by manipulating the
-evaluator options.  For more information about options, @xref{User level
-options interfaces}.
-
-@c FIXME::martin: Why aren't these procedure named like the other options
-@c procedures?
-
-@deffn {Scheme Procedure} traps [setting]
-Display the current settings of the evaluator traps options.  If
-@var{setting} is omitted, only a short form of the current evaluator
-traps options is printed.  Otherwise, @var{setting} should be one of the
-following symbols:
-@table @code
-@item help
-Display the complete option settings.
-@item full
-Like @code{help}, but also print programmer options.
-@end table
-@end deffn
-
-@deffn {Scheme Procedure} trap-enable option-name
-@deffnx {Scheme Procedure} trap-disable option-name
-@deffnx {Scheme Procedure} trap-set! option-name value
-Modify the evaluator options.  @code{trap-enable} should be used with boolean
-options and switches them on, @code{trap-disable} switches them off.
-@code{trap-set!} can be used to set an option to a specific value.
-
-See @ref{Evaluator trap options} for more information on the available
-trap handlers.
-@end deffn
-
-@deffn {Scheme Procedure} evaluator-traps-interface [setting]
-@deffnx {C Function} scm_evaluator_traps (setting)
-Option interface for the evaluator trap options.
-@end deffn
 
 @node VM Behaviour
 @subsection VM Behaviour

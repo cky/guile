@@ -81,18 +81,16 @@
                     (lambda ()
                       (call-with-unblocked-asyncs
                        (lambda ()
-                         (with-traps
-                          (lambda ()
-                            (first)
+                         (first)
 
-                            ;; This line is needed because mark
-                            ;; doesn't do closures quite right.
-                            ;; Unreferenced locals should be
-                            ;; collected.
-                            (set! first #f)
-                            (let loop ((v (thunk)))
-                              (loop (thunk)))
-                            #f)))))
+                         ;; This line is needed because mark
+                         ;; doesn't do closures quite right.
+                         ;; Unreferenced locals should be
+                         ;; collected.
+                         (set! first #f)
+                         (let loop ((v (thunk)))
+                           (loop (thunk)))
+                         #f)))
 
                     (lambda (key . args)
                       (case key

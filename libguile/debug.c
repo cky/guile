@@ -89,44 +89,6 @@ SCM_DEFINE (scm_debug_options, "debug-options-interface", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-
-static void
-with_traps_before (void *data)
-{
-  int *trap_flag = data;
-  *trap_flag = SCM_TRAPS_P;
-  SCM_TRAPS_P = 1;
-}
-
-static void
-with_traps_after (void *data)
-{
-  int *trap_flag = data;
-  SCM_TRAPS_P = *trap_flag;
-}
-
-static SCM
-with_traps_inner (void *data)
-{
-  SCM thunk = SCM_PACK ((scm_t_bits) data);
-  return scm_call_0 (thunk);
-}
-
-SCM_DEFINE (scm_with_traps, "with-traps", 1, 0, 0, 
-            (SCM thunk),
-	    "Call @var{thunk} with traps enabled.")
-#define FUNC_NAME s_scm_with_traps
-{
-  int trap_flag;
-  SCM_VALIDATE_THUNK (1, thunk);
-  return scm_internal_dynamic_wind (with_traps_before,
-				    with_traps_inner,
-				    with_traps_after,
-				    (void *) SCM_UNPACK (thunk),
-				    &trap_flag);
-}
-#undef FUNC_NAME
-
 
 SCM_SYMBOL (scm_sym_source, "source");
 

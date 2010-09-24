@@ -2650,11 +2650,6 @@ module '(ice-9 q) '(make-q q-length))}."
    (debug-set!)))
 
 (define-option-interface
-  (evaluator-traps-interface
-   (traps trap-enable trap-disable)
-   (trap-set!)))
-
-(define-option-interface
   (read-options-interface
    (read-options read-enable read-disable)
    (read-set!)))

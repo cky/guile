@@ -478,48 +478,6 @@ scm_t_option scm_debug_opts[] = {
 };
 
 
-/*
- * this ordering is awkward and illogical, but we maintain it for
- * compatibility. --hwn
- */
-scm_t_option scm_evaluator_trap_table[] = {
-  { SCM_OPTION_BOOLEAN, "traps", 0, "Enable evaluator traps." },
-  { SCM_OPTION_BOOLEAN, "enter-frame", 0, "Trap when eval enters new frame." },
-  { SCM_OPTION_BOOLEAN, "apply-frame", 0, "Trap when entering apply." },
-  { SCM_OPTION_BOOLEAN, "exit-frame", 0, "Trap when exiting eval or apply." },
-  { SCM_OPTION_SCM, "enter-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for enter-frame traps." },
-  { SCM_OPTION_SCM, "apply-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for apply-frame traps." },
-  { SCM_OPTION_SCM, "exit-frame-handler", (unsigned long)SCM_BOOL_F, "Handler for exit-frame traps." },
-  { SCM_OPTION_BOOLEAN, "memoize-symbol", 0, "Trap when memoizing a symbol." },
-  { SCM_OPTION_SCM, "memoize-symbol-handler", (unsigned long)SCM_BOOL_F, "The handler for memoization." },
-  { 0 }
-};
-
-
-SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
-            (SCM setting),
-	    "Option interface for the evaluator trap options.")
-#define FUNC_NAME s_scm_evaluator_traps
-{
-  SCM ans;
-
-  
-  scm_options_try (setting,
-		   scm_evaluator_trap_table,
-		   FUNC_NAME, 1);
-  SCM_CRITICAL_SECTION_START;
-  ans = scm_options (setting,
-		     scm_evaluator_trap_table,
-		     FUNC_NAME);
-
-  /* njrev: same again. */
-  SCM_CRITICAL_SECTION_END;
-  return ans;
-}
-#undef FUNC_NAME
-
-
-
 
 
 /* Simple procedure calls
@@ -1111,9 +1069,6 @@ scm_init_eval ()
 {
   SCM primitive_eval;
 
-  scm_init_opts (scm_evaluator_traps,
-		 scm_evaluator_trap_table);
-  
   f_apply = scm_c_define_gsubr ("apply", 2, 0, 1, scm_apply);
 
   scm_tc16_boot_closure = scm_make_smob_type ("boot-closure", 0);
