@@ -136,7 +136,7 @@
   ;; INITIAL-VALUE.  The idea is to make sure `hash-ref' doesn't return
   ;; garbage.
   (or (not value)
-      (equal? val initial-value)))
+      (equal? value initial-value)))
 
  (let ((x (make-weak-key-alist-vector 17))
       (y (make-weak-value-alist-vector 17))
