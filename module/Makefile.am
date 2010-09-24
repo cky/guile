@@ -353,16 +353,6 @@ NOCOMP_SOURCES =				\
   ice-9/quasisyntax.scm				\
   system/base/lalr.upstream.scm			\
   system/repl/describe.scm			\
-  ice-9/debugger/command-loop.scm		\
-  ice-9/debugger/commands.scm			\
-  ice-9/debugger/state.scm			\
-  ice-9/debugger/trc.scm			\
-  ice-9/debugger/utils.scm			\
-  ice-9/debugging/example-fns.scm		\
-  ice-9/debugging/steps.scm			\
-  ice-9/debugging/trace.scm			\
-  ice-9/debugging/traps.scm			\
-  ice-9/debugging/trc.scm			\
   sxml/sxml-match.ss				\
   sxml/upstream/SSAX.scm			\
   sxml/upstream/SXML-tree-trans.scm		\
