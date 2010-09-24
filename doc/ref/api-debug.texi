@@ -10,8 +10,8 @@
 @cindex Debugging
 In order to understand Guile's debugging facilities, you first need to
 understand a little about how Guile represent the Scheme control stack.
-With that in place we explain the low level trap calls that the
-evaluator can be configured to make, and the trap and breakpoint
+With that in place we explain the low level trap calls that the virtual
+machine can be configured to make, and the trap and breakpoint
 infrastructure that builds on top of those calls.
 
 @menu
@@ -26,10 +26,10 @@ infrastructure that builds on top of those calls.
 
 The idea of the Scheme stack is central to a lot of debugging.  The
 Scheme stack is a reified representation of the pending function returns
-in an expression's continuation. As Guile implements function calls
+in an expression's continuation.  As Guile implements function calls
 using a stack, this reification takes the form of a number of nested
-stack frames, each of which has the procedure and its arguments, along
-with local variables and temporary values.
+stack frames, each of which corresponds to the application of a
+procedure to a set of arguments.
 
 A Scheme stack always exists implicitly, and can be summoned into
 concrete existence as a first-class Scheme value by the
@@ -53,10 +53,10 @@ function will not be on the stack, as it has no work left to do.
 Therefore, when an error occurs in a running program, or the program
 hits a breakpoint, or in fact at any point that the programmer chooses,
 its state at that point can be represented by a @dfn{stack} of all the
-evaluations and procedure applications that are logically in progress at
-that time, each of which is known as a @dfn{frame}.  The programmer can
-learn more about the program's state at that point by inspecting the
-stack and its frames.
+procedure applications that are logically in progress at that time, each
+of which is known as a @dfn{frame}.  The programmer can learn more about
+the program's state at that point by inspecting the stack and its
+frames.
 
 @menu
 * Capturing the Stack or Innermost Stack Frame::
@@ -76,7 +76,7 @@ describes the Scheme stack at that point.
 @lisp
 (make-stack #t)
 @result{}
-#<stack 805c840:808d250>
+#<stack 25205a0>
 @end lisp
 
 @deffn {Scheme Procedure} make-stack obj . args
@@ -206,20 +206,18 @@ can be seen by typing @code{(xxx)} and @code{xxx} at the Guile prompt
 (where the variable @code{xxx} has not been defined):
 
 @example
-guile> (xxx)
-standard input:2:1: In expression (xxx):
-standard input:2:1: Unbound variable: xxx
-ABORT: (unbound-variable)
-guile> xxx
-<unnamed port>: In expression xxx:
-<unnamed port>: Unbound variable: xxx
-ABORT: (unbound-variable)
+scheme@@(guile-user)> (xxx)
+<unnamed port>:4:1: In procedure module-lookup:
+<unnamed port>:4:1: Unbound variable: xxx
+
+scheme@@(guile-user)> xxx
+ERROR: In procedure module-lookup:
+ERROR: Unbound variable: xxx
 @end example
 
 @noindent
-In the latter case, no source properties were stored, so the best that
-Guile could say regarding the location of the problem was ``<unnamed
-port>''.
+In the latter case, no source properties were stored, so the error
+doesn't have any source information.
 
 The recording of source properties is controlled by the read option
 named ``positions'' (@pxref{Reader options}).  This option is switched
