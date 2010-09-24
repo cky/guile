@@ -64,8 +64,6 @@ SCM_API SCM scm_the_vm ();
 SCM_API SCM scm_make_vm (void);
 SCM_API SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 SCM_API SCM scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs);
-SCM_API SCM scm_vm_option_ref (SCM vm, SCM key);
-SCM_API SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
 
 SCM_API SCM scm_vm_version (void);
 SCM_API SCM scm_thread_vm (SCM t);
