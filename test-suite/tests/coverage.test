@@ -21,6 +21,7 @@
   #:use-module (system vm coverage)
   #:use-module (system vm vm)
   #:use-module (system base compile)
+  #:use-module (system foreign)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-11))
 
@@ -185,7 +186,25 @@
                       (lambda () (+ 1 2)))))
         (and (coverage-data? data)
              (= 3 result)
-             (not (procedure-execution-count data proc)))))))
+             (not (procedure-execution-count data proc))))))
+
+  (pass-if "called from C"
+    ;; The `scm_call_N' functions use the VM returned by `the-vm'.  This
+    ;; test makes sure that they get to use %TEST-VM.
+    (let ((proc (code "foo.scm" "(lambda (x y) (+ x y))"))
+          (call (pointer->procedure '*
+                                    (dynamic-func "scm_call_2"
+                                                  (dynamic-link))
+                                    '(* * *))))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda ()
+                        (call (make-pointer (object-address proc))
+                              (make-pointer (object-address 1))
+                              (make-pointer (object-address 2)))))))
+        (and (coverage-data? data)
+             (= (object-address 3) (pointer-address result))
+             (= (procedure-execution-count data proc) 1))))))
 
 
 (with-test-prefix "instrumented-source-files"

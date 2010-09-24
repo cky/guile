@@ -85,15 +85,18 @@ coverage data.  Return code coverage data and the values returned by THUNK."
               (loop))))))
 
   (call-with-values (lambda ()
-                      (let ((level (vm-trace-level vm))
-                            (hook  (vm-next-hook vm)))
+                      (let ((level   (vm-trace-level vm))
+                            (hook    (vm-next-hook vm))
+                            (prev-vm (thread-vm (current-thread))))
                         (dynamic-wind
                           (lambda ()
                             (set-vm-trace-level! vm (+ level 1))
-                            (add-hook! hook collect!))
+                            (add-hook! hook collect!)
+                            (set-thread-vm! (current-thread) vm))
                           (lambda ()
                             (vm-apply vm thunk '()))
                           (lambda ()
+                            (set-thread-vm! (current-thread) prev-vm)
                             (set-vm-trace-level! vm level)
                             (remove-hook! hook collect!)))))
     (lambda args
