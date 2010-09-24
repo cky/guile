@@ -611,11 +611,11 @@ Show the set of currently attached traps (breakpoints and tracepoints)."
   (let ((traps (list-traps)))
     (if (null? traps)
         (format #t "No traps set.~%")
-        (for-each (lambda (idx name)
+        (for-each (lambda (idx)
                     (format #t "  ~a: ~a~a~%"
                             idx (trap-name idx)
                             (if (trap-enabled? idx) "" " (disabled)")))
-                  (map car traps) (map cdr traps)))))
+                  traps))))
 
 (define-meta-command (delete repl idx)
   "delete IDX
