@@ -28,13 +28,7 @@
 /*
   evaluator
  */
-SCM_API scm_t_option scm_eval_opts[];
-
 SCM_API scm_t_option scm_evaluator_trap_table[];
-
-SCM_API SCM scm_eval_options_interface (SCM setting);
-
-#define SCM_EVAL_STACK         scm_eval_opts[0].val
 
 #define SCM_TRAPS_P            scm_evaluator_trap_table[0].val
 #define SCM_ENTER_FRAME_P      scm_evaluator_trap_table[1].val

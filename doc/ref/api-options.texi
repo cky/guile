@@ -392,7 +392,6 @@ configure @emph{reading}, @emph{printing}, @emph{debugging} or
 * Reader options::
 * Printing options::
 * Debugger options::
-* Evaluator options::
 * Evaluator trap options::
 * Examples of option use::
 @end menu
@@ -402,7 +401,6 @@ configure @emph{reading}, @emph{printing}, @emph{debugging} or
 @subsubsection Low Level Options Interfaces
 
 @deffn {Scheme Procedure} read-options-interface [setting]
-@deffnx {Scheme Procedure} eval-options-interface [setting]
 @deffnx {Scheme Procedure} print-options-interface [setting]
 @deffnx {Scheme Procedure} debug-options-interface [setting]
 @deffnx {Scheme Procedure} evaluator-traps-interface [setting]
@@ -545,17 +543,6 @@ highlight-suffix         @}      The string to print after highlighted values.
 
 source                   no     Print closures with source.
 closure-hook             #f     Hook for printing closures.
-@end smallexample
-
-
-@node Evaluator options
-@subsubsection Evaluator options
-
-These are the evaluator options with their default values, as they are
-printed by typing @code{(eval-options 'full)} in Guile.
-
-@smallexample
-stack           22000   Size of thread stacks (in machine words).
 @end smallexample
 
 

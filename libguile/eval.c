@@ -435,11 +435,6 @@ eval (SCM x, SCM env)
     }
 }
 
-scm_t_option scm_eval_opts[] = {
-  { SCM_OPTION_INTEGER, "stack", 22000, "Size of thread stacks (in machine words)." },
-  { 0 }
-};
-
 scm_t_option scm_debug_opts[] = {
   { SCM_OPTION_BOOLEAN, "cheap", 1,
     "*This option is now obsolete.  Setting it has no effect." },
@@ -499,27 +494,6 @@ scm_t_option scm_evaluator_trap_table[] = {
   { SCM_OPTION_SCM, "memoize-symbol-handler", (unsigned long)SCM_BOOL_F, "The handler for memoization." },
   { 0 }
 };
-
-
-SCM_DEFINE (scm_eval_options_interface, "eval-options-interface", 0, 1, 0, 
-            (SCM setting),
-	    "Option interface for the evaluation options. Instead of using\n"
-	    "this procedure directly, use the procedures @code{eval-enable},\n"
-	    "@code{eval-disable}, @code{eval-set!} and @code{eval-options}.")
-#define FUNC_NAME s_scm_eval_options_interface
-{
-  SCM ans;
-  
-  scm_dynwind_begin (0);
-  scm_dynwind_critical_section (SCM_BOOL_F);
-  ans = scm_options (setting,
-		     scm_eval_opts,
-		     FUNC_NAME);
-  scm_dynwind_end ();
-
-  return ans;
-}
-#undef FUNC_NAME
 
 
 SCM_DEFINE (scm_evaluator_traps, "evaluator-traps-interface", 0, 1, 0, 
@@ -1139,8 +1113,6 @@ scm_init_eval ()
 
   scm_init_opts (scm_evaluator_traps,
 		 scm_evaluator_trap_table);
-  scm_init_opts (scm_eval_options_interface,
-		 scm_eval_opts);
   
   f_apply = scm_c_define_gsubr ("apply", 2, 0, 1, scm_apply);
 

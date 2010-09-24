@@ -797,39 +797,7 @@ value.
 
 The behaviour of Guile's evaluator can be modified by manipulating the
 evaluator options.  For more information about options, @xref{User level
-options interfaces}.  If you want to know which evaluator options are
-available, @xref{Evaluator options}.
-
-@c FIXME::martin: This is taken from libguile/options.c.  Is there 
-@c actually a difference between 'help and 'full?
-
-@deffn {Scheme Procedure} eval-options [setting]
-Display the current settings of the evaluator options.  If @var{setting}
-is omitted, only a short form of the current evaluator options is
-printed.  Otherwise, @var{setting} should be one of the following
-symbols:
-@table @code
-@item help
-Display the complete option settings.
-@item full
-Like @code{help}, but also print programmer options.
-@end table
-@end deffn
-
-@deffn {Scheme Procedure} eval-enable option-name
-@deffnx {Scheme Procedure} eval-disable option-name
-@deffnx {Scheme Procedure} eval-set! option-name value
-Modify the evaluator options.  @code{eval-enable} should be used with boolean
-options and switches them on, @code{eval-disable} switches them off.
-@code{eval-set!} can be used to set an option to a specific value.
-@end deffn
-
-@deffn {Scheme Procedure} eval-options-interface [setting]
-@deffnx {C Function} scm_eval_options_interface (setting)
-Option interface for the evaluation options. Instead of using
-this procedure directly, use the procedures @code{eval-enable},
-@code{eval-disable}, @code{eval-set!} and @code{eval-options}.
-@end deffn
+options interfaces}.
 
 @c FIXME::martin: Why aren't these procedure named like the other options
 @c procedures?

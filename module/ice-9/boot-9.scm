@@ -2645,11 +2645,6 @@ module '(ice-9 q) '(make-q q-length))}."
             (options (append (options) (list 'opt val))))))))))
 
 (define-option-interface
-  (eval-options-interface
-   (eval-options eval-enable eval-disable)
-   (eval-set!)))
-
-(define-option-interface
   (debug-options-interface
    (debug-options debug-enable debug-disable)
    (debug-set!)))
