@@ -183,7 +183,6 @@ ICE_9_SOURCES = \
   ice-9/control.scm \
   ice-9/curried-definitions.scm \
   ice-9/debug.scm \
-  ice-9/debugger.scm \
   ice-9/documentation.scm \
   ice-9/expect.scm \
   ice-9/format.scm \
@@ -229,7 +228,6 @@ ICE_9_SOURCES = \
   ice-9/weak-vector.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
-  ice-9/gds-server.scm \
   ice-9/vlist.scm
 
 SRFI_SOURCES = \
@@ -346,7 +344,6 @@ LIB_SOURCES =					\
 EXTRA_DIST += oop/ChangeLog-2008
 
 NOCOMP_SOURCES =				\
-  ice-9/gds-client.scm				\
   ice-9/match.upstream.scm			\
   ice-9/psyntax.scm				\
   ice-9/r6rs-libraries.scm			\
