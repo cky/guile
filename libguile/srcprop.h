@@ -3,7 +3,7 @@
 #ifndef SCM_SRCPROP_H
 #define SCM_SRCPROP_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -63,11 +63,9 @@ SCM_API SCM scm_sym_filename;
 SCM_API SCM scm_sym_copy;
 SCM_API SCM scm_sym_line;
 SCM_API SCM scm_sym_column;
-SCM_API SCM scm_sym_breakpoint;
 
 
 
-SCM_API int scm_c_source_property_breakpoint_p (SCM form);
 SCM_API SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
 SCM_API SCM scm_source_property (SCM obj, SCM key);
 SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
@@ -76,9 +74,6 @@ SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
 SCM_API SCM scm_cons_source (SCM xorig, SCM x, SCM y);
 SCM_INTERNAL void scm_init_srcprop (void);
 
-#if SCM_ENABLE_DEPRECATED == 1
-#define SRCBRKP(x) (scm_source_property_breakpoint_p (x))
-#endif
 
 #endif  /* SCM_SRCPROP_H */
 

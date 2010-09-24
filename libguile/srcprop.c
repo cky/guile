@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008, 2009 Free Software Foundation
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008, 2009, 2010 Free Software Foundation
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -42,13 +42,12 @@
 /* {Source Properties}
  *
  * Properties of source list expressions.
- * Five of these have special meaning:
+ * Four of these have special meaning:
  *
  * filename    string   The name of the source file.
  * copy        list     A copy of the list expression.
  * line	       integer	The source code line number.
  * column      integer	The source code column number.
- * breakpoint  boolean	Sets a breakpoint on this form.
  *
  * Most properties above can be set by the reader.
  *
@@ -58,7 +57,6 @@ SCM_GLOBAL_SYMBOL (scm_sym_filename, "filename");
 SCM_GLOBAL_SYMBOL (scm_sym_copy, "copy");
 SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
-SCM_GLOBAL_SYMBOL (scm_sym_breakpoint, "breakpoint");
 SCM scm_source_whash;
 
 
@@ -74,18 +72,11 @@ SCM scm_source_whash;
  */
 
 #define SRCPROPSP(p) (SCM_SMOB_PREDICATE (scm_tc16_srcprops, (p)))
-#define SRCPROPBRK(p) (SCM_SMOB_FLAGS (p) & SCM_SOURCE_PROPERTY_FLAG_BREAK)
 #define SRCPROPPOS(p) (SCM_SMOB_DATA(p))
 #define SRCPROPLINE(p) (SRCPROPPOS(p) >> 12)
 #define SRCPROPCOL(p) (SRCPROPPOS(p) & 0x0fffL)
 #define SRCPROPCOPY(p) (SCM_SMOB_OBJECT_2(p))
 #define SRCPROPALIST(p) (SCM_SMOB_OBJECT_3(p))
-#define SETSRCPROPBRK(p) \
- (SCM_SET_SMOB_FLAGS ((p), \
-                      SCM_SMOB_FLAGS (p) | SCM_SOURCE_PROPERTY_FLAG_BREAK))
-#define CLEARSRCPROPBRK(p)  \
- (SCM_SET_SMOB_FLAGS ((p), \
-                      SCM_SMOB_FLAGS (p) & ~SCM_SOURCE_PROPERTY_FLAG_BREAK))
 #define SRCPROPMAKPOS(l, c) (((l) << 12) + (c))
 #define SETSRCPROPPOS(p, l, c) (SCM_SET_SMOB_DATA_1 (p, SRCPROPMAKPOS (l, c)))
 #define SETSRCPROPLINE(p, l) SETSRCPROPPOS (p, l, SRCPROPCOL (p))
@@ -109,14 +100,6 @@ srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
   SCM_SET_WRITINGP (pstate, writingp);
   scm_putc ('>', port);
   return 1;
-}
-
-
-int
-scm_c_source_property_breakpoint_p (SCM form)
-{
-  SCM obj = scm_whash_lookup (scm_source_whash, form);
-  return SRCPROPSP (obj) && SRCPROPBRK (obj);
 }
 
 
@@ -170,7 +153,6 @@ scm_srcprops_to_alist (SCM obj)
     alist = scm_acons (scm_sym_copy, SRCPROPCOPY (obj), alist);
   alist = scm_acons (scm_sym_column, scm_from_int (SRCPROPCOL (obj)), alist);
   alist = scm_acons (scm_sym_line, scm_from_int (SRCPROPLINE (obj)), alist);
-  alist = scm_acons (scm_sym_breakpoint, scm_from_bool (SRCPROPBRK (obj)), alist);
   return alist;
 }
 
@@ -217,10 +199,12 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
   if (!SRCPROPSP (p))
     goto alist;
-  if      (scm_is_eq (scm_sym_breakpoint, key)) p = scm_from_bool (SRCPROPBRK (p));
-  else if (scm_is_eq (scm_sym_line,       key)) p = scm_from_int (SRCPROPLINE (p));
-  else if (scm_is_eq (scm_sym_column,     key)) p = scm_from_int (SRCPROPCOL (p));
-  else if (scm_is_eq (scm_sym_copy,       key)) p = SRCPROPCOPY (p);
+  if (scm_is_eq (scm_sym_line, key))
+    p = scm_from_int (SRCPROPLINE (p));
+  else if (scm_is_eq (scm_sym_column, key))
+    p = scm_from_int (SRCPROPCOL (p));
+  else if (scm_is_eq (scm_sym_copy, key))
+    p = SRCPROPCOPY (p);
   else
     {
       p = SRCPROPALIST (p);
@@ -249,26 +233,8 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
       h = scm_whash_create_handle (scm_source_whash, obj);
       p = SCM_EOL;
     }
-  if (scm_is_eq (scm_sym_breakpoint, key))
-    {
-      if (SRCPROPSP (p))
-	{
-	  if (scm_is_false (datum))
-	    CLEARSRCPROPBRK (p);
-	  else
-	    SETSRCPROPBRK (p);
-	}
-      else
-	{
-	  SCM sp = scm_make_srcprops (0, 0, SCM_UNDEFINED, SCM_UNDEFINED, p);
-	  SCM_WHASHSET (scm_source_whash, h, sp);
-	  if (scm_is_false (datum))
-	    CLEARSRCPROPBRK (sp);
-	  else
-	    SETSRCPROPBRK (sp);
-	}
-    }
-  else if (scm_is_eq (scm_sym_line, key))
+
+  if (scm_is_eq (scm_sym_line, key))
     {
       if (SRCPROPSP (p))
 	SETSRCPROPLINE (p, scm_to_int (datum));
