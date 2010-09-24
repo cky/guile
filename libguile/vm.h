@@ -68,6 +68,8 @@ SCM_API SCM scm_vm_option_ref (SCM vm, SCM key);
 SCM_API SCM scm_vm_option_set_x (SCM vm, SCM key, SCM val);
 
 SCM_API SCM scm_vm_version (void);
+SCM_API SCM scm_thread_vm (SCM t);
+SCM_API SCM scm_set_thread_vm_x (SCM t, SCM vm);
 SCM_API SCM scm_the_vm (void);
 SCM_API SCM scm_vm_p (SCM obj);
 SCM_API SCM scm_vm_ip (SCM vm);

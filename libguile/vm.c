@@ -597,17 +597,52 @@ SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
-	    (void),
-	    "")
-#define FUNC_NAME s_scm_the_vm
+/* Return T's VM.  */
+static inline SCM
+thread_vm (scm_i_thread *t)
 {
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-
-  if (SCM_UNLIKELY (scm_is_false ((t->vm))))
+  if (SCM_UNLIKELY (scm_is_false (t->vm)))
     t->vm = make_vm ();
 
   return t->vm;
+}
+
+SCM_DEFINE (scm_thread_vm, "thread-vm", 1, 0, 0,
+	    (SCM thread),
+	    "Return @var{thread}'s VM.")
+#define FUNC_NAME s_scm_thread_vm
+{
+  SCM_VALIDATE_THREAD (1, thread);
+
+  return thread_vm (SCM_I_THREAD_DATA (thread));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_thread_vm_x, "set-thread-vm!", 2, 0, 0,
+	    (SCM thread, SCM vm),
+	    "Set @var{thread}'s VM to @var{vm}.  Warning: Code being\n"
+	    "executed by @var{thread}'s current VM won't automatically\n"
+	    "switch to @var{vm}.")
+#define FUNC_NAME s_scm_set_thread_vm_x
+{
+  scm_i_thread *t;
+
+  SCM_VALIDATE_THREAD (1, thread);
+  SCM_VALIDATE_VM (2, vm);
+
+  t = SCM_I_THREAD_DATA (thread);
+  t->vm = vm;
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
+	    (void),
+	    "Return the current thread's VM.")
+#define FUNC_NAME s_scm_the_vm
+{
+  return thread_vm (SCM_I_CURRENT_THREAD);
 }
 #undef FUNC_NAME
 

@@ -21,7 +21,8 @@
 (define-module (system vm vm)
   #:use-module (system vm frame)
   #:use-module (system vm program)
-  #:export (vm? the-vm make-vm vm-version vm-apply
+  #:export (vm? make-vm vm-version vm-apply
+            the-vm thread-vm set-thread-vm!
             vm:ip vm:sp vm:fp vm:last-ip
 
             vm-load vm-option set-vm-option! vm-version
