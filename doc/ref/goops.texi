@@ -2278,19 +2278,6 @@ Each following section covers a particular area of GOOPS functionality,
 and describes the generic functions that are relevant for customization
 of that area.
 
-We conclude these remarks by emphasizing a point that may seem obvious,
-but contrasts with the corresponding situation in some other MOP
-implementations, such as CLOS.  The point is simply that an identifier
-which represents a GOOPS class or generic function is a variable with a
-first-class value, the value being an instance of class @code{<class>}
-or @code{<generic>}.  (In CLOS, on the other hand, a class identifier is
-a symbol that indexes the corresponding class metaobject in a separate
-namespace for classes.)  This is, of course, simply an extension of the
-tendency in Scheme to avoid the unnecessary use of, on the one hand,
-syntactic forms that require unevaluated arguments and, on the other,
-separate identifier namespaces (e.g. for class names), but it is worth
-noting that GOOPS conforms fully to this Schemely principle.
-
 @node Terminology
 @subsection Terminology
 
