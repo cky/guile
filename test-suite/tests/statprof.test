@@ -1,5 +1,5 @@
 ;; guile-lib                    -*- scheme -*-
-;; Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
+;; Copyright (C) 2004, 2009, 2010 Andy Wingo <wingo at pobox dot com>
 ;; Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 
 ;; This library is free software; you can redistribute it and/or
@@ -30,10 +30,6 @@
   #:use-module (system base compile)
   #:use-module (srfi srfi-1)
   #:use-module (statprof))
-
-;; FIXME
-(debug-enable 'debug)
-(trap-enable 'traps)
 
 (pass-if "statistical sample counts within expected range"
   (let ()
@@ -86,11 +82,10 @@
     ;; is active, it shows up N times.
     (let ((num-calls 200))
 
-      (define (do-nothing n)
-        (simple-format #f "FOO ~A\n" (+ n n)))
+      (define do-nothing
+        (compile '(lambda (n)
+                    (simple-format #f "FOO ~A\n" (+ n n)))))
     
-      (throw 'unresolved) ;; need to fix VM tracing.
-
       ;; Run test.
       (statprof-reset 0 50000 #t #f)
       (statprof-start)
@@ -102,8 +97,6 @@
           #t)))
       (statprof-stop)
     
-      ;;(statprof-display)
-
       ;; Check result.
       (let ((proc-data (statprof-proc-call-data do-nothing)))
         (and proc-data
