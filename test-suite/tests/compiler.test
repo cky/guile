@@ -19,8 +19,9 @@
   #:use-module (test-suite lib)
   #:use-module (test-suite guile-test)
   #:use-module (system base compile)
-  #:use-module ((system vm vm) #:select (the-vm vm-load))
-  #:use-module ((system vm program) #:select (program-sources source:addr)))
+  #:use-module ((system vm vm) #:select (the-vm vm-apply))
+  #:use-module ((system vm program) #:select (make-program
+                                              program-sources source:addr)))
 
 (define read-and-compile
   (@@ (system base compile) read-and-compile))
@@ -97,7 +98,7 @@
                      #f)
                    (install-reader!)
                    this-should-be-ignored")))
-      (and (eq? (vm-load (the-vm) (read-and-compile input))
+      (and (eq? (vm-apply (the-vm) (make-program (read-and-compile input)) '())
                 'ok)
            (eq? r (fluid-ref current-reader)))))
 

@@ -49,7 +49,6 @@ struct scm_vm {
   SCM *stack_limit;		/* stack limit address */
   int engine;                   /* which vm engine we're using */
   SCM hooks[SCM_VM_NUM_HOOKS];	/* hooks */
-  SCM options;			/* options */
   int trace_level;              /* traces enabled if trace_level > 0 */
   scm_t_int64 cookie;           /* used to detect unrewindable continuations */
 };
@@ -65,7 +64,6 @@ SCM_API SCM scm_make_vm (void);
 SCM_API SCM scm_vm_apply (SCM vm, SCM program, SCM args);
 SCM_API SCM scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs);
 
-SCM_API SCM scm_vm_version (void);
 SCM_API SCM scm_thread_vm (SCM t);
 SCM_API SCM scm_set_thread_vm_x (SCM t, SCM vm);
 SCM_API SCM scm_the_vm (void);
@@ -79,8 +77,6 @@ SCM_API SCM scm_vm_pop_continuation_hook (SCM vm);
 SCM_API SCM scm_vm_abort_continuation_hook (SCM vm);
 SCM_API SCM scm_vm_restore_continuation_hook (SCM vm);
 SCM_API SCM scm_vm_next_hook (SCM vm);
-SCM_API SCM scm_vm_option (SCM vm, SCM key);
-SCM_API SCM scm_set_vm_option_x (SCM vm, SCM key, SCM val);
 SCM_API SCM scm_vm_trace_level (SCM vm);
 SCM_API SCM scm_set_vm_trace_level_x (SCM vm, SCM level);
 

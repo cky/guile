@@ -513,7 +513,6 @@ make_vm (void)
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;
   vp->engine      = SCM_VM_DEBUG_ENGINE;
-  vp->options     = SCM_EOL;
   vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
@@ -587,15 +586,6 @@ SCM_DEFINE (scm_vm_apply, "vm-apply", 3, 0, 0,
 #undef FUNC_NAME
 
 /* Scheme interface */
-
-SCM_DEFINE (scm_vm_version, "vm-version", 0, 0, 0,
-	    (void),
-	    "")
-#define FUNC_NAME s_scm_vm_version
-{
-  return scm_from_locale_string (PACKAGE_VERSION);
-}
-#undef FUNC_NAME
 
 /* Return T's VM.  */
 static inline SCM
@@ -756,28 +746,6 @@ SCM_DEFINE (scm_vm_restore_continuation_hook, "vm-restore-continuation-hook", 1,
 #define FUNC_NAME s_scm_vm_restore_continuation_hook
 {
   VM_DEFINE_HOOK (SCM_VM_RESTORE_CONTINUATION_HOOK);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_vm_option, "vm-option", 2, 0, 0,
-	    (SCM vm, SCM key),
-	    "")
-#define FUNC_NAME s_scm_vm_option
-{
-  SCM_VALIDATE_VM (1, vm);
-  return scm_assq_ref (SCM_VM_DATA (vm)->options, key);
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_set_vm_option_x, "set-vm-option!", 3, 0, 0,
-	    (SCM vm, SCM key, SCM val),
-	    "")
-#define FUNC_NAME s_scm_set_vm_option_x
-{
-  SCM_VALIDATE_VM (1, vm);
-  SCM_VM_DATA (vm)->options
-    = scm_assq_set_x (SCM_VM_DATA (vm)->options, key, val);
-  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
