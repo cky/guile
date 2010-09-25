@@ -212,9 +212,6 @@
 ;;; define with procedure-name
 ;;;
 
-(define old-procnames-flag (memq 'procnames (debug-options)))
-(debug-enable 'procnames)
-
 ;; names are only set on top-level procedures (currently), so these can't be
 ;; hidden in a let
 ;;
@@ -234,10 +231,6 @@
 
   (expect-fail "procedure-with-setter"
     (eq? 'foo-pws (procedure-name bar-pws))))
-
-(if old-procnames-flag
-    (debug-enable 'procnames)
-    (debug-disable 'procnames))
 
 ;;;
 ;;; promises
