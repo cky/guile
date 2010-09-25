@@ -65,6 +65,9 @@
     (equal? (read-string "1+i+i") '1+i+i))
   (pass-if "1+e10000i"
     (equal? (read-string "1+e10000i") '1+e10000i))
+  (pass-if "-nan.0-1i"
+    (not (equal? (imag-part (read-string "-nan.0-1i"))
+                 (imag-part (read-string "-nan.0+1i")))))
 
   ;; At one time the arg list for "Unknown # object: ~S" didn't make it out
   ;; of read.c.  Check that `format' can be applied to this error.

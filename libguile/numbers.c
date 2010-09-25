@@ -2991,7 +2991,7 @@ mem2complex (SCM mem, unsigned int idx,
 
 	      if (scm_is_false (imag))
 		imag = SCM_I_MAKINUM (sign);
-	      else if (sign == -1 && scm_is_false (scm_nan_p (ureal)))
+	      else if (sign == -1 && scm_is_false (scm_nan_p (imag)))
 		imag = scm_difference (imag, SCM_UNDEFINED);
 
 	      if (idx == len)
