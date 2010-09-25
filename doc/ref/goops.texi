@@ -2156,28 +2156,20 @@ as the Guile primitive @code{write} and @code{display} functions.
 @node The Metaobject Protocol
 @section The Metaobject Protocol
 
-GOOPS is based on a ``metaobject protocol'' derived from the ones used
-in CLOS (the Common Lisp Object System), tiny-clos (a small Scheme
-implementation of a subset of CLOS functionality) and STKlos.
+GOOPS is based on a ``metaobject protocol'' (aka ``MOP'') derived from
+the ones used in CLOS (the Common Lisp Object System), tiny-clos (a
+small Scheme implementation of a subset of CLOS functionality) and
+STKlos.
 
 GOOPS can be used by application authors at a basic level without any
-need to understand what the metaobject protocol (aka ``MOP'') is and how
-it works.  On the other hand, the MOP underlies even the customizations
-that application authors are likely to make use of very quickly --- such
-as defining an @code{initialize} method to customize the initialization
-of instances of an application-defined class --- and an understanding of
-the MOP makes it much easier to explain such customizations in a precise
-way.  And in the long run, understanding the MOP is the key both to
+need to understand what the MOP is and how it works.  On the other hand,
+the MOP underlies even very simple customizations --- such as defining
+an @code{initialize} method to customize the initialization of instances
+of an application-defined class --- and an understanding of the MOP
+makes it much easier to explain such customizations in a precise way.
+And in the long run, understanding the MOP is the key both to
 understanding GOOPS at a deeper level and to taking full advantage of
 GOOPS' power, by customizing the behaviour of GOOPS itself.
-
-These introductory remarks continue with a few words about metaobjects
-and the MOP.
-
-In general, this reference manual assumes familiarity with standard
-object oriented concepts and terminology.  However, some of the terms
-used in GOOPS are less well known, so the Terminology subsubsection
-provides definitions for these terms.
 
 @menu
 * Metaobjects and the Metaobject Protocol::
@@ -2193,10 +2185,10 @@ provides definitions for these terms.
 @node Metaobjects and the Metaobject Protocol
 @subsection Metaobjects and the Metaobject Protocol
 
-The conceptual building blocks of GOOPS are classes, slot definitions,
-instances, generic functions and methods.  A class is a grouping of
-inheritance relations and slot definitions.  An instance is an object
-with slots that are allocated following the rules implied by its class's
+The building blocks of GOOPS are classes, slot definitions, instances,
+generic functions and methods.  A class is a grouping of inheritance
+relations and slot definitions.  An instance is an object with slots
+that are allocated following the rules implied by its class's
 superclasses and slot definitions.  A generic function is a collection
 of methods and rules for determining which of those methods to apply
 when the generic function is invoked.  A method is a procedure and a set
@@ -2238,9 +2230,9 @@ of steps is as follows.
 @itemize @bullet
 @item
 @code{define-class} uses @code{make} to make a new instance of the
-@code{<class>}, passing as initialization arguments the superclasses,
-slot definitions and class options that were specified in the
-@code{define-class} form.
+@code{<class>} class, passing as initialization arguments the
+superclasses, slot definitions and class options that were specified in
+the @code{define-class} form.
 
 @item
 @code{make} allocates memory for the new instance, and then invokes the
@@ -2282,23 +2274,22 @@ of that class.
 Such is the power of the MOP.  Note that @code{initialize} is just one
 of a large number of generic functions that can be customized to modify
 the behaviour of application objects and classes and of GOOPS itself.
-Each subsequent section of the reference manual covers a particular area
-of GOOPS functionality, and describes the generic functions that are
-relevant for customization of that area.
+Each following section covers a particular area of GOOPS functionality,
+and describes the generic functions that are relevant for customization
+of that area.
 
-We conclude this subsubsection by emphasizing a point that may seem
-obvious, but contrasts with the corresponding situation in some other
-MOP implementations, such as CLOS.  The point is simply that an
-identifier which represents a GOOPS class or generic function is a
-variable with a first-class value, the value being an instance of class
-@code{<class>} or @code{<generic>}.  (In CLOS, on the other hand, a
-class identifier is a symbol that indexes the corresponding class
-metaobject in a separate namespace for classes.)  This is, of course,
-simply an extension of the tendency in Scheme to avoid the unnecessary
-use of, on the one hand, syntactic forms that require unevaluated
-arguments and, on the other, separate identifier namespaces (e.g. for
-class names), but it is worth noting that GOOPS conforms fully to this
-Schemely principle.
+We conclude these remarks by emphasizing a point that may seem obvious,
+but contrasts with the corresponding situation in some other MOP
+implementations, such as CLOS.  The point is simply that an identifier
+which represents a GOOPS class or generic function is a variable with a
+first-class value, the value being an instance of class @code{<class>}
+or @code{<generic>}.  (In CLOS, on the other hand, a class identifier is
+a symbol that indexes the corresponding class metaobject in a separate
+namespace for classes.)  This is, of course, simply an extension of the
+tendency in Scheme to avoid the unnecessary use of, on the one hand,
+syntactic forms that require unevaluated arguments and, on the other,
+separate identifier namespaces (e.g. for class names), but it is worth
+noting that GOOPS conforms fully to this Schemely principle.
 
 @node Terminology
 @subsection Terminology
