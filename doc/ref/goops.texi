@@ -191,51 +191,13 @@ objects, to add two of them together:
 @section Tutorial
 @include goops-tutorial.texi
 
+
 @node Defining New Classes
 @section Defining New Classes
 
-[ *fixme* Somewhere in this manual there needs to be an introductory
-discussion about GOOPS classes, generic functions and methods, covering
-
-@itemize @bullet
-@item
-how classes encapsulate related items of data in @dfn{slots}
-
-@item
-why it is that, unlike in C++ and Java, a class does not encapsulate the
-methods that act upon the class (at least not in the C++/Java sense)
-
-@item
-how generic functions provide a more general solution that provides for
-dispatch on all argument types, and avoids idiosyncracies like C++'s
-friend classes
-
-@item
-how encapsulation in the sense of data- and code-hiding, or of
-distinguishing interface from implementation, is treated in Guile as an
-orthogonal concept to object orientation, and is the responsibility of
-the module system.
-@end itemize
-
-Some of this is covered in the Tutorial chapter, in @ref{Generic
-functions and methods} - perhaps the best solution would be to expand
-the discussion there. ]
-
-@menu
-* Basic Class Definition::
-* Class Options::
-* Slot Options::
-* Class Definition Internals::
-* Customizing Class Definition::
-* STKlos Compatibility::
-@end menu
-
-@node Basic Class Definition
-@subsection Basic Class Definition
-
 New classes are defined using the @code{define-class} syntax, with
 arguments that specify the classes that the new class should inherit
-from, the direct slots of the new class, and any required class options.
+from, the direct slots of the new class, and any class options.
 
 @deffn syntax define-class name (super @dots{}) slot-definition @dots{} . options
 Define a class called @var{name} that inherits from @var{super}s, with
@@ -259,9 +221,6 @@ odd-numbered elements are the corresponding values for those keywords.
 keywords and corresponding values.
 @end deffn
 
-The standard GOOPS class and slot options are described in the following
-subsubsections: see @ref{Class Options} and @ref{Slot Options}.
-
 Example 1.  Define a class that combines two pre-existing classes by
 inheritance but adds no new slots.
 
@@ -270,8 +229,9 @@ inheritance but adds no new slots.
 @end example
 
 Example 2.  Define a @code{regular-polygon} class with slots for side
-length and number of sides that have default values and can be accessed
-via the generic functions @code{side-length} and @code{num-sides}.
+length and number of sides.  The slots have default values and can be
+accessed via the generic functions @code{side-length} and
+@code{num-sides}.
 
 @example
 (define-class <regular-polygon> ()
@@ -289,152 +249,19 @@ customized via an application-defined metaclass.
   #:metaclass <finite-state-class>)
 @end example
 
-@node Class Options
-@subsection Class Options
+The possible slot and class options are described in the following
+subsections.
 
-@deffn {class option} #:metaclass metaclass
-The @code{#:metaclass} class option specifies the metaclass of the class
-being defined.  @var{metaclass} must be a class that inherits from
-@code{<class>}.  For an introduction to the use of metaclasses, see
-@ref{Metaobjects and the Metaobject Protocol} and @ref{Terminology}.
-
-If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
-metaclass for the new class by calling @code{ensure-metaclass}
-(@pxref{Class Definition Internals,, ensure-metaclass}).
-@end deffn
-
-@deffn {class option} #:name name
-The @code{#:name} class option specifies the new class's name.  This
-name is used to identify the class whenever related objects - the class
-itself, its instances and its subclasses - are printed.
-
-If the @code{#:name} option is absent, GOOPS uses the first argument to
-@code{define-class} as the class name.
-@end deffn
-
-@deffn {class option} #:environment environment
-*fixme* Not sure about this one, but I think that the
-@code{#:environment} option specifies the environment in which the
-class's getters and setters are computed and evaluated.
-
-If the @code{#:environment} option is not specified, the class's
-environment defaults to the top-level environment in which the
-@code{define-class} form appears.
-@end deffn
+@menu
+* Slot Options::
+* Class Options::
+* Class Definition Internals::
+* Customizing Class Definition::
+* STKlos Compatibility::
+@end menu
 
 @node Slot Options
 @subsection Slot Options
-
-@deffn {slot option} #:allocation allocation
-The @code{#:allocation} option tells GOOPS how to allocate storage for
-the slot.  Possible values for @var{allocation} are
-
-@itemize @bullet
-@item @code{#:instance}
-
-Indicates that GOOPS should create separate storage for this slot in
-each new instance of the containing class (and its subclasses).
-
-@item @code{#:class}
-
-Indicates that GOOPS should create storage for this slot that is shared
-by all instances of the containing class (and its subclasses).  In other
-words, a slot in class @var{C} with allocation @code{#:class} is shared
-by all @var{instance}s for which @code{(is-a? @var{instance} @var{c})}.
-
-@item @code{#:each-subclass}
-
-Indicates that GOOPS should create storage for this slot that is shared
-by all @emph{direct} instances of the containing class, and that
-whenever a subclass of the containing class is defined, GOOPS should
-create a new storage for the slot that is shared by all @emph{direct}
-instances of the subclass.  In other words, a slot with allocation
-@code{#:each-subclass} is shared by all instances with the same
-@code{class-of}.
-
-@item @code{#:virtual}
-
-Indicates that GOOPS should not allocate storage for this slot.  The
-slot definition must also include the @code{#:slot-ref} and
-@code{#:slot-set!} options to specify how to reference and set the value
-for this slot.
-@end itemize
-
-The default value is @code{#:instance}.
-
-Slot allocation options are processed when defining a new class by the
-generic function @code{compute-get-n-set}, which is specialized by the
-class's metaclass.  Hence new types of slot allocation can be
-implemented by defining a new metaclass and a method for
-@code{compute-get-n-set} that is specialized for the new metaclass.  For
-an example of how to do this, see @ref{Customizing Class Definition}.
-@end deffn
-
-@deffn {slot option} #:slot-ref getter
-@deffnx {slot option} #:slot-set! setter
-The @code{#:slot-ref} and @code{#:slot-set!} options must be specified
-if the slot allocation is @code{#:virtual}, and are ignored otherwise.
-
-@var{getter} should be a closure taking a single @var{instance} parameter
-that returns the current slot value.  @var{setter} should be a closure
-taking two parameters - @var{instance} and @var{new-val} - that sets the
-slot value to @var{new-val}.
-@end deffn
-
-@deffn {slot option} #:getter getter
-@deffnx {slot option} #:setter setter
-@deffnx {slot option} #:accessor accessor
-These options, if present, tell GOOPS to create generic function and
-method definitions that can be used to get and set the slot value more
-conveniently than by using @code{slot-ref} and @code{slot-set!}.
-
-@var{getter} specifies a generic function to which GOOPS will add a
-method for getting the slot value.  @var{setter} specifies a generic
-function to which GOOPS will add a method for setting the slot value.
-@var{accessor} specifies an accessor to which GOOPS will add methods for
-both getting and setting the slot value.
-
-So if a class includes a slot definition like this:
-
-@example
-(c #:getter get-count #:setter set-count #:accessor count)
-@end example
-
-GOOPS defines generic function methods such that the slot value can be
-referenced using either the getter or the accessor -
-
-@example
-(let ((current-count (get-count obj))) @dots{})
-(let ((current-count (count obj))) @dots{})
-@end example
-
-- and set using either the setter or the accessor -
-
-@example
-(set-count obj (+ 1 current-count))
-(set! (count obj) (+ 1 current-count))
-@end example
-
-Note that
-
-@itemize @bullet
-@item
-with an accessor, the slot value is set using the generalized
-@code{set!} syntax
-
-@item
-in practice, it is unusual for a slot to use all three of these options:
-read-only, write-only and read-write slots would typically use only
-@code{#:getter}, @code{#:setter} and @code{#:accessor} options
-respectively.
-@end itemize
-
-If the specified names are already bound in the top-level environment to
-values that cannot be upgraded to generic functions, those values are
-overwritten during evaluation of the @code{define-class} that contains
-the slot definition.  For details, see @ref{Generic Function Internals,,
-ensure-generic}.
-@end deffn
 
 @deffn {slot option} #:init-value init-value
 @deffnx {slot option} #:init-form init-form
@@ -525,6 +352,149 @@ more specialized code, or may not be supported at all for particular
 classes.
 @end deffn
 
+@deffn {slot option} #:getter getter
+@deffnx {slot option} #:setter setter
+@deffnx {slot option} #:accessor accessor
+Given an object @var{obj} with slots named @code{foo} and @code{bar}, it
+is always possible to read and write those slots by calling
+@code{slot-ref} and @code{slot-set!} with the relevant slot name; for
+example:
+
+@example
+(slot-ref @var{obj} 'foo)
+(slot-set! @var{obj} 'bar 25)
+@end example
+
+The @code{#:getter}, @code{#:setter} and @code{#:accessor} options, if
+present, tell GOOPS to create generic function and method definitions
+that can be used to get and set the slot value more conveniently.
+@var{getter} specifies a generic function to which GOOPS will add a
+method for getting the slot value.  @var{setter} specifies a generic
+function to which GOOPS will add a method for setting the slot value.
+@var{accessor} specifies an accessor to which GOOPS will add methods for
+both getting and setting the slot value.
+
+So if a class includes a slot definition like this:
+
+@example
+(c #:getter get-count #:setter set-count #:accessor count)
+@end example
+
+GOOPS defines generic function methods such that the slot value can be
+referenced using either the getter or the accessor -
+
+@example
+(let ((current-count (get-count obj))) @dots{})
+(let ((current-count (count obj))) @dots{})
+@end example
+
+- and set using either the setter or the accessor -
+
+@example
+(set-count obj (+ 1 current-count))
+(set! (count obj) (+ 1 current-count))
+@end example
+
+Note that
+
+@itemize @bullet
+@item
+with an accessor, the slot value is set using the generalized
+@code{set!} syntax
+
+@item
+in practice, it is unusual for a slot to use all three of these options:
+read-only, write-only and read-write slots would typically use only
+@code{#:getter}, @code{#:setter} and @code{#:accessor} options
+respectively.
+@end itemize
+
+If the specified names are already bound in the top-level environment to
+values that cannot be upgraded to generic functions, those values are
+overwritten during evaluation of the @code{define-class} that contains
+the slot definition.  For details, see @ref{Generic Function Internals,,
+ensure-generic}.
+@end deffn
+
+@deffn {slot option} #:allocation allocation
+The @code{#:allocation} option tells GOOPS how to allocate storage for
+the slot.  Possible values for @var{allocation} are
+
+@itemize @bullet
+@item @code{#:instance}
+
+Indicates that GOOPS should create separate storage for this slot in
+each new instance of the containing class (and its subclasses).
+
+@item @code{#:class}
+
+Indicates that GOOPS should create storage for this slot that is shared
+by all instances of the containing class (and its subclasses).  In other
+words, a slot in class @var{C} with allocation @code{#:class} is shared
+by all @var{instance}s for which @code{(is-a? @var{instance} @var{c})}.
+
+@item @code{#:each-subclass}
+
+Indicates that GOOPS should create storage for this slot that is shared
+by all @emph{direct} instances of the containing class, and that
+whenever a subclass of the containing class is defined, GOOPS should
+create a new storage for the slot that is shared by all @emph{direct}
+instances of the subclass.  In other words, a slot with allocation
+@code{#:each-subclass} is shared by all instances with the same
+@code{class-of}.
+
+@item @code{#:virtual}
+
+Indicates that GOOPS should not allocate storage for this slot.  The
+slot definition must also include the @code{#:slot-ref} and
+@code{#:slot-set!} options to specify how to reference and set the value
+for this slot.
+@end itemize
+
+The default value is @code{#:instance}.
+
+Slot allocation options are processed when defining a new class by the
+generic function @code{compute-get-n-set}, which is specialized by the
+class's metaclass.  Hence new types of slot allocation can be
+implemented by defining a new metaclass and a method for
+@code{compute-get-n-set} that is specialized for the new metaclass.  For
+an example of how to do this, see @ref{Customizing Class Definition}.
+@end deffn
+
+@deffn {slot option} #:slot-ref getter
+@deffnx {slot option} #:slot-set! setter
+The @code{#:slot-ref} and @code{#:slot-set!} options must be specified
+if the slot allocation is @code{#:virtual}, and are ignored otherwise.
+
+@var{getter} should be a closure taking a single @var{instance} parameter
+that returns the current slot value.  @var{setter} should be a closure
+taking two parameters - @var{instance} and @var{new-val} - that sets the
+slot value to @var{new-val}.
+@end deffn
+
+@node Class Options
+@subsection Class Options
+
+@deffn {class option} #:metaclass metaclass
+The @code{#:metaclass} class option specifies the metaclass of the class
+being defined.  @var{metaclass} must be a class that inherits from
+@code{<class>}.  For the use of metaclasses, see @ref{Metaobjects and
+the Metaobject Protocol} and @ref{Terminology}.
+
+If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
+metaclass for the new class by calling @code{ensure-metaclass}
+(@pxref{Class Definition Internals,, ensure-metaclass}).
+@end deffn
+
+@deffn {class option} #:name name
+The @code{#:name} class option specifies the new class's name.  This
+name is used to identify the class whenever related objects - the class
+itself, its instances and its subclasses - are printed.
+
+If the @code{#:name} option is absent, GOOPS uses the first argument to
+@code{define-class} as the class name.
+@end deffn
+
 @node Class Definition Internals
 @subsection Class Definition Internals
 
@@ -551,7 +521,7 @@ handles the redefinition by invoking @code{class-redefinition}
 Return a newly created class that inherits from @var{super}s, with
 direct slots defined by @var{slot-definition}s and class options
 @var{options}.  For the format of @var{slot-definition}s and
-@var{options}, see @ref{Basic Class Definition,, define-class}.
+@var{options}, see @ref{Defining New Classes,, define-class}.
 @end deffn
 
 Implementation notes: @code{class} expands to an expression which
@@ -572,8 +542,8 @@ evaluated parameters.
 @deffn procedure make-class supers slots . options
 Return a newly created class that inherits from @var{supers}, with
 direct slots defined by @var{slots} and class options @var{options}.
-For the format of @var{slots} and @var{options}, see @ref{Basic Class
-Definition,, define-class}, except note that for @code{make-class},
+For the format of @var{slots} and @var{options}, see @ref{Defining New
+Classes,, define-class}, except note that for @code{make-class},
 @var{slots} and @var{options} are separate list parameters: @var{slots}
 here is a list of slot definitions.
 @end deffn
@@ -1600,7 +1570,7 @@ default method calls @code{goops-error} with an appropriate message.
 @section Redefining a Class
 
 Suppose that a class @code{<my-class>} is defined using @code{define-class}
-(@pxref{Basic Class Definition,, define-class}), with slots that have
+(@pxref{Defining New Classes,, define-class}), with slots that have
 accessor functions, and that an application has created several instances
 of @code{<my-class>} using @code{make} (@pxref{Basic Instance Creation,,
 make}).  What then happens if @code{<my-class>} is redefined by calling
