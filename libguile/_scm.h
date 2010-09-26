@@ -197,36 +197,6 @@
 #define SCM_OBJCODE_COOKIE                              \
   "GOOF-" SCM_OBJCODE_MACHINE_VERSION_STRING "---"
 
-
-/* Cells have to be 8-byte aligned.  Use `scm_t_aligned_cell' when not
-   allocating on the heap to have this guarantee.  This is similar to the
-   `SCM_ALIGNED' macro but provides an option likely to work with compilers
-   other than GCC.  */
-
-#ifdef __GNUC__
-
-struct scm_aligned_cell
-{
-  scm_t_cell cell __attribute__ ((__aligned__ (8)));
-};
-
-typedef struct scm_aligned_cell scm_t_aligned_cell;
-
-#else /* !__GNUC__ */
-
-union scm_aligned_cell
-{
-  double alignment;
-  scm_t_cell cell;
-};
-
-typedef union scm_aligned_cell scm_t_aligned_cell;
-
-#endif /* !__GNUC__ */
-
-/* Make sure we get the right alignment.  */
-verify (alignof (scm_t_aligned_cell) >= 8);
-
 #endif  /* SCM__SCM_H */
 
 /*
