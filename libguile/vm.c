@@ -191,7 +191,7 @@ vm_dispatch_hook (SCM vm, int hook_num)
   struct scm_vm *vp;
   SCM hook;
   struct scm_frame c_frame;
-  scm_t_aligned_cell frame;
+  scm_t_cell *frame;
   SCM args[1];
   int saved_trace_level;
 
@@ -218,9 +218,14 @@ vm_dispatch_hook (SCM vm, int hook_num)
   c_frame.sp = vp->sp;
   c_frame.ip = vp->ip;
   c_frame.offset = 0;
-  frame.cell.word_0 = SCM_PACK (scm_tc7_frame);
-  frame.cell.word_1 = PTR2SCM (&c_frame);
-  args[0] = PTR2SCM (&frame);
+
+  /* Arrange for FRAME to be 8-byte aligned, like any other cell.  */
+  frame = alloca (sizeof (*frame) + 8);
+  frame = (scm_t_cell *) ROUND_UP ((scm_t_uintptr) frame, 8UL);
+
+  frame->word_0 = SCM_PACK (scm_tc7_frame);
+  frame->word_1 = PTR2SCM (&c_frame);
+  args[0] = PTR2SCM (frame);
 
   scm_c_run_hookn (hook, args, 1);
 
