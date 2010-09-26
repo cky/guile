@@ -309,6 +309,7 @@
     (pass-if "write R6RS string escapes"
        (let* ((s1 (apply string
                          (map integer->char '(#x8 ; backspace
+                                              #x18 ; cancel
                                               #x20 ; space
                                               #x30 ; zero
                                               #x40 ; at sign
@@ -319,7 +320,7 @@
                         (lambda () (write s1)))))))
          (lset= eqv?
                 (string->list s2)
-                (list #\" #\\ #\x #\8 #\; #\space #\0 #\@ #\"))))
+                (list #\" #\\ #\b #\\ #\x #\1 #\8 #\; #\space #\0 #\@ #\"))))
 
     (pass-if "display R6RS string escapes"
       (string=?

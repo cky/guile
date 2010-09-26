@@ -904,9 +904,17 @@ write_character (scm_t_wchar ch, SCM port, int string_escapes_p)
 	  /* Represent CH using the in-string escape syntax.  */
 
 	  static const char hex[] = "0123456789abcdef";
+          static const char escapes[7] = "abtnvfr";
 	  char buf[9];
 
-	  if (!SCM_R6RS_ESCAPES_P)
+          if (ch >= 0x07 && ch <= 0x0D && ch != 0x0A)
+            {
+              /* Use special escapes for some C0 controls.  */
+              buf[0] = '\\';
+              buf[1] = escapes[ch - 0x07];
+              scm_lfwrite (buf, 2, port);
+            }
+          else if (!SCM_R6RS_ESCAPES_P)
 	    {
 	      if (ch <= 0xFF)
 		{
