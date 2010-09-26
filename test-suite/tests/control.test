@@ -19,6 +19,7 @@
 
 (define-module (test-suite test-control)
   #:use-module (ice-9 control)
+  #:use-module (system vm vm)
   #:use-module (srfi srfi-11)
   #:use-module (test-suite lib))
 
@@ -225,3 +226,28 @@
 (with-test-prefix "abort to unknown prompt"
   (pass-if-exception "foo" '(misc-error . "^Abort to unknown prompt")
                      (abort-to-prompt 'does-not-exist)))
+
+(with-test-prefix "the-vm"
+
+  (pass-if "unwind changes VMs"
+    (let ((new-vm  (make-vm))
+          (prev-vm (the-vm))
+          (proc    (lambda (x y)
+                     (expt x y)))
+          (call    (lambda (p x y)
+                     (p x y))))
+      (catch 'foo
+        (lambda ()
+          (dynamic-wind
+            (lambda ()
+              (set-thread-vm! (current-thread) new-vm))
+            (lambda ()
+              (vm-apply new-vm
+                        (lambda () (throw 'foo (the-vm)))
+                        '()))
+            (lambda ()
+              (set-thread-vm! (current-thread) prev-vm))))
+        (lambda (key vm)
+          (and (eq? key 'foo)
+               (eq? vm new-vm)
+               (eq? (the-vm) prev-vm)))))))

@@ -211,9 +211,13 @@ scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv, scm_t_int64 cookie)
 
   /* Unwind once more, beyond the prompt. */
   winds = SCM_CDR (winds), delta++;
-  
+
   /* Unwind */
   scm_dowinds (winds, delta);
+
+  /* Unwinding may have changed the current thread's VM, so use the
+     new one.  */
+  vm = scm_the_vm ();
 
   /* Restore VM regs */
   SCM_VM_DATA (vm)->fp = SCM_PROMPT_REGISTERS (prompt)->fp;
