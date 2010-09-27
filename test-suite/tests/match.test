@@ -77,6 +77,11 @@
       (((and x (? symbol?)) ..1)
        (equal? x '(a b c)))))
 
+  (pass-if "list ..1, nested"
+    (match '((1 2) (3 4))
+      (((x ..1) ..1)
+       (equal? x '((1 2) (3 4))))))
+
   (pass-if "tree"
     (let ((tree '(one (two 2) (three 3 (and 4 (and 5))))))
       (match tree

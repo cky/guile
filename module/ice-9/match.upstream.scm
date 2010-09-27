@@ -488,7 +488,7 @@
 ;; (match-extract-vars pattern continuation (ids ...) (new-vars ...))
 
 (define-syntax match-extract-vars
-  (syntax-rules (_ ___ *** ? $ = quote quasiquote and or not get! set!)
+  (syntax-rules (_ ___ ..1 *** ? $ = quote quasiquote and or not get! set!)
     ((match-extract-vars (? pred . p) . x)
      (match-extract-vars p . x))
     ((match-extract-vars ($ rec . p) . x)
@@ -518,6 +518,7 @@
      (match-extract-vars (p ...) . x))
     ((match-extract-vars _ (k ...) i v)    (k ... v))
     ((match-extract-vars ___ (k ...) i v)  (k ... v))
+    ((match-extract-vars ..1 (k ...) i v)  (k ... v))
     ((match-extract-vars *** (k ...) i v)  (k ... v))
     ;; This is the main part, the only place where we might add a new
     ;; var if it's an unbound symbol.
