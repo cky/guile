@@ -60,6 +60,7 @@
 #include "libguile/root.h"
 #include "libguile/smob.h"
 #include "libguile/strings.h"
+#include "libguile/bdw-gc.h"
 
 #include "libguile/validate.h"
 #include "libguile/numbers.h"
@@ -152,19 +153,36 @@ scm_from_complex_double (complex double z)
 static mpz_t z_negative_one;
 
 
+/* Clear the `mpz_t' embedded in bignum PTR.  */
+static void
+finalize_bignum (GC_PTR ptr, GC_PTR data)
+{
+  SCM bignum;
+
+  bignum = PTR2SCM (ptr);
+  mpz_clear (SCM_I_BIG_MPZ (bignum));
+}
+
 /* Return a new uninitialized bignum.  */
 static inline SCM
 make_bignum (void)
 {
   scm_t_bits *p;
+  GC_finalization_proc prev_finalizer;
+  GC_PTR prev_finalizer_data;
 
   /* Allocate one word for the type tag and enough room for an `mpz_t'.  */
   p = scm_gc_malloc_pointerless (sizeof (scm_t_bits) + sizeof (mpz_t),
 				 "bignum");
   p[0] = scm_tc16_big;
 
+  GC_REGISTER_FINALIZER_NO_ORDER (p, finalize_bignum, NULL,
+				  &prev_finalizer,
+				  &prev_finalizer_data);
+
   return SCM_PACK (p);
 }
+
 
 SCM
 scm_i_mkbig ()
