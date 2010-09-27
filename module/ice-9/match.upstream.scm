@@ -125,7 +125,7 @@
 ;; pattern so far.
 
 (define-syntax match-two
-  (syntax-rules (_ ___ *** quote quasiquote ? $ = and or not set! get!)
+  (syntax-rules (_ ___ ..1 *** quote quasiquote ? $ = and or not set! get!)
     ((match-two v () g+s (sk ...) fk i)
      (if (null? v) (sk ... i) fk))
     ((match-two v (quote p) g+s (sk ...) fk i)
@@ -161,6 +161,10 @@
      (match-extract-vars p (match-gen-search v p q g+s sk fk i) i ()))
     ((match-two v (p *** . q) g+s sk fk i)
      (match-syntax-error "invalid use of ***" (p *** . q)))
+    ((match-two v (p ..1) g+s sk fk i)
+     (if (pair? v)
+         (match-one v (p ___) g+s sk fk i)
+         fk))
     ((match-two v (p . q) g+s sk fk i)
      (if (pair? v)
          (let ((w (car v)) (x (cdr v)))

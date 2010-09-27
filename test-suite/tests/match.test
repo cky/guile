@@ -67,6 +67,16 @@
         ((x . rest)
          (and (eq? x 'a) (equal? rest '(b c)))))))
 
+  (pass-if "list ..1"
+    (match '(a b c)
+      ((x ..1)
+       (equal? x '(a b c)))))
+
+  (pass-if "list ..1, with predicate"
+    (match '(a b c)
+      (((and x (? symbol?)) ..1)
+       (equal? x '(a b c)))))
+
   (pass-if "tree"
     (let ((tree '(one (two 2) (three 3 (and 4 (and 5))))))
       (match tree
@@ -79,4 +89,15 @@
   (pass-if-exception "tree"
     exception:match-error
     (match '(a (b c))
-      ((foo (bar)) #t))))
+      ((foo (bar)) #t)))
+
+  (pass-if-exception "list ..1"
+    exception:match-error
+    (match '()
+      ((x ..1) #f)))
+
+  (pass-if-exception "list ..1, with predicate"
+    exception:match-error
+    (match '(a 0)
+      (((and x (? symbol?)) ..1)
+       (equal? x '(a b c))))))
