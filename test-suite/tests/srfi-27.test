@@ -1,0 +1,91 @@
+;;; -*- mode: scheme; coding: utf-8; -*-
+;;;
+;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2002 Sebastian Egner
+;;;
+;;; This code is based on the file conftest.scm in the reference
+;;; implementation of SRFI-27, provided under the following license:
+;;;
+;;; Permission is hereby granted, free of charge, to any person obtaining
+;;; a copy of this software and associated documentation files (the
+;;; "Software"), to deal in the Software without restriction, including
+;;; without limitation the rights to use, copy, modify, merge, publish,
+;;; distribute, sublicense, and/or sell copies of the Software, and to
+;;; permit persons to whom the Software is furnished to do so, subject to
+;;; the following conditions:
+;;;
+;;; The above copyright notice and this permission notice shall be
+;;; included in all copies or substantial portions of the Software.
+;;;
+;;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+;;; EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+;;; MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+;;; NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;; BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+;;; ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+;;; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+;;; SOFTWARE.
+
+(define-module (test-srfi-27)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-27))
+
+(with-test-prefix "large integers"
+  (pass-if "in range"
+    (let loop ((k 0) (n 1))
+      (cond ((> k 1024)
+             #t)
+            ((<= 0 (random-integer n) (- n 1))
+             (loop (+ k 1) (* n 2)))
+            (else
+             #f)))))
+
+(with-test-prefix "reals"
+  (pass-if "in range"
+    (let loop ((k 0) (n 1))
+      (if (> k 1000)
+          #t
+          (let ((x (random-real)))
+            (if (< 0 x 1)
+                (loop (+ k 1) (* n 2))
+                #f))))))
+
+(with-test-prefix "get/set state"
+  (let* ((state1 (random-source-state-ref default-random-source))
+         (x1 (random-integer (expt 2 32)))
+         (state2 (random-source-state-ref default-random-source))
+         (x2 (random-integer (expt 2 32))))
+    (random-source-state-set! default-random-source state1)
+    (pass-if "state1"
+      (= x1 (random-integer (expt 2 32))))
+    (random-source-state-set! default-random-source state2)
+    (pass-if "state2"
+      (= x2 (random-integer (expt 2 32))))))
+
+;; These tests throw 'unresolved instead of failing since it /could/
+;; happen that `random-source-randomize!' (or
+;; `random-source-pseudo-randomize!')  puts the RNG into a state where
+;; it generates the same number as before. They should have a very high
+;; chance of passing, though.
+
+(with-test-prefix "randomize!"
+  (let* ((state1 (random-source-state-ref default-random-source))
+         (x1 (random-integer (expt 2 32))))
+    (random-source-state-set! default-random-source state1)
+    (random-source-randomize! default-random-source)
+    (if (= x1 (random-integer (expt 2 32)))
+        (throw 'unresolved))))
+
+(with-test-prefix "pseudo-randomize!"
+  (let* ((state1 (random-source-state-ref default-random-source))
+         (x1 (random-integer (expt 2 32))))
+    (random-source-state-set! default-random-source state1)
+    (random-source-pseudo-randomize! default-random-source 0 1)
+    (let ((y1 (random-integer (expt 2 32))))
+      (if (= x1 y1)
+          (throw 'unresolved)))
+    (random-source-state-set! default-random-source state1)
+    (random-source-pseudo-randomize! default-random-source 1 0)
+    (let ((y1 (random-integer (expt 2 32))))
+      (if (= x1 y1)
+          (throw 'unresolved)))))

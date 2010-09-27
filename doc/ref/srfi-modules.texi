@@ -36,6 +36,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-18::                     Multithreading support
 * SRFI-19::                     Time/Date library.
 * SRFI-26::                     Specializing parameters
+* SRFI-27::                     Sources of Random Bits
 * SRFI-30::                     Nested multi-line block comments
 * SRFI-31::                     A special form `rec' for recursive evaluation
 * SRFI-34::                     Exception handling.
@@ -3225,6 +3226,160 @@ or similar is typical.
 (for-each (cut write <> my-port) my-list)  
 @end example
 @end deffn
+
+@node SRFI-27
+@subsection SRFI-27 - Sources of Random Bits
+@cindex SRFI-27
+
+@c This subsection is based on the specification of SRFI-27, which has
+@c the following license:
+
+@c Copyright (C) Sebastian Egner (2002). All Rights Reserved.
+
+@c Permission is hereby granted, free of charge, to any person obtaining a
+@c copy of this software and associated documentation files (the
+@c "Software"), to deal in the Software without restriction, including
+@c without limitation the rights to use, copy, modify, merge, publish,
+@c distribute, sublicense, and/or sell copies of the Software, and to
+@c permit persons to whom the Software is furnished to do so, subject to
+@c the following conditions:
+
+@c The above copyright notice and this permission notice shall be included
+@c in all copies or substantial portions of the Software.
+
+@c THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+@c OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+@c MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+@c NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+@c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+@c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+@c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+This SRFI provides access to a (pseudo) random number generator; for
+Guile's built-in random number facilities, which SRFI-27 is implemented
+upon, @xref{Random}.  With SRFI-27, random numbers are obtained from a
+@emph{random source}, which encapsulates a random number generation
+algorithm and its state.
+
+@menu
+* SRFI-27 Default Random Source::    Obtaining random numbers
+* SRFI-27 Random Sources::           Creating and manipulating random sources
+* SRFI-27 Random Number Generators:: Obtaining random number generators
+@end menu
+
+@node SRFI-27 Default Random Source
+@subsubsection The Default Random Source
+@cindex SRFI-27
+
+@defun random-integer n
+Return a random number between zero (inclusive) and @var{n} (exclusive),
+using the default random source.  The numbers returned have a uniform
+distribution.
+@end defun
+
+@defun random-real
+Return a random number in (0,1), using the default random source.  The
+numbers returned have a uniform distribution.
+@end defun
+
+@defun default-random-source
+A random source from which @code{random-integer} and @code{random-real}
+have been derived using @code{random-source-make-integers} and
+@code{random-source-make-reals} (@pxref{SRFI-27 Random Number Generators}
+for those procedures).  Note that an assignment to
+@code{default-random-source} does not change @code{random-integer} or
+@code{random-real}; it is also strongly recommended not to assign a new
+value.
+@end defun
+
+@node SRFI-27 Random Sources
+@subsubsection Random Sources
+@cindex SRFI-27
+
+@defun make-random-source
+Create a new random source.  The stream of random numbers obtained from
+each random source created by this procedure will be identical, unless
+its state is changed by one of the procedures below.
+@end defun
+
+@defun random-source? object
+Tests whether @var{object} is a random source.  Random sources are a
+disjoint type.
+@end defun
+
+@defun random-source-randomize! source
+Attempt to set the state of the random source to a truly random value.
+The current implementation uses a seed based on the current system time.
+@end defun
+
+@defun random-source-pseudo-randomize! source i j
+Changes the state of the random source s into the initial state of the
+(@var{i}, @var{j})-th independent random source, where @var{i} and
+@var{j} are non-negative integers.  This procedure provides a mechanism
+to obtain a large number of independent random sources (usually all
+derived from the same backbone generator), indexed by two integers. In
+contrast to @code{random-source-randomize!}, this procedure is entirely
+deterministic.
+@end defun
+
+The state associated with a random state can be obtained an reinstated
+with the following procedures:
+
+@defun random-source-state-ref source
+@defunx random-source-state-set! source state
+Get and set the state of a random source.  No assumptions should be made
+about the nature of the state object, besides it having an external
+representation (i.e. it can be passed to @code{write} and subsequently
+@code{read} back).
+@end defun
+
+@node SRFI-27 Random Number Generators
+@subsubsection Obtaining random number generator procedures
+@cindex SRFI-27
+
+@defun random-source-make-integers source
+Obtains a procedure to generate random integers using the random source
+@var{source}.  The returned procedure takes a single argument @var{n},
+which must be a positive integer, and returns the next uniformly
+distributed random integer from the interval @{0, ..., @var{n}-1@} by
+advancing the state of @var{source}.
+
+If an application obtains and uses several generators for the same
+random source @var{source}, a call to any of these generators advances
+the state of @var{source}.  Hence, the generators do not produce the
+same sequence of random integers each but rather share a state. This
+also holds for all other types of generators derived from a fixed random
+sources.  
+
+While the SRFI text specifies that ``Implementations that support
+concurrency make sure that the state of a generator is properly
+advanced'', this is currently not the case in Guile's implementation of
+SRFI-27, as it would cause a severe performance penalty.  So in
+multi-threaded programs, you either must perform locking on random
+sources shared between threads yourself, or use different random sources
+for multiple threads.
+@end defun
+
+@defun random-source-make-reals source
+@defunx random-source-make-reals source unit
+Obtains a procedure to generate random real numbers @math{0 < x < 1}
+using the random source @var{source}.  The procedure rand is called
+without arguments.
+
+The optional parameter @var{unit} determines the type of numbers being
+produced by the returned procedure and the quantization of the output.
+@var{unit} must be a number such that @math{0 < @var{unit} < 1}.  The
+numbers created by the returned procedure are of the same numerical type
+as @var{unit} and the potential output values are spaced by at most
+@var{unit}.  One can imagine rand to create numbers as @var{x} *
+@var{unit} where @var{x} is a random integer in @{1, ...,
+floor(1/unit)-1@}.  Note, however, that this need not be the way the
+values are actually created and that the actual resolution of rand can
+be much higher than unit. In case @var{unit} is absent it defaults to a
+reasonably small value (related to the width of the mantissa of an
+efficient number format).
+@end defun
 
 @node SRFI-30
 @subsection SRFI-30 - Nested Multi-line Comments
