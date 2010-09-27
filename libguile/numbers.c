@@ -152,12 +152,25 @@ scm_from_complex_double (complex double z)
 static mpz_t z_negative_one;
 
 
+/* Return a new uninitialized bignum.  */
+static inline SCM
+make_bignum (void)
+{
+  scm_t_bits *p;
+
+  /* Allocate one word for the type tag and enough room for an `mpz_t'.  */
+  p = scm_gc_malloc_pointerless (sizeof (scm_t_bits) + sizeof (mpz_t),
+				 "bignum");
+  p[0] = scm_tc16_big;
+
+  return SCM_PACK (p);
+}
 
 SCM
 scm_i_mkbig ()
 {
   /* Return a newly created bignum. */
-  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  SCM z = make_bignum ();
   mpz_init (SCM_I_BIG_MPZ (z));
   return z;
 }
@@ -166,7 +179,7 @@ SCM
 scm_i_long2big (long x)
 {
   /* Return a newly created bignum initialized to X. */
-  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  SCM z = make_bignum ();
   mpz_init_set_si (SCM_I_BIG_MPZ (z), x);
   return z;
 }
@@ -175,7 +188,7 @@ SCM
 scm_i_ulong2big (unsigned long x)
 {
   /* Return a newly created bignum initialized to X. */
-  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  SCM z = make_bignum ();
   mpz_init_set_ui (SCM_I_BIG_MPZ (z), x);
   return z;
 }
@@ -184,7 +197,7 @@ SCM
 scm_i_clonebig (SCM src_big, int same_sign_p)
 {
   /* Copy src_big's value, negate it if same_sign_p is false, and return. */
-  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  SCM z = make_bignum ();
   mpz_init_set (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (src_big));
   if (!same_sign_p)
     mpz_neg (SCM_I_BIG_MPZ (z), SCM_I_BIG_MPZ (z));
@@ -205,7 +218,7 @@ SCM
 scm_i_dbl2big (double d)
 {
   /* results are only defined if d is an integer */
-  SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+  SCM z = make_bignum ();
   mpz_init_set_d (SCM_I_BIG_MPZ (z), d);
   return z;
 }
@@ -335,7 +348,7 @@ scm_i_mpz2num (mpz_t b)
     }
 
   {
-    SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+    SCM z = make_bignum ();
     mpz_init_set (SCM_I_BIG_MPZ (z), b);
     return z;
   }
