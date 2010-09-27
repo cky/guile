@@ -287,7 +287,7 @@ eval (SCM x, SCM env)
           goto loop;
         }
       else
-        return scm_vm_apply (scm_the_vm (), proc, args);
+        return scm_call_with_vm (scm_the_vm (), proc, args);
 
     case SCM_M_CALL:
       /* Evaluate the procedure to be applied.  */
@@ -322,7 +322,7 @@ eval (SCM x, SCM env)
 
         producer = eval (CAR (mx), env);
         proc = eval (CDR (mx), env);  /* proc is the consumer. */
-        v = scm_vm_apply (scm_the_vm (), producer, SCM_EOL);
+        v = scm_call_with_vm (scm_the_vm (), producer, SCM_EOL);
         if (SCM_VALUESP (v))
           args = scm_struct_ref (v, SCM_INUM0);
         else
@@ -824,7 +824,7 @@ scm_apply (SCM proc, SCM arg1, SCM args)
   else
     args = scm_cons_star (arg1, args);
 
-  return scm_vm_apply (scm_the_vm (), proc, args);
+  return scm_call_with_vm (scm_the_vm (), proc, args);
 }
 
 static void

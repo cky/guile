@@ -42,7 +42,7 @@
 
 (define (run-vm-program objcode)
   "Run VM program contained into @var{objcode}."
-  (vm-apply (the-vm) (make-program objcode) '()))
+  ((make-program objcode)))
 
 (define (compile/run-test-from-file file)
   "Run test from source file @var{file} and return a value indicating whether

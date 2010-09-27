@@ -61,12 +61,10 @@ SCM_API SCM scm_the_vm_fluid;
 
 SCM_API SCM scm_the_vm ();
 SCM_API SCM scm_make_vm (void);
-SCM_API SCM scm_vm_apply (SCM vm, SCM program, SCM args);
-SCM_API SCM scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs);
 
-SCM_API SCM scm_thread_vm (SCM t);
-SCM_API SCM scm_set_thread_vm_x (SCM t, SCM vm);
 SCM_API SCM scm_the_vm (void);
+SCM_API SCM scm_call_with_vm (SCM vm, SCM proc, SCM args);
+
 SCM_API SCM scm_vm_p (SCM obj);
 SCM_API SCM scm_vm_ip (SCM vm);
 SCM_API SCM scm_vm_sp (SCM vm);
@@ -79,6 +77,11 @@ SCM_API SCM scm_vm_restore_continuation_hook (SCM vm);
 SCM_API SCM scm_vm_next_hook (SCM vm);
 SCM_API SCM scm_vm_trace_level (SCM vm);
 SCM_API SCM scm_set_vm_trace_level_x (SCM vm, SCM level);
+SCM_API SCM scm_vm_engine (SCM vm);
+SCM_API SCM scm_set_vm_engine_x (SCM vm, SCM engine);
+SCM_API SCM scm_set_default_vm_engine_x (SCM engine);
+SCM_API void scm_c_set_vm_engine_x (SCM vm, int engine);
+SCM_API void scm_c_set_default_vm_engine_x (int engine);
 
 #define SCM_F_VM_CONT_PARTIAL 0x1
 #define SCM_F_VM_CONT_REWINDABLE 0x2
@@ -99,6 +102,8 @@ struct scm_vm_cont {
 #define SCM_VM_CONT_REWINDABLE_P(CONT) (SCM_VM_CONT_DATA (CONT)->flags & SCM_F_VM_CONT_REWINDABLE)
 
 SCM_API SCM scm_load_compiled_with_vm (SCM file);
+
+SCM_INTERNAL SCM scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs);
 
 SCM_INTERNAL void scm_i_vm_print (SCM x, SCM port,
                                   scm_print_state *pstate);

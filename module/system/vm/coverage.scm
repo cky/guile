@@ -84,19 +84,19 @@ coverage data.  Return code coverage data and the values returned by THUNK."
               (set-cdr! proc-entry (make-hash-table))
               (loop))))))
 
+  ;; FIXME: It's unclear what the dynamic-wind is for, given that if the
+  ;; VM is different from the current one, continuations will not be
+  ;; resumable.
   (call-with-values (lambda ()
                       (let ((level   (vm-trace-level vm))
-                            (hook    (vm-next-hook vm))
-                            (prev-vm (thread-vm (current-thread))))
+                            (hook    (vm-next-hook vm)))
                         (dynamic-wind
                           (lambda ()
                             (set-vm-trace-level! vm (+ level 1))
-                            (add-hook! hook collect!)
-                            (set-thread-vm! (current-thread) vm))
+                            (add-hook! hook collect!))
                           (lambda ()
-                            (vm-apply vm thunk '()))
+                            (call-with-vm vm thunk))
                           (lambda ()
-                            (set-thread-vm! (current-thread) prev-vm)
                             (set-vm-trace-level! vm level)
                             (remove-hook! hook collect!)))))
     (lambda args

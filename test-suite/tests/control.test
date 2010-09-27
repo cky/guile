@@ -238,15 +238,7 @@
                      (p x y))))
       (catch 'foo
         (lambda ()
-          (dynamic-wind
-            (lambda ()
-              (set-thread-vm! (current-thread) new-vm))
-            (lambda ()
-              (vm-apply new-vm
-                        (lambda () (throw 'foo (the-vm)))
-                        '()))
-            (lambda ()
-              (set-thread-vm! (current-thread) prev-vm))))
+          (call-with-vm new-vm (lambda () (throw 'foo (the-vm)))))
         (lambda (key vm)
           (and (eq? key 'foo)
                (eq? vm new-vm)

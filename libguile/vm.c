@@ -36,12 +36,15 @@
 #include "programs.h"
 #include "vm.h"
 
-/* I sometimes use this for debugging. */
-#define vm_puts(OBJ)				\
-{						\
-  scm_display (OBJ, scm_current_error_port ()); \
-  scm_newline (scm_current_error_port ());      \
-}
+static int vm_default_engine = SCM_VM_DEBUG_ENGINE;
+
+/* Unfortunately we can't snarf these: snarfed things are only loaded up from
+   (system vm vm), which might not be loaded before an error happens. */
+static SCM sym_vm_run;
+static SCM sym_vm_error;
+static SCM sym_keyword_argument_error;
+static SCM sym_regular;
+static SCM sym_debug;
 
 /* The VM has a number of internal assertions that shouldn't normally be
    necessary, but might be if you think you found a bug in the VM. */
@@ -340,10 +343,6 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
  * VM Internal functions
  */
 
-/* Unfortunately we can't snarf these: snarfed things are only loaded up from
-   (system vm vm), which might not be loaded before an error happens. */
-static SCM sym_vm_run, sym_vm_error, sym_keyword_argument_error, sym_debug;
-
 void
 scm_i_vm_print (SCM x, SCM port, scm_print_state *pstate)
 {
@@ -517,7 +516,7 @@ make_vm (void)
   vp->ip    	  = NULL;
   vp->sp    	  = vp->stack_base - 1;
   vp->fp    	  = NULL;
-  vp->engine      = SCM_VM_DEBUG_ENGINE;
+  vp->engine      = vm_default_engine;
   vp->trace_level = 0;
   for (i = 0; i < SCM_VM_NUM_HOOKS; i++)
     vp->hooks[i] = SCM_BOOL_F;
@@ -564,80 +563,19 @@ scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
   return vm_engines[vp->engine](vm, program, argv, nargs);
 }
 
-SCM_DEFINE (scm_vm_apply, "vm-apply", 3, 0, 0,
-            (SCM vm, SCM program, SCM args),
-            "")
-#define FUNC_NAME s_scm_vm_apply
-{
-  SCM *argv;
-  int i, nargs;
-  
-  SCM_VALIDATE_VM (1, vm);
-  SCM_VALIDATE_PROC (2, program);
-
-  nargs = scm_ilength (args);
-  if (SCM_UNLIKELY (nargs < 0))
-    scm_wrong_type_arg_msg (FUNC_NAME, 3, args, "list");
-  
-  argv = alloca(nargs * sizeof(SCM));
-  for (i = 0; i < nargs; i++)
-    {
-      argv[i] = SCM_CAR (args);
-      args = SCM_CDR (args);
-    }
-
-  return scm_c_vm_run (vm, program, argv, nargs);
-}
-#undef FUNC_NAME
-
 /* Scheme interface */
-
-/* Return T's VM.  */
-static inline SCM
-thread_vm (scm_i_thread *t)
-{
-  if (SCM_UNLIKELY (scm_is_false (t->vm)))
-    t->vm = make_vm ();
-
-  return t->vm;
-}
-
-SCM_DEFINE (scm_thread_vm, "thread-vm", 1, 0, 0,
-	    (SCM thread),
-	    "Return @var{thread}'s VM.")
-#define FUNC_NAME s_scm_thread_vm
-{
-  SCM_VALIDATE_THREAD (1, thread);
-
-  return thread_vm (SCM_I_THREAD_DATA (thread));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_set_thread_vm_x, "set-thread-vm!", 2, 0, 0,
-	    (SCM thread, SCM vm),
-	    "Set @var{thread}'s VM to @var{vm}.  Warning: Code being\n"
-	    "executed by @var{thread}'s current VM won't automatically\n"
-	    "switch to @var{vm}.")
-#define FUNC_NAME s_scm_set_thread_vm_x
-{
-  scm_i_thread *t;
-
-  SCM_VALIDATE_THREAD (1, thread);
-  SCM_VALIDATE_VM (2, vm);
-
-  t = SCM_I_THREAD_DATA (thread);
-  t->vm = vm;
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
 
 SCM_DEFINE (scm_the_vm, "the-vm", 0, 0, 0,
 	    (void),
 	    "Return the current thread's VM.")
 #define FUNC_NAME s_scm_the_vm
 {
-  return thread_vm (SCM_I_CURRENT_THREAD);
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  if (SCM_UNLIKELY (scm_is_false (t->vm)))
+    t->vm = make_vm ();
+
+  return t->vm;
 }
 #undef FUNC_NAME
 
@@ -777,6 +715,166 @@ SCM_DEFINE (scm_set_vm_trace_level_x, "set-vm-trace-level!", 2, 0, 0,
 
 
 /*
+ * VM engines
+ */
+
+static int
+symbol_to_vm_engine (SCM engine, const char *FUNC_NAME)
+{
+  if (scm_is_eq (engine, sym_regular))
+    return SCM_VM_REGULAR_ENGINE;
+  else if (scm_is_eq (engine, sym_debug))
+    return SCM_VM_DEBUG_ENGINE;
+  else
+    SCM_MISC_ERROR ("Unknown VM engine: ~a", scm_list_1 (engine));
+}
+  
+static SCM
+vm_engine_to_symbol (int engine, const char *FUNC_NAME)
+{
+  switch (engine)
+    {
+    case SCM_VM_REGULAR_ENGINE:
+      return sym_regular;
+    case SCM_VM_DEBUG_ENGINE:
+      return sym_debug;
+    default:
+      /* ? */
+      SCM_MISC_ERROR ("Unknown VM engine: ~a",
+                      scm_list_1 (scm_from_int (engine)));
+    }
+}
+  
+static int
+vm_has_pending_computation (SCM vm)
+{
+  struct scm_vm *vp = SCM_VM_DATA (vm);
+  return vp->sp >= vp->stack_base;
+}
+
+SCM_DEFINE (scm_vm_engine, "vm-engine", 1, 0, 0,
+	    (SCM vm),
+	    "")
+#define FUNC_NAME s_scm_vm_engine
+{
+  SCM_VALIDATE_VM (1, vm);
+  return vm_engine_to_symbol (SCM_VM_DATA (vm)->engine, FUNC_NAME);
+}
+#undef FUNC_NAME
+
+void
+scm_c_set_vm_engine_x (SCM vm, int engine)
+#define FUNC_NAME "set-vm-engine!"
+{
+  SCM_VALIDATE_VM (1, vm);
+
+  if (vm_has_pending_computation (vm))
+    SCM_MISC_ERROR ("VM engine may only be changed while there are no "
+                    "pending computations.",
+                    SCM_EOL);
+
+  if (engine < 0 || engine >= SCM_VM_NUM_ENGINES)
+    SCM_MISC_ERROR ("Unknown VM engine: ~a",
+                    scm_list_1 (scm_from_int (engine)));
+    
+  SCM_VM_DATA (vm)->engine = engine;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_vm_engine_x, "set-vm-engine!", 2, 0, 0,
+	    (SCM vm, SCM engine),
+	    "")
+#define FUNC_NAME s_scm_set_vm_engine_x
+{
+  scm_c_set_vm_engine_x (vm, symbol_to_vm_engine (engine, FUNC_NAME));
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+void
+scm_c_set_default_vm_engine_x (int engine)
+#define FUNC_NAME "set-default-vm-engine!"
+{
+  if (engine < 0 || engine >= SCM_VM_NUM_ENGINES)
+    SCM_MISC_ERROR ("Unknown VM engine: ~a",
+                    scm_list_1 (scm_from_int (engine)));
+    
+  vm_default_engine = engine;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_set_default_vm_engine_x, "set-default-vm-engine!", 1, 0, 0,
+	    (SCM engine),
+	    "")
+#define FUNC_NAME s_scm_set_default_vm_engine_x
+{
+  scm_c_set_default_vm_engine_x (symbol_to_vm_engine (engine, FUNC_NAME));
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+static void reinstate_vm (SCM vm)
+{
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  t->vm = vm;
+}
+
+SCM_DEFINE (scm_call_with_vm, "call-with-vm", 2, 0, 1,
+	    (SCM vm, SCM proc, SCM args),
+	    "Apply @var{proc} to @var{args} in a dynamic extent in which\n"
+            "@var{vm} is the current VM.\n\n"
+            "As an implementation restriction, if @var{vm} is not the same\n"
+            "as the current thread's VM, continuations captured within the\n"
+            "call to @var{proc} may not be reinstated once control leaves\n"
+            "@var{proc}.")
+#define FUNC_NAME s_scm_call_with_vm
+{
+  SCM prev_vm, ret;
+  SCM *argv;
+  int i, nargs;
+  scm_t_wind_flags flags;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+  SCM_VALIDATE_VM (1, vm);
+  SCM_VALIDATE_PROC (2, proc);
+
+  nargs = scm_ilength (args);
+  if (SCM_UNLIKELY (nargs < 0))
+    scm_wrong_type_arg_msg (FUNC_NAME, 3, args, "list");
+  
+  argv = alloca (nargs * sizeof(SCM));
+  for (i = 0; i < nargs; i++)
+    {
+      argv[i] = SCM_CAR (args);
+      args = SCM_CDR (args);
+    }
+
+  prev_vm = t->vm;
+
+  /* Reentry can happen via invokation of a saved continuation, but
+     continuations only save the state of the VM that they are in at
+     capture-time, which might be different from this one.  So, in the
+     case that the VMs are different, set up a non-rewindable frame to
+     prevent reinstating an incomplete continuation.  */
+  flags = scm_is_eq (prev_vm, vm) ? 0 : SCM_F_WIND_EXPLICITLY;
+  if (flags)
+    {
+      scm_dynwind_begin (0);
+      scm_dynwind_unwind_handler_with_scm (reinstate_vm, prev_vm, flags);
+      t->vm = vm;
+    }
+
+  ret = scm_c_vm_run (vm, proc, argv, nargs);
+
+  if (flags)
+    scm_dynwind_end ();
+  
+  return ret;
+}
+#undef FUNC_NAME
+
+
+/*
  * Initialize
  */
 
@@ -798,6 +896,7 @@ scm_bootstrap_vm (void)
   sym_vm_run = scm_from_locale_symbol ("vm-run");
   sym_vm_error = scm_from_locale_symbol ("vm-error");
   sym_keyword_argument_error = scm_from_locale_symbol ("keyword-argument-error");
+  sym_regular = scm_from_locale_symbol ("regular");
   sym_debug = scm_from_locale_symbol ("debug");
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN

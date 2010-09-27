@@ -19,13 +19,12 @@
 ;;; Code:
 
 (define-module (system vm vm)
-  #:use-module (system vm frame)
-  #:use-module (system vm program)
-  #:export (vm? make-vm vm-version vm-apply
-            the-vm thread-vm set-thread-vm!
-            vm:ip vm:sp vm:fp vm:last-ip
+  #:export (vm?
+            make-vm the-vm call-with-vm
+            vm:ip vm:sp vm:fp
 
             vm-trace-level set-vm-trace-level!
+            vm-engine set-vm-engine! set-default-vm-engine!
             vm-push-continuation-hook vm-pop-continuation-hook
             vm-apply-hook
             vm-next-hook
