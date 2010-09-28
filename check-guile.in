@@ -42,6 +42,7 @@ if [ ! -f guile-procedures.txt ] ; then
 fi
 
 exec $guile \
+    --debug \
     --no-autocompile -e main -s "$TEST_SUITE_DIR/guile-test" \
     --test-suite "$TEST_SUITE_DIR/tests" \
     --log-file check-guile.log "$@"
