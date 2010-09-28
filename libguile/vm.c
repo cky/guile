@@ -36,7 +36,7 @@
 #include "programs.h"
 #include "vm.h"
 
-static int vm_default_engine = SCM_VM_DEBUG_ENGINE;
+static int vm_default_engine = SCM_VM_REGULAR_ENGINE;
 
 /* Unfortunately we can't snarf these: snarfed things are only loaded up from
    (system vm vm), which might not be loaded before an error happens. */
@@ -745,13 +745,6 @@ vm_engine_to_symbol (int engine, const char *FUNC_NAME)
     }
 }
   
-static int
-vm_has_pending_computation (SCM vm)
-{
-  struct scm_vm *vp = SCM_VM_DATA (vm);
-  return vp->sp >= vp->stack_base;
-}
-
 SCM_DEFINE (scm_vm_engine, "vm-engine", 1, 0, 0,
 	    (SCM vm),
 	    "")
@@ -767,11 +760,6 @@ scm_c_set_vm_engine_x (SCM vm, int engine)
 #define FUNC_NAME "set-vm-engine!"
 {
   SCM_VALIDATE_VM (1, vm);
-
-  if (vm_has_pending_computation (vm))
-    SCM_MISC_ERROR ("VM engine may only be changed while there are no "
-                    "pending computations.",
-                    SCM_EOL);
 
   if (engine < 0 || engine >= SCM_VM_NUM_ENGINES)
     SCM_MISC_ERROR ("Unknown VM engine: ~a",

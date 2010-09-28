@@ -40,6 +40,7 @@
 #include "libguile/strports.h"
 #include "libguile/validate.h"
 #include "libguile/version.h"
+#include "libguile/vm.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -718,7 +719,10 @@ scm_compile_shell_switches (int argc, char **argv)
      was not explicitly turned off, turn on debugging. */
   if (turn_on_debugging || (interactive && !dont_turn_on_debugging))
     {
+      /* FIXME: backtraces and positions should always be on (?) */
       tail = scm_cons (scm_cons (sym_turn_on_debugging, SCM_EOL), tail);
+      scm_c_set_default_vm_engine_x (SCM_VM_DEBUG_ENGINE);
+      scm_c_set_vm_engine_x (scm_the_vm (), SCM_VM_DEBUG_ENGINE);
     }
 
   {
