@@ -31,13 +31,11 @@
   #:use-module (system vm program)
   #:export (<debug>
             make-debug debug? debug-frames debug-index debug-error-message
-            print-locals print-frame print-frames frame->module
+            print-registers print-locals print-frame print-frames frame->module
             stack->vector narrow-stack->vector))
 
 ;; TODO:
 ;;
-;; Update this TODO list ;)
-;; partial meta-commands  (,qui -> ,quit)
 ;; eval expression in context of frame
 ;; set local variable in frame
 ;; step until next instruction
@@ -46,16 +44,9 @@
 ;; step until different source line
 ;; step until greater source line
 ;; watch expression
-;; break on a function
-;; remove breakpoints
 ;; set printing width
-;; display a truncated backtrace
-;; go to a frame by index
-;; (reuse gdb commands perhaps)
-;; disassemble a function
 ;; disassemble the current function
 ;; inspect any object
-;; hm, trace via reassigning global vars. tricksy.
 ;; (state associated with vm ?)
 
 ;;;
@@ -77,6 +68,18 @@
        (hashq-set! ret v (cons k (hashq-ref ret v '()))))
      h)
     ret))
+
+(define* (print-registers frame #:optional (port (current-output-port))
+                          #:key (per-line-prefix "  "))
+  (define (print fmt val)
+    (display per-line-prefix port)
+    (run-hook before-print-hook val)
+    (format port fmt val))
+  
+  (format port "~aRegisters:~%" per-line-prefix)
+  (print "ip = ~d\n" (frame-instruction-pointer frame))
+  (print "sp = #x~x\n" (frame-stack-pointer frame))
+  (print "fp = #x~x\n" (frame-address frame)))
 
 (define* (print-locals frame #:optional (port (current-output-port))
                        #:key (width 72) (per-line-prefix "  "))
@@ -160,28 +163,6 @@
           mod*)
         (current-module))))
 
-
-;; TODO:
-;;
-;; eval expression in context of frame
-;; set local variable in frame
-;; step until next instruction
-;; step until next function call/return
-;; step until return from frame
-;; step until different source line
-;; step until greater source line
-;; watch expression
-;; break on a function
-;; remove breakpoints
-;; set printing width
-;; display a truncated backtrace
-;; go to a frame by index
-;; (reuse gdb commands perhaps)
-;; disassemble a function
-;; disassemble the current function
-;; inspect any object
-;; hm, trace via reassigning global vars. tricksy.
-;; (state associated with vm ?)
 
 (define (stack->vector stack)
   (let* ((len (stack-length stack))

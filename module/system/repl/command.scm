@@ -59,7 +59,8 @@
               (procedure proc) (locals) (error-message error)
               (break br bp) (break-at-source break-at bs)
               (tracepoint tp)
-              (traps) (delete del) (disable) (enable))
+              (traps) (delete del) (disable) (enable)
+              (registers regs))
     (inspect  (inspect i) (pretty-print pp))
     (system   (gc) (statistics stat) (option o)
               (quit q continue cont))))
@@ -644,13 +645,20 @@ Enable a trap."
       (error "expected a trap index (a non-negative integer)" idx)
       (enable-trap! idx)))
 
+(define-stack-command (registers repl)
+  "registers
+Print registers.
+
+Print the registers of the current frame."
+  (print-registers cur))
+
 
 
 ;;;
 ;;; Inspection commands
 ;;;
 
-(define-stack-command (inspect repl (form))
+(define-meta-command (inspect repl (form))
   "inspect EXP
 Inspect the result(s) of evaluating EXP."
   (call-with-values (repl-prepare-eval-thunk repl (repl-parse repl form))
