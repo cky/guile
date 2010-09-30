@@ -78,7 +78,7 @@ AC_PROG_LIBTOOL
 dnl Check for libltdl.
 AC_LIB_HAVE_LINKFLAGS([ltdl], [], [#include <ltdl.h>],
   [lt_dlopenext ("foo");])
-if text "x$HAVE_LIBLTDL" != "xyes"; then
+if test "x$HAVE_LIBLTDL" != "xyes"; then
   AC_MSG_ERROR([GNU libltdl (Libtool) not found, see README.])
 fi
 
