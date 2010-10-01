@@ -545,12 +545,39 @@ These procedures are available for use by user programs, in the
 (use-modules (system repl error-handling))
 @end lisp
 
-@deffn {Scheme Procedure} call-with-error-handling thunk @\
-       [#:on-error on-error='debug] @\
-       [#:post-error post-error='catch] @\
-       [#:pass-keys pass-keys='(quit)] @\
-       [#:trap-handler trap-handler='debug]
-foo
+@deffn {Scheme Procedure} call-with-error-handling thunk @
+       [#:on-error on-error='debug] [#:post-error post-error='catch] @
+       [#:pass-keys pass-keys='(quit)] [#:trap-handler trap-handler='debug]
+Call a thunk in a context in which errors are handled.
+
+There are four keyword arguments:
+
+@table @var
+@item on-error
+Specifies what to do before the stack is unwound.
+
+Valid options are @code{debug} (the default), which will enter a
+debugger; @code{pass}, in which case nothing is done, and the exception
+is rethrown; or a procedure, which will be the pre-unwind handler.
+
+@item post-error
+Specifies what to do after the stack is unwound.
+
+Valid options are @code{catch} (the default), which will silently catch
+errors, returning the unspecified value; @code{report}, which prints out
+a description of the error (via @code{display-error}), and then returns
+the unspecified value; or a procedure, which will be the catch handler.
+
+@item trap-handler
+Specifies a trap handler: what to do when a breakpoint is hit.
+
+Valid options are @code{debug}, which will enter the debugger;
+@code{pass}, which does nothing; or @code{disabled}, which disables
+traps entirely.  @xref{Traps}, for more information.
+
+@item pass-keys
+A set of keys to ignore, as a list.
+@end table
 @end deffn
 
 @node Debug Options
