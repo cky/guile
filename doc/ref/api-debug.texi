@@ -342,7 +342,7 @@ you might use:
 
 (catch-all
  (lambda () (error "Not a vegetable: tomato")))
-=| Uncaught throw to 'misc-error: (#f ~A (Not a vegetable: tomato) #f)
+@print{} Uncaught throw to 'misc-error: (#f ~A (Not a vegetable: tomato) #f)
 @result{} #f
 @end smalllisp
 
@@ -629,14 +629,41 @@ options and switches them on, @code{debug-disable} switches them off.
 @cindex overflow, stack
 @cindex stack overflow
 Stack overflow errors are caused by a computation trying to use more
-stack space than has been enabled by the @code{stack} option.  They are
-reported like this:
+stack space than has been enabled by the @code{stack} option.  There are
+actually two kinds of stack that can overflow, the C stack and the
+Scheme stack.
+
+Scheme stack overflows can occur if Scheme procedures recurse too far
+deeply. An example would be the following recursive loop:
 
 @lisp
-(non-tail-recursive-factorial 500)
-@print{}
+scheme@@(guile-user)> (let lp () (+ 1 (lp)))
+<unnamed port>:8:17: In procedure vm-run:
+<unnamed port>:8:17: VM: Stack overflow
+@end lisp
+
+The default stack size should allow for about 10000 frames or so, so one
+usually doesn't hit this level of recursion. Unfortunately there is no
+way currently to make a VM with a bigger stack. If you are in this
+unfortunate situation, please file a bug, and in the meantime, rewrite
+your code to be tail-recursive (@pxref{Tail Calls}).
+
+The other limit you might hit would be C stack overflows. If you call a
+primitive procedure which then calls a Scheme procedure in a loop, you
+will consume C stack space. Guile tries to detect excessive consumption
+of C stack space, throwing an error when you have hit 80% of the
+process' available stack (as allocated by the operating system), or 160
+kilowords in the absence of a strict limit.
+
+For example, looping through @code{call-with-vm}, a primitive that calls
+a thunk, gives us the following:
+
+@lisp
+scheme@@(guile-user)> (use-modules (system vm vm))
+scheme@@(guile-user)> (debug-set! stack 10000)
+scheme@@(guile-user)> (let lp () (call-with-vm (the-vm) lp))
+ERROR: In procedure call-with-vm:
 ERROR: Stack overflow
-ABORT: (stack-overflow)
 @end lisp
 
 If you get an error like this, you can either try rewriting your code to
@@ -645,18 +672,10 @@ the maximum stack size, use @code{debug-set!}, for example:
 
 @lisp
 (debug-set! stack 200000)
-@result{}
-(show-file-name #t stack 200000 debug backtrace depth 20
-   maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
-
-(non-tail-recursive-factorial 500)
-@result{}
-122013682599111006870123878542304692625357434@dots{}
 @end lisp
 
-If you prefer to try rewriting your code, you may be able to save stack
-space by making some of your procedures @dfn{tail recursive}
-(@pxref{Tail Calls}).
+But of course it's better to have your code operate without so much
+resource consumption, avoiding loops through C trampolines.
 
 
 @node Traps
