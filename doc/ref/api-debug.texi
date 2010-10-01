@@ -583,8 +583,8 @@ A set of keys to ignore, as a list.
 @node Debug Options
 @subsubsection Debug options
 
-The behavior when an error is the @code{backtrace} procedure and of the
-default error handler can be parameterized via the debug options.
+The behavior of the @code{backtrace} procedure and of the default error
+handler can be parameterized via the debug options.
 
 @cindex options - debug
 @cindex debug options
