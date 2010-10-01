@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2006, 2008 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2006, 2008, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +26,7 @@
 #include "libguile/ports.h"
 #include "libguile/root.h"
 #include "libguile/threads.h"
+#include "libguile/dynwind.h"
 
 #include "libguile/stackchk.h"
 
@@ -38,15 +39,30 @@ int scm_stack_checking_enabled_p;
 
 SCM_SYMBOL (scm_stack_overflow_key, "stack-overflow");
 
+static void
+reset_scm_stack_checking_enabled_p (void *arg)
+{
+  scm_stack_checking_enabled_p = (int)(scm_t_bits)arg;
+}
+
 void
 scm_report_stack_overflow ()
 {
+  scm_dynwind_begin (0); /* non-rewindable frame */
+  scm_dynwind_unwind_handler (reset_scm_stack_checking_enabled_p,
+                              (void*)(scm_t_bits)scm_stack_checking_enabled_p,
+                              SCM_F_WIND_EXPLICITLY);
+  
   scm_stack_checking_enabled_p = 0;
+
   scm_error (scm_stack_overflow_key,
 	     NULL,
 	     "Stack overflow",
 	     SCM_BOOL_F,
 	     SCM_BOOL_F);
+
+  /* not reached */
+  scm_dynwind_end ();
 }
 
 #endif
