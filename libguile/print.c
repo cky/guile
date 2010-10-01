@@ -89,10 +89,6 @@ static const char *iflagnames[] =
 SCM_SYMBOL (sym_reader, "reader");
 
 scm_t_option scm_print_opts[] = {
-  { SCM_OPTION_SCM, "closure-hook", (unsigned long) SCM_BOOL_F,
-    "Hook for printing closures (should handle macros as well)." },
-  { SCM_OPTION_BOOLEAN, "source", 0,
-    "Print closures with source." },
   { SCM_OPTION_SCM, "highlight-prefix", (unsigned long)SCM_BOOL_F,
     "The string to print before highlighted values." },
   { SCM_OPTION_SCM, "highlight-suffix", (unsigned long)SCM_BOOL_F,
