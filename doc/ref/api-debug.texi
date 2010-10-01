@@ -508,6 +508,83 @@ Debugging} for more information about this.
 Invoke the Guile debugger to explore the context of the last error.
 @end deffn
 
+@subsubsection Debug options
+
+The behavior when an error is the @code{backtrace} procedure and of the
+default error handler can be parameterized via the debug options.
+
+@cindex options - debug
+@cindex debug options
+@deffn {Scheme Procedure} debug-options [setting]
+Display the current settings of the debug options.  If @var{setting} is
+omitted, only a short form of the current read options is printed.
+Otherwise if @var{setting} is the symbol @code{help}, a complete options
+description is displayed.
+@end deffn
+
+The set of available options, and their default values, may be had by
+invoking @code{debug-options} at the prompt.
+
+@smallexample
+scheme@@(guile-user)>
+backwards       no      Display backtrace in anti-chronological order.
+width           79      Maximal width of backtrace.
+depth           20      Maximal length of printed backtrace.
+backtrace       yes     Show backtrace on error.
+stack           1048576 Stack size limit (measured in words;
+                        0 = no check). 
+show-file-name  #t      Show file names and line numbers in backtraces
+                        when not `#f'.  A value of `base' displays only
+                        base names, while `#t' displays full names. 
+warn-deprecated no      Warn when deprecated features are used.
+@end smallexample
+
+The boolean options may be toggled with @code{debug-enable} and
+@code{debug-disable}. The non-boolean @code{keywords} option must be set
+using @code{debug-set!}.
+
+@deffn {Scheme Procedure} debug-enable option-name
+@deffnx {Scheme Procedure} debug-disable option-name
+@deffnx {Scheme Procedure} debug-set! option-name value
+Modify the debug options.  @code{debug-enable} should be used with boolean
+options and switches them on, @code{debug-disable} switches them off.
+@code{debug-set!} can be used to set an option to a specific value.
+@end deffn
+
+@subsubheading Stack overflow
+
+@cindex overflow, stack
+@cindex stack overflow
+Stack overflow errors are caused by a computation trying to use more
+stack space than has been enabled by the @code{stack} option.  They are
+reported like this:
+
+@lisp
+(non-tail-recursive-factorial 500)
+@print{}
+ERROR: Stack overflow
+ABORT: (stack-overflow)
+@end lisp
+
+If you get an error like this, you can either try rewriting your code to
+use less stack space, or increase the maximum stack size.  To increase
+the maximum stack size, use @code{debug-set!}, for example:
+
+@lisp
+(debug-set! stack 200000)
+@result{}
+(show-file-name #t stack 200000 debug backtrace depth 20
+   maxdepth 1000 frames 3 indent 10 width 79 procnames cheap)
+
+(non-tail-recursive-factorial 500)
+@result{}
+122013682599111006870123878542304692625357434@dots{}
+@end lisp
+
+If you prefer to try rewriting your code, you may be able to save stack
+space by making some of your procedures @dfn{tail recursive}
+(@pxref{Tail Calls}).
+
 
 @node Traps
 @subsection Traps
