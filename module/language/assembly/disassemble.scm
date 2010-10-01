@@ -113,7 +113,7 @@
 
 (define (source->string src)
   (format #f "~a:~a:~a" (or (source:file src) "(unknown file)")
-          (source:line src) (source:column src)))
+          (source:line-for-user src) (source:column src)))
 
 (define (make-int16 byte1 byte2)
   (+ (* byte1 256) byte2))

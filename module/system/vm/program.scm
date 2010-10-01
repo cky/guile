@@ -28,6 +28,7 @@
             binding:start binding:end
 
             source:addr source:line source:column source:file
+            source:line-for-user
             program-sources program-source
 
             program-bindings program-bindings-by-index program-bindings-for-ip
@@ -63,6 +64,12 @@
   (caddr source))
 (define (source:column source)
   (cdddr source))
+
+;; Lines are zero-indexed inside Guile, but users expect them to be
+;; one-indexed. Columns, on the other hand, are zero-indexed to both. Go
+;; figure.
+(define (source:line-for-user source)
+  (1+ (source:line source)))
 
 (define (collapse-locals locs)
   (let lp ((ret '()) (locs locs))
@@ -209,7 +216,7 @@
                                (number->string (object-address prog) 16)
                                (or (source:file s)
                                    (if s "<current input>" "<unknown port>"))
-                               (source:line s) (source:column s))))
+                               (source:line-for-user s) (source:column s))))
               (number->string (object-address prog) 16))
           (let ((arities (program-arities prog)))
             (if (or (not arities) (null? arities))

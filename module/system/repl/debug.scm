@@ -109,7 +109,7 @@
         "unknown file"))
   (let* ((source (frame-source frame))
          (file (source:pretty-file source))
-         (line (and=> source source:line))
+         (line (and=> source source:line-for-user))
          (col (and=> source source:column)))
     (if (and file (not (equal? file (source:pretty-file last-source))))
         (format port "~&In ~a:~&" file))
