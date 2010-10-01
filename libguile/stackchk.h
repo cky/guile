@@ -35,6 +35,7 @@
 #define SCM_STACK_CHECKING_P SCM_STACK_LIMIT
 
 #if defined BUILDING_LIBGUILE && defined STACK_CHECKING
+#include "libguile/private-options.h"
 # if SCM_STACK_GROWS_UP
 #  define SCM_STACK_OVERFLOW_P(s)\
    ((SCM_STACK_PTR (s) - SCM_I_CURRENT_THREAD->base) > SCM_STACK_LIMIT)

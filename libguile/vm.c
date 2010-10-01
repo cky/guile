@@ -560,6 +560,7 @@ SCM
 scm_c_vm_run (SCM vm, SCM program, SCM *argv, int nargs)
 {
   struct scm_vm *vp = SCM_VM_DATA (vm);
+  SCM_CHECK_STACK;
   return vm_engines[vp->engine](vm, program, argv, nargs);
 }
 
