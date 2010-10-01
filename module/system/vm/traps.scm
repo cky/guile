@@ -249,6 +249,9 @@
 (define (non-negative-integer? x)
   (and (number? x) (integer? x) (exact? x) (not (negative? x))))
 
+(define (positive-integer? x)
+  (and (number? x) (integer? x) (exact? x) (positive? x)))
+
 (define (range? x)
   (and (list? x)
        (and-map (lambda (x)
@@ -345,16 +348,17 @@
         (values (source-procedures file line) #f))))
 
 ;; Building on trap-on-instructions-in-procedure, we have
-;; trap-at-source-location.
+;; trap-at-source-location. The parameter `user-line' is one-indexed, as
+;; a user counts lines, instead of zero-indexed, as Guile counts lines.
 ;;
-(define* (trap-at-source-location file line handler
+(define* (trap-at-source-location file user-line handler
                                   #:key current-frame (vm (the-vm)))
   (arg-check file string?)
-  (arg-check line non-negative-integer?)
+  (arg-check user-line positive-integer?)
   (arg-check handler procedure?)
   (let ((traps #f))
     (call-with-values
-        (lambda () (source-closures-or-procedures file line))
+        (lambda () (source-closures-or-procedures file (1- user-line)))
       (lambda (procs closures?)
         (new-enabled-trap
          vm current-frame
@@ -362,14 +366,14 @@
            (set! traps
                  (map
                   (lambda (proc)
-                    (let ((range (source->ip-range proc file line)))
+                    (let ((range (source->ip-range proc file (1- user-line))))
                       (trap-at-procedure-ip-in-range proc range handler
                                                      #:current-frame current-frame
                                                      #:vm vm
                                                      #:closure? closures?)))
                   procs))
            (if (null? traps)
-               (error "No procedures found at ~a:~a." file line)))
+               (error "No procedures found at ~a:~a." file user-line)))
          (lambda (frame)
            (for-each (lambda (trap) (trap frame)) traps)
            (set! traps #f)))))))

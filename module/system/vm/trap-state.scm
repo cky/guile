@@ -209,16 +209,16 @@
       idx #t trap
       (format #f "Tracepoint at ~a" proc)))))
 
-(define* (add-trap-at-source-location! file line
+(define* (add-trap-at-source-location! file user-line
                                        #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state))
-         (trap (trap-at-source-location file line
+         (trap (trap-at-source-location file user-line
                                         (handler-for-index trap-state idx))))
     (add-trap-wrapper!
      trap-state
      (make-trap-wrapper
       idx #t trap
-      (format #f "Breakpoint at ~a:~a" file line)))))
+      (format #f "Breakpoint at ~a:~a" file user-line)))))
 
 (define* (add-trap! trap name #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state)))
