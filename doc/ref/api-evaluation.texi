@@ -13,6 +13,7 @@ loading, evaluating, and compiling Scheme code at run time.
 @menu
 * Scheme Syntax::               Standard and extended Scheme syntax.
 * Scheme Read::                 Reading Scheme code.
+* Scheme Write::                Writing Scheme values to a port.
 * Fly Evaluation::              Procedures for on the fly evaluation.
 * Compilation::                 How to compile Scheme files and procedures.
 * Loading::                     Loading Scheme code from file.
@@ -265,8 +266,8 @@ Guile-Whuzzy
 are the same in R5RS Scheme, but are different in Guile.
 
 It is possible to turn off case sensitivity in Guile by setting the
-reader option @code{case-insensitive}.  More on reader options can be
-found at (@pxref{Reader options}).
+reader option @code{case-insensitive}.  For more information on reader
+options, @xref{Scheme Read}.
 
 @lisp
 (read-enable 'case-insensitive)
@@ -307,24 +308,35 @@ Any whitespace before the next token is discarded.
 @end deffn
 
 The behaviour of Guile's Scheme reader can be modified by manipulating
-its read options.  For more information about options, @xref{User level
-options interfaces}.  If you want to know which reader options are
-available, @xref{Reader options}.
+its read options.
 
-@c FIXME::martin: This is taken from libguile/options.c.  Is there 
-@c actually a difference between 'help and 'full?
-
+@cindex options - read
+@cindex read options
 @deffn {Scheme Procedure} read-options [setting]
 Display the current settings of the read options.  If @var{setting} is
 omitted, only a short form of the current read options is printed.
-Otherwise, @var{setting} should be one of the following symbols:
-@table @code
-@item help
-Display the complete option settings.
-@item full
-Like @code{help}, but also print programmer options.
-@end table
+Otherwise if @var{setting} is the symbol @code{help}, a complete options
+description is displayed.
 @end deffn
+
+The set of available options, and their default values, may be had by
+invoking @code{read-options} at the prompt.
+
+@smalllisp
+scheme@@(guile-user)> (read-options)
+(square-brackets keywords #f positions)
+scheme@@(guile-user)> (read-options 'help)
+copy              no    Copy source code expressions.
+positions         yes   Record positions of source code expressions.
+case-insensitive  no    Convert symbols to lower case.
+keywords          #f    Style of keyword recognition: #f, 'prefix or 'postfix.
+r6rs-hex-escapes  no    Use R6RS variable-length character and string hex escapes.
+square-brackets   yes   Treat `[' and `]' as parentheses, for R6RS compatibility.
+@end smalllisp
+
+The boolean options may be toggled with @code{read-enable} and
+@code{read-disable}. The non-boolean @code{keywords} option must be set
+using @code{read-set!}.
 
 @deffn {Scheme Procedure} read-enable option-name
 @deffnx {Scheme Procedure} read-disable option-name
@@ -334,11 +346,79 @@ options and switches them on, @code{read-disable} switches them off.
 @code{read-set!} can be used to set an option to a specific value.
 @end deffn
 
-@deffn {Scheme Procedure} read-options-interface [setting]
-@deffnx {C Function} scm_read_options (setting)
-Option interface for the read options. Instead of using
-this procedure directly, use the procedures @code{read-enable},
-@code{read-disable}, @code{read-set!} and @code{read-options}.
+For example, to make @code{read} fold all symbols to their lower case
+(perhaps for compatibility with older Scheme code), you can enter:
+
+@lisp
+(read-enable 'case-insensitive)
+@end lisp
+
+For more information on the effect of the @code{r6rs-hex-escapes} option, see
+(@pxref{String Syntax}).
+
+
+@node Scheme Write
+@subsection Writing Scheme Values
+
+Any scheme value may be written to a port. Not all values may be read
+back in (@pxref{Scheme Read}), however.
+
+@rnindex write
+@rnindex print
+@deffn {Scheme Procedure} write obj [port]
+Send a representation of @var{obj} to @var{port} or to the current
+output port if not given.
+
+The output is designed to be machine readable, and can be read back
+with @code{read} (@pxref{Scheme Read}).  Strings are printed in
+double quotes, with escapes if necessary, and characters are printed in
+@samp{#\} notation.
+@end deffn
+
+@rnindex display
+@deffn {Scheme Procedure} display obj [port]
+Send a representation of @var{obj} to @var{port} or to the current
+output port if not given.
+
+The output is designed for human readability, it differs from
+@code{write} in that strings are printed without double quotes and
+escapes, and characters are printed as per @code{write-char}, not in
+@samp{#\} form.
+@end deffn
+
+As was the case with the Scheme reader, there are a few options that
+affect the behavior of the Scheme printer.
+
+@cindex options - print
+@cindex print options
+@deffn {Scheme Procedure} print-options [setting]
+Display the current settings of the read options.  If @var{setting} is
+omitted, only a short form of the current read options is
+printed. Otherwise if @var{setting} is the symbol @code{help}, a
+complete options description is displayed.
+@end deffn
+
+The set of available options, and their default values, may be had by
+invoking @code{print-options} at the prompt.
+
+@smalllisp
+scheme@@(guile-user)> (print-options)
+(quote-keywordish-symbols reader highlight-suffix "@}" highlight-prefix "@{")
+scheme@@(guile-user)> (print-options 'help)
+highlight-prefix          @{       The string to print before highlighted values.
+highlight-suffix          @}       The string to print after highlighted values.
+quote-keywordish-symbols  reader  How to print symbols that have a colon
+                                  as their first or last character. The
+                                  value '#f' does not quote the colons;
+                                  '#t' quotes them; 'reader' quotes them
+                                  when the reader option 'keywords' is
+                                  not '#f'.
+@end smalllisp
+
+These options may be modified with the print-set! procedure.
+
+@deffn {Scheme Procedure} print-set! option-name value
+Modify the print options.
 @end deffn
 
 

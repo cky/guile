@@ -174,6 +174,9 @@ created.
 
 [Generic procedures for reading from ports.]
 
+These procedures pertain to reading characters and strings from
+ports. To read general S-expressions from ports, @xref{Scheme Read}.
+
 @rnindex eof-object?
 @cindex End of file object
 @deffn {Scheme Procedure} eof-object? x
@@ -299,32 +302,14 @@ Set the current column or line number of @var{port}.
 
 [Generic procedures for writing to ports.]
 
+These procedures are for writing characters and strings to
+ports. For more information on writing arbitrary Scheme objects to
+ports, @xref{Scheme Write}.
+
 @deffn {Scheme Procedure} get-print-state port
 @deffnx {C Function} scm_get_print_state (port)
 Return the print state of the port @var{port}.  If @var{port}
 has no associated print state, @code{#f} is returned.
-@end deffn
-
-@rnindex write
-@deffn {Scheme Procedure} write obj [port]
-Send a representation of @var{obj} to @var{port} or to the current
-output port if not given.
-
-The output is designed to be machine readable, and can be read back
-with @code{read} (@pxref{Reading}).  Strings are printed in
-double quotes, with escapes if necessary, and characters are printed in
-@samp{#\} notation.
-@end deffn
-
-@rnindex display
-@deffn {Scheme Procedure} display obj [port]
-Send a representation of @var{obj} to @var{port} or to the current
-output port if not given.
-
-The output is designed for human readability, it differs from
-@code{write} in that strings are printed without double quotes and
-escapes, and characters are printed as per @code{write-char}, not in
-@samp{#\} form.
 @end deffn
 
 @rnindex newline

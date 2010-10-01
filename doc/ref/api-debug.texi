@@ -220,7 +220,7 @@ In the latter case, no source properties were stored, so the error
 doesn't have any source information.
 
 The recording of source properties is controlled by the read option
-named ``positions'' (@pxref{Reader options}).  This option is switched
+named ``positions'' (@pxref{Scheme Read}).  This option is switched
 @emph{on} by default.
 
 The following procedures can be used to access and set the source

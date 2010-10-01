@@ -2706,8 +2706,7 @@ it can be enabled with the reader option @code{r6rs-hex-escapes}.
 (read-enable 'r6rs-hex-escapes)
 @end lisp
 
-More on reader options in general can be found at (@pxref{Reader
-options}).
+For more on reader options, @xref{Scheme Read}.
 
 @node String Predicates
 @subsubsection String Predicates
@@ -5862,9 +5861,8 @@ recognizes the SRFI-88 read syntax @code{NAME:} (@pxref{SRFI-88}).
 Otherwise, tokens of this form are read as symbols.
 
 To enable and disable the alternative non-R5RS keyword syntax, you use
-the @code{read-set!} procedure documented in @ref{User level options
-interfaces} and @ref{Reader options}.  Note that the @code{prefix} and
-@code{postfix} syntax are mutually exclusive.
+the @code{read-set!} procedure documented @ref{Scheme Read}.  Note that
+the @code{prefix} and @code{postfix} syntax are mutually exclusive.
 
 @lisp
 (read-set! keywords 'prefix)

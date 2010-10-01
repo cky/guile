@@ -4244,7 +4244,7 @@ Answer a hash value appropriate for equality predicate @code{equal?},
 @dfn{keyword objects}, which are equivalent to Guile's keywords
 (@pxref{Keywords}).  SRFI-88 keywords can be entered using the
 @dfn{postfix keyword syntax}, which consists of an identifier followed
-by @code{:} (@pxref{Reader options, @code{postfix} keyword syntax}).
+by @code{:} (@pxref{Scheme Read, @code{postfix} keyword syntax}).
 SRFI-88 can be made available with:
 
 @example
