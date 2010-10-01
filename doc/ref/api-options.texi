@@ -382,8 +382,8 @@ For more information on reader options, @xref{Scheme Read}.
 
 For more information on print options, @xref{Scheme Write}.
 
-Finally, for more information on debugger options, @xref{Debug on
-Error}.
+Finally, for more information on debugger options, @xref{Debug
+Options}.
 
 @subsubsection Examples of option use
 
