@@ -71,10 +71,6 @@ scm_t_option scm_read_opts[] = {
     "Convert symbols to lower case."},
   { SCM_OPTION_SCM, "keywords", (unsigned long) SCM_BOOL_F,
     "Style of keyword recognition: #f, 'prefix or 'postfix."},
-  { SCM_OPTION_BOOLEAN, "elisp-vectors", 0,
-    "Support Elisp vector syntax, namely `[...]'."},
-  { SCM_OPTION_BOOLEAN, "elisp-strings", 0,
-    "Support `\\(' and `\\)' in strings."},
   { SCM_OPTION_BOOLEAN, "r6rs-hex-escapes", 0,
     "Use R6RS variable-length character and string hex escapes."},
   { SCM_OPTION_BOOLEAN, "square-brackets", 1,
@@ -515,11 +511,6 @@ scm_read_string (int chr, SCM port)
             case '"':
             case '\\':
               break;
-            case '(':
-            case ')':
-              if (SCM_ESCAPED_PARENS_P)
-                break;
-              goto bad_escaped;
             case '\n':
               continue;
             case '0':
