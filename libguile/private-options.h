@@ -28,7 +28,7 @@
 /*
   debugging.
  */
-SCM_API scm_t_option scm_debug_opts[];
+SCM_INTERNAL scm_t_option scm_debug_opts[];
 
 #define SCM_BACKWARDS_P		scm_debug_opts[0].val
 #define SCM_BACKTRACE_WIDTH   	scm_debug_opts[1].val
@@ -43,7 +43,7 @@ SCM_API scm_t_option scm_debug_opts[];
 /*
   printing
 */
-SCM_API scm_t_option scm_print_opts[];
+SCM_INTERNAL scm_t_option scm_print_opts[];
 
 #define SCM_PRINT_HIGHLIGHT_PREFIX  (SCM_PACK (scm_print_opts[0].val))
 #define SCM_PRINT_HIGHLIGHT_SUFFIX  (SCM_PACK (scm_print_opts[1].val))
@@ -55,7 +55,7 @@ SCM_API scm_t_option scm_print_opts[];
 /*
   read
  */
-SCM_API scm_t_option scm_read_opts[];
+SCM_INTERNAL scm_t_option scm_read_opts[];
 
 #define SCM_COPY_SOURCE_P      scm_read_opts[0].val
 #define SCM_RECORD_POSITIONS_P scm_read_opts[1].val
