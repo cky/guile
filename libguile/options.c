@@ -148,7 +148,7 @@ get_documented_option_setting (const scm_t_option options[])
       ls = scm_cons (SCM_PACK (options[i].name), ls);
       ans = scm_cons (ls, ans);
     }
-  return ans;
+  return scm_reverse_x (ans, SCM_UNDEFINED);
 }
 
 
