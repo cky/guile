@@ -64,7 +64,8 @@
             the-last-stack
             save-stack
             named-module-use!
-            top-repl))
+            top-repl
+            turn-on-debugging))
 
 
 ;;;; Deprecated definitions.
@@ -674,3 +675,10 @@ it.")
                  "Remove it from your code.")
                 (apply debug-enable (delq 'debug opts)))
               (apply debug-enable opts)))))
+
+(define (turn-on-debugging)
+  (issue-deprecation-warning
+   "`(turn-on-debugging)' is obsolete and usually has no effect."
+   "Debugging capabilities are present by default.")
+  (debug-enable 'backtrace)
+  (read-enable 'positions))

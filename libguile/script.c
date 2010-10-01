@@ -406,7 +406,6 @@ SCM_SYMBOL (sym_load, "load");
 SCM_SYMBOL (sym_eval_string, "eval-string");
 SCM_SYMBOL (sym_command_line, "command-line");
 SCM_SYMBOL (sym_begin, "begin");
-SCM_SYMBOL (sym_turn_on_debugging, "turn-on-debugging");
 SCM_SYMBOL (sym_load_user_init, "load-user-init");
 SCM_SYMBOL (sym_ice_9, "ice-9");
 SCM_SYMBOL (sym_top_repl, "top-repl");
@@ -716,11 +715,9 @@ scm_compile_shell_switches (int argc, char **argv)
     }
 
   /* If debugging was requested, or we are interactive and debugging
-     was not explicitly turned off, turn on debugging. */
+     was not explicitly turned off, use the debug engine. */
   if (turn_on_debugging || (interactive && !dont_turn_on_debugging))
     {
-      /* FIXME: backtraces and positions should always be on (?) */
-      tail = scm_cons (scm_cons (sym_turn_on_debugging, SCM_EOL), tail);
       scm_c_set_default_vm_engine_x (SCM_VM_DEBUG_ENGINE);
       scm_c_set_vm_engine_x (scm_the_vm (), SCM_VM_DEBUG_ENGINE);
     }
