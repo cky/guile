@@ -188,10 +188,7 @@ Guile has support for dividing a program into @dfn{modules}.  By using
 modules, you can group related code together and manage the
 composition of complete programs from largely independent parts.
 
-(Although the module system implementation is in flux, feel free to use it
-anyway.  Guile will provide reasonable backwards compatibility.)
-
-Details on the module system beyond this introductory material can be found in
+For more details on the module system beyond this introductory material,
 @xref{Modules}.
 
 @menu
@@ -239,8 +236,8 @@ session shows a simple example.
 @smallexample
 $ cat /usr/local/share/guile/foo/bar.scm
 
-(define-module (foo bar))
-(export frob)
+(define-module (foo bar)
+  #:export (frob))
 
 (define (frob x) (* 2 x))
 
@@ -262,8 +259,8 @@ call @code{load-extension} directly in the body of the module.
 @smallexample
 $ cat /usr/local/share/guile/math/bessel.scm
 
-(define-module (math bessel))
-(export j0)
+(define-module (math bessel)
+  #:export (j0))
 
 (load-extension "libguile-bessel" "init_bessel")
 
@@ -275,9 +272,7 @@ scheme@@(guile-user)> (j0 2)
 $1 = 0.223890779141236
 @end smallexample
 
-There is also a way to manipulate the module system from C but only
-Scheme files can be autoloaded.  Thus, we recommend that you define
-your modules in Scheme.
+@xref{Modules and Extensions}, for more information.
 
 @lowersections
 
