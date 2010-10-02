@@ -1,6 +1,6 @@
 ## Autoconf macros for working with Guile.
 ##
-##   Copyright (C) 1998,2001, 2006 Free Software Foundation, Inc.
+##   Copyright (C) 1998,2001, 2006, 2010 Free Software Foundation, Inc.
 ##
 ## This library is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU Lesser General Public License
@@ -17,7 +17,7 @@
 ## Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 ## 02110-1301 USA
 
-# serial 9
+# serial 10
 
 ## Index
 ## -----
@@ -109,6 +109,9 @@ AC_DEFUN([GUILE_SITE_DIR],
  [AC_REQUIRE([GUILE_PROGS])dnl
   AC_MSG_CHECKING(for Guile site directory)
   GUILE_SITE=`[$GUILE_CONFIG] info sitedir`
+  if test "$GUILE_SITE" = ""; then
+     GUILE_SITE=`[$GUILE_CONFIG] info pkgdatadir`/site
+  fi
   AC_MSG_RESULT($GUILE_SITE)
   AC_SUBST(GUILE_SITE)
  ])
