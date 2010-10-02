@@ -255,7 +255,6 @@ subsections.
 @menu
 * Slot Options::
 * Class Options::
-* STKlos Compatibility::
 @end menu
 
 @node Slot Options
@@ -491,19 +490,6 @@ itself, its instances and its subclasses - are printed.
 
 If the @code{#:name} option is absent, GOOPS uses the first argument to
 @code{define-class} as the class name.
-@end deffn
-
-@node STKlos Compatibility
-@subsection STKlos Compatibility
-
-If the STKlos compatibility module is loaded, @code{define-class} is
-overwritten by a STKlos-specific definition; the standard GOOPS
-definition of @code{define-class} remains available in
-@code{standard-define-class}.
-
-@deffn syntax standard-define-class name (super @dots{}) slot-definition @dots{} . options
-@code{standard-define-class} is equivalent to the standard GOOPS
-@code{define-class}.
 @end deffn
 
 @node Creating Instances
