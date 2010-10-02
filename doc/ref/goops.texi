@@ -255,8 +255,6 @@ subsections.
 @menu
 * Slot Options::
 * Class Options::
-* Class Definition Internals::
-* Customizing Class Definition::
 * STKlos Compatibility::
 @end menu
 
@@ -494,255 +492,6 @@ itself, its instances and its subclasses - are printed.
 If the @code{#:name} option is absent, GOOPS uses the first argument to
 @code{define-class} as the class name.
 @end deffn
-
-@node Class Definition Internals
-@subsection Class Definition Internals
-
-Implementation notes: @code{define-class} expands to an expression which
-
-@itemize @bullet
-@item
-checks that it is being evaluated only at top level
-
-@item
-defines any accessors that are implied by the @var{slot-definition}s
-
-@item
-uses @code{class} to create the new class (@pxref{Class Definition
-Internals,, class})
-
-@item
-checks for a previous class definition for @var{name} and, if found,
-handles the redefinition by invoking @code{class-redefinition}
-(@pxref{Redefining a Class}).
-@end itemize
-
-@deffn syntax class name (super @dots{}) slot-definition @dots{} . options
-Return a newly created class that inherits from @var{super}s, with
-direct slots defined by @var{slot-definition}s and class options
-@var{options}.  For the format of @var{slot-definition}s and
-@var{options}, see @ref{Defining New Classes,, define-class}.
-@end deffn
-
-Implementation notes: @code{class} expands to an expression which
-
-@itemize @bullet
-@item
-processes the class and slot definition options to check that they are
-well-formed, to convert the @code{#:init-form} option to an
-@code{#:init-thunk} option, to supply a default environment parameter
-(the current top-level environment) and to evaluate all the bits that
-need to be evaluated
-
-@item
-calls @code{make-class} to create the class with the processed and
-evaluated parameters.
-@end itemize
-
-@deffn procedure make-class supers slots . options
-Return a newly created class that inherits from @var{supers}, with
-direct slots defined by @var{slots} and class options @var{options}.
-For the format of @var{slots} and @var{options}, see @ref{Defining New
-Classes,, define-class}, except note that for @code{make-class},
-@var{slots} and @var{options} are separate list parameters: @var{slots}
-here is a list of slot definitions.
-@end deffn
-
-Implementation notes: @code{make-class}
-
-@itemize @bullet
-@item
-adds @code{<object>} to the @var{supers} list if @var{supers} is empty
-or if none of the classes in @var{supers} have @code{<object>} in their
-class precedence list
-
-@item
-defaults the @code{#:environment}, @code{#:name} and @code{#:metaclass}
-options, if they are not specified by @var{options}, to the current
-top-level environment, the unbound value, and @code{(ensure-metaclass
-@var{supers})} respectively (@pxref{Class Definition Internals,,
-ensure-metaclass})
-
-@item
-checks for duplicate classes in @var{supers} and duplicate slot names in
-@var{slots}, and signals an error if there are any duplicates
-
-@item
-calls @code{make}, passing the metaclass as the first parameter and all
-other parameters as option keywords with values.
-@end itemize
-
-@deffn procedure ensure-metaclass supers env
-Return a metaclass suitable for a class that inherits from the list of
-classes in @var{supers}.  The returned metaclass is the union by
-inheritance of the metaclasses of the classes in @var{supers}.
-
-In the simplest case, where all the @var{supers} are straightforward
-classes with metaclass @code{<class>}, the returned metaclass is just
-@code{<class>}.
-
-For a more complex example, suppose that @var{supers} contained one
-class with metaclass @code{<operator-class>} and one with metaclass
-@code{<foreign-object-class>}.  Then the returned metaclass would be a
-class that inherits from both @code{<operator-class>} and
-@code{<foreign-object-class>}.
-
-If @var{supers} is the empty list, @code{ensure-metaclass} returns the
-default GOOPS metaclass @code{<class>}.
-
-GOOPS keeps a list of the metaclasses created by
-@code{ensure-metaclass}, so that each required type of metaclass only
-has to be created once.
-
-The @code{env} parameter is ignored.
-@end deffn
-
-@deffn procedure ensure-metaclass-with-supers meta-supers
-@code{ensure-metaclass-with-supers} is an internal procedure used by
-@code{ensure-metaclass} (@pxref{Class Definition Internals,,
-ensure-metaclass}).  It returns a metaclass that is the union by
-inheritance of the metaclasses in @var{meta-supers}.
-@end deffn
-
-The internals of @code{make}, which is ultimately used to create the new
-class object, are described in @ref{Customizing Instance Creation},
-which covers the creation and initialization of instances in general.
-
-@node Customizing Class Definition
-@subsection Customizing Class Definition
-
-During the initialization of a new class, GOOPS calls a number of generic
-functions with the newly allocated class instance as the first
-argument.  Specifically, GOOPS calls the generic function
-
-@itemize @bullet
-@item
-(initialize @var{class} @dots{})
-@end itemize
-
-where @var{class} is the newly allocated class instance, and the default
-@code{initialize} method for arguments of type @code{<class>} calls the
-generic functions
-
-@itemize @bullet
-@item
-(compute-cpl @var{class})
-
-@item
-(compute-slots @var{class})
-
-@item
-(compute-get-n-set @var{class} @var{slot-def}), for each of the slot
-definitions returned by @code{compute-slots}
-
-@item
-(compute-getter-method @var{class} @var{slot-def}), for each of the
-slot definitions returned by @code{compute-slots} that includes a
-@code{#:getter} or @code{#:accessor} slot option
-
-@item
-(compute-setter-method @var{class} @var{slot-def}), for each of the
-slot definitions returned by @code{compute-slots} that includes a
-@code{#:setter} or @code{#:accessor} slot option.
-@end itemize
-
-If the metaclass of the new class is something more specialized than the
-default @code{<class>}, then the type of @var{class} in the calls above
-is more specialized than @code{<class>}, and hence it becomes possible
-to define generic function methods, specialized for the new class's
-metaclass, that can modify or override the default behaviour of
-@code{initialize}, @code{compute-cpl} or @code{compute-get-n-set}.
-
-@code{compute-cpl} computes the class precedence list (``CPL'') for the
-new class (@pxref{Class precedence list}), and returns it as a list of
-class objects.  The CPL is important because it defines a superclass
-ordering that is used, when a generic function is invoked upon an
-instance of the class, to decide which of the available generic function
-methods is the most specific.  Hence @code{compute-cpl} could be
-customized in order to modify the CPL ordering algorithm for all classes
-with a special metaclass.
-
-The default CPL algorithm is encapsulated by the @code{compute-std-cpl}
-procedure, which is in turn called by the default @code{compute-cpl}
-method.
-
-@deffn procedure compute-std-cpl class
-Compute and return the class precedence list for @var{class} according
-to the algorithm described in @ref{Class precedence list}.
-@end deffn
-
-@code{compute-slots} computes and returns a list of all slot definitions
-for the new class.  By default, this list includes the direct slot
-definitions from the @code{define-class} form, plus the slot definitions
-that are inherited from the new class's superclasses.  The default
-@code{compute-slots} method uses the CPL computed by @code{compute-cpl}
-to calculate this union of slot definitions, with the rule that slots
-inherited from superclasses are shadowed by direct slots with the same
-name.  One possible reason for customizing @code{compute-slots} would be
-to implement an alternative resolution strategy for slot name conflicts.
-
-@code{compute-get-n-set} computes the low-level closures that will be
-used to get and set the value of a particular slot, and returns them in
-a list with two elements.
-
-The closures returned depend on how storage for that slot is allocated.
-The standard @code{compute-get-n-set} method, specialized for classes of
-type @code{<class>}, handles the standard GOOPS values for the
-@code{#:allocation} slot option (@pxref{Slot Options,, allocation}).  By
-defining a new @code{compute-get-n-set} method for a more specialized
-metaclass, it is possible to support new types of slot allocation.
-
-Suppose you wanted to create a large number of instances of some class
-with a slot that should be shared between some but not all instances of
-that class - say every 10 instances should share the same slot storage.
-The following example shows how to implement and use a new type of slot
-allocation to do this.
-
-@example
-(define-class <batched-allocation-metaclass> (<class>))
-
-(let ((batch-allocation-count 0)
-      (batch-get-n-set #f))
-  (define-method (compute-get-n-set
-                     (class <batched-allocation-metaclass>) s)
-    (case (slot-definition-allocation s)
-      ((#:batched)
-       ;; If we've already used the same slot storage for 10 instances,
-       ;; reset variables.
-       (if (= batch-allocation-count 10)
-           (begin
-             (set! batch-allocation-count 0)
-             (set! batch-get-n-set #f)))
-       ;; If we don't have a current pair of get and set closures,
-       ;; create one.  make-closure-variable returns a pair of closures
-       ;; around a single Scheme variable - see goops.scm for details.
-       (or batch-get-n-set
-           (set! batch-get-n-set (make-closure-variable)))
-       ;; Increment the batch allocation count.
-       (set! batch-allocation-count (+ batch-allocation-count 1))
-       batch-get-n-set)
-
-      ;; Call next-method to handle standard allocation types.
-      (else (next-method)))))
-
-(define-class <class-using-batched-slot> ()
-  ...
-  (c #:allocation #:batched)
-  ...
-  #:metaclass <batched-allocation-metaclass>)
-@end example
-
-The usage of @code{compute-getter-method} and @code{compute-setter-method}
-is described in @ref{MOP Specification}.
-
-@code{compute-cpl} and @code{compute-get-n-set} are called by the
-standard @code{initialize} method for classes whose metaclass is
-@code{<class>}.  But @code{initialize} itself can also be modified, by
-defining an @code{initialize} method specialized to the new class's
-metaclass.  Such a method could complete override the standard
-behaviour, by not calling @code{(next-method)} at all, but more
-typically it would perform additional class initialization steps before
-and/or after calling @code{(next-method)} for the standard behaviour.
 
 @node STKlos Compatibility
 @subsection STKlos Compatibility
@@ -2146,6 +1895,8 @@ GOOPS' power, by customizing the behaviour of GOOPS itself.
 * Terminology::
 * MOP Specification::
 * Class Definition::
+* Class Definition Internals::
+* Customizing Class Definition::
 * Instance Creation::
 * Class Redefinition::
 * Method Definition::
@@ -2606,6 +2357,255 @@ type @var{class} and uses the set closure to set the slot's value.
 to the generic function named by the slot definition's @code{#:setter}
 or @code{#:accessor} option.
 @end itemize
+
+@node Class Definition Internals
+@subsection Class Definition Internals
+
+@code{define-class} expands to an expression which
+
+@itemize @bullet
+@item
+checks that it is being evaluated only at top level
+
+@item
+defines any accessors that are implied by the @var{slot-definition}s
+
+@item
+uses @code{class} to create the new class (@pxref{Class Definition
+Internals,, class})
+
+@item
+checks for a previous class definition for @var{name} and, if found,
+handles the redefinition by invoking @code{class-redefinition}
+(@pxref{Redefining a Class}).
+@end itemize
+
+@deffn syntax class name (super @dots{}) slot-definition @dots{} . options
+Return a newly created class that inherits from @var{super}s, with
+direct slots defined by @var{slot-definition}s and class options
+@var{options}.  For the format of @var{slot-definition}s and
+@var{options}, see @ref{Defining New Classes,, define-class}.
+@end deffn
+
+@noindent @code{class} expands to an expression which
+
+@itemize @bullet
+@item
+processes the class and slot definition options to check that they are
+well-formed, to convert the @code{#:init-form} option to an
+@code{#:init-thunk} option, to supply a default environment parameter
+(the current top-level environment) and to evaluate all the bits that
+need to be evaluated
+
+@item
+calls @code{make-class} to create the class with the processed and
+evaluated parameters.
+@end itemize
+
+@deffn procedure make-class supers slots . options
+Return a newly created class that inherits from @var{supers}, with
+direct slots defined by @var{slots} and class options @var{options}.
+For the format of @var{slots} and @var{options}, see @ref{Defining New
+Classes,, define-class}, except note that for @code{make-class},
+@var{slots} and @var{options} are separate list parameters: @var{slots}
+here is a list of slot definitions.
+@end deffn
+
+@noindent @code{make-class}
+
+@itemize @bullet
+@item
+adds @code{<object>} to the @var{supers} list if @var{supers} is empty
+or if none of the classes in @var{supers} have @code{<object>} in their
+class precedence list
+
+@item
+defaults the @code{#:environment}, @code{#:name} and @code{#:metaclass}
+options, if they are not specified by @var{options}, to the current
+top-level environment, the unbound value, and @code{(ensure-metaclass
+@var{supers})} respectively (@pxref{Class Definition Internals,,
+ensure-metaclass})
+
+@item
+checks for duplicate classes in @var{supers} and duplicate slot names in
+@var{slots}, and signals an error if there are any duplicates
+
+@item
+calls @code{make}, passing the metaclass as the first parameter and all
+other parameters as option keywords with values.
+@end itemize
+
+@deffn procedure ensure-metaclass supers env
+Return a metaclass suitable for a class that inherits from the list of
+classes in @var{supers}.  The returned metaclass is the union by
+inheritance of the metaclasses of the classes in @var{supers}.
+
+In the simplest case, where all the @var{supers} are straightforward
+classes with metaclass @code{<class>}, the returned metaclass is just
+@code{<class>}.
+
+For a more complex example, suppose that @var{supers} contained one
+class with metaclass @code{<operator-class>} and one with metaclass
+@code{<foreign-object-class>}.  Then the returned metaclass would be a
+class that inherits from both @code{<operator-class>} and
+@code{<foreign-object-class>}.
+
+If @var{supers} is the empty list, @code{ensure-metaclass} returns the
+default GOOPS metaclass @code{<class>}.
+
+GOOPS keeps a list of the metaclasses created by
+@code{ensure-metaclass}, so that each required type of metaclass only
+has to be created once.
+
+The @code{env} parameter is ignored.
+@end deffn
+
+@deffn procedure ensure-metaclass-with-supers meta-supers
+@code{ensure-metaclass-with-supers} is an internal procedure used by
+@code{ensure-metaclass} (@pxref{Class Definition Internals,,
+ensure-metaclass}).  It returns a metaclass that is the union by
+inheritance of the metaclasses in @var{meta-supers}.
+@end deffn
+
+The internals of @code{make}, which is ultimately used to create the new
+class object, are described in @ref{Customizing Instance Creation},
+which covers the creation and initialization of instances in general.
+
+@node Customizing Class Definition
+@subsection Customizing Class Definition
+
+During the initialization of a new class, GOOPS calls a number of generic
+functions with the newly allocated class instance as the first
+argument.  Specifically, GOOPS calls the generic function
+
+@itemize @bullet
+@item
+(initialize @var{class} @dots{})
+@end itemize
+
+where @var{class} is the newly allocated class instance, and the default
+@code{initialize} method for arguments of type @code{<class>} calls the
+generic functions
+
+@itemize @bullet
+@item
+(compute-cpl @var{class})
+
+@item
+(compute-slots @var{class})
+
+@item
+(compute-get-n-set @var{class} @var{slot-def}), for each of the slot
+definitions returned by @code{compute-slots}
+
+@item
+(compute-getter-method @var{class} @var{slot-def}), for each of the
+slot definitions returned by @code{compute-slots} that includes a
+@code{#:getter} or @code{#:accessor} slot option
+
+@item
+(compute-setter-method @var{class} @var{slot-def}), for each of the
+slot definitions returned by @code{compute-slots} that includes a
+@code{#:setter} or @code{#:accessor} slot option.
+@end itemize
+
+If the metaclass of the new class is something more specialized than the
+default @code{<class>}, then the type of @var{class} in the calls above
+is more specialized than @code{<class>}, and hence it becomes possible
+to define generic function methods, specialized for the new class's
+metaclass, that can modify or override the default behaviour of
+@code{initialize}, @code{compute-cpl} or @code{compute-get-n-set}.
+
+@code{compute-cpl} computes the class precedence list (``CPL'') for the
+new class (@pxref{Class precedence list}), and returns it as a list of
+class objects.  The CPL is important because it defines a superclass
+ordering that is used, when a generic function is invoked upon an
+instance of the class, to decide which of the available generic function
+methods is the most specific.  Hence @code{compute-cpl} could be
+customized in order to modify the CPL ordering algorithm for all classes
+with a special metaclass.
+
+The default CPL algorithm is encapsulated by the @code{compute-std-cpl}
+procedure, which is in turn called by the default @code{compute-cpl}
+method.
+
+@deffn procedure compute-std-cpl class
+Compute and return the class precedence list for @var{class} according
+to the algorithm described in @ref{Class precedence list}.
+@end deffn
+
+@code{compute-slots} computes and returns a list of all slot definitions
+for the new class.  By default, this list includes the direct slot
+definitions from the @code{define-class} form, plus the slot definitions
+that are inherited from the new class's superclasses.  The default
+@code{compute-slots} method uses the CPL computed by @code{compute-cpl}
+to calculate this union of slot definitions, with the rule that slots
+inherited from superclasses are shadowed by direct slots with the same
+name.  One possible reason for customizing @code{compute-slots} would be
+to implement an alternative resolution strategy for slot name conflicts.
+
+@code{compute-get-n-set} computes the low-level closures that will be
+used to get and set the value of a particular slot, and returns them in
+a list with two elements.
+
+The closures returned depend on how storage for that slot is allocated.
+The standard @code{compute-get-n-set} method, specialized for classes of
+type @code{<class>}, handles the standard GOOPS values for the
+@code{#:allocation} slot option (@pxref{Slot Options,, allocation}).  By
+defining a new @code{compute-get-n-set} method for a more specialized
+metaclass, it is possible to support new types of slot allocation.
+
+Suppose you wanted to create a large number of instances of some class
+with a slot that should be shared between some but not all instances of
+that class - say every 10 instances should share the same slot storage.
+The following example shows how to implement and use a new type of slot
+allocation to do this.
+
+@example
+(define-class <batched-allocation-metaclass> (<class>))
+
+(let ((batch-allocation-count 0)
+      (batch-get-n-set #f))
+  (define-method (compute-get-n-set
+                     (class <batched-allocation-metaclass>) s)
+    (case (slot-definition-allocation s)
+      ((#:batched)
+       ;; If we've already used the same slot storage for 10 instances,
+       ;; reset variables.
+       (if (= batch-allocation-count 10)
+           (begin
+             (set! batch-allocation-count 0)
+             (set! batch-get-n-set #f)))
+       ;; If we don't have a current pair of get and set closures,
+       ;; create one.  make-closure-variable returns a pair of closures
+       ;; around a single Scheme variable - see goops.scm for details.
+       (or batch-get-n-set
+           (set! batch-get-n-set (make-closure-variable)))
+       ;; Increment the batch allocation count.
+       (set! batch-allocation-count (+ batch-allocation-count 1))
+       batch-get-n-set)
+
+      ;; Call next-method to handle standard allocation types.
+      (else (next-method)))))
+
+(define-class <class-using-batched-slot> ()
+  ...
+  (c #:allocation #:batched)
+  ...
+  #:metaclass <batched-allocation-metaclass>)
+@end example
+
+The usage of @code{compute-getter-method} and @code{compute-setter-method}
+is described in @ref{MOP Specification}.
+
+@code{compute-cpl} and @code{compute-get-n-set} are called by the
+standard @code{initialize} method for classes whose metaclass is
+@code{<class>}.  But @code{initialize} itself can also be modified, by
+defining an @code{initialize} method specialized to the new class's
+metaclass.  Such a method could complete override the standard
+behaviour, by not calling @code{(next-method)} at all, but more
+typically it would perform additional class initialization steps before
+and/or after calling @code{(next-method)} for the standard behaviour.
 
 @node Instance Creation
 @subsection Instance Creation
