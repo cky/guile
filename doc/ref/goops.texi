@@ -41,7 +41,10 @@ overriding or redefining those methods.
 * Redefining a Class::
 * Changing the Class of an Instance::
 * Introspection::
-* Miscellaneous Functions::
+* GOOPS Error Handling::
+* Object Comparisons::
+* Cloning Objects::
+* Write and Display::
 * The Metaobject Protocol::
 @end menu
 
@@ -1649,18 +1652,8 @@ Return an expression that prints to show the definition of method
 @end example
 @end deffn
 
-@node Miscellaneous Functions
-@section Miscellaneous Functions
-
-@menu
-* GOOPS Error Handling::
-* Object Comparisons::
-* Cloning Objects::
-* Write and Display::
-@end menu
-
 @node GOOPS Error Handling
-@subsection Error Handling
+@section Error Handling
 
 The procedure @code{goops-error} is called to raise an appropriate error
 by the default methods of the following generic functions:
@@ -1695,7 +1688,7 @@ as done by @code{scm-error}.
 @end deffn
 
 @node Object Comparisons
-@subsection Object Comparisons
+@section Object Comparisons
 
 @deffn generic eqv?
 @deffnx method eqv? ((x <top>) (y <top>))
@@ -1724,7 +1717,7 @@ and the Guile reference manual.
 @end deffn
 
 @node Cloning Objects
-@subsection Cloning Objects
+@section Cloning Objects
 
 @deffn generic shallow-clone
 @deffnx method shallow-clone (self <object>)
@@ -1745,7 +1738,7 @@ or by reference.
 @end deffn
 
 @node Write and Display
-@subsection Write and Display
+@section Write and Display
 
 @deffn {primitive generic} write object port
 @deffnx {primitive generic} display object port
