@@ -495,14 +495,6 @@ If the @code{#:name} option is absent, GOOPS uses the first argument to
 @node Creating Instances
 @section Creating Instances
 
-@menu
-* Basic Instance Creation::
-* Customizing Instance Creation::
-@end menu
-
-@node Basic Instance Creation
-@subsection Basic Instance Creation
-
 To create a new instance of any GOOPS class, use the generic function
 @code{make} or @code{make-instance}, passing the required class and any
 appropriate instance initialization arguments as keyword and value
@@ -536,73 +528,6 @@ instance's class.  Any unprocessed keyword value pairs are ignored.
 @deffnx method make-instance (class <class>) . initargs
 @code{make-instance} is an alias for @code{make}.
 @end deffn
-
-@node Customizing Instance Creation
-@subsection Customizing Instance Creation
-
-@code{make} itself is a generic function.  Hence the @code{make}
-invocation itself can be customized in the case where the new instance's
-metaclass is more specialized than the default @code{<class>}, by
-defining a @code{make} method that is specialized to that metaclass.
-
-Normally, however, the method for classes with metaclass @code{<class>}
-will be applied.  This method calls two generic functions:
-
-@itemize @bullet
-@item
-(allocate-instance @var{class} . @var{initargs})
-
-@item
-(initialize @var{instance} . @var{initargs})
-@end itemize
-
-@code{allocate-instance} allocates storage for and returns the new
-instance, uninitialized.  You might customize @code{allocate-instance},
-for example, if you wanted to provide a GOOPS wrapper around some other
-object programming system.
-
-To do this, you would create a specialized metaclass, which would act as
-the metaclass for all classes and instances from the other system.  Then
-define an @code{allocate-instance} method, specialized to that
-metaclass, which calls a Guile primitive C function, which in turn
-allocates the new instance using the interface of the other object
-system.
-
-In this case, for a complete system, you would also need to customize a
-number of other generic functions like @code{make} and
-@code{initialize}, so that GOOPS knows how to make classes from the
-other system, access instance slots, and so on.
-
-@code{initialize} initializes the instance that is returned by
-@code{allocate-instance}.  The standard GOOPS methods perform
-initializations appropriate to the instance class.
-
-@itemize @bullet
-@item
-At the least specialized level, the method for instances of type
-@code{<object>} performs internal GOOPS instance initialization, and
-initializes the instance's slots according to the slot definitions and
-any slot initialization keywords that appear in @var{initargs}.
-
-@item
-The method for instances of type @code{<class>} calls
-@code{(next-method)}, then performs the class initializations described
-in @ref{Customizing Class Definition}.
-
-@item
-and so on for generic functions, method, operator classes @dots{}
-@end itemize
-
-Similarly, you can customize the initialization of instances of any
-application-defined class by defining an @code{initialize} method
-specialized to that class.
-
-Imagine a class whose instances' slots need to be initialized at
-instance creation time by querying a database.  Although it might be
-possible to achieve this a combination of @code{#:init-thunk} keywords
-and closures in the slot definitions, it is neater to write an
-@code{initialize} method for the class that queries the database once
-and initializes all the dependent slot values according to the results.
 
 @node Accessing Slots
 @section Accessing Slots
@@ -1307,7 +1232,7 @@ default method calls @code{goops-error} with an appropriate message.
 Suppose that a class @code{<my-class>} is defined using @code{define-class}
 (@pxref{Defining New Classes,, define-class}), with slots that have
 accessor functions, and that an application has created several instances
-of @code{<my-class>} using @code{make} (@pxref{Basic Instance Creation,,
+of @code{<my-class>} using @code{make} (@pxref{Creating Instances,,
 make}).  What then happens if @code{<my-class>} is redefined by calling
 @code{define-class} again?
 
@@ -1326,7 +1251,7 @@ GOOPS' default answer to this question is as follows.
 All existing direct instances of @code{<my-class>} are converted to be
 instances of the new class.  This is achieved by preserving the values
 of slots that exist in both the old and new definitions, and initializing the
-values of new slots in the usual way (@pxref{Basic Instance Creation,,
+values of new slots in the usual way (@pxref{Creating Instances,,
 make}).
 
 @item
@@ -1874,6 +1799,7 @@ GOOPS' power, by customizing the behaviour of GOOPS itself.
 * Class Definition Internals::
 * Customizing Class Definition::
 * Instance Creation::
+* Customizing Instance Creation::
 * Class Redefinition::
 * Method Definition::
 * Generic Function Invocation::
@@ -2603,6 +2529,73 @@ a new instance of class @var{class} and return the uninitialized instance.
 instance in whatever sense is appropriate for its class.  The method's
 return value is ignored.
 @end itemize
+
+@node Customizing Instance Creation
+@subsection Customizing Instance Creation
+
+@code{make} itself is a generic function.  Hence the @code{make}
+invocation itself can be customized in the case where the new instance's
+metaclass is more specialized than the default @code{<class>}, by
+defining a @code{make} method that is specialized to that metaclass.
+
+Normally, however, the method for classes with metaclass @code{<class>}
+will be applied.  This method calls two generic functions:
+
+@itemize @bullet
+@item
+(allocate-instance @var{class} . @var{initargs})
+
+@item
+(initialize @var{instance} . @var{initargs})
+@end itemize
+
+@code{allocate-instance} allocates storage for and returns the new
+instance, uninitialized.  You might customize @code{allocate-instance},
+for example, if you wanted to provide a GOOPS wrapper around some other
+object programming system.
+
+To do this, you would create a specialized metaclass, which would act as
+the metaclass for all classes and instances from the other system.  Then
+define an @code{allocate-instance} method, specialized to that
+metaclass, which calls a Guile primitive C function, which in turn
+allocates the new instance using the interface of the other object
+system.
+
+In this case, for a complete system, you would also need to customize a
+number of other generic functions like @code{make} and
+@code{initialize}, so that GOOPS knows how to make classes from the
+other system, access instance slots, and so on.
+
+@code{initialize} initializes the instance that is returned by
+@code{allocate-instance}.  The standard GOOPS methods perform
+initializations appropriate to the instance class.
+
+@itemize @bullet
+@item
+At the least specialized level, the method for instances of type
+@code{<object>} performs internal GOOPS instance initialization, and
+initializes the instance's slots according to the slot definitions and
+any slot initialization keywords that appear in @var{initargs}.
+
+@item
+The method for instances of type @code{<class>} calls
+@code{(next-method)}, then performs the class initializations described
+in @ref{Customizing Class Definition}.
+
+@item
+and so on for generic functions, method, operator classes @dots{}
+@end itemize
+
+Similarly, you can customize the initialization of instances of any
+application-defined class by defining an @code{initialize} method
+specialized to that class.
+
+Imagine a class whose instances' slots need to be initialized at
+instance creation time by querying a database.  Although it might be
+possible to achieve this a combination of @code{#:init-thunk} keywords
+and closures in the slot definitions, it is neater to write an
+@code{initialize} method for the class that queries the database once
+and initializes all the dependent slot values according to the results.
 
 @node Class Redefinition
 @subsection Class Redefinition
