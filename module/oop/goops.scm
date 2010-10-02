@@ -31,7 +31,7 @@
 		  define-generic define-accessor define-method
 		  define-extended-generic define-extended-generics
 		  method)
-  :export (goops-version is-a? class-of
+  :export (is-a? class-of
            ensure-metaclass ensure-metaclass-with-supers
 	   make-class
 	   make-generic ensure-generic

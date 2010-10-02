@@ -1728,21 +1728,11 @@ Return an expression that prints to show the definition of method
 @section Miscellaneous Functions
 
 @menu
-* Administrative Functions::
 * GOOPS Error Handling::
 * Object Comparisons::
 * Cloning Objects::
 * Write and Display::
 @end menu
-
-@node Administrative Functions
-@subsection Administration Functions
-
-This section describes administrative, non-technical GOOPS functions.
-
-@deffn primitive goops-version
-Return the current GOOPS version as a string, for example ``0.2''.
-@end deffn
 
 @node GOOPS Error Handling
 @subsection Error Handling
