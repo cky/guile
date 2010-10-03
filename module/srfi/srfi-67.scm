@@ -77,11 +77,10 @@
             real-compare
             refine-compare
             select-compare
-            string-compare
-            string-compare-ci
             symbol-compare
             vector-compare
             vector-compare-as-list)
+  #:replace (string-compare string-compare-ci)
   #:use-module (srfi srfi-27))
 
 (include-from-path "srfi/srfi-67/compare.scm")
