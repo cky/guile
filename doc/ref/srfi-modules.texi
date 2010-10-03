@@ -43,6 +43,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-35::                     Conditions.
 * SRFI-37::                     args-fold program argument processor
 * SRFI-39::                     Parameter objects
+* SRFI-42::                     Eager comprehensions
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
@@ -3866,6 +3867,12 @@ SRFI-39 doesn't specify the interaction between parameter objects and
 threads, so the threading behaviour described here should be regarded
 as Guile-specific.
 
+@node SRFI-42
+@subsection SRFI-42 - Eager Comprehensions
+@cindex SRFI-42
+
+See @uref{http://srfi.schemers.org/srfi-42/srfi-42.html, the
+specification of SRFI-42}.
 
 @node SRFI-55
 @subsection SRFI-55 - Requiring Features

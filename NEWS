@@ -11,9 +11,12 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.12 (since the 1.9.11 prerelease):
 
-** Support for SRFI-27
+** SRFI support
 
-SRFI-27 "Sources of Random Bits" is now available.
+The following SRFIs have been added:
+
+- SRFI-27 "Sources of Random Bits"
+- SRFI-42 "Eager Comprehensions"
 
 ** Many R6RS bugfixes
 

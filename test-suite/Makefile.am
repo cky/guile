@@ -119,6 +119,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/srfi-35.test			\
 	    tests/srfi-37.test			\
 	    tests/srfi-39.test			\
+	    tests/srfi-42.test			\
 	    tests/srfi-60.test			\
 	    tests/srfi-69.test			\
 	    tests/srfi-88.test			\
