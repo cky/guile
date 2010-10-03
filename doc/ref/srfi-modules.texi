@@ -47,6 +47,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
+* SRFI-67::                     Compare procedures
 * SRFI-69::                     Basic hash tables.
 * SRFI-88::                     Keyword objects.
 * SRFI-98::                     Accessing environment variables.
@@ -4056,6 +4057,12 @@ success.  SRFI 61 is implemented in the Guile core; there's no module
 needed to get SRFI-61 itself.  Extended @code{cond} is documented in
 @ref{if cond case,, Simple Conditional Evaluation}.
 
+@node SRFI-67
+@subsection SRFI-67 - Compare procedures
+@cindex SRFI-67
+
+See @uref{http://srfi.schemers.org/srfi-67/srfi-67.html, the
+specification of SRFI-67}.
 
 @node SRFI-69
 @subsection SRFI-69 - Basic hash tables

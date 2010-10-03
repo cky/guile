@@ -256,6 +256,7 @@ SRFI_SOURCES = \
   srfi/srfi-42.scm \
   srfi/srfi-39.scm \
   srfi/srfi-60.scm \
+  srfi/srfi-67.scm \
   srfi/srfi-69.scm \
   srfi/srfi-88.scm \
   srfi/srfi-98.scm
@@ -351,6 +352,7 @@ NOCOMP_SOURCES =				\
   ice-9/r6rs-libraries.scm			\
   ice-9/quasisyntax.scm				\
   srfi/srfi-42/ec.scm				\
+  srfi/srfi-67/compare.scm			\
   system/base/lalr.upstream.scm			\
   system/repl/describe.scm			\
   sxml/sxml-match.ss				\
