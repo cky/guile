@@ -278,15 +278,31 @@
   (arg-check proc procedure?)
   (arg-check range range?)
   (arg-check handler procedure?)
-  (let ((was-in-range? #f))
+  (let ((fp-stack '()))
+    (define (cull-frames! fp)
+      (let lp ((frames fp-stack))
+        (if (and (pair? frames) (< (car frames) fp))
+            (lp (cdr frames))
+            (set! fp-stack frames))))
+
     (define (next-handler frame)
-      (let ((now-in-range? (in-range? range (frame-instruction-pointer frame))))
-        (cond
-         (was-in-range? (set! was-in-range? now-in-range?))
-         (now-in-range? (handler frame) (set! was-in-range? #t)))))
+      (let ((fp (frame-address frame))
+            (ip (frame-instruction-pointer frame)))
+        (cull-frames! fp)
+        (let ((now-in-range? (in-range? range ip))
+              (was-in-range? (and (pair? fp-stack) (= (car fp-stack) fp))))
+          (cond
+           (was-in-range?
+            (if (not now-in-range?)
+                (set! fp-stack (cdr fp-stack))))
+           (now-in-range?
+            (set! fp-stack (cons fp fp-stack))
+            (handler frame))))))
     
     (define (exit-handler frame)
-      (set! was-in-range? #f))
+      (if (and (pair? fp-stack)
+               (= (car fp-stack) (frame-address frame)))
+          (set! fp-stack (cdr fp-stack))))
     
     (trap-instructions-in-procedure proc next-handler exit-handler
                                     #:current-frame current-frame #:vm vm
