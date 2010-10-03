@@ -3231,8 +3231,12 @@ or similar is typical.
 @subsection SRFI-27 - Sources of Random Bits
 @cindex SRFI-27
 
-@c This subsection is based on the specification of SRFI-27, which has
-@c the following license:
+This subsection is based on the
+@uref{http://srfi.schemers.org/srfi-27/srfi-27.html, specification of
+SRFI-27} written by Sebastian Egner.
+
+@c The copyright notice and license text of the SRFI-27 specification is
+@c reproduced below:
 
 @c Copyright (C) Sebastian Egner (2002). All Rights Reserved.
 
@@ -3254,7 +3258,6 @@ or similar is typical.
 @c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 @c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 @c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 
 This SRFI provides access to a (pseudo) random number generator; for
 Guile's built-in random number facilities, which SRFI-27 is implemented
