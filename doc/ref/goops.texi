@@ -636,25 +636,21 @@ Set the value of the slot named @var{slot-name} in @var{obj} to @var{value}.
 Slot Access Errors, slot-missing}).
 @end deffn
 
-GOOPS stores information about slots in class metaobjects.  Internally,
+GOOPS stores information about slots in classes.  Internally,
 all of these procedures work by looking up the slot definition for the
-slot named @var{slot-name} in the class metaobject for @code{(class-of
+slot named @var{slot-name} in the class @code{(class-of
 @var{obj})}, and then using the slot definition's ``getter'' and
 ``setter'' closures to get and set the slot value.
 
 The next four procedures differ from the previous ones in that they take
-the class metaobject as an explicit argument, rather than assuming
+the class as an explicit argument, rather than assuming
 @code{(class-of @var{obj})}.  Therefore they allow you to apply the
 ``getter'' and ``setter'' closures of a slot definition in one class to
 an instance of a different class.
 
-[ *fixme* I have no idea why this is useful!  Perhaps when a slot in
-@code{(class-of @var{obj})} shadows a slot with the same name in one of
-its superclasses?  There should be an enlightening example here. ]
-
 @deffn {primitive procedure} slot-exists-using-class? class obj slot-name
-Return @code{#t} if the class metaobject @var{class} has a slot
-definition for a slot with name @var{slot-name}, otherwise @code{#f}.
+Return @code{#t} if @var{class} has a slot definition for a slot with
+name @var{slot-name}, otherwise @code{#f}.
 @end deffn
 
 @deffn {primitive procedure} slot-bound-using-class? class obj slot-name
@@ -708,7 +704,7 @@ If there is no such slot with @code{#:class} or @code{#:each-subclass}
 allocation, @code{class-slot-ref} calls the @code{slot-missing} generic
 function with arguments @var{class} and @var{slot-name}.  Otherwise, if
 the slot value is unbound, @code{class-slot-ref} calls the
-@code{slot-missing} generic function, with the same arguments.
+@code{slot-unbound} generic function, with the same arguments.
 @end deffn
 
 @deffn procedure class-slot-set! class slot-name value
