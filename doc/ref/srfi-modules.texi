@@ -44,6 +44,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-37::                     args-fold program argument processor
 * SRFI-39::                     Parameter objects
 * SRFI-42::                     Eager comprehensions
+* SRFI-45::                     Primitives for expressing iterative lazy algorithms
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
@@ -3874,6 +3875,149 @@ as Guile-specific.
 
 See @uref{http://srfi.schemers.org/srfi-42/srfi-42.html, the
 specification of SRFI-42}.
+
+@node SRFI-45
+@subsection SRFI-45 - Primitives for Expressing Iterative Lazy Algorithms
+@cindex SRFI-45
+
+This subsection is based on @uref{http://srfi.schemers.org/srfi-45/srfi-45.html, the
+specification of SRFI-45} written by Andr@'e van Tonder.
+
+@c Copyright (C) André van Tonder (2003). All Rights Reserved.
+
+@c Permission is hereby granted, free of charge, to any person obtaining a
+@c copy of this software and associated documentation files (the
+@c "Software"), to deal in the Software without restriction, including
+@c without limitation the rights to use, copy, modify, merge, publish,
+@c distribute, sublicense, and/or sell copies of the Software, and to
+@c permit persons to whom the Software is furnished to do so, subject to
+@c the following conditions:
+
+@c The above copyright notice and this permission notice shall be included
+@c in all copies or substantial portions of the Software.
+
+@c THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+@c OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+@c MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+@c NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+@c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+@c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+@c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Lazy evaluation is traditionally simulated in Scheme using @code{delay}
+and @code{force}.  However, these primitives are not powerful enough to
+express a large class of lazy algorithms that are iterative.  Indeed, it
+is folklore in the Scheme community that typical iterative lazy
+algorithms written using delay and force will often require unbounded
+memory.
+
+This SRFI provides set of three operations: @{@code{lazy}, @code{delay},
+@code{force}@}, which allow the programmer to succinctly express lazy
+algorithms while retaining bounded space behavior in cases that are
+properly tail-recursive.  A general recipe for using these primitives is
+provided. An additional procedure @code{eager} is provided for the
+construction of eager promises in cases where efficiency is a concern.
+
+Although this SRFI redefines @code{delay} and @code{force}, the
+extension is conservative in the sense that the semantics of the subset
+@{@code{delay}, @code{force}@} in isolation (i.e., as long as the
+program does not use @code{lazy}) agrees with that in R5RS.  In other
+words, no program that uses the R5RS definitions of delay and force will
+break if those definition are replaced by the SRFI-45 definitions of
+delay and force.
+
+@deffn {Scheme Syntax} delay expression
+Takes an expression of arbitrary type @var{a} and returns a promise of
+type @code{(Promise @var{a})} which at some point in the future may be
+asked (by the @code{force} procedure) to evaluate the expression and
+deliver the resulting value.
+@end deffn
+
+@deffn {Scheme Syntax} lazy expression
+Takes an expression of type @code{(Promise @var{a})} and returns a
+promise of type @code{(Promise @var{a})} which at some point in the
+future may be asked (by the @code{force} procedure) to evaluate the
+expression and deliver the resulting promise.
+@end deffn
+
+@deffn {Scheme Procedure} force expression
+Takes an argument of type @code{(Promise @var{a})} and returns a value
+of type @var{a} as follows: If a value of type @var{a} has been computed
+for the promise, this value is returned.  Otherwise, the promise is
+first evaluated, then overwritten by the obtained promise or value, and
+then force is again applied (iteratively) to the promise.
+@end deffn
+
+@deffn {Scheme Procedure} eager expression
+Takes an argument of type @var{a} and returns a value of type
+@code{(Promise @var{a})}.  As opposed to @code{delay}, the argument is
+evaluated eagerly. Semantically, writing @code{(eager expression)} is
+equivalent to writing
+
+@lisp
+(let ((value expression)) (delay value)).
+@end lisp
+
+However, the former is more efficient since it does not require
+unnecessary creation and evaluation of thunks. We also have the
+equivalence
+
+@lisp
+(delay expression) = (lazy (eager expression))
+@end lisp
+@end deffn
+
+The following reduction rules may be helpful for reasoning about these
+primitives.  However, they do not express the memoization and memory
+usage semantics specified above:
+
+@lisp
+(force (delay expression)) -> expression
+(force (lazy  expression)) -> (force expression)
+(force (eager value))      -> value
+@end lisp
+
+@subsubheading Correct usage
+
+We now provide a general recipe for using the primitives @{@code{lazy},
+@code{delay}, @code{force}@} to express lazy algorithms in Scheme.  The
+transformation is best described by way of an example: Consider the
+stream-filter algorithm, expressed in a hypothetical lazy language as
+
+@lisp
+(define (stream-filter p? s)
+  (if (null? s) '()
+      (let ((h (car s))
+            (t (cdr s)))
+        (if (p? h)
+            (cons h (stream-filter p? t))
+            (stream-filter p? t)))))
+@end lisp
+
+This algorithm can be espressed as follows in Scheme:
+
+@lisp
+(define (stream-filter p? s)
+  (lazy
+     (if (null? (force s)) (delay '())
+         (let ((h (car (force s)))
+               (t (cdr (force s))))
+           (if (p? h)
+               (delay (cons h (stream-filter p? t)))
+               (stream-filter p? t))))))
+@end lisp
+
+In other words, we
+
+@itemize @bullet
+@item
+wrap all constructors (e.g., @code{'()}, @code{cons}) with @code{delay},
+@item 
+apply @code{force} to arguments of deconstructors (e.g., @code{car},
+@code{cdr} and @code{null?}),
+@item
+wrap procedure bodies with @code{(lazy ...)}.
+@end itemize
 
 @node SRFI-55
 @subsection SRFI-55 - Requiring Features

@@ -255,6 +255,7 @@ SRFI_SOURCES = \
   srfi/srfi-37.scm \
   srfi/srfi-42.scm \
   srfi/srfi-39.scm \
+  srfi/srfi-45.scm \
   srfi/srfi-60.scm \
   srfi/srfi-67.scm \
   srfi/srfi-69.scm \

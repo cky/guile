@@ -17,6 +17,7 @@ The following SRFIs have been added:
 
 - SRFI-27 "Sources of Random Bits"
 - SRFI-42 "Eager Comprehensions"
+- SRFI-45 "Primitives for Expressing Iterative Lazy Algorithms"
 
 ** Many R6RS bugfixes
 
