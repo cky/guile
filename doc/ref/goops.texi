@@ -35,7 +35,7 @@ overriding or redefining those methods.
 * Defining New Classes::
 * Creating Instances::
 * Accessing Slots::
-* Creating Generic Functions::
+* Generic Functions and Accessors::
 * Adding Methods to Generic Functions::
 * Invoking Generic Functions::
 * Redefining a Class::
@@ -748,15 +748,25 @@ The default methods all call @code{goops-error} with an appropriate
 message.
 @end deffn
 
-@node Creating Generic Functions
-@section Creating Generic Functions
+@node Generic Functions and Accessors
+@section Generic Functions and Accessors
 
 A generic function is a collection of methods, with rules for
 determining which of the methods should be applied for any given
-invocation of the generic function.
+invocation of the generic function.  GOOPS represents generic functions
+as metaobjects of the class @code{<generic>} (or one of its subclasses).
 
-GOOPS represents generic functions as metaobjects of the class
-@code{<generic>} (or one of its subclasses).
+An accessor is a generic function that can also be used with the
+generalized @code{set!} syntax (@pxref{Procedures with Setters}).  Guile
+will handle a call like
+
+@example
+(set! (@code{accessor} @code{args}@dots{}) @code{value})
+@end example
+
+@noindent
+by calling the most specialized method of @code{accessor} that matches
+the classes of @code{args} and @code{value}.
 
 @menu
 * Basic Generic Function Creation::
@@ -813,13 +823,19 @@ including an existing generic function or accessor, is overwritten by
 the new definition.
 @end deffn
 
-It is sometimes tempting to use GOOPS accessors with short names.  For
-example, it is tempting to use the name @code{x} for the x-coordinate
-in vector packages.
+GOOPS generic functions and accessors often have short, generic names.
+For example, if a vector package provides an accessor for the X
+coordinate of a vector, that accessor may just be called @code{x}.  It
+doesn't need to be called, for example, @code{vector:x}, because
+GOOPS will work out, when it sees code like @code{(x @var{obj})}, that
+the vector-specific method of @code{x} should be called if @var{obj} is
+a vector.
 
-Assume that we work with a graphical package which needs to use two
-independent vector packages for 2D and 3D vectors respectively.  If
-both packages export @code{x} we will encounter a name collision.
+That raises the question, however, of what happens when different
+packages define a generic function with the same name.  Suppose we
+work with a graphical package which needs to use two independent vector
+packages for 2D and 3D vectors respectively.  If both packages export
+@code{x} we will encounter a name collision.
 
 This can be resolved automagically with the duplicates handler
 @code{merge-generics} which gives the module system license to merge
