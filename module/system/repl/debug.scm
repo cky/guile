@@ -32,7 +32,8 @@
   #:export (<debug>
             make-debug debug? debug-frames debug-index debug-error-message
             print-registers print-locals print-frame print-frames frame->module
-            stack->vector narrow-stack->vector))
+            stack->vector narrow-stack->vector
+            frame->stack-vector))
 
 ;; TODO:
 ;;
@@ -181,6 +182,21 @@
         (stack->vector narrowed)
         #()))) ; ? Can be the case for a tail-call to `throw' tho
 
+(define (frame->stack-vector frame)
+  (let ((tag (and (pair? (fluid-ref %stacks))
+                  (cdar (fluid-ref %stacks)))))
+    (narrow-stack->vector
+     (make-stack frame)
+     ;; Take the stack from the given frame, cutting 0
+     ;; frames.
+     0
+     ;; Narrow the end of the stack to the most recent
+     ;; start-stack.
+     tag
+     ;; And one more frame, because %start-stack
+     ;; invoking the start-stack thunk has its own frame
+     ;; too.
+     0 (and tag 1))))
 
 ;; (define (debug)
 ;;   (run-debugger
