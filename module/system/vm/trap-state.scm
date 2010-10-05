@@ -38,7 +38,8 @@
 
             add-trap-at-procedure-call!
             add-trace-at-procedure-call!
-            add-trap-at-source-location!))
+            add-trap-at-source-location!
+            add-trap-at-frame-finish!))
 
 (define %default-trap-handler (make-fluid))
 
@@ -57,6 +58,7 @@
 (define-record <trap-state>
   (handler default-trap-handler)
   (next-idx 0)
+  (next-ephemeral-idx -1)
   (wrappers '()))
 
 (define (trap-wrapper<? t1 t2)
@@ -103,7 +105,7 @@
      ((null? wrappers)
       (warn "no wrapper found with index in trap-state" idx)
       #f)
-     ((= (trap-wrapper-index (car wrappers)) idx)
+     ((eqv? (trap-wrapper-index (car wrappers)) idx)
       (car wrappers))
      (else
       (lp (cdr wrappers))))))
@@ -111,6 +113,11 @@
 (define (next-index! trap-state)
   (let ((idx (trap-state-next-idx trap-state)))
     (set! (trap-state-next-idx trap-state) (1+ idx))
+    idx))
+
+(define (next-ephemeral-index! trap-state)
+  (let ((idx (trap-state-next-ephemeral-idx trap-state)))
+    (set! (trap-state-next-ephemeral-idx trap-state) (1- idx))
     idx))
 
 (define (handler-for-index trap-state idx)
@@ -121,6 +128,16 @@
           (handler frame
                    (trap-wrapper-index wrapper)
                    (trap-wrapper-name wrapper))))))
+
+(define (ephemeral-handler-for-index trap-state idx handler)
+  (lambda (frame)
+    (let ((wrapper (wrapper-at-index trap-state idx)))
+      (if wrapper
+          (begin
+            (if (trap-wrapper-enabled? wrapper)
+                (disable-trap-wrapper! wrapper))
+            (remove-trap-wrapper! trap-state wrapper)
+            (handler frame))))))
 
 
 
@@ -220,6 +237,20 @@
      (make-trap-wrapper
       idx #t trap
       (format #f "Breakpoint at ~a:~a" file user-line)))))
+
+;; handler := frame -> nothing
+(define* (add-trap-at-frame-finish! frame handler
+                                    #:optional (trap-state (the-trap-state)))
+  (let* ((idx (next-ephemeral-index! trap-state))
+         (trap (trap-frame-finish
+                frame
+                (ephemeral-handler-for-index trap-state idx handler)
+                (lambda (frame) (delete-trap! idx trap-state)))))
+    (add-trap-wrapper!
+     trap-state
+     (make-trap-wrapper
+      idx #t trap
+      (format #f "Return from ~a" frame)))))
 
 (define* (add-trap! trap name #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state)))

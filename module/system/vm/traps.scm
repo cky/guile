@@ -268,7 +268,7 @@
           range))
 
 ;; Building on trap-instructions-in-procedure, we have
-;; trap-instructions-in-procedure.
+;; trap-at-procedure-ip-in-range.
 ;;
 (define* (trap-at-procedure-ip-in-range proc range handler
                                         #:key current-frame (vm (the-vm))
