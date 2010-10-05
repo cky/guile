@@ -29,6 +29,7 @@
   #:use-module (system vm program)
   #:use-module (system vm trap-state)
   #:use-module (system vm vm)
+  #:use-module ((system vm frame) #:select (frame-return-values))
   #:autoload (system base language) (lookup-language language-reader)
   #:autoload (system vm trace) (vm-trace)
   #:autoload (system vm profile) (vm-profile)
@@ -58,6 +59,7 @@
     (debug    (backtrace bt) (up) (down) (frame fr)
               (procedure proc) (locals) (error-message error)
               (break br bp) (break-at-source break-at bs)
+              (finish)
               (tracepoint tp)
               (traps) (delete del) (disable) (enable)
               (registers regs))
@@ -591,6 +593,39 @@ Note that the given source location must be inside a procedure."
   (let ((file (if (symbol? file) (symbol->string file) file)))
     (let ((idx (add-trap-at-source-location! file line)))
       (format #t "Trap ~a: ~a.~%" idx (trap-name idx)))))
+
+(define-stack-command (finish repl)
+  "finish
+Run until the current frame finishes.
+
+Resume execution, breaking when the current frame finishes."
+  (let ((msg (format #f "Return from ~a" cur)))
+    (define resume-repl
+      ;; Capture the dynamic environment with this prompt thing. The
+      ;; result is a procedure that takes a frame.
+      (% (call-with-values
+             (lambda ()
+               (abort
+                (lambda (k)
+                  ;; Call frame->stack-vector before reinstating the
+                  ;; continuation, so that we catch the %stacks fluid at
+                  ;; the time of capture.
+                  (lambda (frame)
+                    (k frame
+                       (frame->stack-vector
+                        (frame-previous frame)))))))
+           (lambda (from stack)
+             (format #t "~a~%" msg)
+             (let ((vals (frame-return-values from)))
+               (if (null? vals)
+                   (format #t "No return values.~%" msg)
+                   (begin
+                     (format #t "Return values:~%" msg)
+                     (for-each (lambda (x) (repl-print repl x)) vals))))
+             ((module-ref (resolve-interface '(system repl repl)) 'start-repl)
+              #:debug (make-debug stack 0 msg))))))
+    (add-trap-at-frame-finish! cur resume-repl)
+    (throw 'quit)))
 
 (define-meta-command (tracepoint repl (form))
   "tracepoint PROCEDURE
