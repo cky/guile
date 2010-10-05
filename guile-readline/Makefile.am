@@ -20,17 +20,18 @@
 ##   Floor, Boston, MA 02110-1301 USA
 
 include $(top_srcdir)/am/snarf
+include $(top_srcdir)/am/guilec
 
 ## Prevent automake from adding extra -I options
 DEFS = @DEFS@ @EXTRA_DEFS@
 
+# We're at the root of the module hierarchy.
+modpath =
+SOURCES =
+
 if HAVE_READLINE
 
-# `ice-9' subdirectory.
-ice9dir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
-nobase_ice9_DATA = ice-9/readline.scm
-EXTRA_DIST = $(nobase_ice9_DATA)
-
+SOURCES += ice-9/readline.scm
 
 ## Check for headers in $(srcdir)/.., so that #include
 ## <libguile/MUMBLE.h> will find MUMBLE.h in this dir when we're
@@ -58,17 +59,16 @@ modincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)
 modinclude_HEADERS = readline.h
 
 snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
-SUFFIXES = .x
+SUFFIXES += .x
 .c.x:
 	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
 
 EXTRA_DIST += LIBGUILEREADLINE-VERSION ChangeLog-2008
 
-ETAGS_ARGS =							\
-  $(nobase_ice9_DATA)						\
+ETAGS_ARGS +=							\
   $(libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES)
 
-CLEANFILES = *.x
+CLEANFILES += *.x
 
 endif HAVE_READLINE
 

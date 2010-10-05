@@ -205,7 +205,8 @@
       (let ((repl-read-hook (lambda () (run-hook before-read-hook))))
 	(set-current-input-port (readline-port))
 	(set! repl-reader
-	      (lambda (repl-prompt . reader)
+	      (lambda* (repl-prompt
+                        #:optional (reader (fluid-ref current-reader)))
 		(let ((outer-new-input-prompt new-input-prompt)
 		      (outer-continuation-prompt continuation-prompt)
 		      (outer-read-hook read-hook))
@@ -214,9 +215,7 @@
                       (set-buffered-input-continuation?! (readline-port) #f)
                       (set-readline-prompt! repl-prompt "... ")
                       (set-readline-read-hook! repl-read-hook))
-                    (lambda () ((or (and (pair? reader) (car reader))
-                                    (fluid-ref current-reader)
-                                    read)))
+                    (lambda () ((or reader read) (current-input-port)))
                     (lambda ()
                       (set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
                       (set-readline-read-hook! outer-read-hook))))))
