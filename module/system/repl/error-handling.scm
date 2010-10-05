@@ -72,13 +72,17 @@
                      ;; invoking the start-stack thunk has its own frame
                      ;; too.
                      0 (and tag 1)))
-             (error-msg (format #f "Trap ~d: ~a" trap-idx trap-name))
+             (error-msg (if trap-idx
+                            (format #f "Trap ~d: ~a" trap-idx trap-name)
+                            trap-name))
              (debug (make-debug stack 0 error-msg)))
         (with-saved-ports
          (lambda ()
-           (format #t "~a~%" error-msg)
-           (format #t "Entering a new prompt.  ")
-           (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
+           (if trap-idx
+               (begin
+                 (format #t "~a~%" error-msg)
+                 (format #t "Entering a new prompt.  ")
+                 (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")))
            ((@ (system repl repl) start-repl) #:debug debug)))))
 
     (define (null-trap-handler frame trap-idx trap-name)
