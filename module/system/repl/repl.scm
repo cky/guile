@@ -46,8 +46,9 @@
         (lambda ()
           (let ((ch (next-char #t)))
             (cond ((eof-object? ch)
-                   ;; apparently sometimes even if this is eof, read will
-                   ;; wait on somethingorother. strange.
+                   ;; EOF objects are not buffered. It's quite possible
+                   ;; to peek an EOF then read something else. It's
+                   ;; strange but it's how it works.
                    ch)
                   ((eqv? ch #\,)
                    (read-char port)
