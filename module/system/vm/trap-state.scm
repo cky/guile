@@ -86,7 +86,8 @@
   (trap-wrapper-index wrapper))
 
 (define (remove-trap-wrapper! trap-state wrapper)
-  (delq wrapper (trap-state-wrappers trap-state)))
+  (set! (trap-state-wrappers trap-state)
+        (delq wrapper (trap-state-wrappers trap-state))))
 
 (define (trap-state->trace-level trap-state)
   (fold (lambda (wrapper level)
