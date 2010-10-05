@@ -1,6 +1,6 @@
 ;;;; buffered-input.scm --- construct a port from a buffered input reader
 ;;;;
-;;;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,35 +59,29 @@ port when a new read operation starts, this data will be read before
 the first call to @var{reader}, and so @var{reader} will be called
 with @var{continuation?} set to @code{#t}."
   (let ((read-string "")
-	(string-index -1))
+	(string-index 0))
     (letrec ((get-character
 	      (lambda ()
-		(cond 
-		 ((eof-object? read-string)
-                  (let ((eof read-string))
-                    (set! read-string "")
-                    (set! string-index -1)
-                    eof))
-		 ((>= string-index (string-length read-string))
-		  (set! string-index -1)
-                  (get-character))
-		 ((= string-index -1)
-		  (set! read-string (reader (buffered-input-continuation? port)))
-                  (set! string-index 0)
-                  (if (not (eof-object? read-string))
-                      (get-character)
-                      read-string))
-		 (else
-		  (let ((res (string-ref read-string string-index)))
-		    (set! string-index (+ 1 string-index))
-                    (if (not (char-whitespace? res))
-                        (set! (buffered-input-continuation? port) #t))
-		    res)))))
+		(if (< string-index (string-length read-string))
+                    ;; Read a char.
+                    (let ((res (string-ref read-string string-index)))
+                      (set! string-index (+ 1 string-index))
+                      (if (not (char-whitespace? res))
+                          (set! (buffered-input-continuation? port) #t))
+                      res)
+                    ;; Fill the buffer.
+                    (let ((x (reader (buffered-input-continuation? port))))
+                      (cond
+                       ((eof-object? x)
+                        ;; Don't buffer the EOF object.
+                        x)
+                       (else
+                        (set! read-string x)
+                        (set! string-index 0)
+                        (get-character)))))))
 	     (input-waiting
 	      (lambda ()
-		(if (eof-object? read-string)
-		    1
-		    (- (string-length read-string) string-index))))
+                (- (string-length read-string) string-index)))
              (port #f))
       (set! port (make-soft-port (vector #f #f #f get-character #f input-waiting) "r"))
       (set! (buffered-input-continuation? port) #f)
