@@ -36,13 +36,6 @@
 ;; FIXME: this constant needs to go in system vm objcode
 (define *objcode-header-len* 8)
 
-(define (frame-return-values frame)
-  (let* ((len (frame-num-locals frame))
-         (nvalues (frame-local-ref frame (1- len))))
-    (map (lambda (i)
-           (frame-local-ref frame (+ (- len nvalues) i)))
-         (iota nvalues))))
-  
 (define (print-application frame depth width prefix)
   (format (current-error-port) "~a~a~v:@y\n"
           prefix (make-string depth #\|)
