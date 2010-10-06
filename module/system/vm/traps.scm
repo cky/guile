@@ -604,7 +604,7 @@
 ;; Traps calls and returns for a given procedure, keeping track of the call depth.
 ;;
 (define* (trap-calls-to-procedure proc apply-handler return-handler
-                                  #:key (width 80) (vm (the-vm)))
+                                  #:key (vm (the-vm)))
   (arg-check proc procedure?)
   (arg-check apply-handler procedure?)
   (arg-check return-handler procedure?)

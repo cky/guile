@@ -39,7 +39,7 @@
             add-trap-at-procedure-call!
             add-trace-at-procedure-call!
             add-trap-at-source-location!
-            add-trap-at-frame-finish!))
+            add-ephemeral-trap-at-frame-finish!))
 
 (define %default-trap-handler (make-fluid))
 
@@ -239,8 +239,9 @@
       (format #f "Breakpoint at ~a:~a" file user-line)))))
 
 ;; handler := frame -> nothing
-(define* (add-trap-at-frame-finish! frame handler
-                                    #:optional (trap-state (the-trap-state)))
+(define* (add-ephemeral-trap-at-frame-finish! frame handler
+                                              #:optional (trap-state
+                                                          (the-trap-state)))
   (let* ((idx (next-ephemeral-index! trap-state))
          (trap (trap-frame-finish
                 frame
