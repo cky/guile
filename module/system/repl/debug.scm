@@ -39,16 +39,11 @@
 ;;
 ;; eval expression in context of frame
 ;; set local variable in frame
-;; step until next instruction
-;; step until next function call/return
-;; step until return from frame
-;; step until different source line
 ;; step until greater source line
 ;; watch expression
 ;; set printing width
 ;; disassemble the current function
 ;; inspect any object
-;; (state associated with vm ?)
 
 ;;;
 ;;; Debugger
