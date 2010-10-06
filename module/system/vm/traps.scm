@@ -72,7 +72,8 @@
             trap-in-dynamic-extent
             trap-calls-in-dynamic-extent
             trap-instructions-in-dynamic-extent
-            trap-calls-to-procedure))
+            trap-calls-to-procedure
+            trap-matching-instructions))
 
 (define-syntax arg-check
   (syntax-rules ()
@@ -662,3 +663,21 @@
 
     (with-pending-finish-disablers
      (trap-at-procedure-call proc apply-hook #:vm vm))))
+
+;; Trap when the source location changes.
+;;
+(define* (trap-matching-instructions frame-pred handler
+                                     #:key (vm (the-vm)))
+  (arg-check frame-pred procedure?)
+  (arg-check handler procedure?)
+  (let ()
+    (define (next-hook frame)
+      (if (frame-pred frame)
+          (handler frame)))
+  
+    (new-enabled-trap
+     vm #f
+     (lambda (frame)
+       (add-hook! (vm-next-hook vm) next-hook))
+     (lambda (frame)
+       (remove-hook! (vm-next-hook vm) next-hook)))))

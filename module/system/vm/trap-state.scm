@@ -26,6 +26,8 @@
   #:use-module (system vm vm)
   #:use-module (system vm traps)
   #:use-module (system vm trace)
+  #:use-module (system vm frame)
+  #:use-module (system vm program)
   #:export (list-traps
             trap-enabled?
             trap-name
@@ -39,7 +41,8 @@
             add-trap-at-procedure-call!
             add-trace-at-procedure-call!
             add-trap-at-source-location!
-            add-ephemeral-trap-at-frame-finish!))
+            add-ephemeral-trap-at-frame-finish!
+            add-ephemeral-stepping-trap!))
 
 (define %default-trap-handler (make-fluid))
 
@@ -252,6 +255,44 @@
      (make-trap-wrapper
       idx #t trap
       (format #f "Return from ~a" frame)))))
+
+(define (source-string source)
+  (if source
+      (format #f "~a:~a:~a" (or (source:file source) "unknown file")
+              (source:line-for-user source) (source:column source))
+      "unknown source location"))
+
+(define* (add-ephemeral-stepping-trap! frame handler
+                                       #:optional (trap-state
+                                                   (the-trap-state))
+                                       #:key (into? #t) (instruction? #f))
+  (define (wrap-predicate-according-to-into predicate)
+    (if into?
+        predicate
+        (let ((fp (frame-address frame)))
+          (lambda (f)
+            (and (<= (frame-address f) fp)
+                 (predicate f))))))
+  
+  (let* ((source (frame-source frame))
+         (idx (next-ephemeral-index! trap-state))
+         (trap (trap-matching-instructions
+                (wrap-predicate-according-to-into
+                 (if instruction?
+                     (lambda (f) #t)
+                     (lambda (f) (not (equal? (frame-source f) source)))))
+                (ephemeral-handler-for-index trap-state idx handler))))
+    (add-trap-wrapper!
+     trap-state
+     (make-trap-wrapper
+      idx #t trap
+      (if instruction?
+          (if into?
+              "Step to different instruction"
+              (format #f "Step to different instruction in ~a" frame))
+          (if into?
+              (format #f "Step into ~a" (source-string source)) 
+              (format #f "Step out of ~a" (source-string source))))))))
 
 (define* (add-trap! trap name #:optional (trap-state (the-trap-state)))
   (let* ((idx (next-index! trap-state)))

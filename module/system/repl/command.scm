@@ -50,7 +50,7 @@
 ;;;
 
 (define *command-table*
-  '((help     (help h) (show s) (apropos a) (describe d))
+  '((help     (help h) (show) (apropos a) (describe d))
     (module   (module m) (import use) (load l) (binding b))
     (language (language L))
     (compile  (compile c) (compile-file cc)
@@ -59,6 +59,8 @@
     (debug    (backtrace bt) (up) (down) (frame fr)
               (procedure proc) (locals) (error-message error)
               (break br bp) (break-at-source break-at bs)
+              (step s) (step-instruction si)
+              (next n) (next-instruction ni)
               (finish)
               (tracepoint tp)
               (traps) (delete del) (disable) (enable)
@@ -627,6 +629,60 @@ Resume execution, breaking when the current frame finishes."
   (let ((handler (repl-pop-continuation-resumer
                   (format #f "Return from ~a" cur))))
     (add-ephemeral-trap-at-frame-finish! cur handler)
+    (throw 'quit)))
+
+(define (repl-next-resumer msg)
+  ;; Capture the dynamic environment with this prompt thing. The
+  ;; result is a procedure that takes a frame.
+  (% (let ((stack (abort
+                   (lambda (k)
+                     ;; Call frame->stack-vector before reinstating the
+                     ;; continuation, so that we catch the %stacks fluid
+                     ;; at the time of capture.
+                     (lambda (frame)
+                       (k (frame->stack-vector frame)))))))
+       (format #t "~a~%" msg)
+       ((module-ref (resolve-interface '(system repl repl)) 'start-repl)
+        #:debug (make-debug stack 0 msg)))))
+
+(define-stack-command (step repl)
+  "step
+Step until control reaches a different source location.
+
+Step until control reaches a different source location."
+  (let ((msg (format #f "Step into ~a" cur)))
+    (add-ephemeral-stepping-trap! cur (repl-next-resumer msg)
+                                  #:into? #t #:instruction? #f)
+    (throw 'quit)))
+
+(define-stack-command (step-instruction repl)
+  "step-instruction
+Step until control reaches a different instruction.
+
+Step until control reaches a different VM instruction."
+  (let ((msg (format #f "Step into ~a" cur)))
+    (add-ephemeral-stepping-trap! cur (repl-next-resumer msg)
+                                  #:into? #t #:instruction? #t)
+    (throw 'quit)))
+
+(define-stack-command (next repl)
+  "next
+Step until control reaches a different source location in the current frame.
+
+Step until control reaches a different source location in the current frame."
+  (let ((msg (format #f "Step into ~a" cur)))
+    (add-ephemeral-stepping-trap! cur (repl-next-resumer msg)
+                                  #:into? #f #:instruction? #f)
+    (throw 'quit)))
+
+(define-stack-command (step-instruction repl)
+  "next-instruction
+Step until control reaches a different instruction in the current frame.
+
+Step until control reaches a different VM instruction in the current frame."
+  (let ((msg (format #f "Step into ~a" cur)))
+    (add-ephemeral-stepping-trap! cur (repl-next-resumer msg)
+                                  #:into? #f #:instruction? #t)
     (throw 'quit)))
 
 (define-meta-command (tracepoint repl (form))
