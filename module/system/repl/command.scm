@@ -31,8 +31,7 @@
   #:use-module (system vm vm)
   #:use-module ((system vm frame) #:select (frame-return-values))
   #:autoload (system base language) (lookup-language language-reader)
-  #:autoload (system vm trace) (vm-trace)
-  #:autoload (system vm profile) (vm-profile)
+  #:autoload (system vm trace) (call-with-trace)
   #:use-module (ice-9 format)
   #:use-module (ice-9 session)
   #:use-module (ice-9 documentation)
@@ -451,8 +450,7 @@ Profile execution."
   "trace EXP
 Trace execution."
   ;; FIXME: doc options, or somehow deal with them better
-  (apply vm-trace
-         (the-vm)
+  (apply call-with-trace
          (repl-prepare-eval-thunk repl (repl-parse repl form))
          opts))
 

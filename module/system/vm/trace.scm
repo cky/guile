@@ -31,15 +31,19 @@
   #:export (trace-calls-in-procedure
             trace-calls-to-procedure
             trace-instructions-in-procedure
-            vm-trace))
+            call-with-trace))
 
 ;; FIXME: this constant needs to go in system vm objcode
 (define *objcode-header-len* 8)
 
 (define (print-application frame depth width prefix)
   (format (current-error-port) "~a~a~v:@y\n"
-          prefix (make-string depth #\|)
-          (max (- width depth) 1)
+          prefix
+          (let lp ((depth depth) (s ""))
+            (if (zero? depth)
+                s
+                (lp (1- depth) (string-append "|  " s))))
+          (max (- width (* 3 depth)) 1)
           (frame-call-representation frame)))
 
 (define (print-return frame depth width prefix)
@@ -48,13 +52,21 @@
     (cond
      ((= nvalues 1)
       (format (current-error-port) "~a~a~v:@y\n"
-              prefix (make-string depth #\|)
+              prefix
+              (let lp ((depth depth) (s ""))
+                (if (zero? depth)
+                    s
+                    (lp (1- depth) (string-append "|  " s))))
               width (frame-local-ref frame (- len 2))))
      (else
       ;; this should work, but there appears to be a bug
       ;; "~a~d values:~:{ ~v:@y~}\n"
       (format (current-error-port) "~a ~a~d values:~{ ~a~}\n"
-              prefix (make-string depth #\|)
+              prefix
+              (let lp ((depth depth) (s ""))
+                (if (zero? depth)
+                    s
+                    (lp (1- depth) (string-append "|  " s))))
               nvalues
               (map (lambda (val)
                      (format #f "~v:@y" width val))
@@ -92,7 +104,7 @@
 ;; Note that because this procedure manipulates the VM trace level
 ;; directly, it doesn't compose well with traps at the REPL.
 ;;
-(define* (vm-trace vm thunk #:key (calls? #t) (instructions? #f) (width 80))
+(define* (call-with-trace thunk #:key (calls? #t) (instructions? #f) (width 80) (vm (the-vm)))
   (let ((call-trap #f)
         (inst-trap #f))
     (dynamic-wind
