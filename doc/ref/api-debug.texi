@@ -1154,22 +1154,51 @@ directly, it doesn't compose well with traps at the REPL.
 @node Trap States
 @subsubsection Trap States
 
+When multiple traps are present in a system, we begin to have a
+bookkeeping problem. How are they named? How does one disable, enable,
+or delete them?
+
+Guile's answer to this is to keep an implicit per-thread @dfn{trap
+state}. The trap state object is not exposed to the user; rather, API
+that works on trap states fetches the current trap state from the
+dynamic environment.
+
+Traps identified by integers. A trap can be enabled, disabled, or
+removed, and can have an associated user-visible name.
+
+@deffn {Scheme Procedure} add-trap! trap name
+Add a trap to the current trap state, associating the given @var{name}
+with it. Returns a fresh trap identifier (an integer).
+
+Note that usually the more specific functions detailed in @ref{Setting
+Traps} are used in preference to this one.
+@end deffn
+
 @deffn {Scheme Procedure} list-traps
+List the current set of traps, both enabled and disabled. Returns a list
+of integers.
 @end deffn
 
 @deffn {Scheme Procedure} trap-name idx
+Returns the name associated with trap @var{idx}, or @code{#f} if there
+is no such trap.
 @end deffn
 
 @deffn {Scheme Procedure} trap-enabled? idx
+Returns @code{#t} if trap @var{idx} is present and enabled, or @code{#f}
+otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} enable-trap! idx
+Enables trap @var{idx}.
 @end deffn
 
 @deffn {Scheme Procedure} disable-trap! idx
+Disables trap @var{idx}.
 @end deffn
 
 @deffn {Scheme Procedure} delete-trap! idx
+Removes trap @var{idx}, disabling it first, if necessary.
 @end deffn
 
 @node Trap Handlers

@@ -28,7 +28,8 @@
   #:use-module (system vm trace)
   #:use-module (system vm frame)
   #:use-module (system vm program)
-  #:export (list-traps
+  #:export (add-trap!
+            list-traps
             trap-enabled?
             trap-name
             enable-trap!
