@@ -746,8 +746,7 @@ understanding how the interface hangs together.
 * Low-Level Traps::         The various kinds of low-level traps.
 * Tracing Traps::           Traps to trace procedure calls and returns.
 * Trap States::             One state (per thread) to bind them.
-* Trap Handlers::           What to do when a trap in a trap state fires.
-* Setting Traps::           The highest-level trap interface. Use this.
+* High-Level Traps::        The highest-level trap interface. Use this.
 @end menu
 
 
@@ -944,6 +943,13 @@ this argument gives the current frame that the trap is running in.
 Defaults to @code{#f}.
 @end table
 
+To have access to these procedures, you'll need to have imported the
+@code{(system vm traps)} module:
+
+@lisp
+(use-modules (system vm traps))
+@end lisp
+
 @deffn {Scheme Procedure} trap-at-procedure-call proc handler @
        [#:vm] [#:closure?]
 A trap that calls @var{handler} when @var{proc} is applied.
@@ -1115,6 +1121,13 @@ A string to print out before each trace line. As seen above in the
 examples, defaults to @code{"trace: "}.
 @end table
 
+To have access to these procedures, you'll need to have imported the
+@code{(system vm trace)} module:
+
+@lisp
+(use-modules (system vm trace))
+@end lisp
+
 @deffn {Scheme Procedure} trace-calls-to-procedure proc @
        [#:width] [#:vm] [#:prefix]
 Print a trace at applications of and returns from @var{proc}.
@@ -1165,12 +1178,18 @@ dynamic environment.
 Traps identified by integers. A trap can be enabled, disabled, or
 removed, and can have an associated user-visible name.
 
+These procedures have their own module:
+
+@lisp
+(use-modules (system vm trap-state))
+@end lisp
+
 @deffn {Scheme Procedure} add-trap! trap name
 Add a trap to the current trap state, associating the given @var{name}
 with it. Returns a fresh trap identifier (an integer).
 
-Note that usually the more specific functions detailed in @ref{Setting
-Traps} are used in preference to this one.
+Note that usually the more specific functions detailed in
+@ref{High-Level Traps} are used in preference to this one.
 @end deffn
 
 @deffn {Scheme Procedure} list-traps
@@ -1200,38 +1219,106 @@ Disables trap @var{idx}.
 Removes trap @var{idx}, disabling it first, if necessary.
 @end deffn
 
-@node Trap Handlers
-@subsubsection Trap Handlers
+@node High-Level Traps
+@subsubsection High-Level Traps
 
-Trap Handlers           What to do when a trap in a trap state fires.
+The low-level trap API allows one to make traps that call procedures,
+and the trap state API allows one to keep track of what traps are
+there.  But neither of these APIs directly helps you when you want to
+set a breakpoint, because it's unclear what to do when the trap fires.
+Do you enter a debugger, or mail a summary of the situation to your
+great-aunt, or what?
+
+So for the common case in which you just want to install breakpoints,
+and then have them all result in calls one parameterizable procedure, we
+have the high-level trap interface.
+
+Perhaps we should have started this section with this interface, as it's
+clearly the one most people should use.  But as its capabilities and
+limitations proceed from the lower layers, we felt that the
+character-building exercise of building a mental model could be useful.
+
+These procedures share a module with trap states:
+
+@lisp
+(use-modules (system vm trap-state))
+@end lisp
 
 @deffn {Scheme Procedure} with-default-trap-handler handler thunk
+Call @var{thunk} in a dynamic context in which @var{handler} is the
+current trap handler.
+
+Additionally, during the execution of @var{thunk}, the VM trace level
+(@pxref{VM Hooks}) is set to the number of enabled traps. This ensures
+that traps will in fact fire.
+
+@var{handler} may be @code{#f}, in which case VM hooks are not enabled
+as they otherwise would be, as there is nothing to handle the traps.
 @end deffn
+
+The trace-level-setting behavior of @code{with-default-trap-handler} is
+one of its more useful aspects, but if you are willing to forgo that,
+and just want to install a global trap handler, there's a function for
+that too:
 
 @deffn {Scheme Procedure} install-trap-handler! handler
+Set the current thread's trap handler to @var{handler}.
 @end deffn
 
-@node Setting Traps
-@subsubsection Setting Traps
+Trap handlers are called when traps installed by procedures from this
+module fire.  The current ``consumer'' of this API is Guile's REPL, but
+one might easily imagine other trap handlers being used to integrate
+with other debugging tools.
 
-@cindex Setting traps
-@cindex Installing and uninstalling traps
-Setting Traps           The highest-level trap interface. Use this.
-
+@cindex Breakpoints
+@cindex Setting breakpoints
 @deffn {Scheme Procedure} add-trap-at-procedure-call! proc
+Install a trap that will fire when @var{proc} is called.
+
+This is a breakpoint.
 @end deffn
 
+@cindex Tracepoints
+@cindex Setting tracepoints
 @deffn {Scheme Procedure} add-trace-at-procedure-call! proc
+Install a trap that will print a tracing message when @var{proc} is
+called. @xref{Tracing Traps}, for more information.
+
+This is a tracepoint.
 @end deffn
 
 @deffn {Scheme Procedure} add-trap-at-source-location! file user-line
+Install a trap that will fire when control reaches the given source
+location. @var{user-line} is one-indexed, as users count lines, instead
+of zero-indexed, as Guile counts lines.
+
+This is a source breakpoint.
 @end deffn
 
-;; handler := frame -> nothing
 @deffn {Scheme Procedure} add-ephemeral-trap-at-frame-finish! frame handler
+Install a trap that will call @var{handler} when @var{frame} finishes
+executing. The trap will be removed from the trap state after firing, or
+on nonlocal exit.
+
+This is a finish trap, used to implement the ``finish'' REPL command.
 @end deffn
 
-@deffn {Scheme Procedure} add-ephemeral-stepping-trap! frame handler #:key (into? #t) (instruction? #f)
+@deffn {Scheme Procedure} add-ephemeral-stepping-trap! frame handler [#:into?] [#:instruction?]
+Install a trap that will call @var{handler} after stepping to a
+different source line or instruction.  The trap will be removed from the
+trap state after firing, or on nonlocal exit.
+
+If @var{instruction?} is false (the default), the trap will fire when
+control reaches a new source line. Otherwise it will fire when control
+reaches a new instruction.
+
+Additionally, if @var{into?} is false (not the default), the trap will
+only fire for frames at or prior to the given frame. If @var{into?} is
+true (the default), the trap may step into nested procedure
+invocations.
+
+This is a stepping trap, used to implement the ``step'', ``next'',
+``step-instruction'', and ``next-instruction'' REPL commands.
 @end deffn
 
 
