@@ -19,7 +19,6 @@ loading, evaluating, and compiling Scheme code at run time.
 * Loading::                     Loading Scheme code from file.
 * Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
-* VM Behaviour::                Modifying Guile's virtual machine.
 @end menu
 
 
@@ -867,38 +866,6 @@ their results are ignored, @code{force} always returns the first
 value.
 @end deffn
 
-
-@node VM Behaviour
-@subsection VM Behaviour
-
-Like the procedures from the previous section that operate on the
-evaluator, there are also procedures to modify the behavior of a
-virtual machine.
-
-The most useful thing that a user can do is to add to one of the
-virtual machine's predefined hooks:
-
-@deffn {Scheme Procedure} vm-next-hook vm
-@deffnx {Scheme Procedure} vm-apply-hook vm
-@deffnx {Scheme Procedure} vm-push-continuation-hook vm
-@deffnx {Scheme Procedure} vm-pop-continuation-hook vm
-@deffnx {Scheme Procedure} vm-abort-continuation-hook vm
-@deffnx {Scheme Procedure} vm-restore-continuation-hook vm
-Accessors to a virtual machine's hooks. Usually you pass @code{(the-vm)}
-as the @var{vm}.
-@end deffn
-
-@deffn {Scheme Procedure} vm-trace-level vm
-Retrieve the ``trace level'' of the VM. If positive, the trace hooks associated
-with @var{vm} will be run. The initial trace level is 0.
-@end deffn
-
-@deffn {Scheme Procedure} set-vm-trace-level! vm level
-Set the ``trace level'' of the VM.
-@end deffn
-
-@xref{A Virtual Machine for Guile}, for more information on Guile's
-virtual machine.
 
 @c Local Variables:
 @c TeX-master: "guile.texi"

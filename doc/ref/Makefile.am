@@ -62,7 +62,6 @@ guile_TEXINFOS = preface.texi			\
 		 scheme-scripts.texi		\
 		 api-overview.texi		\
 		 api-deprecated.texi		\
-		 scheme-debugging.texi		\
 		 scheme-using.texi		\
 		 indices.texi			\
 		 script-getopt.texi		\

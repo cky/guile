@@ -360,7 +360,6 @@ available through both Scheme and C interfaces.
 * Expect::			Controlling interactive programs with Guile.
 * sxml-match::                  Pattern matching of SXML.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
-* Tracing::                     Tracing program execution.
 @end menu
 
 @include slib.texi
@@ -377,7 +376,6 @@ available through both Scheme and C interfaces.
 @include sxml-match.texi
 
 @include scsh.texi
-@include scheme-debugging.texi
 
 @node Standard Library
 @chapter Standard Library

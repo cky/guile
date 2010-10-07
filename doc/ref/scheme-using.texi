@@ -1036,13 +1036,11 @@ region contains a balanced expression, or try to expand the region so
 that it does; it uses the region exactly as it is.
 @end table
 
-If you type @kbd{C-u} before one of these commands, GDS will
-immediately pop up a Scheme stack buffer, showing the requested
-evaluation, so that you can single step through it.  (This is achieved
-by setting a @code{<source-trap>} trap at the start of the requested
-evaluation; see @ref{Source Traps} for more on how those work.)  The
-Scheme stack display, and the options for continuing through the code,
-are described in the next two sections.
+If you type @kbd{C-u} before one of these commands, GDS will immediately
+pop up a Scheme stack buffer, showing the requested evaluation, so that
+you can single step through it.  The Scheme stack display, and the
+options for continuing through the code, are described in the next two
+sections.
 
 
 @node Displaying the Scheme Stack

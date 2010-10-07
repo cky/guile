@@ -577,10 +577,6 @@ to the entries in this manual which describe them in more detail:
 boot-9 is Guile's initialization module, and it is always loaded when
 Guile starts up.
 
-@item (ice-9 debug)
-Mikael Djurfeldt's source-level debugging support for Guile
-(@pxref{Tracing}).
-
 @item (ice-9 expect)
 Actions based on matching input from a port (@pxref{Expect}).
 
