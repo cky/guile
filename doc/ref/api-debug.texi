@@ -16,6 +16,7 @@ infrastructure that builds on top of those calls.
 
 @menu
 * Evaluation Model::            Evaluation and the Scheme stack.
+* Source Properties::           From expressions to source locations.
 * Programmatic Error Handling:: Debugging when an error occurs.
 * Traps::
 * Debugging Examples::
@@ -59,15 +60,13 @@ the program's state at that point by inspecting the stack and its
 frames.
 
 @menu
-* Capturing the Stack or Innermost Stack Frame::
-* Stacks::
-* Frames::
-* Source Properties::           Remembering the source of an expression.
-* Starting a New Stack::
+* Stack Capture::               Reifying a continuation.
+* Stacks::                      Accessors for the stack data type.
+* Frames::                      Likewise, accessors for stack frames.
 @end menu
 
-@node Capturing the Stack or Innermost Stack Frame
-@subsubsection Capturing the Stack or Innermost Stack Frame
+@node Stack Capture
+@subsubsection Stack Capture
 
 A Scheme program can use the @code{make-stack} primitive anywhere in its
 code, with first arg @code{#t}, to construct a Scheme value that
@@ -78,6 +77,9 @@ describes the Scheme stack at that point.
 @result{}
 #<stack 25205a0>
 @end lisp
+
+Use @code{start-stack} to limit the stack extent captured by future
+@code{make-stack} calls.
 
 @deffn {Scheme Procedure} make-stack obj . args
 @deffnx {C Function} scm_make_stack (obj, args)
@@ -113,6 +115,14 @@ procedure matches the specified one.
 
 If the @var{outer_cut_N} of the last pair is missing, it is
 taken as 0.
+@end deffn
+
+@deffn {Scheme Syntax} start-stack id exp
+Evaluate @var{exp} on a new calling stack with identity @var{id}.  If
+@var{exp} is interrupted during evaluation, backtraces will not display
+frames farther back than @var{exp}'s top-level form.  This macro is a
+way of artificially limiting backtraces and stack procedures, largely as
+a convenience to the user.
 @end deffn
 
 
@@ -178,6 +188,31 @@ procedure is associated with @var{frame}.
 Return the arguments of @var{frame}.
 @end deffn
 
+@deffn {Scheme Procedure} frame-address frame
+@deffnx {Scheme Procedure} frame-instruction-pointer frame
+@deffnx {Scheme Procedure} frame-stack-pointer frame
+Accessors for the three VM registers associated with this frame: the
+frame pointer (fp), instruction pointer (ip), and stack pointer (sp),
+respectively. @xref{VM Concepts}, for more information.
+@end deffn
+
+@deffn {Scheme Procedure} frame-dynamic-link frame
+@deffnx {Scheme Procedure} frame-return-address frame
+@deffnx {Scheme Procedure} frame-mv-return-address frame
+Accessors for the three saved VM registers in a frame: the previous
+frame pointer, the single-value return address, and the multiple-value
+return address. @xref{Stack Layout}, for more information.
+@end deffn
+
+@deffn {Scheme Procedure} frame-num-locals frame
+@deffnx {Scheme Procedure} frame-local-ref frame i
+@deffnx {Scheme Procedure} frame-local-set! frame i val
+Accessors for the temporary values corresponding to @var{frame}'s
+procedure application. The first local is the first argument given to
+the procedure. After the arguments, there are the local variables, and
+after that temporary values. @xref{Stack Layout}, for more information.
+@end deffn
+
 @deffn {Scheme Procedure} display-application frame [port [indent]]
 @deffnx {C Function} scm_display_application (frame, port, indent)
 Display a procedure application @var{frame} to the output port
@@ -185,9 +220,14 @@ Display a procedure application @var{frame} to the output port
 output.
 @end deffn
 
+Additionally, the @code{(system vm frame)} module defines a number of
+higher-level introspective procedures, for example to retrieve the names
+of local variables, and the source location to correspond to a
+frame. See its source code for more details.
+
 
 @node Source Properties
-@subsubsection Source Properties
+@subsection Source Properties
 
 @cindex source properties
 As Guile reads in Scheme code from file or from standard input, it
@@ -262,18 +302,6 @@ you:
 Create and return a new pair whose car and cdr are @var{x} and @var{y}.
 Any source properties associated with @var{xorig} are also associated
 with the new pair.
-@end deffn
-
-
-@node Starting a New Stack
-@subsubsection Starting a New Stack
-
-@deffn {Scheme Syntax} start-stack id exp
-Evaluate @var{exp} on a new calling stack with identity @var{id}.  If
-@var{exp} is interrupted during evaluation, backtraces will not display
-frames farther back than @var{exp}'s top-level form.  This macro is a
-way of artificially limiting backtraces and stack procedures, largely as
-a convenience to the user.
 @end deffn
 
 
@@ -746,9 +774,9 @@ fired at different times, which may be accessed with the following
 procedures.
 
 All hooks are called with one argument, the frame in
-question. @xref{Frames}. Since these hooks may be fired very frequently,
-Guile does a terrible thing: it allocates the frames on the C stack
-instead of the garbage-collected heap.
+question. @xref{Frames}.  Since these hooks may be fired very
+frequently, Guile does a terrible thing: it allocates the frames on the
+C stack instead of the garbage-collected heap.
 
 The upshot here is that the frames are only valid within the dynamic
 extent of the call to the hook. If a hook procedure keeps a reference to
@@ -814,6 +842,11 @@ the @code{vm-next-hook} has quite an impact, performance-wise. Therefore
 Guile exposes a single, heavy-handed knob to turn hooks on or off, the
 @dfn{VM trace level}. If the trace level is positive, hooks run;
 otherwise they don't.
+
+For convenience, when the VM fires a hook, it does so with the trap
+level temporarily set to 0.  That way the hooks don't fire while you're
+handling a hook.  The trace level is restored to whatever it was once the hook
+procedure finishes.
 
 @deffn {Scheme Procedure} vm-trace-level vm
 Retrieve the ``trace level'' of the VM. If positive, the trace hooks
@@ -884,86 +917,132 @@ made the current interface more than anything else.
 @node Low-Level Traps
 @subsubsection Low-Level Traps
 
+To summarize the last sections, traps are enabled or disabled, and when
+they are enabled, they add to various VM hooks.
+
+Note, however, that @emph{traps do not increase the VM trace level}. So
+if you create a trap, it will be enabled, but unless something else
+increases the VM's trace level (@pxref{VM Hooks}), the trap will not
+fire.  It turns out that getting the VM trace level right is tricky
+without a global view of what traps are enabled.  @xref{Trap States},
+for Guile's answer to this problem.
+
+Traps are created by calling procedures. Most of these procedures share
+a set of common keyword arguments, so rather than document them
+separately, we discuss them all together here:
+
+@table @code
+@item #:vm
+The VM to instrument. Defaults to the current thread's VM.
+@item #:closure?
+For traps that depend on the current frame's procedure, this argument
+specifies whether to trap on the only the specific procedure given, or
+on any closure that has the given procedure's code. Defaults to
+@code{#f}.
+@item #:current-frame
+For traps that enable more hooks depending on their dynamic context,
+this argument gives the current frame that the trap is running in.
+Defaults to @code{#f}.
+@end table
+
 @deffn {Scheme Procedure} trap-at-procedure-call proc handler @
-       [#:vm (the-vm)] [#:closure? #f]
+       [#:vm] [#:closure?]
+A trap that calls @var{handler} when @var{proc} is applied.
 @end deffn                
 
-
 @deffn {Scheme Procedure} trap-in-procedure proc @
-       enter-handler exit-handler @
-       [#:current-frame = #f] [#:vm = (the-vm)] [#:closure? = #f]
-A more complicated trap, traps when control enters a procedure.
+       enter-handler exit-handler [#:current-frame] [#:vm] [#:closure?]
+A trap that calls @var{enter-handler} when control enters @var{proc},
+and @var{exit-handler} when control leaves @var{proc}.
 
 Control can enter a procedure via:
- * A procedure call.
- * A return to a procedure's frame on the stack.
- * A continuation returning directly to an application of this
-   procedure.
+@itemize
+@item
+A procedure call.
+@item
+A return to a procedure's frame on the stack.
+@item
+A continuation returning directly to an application of this procedure.
+@end itemize
 
 Control can leave a procedure via:
- * A normal return from the procedure.
- * An application of another procedure.
- * An invocation of a continuation.
- * An abort.
-
+@itemize
+@item
+A normal return from the procedure.
+@item
+An application of another procedure.
+@item
+An invocation of a continuation.
+@item
+An abort.
+@end itemize
 @end deffn
 
 @deffn {Scheme Procedure} trap-instructions-in-procedure proc @
-       next-handler exit-handler @
-       [#:current-frame = #f] [#:vm = (the-vm)] [#:closure? = #f]
-Building on trap-in-procedure, we have trap-instructions-in-procedure
+       next-handler exit-handler [#:current-frame] [#:vm] [#:closure?]
+A trap that calls @var{next-handler} for every instruction executed in
+@var{proc}, and @var{exit-handler} when execution leaves @var{proc}.
 @end deffn
 
 @deffn {Scheme Procedure} trap-at-procedure-ip-in-range proc range @
-       handler @
-       [#:current-frame = #f] [#:vm = (the-vm)] [#:closure? = #f]
-Building on trap-instructions-in-procedure, we have
-trap-at-procedure-ip-in-range.
+       handler [#:current-frame] [#:vm] [#:closure?]
+A trap that calls @var{handler} when execution enters a range of
+instructions in @var{proc}. @var{range} is a simple of pairs,
+@code{((@var{start} . @var{end}) ...)}. The @var{start} addresses are
+inclusive, and @var{end} addresses are exclusive.
 @end deffn
 
 @deffn {Scheme Procedure} trap-at-source-location file user-line handler @
-       [#:current-frame = #f] [#:vm = (the-vm)]
-Building on trap-on-instructions-in-procedure, we have
-trap-at-source-location. The parameter `user-line' is one-indexed, as
-a user counts lines, instead of zero-indexed, as Guile counts lines.
+       [#:current-frame] [#:vm]
+A trap that fires when control reaches a given source location.  The
+@var{user-line} parameter is one-indexed, as a user counts lines,
+instead of zero-indexed, as Guile counts lines.
 @end deffn
 
-@deffn {Scheme Procedure} trap-frame-finish frame return-handler abort-handler @
-       [#:vm = (the-vm)]
-On a different tack, now we're going to build up a set of traps that
-do useful things during the dynamic extent of a procedure's
-application. First, a trap for when a frame returns.
+@deffn {Scheme Procedure} trap-frame-finish frame @
+       return-handler abort-handler [#:vm]
+A trap that fires when control leaves the given frame. @var{frame}
+should be a live frame in the current continuation. @var{return-handler}
+will be called on a normal return, and @var{abort-handler} on a nonlocal
+exit.
 @end deffn
 
 @deffn {Scheme Procedure} trap-in-dynamic-extent proc @
-       enter-handler return-handler abort-handler @
-       [#:vm = (the-vm)] [#:closure? = #f]
-A more traditional dynamic-wind trap. Perhaps this should not be
-based on the above trap-frame-finish?
+       enter-handler return-handler abort-handler [#:vm] [#:closure?]
+A more traditional dynamic-wind trap, which fires @var{enter-handler}
+when control enters @var{proc}, @var{return-handler} on a normal return,
+and @var{abort-handler} on a nonlocal exit.
+
+Note that rewinds are not handled, so there is no rewind handler.
 @end deffn
 
 @deffn {Scheme Procedure} trap-calls-in-dynamic-extent proc @
-       apply-handler return-handler @
-       [#:current-frame = #f] [#:vm = (the-vm)] [#:closure? = #f]
-Trapping all procedure calls within a dynamic extent, recording the
-depth of the call stack relative to the original procedure.
+       apply-handler return-handler [#:current-frame] [#:vm] [#:closure?]
+A trap that calls @var{apply-handler} every time a procedure is applied,
+and @var{return-handler} for returns, but only during the dynamic extent
+of an application of @var{proc}.
 @end deffn
 
 @deffn {Scheme Procedure} trap-instructions-in-dynamic-extent proc @
-       next-handler @
-       [#:current-frame = #f] [#:vm = (the-vm)] [#:closure? = #f]
-Trapping all retired intructions within a dynamic extent.
+       next-handler [#:current-frame] [#:vm] [#:closure?]
+A trap that calls @var{next-handler} for all retired intructions within
+the dynamic extent of a call to @var{proc}.
 @end deffn
 
 @deffn {Scheme Procedure} trap-calls-to-procedure proc @
-       apply-handler return-handler @
-       [#:vm = (the-vm)]
-Traps calls and returns for a given procedure, keeping track of the call depth.
+       apply-handler return-handler [#:vm]
+A trap that calls @var{apply-handler} whenever @var{proc} is applied,
+and @var{return-handler} when it returns, but with an additional
+argument, the call depth.
+
+That is to say, the handlers will get two arguments: the frame in
+question, and the call depth (a non-negative integer).
 @end deffn
 
-@deffn {Scheme Procedure} trap-matching-instructions frame-pred handler @
-       [#:vm = (the-vm)]
-Trap when the source location changes.
+@deffn {Scheme Procedure} trap-matching-instructions frame-pred handler [#:vm]
+A trap that calls @var{frame-pred} at every instruction, and if
+@var{frame-pred} returns a true value, calls @var{handler} on the
+frame.
 @end deffn
 
 @node Tracing Traps
