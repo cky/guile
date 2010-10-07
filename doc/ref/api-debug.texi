@@ -1101,13 +1101,35 @@ trace: (facti 24 0)
 trace: 24
 @end lisp
 
-@deffn {Scheme Procedure} trace-calls-to-procedure proc #:key (width 80) (vm (the-vm)) (prefix "trace: "))
+The low-level traps below (@pxref{Low-Level Traps}) share some common
+options:
+
+@table @code
+@item #:width
+The maximum width of trace output. Trace printouts will try not to
+exceed this column, but for highly nested procedure calls, it may be
+unavoidable. Defaults to 80.
+@item #:vm
+The VM on which to add the traps. Defaults to the current thread's VM.
+@item #:prefix
+A string to print out before each trace line. As seen above in the
+examples, defaults to @code{"trace: "}.
+@end table
+
+@deffn {Scheme Procedure} trace-calls-to-procedure proc @
+       [#:width] [#:vm] [#:prefix]
+Print a trace at applications of and returns from @var{proc}.
 @end deffn
 
-@deffn {Scheme Procedure} trace-calls-in-procedure proc #:key (width 80) (vm (the-vm)) (prefix "trace: "))
+@deffn {Scheme Procedure} trace-calls-in-procedure proc @
+       [#:width] [#:vm] [#:prefix]
+Print a trace at all applications and returns within the dynamic extent
+of calls to @var{proc}.
 @end deffn
 
-@deffn {Scheme Procedure} trace-instructions-in-procedure proc #:key (width 80) (vm (the-vm))
+@deffn {Scheme Procedure} trace-instructions-in-procedure proc [#:width] [#:vm]
+Print a trace at all instructions executed in the dynamic extent of
+calls to @var{proc}.
 @end deffn
 
 In addition, Guile defines a procedure to call a thunk, tracing all
