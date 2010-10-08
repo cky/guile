@@ -38,6 +38,7 @@
     (lambda ()
       (pmatch args
         ((,subr ,msg ,args . ,rest)
+         (guard (> (vector-length stack) 0))
          (display-error (vector-ref stack 0) (current-output-port)
                         subr msg args rest))
         (else
@@ -147,7 +148,7 @@
                   (debug (make-debug stack 0 error-msg)))
              (with-saved-ports
               (lambda ()
-                (format #t error-msg)
+                (display error-msg)
                 (format #t "Entering a new prompt.  ")
                 (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
                 ((@ (system repl repl) start-repl) #:debug debug))))))
