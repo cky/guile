@@ -238,6 +238,10 @@ higher-order procedures."
       (scm-error 'wrong-type-arg caller
 		 "Wrong type argument: ~S" (list arg) '())))
 
+(define (out-of-range proc arg)
+  (scm-error 'out-of-range proc
+             "Value out of range: ~A" (list arg) (list arg)))
+
 ;; the srfi spec doesn't seem to forbid inexact integers.
 (define (non-negative-integer? x) (and (integer? x) (>= x 0)))
 
@@ -374,6 +378,30 @@ end-of-list checking in contexts where dotted lists are allowed."
                   lst)
               (loop (cdr prev)
                     (cdr tail)))))))
+
+(define (split-at lst i)
+  "Return two values, a list of the elements before index I in LST, and
+a list of those after."
+  (if (< i 0)
+      (out-of-range 'split-at i)
+      (let lp ((l lst) (n i) (acc '()))
+        (if (<= n 0)
+            (values (reverse! acc) l)
+            (lp (cdr l) (- n 1) (cons (car l) acc))))))
+
+(define (split-at! lst i)
+  "Linear-update variant of `split-at'."
+  (cond ((< i 0)
+         (out-of-range 'split-at! i))
+        ((= i 0)
+         (values '() lst))
+        (else
+         (let lp ((l lst) (n (- i 1)))
+           (if (<= n 0)
+               (let ((tmp (cdr l)))
+                 (set-cdr! l '())
+                 (values lst tmp))
+               (lp (cdr l) (- n 1)))))))
 
 (define (last pair)
   "Return the last element of the non-empty, finite list PAIR."

@@ -47,8 +47,6 @@ SCM_INTERNAL SCM scm_srfi1_partition (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_partition_x (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_remove (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_remove_x (SCM pred, SCM list);
-SCM_INTERNAL SCM scm_srfi1_split_at (SCM lst, SCM n);
-SCM_INTERNAL SCM scm_srfi1_split_at_x (SCM lst, SCM n);
 SCM_INTERNAL SCM scm_srfi1_take_right (SCM lst, SCM n);
 
 SCM_INTERNAL void scm_register_srfi_1 (void);
