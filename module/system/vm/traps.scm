@@ -309,68 +309,14 @@
                                     #:current-frame current-frame #:vm vm
                                     #:our-frame? our-frame?)))
 
-;; FIXME: pull this definition from elsewhere.
-(define *bytecode-header-len* 8)
-
 ;; FIXME: define this in objcode somehow. We are reffing the first
 ;; uint32 in the objcode, which is the length of the program (without
 ;; the meta).
 (define (program-last-ip prog)
   (bytevector-u32-native-ref (objcode->bytecode (program-objcode prog)) 0))
 
-;; We could decompile the program to get this, but that seems like a
-;; waste.
-(define (bytecode-instruction-length bytecode ip)
-  (let* ((idx (+ ip *bytecode-header-len*))
-         (inst (opcode->instruction (bytevector-u8-ref bytecode idx))))
-    ;; 1+ for the instruction itself.
-    (1+ (cond
-         ((eq? inst 'load-program)
-          (+ (bytevector-u32-native-ref bytecode (+ idx 1))
-             (bytevector-u32-native-ref bytecode (+ idx 5))))
-         ((< (instruction-length inst) 0)
-          ;; variable length instruction -- the length is encoded in the
-          ;; instruction stream.
-          (+ (ash (bytevector-u8-ref bytecode (+ idx 1)) 16)
-             (ash (bytevector-u8-ref bytecode (+ idx 2)) 8)
-             (bytevector-u8-ref bytecode (+ idx 3))))
-         (else
-          ;; fixed length
-          (instruction-length inst))))))
-
-;; Source information could in theory be correlated with the ip of the
-;; instruction, or the ip just after the instruction is retired. Guile
-;; does the latter, to make backtraces easy -- an error produced while
-;; running an opcode always happens after it has retired its arguments.
-;;
-;; But for breakpoints and such, we need the ip before the instruction
-;; is retired -- before it has had a chance to do anything. So here we
-;; change from the post-retire addresses given by program-sources to
-;; pre-retire addresses.
-;;
-(define (program-sources-before-retire proc)
-  (let ((bv (objcode->bytecode (program-objcode proc))))
-    (let lp ((in (program-sources proc))
-             (out '())
-             (ip 0))
-      (cond
-       ((null? in)
-        (reverse out))
-       (else
-        (pmatch (car in)
-          ((,post-ip . ,source)
-           (let lp2 ((ip ip)
-                     (next ip))
-             (if (< next post-ip)
-                 (lp2 next (+ next (bytecode-instruction-length bv next)))
-                 (lp (cdr in)
-                     (acons ip source out)
-                     next))))
-          (else
-           (error "unexpected"))))))))
-
 (define (program-sources-by-line proc file)
-  (let lp ((sources (program-sources-before-retire proc))
+  (let lp ((sources (program-sources-pre-retire proc))
            (out '()))
     (if (pair? sources)
         (lp (cdr sources)

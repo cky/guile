@@ -267,28 +267,37 @@ scm_i_program_properties (SCM program)
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_program_source, "program-source", 2, 0, 0,
-	    (SCM program, SCM ip),
+static SCM
+program_source (SCM program, size_t ip, SCM sources)
+{
+  SCM source = SCM_BOOL_F;
+
+  while (!scm_is_null (sources)
+         && scm_to_size_t (scm_caar (sources)) <= ip)
+    {
+      source = scm_car (sources);
+      sources = scm_cdr (sources);
+    }
+  
+  return source; /* (addr . (filename . (line . column))) */
+}
+
+SCM_DEFINE (scm_program_source, "program-source", 2, 1, 0,
+	    (SCM program, SCM ip, SCM sources),
 	    "")
 #define FUNC_NAME s_scm_program_source
 {
   SCM_VALIDATE_PROGRAM (1, program);
-  return scm_c_program_source (program, scm_to_size_t (ip));
+  if (SCM_UNBNDP (sources))
+    sources = scm_program_sources (program);
+  return program_source (program, scm_to_size_t (ip), sources);
 }
 #undef FUNC_NAME
     
 extern SCM
 scm_c_program_source (SCM program, size_t ip)
 {
-  SCM sources, source = SCM_BOOL_F;
-
-  for (sources = scm_program_sources (program);
-       !scm_is_null (sources)
-         && scm_to_size_t (scm_caar (sources)) <= ip;
-       sources = scm_cdr (sources))
-    source = scm_car (sources);
-  
-  return source; /* (addr . (filename . (line . column))) */
+  return program_source (program, ip, scm_program_sources (program));
 }
 
 SCM_DEFINE (scm_program_num_free_variables, "program-num-free-variables", 1, 0, 0,

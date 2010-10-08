@@ -26,7 +26,7 @@
   #:export (frame-bindings
             frame-lookup-binding
             frame-binding-ref frame-binding-set!
-            frame-source frame-call-representation
+            frame-source frame-next-source frame-call-representation
             frame-environment
             frame-object-binding frame-object-name
             frame-return-values))
@@ -71,8 +71,17 @@
 ;;;
 
 (define (frame-source frame)
-  (program-source (frame-procedure frame)
-                  (frame-instruction-pointer frame)))
+  (let ((proc (frame-procedure frame)))
+    (program-source proc
+                    (frame-instruction-pointer frame)
+                    (program-sources proc))))
+
+(define (frame-next-source frame)
+  (let ((proc (frame-procedure frame)))
+    (program-source proc
+                    (frame-instruction-pointer frame)
+                    (program-sources-pre-retire proc))))
+
 
 ;; Basically there are two cases to deal with here:
 ;;

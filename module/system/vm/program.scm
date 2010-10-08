@@ -20,6 +20,9 @@
 
 (define-module (system vm program)
   #:use-module (system base pmatch)
+  #:use-module (system vm instruction)
+  #:use-module (system vm objcode)
+  #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-26)
   #:export (make-program
@@ -29,7 +32,7 @@
 
             source:addr source:line source:column source:file
             source:line-for-user
-            program-sources program-source
+            program-sources program-sources-pre-retire program-source
 
             program-bindings program-bindings-by-index program-bindings-for-ip
             program-arities program-arity arity:start arity:end
@@ -70,6 +73,60 @@
 ;; figure.
 (define (source:line-for-user source)
   (1+ (source:line source)))
+
+;; FIXME: pull this definition from elsewhere.
+(define *bytecode-header-len* 8)
+
+;; We could decompile the program to get this, but that seems like a
+;; waste.
+(define (bytecode-instruction-length bytecode ip)
+  (let* ((idx (+ ip *bytecode-header-len*))
+         (inst (opcode->instruction (bytevector-u8-ref bytecode idx))))
+    ;; 1+ for the instruction itself.
+    (1+ (cond
+         ((eq? inst 'load-program)
+          (+ (bytevector-u32-native-ref bytecode (+ idx 1))
+             (bytevector-u32-native-ref bytecode (+ idx 5))))
+         ((< (instruction-length inst) 0)
+          ;; variable length instruction -- the length is encoded in the
+          ;; instruction stream.
+          (+ (ash (bytevector-u8-ref bytecode (+ idx 1)) 16)
+             (ash (bytevector-u8-ref bytecode (+ idx 2)) 8)
+             (bytevector-u8-ref bytecode (+ idx 3))))
+         (else
+          ;; fixed length
+          (instruction-length inst))))))
+
+;; Source information could in theory be correlated with the ip of the
+;; instruction, or the ip just after the instruction is retired. Guile
+;; does the latter, to make backtraces easy -- an error produced while
+;; running an opcode always happens after it has retired its arguments.
+;;
+;; But for breakpoints and such, we need the ip before the instruction
+;; is retired -- before it has had a chance to do anything. So here we
+;; change from the post-retire addresses given by program-sources to
+;; pre-retire addresses.
+;;
+(define (program-sources-pre-retire proc)
+  (let ((bv (objcode->bytecode (program-objcode proc))))
+    (let lp ((in (program-sources proc))
+             (out '())
+             (ip 0))
+      (cond
+       ((null? in)
+        (reverse out))
+       (else
+        (pmatch (car in)
+          ((,post-ip . ,source)
+           (let lp2 ((ip ip)
+                     (next ip))
+             (if (< next post-ip)
+                 (lp2 next (+ next (bytecode-instruction-length bv next)))
+                 (lp (cdr in)
+                     (acons ip source out)
+                     next))))
+          (else
+           (error "unexpected"))))))))
 
 (define (collapse-locals locs)
   (let lp ((ret '()) (locs locs))
