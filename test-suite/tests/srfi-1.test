@@ -1266,6 +1266,28 @@
 	     (equal? '((1 2) (3 4) (5 6)) lst))))))
 
 ;;
+;; fold-right
+;;
+
+(with-test-prefix "fold-right"
+
+  (pass-if "one list"
+    (equal? (iota 10)
+            (fold-right cons '() (iota 10))))
+
+  (pass-if "two lists"
+    (equal? (zip (iota 10) (map integer->char (iota 10)))
+            (fold-right (lambda (x y z)
+                          (cons (list x y) z))
+                        '()
+                        (iota 10)
+                        (map integer->char (iota 10)))))
+
+  (pass-if "tail-recursive"
+    (= 1e6 (fold-right (lambda (x y) (+ 1 y))
+                       0
+                       (iota 1e6)))))
+;;
 ;; unfold
 ;;
 

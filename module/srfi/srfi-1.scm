@@ -419,14 +419,18 @@ that result.  See the manual for details."
 
 (define (fold-right kons knil clist1 . rest)
   (if (null? rest)
-    (let f ((list1 clist1))
-      (if (null? list1)
-	knil
-	(kons (car list1) (f (cdr list1)))))
-    (let f ((lists (cons clist1 rest)))
-      (if (any null? lists)
-	knil
-	(apply kons (append! (map1 car lists) (list (f (map1 cdr lists)))))))))
+      (let loop ((lst    (reverse clist1))
+                 (result knil))
+        (if (null? lst)
+            result
+            (loop (cdr lst)
+                  (kons (car lst) result))))
+      (let loop ((lists  (map1 reverse (cons clist1 rest)))
+                 (result knil))
+        (if (any1 null? lists)
+            result
+            (loop (map1 cdr lists)
+                  (apply kons (append! (map1 car lists) (list result))))))))
 
 (define (pair-fold kons knil clist1 . rest)
   (if (null? rest)
