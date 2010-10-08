@@ -609,6 +609,9 @@
 (define %opts-w-arity
   '(#:warnings (arity-mismatch)))
 
+(define %opts-w-format
+  '(#:warnings (format)))
+
 
 (with-test-prefix "warnings"
 
@@ -1076,4 +1079,96 @@
                                        y)))
                               (f 2 #:Z 3))
                            #:opts %opts-w-arity
-                           #:to 'assembly)))))))
+                           #:to 'assembly))))))
+
+   (with-test-prefix "format"
+
+     (pass-if "quiet (no args)"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t "hey!")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "quiet (1 arg)"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t "hey ~A!" "you")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "quiet (2 args)"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t "~A ~A!" "hello" "world")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "~% and ~~"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format some-port "~~ hey~%")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "one missing argument"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(format some-port "foo ~A~%")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 0")))))
+
+     (pass-if "two missing arguments"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(format #f "foo ~10,2f and bar ~S~%")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 2, got 0")))))
+
+     (pass-if "one given, one missing argument"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(format #t "foo ~A and ~S~%" hey)
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 2, got 1")))))
+
+     (pass-if "too many arguments"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(format #t "foo ~A~%" 1 2)
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 2")))))
+
+     (pass-if "ice-9 format"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (let ((in (open-input-string
+                              "(use-modules ((ice-9 format)
+                                 #:renamer (symbol-prefix-proc 'i9-)))
+                               (i9-format #t \"yo! ~A\" 1 2)")))
+                     (read-and-compile in
+                                       #:opts %opts-w-format
+                                       #:to 'assembly))))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 2")))))
+
+     (pass-if "not format"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(let ((format chbouib))
+                             (format #t "not ~A a format string"))
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))))

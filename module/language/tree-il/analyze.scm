@@ -33,7 +33,8 @@
             unused-variable-analysis
             unused-toplevel-analysis
             unbound-variable-analysis
-            arity-analysis))
+            arity-analysis
+            format-analysis))
 
 ;; Allocation is the process of assigning storage locations for lexical
 ;; variables. A lexical variable has a distinct "address", or storage
@@ -1194,3 +1195,75 @@ accurate information is missing from a given `tree-il' element."
         toplevel-calls)))
 
    (make-arity-info vlist-null vlist-null vlist-null)))
+
+
+;;;
+;;; `format' argument analysis.
+;;;
+
+(define (format-string-argument-count fmt)
+  ;; Return the number of arguments that should follow format string
+  ;; FMT, or at least a good estimate thereof.
+
+  ;; FIXME: Implement ~[ conditionals.  Check
+  ;; `language/assembly/disassemble.scm' for an example.
+  (let loop ((chars  (string->list fmt))
+             (tilde? #f)
+             (count  0))
+    (if (null? chars)
+        count
+        (if tilde?
+            (case (car chars)
+              ((#\~ #\%) (loop (cdr chars) #f count))
+              (else      (loop (cdr chars) #f (+ 1 count))))
+            (case (car chars)
+              ((#\~)     (loop (cdr chars) #t count))
+              (else      (loop (cdr chars) #f count)))))))
+
+(define format-analysis
+  ;; Report arity mismatches in the given tree.
+  (make-tree-analysis
+   (lambda (x _ env locs)
+     ;; X is a leaf.
+     #t)
+
+   (lambda (x _ env locs)
+     ;; Down into X.
+     (define (check-format-args args loc)
+       (pmatch args
+         ((,port ,fmt . ,rest)
+          (guard (and (const? fmt) (string? (const-exp fmt))))
+          (let* ((fmt      (const-exp fmt))
+                 (expected (format-string-argument-count fmt))
+                 (actual   (length rest)))
+            (or (= expected actual)
+                (warning 'format loc fmt expected actual))))
+         (else #t)))
+
+     (define (resolve-toplevel name)
+       (and (module? env)
+            (false-if-exception (module-ref env name))))
+
+     (record-case x
+       ((<application> proc args src)
+        (let ((loc src))
+          (record-case proc
+            ((<toplevel-ref> name src)
+             (let ((proc (resolve-toplevel name)))
+               (and (or (eq? proc format)
+                        (eq? proc (@ (ice-9 format) format)))
+                    (check-format-args args (or src (find pair? locs))))))
+            (else #t)))
+        #t)
+       (else #t))
+     #t)
+
+   (lambda (x _ env locs)
+     ;; Up from X.
+     #t)
+
+   (lambda (_ env)
+     ;; Post-processing.
+     #t)
+
+   #t))

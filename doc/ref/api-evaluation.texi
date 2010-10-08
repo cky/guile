@@ -570,10 +570,10 @@ in @code{.go}.
 
 @item -W @var{warning}
 @itemx --warn=@var{warning}
-Emit warnings of type @var{warning}; use @code{--warn=help} for a list of
-available warnings.  Currently recognized warnings include
-@code{unused-variable}, @code{unused-toplevel}, @code{unbound-variable}, and
-@code{arity-mismatch}.
+Emit warnings of type @var{warning}; use @code{--warn=help} for a list
+of available warnings and their description.  Currently recognized
+warnings include @code{unused-variable}, @code{unused-toplevel},
+@code{unbound-variable}, @code{arity-mismatch}, and @code{format}.
 
 @item -f @var{lang}
 @itemx --from=@var{lang}

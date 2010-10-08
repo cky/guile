@@ -102,7 +102,14 @@
                          loc name)
                  (format port
                          "~A: warning: possibly wrong number of arguments to `~A'~%"
-                         loc name)))))))
+                         loc name))))
+
+         (format
+          "report wrong number of arguments to `format'"
+          ,(lambda (port loc fmt expected actual)
+             (format port
+                     "~A: warning: ~S: wrong number of `format' arguments: expected ~A, got ~A~%"
+                     loc fmt expected actual))))))
 
 (define (lookup-warning-type name)
   "Return the warning type NAME or `#f' if not found."
