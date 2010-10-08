@@ -1175,7 +1175,7 @@ state}. The trap state object is not exposed to the user; rather, API
 that works on trap states fetches the current trap state from the
 dynamic environment.
 
-Traps identified by integers. A trap can be enabled, disabled, or
+Traps are identified by integers. A trap can be enabled, disabled, or
 removed, and can have an associated user-visible name.
 
 These procedures have their own module:
@@ -1230,13 +1230,13 @@ Do you enter a debugger, or mail a summary of the situation to your
 great-aunt, or what?
 
 So for the common case in which you just want to install breakpoints,
-and then have them all result in calls one parameterizable procedure, we
-have the high-level trap interface.
+and then have them all result in calls to one parameterizable procedure,
+we have the high-level trap interface.
 
 Perhaps we should have started this section with this interface, as it's
 clearly the one most people should use.  But as its capabilities and
 limitations proceed from the lower layers, we felt that the
-character-building exercise of building a mental model could be useful.
+character-building exercise of building a mental model might be helpful.
 
 These procedures share a module with trap states:
 
