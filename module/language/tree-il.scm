@@ -62,7 +62,7 @@
             pre-order!))
 
 (define (print-tree-il exp port)
-  (format port "#<tree-il ~a>" (unparse-tree-il exp)))
+  (format port "#<tree-il ~S>" (unparse-tree-il exp)))
 
 (define-syntax borrow-core-vtables
   (lambda (x)
