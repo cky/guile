@@ -319,51 +319,48 @@ Display the message associated with the error that started the current
 debugging REPL.
 @end deffn
 
-@c FIXME: whenever we regain support for stepping, here are the docs..
+@deffn {REPL Command} registers
+Show the VM registers associated with the current frame.
 
-@c The commands in this subsection all apply only when the stack is
-@c @dfn{continuable} --- in other words when it makes sense for the program
-@c that the stack comes from to continue running.  Usually this means that
-@c the program stopped because of a trap or a breakpoint.
+@xref{Stack Layout}, for more information on VM stack frames.
+@end deffn
 
-@c @deffn {Debugger Command} step [n]
-@c Tell the debugged program to do @var{n} more steps from its current
-@c position.  One @dfn{step} means executing until the next frame entry or
-@c exit of any kind.  @var{n} defaults to 1.
-@c @end deffn
+The next 3 commands work at any REPL.
 
-@c @deffn {Debugger Command} next [n]
-@c Tell the debugged program to do @var{n} more steps from its current
-@c position, but only counting frame entries and exits where the
-@c corresponding source code comes from the same file as the current stack
-@c frame.  (See @ref{Step Traps} for the details of how this works.)  If
-@c the current stack frame has no source code, the effect of this command
-@c is the same as of @code{step}.  @var{n} defaults to 1.
-@c @end deffn
+@deffn {REPL Command} break proc
+Set a breakpoint at @var{proc}.
+@end deffn
 
-@c @deffn {Debugger Command} finish
-@c Tell the program being debugged to continue running until the completion
-@c of the current stack frame, and at that time to print the result and
-@c reenter the command line debugger.
-@c @end deffn
+@deffn {REPL Command} break-at-source file line
+Set a breakpoint at the given source location.
+@end deffn
 
-@c @deffn {Debugger Command} continue
-@c Tell the program being debugged to continue running.  (In fact this is
-@c the same as the @code{quit} command, because it exits the debugger
-@c command loop and so allows whatever code it was that invoked the
-@c debugger to continue.)
-@c @end deffn
+@deffn {REPL Command} tracepoint proc
+Set a tracepoint on the given procedure. This will cause all calls to
+the procedure to print out a tracing message. @xref{Tracing Traps}, for
+more information.
+@end deffn
 
-@c The @code{evaluate} command is most useful for querying the value of a
-@c variable, either global or local, in the environment of the selected
-@c stack frame, but it can be used more generally to evaluate any
-@c expression.
+The rest of the commands in this subsection all apply only when the
+stack is @dfn{continuable} --- in other words when it makes sense for
+the program that the stack comes from to continue running.  Usually this
+means that the program stopped because of a trap or a breakpoint.
 
-@c @deffn {Debugger Command} evaluate expression
-@c Evaluate an expression in the environment of the selected stack frame.
-@c The expression must appear on the same line as the command, however it
-@c may be continued over multiple lines.
-@c @end deffn
+@deffn {REPL Command} step
+Tell the debugged program to step to the next source location.
+@end deffn
+
+@deffn {REPL Command} next
+Tell the debugged program to step to the next source location in the
+same frame.  (See @ref{Traps} for the details of how this works.)
+@end deffn
+
+@deffn {REPL Command} finish
+Tell the program being debugged to continue running until the completion
+of the current stack frame, and at that time to print the result and
+reenter the REPL.
+@end deffn
+
 
 @node Inspect Commands
 @subsubsection Inspect Commands

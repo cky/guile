@@ -673,7 +673,7 @@ Step until control reaches a different source location in the current frame."
                                   #:into? #f #:instruction? #f)
     (throw 'quit)))
 
-(define-stack-command (step-instruction repl)
+(define-stack-command (next-instruction repl)
   "next-instruction
 Step until control reaches a different instruction in the current frame.
 
