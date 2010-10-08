@@ -129,7 +129,7 @@
                  (if (eq? k 'quit)
                      (abort args)
                      (begin
-                       (format #t "While executing meta-command `~A'~%" string)
+                       (format #t "While executing meta-command:~%")
                        (pmatch args
                          ((,subr ,msg ,args . ,rest)
                           (display-error #f (current-output-port) subr msg args rest))

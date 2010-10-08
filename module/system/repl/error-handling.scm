@@ -34,15 +34,15 @@
 ;;;
 
 (define (error-string stack key args)
-  (with-output-to-string
-    (lambda ()
-      (pmatch args
-        ((,subr ,msg ,args . ,rest)
-         (guard (> (vector-length stack) 0))
+  (pmatch args
+    ((,subr ,msg ,args . ,rest)
+     (guard (> (vector-length stack) 0))
+     (with-output-to-string
+       (lambda ()
          (display-error (vector-ref stack 0) (current-output-port)
-                        subr msg args rest))
-        (else
-         (format #t "Throw to key `~a' with args `~s'." key args))))))
+                        subr msg args rest))))
+    (else
+     (format #f "Throw to key `~a' with args `~s'." key args))))
 
 (define* (call-with-error-handling thunk #:key
                                    (on-error 'debug) (post-error 'catch)
@@ -148,7 +148,7 @@
                   (debug (make-debug stack 0 error-msg)))
              (with-saved-ports
               (lambda ()
-                (display error-msg)
+                (format #t "~a~%" error-msg)
                 (format #t "Entering a new prompt.  ")
                 (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
                 ((@ (system repl repl) start-repl) #:debug debug))))))
