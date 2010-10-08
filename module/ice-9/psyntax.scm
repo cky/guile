@@ -647,9 +647,9 @@
     ;;         <subs> ::= #(<old name> <label> (<mark> ...))
     ;;        <shift> ::= positive fixnum
 
-    (define make-wrap cons)
-    (define wrap-marks car)
-    (define wrap-subst cdr)
+    (define-syntax make-wrap (identifier-syntax cons))
+    (define-syntax wrap-marks (identifier-syntax car))
+    (define-syntax wrap-subst (identifier-syntax cdr))
 
     (define-syntax subst-rename? (identifier-syntax vector?))
     (define-syntax rename-old (syntax-rules () ((_ x) (vector-ref x 0))))
