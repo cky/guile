@@ -138,6 +138,13 @@
 ;;; regexp-quote
 ;;;
 
+(define-syntax with-ascii-or-latin1-locale
+  (syntax-rules ()
+    ((_ chr body ...)
+     (if (> chr 127)
+         (with-latin1-locale body ...)
+         (begin body ...)))))
+
 (with-test-prefix "regexp-quote"
 
   (pass-if-exception "no args" exception:wrong-num-args
@@ -165,7 +172,7 @@
              (let* ((c (integer->char i))
                     (s (string c)))
                (pass-if (list "char" i (format #f "~s ~s" c s))
-                 (with-latin1-locale
+                 (with-ascii-or-latin1-locale i
                   (let* ((q (regexp-quote s))
                          (m (regexp-exec (make-regexp q flag) s)))
                     (and (= 0 (match:start m))
@@ -180,7 +187,7 @@
                     (s (string #\a c))
                     (q (regexp-quote s)))
                (pass-if (list "string \"aX\"" i (format #f "~s ~s ~s" c s q))
-                 (with-latin1-locale
+                 (with-ascii-or-latin1-locale i
 		  (let* ((m (regexp-exec (make-regexp q flag) s)))
                     (and (= 0 (match:start m))
                          (= 2 (match:end m))))))))
