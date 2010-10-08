@@ -157,5 +157,5 @@
   (let* ((len (frame-num-locals frame))
          (nvalues (frame-local-ref frame (1- len))))
     (map (lambda (i)
-           (frame-local-ref frame (+ (- len nvalues) i)))
+           (frame-local-ref frame (+ (- len nvalues 1) i)))
          (iota nvalues))))
