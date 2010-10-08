@@ -455,6 +455,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_bootstrap_objcodes ();
   scm_bootstrap_programs ();
   scm_bootstrap_vm ();
+  scm_register_r6rs_ports ();
   scm_register_foreign ();
   scm_register_srfi_1 ();
   scm_register_srfi_60 ();

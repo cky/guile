@@ -1065,6 +1065,15 @@ initialize_custom_binary_output_ports (void)
 /* Initialization.  */
 
 void
+scm_register_r6rs_ports (void)
+{
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_r6rs_ports",
+			    (scm_t_extension_init_func) scm_init_r6rs_ports,
+			    NULL);
+}
+
+void
 scm_init_r6rs_ports (void)
 {
 #include "libguile/r6rs-ports.x"
