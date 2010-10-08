@@ -511,6 +511,28 @@ has just one element then that's the return value."
 ;; OPTIMIZE-ME: Re-use cons cells of list1
 (define map! map)
 
+(define (filter-map proc list1 . rest)
+  "Apply PROC to to the elements of LIST1... and return a list of the
+results as per SRFI-1 `map', except that any #f results are omitted from
+the list returned."
+  (if (null? rest)
+      (let lp ((l list1)
+               (rl '()))
+        (if (null? l)
+            (reverse! rl)
+            (let ((res (proc (car l))))
+              (if res
+                  (lp (cdr l) (cons res rl))
+                  (lp (cdr l) rl)))))
+      (let lp ((l (cons list1 rest))
+               (rl '()))
+        (if (any1 null? l)
+            (reverse! rl)
+            (let ((res (apply proc (map1 car l))))
+              (if res
+                  (lp (map1 cdr l) (cons res rl))
+                  (lp (map1 cdr l) rl)))))))
+
 (define (pair-for-each f clist1 . rest)
   (if (null? rest)
     (let lp ((l clist1))
