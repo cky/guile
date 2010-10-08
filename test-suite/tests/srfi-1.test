@@ -1266,6 +1266,34 @@
 	     (equal? '((1 2) (3 4) (5 6)) lst))))))
 
 ;;
+;; unfold
+;;
+
+(with-test-prefix "unfold"
+
+  (pass-if "basic"
+    (equal? (iota 10)
+            (unfold (lambda (x) (>= x 10))
+                    identity
+                    1+
+                    0)))
+
+  (pass-if "tail-gen"
+    (equal? (append (iota 10) '(tail 10))
+            (unfold (lambda (x) (>= x 10))
+                    identity
+                    1+
+                    0
+                    (lambda (seed) (list 'tail seed)))))
+
+  (pass-if "tail-recursive"
+    ;; Bug #30071.
+    (pair? (unfold (lambda (x) (>= x 1e6))
+                   identity
+                   1+
+                   0))))
+
+;;
 ;; length+
 ;;
 

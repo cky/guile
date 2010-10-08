@@ -454,11 +454,20 @@ that result.  See the manual for details."
 	(apply kons (append! lists (list (f (map1 cdr lists)))))))))
 
 (define* (unfold p f g seed #:optional (tail-gen (lambda (x) '())))
-  (let uf ((seed seed))
+  (define (reverse+tail lst seed)
+    (let loop ((lst    lst)
+               (result (tail-gen seed)))
+      (if (null? lst)
+          result
+          (loop (cdr lst)
+                (cons (car lst) result)))))
+
+  (let loop ((seed   seed)
+             (result '()))
     (if (p seed)
-        (tail-gen seed)
-        (cons (f seed)
-              (uf (g seed))))))
+        (reverse+tail result seed)
+        (loop (g seed)
+              (cons (f seed) result)))))
 
 (define* (unfold-right p f g seed #:optional (tail '()))
   (let uf ((seed seed) (lis tail))
