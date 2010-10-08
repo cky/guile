@@ -43,7 +43,7 @@
     + * - / 1- 1+ quotient remainder modulo
     ash logand logior logxor
     not
-    pair? null? list? acons cons cons*
+    pair? null? list? symbol? vector? acons cons cons*
 
     list vector
 
@@ -112,7 +112,7 @@
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo
     not
-    pair? null? list? acons cons cons*
+    pair? null? list? symbol? vector? acons cons cons*
     list vector
     car cdr
     caar cadr cdar cddr
@@ -137,7 +137,7 @@
   '(values
     eq? eqv? equal?
     not
-    pair? null? list? acons cons cons*
+    pair? null? list? symbol? vector? acons cons cons*
     list vector
     struct?))
 

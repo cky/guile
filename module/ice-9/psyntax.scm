@@ -554,8 +554,12 @@
         ((_ type value) (cons type value))
         ((_ 'type) '(type))
         ((_ type) (cons type '()))))
-    (define binding-type car)
-    (define binding-value cdr)
+    (define-syntax binding-type
+      (syntax-rules ()
+        ((_ x) (car x))))
+    (define-syntax binding-value
+      (syntax-rules ()
+        ((_ x) (cdr x))))
 
     (define-syntax null-env (identifier-syntax '()))
 

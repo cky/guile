@@ -105,6 +105,8 @@
    ((set-cdr! . 2) . set-cdr!)
    ((null? . 1) . null?)
    ((list? . 1) . list?)
+   ((symbol? . 1) . symbol?)
+   ((vector? . 1) . vector?)
    (list . list)
    (vector . vector)
    ((class-of . 1) . class-of)
