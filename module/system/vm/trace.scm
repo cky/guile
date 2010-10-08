@@ -61,7 +61,7 @@
      (else
       ;; this should work, but there appears to be a bug
       ;; "~a~d values:~:{ ~v:@y~}\n"
-      (format (current-error-port) "~a ~a~d values:~{ ~a~}\n"
+      (format (current-error-port) "~a~a~d values:~{ ~a~}\n"
               prefix
               (let lp ((depth depth) (s ""))
                 (if (zero? depth)
