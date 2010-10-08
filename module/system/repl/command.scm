@@ -594,7 +594,7 @@ Note that the given source location must be inside a procedure."
     (let ((idx (add-trap-at-source-location! file line)))
       (format #t "Trap ~a: ~a.~%" idx (trap-name idx)))))
 
-(define (repl-pop-continuation-resumer msg)
+(define (repl-pop-continuation-resumer repl msg)
   ;; Capture the dynamic environment with this prompt thing. The
   ;; result is a procedure that takes a frame.
   (% (call-with-values
@@ -625,7 +625,7 @@ Run until the current frame finishes.
 
 Resume execution, breaking when the current frame finishes."
   (let ((handler (repl-pop-continuation-resumer
-                  (format #f "Return from ~a" cur))))
+                  repl (format #f "Return from ~a" cur))))
     (add-ephemeral-trap-at-frame-finish! cur handler)
     (throw 'quit)))
 
