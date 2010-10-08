@@ -275,13 +275,13 @@
             (and (<= (frame-address f) fp)
                  (predicate f))))))
   
-  (let* ((source (frame-source frame))
+  (let* ((source (frame-next-source frame))
          (idx (next-ephemeral-index! trap-state))
          (trap (trap-matching-instructions
                 (wrap-predicate-according-to-into
                  (if instruction?
                      (lambda (f) #t)
-                     (lambda (f) (not (equal? (frame-source f) source)))))
+                     (lambda (f) (not (equal? (frame-next-source f) source)))))
                 (ephemeral-handler-for-index trap-state idx handler))))
     (add-trap-wrapper!
      trap-state
