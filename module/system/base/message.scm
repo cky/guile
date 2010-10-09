@@ -107,9 +107,17 @@
          (format
           "report wrong number of arguments to `format'"
           ,(lambda (port loc fmt expected actual)
+             (define (escape-newlines str)
+               (list->string
+                (string-fold-right (lambda (c r)
+                                     (if (eq? c #\newline)
+                                         (append '(#\\ #\n) r)
+                                         (cons c r)))
+                                   '()
+                                   str)))
              (format port
                      "~A: warning: ~S: wrong number of `format' arguments: expected ~A, got ~A~%"
-                     loc fmt expected actual))))))
+                     loc (escape-newlines fmt) expected actual))))))
 
 (define (lookup-warning-type name)
   "Return the warning type NAME or `#f' if not found."
