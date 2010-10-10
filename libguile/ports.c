@@ -261,8 +261,9 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
 
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
-  else
-    SCM_VALIDATE_OPINPORT (1, port);
+  /* It's possible to close the current input port, so validate even in
+     this case. */
+  SCM_VALIDATE_OPINPORT (1, port);
 
   pt = SCM_PTAB_ENTRY (port);
 
@@ -1656,8 +1657,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
-  else
-    SCM_VALIDATE_OPINPORT (1, port);
+  SCM_VALIDATE_OPINPORT (1, port);
 
   column = SCM_COL (port);
   line = SCM_LINUM (port);
@@ -1695,8 +1695,7 @@ SCM_DEFINE (scm_unread_char, "unread-char", 1, 1, 0,
   SCM_VALIDATE_CHAR (1, cobj);
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
-  else
-    SCM_VALIDATE_OPINPORT (2, port);
+  SCM_VALIDATE_OPINPORT (2, port);
 
   c = SCM_CHAR (cobj);
 
@@ -1717,8 +1716,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
   SCM_VALIDATE_STRING (1, str);
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
-  else
-    SCM_VALIDATE_OPINPORT (2, port);
+  SCM_VALIDATE_OPINPORT (2, port);
 
   n = scm_i_string_length (str);
 
