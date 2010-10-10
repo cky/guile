@@ -1202,23 +1202,134 @@ accurate information is missing from a given `tree-il' element."
 ;;;
 
 (define (format-string-argument-count fmt)
-  ;; Return the number of arguments that should follow format string
-  ;; FMT, or at least a good estimate thereof.
+  ;; Return the minimum and maxium number of arguments that should
+  ;; follow format string FMT (or, ahem, a good estimate thereof) or
+  ;; `any' if the format string can be followed by any number of
+  ;; arguments.
 
-  ;; FIXME: Implement ~[ conditionals.  Check
-  ;; `language/assembly/disassemble.scm' for an example.
-  (let loop ((chars  (string->list fmt))
-             (tilde? #f)
-             (count  0))
+  (define (drop-group chars end)
+    ;; Drop characters from CHARS until "~END" is encountered.
+    (let loop ((chars  chars)
+               (tilde? #f))
+      (if (null? chars)
+          chars ;; syntax error?
+          (if tilde?
+              (if (eq? (car chars) end)
+                  (cdr chars)
+                  (loop (cdr chars) #f))
+              (if (eq? (car chars) #\~)
+                  (loop (cdr chars) #t)
+                  (loop (cdr chars) #f))))))
+
+  (define (digit? char)
+    ;; Return true if CHAR is a digit, #f otherwise.
+    (memq char '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9)))
+
+  (define (previous-number chars)
+    ;; Return the previous series of digits found in CHARS.
+    (let ((numbers (take-while digit? chars)))
+      (and (not (null? numbers))
+           (string->number (list->string (reverse numbers))))))
+
+  (let loop ((chars       (string->list fmt))
+             (state       'literal)
+             (params      '())
+             (conditions  '())
+             (end-group   #f)
+             (min-count 0)
+             (max-count 0))
     (if (null? chars)
-        count
-        (if tilde?
-            (case (car chars)
-              ((#\~ #\%) (loop (cdr chars) #f count))
-              (else      (loop (cdr chars) #f (+ 1 count))))
-            (case (car chars)
-              ((#\~)     (loop (cdr chars) #t count))
-              (else      (loop (cdr chars) #f count)))))))
+        (if end-group
+            (values #f #f) ;; syntax error
+            (values min-count max-count))
+        (case state
+          ((tilde)
+           (case (car chars)
+             ((#\~ #\% #\& #\t #\_ #\newline #\( #\))
+                        (loop (cdr chars) 'literal '()
+                              conditions end-group
+                              min-count max-count))
+             ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\, #\: #\@)
+                        (loop (cdr chars)
+                              'tilde (cons (car chars) params)
+                              conditions end-group
+                              min-count max-count))
+             ((#\v #\V) (loop (cdr chars)
+                              'tilde (cons (car chars) params)
+                              conditions end-group
+                              (+ 1 min-count)
+                              (+ 1 max-count)))
+             ((#\[)
+              (loop chars 'literal '() '()
+                    (let ((selector (previous-number params))
+                          (at?      (memq #\@ params)))
+                      (lambda (chars conds)
+                        ;; end of group
+                        (let ((mins (map car conds))
+                              (maxs (map cdr conds))
+                              (sel? (and selector
+                                         (< selector (length conds)))))
+                          (if (and (every number? mins)
+                                   (every number? maxs))
+                              (loop chars 'literal '() conditions end-group
+                                    (+ min-count
+                                       (if sel?
+                                           (car (list-ref conds selector))
+                                           (+ (if at? 0 1)
+                                              (if (null? mins)
+                                                  0
+                                                  (apply min mins)))))
+                                    (+ max-count
+                                       (if sel?
+                                           (cdr (list-ref conds selector))
+                                           (+ (if at? 0 1)
+                                              (if (null? maxs)
+                                                  0
+                                                  (apply max maxs))))))
+                              (values #f #f)))))
+                    0 0))
+             ((#\;)
+              (loop (cdr chars) 'literal '()
+                    (cons (cons min-count max-count) conditions)
+                    end-group
+                    0 0))
+             ((#\])
+              (if end-group
+                  (end-group (cdr chars)
+                             (reverse (cons (cons min-count max-count)
+                                            conditions)))
+                  (values #f #f))) ;; syntax error
+             ((#\{)     (if (memq #\@ params)
+                            (values min-count 'any)
+                            (loop (drop-group (cdr chars) #\})
+                                  'literal '()
+                                  conditions end-group
+                                  (+ 1 min-count) (+ 1 max-count))))
+             ((#\*)     (if (memq #\@ params)
+                            (values 'any 'any) ;; it's unclear what to do here
+                            (loop (cdr chars)
+                                  'literal '()
+                                  conditions end-group
+                                  (+ (or (previous-number params) 1)
+                                     min-count)
+                                  (+ (or (previous-number params) 1)
+                                     max-count))))
+             ((#\? #\k)
+              ;; We don't have enough info to determine the exact number
+              ;; of args, but we could determine a lower bound (TODO).
+              (values 'any 'any))
+             (else      (loop (cdr chars) 'literal '()
+                              conditions end-group
+                              (+ 1 min-count) (+ 1 max-count)))))
+          ((literal)
+           (case (car chars)
+             ((#\~)     (loop (cdr chars) 'tilde '()
+                              conditions end-group
+                              min-count max-count))
+             (else      (loop (cdr chars) 'literal '()
+                              conditions end-group
+                              min-count max-count))))
+          (else (error "computer bought the farm" state))))))
 
 (define format-analysis
   ;; Report arity mismatches in the given tree.
@@ -1233,11 +1344,14 @@ accurate information is missing from a given `tree-il' element."
        (pmatch args
          ((,port ,fmt . ,rest)
           (guard (and (const? fmt) (string? (const-exp fmt))))
-          (let* ((fmt      (const-exp fmt))
-                 (expected (format-string-argument-count fmt))
-                 (actual   (length rest)))
-            (or (= expected actual)
-                (warning 'format loc fmt expected actual))))
+          (let ((fmt   (const-exp fmt))
+                (count (length rest)))
+            (let-values (((min max)
+                          (format-string-argument-count fmt)))
+              (and min max
+                   (or (and (or (eq? min 'any) (>= count min))
+                            (or (eq? max 'any) (<= count max)))
+                       (warning 'format loc fmt min max count))))))
          (else #t)))
 
      (define (resolve-toplevel name)

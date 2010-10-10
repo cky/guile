@@ -106,7 +106,7 @@
 
          (format
           "report wrong number of arguments to `format'"
-          ,(lambda (port loc fmt expected actual)
+          ,(lambda (port loc fmt min max actual)
              (define (escape-newlines str)
                (list->string
                 (string-fold-right (lambda (c r)
@@ -115,9 +115,21 @@
                                          (cons c r)))
                                    '()
                                    str)))
+
+             (define (range)
+               (cond ((eq? min 'any)
+                      (if (eq? max 'any)
+                          "any number" ;; can't happen
+                          (format #f "up to ~a" max)))
+                     ((eq? max 'any)
+                      (format #f "at least ~a" min))
+                     ((= min max) (number->string min))
+                     (else
+                      (format #f "~a to ~a" min max))))
+
              (format port
                      "~A: warning: ~S: wrong number of `format' arguments: expected ~A, got ~A~%"
-                     loc (escape-newlines fmt) expected actual))))))
+                     loc (escape-newlines fmt) (range) actual))))))
 
 (define (lookup-warning-type name)
   "Return the warning type NAME or `#f' if not found."
