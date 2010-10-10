@@ -324,7 +324,8 @@ SYSTEM_SOURCES =				\
   system/repl/error-handling.scm		\
   system/repl/common.scm			\
   system/repl/command.scm			\
-  system/repl/repl.scm
+  system/repl/repl.scm				\
+  system/repl/server.scm
 
 LIB_SOURCES =					\
   statprof.scm					\
