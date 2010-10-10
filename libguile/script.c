@@ -386,6 +386,8 @@ scm_shell_usage (int fatal, char *message)
            "  --no-autocompile  disable automatic source file compilation\n"
            "                 Default is to enable autocompilation of source\n"
            "                 files.\n"
+           "  --listen[=P]   Listen on a local port or a path for REPL clients.\n"
+           "                 If P is not given, the default is local port 37146.\n"
 	   "  -q             inhibit loading of user init file\n"
 	   "  --use-srfi=LS  load SRFI modules for the SRFIs in LS,\n"
 	   "                 which is a list of numbers like \"2,13,14\"\n"
@@ -638,6 +640,60 @@ scm_compile_shell_switches (int argc, char **argv)
 	  tail = scm_cons (scm_list_2 (sym_use_srfis,
 				       scm_list_2 (scm_sym_quote, srfis)),
 			   tail);
+	}
+
+      else if (! strncmp (argv[i], "--listen", 8)  /* start a repl server */ 
+               && (argv[i][8] == '\0' || argv[i][8] == '='))
+	{
+          const char default_template[] =
+            "(@@ (system repl server) (spawn-server))";
+          const char port_template[] =
+            "(@@ (system repl server)"
+            "    (spawn-server (make-tcp-server-socket #:port ~a)))";
+          const char path_template[] =
+            "(@@ (system repl server)"
+            "    (spawn-server (make-unix-domain-server-socket #:path ~s)))";
+
+	  SCM form_str = SCM_BOOL_F;
+	  char * p = argv[i] + 8;
+
+          if (*p == '=')
+            {
+              p++;
+              if (*p > '0' && *p <= '9')
+                {
+                  /* --listen=PORT */
+                  SCM port = scm_string_to_number (scm_from_locale_string (p),
+                                                   SCM_UNDEFINED);
+
+                  if (scm_is_false (port))
+                    scm_shell_usage (1, "invalid port for --listen");
+
+                  form_str =
+                    scm_simple_format (SCM_BOOL_F,
+                                       scm_from_locale_string (port_template),
+                                       scm_list_1 (port));
+                }
+              else if (*p == '/')
+                {
+                  /* --listen=/PATH/TO/SOCKET */
+                  SCM path = scm_from_locale_string (p);
+
+                  form_str =
+                    scm_simple_format (SCM_BOOL_F,
+                                       scm_from_locale_string (path_template),
+                                       scm_list_1 (path));
+                }
+              else
+                {
+                  /* unknown --listen arg */
+                  scm_shell_usage (1, "unknown argument to --listen");
+                }
+            }
+          else
+            form_str = scm_from_locale_string (default_template);
+          
+          tail = scm_cons (scm_read (scm_open_input_string (form_str)), tail);
 	}
 
       else if (! strcmp (argv[i], "-h")
