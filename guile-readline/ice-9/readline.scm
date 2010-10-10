@@ -200,26 +200,33 @@
 	(lambda ()
 	  (set! *readline-completion-function* old-completer)))))
 
+(define readline-repl-reader
+  (let ((boot-9-repl-reader repl-reader))
+    (lambda* (repl-prompt #:optional (reader (fluid-ref current-reader)))
+      (let ((port (current-input-port)))
+        (if (eq? port (readline-port))
+            (let ((outer-new-input-prompt new-input-prompt)
+                  (outer-continuation-prompt continuation-prompt)
+                  (outer-read-hook read-hook))
+              (dynamic-wind
+                (lambda ()
+                  (set-buffered-input-continuation?! port #f)
+                  (set-readline-prompt! repl-prompt "... ")
+                  (set-readline-read-hook! (lambda ()
+                                             (run-hook before-read-hook))))
+                (lambda () ((or reader read) port))
+                (lambda ()
+                  (set-readline-prompt! outer-new-input-prompt
+                                        outer-continuation-prompt)
+                  (set-readline-read-hook! outer-read-hook))))
+            (boot-9-repl-reader repl-prompt reader))))))
+
 (define-public (activate-readline)
   (if (isatty? (current-input-port))
-      (let ((repl-read-hook (lambda () (run-hook before-read-hook))))
-	(set-current-input-port (readline-port))
-	(set! repl-reader
-	      (lambda* (repl-prompt
-                        #:optional (reader (fluid-ref current-reader)))
-		(let ((outer-new-input-prompt new-input-prompt)
-		      (outer-continuation-prompt continuation-prompt)
-		      (outer-read-hook read-hook))
-		  (dynamic-wind
-                    (lambda ()
-                      (set-buffered-input-continuation?! (readline-port) #f)
-                      (set-readline-prompt! repl-prompt "... ")
-                      (set-readline-read-hook! repl-read-hook))
-                    (lambda () ((or reader read) (current-input-port)))
-                    (lambda ()
-                      (set-readline-prompt! outer-new-input-prompt outer-continuation-prompt)
-                      (set-readline-read-hook! outer-read-hook))))))
-	(set! (using-readline?) #t))))
+      (begin
+        (set-current-input-port (readline-port))
+        (set! repl-reader readline-repl-reader)
+        (set! (using-readline?) #t))))
 
 (define-public (make-completion-function strings)
   "Construct and return a completion function for a list of strings.
