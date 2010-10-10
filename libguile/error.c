@@ -147,6 +147,33 @@ void
 scm_syserror (const char *subr)
 {
   SCM err = scm_from_int (SCM_I_ERRNO ());
+
+  /* It could be that we're getting here because the syscall was
+     interrupted by a signal.  In that case a signal handler might have
+     been queued to run.  The signal handler probably throws an
+     exception.
+
+     If we don't try to run the signal handler now, it will run later,
+     which would result in two exceptions being thrown: this syserror,
+     and then at some later time the exception thrown by the async
+     signal handler.
+
+     The problem is that we don't know if handling the signal caused an
+     async to be queued.  By this time scmsigs.c:take_signal will have
+     written a byte on the fd, but we don't know if the signal-handling
+     thread has read it off and queued an async.
+
+     Ideally we need some API like scm_i_ensure_signals_delivered() to
+     catch up signal delivery.  Barring that, we just cross our digits
+     and pray; it could be that we handle the signal in time, and just
+     throw once, or it could be that we miss the deadline and throw
+     twice.
+  */
+#ifdef EINTR
+  if (scm_to_int (err) == EINTR)
+    SCM_ASYNC_TICK;
+#endif
+
   scm_error (scm_system_error_key,
 	     subr,
 	     "~A",
@@ -157,6 +184,11 @@ scm_syserror (const char *subr)
 void
 scm_syserror_msg (const char *subr, const char *message, SCM args, int eno)
 {
+  /* See above note about the EINTR signal handling race. */
+#ifdef EINTR
+  if (eno == EINTR)
+    SCM_ASYNC_TICK;
+#endif
   scm_error (scm_system_error_key,
 	     subr,
 	     message,
