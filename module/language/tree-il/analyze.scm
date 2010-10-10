@@ -1343,16 +1343,25 @@ accurate information is missing from a given `tree-il' element."
      (define (check-format-args args loc)
        (pmatch args
          ((,port ,fmt . ,rest)
-          (guard (and (const? fmt) (string? (const-exp fmt))))
+          (guard (const? fmt))
+          (if (and (const? port)
+                   (not (boolean? (const-exp port))))
+              (warning 'format loc 'wrong-port (const-exp port)))
           (let ((fmt   (const-exp fmt))
                 (count (length rest)))
-            (let-values (((min max)
-                          (format-string-argument-count fmt)))
-              (and min max
-                   (or (and (or (eq? min 'any) (>= count min))
-                            (or (eq? max 'any) (<= count max)))
-                       (warning 'format loc fmt min max count))))))
-         (else #t)))
+            (if (string? fmt)
+                (let-values (((min max)
+                              (format-string-argument-count fmt)))
+                  (and min max
+                       (or (and (or (eq? min 'any) (>= count min))
+                                (or (eq? max 'any) (<= count max)))
+                           (warning 'format loc 'wrong-format-arg-count
+                                    fmt min max count))))
+                (warning 'format loc 'wrong-format-string fmt))))
+         ((,port ,fmt . ,rest)
+          (warning 'format loc 'non-literal-format-string))
+         (else
+          (warning 'format loc 'wrong-num-args (length args)))))
 
      (define (resolve-toplevel name)
        (and (module? env)
