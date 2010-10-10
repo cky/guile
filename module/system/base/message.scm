@@ -134,6 +134,18 @@
                         "~A: warning: ~S: wrong number of `format' arguments: expected ~A, got ~A~%"
                         loc (escape-newlines fmt)
                         (range min max) actual))
+               (('syntax-error 'unterminated-iteration fmt)
+                (format port "~A: warning: ~S: unterminated iteration~%"
+                        loc (escape-newlines fmt)))
+               (('syntax-error 'unterminated-conditional fmt)
+                (format port "~A: warning: ~S: unterminated conditional~%"
+                        loc (escape-newlines fmt)))
+               (('syntax-error 'unexpected-semicolon fmt)
+                (format port "~A: warning: ~S: unexpected `~~;'~%"
+                        loc (escape-newlines fmt)))
+               (('syntax-error 'unexpected-conditional-termination fmt)
+                (format port "~A: warning: ~S: unexpected `~~]'~%"
+                        loc (escape-newlines fmt)))
                (('wrong-port wrong-port)
                 (format port
                         "~A: warning: ~S: wrong port argument~%"

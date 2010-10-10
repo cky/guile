@@ -1201,6 +1201,10 @@ accurate information is missing from a given `tree-il' element."
 ;;; `format' argument analysis.
 ;;;
 
+(define &syntax-error
+  ;; The `throw' key for syntax errors.
+  (gensym "format-string-syntax-error"))
+
 (define (format-string-argument-count fmt)
   ;; Return the minimum and maxium number of arguments that should
   ;; follow format string FMT (or, ahem, a good estimate thereof) or
@@ -1212,7 +1216,7 @@ accurate information is missing from a given `tree-il' element."
     (let loop ((chars  chars)
                (tilde? #f))
       (if (null? chars)
-          chars ;; syntax error?
+          (throw &syntax-error 'unterminated-iteration)
           (if tilde?
               (if (eq? (car chars) end)
                   (cdr chars)
@@ -1240,7 +1244,7 @@ accurate information is missing from a given `tree-il' element."
              (max-count 0))
     (if (null? chars)
         (if end-group
-            (values #f #f) ;; syntax error
+            (throw &syntax-error 'unterminated-conditional)
             (values min-count max-count))
         (case state
           ((tilde)
@@ -1286,19 +1290,21 @@ accurate information is missing from a given `tree-il' element."
                                               (if (null? maxs)
                                                   0
                                                   (apply max maxs))))))
-                              (values #f #f)))))
+                              (values 'any 'any))))) ;; XXX: approximation
                     0 0))
              ((#\;)
-              (loop (cdr chars) 'literal '()
-                    (cons (cons min-count max-count) conditions)
-                    end-group
-                    0 0))
+              (if end-group
+                  (loop (cdr chars) 'literal '()
+                        (cons (cons min-count max-count) conditions)
+                        end-group
+                        0 0)
+                  (throw &syntax-error 'unexpected-semicolon)))
              ((#\])
               (if end-group
                   (end-group (cdr chars)
                              (reverse (cons (cons min-count max-count)
                                             conditions)))
-                  (values #f #f))) ;; syntax error
+                  (throw &syntax-error 'unexpected-conditional-termination)))
              ((#\{)     (if (memq #\@ params)
                             (values min-count 'any)
                             (loop (drop-group (cdr chars) #\})
@@ -1350,13 +1356,17 @@ accurate information is missing from a given `tree-il' element."
           (let ((fmt   (const-exp fmt))
                 (count (length rest)))
             (if (string? fmt)
-                (let-values (((min max)
-                              (format-string-argument-count fmt)))
-                  (and min max
-                       (or (and (or (eq? min 'any) (>= count min))
-                                (or (eq? max 'any) (<= count max)))
-                           (warning 'format loc 'wrong-format-arg-count
-                                    fmt min max count))))
+                (catch &syntax-error
+                  (lambda ()
+                    (let-values (((min max)
+                                  (format-string-argument-count fmt)))
+                      (and min max
+                           (or (and (or (eq? min 'any) (>= count min))
+                                    (or (eq? max 'any) (<= count max)))
+                               (warning 'format loc 'wrong-format-arg-count
+                                        fmt min max count)))))
+                  (lambda (_ key)
+                    (warning 'format loc 'syntax-error key fmt)))
                 (warning 'format loc 'wrong-format-string fmt))))
          ((,port ,fmt . ,rest)
           (warning 'format loc 'non-literal-format-string))

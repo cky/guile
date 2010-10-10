@@ -1261,13 +1261,35 @@
                 (number? (string-contains (car w)
                                           "expected 2 to 4, got 0")))))
 
-       (pass-if "invalid syntax"
-         ;; Syntax errors should be gracefully handled.
-         (null? (call-with-warnings
-                 (lambda ()
-                   (compile '(format #f "~[unterminated")
-                            #:opts %opts-w-format
-                            #:to 'assembly))))))
+       (pass-if "unterminated"
+         (let ((w (call-with-warnings
+                   (lambda ()
+                     (compile '(format #f "~[unterminated")
+                              #:opts %opts-w-format
+                              #:to 'assembly)))))
+           (and (= (length w) 1)
+                (number? (string-contains (car w)
+                                          "unterminated conditional")))))
+
+       (pass-if "unexpected ~;"
+         (let ((w (call-with-warnings
+                   (lambda ()
+                     (compile '(format #f "foo~;bar")
+                              #:opts %opts-w-format
+                              #:to 'assembly)))))
+           (and (= (length w) 1)
+                (number? (string-contains (car w)
+                                          "unexpected")))))
+
+       (pass-if "unexpected ~]"
+         (let ((w (call-with-warnings
+                   (lambda ()
+                     (compile '(format #f "foo~]")
+                              #:opts %opts-w-format
+                              #:to 'assembly)))))
+           (and (= (length w) 1)
+                (number? (string-contains (car w)
+                                          "unexpected"))))))
 
      (pass-if "~{...~}"
        (null? (call-with-warnings
@@ -1304,6 +1326,16 @@
          (and (= (length w) 1)
               (number? (string-contains (car w)
                                         "expected at least 1, got 0")))))
+
+     (pass-if "unterminated ~{...~}"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(format #f "~{")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "unterminated")))))
 
      (pass-if "~(...~)"
        (null? (call-with-warnings
