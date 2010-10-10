@@ -612,9 +612,9 @@ Note that the given source location must be inside a procedure."
          (format #t "~a~%" msg)
          (let ((vals (frame-return-values from)))
            (if (null? vals)
-               (format #t "No return values.~%" msg)
+               (format #t "No return values.~%")
                (begin
-                 (format #t "Return values:~%" msg)
+                 (format #t "Return values:~%")
                  (for-each (lambda (x) (repl-print repl x)) vals))))
          ((module-ref (resolve-interface '(system repl repl)) 'start-repl)
           #:debug (make-debug stack 0 msg))))))
