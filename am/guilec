@@ -1,7 +1,7 @@
 # -*- makefile -*-
 GOBJECTS = $(SOURCES:%.scm=%.go)
 
-GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch
+GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 
 moddir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)/$(modpath)
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
