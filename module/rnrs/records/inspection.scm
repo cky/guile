@@ -28,15 +28,14 @@
 	  record-type-opaque? 
 	  record-type-field-names 
 	  record-field-mutable?)
-  (import (rnrs base (6))
+  (import (rnrs arithmetic bitwise (6))
+          (rnrs base (6))
 	  (rnrs conditions (6))
           (rnrs exceptions (6))
 	  (rnrs records procedural (6))
-	  (only (guile) struct-ref vtable-index-layout @@))
+	  (only (guile) struct-ref struct-vtable vtable-index-layout @@))
 
   (define record-internal? (@@ (rnrs records procedural) record-internal?))
-
-  (define record-index-rtd (@@ (rnrs records procedural) record-index-rtd))
 
   (define rtd-index-name (@@ (rnrs records procedural) rtd-index-name))
   (define rtd-index-parent (@@ (rnrs records procedural) rtd-index-parent))
@@ -45,16 +44,16 @@
   (define rtd-index-opaque? (@@ (rnrs records procedural) rtd-index-opaque?))
   (define rtd-index-field-names 
     (@@ (rnrs records procedural) rtd-index-field-names))
-  (define rtd-index-field-vtable 
-    (@@ (rnrs records procedural) rtd-index-field-vtable))
+  (define rtd-index-field-bit-field
+    (@@ (rnrs records procedural) rtd-index-field-bit-field))
 
   (define (record? obj)
-    (and (record-internal? obj) 
-	 (not (record-type-opaque? (struct-ref obj record-index-rtd)))))
+    (and (record-internal? obj)
+	 (not (record-type-opaque? (struct-vtable obj)))))
 
   (define (record-rtd record)
     (or (and (record-internal? record)
-	     (let ((rtd (struct-ref record record-index-rtd)))
+	     (let ((rtd (struct-vtable record)))
 	       (and (not (struct-ref rtd rtd-index-opaque?)) rtd)))
 	(raise (make-assertion-violation))))
 
@@ -76,8 +75,5 @@
     (ensure-rtd rtd) (struct-ref rtd rtd-index-field-names))
   (define (record-field-mutable? rtd k)
     (ensure-rtd rtd)
-    (let ((vt (struct-ref rtd rtd-index-field-vtable)))
-      (eqv? (string-ref (symbol->string (struct-ref vt vtable-index-layout))
-			(+ (* 2 (+ k 2)) 1))
-	    #\w)))
+    (bitwise-bit-set? (struct-ref rtd rtd-index-field-bit-field) k))
 )

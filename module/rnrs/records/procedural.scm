@@ -28,7 +28,12 @@
 	  record-mutator)
 	  
   (import (rnrs base (6))
-          (only (guile) and=>
+          (only (guile) cons*
+                        logand 
+                        logior
+                        ash
+
+                        and=>
 			throw
 			display
 		        make-struct 
@@ -36,8 +41,10 @@
 			map
 			simple-format
 			string-append 
+                        symbol-append
 			
 			struct? 
+                        struct-layout
 			struct-ref 
 			struct-set! 
 			struct-vtable
@@ -52,33 +59,26 @@
 	  (only (srfi :1) fold split-at take))
 
   (define (record-internal? obj)
-    (and (struct? obj)
-	 (let* ((vtable (struct-vtable obj))
-		(layout (symbol->string
-			 (struct-ref vtable vtable-index-layout))))
-	   (and (>= (string-length layout) 4)
-		(let ((rtd (struct-ref obj record-index-rtd)))
-		  (and (record-type-descriptor? rtd)))))))
+    (and (struct? obj) (record-type-descriptor? (struct-vtable obj))))
 
-  (define record-index-parent 0)
-  (define record-index-rtd 1)
-
-  (define rtd-index-name 0)
-  (define rtd-index-uid 1)
-  (define rtd-index-parent 2)
-  (define rtd-index-sealed? 3)
-  (define rtd-index-opaque? 4)
-  (define rtd-index-predicate 5)
-  (define rtd-index-field-names 6)
-  (define rtd-index-field-vtable 7)
-  (define rtd-index-field-binder 8)
+  (define rtd-index-name 8)
+  (define rtd-index-uid 9)
+  (define rtd-index-parent 10)
+  (define rtd-index-sealed? 11)
+  (define rtd-index-opaque? 12)
+  (define rtd-index-predicate 13)
+  (define rtd-index-field-names 14)
+  (define rtd-index-field-bit-field 15)
+  (define rtd-index-field-binder 16)
 
   (define rctd-index-rtd 0)
   (define rctd-index-parent 1)
   (define rctd-index-protocol 2)
 
+  (define vtable-base-layout (symbol->string (struct-layout (make-vtable ""))))
+
   (define record-type-vtable 
-    (make-vtable "prprprprprprprprpr" 
+    (make-vtable (string-append vtable-base-layout "prprprprprprprprprpr")
 		 (lambda (obj port) 
 		   (simple-format port "#<r6rs:record-type:~A>"
 				  (struct-ref obj rtd-index-name)))))
@@ -93,28 +93,40 @@
   (define uid-table (make-hash-table))    
 
   (define (make-record-type-descriptor name parent uid sealed? opaque? fields)
-    (define fields-vtable
-      (make-vtable (fold (lambda (x p) 
-			   (string-append p (case (car x)
-					      ((immutable) "pr")
-					      ((mutable) "pw"))))
-			 "prpr" (vector->list fields))
-		   (lambda (obj port)
-		     (simple-format port "#<r6rs:record:~A>" name))))
+    (define fields-pair
+      (let loop ((field-list (vector->list fields))
+                 (layout-sym 'pr)
+                 (layout-bit-field 0)
+                 (counter 0))
+        (if (null? field-list)
+            (cons layout-sym layout-bit-field)
+            (case (caar field-list)
+              ((immutable) 
+               (loop (cdr field-list)
+                     (symbol-append layout-sym 'pr) 
+                     layout-bit-field 
+                     (+ counter 1)))
+              ((mutable)
+               (loop (cdr field-list)
+                     (symbol-append layout-sym 'pw)
+                     (logior layout-bit-field (ash 1 counter))
+                     (+ counter 1)))
+              (else (r6rs-raise (make-assertion-violation)))))))
+
+    (define fields-layout (car fields-pair))
+    (define fields-bit-field (cdr fields-pair))
+
     (define field-names (list->vector (map cadr (vector->list fields))))
     (define late-rtd #f)
+
     (define (private-record-predicate obj)       
       (and (record-internal? obj)
-	   (let ((rtd (struct-ref obj record-index-rtd)))
-	     (or (eq? (struct-ref rtd rtd-index-field-vtable) fields-vtable)
-		 (and=> (struct-ref obj record-index-parent)
-			private-record-predicate)))))
+           (or (eq? (struct-vtable obj) late-rtd)
+               (and=> (struct-ref obj 0) private-record-predicate))))
 
     (define (field-binder parent-struct . args)
-      (apply make-struct (append (list fields-vtable 0 
-				       parent-struct 
-				       late-rtd) 
-				 args)))
+      (apply make-struct (cons* late-rtd 0 parent-struct args)))
+
     (if (and parent (struct-ref parent rtd-index-sealed?))
 	(r6rs-raise (make-assertion-violation)))
 
@@ -125,21 +137,25 @@
 	  (if (equal? (list name 
 			    parent 
 			    sealed? 
-			    opaque?
+			    opaque?                            
 			    field-names
-			    (struct-ref fields-vtable vtable-index-layout))
+                            fields-bit-field)
 		      (list (struct-ref matching-rtd rtd-index-name)
 			    (struct-ref matching-rtd rtd-index-parent)
 			    (struct-ref matching-rtd rtd-index-sealed?)
 			    (struct-ref matching-rtd rtd-index-opaque?)
 			    (struct-ref matching-rtd rtd-index-field-names)
-			    (struct-ref (struct-ref matching-rtd 
-						    rtd-index-field-vtable)
-					vtable-index-layout)))
+                            (struct-ref matching-rtd 
+                                        rtd-index-field-bit-field)))
 	      matching-rtd
 	      (r6rs-raise (make-assertion-violation)))
-
+          
 	  (let ((rtd (make-struct record-type-vtable 0
+
+                                  fields-layout
+                                  (lambda (obj port)
+                                    (simple-format 
+                                     port "#<r6rs:record:~A>" name))
 				  
 				  name
 				  uid
@@ -149,7 +165,7 @@
 				  
 				  private-record-predicate
 				  field-names
-				  fields-vtable
+                                  fields-bit-field
 				  field-binder)))
 	    (set! late-rtd rtd)
 	    (if uid (hashq-set! uid-table uid rtd))
@@ -200,24 +216,21 @@
 
   (define (record-accessor rtd k)
     (define (record-accessor-inner obj)
+      (if (eq? (struct-vtable obj) rtd)
+	  (struct-ref obj (+ k 1))
+          (and=> (struct-ref obj 0) record-accessor-inner)))
+    (lambda (obj) 
       (if (not (record-internal? obj))
-	  (r6rs-raise (make-assertion-violation)))
-      (if (eq? (struct-ref obj record-index-rtd) rtd)
-	  (struct-ref obj (+ k 2))
-	  (record-accessor-inner (struct-ref obj record-index-parent))))
-    (lambda (obj) (record-accessor-inner obj)))
+          (r6rs-raise (make-assertion-violation)))
+      (record-accessor-inner obj)))
 
   (define (record-mutator rtd k)
     (define (record-mutator-inner obj val)
-      (and obj 
-	   (or (and (eq? (struct-ref obj record-index-rtd) rtd) 
-		    (struct-set! obj (+ k 2) val))
-	       (record-mutator-inner (struct-ref obj record-index-parent) 
-				     val))))
-    (let* ((rtd-vtable (struct-ref rtd rtd-index-field-vtable))
-	   (field-layout (symbol->string
-			  (struct-ref rtd-vtable vtable-index-layout))))
-      (if (not (eqv? (string-ref field-layout (+ (* (+ k 2) 2) 1)) #\w))
+      (and obj (or (and (eq? (struct-vtable obj) rtd)
+                        (struct-set! obj (+ k 1) val))
+                   (record-mutator-inner (struct-ref obj 0) val))))
+    (let ((bit-field (struct-ref rtd rtd-index-field-bit-field)))
+      (if (zero? (logand bit-field (ash 1 k)))
 	  (r6rs-raise (make-assertion-violation))))
     (lambda (obj val) (record-mutator-inner obj val)))
 
