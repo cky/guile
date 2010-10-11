@@ -102,25 +102,25 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
   *removed_items = 0;
   for (result = alist;
        scm_is_pair (alist);
-       prev = alist, alist = SCM_CDR (alist))
+       alist = SCM_CDR (alist))
     {
       SCM pair = SCM_CAR (alist);
 
-      if (scm_is_pair (pair))
+      if (SCM_WEAK_PAIR_DELETED_P (pair))
 	{
-	  if (SCM_WEAK_PAIR_DELETED_P (pair))
-	    {
-	      /* Remove from ALIST weak pair PAIR whose car/cdr has been
-		 nullified by the GC.  */
-	      if (prev == SCM_EOL)
-		result = SCM_CDR (alist);
-	      else
-		SCM_SETCDR (prev, SCM_CDR (alist));
+	  /* Remove from ALIST weak pair PAIR whose car/cdr has been
+	     nullified by the GC.  */
+	  if (prev == SCM_EOL)
+	    result = SCM_CDR (alist);
+	  else
+	    SCM_SETCDR (prev, SCM_CDR (alist));
 
-	      (*removed_items)++;
-	      continue;
-	    }
+	  (*removed_items)++;
+
+	  /* Leave PREV unchanged.  */
 	}
+      else
+	prev = alist;
     }
 
   return result;
