@@ -50,12 +50,12 @@ on reporting problems in this manual.
 
 The content for the first versions of this manual incorporated and was
 inspired by documents from Aubrey Jaffer, author of the SCM system on
-which Guile was based, and from Thomas Lord, Guile's first maintainer.
+which Guile was based, and from Tom Lord, Guile's first maintainer.
 Although most of this text has been rewritten, all of it was important,
 and some of the structure remains.
 
-The first versions of the first versions of Guile were written and
-edited largely by Mark Galassi and Jim Blandy.  In particular, Jim wrote
+The manual for the first versions of Guile were largely written, edited,
+and compiled by Mark Galassi and Jim Blandy.  In particular, Jim wrote
 the original tutorial on Guile's data representation and the C API for
 accessing Guile objects.
 
