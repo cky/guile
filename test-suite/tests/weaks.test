@@ -206,4 +206,41 @@
                             '("is" "test" "the" "weak" "hash system"))
                      (any not values)
                      (hash-ref z test-key)
-                     #t))))))
+                     #t))))
+
+   (pass-if "assoc can do anything"
+            ;; Until 1.9.12, as hash table's custom ASSOC procedure was
+            ;; called with the GC lock alloc held, which imposed severe
+            ;; restrictions on what it could do (bug #29616).  This test
+            ;; makes sure this is no longer the case.
+            (let ((h (make-doubly-weak-hash-table 2))
+                  (c 123)
+                  (k "GNU"))
+
+              (define (assoc-ci key bucket)
+                (make-list 123) ;; this should be possible
+                (gc)            ;; this too
+                (find (lambda (p)
+                        (string-ci=? key (car p)))
+                      bucket))
+
+              (hashx-set! string-hash-ci assoc-ci h
+                          (string-copy "hello") (string-copy "world"))
+              (hashx-set! string-hash-ci assoc-ci h
+                          k "Guile")
+
+              (and (every (cut valid? <> "Guile")
+                          (unfold (cut >= <> c)
+                                  (lambda (_)
+                                    (hashx-ref string-hash-ci assoc-ci
+                                               h "gnu"))
+                                  1+
+                                  0))
+                   (every (cut valid? <> "world")
+                          (unfold (cut >= <> c)
+                                  (lambda (_)
+                                    (hashx-ref string-hash-ci assoc-ci
+                                               h "HELLO"))
+                                  1+
+                                  0))
+                   #t)))))

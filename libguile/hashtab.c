@@ -137,40 +137,35 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
    || (SCM_I_IS_VECTOR (table)))
 
 
-/* Packed arguments for `do_weak_bucket_assoc ()'.  */
-struct t_assoc_args
+/* Packed arguments for `do_weak_bucket_fixup'.  */
+struct t_fixup_args
 {
-  /* Input arguments.  */
-  SCM object;
-  SCM buckets;
-  size_t bucket_index;
-  scm_t_assoc_fn assoc_fn;
-  void *closure;
-
-  /* Output arguments.  */
-  SCM result;
+  SCM bucket;
+  SCM *bucket_copy;
   size_t removed_items;
 };
 
 static void *
-do_weak_bucket_assoc (void *data)
+do_weak_bucket_fixup (void *data)
 {
-  struct t_assoc_args *args;
-  size_t removed;
-  SCM bucket, result;
+  struct t_fixup_args *args;
+  SCM pair, *copy;
 
-  args = (struct t_assoc_args *) data;
+  args = (struct t_fixup_args *) data;
 
-  bucket = SCM_SIMPLE_VECTOR_REF (args->buckets, args->bucket_index);
-  bucket = scm_fixup_weak_alist (bucket, &removed);
+  args->bucket = scm_fixup_weak_alist (args->bucket, &args->removed_items);
 
-  SCM_SIMPLE_VECTOR_SET (args->buckets, args->bucket_index, bucket);
+  for (pair = args->bucket, copy = args->bucket_copy;
+       scm_is_pair (pair);
+       pair = SCM_CDR (pair), copy += 2)
+    {
+      /* At this point, all weak pairs have been removed.  */
+      assert (!SCM_WEAK_PAIR_DELETED_P (SCM_CAR (pair)));
 
-  /* Run ASSOC_FN on the now clean BUCKET.  */
-  result = args->assoc_fn (args->object, bucket, args->closure);
-
-  args->result = result;
-  args->removed_items = removed;
+      /* Copy the key and value.  */
+      copy[0] = SCM_CAAR (pair);
+      copy[1] = SCM_CDAR (pair);
+    }
 
   return args;
 }
@@ -184,25 +179,37 @@ weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
 		   scm_t_assoc_fn assoc, SCM object, void *closure)
 {
   SCM result;
-  struct t_assoc_args args;
+  SCM bucket, *strong_refs;
+  struct t_fixup_args args;
 
-  args.object = object;
-  args.buckets = buckets;
-  args.bucket_index = bucket_index;
-  args.assoc_fn = assoc;
-  args.closure = closure;
+  bucket = SCM_SIMPLE_VECTOR_REF (buckets, bucket_index);
 
-  /* Fixup the bucket and pass the clean bucket to ASSOC.  Do that with the
-     allocation lock held to avoid seeing disappearing links pointing to
-     objects that have already been reclaimed (this happens when the
-     disappearing links that point to it haven't yet been cleared.)
-     Thus, ASSOC must not take long, and it must not make any non-local
-     exit.  */
-  GC_call_with_alloc_lock (do_weak_bucket_assoc, &args);
+  /* Prepare STRONG_REFS as an array large enough to hold all the keys
+     and values in BUCKET.  */
+  strong_refs = alloca (scm_ilength (bucket) * 2 * sizeof (SCM));
 
-  result = args.result;
+  args.bucket = bucket;
+  args.bucket_copy = strong_refs;
+
+  /* Fixup BUCKET.  Do that with the allocation lock held to avoid
+     seeing disappearing links pointing to objects that have already
+     been reclaimed (this happens when the disappearing links that point
+     to it haven't yet been cleared.)
+
+     The `do_weak_bucket_fixup' call populates STRONG_REFS with a copy
+     of BUCKET's entries after it's been fixed up.  Thus, all the
+     entries kept in BUCKET are still reachable when ASSOC sees
+     them.  */
+  GC_call_with_alloc_lock (do_weak_bucket_fixup, &args);
+
+  bucket = args.bucket;
+  SCM_SIMPLE_VECTOR_SET (buckets, bucket_index, bucket);
+
+  result = assoc (object, bucket, closure);
   assert (!scm_is_pair (result) ||
 	  !SCM_WEAK_PAIR_DELETED_P (GC_is_visible (result)));
+
+  scm_remember_upto_here_1 (strong_refs);
 
   if (args.removed_items > 0 && SCM_HASHTABLE_P (table))
     {
