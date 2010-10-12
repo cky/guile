@@ -472,6 +472,8 @@ Trace execution."
                        (identifier-syntax (debug-frames debug)))
                       (#,(datum->syntax #'repl 'message)
                        (identifier-syntax (debug-error-message debug)))
+                      (#,(datum->syntax #'repl 'for-trap?)
+                       (identifier-syntax (debug-for-trap? debug)))
                       (#,(datum->syntax #'repl 'index)
                        (identifier-syntax
                         (id (debug-index debug))
@@ -493,7 +495,8 @@ If COUNT is negative, the last COUNT frames will be shown."
   (print-frames frames
                 #:count count
                 #:width width
-                #:full? full?))
+                #:full? full?
+                #:for-trap? for-trap?))
 
 (define-stack-command (up repl #:optional (count 1))
   "up [COUNT]
@@ -510,10 +513,12 @@ An argument says how many frames up to go."
       (format #t "Already at outermost frame.\n"))
      (else
       (set! index (1- (vector-length frames)))
-      (print-frame cur #:index index))))
+      (print-frame cur #:index index
+                   #:next-source? (and (zero? index) for-trap?)))))
    (else
     (set! index (+ count index))
-    (print-frame cur #:index index))))
+    (print-frame cur #:index index
+                 #:next-source? (and (zero? index) for-trap?)))))
 
 (define-stack-command (down repl #:optional (count 1))
   "down [COUNT]
@@ -530,10 +535,11 @@ An argument says how many frames down to go."
       (format #t "Already at innermost frame.\n"))
      (else
       (set! index 0)
-      (print-frame cur #:index index))))
+      (print-frame cur #:index index #:next-source? for-trap?))))
    (else
     (set! index (- index count))
-    (print-frame cur #:index index))))
+    (print-frame cur #:index index
+                 #:next-source? (and (zero? index) for-trap?)))))
 
 (define-stack-command (frame repl #:optional idx)
   "frame [IDX]
@@ -548,10 +554,12 @@ With an argument, select a frame by index, then show it."
       (format #t "Invalid argument to `frame': expected a non-negative integer for IDX.~%"))
      ((< idx (vector-length frames))
       (set! index idx)
-      (print-frame cur #:index index))
+      (print-frame cur #:index index
+                   #:next-source? (and (zero? index) for-trap?)))
      (else
       (format #t "No such frame.~%"))))
-   (else (print-frame cur #:index index))))
+   (else (print-frame cur #:index index
+                      #:next-source? (and (zero? index) for-trap?)))))
 
 (define-stack-command (procedure repl)
   "procedure

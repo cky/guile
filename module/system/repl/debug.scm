@@ -99,12 +99,13 @@
        (frame-bindings frame))))))
 
 (define* (print-frame frame #:optional (port (current-output-port))
-                      #:key index (width 72) (full? #f) (last-source #f))
+                      #:key index (width 72) (full? #f) (last-source #f)
+                      next-source?)
   (define (source:pretty-file source)
     (if source
         (or (source:file source) "current input")
         "unknown file"))
-  (let* ((source (frame-source frame))
+  (let* ((source ((if next-source? frame-next-source frame-source) frame))
          (file (source:pretty-file source))
          (line (and=> source source:line-for-user))
          (col (and=> source source:column)))
@@ -119,7 +120,8 @@
 
 (define* (print-frames frames
                        #:optional (port (current-output-port))
-                       #:key (width 72) (full? #f) (forward? #f) count)
+                       #:key (width 72) (full? #f) (forward? #f) count
+                       for-trap?)
   (let* ((len (vector-length frames))
          (lower-idx (if (or (not count) (positive? count))
                         0
@@ -133,8 +135,12 @@
       (if (<= lower-idx i upper-idx)
           (let* ((frame (vector-ref frames i)))
             (print-frame frame port #:index i #:width width #:full? full?
-                         #:last-source last-source)
-            (lp (+ i inc) (frame-source frame)))))))
+                         #:last-source last-source
+                         #:next-source? (and (zero? i) for-trap?))
+            (lp (+ i inc)
+                (if (and (zero? i) for-trap?)
+                    (frame-next-source frame)
+                    (frame-source frame))))))))
 
 ;; Ideally here we would have something much more syntactic, in that a set! to a
 ;; local var that is not settable would raise an error, and export etc forms
