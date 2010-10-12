@@ -768,60 +768,66 @@ will handle a call like
 by calling the most specialized method of @code{accessor} that matches
 the classes of @code{args} and @code{value}.
 
-@menu
-* Basic Generic Function Creation::
-* Generic Function Internals::
-* Extending Guiles Primitives::
-@end menu
-
-@node Basic Generic Function Creation
-@subsection Basic Generic Function Creation
-
-The following forms may be used to bind a variable to a generic
-function.  Depending on that variable's pre-existing value, the generic
-function may be created empty - with no methods - or it may contain
-methods that are inferred from the pre-existing value.
-
-It is not, in general, necessary to use @code{define-generic} or
-@code{define-accessor} before defining methods for the generic function
-using @code{define-method}, since @code{define-method} will
-automatically interpolate a @code{define-generic} call, or upgrade an
-existing generic to an accessor, if that is implied by the
-@code{define-method} call.  Note in particular that,
-if the specified variable already has a @emph{generic function} value,
-@code{define-generic} and @code{define-accessor} will @emph{discard} it!
-Obviously it is application-dependent whether this is desirable or not.
-
-If, for example, you wanted to extend @code{+} for a class representing
-a new numerical type, you probably want to inherit any existing methods
-for @code{+} and so should not use @code{define-generic}.  If, on the
-other hand, you do not want to risk inheriting methods whose behaviour
-might surprise you, you can use @code{define-generic} or
-@code{define-accessor} to wipe the slate clean.
+The following forms define a variable as a generic function or accessor.
+Depending on that variable's previous value, the generic function may be
+created empty --- with no methods --- or with methods that are inferred
+from the previous value.
 
 @deffn syntax define-generic symbol
 Create a generic function with name @var{symbol} and bind it to the
-variable @var{symbol}.
-
-If the variable @var{symbol} was previously bound to a Scheme procedure
-(or procedure-with-setter), the old procedure (and setter) is
+variable @var{symbol}.  If @var{symbol} was previously bound to a Scheme
+procedure (or procedure-with-setter), the old procedure (and setter) is
 incorporated into the new generic function as its default procedure (and
-setter).  Any other previous value that was bound to @var{symbol},
-including an existing generic function, is overwritten by the new
-generic function.
+setter).  Any other previous value, including an existing generic
+function, is discarded and replaced by a new, empty generic function.
 @end deffn
 
 @deffn syntax define-accessor symbol
 Create an accessor with name @var{symbol} and bind it to the variable
-@var{symbol}.
-
-If the variable @var{symbol} was previously bound to a Scheme procedure
-(or procedure-with-setter), the old procedure (and setter) is
+@var{symbol}.  If @var{symbol} was previously bound to a Scheme
+procedure (or procedure-with-setter), the old procedure (and setter) is
 incorporated into the new accessor as its default procedure (and
-setter).  Any other previous value that was bound to @var{symbol},
-including an existing generic function or accessor, is overwritten by
-the new definition.
+setter).  Any other previous value, including an existing generic
+function or accessor, is discarded and replaced by a new, empty
+accessor.
 @end deffn
+
+@menu
+* Extending Primitives::
+* Merging Generics::
+@end menu
+
+@node Extending Primitives
+@subsection Extending Primitives
+
+Many of Guile's primitive procedures can be extended by giving them a
+generic function definition that operates in conjunction with their
+normal C-coded implementation.  When a primitive is extended in this
+way, it behaves like a generic function with the C-coded implementation
+as its default method.
+
+This extension happens automatically if a method is defined (by a
+@code{define-method} call) for a variable whose current value is a
+primitive.  But it can also be forced by calling
+@code{enable-primitive-generic!}.
+
+@deffn {primitive procedure} enable-primitive-generic! primitive
+Force the creation of a generic function definition for
+@var{primitive}.
+@end deffn
+
+Once the generic function definition for a primitive has been created,
+it can be retrieved using @code{primitive-generic-generic}.
+
+@deffn {primitive procedure} primitive-generic-generic primitive
+Return the generic function definition of @var{primitive}.
+
+@code{primitive-generic-generic} raises an error if @var{primitive}
+is not a primitive with generic capability.
+@end deffn
+
+@node Merging Generics
+@subsection Merging Generics
 
 GOOPS generic functions and accessors often have short, generic names.
 For example, if a vector package provides an accessor for the X
@@ -835,11 +841,13 @@ That raises the question, however, of what happens when different
 packages define a generic function with the same name.  Suppose we
 work with a graphical package which needs to use two independent vector
 packages for 2D and 3D vectors respectively.  If both packages export
-@code{x} we will encounter a name collision.
+@code{x}, what does the code using those packages end up with?
 
-This can be resolved automagically with the duplicates handler
-@code{merge-generics} which gives the module system license to merge
-all generic functions sharing a common name:
+@ref{Creating Guile Modules,,duplicate binding handlers} explains how
+this is resolved for conflicting bindings in general.  For generics,
+there is a special duplicates handler, @code{merge-generics}, which
+tells the module system to merge generic functions with the same name.
+Here is an example:
 
 @lisp
 (define-module (math 2D-vectors)
@@ -856,155 +864,30 @@ all generic functions sharing a common name:
   #:duplicates merge-generics)
 @end lisp
 
-The generic function @code{x} in @code{(my-module)} will now share
-methods with @code{x} in both imported modules.
+The generic function @code{x} in @code{(my-module)} will now incorporate
+all of the methods of @code{x} from both imported modules.
 
-There will, in fact, now be three distinct generic functions named
-@code{x}: @code{x} in @code{(2D-vectors)}, @code{x} in
-@code{(3D-vectors)}, and @code{x} in @code{(my-module)}.  The last
-function will be an @code{<extended-generic>}, extending the previous
-two functions.
+To be precise, there will now be three distinct generic functions named
+@code{x}: @code{x} in @code{(math 2D-vectors)}, @code{x} in @code{(math
+3D-vectors)}, and @code{x} in @code{(my-module)}; and these functions
+share their methods in an interesting and dynamic way.
 
-Let's call the imported generic functions the "ancestor functions".
-The generic function @code{x} in @code{(my-module)} is, in turn, a
-"descendant function" of the imported functions, extending its
-ancestors.
+To explain, let's call the imported generic functions (in @code{(math
+2D-vectors)} and @code{(math 3D-vectors)}) the @dfn{ancestors}, and the
+merged generic function (in @code{(my-module)}), the @dfn{descendant}.
+The general rule is that for any generic function G, the applicable
+methods are selected from the union of the methods of G's descendant
+functions, the methods of G itself and the methods of G's ancestor
+functions.
 
-For any generic function G, the applicable methods are selected from
-the union of the methods of the descendant functions, the methods of G
-itself and the methods of the ancestor functions.
-
-This, ancestor functions share methods with their descendants and vice
-versa.  This implies that @code{x} in @code{(math 2D-vectors)} will
-share the methods of @code{x} in @code{(my-module)} and vice versa,
-while @code{x} in @code{(math 2D-vectors)} doesn't share the methods
-of @code{x} in @code{(math 3D-vectors)}, thus preserving modularity.
-
-Sharing is dynamic, so that adding new methods to a descendant implies
-adding it to the ancestor.
-
-If duplicates checking is desired in the above example, the following
-form of the @code{#:duplicates} option can be used instead:
-
-@lisp
-  #:duplicates (merge-generics check)
-@end lisp
-
-@node Generic Function Internals
-@subsection Generic Function Internals
-
-@code{define-generic} calls @code{ensure-generic} to upgrade a
-pre-existing procedure value, or @code{make} with metaclass
-@code{<generic>} to create a new generic function.
-
-@code{define-accessor} calls @code{ensure-accessor} to upgrade a
-pre-existing procedure value, or @code{make-accessor} to create a new
-accessor.
-
-@deffn procedure ensure-generic old-definition [name]
-Return a generic function with name @var{name}, if possible by using or
-upgrading @var{old-definition}.  If unspecified, @var{name} defaults to
-@code{#f}.
-
-If @var{old-definition} is already a generic function, it is returned
-unchanged.
-
-If @var{old-definition} is a Scheme procedure or procedure-with-setter,
-@code{ensure-generic} returns a new generic function that uses
-@var{old-definition} for its default procedure and setter.
-
-Otherwise @code{ensure-generic} returns a new generic function with no
-defaults and no methods.
-@end deffn
-
-@deffn procedure make-generic [name]
-Return a new generic function with name @code{(car @var{name})}.  If
-unspecified, @var{name} defaults to @code{#f}.
-@end deffn
-
-@code{ensure-generic} calls @code{make} with metaclasses
-@code{<generic>} and @code{<generic-with-setter>}, depending on the
-previous value of the variable that it is trying to upgrade.
-
-@code{make-generic} is a simple wrapper for @code{make} with metaclass
-@code{<generic>}.
-
-@deffn procedure ensure-accessor proc [name]
-Return an accessor with name @var{name}, if possible by using or
-upgrading @var{proc}.  If unspecified, @var{name} defaults to @code{#f}.
-
-If @var{proc} is already an accessor, it is returned unchanged.
-
-If @var{proc} is a Scheme procedure, procedure-with-setter or generic
-function, @code{ensure-accessor} returns an accessor that reuses the
-reusable elements of @var{proc}.
-
-Otherwise @code{ensure-accessor} returns a new accessor with no defaults
-and no methods.
-@end deffn
-
-@deffn procedure make-accessor [name]
-Return a new accessor with name @code{(car @var{name})}.  If
-unspecified, @var{name} defaults to @code{#f}.
-@end deffn
-
-@code{ensure-accessor} calls @code{make} with
-metaclass @code{<generic-with-setter>}, as well as calls to
-@code{ensure-generic}, @code{make-accessor} and (tail recursively)
-@code{ensure-accessor}.
-
-@code{make-accessor} calls @code{make} twice, first
-with metaclass @code{<generic>} to create a generic function for the
-setter, then with metaclass @code{<generic-with-setter>} to create the
-accessor, passing the setter generic function as the value of the
-@code{#:setter} keyword.
-
-@node Extending Guiles Primitives
-@subsection Extending Guile's Primitives
-
-When GOOPS is loaded, many of Guile's primitive procedures can be
-extended by giving them a generic function definition that operates
-in conjunction with their normal C-coded implementation.  For
-primitives that are extended in this way, the result from the user-
-or application-level point of view is that the extended primitive
-behaves exactly like a generic function with the C-coded implementation
-as its default method.
-
-The @code{generic-capability?} predicate should be used to determine
-whether a particular primitive is extensible in this way.
-
-@deffn {primitive procedure} generic-capability? primitive
-Return @code{#t} if @var{primitive} can be extended by giving it a
-generic function definition, otherwise @code{#f}.
-@end deffn
-
-Even when a primitive procedure is extensible like this, its generic
-function definition is not created until it is needed by a call to
-@code{define-method}, or until the application explicitly requests it
-by calling @code{enable-primitive-generic!}.
-
-@deffn {primitive procedure} enable-primitive-generic! primitive
-Force the creation of a generic function definition for
-@var{primitive}.
-@end deffn
-
-Once the generic function definition for a primitive has been created,
-it can be retrieved using @code{primitive-generic-generic}.
-
-@deffn {primitive procedure} primitive-generic-generic primitive
-Return the generic function definition of @var{primitive}.
-
-@code{primitive-generic-generic} raises an error if @var{primitive}
-is not a primitive with generic capability, or if its generic capability
-has not yet been enabled, whether implicitly (by @code{define-method})
-or explicitly (by @code{enable-primitive-generic!}).
-@end deffn
-
-Note that the distinction between, on the one hand, primitives with
-additional generic function definitions and, on the other hand, generic
-functions with a default method, may disappear when GOOPS is fully
-integrated into the core of Guile.  Consequently, the
-procedures described in this section may disappear as well.
+Thus ancestor functions effectively share methods with their
+descendants, and vice versa.  In the example above, @code{x} in
+@code{(math 2D-vectors)} will share the methods of @code{x} in
+@code{(my-module)} and vice versa.@footnote{But note that @code{x} in
+@code{(math 2D-vectors)} doesn't share methods with @code{x} in
+@code{(math 3D-vectors)}, so modularity is still preserved.}  Sharing is
+dynamic, so adding another new method to a descendant implies adding it
+to that descendant's ancestors too.
 
 @node Adding Methods to Generic Functions
 @section Adding Methods to Generic Functions
@@ -1144,9 +1027,8 @@ Add method @var{method} to the generic function @var{generic}.
 
 @deffn method add-method! (proc <procedure>) (method <method>)
 If @var{proc} is a procedure with generic capability (@pxref{Extending
-Guiles Primitives,, generic-capability?}), upgrade it to a
-primitive generic and add @var{method} to its generic function
-definition.
+Primitives,, generic-capability?}), upgrade it to a primitive generic
+and add @var{method} to its generic function definition.
 @end deffn
 
 @deffn method add-method! (pg <primitive-generic>) (method <method>)
@@ -1807,6 +1689,7 @@ GOOPS' power, by customizing the behaviour of GOOPS itself.
 * Customizing Instance Creation::
 * Class Redefinition::
 * Method Definition::
+* Generic Function Internals::
 * Generic Function Invocation::
 @end menu
 
@@ -2685,12 +2568,81 @@ a generic function (the most common case)
 a procedure
 
 @item
-a primitive generic (@pxref{Extending Guiles Primitives})
+a primitive generic (@pxref{Extending Primitives})
 @end itemize
 
 By defining further methods for @code{add-method!}, you can
 theoretically handle adding methods to further types of target.
 @end itemize
+
+@node Generic Function Internals
+@subsection Generic Function Internals
+
+@code{define-generic} calls @code{ensure-generic} to upgrade a
+pre-existing procedure value, or @code{make} with metaclass
+@code{<generic>} to create a new generic function.
+
+@code{define-accessor} calls @code{ensure-accessor} to upgrade a
+pre-existing procedure value, or @code{make-accessor} to create a new
+accessor.
+
+@deffn procedure ensure-generic old-definition [name]
+Return a generic function with name @var{name}, if possible by using or
+upgrading @var{old-definition}.  If unspecified, @var{name} defaults to
+@code{#f}.
+
+If @var{old-definition} is already a generic function, it is returned
+unchanged.
+
+If @var{old-definition} is a Scheme procedure or procedure-with-setter,
+@code{ensure-generic} returns a new generic function that uses
+@var{old-definition} for its default procedure and setter.
+
+Otherwise @code{ensure-generic} returns a new generic function with no
+defaults and no methods.
+@end deffn
+
+@deffn procedure make-generic [name]
+Return a new generic function with name @code{(car @var{name})}.  If
+unspecified, @var{name} defaults to @code{#f}.
+@end deffn
+
+@code{ensure-generic} calls @code{make} with metaclasses
+@code{<generic>} and @code{<generic-with-setter>}, depending on the
+previous value of the variable that it is trying to upgrade.
+
+@code{make-generic} is a simple wrapper for @code{make} with metaclass
+@code{<generic>}.
+
+@deffn procedure ensure-accessor proc [name]
+Return an accessor with name @var{name}, if possible by using or
+upgrading @var{proc}.  If unspecified, @var{name} defaults to @code{#f}.
+
+If @var{proc} is already an accessor, it is returned unchanged.
+
+If @var{proc} is a Scheme procedure, procedure-with-setter or generic
+function, @code{ensure-accessor} returns an accessor that reuses the
+reusable elements of @var{proc}.
+
+Otherwise @code{ensure-accessor} returns a new accessor with no defaults
+and no methods.
+@end deffn
+
+@deffn procedure make-accessor [name]
+Return a new accessor with name @code{(car @var{name})}.  If
+unspecified, @var{name} defaults to @code{#f}.
+@end deffn
+
+@code{ensure-accessor} calls @code{make} with
+metaclass @code{<generic-with-setter>}, as well as calls to
+@code{ensure-generic}, @code{make-accessor} and (tail recursively)
+@code{ensure-accessor}.
+
+@code{make-accessor} calls @code{make} twice, first
+with metaclass @code{<generic>} to create a generic function for the
+setter, then with metaclass @code{<generic-with-setter>} to create the
+accessor, passing the setter generic function as the value of the
+@code{#:setter} keyword.
 
 @node Generic Function Invocation
 @subsection Generic Function Invocation
