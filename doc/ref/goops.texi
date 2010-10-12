@@ -892,15 +892,7 @@ to that descendant's ancestors too.
 @node Adding Methods to Generic Functions
 @section Adding Methods to Generic Functions
 
-@menu
-* Basic Method Definition::
-* Method Definition Internals::
-@end menu
-
-@node Basic Method Definition
-@subsection Basic Method Definition
-
-To add a method to a generic function, use the @code{define-method} form.
+To add a method to a generic function, use @code{define-method}.
 
 @deffn syntax define-method (generic parameter @dots{}) . body
 Define a method for the generic function or accessor @var{generic} with
@@ -924,14 +916,14 @@ can be applied.
 @var{body} is the body of the method definition.
 @end deffn
 
-@code{define-method} expressions look a little like normal Scheme
-procedure definitions of the form
+@code{define-method} expressions look a little like Scheme procedure
+definitions of the form
 
 @example
 (define (name formals @dots{}) . body)
 @end example
 
-The most important difference is that each formal parameter, apart from the
+The important difference is that each formal parameter, apart from the
 possible ``rest'' argument, can be qualified by a class name:
 @code{@var{formal}} becomes @code{(@var{formal} @var{class})}.  The
 meaning of this qualification is that the method being defined
@@ -951,97 +943,6 @@ only applicable to invocations of its generic function that have two
 parameters where the first parameter is an instance of the
 @code{<square>} class and the second parameter is a number.
 
-If a generic function is invoked with a combination of parameters for which
-there is no applicable method, GOOPS raises an error.  For more about
-invocation error handling, and generic function invocation in general,
-see @ref{Invoking Generic Functions}.
-
-@node Method Definition Internals
-@subsection Method Definition Internals
-
-@code{define-method}
-
-@itemize @bullet
-@item
-checks the form of the first parameter, and applies the following steps
-to the accessor's setter if it has the @code{(setter @dots{})} form
-
-@item
-interpolates a call to @code{define-generic} or @code{define-accessor}
-if a generic function is not already defined with the supplied name
-
-@item
-calls @code{method} with the @var{parameter}s and @var{body}, to make a
-new method instance
-
-@item
-calls @code{add-method!} to add this method to the relevant generic
-function.
-@end itemize
-
-@deffn syntax method (parameter @dots{}) . body
-Make a method whose specializers are defined by the classes in
-@var{parameter}s and whose procedure definition is constructed from the
-@var{parameter} symbols and @var{body} forms.
-
-The @var{parameter} and @var{body} parameters should be as for
-@code{define-method} (@pxref{Basic Method Definition,, define-method}).
-@end deffn
-
-@code{method}
-
-@itemize @bullet
-@item
-extracts formals and specializing classes from the @var{parameter}s,
-defaulting the class for unspecialized parameters to @code{<top>}
-
-@item
-creates a closure using the formals and the @var{body} forms
-
-@item
-calls @code{make} with metaclass @code{<method>} and the specializers
-and closure using the @code{#:specializers} and @code{#:procedure}
-keywords.
-@end itemize
-
-@deffn procedure make-method specializers procedure
-Make a method using @var{specializers} and @var{procedure}.
-
-@var{specializers} should be a list of classes that specifies the
-parameter combinations to which this method will be applicable.
-
-@var{procedure} should be the closure that will applied to the generic
-function parameters when this method is invoked.
-@end deffn
-
-@code{make-method} is a simple wrapper around @code{make} with metaclass
-@code{<method>}.
-
-@deffn generic add-method! target method
-Generic function for adding method @var{method} to @var{target}.
-@end deffn
-
-@deffn method add-method! (generic <generic>) (method <method>)
-Add method @var{method} to the generic function @var{generic}.
-@end deffn
-
-@deffn method add-method! (proc <procedure>) (method <method>)
-If @var{proc} is a procedure with generic capability (@pxref{Extending
-Primitives,, generic-capability?}), upgrade it to a primitive generic
-and add @var{method} to its generic function definition.
-@end deffn
-
-@deffn method add-method! (pg <primitive-generic>) (method <method>)
-Add method @var{method} to the generic function definition of @var{pg}.
-
-Implementation: @code{(add-method! (primitive-generic-generic pg) method)}.
-@end deffn
-
-@deffn method add-method! (whatever <top>) (method <method>)
-Raise an error indicating that @var{whatever} is not a valid generic
-function.
-@end deffn
-
 @node Invoking Generic Functions
 @section Invoking Generic Functions
 
@@ -1052,12 +953,15 @@ the remaining elements of the list.  [ *fixme* How do I put this in a
 more Schemely and less Lispy way? ]
 
 Usually a generic function contains several method definitions, with
-varying degrees of formal parameter specialization (@pxref{Basic
-Method Definition,, define-method}).  So it is necessary to sort these
-methods by specificity with respect to the supplied arguments, and then
-apply the most specific method definition.  Less specific methods
-may be applied subsequently if a method that is being applied calls
-@code{next-method}.
+varying degrees of formal parameter specialization (@pxref{Adding
+Methods to Generic Functions,, define-method}).  So it is necessary to
+sort these methods by specificity with respect to the supplied
+arguments, and then apply the most specific method definition.  Less
+specific methods may be applied subsequently if a method that is being
+applied calls @code{next-method}.
+
+If a generic function is invoked with a combination of parameters for
+which there is no applicable method, GOOPS raises an error.
 
 @menu
 * Determining Which Methods to Apply::
@@ -1689,6 +1593,7 @@ GOOPS' power, by customizing the behaviour of GOOPS itself.
 * Customizing Instance Creation::
 * Class Redefinition::
 * Method Definition::
+* Method Definition Internals::
 * Generic Function Internals::
 * Generic Function Invocation::
 @end menu
@@ -2574,6 +2479,93 @@ a primitive generic (@pxref{Extending Primitives})
 By defining further methods for @code{add-method!}, you can
 theoretically handle adding methods to further types of target.
 @end itemize
+
+@node Method Definition Internals
+@subsection Method Definition Internals
+
+@code{define-method}
+
+@itemize @bullet
+@item
+checks the form of the first parameter, and applies the following steps
+to the accessor's setter if it has the @code{(setter @dots{})} form
+
+@item
+interpolates a call to @code{define-generic} or @code{define-accessor}
+if a generic function is not already defined with the supplied name
+
+@item
+calls @code{method} with the @var{parameter}s and @var{body}, to make a
+new method instance
+
+@item
+calls @code{add-method!} to add this method to the relevant generic
+function.
+@end itemize
+
+@deffn syntax method (parameter @dots{}) . body
+Make a method whose specializers are defined by the classes in
+@var{parameter}s and whose procedure definition is constructed from the
+@var{parameter} symbols and @var{body} forms.
+
+The @var{parameter} and @var{body} parameters should be as for
+@code{define-method} (@pxref{Adding Methods to Generic Functions,,
+define-method}).
+@end deffn
+
+@code{method}
+
+@itemize @bullet
+@item
+extracts formals and specializing classes from the @var{parameter}s,
+defaulting the class for unspecialized parameters to @code{<top>}
+
+@item
+creates a closure using the formals and the @var{body} forms
+
+@item
+calls @code{make} with metaclass @code{<method>} and the specializers
+and closure using the @code{#:specializers} and @code{#:procedure}
+keywords.
+@end itemize
+
+@deffn procedure make-method specializers procedure
+Make a method using @var{specializers} and @var{procedure}.
+
+@var{specializers} should be a list of classes that specifies the
+parameter combinations to which this method will be applicable.
+
+@var{procedure} should be the closure that will applied to the generic
+function parameters when this method is invoked.
+@end deffn
+
+@code{make-method} is a simple wrapper around @code{make} with metaclass
+@code{<method>}.
+
+@deffn generic add-method! target method
+Generic function for adding method @var{method} to @var{target}.
+@end deffn
+
+@deffn method add-method! (generic <generic>) (method <method>)
+Add method @var{method} to the generic function @var{generic}.
+@end deffn
+
+@deffn method add-method! (proc <procedure>) (method <method>)
+If @var{proc} is a procedure with generic capability (@pxref{Extending
+Primitives,, generic-capability?}), upgrade it to a primitive generic
+and add @var{method} to its generic function definition.
+@end deffn
+
+@deffn method add-method! (pg <primitive-generic>) (method <method>)
+Add method @var{method} to the generic function definition of @var{pg}.
+
+Implementation: @code{(add-method! (primitive-generic-generic pg) method)}.
+@end deffn
+
+@deffn method add-method! (whatever <top>) (method <method>)
+Raise an error indicating that @var{whatever} is not a valid generic
+function.
+@end deffn
 
 @node Generic Function Internals
 @subsection Generic Function Internals
