@@ -18,6 +18,132 @@ The following SRFIs have been added:
 - SRFI-27 "Sources of Random Bits"
 - SRFI-42 "Eager Comprehensions"
 - SRFI-45 "Primitives for Expressing Iterative Lazy Algorithms"
+- SRFI-67 "Compare Procedures"
+
+Thanks to Andreas Rottmann.
+
+** (system foreign) API changes
+
+The `make-foreign-function' procedure was renamed to
+`pointer->procedure'.
+    
+** (system xref) source database
+
+The `(system xref)' module can now map from source locations to
+procedures. See the `source-procedures' and `source-closures' functions.
+
+** New procedures: `scm_to_latin1_stringn', `scm_from_latin1_stringn'
+
+Use these procedures when you know you have latin1-encoded or
+ASCII-encoded strings.
+
+** New procedures: `scm_to_stringn', `scm_from_stringn'
+
+Use these procedures if you want to encode or decode from a particular
+locale.
+
+** Removed support shlibs for SRFIs 1, 4, 13, 14, and 60
+
+Though these SRFI support libraries did expose API, they encoded a
+strange version string into their library names.  That version was never
+programmatically exported, so there was no way people could use the
+libs.
+
+This was a fortunate oversight, as it allows us to remove the need for
+extra, needless shared libraries --- the C support code for SRFIs 4, 13,
+and 14 was already in core --- and allow us to incrementally return the
+SRFI implementation to Scheme.
+
+** Simplifications to the set of low-level hooks exported by the VM
+
+See "VM Hooks" in the manual, for more information.
+
+** New traps system
+
+See "Traps" in the manual, for more information.
+
+** Breakpoints, tracepoints and source stepping now available at the REPL
+    
+See "Interactive Debugging" in the manual, for more information.
+
+The new REPL commands are: break, break-at-source, tracepoint, traps,
+delete, disable, enable, step, step-instruction, next, next-instruction,
+finish, and registers.
+
+** Remove obsolete debug-options
+
+Removed `breakpoints', `trace', `procnames', `indent', `frames',
+`maxdepth', and `debug' debug-options.
+
+** Remove obsolete print-options
+    
+The `source' and `closure-hook' print options are obsolete, and have
+been removed.
+
+** Remove obsolete read-options
+
+The "elisp-strings" and "elisp-vectors" read options were unused and
+obsolete, so they have been removed.
+
+** Remove eval-options and trap-options
+
+Eval-options and trap-options are obsolete with the new VM and
+evaluator.
+
+** Remove (ice-9 debugger) and (ice-9 debugging)
+
+See "Traps" and "Interactive Debugging" in the manual, for information
+on their replacements.
+
+** Remove the GDS Emacs integration
+
+See "Using Guile in Emacs" in the manual, for info on how we think you
+should use Guile with Emacs.
+
+** Remove vm-version, vm options
+    
+These procedures introduced during the 1.9 series had no effect.
+
+** Add `call-with-vm' and ability to set VM engine
+
+`call-with-vm' applies a procedure to arguments in a context in which a
+given VM is current.
+
+`set-vm-engine!' can be used to specify the engine for a VM, which will
+become current at the next `call-with-vm' invocation.
+
+** Default to "regular" VM engine for noninteractive use
+    
+The "debug" engine is used when the user specifies --debug, or when
+running interactively. A debug VM allows hooks to run; see "VM Hooks" in
+the manual.
+
+** `backtrace' debug option on by default
+
+Given that Guile 2.0 can always give you a backtrace, backtraces are now
+on by default.
+
+** `turn-on-debugging' deprecated
+
+** New compilation warning: `-Wformat'
+    
+The `-Wformat' warning can indicate a number of common format string
+errors.  See "Compilation" in the manual, for more information.
+
+** Add `(system repl server)' module and `--listen' command-line argument
+    
+The `(system repl server)' module exposes procedures to listen on
+sockets for connections, and serve REPLs to those clients.  The --listen
+command-line argument allows any Guile program to thus be remotely
+debuggable.
+
+See "Invoking Guile" for more information on `--listen'.
+
+** Big manual updates
+
+The GOOPS documentation got a lot of attention this cycle, as well as
+the sections on interactive use and debugging.  We don't know of any
+sections of the manual that are out-of-date at this point.
 
 ** And of course, the usual collection of bugfixes
  
