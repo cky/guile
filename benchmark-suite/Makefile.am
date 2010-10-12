@@ -1,4 +1,5 @@
 SCM_BENCHMARKS = benchmarks/0-reference.bm		\
+		 benchmarks/arithmetic.bm		\
 		 benchmarks/bytevectors.bm		\
 		 benchmarks/chars.bm			\
 		 benchmarks/continuations.bm		\

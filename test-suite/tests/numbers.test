@@ -109,7 +109,13 @@
   (pass-if (eqv? 1 (1+ 0)))
   (pass-if (eqv? 0 (1+ -1)))
   (pass-if (eqv? 101 (1+ 100)))
-  (pass-if (eqv? -99 (1+ -100))))
+  (pass-if (eqv? -99 (1+ -100)))
+
+  ;; The maximum fixnum on a 32-bit architecture: 2^29 - 1.
+  (pass-if (eqv? 536870912 (1+ 536870911)))
+
+  ;; The maximum fixnum on a 64-bit architecture: 2^61 - 1.
+  (pass-if (eqv? 2305843009213693952 (1+ 2305843009213693951))))
 
 ;;;
 ;;; 1-
@@ -123,7 +129,13 @@
   (pass-if (eqv? -1 (1- 0)))
   (pass-if (eqv? 0 (1- 1)))
   (pass-if (eqv? 99 (1- 100)))
-  (pass-if (eqv? -101 (1- -100))))
+  (pass-if (eqv? -101 (1- -100)))
+
+  ;; The minimum fixnum on a 32-bit architecture: -2^29.
+  (pass-if (eqv? -536870913 (1- -536870912)))
+
+  ;; The minimum fixnum on a 64-bit architecture: -2^61.
+  (pass-if (eqv? -2305843009213693953 (1- -2305843009213693952))))
 
 ;;;
 ;;; ash

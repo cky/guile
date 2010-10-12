@@ -209,6 +209,10 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
  * Numeric functions
  */
 
+/* The maximum/minimum tagged integers.  */
+#define INUM_MAX (INTPTR_MAX - 1)
+#define INUM_MIN (INTPTR_MIN + scm_tc2_int)
+
 #undef FUNC2
 #define FUNC2(CFUNC,SFUNC)				\
 {							\
@@ -231,12 +235,21 @@ VM_DEFINE_FUNCTION (150, add, "add", 2)
 VM_DEFINE_FUNCTION (151, add1, "add1", 1)
 {
   ARGS1 (x);
-  if (SCM_I_INUMP (x))
+
+  /* Check for overflow.  */
+  if (SCM_LIKELY ((scm_t_intptr) x < INUM_MAX))
     {
-      scm_t_int64 n = SCM_I_INUM (x) + 1;
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_I_MAKINUM (n));
+      SCM result;
+
+      /* Add the integers without untagging.  */
+      result = SCM_PACK ((scm_t_intptr) x
+			 + (scm_t_intptr) SCM_I_MAKINUM (1)
+			 - scm_tc2_int);
+
+      if (SCM_LIKELY (SCM_I_INUMP (result)))
+	RETURN (result);
     }
+
   SYNC_REGISTER ();
   RETURN (scm_sum (x, SCM_I_MAKINUM (1)));
 }
@@ -249,12 +262,21 @@ VM_DEFINE_FUNCTION (152, sub, "sub", 2)
 VM_DEFINE_FUNCTION (153, sub1, "sub1", 1)
 {
   ARGS1 (x);
-  if (SCM_I_INUMP (x))
+
+  /* Check for underflow.  */
+  if (SCM_LIKELY ((scm_t_intptr) x > INUM_MIN))
     {
-      scm_t_int64 n = SCM_I_INUM (x) - 1;
-      if (SCM_FIXABLE (n))
-	RETURN (SCM_I_MAKINUM (n));
+      SCM result;
+
+      /* Substract the integers without untagging.  */
+      result = SCM_PACK ((scm_t_intptr) x
+			 - (scm_t_intptr) SCM_I_MAKINUM (1)
+			 + scm_tc2_int);
+
+      if (SCM_LIKELY (SCM_I_INUMP (result)))
+	RETURN (result);
     }
+
   SYNC_REGISTER ();
   RETURN (scm_difference (x, SCM_I_MAKINUM (1)));
 }

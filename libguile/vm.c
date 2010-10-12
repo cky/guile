@@ -24,6 +24,7 @@
 #include <alloca.h>
 #include <alignof.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "libguile/bdw-gc.h"
 #include <gc/gc_mark.h>
