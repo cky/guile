@@ -587,7 +587,14 @@ unopinionated writing is boring---hence this tone---but it's the
 truth, regardless.)  Paredit is the bee's knees.
 
 @cindex Geiser
-The second is José Antonio Ortega Ruiz's
+The second is
+@iftex
+Jos@'e
+@end iftex
+@ifnottex
+José
+@end ifnottex
+Antonio Ortega Ruiz's
 @uref{http://www.nongnu.org/geiser/, Geiser}.  Geiser complements Emacs'
 @code{scheme-mode} with tight integration to running Guile processes via
 a @code{comint-mode} REPL buffer.
