@@ -5723,9 +5723,10 @@ scm_c_make_rectangular (double re, double im)
   else
     {
       SCM z;
-      SCM_NEWSMOB (z, scm_tc16_complex,
-		   scm_gc_malloc_pointerless (sizeof (scm_t_complex),
+
+      z = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_complex),
 					      "complex"));
+      SCM_SET_CELL_TYPE (z, scm_tc16_complex);
       SCM_COMPLEX_REAL (z) = re;
       SCM_COMPLEX_IMAG (z) = im;
       return z;

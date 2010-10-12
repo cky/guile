@@ -128,9 +128,8 @@ typedef scm_t_int32 scm_t_wchar;
 #define SCM_COMPLEXP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_complex)
 
 #define SCM_REAL_VALUE(x) (((scm_t_double *) SCM2PTR (x))->real)
-#define SCM_COMPLEX_MEM(x) ((scm_t_complex *) SCM_CELL_WORD_1 (x))
-#define SCM_COMPLEX_REAL(x) (SCM_COMPLEX_MEM (x)->real)
-#define SCM_COMPLEX_IMAG(x) (SCM_COMPLEX_MEM (x)->imag)
+#define SCM_COMPLEX_REAL(x) (((scm_t_complex *) SCM2PTR (x))->real)
+#define SCM_COMPLEX_IMAG(x) (((scm_t_complex *) SCM2PTR (x))->imag)
 
 /* Each bignum is just an mpz_t stored in a double cell starting at word 1. */
 #define SCM_I_BIG_MPZ(x) (*((mpz_t *) (SCM_CELL_OBJECT_LOC((x),1))))
@@ -157,6 +156,8 @@ typedef struct scm_t_double
 
 typedef struct scm_t_complex
 {
+  SCM type;
+  SCM pad;
   double real;
   double imag;
 } scm_t_complex;
