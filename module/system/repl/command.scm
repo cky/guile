@@ -838,8 +838,8 @@ Display statistics."
     (set! (repl-gc-stats repl) this-gcs)))
 
 (define (display-stat title flag field1 field2 unit)
-  (let ((str (format #f "~~20~AA ~~10@A /~~10@A ~~A~~%" (if flag "" "@"))))
-    (format #t str title field1 field2 unit)))
+  (let ((fmt (format #f "~~20~AA ~~10@A /~~10@A ~~A~~%" (if flag "" "@"))))
+    (format #t fmt title field1 field2 unit)))
 
 (define (display-stat-title title field1 field2)
   (display-stat title #t field1 field2 ""))

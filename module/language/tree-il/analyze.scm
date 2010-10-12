@@ -1369,7 +1369,13 @@ accurate information is missing from a given `tree-il' element."
                     (warning 'format loc 'syntax-error key fmt)))
                 (warning 'format loc 'wrong-format-string fmt))))
          ((,port ,fmt . ,rest)
-          (warning 'format loc 'non-literal-format-string))
+          ;; Warn on non-literal format strings, unless they refer to a
+          ;; lexical variable named "fmt".
+          (if (record-case fmt
+                ((<lexical-ref> name)
+                 (not (eq? name 'fmt)))
+                (else #t))
+              (warning 'format loc 'non-literal-format-string)))
          (else
           (warning 'format loc 'wrong-num-args (length args)))))
 
