@@ -59,7 +59,7 @@ script is simply a file of Scheme code with some extra information at
 the beginning which tells the operating system how to invoke Guile, and
 then tells Guile how to handle the Scheme code.
 
-Here is a trivial Guile script, for more details @xref{Guile Scripting}.
+Here is a trivial Guile script.  @xref{Guile Scripting}, for more details.
 
 @example
 #!/usr/local/bin/guile -s
@@ -136,8 +136,8 @@ You can link Guile into your program and make Scheme available to the
 users of your program.  You can also link your library into Guile and
 make its functionality available to all users of Guile.
 
-A library that is linked into Guile is called an @dfn{extensions}, but
-it really just is an ordinary object library.
+A library that is linked into Guile is called an @dfn{extension}, but it
+really just is an ordinary object library.
 
 The following example shows how to write a simple extension for Guile
 that makes the @code{j0} function available to Scheme code.
@@ -357,7 +357,7 @@ If you built Guile yourself, the build configuration that you used:
 
 @example
 $ ./config.status --config
-'--enable-error-on-warning' '--disable-deprecated' '--prefix=/opt/guile' '--libdir=/opt/guile/lib64' 'CC=ccache gcc'
+'--enable-error-on-warning' '--disable-deprecated'...
 @end example
 
 @item

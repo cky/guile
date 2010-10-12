@@ -199,13 +199,13 @@ If @var{p} is not given, the default is local port 37146.  If you look
 at it upside down, it almost spells ``Guile''.  If you have netcat
 installed, you should be able to @kbd{nc localhost 37146} and get a
 Guile prompt.  Alternately you can fire up Emacs and connect to the
-procedure; see @ref{Using Guile in Emacs} for more details.
+process; see @ref{Using Guile in Emacs} for more details.
 
 Note that opening a port allows anyone who can connect to that port---in
 the TCP case, any local user---to do anything Guile can do, as the user
 that the Guile process is running as.  Don't use @option{--listen} on
-multi-user machines.  Of course, if there is no @option{--listen}
-argument, no port will be opened.
+multi-user machines.  Of course, if you don't pass @option{--listen} to
+Guile, no port will be opened.
 
 That said, @code{--listen} is great for interactive debugging and
 development.

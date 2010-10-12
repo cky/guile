@@ -57,21 +57,22 @@ scheme@@(guile-user)> (use-modules (ice-9 readline))
 scheme@@(guile-user)> (activate-readline)
 @end lisp
 
-It's a good idea to put these two lines (without the ``scheme@@(guile-user)>''
-prompts) in your @file{.guile} file.  Guile reads this file when it
-starts up interactively, so anything in this file has the same effect
-as if you type it in by hand at the ``scheme@@(guile-user)>'' prompt.
+It's a good idea to put these two lines (without the
+@code{scheme@@(guile-user)>} prompts) in your @file{.guile} file.  Guile
+reads this file when it starts up interactively, so anything in this
+file has the same effect as if you type it in by hand at the
+@code{scheme@@(guile-user)>} prompt.
 
 
 @node Value History
 @subsection Value History
 
 Just as Readline helps you to reuse a previous input line, @dfn{value
-history} allows you to use the @emph{result} of a previous evaluation
-in a new expression.  When value history is enabled, each evaluation
-result is automatically assigned to the next in the sequence of
-variables @code{$1}, @code{$2}, @dots{}, and you can then use these
-variables in subsequent expressions.
+history} allows you to use the @emph{result} of a previous evaluation in
+a new expression.  When value history is enabled, each evaluation result
+is automatically assigned to the next in the sequence of variables
+@code{$1}, @code{$2}, @dots{}.  You can then use these variables in
+subsequent expressions.
 
 @lisp
 scheme@@(guile-user)> (iota 10)
@@ -175,7 +176,7 @@ had by typing @samp{,help}. Indeed, @code{help} is a command, and a
 particularly useful one, as it allows the user to discover the rest of
 the commands.
 
-@deffn {REPL Command} help [@samp{all} | group | @samp{[-c]} command]
+@deffn {REPL Command} help [@code{all} | group | @code{[-c]} command]
 Show help.
 
 With one argument, tries to look up the argument as a group name, giving
