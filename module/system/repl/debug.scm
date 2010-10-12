@@ -30,7 +30,8 @@
   #:use-module ((system vm inspect) #:select ((inspect . %inspect)))
   #:use-module (system vm program)
   #:export (<debug>
-            make-debug debug? debug-frames debug-index debug-error-message
+            make-debug debug?
+            debug-frames debug-index debug-error-message debug-for-trap?
             print-registers print-locals print-frame print-frames frame->module
             stack->vector narrow-stack->vector
             frame->stack-vector))
@@ -53,7 +54,7 @@
 ;;; accessors, and provides some helper functions.
 ;;;
 
-(define-record <debug> frames index error-message)
+(define-record <debug> frames index error-message for-trap?)
 
 
 

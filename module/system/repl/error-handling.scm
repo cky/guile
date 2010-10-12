@@ -76,7 +76,7 @@
              (error-msg (if trap-idx
                             (format #f "Trap ~d: ~a" trap-idx trap-name)
                             trap-name))
-             (debug (make-debug stack 0 error-msg)))
+             (debug (make-debug stack 0 error-msg #t)))
         (with-saved-ports
          (lambda ()
            (if trap-idx
@@ -145,7 +145,7 @@
                           ;; the start-stack thunk has its own frame too.
                           0 (and tag 1)))
                   (error-msg (error-string stack key args))
-                  (debug (make-debug stack 0 error-msg)))
+                  (debug (make-debug stack 0 error-msg #f)))
              (with-saved-ports
               (lambda ()
                 (format #t "~a~%" error-msg)

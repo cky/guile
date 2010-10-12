@@ -617,7 +617,7 @@ Note that the given source location must be inside a procedure."
                  (format #t "Return values:~%")
                  (for-each (lambda (x) (repl-print repl x)) vals))))
          ((module-ref (resolve-interface '(system repl repl)) 'start-repl)
-          #:debug (make-debug stack 0 msg))))))
+          #:debug (make-debug stack 0 msg #t))))))
 
 (define-stack-command (finish repl)
   "finish
@@ -641,7 +641,7 @@ Resume execution, breaking when the current frame finishes."
                        (k (frame->stack-vector frame)))))))
        (format #t "~a~%" msg)
        ((module-ref (resolve-interface '(system repl repl)) 'start-repl)
-        #:debug (make-debug stack 0 msg)))))
+        #:debug (make-debug stack 0 msg #t)))))
 
 (define-stack-command (step repl)
   "step
