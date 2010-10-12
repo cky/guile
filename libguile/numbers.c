@@ -6325,8 +6325,13 @@ scm_to_double (SCM val)
 SCM
 scm_from_double (double val)
 {
-  SCM z = scm_double_cell (scm_tc16_real, 0, 0, 0);
+  SCM z;
+
+  z = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_double), "real"));
+
+  SCM_SET_CELL_TYPE (z, scm_tc16_real);
   SCM_REAL_VALUE (z) = val;
+
   return z;
 }
 
