@@ -147,7 +147,7 @@ be, and how they will be initialised and accessed.
   (y #:init-value 0 #:accessor y-component #:init-keyword #:y))
 @end lisp
 
-Methods are not (formally) part of a specific class's definition,
+Methods are not formally part of a specific class's definition,
 because a single method can be associated with several classes.  If
 you've studied object orientation in non-Lispy languages, you may
 remember discussions such as whether a method to stretch a graphical
@@ -502,7 +502,7 @@ To create a new instance of any GOOPS class, use the generic function
 @code{make} or @code{make-instance}, passing the required class and any
 appropriate instance initialization arguments as keyword and value
 pairs.  Note that @code{make} and @code{make-instances} are aliases for
-each other - their behaviour is identical.
+each other --- their behaviour is identical.
 
 @deffn generic make
 @deffnx method make (class <class>) . initargs
