@@ -39,8 +39,7 @@
 
 
 (define (fail . messages)
-  (format (current-error-port)
-	  (string-concatenate `("error: " ,@messages "~%")))
+  (format (current-error-port) "error: ~{~a~}~%" messages)
   (exit 1))
 
 (define %options
