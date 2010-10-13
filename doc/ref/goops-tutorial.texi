@@ -30,21 +30,13 @@
 @c Guile
 @c @end macro
 
-This section introduces the @goops{} package in more detail.  It was
-originally written by Erick Gallesio as an appendix for the STk
-reference manual, and subsequently adapted to @goops{}.
-
-The procedures and syntax described in this tutorial are provided by
-Guile modules that may need to be imported before being available.
-The main @goops{} module is imported by evaluating:
+To start using @goops{} you first need to import the @code{(oop goops)}
+module.  You can do this at the Guile REPL by evaluating:
 
 @lisp
 (use-modules (oop goops))
 @end lisp
 @findex (oop goops)
-@cindex main module
-@cindex loading
-@cindex preparing
 
 @menu
 * Class definition::  
@@ -68,13 +60,16 @@ of @code{define-class} is close to CLOS @code{defclass}:
    @var{class-option} @dots{})
 @end lisp
 
-@var{class} is the class being defined.  The list of
-@var{superclass}es specifies which existing classes, if any, to
-inherit slots and properties from.  Each @var{slot-description} gives
-the name of a slot and optionally some ``properties'' of this slot;
-for example its initial value, the name of a function which will
-access its value, and so on.  Slot descriptions and inheritance are
-discussed more below.  For class options, see @ref{Class Options}.
+@var{class} is the class being defined.  The list of @var{superclass}es
+specifies which existing classes, if any, to inherit slots and
+properties from.  @dfn{Slots} hold per-instance@footnote{Usually --- but
+see also the @code{#:allocation} slot option.} data, for instances of
+that class --- like ``fields'' or ``member variables'' in other object
+oriented systems.  Each @var{slot-description} gives the name of a slot
+and optionally some ``properties'' of this slot; for example its initial
+value, the name of a function which will access its value, and so on.
+Slot descriptions and inheritance are discussed more below.  For class
+options, see @ref{Class Options}.
 @cindex slot
 
 As an example, let us define a type for representing a complex number
@@ -555,6 +550,38 @@ However, this result is not too much readable; using the function
 
 @node Generic functions
 @subsection Generic functions
+
+A GOOPS method is like a Scheme procedure except that it is specialized
+for a particular set of argument classes, and will only be used when the
+actual arguments in a call match the classes in the method definition.
+
+@lisp
+(define-method (+ (x <string>) (y <string>))
+  (string-append x y))
+
+(+ "abc" "de") @result{} "abcde"
+@end lisp
+
+A method is not formally associated with any single class (as it is in
+many other object oriented languages), because a method can be
+specialized for a combination of several classes.  If you've studied
+object orientation in non-Lispy languages, you may remember discussions
+such as whether a method to stretch a graphical image around a surface
+should be a method of the image class, with a surface as a parameter, or
+a method of the surface class, with an image as a parameter.  In GOOPS
+you'd just write
+
+@lisp
+(define-method (stretch (im <image>) (sf <surface>))
+  ...)
+@end lisp
+
+@noindent
+and the question of which class the method is more associated with does
+not need answering.
+
+A generic function is a collection of methods with the same name but
+different sets of specializing argument classes.
 
 @menu
 * Generic functions and methods::  

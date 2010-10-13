@@ -30,7 +30,6 @@ overriding or redefining those methods.
 
 @menu
 * Copyright Notice::
-* Quick Start::
 * Tutorial::
 * Defining New Classes::
 * Creating Instances::
@@ -66,128 +65,6 @@ warranty.
 
 The material has been adapted for use in Guile, with the author's
 permission.
-
-
-@node Quick Start
-@section Quick Start
-
-To start using GOOPS, load the @code{(oop goops)} module:
-
-@lisp
-(use-modules (oop goops))
-@end lisp
-
-We're now ready to try some basic GOOPS functionality.
-
-@menu
-* Methods::
-* Built-in classes::
-* User-defined classes::
-@end menu
-
-
-@node Methods
-@subsection Methods
-
-A GOOPS method is like a Scheme procedure except that it is
-specialized for a particular set of argument classes.
-
-@lisp
-(define-method (+ (x <string>) (y <string>))
-  (string-append x y))
-
-(+ "abc" "de") @result{} "abcde"
-@end lisp
-
-If @code{+} is used with arguments that do not match the method's
-classes, Guile falls back to using the normal Scheme @code{+} procedure.
-
-@lisp
-(+ 1 2) @result{} 3
-@end lisp
-
-
-@node Built-in classes
-@subsection Built-in classes
-
-There are built-in classes like @code{<string>}, @code{<list>} and
-@code{<number>} corresponding to all the Guile Scheme types.  You can
-use the @code{is-a?} predicate to ask whether any given value belongs to
-a given class, or @code{class-of} to discover the class of a given
-value.
-
-@lisp
-(is-a? 2.3 <number>) @result{} #t
-(is-a? 2.3 <real>) @result{} #t
-(is-a? 2.3 <string>) @result{} #f
-(is-a? '("a" "b") <string>) @result{} #f
-(is-a? '("a" "b") <list>) @result{} #t
-(is-a? (car '("a" "b")) <string>) @result{} #t
-(is-a? <string> <class>) @result{} #t
-(is-a? <class> <string>) @result{} #f
-
-(class-of 2.3) @result{} #<<class> <real> 908c708>
-(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
-(class-of <string>) @result{} #<<class> <class> 8bd3e10>
-(class-of <class>) @result{} #<<class> <class> 8bd3e10>
-@end lisp
-
-
-@node User-defined classes
-@subsection User-defined classes
-
-You can, of course, also define new classes.  The GOOPS term for
-``fields'' or ``member variables'' is @dfn{slots}, and the main thing
-you have to specify, when defining a new class, is what its slots will
-be, and how they will be initialised and accessed.
-
-@lisp
-(define-class <2D-vector> ()
-  (x #:init-value 0 #:accessor x-component #:init-keyword #:x)
-  (y #:init-value 0 #:accessor y-component #:init-keyword #:y))
-@end lisp
-
-Methods are not formally part of a specific class's definition,
-because a single method can be associated with several classes.  If
-you've studied object orientation in non-Lispy languages, you may
-remember discussions such as whether a method to stretch a graphical
-image around a surface should be a method of the image class, with a
-surface as a parameter, or a method of the surface class, with an image
-as a parameter.  In the generic function approach that GOOPS provides,
-this question does not arise.
-
-Here we customise @code{write} for the new class, so that
-@code{<2D-vector>} objects will be nicely printed:
-
-@lisp
-(use-modules (ice-9 format))
-
-(define-method (write (obj <2D-vector>) port)
-  (format port "<~S, ~S>" (x-component obj) (y-component obj)))
-@end lisp
-
-To make an @dfn{instance} or @dfn{object} of your new class, use
-@code{make} together with the class and any initialisation arguments:
-
-@lisp
-(define v (make <2D-vector> #:x 3 #:y 4))
-
-v @result{} <3, 4>
-(is-a? v <2D-vector>) @result{} #t
-(class-of v) @result{} #<<class> <2D-vector> 40241ac0>
-@end lisp
-
-Here is another method that is specialised for @code{<2D-vector>}
-objects, to add two of them together:
-
-@lisp
-(define-method (+ (x <2D-vector>) (y <2D-vector>))
-  (make <2D-vector>
-        #:x (+ (x-component x) (x-component y))
-        #:y (+ (y-component x) (y-component y))))
-
-(+ v v) @result{} <6, 8>
-@end lisp
 
 
 @node Tutorial
@@ -1234,6 +1111,7 @@ GOOPS equivalents --- to be obtained dynamically, at run time.
 * Classes::
 * Slots::
 * Instances::
+* Built-in classes::
 * Generic Functions::
 * Generic Function Methods::
 @end menu
@@ -1399,6 +1277,32 @@ its subclasses.
 Implementation notes: @code{is-a?} uses @code{class-of} and
 @code{class-precedence-list} to obtain the class precedence list for
 @var{object}.
+
+@node Built-in classes
+@subsection Built-in classes
+
+There are built-in classes like @code{<string>}, @code{<list>} and
+@code{<number>} corresponding to all the Guile Scheme types.  You can
+use the @code{is-a?} predicate to ask whether any given value belongs to
+a given class, or @code{class-of} to discover the class of a given
+value.
+
+@lisp
+(is-a? 2.3 <number>) @result{} #t
+(is-a? 2.3 <real>) @result{} #t
+(is-a? 2.3 <string>) @result{} #f
+(is-a? '("a" "b") <string>) @result{} #f
+(is-a? '("a" "b") <list>) @result{} #t
+(is-a? (car '("a" "b")) <string>) @result{} #t
+(is-a? <string> <class>) @result{} #t
+(is-a? <class> <string>) @result{} #f
+
+(class-of 2.3) @result{} #<<class> <real> 908c708>
+(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
+(class-of <string>) @result{} #<<class> <class> 8bd3e10>
+(class-of <class>) @result{} #<<class> <class> 8bd3e10>
+@end lisp
+
 
 @node Generic Functions
 @subsection Generic Functions
