@@ -1575,11 +1575,12 @@ VM_DEFINE_INSTRUCTION (89, wind_fluids, "wind-fluids", 1, -1, 0)
   unsigned n = FETCH ();
   SCM wf;
   
-  if (sp - 2*n < SCM_FRAME_UPPER_ADDRESS (fp))
-    goto vm_error_stack_underflow;
-
   SYNC_REGISTER ();
-  wf = scm_i_make_with_fluids (n, sp + 1 - 2*n, sp + 1 - n);
+  sp -= 2 * n;
+  CHECK_UNDERFLOW ();
+  wf = scm_i_make_with_fluids (n, sp + 1, sp + 1 + n);
+  NULLSTACK (2 * n);
+
   scm_i_swap_with_fluids (wf, dynstate);
   scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
   NEXT;
