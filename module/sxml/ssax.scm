@@ -1,6 +1,6 @@
 ;;;; (sxml ssax) -- the SSAX parser
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 ;;;;    Modified 2004 by Andy Wingo <wingo at pobox dot com>.
 ;;;;    Written 2001,2002,2003,2004 by Oleg Kiselyov <oleg at pobox dot com> as SSAX.scm.
 ;;;; 
@@ -147,6 +147,8 @@
                 attlist-null?
                 attlist-remove-top
                 attlist->alist attlist-fold
+                define-parsed-entity!
+                reset-parsed-entity-definitions!
                 ssax:uri-string->symbol
                 ssax:skip-internal-dtd
                 ssax:read-pi-body-as-string
@@ -187,6 +189,25 @@
 (define char-return #\return)
 (define char-tab #\tab)
 (define nl "\n")
+
+;; This isn't a great API, but a more proper fix will involve hacking
+;; SSAX.
+(define (reset-parsed-entity-definitions!)
+  "Restore the set of parsed entity definitions to its initial state."
+  (set! ssax:predefined-parsed-entities
+        '((amp . "&")
+          (lt . "<")
+          (gt . ">")
+          (apos . "'")
+          (quot . "\""))))
+
+(define (define-parsed-entity! entity str)
+  "Define a new parsed entity. @var{entity} should be a symbol.
+
+Instances of &@var{entity}; in XML text will be replaced with the
+string @var{str}, which will then be parsed."
+  (set! ssax:predefined-parsed-entities
+        (acons entity str ssax:predefined-parsed-entities)))
 
 ;; if condition is true, execute stmts in turn and return the result of
 ;; the last statement otherwise, return #f
