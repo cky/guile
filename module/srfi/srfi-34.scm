@@ -53,8 +53,9 @@ with-exception-handler that installed the handler being called.  The
 handler's continuation is otherwise unspecified."
   (throw throw-key obj))
 
-(define-macro (guard var+clauses . body)
-  "Syntax: (guard (<var> <clause1> <clause2> ...) <body>)
+(define-syntax guard
+  (syntax-rules (else)
+    "Syntax: (guard (<var> <clause1> <clause2> ...) <body>)
 Each <clause> should have the same form as a `cond' clause.
 
 Semantics: Evaluating a guard form evaluates <body> with an exception
@@ -66,15 +67,18 @@ every <clause>'s <test> evaluates to false and there is no else
 clause, then raise is re-invoked on the raised object within the
 dynamic environment of the original call to raise except that the
 current exception handler is that of the guard expression."
-  (let ((var (car var+clauses))
-	(clauses (cdr var+clauses)))
-    `(catch ',throw-key
-	    (lambda ()
-	      ,@body)
-	    (lambda (key ,var)
-	      (cond ,@(if (eq? (caar (last-pair clauses)) 'else)
-			  clauses
-			  (append clauses
-				  `((else (throw key ,var))))))))))
+    ((guard (var clause ... (else e e* ...)) body body* ...)
+     (catch throw-key
+       (lambda () body body* ...)
+       (lambda (key var)
+         (cond clause ...
+               (else e e* ...)))))
+    ((guard (var clause clause* ...) body body* ...)
+     (catch throw-key
+       (lambda () body body* ...)
+       (lambda (key var)
+         (cond clause clause* ...
+               (else (throw key var))))))))
+
 
 ;;; (srfi srfi-34) ends here.
