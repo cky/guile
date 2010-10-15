@@ -148,7 +148,8 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/tree-il.test			\
 	    tests/version.test			\
 	    tests/vlist.test			\
-	    tests/weaks.test
+	    tests/weaks.test			\
+	    tests/web-uri.test
 
 EXTRA_DIST = \
 	guile-test \

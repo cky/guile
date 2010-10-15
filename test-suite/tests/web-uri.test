@@ -1,0 +1,174 @@
+;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-web-uri)
+  #:use-module (web uri)
+  #:use-module (test-suite lib))
+
+
+;; FIXME: need more decode / encode tests
+
+
+(define* (uri=? uri #:key scheme userinfo host port path query fragment)
+  (and (uri? uri)
+       (equal? (uri-scheme uri) scheme)
+       (equal? (uri-userinfo uri) userinfo)
+       (equal? (uri-host uri) host)
+       (equal? (uri-port uri) port)
+       (equal? (uri-path uri) path)
+       (equal? (uri-query uri) query)
+       (equal? (uri-fragment uri) fragment)))
+
+(define ex:expected '(misc-error . "expected"))
+
+(with-test-prefix "build-uri"
+  (pass-if "ftp:"
+    (uri=? (build-uri 'ftp)
+           #:scheme 'ftp
+           #:path ""))
+  
+  (pass-if "ftp:foo"
+    (uri=? (build-uri 'ftp #:path "foo")
+           #:scheme 'ftp
+           #:path "foo"))
+  
+  (pass-if "ftp://foo"
+    (uri=? (build-uri 'ftp #:host "foo")
+           #:scheme 'ftp
+           #:host "foo"
+           #:path ""))
+  
+  (pass-if "ftp://foo/bar"
+    (uri=? (build-uri 'ftp #:host "foo" #:path "/bar")
+           #:scheme 'ftp
+           #:host "foo"
+           #:path "/bar"))
+  
+  (pass-if "ftp://foo@bar:22/baz"
+    (uri=? (build-uri 'ftp #:userinfo "foo" #:host "bar" #:port 22 #:path "/baz")
+           #:scheme 'ftp
+           #:userinfo "foo"
+           #:host "bar"
+           #:port 22
+           #:path "/baz"))
+
+  (pass-if-exception "non-symbol scheme"
+                     ex:expected
+                     (build-uri "nonsym"))
+
+  (pass-if-exception "http://bad.host.1"
+                     ex:expected
+                     (build-uri 'http #:host "bad.host.1"))
+
+  (pass-if "http://bad.host.1 (no validation)"
+    (uri=? (build-uri 'http #:host "bad.host.1" #:validate? #f)
+           #:scheme 'http #:host "bad.host.1" #:path ""))
+
+  (pass-if-exception "http://foo:not-a-port"
+                     ex:expected
+                     (build-uri 'http #:host "foo" #:port "not-a-port"))
+
+  (pass-if-exception "http://foo:10 but port as string"
+                     ex:expected
+                     (build-uri 'http #:host "foo" #:port "10"))
+
+  (pass-if-exception "http://:10"
+                     ex:expected
+                     (build-uri 'http #:port 10))
+
+  (pass-if-exception "http://foo@"
+                     ex:expected
+                     (build-uri 'http #:userinfo "foo")))
+
+
+(with-test-prefix "parse-uri"
+  (pass-if "ftp:"
+    (uri=? (parse-uri "ftp:")
+           #:scheme 'ftp
+           #:path ""))
+  
+  (pass-if "ftp:foo"
+    (uri=? (parse-uri "ftp:foo")
+           #:scheme 'ftp
+           #:path "foo"))
+  
+  (pass-if "ftp://foo/bar"
+    (uri=? (parse-uri "ftp://foo/bar")
+           #:scheme 'ftp
+           #:host "foo"
+           #:path "/bar"))
+  
+  (pass-if "ftp://foo@bar:22/baz"
+    (uri=? (parse-uri "ftp://foo@bar:22/baz")
+           #:scheme 'ftp
+           #:userinfo "foo"
+           #:host "bar"
+           #:port 22
+           #:path "/baz"))
+
+  (pass-if "http://bad.host.1"
+    (not (parse-uri "http://bad.host.1")))
+
+  (pass-if "http://foo:"
+    (uri=? (parse-uri "http://foo:")
+           #:scheme 'http #:host "foo" #:path ""))
+
+  (pass-if "http://foo:/"
+    (uri=? (parse-uri "http://foo:/")
+           #:scheme 'http #:host "foo" #:path "/"))
+
+  (pass-if "http://foo:not-a-port"
+    (not (parse-uri "http://foo:not-a-port")))
+  
+  (pass-if "http://:10"
+    (not (parse-uri "http://:10")))
+
+  (pass-if "http://foo@"
+    (not (parse-uri "http://foo@"))))
+
+(with-test-prefix "unparse-uri"
+  (pass-if "ftp:"
+    (equal? "ftp:"
+            (unparse-uri (parse-uri "ftp:"))))
+  
+  (pass-if "ftp:foo"
+    (equal? "ftp:foo"
+            (unparse-uri (parse-uri "ftp:foo"))))
+  
+  (pass-if "ftp://foo/bar"
+    (equal? "ftp://foo/bar"
+            (unparse-uri (parse-uri "ftp://foo/bar"))))
+  
+  (pass-if "ftp://foo@bar:22/baz"
+    (equal? "ftp://foo@bar:22/baz"
+            (unparse-uri (parse-uri "ftp://foo@bar:22/baz"))))
+  
+  (pass-if "http://foo:"
+    (equal? "http://foo"
+            (unparse-uri (parse-uri "http://foo:"))))
+  
+  (pass-if "http://foo:/"
+    (equal? "http://foo/"
+            (unparse-uri (parse-uri "http://foo:/")))))
+
+(with-test-prefix "decode"
+  (pass-if (equal? "foo bar" (uri-decode "foo%20bar"))))
+
+(with-test-prefix "encode"
+  (pass-if (equal? "foo%20bar" (uri-encode "foo bar"))))

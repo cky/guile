@@ -60,7 +60,8 @@ SOURCES =					\
   $(ECMASCRIPT_LANG_SOURCES)			\
   $(ELISP_LANG_SOURCES)				\
   $(BRAINFUCK_LANG_SOURCES)			\
-  $(LIB_SOURCES)
+  $(LIB_SOURCES)				\
+  $(WEB_SOURCES)
 
 ## test.scm is not currently installed.
 EXTRA_DIST +=					\
@@ -345,6 +346,9 @@ LIB_SOURCES =					\
   texinfo/plain-text.scm			\
   texinfo/reflection.scm			\
   texinfo/serialize.scm
+
+WEB_SOURCES =					\
+  web/uri.scm
 
 EXTRA_DIST += oop/ChangeLog-2008
 

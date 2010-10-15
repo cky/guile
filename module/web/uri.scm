@@ -1,187 +1,300 @@
-;;; www/url.scm --- URL manipulation tools
-
-;; 	Copyright (C) 1997,2001,2002 Free Software Foundation, Inc.
-;;
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with this software; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-;; Boston, MA 02111-1307 USA
-;;
+;;;; (web uri) --- URI manipulation tools
+;;;;
+;;;; Copyright (C) 1997,2001,2002,2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+;;;;
 
 ;;; Commentary:
 
-;; This module exports the following procedures:
-;;   (url:scheme url)
-;;   (url:address url)
-;;   (url:unknown url)
-;;   (url:user url)
-;;   (url:host url)
-;;   (url:port url)
-;;   (url:path url)
-;;   (url:make scheme . args)
-;;   (url:make-http host port path)
-;;   (url:make-ftp user host port path)
-;;   (url:make-mailto address)
-;;   (url:parse url)
-;;   (url:unparse url)
-;;   (url:decode str)
-;;   (url:encode str reserved-chars)
+;; Based on (www url). To be documented.
 
 ;;; Code:
 
-
-;; TODO:
-;;   * support `user:password@' strings where appropriate in URLs.
-;;   * make URL parsing smarter.  This is good for most TCP/IP-based
-;;	 URL schemes, but parsing is actually specific to each URL scheme.
-;;   * fill out url:encode, include facilities for URL-scheme-specific
-;;     encoding methods (e.g. a url-scheme-reserved-char-alist)
+(define-module (web uri)
+  #:export (uri?
+            uri-scheme uri-userinfo uri-host uri-port
+            uri-path uri-query uri-fragment
 
-(define-module (tekuti url)
-  #:use-module ((srfi srfi-1) #:select (filter))
-  #:use-module (ice-9 regex))
+            build-uri
+            parse-uri unparse-uri
+            uri-decode uri-encode
+            split-and-decode-uri-path
+            encode-and-join-uri-path)
+  #:use-module (srfi srfi-9)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 control)
+  #:use-module (rnrs bytevectors)
+  #:use-module (rnrs io ports))
 
-;; `url:scheme' is an unfortunate term, but it is the technical
-;; name for that portion of the URL according to RFC 1738. Sigh.
+(define-record-type <uri>
+  (make-uri scheme userinfo host port path query fragment)
+  uri?
+  (scheme uri-scheme)
+  (userinfo uri-userinfo)
+  (host uri-host)
+  (port uri-port)
+  (path uri-path)
+  (query uri-query)
+  (fragment uri-fragment))
 
-(define-public (url:scheme url)  (vector-ref url 0))
-(define-public (url:address url) (vector-ref url 1))
-(define-public (url:unknown url) (vector-ref url 1))
-(define-public (url:user url)    (vector-ref url 1))
-(define-public (url:host url)    (vector-ref url 2))
-(define-public (url:port url)    (vector-ref url 3))
-(define-public (url:path url)    (vector-ref url 4))
+(define (positive-exact-integer? port)
+  (and (number? port) (exact? port) (integer? port) (positive? port)))
 
-(define-public (url:make scheme . args)
-  (apply vector scheme args))
-(define-public (url:make-http host port path)
-  (vector 'http #f host port path))
-(define-public (url:make-ftp user host port path)
-  (vector 'ftp user host port path))
-(define-public (url:make-mailto address)
-  (vector 'mailto address))
-
-(define http-regexp (make-regexp "^http://([^:/]+)(:([0-9]+))?(/(.*))?$"))
-(define ftp-regexp
-  (make-regexp "^ftp://(([^@:/]+)@)?([^:/]+)(:([0-9]+))?(/(.*))?$"))
-(define mailto-regexp (make-regexp "^mailto:(.*)$"))
-
-(define-public (url:parse url)
+(define (validate-uri scheme userinfo host port path query fragment)
   (cond
-   ((regexp-exec http-regexp url)
-    => (lambda (m)
-	 (url:make-http (match:substring m 1)
-			(cond ((match:substring m 3) => string->number)
-			      (else #f))
-			(match:substring m 5))))
+   ((not (symbol? scheme))
+    (error "expected a symbol for the URI scheme" scheme))
+   ((and (or userinfo port) (not host))
+    (error "expected host, given userinfo or port"))
+   ((and port (not (positive-exact-integer? port)))
+    (error "expected integer port" port))
+   ((and host (or (not (string? host)) (not (valid-host? host))))
+    (error "expected valid host" host))
+   ((and userinfo (not (string? userinfo)))
+    (error "expected string for userinfo" userinfo))
+   ((not (string? path))
+    (error "expected string for path" path))
+   ((and host (not (string-null? path))
+         (not (eqv? (string-ref path 0) #\/)))
+    (error "expected path of absolute URI to start with a /" path))))
 
-   ((regexp-exec ftp-regexp url)
-    => (lambda (m)
-	 (url:make-ftp (match:substring m 2)
-		       (match:substring m 3)
-		       (cond ((match:substring m 5) => string->number)
-			     (else #f))
-		       (match:substring m 7))))
+(define* (build-uri scheme #:key userinfo host port (path "") query fragment
+                    (validate? #t))
+  (if validate?
+      (validate-uri scheme userinfo host port path query fragment))
+  (make-uri scheme userinfo host port path query fragment))
 
-   ((regexp-exec mailto-regexp url)
-    => (lambda (m)
-	 (url:make-mailto (match:substring m 1))))
+;; See RFC 3986 #3.2.2 for comments on percent-encodings, IDNA (RFC
+;; 3490), and non-ASCII host names.
+;;
+(define ipv4-regexp
+  (make-regexp "^([0-9.]+)"))
+(define ipv6-regexp
+  (make-regexp "^\\[([0-9a-fA-F:]+)\\]+"))
+(define domain-label-regexp
+  (make-regexp "^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
+(define top-label-regexp
+  (make-regexp "^[a-zA-Z]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
 
+(define (valid-host? host)
+  (cond
+   ((regexp-exec ipv4-regexp host)
+    => (lambda (m)
+         (false-if-exception (inet-pton AF_INET (match:substring m 1)))))
+   ((regexp-exec ipv6-regexp host)
+    => (lambda (m)
+         (false-if-exception (inet-pton AF_INET6 (match:substring m 1)))))
    (else
-    (url:make 'unknown url))))
+    (let ((labels (reverse (string-split host #\.))))
+      (and (pair? labels)
+           (regexp-exec top-label-regexp (car labels))
+           (and-map (lambda (label)
+                      (regexp-exec domain-label-regexp label))
+                    (cdr labels)))))))
+
+(define userinfo-pat
+  "[a-zA-Z0-9_.!~*'();:&=+$,-]+")
+(define host-pat
+  "[a-zA-Z0-9.-]+")
+(define port-pat
+  "[0-9]*")
+(define authority-regexp
+  (make-regexp
+   (format #f "^//((~a)@)?(~a)(:(~a))?$"
+           userinfo-pat host-pat port-pat)))
+
+(define (parse-authority authority fail)
+  (let ((m (regexp-exec authority-regexp authority)))
+    (if (and m (valid-host? (match:substring m 3)))
+        (values (match:substring m 2)
+                (match:substring m 3)
+                (let ((port (match:substring m 5)))
+                  (and port (not (string-null? port))
+                       (string->number port))))
+        (fail))))
 
 
-(define-public (url:unparse url)
-  (define (pathy scheme username url)   ; username not used!
-    (format #f "~A://~A~A~A"
-            scheme
-            (url:host url)
-            (cond ((url:port url) => (lambda (port) (format #f ":~A" port)))
-                  (else ""))
-            (cond ((url:path url) => (lambda (path) (format #f "/~A" path)))
-                  (else ""))))
-  (case (url:scheme url)
-    ((http) (pathy 'http #f url))
-    ((ftp)  (pathy 'ftp (url:user url) url))
-    ((mailto) (format #f "mailto:~A" (url:address url)))
-    ((unknown) (url:unknown url))))
+;;; RFC 3986, #3.
+;;;
+;;;   URI         = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
+;;;
+;;;   hier-part   = "//" authority path-abempty
+;;;               / path-absolute
+;;;               / path-rootless
+;;;               / path-empty
+
+(define scheme-pat
+  "[a-zA-Z][a-zA-Z0-9+.-]*")
+(define authority-pat
+  "[^/?#]*")
+(define path-pat
+  "[^?#]*")
+(define query-pat
+  "[^#]*")
+(define fragment-pat
+  ".*")
+(define uri-pat
+  (format #f "^(~a):(//~a)?(~a)(\\?(~a))?(#(~a))?$"
+          scheme-pat authority-pat path-pat query-pat fragment-pat))
+(define uri-regexp
+  (make-regexp uri-pat))
+
+(define (parse-uri string)
+  (% (let ((m (regexp-exec uri-regexp string)))
+       (if (not m) (abort))
+       (let ((scheme (string->symbol
+                      (string-downcase (match:substring m 1))))
+             (authority (match:substring m 2))
+             (path (match:substring m 3))
+             (query (match:substring m 5))
+             (fragment (match:substring m 7)))
+         (call-with-values
+             (lambda ()
+               (if authority
+                   (parse-authority authority abort)
+                   (values #f #f #f)))
+           (lambda (userinfo host port)
+             (make-uri scheme userinfo host port path query fragment)))))
+     (lambda (k)
+       #f)))
+
+(define (unparse-uri uri)
+  (let* ((scheme-str (string-append
+                      (symbol->string (uri-scheme uri)) ":"))
+         (userinfo (uri-userinfo uri))
+         (host (uri-host uri))
+         (port (uri-port uri))
+         (path (uri-path uri))
+         (query (uri-query uri))
+         (fragment (uri-fragment uri)))
+    (string-append
+     scheme-str
+     (if host
+         (string-append "//"
+                        (if userinfo (string-append userinfo "@")
+                            "")
+                        host
+                        (if port
+                            (string-append ":" (number->string port))
+                            ""))
+         "")
+     path
+     (if query
+         (string-append "?" query)
+         "")
+     (if fragment
+         (string-append "#" fragment)
+         ""))))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (url-decode STR)
-;; Turn + into space, and hex-encoded %XX strings into their
-;; eight-bit characters.  Is a regexp faster than character
-;; scanning?  Does it incur more overhead (which may be more
-;; important for code that frequently gets restarted)?
+;; A note on characters and bytes: URIs are defined to be sequences of
+;; characters in a subset of ASCII. Those characters may encode a
+;; sequence of bytes (octets), which in turn may encode sequences of
+;; characters in other character sets.
+;;
 
-(define-public (url:decode str)
-  (regexp-substitute/global
-   #f "\\+|%([0-9A-Fa-f][0-9A-Fa-f])" str
-   'pre
-   (lambda (m)
-     (cond ((string=? "+" (match:substring m 0)) " ")
-           (else (integer->char
-                  (string->number
-                   (match:substring m 1)
-                   16)))))
-   'post))
+;; Return a new string made from uri-decoding @var{str}.  Specifically,
+;; turn @code{+} into space, and hex-encoded @code{%XX} strings into
+;; their eight-bit characters.
+;;
+(define hex-chars
+  (string->char-set "0123456789abcdefABCDEF"))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (url-encode STR)
-;; The inverse of url-decode.  Can't be done easily with
-;; a regexp: we would have to construct a regular expression
-;; like "[\277-\377]", for example, and Guile strings don't
-;; let you interpolate character literals.  Pity.
-;;   URL-encode any characters in STR that are not safe: these
-;; include any character not in the SAFE-CHARS list and any
-;; character that *is* in the RESERVED-CHARS list argument.
+(define* (uri-decode str #:key (charset 'utf-8))
+  (let ((len (string-length str)))
+    (call-with-values open-bytevector-output-port
+      (lambda (port get-bytevector)
+        (let lp ((i 0))
+          (if (= i len)
+              ((case charset
+                 ((utf-8) utf8->string)
+                 ((#f) (lambda (x) x)) ; raw bytevector
+                 (else (error "unknown charset" charset)))
+               (get-bytevector))
+              (let ((ch (string-ref str i)))
+                (cond
+                 ((eqv? ch #\+)
+                  (put-u8 port (char->integer #\space))
+                  (lp (1+ i)))
+                 ((and (< (+ i 2) len) (eqv? ch #\%)
+                       (let ((a (string-ref str (+ i 1)))
+                             (b (string-ref str (+ i 2))))
+                         (and (char-set-contains? hex-chars a)
+                              (char-set-contains? hex-chars b)
+                              (string->number (string a b) 16))))
+                  => (lambda (u8)
+                       (put-u8 port u8)
+                       (lp (+ i 3))))
+                 ((< (char->integer ch) 128)
+                  (put-u8 port (char->integer ch))
+                  (lp (1+ i)))
+                 (else
+                  (error "invalid character in encoded URI" str ch))))))))))
+  
+(define ascii-alnum-chars
+  (string->char-set
+   "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
 
-(define-public (url:encode str)
-  (with-output-to-string
-    (lambda ()
-      (for-each (lambda (ch)
-		  (if (safe-char? ch)
-		      (display ch)
-		      (begin
-			(display #\%)
-			(display (number->string (char->integer ch) 16)))))
-		(string->list str)))))
-
-(define special-chars
-  (string->list "$-_.+!*'()"))
+;; RFC 3986, #2.2.
+(define gen-delims
+  (string->char-set ":/?#[]@"))
+(define sub-delims
+  (string->char-set "!$&'()*+,l="))
 (define reserved-chars
-  (string->list ";/?:@&="))
+  (char-set-union gen-delims sub-delims))
 
-(define (safe-char? ch)
-  ;; ``Thus, only alphanumerics, the special characters "$-_.+!*'(),", and
-  ;; reserved characters used for their reserved purposes may be used
-  ;; unencoded within a URL.'' RFC 1738, #2.2.
-  (or (char-alphabetic? ch)
-      (char-numeric? ch)
-      (memv ch special-chars)))
+;; RFC 3986, #2.3
+(define unreserved-chars
+  (char-set-union ascii-alnum-chars
+                  (string->char-set "-._~")))
 
-(define-public (url:path-part path)
-  (substring path 0 (or (string-index path #\?) (string-length path))))
+;; Return a new string made from uri-encoding @var{str}, unconditionally
+;; transforming any characters not in @var{unescaped-chars}.
+;;
+(define* (uri-encode str #:key (charset 'utf-8)
+                     (unescaped-chars unreserved-chars))
+  (define (put-utf8 binary-port str)
+    (put-bytevector binary-port (string->utf8 str)))
 
-(define-public (url:query-part path)
-  (let ((q (string-index path #\?)))
-    (if q (substring path (1+ q)) #f)))
+  ((case charset
+     ((utf-8) utf8->string)
+     ((#f) (lambda (x) x)) ; raw bytevector
+     (else (error "unknown charset" charset)))
+   (call-with-values open-bytevector-output-port
+     (lambda (port get-bytevector)
+       (string-for-each
+        (lambda (ch)
+          (if (char-set-contains? unescaped-chars ch)
+              (put-utf8 port (string ch))
+              (let* ((utf8 (string->utf8 (string ch)))
+                     (len (bytevector-length utf8)))
+                ;; Encode each byte.
+                (let lp ((i 0))
+                  (if (< i len)
+                      (begin
+                        (put-utf8 port (string #\%))
+                        (put-utf8 port
+                                  (number->string (bytevector-u8-ref utf8 i) 16))
+                        (lp (1+ i))))))))
+        str)
+       (get-bytevector)))))
 
-(define-public (url:path-split path)
+(define (split-and-decode-uri-path path)
   (filter (lambda (x) (not (string-null? x)))
-          (map url:decode (string-split (url:path-part path) #\/))))
+          (map uri-decode (string-split path #\/))))
 
-(define-public (url:path-join path)
-  (string-join (map url:encode path) "/"))
-
-;;; www/url.scm ends here
+(define (encode-and-join-uri-path parts)
+  (string-join (map uri-encode parts) "/"))
