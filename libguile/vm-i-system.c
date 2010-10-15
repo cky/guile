@@ -330,19 +330,20 @@ VM_DEFINE_INSTRUCTION (26, variable_bound, "variable-bound?", 0, 1, 1)
 VM_DEFINE_INSTRUCTION (27, toplevel_ref, "toplevel-ref", 1, 0, 1)
 {
   unsigned objnum = FETCH ();
-  SCM what;
+  SCM what, resolved;
   CHECK_OBJECT (objnum);
   what = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (what)) 
+  if (!SCM_VARIABLEP (what))
     {
       SYNC_REGISTER ();
-      what = resolve_variable (what, scm_program_module (program));
-      if (!VARIABLE_BOUNDP (what))
+      resolved = resolve_variable (what, scm_program_module (program));
+      if (!VARIABLE_BOUNDP (resolved))
         {
           finish_args = scm_list_1 (what);
           goto vm_error_unbound;
         }
+      what = resolved;
       OBJECT_SET (objnum, what);
     }
 
@@ -352,22 +353,23 @@ VM_DEFINE_INSTRUCTION (27, toplevel_ref, "toplevel-ref", 1, 0, 1)
 
 VM_DEFINE_INSTRUCTION (28, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
 {
-  SCM what;
+  SCM what, resolved;
   unsigned int objnum = FETCH ();
   objnum <<= 8;
   objnum += FETCH ();
   CHECK_OBJECT (objnum);
   what = OBJECT_REF (objnum);
 
-  if (!SCM_VARIABLEP (what)) 
+  if (!SCM_VARIABLEP (what))
     {
       SYNC_REGISTER ();
-      what = resolve_variable (what, scm_program_module (program));
-      if (!VARIABLE_BOUNDP (what))
+      resolved = resolve_variable (what, scm_program_module (program));
+      if (!VARIABLE_BOUNDP (resolved))
         {
           finish_args = scm_list_1 (what);
           goto vm_error_unbound;
         }
+      what = resolved;
       OBJECT_SET (objnum, what);
     }
 
