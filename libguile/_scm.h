@@ -124,7 +124,7 @@
   ((align) ? (((len) - 1UL) | ((align) - 1UL)) + 1UL : (len))
 
 
-#if GUILE_USE_64_CALLS && defined(HAVE_STAT64)
+#if defined GUILE_USE_64_CALLS && GUILE_USE_64_CALLS && defined(HAVE_STAT64)
 #define CHOOSE_LARGEFILE(foo,foo64)     foo64
 #else
 #define CHOOSE_LARGEFILE(foo,foo64)     foo
