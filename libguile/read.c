@@ -906,7 +906,7 @@ scm_read_character (scm_t_wchar chr, SCM port)
 
   overflow = read_token (port, buffer, READER_CHAR_NAME_MAX_SIZE, &bytes_read);
   if (overflow)
-    goto char_error;
+    scm_i_input_error (FUNC_NAME, port, "character name too long", SCM_EOL);
 
   if (bytes_read == 0)
     {
@@ -992,7 +992,6 @@ scm_read_character (scm_t_wchar chr, SCM port)
         return ch;
     }
 
- char_error:
   scm_i_input_error (FUNC_NAME, port, "unknown character name ~a",
 		     scm_list_1 (charname));
 
