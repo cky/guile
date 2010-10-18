@@ -121,7 +121,7 @@ extern char *ttyname();
 # include <xlocale.h>
 #endif
 
-#if HAVE_CRYPT_H
+#ifdef HAVE_CRYPT_H
 #  include <crypt.h>
 #endif
 
@@ -1755,7 +1755,7 @@ SCM_DEFINE (scm_sync, "sync", 0, 0, 0,
    multiple cpus.  So for now we don't bother with anything fancy, just
    ensure it works.  */
 
-#if HAVE_CRYPT
+#ifdef HAVE_CRYPT
 SCM_DEFINE (scm_crypt, "crypt", 2, 0, 0,
             (SCM key, SCM salt),
 	    "Encrypt @var{key} using @var{salt} as the salt value to the\n"
@@ -1841,7 +1841,7 @@ SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_GETLOGIN */
 
-#if HAVE_CUSERID
+#ifdef HAVE_CUSERID
 
 # if !HAVE_DECL_CUSERID
 extern char *cuserid (char *);

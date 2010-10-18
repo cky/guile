@@ -630,7 +630,7 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 
 #if SCM_USE_PTHREAD_THREADS
 
-#if HAVE_PTHREAD_ATTR_GETSTACK && HAVE_PTHREAD_GETATTR_NP
+#if defined HAVE_PTHREAD_ATTR_GETSTACK && defined HAVE_PTHREAD_GETATTR_NP
 /* This method for GNU/Linux and perhaps some other systems.
    It's not for MacOS X or Solaris 10, since pthread_getattr_np is not
    available on them.  */
