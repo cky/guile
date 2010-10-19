@@ -862,9 +862,7 @@ if test "x$HAVE_LIBGMP" != "xyes"; then
 fi
 
 dnl GNU libunistring is checked for by Gnulib's `libunistring' module.
-if test "x$LTLIBUNISTRING" != "x"; then
-  LIBS="$LTLIBUNISTRING $LIBS"
-else
+if test "x$LTLIBUNISTRING" = "x"; then
   AC_MSG_ERROR([GNU libunistring is required, please install it.])
 fi
 
@@ -1231,8 +1229,9 @@ main ()
 #--------------------------------------------------------------------
 PKG_CHECK_MODULES([BDW_GC], [bdw-gc])
 
-CFLAGS="$BDW_GC_CFLAGS $CFLAGS"
+save_LIBS="$LIBS"
 LIBS="$BDW_GC_LIBS $LIBS"
+CFLAGS="$BDW_GC_CFLAGS $CFLAGS"
 
 # `GC_do_blocking ()' is available in GC 7.1 but not declared.
 AC_CHECK_FUNCS([GC_do_blocking])
@@ -1248,6 +1247,8 @@ AC_CHECK_TYPE([GC_fn_type],
     [Define this if the `GC_fn_type' type is available.])],
   [],
   [#include <gc/gc.h>])
+
+LIBS="$save_LIBS"
 
 
 AC_CHECK_SIZEOF(float)

@@ -451,11 +451,13 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 
 libguile_@GUILE_EFFECTIVE_VERSION@_la_DEPENDENCIES = @LIBLOBJS@
+
 libguile_@GUILE_EFFECTIVE_VERSION@_la_LIBADD =		\
   @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBLTDL)	\
   $(LTLIBUNISTRING) $(LTLIBICONV) $(LTLIBINTL)
+
 libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =								\
-  @LTLIBINTL@ $(LIBFFI_LIBS) $(INET_NTOP_LIB) $(INET_PTON_LIB)						\
+  $(BDW_GC_LIBS) $(LIBFFI_LIBS) $(INET_NTOP_LIB) $(INET_PTON_LIB)					\
   $(GETADDRINFO_LIB) $(HOSTENT_LIB) $(SERVENT_LIB)							\
   -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
   -export-dynamic -no-undefined										\
