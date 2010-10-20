@@ -673,7 +673,8 @@ AC_CHECK_TYPE(socklen_t, ,
 #endif
 #include <sys/socket.h>
 ])
-AC_CHECK_TYPE(struct ip_mreq)
+
+AC_CHECK_TYPES([struct ip_mreq], , , [#include <netinet/in.h>])
 
 GUILE_HEADER_LIBC_WITH_UNISTD
 
