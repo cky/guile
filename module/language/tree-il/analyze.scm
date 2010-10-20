@@ -602,6 +602,10 @@ accurate information is missing from a given `tree-il' element."
   (vars binding-info-vars)  ;; ((GENSYM NAME LOCATION) ...)
   (refs binding-info-refs)) ;; (GENSYM ...)
 
+(define (gensym? sym)
+  ;; Return #t if SYM is (likely) a generated symbol.
+  (string-any #\space (symbol->string sym)))
+
 (define unused-variable-analysis
   ;; Report unused variables in the given tree.
   (make-tree-analysis
@@ -662,7 +666,9 @@ accurate information is missing from a given `tree-il' element."
                         ;; the LOCS location stack.
                         (loc  (or (caddr var)
                                   (find pair? locs))))
-                    (warning 'unused-variable loc name)))))
+                    (if (and (not (gensym? name))
+                             (not (eq? name '_)))
+                        (warning 'unused-variable loc name))))))
           vars)
          (vlist-drop vars (length inner-vars)))
 
@@ -835,7 +841,8 @@ accurate information is missing from a given `tree-il' element."
            (vlist-for-each (lambda (name+loc)
                              (let ((name (car name+loc))
                                    (loc  (cdr name+loc)))
-                               (warning 'unused-toplevel loc name)))
+                               (if (not (gensym? name))
+                                   (warning 'unused-toplevel loc name))))
                            unused))))
 
      (make-reference-graph vlist-null vlist-null #f))))

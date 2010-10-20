@@ -665,6 +665,16 @@
        (null? (call-with-warnings
                 (lambda ()
                   (compile '(lambda (x y z) #t)
+                           #:opts %opts-w-unused)))))
+
+     (pass-if "special variable names"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(lambda ()
+                              (let ((_ 'underscore)
+                                    (#{gensym name}# 'ignore-me))
+                                #t))
+                           #:to 'assembly
                            #:opts %opts-w-unused))))))
 
    (with-test-prefix "unused-toplevel"
@@ -766,7 +776,14 @@
                                                 'foo)))
               (number? (string-contains (cadr w)
                                         (format #f "top-level variable `~A'"
-                                                'bar)))))))
+                                                'bar))))))
+
+     (pass-if "special variable names"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(define #{gensym name}# 'ignore-me)
+                           #:to 'assembly
+                           #:opts %opts-w-unused-toplevel))))))
 
    (with-test-prefix "unbound variable"
 
