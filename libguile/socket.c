@@ -603,6 +603,16 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	    "are defined (when provided by the system).  See @command{man\n"
 	    "ip} for what they mean.\n"
 	    "\n"
+	    "@defvar IP_MULTICAST_IF\n"
+            "This sets the source interface used by multicast traffic.\n"
+	    "@end defvar\n"
+	    "\n"
+	    "@defvar IP_MULTICAST_TTL\n"
+            "This sets the default TTL for multicast traffic. This defaults \n"
+            "to 1 and should be increased to allow traffic to pass beyond the\n"
+            "local network.\n"
+	    "@end defvar\n"
+	    "\n"
 	    "@defvar IP_ADD_MEMBERSHIP\n"
 	    "@defvarx IP_DROP_MEMBERSHIP\n"
 	    "These can be used only with @code{setsockopt}, not\n"
@@ -1763,6 +1773,14 @@ scm_init_socket ()
 #ifdef IP_ADD_MEMBERSHIP
   scm_c_define ("IP_ADD_MEMBERSHIP", scm_from_int (IP_ADD_MEMBERSHIP));
   scm_c_define ("IP_DROP_MEMBERSHIP", scm_from_int (IP_DROP_MEMBERSHIP));
+#endif
+
+#ifdef IP_MULTICAST_TTL 
+  scm_c_define ("IP_MULTICAST_TTL", scm_from_int ( IP_MULTICAST_TTL));
+#endif
+
+#ifdef IP_MULTICAST_IF 
+  scm_c_define ("IP_MULTICAST_IF", scm_from_int ( IP_MULTICAST_IF));
 #endif
 
   scm_add_feature ("socket");
