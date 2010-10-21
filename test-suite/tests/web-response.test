@@ -1,0 +1,99 @@
+;;;; web-response.test --- HTTP responses       -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite web-response)
+  #:use-module (web uri)
+  #:use-module (web response)
+  #:use-module (srfi srfi-19)
+  #:use-module (test-suite lib))
+
+
+;; The newlines are equivalent to \n. From www.gnu.org.
+(define example-1
+  "HTTP/1.1 200 OK\r
+Date: Wed, 03 Nov 2010 22:27:07 GMT\r
+Server: Apache/2.0.55\r
+Accept-Ranges: bytes\r
+Cache-Control: max-age=543234\r
+Expires: Thu, 28 Oct 2010 15:33:13 GMT\r
+Vary: Accept-Encoding\r
+Content-Encoding: gzip\r
+Content-Length: 36\r
+Content-Type: text/html\r
+\r
+abcdefghijklmnopqrstuvwxyz0123456789")
+
+(define (responses-equal? r1 body1 r2 body2)
+  (and (equal? (response-version r1) (response-version r2))
+       (equal? (response-code r1) (response-code r2))
+       (equal? (response-reason-phrase r1) (response-reason-phrase r2))
+       (equal? (response-headers r1) (response-headers r2))
+       (equal? body1 body2)))
+
+(with-test-prefix "example-1"
+  (let ((r #f) (body #f))
+    (pass-if "read-response"
+      (begin
+        (set! r (read-response (open-input-string example-1)))
+        (response? r)))
+    
+    (pass-if "read-response-body/latin-1"
+      (begin
+        (set! body (read-response-body/latin-1 r))
+        #t))
+    
+    (pass-if (equal? (response-version r) '(1 . 1)))
+    
+    (pass-if (equal? (response-code r) 200))
+    
+    (pass-if (equal? (response-reason-phrase r) "OK"))
+    
+    (pass-if (equal? body "abcdefghijklmnopqrstuvwxyz0123456789"))
+    
+    (pass-if "checking all headers"
+      (equal?
+       (response-headers r)
+       `((date . ,(string->date "Wed, 03 Nov 2010 22:27:07 +0000"
+                                "~a, ~d ~b ~Y ~H:~M:~S ~z"))
+         (server . "Apache/2.0.55")
+         (accept-ranges . ("bytes"))
+         (cache-control . ((max-age . 543234)))
+         (expires . ,(string->date "Thu, 28 Oct 2010 15:33:13 GMT +0000"
+                                   "~a, ~d ~b ~Y ~H:~M:~S ~z"))
+         (vary . ("Accept-Encoding"))
+         (content-encoding . ("gzip"))
+         (content-length . 36)
+         (content-type . ("text" "html")))))
+    
+    (pass-if "write then read"
+      (call-with-values
+          (lambda ()
+            (with-input-from-string
+                (with-output-to-string
+                  (lambda ()
+                    (let ((r (write-response r (current-output-port))))
+                      (write-response-body/latin-1 r body))))
+              (lambda ()
+                (let ((r (read-response (current-input-port))))
+                  (values r (read-response-body/latin-1 r))))))
+        (lambda (r* body*)
+          (responses-equal? r body r* body*))))
+
+    (pass-if "by accessor"
+      (equal? (response-content-encoding r) '("gzip")))))
