@@ -350,6 +350,7 @@ LIB_SOURCES =					\
 
 WEB_SOURCES =					\
   web/http.scm					\
+  web/request.scm				\
   web/uri.scm
 
 EXTRA_DIST += oop/ChangeLog-2008

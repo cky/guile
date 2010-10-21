@@ -1,0 +1,84 @@
+;;;; web-request.test --- HTTP requests       -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite web-request)
+  #:use-module (web uri)
+  #:use-module (web request)
+  #:use-module (test-suite lib))
+
+
+;; The newlines are equivalent to \n.
+(define example-1
+  "GET /qux HTTP/1.1\r
+Host: localhost:8080\r
+User-Agent: Mozilla/5.0 (X11; U; Linux x86_64; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Safari/531.2+ Epiphany/2.30.2\r
+Accept: application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5\r
+Accept-Encoding: gzip\r
+Accept-Language: en-gb, en;q=0.9\r
+\r
+")
+
+(define (requests-equal? r1 r2)
+  (and (equal? (request-method r1) (request-method r2))
+       (equal? (request-uri r1) (request-uri r2))
+       (equal? (request-version r1) (request-version r2))
+       (equal? (request-headers r1) (request-headers r2))))
+
+(with-test-prefix "example-1"
+  (let ((r #f))
+    (pass-if "read-request"
+      (begin
+        (set! r (read-request (open-input-string example-1)))
+        (request? r)))
+    
+    (pass-if (equal? (request-method r) 'GET))
+    
+    (pass-if (equal? (request-uri r) (build-uri 'http #:path "/qux")))
+    
+    (pass-if (equal? (read-request-body/latin-1 r) #f))
+    ;; Since it's #f, should be an idempotent read, so we can try
+    ;; bytevectors too
+    (pass-if (equal? (read-request-body/bytevector r) #f))
+    
+    (pass-if "checking all headers"
+      (equal?
+       (request-headers r)
+       '((host . ("localhost" . 8080))
+         (user-agent . "Mozilla/5.0 (X11; U; Linux x86_64; en-us) AppleWebKit/531.2+ (KHTML, like Gecko) Safari/531.2+ Epiphany/2.30.2")
+         (accept . (("application/xml")
+                    ("application/xhtml+xml")
+                    ("text/html" (q . 900))
+                    ("text/plain" (q . 800))
+                    ("image/png")
+                    ("*/*" (q . 500))))
+         (accept-encoding . ((1000 . "gzip")))
+         (accept-language . ((1000 . "en-gb") (900 . "en"))))))
+    
+    ;; works because there is no body
+    (pass-if "write then read"
+      (requests-equal? (with-input-from-string
+                           (with-output-to-string
+                             (lambda ()
+                               (write-request r (current-output-port))))
+                         (lambda ()
+                           (read-request (current-input-port))))
+                       r))
+
+    (pass-if "by accessor"
+      (equal? (request-accept-encoding r) '((1000 . "gzip"))))))
