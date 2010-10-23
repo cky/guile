@@ -50,26 +50,29 @@
   (query uri-query)
   (fragment uri-fragment))
 
+(define (uri-error message . args)
+  (throw 'uri-error message args))
+
 (define (positive-exact-integer? port)
   (and (number? port) (exact? port) (integer? port) (positive? port)))
 
 (define (validate-uri scheme userinfo host port path query fragment)
   (cond
    ((not (symbol? scheme))
-    (error "expected a symbol for the URI scheme" scheme))
+    (uri-error "Expected a symbol for the URI scheme: ~s" scheme))
    ((and (or userinfo port) (not host))
-    (error "expected host, given userinfo or port"))
+    (uri-error "Expected a host, given userinfo or port"))
    ((and port (not (positive-exact-integer? port)))
-    (error "expected integer port" port))
+    (uri-error "Expected port to be an integer: ~s" port))
    ((and host (or (not (string? host)) (not (valid-host? host))))
-    (error "expected valid host" host))
+    (uri-error "Expected valid host: ~s" host))
    ((and userinfo (not (string? userinfo)))
-    (error "expected string for userinfo" userinfo))
+    (uri-error "Expected string for userinfo: ~s" userinfo))
    ((not (string? path))
-    (error "expected string for path" path))
+    (uri-error "Expected string for path: ~s" path))
    ((and host (not (string-null? path))
          (not (eqv? (string-ref path 0) #\/)))
-    (error "expected path of absolute URI to start with a /" path))))
+    (uri-error "Expected path of absolute URI to start with a /: ~a" path))))
 
 (define* (build-uri scheme #:key userinfo host port (path "") query fragment
                     (validate? #t))
@@ -222,7 +225,7 @@
               ((case charset
                  ((utf-8) utf8->string)
                  ((#f) (lambda (x) x)) ; raw bytevector
-                 (else (error "unknown charset" charset)))
+                 (else (uri-error "Unknown charset: ~s" charset)))
                (get-bytevector))
               (let ((ch (string-ref str i)))
                 (cond
@@ -242,7 +245,8 @@
                   (put-u8 port (char->integer ch))
                   (lp (1+ i)))
                  (else
-                  (error "invalid character in encoded URI" str ch))))))))))
+                  (uri-error "Invalid character in encoded URI ~a: ~s"
+                             str ch))))))))))
   
 (define ascii-alnum-chars
   (string->char-set
@@ -272,7 +276,7 @@
   ((case charset
      ((utf-8) utf8->string)
      ((#f) (lambda (x) x)) ; raw bytevector
-     (else (error "unknown charset" charset)))
+     (else (uri-error "Unknown charset: ~s" charset)))
    (call-with-values open-bytevector-output-port
      (lambda (port get-bytevector)
        (string-for-each

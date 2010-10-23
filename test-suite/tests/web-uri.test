@@ -19,6 +19,7 @@
 
 (define-module (test-web-uri)
   #:use-module (web uri)
+  #:use-module (ice-9 regex)
   #:use-module (test-suite lib))
 
 
@@ -35,7 +36,16 @@
        (equal? (uri-query uri) query)
        (equal? (uri-fragment uri) fragment)))
 
-(define ex:expected '(misc-error . "expected"))
+(define-syntax pass-if-uri-exception
+  (syntax-rules ()
+    ((_ name pat exp)
+     (pass-if name
+       (catch 'uri-error
+         (lambda () exp (error "expected uri-error exception"))
+         (lambda (k message args)
+           (if (string-match pat message)
+               #t
+               (error "unexpected uri-error exception" message args))))))))
 
 (with-test-prefix "build-uri"
   (pass-if "ftp:"
@@ -68,33 +78,33 @@
            #:port 22
            #:path "/baz"))
 
-  (pass-if-exception "non-symbol scheme"
-                     ex:expected
-                     (build-uri "nonsym"))
+  (pass-if-uri-exception "non-symbol scheme"
+                         "Expected.*symbol"
+                         (build-uri "nonsym"))
 
-  (pass-if-exception "http://bad.host.1"
-                     ex:expected
-                     (build-uri 'http #:host "bad.host.1"))
+  (pass-if-uri-exception "http://bad.host.1"
+                         "Expected.*host"
+                         (build-uri 'http #:host "bad.host.1"))
 
   (pass-if "http://bad.host.1 (no validation)"
     (uri=? (build-uri 'http #:host "bad.host.1" #:validate? #f)
            #:scheme 'http #:host "bad.host.1" #:path ""))
 
-  (pass-if-exception "http://foo:not-a-port"
-                     ex:expected
-                     (build-uri 'http #:host "foo" #:port "not-a-port"))
+  (pass-if-uri-exception "http://foo:not-a-port"
+                         "Expected.*port"
+                         (build-uri 'http #:host "foo" #:port "not-a-port"))
 
-  (pass-if-exception "http://foo:10 but port as string"
-                     ex:expected
-                     (build-uri 'http #:host "foo" #:port "10"))
+  (pass-if-uri-exception "http://foo:10 but port as string"
+                         "Expected.*port"
+                         (build-uri 'http #:host "foo" #:port "10"))
 
-  (pass-if-exception "http://:10"
-                     ex:expected
-                     (build-uri 'http #:port 10))
+  (pass-if-uri-exception "http://:10"
+                         "Expected.*host"
+                         (build-uri 'http #:port 10))
 
-  (pass-if-exception "http://foo@"
-                     ex:expected
-                     (build-uri 'http #:userinfo "foo")))
+  (pass-if-uri-exception "http://foo@"
+                         "Expected.*host"
+                         (build-uri 'http #:userinfo "foo")))
 
 
 (with-test-prefix "parse-uri"
