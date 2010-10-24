@@ -150,6 +150,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/version.test			\
 	    tests/vlist.test			\
 	    tests/weaks.test			\
+	    tests/web-http.test			\
 	    tests/web-uri.test
 
 EXTRA_DIST = \
