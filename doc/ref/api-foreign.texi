@@ -18,7 +18,7 @@ But yet we as programmers live in both worlds, and Guile itself is half
 implemented in C. So it is that Guile's living half pays respect to its
 dead counterpart, via a spectrum of interfaces to C ranging from dynamic
 loading of Scheme primitives to dynamic binding of stock C library
-prodedures.
+procedures.
 
 @menu
 * Foreign Libraries::           Dynamically linking to libraries.
