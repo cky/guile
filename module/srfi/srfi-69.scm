@@ -86,7 +86,7 @@
 	    ;; Hashing
 	    string-ci-hash hash-by-identity)
   #:re-export (string-hash)
-  #:replace (hash))
+  #:replace (hash make-hash-table hash-table?))
 
 (cond-expand-provide (current-module) '(srfi-37))
 
