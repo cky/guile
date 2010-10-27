@@ -25,12 +25,12 @@ Each rule has the form @code{(@var{non-terminal} (@var{rhs} ...) : @var{action}
 right-hand sides, i.e., the production rule, and @var{action} is a semantic
 action associated with the rule.
 
-The generated parser is a two-argument procedure that takes a @dfn{tokenizer}
-and a @dfn{syntax error procedure}.  The tokenizer should be a unary procedure
-taking a port and returning a lexical token as produced by
-@code{make-lexical-token}.  The syntax error procedure may be called with at
-least an error message (a string), and optionally the lexical token that caused
-the error.
+The generated parser is a two-argument procedure that takes a
+@dfn{tokenizer} and a @dfn{syntax error procedure}.  The tokenizer
+should be a thunk that returns lexical tokens as produced by
+@code{make-lexical-token}.  The syntax error procedure may be called
+with at least an error message (a string), and optionally the lexical
+token that caused the error.
 @end deffn
 
 Please refer to the @code{lalr-scm} documentation for details.
