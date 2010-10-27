@@ -1,6 +1,6 @@
 ;;; frisk --- Grok the module interfaces of a body of files
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2010 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -126,10 +126,10 @@
                          (let loop ((ls form))
                            (or (null? ls)
                                (case (car ls)
-                                 ((:use-module)
+                                 ((#:use-module :use-module)
                                   (note-use! 'regular module (ferret (cadr ls)))
                                   (loop (cddr ls)))
-                                 ((:autoload)
+                                 ((#:autoload :autoload)
                                   (note-use! 'autoload module (cadr ls))
                                   (loop (cdddr ls)))
                                  (else (loop (cdr ls))))))))
