@@ -80,20 +80,35 @@
 (define read-hook #f)
 
 (define (make-readline-port)
-  (make-line-buffered-input-port (lambda (continuation?)
-                                   (let* ((prompt (if continuation?
-                                                      continuation-prompt
-                                                      new-input-prompt))
-                                          (str (%readline (if (string? prompt)
-                                                              prompt
-                                                              (prompt))
-                                                          input-port
-                                                          output-port
-                                                          read-hook)))
-                                     (or (eof-object? str)
-                                         (string=? str "")
-                                         (add-history str))
-                                     str))))
+  (let ((history-buffer #f))
+    (make-line-buffered-input-port (lambda (continuation?)
+                                     ;; When starting a new read, add
+                                     ;; the previously read expression
+                                     ;; to the history.
+                                     (if (and (not continuation?)
+                                              history-buffer)
+                                         (begin
+                                           (add-history history-buffer)
+                                           (set! history-buffer #f)))
+                                     ;; Set up prompts and read a line.
+                                     (let* ((prompt (if continuation?
+                                                        continuation-prompt
+                                                        new-input-prompt))
+                                            (str (%readline (if (string? prompt)
+                                                                prompt
+                                                                (prompt))
+                                                            input-port
+                                                            output-port
+                                                            read-hook)))
+                                       (or (eof-object? str)
+                                           (string=? str "")
+                                           (set! history-buffer
+                                                 (if history-buffer
+                                                     (string-append history-buffer
+                                                                    " "
+                                                                    str)
+                                                     str)))
+                                       str)))))
 
 ;;; We only create one readline port.  There's no point in having
 ;;; more, since they would all share the tty and history ---
