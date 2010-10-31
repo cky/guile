@@ -1,0 +1,535 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Regular Expressions
+@section Regular Expressions
+@tpindex Regular expressions
+
+@cindex regular expressions
+@cindex regex
+@cindex emacs regexp
+
+A @dfn{regular expression} (or @dfn{regexp}) is a pattern that
+describes a whole class of strings.  A full description of regular
+expressions and their syntax is beyond the scope of this manual;
+an introduction can be found in the Emacs manual (@pxref{Regexps,
+, Syntax of Regular Expressions, emacs, The GNU Emacs Manual}), or
+in many general Unix reference books.
+
+If your system does not include a POSIX regular expression library,
+and you have not linked Guile with a third-party regexp library such
+as Rx, these functions will not be available.  You can tell whether
+your Guile installation includes regular expression support by
+checking whether @code{(provided? 'regex)} returns true.
+
+The following regexp and string matching features are provided by the
+@code{(ice-9 regex)} module.  Before using the described functions,
+you should load this module by executing @code{(use-modules (ice-9
+regex))}.
+
+@menu
+* Regexp Functions::            Functions that create and match regexps.
+* Match Structures::            Finding what was matched by a regexp.
+* Backslash Escapes::           Removing the special meaning of regexp
+                                meta-characters.
+@end menu
+
+
+@node Regexp Functions
+@subsection Regexp Functions
+
+By default, Guile supports POSIX extended regular expressions.
+That means that the characters @samp{(}, @samp{)}, @samp{+} and
+@samp{?} are special, and must be escaped if you wish to match the
+literal characters.
+
+This regular expression interface was modeled after that
+implemented by SCSH, the Scheme Shell.  It is intended to be
+upwardly compatible with SCSH regular expressions.
+
+Zero bytes (@code{#\nul}) cannot be used in regex patterns or input
+strings, since the underlying C functions treat that as the end of
+string.  If there's a zero byte an error is thrown.
+
+Patterns and input strings are treated as being in the locale
+character set if @code{setlocale} has been called (@pxref{Locales}),
+and in a multibyte locale this includes treating multi-byte sequences
+as a single character.  (Guile strings are currently merely bytes,
+though this may change in the future, @xref{Conversion to/from C}.)
+
+@deffn {Scheme Procedure} string-match pattern str [start]
+Compile the string @var{pattern} into a regular expression and compare
+it with @var{str}.  The optional numeric argument @var{start} specifies
+the position of @var{str} at which to begin matching.
+
+@code{string-match} returns a @dfn{match structure} which
+describes what, if anything, was matched by the regular
+expression.  @xref{Match Structures}.  If @var{str} does not match
+@var{pattern} at all, @code{string-match} returns @code{#f}.
+@end deffn
+
+Two examples of a match follow.  In the first example, the pattern
+matches the four digits in the match string.  In the second, the pattern
+matches nothing.
+
+@example
+(string-match "[0-9][0-9][0-9][0-9]" "blah2002")
+@result{} #("blah2002" (4 . 8))
+
+(string-match "[A-Za-z]" "123456")
+@result{} #f
+@end example
+
+Each time @code{string-match} is called, it must compile its
+@var{pattern} argument into a regular expression structure.  This
+operation is expensive, which makes @code{string-match} inefficient if
+the same regular expression is used several times (for example, in a
+loop).  For better performance, you can compile a regular expression in
+advance and then match strings against the compiled regexp.
+
+@deffn {Scheme Procedure} make-regexp pat flag@dots{}
+@deffnx {C Function} scm_make_regexp (pat, flaglst)
+Compile the regular expression described by @var{pat}, and
+return the compiled regexp structure.  If @var{pat} does not
+describe a legal regular expression, @code{make-regexp} throws
+a @code{regular-expression-syntax} error.
+
+The @var{flag} arguments change the behavior of the compiled
+regular expression.  The following values may be supplied:
+
+@defvar regexp/icase
+Consider uppercase and lowercase letters to be the same when
+matching.
+@end defvar
+
+@defvar regexp/newline
+If a newline appears in the target string, then permit the
+@samp{^} and @samp{$} operators to match immediately after or
+immediately before the newline, respectively.  Also, the
+@samp{.} and @samp{[^...]} operators will never match a newline
+character.  The intent of this flag is to treat the target
+string as a buffer containing many lines of text, and the
+regular expression as a pattern that may match a single one of
+those lines.
+@end defvar
+
+@defvar regexp/basic
+Compile a basic (``obsolete'') regexp instead of the extended
+(``modern'') regexps that are the default.  Basic regexps do
+not consider @samp{|}, @samp{+} or @samp{?} to be special
+characters, and require the @samp{@{...@}} and @samp{(...)}
+metacharacters to be backslash-escaped (@pxref{Backslash
+Escapes}).  There are several other differences between basic
+and extended regular expressions, but these are the most
+significant.
+@end defvar
+
+@defvar regexp/extended
+Compile an extended regular expression rather than a basic
+regexp.  This is the default behavior; this flag will not
+usually be needed.  If a call to @code{make-regexp} includes
+both @code{regexp/basic} and @code{regexp/extended} flags, the
+one which comes last will override the earlier one.
+@end defvar
+@end deffn
+
+@deffn {Scheme Procedure} regexp-exec rx str [start [flags]]
+@deffnx {C Function} scm_regexp_exec (rx, str, start, flags)
+Match the compiled regular expression @var{rx} against
+@code{str}.  If the optional integer @var{start} argument is
+provided, begin matching from that position in the string.
+Return a match structure describing the results of the match,
+or @code{#f} if no match could be found.
+
+The @var{flags} argument changes the matching behavior.  The following
+flag values may be supplied, use @code{logior} (@pxref{Bitwise
+Operations}) to combine them,
+
+@defvar regexp/notbol
+Consider that the @var{start} offset into @var{str} is not the
+beginning of a line and should not match operator @samp{^}.
+
+If @var{rx} was created with the @code{regexp/newline} option above,
+@samp{^} will still match after a newline in @var{str}.
+@end defvar
+
+@defvar regexp/noteol
+Consider that the end of @var{str} is not the end of a line and should
+not match operator @samp{$}.
+
+If @var{rx} was created with the @code{regexp/newline} option above,
+@samp{$} will still match before a newline in @var{str}.
+@end defvar
+@end deffn
+
+@lisp
+;; Regexp to match uppercase letters
+(define r (make-regexp "[A-Z]*"))
+
+;; Regexp to match letters, ignoring case
+(define ri (make-regexp "[A-Z]*" regexp/icase))
+
+;; Search for bob using regexp r
+(match:substring (regexp-exec r "bob"))
+@result{} ""                  ; no match
+
+;; Search for bob using regexp ri
+(match:substring (regexp-exec ri "Bob"))
+@result{} "Bob"               ; matched case insensitive
+@end lisp
+
+@deffn {Scheme Procedure} regexp? obj
+@deffnx {C Function} scm_regexp_p (obj)
+Return @code{#t} if @var{obj} is a compiled regular expression,
+or @code{#f} otherwise.
+@end deffn
+
+@sp 1
+@deffn {Scheme Procedure} list-matches regexp str [flags]
+Return a list of match structures which are the non-overlapping
+matches of @var{regexp} in @var{str}.  @var{regexp} can be either a
+pattern string or a compiled regexp.  The @var{flags} argument is as
+per @code{regexp-exec} above.
+
+@example
+(map match:substring (list-matches "[a-z]+" "abc 42 def 78"))
+@result{} ("abc" "def")
+@end  example
+@end deffn
+
+@deffn {Scheme Procedure} fold-matches regexp str init proc [flags]
+Apply @var{proc} to the non-overlapping matches of @var{regexp} in
+@var{str}, to build a result.  @var{regexp} can be either a pattern
+string or a compiled regexp.  The @var{flags} argument is as per
+@code{regexp-exec} above.
+
+@var{proc} is called as @code{(@var{proc} match prev)} where
+@var{match} is a match structure and @var{prev} is the previous return
+from @var{proc}.  For the first call @var{prev} is the given
+@var{init} parameter.  @code{fold-matches} returns the final value
+from @var{proc}.
+
+For example to count matches,
+
+@example
+(fold-matches "[a-z][0-9]" "abc x1 def y2" 0
+              (lambda (match count)
+                (1+ count)))
+@result{} 2
+@end example
+@end deffn
+
+@sp 1
+Regular expressions are commonly used to find patterns in one string
+and replace them with the contents of another string.  The following
+functions are convenient ways to do this.
+
+@c begin (scm-doc-string "regex.scm" "regexp-substitute")
+@deffn {Scheme Procedure} regexp-substitute port match [item@dots{}]
+Write to @var{port} selected parts of the match structure @var{match}.
+Or if @var{port} is @code{#f} then form a string from those parts and
+return that.
+
+Each @var{item} specifies a part to be written, and may be one of the
+following,
+
+@itemize @bullet
+@item
+A string.  String arguments are written out verbatim.
+
+@item
+An integer.  The submatch with that number is written
+(@code{match:substring}).  Zero is the entire match.
+
+@item
+The symbol @samp{pre}.  The portion of the matched string preceding
+the regexp match is written (@code{match:prefix}).
+
+@item
+The symbol @samp{post}.  The portion of the matched string following
+the regexp match is written (@code{match:suffix}).
+@end itemize
+
+For example, changing a match and retaining the text before and after,
+
+@example
+(regexp-substitute #f (string-match "[0-9]+" "number 25 is good")
+                   'pre "37" 'post)
+@result{} "number 37 is good"
+@end example
+
+Or matching a @sc{yyyymmdd} format date such as @samp{20020828} and
+re-ordering and hyphenating the fields.
+
+@lisp
+(define date-regex
+   "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define s "Date 20020429 12am.")
+(regexp-substitute #f (string-match date-regex s)
+                   'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+@result{} "Date 04-29-2002 12am. (20020429)"
+@end lisp
+@end deffn
+
+
+@c begin (scm-doc-string "regex.scm" "regexp-substitute")
+@deffn {Scheme Procedure} regexp-substitute/global port regexp target [item@dots{}]
+@cindex search and replace
+Write to @var{port} selected parts of matches of @var{regexp} in
+@var{target}.  If @var{port} is @code{#f} then form a string from
+those parts and return that.  @var{regexp} can be a string or a
+compiled regex.
+
+This is similar to @code{regexp-substitute}, but allows global
+substitutions on @var{target}.  Each @var{item} behaves as per
+@code{regexp-substitute}, with the following differences,
+
+@itemize @bullet
+@item
+A function.  Called as @code{(@var{item} match)} with the match
+structure for the @var{regexp} match, it should return a string to be
+written to @var{port}.
+
+@item
+The symbol @samp{post}.  This doesn't output anything, but instead
+causes @code{regexp-substitute/global} to recurse on the unmatched
+portion of @var{target}.
+
+This @emph{must} be supplied to perform a global search and replace on
+@var{target}; without it @code{regexp-substitute/global} returns after
+a single match and output.
+@end itemize
+
+For example, to collapse runs of tabs and spaces to a single hyphen
+each,
+
+@example
+(regexp-substitute/global #f "[ \t]+"  "this   is   the text"
+                          'pre "-" 'post)
+@result{} "this-is-the-text"
+@end example
+
+Or using a function to reverse the letters in each word,
+
+@example
+(regexp-substitute/global #f "[a-z]+"  "to do and not-do"
+  'pre (lambda (m) (string-reverse (match:substring m))) 'post)
+@result{} "ot od dna ton-od"
+@end example
+
+Without the @code{post} symbol, just one regexp match is made.  For
+example the following is the date example from
+@code{regexp-substitute} above, without the need for the separate
+@code{string-match} call.
+
+@lisp
+(define date-regex 
+   "([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])")
+(define s "Date 20020429 12am.")
+(regexp-substitute/global #f date-regex s
+                          'pre 2 "-" 3 "-" 1 'post " (" 0 ")")
+
+@result{} "Date 04-29-2002 12am. (20020429)"
+@end lisp
+@end deffn
+
+
+@node Match Structures
+@subsection Match Structures
+
+@cindex match structures
+
+A @dfn{match structure} is the object returned by @code{string-match} and
+@code{regexp-exec}.  It describes which portion of a string, if any,
+matched the given regular expression.  Match structures include: a
+reference to the string that was checked for matches; the starting and
+ending positions of the regexp match; and, if the regexp included any
+parenthesized subexpressions, the starting and ending positions of each
+submatch.
+
+In each of the regexp match functions described below, the @code{match}
+argument must be a match structure returned by a previous call to
+@code{string-match} or @code{regexp-exec}.  Most of these functions
+return some information about the original target string that was
+matched against a regular expression; we will call that string
+@var{target} for easy reference.
+
+@c begin (scm-doc-string "regex.scm" "regexp-match?")
+@deffn {Scheme Procedure} regexp-match? obj
+Return @code{#t} if @var{obj} is a match structure returned by a
+previous call to @code{regexp-exec}, or @code{#f} otherwise.
+@end deffn
+
+@c begin (scm-doc-string "regex.scm" "match:substring")
+@deffn {Scheme Procedure} match:substring match [n]
+Return the portion of @var{target} matched by subexpression number
+@var{n}.  Submatch 0 (the default) represents the entire regexp match.
+If the regular expression as a whole matched, but the subexpression
+number @var{n} did not match, return @code{#f}.
+@end deffn
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:substring s)
+@result{} "2002"
+
+;; match starting at offset 6 in the string
+(match:substring
+  (string-match "[0-9][0-9][0-9][0-9]" "blah987654" 6))
+@result{} "7654"
+@end lisp
+
+@c begin (scm-doc-string "regex.scm" "match:start")
+@deffn {Scheme Procedure} match:start match [n]
+Return the starting position of submatch number @var{n}.
+@end deffn
+
+In the following example, the result is 4, since the match starts at
+character index 4:
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:start s)
+@result{} 4
+@end lisp
+
+@c begin (scm-doc-string "regex.scm" "match:end")
+@deffn {Scheme Procedure} match:end match [n]
+Return the ending position of submatch number @var{n}.
+@end deffn
+
+In the following example, the result is 8, since the match runs between
+characters 4 and 8 (i.e. the ``2002'').
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:end s)
+@result{} 8
+@end lisp
+
+@c begin (scm-doc-string "regex.scm" "match:prefix")
+@deffn {Scheme Procedure} match:prefix match
+Return the unmatched portion of @var{target} preceding the regexp match.
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:prefix s)
+@result{} "blah"
+@end lisp
+@end deffn
+
+@c begin (scm-doc-string "regex.scm" "match:suffix")
+@deffn {Scheme Procedure} match:suffix match
+Return the unmatched portion of @var{target} following the regexp match.
+@end deffn
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:suffix s)
+@result{} "foo"
+@end lisp
+
+@c begin (scm-doc-string "regex.scm" "match:count")
+@deffn {Scheme Procedure} match:count match
+Return the number of parenthesized subexpressions from @var{match}.
+Note that the entire regular expression match itself counts as a
+subexpression, and failed submatches are included in the count.
+@end deffn
+
+@c begin (scm-doc-string "regex.scm" "match:string")
+@deffn {Scheme Procedure} match:string match
+Return the original @var{target} string.
+@end deffn
+
+@lisp
+(define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))
+(match:string s)
+@result{} "blah2002foo"
+@end lisp
+
+
+@node Backslash Escapes
+@subsection Backslash Escapes
+
+Sometimes you will want a regexp to match characters like @samp{*} or
+@samp{$} exactly.  For example, to check whether a particular string
+represents a menu entry from an Info node, it would be useful to match
+it against a regexp like @samp{^* [^:]*::}.  However, this won't work;
+because the asterisk is a metacharacter, it won't match the @samp{*} at
+the beginning of the string.  In this case, we want to make the first
+asterisk un-magic.
+
+You can do this by preceding the metacharacter with a backslash
+character @samp{\}.  (This is also called @dfn{quoting} the
+metacharacter, and is known as a @dfn{backslash escape}.)  When Guile
+sees a backslash in a regular expression, it considers the following
+glyph to be an ordinary character, no matter what special meaning it
+would ordinarily have.  Therefore, we can make the above example work by
+changing the regexp to @samp{^\* [^:]*::}.  The @samp{\*} sequence tells
+the regular expression engine to match only a single asterisk in the
+target string.
+
+Since the backslash is itself a metacharacter, you may force a regexp to
+match a backslash in the target string by preceding the backslash with
+itself.  For example, to find variable references in a @TeX{} program,
+you might want to find occurrences of the string @samp{\let\} followed
+by any number of alphabetic characters.  The regular expression
+@samp{\\let\\[A-Za-z]*} would do this: the double backslashes in the
+regexp each match a single backslash in the target string.
+
+@c begin (scm-doc-string "regex.scm" "regexp-quote")
+@deffn {Scheme Procedure} regexp-quote str
+Quote each special character found in @var{str} with a backslash, and
+return the resulting string.
+@end deffn
+
+@strong{Very important:} Using backslash escapes in Guile source code
+(as in Emacs Lisp or C) can be tricky, because the backslash character
+has special meaning for the Guile reader.  For example, if Guile
+encounters the character sequence @samp{\n} in the middle of a string
+while processing Scheme code, it replaces those characters with a
+newline character.  Similarly, the character sequence @samp{\t} is
+replaced by a horizontal tab.  Several of these @dfn{escape sequences}
+are processed by the Guile reader before your code is executed.
+Unrecognized escape sequences are ignored: if the characters @samp{\*}
+appear in a string, they will be translated to the single character
+@samp{*}.
+
+This translation is obviously undesirable for regular expressions, since
+we want to be able to include backslashes in a string in order to
+escape regexp metacharacters.  Therefore, to make sure that a backslash
+is preserved in a string in your Guile program, you must use @emph{two}
+consecutive backslashes:
+
+@lisp
+(define Info-menu-entry-pattern (make-regexp "^\\* [^:]*"))
+@end lisp
+
+The string in this example is preprocessed by the Guile reader before
+any code is executed.  The resulting argument to @code{make-regexp} is
+the string @samp{^\* [^:]*}, which is what we really want.
+
+This also means that in order to write a regular expression that matches
+a single backslash character, the regular expression string in the
+source code must include @emph{four} backslashes.  Each consecutive pair
+of backslashes gets translated by the Guile reader to a single
+backslash, and the resulting double-backslash is interpreted by the
+regexp engine as matching a single backslash character.  Hence:
+
+@lisp
+(define tex-variable-pattern (make-regexp "\\\\let\\\\=[A-Za-z]*"))
+@end lisp
+
+The reason for the unwieldiness of this syntax is historical.  Both
+regular expression pattern matchers and Unix string processing systems
+have traditionally used backslashes with the special meanings
+described above.  The POSIX regular expression specification and ANSI C
+standard both require these semantics.  Attempting to abandon either
+convention would cause other kinds of compatibility problems, possibly
+more severe ones.  Therefore, without extending the Scheme reader to
+support strings with different quoting conventions (an ungainly and
+confusing extension when implemented in other languages), we must adhere
+to this cumbersome escape syntax.
