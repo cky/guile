@@ -4,7 +4,6 @@
 @c See the file guile.texi for copying conditions.
 
 
-@page
 @node Code Coverage
 @section Code Coverage Reports
 
