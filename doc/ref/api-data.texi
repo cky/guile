@@ -5399,20 +5399,22 @@ Equivalent to @code{scm_symbol_to_keyword (scm_from_locale_symbol
 @node Other Types
 @subsection ``Functionality-Centric'' Data Types
 
-Procedures and macros are documented in their own chapter: see
+Procedures and macros are documented in their own sections: see
 @ref{Procedures} and @ref{Macros}.
 
 Variable objects are documented as part of the description of Guile's
 module system: see @ref{Variables}.
 
-Asyncs, dynamic roots and fluids are described in the chapter on
+Asyncs, dynamic roots and fluids are described in the section on
 scheduling: see @ref{Scheduling}.
 
-Hooks are documented in the chapter on general utility functions: see
+Hooks are documented in the section on general utility functions: see
 @ref{Hooks}.
 
-Ports are described in the chapter on I/O: see @ref{Input and Output}.
+Ports are described in the section on I/O: see @ref{Input and Output}.
 
+Regular expressions are described in their own section: see @ref{Regular
+Expressions}.
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
