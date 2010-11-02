@@ -65,7 +65,8 @@
             save-stack
             named-module-use!
             top-repl
-            turn-on-debugging))
+            turn-on-debugging
+            read-hash-procedures))
 
 
 ;;;; Deprecated definitions.
@@ -682,3 +683,17 @@ it.")
    "Debugging capabilities are present by default.")
   (debug-enable 'backtrace)
   (read-enable 'positions))
+
+(define (read-hash-procedures-warning)
+  (issue-deprecation-warning
+   "`read-hash-procedures' is deprecated."
+   "Use the fluid `%read-hash-procedures' instead."))
+
+(define-syntax read-hash-procedures
+  (identifier-syntax
+    (_
+     (begin (read-hash-procedures-warning)
+            (fluid-ref %read-hash-procedures)))
+    ((set! _ expr)
+     (begin (read-hash-procedures-warning)
+            (fluid-set! %read-hash-procedures expr)))))

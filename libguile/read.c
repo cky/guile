@@ -135,9 +135,21 @@ SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-/* An association list mapping extra hash characters to procedures.  */
-static SCM *scm_read_hash_procedures;
+/* A fluid referring to an association list mapping extra hash
+   characters to procedures.  */
+static SCM *scm_i_read_hash_procedures;
 
+static inline SCM
+scm_i_read_hash_procedures_ref (void)
+{
+  return scm_fluid_ref (*scm_i_read_hash_procedures);
+}
+
+static inline void
+scm_i_read_hash_procedures_set_x (SCM value)
+{
+  scm_fluid_set_x (*scm_i_read_hash_procedures, value);
+}
 
 
 /* Token readers.  */
@@ -1547,7 +1559,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 	      proc, SCM_ARG2, FUNC_NAME);
 
   /* Check if chr is already in the alist.  */
-  this = *scm_read_hash_procedures;
+  this = scm_i_read_hash_procedures_ref ();
   prev = SCM_BOOL_F;
   while (1)
     {
@@ -1556,8 +1568,9 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 	  /* not found, so add it to the beginning.  */
 	  if (scm_is_true (proc))
 	    {
-	      *scm_read_hash_procedures = 
-		scm_cons (scm_cons (chr, proc), *scm_read_hash_procedures);
+              SCM new = scm_cons (scm_cons (chr, proc),
+                                  scm_i_read_hash_procedures_ref ());
+	      scm_i_read_hash_procedures_set_x (new);
 	    }
 	  break;
 	}
@@ -1569,8 +1582,8 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 	      /* remove it.  */
 	      if (scm_is_false (prev))
 		{
-		  *scm_read_hash_procedures =
-		    SCM_CDR (*scm_read_hash_procedures);
+                  SCM rest = SCM_CDR (scm_i_read_hash_procedures_ref ());
+		  scm_i_read_hash_procedures_set_x (rest);
 		}
 	      else
 		scm_set_cdr_x (prev, SCM_CDR (this));
@@ -1594,7 +1607,7 @@ SCM_DEFINE (scm_read_hash_extend, "read-hash-extend", 2, 0, 0,
 static SCM
 scm_get_hash_procedure (int c)
 {
-  SCM rest = *scm_read_hash_procedures;
+  SCM rest = scm_i_read_hash_procedures_ref ();
 
   while (1)
     {
@@ -1738,8 +1751,13 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
 void
 scm_init_read ()
 {
-  scm_read_hash_procedures =
-    SCM_VARIABLE_LOC (scm_c_define ("read-hash-procedures", SCM_EOL));
+  SCM read_hash_procs;
+
+  read_hash_procs = scm_make_fluid ();
+  scm_fluid_set_x (read_hash_procs, SCM_EOL);
+  
+  scm_i_read_hash_procedures =
+    SCM_VARIABLE_LOC (scm_c_define ("%read-hash-procedures", read_hash_procs));
 
   scm_init_opts (scm_read_options, scm_read_opts);
 #include "libguile/read.x"

@@ -109,19 +109,14 @@
   (pass-if "R6RS/SRFI-30 block comment syntax overridden"
     ;; To be compatible with 1.8 and earlier, we should be able to override
     ;; this syntax.
-    (let ((rhp read-hash-procedures))
-      (dynamic-wind
-        (lambda ()
-          (read-hash-extend #\| (lambda args 'not)))
-        (lambda ()
-          (fold (lambda (x y result)
-                  (and result (eq? x y)))
-                #t
-                (read-string "(this is #| a comment)")
-                `(this is not a comment)))
-        (lambda ()
-          (set! read-hash-procedures rhp)))))
-
+    (with-fluids ((%read-hash-procedures (fluid-ref %read-hash-procedures)))
+      (read-hash-extend #\| (lambda args 'not))
+      (fold (lambda (x y result)
+              (and result (eq? x y)))
+            #t
+            (read-string "(this is #| a comment)")
+            `(this is not a comment))))
+  
   (pass-if "unprintable symbol"
     ;; The reader tolerates unprintable characters for symbols.
     (equal? (string->symbol "\x01\x02\x03")
