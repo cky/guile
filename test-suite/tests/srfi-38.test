@@ -1,0 +1,68 @@
+;;; srfi-38.test --- Tests for SRFI 38.      -*- mode: scheme; -*-
+
+;; Copyright (C) 2010 Free Software Foundation, Inc.
+
+;; This library is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU Lesser General Public
+;; License as published by the Free Software Foundation; either
+;; version 3 of the License, or (at your option) any later version.
+
+;; This library is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; Lesser General Public License for more details.
+
+;; You should have received a copy of the GNU Lesser General Public
+;; License along with this library. If not, see
+;; <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
+(define-module (test-srfi-38)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-38)
+  #:use-module (rnrs bytevectors))
+
+(define (shared-structure->string object)
+  (call-with-output-string
+    (lambda (port)
+      (write-with-shared-structure object port))))
+
+(define (roundtrip object)
+  (call-with-input-string (shared-structure->string object)
+    (lambda (port)
+      (read-with-shared-structure port))))
+
+(with-test-prefix "pairs"
+  (let ((foo (cons 'value-1 #f)))
+    (set-cdr! foo foo)
+    (pass-if "writing"
+      (string=? "#1=(value-1 . #1#)"
+                (shared-structure->string foo)))
+    (pass-if "roundtrip"
+      (let ((result (roundtrip foo)))
+        (and (pair? result)
+             (eq? (car result) 'value-1)
+             (eq? (cdr result) result))))))
+
+(with-test-prefix "bytevectors"
+  (let ((vec (vector 0 1 2 3))
+        (bv (u8-list->bytevector '(42 42))))
+    (vector-set! vec 0 bv)
+    (vector-set! vec 2 bv)
+    (pass-if "roundtrip"
+      (let ((result (roundtrip vec)))
+        (and (equal? '#(#vu8(42 42) 1 #vu8(42 42) 3)
+                     result)
+             (eq? (vector-ref result 0)
+                  (vector-ref result 2)))))))
+
+(with-test-prefix "mixed"
+  (let* ((pair (cons 'a 'b))
+         (vec (vector 0 pair 2 pair #f)))
+    (vector-set! vec 4 vec)
+    (pass-if "roundtrip"
+      (let ((result (roundtrip vec)))
+        (and (eq? (vector-ref result 1)
+                  (vector-ref result 3))
+             (eq? result (vector-ref result 4)))))))

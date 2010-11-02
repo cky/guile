@@ -42,6 +42,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-34::                     Exception handling.
 * SRFI-35::                     Conditions.
 * SRFI-37::                     args-fold program argument processor
+* SRFI-38::                     External Representation for Data With Shared Structure
 * SRFI-39::                     Parameter objects
 * SRFI-42::                     Eager comprehensions
 * SRFI-45::                     Primitives for expressing iterative lazy algorithms
@@ -3619,7 +3620,6 @@ the user.
 Return true if @var{c} is of type @code{&error} or one of its subtypes.
 @end deffn
 
-
 @node SRFI-37
 @subsection SRFI-37 - args-fold
 @cindex SRFI-37
@@ -3706,6 +3706,129 @@ not named options.  This includes arguments after @samp{--}.  It is
 called with the argument in question, as well as the seeds.
 @end deffn
 
+@node SRFI-38
+@subsection SRFI-38 - External Representation for Data With Shared Structure
+@cindex SRFI-38
+
+This subsection is based on
+@uref{http://srfi.schemers.org/srfi-38/srfi-38.html, the specification
+of SRFI-38} written by Ray Dillinger.
+
+@c Copyright (C) Ray Dillinger 2003. All Rights Reserved.
+
+@c Permission is hereby granted, free of charge, to any person obtaining a
+@c copy of this software and associated documentation files (the
+@c "Software"), to deal in the Software without restriction, including
+@c without limitation the rights to use, copy, modify, merge, publish,
+@c distribute, sublicense, and/or sell copies of the Software, and to
+@c permit persons to whom the Software is furnished to do so, subject to
+@c the following conditions:
+
+@c The above copyright notice and this permission notice shall be included
+@c in all copies or substantial portions of the Software.
+
+@c THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+@c OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+@c MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+@c NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+@c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+@c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+@c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+This SRFI creates an alternative external representation for data
+written and read using @code{write-with-shared-structure} and
+@code{read-with-shared-structure}.  It is identical to the grammar for
+external representation for data written and read with @code{write} and
+@code{read} given in section 7 of R5RS, except that the single
+production
+
+@example
+<datum> --> <simple datum> | <compound datum> 
+@end example
+
+is replaced by the following five productions:
+
+@example
+<datum> --> <defining datum> | <nondefining datum> | <defined datum>
+<defining datum> -->  #<indexnum>=<nondefining datum>
+<defined datum> --> #<indexnum>#
+<nondefining datum> --> <simple datum> | <compound datum> 
+<indexnum> --> <digit 10>+
+@end example
+
+@deffn {Scheme procedure} write-with-shared-structure obj
+@deffnx {Scheme procedure} write-with-shared-structure obj port
+@deffnx {Scheme procedure} write-with-shared-structure obj port optarg
+
+Writes an external representation of @var{obj} to the given port.
+Strings that appear in the written representation are enclosed in
+doublequotes, and within those strings backslash and doublequote
+characters are escaped by backslashes.  Character objects are written
+using the @code{#\} notation.
+
+Objects which denote locations rather than values (cons cells, vectors,
+and non-zero-length strings in R5RS scheme; also Guile's structs,
+bytevectors and ports and hash-tables), if they appear at more than one
+point in the data being written, are preceded by @samp{#@var{N}=} the
+first time they are written and replaced by @samp{#@var{N}#} all
+subsequent times they are written, where @var{N} is a natural number
+used to identify that particular object.  If objects which denote
+locations occur only once in the structure, then
+@code{write-with-shared-structure} must produce the same external
+representation for those objects as @code{write}.
+
+@code{write-with-shared-structure} terminates in finite time and
+produces a finite representation when writing finite data.
+
+@code{write-with-shared-structure} returns an unspecified value. The
+@var{port} argument may be omitted, in which case it defaults to the
+value returned by @code{(current-output-port)}.  The @var{optarg}
+argument may also be omitted.  If present, its effects on the output and
+return value are unspecified but @code{write-with-shared-structure} must
+still write a representation that can be read by
+@code{read-with-shared-structure}.  Some implementations may wish to use
+@var{optarg} to specify formatting conventions, numeric radixes, or
+return values.  Guile's implementation ignores @var{optarg}.
+
+For example, the code
+
+@lisp
+(begin (define a (cons 'val1 'val2))
+       (set-cdr! a a)
+       (write-with-shared-structure a))
+@end lisp
+
+should produce the output @code{#1=(val1 . #1#)}.  This shows a cons
+cell whose @code{cdr} contains itself.
+
+@end deffn
+
+@deffn {Scheme procedure} read-with-shared-structure
+@deffnx {Scheme procedure} read-with-shared-structure port
+
+@code{read-with-shared-structure} converts the external representations
+of Scheme objects produced by @code{write-with-shared-structure} into
+Scheme objects.  That is, it is a parser for the nonterminal
+@samp{<datum>} in the augmented external representation grammar defined
+above.  @code{read-with-shared-structure} returns the next object
+parsable from the given input port, updating @var{port} to point to the
+first character past the end of the external representation of the
+object.
+
+If an end-of-file is encountered in the input before any characters are
+found that can begin an object, then an end-of-file object is returned.
+The port remains open, and further attempts to read it (by
+@code{read-with-shared-structure} or @code{read} will also return an
+end-of-file object.  If an end of file is encountered after the
+beginning of an object's external representation, but the external
+representation is incomplete and therefore not parsable, an error is
+signalled.
+
+The @var{port} argument may be omitted, in which case it defaults to the
+value returned by @code{(current-input-port)}.  It is an error to read
+from a closed port.
+
+@end deffn
 
 @node SRFI-39
 @subsection SRFI-39 - Parameters
