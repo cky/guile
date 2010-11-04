@@ -42,6 +42,7 @@ guile_TEXINFOS = preface.texi			\
 		 api-control.texi		\
 		 api-io.texi			\
 		 api-foreign.texi		\
+		 api-regex.texi			\
 		 api-lalr.texi			\
 		 api-languages.texi		\
 		 api-evaluation.texi		\
