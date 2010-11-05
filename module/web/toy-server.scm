@@ -23,6 +23,8 @@
   #:use-module (rnrs bytevectors)
   #:use-module (web request)
   #:use-module (web response)
+  #:use-module (system repl error-handling)
+  #:use-module (ice-9 control)
   #:export (run-server simple-get-handler))
 
 (define (make-default-socket family addr port)
@@ -80,35 +82,54 @@
                   bv))
         (build-response #:code 405))))
 
-;; This abuses the definition of "toy", because it's really
-;; terrible. Not even fit for children. The FIXME is to handle errors
-;; while reading the request and writing the response, not only errors
-;; in the handler.
-;;
+(define (with-stack-and-prompt thunk)
+  (call-with-prompt (default-prompt-tag)
+                    (lambda () (start-stack #t (thunk)))
+                    (lambda (k proc)
+                      (with-stack-and-prompt (lambda () (proc k))))))
+  
 (define (serve-client handler sock addr)
-  (let* ((req (read-request sock))
-         (body-str (read-request-body/latin-1 req)))
-    (call-with-values (lambda ()
-                        (catch #t
-                          (lambda ()
-                            (handler req body-str))
-                          (lambda (k . args)
-                            (if (eq? k 'interrupt)
-                                (apply throw k args)
-                                (begin
-                                  (warn "Error while serving client" k args)
-                                  (build-response #:code 500))))))
-      (lambda* (response #:optional body)
-        (let ((response (write-response response sock)))
-          (cond
-           ((not body)) ; pass
-           ((string? body)
-            (write-response-body/latin-1 response body))
-           ((bytevector? body)
-            (write-response-body/bytevector response body))
-           (else
-            (error "Expected a string or bytevector for body" body)))))))
-  (close-port sock)) ; FIXME: keep socket alive. requires select?
+  (define *on-toy-server-error* (if (batch-mode?) 'pass 'debug))
+  (define *on-handler-error* (if (batch-mode?) 'pass 'debug))
+
+  (call-with-values
+      (lambda ()
+        (call-with-error-handling
+         (lambda ()
+           (let* ((req (read-request sock))
+                  (body-str (read-request-body/latin-1 req)))
+             (call-with-error-handling
+              (lambda ()
+                (with-stack-and-prompt
+                 (lambda ()
+                   (handler req body-str))))
+              #:pass-keys '(quit interrupt)
+              #:on-error *on-handler-error*
+              #:post-error
+              (lambda (k . args)
+                (warn "Error while serving client" k args)
+                (build-response #:code 500)))))
+         #:pass-keys '(quit interrupt)
+         #:on-error *on-toy-server-error*
+         #:post-error
+         (lambda (k . args)
+           (warn "Error reading request" k args)
+           (build-response #:code 400))))
+    (lambda* (response #:optional body)
+      (call-with-error-handling
+       (lambda ()
+         (let ((response (write-response response sock)))
+           (cond
+            ((not body))                ; pass
+            ((string? body)
+             (write-response-body/latin-1 response body))
+            ((bytevector? body)
+             (write-response-body/bytevector response body))
+            (else
+             (error "Expected a string or bytevector for body" body)))))
+       #:on-error *on-toy-server-error*
+       #:pass-keys '(quit interrupt))))
+  (close-port sock))        ; FIXME: keep socket alive. requires select?
 
 (define* (run-server handler
                      #:key
@@ -132,6 +153,5 @@
                  (serve-client handler client-socket client-addr))))
             (lambda (k . args)
               (warn "Interrupt while serving client")
-              (close-port client-socket)
-              #f))
+              (close-port client-socket)))
           (lp (accept-new-client server-socket))))))
