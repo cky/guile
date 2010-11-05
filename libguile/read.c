@@ -1442,6 +1442,10 @@ scm_read_expression (SCM port)
 	case ')':
 	  scm_i_input_error (FUNC_NAME, port, "unexpected \")\"", SCM_EOL);
 	  break;
+	case ']':
+          if (SCM_SQUARE_BRACKETS_P)
+            scm_i_input_error (FUNC_NAME, port, "unexpected \"]\"", SCM_EOL);
+          /* otherwise fall through */
 	case EOF:
 	  return SCM_EOF_VAL;
 	case ':':
