@@ -1798,10 +1798,20 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   SCM acc = SCM_I_MAKINUM (1L);
 
   SCM_VALIDATE_NUMBER (SCM_ARG1, n);
+  if (!SCM_I_INUMP (k) && !SCM_BIGP (k))
+    SCM_WRONG_TYPE_ARG (2, k);
 
-  /* 0^0 == 1 according to R5RS */
-  if (scm_is_eq (n, SCM_INUM0) || scm_is_eq (n, acc))
-    return scm_is_false (scm_zero_p(k)) ? n : acc;
+  if (scm_is_true (scm_zero_p (n)))
+    {
+      if (scm_is_true (scm_zero_p (k)))  /* 0^0 == 1 per R5RS */
+	return acc;        /* return exact 1, regardless of n */
+      else if (scm_is_true (scm_positive_p (k)))
+	return n;
+      else  /* return NaN for (0 ^ k) for negative k per R6RS */
+	return scm_nan ();
+    }
+  else if (scm_is_eq (n, acc))
+    return acc;
   else if (scm_is_eq (n, SCM_I_MAKINUM (-1L)))
     return scm_is_false (scm_even_p (k)) ? n : acc;
 
@@ -5479,8 +5489,29 @@ SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
 	    "Return @var{x} raised to the power of @var{y}.") 
 #define FUNC_NAME s_scm_expt
 {
-  if (scm_is_true (scm_exact_p (x)) && scm_is_integer (y))
-    return scm_integer_expt (x, y);
+  if (scm_is_integer (y))
+    {
+      if (scm_is_true (scm_exact_p (y)))
+	return scm_integer_expt (x, y);
+      else
+	{
+	  /* Here we handle the case where the exponent is an inexact
+	     integer.  We make the exponent exact in order to use
+	     scm_integer_expt, and thus avoid the spurious imaginary
+	     parts that may result from round-off errors in the general
+	     e^(y log x) method below (for example when squaring a large
+	     negative number).  In this case, we must return an inexact
+	     result for correctness.  We also make the base inexact so
+	     that scm_integer_expt will use fast inexact arithmetic
+	     internally.  Note that making the base inexact is not
+	     sufficient to guarantee an inexact result, because
+	     scm_integer_expt will return an exact 1 when the exponent
+	     is 0, even if the base is inexact. */
+	  return scm_exact_to_inexact
+	    (scm_integer_expt (scm_exact_to_inexact (x),
+			       scm_inexact_to_exact (y)));
+	}
+    }
   else if (scm_is_real (x) && scm_is_real (y) && scm_to_double (x) >= 0.0)
     {
       return scm_from_double (pow (scm_to_double (x), scm_to_double (y)));
