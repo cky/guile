@@ -20,6 +20,41 @@
   #:use-module (ice-9 pretty-print)
   #:use-module (test-suite lib))
 
+(define-syntax prints?
+  ;; #t if EXP prints as RESULT.
+  (syntax-rules ()
+    ((_ exp result)
+     (string=? result
+               (with-output-to-string
+                 (lambda ()
+                   (pretty-print 'exp)))))))
+
+
+(with-test-prefix "pretty-print"
+
+  (pass-if "pair"
+    (prints? (a . b) "(a . b)\n"))
+
+  (pass-if "list"
+    (prints? (a b c) "(a b c)\n"))
+
+  (pass-if "dotted list"
+    (prints? (a b . c) "(a b . c)\n"))
+
+  (pass-if "quote"
+    (prints? 'foo "'foo\n"))
+
+  (pass-if "non-starting quote"
+    (prints? (foo 'bar) "(foo 'bar)\n"))
+
+  (pass-if "nested quote"
+    (prints? (''foo) "(''foo)\n"))
+
+  (pass-if "quasiquote & co."
+    (prints?  (define foo `(bar ,(+ 2 3)))
+             "(define foo `(bar ,(+ 2 3)))\n")))
+
+
 (with-test-prefix "truncated-print"
   (define exp '(a b #(c d e) f . g))
 

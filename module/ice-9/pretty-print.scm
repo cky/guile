@@ -17,6 +17,8 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 ;;;; 
 (define-module (ice-9 pretty-print)
+  #:use-module (ice-9 match)
+  #:use-module (srfi srfi-1)
   #:export (pretty-print
             truncated-print))
 
@@ -54,12 +56,21 @@
     (and col (output str) (+ col (string-length str))))
 
   (define (wr obj col)
-    (cond ((and (pair? obj)
-		(read-macro? obj))
-	   (wr (read-macro-body obj)
-	       (out (read-macro-prefix obj) col)))
-	  (else
-	   (out (object->string obj (if display? display write)) col))))
+    (let loop ((obj obj)
+               (col col))
+      (match obj
+        (((or 'quote 'quasiquote 'unquote 'unquote-splicing) body)
+         (wr body (out (read-macro-prefix obj) col)))
+        ((head . (rest ...))
+         ;; A proper list: do our own list printing so as to catch read
+         ;; macros that appear in the middle of the list.
+         (let ((col (loop head (out "(" col))))
+           (out ")"
+                (fold (lambda (i col)
+                        (loop i (out " " col)))
+                      col rest))))
+        (_
+         (out (object->string obj (if display? display write)) col)))))
 
   (define (pp obj col)
 
