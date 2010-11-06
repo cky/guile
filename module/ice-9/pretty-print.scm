@@ -214,6 +214,9 @@
     (define (pp-DO expr col extra)
       (pp-general expr col extra #f pp-expr-list pp-expr-list pp-expr))
 
+    (define (pp-SYNTAX-CASE expr col extra)
+      (pp-general expr col extra #t pp-expr-list #f pp-expr))
+
     ; define formatting style (change these to suit your style)
 
     (define indent-general 2)
@@ -224,7 +227,9 @@
 
     (define (style head)
       (case head
-        ((lambda let* letrec define) pp-LAMBDA)
+        ((lambda let* letrec define define-public
+          define-syntax let-syntax letrec-syntax)
+                                     pp-LAMBDA)
         ((if set!)                   pp-IF)
         ((cond)                      pp-COND)
         ((case)                      pp-CASE)
@@ -232,6 +237,8 @@
         ((let)                       pp-LET)
         ((begin)                     pp-BEGIN)
         ((do)                        pp-DO)
+        ((syntax-rules)              pp-LAMBDA)
+        ((syntax-case)               pp-SYNTAX-CASE)
         (else                        #f)))
 
     (pr obj col 0 pp-expr))
