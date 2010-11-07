@@ -26,6 +26,8 @@
   (cons 'read-error "end of file$"))
 (define exception:unexpected-rparen
   (cons 'read-error "unexpected \")\"$"))
+(define exception:unexpected-rsqbracket
+  (cons 'read-error "unexpected \"]\"$"))
 (define exception:unterminated-block-comment
   (cons 'read-error "unterminated `#. \\.\\.\\. .#' comment$"))
 (define exception:unknown-character-name
@@ -135,12 +137,18 @@
 
   (pass-if "square brackets are parens"
     (equal? '() (read-string "[]")))
-  
+
   (pass-if-exception "paren mismatch" exception:unexpected-rparen
                      (read-string "'[)"))
 
-  (pass-if-exception "paren mismatch (2)" exception:mismatched-paren
-                     (read-string "'(]")))
+  (pass-if-exception "paren mismatch (2)" exception:unexpected-rsqbracket
+                     (read-string "'(]"))
+
+  (pass-if-exception "paren mismatch (3)" exception:mismatched-paren
+                     (read-string "'(foo bar]"))
+
+  (pass-if-exception "paren mismatch (4)" exception:mismatched-paren
+                     (read-string "'[foo bar)")))
 
 
 
@@ -159,6 +167,9 @@
   (pass-if-exception "closing parenthesis following mismatched opening"
     exception:unexpected-rparen
     (read-string ")"))
+  (pass-if-exception "closing square bracket following mismatched opening"
+    exception:unexpected-rsqbracket
+    (read-string "]"))
   (pass-if-exception "opening vector parenthesis"
     exception:eof
     (read-string "#("))
