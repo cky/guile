@@ -29,6 +29,7 @@
             uri-path uri-query uri-fragment
 
             build-uri
+            declare-default-port!
             parse-uri unparse-uri
             uri-decode uri-encode
             split-and-decode-uri-path
@@ -174,6 +175,18 @@
      (lambda (k)
        #f)))
 
+(define *default-ports* (make-hash-table))
+
+(define (declare-default-port! scheme port)
+  (hashq-set! *default-ports* scheme port))
+
+(define (default-port? scheme port)
+  (or (not port)
+      (eqv? port (hashq-ref *default-ports* scheme))))
+
+(declare-default-port! 'http 80)
+(declare-default-port! 'https 443)
+
 (define (unparse-uri uri)
   (let* ((scheme-str (string-append
                       (symbol->string (uri-scheme uri)) ":"))
@@ -190,9 +203,9 @@
                         (if userinfo (string-append userinfo "@")
                             "")
                         host
-                        (if port
-                            (string-append ":" (number->string port))
-                            ""))
+                        (if (default-port? (uri-scheme uri) port)
+                            ""
+                            (string-append ":" (number->string port))))
          "")
      path
      (if query
