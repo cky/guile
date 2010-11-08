@@ -132,7 +132,8 @@
 
 (define (parse-c-struct foreign types)
   (let ((size (fold (lambda (type total)
-                      (+ (sizeof type) total))
+                      (+ (sizeof type)
+                         (align total (alignof type))))
                     0
                     types)))
     (read-c-struct (pointer->bytevector foreign size) 0 types)))

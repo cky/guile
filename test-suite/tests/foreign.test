@@ -182,4 +182,11 @@
           (data   (list -300 43)))
       (equal? (parse-c-struct (make-c-struct layout data)
                               layout)
+              data)))
+
+  (pass-if "alignment constraints honored"
+    (let ((layout (list int8 double))
+          (data   (list -7 3.14)))
+      (equal? (parse-c-struct (make-c-struct layout data)
+                              layout)
               data))))
