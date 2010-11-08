@@ -334,7 +334,7 @@ sub-expression, via the @var{breadth-first?} keyword argument."
               (display #\space))
           (cond
            ((= i len)) ; catches 0-length case
-           ((= i (1- len))
+           ((and (= i (1- len)) (or (zero? i) (> width 1)))
             (print (ref x i) (if (zero? i) width (1- width))))
            ((<= width (+ 1 ellipsis-width))
             (display "..."))
