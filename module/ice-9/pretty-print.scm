@@ -337,7 +337,7 @@ sub-expression, via the @var{breadth-first?} keyword argument."
            ((and (= i (1- len)) (or (zero? i) (> width 1)))
             (print (ref x i) (if (zero? i) width (1- width))))
            ((<= width (+ 1 ellipsis-width))
-            (display "..."))
+            (display ellipsis))
            (else
             (let ((str
                    (with-fluids ((%default-port-encoding (port-encoding port)))
