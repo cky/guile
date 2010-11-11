@@ -177,6 +177,15 @@
 
 (with-test-prefix "structs"
 
+  (pass-if "sizeof { int8, double }"
+    (= (sizeof (list int8 double))
+       (+ (alignof double) (sizeof double))))
+
+  (pass-if "sizeof { short, int, long, pointer }"
+    (let ((layout (list short int long '*)))
+      (>= (sizeof layout)
+          (reduce + 0.0 (map sizeof layout)))))
+
   (pass-if "parse-c-struct"
     (let ((layout (list int64 uint8))
           (data   (list -300 43)))
