@@ -21,6 +21,8 @@
   #:use-module (srfi srfi-1)
   #:export (void
             float double
+            short
+            unsigned-short
             int unsigned-int long unsigned-long size_t
             int8 uint8
             uint16 int16
@@ -89,6 +91,9 @@ evaluate to a simple datum."
       ((4) (if signed?
                'bytevector-s32-native-ref
                'bytevector-u32-native-ref))
+      ((2) (if signed?
+               'bytevector-s16-native-ref
+               'bytevector-u16-native-ref))
       (else
        (error "what machine is this?" type (sizeof type)))))
 
@@ -100,6 +105,9 @@ evaluate to a simple datum."
       ((4) (if signed?
                'bytevector-s32-native-set!
                'bytevector-u32-native-set!))
+      ((2) (if signed?
+               'bytevector-s16-native-set!
+               'bytevector-u16-native-set!))
       (else
        (error "what machine is this?" type (sizeof type))))))
 
@@ -120,13 +128,17 @@ evaluate to a simple datum."
        (define name set)))))
 
 
+(define-integer-reader %read-short short #t)
 (define-integer-reader %read-int int #t)
 (define-integer-reader %read-long long #t)
+(define-integer-writer %write-short! short #t)
 (define-integer-writer %write-int! int #t)
 (define-integer-writer %write-long! long #t)
 
+(define-integer-reader %read-unsigned-short unsigned-short #f)
 (define-integer-reader %read-unsigned-int unsigned-int #f)
 (define-integer-reader %read-unsigned-long unsigned-long #f)
+(define-integer-writer %write-unsigned-short! unsigned-short #f)
 (define-integer-writer %write-unsigned-int! unsigned-int #f)
 (define-integer-writer %write-unsigned-long! unsigned-long #f)
 
@@ -149,6 +161,8 @@ evaluate to a simple datum."
     (,int64 . ,bytevector-s64-native-set!)
     (,uint64 . ,bytevector-u64-native-set!)
 
+    (,short         . ,%write-short!)
+    (,unsigned-short . ,%write-unsigned-short!)
     (,int           . ,%write-int!)
     (,unsigned-int  . ,%write-unsigned-int!)
     (,long          . ,%write-long!)
@@ -171,6 +185,8 @@ evaluate to a simple datum."
     (,int64 . ,bytevector-s64-native-ref)
     (,uint64 . ,bytevector-u64-native-ref)
 
+    (,short         . ,%read-short)
+    (,unsigned-short . ,%read-unsigned-short)
     (,int           . ,%read-int)
     (,unsigned-int  . ,%read-unsigned-int)
     (,long          . ,%read-long)

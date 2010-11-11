@@ -210,4 +210,11 @@
           (data   (list (- (expt 2 17)) -222 (make-pointer 777))))
       (equal? (parse-c-struct (make-c-struct layout data)
                               layout)
+              data)))
+
+  (pass-if "int8, pointer, short, double"
+    (let ((layout (list int8 '* short double))
+          (data   (list 77 %null-pointer -42 3.14)))
+      (equal? (parse-c-struct (make-c-struct layout data)
+                              layout)
               data))))
