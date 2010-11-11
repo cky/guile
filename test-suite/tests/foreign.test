@@ -189,4 +189,25 @@
           (data   (list -7 3.14)))
       (equal? (parse-c-struct (make-c-struct layout data)
                               layout)
+              data)))
+
+  (pass-if "int8, pointer"
+    (let ((layout (list uint8 '*))
+          (data   (list 222 (make-pointer 7777))))
+      (equal? (parse-c-struct (make-c-struct layout data)
+                              layout)
+              data)))
+
+  (pass-if "unsigned-long, int8, size_t"
+    (let ((layout (list unsigned-long int8 size_t))
+          (data   (list (expt 2 17) -128 (expt 2 18))))
+      (equal? (parse-c-struct (make-c-struct layout data)
+                              layout)
+              data)))
+
+  (pass-if "long, int, pointer"
+    (let ((layout (list long int '*))
+          (data   (list (- (expt 2 17)) -222 (make-pointer 777))))
+      (equal? (parse-c-struct (make-c-struct layout data)
+                              layout)
               data))))
