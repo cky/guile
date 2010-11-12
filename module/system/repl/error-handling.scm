@@ -125,7 +125,8 @@
                (apply throw key args))))
         (else
          (if (procedure? post-error)
-             post-error                 ; a handler proc
+             (lambda (k . args)
+               (apply (if (memq k pass-keys) throw post-error) k args))
              (error "Unknown post-error strategy" post-error))))
 
       (case on-error
@@ -158,7 +159,8 @@
            #t))
         (else
          (if (procedure? on-error)
-             on-error                   ; pre-unwind handler
+             (lambda (k . args)
+               (apply (if (memq k pass-keys) throw on-error) k args))
              (error "Unknown on-error strategy" on-error)))))))
 
 (define-syntax with-error-handling
