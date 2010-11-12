@@ -352,6 +352,8 @@ WEB_SOURCES =					\
   web/http.scm					\
   web/request.scm				\
   web/response.scm				\
+  web/server.scm				\
+  web/server/http.scm				\
   web/toy-server.scm				\
   web/uri.scm
 
