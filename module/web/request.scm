@@ -31,6 +31,7 @@
             request-uri
             request-version
             request-headers
+            request-meta
             request-port
             
             read-request
@@ -121,12 +122,13 @@
 ;;;
 
 (define-record-type <request>
-  (make-request method uri version headers port)
+  (make-request method uri version headers meta port)
   request?
   (method request-method)
   (uri request-uri)
   (version request-version)
   (headers request-headers)
+  (meta request-meta)
   (port request-port))
 
 (define (bad-request message . args)
@@ -152,7 +154,8 @@
           (bad-request "Headers not a list: ~a" headers))))
 
 (define* (build-request #:key (method 'GET) uri (version '(1 . 1))
-                        (headers '()) port (validate-headers? #t))
+                        (headers '()) port (meta '())
+                        (validate-headers? #t))
   (cond
    ((not (and (pair? version)
               (non-negative-integer? (car version))
@@ -162,17 +165,20 @@
     (bad-request "Bad uri: ~a" uri))
    ((and (not port) (memq method '(POST PUT)))
     (bad-request "Missing port for message ~a" method))
+   ((not (list? meta))
+    (bad-request "Bad metadata alist" meta))
    (else
     (if validate-headers?
         (validate-headers headers))))
-  (make-request method uri version headers port))
+  (make-request method uri version headers meta port))
 
-(define (read-request port)
+(define* (read-request port #:optional (meta '()))
   (set-port-encoding! port "ISO-8859-1")
   (call-with-values (lambda () (read-request-line port))
     (lambda (method uri version)
-      (make-request method uri version (read-headers port) port))))
+      (make-request method uri version (read-headers port) meta port))))
 
+;; FIXME: really return a new request?
 (define (write-request r port)
   (write-request-line (request-method r) (request-uri r)
                       (request-version r) port)
@@ -181,7 +187,7 @@
   (if (eq? port (request-port r))
       r
       (make-request (request-method r) (request-uri r) (request-version r)
-                    (request-headers r) port)))
+                    (request-headers r) (request-meta r) port)))
 
 ;; Probably not what you want to use "in production". Relies on one byte
 ;; per char because we are in latin-1 encoding.
