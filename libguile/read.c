@@ -1646,7 +1646,7 @@ scm_i_scan_for_encoding (SCM port)
     return NULL;
 
   bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);
-  header[bytes_read] = NULL;
+  header[bytes_read] = '\0';
 
   scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
 
