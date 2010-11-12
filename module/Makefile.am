@@ -354,7 +354,6 @@ WEB_SOURCES =					\
   web/response.scm				\
   web/server.scm				\
   web/server/http.scm				\
-  web/toy-server.scm				\
   web/uri.scm
 
 EXTRA_DIST += oop/ChangeLog-2008
