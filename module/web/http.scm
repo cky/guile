@@ -34,6 +34,7 @@
             header-decl-parser
             header-decl-validator
             header-decl-writer
+            lookup-header-decl
             declare-header!
 
             read-header
@@ -43,6 +44,10 @@
 
             read-headers
             write-headers
+
+            parse-http-method
+            parse-http-version
+            parse-request-uri
 
             read-request-line
             write-request-line
@@ -121,6 +126,11 @@
            (read-continuation-line
             port
             (string-trim-both line char-whitespace? (1+ delim))))))))
+
+(define (lookup-header-decl name)
+  (if (string? name)
+      (hash-ref *declared-headers-by-name* (string-downcase name))
+      (hashq-ref *declared-headers* name)))
 
 (define (parse-header name val)
   (let* ((down (string-downcase name))
@@ -605,7 +615,7 @@
 
 (define *known-versions* '())
 
-(define (parse-http-version str start end)
+(define* (parse-http-version str #:optional (start 0) (end (string-length str)))
   (or (let lp ((known *known-versions*))
         (and (pair? known)
              (if (string= str (caar known) start end)
@@ -639,7 +649,7 @@
 ;; because we don't expect people to implement CONNECT, we save
 ;; ourselves the trouble of that case, and disallow the CONNECT method.
 ;;
-(define (parse-method str start end)
+(define* (parse-http-method str #:optional (start 0) (end (string-length str)))
   (cond
    ((string= str "GET" start end) 'GET)
    ((string= str "HEAD" start end) 'HEAD)
@@ -650,7 +660,7 @@
    ((string= str "TRACE" start end) 'TRACE)
    (else (bad-request "Invalid method: ~a" (substring str start end)))))
 
-(define (parse-uri-path str start end)
+(define* (parse-request-uri str #:optional (start 0) (end (string-length str)))
   (cond
    ((= start end)
     (bad-request "Missing Request-URI"))
@@ -673,8 +683,8 @@
          (d0 (string-index line char-whitespace?)) ; "delimiter zero"
          (d1 (string-rindex line char-whitespace?)))
     (if (and d0 d1 (< d0 d1))
-        (values (parse-method line 0 d0)
-                (parse-uri-path line (skip-whitespace line (1+ d0) d1) d1)
+        (values (parse-http-method line 0 d0)
+                (parse-request-uri line (skip-whitespace line (1+ d0) d1) d1)
                 (parse-http-version line (1+ d1) (string-length line)))
         (bad-request "Bad Request-Line: ~s" line))))
 
