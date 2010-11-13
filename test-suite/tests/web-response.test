@@ -35,7 +35,7 @@ Expires: Thu, 28 Oct 2010 15:33:13 GMT\r
 Vary: Accept-Encoding\r
 Content-Encoding: gzip\r
 Content-Length: 36\r
-Content-Type: text/html\r
+Content-Type: text/html; charset=utf-8\r
 \r
 abcdefghijklmnopqrstuvwxyz0123456789")
 
@@ -79,7 +79,7 @@ abcdefghijklmnopqrstuvwxyz0123456789")
          (vary . ("Accept-Encoding"))
          (content-encoding . ("gzip"))
          (content-length . 36)
-         (content-type . ("text" "html")))))
+         (content-type . ("text/html" ("charset" . "utf-8"))))))
     
     (pass-if "write then read"
       (call-with-values

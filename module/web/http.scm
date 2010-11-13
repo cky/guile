@@ -199,15 +199,16 @@
 (define (write-opaque-string val port)
   (display val port))
 
-(define not-separator
-  "[^][()<>@,;:\\\"/?= \t]")
-(define media-type-re
-  (make-regexp (format #f "^(~a+)/(~a+)$" not-separator not-separator)))
+(define separators-without-slash
+  (string->char-set "[^][()<>@,;:\\\"?= \t]"))
+(define (validate-media-type str)
+  (let ((idx (string-index str #\/)))
+    (and idx (= idx (string-rindex str #\/))
+         (not (string-index str separators-without-slash)))))
 (define (parse-media-type str)
-  (let ((m (regexp-exec media-type-re str)))
-    (if m
-        (values (match:substring m 1) (match:substring m 2))
-        (bad-header-component 'media-type str))))
+  (if (validate-media-type str)
+      str
+      (bad-header-component 'media-type str)))
 
 (define* (skip-whitespace str #:optional (start 0) (end (string-length str)))
   (let lp ((i start))
@@ -1139,32 +1140,32 @@
   "Content-Type"
   (lambda (str)
     (let ((parts (string-split str #\;)))
-      (call-with-values (lambda () (parse-media-type (car parts)))
-        (lambda (type subtype)
-          (cons* type subtype
-                 (map (lambda (x)
-                        (let ((eq (string-index x #\=)))
-                          (if (and eq (= eq (string-rindex x #\=)))
-                              (cons (string-trim x 0 eq)
-                                    (string-trim-right x (1+ eq)))
-                              (bad-header 'content-type str))))
-                      (cdr parts)))))))
+      (cons (parse-media-type (car parts))
+            (map (lambda (x)
+                   (let ((eq (string-index x #\=)))
+                     (if (and eq (= eq (string-rindex x #\=)))
+                         (cons (string-trim x char-whitespace? 0 eq)
+                               (string-trim-right x char-whitespace? (1+ eq)))
+                         (bad-header 'content-type str))))
+                 (cdr parts)))))
   (lambda (val)
-    (and (list-of? val string?)
-         (let ((len (length val)))
-           (and (>= len 2)
-                (even? len)))))
+    (and (pair? val)
+         (string? (car val))
+         (list-of? (cdr val)
+                   (lambda (x)
+                     (and (pair? x) (string? (car x)) (string? (cdr x)))))))
   (lambda (val port)
     (display (car val) port)
-    (display #\/ port)
-    (display (cadr val) port)
-    (write-list
-     (cddr val) port
-     (lambda (pair port)
-       (display (car pair) port)
-       (display #\= port)
-       (display (cdr pair) port))
-     ";")))
+    (if (pair? (cdr val)) 
+       (begin
+          (display ";" port)
+          (write-list
+           (cdr val) port
+           (lambda (pair port)
+             (display (car pair) port)
+             (display #\= port)
+             (display (cdr pair) port))
+           ";")))))
 
 ;; Expires = HTTP-date
 ;;

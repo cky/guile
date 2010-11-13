@@ -121,18 +121,14 @@
   (pass-if-parse content-range "bytes 10-20/*" '(bytes (10 . 20) *))
   (pass-if-parse content-range "bytes */*" '(bytes * *))
   (pass-if-parse content-range "bytes */30" '(bytes * 30))
+  (pass-if-parse content-type "foo/bar" '("foo/bar"))
+  (pass-if-parse content-type "foo/bar; baz=qux" '("foo/bar" ("baz" . "qux")))
   (pass-if-parse expires "Tue, 15 Nov 1994 08:12:31 GMT"
                  (string->date "Tue, 15 Nov 1994 08:12:31 +0000"
                          "~a, ~d ~b ~Y ~H:~M:~S ~z"))
   (pass-if-parse last-modified "Tue, 15 Nov 1994 08:12:31 GMT"
                  (string->date "Tue, 15 Nov 1994 08:12:31 +0000"
                          "~a, ~d ~b ~Y ~H:~M:~S ~z")))
-
-#;
-(parse-header "accept" "text/*;q=0.3, text/html;q=0.7, text/html;level=1")
-
-#;
-(parse-header "expect" "100-continue")
 
 (with-test-prefix "request headers"
   (pass-if-parse accept "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
