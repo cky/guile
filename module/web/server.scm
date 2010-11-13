@@ -156,9 +156,45 @@
      (warn "Error handling request" k args)
      (apply values (build-response #:code 500) #f state))))
 
+(define (encode-string str charset)
+  (case charset
+    ((utf-8) (string->utf8 str))
+    (else (error "unknown charset" charset))))
+
 ;; -> response body
 (define (sanitize-response request response body)
-  (values response body))
+  (cond
+   ((list? response)
+    (sanitize-response request (build-response #:headers response) body))
+   ((string? body)
+    (let* ((type (response-content-type response
+                                        '("text/plain")))
+           (declared-charset (assoc-ref (cdr type) "charset"))
+           (charset (if declared-charset
+                        (string->symbol 
+                         (string-downcase declared-charset))
+                        'utf-8)))
+      (sanitize-response
+       request
+       (if declared-charset
+           response
+           (extend-response response 'content-type
+                            `(,@type ("charset" . ,(symbol->string charset)))))
+       (encode-string body charset))))
+   ((procedure? body)
+    (sanitize-response request response (call-with-output-string body)))
+   ((bytevector? body)
+    ;; check length; assert type; add other required fields?
+    (values (let ((len (response-content-length response)))
+              (if len
+                  (if (= len (bytevector-length body))
+                      response
+                      (error "bad content-length" len (bytevector-length body)))
+                  (extend-response response 'content-length
+                                   (bytevector-length body))))
+            body))
+   (else
+    (error "unexpected body type"))))
 
 ;; -> (#f | client)
 (define (write-client impl server client response body)
