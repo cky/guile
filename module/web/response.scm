@@ -33,6 +33,7 @@
             response-port
             read-response
             build-response
+            extend-response
             write-response
 
             read-response-body/latin-1
@@ -94,6 +95,18 @@
 (define* (build-response #:key (version '(1 . 1)) (code 200) reason-phrase
                          (headers '()) port)
   (make-response version code reason-phrase headers port))
+
+(define (extend-response r k v . additional)
+  (let ((r (build-response #:version (response-version r)
+                           #:code (response-code r)
+                           #:reason-phrase (%response-reason-phrase r)
+                           #:headers
+                           (assoc-set! (copy-tree (response-headers r))
+                                       k v)
+                           #:port (response-port r))))
+    (if (null? additional)
+        r
+        (apply extend-response r additional))))
 
 (define *reason-phrases*
   '((100 . "Continue")
