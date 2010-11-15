@@ -2402,6 +2402,9 @@ scm_iuint2str (scm_t_uintmax num, int rad, char *p)
   size_t i;
   scm_t_uintmax n = num;
 
+  if (rad < 2 || rad > 36)
+    scm_out_of_range ("scm_iuint2str", scm_from_int (rad));
+
   for (n /= rad; n > 0; n /= rad)
     j++;
 
@@ -2412,7 +2415,7 @@ scm_iuint2str (scm_t_uintmax num, int rad, char *p)
       int d = n % rad;
 
       n /= rad;
-      p[i] = d + ((d < 10) ? '0' : 'a' - 10);
+      p[i] = number_chars[d];
     }
   return j;
 }
@@ -2545,11 +2548,26 @@ enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
 
 /* R5RS, section 7.1.1, lexical structure of numbers: <uinteger R>. */
 
-/* In non ASCII-style encodings the following macro might not work. */
-#define XDIGIT2UINT(d)                                                  \
-  (uc_is_property_decimal_digit ((int) (unsigned char) d)               \
-   ? (d) - '0'                                                          \
-   : uc_tolower ((int) (unsigned char) d) - 'a' + 10)
+/* Caller is responsible for checking that the return value is in range
+   for the given radix, which should be <= 36. */
+static unsigned int
+char_decimal_value (scm_t_uint32 c)
+{
+  /* uc_decimal_value returns -1 on error. When cast to an unsigned int,
+     that's certainly above any valid decimal, so we take advantage of
+     that to elide some tests. */
+  unsigned int d = (unsigned int) uc_decimal_value (c);
+
+  /* If that failed, try extended hexadecimals, then. Only accept ascii
+     hexadecimals. */
+  if (d >= 10U)
+    {
+      c = uc_tolower (c);
+      if (c >= (scm_t_uint32) 'a')
+        d = c - (scm_t_uint32)'a' + 10U;
+    }
+  return d;
+}
 
 static SCM
 mem2uinteger (SCM mem, unsigned int *p_idx,
@@ -2568,9 +2586,7 @@ mem2uinteger (SCM mem, unsigned int *p_idx,
     return SCM_BOOL_F;
 
   c = scm_i_string_ref (mem, idx);
-  if (!uc_is_property_ascii_hex_digit ((scm_t_uint32) c))
-    return SCM_BOOL_F;
-  digit_value = XDIGIT2UINT (c);
+  digit_value = char_decimal_value (c);
   if (digit_value >= radix)
     return SCM_BOOL_F;
 
@@ -2579,21 +2595,21 @@ mem2uinteger (SCM mem, unsigned int *p_idx,
   while (idx != len)
     {
       scm_t_wchar c = scm_i_string_ref (mem, idx);
-      if (uc_is_property_ascii_hex_digit ((scm_t_uint32) c))
-	{
-	  if (hash_seen)
-	    break;
-	  digit_value = XDIGIT2UINT (c);
-	  if (digit_value >= radix)
-	    break;
-	}
-      else if (c == '#')
+      if (c == '#')
 	{
 	  hash_seen = 1;
 	  digit_value = 0;
 	}
+      else if (hash_seen)
+        break;
       else
-	break;
+        {
+          digit_value = char_decimal_value (c);
+          /* This check catches non-decimals in addition to out-of-range
+             decimals.  */
+          if (digit_value >= radix)
+	    break;
+	}
 
       idx++;
       if (SCM_MOST_POSITIVE_FIXNUM / radix < shift)
