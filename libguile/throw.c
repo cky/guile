@@ -341,7 +341,60 @@ handler_message (void *handler_data, SCM tag, SCM args)
   char *prog_name = (char *) handler_data;
   SCM p = scm_current_error_port ();
 
-  if (scm_ilength (args) == 4)
+  if (scm_is_eq (tag, scm_from_locale_symbol ("syntax-error"))
+      && scm_ilength (args) >= 5)
+    {
+      SCM who = SCM_CAR (args);
+      SCM what = SCM_CADR (args);
+      SCM where = SCM_CADDR (args);
+      SCM form = SCM_CADDDR (args);
+      SCM subform = SCM_CAR (SCM_CDDDDR (args));
+
+      scm_puts ("Syntax error:\n", p);
+
+      if (scm_is_true (where))
+        {
+          SCM file, line, col;
+
+          file = scm_assq_ref (where, scm_sym_filename);
+          line = scm_assq_ref (where, scm_sym_line);
+          col = scm_assq_ref (where, scm_sym_column);
+
+          if (scm_is_true (file))
+            scm_display (file, p);
+          else
+            scm_puts ("unknown file", p);
+          scm_puts (": ", p);
+          scm_display (line, p);
+          scm_puts (": ", p);
+          scm_display (col, p);
+          scm_puts (": ", p);
+        }
+      else
+        scm_puts ("unknown location: ", p);
+
+      if (scm_is_true (who))
+        {
+          scm_display (who, p);
+          scm_puts (": ", p);
+        }
+      
+      scm_display (what, p);
+
+      if (scm_is_true (subform))
+        {
+          scm_puts (" in subform ", p);
+          scm_write (subform, p);
+          scm_puts (" of ", p);
+          scm_write (form, p);
+        }
+      else if (scm_is_true (form))
+        {
+          scm_puts (" in form ", p);
+          scm_write (form, p);
+        }
+    }
+  else if (scm_ilength (args) == 4)
     {
       SCM stack   = scm_make_stack (SCM_BOOL_T, SCM_EOL);
       SCM subr    = SCM_CAR (args);
