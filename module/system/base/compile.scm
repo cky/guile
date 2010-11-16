@@ -26,36 +26,14 @@
   #:use-module (ice-9 regex)
   #:use-module (ice-9 optargs)
   #:use-module (ice-9 receive)
-  #:export (syntax-error 
-            compiled-file-name
+  #:export (compiled-file-name
             compile-file
             compile-and-load
             read-and-compile
             compile
-            decompile)
-  #:export-syntax (call-with-compile-error-catch))
+            decompile))
 
-;;;
-;;; Compiler environment
-;;;
 
-(define (syntax-error loc msg exp)
-  (throw 'syntax-error-compile-time loc msg exp))
-
-(define-macro (call-with-compile-error-catch thunk)
-  `(catch 'syntax-error-compile-time
-	 ,thunk
-	 (lambda (key loc msg exp)
-	   (if (pair? loc)
-               (let ((file (or (assq-ref loc 'filename) "unknown file"))
-                     (line (assq-ref loc 'line))
-                     (col (assq-ref loc 'column)))
-                 (format (current-error-port)
-                         "~A:~A:~A: ~A: ~A~%" file line col msg exp))
-               (format (current-error-port)
-                       "unknown location: ~A: ~S~%" msg exp)))))
-
-
 ;;;
 ;;; Compiler
 ;;;
