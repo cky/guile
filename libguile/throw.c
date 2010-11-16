@@ -364,9 +364,9 @@ handler_message (void *handler_data, SCM tag, SCM args)
             scm_display (file, p);
           else
             scm_puts ("unknown file", p);
-          scm_puts (": ", p);
+          scm_puts (":", p);
           scm_display (line, p);
-          scm_puts (": ", p);
+          scm_puts (":", p);
           scm_display (col, p);
           scm_puts (": ", p);
         }
@@ -393,6 +393,8 @@ handler_message (void *handler_data, SCM tag, SCM args)
           scm_puts (" in form ", p);
           scm_write (form, p);
         }
+
+      scm_newline (p);
     }
   else if (scm_ilength (args) == 4)
     {
