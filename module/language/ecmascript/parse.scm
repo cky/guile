@@ -24,7 +24,7 @@
   #:export (read-ecmascript read-ecmascript/1 make-parser))
 
 (define (syntax-error message . args)
-  (apply throw 'SyntaxError message args))
+  (throw 'syntax-error 'tokenize #f message #f #f args))
 
 (define (read-ecmascript port)
   (let ((parse (make-parser)))

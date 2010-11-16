@@ -25,7 +25,7 @@
   #:export (next-token make-tokenizer make-tokenizer/1 tokenize tokenize/1))
 
 (define (syntax-error message . args)
-  (apply throw 'SyntaxError message args))
+  (throw 'syntax-error 'tokenize #f message #f #f args))
 
 ;; taken from SSAX, sorta
 (define (read-until delims port)
