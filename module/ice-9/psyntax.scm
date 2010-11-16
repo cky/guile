@@ -2415,20 +2415,14 @@
             (bound-id=? x y)))
 
     (set! syntax-violation
-          (lambda (who message form . subform)
+          (lambda* (who message form #:optional subform)
             (arg-check (lambda (x) (or (not x) (string? x) (symbol? x)))
                        who 'syntax-violation)
             (arg-check string? message 'syntax-violation)
-            (scm-error 'syntax-error 'macroexpand
-                       (string-append
-                        (if who "~a: " "")
-                        "~a "
-                        (if (null? subform) "in ~a" "in subform `~s' of `~s'"))
-                       (let ((tail (cons message
-                                         (map (lambda (x) (strip x empty-wrap))
-                                              (append subform (list form))))))
-                         (if who (cons who tail) tail))
-                       #f)))
+            (throw 'syntax-error who message
+                   (source-annotation (or form subform))
+                   (strip form empty-wrap)
+                   (and subform (strip subform empty-wrap)))))
 
     ;; $sc-dispatch expects an expression and a pattern.  If the expression
     ;; matches the pattern a list of the matching expressions for each
