@@ -37,12 +37,14 @@
 	  make-polar magnitude angle
 	 
 	  complex? real? rational? integer? exact? inexact? real-valued?
-	  rational-valued? integer-values? zero? positive? negative? odd? even?
+	  rational-valued? integer-valued? zero? positive? negative? odd? even?
 	  nan? finite? infinite?
 
 	  exact inexact = < > <= >= 
 
 	  number->string string->number
+
+          boolean=?
 
 	  cons car cdr caar cadr cdar cddr caaar caadr cadar cdaar caddr cdadr 
 	  cddar cdddr caaaar caaadr caadar cadaar cdaaar cddaar cdadar cdaadr 
@@ -71,8 +73,45 @@
 	  let-syntax letrec-syntax
 
 	  syntax-rules identifier-syntax)
- (import (rename (guile) (quotient div) (modulo mod))
-	 (srfi srfi-11))
+  (import (rename (guile) 
+                  (quotient div) 
+                  (modulo mod)
+                  (exact->inexact inexact)
+                  (inexact->exact exact))
+          (srfi srfi-11))
+
+ (define (boolean=? . bools)
+   (define (boolean=?-internal lst last)
+     (or (null? lst)
+         (let ((bool (car lst))) 
+           (and (eqv? bool last) (boolean=?-internal (cdr lst) bool)))))
+   (or (null? bools)
+       (let ((bool (car bools)))
+         (and (boolean? bool) (boolean=?-internal (cdr bools) bool)))))
+
+ (define (symbol=? . syms)
+   (define (symbol=?-internal lst last)
+     (or (null? lst)
+         (let ((sym (car lst))) 
+           (and (eq? sym last) (symbol=?-internal (cdr lst) sym)))))
+   (or (null? syms)
+       (let ((sym (car syms)))
+         (and (symbol? sym) (symbol=?-internal (cdr syms) sym)))))
+
+ (define (infinite? x) (or (eqv? x +inf.0) (eqv? x -inf.0)))
+ (define (finite? x) (not (infinite? x)))
+
+ (define (exact-integer-sqrt x)
+   (let* ((s (exact (floor (sqrt x)))) (e (- x (* s s)))) (values s e)))
+
+ ;; These definitions should be revisited, since the behavior of Guile's 
+ ;; implementations of `integer?', `rational?', and `real?' (exported from this
+ ;; library) is not entirely consistent with R6RS's requirements for those 
+ ;; functions.
+
+ (define integer-valued? integer?)
+ (define rational-valued? rational?)
+ (define real-valued? real?)
 
  (define (vector-for-each proc . vecs)
    (apply for-each (cons proc (map vector->list vecs))))

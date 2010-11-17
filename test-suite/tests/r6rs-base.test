@@ -21,6 +21,60 @@
   :use-module ((rnrs base) :version (6))
   :use-module (test-suite lib))
 
+(with-test-prefix "boolean=?"
+  (pass-if "boolean=? null" (boolean=?))
+  (pass-if "boolean=? unary" (boolean=? #f))
+  (pass-if "boolean=? many" 
+    (and (boolean=? #t #t #t) 
+	 (boolean=? #f #f #f) 
+	 (not (boolean=? #t #f #t))))
+  (pass-if "boolean=? mixed type" (not (boolean=? #t #t 'foo))))
+
+(with-test-prefix "symbol=?"
+  (pass-if "symbol=? null" (symbol=?))
+  (pass-if "symbol=? unary" (symbol=? 'a))
+  (pass-if "symbol=? many" 
+    (and (symbol=? 'a 'a 'a) 
+	 (symbol=? 'foo 'foo 'foo) 
+	 (not (symbol=? 'a 'foo 'a))))
+  (pass-if "symbol=? mixed type" (not (symbol=? 'a 'a 123))))
+
+(with-test-prefix "infinite?"
+  (pass-if "infinite? true on infinities"
+    (and (infinite? +inf.0) (infinite? -inf.0)))
+  (pass-if "infinite? false on non-infities"
+    (and (not (infinite? 123)) (not (infinite? +nan.0)))))
+
+(with-test-prefix "finite?"
+  (pass-if "finite? false on infinities"
+    (and (not (finite? +inf.0)) (not (finite? -inf.0))))
+  (pass-if "finite? true on non-infinities"
+    (and (finite? 123) (finite? 123.0))))
+
+(with-test-prefix "exact-integer-sqrt"
+  (pass-if "exact-integer-sqrt simple"
+    (let-values (((s e) (exact-integer-sqrt 5)))
+      (and (eqv? s 2) (eqv? e 1)))))
+
+(with-test-prefix "integer-valued?"
+  (pass-if "true on integers"
+    (and (integer-valued? 3) (integer-valued? 3.0) (integer-valued? 3.0+0.0i)))
+  (pass-if "false on rationals" (not (integer-valued? 3.1)))
+  (pass-if "false on reals" (not (integer-valued? +nan.0))))
+
+(with-test-prefix "rational-valued?"
+  (pass-if "true on integers" (rational-valued? 3))
+  (pass-if "true on rationals" 
+    (and (rational-valued? 3.1) (rational-valued? 3.1+0.0i)))
+  (pass-if "false on reals" 
+    (or (not (rational-valued? +nan.0))
+        (throw 'unresolved))))
+
+(with-test-prefix "real-valued?"
+  (pass-if "true on integers" (real-valued? 3))
+  (pass-if "true on rationals" (real-valued? 3.1))
+  (pass-if "true on reals" (real-valued? +nan.0)))
+
 (with-test-prefix "vector-for-each"
   (pass-if "vector-for-each simple"
     (let ((sum 0))

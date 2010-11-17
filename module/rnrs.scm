@@ -52,18 +52,18 @@
 
 	  boolean? symbol? char? vector? null? pair? number? string? procedure?
 	  define define-syntax syntax-rules lambda let let* let-values
-	  let*-values letrec letrec* begin quote lambda if set! cond case or and not
-	  eqv? equal? eq? + - * / max min abs numerator denominator gcd lcm 
-	  floor ceiling truncate round rationalize real-part imag-part 
+	  let*-values letrec letrec* begin quote lambda if set! cond case or 
+          and not eqv? equal? eq? + - * / max min abs numerator denominator gcd
+          lcm floor ceiling truncate round rationalize real-part imag-part 
 	  make-rectangular angle div mod div-and-mod div0 mod0 div0-and-mod0
 	  expt exact-integer-sqrt sqrt exp log sin cos tan asin acos atan 
 	  make-polar magnitude angle complex? real? rational? integer? exact? 
-	  inexact? real-valued? rational-valued? integer-values? zero? 
+	  inexact? real-valued? rational-valued? integer-valued? zero? 
 	  positive? negative? odd? even? nan? finite? infinite? exact inexact =
-	  < > <= >= number->string string->number cons car cdr caar cadr cdar 
-	  cddr caaar caadr cadar cdaar caddr cdadr cddar cdddr caaaar caaadr 
-	  caadar cadaar cdaaar cddaar cdadar cdaadr cadadr caaddr caddar cadddr
-	  cdaddr cddadr cdddar cddddr list? list length append reverse 
+	  < > <= >= number->string string->number boolean=? cons car cdr caar 
+          cadr cdar cddr caaar caadr cadar cdaar caddr cdadr cddar cdddr caaaar
+          caaadr caadar cadaar cdaaar cddaar cdadar cdaadr cadadr caaddr caddar
+          cadddr cdaddr cddadr cdddar cddddr list? list length append reverse 
 	  list-tail list-ref map for-each symbol->string string->symbol symbol=?
 	  char->integer integer->char char=? char<? char>? char<=? char>=?
 	  make-string string string-length string-ref string=? string<? string>?
