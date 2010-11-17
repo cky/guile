@@ -2459,16 +2459,27 @@
 ;;; +
 ;;;
 
-(with-test-prefix "+"
+(with-test-prefix/c&e "+"
 
   (pass-if "documented?"
-    (documented? +)))
+    (documented? +))
+
+  ;; The maximum fixnum on a 32-bit architecture: 2^29 - 1.
+  (pass-if "fixnum + fixnum = bignum (32-bit)"
+    (eqv? 536870912 (+ 536870910 2)))
+
+  ;; The maximum fixnum on a 64-bit architecture: 2^61 - 1.
+  (pass-if "fixnum + fixnum = bignum (64-bit)"
+    (eqv? 2305843009213693952 (+ 2305843009213693950 2)))
+
+  (pass-if "bignum + fixnum = fixnum"
+    (eqv? 0 (+ (1+ most-positive-fixnum) most-negative-fixnum))))
 
 ;;;
 ;;; -
 ;;;
 
-(with-test-prefix "-"
+(with-test-prefix/c&e "-"
 
   (pass-if "-inum - +bignum"
     (= #x-100000000000000000000000000000001
@@ -2480,7 +2491,18 @@
   
   (pass-if "big - -inum"
     (= #x100000000000000000000000000000001
-       (- #x100000000000000000000000000000000 -1))))
+       (- #x100000000000000000000000000000000 -1)))
+
+  ;; The mininum fixnum on a 32-bit architecture: -2^29.
+  (pass-if "fixnum - fixnum = bignum (32-bit)"
+    (eqv? -536870912 (- -536870910 2)))
+
+  ;; The minimum fixnum on a 64-bit architecture: -2^61.
+  (pass-if "fixnum - fixnum = bignum (64-bit)"
+    (eqv? -2305843009213693952 (- -2305843009213693950 2)))
+
+  (pass-if "bignum - fixnum = fixnum"
+    (eqv? most-positive-fixnum (- (1+ most-positive-fixnum) 1))))
 
 ;;;
 ;;; *

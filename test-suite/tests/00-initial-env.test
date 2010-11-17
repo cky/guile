@@ -29,7 +29,7 @@
 
 (with-test-prefix "goopsless"
 
-  (with-test-prefix "+ wrong type argument"
+  (with-test-prefix/c&e "+ wrong type argument"
 
     ;; The following tests assume that `+' hasn't been turned into a generic
     ;; and extended.  Since the ECMAScript run-time library does exactly
@@ -45,4 +45,16 @@
 
     (pass-if-exception "implicit forcing is not supported"
       exception:wrong-type-arg
-      (+ (delay (* 3 7)) 13))))
+      (+ (delay (* 3 7)) 13)))
+
+  (with-test-prefix/c&e "- wrong type argument"
+
+    ;; Same for `-'.
+
+    (pass-if-exception "1st argument string"
+      exception:wrong-type-arg
+      (+ "1" 2))
+
+    (pass-if-exception "2nd argument symbol"
+      exception:wrong-type-arg
+      (+ 1 'bar))))
