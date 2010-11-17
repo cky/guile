@@ -17,10 +17,11 @@
 ;;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite lib)
-  :use-module (ice-9 stack-catch)
-  :use-module (ice-9 regex)
-  :autoload   (srfi srfi-1)  (append-map)
-  :export (
+  #:use-module (ice-9 stack-catch)
+  #:use-module (ice-9 regex)
+  #:autoload   (srfi srfi-1)  (append-map)
+  #:autoload   (system base compile) (compile)
+  #:export (
 
  ;; Exceptions which are commonly being tested for.
  exception:syntax-pattern-unmatched
@@ -45,7 +46,10 @@
  pass-if-exception expect-fail-exception
 
  ;; Naming groups of tests in a regular fashion.
- with-test-prefix with-test-prefix* current-test-prefix
+ with-test-prefix
+ with-test-prefix*
+ with-test-prefix/c&e
+ current-test-prefix
  format-test-name
 
  ;; Using the debugging evaluator.
@@ -438,8 +442,33 @@
 ;;; The name prefix is only changed within the dynamic scope of the
 ;;; with-test-prefix expression.  Return the value returned by the last
 ;;; BODY expression.
-(defmacro with-test-prefix (prefix . body)
-  `(with-test-prefix* ,prefix (lambda () ,@body)))
+(define-syntax with-test-prefix
+  (syntax-rules ()
+    ((_ prefix body ...)
+     (with-test-prefix* prefix (lambda () body ...)))))
+
+(define-syntax c&e
+  (syntax-rules (pass-if pass-if-exception)
+    "Run the given tests both with the evaluator and the compiler/VM."
+    ((_ (pass-if test-name exp))
+     (begin (pass-if (string-append test-name " (eval)")
+                     (primitive-eval 'exp))
+            (pass-if (string-append test-name " (compile)")
+                     (compile 'exp #:to 'value #:env (current-module)))))
+    ((_ (pass-if-exception test-name exc exp))
+     (begin (pass-if-exception (string-append test-name " (eval)")
+                               exc (primitive-eval 'exp))
+            (pass-if-exception (string-append test-name " (compile)")
+                               exc (compile 'exp #:to 'value
+                                            #:env (current-module)))))))
+
+;;; (with-test-prefix/c&e PREFIX BODY ...)
+;;; Same as `with-test-prefix', but the enclosed tests are run both with
+;;; the compiler/VM and the evaluator.
+(define-syntax with-test-prefix/c&e
+  (syntax-rules ()
+    ((_ section-name exp ...)
+     (with-test-prefix section-name (c&e exp) ...))))
 
 ;;; Call THUNK using the debugging evaluator.
 (define (with-debugging-evaluator* thunk)
