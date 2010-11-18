@@ -1,6 +1,6 @@
 ;;;; srfi-17.test --- test suite for Guile's SRFI-17 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001, 2003, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2005, 2006, 2010 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,9 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-srfi-17)
-  :use-module (test-suite lib)
-  :use-module (srfi srfi-17))
+  #:use-module (ice-9 regex)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-17))
 
 
 (pass-if "cond-expand srfi-17"
@@ -50,7 +51,22 @@
 (define %some-variable #f)
 
 (define exception:bad-quote
-  '(syntax-error . "quote: bad syntax"))
+  '(quote . "bad syntax"))
+
+;; (put 'pass-if-syntax-error 'scheme-indent-function 1)
+(define-syntax pass-if-syntax-error
+  (syntax-rules ()
+    ((_ name pat exp)
+     (pass-if name
+       (catch 'syntax-error
+         (lambda () exp (error "expected uri-error exception"))
+         (lambda (k who what where form . maybe-subform)
+           (if (if (pair? pat)
+                   (and (eq? who (car pat))
+                        (string-match (cdr pat) what))
+                   (string-match pat what))
+               #t
+               (error "unexpected syntax-error exception" what pat))))))))
 
 (with-test-prefix "set!"
 
@@ -60,7 +76,7 @@
       exception:wrong-type-arg
       (set! (symbol->string 'x) 1))
 
-    (pass-if-exception "(set! '#f 1)"
+    (pass-if-syntax-error "(set! '#f 1)"
       exception:bad-quote
       (eval '(set! '#f 1) (interaction-environment))))
 
@@ -73,7 +89,7 @@
 
     ;; The `(quote x)' below used to be memoized as an infinite list before
     ;; Guile 1.8.3.
-    (pass-if-exception "(set! 'x 1)"
+    (pass-if-syntax-error "(set! 'x 1)"
       exception:bad-quote
       (eval '(set! 'x 1) (interaction-environment)))))
 
