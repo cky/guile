@@ -2160,7 +2160,7 @@ void init_fx_radix(double *fx_list, int radix)
 }
 
 /* use this array as a way to generate a single digit */
-static const char*number_chars="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+static const char number_chars[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
 static size_t
 idbl2str (double f, char *a, int radix)
