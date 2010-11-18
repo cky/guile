@@ -34,6 +34,29 @@
 
 
 ;;;
+;;; Syntax errors
+;;;
+
+(define (display-syntax-error port who what where form subform extra)
+  (format port "Syntax error:~%")
+  (if where
+      (let ((file (or (assq-ref where 'filename) "unknown file"))
+            (line (and=> (assq-ref where 'line) 1+))
+            (col (assq-ref where 'column)))
+        (format port "~a:~a:~a: " file line col))
+      (format port "unknown location: "))
+  (if who
+      (format port "~a: " who))
+  (format port "~a" what)
+  (if subform
+      (format port " in subform ~s of ~s" subform form)
+      (if form
+          (format port " in form ~s" form)))
+  (newline port))
+
+
+
+;;;
 ;;; Meta commands
 ;;;
 
@@ -71,8 +94,11 @@
         ((quit)
          (apply throw key args))
         (else
-         (pmatch args
-           ((,subr ,msg ,args . ,rest)
+         (pmatch (cons key args)
+           ((syntax-error ,who ,message ,where ,form ,subform . ,rest)
+            (display-syntax-error (current-output-port)
+                                  who message where form subform rest))
+           ((_ ,subr ,msg ,args . ,rest)
             (format #t "Throw to key `~a' while reading expression:\n" key)
             (display-error #f (current-output-port) subr msg args rest))
            (else
@@ -89,23 +115,6 @@
 
 (define* (start-repl #:optional (lang (current-language)) #:key debug)
   (run-repl (make-repl lang debug)))
-
-(define (display-syntax-error port who what where form subform extra)
-  (format port "Syntax error:~%")
-  (if where
-      (let ((file (or (assq-ref where 'filename) "unknown file"))
-            (line (assq-ref where 'line))
-            (col (assq-ref where 'column)))
-        (format port "~a:~a:~a: " file line col))
-      (format port "unknown location: "))
-  (if who
-      (format port "~a: " who))
-  (format port "~a" what)
-  (if subform
-      (format port " in subform ~s of ~s" subform form)
-      (if form
-          (format port " in form ~s" form)))
-  (newline port))
 
 ;; (put 'abort-on-error 'scheme-indent-function 1)
 (define-syntax abort-on-error
