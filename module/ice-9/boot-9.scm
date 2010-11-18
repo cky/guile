@@ -2252,6 +2252,18 @@ If there is no handler at all, Guile prints an error and then exits."
 (define (try-load-module name version)
   (try-module-autoload name version))
 
+(define (reload-module m)
+  (let ((f (module-filename m)))
+    (if f
+        (save-module-excursion
+         (lambda () 
+           ;; Re-set the initial environment, as in try-module-autoload.
+           (set-current-module (make-fresh-user-module))
+           (primitive-load-path f)
+           m))
+        ;; Though we could guess, we *should* know it.
+        (error "unknown file name for module" m))))
+
 (define (purify-module! module)
   "Removes bindings in MODULE which are inherited from the (guile) module."
   (let ((use-list (module-uses module)))
