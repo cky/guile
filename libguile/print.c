@@ -89,11 +89,11 @@ static const char *iflagnames[] =
 SCM_SYMBOL (sym_reader, "reader");
 
 scm_t_option scm_print_opts[] = {
-  { SCM_OPTION_SCM, "highlight-prefix", (unsigned long)SCM_BOOL_F,
+  { SCM_OPTION_SCM, "highlight-prefix", (scm_t_bits)SCM_BOOL_F,
     "The string to print before highlighted values." },
-  { SCM_OPTION_SCM, "highlight-suffix", (unsigned long)SCM_BOOL_F,
+  { SCM_OPTION_SCM, "highlight-suffix", (scm_t_bits)SCM_BOOL_F,
     "The string to print after highlighted values." },
-  { SCM_OPTION_SCM, "quote-keywordish-symbols", (unsigned long)SCM_BOOL_F,
+  { SCM_OPTION_SCM, "quote-keywordish-symbols", (scm_t_bits)SCM_BOOL_F,
     "How to print symbols that have a colon as their first or last character. "
     "The value '#f' does not quote the colons; '#t' quotes them; "
     "'reader' quotes them when the reader option 'keywords' is not '#f'." 

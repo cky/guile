@@ -209,7 +209,7 @@ SCM_DEFINE (scm_frame_address, "frame-address", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_address
 {
   SCM_VALIDATE_VM_FRAME (1, frame);
-  return scm_from_ulong ((unsigned long) SCM_VM_FRAME_FP (frame));
+  return scm_from_unsigned_integer ((scm_t_bits) SCM_VM_FRAME_FP (frame));
 }
 #undef FUNC_NAME
 
@@ -220,7 +220,7 @@ SCM_DEFINE (scm_frame_stack_pointer, "frame-stack-pointer", 1, 0, 0,
 {
   SCM_VALIDATE_VM_FRAME (1, frame);
 
-  return scm_from_ulong ((unsigned long) SCM_VM_FRAME_SP (frame));
+  return scm_from_unsigned_integer ((scm_t_bits) SCM_VM_FRAME_SP (frame));
 }
 #undef FUNC_NAME
 
@@ -234,9 +234,8 @@ SCM_DEFINE (scm_frame_instruction_pointer, "frame-instruction-pointer", 1, 0, 0,
   SCM_VALIDATE_VM_FRAME (1, frame);
 
   c_objcode = SCM_PROGRAM_DATA (scm_frame_procedure (frame));
-  return scm_from_ulong ((unsigned long)
-                         (SCM_VM_FRAME_IP (frame)
-                          - SCM_C_OBJCODE_BASE (c_objcode)));
+  return scm_from_unsigned_integer ((SCM_VM_FRAME_IP (frame)
+                                     - SCM_C_OBJCODE_BASE (c_objcode)));
 }
 #undef FUNC_NAME
 
@@ -246,9 +245,9 @@ SCM_DEFINE (scm_frame_return_address, "frame-return-address", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_return_address
 {
   SCM_VALIDATE_VM_FRAME (1, frame);
-  return scm_from_ulong ((unsigned long)
-			 (SCM_FRAME_RETURN_ADDRESS
-			  (SCM_VM_FRAME_FP (frame))));
+  return scm_from_unsigned_integer ((scm_t_bits)
+                                    (SCM_FRAME_RETURN_ADDRESS
+                                     (SCM_VM_FRAME_FP (frame))));
 }
 #undef FUNC_NAME
 
@@ -258,9 +257,9 @@ SCM_DEFINE (scm_frame_mv_return_address, "frame-mv-return-address", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_mv_return_address
 {
   SCM_VALIDATE_VM_FRAME (1, frame);
-  return scm_from_ulong ((unsigned long)
-			 (SCM_FRAME_MV_RETURN_ADDRESS
-			  (SCM_VM_FRAME_FP (frame))));
+  return scm_from_unsigned_integer ((scm_t_bits)
+                                    (SCM_FRAME_MV_RETURN_ADDRESS
+                                     (SCM_VM_FRAME_FP (frame))));
 }
 #undef FUNC_NAME
 

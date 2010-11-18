@@ -606,7 +606,7 @@ SCM_DEFINE (scm_vm_ip, "vm:ip", 1, 0, 0,
 #define FUNC_NAME s_scm_vm_ip
 {
   SCM_VALIDATE_VM (1, vm);
-  return scm_from_ulong ((unsigned long) SCM_VM_DATA (vm)->ip);
+  return scm_from_unsigned_integer ((scm_t_bits) SCM_VM_DATA (vm)->ip);
 }
 #undef FUNC_NAME
 
@@ -616,7 +616,7 @@ SCM_DEFINE (scm_vm_sp, "vm:sp", 1, 0, 0,
 #define FUNC_NAME s_scm_vm_sp
 {
   SCM_VALIDATE_VM (1, vm);
-  return scm_from_ulong ((unsigned long) SCM_VM_DATA (vm)->sp);
+  return scm_from_unsigned_integer ((scm_t_bits) SCM_VM_DATA (vm)->sp);
 }
 #undef FUNC_NAME
 
@@ -626,7 +626,7 @@ SCM_DEFINE (scm_vm_fp, "vm:fp", 1, 0, 0,
 #define FUNC_NAME s_scm_vm_fp
 {
   SCM_VALIDATE_VM (1, vm);
-  return scm_from_ulong ((unsigned long) SCM_VM_DATA (vm)->fp);
+  return scm_from_unsigned_integer ((scm_t_bits) SCM_VM_DATA (vm)->fp);
 }
 #undef FUNC_NAME
 

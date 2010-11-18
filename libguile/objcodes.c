@@ -123,11 +123,12 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
   if (ptr < parent_base
       || ptr >= (parent_base + parent_data->len + parent_data->metalen
                  - sizeof (struct scm_objcode)))
-    scm_misc_error (FUNC_NAME, "offset out of bounds (~a vs ~a + ~a + ~a)",
-		    scm_list_4 (scm_from_ulong ((unsigned long) ptr),
-				scm_from_ulong ((unsigned long) parent_base),
-				scm_from_uint32 (parent_data->len),
-				scm_from_uint32 (parent_data->metalen)));
+    scm_misc_error
+      (FUNC_NAME, "offset out of bounds (~a vs ~a + ~a + ~a)",
+       scm_list_4 (scm_from_unsigned_integer ((scm_t_bits) ptr),
+                   scm_from_unsigned_integer ((scm_t_bits) parent_base),
+                   scm_from_uint32 (parent_data->len),
+                   scm_from_uint32 (parent_data->metalen)));
 
   /* Make sure bytecode for the objcode-meta is suitable aligned.  Failing to
      do so leads to SIGBUS/SIGSEGV on some arches (e.g., SPARC).  */

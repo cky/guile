@@ -82,7 +82,7 @@ scm_t_option scm_debug_opts[] = {
      for anyone!) or a whoppin' 1280 KB on 64-bit arches.
   */
   { SCM_OPTION_INTEGER, "stack", 160000, "Stack size limit (measured in words; 0 = no check)." },
-  { SCM_OPTION_SCM, "show-file-name", (unsigned long)SCM_BOOL_T,
+  { SCM_OPTION_SCM, "show-file-name", (scm_t_bits)SCM_BOOL_T,
     "Show file names and line numbers "
     "in backtraces when not `#f'.  A value of `base' "
     "displays only base names, while `#t' displays full names."},

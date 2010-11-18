@@ -926,7 +926,8 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
 #define FUNC_NAME s_scm_struct_vtable_tag
 {
   SCM_VALIDATE_VTABLE (1, handle);
-  return scm_from_ulong (((unsigned long)SCM_STRUCT_DATA (handle)) >> 3);
+  return scm_from_unsigned_integer
+    (((scm_t_bits)SCM_STRUCT_DATA (handle)) >> 3);
 }
 #undef FUNC_NAME
 

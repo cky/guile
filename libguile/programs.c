@@ -131,7 +131,7 @@ SCM_DEFINE (scm_program_base, "program-base", 1, 0, 0,
   SCM_VALIDATE_PROGRAM (1, program);
 
   c_objcode = SCM_PROGRAM_DATA (program);
-  return scm_from_ulong ((unsigned long) SCM_C_OBJCODE_BASE (c_objcode));
+  return scm_from_unsigned_integer ((scm_t_bits) SCM_C_OBJCODE_BASE (c_objcode));
 }
 #undef FUNC_NAME
 
