@@ -35,6 +35,7 @@
             source-location-column
             source-location-offset
             source-location-length
+            source-location->source-properties
 
             ;; `lalr-parser' is a defmacro, which produces code that refers to
             ;; these drivers.
@@ -43,3 +44,8 @@
 ;; The LALR parser generator was written by Dominique Boucher.  It's available
 ;; from http://code.google.com/p/lalr-scm/ and released under the LGPLv3+.
 (include-from-path "system/base/lalr.upstream.scm")
+
+(define (source-location->source-properties loc)
+  `((filename . ,(source-location-input loc))
+    (line . ,(source-location-line loc))
+    (column . ,(source-location-column loc))))
