@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2009 Free Software
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2009, 2010 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -127,7 +127,7 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       execargv = scm_i_allocate_string_pointers (args);
 
       /* make sure the child can't kill us (as per normal system call) */
-      sig_ign = scm_from_long ((unsigned long) SIG_IGN);
+      sig_ign = scm_from_ulong ((unsigned long) SIG_IGN);
       sigint = scm_from_int (SIGINT);
       sigquit = scm_from_int (SIGQUIT);
       oldint = scm_sigaction (sigint, sig_ign, SCM_UNDEFINED);
