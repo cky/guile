@@ -63,20 +63,19 @@
 (define meta-command-token (cons 'meta 'command))
 
 (define (meta-reader read env)
-  (lambda read-args
-    (let ((port (if (pair? read-args) (car read-args) (current-input-port))))
-      (with-input-from-port port
-        (lambda ()
-          (let ((ch (next-char #t)))
-            (cond ((eof-object? ch)
-                   ;; EOF objects are not buffered. It's quite possible
-                   ;; to peek an EOF then read something else. It's
-                   ;; strange but it's how it works.
-                   ch)
-                  ((eqv? ch #\,)
-                   (read-char port)
-                   meta-command-token)
-                  (else (read port env)))))))))
+  (lambda* (#:optional (port (current-input-port)))
+    (with-input-from-port port
+      (lambda ()
+        (let ((ch (next-char #t)))
+          (cond ((eof-object? ch)
+                 ;; EOF objects are not buffered. It's quite possible
+                 ;; to peek an EOF then read something else. It's
+                 ;; strange but it's how it works.
+                 ch)
+                ((eqv? ch #\,)
+                 (read-char port)
+                 meta-command-token)
+                (else (read port env))))))))
         
 ;; repl-reader is a function defined in boot-9.scm, and is replaced by
 ;; something else if readline has been activated. much of this hoopla is

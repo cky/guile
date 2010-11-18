@@ -136,7 +136,7 @@
 
 (define (read-command repl)
   (catch #t
-    (lambda () (read (repl-inport repl)))
+    (lambda () (read))
     (lambda (key . args)
       (pmatch args
         ((,subr ,msg ,args . ,rest)
@@ -147,11 +147,6 @@
                  key args)))
       (force-output)
       *unspecified*)))
-
-(define read-line
-  (let ((orig-read-line read-line))
-    (lambda (repl)
-      (orig-read-line (repl-inport repl)))))
 
 (define (meta-command repl)
   (let ((command (read-command repl)))
@@ -183,19 +178,19 @@
        (% (let* ((expression0
                   (catch #t
                     (lambda ()
-                      (repl-reader ""
-                                   (lambda* (#:optional (port (repl-inport repl)))
-                                     ((language-reader (repl-language repl))
-                                      port (current-module)))))
+                      (repl-reader
+                       ""
+                       (lambda* (#:optional (port (current-input-port)))
+                         ((language-reader (repl-language repl))
+                          port (current-module)))))
                     (lambda (k . args)
                       (handle-read-error 'expression0 k args))))
                  ...)
             (apply (lambda* datums
-                     (with-output-to-port (repl-outport repl)
-                       (lambda () b0 b1 ...)))
+                     b0 b1 ...)
                    (catch #t
                      (lambda ()
-                       (let ((port (open-input-string (read-line repl))))
+                       (let ((port (open-input-string (read-line))))
                          (let lp ((out '()))
                            (let ((x (read port)))
                              (if (eof-object? x)

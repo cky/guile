@@ -26,7 +26,7 @@
   #:use-module (ice-9 control)
   #:use-module (ice-9 history)
   #:export (<repl> make-repl repl-language repl-options
-            repl-tm-stats repl-gc-stats repl-inport repl-outport repl-debug
+            repl-tm-stats repl-gc-stats repl-debug
             repl-welcome repl-prompt
             repl-read repl-compile repl-prepare-eval-thunk repl-eval
             repl-parse repl-print repl-option-ref repl-option-set!
@@ -102,7 +102,7 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 ;;;
 
 (define-record/keywords <repl>
-  language options tm-stats gc-stats inport outport debug)
+  language options tm-stats gc-stats debug)
 
 (define repl-default-options
   (copy-tree
@@ -128,8 +128,6 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
               #:options (copy-tree repl-default-options)
               #:tm-stats (times)
               #:gc-stats (gc-stats)
-              #:inport (current-input-port)
-              #:outport (current-output-port)
               #:debug debug))
 
 (define (repl-welcome repl)
@@ -151,8 +149,8 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
               (if (zero? level) "" (format #f " [~a]" level)))))))
 
 (define (repl-read repl)
-  ((language-reader (repl-language repl)) (repl-inport repl)
-                                          (current-module)))
+  (let ((reader (language-reader (repl-language repl))))
+    (reader (current-input-port) (current-module))))
 
 (define (repl-compile-options repl)
   (repl-option-ref repl 'compile-options))
@@ -187,8 +185,8 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
         ;; should be printed with the generic printer, `write'. The
         ;; language-printer is something else: it prints expressions of
         ;; a given language, not the result of evaluation.
-	(write val (repl-outport repl))
-	(newline (repl-outport repl)))))
+	(write val)
+	(newline))))
 
 (define (repl-option-ref repl key)
   (cadr (or (assq key (repl-options repl))
