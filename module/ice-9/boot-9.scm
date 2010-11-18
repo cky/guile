@@ -2637,7 +2637,8 @@ module '(ice-9 q) '(make-q q-length))}."
        (define-syntax option-set!
          (syntax-rules ()
            ((_ opt val)
-            (options (append (options) (list 'opt val))))))))))
+            (eval-when (eval load compile expand)
+              (options (append (options) (list 'opt val)))))))))))
 
 (define-option-interface
   (debug-options-interface
