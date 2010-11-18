@@ -23,8 +23,15 @@
   #:use-module (language ecmascript tokenize)
   #:export (read-ecmascript read-ecmascript/1 make-parser))
 
-(define (syntax-error message . args)
-  (throw 'syntax-error 'tokenize #f message #f #f args))
+(define* (syntax-error message #:optional token)
+  (if (lexical-token? token)
+      (throw 'syntax-error #f message
+             (and=> (lexical-token-source token)
+                    source-location->source-properties)
+             (or (lexical-token-value token)
+                 (lexical-token-category token))
+             #f)
+      (throw 'syntax-error #f message #f token #f)))
 
 (define (read-ecmascript port)
   (let ((parse (make-parser)))
