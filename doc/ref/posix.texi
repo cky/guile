@@ -1112,18 +1112,7 @@ or getgrent respectively.
 @end deffn
 
 In addition to the accessor procedures for the user database, the
-following shortcut procedures are also available.
-
-@deffn {Scheme Procedure} cuserid
-@deffnx {C Function} scm_cuserid ()
-Return a string containing a user name associated with the
-effective user id of the process.  Return @code{#f} if this
-information cannot be obtained.
-
-This function has been removed from the latest POSIX specification,
-Guile provides it only if the system has it.  Using @code{(getpwuid
-(geteuid))} may be a better idea.
-@end deffn
+following shortcut procedure is also available.
 
 @deffn {Scheme Procedure} getlogin
 @deffnx {C Function} scm_getlogin ()

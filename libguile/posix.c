@@ -1841,30 +1841,6 @@ SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_GETLOGIN */
 
-#ifdef HAVE_CUSERID
-
-# if !HAVE_DECL_CUSERID
-extern char *cuserid (char *);
-# endif
-
-SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0, 
-            (void),
-	    "Return a string containing a user name associated with the\n"
-	    "effective user id of the process.  Return @code{#f} if this\n"
-	    "information cannot be obtained.")
-#define FUNC_NAME s_scm_cuserid
-{
-  char buf[L_cuserid];
-  char * p;
-
-  p = cuserid (buf);
-  if (!p || !*p)
-    return SCM_BOOL_F;
-  return scm_from_locale_string (p);
-}
-#undef FUNC_NAME
-#endif /* HAVE_CUSERID */
-
 #if HAVE_GETPRIORITY
 SCM_DEFINE (scm_getpriority, "getpriority", 2, 0, 0, 
             (SCM which, SCM who),

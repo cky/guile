@@ -2361,6 +2361,35 @@ int scm_internal_select (int fds,
 
 
 
+#ifdef HAVE_CUSERID
+
+# if !HAVE_DECL_CUSERID
+extern char *cuserid (char *);
+# endif
+
+SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0, 
+            (void),
+	    "Return a string containing a user name associated with the\n"
+	    "effective user id of the process.  Return @code{#f} if this\n"
+	    "information cannot be obtained.")
+#define FUNC_NAME s_scm_cuserid
+{
+  char buf[L_cuserid];
+  char * p;
+
+  scm_c_issue_deprecation_warning
+    ("`cuserid' is deprecated. Use `(passwd:name (getpwuid (geteuid)))' instead.");
+
+  p = cuserid (buf);
+  if (!p || !*p)
+    return SCM_BOOL_F;
+  return scm_from_locale_string (p);
+}
+#undef FUNC_NAME
+#endif /* HAVE_CUSERID */
+
+
+
 void
 scm_i_init_deprecated ()
 {

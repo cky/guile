@@ -736,6 +736,11 @@ SCM_DEPRECATED int scm_internal_select (int fds,
                                         SELECT_TYPE *efds,
                                         struct timeval *timeout);
 
+/* Deprecated because the cuserid call is deprecated.
+ */
+SCM_API SCM scm_cuserid (void);
+
+
 
 void scm_i_init_deprecated (void);
 

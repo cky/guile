@@ -83,7 +83,6 @@ SCM_API SCM scm_sync (void);
 SCM_API SCM scm_crypt (SCM key, SCM salt);
 SCM_API SCM scm_chroot (SCM path);
 SCM_API SCM scm_getlogin (void);
-SCM_API SCM scm_cuserid (void);
 SCM_API SCM scm_getpriority (SCM which, SCM who);
 SCM_API SCM scm_setpriority (SCM which, SCM who, SCM prio);
 SCM_API SCM scm_getpass (SCM prompt);
