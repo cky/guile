@@ -24,12 +24,17 @@
 
 (define (eread str)
   (call-with-input-string str read-ecmascript))
+(define (eread/1 str)
+  (call-with-input-string str read-ecmascript/1))
 
 (define-syntax parse
   (syntax-rules ()
     ((_ expression expected)
-     (pass-if expression
-       (equal? expected (eread expression))))))
+     (begin
+       (pass-if expression
+         (equal? expected (eread expression)))
+       (pass-if expression
+         (equal? expected (eread/1 expression)))))))
 
 (with-test-prefix "parser"
 
