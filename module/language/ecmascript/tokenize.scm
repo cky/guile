@@ -24,16 +24,25 @@
   #:use-module (system base lalr)
   #:export (next-token make-tokenizer make-tokenizer/1 tokenize tokenize/1))
 
-(define (syntax-error what . args)
-  (throw 'syntax-error 'tokenize what #f #f #f args))
+(define (syntax-error what loc form . args)
+  (throw 'syntax-error #f what
+         (and=> loc source-location->source-properties)
+         form #f args))
+
+(define (port-source-location port)
+  (make-source-location (port-filename port)
+                        (port-line port)
+                        (port-column port)
+                        (false-if-exception (ftell port))
+                        #f))
 
 ;; taken from SSAX, sorta
-(define (read-until delims port)
+(define (read-until delims port loc)
   (if (eof-object? (peek-char port))
-      (syntax-error "EOF while reading a token")
+      (syntax-error "EOF while reading a token" loc #f)
       (let ((token (read-delimited delims port 'peek)))
         (if (eof-object? (peek-char port))
-            (syntax-error "EOF while reading a token")
+            (syntax-error "EOF while reading a token" loc token)
             token))))
 
 (define (char-hex? c)
@@ -50,14 +59,14 @@
       (digit->number c)
       (+ 10 (- (char->integer (char-downcase c)) (char->integer #\a)))))
 
-(define (read-slash port div?)
+(define (read-slash port loc div?)
   (let ((c1 (begin
               (read-char port)
               (peek-char port))))
     (cond
      ((eof-object? c1)
       ;; hmm. error if we're not looking for a div? ?
-      '(/ . #f))
+      (make-lexical-token '/ loc #f))
      ((char=? c1 #\/)
       (read-line port)
       (next-token port div?))
@@ -65,7 +74,8 @@
       (read-char port)
       (let lp ((c (read-char port)))
         (cond
-         ((eof-object? c) (syntax-error "EOF while in multi-line comment"))
+         ((eof-object? c)
+          (syntax-error "EOF while in multi-line comment" loc #f))
          ((char=? c #\*)
           (if (eqv? (peek-char port) #\/)
               (begin
@@ -76,15 +86,15 @@
           (lp (read-char port))))))
      (div?
       (case c1
-        ((#\=) (read-char port) (make-lexical-token '/= #f #f))
-        (else (make-lexical-token '/ #f #f))))
+        ((#\=) (read-char port) (make-lexical-token '/= loc #f))
+        (else (make-lexical-token '/ loc #f))))
      (else
-      (read-regexp port)))))
+      (read-regexp port loc)))))
 
-(define (read-regexp port)
+(define (read-regexp port loc)
   ;; first slash already read
   (let ((terms (string #\/ #\\ #\nl #\cr)))
-    (let lp ((str (read-until terms port)) (head ""))
+    (let lp ((str (read-until terms port loc)) (head ""))
       (let ((terminator (peek-char port)))
         (cond
          ((char=? terminator #\/)
@@ -96,7 +106,7 @@
                              (char-numeric? c)
                              (char=? c #\$)
                              (char=? c #\_))))
-                (make-lexical-token 'RegexpLiteral #f
+                (make-lexical-token 'RegexpLiteral loc
                                     (cons (string-append head str)
                                           (reverse flags)))
                 (begin (read-char port)
@@ -104,12 +114,13 @@
          ((char=? terminator #\\)
           (read-char port)
           (let ((echar (read-char port)))
-            (lp (read-until terms port)
+            (lp (read-until terms port loc)
                 (string-append head str (string #\\ echar)))))
          (else
-          (syntax-error "regexp literals may not contain newlines" str)))))))
+          (syntax-error "regexp literals may not contain newlines"
+                        loc str)))))))
 
-(define (read-string port)
+(define (read-string port loc)
   (let ((c (read-char port)))
     (let ((terms (string c #\\ #\nl #\cr)))
       (define (read-escape port)
@@ -124,10 +135,12 @@
             ((#\v) #\vt)
             ((#\0)
              (let ((next (peek-char port)))
-               (cond ((eof-object? next) #\nul)
-                     ((char-numeric? next)
-                      (syntax-error "octal escape sequences are not supported"))
-                     (else #\nul))))
+               (cond
+                ((eof-object? next) #\nul)
+                ((char-numeric? next)
+                 (syntax-error "octal escape sequences are not supported"
+                               loc #f))
+                (else #\nul))))
             ((#\x)
              (let* ((a (read-char port))
                     (b (read-char port)))
@@ -135,24 +148,25 @@
                 ((and (char-hex? a) (char-hex? b))
                  (integer->char (+ (* 16 (hex->number a)) (hex->number b))))
                 (else
-                 (syntax-error "bad hex character escape" a b)))))
+                 (syntax-error "bad hex character escape" loc (string a b))))))
             ((#\u)
-             (syntax-error "unicode not supported"))
+             (syntax-error "unicode not supported" loc #f))
             (else
              c))))
-      (let lp ((str (read-until terms port)))
+      (let lp ((str (read-until terms port loc)))
         (let ((terminator (peek-char port)))
           (cond
            ((char=? terminator c)
             (read-char port)
-            str)
+            (make-lexical-token 'StringLiteral loc str))
            ((char=? terminator #\\)
             (read-char port)
             (let ((echar (read-escape port)))
               (lp (string-append str (string echar)
-                                 (read-until terms port)))))
+                                 (read-until terms port loc)))))
            (else
-            (syntax-error "string literals may not contain newlines" str))))))))
+            (syntax-error "string literals may not contain newlines"
+                          loc str))))))))
 
 (define *keywords*
   '(("break" . break)
@@ -230,13 +244,14 @@
           (cond ((assoc-ref *keywords* word)
                  => (lambda (x) (make-lexical-token x loc #f)))
                 ((assoc-ref *future-reserved-words* word)
-                 (syntax-error "word is reserved for the future, dude." word))
+                 (syntax-error "word is reserved for the future, dude."
+                               loc word))
                 (else (make-lexical-token 'Identifier loc
                                           (string->symbol word)))))
         (begin (read-char port)
                (lp (peek-char port) (cons c chars))))))
 
-(define (read-numeric port)
+(define (read-numeric port loc)
   (let* ((c0 (if (char=? (peek-char port) #\.)
                  #\0
                  (read-char port)))
@@ -247,7 +262,8 @@
       (read-char port)
       (let ((c (peek-char port)))
         (if (not (char-hex? c))
-            (syntax-error "bad digit reading hexadecimal number" c))
+            (syntax-error "bad digit reading hexadecimal number"
+                          loc c))
         (let lp ((c c) (acc 0))
           (cond ((char-hex? c)
                  (read-char port)
@@ -260,7 +276,8 @@
         (cond ((eof-object? c) acc)
               ((char-numeric? c)
                (if (or (char=? c #\8) (char=? c #\9))
-                   (syntax-error "invalid digit in octal sequence" c))
+                   (syntax-error "invalid digit in octal sequence"
+                                 loc c))
                (read-char port)
                (lp (peek-char port)
                    (+ (* 8 acc) (digit->number c))))
@@ -277,12 +294,15 @@
          ((or (char=? c1 #\e) (char=? c1 #\E))
           (read-char port)
           (let ((add (let ((c (peek-char port)))
-                       (cond ((eof-object? c) (syntax-error "error reading exponent: EOF"))
+                       (cond ((eof-object? c)
+                              (syntax-error "error reading exponent: EOF"
+                                            loc #f))
                              ((char=? c #\+) (read-char port) +)
                              ((char=? c #\-) (read-char port) -)
                              ((char-numeric? c) +)
-                             (else (syntax-error "error reading exponent: non-digit"
-                                                 c))))))
+                             (else
+                              (syntax-error "error reading exponent: non-digit"
+                                            loc c))))))
             (let lp ((c (peek-char port)) (e 0))
               (cond ((and (not (eof-object? c)) (char-numeric? c))
                      (read-char port)
@@ -382,54 +402,48 @@
          (candidate
           (make-lexical-token candidate loc #f))
          (else
-          (syntax-error "bad syntax: character not allowed" c)))))))
+          (syntax-error "bad syntax: character not allowed" loc c)))))))
 
 (define (next-token port div?)
   (let ((c   (peek-char port))
-        (loc (make-source-location (port-filename port)
-                                   (port-line port)
-                                   (port-column port)
-                                   (false-if-exception (seek port 0 SEEK_CUR))
-                                   #f)))
-    (let ((tok 
-           (case c
-             ((#\ht #\vt #\np #\space)
-                                        ; whitespace
-              (read-char port)
-              (next-token port div?))
-             ((#\newline #\cr)
-                                        ; line break
-              (read-char port)
-              (next-token port div?))
-             ((#\/)
-              ;; division, single comment, double comment, or regexp
-              (read-slash port div?))
-             ((#\" #\')
-                                        ; string literal
-              (make-lexical-token 'StringLiteral loc (read-string port)))
-             (else
-              (cond
-               ((eof-object? c)
-                '*eoi*)
-               ((or (char-alphabetic? c)
-                    (char=? c #\$)
-                    (char=? c #\_))
-                ;; reserved word or identifier
-                (read-identifier port loc))
-               ((char-numeric? c)
-                ;; numeric -- also accept . FIXME, requires lookahead
-                (make-lexical-token 'NumericLiteral loc (read-numeric port)))
-               (else
-                ;; punctuation
-                (read-punctuation port loc)))))))
-
-      tok)))
+        (loc (port-source-location port)))
+    (case c
+      ((#\ht #\vt #\np #\space)         ; whitespace
+       (read-char port)
+       (next-token port div?))
+      ((#\newline #\cr)                 ; line break
+       (read-char port)
+       (next-token port div?))
+      ((#\/)
+       ;; division, single comment, double comment, or regexp
+       (read-slash port loc div?))
+      ((#\" #\')                        ; string literal
+       (read-string port loc))
+      (else
+       (cond
+        ((eof-object? c)
+         '*eoi*)
+        ((or (char-alphabetic? c)
+             (char=? c #\$)
+             (char=? c #\_))
+         ;; reserved word or identifier
+         (read-identifier port loc))
+        ((char-numeric? c)
+         ;; numeric -- also accept . FIXME, requires lookahead
+         (make-lexical-token 'NumericLiteral loc (read-numeric port loc)))
+        (else
+         ;; punctuation
+         (read-punctuation port loc)))))))
 
 (define (make-tokenizer port)
   (let ((div? #f))
     (lambda ()
       (let ((tok (next-token port div?)))
-        (set! div? (and (pair? tok) (eq? (car tok) 'identifier)))
+        (set! div? (and (lexical-token? tok)
+                        (let ((cat (lexical-token-category tok)))
+                          (or (eq? cat 'Identifier)
+                              (eq? cat 'NumericLiteral)
+                              (eq? cat 'StringLiteral)))))
         tok))))
 
 (define (make-tokenizer/1 port)
@@ -447,21 +461,27 @@
                (if (and (pair? stack)
                         (eq? (lexical-token-category (car stack)) 'lparen))
                    (set! stack (cdr stack))
-                   (syntax-error "unexpected right parenthesis")))
+                   (syntax-error "unexpected right parenthesis"
+                                 (lexical-token-source tok)
+                                 #f)))
               ((lbracket)
                (set! stack (cons tok stack)))
               ((rbracket)
                (if (and (pair? stack)
                         (eq? (lexical-token-category (car stack)) 'lbracket))
                    (set! stack (cdr stack))
-                   (syntax-error "unexpected right bracket" stack)))
+                   (syntax-error "unexpected right bracket"
+                                 (lexical-token-source tok)
+                                 #f)))
               ((lbrace)
                (set! stack (cons tok stack)))
               ((rbrace)
                (if (and (pair? stack)
                         (eq? (lexical-token-category (car stack)) 'lbrace))
                    (set! stack (cdr stack))
-                   (syntax-error "unexpected right brace" stack)))
+                   (syntax-error "unexpected right brace"
+                                 (lexical-token-source tok)
+                                 #f)))
               ((semicolon)
                (set! eoi? (null? stack))))
             (set! div? (and (lexical-token? tok)
