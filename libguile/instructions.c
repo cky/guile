@@ -177,7 +177,7 @@ SCM_DEFINE (scm_opcode_to_instruction, "opcode->instruction", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_opcode_to_instruction
 {
-  int opcode;
+  scm_t_signed_bits opcode;
   SCM ret = SCM_BOOL_F;
 
   SCM_MAKE_VALIDATE (1, op, I_INUMP);

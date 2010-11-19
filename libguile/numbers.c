@@ -76,6 +76,9 @@
 #define M_PI       3.14159265358979323846
 #endif
 
+typedef scm_t_signed_bits scm_t_inum;
+#define scm_from_inum(x) (scm_from_signed_integer (x))
+
 
 
 /*
@@ -193,6 +196,21 @@ scm_i_mkbig ()
   return z;
 }
 
+static SCM
+scm_i_inum2big (scm_t_inum x)
+{
+  /* Return a newly created bignum initialized to X. */
+  SCM z = make_bignum ();
+#if SIZEOF_VOID_P == SIZEOF_LONG
+  mpz_init_set_si (SCM_I_BIG_MPZ (z), x);
+#else
+  /* Note that in this case, you'll also have to check all mpz_*_ui and
+     mpz_*_si invocations in Guile. */
+#error creation of mpz not implemented for this inum size
+#endif
+  return z;
+}
+
 SCM
 scm_i_long2big (long x)
 {
@@ -262,7 +280,7 @@ scm_i_dbl2num (double u)
 
   if (u < (double) (SCM_MOST_POSITIVE_FIXNUM+1)
       && u >= (double) SCM_MOST_NEGATIVE_FIXNUM)
-    return SCM_I_MAKINUM ((long) u);
+    return SCM_I_MAKINUM ((scm_t_inum) u);
   else
     return scm_i_dbl2big (u);
 }
@@ -347,7 +365,7 @@ scm_i_normbig (SCM b)
   /* presume b is a bignum */
   if (mpz_fits_slong_p (SCM_I_BIG_MPZ (b)))
     {
-      long val = mpz_get_si (SCM_I_BIG_MPZ (b));
+      scm_t_inum val = mpz_get_si (SCM_I_BIG_MPZ (b));
       if (SCM_FIXABLE (val))
         b = SCM_I_MAKINUM (val);
     }
@@ -360,7 +378,7 @@ scm_i_mpz2num (mpz_t b)
   /* convert a mpz number to a SCM number. */
   if (mpz_fits_slong_p (b))
     {
-      long val = mpz_get_si (b);
+      scm_t_inum val = mpz_get_si (b);
       if (SCM_FIXABLE (val))
         return SCM_I_MAKINUM (val);
     }
@@ -409,12 +427,12 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
   */
   if (SCM_I_INUMP (numerator))
     {
-      long  x = SCM_I_INUM (numerator);
+      scm_t_inum x = SCM_I_INUM (numerator);
       if (scm_is_eq (numerator, SCM_INUM0))
 	return SCM_INUM0;
       if (SCM_I_INUMP (denominator))
 	{
-	  long y;
+	  scm_t_inum y;
 	  y = SCM_I_INUM (denominator);
 	  if (x == y)
 	    return SCM_I_MAKINUM(1);
@@ -437,7 +455,7 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
     {
       if (SCM_I_INUMP (denominator))
 	{
-	  long yy = SCM_I_INUM (denominator);
+	  scm_t_inum yy = SCM_I_INUM (denominator);
 	  if (mpz_divisible_ui_p (SCM_I_BIG_MPZ (numerator), yy))
 	    return scm_divide (numerator, denominator);
 	}
@@ -502,7 +520,7 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
 {
   if (SCM_I_INUMP (n))
     {
-      long val = SCM_I_INUM (n);
+      scm_t_inum val = SCM_I_INUM (n);
       return scm_from_bool ((val & 1L) != 0);
     }
   else if (SCM_BIGP (n))
@@ -537,7 +555,7 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
 {
   if (SCM_I_INUMP (n))
     {
-      long val = SCM_I_INUM (n);
+      scm_t_inum val = SCM_I_INUM (n);
       return scm_from_bool ((val & 1L) == 0);
     }
   else if (SCM_BIGP (n))
@@ -682,13 +700,13 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
 {
   if (SCM_I_INUMP (x))
     {
-      long int xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (xx >= 0)
 	return x;
       else if (SCM_POSFIXABLE (-xx))
 	return SCM_I_MAKINUM (-xx);
       else
-	return scm_i_long2big (-xx);
+	return scm_i_inum2big (-xx);
     }
   else if (SCM_BIGP (x))
     {
@@ -728,19 +746,19 @@ scm_quotient (SCM x, SCM y)
 {
   if (SCM_I_INUMP (x))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    scm_num_overflow (s_quotient);
 	  else
 	    {
-	      long z = xx / yy;
+	      scm_t_inum z = xx / yy;
 	      if (SCM_FIXABLE (z))
 		return SCM_I_MAKINUM (z);
 	      else
-		return scm_i_long2big (z);
+		return scm_i_inum2big (z);
 	    }
 	}
       else if (SCM_BIGP (y))
@@ -763,7 +781,7 @@ scm_quotient (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    scm_num_overflow (s_quotient);
 	  else if (yy == 1)
@@ -814,12 +832,12 @@ scm_remainder (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    scm_num_overflow (s_remainder);
 	  else
 	    {
-	      long z = SCM_I_INUM (x) % yy;
+	      scm_t_inum z = SCM_I_INUM (x) % yy;
 	      return SCM_I_MAKINUM (z);
 	    }
 	}
@@ -843,7 +861,7 @@ scm_remainder (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    scm_num_overflow (s_remainder);
 	  else
@@ -885,10 +903,10 @@ scm_modulo (SCM x, SCM y)
 {
   if (SCM_I_INUMP (x))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    scm_num_overflow (s_modulo);
 	  else
@@ -896,8 +914,8 @@ scm_modulo (SCM x, SCM y)
 	      /* C99 specifies that "%" is the remainder corresponding to a
                  quotient rounded towards zero, and that's also traditional
                  for machine division, so z here should be well defined.  */
-	      long z = xx % yy;
-	      long result;
+	      scm_t_inum z = xx % yy;
+	      scm_t_inum result;
 
 	      if (yy < 0)
 		{
@@ -962,7 +980,7 @@ scm_modulo (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    scm_num_overflow (s_modulo);
 	  else
@@ -1033,19 +1051,19 @@ scm_gcd (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
         {
-          long xx = SCM_I_INUM (x);
-          long yy = SCM_I_INUM (y);
-          long u = xx < 0 ? -xx : xx;
-          long v = yy < 0 ? -yy : yy;
-          long result;
+          scm_t_inum xx = SCM_I_INUM (x);
+          scm_t_inum yy = SCM_I_INUM (y);
+          scm_t_inum u = xx < 0 ? -xx : xx;
+          scm_t_inum v = yy < 0 ? -yy : yy;
+          scm_t_inum result;
           if (xx == 0)
 	    result = v;
 	  else if (yy == 0)
 	    result = u;
 	  else
 	    {
-	      long k = 1;
-	      long t;
+	      scm_t_inum k = 1;
+	      scm_t_inum t;
 	      /* Determine a common factor 2^k */
 	      while (!(1 & (u | v)))
 		{
@@ -1075,7 +1093,7 @@ scm_gcd (SCM x, SCM y)
 	    }
           return (SCM_POSFIXABLE (result)
 		  ? SCM_I_MAKINUM (result)
-		  : scm_i_long2big (result));
+		  : scm_i_inum2big (result));
         }
       else if (SCM_BIGP (y))
         {
@@ -1089,8 +1107,8 @@ scm_gcd (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
         {
-          unsigned long result;
-          long yy;
+          scm_t_bits result;
+          scm_t_inum yy;
         big_inum:
           yy = SCM_I_INUM (y);
           if (yy == 0)
@@ -1101,7 +1119,7 @@ scm_gcd (SCM x, SCM y)
           scm_remember_upto_here_1 (x);
           return (SCM_POSFIXABLE (result) 
 		  ? SCM_I_MAKINUM (result)
-		  : scm_from_ulong (result));
+		  : scm_from_unsigned_integer (result));
         }
       else if (SCM_BIGP (y))
         {
@@ -1168,7 +1186,7 @@ scm_lcm (SCM n1, SCM n2)
         inumbig:
           {
             SCM result = scm_i_mkbig ();
-            long nn1 = SCM_I_INUM (n1);
+            scm_t_inum nn1 = SCM_I_INUM (n1);
             if (nn1 == 0) return SCM_INUM0;
             if (nn1 < 0) nn1 = - nn1;
             mpz_lcm_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n2), nn1);
@@ -1258,7 +1276,7 @@ SCM_DEFINE (scm_i_logand, "logand", 0, 2, 1,
 SCM scm_logand (SCM n1, SCM n2)
 #define FUNC_NAME s_scm_logand
 {
-  long int nn1;
+  scm_t_inum nn1;
 
   if (SCM_UNBNDP (n2))
     {
@@ -1277,7 +1295,7 @@ SCM scm_logand (SCM n1, SCM n2)
       nn1 = SCM_I_INUM (n1);
       if (SCM_I_INUMP (n2))
 	{
-	  long nn2 = SCM_I_INUM (n2);
+	  scm_t_inum nn2 = SCM_I_INUM (n2);
 	  return SCM_I_MAKINUM (nn1 & nn2);
 	}
       else if SCM_BIGP (n2)
@@ -1348,7 +1366,7 @@ SCM_DEFINE (scm_i_logior, "logior", 0, 2, 1,
 SCM scm_logior (SCM n1, SCM n2)
 #define FUNC_NAME s_scm_logior
 {
-  long int nn1;
+  scm_t_inum nn1;
 
   if (SCM_UNBNDP (n2))
     {
@@ -1438,7 +1456,7 @@ SCM_DEFINE (scm_i_logxor, "logxor", 0, 2, 1,
 SCM scm_logxor (SCM n1, SCM n2)
 #define FUNC_NAME s_scm_logxor
 {
-  long int nn1;
+  scm_t_inum nn1;
 
   if (SCM_UNBNDP (n2))
     {
@@ -1455,7 +1473,7 @@ SCM scm_logxor (SCM n1, SCM n2)
       nn1 = SCM_I_INUM (n1);
       if (SCM_I_INUMP (n2))
 	{
-	  long nn2 = SCM_I_INUM (n2);
+	  scm_t_inum nn2 = SCM_I_INUM (n2);
 	  return SCM_I_MAKINUM (nn1 ^ nn2);
 	}
       else if (SCM_BIGP (n2))
@@ -1513,14 +1531,14 @@ SCM_DEFINE (scm_logtest, "logtest", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_logtest
 {
-  long int nj;
+  scm_t_inum nj;
 
   if (SCM_I_INUMP (j))
     {
       nj = SCM_I_INUM (j);
       if (SCM_I_INUMP (k))
 	{
-	  long nk = SCM_I_INUM (k);
+	  scm_t_inum nk = SCM_I_INUM (k);
 	  return scm_from_bool (nj & nk);
 	}
       else if (SCM_BIGP (k))
@@ -1774,7 +1792,7 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_integer_expt
 {
-  long i2 = 0;
+  scm_t_inum i2 = 0;
   SCM z_i2 = SCM_BOOL_F;
   int i2_is_big = 0;
   SCM acc = SCM_I_MAKINUM (1L);
@@ -1871,7 +1889,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 
   if (SCM_I_INUMP (n))
     {
-      long nn = SCM_I_INUM (n);
+      scm_t_inum nn = SCM_I_INUM (n);
 
       if (bits_to_shift > 0)
         {
@@ -1886,7 +1904,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             return n;
 
           if (bits_to_shift < SCM_I_FIXNUM_BIT-1
-              && ((unsigned long)
+              && ((scm_t_bits)
                   (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
                   <= 1))
             {
@@ -1894,7 +1912,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
             }
           else
             {
-              SCM result = scm_i_long2big (nn);
+              SCM result = scm_i_inum2big (nn);
               mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
                             bits_to_shift);
               return result;
@@ -1967,7 +1985,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 
   if (SCM_I_INUMP (n))
     {
-      long int in = SCM_I_INUM (n);
+      scm_t_inum in = SCM_I_INUM (n);
 
       /* When istart>=SCM_I_FIXNUM_BIT we can just limit the shift to
          SCM_I_FIXNUM_BIT-1 to get either 0 or -1 per the sign of "in". */
@@ -1979,7 +1997,7 @@ SCM_DEFINE (scm_bit_extract, "bit-extract", 3, 0, 0,
 	   * special case requires us to produce a result that has
 	   * more bits than can be stored in a fixnum.
 	   */
-          SCM result = scm_i_long2big (in);
+          SCM result = scm_i_inum2big (in);
           mpz_fdiv_r_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
                            bits);
           return result;
@@ -2038,8 +2056,8 @@ SCM_DEFINE (scm_logcount, "logcount", 1, 0, 0,
 {
   if (SCM_I_INUMP (n))
     {
-      unsigned long int c = 0;
-      long int nn = SCM_I_INUM (n);
+      unsigned long c = 0;
+      scm_t_inum nn = SCM_I_INUM (n);
       if (nn < 0)
         nn = -1 - nn;
       while (nn)
@@ -2086,9 +2104,9 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
 {
   if (SCM_I_INUMP (n))
     {
-      unsigned long int c = 0;
+      unsigned long c = 0;
       unsigned int l = 4;
-      long int nn = SCM_I_INUM (n);
+      scm_t_inum nn = SCM_I_INUM (n);
       if (nn < 0)
 	nn = -1 - nn;
       while (nn)
@@ -3353,10 +3371,10 @@ scm_num_eq_p (SCM x, SCM y)
  again:
   if (SCM_I_INUMP (x))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_signed_bits xx = SCM_I_INUM (x);
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_signed_bits yy = SCM_I_INUM (y);
 	  return scm_from_bool (xx == yy);
 	}
       else if (SCM_BIGP (y))
@@ -3375,13 +3393,13 @@ scm_num_eq_p (SCM x, SCM y)
              An alternative (for any size system actually) would be to check
              yy is an integer (with floor) and is in range of an inum
              (compare against appropriate powers of 2) then test
-             xx==(long)yy.  It's just a matter of which casts/comparisons
-             might be fastest or easiest for the cpu.  */
+             xx==(scm_t_signed_bits)yy.  It's just a matter of which
+             casts/comparisons might be fastest or easiest for the cpu.  */
 
           double yy = SCM_REAL_VALUE (y);
           return scm_from_bool ((double) xx == yy
 				&& (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
-				    || xx == (long) yy));
+				    || xx == (scm_t_signed_bits) yy));
         }
       else if (SCM_COMPLEXP (y))
 	return scm_from_bool (((double) xx == SCM_COMPLEX_REAL (y))
@@ -3432,10 +3450,10 @@ scm_num_eq_p (SCM x, SCM y)
       if (SCM_I_INUMP (y))
         {
           /* see comments with inum/real above */
-          long yy = SCM_I_INUM (y);
+          scm_t_signed_bits yy = SCM_I_INUM (y);
           return scm_from_bool (xx == (double) yy
 				&& (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
-				    || (long) xx == yy));
+				    || (scm_t_signed_bits) xx == yy));
         }
       else if (SCM_BIGP (y))
 	{
@@ -3573,10 +3591,10 @@ scm_less_p (SCM x, SCM y)
  again:
   if (SCM_I_INUMP (x))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  return scm_from_bool (xx < yy);
 	}
       else if (SCM_BIGP (y))
@@ -3907,10 +3925,10 @@ scm_max (SCM x, SCM y)
   
   if (SCM_I_INUMP (x))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  return (xx < yy) ? y : x;
 	}
       else if (SCM_BIGP (y))
@@ -4053,10 +4071,10 @@ scm_min (SCM x, SCM y)
   
   if (SCM_I_INUMP (x))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_I_INUMP (y))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  return (xx < yy) ? x : y;
 	}
       else if (SCM_BIGP (y))
@@ -4199,10 +4217,10 @@ scm_sum (SCM x, SCM y)
     {
       if (SCM_LIKELY (SCM_I_INUMP (y)))
         {
-          long xx = SCM_I_INUM (x);
-          long yy = SCM_I_INUM (y);
-          long int z = xx + yy;
-          return SCM_FIXABLE (z) ? SCM_I_MAKINUM (z) : scm_i_long2big (z);
+          scm_t_inum xx = SCM_I_INUM (x);
+          scm_t_inum yy = SCM_I_INUM (y);
+          scm_t_inum z = xx + yy;
+          return SCM_FIXABLE (z) ? SCM_I_MAKINUM (z) : scm_i_inum2big (z);
         }
       else if (SCM_BIGP (y))
         {
@@ -4211,12 +4229,12 @@ scm_sum (SCM x, SCM y)
         }
       else if (SCM_REALP (y))
         {
-          long int xx = SCM_I_INUM (x);
+          scm_t_inum xx = SCM_I_INUM (x);
           return scm_from_double (xx + SCM_REAL_VALUE (y));
         }
       else if (SCM_COMPLEXP (y))
         {
-          long int xx = SCM_I_INUM (x);
+          scm_t_inum xx = SCM_I_INUM (x);
           return scm_c_make_rectangular (xx + SCM_COMPLEX_REAL (y),
                                    SCM_COMPLEX_IMAG (y));
         }
@@ -4230,7 +4248,7 @@ scm_sum (SCM x, SCM y)
       {
 	if (SCM_I_INUMP (y))
 	  {
-	    long int inum;
+	    scm_t_inum inum;
 	    int bigsgn;
 	  add_big_inum:
 	    inum = SCM_I_INUM (y);      
@@ -4404,11 +4422,11 @@ scm_difference (SCM x, SCM y)
       else 
         if (SCM_I_INUMP (x))
           {
-            long xx = -SCM_I_INUM (x);
+            scm_t_inum xx = -SCM_I_INUM (x);
             if (SCM_FIXABLE (xx))
               return SCM_I_MAKINUM (xx);
             else
-              return scm_i_long2big (xx);
+              return scm_i_inum2big (xx);
           }
         else if (SCM_BIGP (x))
           /* Must scm_i_normbig here because -SCM_MOST_NEGATIVE_FIXNUM is a
@@ -4430,18 +4448,18 @@ scm_difference (SCM x, SCM y)
     {
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
-	  long int xx = SCM_I_INUM (x);
-	  long int yy = SCM_I_INUM (y);
-	  long int z = xx - yy;
+	  scm_t_inum xx = SCM_I_INUM (x);
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  scm_t_inum z = xx - yy;
 	  if (SCM_FIXABLE (z))
 	    return SCM_I_MAKINUM (z);
 	  else
-	    return scm_i_long2big (z);
+	    return scm_i_inum2big (z);
 	}
       else if (SCM_BIGP (y))
 	{
 	  /* inum-x - big-y */
-	  long xx = SCM_I_INUM (x);
+	  scm_t_inum xx = SCM_I_INUM (x);
 
 	  if (xx == 0)
 	    return scm_i_clonebig (y, 0);
@@ -4469,12 +4487,12 @@ scm_difference (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	{
-	  long int xx = SCM_I_INUM (x);
+	  scm_t_inum xx = SCM_I_INUM (x);
 	  return scm_from_double (xx - SCM_REAL_VALUE (y));
 	}
       else if (SCM_COMPLEXP (y))
 	{
-	  long int xx = SCM_I_INUM (x);
+	  scm_t_inum xx = SCM_I_INUM (x);
 	  return scm_c_make_rectangular (xx - SCM_COMPLEX_REAL (y),
 				   - SCM_COMPLEX_IMAG (y));
 	}
@@ -4491,13 +4509,13 @@ scm_difference (SCM x, SCM y)
       if (SCM_I_INUMP (y))
 	{
 	  /* big-x - inum-y */
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  int sgn_x = mpz_sgn (SCM_I_BIG_MPZ (x));
 
 	  scm_remember_upto_here_1 (x);
 	  if (sgn_x == 0)
 	    return (SCM_FIXABLE (-yy) ?
-		    SCM_I_MAKINUM (-yy) : scm_from_long (-yy));
+		    SCM_I_MAKINUM (-yy) : scm_from_inum (-yy));
 	  else
 	    {
 	      SCM result = scm_i_mkbig ();
@@ -4667,7 +4685,7 @@ scm_product (SCM x, SCM y)
   
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      long xx;
+      scm_t_inum xx;
 
     intbig:
       xx = SCM_I_INUM (x);
@@ -4680,14 +4698,14 @@ scm_product (SCM x, SCM y)
 
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
-	  long yy = SCM_I_INUM (y);
-	  long kk = xx * yy;
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  scm_t_inum kk = xx * yy;
 	  SCM k = SCM_I_MAKINUM (kk);
 	  if ((kk == SCM_I_INUM (k)) && (kk / xx == yy))
 	    return k;
 	  else
 	    {
-	      SCM result = scm_i_long2big (xx);
+	      SCM result = scm_i_inum2big (xx);
 	      mpz_mul_si (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result), yy);
 	      return scm_i_normbig (result);
 	    }
@@ -4899,7 +4917,7 @@ do_divide (SCM x, SCM y, int inexact)
 	SCM_WTA_DISPATCH_0 (g_divide, s_divide);
       else if (SCM_I_INUMP (x))
 	{
-	  long xx = SCM_I_INUM (x);
+	  scm_t_inum xx = SCM_I_INUM (x);
 	  if (xx == 1 || xx == -1)
 	    return x;
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
@@ -4955,10 +4973,10 @@ do_divide (SCM x, SCM y, int inexact)
 
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      long xx = SCM_I_INUM (x);
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
-	  long yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    {
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
@@ -4975,11 +4993,11 @@ do_divide (SCM x, SCM y, int inexact)
 	    }
 	  else
 	    {
-	      long z = xx / yy;
+	      scm_t_inum z = xx / yy;
 	      if (SCM_FIXABLE (z))
 		return SCM_I_MAKINUM (z);
 	      else
-		return scm_i_long2big (z);
+		return scm_i_inum2big (z);
 	    }
 	}
       else if (SCM_BIGP (y))
@@ -5030,7 +5048,7 @@ do_divide (SCM x, SCM y, int inexact)
     {
       if (SCM_I_INUMP (y))
 	{
-	  long int yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (yy == 0)
 	    {
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
@@ -5053,7 +5071,7 @@ do_divide (SCM x, SCM y, int inexact)
 		 middle ground: test, then if divisible, use the faster div
 		 func. */
 
-	      long abs_yy = yy < 0 ? -yy : yy;
+	      scm_t_inum abs_yy = yy < 0 ? -yy : yy;
 	      int divisible_p = mpz_divisible_ui_p (SCM_I_BIG_MPZ (x), abs_yy);
 
 	      if (divisible_p)
@@ -5144,7 +5162,7 @@ do_divide (SCM x, SCM y, int inexact)
       double rx = SCM_REAL_VALUE (x);
       if (SCM_I_INUMP (y))
 	{
-	  long int yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
 	  if (yy == 0)
 	    scm_num_overflow (s_divide);
@@ -5184,7 +5202,7 @@ do_divide (SCM x, SCM y, int inexact)
       double ix = SCM_COMPLEX_IMAG (x);
       if (SCM_I_INUMP (y))
 	{
-	  long int yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
 	  if (yy == 0)
 	    scm_num_overflow (s_divide);
@@ -5240,7 +5258,7 @@ do_divide (SCM x, SCM y, int inexact)
     {
       if (SCM_I_INUMP (y)) 
 	{
-	  long int yy = SCM_I_INUM (y);
+	  scm_t_inum yy = SCM_I_INUM (y);
 #ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
 	  if (yy == 0)
 	    scm_num_overflow (s_divide);
@@ -5881,13 +5899,13 @@ scm_magnitude (SCM z)
 {
   if (SCM_I_INUMP (z))
     {
-      long int zz = SCM_I_INUM (z);
+      scm_t_inum zz = SCM_I_INUM (z);
       if (zz >= 0)
 	return z;
       else if (SCM_POSFIXABLE (-zz))
 	return SCM_I_MAKINUM (-zz);
       else
-	return scm_i_long2big (-zz);
+	return scm_i_inum2big (-zz);
     }
   else if (SCM_BIGP (z))
     {
@@ -6355,7 +6373,7 @@ scm_from_double (double val)
 #if SCM_ENABLE_DEPRECATED == 1
 
 float
-scm_num2float (SCM num, unsigned long int pos, const char *s_caller)
+scm_num2float (SCM num, unsigned long pos, const char *s_caller)
 {
   scm_c_issue_deprecation_warning
     ("`scm_num2float' is deprecated. Use scm_to_double instead.");
@@ -6373,7 +6391,7 @@ scm_num2float (SCM num, unsigned long int pos, const char *s_caller)
 }
 
 double
-scm_num2double (SCM num, unsigned long int pos, const char *s_caller)
+scm_num2double (SCM num, unsigned long pos, const char *s_caller)
 {
   scm_c_issue_deprecation_warning
     ("`scm_num2double' is deprecated. Use scm_to_double instead.");

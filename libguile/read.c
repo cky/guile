@@ -965,7 +965,7 @@ scm_read_character (scm_t_wchar chr, SCM port)
       SCM p = scm_string_to_number (charname, scm_from_uint (8));
       if (SCM_I_INUMP (p))
         {
-          scm_t_wchar c = SCM_I_INUM (p);
+          scm_t_wchar c = scm_to_uint32 (p);
           if (SCM_IS_UNICODE_CHAR (c))
             return SCM_MAKE_CHAR (c);
           else
@@ -984,7 +984,7 @@ scm_read_character (scm_t_wchar chr, SCM port)
                                 scm_from_uint (16));
       if (SCM_I_INUMP (p))
         {
-          scm_t_wchar c = SCM_I_INUM (p);
+          scm_t_wchar c = scm_to_uint32 (p);
           if (SCM_IS_UNICODE_CHAR (c))
             return SCM_MAKE_CHAR (c);
           else

@@ -1167,7 +1167,7 @@ SCM_DEFINE (scm_sys_fast_slot_ref, "%fast-slot-ref", 2, 0, 0,
 	    "Return the slot value with index @var{index} from @var{obj}.")
 #define FUNC_NAME s_scm_sys_fast_slot_ref
 {
-  unsigned long int i;
+  scm_t_bits i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
   i = scm_to_unsigned_integer (index, 0,
@@ -1184,7 +1184,7 @@ SCM_DEFINE (scm_sys_fast_slot_set_x, "%fast-slot-set!", 3, 0, 0,
 	    "@var{value}.")
 #define FUNC_NAME s_scm_sys_fast_slot_set_x
 {
-  unsigned long int i;
+  scm_t_bits i;
 
   SCM_VALIDATE_INSTANCE (1, obj);
   i = scm_to_unsigned_integer (index, 0,
@@ -1442,8 +1442,7 @@ SCM_DEFINE (scm_sys_allocate_instance, "%allocate-instance", 2, 0, 0,
 #define FUNC_NAME s_scm_sys_allocate_instance
 {
   SCM obj;
-  long n;
-  long i;
+  scm_t_signed_bits n, i;
   SCM layout;
 
   SCM_VALIDATE_CLASS (1, class);

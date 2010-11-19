@@ -399,13 +399,13 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
       else
         /* Left shift. See comments in scm_ash. */
         {
-          long nn, bits_to_shift;
+          scm_t_signed_bits nn, bits_to_shift;
 
           nn = SCM_I_INUM (x);
           bits_to_shift = SCM_I_INUM (y);
 
           if (bits_to_shift < SCM_I_FIXNUM_BIT-1
-              && ((unsigned long)
+              && ((scm_t_bits)
                   (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
                   <= 1))
             RETURN (SCM_I_MAKINUM (nn << bits_to_shift));
@@ -451,7 +451,7 @@ VM_DEFINE_FUNCTION (162, logxor, "logxor", 2)
 
 VM_DEFINE_FUNCTION (163, vector_ref, "vector-ref", 2)
 {
-  long i = 0;
+  scm_t_signed_bits i = 0;
   ARGS2 (vect, idx);
   if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
                   && SCM_I_INUMP (idx)
@@ -467,7 +467,7 @@ VM_DEFINE_FUNCTION (163, vector_ref, "vector-ref", 2)
 
 VM_DEFINE_INSTRUCTION (164, vector_set, "vector-set", 0, 3, 0)
 {
-  long i = 0;
+  scm_t_signed_bits i = 0;
   SCM vect, idx, val;
   POP (val); POP (idx); POP (vect);
   if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
@@ -570,6 +570,9 @@ VM_DEFINE_FUNCTION (169, struct_ref, "struct-ref", 2)
       SCM vtable;
       scm_t_bits index, len;
 
+      /* True, an inum is a signed value, but cast to unsigned it will
+         certainly be more than the length, so we will fall through if
+         index is negative. */
       index = SCM_I_INUM (pos);
       vtable = SCM_STRUCT_VTABLE (obj);
       len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
@@ -599,6 +602,7 @@ VM_DEFINE_FUNCTION (170, struct_set, "struct-set", 3)
       SCM vtable;
       scm_t_bits index, len;
 
+      /* See above regarding index being >= 0. */
       index = SCM_I_INUM (pos);
       vtable = SCM_STRUCT_VTABLE (obj);
       len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
@@ -627,6 +631,7 @@ VM_DEFINE_FUNCTION (171, class_of, "class-of", 1)
   RETURN (scm_class_of (obj));
 }
 
+/* FIXME: No checking whatsoever. */
 VM_DEFINE_FUNCTION (172, slot_ref, "slot-ref", 2)
 {
   size_t slot;
@@ -635,6 +640,7 @@ VM_DEFINE_FUNCTION (172, slot_ref, "slot-ref", 2)
   RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
 }
 
+/* FIXME: No checking whatsoever. */
 VM_DEFINE_INSTRUCTION (173, slot_set, "slot-set", 0, 3, 0)
 {
   SCM instance, idx, val;
@@ -701,7 +707,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)			\
 {									\
-  long i;								\
+  scm_t_signed_bits i;							\
   const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
 									\
@@ -723,7 +729,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_REF(stem, type, size)					\
 {									\
-  long i;								\
+  scm_t_signed_bits i;							\
   const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
 									\
@@ -754,7 +760,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_REF(stem, fn_stem, type, size)				\
 {									\
-  long i;								\
+  scm_t_signed_bits i;							\
   const type *float_ptr;						\
   ARGS2 (bv, idx);							\
 									\
@@ -841,7 +847,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)		\
 {									\
-  long i, j = 0;							\
+  scm_t_signed_bits i, j = 0;						\
   SCM bv, idx, val;							\
   scm_t_ ## type *int_ptr;						\
 									\
@@ -865,7 +871,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_SET(stem, type, size)					\
 {									\
-  long i = 0;								\
+  scm_t_signed_bits i = 0;						\
   SCM bv, idx, val;							\
   scm_t_ ## type *int_ptr;						\
 									\
@@ -886,7 +892,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_SET(stem, fn_stem, type, size)			\
 {								\
-  long i = 0;							\
+  scm_t_signed_bits i = 0;					\
   SCM bv, idx, val;						\
   type *float_ptr;						\
 								\

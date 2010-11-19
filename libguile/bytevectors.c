@@ -131,7 +131,7 @@
   SCM_VALIDATE_SYMBOL (3, endianness);				\
 								\
   {								\
-    _sign long c_value;						\
+    scm_t_signed_bits c_value;					\
     INT_TYPE (_len, _sign) c_value_short;			\
 								\
     if (SCM_UNLIKELY (!SCM_I_INUMP (value)))			\
@@ -156,7 +156,7 @@
   INTEGER_ACCESSOR_PROLOGUE (_len, _sign);			\
 								\
   {								\
-    _sign long c_value;						\
+    scm_t_signed_bits c_value;					\
     INT_TYPE (_len, _sign) c_value_short;			\
 								\
     if (SCM_UNLIKELY (!SCM_I_INUMP (value)))			\
@@ -735,7 +735,7 @@ SCM_DEFINE (scm_u8_list_to_bytevector, "u8-list->bytevector", 1, 0, 0,
 
       if (SCM_LIKELY (SCM_I_INUMP (item)))
 	{
-	  long c_item;
+	  scm_t_signed_bits c_item;
 
 	  c_item = SCM_I_INUM (item);
 	  if (SCM_LIKELY ((c_item >= 0) && (c_item < 256)))
@@ -951,7 +951,7 @@ bytevector_unsigned_ref (const char *c_bv, size_t c_size, SCM endianness)
 #define GENERIC_INTEGER_SET(_sign)					\
   if (c_size < 3)							\
     {									\
-      _sign int c_value;						\
+      scm_t_signed_bits c_value;					\
 									\
       if (SCM_UNLIKELY (!SCM_I_INUMP (value)))				\
 	goto range_error;						\
