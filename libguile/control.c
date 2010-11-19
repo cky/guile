@@ -20,6 +20,8 @@
 #  include <config.h>
 #endif
 
+#include <alloca.h>
+
 #include "libguile/_scm.h"
 #include "libguile/control.h"
 #include "libguile/objcodes.h"

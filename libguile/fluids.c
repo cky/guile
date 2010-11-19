@@ -20,6 +20,7 @@
 # include <config.h>
 #endif
 
+#include <alloca.h>
 #include <stdio.h>
 #include <string.h>
 

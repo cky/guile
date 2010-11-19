@@ -22,6 +22,7 @@
 
 #include <ffi.h>
 
+#include <alloca.h>
 #include <alignof.h>
 #include <string.h>
 #include <assert.h>
