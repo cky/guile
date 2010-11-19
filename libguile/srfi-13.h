@@ -3,7 +3,7 @@
 
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * 	Copyright (C) 2001, 2004, 2006, 2008 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2008, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -111,8 +111,8 @@ SCM_API SCM scm_string_xcopy_x (SCM target, SCM tstart, SCM s, SCM sfrom, SCM st
 SCM_API SCM scm_string_replace (SCM s1, SCM s2, SCM start1, SCM end1, SCM start2, SCM end2);
 SCM_API SCM scm_string_tokenize (SCM s, SCM token_char, SCM start, SCM end);
 SCM_API SCM scm_string_split (SCM s, SCM chr);
-SCM_API SCM scm_string_filter (SCM s, SCM char_pred, SCM start, SCM end);
-SCM_API SCM scm_string_delete (SCM s, SCM char_pred, SCM start, SCM end);
+SCM_API SCM scm_string_filter (SCM char_pred, SCM s, SCM start, SCM end);
+SCM_API SCM scm_string_delete (SCM char_pred, SCM s, SCM start, SCM end);
 
 SCM_INTERNAL void scm_init_srfi_13 (void);
 SCM_INTERNAL void scm_init_srfi_13_14 (void);

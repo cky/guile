@@ -29,6 +29,7 @@
 
 #include "libguile.h"
 
+#include <libguile/deprecation.h>
 #include "libguile/srfi-13.h"
 #include "libguile/srfi-14.h"
 
@@ -3033,7 +3034,7 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 
 
 SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
-	    (SCM s, SCM char_pred, SCM start, SCM end),
+	    (SCM char_pred, SCM s, SCM start, SCM end),
 	    "Filter the string @var{s}, retaining only those characters\n"
 	    "which satisfy @var{char_pred}.\n"
 	    "\n"
@@ -3047,7 +3048,21 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   SCM result;
   size_t idx;
 
-  MY_VALIDATE_SUBSTRING_SPEC (1, s,
+  if (scm_is_string (char_pred))
+    {
+      SCM tmp;
+      
+      scm_c_issue_deprecation_warning
+        ("Guile used to use the wrong argument order for string-filter.\n"
+         "This call to string-filter had the arguments in the wrong order.\n"
+         "See SRFI-13 for more details. At some point we will remove this hack.");
+
+      tmp = char_pred;
+      char_pred = s;
+      s = tmp;
+    }
+
+  MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
 			      4, end, cend);
 
@@ -3130,7 +3145,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
       SCM ls = SCM_EOL;
 
       SCM_ASSERT (scm_is_true (scm_procedure_p (char_pred)),
-                  char_pred, SCM_ARG2, FUNC_NAME);
+                  char_pred, SCM_ARG1, FUNC_NAME);
       idx = cstart;
       while (idx < cend)
 	{
@@ -3151,7 +3166,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
 
 
 SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
-	    (SCM s, SCM char_pred, SCM start, SCM end),
+	    (SCM char_pred, SCM s, SCM start, SCM end),
 	    "Delete characters satisfying @var{char_pred} from @var{s}.\n"
 	    "\n"
 	    "If @var{char_pred} is a procedure, it is applied to each\n"
@@ -3164,7 +3179,21 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
   SCM result;
   size_t idx;
 
-  MY_VALIDATE_SUBSTRING_SPEC (1, s,
+  if (scm_is_string (char_pred))
+    {
+      SCM tmp;
+      
+      scm_c_issue_deprecation_warning
+        ("Guile used to use the wrong argument order for string-delete.\n"
+         "This call to string-filter had the arguments in the wrong order.\n"
+         "See SRFI-13 for more details. At some point we will remove this hack.");
+
+      tmp = char_pred;
+      char_pred = s;
+      s = tmp;
+    }
+
+  MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
 			      4, end, cend);
 
@@ -3265,7 +3294,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
     {
       SCM ls = SCM_EOL;
       SCM_ASSERT (scm_is_true (scm_procedure_p (char_pred)),
-                  char_pred, SCM_ARG2, FUNC_NAME);
+                  char_pred, SCM_ARG1, FUNC_NAME);
 
       idx = cstart;
       while (idx < cend)
