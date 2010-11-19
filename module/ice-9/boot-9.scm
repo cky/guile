@@ -2137,7 +2137,7 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; Cheat.  These bindings are needed by modules.c, but we don't want
 ;; to move their real definition here because that would be unnatural.
 ;;
-(define process-define-module #f)
+(define define-module* #f)
 (define process-use-modules #f)
 (define module-export! #f)
 (define default-duplicate-binding-procedures #f)
@@ -2357,6 +2357,9 @@ If there is no handler at all, Guile prints an error and then exits."
   (lambda (symbol)
     (symbol-append prefix symbol)))
 
+;; This function is called from "modules.c".  If you change it, be
+;; sure to update "modules.c" as well.
+
 (define* (define-module* name
            #:key filename pure version (duplicates '())
            (imports '()) (exports '()) (replacements '())
@@ -2431,9 +2434,6 @@ If there is no handler at all, Guile prints an error and then exits."
     
     (run-hook module-defined-hook module)
     module))
-
-;; This function is called from "modules.c".  If you change it, be
-;; sure to update "modules.c" as well.
 
 (define (process-define-module args)
   (define (missing kw)

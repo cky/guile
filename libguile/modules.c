@@ -49,7 +49,7 @@ static SCM the_module;
    boot-9 are needed to provide the Scheme interface. */
 static SCM the_root_module_var;
 static SCM module_make_local_var_x_var;
-static SCM process_define_module_var;
+static SCM define_module_star_var;
 static SCM process_use_modules_var;
 static SCM resolve_module_var;
 static SCM module_public_interface_var;
@@ -176,8 +176,8 @@ SCM
 scm_c_define_module (const char *name,
 		     void (*init)(void *), void *data)
 {
-  SCM module = scm_call_1 (SCM_VARIABLE_REF (process_define_module_var),
-			   scm_list_1 (convert_module_name (name)));
+  SCM module = scm_call_1 (SCM_VARIABLE_REF (define_module_star_var),
+			   convert_module_name (name));
   if (init)
     scm_c_call_with_current_module (module, (SCM (*)(void*))init, data);
   return module;
@@ -894,7 +894,7 @@ scm_post_boot_init_modules ()
   scm_module_tag = (SCM_CELL_WORD_1 (module_type) + scm_tc3_struct);
 
   resolve_module_var = scm_c_lookup ("resolve-module");
-  process_define_module_var = scm_c_lookup ("process-define-module");
+  define_module_star_var = scm_c_lookup ("define-module*");
   process_use_modules_var = scm_c_lookup ("process-use-modules");
   module_export_x_var = scm_c_lookup ("module-export!");
   the_root_module_var = scm_c_lookup ("the-root-module");
