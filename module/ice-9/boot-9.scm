@@ -2357,140 +2357,184 @@ If there is no handler at all, Guile prints an error and then exits."
   (lambda (symbol)
     (symbol-append prefix symbol)))
 
+(define* (define-module* name
+           #:key filename pure version (duplicates '())
+           (imports '()) (exports '()) (replacements '())
+           (re-exports '()) (autoloads '()) transformer)
+  (define (list-of pred l)
+    (or (null? l)
+        (and (pair? l) (pred (car l)) (list-of pred (cdr l)))))
+  (define (valid-export? x)
+    (or (symbol? x) (and (pair? x) (symbol? (car x)) (symbol? (cdr x)))))
+  (define (valid-autoload? x)
+    (and (pair? x) (list-of symbol? (car x)) (list-of symbol? (cdr x))))
+  
+  (define (resolve-imports imports)
+    (define (resolve-import import-spec)
+      (if (list? import-spec)
+          (apply resolve-interface import-spec)
+          (error "unexpected use-module specification" import-spec)))
+    (let lp ((imports imports) (out '()))
+      (cond
+       ((null? imports) (reverse! out))
+       ((pair? imports)
+        (lp (cdr imports)
+            (cons (resolve-import (car imports)) out)))
+       (else (error "unexpected tail of imports list" imports)))))
+
+  ;; We could add a #:no-check arg, set by the define-module macro, if
+  ;; these checks are taking too much time.
+  ;;
+  (let ((module (resolve-module name #f)))
+    (beautify-user-module! module)
+    (if filename
+        (set-module-filename! module filename))
+    (if pure
+        (purify-module! module))
+    (if version
+        (begin 
+          (if (not (list-of integer? version))
+              (error "expected list of integers for version"))
+          (set-module-version! module version)
+          (set-module-version! (module-public-interface module) version)))
+    (if (pair? duplicates)
+        (let ((handlers (lookup-duplicates-handlers duplicates)))
+          (set-module-duplicates-handlers! module handlers)))
+
+    (let ((imports (resolve-imports imports)))
+      (call-with-deferred-observers
+       (lambda ()
+         (if (pair? imports)
+             (module-use-interfaces! module imports))
+         (if (list-of valid-export? exports)
+             (if (pair? exports)
+                 (module-export! module exports))
+             (error "expected exports to be a list of symbols or symbol pairs"))
+         (if (list-of valid-export? replacements)
+             (if (pair? replacements)
+                 (module-replace! module replacements))
+             (error "expected replacements to be a list of symbols or symbol pairs"))
+         (if (list-of valid-export? re-exports)
+             (if (pair? re-exports)
+                 (module-re-export! module re-exports))
+             (error "expected re-exports to be a list of symbols or symbol pairs"))
+         ;; FIXME
+         (if (not (null? autoloads))
+             (apply module-autoload! module autoloads)))))
+
+    (if transformer
+        (if (and (pair? transformer) (list-of symbol? transformer))
+            (let ((iface (resolve-interface transformer))
+                  (sym (car (last-pair transformer))))
+              (set-module-transformer! module (module-ref iface sym)))
+            (error "expected transformer to be a module name" transformer)))
+    
+    (run-hook module-defined-hook module)
+    module))
+
 ;; This function is called from "modules.c".  If you change it, be
 ;; sure to update "modules.c" as well.
 
 (define (process-define-module args)
-  (let* ((module-id (car args))
-         (module (resolve-module module-id #f))
-         (kws (cdr args))
-         (unrecognized (lambda (arg)
-                         (error "unrecognized define-module argument" arg))))
-    (beautify-user-module! module)
-    (let loop ((kws kws)
-               (reversed-interfaces '())
+  (define (missing kw)
+    (error "missing argument to define-module keyword" kw))
+  (define (unrecognized arg)
+    (error "unrecognized define-module argument" arg))
+
+  (let ((name (car args))
+        (filename #f)
+        (pure? #f)
+        (version #f)
+        (system? #f)
+        (duplicates '())
+        (transformer #f))
+    (let loop ((kws (cdr args))
+               (imports '())
                (exports '())
                (re-exports '())
                (replacements '())
                (autoloads '()))
-
       (if (null? kws)
-          (call-with-deferred-observers
-           (lambda ()
-             (module-use-interfaces! module (reverse reversed-interfaces))
-             (module-export! module exports)
-             (module-replace! module replacements)
-             (module-re-export! module re-exports)
-             (if (not (null? autoloads))
-                 (apply module-autoload! module autoloads))))
+          (define-module* name
+            #:filename filename #:pure pure? #:version version
+            #:duplicates duplicates #:transformer transformer
+            #:imports (reverse! imports)
+            #:exports exports
+            #:re-exports re-exports
+            #:replacements replacements
+            #:autoloads autoloads)
           (case (car kws)
             ((#:use-module #:use-syntax)
              (or (pair? (cdr kws))
-                 (unrecognized kws))
+                 (missing (car kws)))
              (cond
-              ((equal? (caadr kws) '(ice-9 syncase))
+              ((equal? (cadr kws) '(ice-9 syncase))
                (issue-deprecation-warning
                 "(ice-9 syncase) is deprecated. Support for syntax-case is now in Guile core.")
                (loop (cddr kws)
-                     reversed-interfaces
-                     exports
-                     re-exports
-                     replacements
-                     autoloads))
+                     imports exports re-exports replacements autoloads))
               (else
-               (let* ((interface-args (cadr kws))
-                      (interface (apply resolve-interface interface-args)))
-                 (and (eq? (car kws) #:use-syntax)
-                      (or (symbol? (caar interface-args))
-                          (error "invalid module name for use-syntax"
-                                 (car interface-args)))
-                      (set-module-transformer!
-                       module
-                       (module-ref interface
-                                   (car (last-pair (car interface-args)))
-                                   #f)))
+               (let ((iface-spec (cadr kws)))
+                 (if (eq? (car kws) #:use-syntax)
+                     (set! transformer iface-spec))
                  (loop (cddr kws)
-                       (cons interface reversed-interfaces)
-                       exports
-                       re-exports
-                       replacements
-                       autoloads)))))
+                       (cons iface-spec imports) exports re-exports
+                       replacements autoloads)))))
             ((#:autoload)
              (or (and (pair? (cdr kws)) (pair? (cddr kws)))
-                 (unrecognized kws))
-             (loop (cdddr kws)
-                   reversed-interfaces
-                   exports
-                   re-exports
-                   replacements
-                   (let ((name (cadr kws))
-                         (bindings (caddr kws)))
-                     (cons* name bindings autoloads))))
+                 (missing (car kws)))
+             (let ((name (cadr kws))
+                   (bindings (caddr kws)))
+               (loop (cdddr kws)
+                     imports exports re-exports
+                     replacements (cons* name bindings autoloads))))
             ((#:no-backtrace)
-             (set-system-module! module #t)
-             (loop (cdr kws) reversed-interfaces exports re-exports
-                   replacements autoloads))
+             ;; FIXME: deprecate?
+             (set! system? #t)
+             (loop (cdr kws)
+                   imports exports re-exports replacements autoloads))
             ((#:pure)
-             (purify-module! module)
-             (loop (cdr kws) reversed-interfaces exports re-exports
-                   replacements autoloads))
+             (set! pure? #t)
+             (loop (cdr kws)
+                   imports exports re-exports replacements autoloads))
             ((#:version)
              (or (pair? (cdr kws))
-                 (unrecognized kws))
-             (let ((version (cadr kws)))
-               (set-module-version! module version)
-               (set-module-version! (module-public-interface module) version))
-             (loop (cddr kws) reversed-interfaces exports re-exports
-                   replacements autoloads))
+                 (missing (car kws)))
+             (set! version (cadr kws))
+             (loop (cddr kws)
+                   imports exports re-exports replacements autoloads))
             ((#:duplicates)
              (if (not (pair? (cdr kws)))
-                 (unrecognized kws))
-             (set-module-duplicates-handlers!
-              module
-              (lookup-duplicates-handlers (cadr kws)))
-             (loop (cddr kws) reversed-interfaces exports re-exports
-                   replacements autoloads))
+                 (missing (car kws)))
+             (set! duplicates (cadr kws))
+             (loop (cddr kws)
+                   imports exports re-exports replacements autoloads))
             ((#:export #:export-syntax)
              (or (pair? (cdr kws))
-                 (unrecognized kws))
+                 (missing (car kws)))
              (loop (cddr kws)
-                   reversed-interfaces
-                   (append (cadr kws) exports)
-                   re-exports
-                   replacements
-                   autoloads))
+                   imports (append exports (cadr kws)) re-exports
+                   replacements autoloads))
             ((#:re-export #:re-export-syntax)
              (or (pair? (cdr kws))
-                 (unrecognized kws))
+                 (missing (car kws)))
              (loop (cddr kws)
-                   reversed-interfaces
-                   exports
-                   (append (cadr kws) re-exports)
-                   replacements
-                   autoloads))
+                   imports exports (append re-exports (cadr kws))
+                   replacements autoloads))
             ((#:replace #:replace-syntax)
              (or (pair? (cdr kws))
-                 (unrecognized kws))
+                 (missing (car kws)))
              (loop (cddr kws)
-                   reversed-interfaces
-                   exports
-                   re-exports
-                   (append (cadr kws) replacements)
-                   autoloads))
+                   imports exports re-exports
+                   (append replacements (cadr kws)) autoloads))
             ((#:filename)
              (or (pair? (cdr kws))
-                 (unrecognized kws))
-             (set-module-filename! module (cadr kws))
+                 (missing (car kws)))
+             (set! filename (cadr kws))
              (loop (cddr kws)
-                   reversed-interfaces
-                   exports
-                   re-exports
-                   replacements
-                   autoloads))
+                   imports exports re-exports replacements autoloads))
             (else
-             (unrecognized kws)))))
-    (run-hook module-defined-hook module)
-    module))
+             (unrecognized kws)))))))
 
 ;; `module-defined-hook' is a hook that is run whenever a new module
 ;; is defined.  Its members are called with one argument, the new
