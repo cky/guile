@@ -19,7 +19,7 @@ Revised^n
 @end ifnottex
 Reports on Scheme).
 
-Unlike -- for example -- Python or Perl, Scheme has no benevolent
+Unlike, for example, Python or Perl, Scheme has no benevolent
 dictator.  There are many Scheme implementations, with different
 characteristics and with communities and academic activities around
 them, and the language develops as a result of the interplay between
@@ -74,7 +74,7 @@ world.
 The Scheme community has recently agreed and published R6RS, the
 latest installment in the RnRS series.  R6RS significantly expands the
 core Scheme language, and standardises many non-core functions that
-implementations -- including Guile -- have previously done in
+implementations---including Guile---have previously done in
 different ways.  Guile has been updated to incorporate some of the
 features of R6RS, and to adjust some existing features to conform to
 the R6RS specification, but it is by no means a complete R6RS
@@ -92,8 +92,8 @@ of which conform to SRFIs or to the relevant parts of R6RS.
 @node Combining with C
 @section Combining with C Code
 
-Like a shell, Guile can run interactively --- reading expressions from the user,
-evaluating them, and displaying the results --- or as a script interpreter,
+Like a shell, Guile can run interactively---reading expressions from the user,
+evaluating them, and displaying the results---or as a script interpreter,
 reading and executing Scheme code from a file.  Guile also provides an object
 library, @dfn{libguile}, that allows other applications to easily incorporate a
 complete Scheme interpreter.  An application can then use Guile as an extension
@@ -109,9 +109,9 @@ This kind of combination is helped by four aspects of Guile's design
 and history.  First is that Guile has always been targeted as an
 extension language.  Hence its C API has always been of great
 importance, and has been developed accordingly.  Second and third are
-rather technical points -- that Guile uses conservative garbage
+rather technical points---that Guile uses conservative garbage
 collection, and that it implements the Scheme concept of continuations
-by copying and reinstating the C stack -- but whose practical
+by copying and reinstating the C stack---but whose practical
 consequence is that most existing C code can be glued into Guile as
 is, without needing modifications to cope with strange Scheme
 execution flows.  Last is the module system, which helps extensions to
@@ -171,7 +171,7 @@ be modified and reloaded into the running program, to take immediate effect.
 
 Guile is designed for this kind of interactive programming, and this
 distinguishes it from many Scheme implementations that instead prioritise
-running a fixed Scheme program as fast as possible --- because there are
+running a fixed Scheme program as fast as possible---because there are
 tradeoffs between performance and the ability to modify parts of an already
 running program.  There are faster Schemes than Guile, but Guile is a GNU
 project and so prioritises the GNU vision of programming freedom and
