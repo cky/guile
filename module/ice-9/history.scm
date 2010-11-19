@@ -21,7 +21,7 @@
   #:export (value-history-enabled? enable-value-history! disable-value-history!
             clear-value-history!))
 
-(process-define-module '((value-history)))
+(define-module* '(value-history))
 
 (define *value-history-enabled?* #f)
 (define (value-history-enabled?)
