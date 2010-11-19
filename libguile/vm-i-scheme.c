@@ -174,9 +174,10 @@ VM_DEFINE_INSTRUCTION (144, set_cdr, "set-cdr!", 0, 2, 0)
 {								\
   ARGS2 (x, y);							\
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))			\
-    RETURN (scm_from_bool (SCM_I_INUM (x) crel SCM_I_INUM (y)));  \
-  SYNC_REGISTER ();                                             \
-  RETURN (srel (x, y));                                         \
+    RETURN (scm_from_bool ((scm_t_signed_bits) (x)		\
+			   crel (scm_t_signed_bits) (y)));	\
+  SYNC_REGISTER ();						\
+  RETURN (srel (x, y));						\
 }
 
 VM_DEFINE_FUNCTION (145, ee, "ee?", 2)
