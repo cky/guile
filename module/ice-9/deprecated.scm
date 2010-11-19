@@ -66,7 +66,8 @@
             named-module-use!
             top-repl
             turn-on-debugging
-            read-hash-procedures))
+            read-hash-procedures
+            process-define-module))
 
 
 ;;;; Deprecated definitions.
@@ -697,3 +698,104 @@ it.")
     ((set! _ expr)
      (begin (read-hash-procedures-warning)
             (fluid-set! %read-hash-procedures expr)))))
+
+(define (process-define-module args)
+  (define (missing kw)
+    (error "missing argument to define-module keyword" kw))
+  (define (unrecognized arg)
+    (error "unrecognized define-module argument" arg))
+
+  (let ((name (car args))
+        (filename #f)
+        (pure? #f)
+        (version #f)
+        (system? #f)
+        (duplicates '())
+        (transformer #f))
+    (let loop ((kws (cdr args))
+               (imports '())
+               (exports '())
+               (re-exports '())
+               (replacements '())
+               (autoloads '()))
+      (if (null? kws)
+          (define-module* name
+            #:filename filename #:pure pure? #:version version
+            #:duplicates duplicates #:transformer transformer
+            #:imports (reverse! imports)
+            #:exports exports
+            #:re-exports re-exports
+            #:replacements replacements
+            #:autoloads autoloads)
+          (case (car kws)
+            ((#:use-module #:use-syntax)
+             (or (pair? (cdr kws))
+                 (missing (car kws)))
+             (cond
+              ((equal? (cadr kws) '(ice-9 syncase))
+               (issue-deprecation-warning
+                "(ice-9 syncase) is deprecated. Support for syntax-case is now in Guile core.")
+               (loop (cddr kws)
+                     imports exports re-exports replacements autoloads))
+              (else
+               (let ((iface-spec (cadr kws)))
+                 (if (eq? (car kws) #:use-syntax)
+                     (set! transformer iface-spec))
+                 (loop (cddr kws)
+                       (cons iface-spec imports) exports re-exports
+                       replacements autoloads)))))
+            ((#:autoload)
+             (or (and (pair? (cdr kws)) (pair? (cddr kws)))
+                 (missing (car kws)))
+             (let ((name (cadr kws))
+                   (bindings (caddr kws)))
+               (loop (cdddr kws)
+                     imports exports re-exports
+                     replacements (cons* name bindings autoloads))))
+            ((#:no-backtrace)
+             ;; FIXME: deprecate?
+             (set! system? #t)
+             (loop (cdr kws)
+                   imports exports re-exports replacements autoloads))
+            ((#:pure)
+             (set! pure? #t)
+             (loop (cdr kws)
+                   imports exports re-exports replacements autoloads))
+            ((#:version)
+             (or (pair? (cdr kws))
+                 (missing (car kws)))
+             (set! version (cadr kws))
+             (loop (cddr kws)
+                   imports exports re-exports replacements autoloads))
+            ((#:duplicates)
+             (if (not (pair? (cdr kws)))
+                 (missing (car kws)))
+             (set! duplicates (cadr kws))
+             (loop (cddr kws)
+                   imports exports re-exports replacements autoloads))
+            ((#:export #:export-syntax)
+             (or (pair? (cdr kws))
+                 (missing (car kws)))
+             (loop (cddr kws)
+                   imports (append exports (cadr kws)) re-exports
+                   replacements autoloads))
+            ((#:re-export #:re-export-syntax)
+             (or (pair? (cdr kws))
+                 (missing (car kws)))
+             (loop (cddr kws)
+                   imports exports (append re-exports (cadr kws))
+                   replacements autoloads))
+            ((#:replace #:replace-syntax)
+             (or (pair? (cdr kws))
+                 (missing (car kws)))
+             (loop (cddr kws)
+                   imports exports re-exports
+                   (append replacements (cadr kws)) autoloads))
+            ((#:filename)
+             (or (pair? (cdr kws))
+                 (missing (car kws)))
+             (set! filename (cadr kws))
+             (loop (cddr kws)
+                   imports exports re-exports replacements autoloads))
+            (else
+             (unrecognized kws)))))))
