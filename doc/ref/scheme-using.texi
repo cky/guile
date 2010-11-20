@@ -227,6 +227,13 @@ Load a file in the current module.
 List current bindings.
 @end deffn
 
+@deffn {REPL Command} in module expression
+@deffnx {REPL Command} in module command [args ...]
+Evaluate an expression, or alternatively, execute another meta-command
+in the context of a module.  For example, @samp{,in (foo bar) ,binding}
+will show the bindings in the module @code{(foo bar)}.
+@end deffn
+
 @node Language Commands
 @subsubsection Language Commands
 

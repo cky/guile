@@ -41,7 +41,7 @@
   #:use-module ((ice-9 pretty-print) #:select ((pretty-print . pp)))
   #:use-module ((system vm inspect) #:select ((inspect . %inspect)))
   #:use-module (statprof)
-  #:export (meta-command))
+  #:export (meta-command define-meta-command))
 
 
 ;;;
@@ -50,7 +50,7 @@
 
 (define *command-table*
   '((help     (help h) (show) (apropos a) (describe d))
-    (module   (module m) (import use) (load l) (binding b))
+    (module   (module m) (import use) (load l) (binding b) (in))
     (language (language L))
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
@@ -74,11 +74,21 @@
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
 
-(define *command-module* (current-module))
+(define *command-infos* (make-hash-table))
 (define (command-name c) (car c))
 (define (command-abbrevs c) (cdr c))
-(define (command-procedure c) (module-ref *command-module* (command-name c)))
+(define (command-info c) (hashq-ref *command-infos* (command-name c)))
+(define (command-procedure c) (command-info-procedure (command-info c)))
 (define (command-doc c) (procedure-documentation (command-procedure c)))
+
+(define (make-command-info proc arguments-reader)
+  (cons proc arguments-reader))
+
+(define (command-info-procedure info)
+  (car info))
+
+(define (command-info-arguments-reader info)
+  (cdr info))
 
 (define (command-usage c)
   (let ((doc (command-doc c)))
@@ -148,6 +158,9 @@
       (force-output)
       *unspecified*)))
 
+(define (read-command-arguments c repl)
+  ((command-info-arguments-reader (command-info c)) repl))
+
 (define (meta-command repl)
   (let ((command (read-command repl)))
     (cond
@@ -155,40 +168,56 @@
      ((not (symbol? command))
       (format #t "Meta-command not a symbol: ~s~%" command))
      ((lookup-command command)
-      => (lambda (c) ((command-procedure c) repl)))
+      => (lambda (c)
+           (and=> (read-command-arguments c repl)
+                  (lambda (args) (apply (command-procedure c) repl args)))))
      (else
       (format #t "Unknown meta command: ~A~%" command)))))
 
+(define (add-meta-command! name category proc argument-reader)
+  (hashq-set! *command-infos* name (make-command-info proc argument-reader))
+  (if category
+      (let ((entry (assq category *command-table*)))
+        (if entry
+            (set-cdr! entry (append (cdr entry) (list (list name))))
+            (set! *command-table*
+                  (append *command-table*
+                          (list (list category (list name)))))))))
+
 (define-syntax define-meta-command
   (syntax-rules ()
-    ((_ (name repl (expression0 ...) . datums) docstring b0 b1 ...)
-     (define (name repl)
-       docstring
-       (define (handle-read-error form-name key args)
-         (pmatch args
-           ((,subr ,msg ,args . ,rest)
-            (format #t "Throw to key `~a' while reading ~@[argument `~A' of ~]command `~A':\n"
-                    key form-name 'name)
-            (display-error #f (current-output-port) subr msg args rest))
-           (else
-            (format #t "Throw to key `~a' with args `~s' while reading ~@[ argument `~A' of ~]command `~A'.\n"
-                    key args form-name 'name)))
-         (abort))
-
-       (% (let* ((expression0
-                  (catch #t
-                    (lambda ()
-                      (repl-reader
-                       ""
-                       (lambda* (#:optional (port (current-input-port)))
-                         ((language-reader (repl-language repl))
-                          port (current-module)))))
-                    (lambda (k . args)
-                      (handle-read-error 'expression0 k args))))
-                 ...)
-            (apply (lambda* datums
-                     b0 b1 ...)
+    ((_ ((name category) repl (expression0 ...) . datums) docstring b0 b1 ...)
+     (add-meta-command!
+      'name
+      'category
+      (lambda* (repl expression0 ... . datums)
+        docstring
+        b0 b1 ...)
+      (lambda (repl)
+        (define (handle-read-error form-name key args)
+          (pmatch args
+            ((,subr ,msg ,args . ,rest)
+             (format #t "Throw to key `~a' while reading ~@[argument `~A' of ~]command `~A':\n"
+                     key form-name 'name)
+             (display-error #f (current-output-port) subr msg args rest))
+            (else
+             (format #t "Throw to key `~a' with args `~s' while reading ~@[ argument `~A' of ~]command `~A'.\n"
+                     key args form-name 'name)))
+          (abort))
+        (% (let* ((expression0
                    (catch #t
+                          (lambda ()
+                            (repl-reader
+                             ""
+                             (lambda* (#:optional (port (current-input-port)))
+                               ((language-reader (repl-language repl))
+                                port (current-module)))))
+                          (lambda (k . args)
+                            (handle-read-error 'expression0 k args))))
+                  ...)
+             (append
+              (list expression0 ...)
+              (catch #t
                      (lambda ()
                        (let ((port (open-input-string (read-line))))
                          (let lp ((out '()))
@@ -198,10 +227,18 @@
                                  (lp (cons x out)))))))
                      (lambda (k . args)
                        (handle-read-error #f k args)))))
-          (lambda (k) #f)))) ; the abort handler
+           (lambda (k) #f)))))           ; the abort handler
+
+    ((_ ((name category) repl . datums) docstring b0 b1 ...)
+     (define-meta-command ((name category) repl () . datums)
+       docstring b0 b1 ...))
+
+    ((_ (name repl (expression0 ...) . datums) docstring b0 b1 ...)
+     (define-meta-command ((name #f) repl (expression0 ...) . datums)
+       docstring b0 b1 ...))
 
     ((_ (name repl . datums) docstring b0 b1 ...)
-     (define-meta-command (name repl () . datums)
+     (define-meta-command ((name #f) repl () . datums)
        docstring b0 b1 ...))))
 
 
@@ -292,11 +329,10 @@ Version information."
   (display *version*)
   (newline))
 
-(define guile:apropos apropos)
 (define-meta-command (apropos repl regexp)
   "apropos REGEXP
 Find bindings/modules/packages."
-  (guile:apropos (->string regexp)))
+  (apropos (->string regexp)))
 
 (define-meta-command (describe repl (form))
   "describe OBJ
@@ -350,17 +386,34 @@ Import modules / List those imported."
         (for-each puts (map module-name (module-uses (current-module))))
         (for-each use args))))
 
-(define guile:load load)
 (define-meta-command (load repl file)
   "load FILE
 Load a file in the current module."
-  (guile:load (->string file)))
+  (load (->string file)))
 
 (define-meta-command (binding repl)
   "binding
 List current bindings."
   (module-for-each (lambda (k v) (format #t "~23A ~A\n" k v))
                    (current-module)))
+
+(define-meta-command (in repl module command-or-expression . args)
+  "in MODULE COMMAND-OR-EXPRESSION
+Evaluate an expression or command in the context of module."
+  (let ((m (resolve-module module #:ensure #f)))
+    (if m
+        (pmatch command-or-expression
+          (('unquote ,command) (guard (lookup-command command))
+           (save-module-excursion
+            (lambda ()
+              (set-current-module m)
+              (apply (command-procedure (lookup-command command)) repl args))))
+          (,expression
+           (guard (null? args))
+           (repl-print repl (eval expression m)))
+          (else
+           (format #t "Invalid arguments to `in': expected a single expression or a command.\n")))
+        (format #t "No such module: ~s\n" module))))
 
 
 ;;;
@@ -388,11 +441,10 @@ Generate compiled code."
     (cond ((objcode? x) (guile:disassemble x))
           (else (repl-print repl x)))))
 
-(define guile:compile-file compile-file)
 (define-meta-command (compile-file repl file . opts)
   "compile-file FILE
 Compile a file."
-  (guile:compile-file (->string file) #:opts opts))
+  (compile-file (->string file) #:opts opts))
 
 (define (guile:disassemble x)
   ((@ (language assembly disassemble) disassemble) x))
@@ -775,11 +827,10 @@ Pretty-print the result(s) of evaluating EXP."
 ;;; System commands
 ;;;
 
-(define guile:gc gc)
 (define-meta-command (gc repl)
   "gc
 Garbage collection."
-  (guile:gc))
+  (gc))
 
 (define-meta-command (statistics repl)
   "statistics
