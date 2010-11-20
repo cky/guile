@@ -395,6 +395,14 @@
         (put-bytevector port source)
         (and (bytevector=? (get-content) source)
              (bytevector=? (get-content) (make-bytevector 0))))))
+    
+  (pass-if "open-bytevector-output-port [extract after close]"
+    (let-values (((port get-content)
+                  (open-bytevector-output-port)))
+      (let ((source (make-bytevector 12345 #xFE)))
+        (put-bytevector port source)
+        (close-port port)
+        (bytevector=? (get-content) source))))
 
   (pass-if "open-bytevector-output-port [put-u8]"
     (let-values (((port get-content)

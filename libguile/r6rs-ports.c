@@ -84,6 +84,8 @@ make_bip (SCM bv)
   scm_t_port *c_port;
   const unsigned long mode_bits = SCM_OPN | SCM_RDNG;
 
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
+
   port = scm_new_port_table_entry (bytevector_input_port_type);
 
   /* Prevent BV from being GC'd.  */
@@ -100,6 +102,8 @@ make_bip (SCM bv)
 
   /* Mark PORT as open, readable and unbuffered (hmm, how elegant...).  */
   SCM_SET_CELL_TYPE (port, bytevector_input_port_type | mode_bits);
+
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   return port;
 }
@@ -305,6 +309,8 @@ make_cbip (SCM read_proc, SCM get_position_proc,
   SCM_SIMPLE_VECTOR_SET (method_vector, 2, set_position_proc);
   SCM_SIMPLE_VECTOR_SET (method_vector, 3, close_proc);
 
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
+
   port = scm_new_port_table_entry (custom_binary_input_port_type);
 
   /* Attach it the method vector.  */
@@ -318,6 +324,8 @@ make_cbip (SCM read_proc, SCM get_position_proc,
 
   /* Mark PORT as open, readable and unbuffered (hmm, how elegant...).  */
   SCM_SET_CELL_TYPE (port, custom_binary_input_port_type | mode_bits);
+
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   return port;
 }
@@ -812,6 +820,8 @@ make_bop (void)
   scm_t_bop_buffer *buf;
   const unsigned long mode_bits = SCM_OPN | SCM_WRTNG;
 
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
+
   port = scm_new_port_table_entry (bytevector_output_port_type);
 
   buf = (scm_t_bop_buffer *) scm_gc_malloc (sizeof (* buf), SCM_GC_BOP);
@@ -826,9 +836,10 @@ make_bop (void)
   /* Mark PORT as open and writable.  */
   SCM_SET_CELL_TYPE (port, bytevector_output_port_type | mode_bits);
 
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+
   /* Make the bop procedure.  */
-  SCM_NEWSMOB (bop_proc, bytevector_output_port_procedure,
-	       SCM_PACK (port));
+  SCM_NEWSMOB (bop_proc, bytevector_output_port_procedure, buf);
 
   return (scm_values (scm_list_2 (port, bop_proc)));
 }
@@ -889,11 +900,10 @@ bop_seek (SCM port, scm_t_off offset, int whence)
 SCM_SMOB_APPLY (bytevector_output_port_procedure,
 		bop_proc_apply, 0, 0, 0, (SCM bop_proc))
 {
-  SCM port, bv;
+  SCM bv;
   scm_t_bop_buffer *buf, result_buf;
 
-  port = SCM_PACK (SCM_SMOB_DATA (bop_proc));
-  buf = SCM_BOP_BUFFER (port);
+  buf = (scm_t_bop_buffer *) SCM_SMOB_DATA (bop_proc);
 
   result_buf = *buf;
   bop_buffer_init (buf);
@@ -966,6 +976,8 @@ make_cbop (SCM write_proc, SCM get_position_proc,
   SCM_SIMPLE_VECTOR_SET (method_vector, 2, set_position_proc);
   SCM_SIMPLE_VECTOR_SET (method_vector, 3, close_proc);
 
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
+
   port = scm_new_port_table_entry (custom_binary_output_port_type);
 
   /* Attach it the method vector.  */
@@ -978,6 +990,8 @@ make_cbop (SCM write_proc, SCM get_position_proc,
 
   /* Mark PORT as open, writable and unbuffered.  */
   SCM_SET_CELL_TYPE (port, custom_binary_output_port_type | mode_bits);
+
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   return port;
 }
