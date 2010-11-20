@@ -374,6 +374,7 @@ scm_shell_usage (int fatal, char *message)
            "If FILE begins with `-' the -s switch is mandatory.\n"
            "\n"
            "  -L DIRECTORY   add DIRECTORY to the front of the module load path\n"
+           "  -x EXTENSION   add EXTENSION to the front of the load extensions\n"
            "  -l FILE        load Scheme source code from FILE\n"
            "  -e FUNCTION    after reading script, apply FUNCTION to\n"
            "                 command line arguments\n"
@@ -414,6 +415,7 @@ SCM_SYMBOL (sym_top_repl, "top-repl");
 SCM_SYMBOL (sym_quit, "quit");
 SCM_SYMBOL (sym_use_srfis, "use-srfis");
 SCM_SYMBOL (sym_load_path, "%load-path");
+SCM_SYMBOL (sym_load_extensions, "%load-extensions");
 SCM_SYMBOL (sym_set_x, "set!");
 SCM_SYMBOL (sym_sys_load_should_autocompile, "%load-should-autocompile");
 SCM_SYMBOL (sym_cons, "cons");
@@ -455,6 +457,7 @@ scm_compile_shell_switches (int argc, char **argv)
 				   the "-ds" switch.  */
   SCM entry_point = SCM_EOL;	/* for -e switch */
   SCM user_load_path = SCM_EOL; /* for -L switch */
+  SCM user_extensions = SCM_EOL;/* for -x switch */
   int interactive = 1;		/* Should we go interactive when done? */
   int inhibit_user_init = 0;	/* Don't load user init file */
   int turn_on_debugging = 0;
@@ -546,6 +549,20 @@ scm_compile_shell_switches (int argc, char **argv)
 	    scm_shell_usage (1, "missing argument to `-L' switch");
 	}	  
 
+      else if (! strcmp (argv[i], "-x")) /* add to %load-extensions */
+	{
+	  if (++i < argc)
+	    user_extensions =
+	      scm_cons (scm_list_3 (sym_set_x, 
+				    sym_load_extensions, 
+				    scm_list_3 (sym_cons,
+						scm_from_locale_string (argv[i]),
+						sym_load_extensions)),
+			user_extensions);
+	  else
+	    scm_shell_usage (1, "missing argument to `-x' switch");
+	}
+      
       else if (! strcmp (argv[i], "-e")) /* entry point */
 	{
 	  if (++i < argc)
@@ -762,7 +779,10 @@ scm_compile_shell_switches (int argc, char **argv)
     {
       tail = scm_append_x( scm_cons2(user_load_path, tail, SCM_EOL) );
     }
-  
+
+  if (!scm_is_null (user_extensions))
+    tail = scm_append_x (scm_cons2 (user_extensions, tail, SCM_EOL));
+
   /* If we didn't end with a -c or a -s and didn't supply a -q, load
      the user's customization file.  */
   if (interactive && !inhibit_user_init)

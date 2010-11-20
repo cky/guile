@@ -8,6 +8,13 @@ Please send Guile bug reports to bug-guile@gnu.org.
 Note: During the 1.9 series, we will keep an incremental NEWS for the
 latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
+Changes in 1.9.14 (since the 1.9.13 prerelease):
+
+** Command line additions
+
+The guile binary now supports a new switch "-x", which can be used to
+extend the list of filename extensions tried when loading files
+(%load-extensions).
 
 Changes in 1.9.13 (since the 1.9.12 prerelease):
 
