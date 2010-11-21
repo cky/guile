@@ -83,15 +83,16 @@
 	  i/o-port-error?
 	  i/o-error-port)	  
 
-  (import (only (rnrs io ports) eof-object 
-		                eof-object? 
- 
-                                input-port? 
-				output-port?)
+  (import (only (rnrs io ports)
+                call-with-port
+                open-file-input-port
+                open-file-output-port
+                eof-object 
+                eof-object? 
+                
+                input-port? 
+                output-port?)
           (only (guile) @@
-                        call-with-input-file
-			call-with-output-file
-
 			current-input-port
 			current-output-port
 			current-error-port
@@ -115,5 +116,11 @@
 	  (rnrs base (6))
           (rnrs files (6)) ;for the condition types
           )
+
+  (define (call-with-input-file filename proc)
+    (call-with-port (open-file-input-port filename) proc))
+
+  (define (call-with-output-file filename proc)
+    (call-with-port (open-file-output-port filename) proc))
   
 )

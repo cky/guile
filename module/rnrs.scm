@@ -160,15 +160,31 @@
 
 	  ;; (rnrs io ports)
 
+	  file-options buffer-mode buffer-mode?
+	  eol-style native-eol-style error-handling-mode
+	  make-transcoder transcoder-codec native-transcoder
+	  latin-1-codec utf-8-codec utf-16-codec
+	  
 	  eof-object? port? input-port? output-port? eof-object port-transcoder
 	  binary-port? transcoded-port port-position set-port-position!
-	  port-has-port-position? port-has-set-port-position!? call-with-port
+	  port-has-port-position? port-has-set-port-position!?
+          close-port call-with-port
 	  open-bytevector-input-port make-custom-binary-input-port get-u8 
 	  lookahead-u8 get-bytevector-n get-bytevector-n! get-bytevector-some 
 	  get-bytevector-all open-bytevector-output-port
 	  make-custom-binary-output-port put-u8 put-bytevector
           open-string-input-port open-string-output-port
-
+          call-with-bytevector-output-port
+          call-with-string-output-port
+          latin-1-codec utf-8-codec utf-16-codec
+          open-file-input-port open-file-output-port
+          make-custom-textual-output-port
+          call-with-string-output-port
+	  flush-output-port put-string
+          get-char get-datum get-line get-string-all lookahead-char
+          put-char put-datum put-string
+          standard-input-port standard-output-port standard-error-port
+          
 	  ;; (rnrs io simple)
 	  
 	  call-with-input-file call-with-output-file current-input-port
