@@ -191,8 +191,13 @@
   ;; So far, we don't support transcoders other than the binary transcoder.
   #t)
 
-(define (transcoded-port port)
-  (error "port transcoders are not supported" port))
+(define (transcoded-port port transcoder)
+  "Return a new textual port based on @var{port}, using
+@var{transcoder} to encode and decode data written to or
+read from its underlying binary port @var{port}."
+  (let ((result (%make-transcoded-port port)))
+    (set-port-encoding! result (transcoder-codec transcoder))
+    result))
 
 (define (port-position port)
   "Return the offset (an integer) indicating where the next octet will be

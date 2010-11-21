@@ -497,6 +497,29 @@
            (not eof?)
            (bytevector=? sink source)))))
 
+(with-test-prefix "8.2.6  Input and output ports"
+  (pass-if "transcoded-port [output]"
+    (let ((s "Hello\nÄÖÜ"))
+      (bytevector=?
+       (string->utf8 s)
+       (call-with-bytevector-output-port
+         (lambda (bv-port)
+           (call-with-port (transcoded-port bv-port (make-transcoder (utf-8-codec)))
+             (lambda (utf8-port)
+               (put-string utf8-port s))))))))
+  (pass-if "transcoded-port [input]"
+    (let ((s "Hello\nÄÖÜ"))
+      (string=?
+       s
+       (get-string-all
+        (transcoded-port (open-bytevector-input-port (string->utf8 s))
+                         (make-transcoder (utf-8-codec)))))))
+  (pass-if "transcoded-port [input line]"
+    (string=? "ÄÖÜ"
+              (get-line (transcoded-port
+                         (open-bytevector-input-port (string->utf8 "ÄÖÜ\nFooBar"))
+                         (make-transcoder (utf-8-codec)))))))
+
 ;;; Local Variables:
 ;;; mode: scheme
 ;;; End:

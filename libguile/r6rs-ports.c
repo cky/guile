@@ -1076,6 +1076,148 @@ initialize_custom_binary_output_ports (void)
 }
 
 
+/* Transcoded ports ("tp" for short).  */
+static scm_t_bits transcoded_port_type = 0;
+
+#define TP_INPUT_BUFFER_SIZE 4096
+
+#define SCM_TP_BINARY_PORT(_port) SCM_PACK (SCM_STREAM (_port))
+
+static inline SCM
+make_tp (SCM binary_port, unsigned long mode)
+{
+  SCM port;
+  scm_t_port *c_port;
+  const unsigned long mode_bits = SCM_OPN | mode;
+  
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
+
+  port = scm_new_port_table_entry (transcoded_port_type);
+
+  SCM_SETSTREAM (port, SCM_UNPACK (binary_port));
+
+  SCM_SET_CELL_TYPE (port, transcoded_port_type | mode_bits);
+
+  if (SCM_INPUT_PORT_P (port))
+    {
+      c_port = SCM_PTAB_ENTRY (port);
+      c_port->read_buf = scm_gc_malloc_pointerless (TP_INPUT_BUFFER_SIZE,
+                                                    "port buffer");
+      c_port->read_pos = c_port->read_end = c_port->read_buf;
+      c_port->read_buf_size = TP_INPUT_BUFFER_SIZE;
+      
+      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) & ~SCM_BUF0);
+    }
+  
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+
+  return port;
+}
+
+static void
+tp_write (SCM port, const void *data, size_t size)
+{
+  scm_c_write (SCM_TP_BINARY_PORT (port), data, size);
+}
+
+static int
+tp_fill_input (SCM port)
+{
+  size_t count;
+  scm_t_port *c_port = SCM_PTAB_ENTRY (port);
+  SCM bport = SCM_TP_BINARY_PORT (port);
+  scm_t_port *c_bport = SCM_PTAB_ENTRY (bport);
+
+  /* We can't use `scm_c_read' here, since it blocks until the whole
+     block has been read or EOF. */
+  
+  if (c_bport->rw_active == SCM_PORT_WRITE)
+    scm_force_output (bport);
+
+  if (c_bport->read_pos >= c_bport->read_end)
+    scm_fill_input (bport);
+  
+  count = c_bport->read_end - c_bport->read_pos;
+  if (count > c_port->read_buf_size)
+    count = c_port->read_buf_size;
+
+  memcpy (c_port->read_buf, c_bport->read_pos, count);
+  c_bport->read_pos += count;
+
+  if (c_bport->rw_random)
+    c_bport->rw_active = SCM_PORT_READ;
+
+  if (count == 0)
+    return EOF;
+  else
+    {
+      c_port->read_pos = c_port->read_buf;
+      c_port->read_end = c_port->read_buf + count;
+      return *c_port->read_buf;
+    }
+}
+
+static void
+tp_flush (SCM port)
+{
+  SCM binary_port = SCM_TP_BINARY_PORT (port);
+  scm_t_port *c_port = SCM_PTAB_ENTRY (port);
+  size_t count = c_port->write_pos - c_port->write_buf;
+
+  scm_c_write (binary_port, c_port->write_buf, count);
+
+  c_port->write_pos = c_port->write_buf;
+  c_port->rw_active = SCM_PORT_NEITHER;
+
+  scm_force_output (binary_port);
+}
+
+static int
+tp_close (SCM port)
+{
+  if (SCM_OUTPUT_PORT_P (port))
+    tp_flush (port);
+  return scm_is_true (scm_close_port (SCM_TP_BINARY_PORT (port))) ? 0 : -1;
+}
+
+static inline void
+initialize_transcoded_ports (void)
+{
+  transcoded_port_type =
+    scm_make_port_type ("r6rs-transcoded-port", tp_fill_input, tp_write);
+  
+  scm_set_port_flush (transcoded_port_type, tp_flush);
+  scm_set_port_close (transcoded_port_type, tp_close);
+}
+
+SCM_DEFINE (scm_i_make_transcoded_port,
+	    "%make-transcoded-port", 1, 0, 0,
+	    (SCM port),
+	    "Return a new port which reads and writes to @var{port}")
+#define FUNC_NAME s_scm_i_make_transcoded_port
+{
+  SCM result;
+  unsigned long mode = 0;
+  
+  SCM_VALIDATE_PORT (SCM_ARG1, port);
+
+  if (scm_is_true (scm_output_port_p (port)))
+    mode |= SCM_WRTNG;
+  else if (scm_is_true (scm_input_port_p (port)))
+    mode |=  SCM_RDNG;
+  
+  result = make_tp (port, mode);
+
+  /* FIXME: We should actually close `port' "in a special way" here,
+     according to R6RS.  As there is no way to do that in Guile without
+     rendering the underlying port unusable for our purposes as well, we
+     just leave it open. */
+  
+  return result;
+}
+#undef FUNC_NAME
+
+
 /* Initialization.  */
 
 void
@@ -1096,4 +1238,5 @@ scm_init_r6rs_ports (void)
   initialize_custom_binary_input_ports ();
   initialize_bytevector_output_ports ();
   initialize_custom_binary_output_ports ();
+  initialize_transcoded_ports ();
 }
