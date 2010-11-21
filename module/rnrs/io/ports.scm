@@ -26,34 +26,34 @@
 ;;;
 ;;; Code:
 
-(define-module (rnrs io ports)
-  #:version (6)
-  #:re-export (eof-object? port? input-port? output-port?)
-  #:export (eof-object
+(library (rnrs io ports (6))
+  (export eof-object eof-object?
 
-           ;; input & output ports
-           port-transcoder binary-port? transcoded-port
-           port-position set-port-position!
-           port-has-port-position? port-has-set-port-position!?
-           call-with-port
+          ;; input & output ports
+          port? input-port? output-port?
+          port-transcoder binary-port? transcoded-port
+          port-position set-port-position!
+          port-has-port-position? port-has-set-port-position!?
+          call-with-port
 
-           ;; input ports
-           open-bytevector-input-port
-           open-string-input-port
-           make-custom-binary-input-port
+          ;; input ports
+          open-bytevector-input-port
+          open-string-input-port
+          make-custom-binary-input-port
 
-           ;; binary input
-           get-u8 lookahead-u8
-           get-bytevector-n get-bytevector-n!
-           get-bytevector-some get-bytevector-all
+          ;; binary input
+          get-u8 lookahead-u8
+          get-bytevector-n get-bytevector-n!
+          get-bytevector-some get-bytevector-all
 
-           ;; output ports
-           open-bytevector-output-port
-           open-string-output-port
-           make-custom-binary-output-port
+          ;; output ports
+          open-bytevector-output-port
+          open-string-output-port
+          make-custom-binary-output-port
 
-           ;; binary output
-           put-u8 put-bytevector))
+          ;; binary output
+          put-u8 put-bytevector)
+  (import (guile))
 
 (load-extension (string-append "libguile-" (effective-version))
                 "scm_init_r6rs_ports")
@@ -120,5 +120,7 @@ as a string, and a thunk to retrieve the characters associated with that port."
                 (open-output-string))))
     (values port
             (lambda () (get-output-string port)))))
+
+)
 
 ;;; ports.scm ends here
