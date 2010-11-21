@@ -146,7 +146,13 @@
 	   (set1 ((enum-set-constructor universe) '(a b c)))
 	   (set2 ((enum-set-constructor universe) '(d e f)))
 	   (union (enum-set-union set1 set2)))
-      (equal? (enum-set->list union) '(a b c d e f)))))
+      (equal? (enum-set->list union) '(a b c d e f))))
+
+  (pass-if "enum-set-union operates on syntactically-generated sets"
+    (let* ((set1 (make-foo-set foo))
+	   (set2 (make-foo-set bar))
+	   (union (enum-set-union set1 set2)))
+      (equal? (enum-set->list union) '(foo bar)))))
 
 (with-test-prefix "enum-set-intersection"
   (pass-if "&assertion raised on different universes"
@@ -170,7 +176,13 @@
 	   (set1 ((enum-set-constructor universe) '(a b c)))
 	   (set2 ((enum-set-constructor universe) '(d e f)))
 	   (intersection (enum-set-intersection set1 set2)))
-      (null? (enum-set->list intersection)))))
+      (null? (enum-set->list intersection))))
+
+  (pass-if "enum-set-intersection on syntactically-generated sets"
+    (let* ((set1 (make-foo-set foo bar))
+	   (set2 (make-foo-set bar baz))
+	   (intersection (enum-set-intersection set1 set2)))
+      (equal? (enum-set->list intersection) '(bar)))))
 
 (with-test-prefix "enum-set-difference"
   (pass-if "&assertion raised on different universes"
@@ -194,7 +206,13 @@
 	   (set1 ((enum-set-constructor universe) '(a b c)))
 	   (set2 ((enum-set-constructor universe) '(a b c d)))
 	   (difference (enum-set-difference set1 set2)))
-      (null? (enum-set->list difference)))))
+      (null? (enum-set->list difference))))
+
+  (pass-if "enum-set-difference on syntactically-generated sets"
+    (let* ((set1 (make-foo-set foo bar baz))
+	   (set2 (make-foo-set foo baz))
+	   (difference (enum-set-difference set1 set2)))
+      (equal? (enum-set->list difference) '(bar)))))
 
 (with-test-prefix "enum-set-complement"
   (pass-if "complement of empty set is universe"

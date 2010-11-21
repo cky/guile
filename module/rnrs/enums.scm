@@ -82,8 +82,8 @@
 	 (enum-set-subset? enum-set-2 enum-set-1)))
 
   (define (enum-set-union enum-set-1 enum-set-2)
-    (if (eq? (enum-set-universe enum-set-1) 
-	     (enum-set-universe enum-set-2))
+    (if (equal? (enum-set-universe enum-set-1) 
+                (enum-set-universe enum-set-2))
 	(make-enum-set (enum-set-universe enum-set-1)
 		       (lset-union eq? 
 				   (enum-set-set enum-set-1) 
@@ -91,8 +91,8 @@
 	(raise (make-assertion-violation))))
 
   (define (enum-set-intersection enum-set-1 enum-set-2)
-    (if (eq? (enum-set-universe enum-set-1) 
-	     (enum-set-universe enum-set-2))
+    (if (equal? (enum-set-universe enum-set-1) 
+                (enum-set-universe enum-set-2))
 	(make-enum-set (enum-set-universe enum-set-1)
 		       (lset-intersection eq? 
 					  (enum-set-set enum-set-1) 
@@ -100,8 +100,8 @@
 	(raise (make-assertion-violation))))
 
   (define (enum-set-difference enum-set-1 enum-set-2)
-    (if (eq? (enum-set-universe enum-set-1) 
-	     (enum-set-universe enum-set-2))
+    (if (equal? (enum-set-universe enum-set-1) 
+                (enum-set-universe enum-set-2))
 	(make-enum-set (enum-set-universe enum-set-1)
 		       (lset-difference eq? 
 					(enum-set-set enum-set-1) 
