@@ -166,6 +166,8 @@
   (cond
    ((list? response)
     (sanitize-response request (build-response #:headers response) body))
+   ((not body)
+    (values response #vu8()))
    ((string? body)
     (let* ((type (response-content-type response
                                         '("text/plain")))
@@ -185,13 +187,14 @@
     (sanitize-response request response (call-with-output-string body)))
    ((bytevector? body)
     ;; check length; assert type; add other required fields?
-    (values (let ((len (response-content-length response)))
-              (if len
-                  (if (= len (bytevector-length body))
-                      response
-                      (error "bad content-length" len (bytevector-length body)))
-                  (extend-response response 'content-length
-                                   (bytevector-length body))))
+    (values (let ((rlen (response-content-length response))
+                  (blen (bytevector-length body)))
+              (cond
+               ((rlen) (if (= rlen blen)
+                           response
+                           (error "bad content-length" rlen blen)))
+               ((zero? blen) response)
+               (else (extend-response response 'content-length blen))))
             body))
    (else
     (error "unexpected body type"))))
