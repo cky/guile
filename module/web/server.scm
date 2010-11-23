@@ -190,9 +190,9 @@
     (values (let ((rlen (response-content-length response))
                   (blen (bytevector-length body)))
               (cond
-               ((rlen) (if (= rlen blen)
-                           response
-                           (error "bad content-length" rlen blen)))
+               (rlen (if (= rlen blen)
+                         response
+                         (error "bad content-length" rlen blen)))
                ((zero? blen) response)
                (else (extend-response response 'content-length blen))))
             body))

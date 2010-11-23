@@ -320,7 +320,7 @@
     (bad-header-component 'quality str))))
 
 (define (valid-quality? q)
-  (and (non-negative-integer? q) (<= 1000 q)))
+  (and (non-negative-integer? q) (<= q 1000)))
 
 (define (write-quality q port)
   (define (digit->char d)
