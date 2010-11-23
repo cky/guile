@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -51,6 +51,10 @@
 #endif
 #endif
 #endif
+#endif
+
+#ifdef HAVE_WCHAR_H
+#include <wchar.h>
 #endif
 
 #include "libguile/async.h"
@@ -196,6 +200,43 @@ SCM_DEFINE (scm_make_regexp, "make-regexp", 1, 0, 1,
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_WCHAR_H
+/*
+ * While regexec does respect the current locale, it returns byte
+ * offsets instead of character offsets. This routine fixes up the
+ * regmatch_t structures to refer to characters instead. See "Converting
+ * a Character" in the libc manual, for more details.
+ */
+static void
+fixup_multibyte_match (regmatch_t *matches, int nmatches, char *str)
+{
+  mbstate_t state;
+  int i;
+  size_t char_idx, byte_idx;
+  size_t nbytes = 1; /* just to kick off the for loop */
+
+  memset (&state, '\0', sizeof (state));
+
+  for (char_idx = byte_idx = 0; nbytes > 0; char_idx++, byte_idx += nbytes)
+    {
+      for (i = 0; i < nmatches; ++i)
+        {
+          if (matches[i].rm_so == byte_idx)
+            matches[i].rm_so = char_idx;
+          if (matches[i].rm_eo == byte_idx)
+            matches[i].rm_eo = char_idx;
+        }
+
+      nbytes = mbrlen (str + byte_idx, MB_LEN_MAX, &state);
+    }
+
+  if (nbytes >= (size_t) -2)
+    /* Something is wrong. Shouldn't be possible, as the regex match
+       succeeded.  */
+    abort ();
+}
+#endif
+
 SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
             (SCM rx, SCM str, SCM start, SCM flags),
 	    "Match the compiled regular expression @var{rx} against\n"
@@ -256,11 +297,18 @@ SCM_DEFINE (scm_regexp_exec, "regexp-exec", 2, 2, 0,
   /* re_nsub doesn't account for the `subexpression' representing the
      whole regexp, so add 1 to nmatches. */
 
+  c_str = scm_to_locale_string (substr);
+
   nmatches = SCM_RGX(rx)->re_nsub + 1;
   matches = scm_malloc (sizeof (regmatch_t) * nmatches);
-  c_str = scm_to_locale_string (substr);
   status = regexec (SCM_RGX (rx), c_str, nmatches, matches,
 		    scm_to_int (flags));
+
+#ifdef HAVE_WCHAR_H
+  if (!status)
+    fixup_multibyte_match (matches, nmatches, c_str);
+#endif
+
   free (c_str);
 
   if (!status)

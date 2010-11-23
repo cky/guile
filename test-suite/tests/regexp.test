@@ -1,4 +1,4 @@
-;;;; regexp.test --- test Guile's regular expression functions -*- scheme -*-
+;;;; regexp.test ---  test Guile's regexps   -*- coding: utf-8; mode: scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
@@ -265,3 +265,10 @@
   ;; Jan Nieuwenhuizen's bug, 2 Sep 1999
   (try "" "_" (make-string 500 #\_)
        'post))
+
+(with-test-prefix "nonascii locales"
+  (with-locale "en_US.utf8"
+    ;; bug 31650
+    (pass-if "match structures refer to char offsets"
+      (equal? (match:substring (string-match ".*" "calçot") 0)
+              "calçot"))))
