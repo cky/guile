@@ -197,6 +197,14 @@
 read from its underlying binary port @var{port}."
   (let ((result (%make-transcoded-port port)))
     (set-port-encoding! result (transcoder-codec transcoder))
+    (case (transcoder-error-handling-mode transcoder)
+      ((raise)
+       (set-port-conversion-strategy! result 'error))
+      ((replace)
+       (set-port-conversion-strategy! result 'substitute))
+      (else
+       (error "unsupported error handling mode"
+              (transcoder-error-handling-mode transcoder))))
     result))
 
 (define (port-position port)

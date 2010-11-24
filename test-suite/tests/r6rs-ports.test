@@ -18,11 +18,11 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-io-ports)
-  :use-module (test-suite lib)
-  :use-module (srfi srfi-1)
-  :use-module (srfi srfi-11)
-  :use-module (rnrs io ports)
-  :use-module (rnrs bytevectors))
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-11)
+  #:use-module (rnrs io ports)
+  #:use-module (rnrs bytevectors))
 
 ;;; All these tests assume Guile 1.8's port system, where characters are
 ;;; treated as octets.
@@ -497,7 +497,9 @@
            (not eof?)
            (bytevector=? sink source)))))
 
+
 (with-test-prefix "8.2.6  Input and output ports"
+
   (pass-if "transcoded-port [output]"
     (let ((s "Hello\nÄÖÜ"))
       (bytevector=?
@@ -507,6 +509,7 @@
            (call-with-port (transcoded-port bv-port (make-transcoder (utf-8-codec)))
              (lambda (utf8-port)
                (put-string utf8-port s))))))))
+
   (pass-if "transcoded-port [input]"
     (let ((s "Hello\nÄÖÜ"))
       (string=?
@@ -514,11 +517,32 @@
        (get-string-all
         (transcoded-port (open-bytevector-input-port (string->utf8 s))
                          (make-transcoder (utf-8-codec)))))))
+
   (pass-if "transcoded-port [input line]"
     (string=? "ÄÖÜ"
               (get-line (transcoded-port
                          (open-bytevector-input-port (string->utf8 "ÄÖÜ\nFooBar"))
-                         (make-transcoder (utf-8-codec)))))))
+                         (make-transcoder (utf-8-codec))))))
+
+  (pass-if "transcoded-port [error handling mode = raise]"
+    (let* ((t  (make-transcoder (utf-8-codec) (native-eol-style)
+                                (error-handling-mode raise)))
+           (b  (open-bytevector-input-port #vu8(255 2 1)))
+           (tp (transcoded-port b t)))
+      ;; FIXME: Should be (guard (c ((i/o-decoding-error? c) #t)) ...).
+      (catch 'encoding-error
+        (lambda ()
+          (get-line tp)
+          #f)
+        (lambda _
+          #t))))
+
+  (pass-if "transcoded-port [error handling mode = replace]"
+    (let* ((t  (make-transcoder (utf-8-codec) (native-eol-style)
+                                (error-handling-mode replace)))
+           (b  (open-bytevector-input-port #vu8(255 1 2 3 103 110 117)))
+           (tp (transcoded-port b t)))
+      (string-suffix? "gnu" (get-line tp)))))
 
 ;;; Local Variables:
 ;;; mode: scheme
