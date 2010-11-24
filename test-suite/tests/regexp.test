@@ -267,8 +267,8 @@
        'post))
 
 (with-test-prefix "nonascii locales"
-  (with-locale "en_US.utf8"
-    ;; bug 31650
-    (pass-if "match structures refer to char offsets"
+  (pass-if "match structures refer to char offsets"
+    (with-locale "en_US.utf8"
+      ;; bug #31650
       (equal? (match:substring (string-match ".*" "calçot") 0)
               "calçot"))))
