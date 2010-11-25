@@ -73,7 +73,7 @@
 	  let-syntax letrec-syntax
 
 	  syntax-rules identifier-syntax)
-  (import (rename (guile) 
+  (import (rename (except (guile) error raise)
                   (quotient div) 
                   (modulo mod)
                   (exact->inexact inexact)
@@ -137,6 +137,8 @@
    (@ (rnrs exceptions) raise))
  (define condition
    (@ (rnrs conditions) condition))
+ (define make-error
+   (@ (rnrs conditions) make-error))
  (define make-assertion-violation
    (@ (rnrs conditions) make-assertion-violation))
  (define make-who-condition
@@ -145,12 +147,28 @@
    (@ (rnrs conditions) make-message-condition))
  (define make-irritants-condition
    (@ (rnrs conditions) make-irritants-condition))
+
+ (define (error who message . irritants)
+   (raise (apply condition
+                 (append (list (make-error))
+                         (if who (list (make-who-condition who)) '())
+                         (list (make-message-condition message)
+                               (make-irritants-condition irritants))))))
  
  (define (assertion-violation who message . irritants)
-   (raise (condition
-           (make-assertion-violation)
-           (make-who-condition who)
-           (make-message-condition message)
-           (make-irritants-condition irritants))))
+   (raise (apply condition
+                 (append (list (make-assertion-violation))
+                         (if who (list (make-who-condition who)) '())
+                         (list (make-message-condition message)
+                               (make-irritants-condition irritants))))))
+
+ (define-syntax assert
+   (syntax-rules ()
+     ((_ expression)
+      (if (not expression)
+          (raise (condition
+                  (make-assertion-violation)
+                  (make-message-condition
+                   (format #f "assertion failed: ~s" 'expression))))))))
 
 )

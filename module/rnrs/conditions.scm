@@ -115,7 +115,7 @@
       (define (flatten cond)
 	(if (compound-condition? cond) (simple-conditions cond) (list cond)))
       (or (for-all condition? conditions)
-	  (raise (make-assertion-violation)))
+	  (assertion-violation 'condition "non-condition argument" conditions))
       (if (or (null? conditions) (> (length conditions) 1))
 	  (make-compound-condition (apply append (map flatten conditions)))
 	  (car conditions))))
@@ -128,9 +128,7 @@
 	   ((transform-fields
 	     (syntax-rules ()
 	       ((_ (f a) . rest)
-		(cons '(immutable f a) (transform-fields rest)))
-	       ((_ ((f a))) '((immutable f a)))
-	       ((_ ()) '())
+		(cons '(immutable f a) (transform-fields . rest)))
 	       ((_) '())))
 
 	    (generate-accessors
@@ -140,13 +138,8 @@
                          (condition-accessor 
                           condition-type
                           (record-accessor condition-type counter)))
-		       (generate-accessors (+ counter 1) rest)))
-	       ((_ counter ((f a)))
-		(define a 
-                  (condition-accessor 
-                   condition-type (record-accessor condition-type counter))))
-	       ((_ counter ()) (begin))
-	       ((_ counter) (begin)))))	 
+		       (generate-accessors (+ counter 1) . rest)))
+	       ((_ counter) (begin)))))
 	 (begin
 	   (define condition-type 
 	     (make-record-type-descriptor 

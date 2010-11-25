@@ -85,14 +85,16 @@
 	record-name-str "-" (symbol->string field-name) "-set!")))
     
     (define (f x)
+      (define (lose)
+        (syntax-violation 'define-record-type "invalid field specifier" x))
       (cond ((symbol? x) (list 'immutable x (guess-accessor-name x) #f))
-	    ((not (list? x)) (error))
+	    ((not (list? x)) (lose))
 	    ((eq? (car x) 'immutable)
 	     (cons 'immutable
 		   (case (length x)
 		     ((2) (list (cadr x) (guess-accessor-name (cadr x)) #f))
 		     ((3) (list (cadr x) (caddr x) #f))
-		     (else (error)))))
+		     (else (lose)))))
 	    ((eq? (car x) 'mutable)
 	     (cons 'mutable
 		   (case (length x)
@@ -100,8 +102,8 @@
 				(guess-accessor-name (cadr x))
 				(guess-mutator-name (cadr x))))
 		     ((4) (cdr x))
-		     (else (error)))))
-	    (else (error))))
+		     (else (lose)))))
+	    (else (lose))))
     (map f fields))
   
   (define-syntax define-record-type0

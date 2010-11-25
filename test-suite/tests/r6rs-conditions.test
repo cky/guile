@@ -18,11 +18,16 @@
 
 
 (define-module (test-suite test-rnrs-conditions)
+  :use-module ((rnrs base) :version (6))
   :use-module ((rnrs conditions) :version (6))
   :use-module (test-suite lib))
 
 (define-condition-type &a &condition make-a-condition a-condition? (foo a-foo))
 (define-condition-type &b &condition make-b-condition b-condition? (bar b-bar))
+(define-condition-type &c &condition make-c-condition c-condition?
+  (baz c-baz)
+  (qux c-qux)
+  (frobotz c-frobotz))
 
 (with-test-prefix "condition?"
   (pass-if "condition? is #t for simple conditions"
@@ -96,4 +101,11 @@
 (with-test-prefix "define-condition-type"
   (pass-if "define-condition-type produces proper accessors"
     (let ((c (condition (make-a-condition 'foo) (make-b-condition 'bar))))
-      (and (eq? (a-foo c) 'foo) (eq? (b-bar c) 'bar)))))
+      (and (eq? (a-foo c) 'foo) (eq? (b-bar c) 'bar))))
+  (pass-if "define-condition-type works for multiple fields"
+    (let ((c (condition (make-a-condition 'foo)
+                        (make-c-condition 1 2 3))))
+      (and (eq? (a-foo c) 'foo)
+           (= (c-baz c) 1)
+           (= (c-qux c) 2)
+           (= (c-frobotz c) 3)))))
