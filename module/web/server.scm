@@ -140,21 +140,7 @@
    #:post-error
    (lambda (k . args)
      (warn "Error while accepting client" k args)
-     (values keep-alive #f #f #f #f))))
-
-;; -> response body state ...
-(define (handle-request handler request body . state)
-  (call-with-error-handling
-   (lambda ()
-     (with-stack-and-prompt
-      (lambda ()
-        (apply handler request body state))))
-   #:pass-keys '(quit interrupt)
-   #:on-error (if (batch-mode?) 'pass 'debug)
-   #:post-error
-   (lambda (k . args)
-     (warn "Error handling request" k args)
-     (apply values (build-response #:code 500) #f state))))
+     (values keep-alive #f #f #f))))
 
 (define (encode-string str charset)
   (case charset
@@ -165,7 +151,15 @@
 (define (sanitize-response request response body)
   (cond
    ((list? response)
-    (sanitize-response request (build-response #:headers response) body))
+    (sanitize-response request
+                       (build-response #:version (request-version request)
+                                       #:headers response)
+                       body))
+   ((not (equal? (request-version request) (response-version response)))
+    (sanitize-response request
+                       (adapt-response-version response
+                                               (request-version request))
+                       body))
    ((not body)
     (values response #vu8()))
    ((string? body)
@@ -198,6 +192,26 @@
             body))
    (else
     (error "unexpected body type"))))
+
+;; -> response body state
+(define (handle-request handler request body state)
+  (call-with-error-handling
+   (lambda ()
+     (call-with-values (lambda ()
+                         (with-stack-and-prompt
+                          (lambda ()
+                            (apply handler request body state))))
+       (lambda (response body . state)
+         (call-with-values (lambda ()
+                             (sanitize-response request response body))
+           (lambda (response body)
+             (values response body state))))))
+   #:pass-keys '(quit interrupt)
+   #:on-error (if (batch-mode?) 'pass 'debug)
+   #:post-error
+   (lambda (k . args)
+     (warn "Error handling request" k args)
+     (values (build-response #:code 500) #f state))))
 
 ;; -> (#f | client)
 (define (write-client impl server client response body)
@@ -253,15 +267,12 @@
       (if client
           (call-with-values
               (lambda ()
-                (apply handle-request handler request body state))
-            (lambda (response body . state)
-              (call-with-values (lambda ()
-                                  (sanitize-response request response body))
-                (lambda (response body)
-                  (values
-                   (and-cons (write-client impl server client response body)
-                             keep-alive)
-                   state)))))
+                (handle-request handler request body state))
+            (lambda (response body state)
+              (values
+               (and-cons (write-client impl server client response body)
+                         keep-alive)
+               state)))
           (values keep-alive state)))))
 
 (define* (run-server handler #:optional (impl 'http) (open-params '())

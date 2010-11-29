@@ -34,6 +34,7 @@
             read-response
             build-response
             extend-response
+            adapt-response-version
             write-response
 
             read-response-body/latin-1
@@ -163,6 +164,12 @@
   (call-with-values (lambda () (read-response-line port))
     (lambda (version code reason-phrase)
       (make-response version code reason-phrase (read-headers port) port))))
+
+(define (adapt-response-version response version)
+  (build-response #:code (response-code response)
+                  #:version version
+                  #:headers (response-headers response)
+                  #:port (response-port response)))
 
 (define (write-response r port)
   (write-response-line (response-version r) (response-code r)

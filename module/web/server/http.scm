@@ -91,7 +91,13 @@
         (values keep-alive #f #f #f))))))
 
 (define (keep-alive? response)
-  #t)
+  (let ((v (response-version response)))
+    (case (car v)
+      ((1)
+       (case (cdr v)
+         ((1) #t)
+         ((0) (memq 'keep-alive (response-connection response)))))
+      (else #f))))
 
 ;; -> (#f | client)
 (define (http-write server client response body)
