@@ -44,6 +44,7 @@
                       (port 8080)
                       (socket (make-default-socket family addr port)))
   (listen socket 5)
+  (sigaction SIGPIPE SIG_IGN)
   socket)
 
 ;; -> (keep-alive client request body | keep-alive #f #f #f)
