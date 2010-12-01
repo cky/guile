@@ -1830,6 +1830,28 @@ the highest priority (lowest numerical value) of any of the
 specified processes.
 @end deffn
 
+@cindex affinity, CPU
+
+@deffn {Scheme Procedure} getaffinity pid
+@deffnx {C Function} scm_getaffinity (pid)
+Return a bitvector representing the CPU affinity mask for
+process @var{pid}.  Each CPU the process has affinity with
+has its corresponding bit set in the returned bitvector.
+The number of bits set is a good estimate of how many CPUs
+Guile can use without stepping on other processes' toes.
+
+Currently this procedure is only defined on GNU variants.
+@end deffn
+
+@deffn {Scheme Procedure} setaffinity pid mask
+@deffnx {C Function} scm_setaffinity (pid, mask)
+Install the CPU affinity mask @var{mask}, a bitvector, for
+the process or thread with ID @var{pid}.  The return value
+is unspecified.
+
+Currently this procedure is only defined on GNU variants.
+@end deffn
+
 
 @node Signals
 @subsection Signals

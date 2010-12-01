@@ -1903,6 +1903,89 @@ SCM_DEFINE (scm_setpriority, "setpriority", 3, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_SETPRIORITY */
 
+#ifdef HAVE_SCHED_GETAFFINITY
+
+static SCM
+cpu_set_to_bitvector (const cpu_set_t *cs)
+{
+  SCM bv;
+  size_t cpu;
+
+  bv = scm_c_make_bitvector (sizeof (*cs), SCM_BOOL_F);
+
+  for (cpu = 0; cpu < sizeof (*cs); cpu++)
+    {
+      if (CPU_ISSET (cpu, cs))
+	/* XXX: This is inefficient but avoids code duplication.  */
+	scm_c_bitvector_set_x (bv, cpu, SCM_BOOL_T);
+    }
+
+  return bv;
+}
+
+SCM_DEFINE (scm_getaffinity, "getaffinity", 1, 0, 0,
+	    (SCM pid),
+	    "Return a bitvector representing the CPU affinity mask for\n"
+	    "process @var{pid}.  Each CPU the process has affinity with\n"
+	    "has its corresponding bit set in the returned bitvector.\n"
+	    "The number of bits set is a good estimate of how many CPUs\n"
+	    "Guile can use without stepping on other processes' toes.\n\n"
+	    "Currently this procedure is only defined on GNU variants.\n")
+#define FUNC_NAME s_scm_getaffinity
+{
+  int err;
+  cpu_set_t cs;
+
+  CPU_ZERO (&cs);
+  err = sched_getaffinity (scm_to_int (pid), sizeof (cs), &cs);
+  if (err)
+    SCM_SYSERROR;
+
+  return cpu_set_to_bitvector (&cs);
+}
+#undef FUNC_NAME
+
+#endif /* HAVE_SCHED_GETAFFINITY */
+
+#ifdef HAVE_SCHED_SETAFFINITY
+
+SCM_DEFINE (scm_setaffinity, "setaffinity", 2, 0, 0,
+	    (SCM pid, SCM mask),
+	    "Install the CPU affinity mask @var{mask}, a bitvector, for\n"
+	    "the process or thread with ID @var{pid}.  The return value\n"
+	    "is unspecified.\n\n"
+	    "Currently this procedure is only defined on GNU variants.\n")
+#define FUNC_NAME s_scm_setaffinity
+{
+  cpu_set_t cs;
+  scm_t_array_handle handle;
+  const scm_t_uint32 *c_mask;
+  size_t len, off, cpu;
+  ssize_t inc;
+  int err;
+
+  c_mask = scm_bitvector_elements (mask, &handle, &off, &len, &inc);
+
+  CPU_ZERO (&cs);
+  for (cpu = 0; cpu < len; cpu++)
+    {
+      size_t idx;
+
+      idx = cpu * inc + off;
+      if (c_mask[idx / 32] & (1UL << (idx % 32)))
+	CPU_SET (cpu, &cs);
+    }
+
+  err = sched_setaffinity (scm_to_int (pid), sizeof (cs), &cs);
+  if (err)
+    SCM_SYSERROR;
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+#endif /* HAVE_SCHED_SETAFFINITY */
+
 #if HAVE_GETPASS
 SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0, 
             (SCM prompt),
@@ -2078,7 +2161,7 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_GETHOSTNAME */
 
-
+
 void
 scm_init_posix ()
 {

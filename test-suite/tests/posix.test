@@ -180,3 +180,21 @@
                    (= (stat:mtime info) modified)))))
         (lambda ()
           (delete-file file))))))
+
+;;
+;; affinity
+;;
+
+(with-test-prefix "affinity"
+
+  (pass-if "getaffinity"
+    (if (defined? 'getaffinity)
+        (> (bitvector-length (getaffinity (getpid))) 0)
+        (throw 'unresolved)))
+
+  (pass-if "setaffinity"
+    (if (and (defined? 'setaffinity) (defined? 'getaffinity))
+        (let ((mask (getaffinity (getpid))))
+          (setaffinity (getpid) mask)
+          (equal? mask (getaffinity (getpid))))
+        (throw 'unresolved))))
