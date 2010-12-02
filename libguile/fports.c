@@ -643,33 +643,6 @@ fport_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
   return 1;
 }
 
-#ifndef __MINGW32__
-/* thread-local block for input on fport's fdes.  */
-static void
-fport_wait_for_input (SCM port)
-{
-  int fdes = SCM_FSTREAM (port)->fdes;
-
-  if (!fport_input_waiting (port))
-    {
-      int n;
-      SELECT_TYPE readfds;
-      int flags = fcntl (fdes, F_GETFL);
-
-      if (flags == -1)
-	scm_syserror ("scm_fdes_wait_for_input");
-      if (!(flags & O_NONBLOCK))
-	do
-	  {
-	    FD_ZERO (&readfds);
-	    FD_SET (fdes, &readfds);
-	    n = scm_std_select (fdes + 1, &readfds, NULL, NULL, NULL);
-	  }
-	while (n == -1 && errno == EINTR);
-    }
-}
-#endif /* !__MINGW32__ */
-
 static void fport_flush (SCM port);
 
 /* fill a port's read-buffer with a single read.  returns the first
@@ -681,9 +654,6 @@ fport_fill_input (SCM port)
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   scm_t_fport *fp = SCM_FSTREAM (port);
 
-#ifndef __MINGW32__
-  fport_wait_for_input (port);
-#endif /* !__MINGW32__ */
   SCM_SYSCALL (count = read (fp->fdes, pt->read_buf, pt->read_buf_size));
   if (count == -1)
     scm_syserror ("fport_fill_input");
