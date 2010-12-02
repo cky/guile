@@ -70,6 +70,8 @@ argument, @var{port}, which defaults to the current input port."
    ((pair? value)
     (attribute-value->xml (car value) port)
     (attribute-value->xml (cdr value) port))
+   ((null? value)
+    *unspecified*)
    ((string? value)
     (string->escaped-xml value port))
    ((procedure? value)
