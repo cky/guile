@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##   Copyright (C) 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -36,7 +36,9 @@ EXTRA_DIST = README ChangeLog-2008 check.test				\
  modules/README modules/module-0.scm modules/module-1.scm		\
  modules/module-2.scm modules/main					\
 									\
- safe/README safe/safe safe/untrusted.scm safe/evil.scm
+ safe/README safe/safe safe/untrusted.scm safe/evil.scm			\
+									\
+ web/hello.scm web/debug-sxml.scm
 
 AM_CFLAGS = `PATH=$(bindir)$(PATH_SEPARATOR)$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config compile`
 AM_LIBS   = `PATH=$(bindir)$(PATH_SEPARATOR)$$PATH PKG_CONFIG_PATH=$(libdir)/pkgconfig $(bindir)/guile-config link`

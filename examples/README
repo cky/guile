@@ -35,6 +35,8 @@ modules		    Examples for writing and using Guile modules.
 
 safe		    Examples for creating and using safe environments.
 
+web		    Simple web servers.
+
 compat		    autoconf code for making a Guile extension
 		    compatible with older versions of Guile.
 
