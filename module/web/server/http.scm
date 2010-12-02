@@ -65,9 +65,15 @@
                 #f #f #f))
        ((memq server readable)
         ;; FIXME: meta to read-request
-        (let* ((client (accept server))
+        (let* ((client (let ((pair (accept server)))
+                         ;; line buffered for request
+                         (setvbuf (car pair) _IOLBF)
+                         pair))
                (req (read-request (car client)))
-               (body-str (read-request-body/latin-1 req)))
+               (body-str (begin
+                           ;; block buffered for body and response
+                           (setvbuf (car client) _IOFBF)
+                           (read-request-body/latin-1 req))))
           (values keep-alive (car client) req body-str)))
        ((pair? readable)
         ;; FIXME: preserve meta for keep-alive
@@ -79,8 +85,12 @@
                 (values keep-alive #f #f #f))
               (call-with-error-handling
                (lambda ()
+                 ;; http-write already left p in line-buffered state
                  (let* ((req (read-request p))
-                        (body-str (read-request-body/latin-1 req)))
+                        (body-str (begin
+                                    ;; block buffered for body and response
+                                    (setvbuf p _IOFBF)
+                                    (read-request-body/latin-1 req))))
                    (values keep-alive p req body-str)))
                #:pass-keys '(quit interrupt)
                #:on-error (if (batch-mode?) 'pass 'debug)
@@ -113,7 +123,10 @@
       (error "Expected a string or bytevector for body" body)))
     (force-output (response-port response))
     (if (keep-alive? response)
-        (response-port response)
+        (let ((p (response-port response)))
+          ;; back to line buffered
+          (setvbuf p _IOLBF)
+          p)
         (begin
           (close-port (response-port response))
           #f))))
