@@ -2170,7 +2170,7 @@ scm_i_get_conversion_strategy (SCM port)
     {
       scm_t_port *pt;
       pt = SCM_PTAB_ENTRY (port);
-	return pt->ilseq_handler;
+      return pt->ilseq_handler;
     }
       
 }
