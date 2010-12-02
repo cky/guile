@@ -50,6 +50,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/format.test			\
 	    tests/fractions.test		\
 	    tests/ftw.test			\
+	    tests/future.test			\
 	    tests/gc.test			\
 	    tests/getopt-long.test		\
 	    tests/goops.test			\

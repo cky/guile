@@ -1,0 +1,83 @@
+;;;; future.test --- Futures.       -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; Ludovic Courtès <ludo@gnu.org>
+;;;;
+;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-future)
+  #:use-module (test-suite lib)
+  #:use-module (ice-9 futures)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26))
+
+(define specific-exception-key (gensym))
+
+(define specific-exception
+  (cons specific-exception-key ".*"))
+
+
+(with-test-prefix "futures"
+
+  (pass-if "make-future"
+    (future? (make-future (lambda () #f))))
+
+  (pass-if "future"
+    (future? (future #t)))
+
+  (pass-if "true"
+    (touch (future #t)))
+
+  (pass-if "(+ 2 3)"
+    (= 5 (touch (future (+ 2 3)))))
+
+  (pass-if "many"
+    (equal? (iota 1234)
+            (map touch
+                 (map (lambda (i)
+                        (make-future (lambda () i)))
+                      (iota 1234)))))
+
+  (pass-if "touch several times"
+    (let* ((f+    (unfold (cut >= <> 123)
+                          (lambda (i)
+                            (make-future
+                             (let ((x (1- i)))
+                               (lambda ()
+                                 (set! x (1+ x))
+                                 i))))
+                          1+
+                          0))
+           (r1    (map touch f+))
+           (r2    (map touch f+))
+           (r3    (map touch f+)))
+      (equal? (iota 123) r1 r2 r3)))
+
+  (pass-if "nested"
+    (= (touch (future (+ 2 (touch (future -2))
+                         (reduce + 0
+                                 (map touch
+                                      (map (lambda (i)
+                                             (future i))
+                                           (iota 123)))))))
+       (reduce + 0 (iota 123))))
+
+  (pass-if "no exception"
+    (future? (future (throw 'foo 'bar))))
+
+  (pass-if-exception "exception"
+    specific-exception
+    (touch (future (throw specific-exception-key 'test "thrown!")))))

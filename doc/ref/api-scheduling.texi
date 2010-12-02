@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -15,6 +15,7 @@
 * Blocking::                    How to block properly in guile mode.
 * Critical Sections::           Avoiding concurrency and reentries.
 * Fluids and Dynamic States::   Thread-local variables, etc.
+* Futures::                     Fine-grain parallelism.
 * Parallel Forms::              Parallel execution of forms.
 @end menu
 
@@ -194,6 +195,16 @@ Execute all thunks from the marked asyncs of the list @var{list_of_a}.
 @cindex threads
 @cindex Guile threads
 @cindex POSIX threads
+
+Guile supports POSIX threads, unless it was configured with
+@code{--without-threads} or the host lacks POSIX thread support.  When
+thread support is available, the @code{threads} feature is provided
+(@pxref{Feature Manipulation, @code{provided?}}).
+
+The procedures below manipulate Guile threads, which are wrappers around
+the system's POSIX threads.  For application-level parallelism, using
+higher-level constructs, such as futures, is recommended
+(@pxref{Futures}).
 
 @deffn {Scheme Procedure} all-threads
 @deffnx {C Function} scm_all_threads ()
@@ -790,6 +801,92 @@ context.
 Like @code{scm_with_dynamic_state}, but call @var{func} with
 @var{data}.
 @end deftypefn
+
+@node Futures
+@subsection Futures
+@cindex futures
+@cindex fine-grain parallelism
+@cindex parallelism
+
+The @code{(ice-9 futures)} module provides @dfn{futures}, a construct
+for fine-grain parallelism.  A future is a wrapper around an expression
+whose computation may occur in parallel with the code of the calling
+thread, and possibly in parallel with other futures.  Like promises,
+futures are essentially proxies that can be queried to obtain the value
+of the enclosed expression:
+
+@lisp
+(touch (future (+ 2 3)))
+@result{} 5
+@end lisp
+
+However, unlike promises, the expression associated with a future may be
+evaluated on another CPU core, should one be available.  This supports
+@dfn{fine-grain parallelism}, because even relatively small computations
+can be embedded in futures.  Consider this sequential code:
+
+@lisp
+(define (find-prime lst1 lst2)
+  (or (find prime? lst1)
+      (find prime? lst2)))
+@end lisp
+
+The two arms of @code{or} are potentially computation-intensive.  They
+are independent of one another, yet, they are evaluated sequentially
+when the first one returns @code{#f}.  Using futures, one could rewrite
+it like this:
+
+@lisp
+(define (find-prime lst1 lst2)
+  (let ((f (future (find prime? lst2))))
+    (or (find prime? lst1)
+        (touch f))))
+@end lisp
+
+This preserves the semantics of @code{find-prime}.  On a multi-core
+machine, though, the computation of @code{(find prime? lst2)} may be
+done in parallel with that of the other @code{find} call, which can
+reduce the execution time of @code{find-prime}.
+
+Guile's futures are implemented on top of POSIX threads
+(@pxref{Threads}).  Internally, a fixed-size pool of threads is used to
+evaluate futures, such that offloading the evaluation of an expression
+to another thread doesn't incur thread creation costs.  By default, the
+pool contains one thread per CPU core, minus one, to account for the
+main thread.
+
+@deffn {Scheme Syntax} future exp
+Return a future for expression @var{exp}.  This is equivalent to:
+
+@lisp
+(make-future (lambda () exp))
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} make-future thunk
+Return a future for @var{thunk}, a zero-argument procedure.
+
+This procedure returns immediately.  Execution of @var{thunk} may begin
+in parallel with the calling thread's computations, if idle CPU cores
+are available, or it may start when @code{touch} is invoked on the
+returned future.
+
+If the execution of @var{thunk} throws an exception, that exception will
+be re-thrown when @code{touch} is invoked on the returned future.
+@end deffn
+
+@deffn {Scheme Procedure} future? obj
+Return @code{#t} if @var{obj} is a future.
+@end deffn
+
+@deffn {Scheme Procedure} touch f
+Return the result of the expression embedded in future @var{f}.
+
+If the result was already computed in parallel, @code{touch} returns
+instantaneously.  Otherwise, it waits for the computation to complete,
+if it already started, or initiates it.
+@end deffn
+
 
 @node Parallel Forms
 @subsection Parallel forms
