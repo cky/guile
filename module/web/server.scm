@@ -101,6 +101,24 @@
             serve-one-client
             run-server))
 
+(define *timer* (gettimeofday))
+(define (print-elapsed who)
+  (let ((t (gettimeofday)))
+    (pk who (+ (* (- (car t) (car *timer*)) 1000000)
+               (- (cdr t) (cdr *timer*))))
+    (set! *timer* t)))
+
+(eval-when (expand)
+  (define *time-debug?* #f))
+
+(define-syntax debug-elapsed
+  (lambda (x)
+    (syntax-case x ()
+      ((_ who)
+       (if *time-debug?*
+           #'(print-elapsed who)
+           #'*unspecified*)))))
+
 (define-record-type server-impl
   (make-server-impl name open read write close)
   server-impl?
@@ -226,8 +244,10 @@
                             (apply handler request body state))))
        (lambda (response body . state)
          (call-with-values (lambda ()
+                             (debug-elapsed 'handler)
                              (sanitize-response request response body))
            (lambda (response body)
+             (debug-elapsed 'sanitize)
              (values response body state))))))
    #:pass-keys '(quit interrupt)
    #:on-error (if (batch-mode?) 'pass 'debug)
@@ -283,17 +303,22 @@
 
 ;; -> new keep-alive new-state
 (define (serve-one-client handler impl server keep-alive state)
+  (debug-elapsed 'serve-again)
   (call-with-values
       (lambda ()
         (read-client impl server keep-alive))
     (lambda (keep-alive client request body)
+      (debug-elapsed 'read-client)
       (if client
           (call-with-values
               (lambda ()
                 (handle-request handler request body state))
             (lambda (response body state)
+              (debug-elapsed 'handle-request)
               (values
-               (and-cons (write-client impl server client response body)
+               (and-cons (let ((x (write-client impl server client response body)))
+                           (debug-elapsed 'write-client)
+                           x)
                          keep-alive)
                state)))
           (values keep-alive state)))))
