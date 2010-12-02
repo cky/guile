@@ -85,6 +85,7 @@
 (define-module (web server)
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
+  #:use-module (rnrs io ports)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (system repl error-handling)
@@ -142,10 +143,25 @@
      (warn "Error while accepting client" k args)
      (values keep-alive #f #f #f))))
 
+(define (call-with-encoded-output-string charset proc)
+  (if (and (string-ci=? charset "utf-8") #f)
+      ;; I don't know why, but this appears to be faster; at least for
+      ;; examples/debug-sxml.scm (650 reqs/s versus 510 reqs/s).
+      (string->utf8 (call-with-output-string proc))
+      (call-with-values
+          (lambda ()
+            (open-bytevector-output-port))
+        (lambda (port get-bytevector)
+          (set-port-encoding! port charset)
+          (proc port)
+          (get-bytevector)))))
+
 (define (encode-string str charset)
-  (case charset
-    ((utf-8) (string->utf8 str))
-    (else (error "unknown charset" charset))))
+  (if (string-ci=? charset "utf-8")
+      (string->utf8 str)
+      (call-with-encoded-output-string charset
+                                       (lambda (port)
+                                         (display str port)))))
 
 ;; -> response body
 (define (sanitize-response request response body)
@@ -166,19 +182,26 @@
     (let* ((type (response-content-type response
                                         '("text/plain")))
            (declared-charset (assoc-ref (cdr type) "charset"))
-           (charset (if declared-charset
-                        (string->symbol 
-                         (string-downcase declared-charset))
-                        'utf-8)))
+           (charset (or declared-charset "utf-8")))
       (sanitize-response
        request
        (if declared-charset
            response
            (extend-response response 'content-type
-                            `(,@type ("charset" . ,(symbol->string charset)))))
+                            `(,@type ("charset" . ,charset))))
        (encode-string body charset))))
    ((procedure? body)
-    (sanitize-response request response (call-with-output-string body)))
+    (let* ((type (response-content-type response
+                                        '("text/plain")))
+           (declared-charset (assoc-ref (cdr type) "charset"))
+           (charset (or declared-charset "utf-8")))
+      (sanitize-response
+       request
+       (if declared-charset
+           response
+           (extend-response response 'content-type
+                            `(,@type ("charset" . ,charset))))
+       (call-with-encoded-output-string charset body))))
    ((bytevector? body)
     ;; check length; assert type; add other required fields?
     (values (let ((rlen (response-content-length response))
