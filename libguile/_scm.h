@@ -87,12 +87,24 @@
 #include "libguile/inline.h"
 #include "libguile/strings.h"
 
+/* ASYNC_TICK after finding EINTR in order to handle pending signals, if
+   any. See comment in scm_syserror. */
 #ifndef SCM_SYSCALL
 #ifdef vms
 # ifndef __GNUC__
 #  include <ssdef.h>
-#  define SCM_SYSCALL(line) do{errno = 0;line;} \
-	while(EVMSERR==errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3))
+#   define SCM_SYSCALL(line)                                    \
+  do                                                            \
+    {                                                           \
+      errno = 0;                                                \
+      line;                                                     \
+      if (EVMSERR==errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3)) \
+        {                                                       \
+          SCM_ASYNC_TICK;                                       \
+          continue;                                             \
+        }                                                       \
+    }                                                           \
+  while(0)
 # endif /* ndef __GNUC__ */
 #endif /* def vms */
 #endif /* ndef SCM_SYSCALL  */
@@ -100,7 +112,18 @@
 #ifndef SCM_SYSCALL
 # ifdef EINTR
 #  if (EINTR > 0)
-#   define SCM_SYSCALL(line) do{errno = 0;line;}while(EINTR==errno)
+#   define SCM_SYSCALL(line)                    \
+  do                                            \
+    {                                           \
+      errno = 0;                                \
+      line;                                     \
+      if (errno == EINTR)                       \
+        {                                       \
+          SCM_ASYNC_TICK;                       \
+          continue;                             \
+        }                                       \
+    }                                           \
+  while(0)
 #  endif /*  (EINTR > 0) */
 # endif /* def EINTR */
 #endif /* ndef SCM_SYSCALL */
