@@ -26,8 +26,7 @@
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web server)
-  #:use-module (ice-9 poll)
-  #:use-module (system repl error-handling))
+  #:use-module (ice-9 poll))
 
 
 (define (make-default-socket family addr port)
@@ -106,20 +105,12 @@
               ;; Otherwise, try to read a request from this port.
               ;; Record the next index.
               (set-http-poll-idx! server (1- idx))
-              (call-with-error-handling
-               (lambda ()
-                 (let ((req (read-request port)))
-                   ;; Block buffering for reading body and writing response.
-                   (setvbuf port _IOFBF)
-                   (values port
-                           req
-                           (read-request-body/latin-1 req))))
-               #:pass-keys '(quit interrupt)
-               #:on-error (if (batch-mode?) 'pass 'debug)
-               #:post-error
-               (lambda (k . args)
-                 (warn "Error while reading request" k args)
-                 (values #f #f #f))))))))))))
+              (let ((req (read-request port)))
+                ;; Block buffering for reading body and writing response.
+                (setvbuf port _IOFBF)
+                (values port
+                        req
+                        (read-request-body/latin-1 req))))))))))))
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
