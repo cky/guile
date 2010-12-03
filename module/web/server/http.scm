@@ -60,66 +60,64 @@
   (sigaction SIGPIPE SIG_IGN)
   (let ((poll-set (make-empty-poll-set)))
     (poll-set-add! poll-set socket *events*)
-    (make-http-server socket 1 poll-set)))
+    (make-http-server socket 0 poll-set)))
 
 ;; -> (client request body | #f #f #f)
 (define (http-read server)
   (let* ((poll-set (http-poll-set server)))
     (let lp ((idx (http-poll-idx server)))
-      (cond
-       ((not (< idx (poll-set-nfds poll-set)))
-        (poll poll-set)
-        (lp 0))
-       (else
-        (let ((revents (poll-set-revents poll-set idx)))
+      (let ((revents (poll-set-revents poll-set idx)))
+        (cond
+         ((zero? idx)
+          ;; The server socket, and the end of our downward loop.
           (cond
            ((zero? revents)
-            ;; Nothing on this port.
-            (lp (1+ idx)))
-           ((zero? idx)
-            ;; The server socket.
-            (if (not (zero? (logand revents *error-events*)))
-                ;; An error.
-                (throw 'interrupt)
-                ;; Otherwise, we have a new client. Add to set, then
-                ;; find another client that is ready to read.
-                ;;
-                ;; FIXME: preserve meta-info.
-                (let ((client (accept (poll-set-port poll-set idx))))
-                  ;; Set line buffering while reading the request.
-                  (setvbuf (car client) _IOLBF)
-                  (poll-set-add! poll-set (car client) *events*)
-                  (lp (1+ idx)))))
-           ;; Otherwise, a client socket with some activity on
-           ;; it. Remove it from the poll set.
+            ;; No client ready, and no error; poll and loop.
+            (poll poll-set)
+            (lp (1- (poll-set-nfds poll-set))))
+           ((not (zero? (logand revents *error-events*)))
+            ;; An error.
+            (throw 'interrupt))
            (else
-            (let ((port (poll-set-remove! poll-set idx)))
-              (cond
-               ((or (not (zero? (logand revents *error-events*)))
-                    (eof-object? (peek-char port)))
-                ;; The socket was shut down or had an error. See
-                ;; http://www.greenend.org.uk/rjk/2001/06/poll.html
-                ;; for an interesting discussion.
-                (close-port port)
-                (lp idx))
-               (else
-                ;; Otherwise, try to read a request from this port.
-                ;; Next time we start with this index.
-                (set-http-poll-idx! server idx)
-                (call-with-error-handling
-                 (lambda ()
-                   (let ((req (read-request port)))
-                     ;; Block buffering for reading body and writing response.
-                     (setvbuf port _IOFBF)
-                     (values port
-                             req
-                             (read-request-body/latin-1 req))))
-                 #:pass-keys '(quit interrupt)
-                 #:on-error (if (batch-mode?) 'pass 'debug)
-                 #:post-error
-                 (lambda (k . args)
-                   (warn "Error while reading request" k args)
-                   (values #f #f #f))))))))))))))
+            ;; A new client. Add to set, poll, and loop.
+            ;;
+            ;; FIXME: preserve meta-info.
+            (let ((client (accept (poll-set-port poll-set idx))))
+              ;; Set line buffering while reading the request.
+              (setvbuf (car client) _IOLBF)
+              (poll-set-add! poll-set (car client) *events*)
+              (poll poll-set)
+              (lp (1- (poll-set-nfds poll-set)))))))
+         ((zero? revents)
+          ;; Nothing on this port.
+          (lp (1- idx)))
+         ;; Otherwise, a client socket with some activity on
+         ;; it. Remove it from the poll set.
+         (else
+          (let ((port (poll-set-remove! poll-set idx)))
+            (cond
+             ((eof-object? (peek-char port))
+              ;; EOF.
+              (close-port port)
+              (lp (1- idx)))
+             (else
+              ;; Otherwise, try to read a request from this port.
+              ;; Record the next index.
+              (set-http-poll-idx! server (1- idx))
+              (call-with-error-handling
+               (lambda ()
+                 (let ((req (read-request port)))
+                   ;; Block buffering for reading body and writing response.
+                   (setvbuf port _IOFBF)
+                   (values port
+                           req
+                           (read-request-body/latin-1 req))))
+               #:pass-keys '(quit interrupt)
+               #:on-error (if (batch-mode?) 'pass 'debug)
+               #:post-error
+               (lambda (k . args)
+                 (warn "Error while reading request" k args)
+                 (values #f #f #f))))))))))))
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
