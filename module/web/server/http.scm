@@ -56,7 +56,7 @@
                               INADDR_LOOPBACK))
                     (port 8080)
                     (socket (make-default-socket family addr port)))
-  (listen socket 5)
+  (listen socket 128)
   (sigaction SIGPIPE SIG_IGN)
   (let ((poll-set (make-empty-poll-set)))
     (poll-set-add! poll-set socket *events*)
@@ -85,6 +85,8 @@
             (let ((client (accept (poll-set-port poll-set idx))))
               ;; Set line buffering while reading the request.
               (setvbuf (car client) _IOLBF)
+              ;; From "HOP, A Fast Server for the Diffuse Web", Serrano.
+              (setsockopt (car client) SOL_SOCKET SO_SNDBUF (* 12 1024))
               (poll-set-add! poll-set (car client) *events*)
               (poll poll-set)
               (lp (1- (poll-set-nfds poll-set)))))))
