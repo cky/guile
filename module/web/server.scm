@@ -43,18 +43,11 @@
 ;;;     server socket object, or signals an error.
 ;;;
 ;;;   * The `read' hook is called, to read a request from a new client.
-;;;     The `read' hook takes two arguments: the server socket, and a
-;;;     list of keep-alive clients.  It should return four values:  the
-;;;     new list of keep-alive clients, an opaque client socket, the
+;;;     The `read' hook takes one arguments, the server socket.  It
+;;;     should return three values: an opaque client socket, the
 ;;;     request, and the request body. The request should be a
 ;;;     `<request>' object, from `(web request)'.  The body should be a
 ;;;     string or a bytevector, or `#f' if there is no body.
-;;;
-;;;     The keep-alive list is used when selecting a new request.  You
-;;;     can either serve an old client or serve a new client; and some
-;;;     old clients might close their connections while you are waiting.
-;;;     The `read' hook returns a new keep-alive set to account for old
-;;;     clients going away, and for read errors on old clients.
 ;;;
 ;;;     If the read failed, the `read' hook may return #f for the client
 ;;;     socket, request, and body.
@@ -68,14 +61,11 @@
 ;;;     constructed with those headers.
 ;;;
 ;;;   * The `write' hook is called with three arguments: the client
-;;;     socket, the response, and the body.  The `write' hook may return
-;;;     #f to indicate that the connection was closed.  If `write'
-;;;     returns a true value, it will be consed onto the keep-alive
-;;;     list.
+;;;     socket, the response, and the body.  The `write' hook returns no
+;;;     values.
 ;;;
 ;;;   * At this point the request handling is complete. For a loop, we
-;;;     loop back with the new keep-alive list, and try to read a new
-;;;     request.
+;;;     loop back and try to read a new request.
 ;;;
 ;;;   * If the user interrupts the loop, the `close' hook is called on
 ;;;     the server socket.
@@ -149,17 +139,17 @@
 (define (open-server impl open-params)
   (apply (server-impl-open impl) open-params))
 
-;; -> (keep-alive client request body | keep-alive #f #f #f)
-(define (read-client impl server keep-alive)
+;; -> (client request body | #f #f #f)
+(define (read-client impl server)
   (call-with-error-handling
    (lambda ()
-     ((server-impl-read impl) server keep-alive))
+     ((server-impl-read impl) server))
    #:pass-keys '(quit interrupt)
    #:on-error (if (batch-mode?) 'pass 'debug)
    #:post-error
    (lambda (k . args)
      (warn "Error while accepting client" k args)
-     (values keep-alive #f #f #f))))
+     (values #f #f #f))))
 
 (define (call-with-encoded-output-string charset proc)
   (if (and (string-ci=? charset "utf-8") #f)
@@ -256,7 +246,7 @@
      (warn "Error handling request" k args)
      (values (build-response #:code 500) #f state))))
 
-;; -> (#f | client)
+;; -> unspecified values
 (define (write-client impl server client response body)
   (call-with-error-handling
    (lambda ()
@@ -266,7 +256,7 @@
    #:post-error
    (lambda (k . args)
      (warn "Error while writing response" k args)
-     #f)))
+     (values))))
 
 ;; -> unspecified values
 (define (close-server impl server)
@@ -298,16 +288,13 @@
                     (lambda (k proc)
                       (with-stack-and-prompt (lambda () (proc k))))))
   
-(define (and-cons x xs)
-  (if x (cons x xs) xs))
-
-;; -> new keep-alive new-state
-(define (serve-one-client handler impl server keep-alive state)
+;; -> new-state
+(define (serve-one-client handler impl server state)
   (debug-elapsed 'serve-again)
   (call-with-values
       (lambda ()
-        (read-client impl server keep-alive))
-    (lambda (keep-alive client request body)
+        (read-client impl server))
+    (lambda (client request body)
       (debug-elapsed 'read-client)
       (if client
           (call-with-values
@@ -315,13 +302,10 @@
                 (handle-request handler request body state))
             (lambda (response body state)
               (debug-elapsed 'handle-request)
-              (values
-               (and-cons (let ((x (write-client impl server client response body)))
-                           (debug-elapsed 'write-client)
-                           x)
-                         keep-alive)
-               state)))
-          (values keep-alive state)))))
+              (write-client impl server client response body)
+              (debug-elapsed 'write-client)
+              state))
+          state))))
 
 (define* (run-server handler #:optional (impl 'http) (open-params '())
                      . state)
@@ -329,12 +313,8 @@
          (server (open-server impl open-params)))
     (call-with-sigint
      (lambda ()
-       (let lp ((keep-alive '()) (state state))
-         (call-with-values
-             (lambda ()
-               (serve-one-client handler impl server keep-alive state))
-           (lambda (new-keep-alive new-state)
-             (lp new-keep-alive new-state)))))
+       (let lp ((state state))
+         (lp (serve-one-client handler impl server state))))
      (lambda ()
        (close-server impl server)
        (values)))))

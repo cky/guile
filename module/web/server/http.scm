@@ -21,10 +21,12 @@
 
 (define-module (web server http)
   #:use-module ((srfi srfi-1) #:select (fold))
+  #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web server)
+  #:use-module (ice-9 poll)
   #:use-module (system repl error-handling))
 
 
@@ -34,72 +36,90 @@
     (bind sock family addr port)
     sock))
 
+(define-record-type <http-server>
+  (make-http-server socket poll-idx poll-set)
+  http-server?
+  (socket http-socket)
+  (poll-idx http-poll-idx set-http-poll-idx!)
+  (poll-set http-poll-set))
+
+(define *error-events* (logior POLLHUP POLLERR))
+(define *read-events* POLLIN)
+(define *events* (logior *error-events* *read-events*))
+
 ;; -> server
 (define* (http-open #:key
-                      (host #f)
-                      (family AF_INET)
-                      (addr (if host
-                                (inet-pton family host)
-                                INADDR_LOOPBACK))
-                      (port 8080)
-                      (socket (make-default-socket family addr port)))
+                    (host #f)
+                    (family AF_INET)
+                    (addr (if host
+                              (inet-pton family host)
+                              INADDR_LOOPBACK))
+                    (port 8080)
+                    (socket (make-default-socket family addr port)))
   (listen socket 5)
   (sigaction SIGPIPE SIG_IGN)
-  socket)
+  (let ((poll-set (make-empty-poll-set)))
+    (poll-set-add! poll-set socket *events*)
+    (make-http-server socket 1 poll-set)))
 
-;; -> (keep-alive client request body | keep-alive #f #f #f)
-(define (http-read server keep-alive)
-  (call-with-values (lambda ()
-                      (let ((ports (cons server keep-alive)))
-                        (apply values (select ports '() ports))))
-    (lambda (readable writable except)
+;; -> (client request body | #f #f #f)
+(define (http-read server)
+  (let* ((poll-set (http-poll-set server)))
+    (let lp ((idx (http-poll-idx server)))
       (cond
-       ((pair? except)
-        (values (fold (lambda (p keep-alive)
-                        (close-port p)
-                        (if (eq? p server)
-                            (throw 'interrupt)
-                            (delq p keep-alive)))
-                      keep-alive
-                      except)
-                #f #f #f))
-       ((memq server readable)
-        ;; FIXME: meta to read-request
-        (let* ((client (let ((pair (accept server)))
-                         ;; line buffered for request
-                         (setvbuf (car pair) _IOLBF)
-                         pair))
-               (req (read-request (car client)))
-               (body-str (begin
-                           ;; block buffered for body and response
-                           (setvbuf (car client) _IOFBF)
-                           (read-request-body/latin-1 req))))
-          (values keep-alive (car client) req body-str)))
-       ((pair? readable)
-        ;; FIXME: preserve meta for keep-alive
-        (let* ((p (car readable))
-               (keep-alive (delq p keep-alive)))
-          (if (eof-object? (peek-char p))
-              (begin
-                (close-port p)
-                (values keep-alive #f #f #f))
-              (call-with-error-handling
-               (lambda ()
-                 ;; http-write already left p in line-buffered state
-                 (let* ((req (read-request p))
-                        (body-str (begin
-                                    ;; block buffered for body and response
-                                    (setvbuf p _IOFBF)
-                                    (read-request-body/latin-1 req))))
-                   (values keep-alive p req body-str)))
-               #:pass-keys '(quit interrupt)
-               #:on-error (if (batch-mode?) 'pass 'debug)
-               #:post-error
-               (lambda (k . args)
-                 (warn "Error while reading request" k args)
-                 (values keep-alive #f #f #f #f))))))
+       ((not (< idx (poll-set-nfds poll-set)))
+        (poll poll-set)
+        (lp 0))
        (else
-        (values keep-alive #f #f #f))))))
+        (let ((revents (poll-set-revents poll-set idx)))
+          (cond
+           ((zero? revents)
+            ;; Nothing on this port.
+            (lp (1+ idx)))
+           ((zero? idx)
+            ;; The server socket.
+            (if (not (zero? (logand revents *error-events*)))
+                ;; An error.
+                (throw 'interrupt)
+                ;; Otherwise, we have a new client. Add to set, then
+                ;; find another client that is ready to read.
+                ;;
+                ;; FIXME: preserve meta-info.
+                (let ((client (accept (poll-set-port poll-set idx))))
+                  ;; Set line buffering while reading the request.
+                  (setvbuf (car client) _IOLBF)
+                  (poll-set-add! poll-set (car client) *events*)
+                  (lp (1+ idx)))))
+           ;; Otherwise, a client socket with some activity on
+           ;; it. Remove it from the poll set.
+           (else
+            (let ((port (poll-set-remove! poll-set idx)))
+              (cond
+               ((or (not (zero? (logand revents *error-events*)))
+                    (eof-object? (peek-char port)))
+                ;; The socket was shut down or had an error. See
+                ;; http://www.greenend.org.uk/rjk/2001/06/poll.html
+                ;; for an interesting discussion.
+                (close-port port)
+                (lp idx))
+               (else
+                ;; Otherwise, try to read a request from this port.
+                ;; Next time we start with this index.
+                (set-http-poll-idx! server idx)
+                (call-with-error-handling
+                 (lambda ()
+                   (let ((req (read-request port)))
+                     ;; Block buffering for reading body and writing response.
+                     (setvbuf port _IOFBF)
+                     (values port
+                             req
+                             (read-request-body/latin-1 req))))
+                 #:pass-keys '(quit interrupt)
+                 #:on-error (if (batch-mode?) 'pass 'debug)
+                 #:post-error
+                 (lambda (k . args)
+                   (warn "Error while reading request" k args)
+                   (values #f #f #f))))))))))))))
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
@@ -110,9 +130,10 @@
          ((0) (memq 'keep-alive (response-connection response)))))
       (else #f))))
 
-;; -> (#f | client)
+;; -> 0 values
 (define (http-write server client response body)
-  (let ((response (write-response response client)))
+  (let* ((response (write-response response client))
+         (port (response-port response)))
     (cond
      ((not body))                       ; pass
      ((string? body)
@@ -121,20 +142,24 @@
       (write-response-body/bytevector response body))
      (else
       (error "Expected a string or bytevector for body" body)))
-    (force-output (response-port response))
-    (if (keep-alive? response)
-        (let ((p (response-port response)))
-          ;; back to line buffered
-          (setvbuf p _IOLBF)
-          p)
-        (begin
-          (close-port (response-port response))
-          #f))))
+    (cond
+     ((keep-alive? response)
+      (force-output port)
+      ;; back to line buffered
+      (setvbuf port _IOLBF)
+      (poll-set-add! (http-poll-set server) port *events*))
+     (else
+      (close-port port)))
+    (values)))
 
 ;; -> unspecified values
 (define (http-close server)
-  (shutdown server 2)
-  (close-port server))
+  (let ((poll-set (http-poll-set server)))
+    (let lp ((n (poll-set-nfds poll-set)))
+      (if (positive? n)
+          (begin
+            (close-port (poll-set-remove! poll-set (1- n)))
+            (lp (1- n)))))))
 
 (define-server-impl http
   http-open
