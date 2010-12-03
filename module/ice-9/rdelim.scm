@@ -89,38 +89,30 @@
                                  port))
            (terminator (car rv))
            (nchars (cdr rv))
-           (join-substrings
-            (lambda ()
-              (apply string-append
-                     (reverse
-                      (cons (if (and (eq? handle-delim 'concat)
-                                     (not (eof-object? terminator)))
-                                (string terminator)
-                                "")
-                            (cons (substring buf 0 nchars)
-                                  substrings))))))
            (new-total (+ total-chars nchars)))
-      (cond ((not terminator)
-             ;; buffer filled.
-             (loop (cons (substring buf 0 nchars) substrings)
-                   new-total
-                   (* buf-size 2)))
-            ((eof-object? terminator)
-             (if (zero? new-total)
-                 (if (eq? handle-delim 'split)
-                     (cons terminator terminator)
-                     terminator)
-                 (if (eq? handle-delim 'split)
-                     (cons (join-substrings) terminator)
-                     (join-substrings))))
-            (else
-             (case handle-delim
-               ((trim peek concat) (join-substrings))
-               ((split) (cons (join-substrings) terminator))
-
-
-               (else (error "unexpected handle-delim value: "
-                            handle-delim))))))))
+      (cond
+       ((not terminator)
+        ;; buffer filled.
+        (loop (cons (substring buf 0 nchars) substrings)
+              new-total
+              (* buf-size 2)))
+       ((and (eof-object? terminator) (zero? new-total))
+        (if (eq? handle-delim 'split)
+            (cons terminator terminator)
+            terminator))
+       (else
+        (let ((joined
+               (string-concatenate-reverse
+                (cons (substring buf 0 nchars) substrings))))
+          (case handle-delim
+            ((concat)
+             (if (eof-object? terminator)
+                 joined
+                 (string-append joined (string terminator))))
+            ((trim peek) joined)
+            ((split) (cons joined terminator))
+            (else (error "unexpected handle-delim value: "
+                         handle-delim)))))))))
 
 ;;; read-line [PORT [HANDLE-DELIM]] reads a newline-terminated string
 ;;; from PORT.  The return value depends on the value of HANDLE-DELIM,
