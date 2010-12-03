@@ -644,7 +644,7 @@ AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h proces
 regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
-direct.h langinfo.h nl_types.h machine/fpu.h])
+direct.h langinfo.h nl_types.h machine/fpu.h poll.h])
 
 # Reasons for testing:
 #   nl_item - lacking on Cygwin
@@ -741,6 +741,7 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   gmtime_r - recent posix, not on old systems
 #   pipe - not in mingw
 #   _pipe - specific to mingw, taking 3 args
+#   poll - since posix 2001
 #   readdir_r - recent posix, not on old systems
 #   readdir64_r - not available on HP-UX 11.11
 #   stat64 - SuS largefile stuff, not on old systems
@@ -753,7 +754,7 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   utimensat: posix.1-2008
 #   sched_getaffinity, sched_setaffinity: GNU extensions (glibc)
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo utimensat sched_getaffinity sched_setaffinity])
+AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe poll readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo utimensat sched_getaffinity sched_setaffinity])
 
 # Reasons for testing:
 #   netdb.h - not in mingw

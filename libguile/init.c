@@ -88,6 +88,7 @@
 #include "libguile/objprop.h"
 #include "libguile/options.h"
 #include "libguile/pairs.h"
+#include "libguile/poll.h"
 #include "libguile/ports.h"
 #include "libguile/posix.h"
 #ifdef HAVE_REGCOMP
@@ -459,6 +460,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_register_foreign ();
   scm_register_srfi_1 ();
   scm_register_srfi_60 ();
+  scm_register_poll ();
 
   scm_init_strings ();            /* Requires array-handle */
   scm_init_struct ();             /* Requires strings */

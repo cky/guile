@@ -170,6 +170,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	objprop.c				\
 	options.c				\
 	pairs.c					\
+	poll.c					\
 	ports.c					\
 	print.c					\
 	procprop.c				\
@@ -541,6 +542,7 @@ modinclude_HEADERS =				\
 	objprop.h				\
 	options.h				\
 	pairs.h					\
+	poll.h					\
 	ports.h					\
 	posix.h					\
 	print.h					\
