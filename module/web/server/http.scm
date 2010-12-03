@@ -110,7 +110,7 @@
                 (setvbuf port _IOFBF)
                 (values port
                         req
-                        (read-request-body/latin-1 req))))))))))))
+                        (read-request-body/bytevector req))))))))))))
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
