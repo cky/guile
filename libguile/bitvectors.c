@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -117,6 +117,8 @@ scm_c_make_bitvector (size_t len, SCM fill)
 
   if (!SCM_UNBNDP (fill))
     scm_bitvector_fill_x (res, fill);
+  else
+    memset (bits, 0, sizeof (scm_t_uint32) * word_len);
       
   return res;
 }

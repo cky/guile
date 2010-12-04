@@ -482,6 +482,8 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
       for (i = 0; i < c_len; i++)
 	contents[i] = c_fill;
     }
+  else
+    memset (SCM_BYTEVECTOR_CONTENTS (bv), 0, c_len);
 
   return bv;
 }

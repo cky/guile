@@ -1112,7 +1112,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 	    "Return a newly allocated string of\n"
             "length @var{k}.  If @var{chr} is given, then all elements of\n"
 	    "the string are initialized to @var{chr}, otherwise the contents\n"
-	    "of the @var{string} are unspecified.")
+	    "of the @var{string} are all set to @var{#\nul}.")
 #define FUNC_NAME s_scm_make_string
 {
   return scm_c_make_string (scm_to_size_t (k), chr);
@@ -1124,9 +1124,13 @@ scm_c_make_string (size_t len, SCM chr)
 #define FUNC_NAME NULL
 {
   size_t p;
-  SCM res = scm_i_make_string (len, NULL);
+  char *contents = NULL;
+  SCM res = scm_i_make_string (len, &contents);
 
-  if (!SCM_UNBNDP (chr))
+  /* If no char is given, initialize string contents to NULL.  */
+  if (SCM_UNBNDP (chr))
+    memset (contents, 0, len);
+  else
     {
       SCM_VALIDATE_CHAR (0, chr);
       res = scm_i_string_start_writing (res);

@@ -169,8 +169,10 @@ scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
 #endif
 }
 
-/* Allocate SIZE bytes of memory whose contents should not be scanned for
-   pointers (useful, e.g., for strings).  */
+/* Allocate SIZE bytes of memory whose contents should not be scanned
+   for pointers (useful, e.g., for strings).  Note though that this
+   memory is *not* cleared; be sure to initialize it to prevent
+   information leaks.  */
 void *
 scm_gc_malloc_pointerless (size_t size, const char *what)
 {

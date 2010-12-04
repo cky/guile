@@ -609,6 +609,8 @@ make_cif (SCM return_type, SCM arg_types, const char *caller)
 	     + (nargs + n_struct_elts + 1)*sizeof(ffi_type));
 
   mem = scm_gc_malloc_pointerless (cif_len, "foreign");
+  /* ensure all the memory is initialized, even the holes */
+  memset (mem, 0, cif_len);
   cif = (ffi_cif *) mem;
 
   /* reuse cif_len to walk through the mem */
