@@ -195,9 +195,12 @@
 (define (read-request-body/latin-1 r)
   (let ((nbytes (request-content-length r)))
     (and nbytes
-         (let ((buf (make-string nbytes)))
-           (read-delimited! "" buf (request-port r))
-           buf))))
+         (let* ((buf (make-string nbytes))
+                (n (read-delimited! "" buf (request-port r))))
+           (if (= n nbytes)
+               buf
+               (bad-request "EOF while reading request body: ~a bytes of ~a"
+                            n nbytes))))))
 
 ;; Likewise, assumes that body can be written in the latin-1 encoding,
 ;; and that the latin-1 encoding is what is expected by the server.
