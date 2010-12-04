@@ -17,6 +17,14 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 ;; 02110-1301 USA
 
+;;; Commentary:
+;;;
+;;; This is the HTTP implementation of the (web server) interface.
+;;;
+;;; `read-request' sets the character encoding on the new port to
+;;; latin-1.  See the note in request.scm regarding character sets,
+;;; strings, and bytevectors for more information.
+;;;
 ;;; Code:
 
 (define-module (web server http)
