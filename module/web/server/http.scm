@@ -122,12 +122,14 @@
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
-    (case (car v)
-      ((1)
-       (case (cdr v)
-         ((1) #t)
-         ((0) (memq 'keep-alive (response-connection response)))))
-      (else #f))))
+    (and (or (< (response-code response) 400)
+             (= (response-code response) 404))
+         (case (car v)
+           ((1)
+            (case (cdr v)
+              ((1) (not (memq 'close (response-connection response))))
+              ((0) (memq 'keep-alive (response-connection response)))))
+           (else #f)))))
 
 ;; -> 0 values
 (define (http-write server client response body)
