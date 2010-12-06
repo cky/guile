@@ -185,14 +185,24 @@
 ;; per char because we are in latin-1 encoding.
 ;;
 (define (read-response-body/latin-1 r)
-  (let ((nbytes (response-content-length r)))
-    (and nbytes
-         (let* ((buf (make-string nbytes))
-                (n (read-delimited! "" buf (response-port r))))
-           (if (= n nbytes)
-               buf
-               (bad-response "EOF while reading response body: ~a bytes of ~a"
-                             n nbytes))))))
+  (cond 
+   ((response-content-length r) =>
+    (lambda (nbytes)
+      (let ((buf (make-string nbytes))
+            (port (response-port r)))
+        (let lp ((i 0))
+          (cond
+           ((< i nbytes)
+            (let ((c (read-char port)))
+              (cond
+               ((eof-object? c)
+                (bad-response "EOF while reading response body: ~a bytes of ~a"
+                              i nbytes))
+               (else
+                (string-set! buf i c)
+                (lp (1+ i))))))
+           (else buf))))))
+   (else #f)))
 
 ;; Likewise, assumes that body can be written in the latin-1 encoding,
 ;; and that the latin-1 encoding is what is expected by the server.

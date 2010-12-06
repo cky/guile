@@ -192,15 +192,25 @@
 ;; Probably not what you want to use "in production". Relies on one byte
 ;; per char because we are in latin-1 encoding.
 ;;
-(define (read-request-body/latin-1 r)
-  (let ((nbytes (request-content-length r)))
-    (and nbytes
-         (let* ((buf (make-string nbytes))
-                (n (read-delimited! "" buf (request-port r))))
-           (if (= n nbytes)
-               buf
-               (bad-request "EOF while reading request body: ~a bytes of ~a"
-                            n nbytes))))))
+(define (read-response-body/latin-1 r)
+  (cond 
+   ((request-content-length r) =>
+    (lambda (nbytes)
+      (let ((buf (make-string nbytes))
+            (port (request-port r)))
+        (let lp ((i 0))
+          (cond
+           ((< i nbytes)
+            (let ((c (read-char port)))
+              (cond
+               ((eof-object? c)
+                (bad-request "EOF while reading request body: ~a bytes of ~a"
+                             i nbytes))
+               (else
+                (string-set! buf i c)
+                (lp (1+ i))))))
+           (else buf))))))
+   (else #f)))
 
 ;; Likewise, assumes that body can be written in the latin-1 encoding,
 ;; and that the latin-1 encoding is what is expected by the server.
