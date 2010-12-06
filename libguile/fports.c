@@ -170,6 +170,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 {
   int cmode;
   long csize;
+  SCM drained;
   scm_t_port *pt;
 
   port = SCM_COERCE_OUTPORT (port);
@@ -205,7 +206,14 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   pt = SCM_PTAB_ENTRY (port);
 
-  /* silently discards buffered and put-back chars.  */
+  if (SCM_INPUT_PORT_P (port))
+    drained = scm_drain_input (port);
+  else
+    drained = scm_nullstr;
+
+  if (SCM_OUTPUT_PORT_P (port))
+    scm_flush (port);
+
   if (pt->read_buf == pt->putback_buf)
     {
       pt->read_buf = pt->saved_read_buf;
@@ -219,6 +227,10 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
     scm_gc_free (pt->write_buf, pt->write_buf_size, "port buffer");
 
   scm_fport_buffer_add (port, csize, csize);
+
+  if (scm_is_true (drained) && scm_c_string_length (drained))
+    scm_unread_string (drained, port);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME

@@ -347,8 +347,14 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
   if (pt->read_buf == pt->putback_buf)
     count += pt->saved_read_end - pt->saved_read_pos;
 
-  result = scm_i_make_string (count, &data);
-  scm_take_from_input_buffers (port, data, count);
+  if (count)
+    {
+      result = scm_i_make_string (count, &data);
+      scm_take_from_input_buffers (port, data, count);
+    }
+  else
+    result = scm_nullstr;
+  
   return result;
 }
 #undef FUNC_NAME
