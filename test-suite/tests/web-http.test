@@ -143,6 +143,8 @@
                    (0 . "*")))
   (pass-if-parse accept-language "da, en-gb;q=0.8, en;q=0.7"
                  '((1000 . "da") (800 . "en-gb") (700 . "en")))
+  ;; Allow nonstandard .2 to mean 0.2
+  (pass-if-parse accept-language "en-gb;q=.2" '((200 . "en-gb")))
   (pass-if-parse authorization "foo" "foo")
   (pass-if-parse expect "100-continue, foo" '((100-continue) ("foo")))
   (pass-if-parse from "foo@bar" "foo@bar")

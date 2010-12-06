@@ -17,6 +17,16 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 ;; 02110-1301 USA
 
+;;; Commentary:
+;;;
+;;; This module has a number of routines to parse textual
+;;; representations of HTTP data into native Scheme data structures.
+;;;
+;;; It tries to follow RFCs fairly strictly---the road to perdition
+;;; being paved with compatibility hacks---though some allowances are
+;;; made for not-too-divergent texts (like a quality of .2 which should
+;;; be 0.2, etc).
+;;;
 ;;; Code:
 
 (define-module (web http)
@@ -316,6 +326,16 @@
                           (+ q (* place (char->decimal (string-ref str i))))
                           q))))
             (bad-header-component 'quality str))))
+   ;; Allow the nonstandard .2 instead of 0.2.
+   ((and (eqv? (string-ref str start) #\.)
+         (< 1 (- end start) 5))
+    (let lp ((place 1) (i (+ start 3)) (q 0))
+      (if (= i start)
+          q
+          (lp (* 10 place) (1- i)
+              (if (< i end)
+                  (+ q (* place (char->decimal (string-ref str i))))
+                  q)))))
    (else
     (bad-header-component 'quality str))))
 
