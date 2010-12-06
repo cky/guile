@@ -534,14 +534,17 @@ from the value returned by @code{(current-input-port)}.
 
 @c begin (scm-doc-string "rdelim.scm" "read-delimited!")
 @deffn {Scheme Procedure} read-delimited! delims buf [port] [handle-delim] [start] [end]
-Read text into the supplied string @var{buf} and return the number of
-characters added to @var{buf} (subject to @var{handle-delim}, which takes
-the same values specified for @code{read-line}.  If @var{buf} is filled,
-@code{#f} is returned for both the number of characters read and the
-delimiter.  Also terminates if one of the characters in the string
-@var{delims} is found
-or end-of-file is reached.  Read from @var{port} if supplied, otherwise
-from the value returned by @code{(current-input-port)}.
+Read text into the supplied string @var{buf}.
+
+If a delimiter was found, return the number of characters written,
+except if @var{handle-delim} is @code{split}, in which case the return
+value is a pair, as noted above.
+
+As a special case, if @var{port} was already at end-of-stream, the EOF
+object is returned. Also, if no characters were written because the
+buffer was full, @code{#f} is returned.
+
+It's something of a wacky interface, to be honest.
 @end deffn
 
 @deffn {Scheme Procedure} write-line obj [port]
