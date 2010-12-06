@@ -192,7 +192,7 @@
 ;; Probably not what you want to use "in production". Relies on one byte
 ;; per char because we are in latin-1 encoding.
 ;;
-(define (read-response-body/latin-1 r)
+(define (read-request-body/latin-1 r)
   (cond 
    ((request-content-length r) =>
     (lambda (nbytes)
