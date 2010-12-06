@@ -49,8 +49,7 @@ module.  You can do this at the Guile REPL by evaluating:
 @node Class definition
 @subsection Class definition
 
-A new class is defined with the @code{define-class} macro. The syntax
-of @code{define-class} is close to CLOS @code{defclass}:
+A new class is defined with the @code{define-class} syntax:
 
 @findex define-class
 @cindex class
@@ -95,12 +94,12 @@ superclass of @code{<real>}, and @code{<real>} is the superclass of
 @node Instance creation and slot access
 @subsection Instance creation and slot access
 
-Creation of an instance of a previously defined
-class can be done with the @code{make} procedure. This
-procedure takes one mandatory parameter which is the class of the
-instance which must be created and a list of optional
-arguments. Optional arguments are generally used to initialize some
-slots of the newly created instance. For instance, the following form
+Creation of an instance of a previously defined class can be done with
+@code{make}.  This procedure takes one mandatory parameter which is the
+class of the instance which must be created, and a list of optional
+arguments.  Optional arguments are generally used to initialize some of
+the slots of the newly created instance. For instance, the following
+form
 
 @findex make
 @cindex instance
