@@ -61,17 +61,28 @@
    The pollfds bytevector is modified directly, setting the returned events in
    the final two bytes (the revents member).
 
+   Since Scheme ports can buffer input or output in userspace, a Scheme
+   poll interface needs to take that into account as well.  The `ports'
+   argument, a vector big enough for `nfds' elements, is given for this
+   purpose.  If a pollfd entry has a corresponding open port, that port
+   is scanned for available input or output before dropping into the
+   poll.  If any port has buffered I/O available, the poll syscall is
+   still issued, but with a timeout of 0 milliseconds, and a full port
+   scan occurs after the poll returns.
+
    If timeout is given and is non-negative, the poll will return after that
    number of milliseconds if no fd became active.
    */
 #ifdef HAVE_POLL
 static SCM
-scm_primitive_poll (SCM pollfds, SCM nfds, SCM timeout)
+scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
 #define FUNC_NAME "primitive-poll"
 {
-  int rv;
+  int rv = 0;
+  nfds_t i;
   nfds_t c_nfds;
   int c_timeout;
+  int have_buffered_io = 0;
   struct pollfd *fds;
 
   SCM_VALIDATE_BYTEVECTOR (SCM_ARG1, pollfds);
@@ -80,14 +91,75 @@ scm_primitive_poll (SCM pollfds, SCM nfds, SCM timeout)
   
   if (SCM_UNLIKELY (SCM_BYTEVECTOR_LENGTH (pollfds)
                     < c_nfds * sizeof(struct pollfd)))
-    SCM_OUT_OF_RANGE (SCM_ARG1, nfds);
+    SCM_OUT_OF_RANGE (SCM_ARG2, nfds);
   
+  SCM_VALIDATE_VECTOR (SCM_ARG3, ports);
+  if (SCM_UNLIKELY (SCM_SIMPLE_VECTOR_LENGTH (ports) < c_nfds))
+    SCM_OUT_OF_RANGE (SCM_ARG3, ports);
+    
   fds = (struct pollfd*)SCM_BYTEVECTOR_CONTENTS (pollfds);
   
+  for (i = 0; i < c_nfds; i++)
+    {
+      SCM port = SCM_SIMPLE_VECTOR_REF (ports, i);
+      short int revents = 0;
+
+      if (SCM_PORTP (port))
+        {
+          if (SCM_CLOSEDP (port))
+            revents |= POLLERR;
+          else
+            {
+              scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+              if (pt->read_pos < pt->read_end)
+                /* Buffered input waiting to be read. */
+                revents |= POLLIN;
+              if (pt->write_pos < pt->write_end)
+                /* Buffered output possible. */
+                revents |= POLLOUT;
+            }
+        }
+
+      if (revents & fds[i].events)
+        {
+          have_buffered_io = 1;
+          c_timeout = 0;
+          break;
+        }
+    }
+
   SCM_SYSCALL (rv = poll (fds, c_nfds, c_timeout));
 
   if (rv == -1)
     SCM_SYSERROR;
+
+  if (have_buffered_io)
+    for (i = 0; i < c_nfds; i++)
+      {
+        SCM port = SCM_SIMPLE_VECTOR_REF (ports, i);
+        short int revents = 0;
+
+        if (SCM_PORTP (port))
+          {
+            if (SCM_CLOSEDP (port))
+              revents |= POLLERR;
+            else
+              {
+                scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+                if (pt->read_pos < pt->read_end)
+                  /* Buffered input waiting to be read. */
+                  revents |= POLLIN;
+                if (pt->write_pos < pt->write_end)
+                  /* Buffered output possible. */
+                  revents |= POLLOUT;
+              }
+          }
+
+        if ((fds[i].revents = revents & fds[i].events))
+          rv++;
+      }
 
   return scm_from_int (rv);
 }
@@ -101,7 +173,7 @@ static void
 scm_init_poll (void)
 {
 #if HAVE_POLL
-  scm_c_define_gsubr ("primitive-poll", 3, 0, 0, scm_primitive_poll);
+  scm_c_define_gsubr ("primitive-poll", 4, 0, 0, scm_primitive_poll);
 #else
   scm_misc_error ("%init-poll", "`poll' unavailable on this platform", SCM_EOL);
 #endif

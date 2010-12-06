@@ -172,4 +172,5 @@
 (define* (poll poll-set #:optional (timeout -1))
   (primitive-poll (pset-pollfds poll-set)
                   (poll-set-nfds poll-set)
+                  (pset-ports poll-set)
                   timeout))
