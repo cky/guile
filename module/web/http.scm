@@ -573,7 +573,7 @@
        (string? (car val))))
 
 (define (write-entity-tag val port)
-  (if (cdr val)
+  (if (not (cdr val))
       (display "W/" port))
   (write-qstring (car val) port))
 
