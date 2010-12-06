@@ -772,10 +772,10 @@ as in Scheme code in general.)
 @node Example
 @subsection Example
 
-In this section we shall continue to define operations on the @code{<my-complex>}
-class defined in Figure@ 2. Suppose that we want to use it to implement 
-complex numbers completely. For instance a definition for the addition of 
-two complexes could be
+In this section we shall continue to define operations on the
+@code{<my-complex>} class.  Suppose that we want to use it to implement
+complex numbers completely.  For instance a definition for the addition
+of two complexes could be
 
 @lisp
 (define-method (new-+ (a <my-complex>) (b <my-complex>))
@@ -783,8 +783,8 @@ two complexes could be
                     (+ (imag-part a) (imag-part b))))
 @end lisp
 
-To be sure that the @code{+} used in the method @code{new-+} is the standard
-addition we can do:
+To be sure that the @code{+} used in the method @code{new-+} is the
+standard addition we can do:
 
 @lisp
 (define-generic new-+)
@@ -799,10 +799,9 @@ The @code{define-generic} ensures here that @code{new-+} will be defined
 in the global environment. Once this is done, we can add methods to the
 generic function @code{new-+} which make a closure on the @code{+}
 symbol.  A complete writing of the @code{new-+} methods is shown in
-Figure@ 3.
+@ref{fig:newplus}.
 
-@example
-@group
+@float Figure,fig:newplus
 @lisp
 (define-generic new-+)
 
@@ -831,9 +830,8 @@ Figure@ 3.
 (set! + new-+)
 @end lisp
 
-@center @emph{Fig 3: Extending @code{+} for dealing with complex numbers}
-@end group
-@end example
+@caption{Extending @code{+} to handle complex numbers}
+@end float
 
 @sp 3
 We use here the fact that generic function are not obliged to have the
@@ -887,13 +885,15 @@ case, the system will replace the null list by a list which only
 contains @code{<object>}, the root of all the classes defined by
 @code{define-class}.  @code{D}, @code{E}, @code{F} use multiple
 inheritance: each class inherits from two previously defined classes.
-Those class definitions define a hierarchy which is shown in Figure@ 1.
-In this figure, the class @code{<top>} is also shown; this class is the
-superclass of all Scheme objects.  In particular, @code{<top>} is the
-superclass of all standard Scheme types.
+Those class definitions define a hierarchy which is shown in
+@ref{fig:hier}.  In this figure, the class @code{<top>} is also shown;
+this class is the superclass of all Scheme objects.  In particular,
+@code{<top>} is the superclass of all standard Scheme
+types.@footnote{@code{<complex>}, which is the direct subclass of
+@code{<number>} and the direct superclass of @code{<real>}, has been
+omitted in this figure.}
 
-@example
-@group
+@float Figure,fig:hier
 @iftex
 @center @image{hierarchy,5in}
 @end iftex
@@ -901,11 +901,8 @@ superclass of all standard Scheme types.
 @verbatiminclude hierarchy.txt
 @end ifnottex
 
-@emph{Fig 1: A class hierarchy}@footnote{@code{<complex>}, which is the
-direct subclass of @code{<number>} and the direct superclass of
-@code{<real>}, has been omitted in this figure.}
-@end group
-@end example
+@caption{A class hierarchy.}
+@end float
 
 When a class has superclasses, its set of slots is calculated by taking
 the union of its own slots and those of all its superclasses.  Thus each
@@ -978,7 +975,7 @@ in class precedence list of @code{Z}.
 
 These two rules are not always enough to determine a unique order,
 however, but they give an idea of how things work.  Taking the @code{F}
-class shown in Figure@ 1, the class precedence list is
+class shown in @ref{fig:hier}, the class precedence list is
 
 @example
 (f d e a c b <object> <top>)
