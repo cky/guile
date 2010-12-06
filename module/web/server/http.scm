@@ -113,12 +113,17 @@
               ;; Otherwise, try to read a request from this port.
               ;; Record the next index.
               (set-http-poll-idx! server (1- idx))
-              (let ((req (read-request port)))
-                ;; Block buffering for reading body and writing response.
-                (setvbuf port _IOFBF)
-                (values port
-                        req
-                        (read-request-body/bytevector req))))))))))))
+              (with-throw-handler
+               #t
+               (lambda ()
+                 (let ((req (read-request port)))
+                   ;; Block buffering for reading body and writing response.
+                   (setvbuf port _IOFBF)
+                   (values port
+                           req
+                           (read-request-body/bytevector req))))
+               (lambda (k . args)
+                 (false-if-exception (close-port port)))))))))))))
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
