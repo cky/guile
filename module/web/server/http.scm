@@ -90,8 +90,8 @@
             ;;
             ;; FIXME: preserve meta-info.
             (let ((client (accept (poll-set-port poll-set idx))))
-              ;; Set line buffering while reading the request.
-              (setvbuf (car client) _IOLBF)
+              ;; Buffer input and output on this port.
+              (setvbuf (car client) _IOFBF)
               ;; From "HOP, A Fast Server for the Diffuse Web", Serrano.
               (setsockopt (car client) SOL_SOCKET SO_SNDBUF (* 12 1024))
               (poll-set-add! poll-set (car client) *events*)
@@ -117,8 +117,6 @@
                #t
                (lambda ()
                  (let ((req (read-request port)))
-                   ;; Block buffering for reading body and writing response.
-                   (setvbuf port _IOFBF)
                    (values port
                            req
                            (read-request-body/bytevector req))))
@@ -151,8 +149,6 @@
     (cond
      ((keep-alive? response)
       (force-output port)
-      ;; back to line buffered
-      (setvbuf port _IOLBF)
       (poll-set-add! (http-poll-set server) port *events*))
      (else
       (close-port port)))
