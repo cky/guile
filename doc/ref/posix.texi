@@ -1840,7 +1840,9 @@ has its corresponding bit set in the returned bitvector.
 The number of bits set is a good estimate of how many CPUs
 Guile can use without stepping on other processes' toes.
 
-Currently this procedure is only defined on GNU variants.
+Currently this procedure is only defined on GNU variants
+(@pxref{CPU Affinity, @code{sched_getaffinity},, libc, The
+GNU C Library Reference Manual}).
 @end deffn
 
 @deffn {Scheme Procedure} setaffinity pid mask
@@ -1849,7 +1851,9 @@ Install the CPU affinity mask @var{mask}, a bitvector, for
 the process or thread with ID @var{pid}.  The return value
 is unspecified.
 
-Currently this procedure is only defined on GNU variants.
+Currently this procedure is only defined on GNU variants
+(@pxref{CPU Affinity, @code{sched_setaffinity},, libc, The
+GNU C Library Reference Manual}).
 @end deffn
 
 
