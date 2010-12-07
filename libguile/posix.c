@@ -138,6 +138,7 @@ extern char *ttyname();
 #endif
 
 #include <sys/file.h>     /* from Gnulib */
+#include <nproc.h>
 
 /* Some Unix systems don't define these.  CPP hair is dangerous, but
    this seems safe enough... */
@@ -1990,6 +1991,37 @@ SCM_DEFINE (scm_setaffinity, "setaffinity", 2, 0, 0,
 
 #endif /* HAVE_SCHED_SETAFFINITY */
 
+SCM_DEFINE (scm_total_processor_count, "total-processor-count", 0, 0, 0,
+	    (void),
+	    "Return the total number of processors of the machine, which\n"
+	    "is guaranteed to be at least 1.  A ``processor'' here is a\n"
+	    "thread execution unit, which can be either:\n\n"
+	    "@itemize\n"
+	    "@item an execution core in a (possibly multi-core) chip, in a\n"
+	    "  (possibly multi- chip) module, in a single computer, or\n"
+	    "@item a thread execution unit inside a core in the case of\n"
+	    "  @dfn{hyper-threaded} CPUs.\n"
+	    "@end itemize\n\n"
+	    "Which of the two definitions is used, is unspecified.\n")
+#define FUNC_NAME s_scm_total_processor_count
+{
+  return scm_from_ulong (num_processors (NPROC_ALL));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_current_processor_count, "current-processor-count", 0, 0, 0,
+	    (void),
+	    "Like @code{total-processor-count}, but return the number of\n"
+	    "processors available to the current process.  See\n"
+	    "@code{setaffinity} and @code{getaffinity} for more\n"
+	    "information.\n")
+#define FUNC_NAME s_scm_total_processor_count
+{
+  return scm_from_ulong (num_processors (NPROC_CURRENT));
+}
+#undef FUNC_NAME
+
+
 #if HAVE_GETPASS
 SCM_DEFINE (scm_getpass, "getpass", 1, 0, 0, 
             (SCM prompt),

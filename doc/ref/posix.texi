@@ -1856,6 +1856,30 @@ Currently this procedure is only defined on GNU variants
 GNU C Library Reference Manual}).
 @end deffn
 
+@deffn {Scheme Procedure} total-processor-count
+@deffnx {C Function} scm_total_processor_count ()
+Return the total number of processors of the machine, which
+is guaranteed to be at least 1.  A ``processor'' here is a
+thread execution unit, which can be either:
+
+@itemize
+@item an execution core in a (possibly multi-core) chip, in a
+  (possibly multi- chip) module, in a single computer, or
+@item a thread execution unit inside a core in the case of
+  @dfn{hyper-threaded} CPUs.
+@end itemize
+
+Which of the two definitions is used, is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} current-processor-count
+@deffnx {C Function} scm_current_processor_count ()
+Like @code{total-processor-count}, but return the number of
+processors available to the current process.  See
+@code{setaffinity} and @code{getaffinity} for more
+information.
+@end deffn
+
 
 @node Signals
 @subsection Signals
