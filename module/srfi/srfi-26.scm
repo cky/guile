@@ -1,6 +1,6 @@
 ;;; srfi-26.scm --- specializing parameters without currying.
 
-;; Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2006, 2010 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -21,29 +21,46 @@
 
 (cond-expand-provide (current-module) '(srfi-26))
 
-(define-macro (cut slot . slots)
-  (let loop ((slots	(cons slot slots))
-	     (params	'())
-	     (args	'()))
-    (if (null? slots)
-	`(lambda ,(reverse! params) ,(reverse! args))
-      (let ((s	  (car slots))
-	    (rest (cdr slots)))
-	(case s
-	  ((<>)
-	   (let ((var (gensym)))
-	     (loop rest (cons var params) (cons var args))))
-	  ((<...>)
-	   (if (pair? rest)
-	       (error "<...> not on the end of cut expression"))
-	   (let ((var (gensym)))
-	     `(lambda ,(append! (reverse! params) var)
-		(apply ,@(reverse! (cons var args))))))
-	  (else
-	   (loop rest params (cons s args))))))))
+(define-syntax cut
+  (lambda (stx)
+    (syntax-case stx ()
+      ((cut slot0 slot1+ ...)
+       (let loop ((slots	#'(slot0 slot1+ ...))
+                  (params	'())
+                  (args	'()))
+         (if (null? slots)
+             #`(lambda #,(reverse params) #,(reverse args))
+             (let ((s	  (car slots))
+                   (rest (cdr slots)))
+               (with-syntax (((var) (generate-temporaries '(var))))
+                 (syntax-case s (<> <...>)
+                   (<>
+                    (loop rest (cons #'var params) (cons #'var args)))
+                   (<...>
+                    (if (pair? rest)
+                        (error "<...> not on the end of cut expression"))
+                    #`(lambda #,(append (reverse params) #'var)
+                        (apply #,@(reverse (cons #'var args)))))
+                   (else
+                    (loop rest params (cons s args))))))))))))
 
-(define-macro (cute . slots)
-  (let ((temp (map (lambda (s) (and (not (memq s '(<> <...>))) (gensym)))
-		   slots)))
-    `(let ,(delq! #f (map (lambda (t s) (and t (list t s))) temp slots))
-       (cut ,@(map (lambda (t s) (or t s)) temp slots)))))
+(define-syntax cute
+  (lambda (stx)
+    (syntax-case stx ()
+      ((cute slots ...)
+       (let loop ((slots #'(slots ...))
+                  (bindings '())
+                  (arguments '()))
+         (define (process-hole)
+           (loop (cdr slots) bindings (cons (car slots) arguments)))
+         (if (null? slots)
+             #`(let #,bindings
+                 (cut #,@(reverse arguments)))
+             (syntax-case (car slots) (<> <...>)
+               (<> (process-hole))
+               (<...> (process-hole))
+               (expr
+                (with-syntax (((t) (generate-temporaries '(t))))
+                  (loop (cdr slots)
+                        (cons #'(t expr) bindings)
+                        (cons #'t arguments)))))))))))
