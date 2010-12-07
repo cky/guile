@@ -306,7 +306,7 @@ VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 1, 1)
 
       /* Attempt to provide the variable name in the error message.  */
       var_name = scm_module_reverse_lookup (scm_current_module (), x);
-      finish_args = scm_list_1 (scm_is_true (var_name) ? var_name : x);
+      finish_args = scm_is_true (var_name) ? var_name : x;
       goto vm_error_unbound;
     }
   else
@@ -340,7 +340,7 @@ VM_DEFINE_INSTRUCTION (27, toplevel_ref, "toplevel-ref", 1, 0, 1)
       resolved = resolve_variable (what, scm_program_module (program));
       if (!VARIABLE_BOUNDP (resolved))
         {
-          finish_args = scm_list_1 (what);
+          finish_args = what;
           goto vm_error_unbound;
         }
       what = resolved;
@@ -366,7 +366,7 @@ VM_DEFINE_INSTRUCTION (28, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
       resolved = resolve_variable (what, scm_program_module (program));
       if (!VARIABLE_BOUNDP (resolved))
         {
-          finish_args = scm_list_1 (what);
+          finish_args = what;
           goto vm_error_unbound;
         }
       what = resolved;
