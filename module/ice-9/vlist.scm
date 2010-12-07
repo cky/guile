@@ -19,6 +19,7 @@
 (define-module (ice-9 vlist)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-26)
 
   #:export (vlist? vlist-cons vlist-head vlist-tail vlist-null?
@@ -147,6 +148,21 @@
   vlist?
   (base    vlist-base)
   (offset  vlist-offset))
+
+(set-record-type-printer! <vlist>
+                          (lambda (vl port)
+                            (cond ((vlist-null? vl)
+                                   (format port "#<vlist ()>"))
+                                  ((block-hash-table (vlist-base vl))
+                                   (format port "#<vhash ~x ~a pairs>"
+                                           (object-address vl)
+                                           (vhash-fold (lambda (k v r)
+                                                         (+ 1 r))
+                                                       0
+                                                       vl)))
+                                  (else
+                                   (format port "#<vlist ~a>"
+                                           (vlist->list vl))))))
 
 
 (define vlist-null
