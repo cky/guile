@@ -146,9 +146,7 @@ touched."
 
 (define %worker-count
   (if (provided? 'threads)
-      (if (defined? 'getaffinity)
-          (- (bit-count #t (getaffinity (getpid))) 1)
-          3) ;; FIXME: use Gnulib's `nproc' here.
+      (- (current-processor-count) 1)
       0))
 
 (define %workers
