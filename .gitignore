@@ -137,3 +137,4 @@ INSTALL
 /lib/unitypes.h
 /lib/c++defs.h
 /.sc-start-*
+/lib/math.h

@@ -40,6 +40,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module c-strcase:
   # Code from module c-strcaseeq:
   # Code from module canonicalize-lgpl:
+  # Code from module close-hook:
   # Code from module configmake:
   # Code from module duplocale:
   # Code from module environ:
@@ -94,6 +95,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module multiarch:
   # Code from module netdb:
   # Code from module netinet_in:
+  # Code from module nproc:
   # Code from module pathmax:
   # Code from module putenv:
   # Code from module readlink:
@@ -102,6 +104,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module servent:
   # Code from module size_max:
   # Code from module snprintf:
+  # Code from module socketlib:
+  # Code from module sockets:
   # Code from module socklen:
   # Code from module ssize_t:
   # Code from module stat:
@@ -185,6 +189,7 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([canonicalize-lgpl])
   gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
   gl_STDLIB_MODULE_INDICATOR([realpath])
+  # Code from module close-hook:
   # Code from module configmake:
   # Code from module duplocale:
   gl_FUNC_DUPLOCALE
@@ -233,6 +238,7 @@ AC_DEFUN([gl_INIT],
   gl_HOSTENT
   # Code from module iconv:
   AM_ICONV
+  gl_ICONV_MODULE_INDICATOR([iconv])
   # Code from module iconv-h:
   gl_ICONV_H
   # Code from module iconv_open:
@@ -307,6 +313,8 @@ AC_DEFUN([gl_INIT],
   # Code from module netinet_in:
   gl_HEADER_NETINET_IN
   AC_PROG_MKDIR_P
+  # Code from module nproc:
+  gl_NPROC
   # Code from module pathmax:
   gl_PATHMAX
   # Code from module putenv:
@@ -326,6 +334,10 @@ AC_DEFUN([gl_INIT],
   # Code from module snprintf:
   gl_FUNC_SNPRINTF
   gl_STDIO_MODULE_INDICATOR([snprintf])
+  # Code from module socketlib:
+  gl_SOCKETLIB
+  # Code from module sockets:
+  gl_SOCKETS
   # Code from module socklen:
   gl_TYPE_SOCKLEN_T
   # Code from module ssize_t:
@@ -382,10 +394,10 @@ AC_DEFUN([gl_INIT],
   gl_LIBUNISTRING_LIBHEADER([0.9.2], [unistr.h])
   # Code from module unistr/u8-mbtouc:
   gl_MODULE_INDICATOR([unistr/u8-mbtouc])
-  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtouc])
+  gl_LIBUNISTRING_MODULE([0.9.4], [unistr/u8-mbtouc])
   # Code from module unistr/u8-mbtouc-unsafe:
   gl_MODULE_INDICATOR([unistr/u8-mbtouc-unsafe])
-  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtouc-unsafe])
+  gl_LIBUNISTRING_MODULE([0.9.4], [unistr/u8-mbtouc-unsafe])
   # Code from module unistr/u8-mbtoucr:
   gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
   gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtoucr])
@@ -580,6 +592,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strcaseeq.h
   lib/c-strncasecmp.c
   lib/canonicalize-lgpl.c
+  lib/close-hook.c
+  lib/close-hook.h
   lib/config.charset
   lib/duplocale.c
   lib/errno.in.h
@@ -627,6 +641,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/memchr.valgrind
   lib/netdb.in.h
   lib/netinet_in.in.h
+  lib/nproc.c
+  lib/nproc.h
   lib/pathmax.h
   lib/printf-args.c
   lib/printf-args.h
@@ -642,6 +658,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.h
   lib/size_max.h
   lib/snprintf.c
+  lib/sockets.c
+  lib/sockets.h
   lib/stat-time.h
   lib/stat.c
   lib/stdarg.in.h
@@ -683,6 +701,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/version-etc.c
   lib/version-etc.h
   lib/vsnprintf.c
+  lib/w32sock.h
   lib/wchar.in.h
   lib/write.c
   lib/xsize.h
@@ -754,6 +773,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/multiarch.m4
   m4/netdb_h.m4
   m4/netinet_in_h.m4
+  m4/nproc.m4
   m4/pathmax.m4
   m4/printf.m4
   m4/putenv.m4
@@ -763,6 +783,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/servent.m4
   m4/size_max.m4
   m4/snprintf.m4
+  m4/socketlib.m4
+  m4/sockets.m4
   m4/socklen.m4
   m4/sockpfaf.m4
   m4/ssize_t.m4
