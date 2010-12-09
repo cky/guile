@@ -178,7 +178,7 @@
          (pmatch (hashq-ref (hashq-ref allocation v) proc)
            ((#t ,boxed? . ,n)
             (list id boxed? n))
-           (,x (error "badness" id v x))))
+           (,x (error "bad var list element" id v x))))
        ids
        vars))
 
@@ -441,7 +441,7 @@
                            ((#t #t . ,index) ; boxed
                             ;; new box
                             (emit-code #f (make-glil-lexical #t #t 'box index)))
-                           (,x (error "what" x))))
+                           (,x (error "bad lambda-case arg allocation" x))))
                        (reverse (lambda-case-gensyms lcase)))
              (emit-branch src 'br (car (hashq-ref allocation lcase))))
             ((lambda-case? lcase)
@@ -478,7 +478,7 @@
                             (emit-code #f (make-glil-lexical #t #f 'set index)))
                            ((#t #t . ,index) ; boxed
                             (emit-code #f (make-glil-lexical #t #t 'box index)))
-                           (,x (error "what" x))))
+                           (,x (error "bad lambda-case arg allocation" x))))
                        (reverse (lambda-case-gensyms lcase)))
              (emit-branch src 'br (car (hashq-ref allocation lcase))))
             ((lambda-case? lcase)
@@ -614,7 +614,7 @@
             ((,local? ,boxed? . ,index)
              (emit-code src (make-glil-lexical local? boxed? 'ref index)))
             (,loc
-             (error "badness" x loc)))))
+             (error "bad lexical allocation" x loc)))))
        (maybe-emit-return))
       
       ((<lexical-set> src gensym exp)
@@ -623,7 +623,7 @@
          ((,local? ,boxed? . ,index)
           (emit-code src (make-glil-lexical local? boxed? 'set index)))
          (,loc
-          (error "badness" x loc)))
+          (error "bad lexical allocation" x loc)))
        (case context
          ((tail push vals)
           (emit-code #f (make-glil-void))))
@@ -677,7 +677,7 @@
                      (pmatch loc
                        ((,local? ,boxed? . ,n)
                         (emit-code #f (make-glil-lexical local? #f 'ref n)))
-                       (else (error "what" x loc))))
+                       (else (error "bad lambda free var allocation" x loc))))
                    free-locs)
                   (emit-code #f (make-glil-call 'make-closure
                                                 (length free-locs))))))))
@@ -711,7 +711,7 @@
          (or (= nargs
                 (length gensyms)
                 (+ nreq (length inits) (if rest 1 0)))
-             (error "something went wrong"
+             (error "lambda-case gensyms don't correspond to args"
                     req opt rest kw inits gensyms nreq nopt kw-indices nargs))
          ;; the prelude, to check args & reset the stack pointer,
          ;; allowing room for locals
@@ -767,7 +767,7 @@
                   (emit-code #f (make-glil-lexical #t boxed? 'set n))
                   (emit-label L)
                   (lp (cdr inits) (1+ n) (cdr gensyms))))
-               (#t (error "what" inits))))))
+               (#t (error "bad arg allocation" (car gensyms) inits))))))
          ;; post-prelude case label for label calls
          (emit-label (car (hashq-ref allocation x)))
          (comp-tail body)
@@ -787,7 +787,7 @@
                       (emit-code src (make-glil-lexical #t #f 'set n)))
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'box n)))
-                     (,loc (error "badness" x loc))))
+                     (,loc (error "bad let var allocation" x loc))))
                  (reverse gensyms))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
@@ -798,7 +798,7 @@
                    (pmatch (hashq-ref (hashq-ref allocation v) self)
                      ((#t #t . ,n)
                       (emit-code src (make-glil-lexical #t #t 'empty-box n)))
-                     (,loc (error "badness" x loc))))
+                     (,loc (error "bad letrec var allocation" x loc))))
                  gensyms)
        ;; Even though the slots are empty, the bindings are valid.
        (emit-bindings src names gensyms allocation self emit-code)
@@ -810,7 +810,7 @@
                        ((#t #t . ,n)
                         (comp-push val)
                         (emit-code src (make-glil-lexical #t #t 'set n)))
-                       (,loc (error "badness" x loc))))
+                       (,loc (error "bad letrec var allocation" x loc))))
                    names gensyms vals))
         (else
          ;; But for letrec, eval all values, then bind.
@@ -819,7 +819,7 @@
                      (pmatch (hashq-ref (hashq-ref allocation v) self)
                        ((#t #t . ,n)
                         (emit-code src (make-glil-lexical #t #t 'set n)))
-                       (,loc (error "badness" x loc))))
+                       (,loc (error "bad letrec var allocation" x loc))))
                    (reverse gensyms))))
        (comp-tail body)
        (emit-code #f (make-glil-unbind)))
@@ -855,7 +855,7 @@
               (pmatch (hashq-ref (hashq-ref allocation v) self)
                 ((#t #f . ,n)
                  (emit-code src (make-glil-lexical #t #f 'set n)))
-                (,loc (error "badness" x loc))))
+                (,loc (error "bad fix var allocation" x loc))))
              (else
               ;; labels allocation: emit label & body, but jump over it
               (let ((POST (make-label)))
@@ -899,12 +899,12 @@
                        (pmatch loc
                          ((,local? ,boxed? . ,n)
                           (emit-code #f (make-glil-lexical local? #f 'ref n)))
-                         (else (error "what" x loc))))
+                         (else (error "bad free var allocation" x loc))))
                      free-locs)
                     (pmatch (hashq-ref (hashq-ref allocation v) self)
                       ((#t #f . ,n)
                        (emit-code #f (make-glil-lexical #t #f 'fix n)))
-                      (,loc (error "badness" x loc)))))))
+                      (,loc (error "bad fix var allocation" x loc)))))))
           vals
           gensyms)
          (comp-tail body)
@@ -932,7 +932,7 @@
                            (emit-code src (make-glil-lexical #t #f 'set n)))
                           ((#t #t . ,n)
                            (emit-code src (make-glil-lexical #t #t 'box n)))
-                          (,loc (error "badness" x loc))))
+                          (,loc (error "bad let-values var allocation" x loc))))
                       (reverse gensyms))
             (comp-tail body)
             (emit-code #f (make-glil-unbind))))))
@@ -1128,7 +1128,8 @@
                            (emit-code src (make-glil-lexical #t #f 'set n)))
                           ((#t #t . ,n)
                            (emit-code src (make-glil-lexical #t #t 'box n)))
-                          (,loc (error "badness" x loc))))
+                          (,loc
+                           (error "bad prompt handler arg allocation" x loc))))
                       (reverse gensyms))
             (comp-tail body)
             (emit-code #f (make-glil-unbind))))
