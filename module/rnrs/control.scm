@@ -19,8 +19,7 @@
 
 (library (rnrs control (6))
   (export when unless do case-lambda)
-  (import (rnrs base (6))
-          (only (guile) do case-lambda))
+  (import (only (guile) if not begin define-syntax syntax-rules do case-lambda))
 
   (define-syntax when
     (syntax-rules ()
