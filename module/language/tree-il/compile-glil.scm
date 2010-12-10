@@ -126,6 +126,8 @@
 
    ;; hack for javascript
    ((return . 1) . return)
+   ;; hack for lua
+   (return/values . return/values)
 
    ((bytevector-u8-ref . 2) . bv-u8-ref)
    ((bytevector-u8-set! . 3) . bv-u8-set)
@@ -411,6 +413,11 @@
                  (case context
                    ((drop) (emit-code #f (make-glil-call 'drop 1))))
                  (maybe-emit-return))
+                ((-1)
+                 ;; A control instruction, like return/values.  Here we
+                 ;; just have to hope that the author of the tree-il
+                 ;; knew what they were doing.
+                 *unspecified*)
                 (else
                  (error "bad primitive op: too many pushes"
                         op (instruction-pushes op))))))
