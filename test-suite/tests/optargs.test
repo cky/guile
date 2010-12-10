@@ -184,7 +184,24 @@
   (pass-if "testing qux"
     (and (equal? (qux) 13)
          (equal? (qux 1) 1)
-         (equal? (qux #:a 2) 2))))
+         (equal? (qux #:a 2) 2)))
+  (pass-if "nested lambda* with optional"
+    (begin
+      (define (foo x)
+        (define baz x)
+        (define* (bar #:optional (y baz))
+          (or (zero? y) (bar (1- y))))
+        (bar))
+      (foo 10)))
+  (pass-if "nested lambda* with key"
+    (begin
+      (define (foo x)
+        (define baz x)
+        (define* (bar #:key (y baz))
+          (or (zero? y) (bar #:y (1- y))))
+        (bar))
+      (foo 10))))
+
 
 (with-test-prefix/c&e "defmacro*"
   (pass-if "definition"

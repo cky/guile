@@ -204,10 +204,6 @@
        (lambda (emit-code)
          ;; write source info for proc
          (if src (emit-code #f (make-glil-source src)))
-         ;; emit pre-prelude label for self tail calls in which the
-         ;; number of arguments doesn't check out at compile time
-         (if self-label
-             (emit-code #f (make-glil-label self-label)))
          ;; compile the body, yo
          (flatten body allocation x self-label (car (hashq-ref allocation x))
                   emit-code)))))))
@@ -423,17 +419,17 @@
         ((and (lexical-ref? proc)
               self-label (eq? (lexical-ref-gensym proc) self-label)
               (eq? context 'tail))
-         ;; first, evaluate new values, pushing them on the stack
-         (for-each comp-push args)
          (let lp ((lcase (lambda-body self)))
            (cond
             ((and (lambda-case? lcase)
                   (not (lambda-case-kw lcase))
-                  (not (lambda-case-opt lcase))
                   (not (lambda-case-rest lcase))
-                  (= (length args) (length (lambda-case-req lcase))))
-             ;; we have a case that matches the args; rename variables
-             ;; and goto the case label
+                  (= (length args)
+                     (+ (length (lambda-case-req lcase))
+                        (or (and=> (lambda-case-opt lcase) length) 0))))
+             ;; we have a case that matches the args; evaluate new
+             ;; values, rename variables and goto the case label
+             (for-each comp-push args)
              (for-each (lambda (sym)
                          (pmatch (hashq-ref (hashq-ref allocation sym) self)
                            ((#t #f . ,index) ; unboxed
@@ -448,11 +444,12 @@
              ;; no match, try next case
              (lp (lambda-case-alternate lcase)))
             (else
-             ;; no cases left; shuffle args down and jump before the prelude.
-             (for-each (lambda (i)
-                         (emit-code #f (make-glil-lexical #t #f 'set i)))
-                       (reverse (iota (length args))))
-             (emit-branch src 'br self-label)))))
+             ;; no cases left -- use the normal tail call mechanism. we
+             ;; can't just shuffle the args down and jump back to the
+             ;; self label, because we don't have space.
+             (comp-push proc)
+             (for-each comp-push args)
+             (emit-code src (make-glil-call 'tail-call (length args)))))))
         
         ;; lambda, the ultimate goto
         ((and (lexical-ref? proc)
