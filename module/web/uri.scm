@@ -36,6 +36,7 @@
             encode-and-join-uri-path)
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 regex)
+  #:use-module (ice-9 rdelim)
   #:use-module (ice-9 control)
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports))
@@ -216,6 +217,34 @@
          ""))))
 
 
+(define (call-with-encoded-output-string charset proc)
+  (if (and (string-ci=? charset "utf-8") #f)
+      ;; I don't know why, but this appears to be faster; at least for
+      ;; examples/debug-sxml.scm (650 reqs/s versus 510 reqs/s).
+      (string->utf8 (call-with-output-string proc))
+      (call-with-values
+          (lambda ()
+            (open-bytevector-output-port))
+        (lambda (port get-bytevector)
+          (set-port-encoding! port charset)
+          (proc port)
+          (get-bytevector)))))
+
+(define (encode-string str charset)
+  (if (string-ci=? charset "utf-8")
+      (string->utf8 str)
+      (call-with-encoded-output-string charset
+                                       (lambda (port)
+                                         (display str port)))))
+
+(define (decode-string bv charset)
+  (if (string-ci=? charset "utf-8")
+      (utf8->string bv)
+      (let ((p (open-bytevector-input-port bv)))
+        (set-port-encoding! p charset)
+        (read-delimited "" p))))
+
+
 ;; A note on characters and bytes: URIs are defined to be sequences of
 ;; characters in a subset of ASCII. Those characters may encode a
 ;; sequence of bytes (octets), which in turn may encode sequences of
@@ -229,17 +258,15 @@
 (define hex-chars
   (string->char-set "0123456789abcdefABCDEF"))
 
-(define* (uri-decode str #:key (charset 'utf-8))
+(define* (uri-decode str #:key (charset "utf-8"))
   (let ((len (string-length str)))
     (call-with-values open-bytevector-output-port
       (lambda (port get-bytevector)
         (let lp ((i 0))
           (if (= i len)
-              ((case charset
-                 ((utf-8) utf8->string)
-                 ((#f) (lambda (x) x)) ; raw bytevector
-                 (else (uri-error "Unknown charset: ~s" charset)))
-               (get-bytevector))
+              (if charset
+                  (decode-string (get-bytevector) charset)
+                  (get-bytevector)) ; raw bytevector
               (let ((ch (string-ref str i)))
                 (cond
                  ((eqv? ch #\+)
@@ -281,15 +308,15 @@
 ;; Return a new string made from uri-encoding @var{str}, unconditionally
 ;; transforming any characters not in @var{unescaped-chars}.
 ;;
-(define* (uri-encode str #:key (charset 'utf-8)
+(define* (uri-encode str #:key (charset "utf-8")
                      (unescaped-chars unreserved-chars))
   (define (put-utf8 binary-port str)
     (put-bytevector binary-port (string->utf8 str)))
 
-  ((case charset
-     ((utf-8) utf8->string)
-     ((#f) (lambda (x) x)) ; raw bytevector
-     (else (uri-error "Unknown charset: ~s" charset)))
+  ((cond
+    ((string-ci=? charset "utf-8") utf8->string)
+    ((not charset) (lambda (x) x)) ; raw bytevector
+    (else (uri-error "Unimplemented charset: ~s" charset)))
    (call-with-values open-bytevector-output-port
      (lambda (port get-bytevector)
        (string-for-each
