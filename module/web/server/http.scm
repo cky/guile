@@ -84,6 +84,7 @@
             (lp (1- (poll-set-nfds poll-set))))
            ((not (zero? (logand revents *error-events*)))
             ;; An error.
+            (set-http-poll-idx! server idx)
             (throw 'interrupt))
            (else
             ;; A new client. Add to set, poll, and loop.
@@ -104,6 +105,9 @@
          ;; it. Remove it from the poll set.
          (else
           (let ((port (poll-set-remove! poll-set idx)))
+            ;; Record the next index in all cases, in case the EOF check
+            ;; throws an error.
+            (set-http-poll-idx! server (1- idx))
             (cond
              ((eof-object? (peek-char port))
               ;; EOF.
@@ -111,8 +115,6 @@
               (lp (1- idx)))
              (else
               ;; Otherwise, try to read a request from this port.
-              ;; Record the next index.
-              (set-http-poll-idx! server (1- idx))
               (with-throw-handler
                #t
                (lambda ()
