@@ -152,9 +152,9 @@
      (values #f #f #f))))
 
 (define (call-with-encoded-output-string charset proc)
-  (if (and (string-ci=? charset "utf-8") #f)
+  (if (string-ci=? charset "utf-8")
       ;; I don't know why, but this appears to be faster; at least for
-      ;; examples/debug-sxml.scm (650 reqs/s versus 510 reqs/s).
+      ;; examples/debug-sxml.scm (1464 reqs/s versus 850 reqs/s).
       (string->utf8 (call-with-output-string proc))
       (call-with-values
           (lambda ()
