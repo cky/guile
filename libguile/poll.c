@@ -151,14 +151,24 @@ scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
                 if (pt->read_pos < pt->read_end)
                   /* Buffered input waiting to be read. */
                   revents |= POLLIN;
-                if (pt->write_pos < pt->write_end)
+                if (SCM_OUTPUT_PORT_P (port) && pt->write_pos < pt->write_end)
                   /* Buffered output possible. */
                   revents |= POLLOUT;
               }
           }
 
-        if ((fds[i].revents = revents & fds[i].events))
-          rv++;
+        /* Mask in the events we are interested, and test if any are
+           interesting. */
+        if ((revents &= fds[i].events))
+          {
+            /* Could be the underlying fd is also ready for reading.  */
+            if (!fds[i].revents)
+              rv++;
+
+            /* In any case, add these events to whatever the syscall
+               set. */
+            fds[i].revents |= revents;
+          }
       }
 
   return scm_from_int (rv);
