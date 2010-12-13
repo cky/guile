@@ -10,6 +10,97 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.14 (since the 1.9.13 prerelease):
 
+** New module: `(ice-9 futures)'.
+    
+See "Futures" in the manual, for more information.
+
+** Add bindings to GNU `sched_setaffinity' and `sched_getaffinity'.
+    
+See "Processes" in the manual, for more information.
+
+** New module `(srfi srfi-38)', External Representation for Data With Shared Structure
+
+See "SRFI-38" in the manual, for more information.  Thanks to Andreas
+Rottmann.
+
+** New module: `(web uri)', URI data type, parser, and unparser
+** New module: `(web http)', HTTP header parsers and unparsers
+** New module: `(web request)', HTTP request data type, reader, and writer
+** New module: `(web response)', HTTP response data type, reader, and writer
+** New module: `(web server)', Generic HTTP server
+** New module: `(ice-9 poll)', a poll wrapper
+** New module: `(web server http)', HTTP-over-TCP web server implementation
+
+These modules are as yet without documentation.  But try the following
+command line:
+
+  meta/guile examples/web/debug-sxml.scm
+
+Then visit localhost:8080 in your web browser.  Let us know how it goes!
+
+** Better Emacs Lisp implementation
+
+Brian Templeton's Summer-of-Code work was finally merged in, which
+should improve the state of Guile's Elisp support.  There is still some
+work to do, so patches are welcome!
+
+** R6RS fixes
+
+There were many fixes and enhancements to the R6RS support.  Thanks to
+Julian Graham, Andreas Rottmann, and Göran Weinholt.
+
+** Expression-oriented readline history
+    
+Guile's readline history now tries to operate on expressions instead of
+input lines.  Let us know what you think!
+
+** Better syntax errors
+
+The Scheme expander, Ecmascript compiler, and other language
+implementations now produce more useful syntax errors.  The default
+error handlers print them out more nicely now.
+
+** Lots of documentation updates
+
+In particular, the documentation for GOOPS and regular expressions has
+seen some work.  Unfortunately the code has come too fast and furious
+for full documentary folios, so some of the new modules are still
+undocumented.
+
+** Better pretty-printing
+
+Indentation recognizes more special forms, like `syntax-case', and read
+macros like `quote' are printed better.
+
+** Multicast socket options
+
+FIXME: Need to document IP_MULTICAST_TTL and IP_MULTICAST_IF in the
+manual.
+
+** Deprecate `cuserid'
+    
+`cuserid' has been deprecated, as it only returns 8 bytes of a user's
+login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
+    
+** New procedure. `reload-module'
+    
+Needs documenting and a REPL meta-command.
+
+** Allow user-defined REPL meta-commands
+    
+See FIXME in the manual, for more information.
+
+** Add support for unbound fluids
+    
+FIXME: needs documentation
+
+See `make-undefined-fluid' (FIXME: should be make-unbound-fluid),
+`fluid-unset!', and `fluid-bound?' in the manual.
+
+** Add variable-unset!
+    
+FIXME: document.
+
 ** Command line additions
 
 The guile binary now supports a new switch "-x", which can be used to
