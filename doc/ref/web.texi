@@ -1,0 +1,685 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C) 2010 Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Web
+@section @acronym{HTTP}, the Web, and All That
+@cindex Web
+@cindex WWW
+@cindex HTTP
+
+When Guile started back in the mid-nineties, the GNU system was still
+focused on producing a good POSIX implementation.  This is why Guile's
+POSIX support is good, and has been so for a while.
+
+But times change, and in a way these days the web is the new POSIX: a
+standard and a motley set of implementations on which much computing is
+done.  So today's Guile also supports the web at the programming
+language level, by defining common data types and operations for the
+technologies underpinning the web: URIs, HTTP, and XML.
+
+It is particularly important to define native web data types.  Though
+the web is text in motion, programming the web in text is like
+programming with @code{goto}: muddy, and error-prone.  Most current
+security problems on the web are due to treating the web as text instead
+of as instances of the proper data types.
+
+In addition, common web data types help programmers to share code.
+
+Well.  That's all very nice and opinionated and such, but how do I use
+the thing?  Read on!
+
+@menu
+* URIs::                        Universal Resource Identifiers.
+* HTTP::                        The Hyper-Text Transfer Protocol.
+* Requests::                    HTTP requests.
+* Responses::                   HTTP responses.
+* Web Handlers::                A simple web application interface.
+* Web Server::                  Serving HTTP to the internet.
+@end menu
+
+@node URIs
+@subsection Universal Resource Identifiers
+
+@example
+(use-modules (web uri))
+@end example
+
+@verbatim 
+ A data type for Universal Resource Identifiers, as defined in RFC
+ 3986. 
+@end verbatim
+
+@defspec uri? 
+@end defspec
+
+@defspec uri-scheme 
+@end defspec
+
+@defspec uri-userinfo 
+@end defspec
+
+@defspec uri-host 
+@end defspec
+
+@defspec uri-port 
+@end defspec
+
+@defspec uri-path 
+@end defspec
+
+@defspec uri-query 
+@end defspec
+
+@defspec uri-fragment 
+@end defspec
+
+@defun build-uri scheme [#:userinfo] [#:host] [#:port] [#:path] [#:query] [#:fragment] [#:validate?]
+Construct a URI object. If @var{validate?} is true, also run some
+consistency checks to make sure that the constructed URI is valid.
+@end defun
+
+@defun declare-default-port! scheme port
+Declare a default port for the given URI scheme.
+
+Default ports are for printing URI objects: a default port is not
+printed.
+@end defun
+
+@defun parse-uri string
+Parse @var{string} into a URI object. Returns @code{#f} if the string
+could not be parsed.
+@end defun
+
+@defun unparse-uri uri
+Serialize @var{uri} to a string.
+@end defun
+
+@defun uri-decode str [#:charset]
+Percent-decode the given @var{str}, according to @var{charset}.
+
+Note that this function should not generally be applied to a full URI
+string. For paths, use split-and-decode-uri-path instead. For query
+strings, split the query on @code{&} and @code{=} boundaries, and decode
+the components separately.
+
+Note that percent-encoded strings encode @emph{bytes}, not characters.
+There is no guarantee that a given byte sequence is a valid string
+encoding. Therefore this routine may signal an error if the decoded
+bytes are not valid for the given encoding. Pass @code{#f} for
+@var{charset} if you want decoded bytes as a bytevector directly.
+@end defun
+
+@defun uri-encode str [#:charset] [#:unescaped-chars]
+Percent-encode any character not in @var{unescaped-chars}.
+
+Percent-encoding first writes out the given character to a bytevector
+within the given @var{charset}, then encodes each byte as
+@code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
+the byte.
+@end defun
+
+@defun split-and-decode-uri-path path
+Split @var{path} into its components, and decode each component,
+removing empty components.
+
+For example, @code{"/foo/bar/"} decodes to the two-element list,
+@code{("foo" "bar")}.
+@end defun
+
+@defun encode-and-join-uri-path parts
+URI-encode each element of @var{parts}, which should be a list of
+strings, and join the parts together with @code{/} as a delimiter.
+@end defun
+
+@node HTTP
+@subsection The Hyper-Text Transfer Protocol
+
+@example
+(use-modules (web http))
+@end example
+
+This module has a number of routines to parse textual
+representations of HTTP data into native Scheme data structures.
+
+It tries to follow RFCs fairly strictly---the road to perdition
+being paved with compatibility hacks---though some allowances are
+made for not-too-divergent texts (like a quality of .2 which should
+be 0.2, etc).
+
+@defspec header-decl? 
+@end defspec
+
+@defspec make-header-decl 
+@end defspec
+
+@defspec header-decl-sym 
+@end defspec
+
+@defspec header-decl-name 
+@end defspec
+
+@defspec header-decl-multiple? 
+@end defspec
+
+@defspec header-decl-parser 
+@end defspec
+
+@defspec header-decl-validator 
+@end defspec
+
+@defspec header-decl-writer 
+@end defspec
+
+@defun lookup-header-decl name
+Return the @var{header-decl} object registered for the given @var{name}.
+
+@var{name} may be a symbol or a string. Strings are mapped to headers in
+a case-insensitive fashion.
+@end defun
+
+@defun declare-header! sym name [#:multiple?] [#:parser] [#:validator] [#:writer]
+Define a parser, validator, and writer for the HTTP header, @var{name}.
+
+@var{parser} should be a procedure that takes a string and returns a
+Scheme value. @var{validator} is a predicate for whether the given
+Scheme value is valid for this header. @var{writer} takes a value and a
+port, and writes the value to the port.
+@end defun
+
+@defun read-header port
+Reads one HTTP header from @var{port}. Returns two values: the header
+name and the parsed Scheme value. May raise an exception if the header
+was known but the value was invalid.
+
+Returns @var{#f} for both values if the end of the message body was
+reached (i.e., a blank line).
+@end defun
+
+@defun parse-header name val
+Parse @var{val}, a string, with the parser for the header named
+@var{name}.
+
+Returns two values, the header name and parsed value. If a parser was
+found, the header name will be returned as a symbol. If a parser was not
+found, both the header name and the value are returned as strings.
+@end defun
+
+@defun valid-header? sym val
+Returns a true value iff @var{val} is a valid Scheme value for the
+header with name @var{sym}.
+@end defun
+
+@defun write-header name val port
+Writes the given header name and value to @var{port}. If @var{name} is a
+symbol, looks up a declared header and uses that writer. Otherwise the
+value is written using @var{display}.
+@end defun
+
+@defun read-headers port
+Read an HTTP message from @var{port}, returning the headers as an
+ordered alist.
+@end defun
+
+@defun write-headers headers port
+Write the given header alist to @var{port}. Doesn't write the final
+\r\n, as the user might want to add another header.
+@end defun
+
+@defun parse-http-method str [start] [end]
+Parse an HTTP method from @var{str}. The result is an upper-case symbol,
+like @code{GET}.
+@end defun
+
+@defun parse-http-version str [start] [end]
+Parse an HTTP version from @var{str}, returning it as a major-minor
+pair. For example, @code{HTTP/1.1} parses as the pair of integers,
+@code{(1 . 1)}.
+@end defun
+
+@defun parse-request-uri str [start] [end]
+Parse a URI from an HTTP request line. Note that URIs in requests do not
+have to have a scheme or host name. The result is a URI object.
+@end defun
+
+@defun read-request-line port
+Read the first line of an HTTP request from @var{port}, returning three
+values: the method, the URI, and the version.
+@end defun
+
+@defun write-request-line method uri version port
+Write the first line of an HTTP request to @var{port}.
+@end defun
+
+@defun read-response-line port
+Read the first line of an HTTP response from @var{port}, returning three
+values: the HTTP version, the response code, and the "reason phrase".
+@end defun
+
+@defun write-response-line version code reason-phrase port
+Write the first line of an HTTP response to @var{port}.
+@end defun
+
+
+@node Requests
+@subsection HTTP Requests
+
+@example
+(use-modules (web request))
+@end example
+
+@defspec request? 
+@end defspec
+
+@defspec request-method 
+@end defspec
+
+@defspec request-uri 
+@end defspec
+
+@defspec request-version 
+@end defspec
+
+@defspec request-headers 
+@end defspec
+
+@defspec request-meta 
+@end defspec
+
+@defspec request-port 
+@end defspec
+
+@defun read-request port [meta]
+Read an HTTP request from @var{port}, optionally attaching the given
+metadata, @var{meta}.
+
+As a side effect, sets the encoding on @var{port} to ISO-8859-1
+(latin-1), so that reading one character reads one byte. See the
+discussion of character sets in "HTTP Requests" in the manual, for more
+information.
+@end defun
+
+@defun build-request [#:method] [#:uri] [#:version] [#:headers] [#:port] [#:meta] [#:validate-headers?]
+Construct an HTTP request object. If @var{validate-headers?} is true,
+the headers are each run through their respective validators.
+@end defun
+
+@defun write-request r port
+Write the given HTTP request to @var{port}.
+
+Returns a new request, whose @code{request-port} will continue writing
+on @var{port}, perhaps using some transfer encoding.
+@end defun
+
+@defun read-request-body/latin-1 r
+Reads the request body from @var{r}, as a string.
+
+Assumes that the request port has ISO-8859-1 encoding, so that the
+number of characters to read is the same as the
+@code{request-content-length}. Returns @code{#f} if there was no request
+body.
+@end defun
+
+@defun write-request-body/latin-1 r body
+Write @var{body}, a string encodable in ISO-8859-1, to the port
+corresponding to the HTTP request @var{r}.
+@end defun
+
+@defun read-request-body/bytevector r
+Reads the request body from @var{r}, as a bytevector. Returns @code{#f}
+if there was no request body.
+@end defun
+
+@defun write-request-body/bytevector r bv
+Write @var{body}, a bytevector, to the port corresponding to the HTTP
+request @var{r}.
+@end defun
+
+@defun request-accept request [default='()]
+@defunx request-accept-charset request [default='()]
+@defunx request-accept-encoding request [default='()]
+@defunx request-accept-language request [default='()]
+@defunx request-allow request [default='()]
+@defunx request-authorization request [default=#f]
+@defunx request-cache-control request [default='()]
+@defunx request-connection request [default='()]
+@defunx request-content-encoding request [default='()]
+@defunx request-content-language request [default='()]
+@defunx request-content-length request [default=#f]
+@defunx request-content-location request [default=#f]
+@defunx request-content-md5 request [default=#f]
+@defunx request-content-range request [default=#f]
+@defunx request-content-type request [default=#f]
+@defunx request-date request [default=#f]
+@defunx request-expect request [default='()]
+@defunx request-expires request [default=#f]
+@defunx request-from request [default=#f]
+@defunx request-host request [default=#f]
+@defunx request-if-match request [default=#f]
+@defunx request-if-modified-since request [default=#f]
+@defunx request-if-none-match request [default=#f]
+@defunx request-if-range request [default=#f]
+@defunx request-if-unmodified-since request [default=#f]
+@defunx request-last-modified request [default=#f]
+@defunx request-max-forwards request [default=#f]
+@defunx request-pragma request [default='()]
+@defunx request-proxy-authorization request [default=#f]
+@defunx request-range request [default=#f]
+@defunx request-referer request [default=#f]
+@defunx request-te request [default=#f]
+@defunx request-trailer request [default='()]
+@defunx request-transfer-encoding request [default='()]
+@defunx request-upgrade request [default='()]
+@defunx request-user-agent request [default=#f]
+@defunx request-via request [default='()]
+@defunx request-warning request [default='()]
+@end defun
+
+@defun request-absolute-uri r [default-host] [default-port]
+@end defun
+
+
+
+@node Responses
+@subsection HTTP Responses
+
+@example
+(use-modules (web response))
+@end example
+
+
+@defspec response? 
+@end defspec
+
+@defspec response-version 
+@end defspec
+
+@defspec response-code 
+@end defspec
+
+@defun response-reason-phrase response
+Return the reason phrase given in @var{response}, or the standard reason
+phrase for the response's code.
+@end defun
+
+@defspec response-headers 
+@end defspec
+
+@defspec response-port 
+@end defspec
+
+@defun read-response port
+Read an HTTP response from @var{port}, optionally attaching the given
+metadata, @var{meta}.
+
+As a side effect, sets the encoding on @var{port} to ISO-8859-1
+(latin-1), so that reading one character reads one byte. See the
+discussion of character sets in "HTTP Responses" in the manual, for more
+information.
+@end defun
+
+@defun build-response [#:version] [#:code] [#:reason-phrase] [#:headers] [#:port]
+Construct an HTTP response object. If @var{validate-headers?} is true,
+the headers are each run through their respective validators.
+@end defun
+
+@defun extend-response r k v . additional
+Extend an HTTP response by setting additional HTTP headers @var{k},
+@var{v}. Returns a new HTTP response.
+@end defun
+
+@defun adapt-response-version response version
+Adapt the given response to a different HTTP version. Returns a new HTTP
+response.
+
+The idea is that many applications might just build a response for the
+default HTTP version, and this method could handle a number of
+programmatic transformations to respond to older HTTP versions (0.9 and
+1.0). But currently this function is a bit heavy-handed, just updating
+the version field.
+@end defun
+
+@defun write-response r port
+Write the given HTTP response to @var{port}.
+
+Returns a new response, whose @code{response-port} will continue writing
+on @var{port}, perhaps using some transfer encoding.
+@end defun
+
+@defun read-response-body/latin-1 r
+Reads the response body from @var{r}, as a string.
+
+Assumes that the response port has ISO-8859-1 encoding, so that the
+number of characters to read is the same as the
+@code{response-content-length}. Returns @code{#f} if there was no
+response body.
+@end defun
+
+@defun write-response-body/latin-1 r body
+Write @var{body}, a string encodable in ISO-8859-1, to the port
+corresponding to the HTTP response @var{r}.
+@end defun
+
+@defun read-response-body/bytevector r
+Reads the response body from @var{r}, as a bytevector. Returns @code{#f}
+if there was no response body.
+@end defun
+
+@defun write-response-body/bytevector r bv
+Write @var{body}, a bytevector, to the port corresponding to the HTTP
+response @var{r}.
+@end defun
+
+@defun response-accept-ranges response [default=#f]
+@defunx response-age response [default='()]
+@defunx response-allow response [default='()]
+@defunx response-cache-control response [default='()]
+@defunx response-connection response [default='()]
+@defunx response-content-encoding response [default='()]
+@defunx response-content-language response [default='()]
+@defunx response-content-length response [default=#f]
+@defunx response-content-location response [default=#f]
+@defunx response-content-md5 response [default=#f]
+@defunx response-content-range response [default=#f]
+@defunx response-content-type response [default=#f]
+@defunx response-date response [default=#f]
+@defunx response-etag response [default=#f]
+@defunx response-expires response [default=#f]
+@defunx response-last-modified response [default=#f]
+@defunx response-location response [default=#f]
+@defunx response-pragma response [default='()]
+@defunx response-proxy-authenticate response [default=#f]
+@defunx response-retry-after response [default=#f]
+@defunx response-server response [default=#f]
+@defunx response-trailer response [default='()]
+@defunx response-transfer-encoding response [default='()]
+@defunx response-upgrade response [default='()]
+@defunx response-vary response [default='()]
+@defunx response-via response [default='()]
+@defunx response-warning response [default='()]
+@defunx response-www-authenticate response [default=#f]
+@end defun
+
+
+@node Web Handlers
+@subsection Web Handlers
+
+from request to response
+
+@node Web Server
+@subsection Web Server
+
+@code{(web server)} is a generic web server interface, along with a main
+loop implementation for web servers controlled by Guile.
+
+The lowest layer is the <server-impl> object, which defines a set of
+hooks to open a server, read a request from a client, write a
+response to a client, and close a server.  These hooks -- open,
+read, write, and close, respectively -- are bound together in a
+<server-impl> object.  Procedures in this module take a
+<server-impl> object, if needed.
+
+A <server-impl> may also be looked up by name.  If you pass the
+@code{http} symbol to @code{run-server}, Guile looks for a variable named
+@code{http} in the @code{(web server http)} module, which should be bound to a
+<server-impl> object.  Such a binding is made by instantiation of
+the @code{define-server-impl} syntax.  In this way the run-server loop can
+automatically load other backends if available.
+
+The life cycle of a server goes as follows:
+
+@enumerate
+@item
+The @code{open} hook is called, to open the server. @code{open} takes 0 or
+more arguments, depending on the backend, and returns an opaque
+server socket object, or signals an error.
+
+@item
+The @code{read} hook is called, to read a request from a new client.
+The @code{read} hook takes one arguments, the server socket.  It
+should return three values: an opaque client socket, the
+request, and the request body. The request should be a
+@code{<request>} object, from @code{(web request)}.  The body should be a
+string or a bytevector, or @code{#f} if there is no body.
+
+If the read failed, the @code{read} hook may return #f for the client
+socket, request, and body.
+
+@item
+A user-provided handler procedure is called, with the request
+and body as its arguments.  The handler should return two
+values: the response, as a @code{<response>} record from @code{(web
+response)}, and the response body as a string, bytevector, or
+@code{#f} if not present.  We also allow the reponse to be simply an
+alist of headers, in which case a default response object is
+constructed with those headers.
+
+@item
+The @code{write} hook is called with three arguments: the client
+socket, the response, and the body.  The @code{write} hook returns no
+values.
+
+@item
+At this point the request handling is complete. For a loop, we
+loop back and try to read a new request.
+
+@item
+If the user interrupts the loop, the @code{close} hook is called on
+the server socket.
+@end enumerate
+
+@defspec define-server-impl name open read write close
+@end defspec
+
+@defun lookup-server-impl impl
+Look up a server implementation. If @var{impl} is a server
+implementation already, it is returned directly. If it is a symbol, the
+binding named @var{impl} in the @code{(web server @var{impl})} module is
+looked up. Otherwise an error is signaled.
+
+Currently a server implementation is a somewhat opaque type, useful only
+for passing to other procedures in this module, like @code{read-client}.
+@end defun
+
+@defun open-server impl open-params
+Open a server for the given implementation. Returns one value, the new
+server object. The implementation's @code{open} procedure is applied to
+@var{open-params}, which should be a list.
+@end defun
+
+@defun read-client impl server
+Read a new client from @var{server}, by applying the implementation's
+@code{read} procedure to the server. If successful, returns three
+values: an object corresponding to the client, a request object, and the
+request body. If any exception occurs, returns @code{#f} for all three
+values.
+@end defun
+
+@defun handle-request handler request body state
+Handle a given request, returning the response and body.
+
+The response and response body are produced by calling the given
+@var{handler} with @var{request} and @var{body} as arguments.
+
+The elements of @var{state} are also passed to @var{handler} as
+arguments, and may be returned as additional values. The new
+@var{state}, collected from the @var{handler}'s return values, is then
+returned as a list. The idea is that a server loop receives a handler
+from the user, along with whatever state values the user is interested
+in, allowing the user's handler to explicitly manage its state.
+@end defun
+
+@defun sanitize-response request response body
+"Sanitize" the given response and body, making them appropriate for the
+given request.
+
+As a convenience to web handler authors, @var{response} may be given as
+an alist of headers, in which case it is used to construct a default
+response. Ensures that the response version corresponds to the request
+version. If @var{body} is a string, encodes the string to a bytevector,
+in an encoding appropriate for @var{response}. Adds a
+@code{content-length} and @code{content-type} header, as necessary.
+
+If @var{body} is a procedure, it is called with a port as an argument,
+and the output collected as a bytevector. In the future we might try to
+instead use a compressing, chunk-encoded port, and call this procedure
+later, in the write-client procedure. Authors are advised not to rely on
+the procedure being called at any particular time.
+@end defun
+
+@defun write-client impl server client response body
+Write an HTTP response and body to @var{client}. If the server and
+client support persistent connections, it is the implementation's
+responsibility to keep track of the client thereafter, presumably by
+attaching it to the @var{server} argument somehow.
+@end defun
+
+@defun close-server impl server
+Release resources allocated by a previous invocation of
+@code{open-server}.
+@end defun
+
+@defun serve-one-client handler impl server state
+Read one request from @var{server}, call @var{handler} on the request
+and body, and write the response to the client. Returns the new state
+produced by the handler procedure.
+@end defun
+
+@defun run-server handler [impl] [open-params] . state
+Run Guile's built-in web server.
+
+@var{handler} should be a procedure that takes two or more arguments,
+the HTTP request and request body, and returns two or more values, the
+response and response body.
+
+For example, here is a simple "Hello, World!" server:
+
+@example 
+ (define (handler request body)
+   (values '((content-type . ("text/plain")))
+           "Hello, World!"))
+ (run-server handler)
+@end example
+
+The response and body will be run through @code{sanitize-response}
+before sending back to the client.
+
+Additional arguments to @var{handler} are taken from @var{state}.
+Additional return values are accumulated into a new @var{state}, which
+will be used for subsequent requests. In this way a handler can
+explicitly manage its state.
+
+The default server implementation is @code{http}, which accepts
+@var{open-params} like @code{(#:port 8081)}, among others. See "Web
+Server" in the manual, for more information.
+@end defun
+
+@example
+(use-modules (web server))
+@end example
+
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

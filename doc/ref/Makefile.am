@@ -57,6 +57,7 @@ guile_TEXINFOS = preface.texi			\
 		 scheme-indices.texi		\
 		 slib.texi			\
 		 posix.texi			\
+		 web.texi			\
 		 expect.texi			\
 		 scsh.texi			\
 		 sxml-match.texi		\
