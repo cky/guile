@@ -48,7 +48,7 @@ Guile provides a standard data type for Universal Resource Identifiers
 The generic URI syntax is as follows:
 
 @example
-URI := scheme ":" ["//" [userinfo "@"] host [":" port]] path \
+URI := scheme ":" ["//" [userinfo "@@"] host [":" port]] path \
        [ "?" query ] [ "#" fragment ]
 @end example
 
@@ -59,7 +59,7 @@ fragment.
 Userinfo is something of an abstraction, as some legacy URI schemes
 allowed userinfo of the form @code{@var{username}:@var{passwd}}.
 Passwords don't belong in URIs, so the RFC does not want to condone
-this, but neither can it say that what is before the @code{@} sign is
+this, but neither can it say that what is before the @code{@@} sign is
 just a username, so the RFC punts on the issue and calls it
 @dfn{userinfo}.
 
@@ -84,7 +84,7 @@ consistency checks to make sure that the constructed URI is valid.
 @end defun
 
 @defun uri? x
-@defun uri-scheme uri
+@defunx uri-scheme uri
 @defunx uri-userinfo uri
 @defunx uri-host uri
 @defunx uri-port uri
