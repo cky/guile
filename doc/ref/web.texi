@@ -42,42 +42,56 @@ the thing?  Read on!
 @node URIs
 @subsection Universal Resource Identifiers
 
+Guile provides a standard data type for Universal Resource Identifiers
+(URIs), as defined in RFC 3986.
+
+The generic URI syntax is as follows:
+
+@example
+URI := scheme ":" ["//" [userinfo "@"] host [":" port]] path \
+       [ "?" query ] [ "#" fragment ]
+@end example
+
+So, all URIs have a scheme and a path. Some URIs have a host, and some
+of those have ports and userinfo. Any URI might have a query part or a
+fragment.
+
+Userinfo is something of an abstraction, as some legacy URI schemes
+allowed userinfo of the form @code{@var{username}:@var{passwd}}.
+Passwords don't belong in URIs, so the RFC does not want to condone
+this, but neither can it say that what is before the @code{@} sign is
+just a username, so the RFC punts on the issue and calls it
+@dfn{userinfo}.
+
+Also, strictly speaking, a URI with a fragment is a @dfn{URI
+reference}.  A fragment is typically not serialized when sending a URI
+over the wire; that is, it is not part of the identifier of a resource.
+It only identifies a part of a given resource.  But it's useful to have
+a field for it in the URI record itself, so we hope you will forgive the
+inconsistency.
+
 @example
 (use-modules (web uri))
 @end example
 
-@verbatim 
- A data type for Universal Resource Identifiers, as defined in RFC
- 3986. 
-@end verbatim
-
-@defspec uri? 
-@end defspec
-
-@defspec uri-scheme 
-@end defspec
-
-@defspec uri-userinfo 
-@end defspec
-
-@defspec uri-host 
-@end defspec
-
-@defspec uri-port 
-@end defspec
-
-@defspec uri-path 
-@end defspec
-
-@defspec uri-query 
-@end defspec
-
-@defspec uri-fragment 
-@end defspec
+The following procedures can be found in the @code{(web uri)}
+module. Load it into your Guile, using a form like the above, to have
+access to them.
 
 @defun build-uri scheme [#:userinfo] [#:host] [#:port] [#:path] [#:query] [#:fragment] [#:validate?]
 Construct a URI object. If @var{validate?} is true, also run some
 consistency checks to make sure that the constructed URI is valid.
+@end defun
+
+@defun uri? x
+@defun uri-scheme uri
+@defunx uri-userinfo uri
+@defunx uri-host uri
+@defunx uri-port uri
+@defunx uri-path uri
+@defunx uri-query uri
+@defunx uri-fragment uri
+A predicate and field accessors for the URI record type.
 @end defun
 
 @defun declare-default-port! scheme port
@@ -136,41 +150,66 @@ strings, and join the parts together with @code{/} as a delimiter.
 @node HTTP
 @subsection The Hyper-Text Transfer Protocol
 
+The initial motivation for including web functionality in Guile, rather
+than rely on an external package, was to establish a standard base on
+which people can share code.  To that end, we continue the focus on data
+types by providing a number of low-level parsers and unparsers for
+elements of the HTTP protocol.
+
+If you are want to skip the low-level details for now and move on to web
+pages, @pxref{Web Server}.  Otherwise, load the HTTP module, and read
+on.
+
 @example
 (use-modules (web http))
 @end example
 
-This module has a number of routines to parse textual
-representations of HTTP data into native Scheme data structures.
+The focus of the @code{(web http)} module is to parse and unparse
+standard HTTP headers, representing them to Guile as native data
+structures.  For example, a @code{Date:} header will be represented as a
+SRFI-19 date record (@pxref{SRFI-19}), rather than as a string.
 
-It tries to follow RFCs fairly strictly---the road to perdition
-being paved with compatibility hacks---though some allowances are
-made for not-too-divergent texts (like a quality of .2 which should
-be 0.2, etc).
+Guile tries to follow RFCs fairly strictly---the road to perdition being
+paved with compatibility hacks---though some allowances are made for
+not-too-divergent texts.
 
-@defspec header-decl? 
-@end defspec
+The first bit is to define a registry of parsers, validators, and
+unparsers, keyed by header name.  That is the function of the
+@code{<header-decl>} object.
 
-@defspec make-header-decl 
-@end defspec
+@defun make-header-decl sym name multiple? parser validator writer
+@defunx header-decl? x
+@defunx header-decl-sym decl
+@defunx header-decl-name decl
+@defunx header-decl-multiple? decl
+@defunx header-decl-parser decl
+@defunx header-decl-validator decl
+@defunx header-decl-writer decl.
+A constructor, predicate, and field accessors for the
+@code{<header-decl>} type. The fields are as follows:
 
-@defspec header-decl-sym 
-@end defspec
+@table @code
+@item sym
+The symbol name for this header field, always in lower-case.  For
+example, @code{"Content-Length"} has a symbolic name of
+@code{content-length}.
+@item name
+The string name of the header, in its preferred capitalization.
+@item multiple?
+@code{#t} iff this header may appear multiple times in a message.
+@item parser
+A procedure which takes a string and returns a parsed value.
+@item validator
+A predicate, returning @code{#t} iff the value is valid for this header.
+@item writer
+A writer, which writes a value to the port given in the second argument.
+@end table
+@end defun
 
-@defspec header-decl-name 
-@end defspec
-
-@defspec header-decl-multiple? 
-@end defspec
-
-@defspec header-decl-parser 
-@end defspec
-
-@defspec header-decl-validator 
-@end defspec
-
-@defspec header-decl-writer 
-@end defspec
+@defun declare-header! sym name [#:multiple?] [#:parser] [#:validator] [#:writer]
+Make a header declaration, as above, and register it by symbol and by
+name.
+@end defun
 
 @defun lookup-header-decl name
 Return the @var{header-decl} object registered for the given @var{name}.
@@ -179,14 +218,13 @@ Return the @var{header-decl} object registered for the given @var{name}.
 a case-insensitive fashion.
 @end defun
 
-@defun declare-header! sym name [#:multiple?] [#:parser] [#:validator] [#:writer]
-Define a parser, validator, and writer for the HTTP header, @var{name}.
-
-@var{parser} should be a procedure that takes a string and returns a
-Scheme value. @var{validator} is a predicate for whether the given
-Scheme value is valid for this header. @var{writer} takes a value and a
-port, and writes the value to the port.
+@defun valid-header? sym val
+Returns a true value iff @var{val} is a valid Scheme value for the
+header with name @var{sym}.
 @end defun
+
+Now that we have a generic interface for reading and writing headers, we
+do just that.
 
 @defun read-header port
 Reads one HTTP header from @var{port}. Returns two values: the header
@@ -206,11 +244,6 @@ found, the header name will be returned as a symbol. If a parser was not
 found, both the header name and the value are returned as strings.
 @end defun
 
-@defun valid-header? sym val
-Returns a true value iff @var{val} is a valid Scheme value for the
-header with name @var{sym}.
-@end defun
-
 @defun write-header name val port
 Writes the given header name and value to @var{port}. If @var{name} is a
 symbol, looks up a declared header and uses that writer. Otherwise the
@@ -226,6 +259,9 @@ ordered alist.
 Write the given header alist to @var{port}. Doesn't write the final
 \r\n, as the user might want to add another header.
 @end defun
+
+The @code{(web http)} module also has some utility procedures to read
+and write request and response lines.
 
 @defun parse-http-method str [start] [end]
 Parse an HTTP method from @var{str}. The result is an upper-case symbol,
@@ -269,26 +305,26 @@ Write the first line of an HTTP response to @var{port}.
 (use-modules (web request))
 @end example
 
-@defspec request? 
-@end defspec
+@defun request? 
+@end defun
 
-@defspec request-method 
-@end defspec
+@defun request-method 
+@end defun
 
-@defspec request-uri 
-@end defspec
+@defun request-uri 
+@end defun
 
-@defspec request-version 
-@end defspec
+@defun request-version 
+@end defun
 
-@defspec request-headers 
-@end defspec
+@defun request-headers 
+@end defun
 
-@defspec request-meta 
-@end defspec
+@defun request-meta 
+@end defun
 
-@defspec request-port 
-@end defspec
+@defun request-port 
+@end defun
 
 @defun read-request port [meta]
 Read an HTTP request from @var{port}, optionally attaching the given
@@ -389,25 +425,25 @@ request @var{r}.
 @end example
 
 
-@defspec response? 
-@end defspec
+@defun response? 
+@end defun
 
-@defspec response-version 
-@end defspec
+@defun response-version 
+@end defun
 
-@defspec response-code 
-@end defspec
+@defun response-code 
+@end defun
 
 @defun response-reason-phrase response
 Return the reason phrase given in @var{response}, or the standard reason
 phrase for the response's code.
 @end defun
 
-@defspec response-headers 
-@end defspec
+@defun response-headers 
+@end defun
 
-@defspec response-port 
-@end defspec
+@defun response-port 
+@end defun
 
 @defun read-response port
 Read an HTTP response from @var{port}, optionally attaching the given
@@ -569,8 +605,8 @@ If the user interrupts the loop, the @code{close} hook is called on
 the server socket.
 @end enumerate
 
-@defspec define-server-impl name open read write close
-@end defspec
+@defun define-server-impl name open read write close
+@end defun
 
 @defun lookup-server-impl impl
 Look up a server implementation. If @var{impl} is a server
