@@ -75,6 +75,15 @@
                                            (iota 123)))))))
        (reduce + 0 (iota 123))))
 
+  (pass-if "multiple values"
+    (let ((lst (iota 123)))
+      (equal? (zip lst lst)
+              (map (lambda (f)
+                     (call-with-values (cut touch f) list))
+                   (map (lambda (i)
+                          (future (values i i)))
+                        lst)))))
+
   (pass-if "no exception"
     (future? (future (throw 'foo 'bar))))
 

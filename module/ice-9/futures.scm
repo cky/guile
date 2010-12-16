@@ -83,9 +83,10 @@ touched."
   (set-future-result! future
                       (catch #t
                         (lambda ()
-                          (let ((result ((future-thunk future))))
-                            (lambda ()
-                              result)))
+                          (call-with-values (future-thunk future)
+                            (lambda results
+                              (lambda ()
+                                (apply values results)))))
                         (lambda args
                           (lambda ()
                             (apply throw args)))))
