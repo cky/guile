@@ -332,6 +332,14 @@ scm_is_pair (SCM x)
   return SCM_I_CONSP (x);
 }
 
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+int
+scm_is_string (SCM x)
+{
+  return SCM_NIMP (x) && (SCM_TYP7 (x) == scm_tc7_string);
+}
 
 /* Port I/O.  */
 

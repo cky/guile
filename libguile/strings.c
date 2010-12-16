@@ -1405,11 +1405,6 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 }
 #undef FUNC_NAME
 
-int
-scm_is_string (SCM obj)
-{
-  return IS_STRING (obj);
-}
 
 
 /* Conversion to/from other encodings.  */
