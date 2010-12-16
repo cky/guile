@@ -31,12 +31,13 @@ Rottmann.
 ** New module: `(ice-9 poll)', a poll wrapper
 ** New module: `(web server http)', HTTP-over-TCP web server implementation
 
-These modules are as yet without documentation.  But try the following
-command line:
+See "Web" in the manual, for more information, but as a taste of things,
+try the following command line:
 
   meta/guile examples/web/debug-sxml.scm
 
-Then visit localhost:8080 in your web browser.  Let us know how it goes!
+Then visit http://localhost:8080/ in your web browser.  Let us know how
+it goes!
 
 ** Better Emacs Lisp implementation
 
