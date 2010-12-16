@@ -222,7 +222,8 @@ weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
       remaining = SCM_HASHTABLE_N_ITEMS (table) - args.removed_items;
       SCM_SET_HASHTABLE_N_ITEMS (table, remaining);
 
-      scm_i_rehash (table, hash_fn, closure, "weak_bucket_assoc");
+      if (remaining < SCM_HASHTABLE_LOWER (table))
+	scm_i_rehash (table, hash_fn, closure, "weak_bucket_assoc");
     }
 
   return result;
