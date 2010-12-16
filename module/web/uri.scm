@@ -19,11 +19,18 @@
 
 ;;; Commentary:
 
-;; Based on (www url). To be documented.
+;; A data type for Universal Resource Identifiers, as defined in RFC
+;; 3986. 
 
 ;;; Code:
 
 (define-module (web uri)
+  #:use-module (srfi srfi-9)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 control)
+  #:use-module (rnrs bytevectors)
+  #:use-module (rnrs io ports)
   #:export (uri?
             uri-scheme uri-userinfo uri-host uri-port
             uri-path uri-query uri-fragment
@@ -33,13 +40,7 @@
             parse-uri unparse-uri
             uri-decode uri-encode
             split-and-decode-uri-path
-            encode-and-join-uri-path)
-  #:use-module (srfi srfi-9)
-  #:use-module (ice-9 regex)
-  #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 control)
-  #:use-module (rnrs bytevectors)
-  #:use-module (rnrs io ports))
+            encode-and-join-uri-path))
 
 (define-record-type <uri>
   (make-uri scheme userinfo host port path query fragment)
@@ -78,6 +79,8 @@
 
 (define* (build-uri scheme #:key userinfo host port (path "") query fragment
                     (validate? #t))
+  "Construct a URI object. If @var{validate?} is true, also run some
+consistency checks to make sure that the constructed URI is valid."
   (if validate?
       (validate-uri scheme userinfo host port path query fragment))
   (make-uri scheme userinfo host port path query fragment))
@@ -158,6 +161,8 @@
   (make-regexp uri-pat))
 
 (define (parse-uri string)
+  "Parse @var{string} into a URI object. Returns @code{#f} if the string
+could not be parsed."
   (% (let ((m (regexp-exec uri-regexp string)))
        (if (not m) (abort))
        (let ((scheme (string->symbol
@@ -179,6 +184,10 @@
 (define *default-ports* (make-hash-table))
 
 (define (declare-default-port! scheme port)
+  "Declare a default port for the given URI scheme.
+
+Default ports are for printing URI objects: a default port is not
+printed."
   (hashq-set! *default-ports* scheme port))
 
 (define (default-port? scheme port)
@@ -189,6 +198,7 @@
 (declare-default-port! 'https 443)
 
 (define (unparse-uri uri)
+  "Serialize @var{uri} to a string."
   (let* ((scheme-str (string-append
                       (symbol->string (uri-scheme uri)) ":"))
          (userinfo (uri-userinfo uri))
@@ -257,6 +267,18 @@
   (string->char-set "0123456789abcdefABCDEF"))
 
 (define* (uri-decode str #:key (charset "utf-8"))
+  "Percent-decode the given @var{str}, according to @var{charset}.
+
+Note that this function should not generally be applied to a full URI
+string. For paths, use split-and-decode-uri-path instead. For query
+strings, split the query on @code{&} and @code{=} boundaries, and decode
+the components separately.
+
+Note that percent-encoded strings encode @emph{bytes}, not characters.
+There is no guarantee that a given byte sequence is a valid string
+encoding. Therefore this routine may signal an error if the decoded
+bytes are not valid for the given encoding. Pass @code{#f} for
+@var{charset} if you want decoded bytes as a bytevector directly."
   (let ((len (string-length str)))
     (call-with-values open-bytevector-output-port
       (lambda (port get-bytevector)
@@ -308,35 +330,38 @@
 ;;
 (define* (uri-encode str #:key (charset "utf-8")
                      (unescaped-chars unreserved-chars))
-  (define (put-utf8 binary-port str)
-    (put-bytevector binary-port (string->utf8 str)))
+  "Percent-encode any character not in @var{unescaped-chars}.
 
-  ((cond
-    ((string-ci=? charset "utf-8") utf8->string)
-    ((not charset) (lambda (x) x)) ; raw bytevector
-    (else (uri-error "Unimplemented charset: ~s" charset)))
-   (call-with-values open-bytevector-output-port
-     (lambda (port get-bytevector)
-       (string-for-each
-        (lambda (ch)
-          (if (char-set-contains? unescaped-chars ch)
-              (put-utf8 port (string ch))
-              (let* ((utf8 (string->utf8 (string ch)))
-                     (len (bytevector-length utf8)))
-                ;; Encode each byte.
-                (let lp ((i 0))
-                  (if (< i len)
-                      (begin
-                        (put-utf8 port (string #\%))
-                        (put-utf8 port
-                                  (number->string (bytevector-u8-ref utf8 i) 16))
-                        (lp (1+ i))))))))
-        str)
-       (get-bytevector)))))
+Percent-encoding first writes out the given character to a bytevector
+within the given @var{charset}, then encodes each byte as
+@code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
+the byte."
+  (call-with-output-string
+   (lambda (port)
+     (string-for-each
+      (lambda (ch)
+        (if (char-set-contains? unescaped-chars ch)
+            (display ch port)
+            (let* ((bv (encode-string (string ch) charset))
+                   (len (bytevector-length bv)))
+              (let lp ((i 0))
+                (if (< i len)
+                    (let ((byte (bytevector-u8-ref bv i)))
+                      (display #\% port)
+                      (display (number->string byte 16) port)
+                      (lp (1+ i))))))))
+      str))))
 
 (define (split-and-decode-uri-path path)
+  "Split @var{path} into its components, and decode each
+component, removing empty components.
+
+For example, @code{\"/foo/bar/\"} decodes to the two-element list,
+@code{(\"foo\" \"bar\")}."
   (filter (lambda (x) (not (string-null? x)))
           (map uri-decode (string-split path #\/))))
 
 (define (encode-and-join-uri-path parts)
+  "URI-encode each element of @var{parts}, which should be a list of
+strings, and join the parts together with @code{/} as a delimiter."
   (string-join (map uri-encode parts) "/"))
