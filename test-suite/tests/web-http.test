@@ -76,9 +76,13 @@
 
   (pass-if-parse cache-control "no-transform" '(no-transform))
   (pass-if-parse cache-control "no-transform,foo" '(no-transform "foo"))
-  (pass-if-parse cache-control "no-cache" '((no-cache . #t)))
+  (pass-if-parse cache-control "no-cache" '(no-cache))
+  (pass-if-parse cache-control "no-cache=\"Authorization, Date\""
+                 '((no-cache . (authorization date))))
+  (pass-if-parse cache-control "private=\"Foo\""
+                 '((private . ("Foo"))))
   (pass-if-parse cache-control "no-cache,max-age=10"
-                 '((no-cache . #t) (max-age . 10)))
+                 '(no-cache (max-age . 10)))
 
   (pass-if-parse connection "close" '("close"))
   (pass-if-parse connection "close, foo" '("close" "foo"))

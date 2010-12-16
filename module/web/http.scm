@@ -966,7 +966,12 @@ phrase\"."
       ((max-age max-stale min-fresh s-maxage)
        (cons k (parse-non-negative-integer v-str)))
       ((private no-cache)
-       (cons k (if v-str (split-and-trim v-str) #t)))
+       (if v-str
+           (cons k (map (lambda (f)
+                          (or (and=> (lookup-header-decl f) header-decl-sym)
+                              f))
+                        (split-and-trim v-str)))
+           k))
       (else (if v-str (cons k v-str) k))))
   default-kv-validator
   (lambda (k v port)
