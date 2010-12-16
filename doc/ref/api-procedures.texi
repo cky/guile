@@ -13,6 +13,7 @@
 * Compiled Procedures::         Scheme procedures can be compiled.
 * Optional Arguments::          Handling keyword, optional and rest arguments.
 * Case-lambda::                 One function, multiple arities.
+* Higher-Order Functions::      Function that take or return functions.
 * Procedure Properties::        Procedure properties and meta-information.
 * Procedures with Setters::     Procedures with setters.
 @end menu
@@ -572,6 +573,62 @@ not contribute to the ``matching'' behavior. That is to say,
 arguments, and on the predicate; keyword arguments may be present but
 do not contribute to the ``success'' of a match. In fact a bad keyword
 argument list may cause an error to be raised.
+
+@node Higher-Order Functions
+@subsection Higher-Order Functions
+
+@cindex higher-order functions
+
+As a functional programming language, Scheme allows the definition of
+@dfn{higher-order functions}, i.e., functions that take functions as
+arguments and/or return functions.  Utilities to derive procedures from
+other procedures are provided and described below.
+
+@deffn {Scheme Procedure} const value
+Return a procedure that accepts any number of arguments and returns
+@var{value}.
+
+@lisp
+(procedure? (const 3))        @result{} #t
+((const 'hello))              @result{} hello
+((const 'hello) 'world)       @result{} hello
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} negate proc
+Return a procedure with the same arity as @var{proc} that returns the
+@code{not} of @var{proc}'s result.
+
+@lisp
+(procedure? (negate number?)) @result{} #t
+((negate odd?) 2)             @result{} #t
+((negate real?) 'dream)       @result{} #t
+((negate string-prefix?) "GNU" "GNU Guile")
+                              @result{} #f
+(filter (negate number?) '(a 2 "b"))
+                              @result{} (a "b")
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} compose proc rest ...
+Compose @var{proc} with the procedures in @var{rest}, such that the last
+one in @var{rest} is applied first and @var{proc} last, and return the
+resulting procedure.  The given procedures must have compatible arity.
+
+@lisp
+(procedure? (compose 1+ 1-)) @result{} #t
+((compose sqrt 1+ 1+) 2)     @result{} 2.0
+((compose 1+ sqrt) 3)        @result{} 2.73205080756888
+(eq? (compose 1+) 1+)        @result{} #t
+
+((compose zip unzip2) '((1 2) (a b)))
+                             @result{} ((1 2) (a b))
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} identity x
+Return X.
+@end deffn
 
 @node Procedure Properties
 @subsection Procedure Properties and Meta-information

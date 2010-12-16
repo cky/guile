@@ -531,6 +531,29 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;;
 
 (define (identity x) x)
+
+(define (compose proc . rest)
+  "Compose PROC with the procedures in REST, such that the last one in
+REST is applied first and PROC last, and return the resulting procedure.
+The given procedures must have compatible arity."
+  (if (null? rest)
+      proc
+      (let ((g (apply compose rest)))
+        (lambda args
+          (call-with-values (lambda () (apply g args)) proc)))))
+
+(define (negate proc)
+  "Return a procedure with the same arity as PROC that returns the `not'
+of PROC's result."
+  (lambda args
+    (not (apply proc args))))
+
+(define (const value)
+  "Return a procedure that accepts any number of arguments and returns
+VALUE."
+  (lambda _
+    value))
+
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 

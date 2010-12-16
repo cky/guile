@@ -72,6 +72,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/options.test			\
 	    tests/print.test			\
 	    tests/procprop.test			\
+	    tests/procs.test			\
 	    tests/poe.test			\
 	    tests/popen.test			\
 	    tests/popen-child.scm		\
