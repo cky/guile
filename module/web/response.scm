@@ -95,9 +95,13 @@
 
 (define* (build-response #:key (version '(1 . 1)) (code 200) reason-phrase
                          (headers '()) port)
+  "Construct an HTTP response object. If @var{validate-headers?} is true,
+the headers are each run through their respective validators."
   (make-response version code reason-phrase headers port))
 
 (define (extend-response r k v . additional)
+  "Extend an HTTP response by setting additional HTTP headers @var{k},
+@var{v}.  Returns a new HTTP response."
   (let ((r (build-response #:version (response-version r)
                            #:code (response-code r)
                            #:reason-phrase (%response-reason-phrase r)
@@ -156,22 +160,43 @@
       "(Unknown)"))
 
 (define (response-reason-phrase response)
+  "Return the reason phrase given in @var{response}, or the standard
+reason phrase for the response's code."
   (or (%response-reason-phrase response)
       (code->reason-phrase (response-code response))))
 
 (define (read-response port)
+  "Read an HTTP response from @var{port}, optionally attaching the given
+metadata, @var{meta}.
+
+As a side effect, sets the encoding on @var{port} to
+ISO-8859-1 (latin-1), so that reading one character reads one byte.  See
+the discussion of character sets in \"HTTP Responses\" in the manual,
+for more information."
   (set-port-encoding! port "ISO-8859-1")
   (call-with-values (lambda () (read-response-line port))
     (lambda (version code reason-phrase)
       (make-response version code reason-phrase (read-headers port) port))))
 
 (define (adapt-response-version response version)
+  "Adapt the given response to a different HTTP version.  Returns a new
+HTTP response.
+
+The idea is that many applications might just build a response for the
+default HTTP version, and this method could handle a number of
+programmatic transformations to respond to older HTTP versions (0.9 and
+1.0).  But currently this function is a bit heavy-handed, just updating
+the version field."
   (build-response #:code (response-code response)
                   #:version version
                   #:headers (response-headers response)
                   #:port (response-port response)))
 
 (define (write-response r port)
+  "Write the given HTTP response to @var{port}.
+
+Returns a new response, whose @code{response-port} will continue writing
+on @var{port}, perhaps using some transfer encoding."
   (write-response-line (response-version r) (response-code r)
                        (response-reason-phrase r) port)
   (write-headers (response-headers r) port)
@@ -185,6 +210,12 @@
 ;; per char because we are in latin-1 encoding.
 ;;
 (define (read-response-body/latin-1 r)
+  "Reads the response body from @var{r}, as a string.
+
+Assumes that the response port has ISO-8859-1 encoding, so that the
+number of characters to read is the same as the
+@code{response-content-length}. Returns @code{#f} if there was no
+response body."
   (cond 
    ((response-content-length r) =>
     (lambda (nbytes)
@@ -205,12 +236,16 @@
    (else #f)))
 
 ;; Likewise, assumes that body can be written in the latin-1 encoding,
-;; and that the latin-1 encoding is what is expected by the server.
+;; and that the latin-1 encoding is what is expected by the client.
 ;;
 (define (write-response-body/latin-1 r body)
+  "Write @var{body}, a string encodable in ISO-8859-1, to the port
+corresponding to the HTTP response @var{r}."
   (display body (response-port r)))
 
 (define (read-response-body/bytevector r)
+  "Reads the response body from @var{r}, as a bytevector.  Returns
+@code{#f} if there was no response body."
   (let ((nbytes (response-content-length r)))
     (and nbytes
          (let ((bv (get-bytevector-n (response-port r) nbytes)))
@@ -220,6 +255,8 @@
                             (bytevector-length bv) nbytes))))))
 
 (define (write-response-body/bytevector r bv)
+  "Write @var{body}, a bytevector, to the port corresponding to the HTTP
+response @var{r}."
   (put-bytevector (response-port r) bv))
 
 (define-syntax define-response-accessor

@@ -156,6 +156,8 @@
 (define* (build-request #:key (method 'GET) uri (version '(1 . 1))
                         (headers '()) port (meta '())
                         (validate-headers? #t))
+  "Construct an HTTP request object. If @var{validate-headers?} is true,
+the headers are each run through their respective validators."
   (cond
    ((not (and (pair? version)
               (non-negative-integer? (car version))
@@ -173,6 +175,13 @@
   (make-request method uri version headers meta port))
 
 (define* (read-request port #:optional (meta '()))
+  "Read an HTTP request from @var{port}, optionally attaching the given
+metadata, @var{meta}.
+
+As a side effect, sets the encoding on @var{port} to
+ISO-8859-1 (latin-1), so that reading one character reads one byte.  See
+the discussion of character sets in \"HTTP Requests\" in the manual, for
+more information."
   (set-port-encoding! port "ISO-8859-1")
   (call-with-values (lambda () (read-request-line port))
     (lambda (method uri version)
@@ -180,6 +189,10 @@
 
 ;; FIXME: really return a new request?
 (define (write-request r port)
+  "Write the given HTTP request to @var{port}.
+
+Returns a new request, whose @code{request-port} will continue writing
+on @var{port}, perhaps using some transfer encoding."
   (write-request-line (request-method r) (request-uri r)
                       (request-version r) port)
   (write-headers (request-headers r) port)
@@ -193,6 +206,12 @@
 ;; per char because we are in latin-1 encoding.
 ;;
 (define (read-request-body/latin-1 r)
+  "Reads the request body from @var{r}, as a string.
+
+Assumes that the request port has ISO-8859-1 encoding, so that the
+number of characters to read is the same as the
+@code{request-content-length}. Returns @code{#f} if there was no request
+body."
   (cond 
    ((request-content-length r) =>
     (lambda (nbytes)
@@ -216,9 +235,13 @@
 ;; and that the latin-1 encoding is what is expected by the server.
 ;;
 (define (write-request-body/latin-1 r body)
+  "Write @var{body}, a string encodable in ISO-8859-1, to the port
+corresponding to the HTTP request @var{r}."
   (display body (request-port r)))
 
 (define (read-request-body/bytevector r)
+  "Reads the request body from @var{r}, as a bytevector.  Returns
+@code{#f} if there was no request body."
   (let ((nbytes (request-content-length r)))
     (and nbytes
          (let ((bv (get-bytevector-n (request-port r) nbytes)))
@@ -228,6 +251,8 @@
                             (bytevector-length bv) nbytes))))))
 
 (define (write-request-body/bytevector r bv)
+  "Write @var{body}, a bytevector, to the port corresponding to the HTTP
+request @var{r}."
   (put-bytevector (request-port r) bv))
 
 (define-syntax define-request-accessor
