@@ -101,7 +101,8 @@ touched."
       (() (loop))
       ((future _ ...)
        (lock-mutex (future-mutex future))
-       (or (future-done? future)
+       (or (and (future-done? future)
+                (unlock-mutex (future-mutex future)))
            (begin
              ;; Do the actual work.
              (unregister-future! future)
@@ -115,9 +116,9 @@ touched."
              (lock-mutex (future-mutex future))
              (or (future-done? future)            ; lost the race?
                  (process-future! future))
+             (unlock-mutex (future-mutex future))
 
              (lock-mutex %futures-mutex)))
-       (unlock-mutex (future-mutex future))
        (loop)))))
 
 (define (touch future)
