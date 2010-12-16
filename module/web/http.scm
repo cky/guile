@@ -92,6 +92,12 @@
                           parser
                           validator
                           writer)
+  "Define a parser, validator, and writer for the HTTP header, @var{name}.
+
+@var{parser} should be a procedure that takes a string and returns a
+Scheme value.  @var{validator} is a predicate for whether the given
+Scheme value is valid for this header.  @var{writer} takes a value and a
+port, and writes the value to the port."
   (if (and (symbol? sym) (string? name) parser validator writer)
       (let ((decl (make-header-decl sym name
                                     multiple? parser validator writer)))
@@ -125,6 +131,12 @@
       val))
 
 (define (read-header port)
+  "Reads one HTTP header from @var{port}. Returns two values: the header
+name and the parsed Scheme value. May raise an exception if the header
+was known but the value was invalid.
+
+Returns @var{#f} for both values if the end of the message body was
+reached (i.e., a blank line)."
   (let ((line (read-line* port)))
     (if (or (string-null? line)
             (string=? line "\r"))
@@ -138,11 +150,20 @@
             (string-trim-both line char-whitespace? (1+ delim))))))))
 
 (define (lookup-header-decl name)
+  "Return the @var{header-decl} object registered for the given @var{name}.
+
+@var{name} may be a symbol or a string.  Strings are mapped to headers
+in a case-insensitive fashion."
   (if (string? name)
       (hash-ref *declared-headers-by-name* (string-downcase name))
       (hashq-ref *declared-headers* name)))
 
 (define (parse-header name val)
+  "Parse @var{val}, a string, with the parser for the header named @var{name}.
+
+Returns two values, the header name and parsed value.  If a parser was
+found, the header name will be returned as a symbol.  If a parser was
+not found, both the header name and the value are returned as strings."
   (let* ((down (string-downcase name))
          (decl (hash-ref *declared-headers-by-name* down)))
     (if decl
@@ -151,12 +172,17 @@
         (values down val))))
 
 (define (valid-header? sym val)
+  "Returns a true value iff @var{val} is a valid Scheme value for the
+header with name @var{sym}."
   (let ((decl (hashq-ref *declared-headers* sym)))
     (if (not decl)
         (error "Unknown header" sym)
         ((header-decl-validator decl) val))))
 
 (define (write-header name val port)
+  "Writes the given header name and value to @var{port}.  If @var{name}
+is a symbol, looks up a declared header and uses that writer. Otherwise
+the value is written using @var{display}."
   (if (string? name)
       ;; assume that it's a header we don't know about...
       (begin
@@ -174,6 +200,8 @@
               (display "\r\n" port))))))
 
 (define (read-headers port)
+  "Read an HTTP message from @var{port}, returning the headers as an
+ordered alist."
   (let lp ((headers '()))
     (call-with-values (lambda () (read-header port))
       (lambda (k v)
@@ -181,9 +209,9 @@
             (lp (acons k v headers))
             (reverse! headers))))))
 
-;; Doesn't write the final \r\n, as the user might want to add another
-;; header.
 (define (write-headers headers port)
+  "Write the given header alist to @var{port}.  Doesn't write the final
+\\r\\n, as the user might want to add another header."
   (let lp ((headers headers))
     (if (pair? headers)
         (begin
@@ -637,6 +665,9 @@
 (define *known-versions* '())
 
 (define* (parse-http-version str #:optional (start 0) (end (string-length str)))
+  "Parse an HTTP version from @var{str}, returning it as a major-minor
+pair. For example, @code{HTTP/1.1} parses as the pair of integers,
+@code{(1 . 1)}."
   (or (let lp ((known *known-versions*))
         (and (pair? known)
              (if (string= str (caar known) start end)
@@ -651,6 +682,7 @@
             (bad-header-component 'http-version (substring str start end))))))
 
 (define (write-http-version val port)
+  "Write the given major-minor version pair to @var{port}."
   (display "HTTP/" port)
   (display (car val) port)
   (display #\. port)
@@ -671,6 +703,8 @@
 ;; ourselves the trouble of that case, and disallow the CONNECT method.
 ;;
 (define* (parse-http-method str #:optional (start 0) (end (string-length str)))
+  "Parse an HTTP method from @var{str}.  The result is an upper-case
+symbol, like @code{GET}."
   (cond
    ((string= str "GET" start end) 'GET)
    ((string= str "HEAD" start end) 'HEAD)
@@ -682,6 +716,8 @@
    (else (bad-request "Invalid method: ~a" (substring str start end)))))
 
 (define* (parse-request-uri str #:optional (start 0) (end (string-length str)))
+  "Parse a URI from an HTTP request line.  Note that URIs in requests do
+not have to have a scheme or host name.  The result is a URI object."
   (cond
    ((= start end)
     (bad-request "Missing Request-URI"))
@@ -700,6 +736,8 @@
         (bad-request "Invalid URI: ~a" (substring str start end))))))
 
 (define (read-request-line port)
+  "Read the first line of an HTTP request from @var{port}, returning
+three values: the method, the URI, and the version."
   (let* ((line (read-line* port))
          (d0 (string-index line char-whitespace?)) ; "delimiter zero"
          (d1 (string-rindex line char-whitespace?)))
@@ -739,6 +777,7 @@
         (display (uri-query uri) port))))
 
 (define (write-request-line method uri version port)
+  "Write the first line of an HTTP request to @var{port}."
   (display method port)
   (display #\space port)
   (write-uri uri port)
@@ -747,6 +786,9 @@
   (display "\r\n" port))
 
 (define (read-response-line port)
+  "Read the first line of an HTTP response from @var{port}, returning
+three values: the HTTP version, the response code, and the \"reason
+phrase\"."
   (let* ((line (read-line* port))
          (d0 (string-index line char-whitespace?)) ; "delimiter zero"
          (d1 (and d0 (string-index line char-whitespace?
@@ -759,6 +801,7 @@
         (bad-response "Bad Response-Line: ~s" line))))
 
 (define (write-response-line version code reason-phrase port)
+  "Write the first line of an HTTP response to @var{port}."
   (write-http-version version port)
   (display #\space port)
   (display code port)
