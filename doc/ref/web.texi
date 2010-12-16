@@ -36,8 +36,8 @@ the thing?  Read on!
 * HTTP Headers::                How Guile represents specific header values.
 * Requests::                    HTTP requests.
 * Responses::                   HTTP responses.
-* Web Handlers::                A simple web application interface.
 * Web Server::                  Serving HTTP to the internet.
+* Web Examples::                How to use this thing.
 @end menu
 
 @node URIs
@@ -548,25 +548,41 @@ A string.
 (use-modules (web request))
 @end example
 
+The request module contains a data type for HTTP requests.  Note that
+the body is not part of the request, but the port is.  Once you have
+read a request, you may read the body separately, and likewise for
+writing requests.
+
+@defun build-request [#:method] [#:uri] [#:version] [#:headers] [#:port] [#:meta] [#:validate-headers?]
+Construct an HTTP request object. If @var{validate-headers?} is true,
+the headers are each run through their respective validators.
+@end defun
+
 @defun request? 
-@end defun
-
-@defun request-method 
-@end defun
-
-@defun request-uri 
-@end defun
-
-@defun request-version 
-@end defun
-
-@defun request-headers 
-@end defun
-
-@defun request-meta 
-@end defun
-
-@defun request-port 
+@defunx request-method 
+@defunx request-uri 
+@defunx request-version 
+@defunx request-headers 
+@defunx request-meta 
+@defunx request-port 
+A predicate and field accessors for the request type.  The fields are as
+follows:
+@table @code
+@item method
+The HTTP method, for example, @code{GET}.
+@item uri
+The URI as a URI record.
+@item version
+The HTTP version pair, like @code{(1 . 1)}.
+@item headers
+The request headers, as an alist of parsed values.
+@item meta
+An arbitrary alist of other data, for example information returned in
+the @code{sockaddr} from @code{accept} (@pxref{Network Sockets and
+Communication}).
+@item port
+The port on which to read or write a request body, if any.
+@end table
 @end defun
 
 @defun read-request port [meta]
@@ -577,11 +593,6 @@ As a side effect, sets the encoding on @var{port} to ISO-8859-1
 (latin-1), so that reading one character reads one byte. See the
 discussion of character sets in "HTTP Requests" in the manual, for more
 information.
-@end defun
-
-@defun build-request [#:method] [#:uri] [#:version] [#:headers] [#:port] [#:meta] [#:validate-headers?]
-Construct an HTTP request object. If @var{validate-headers?} is true,
-the headers are each run through their respective validators.
 @end defun
 
 @defun write-request r port
@@ -614,6 +625,10 @@ if there was no request body.
 Write @var{body}, a bytevector, to the port corresponding to the HTTP
 request @var{r}.
 @end defun
+
+The various headers that are typically associated with HTTP requests may
+be accessed with these dedicated accessors.  @xref{HTTP Headers}, for
+more information on the format of parsed headers.
 
 @defun request-accept request [default='()]
 @defunx request-accept-charset request [default='()]
@@ -653,9 +668,12 @@ request @var{r}.
 @defunx request-user-agent request [default=#f]
 @defunx request-via request [default='()]
 @defunx request-warning request [default='()]
+Return the given request header, or @var{default} if none was present.
 @end defun
 
 @defun request-absolute-uri r [default-host] [default-port]
+A helper routine to determine the absolute URI of a request, using the
+@code{host} header and the default host and port.
 @end defun
 
 
@@ -667,25 +685,30 @@ request @var{r}.
 (use-modules (web response))
 @end example
 
+As with requests (@pxref{Requests}), Guile offers a data type for HTTP
+responses.  Again, the body is represented separately from the request.
 
 @defun response? 
-@end defun
-
-@defun response-version 
-@end defun
-
-@defun response-code 
-@end defun
-
-@defun response-reason-phrase response
-Return the reason phrase given in @var{response}, or the standard reason
-phrase for the response's code.
-@end defun
-
-@defun response-headers 
-@end defun
-
-@defun response-port 
+@defunx response-version 
+@defunx response-code 
+@defunx response-reason-phrase response
+@defunx response-headers 
+@defunx response-port 
+A predicate and field accessors for the response type.  The fields are as
+follows:
+@table @code
+@item version
+The HTTP version pair, like @code{(1 . 1)}.
+@item code
+The HTTP response code, like @code{200}.
+@item reason-phrase
+The reason phrase, or the standard reason phrase for the response's
+code.
+@item headers
+The response headers, as an alist of parsed values.
+@item port
+The port on which to read or write a response body, if any.
+@end table
 @end defun
 
 @defun read-response port
@@ -750,6 +773,11 @@ Write @var{body}, a bytevector, to the port corresponding to the HTTP
 response @var{r}.
 @end defun
 
+As with requests, the various headers that are typically associated with
+HTTP responses may be accessed with these dedicated accessors.
+@xref{HTTP Headers}, for more information on the format of parsed
+headers.
+
 @defun response-accept-ranges response [default=#f]
 @defunx response-age response [default='()]
 @defunx response-allow response [default='()]
@@ -778,13 +806,9 @@ response @var{r}.
 @defunx response-via response [default='()]
 @defunx response-warning response [default='()]
 @defunx response-www-authenticate response [default=#f]
+Return the given request header, or @var{default} if none was present.
 @end defun
 
-
-@node Web Handlers
-@subsection Web Handlers
-
-from request to response
 
 @node Web Server
 @subsection Web Server
@@ -957,6 +981,24 @@ Server" in the manual, for more information.
 @example
 (use-modules (web server))
 @end example
+
+
+@node Web Examples
+@subsection Web Examples
+
+This section has yet to be written, really. But for now, try this:
+
+@example 
+ (use-modules (web server))
+
+ (define (handler request body)
+   (values '((content-type . ("text/plain")))
+           "Hello, World!"))
+ (run-server handler)
+@end example
+
+Then visit @code{http://localhost:8080/} on your web browser.  Let us
+know how it goes!
 
 
 @c Local Variables:
