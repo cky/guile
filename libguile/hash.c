@@ -135,6 +135,17 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       }
     case scm_tc7_symbol:
       return scm_i_symbol_hash (obj) % n;
+    case scm_tc7_pointer:
+      {
+	/* Pointer objects are typically used to store addresses of heap
+	   objects.  On most platforms, these are at least 3-byte
+	   aligned (on x86_64-*-gnu, `malloc' returns 4-byte aligned
+	   addresses), so get rid of the least significant bits.  */
+	scm_t_uintptr significant_bits;
+
+	significant_bits = (scm_t_uintptr) SCM_POINTER_VALUE (obj) >> 4UL;
+	return (size_t) significant_bits  % n;
+      }
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {
