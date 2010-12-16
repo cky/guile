@@ -32,19 +32,20 @@
 ;;; Code:
 
 (define-module (ice-9 threads)
-  :export (begin-thread
-           parallel
-           letpar
-           make-thread
-           with-mutex
-           monitor
+  #:use-module (ice-9 futures)
+  #:export (begin-thread
+            parallel
+            letpar
+            make-thread
+            with-mutex
+            monitor
 
-           par-map
-	   par-for-each
-	   n-par-map
-	   n-par-for-each
-	   n-for-each-par-map
-	   %thread-handler))
+            par-map
+            par-for-each
+            n-par-map
+            n-par-for-each
+            n-for-each-par-map
+            %thread-handler))
 
 
 
@@ -62,10 +63,9 @@
     (syntax-case x ()
       ((_ e0 ...)
        (with-syntax (((tmp0 ...) (generate-temporaries (syntax (e0 ...)))))
-         (syntax
-          (let ((tmp0 (begin-thread e0))
-                ...)
-            (values (join-thread tmp0) ...))))))))
+         #'(let ((tmp0 (future e0))
+                 ...)
+             (values (touch tmp0) ...)))))))
 
 (define-syntax letpar
   (syntax-rules ()
@@ -99,10 +99,10 @@
 
 (define (par-mapper mapper)
   (lambda (proc . arglists)
-    (mapper join-thread
+    (mapper touch
             (apply map
                    (lambda args
-                     (begin-thread (apply proc args)))
+                     (future (apply proc args)))
                    arglists))))
 
 (define par-map (par-mapper map))

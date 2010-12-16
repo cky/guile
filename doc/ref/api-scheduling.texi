@@ -904,6 +904,11 @@ The functions described in this section are available from
 (use-modules (ice-9 threads))
 @end example
 
+They provide high-level parallel constructs.  The following functions
+are implemented in terms of futures (@pxref{Futures}).  Thus they are
+relatively cheap as they re-use existing threads, and portable, since
+they automatically use one thread per available CPU core.
+
 @deffn syntax parallel expr1 @dots{} exprN
 Evaluate each @var{expr} expression in parallel, each in its own thread.
 Return the results as a set of @var{N} multiple values
@@ -934,6 +939,16 @@ made in parallel, each in its own thread.
 These functions are like @code{map} and @code{for-each} (@pxref{List
 Mapping}), but make their @var{proc} calls in parallel.
 @end deffn
+
+Unlike those above, the functions described below take a number of
+threads as an argument.  This makes them inherently non-portable since
+the specified number of threads may differ from the number of available
+CPU cores as returned by @code{current-processor-count}
+(@pxref{Processes}).  In addition, these functions create the specified
+number of threads when they are called and terminate them upon
+completion, which makes them quite expensive.
+
+Therefore, they should be avoided.
 
 @deffn {Scheme Procedure} n-par-map n proc lst1 @dots{} lstN
 @deffnx {Scheme Procedure} n-par-for-each n proc lst1 @dots{} lstN

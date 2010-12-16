@@ -1,6 +1,6 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2007, 2009 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,9 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-threads)
-  :use-module (ice-9 threads)
-  :use-module (test-suite lib))
+  #:use-module (ice-9 threads)
+  #:use-module (system base compile)
+  #:use-module (test-suite lib))
 
 (define (asyncs-still-working?)
   (let ((a #f))
@@ -69,6 +70,38 @@
 	      (and (equal? x 1)
 		   (equal? y 2)
 		   (equal? z 3))))))
+
+      ;;
+      ;; par-map
+      ;;
+
+      (with-test-prefix "par-map"
+
+        (pass-if "simple"
+          (compile '(letrec ((fibo (lambda (n)
+                                     (if (<= n 1)
+                                         n
+                                         (+ (fibo (- n 1))
+                                            (fibo (- n 2)))))))
+                      (equal? (par-map fibo (iota 13))
+                              (map fibo (iota 13))))
+                   #:to 'value
+                   #:env (current-module))))
+
+      ;;
+      ;; par-for-each
+      ;;
+
+      (with-test-prefix "par-for-each"
+
+        (pass-if "simple"
+          (compile '(let ((v (make-vector 6 #f)))
+                      (par-for-each (lambda (n)
+                                      (vector-set! v n n))
+                                    (iota 6))
+                      (equal? v (list->vector (iota 6))))
+                   #:to 'value
+                   #:env (current-module))))
 
       ;;
       ;; n-par-for-each
