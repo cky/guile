@@ -76,7 +76,7 @@ abcdefghijklmnopqrstuvwxyz0123456789")
          (cache-control . ((max-age . 543234)))
          (expires . ,(string->date "Thu, 28 Oct 2010 15:33:13 GMT +0000"
                                    "~a, ~d ~b ~Y ~H:~M:~S ~z"))
-         (vary . ("Accept-Encoding"))
+         (vary . (accept-encoding))
          (content-encoding . ("gzip"))
          (content-length . 36)
          (content-type . ("text/html" ("charset" . "utf-8"))))))
