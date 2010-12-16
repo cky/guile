@@ -269,6 +269,31 @@ ordered alist."
           (cons tok (split-and-trim str delim (if idx (1+ idx) end) end)))
         '())))
 
+(define (list-of-strings? val)
+  (list-of? val string?))
+
+(define (write-list-of-strings val port)
+  (write-list val port display ", "))
+
+(define (split-header-names str)
+  (map (lambda (f)
+         (or (and=> (lookup-header-decl f) header-decl-sym)
+             f))
+       (split-and-trim str)))
+
+(define (list-of-header-names? val)
+  (list-of? val (lambda (x) (or (string? x) (symbol? x)))))
+
+(define (write-header-list val port)
+  (write-list val port
+              (lambda (x port)
+                (display (or (and (symbol? x)
+                                  (and=> (lookup-header-decl x)
+                                         header-decl-name))
+                             x)
+                         port))
+              ", "))
+
 (define (collect-escaped-string from start len escapes)
   (let ((to (make-string len)))
     (let lp ((start start) (i 0) (escapes escapes))
@@ -588,12 +613,6 @@ ordered alist."
      (write-key-value-list item port val-writer ";"))
    ","))
 
-(define (list-of-strings? val)
-  (list-of? val string?))
-
-(define (write-list-of-strings val port)
-  (write-list val port display ", "))
-
 (define (parse-date str)
   ;; Unfortunately, there is no way to make string->date parse out the
   ;; "GMT" bit, so we play string games to append a format it will
@@ -849,6 +868,14 @@ phrase\"."
        name
        split-and-trim list-of-strings? write-list-of-strings))))
 
+;; emacs: (put 'declare-header-list-header 'scheme-indent-function 1)
+(define-syntax declare-header-list-header
+  (syntax-rules ()
+    ((_ sym name)
+     (declare-header sym
+       name
+       split-header-names list-of-header-names? write-header-list))))
+
 ;; emacs: (put 'declare-integer-header 'scheme-indent-function 1)
 (define-syntax declare-integer-header
   (syntax-rules ()
@@ -967,10 +994,7 @@ phrase\"."
        (cons k (parse-non-negative-integer v-str)))
       ((private no-cache)
        (if v-str
-           (cons k (map (lambda (f)
-                          (or (and=> (lookup-header-decl f) header-decl-sym)
-                              f))
-                        (split-and-trim v-str)))
+           (cons k (split-header-names v-str))
            k))
       (else (if v-str (cons k v-str) k))))
   default-kv-validator
@@ -978,7 +1002,9 @@ phrase\"."
     (cond
      ((string? v) (display v port))
      ((pair? v)
-      (write-qstring (string-join v ", ") port))
+      (display #\" port)
+      (write-header-list v port)
+      (display #\" port))
      ((integer? v)
       (display v port))
      (else
@@ -1009,7 +1035,7 @@ phrase\"."
 
 ;; Trailer  = "Trailer" ":" 1#field-name
 ;;
-(declare-string-list-header trailer
+(declare-header-list-header trailer
   "Trailer")
 
 ;; Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
@@ -1528,13 +1554,13 @@ phrase\"."
   (lambda (str)
     (if (equal? str "*")
         '*
-        (split-and-trim str)))
+        (split-header-names str)))
   (lambda (val)
-    (or (eq? val '*) (list-of-strings? val)))
+    (or (eq? val '*) (list-of-header-names? val)))
   (lambda (val port)
     (if (eq? val '*)
         (display "*" port)
-        (write-list-of-strings val port))))
+        (write-header-list val port))))
 
 ;; WWW-Authenticate = 1#challenge
 ;;

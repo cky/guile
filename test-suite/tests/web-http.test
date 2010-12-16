@@ -97,6 +97,7 @@
   (pass-if-parse pragma "no-cache, foo" '(no-cache "foo"))
 
   (pass-if-parse trailer "foo, bar" '("foo" "bar"))
+  (pass-if-parse trailer "connection, bar" '(connection "bar"))
 
   (pass-if-parse transfer-encoding "foo, chunked" '(("foo") (chunked)))
 
