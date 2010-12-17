@@ -1074,6 +1074,11 @@ Set the value of the variable @var{var} to @var{val}.
 value. Return an unspecified value.
 @end deffn
 
+@deffn {Scheme Procedure} variable-unset! var
+@deffnx {C Function} scm_variable_unset_x (var)
+Unset the value of the variable @var{var}, leaving @var{var} unbound.
+@end deffn
+
 @deffn {Scheme Procedure} variable? obj
 @deffnx {C Function} scm_variable_p (obj)
 Return @code{#t} iff @var{obj} is a variable object, else
