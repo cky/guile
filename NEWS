@@ -89,18 +89,27 @@ login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
 See "Module System Reflection" and "Module Commands" in the manual, for
 more information.
 
+** New `,in' REPL command
+
+See "Module Commands" in the manual, for more information.
+
 ** Allow user-defined REPL meta-commands
     
-See FIXME in the manual, for more information.
+This feature is not documented yet.  See `define-meta-command' in
+`(system repl command)'.
 
 ** Add support for unbound fluids
     
 See `make-unbound-fluid', `fluid-unset!', and `fluid-bound?' in the
 manual.
 
-** Add variable-unset!
+** Add `variable-unset!'
     
 See "Variables" in the manual, for more details.
+
+** New procedures: `compose', `negate', and `const'
+
+See "Higher-Order Functions" in the manual, for more information.
 
 ** Command line additions
 
