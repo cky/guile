@@ -691,6 +691,12 @@ inherits the values from its parent.  Because each thread normally executes
 with its own dynamic state, you can use fluids for thread local storage.
 @end deffn
 
+@deffn {Scheme Procedure} make-unbound-fluid
+@deffnx {C Function} scm_make_unbound_fluid ()
+Return a new fluid that is initially unbound (instead of being
+implicitly bound to @code{#f}.
+@end deffn
+
 @deffn {Scheme Procedure} fluid? obj
 @deffnx {C Function} scm_fluid_p (obj)
 Return @code{#t} iff @var{obj} is a fluid; otherwise, return
@@ -701,12 +707,24 @@ Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @deffnx {C Function} scm_fluid_ref (fluid)
 Return the value associated with @var{fluid} in the current
 dynamic root.  If @var{fluid} has not been set, then return
-@code{#f}.
+@code{#f}. Calling @code{fluid-ref} on an unbound fluid produces a
+runtime error.
 @end deffn
 
 @deffn {Scheme Procedure} fluid-set! fluid value
 @deffnx {C Function} scm_fluid_set_x (fluid, value)
 Set the value associated with @var{fluid} in the current dynamic root.
+@end deffn
+
+@deffn {Scheme Procedure} fluid-unset! fluid
+@deffnx {C Function} scm_fluid_unset_x (fluid)
+Disassociate the given fluid from any value, making it unbound.
+@end deffn
+
+@deffn {Scheme Procedure} fluid-bound? fluid
+@deffnx {C Function} scm_fluid_bound_p (fluid)
+Returns @code{#t} iff the given fluid is bound to a value, otherwise
+@code{#f}.
 @end deffn
 
 @code{with-fluids*} temporarily changes the values of one or more fluids,

@@ -94,10 +94,8 @@ See FIXME in the manual, for more information.
 
 ** Add support for unbound fluids
     
-FIXME: needs documentation
-
-See `make-undefined-fluid' (FIXME: should be make-unbound-fluid),
-`fluid-unset!', and `fluid-bound?' in the manual.
+See `make-unbound-fluid', `fluid-unset!', and `fluid-bound?' in the
+manual.
 
 ** Add variable-unset!
     
