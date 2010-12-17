@@ -148,3 +148,10 @@ $(snarf_doc).texi: $(standard_library_scm_files)
 
 CLEANFILES = $(snarf_doc).texi
 EXTRA_DIST += $(snarf_doc).scm make-texinfo.scm $(snarf_doc).texi $(snarf_doc).am
+
+
+www-commit: html
+	cd guile.html; \
+	cvs -d :ext:cvs.sv.gnu.org:/web/guile \
+	  import -m 'make www-commit in doc/ref' guile/docs/master/guile.html gnu \
+	  $(shell date "+D%Y%m%d%H%M%S")
