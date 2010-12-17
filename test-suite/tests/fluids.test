@@ -151,14 +151,14 @@
 (with-test-prefix "unbound fluids"
   (pass-if "fluid-ref of unbound fluid"
     (catch #t
-           (lambda () (fluid-ref (make-undefined-fluid)))
+           (lambda () (fluid-ref (make-unbound-fluid)))
            (lambda (key . args) #t)))
   (pass-if "fluid-bound? of bound fluid"
     (fluid-bound? (make-fluid)))
   (pass-if "fluid-bound? of unbound fluid"
-    (not (fluid-bound? (make-undefined-fluid))))
+    (not (fluid-bound? (make-unbound-fluid))))
   (pass-if "unbound fluids can be set"
-    (let ((fluid (make-undefined-fluid)))
+    (let ((fluid (make-unbound-fluid)))
       (fluid-set! fluid #t)
       (fluid-ref fluid)))
   (pass-if "bound fluids can be unset"
