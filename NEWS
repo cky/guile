@@ -84,9 +84,10 @@ more information.
 `cuserid' has been deprecated, as it only returns 8 bytes of a user's
 login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
     
-** New procedure. `reload-module'
+** New procedure `reload-module', and `,reload' REPL command
     
-Needs documenting and a REPL meta-command.
+See "Module System Reflection" and "Module Commands" in the manual, for
+more information.
 
 ** Allow user-defined REPL meta-commands
     
