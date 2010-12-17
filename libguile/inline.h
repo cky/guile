@@ -95,6 +95,7 @@ SCM_API SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
 SCM_API void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
 SCM_API int scm_is_pair (SCM x);
+SCM_API int scm_is_string (SCM x);
 
 SCM_API int scm_get_byte_or_eof (SCM port);
 SCM_API void scm_putc (char c, SCM port);

@@ -125,7 +125,6 @@ SCM_API SCM scm_c_substring_read_only (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_shared (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_copy (SCM str, size_t start, size_t end);
 
-SCM_API int scm_is_string (SCM x);
 SCM_API SCM scm_from_latin1_stringn (const char *str, size_t len);
 SCM_API SCM scm_from_locale_string (const char *str);
 SCM_API SCM scm_from_locale_stringn (const char *str, size_t len);
