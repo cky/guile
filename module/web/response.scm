@@ -93,10 +93,41 @@
 (define (bad-response message . args)
   (throw 'bad-response message args))
 
+(define (non-negative-integer? n)
+  (and (number? n) (>= n 0) (exact? n) (integer? n)))
+                                    
+(define (validate-headers headers)
+  (if (pair? headers)
+      (let ((h (car headers)))
+        (if (pair? h)
+            (let ((k (car h)) (v (cdr h)))
+              (if (symbol? k)
+                  (if (not (valid-header? k v))
+                      (bad-response "Bad value for header ~a: ~s" k v))
+                  (if (not (and (string? k) (string? v)))
+                      (bad-response "Unknown header not a pair of strings: ~s"
+                                    h)))
+              (validate-headers (cdr headers)))
+            (bad-response "Header not a pair: ~a" h)))
+      (if (not (null? headers))
+          (bad-response "Headers not a list: ~a" headers))))
+
 (define* (build-response #:key (version '(1 . 1)) (code 200) reason-phrase
-                         (headers '()) port)
+                         (headers '()) port (validate-headers? #t))
   "Construct an HTTP response object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators."
+  (cond
+   ((not (and (pair? version)
+              (non-negative-integer? (car version))
+              (non-negative-integer? (cdr version))))
+    (bad-response "Bad version: ~a" version))
+   ((not (and (non-negative-integer? code) (< code 600)))
+    (bad-response "Bad code: ~a" code))
+   ((and reason-phrase (not (string? reason-phrase)))
+    (bad-response "Bad reason phrase" reason-phrase))
+   (else
+    (if validate-headers?
+        (validate-headers headers))))
   (make-response version code reason-phrase headers port))
 
 (define (extend-response r k v . additional)
