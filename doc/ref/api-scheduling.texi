@@ -952,7 +952,8 @@ calls to complete.
 The @var{proc} calls are @code{(@var{proc} @var{elem1} @dots{}
 @var{elemN})}, where each @var{elem} is from the corresponding
 @var{lst}.  Each @var{lst} must be the same length.  The calls are
-made in parallel, each in its own thread.
+potentially made in parallel, depending on the number of CPU cores
+available.
 
 These functions are like @code{map} and @code{for-each} (@pxref{List
 Mapping}), but make their @var{proc} calls in parallel.
