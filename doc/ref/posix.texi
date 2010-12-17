@@ -3045,6 +3045,16 @@ For IP level (@code{IPPROTO_IP}) the following @var{optname}s are
 defined (when provided by the system).  See @command{man ip} for what
 they mean.
 
+@defvar IP_MULTICAST_IF
+This sets the source interface used by multicast traffic.
+@end defvar
+
+@defvar IP_MULTICAST_TTL
+This sets the default TTL for multicast traffic. This defaults
+to 1 and should be increased to allow traffic to pass beyond the
+local network.
+@end defvar
+
 @defvar IP_ADD_MEMBERSHIP
 @defvarx IP_DROP_MEMBERSHIP
 These can be used only with @code{setsockopt}, not @code{getsockopt}.

@@ -75,8 +75,9 @@ macros like `quote' are printed better.
 
 ** Multicast socket options
 
-FIXME: Need to document IP_MULTICAST_TTL and IP_MULTICAST_IF in the
-manual.
+Support was added for the IP_MULTICAST_TTL and IP_MULTICAST_IF socket
+options.  See "Network Sockets and Communication" in the manual, for
+more information.
 
 ** Deprecate `cuserid'
     
