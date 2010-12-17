@@ -3345,8 +3345,10 @@ module '(ice-9 q) '(make-q q-length))}."
 ;; FIXME:
 (module-use! the-scm-module (resolve-interface '(srfi srfi-4)))
 
+;; Set filename to #f to prevent reload.
 (define-module (guile-user)
-  #:autoload (system base compile) (compile compile-file))
+  #:autoload (system base compile) (compile compile-file)
+  #:filename #f)
 
 ;; Remain in the `(guile)' module at compilation-time so that the
 ;; `-Wunused-toplevel' warning works as expected.
