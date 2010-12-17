@@ -816,19 +816,23 @@ Return the given request header, or @var{default} if none was present.
 @code{(web server)} is a generic web server interface, along with a main
 loop implementation for web servers controlled by Guile.
 
-The lowest layer is the <server-impl> object, which defines a set of
-hooks to open a server, read a request from a client, write a
-response to a client, and close a server.  These hooks -- open,
-read, write, and close, respectively -- are bound together in a
-<server-impl> object.  Procedures in this module take a
-<server-impl> object, if needed.
+@example
+(use-modules (web server))
+@end example
 
-A <server-impl> may also be looked up by name.  If you pass the
-@code{http} symbol to @code{run-server}, Guile looks for a variable named
-@code{http} in the @code{(web server http)} module, which should be bound to a
-<server-impl> object.  Such a binding is made by instantiation of
-the @code{define-server-impl} syntax.  In this way the run-server loop can
-automatically load other backends if available.
+The lowest layer is the @code{<server-impl>} object, which defines a set
+of hooks to open a server, read a request from a client, write a
+response to a client, and close a server.  These hooks -- @code{open},
+@code{read}, @code{write}, and @code{close}, respectively -- are bound
+together in a @code{<server-impl>} object.  Procedures in this module take a
+@code{<server-impl>} object, if needed.
+
+A @code{<server-impl>} may also be looked up by name.  If you pass the
+@code{http} symbol to @code{run-server}, Guile looks for a variable
+named @code{http} in the @code{(web server http)} module, which should
+be bound to a @code{<server-impl>} object.  Such a binding is made by
+instantiation of the @code{define-server-impl} syntax.  In this way the
+run-server loop can automatically load other backends if available.
 
 The life cycle of a server goes as follows:
 
@@ -840,11 +844,11 @@ server socket object, or signals an error.
 
 @item
 The @code{read} hook is called, to read a request from a new client.
-The @code{read} hook takes one arguments, the server socket.  It
-should return three values: an opaque client socket, the
-request, and the request body. The request should be a
-@code{<request>} object, from @code{(web request)}.  The body should be a
-string or a bytevector, or @code{#f} if there is no body.
+The @code{read} hook takes one argument, the server socket.  It should
+return three values: an opaque client socket, the request, and the
+request body. The request should be a @code{<request>} object, from
+@code{(web request)}.  The body should be a string or a bytevector, or
+@code{#f} if there is no body.
 
 If the read failed, the @code{read} hook may return #f for the client
 socket, request, and body.
@@ -872,7 +876,12 @@ If the user interrupts the loop, the @code{close} hook is called on
 the server socket.
 @end enumerate
 
+A user may define a server implementation with the following form:
+
 @defun define-server-impl name open read write close
+Make a @code{<server-impl>} object with the hooks @var{open},
+@var{read}, @var{write}, and @var{close}, and bind it to the symbol
+@var{name} in the current module.
 @end defun
 
 @defun lookup-server-impl impl
@@ -884,6 +893,12 @@ looked up. Otherwise an error is signaled.
 Currently a server implementation is a somewhat opaque type, useful only
 for passing to other procedures in this module, like @code{read-client}.
 @end defun
+
+The @code{(web server)} module defines a number of routines that use
+@code{<server-impl>} objects to implement parts of a web server.  Given
+that we don't expose the accessors for the various fields of a
+@code{<server-impl>}, indeed these routines are the only procedures with
+any access to the impl objects.
 
 @defun open-server impl open-params
 Open a server for the given implementation. Returns one value, the new
@@ -943,6 +958,8 @@ Release resources allocated by a previous invocation of
 @code{open-server}.
 @end defun
 
+Given the procedures above, it is a small matter to make a web server:
+
 @defun serve-one-client handler impl server state
 Read one request from @var{server}, call @var{handler} on the request
 and body, and write the response to the client. Returns the new state
@@ -978,28 +995,212 @@ The default server implementation is @code{http}, which accepts
 Server" in the manual, for more information.
 @end defun
 
-@example
-(use-modules (web server))
-@end example
-
 
 @node Web Examples
 @subsection Web Examples
 
-This section has yet to be written, really. But for now, try this:
+Well, enough about the tedious internals.  Let's make a web application!
 
-@example 
- (use-modules (web server))
+@subsubsection Hello, World!
 
- (define (handler request body)
-   (values '((content-type . ("text/plain")))
-           "Hello, World!"))
- (run-server handler)
+The first program we have to write, of course, is ``Hello, World!''.
+This means that we have to implement a web handler that does what we
+want.
+
+Now we define a handler, a function of two arguments and two return
+values:
+
+@example
+(define (handler request request-body)
+  (values @var{response} @var{response-body}))
 @end example
 
-Then visit @code{http://localhost:8080/} on your web browser.  Let us
-know how it goes!
+In this first example, we take advantage of a short-cut, returning an
+alist of headers instead of a proper response object. The response body
+is our payload:
 
+@example
+(define (hello-world-handler request request-body)
+  (values '((content-type . ("text/plain")))
+          "Hello World!"))
+@end example
+
+Now let's test it, by running a server with this handler. Load up the
+web server module if you haven't yet done so, and run a server with this
+handler:
+
+@example
+(use-modules (web server))
+(run-server hello-world-handler)
+@end example
+
+By default, the web server listens for requests on
+@code{localhost:8080}.  Visit that address in your web browser to
+test.  If you see the string, @code{Hello World!}, sweet!
+
+@subsubsection Inspecting the Request
+
+The Hello World program above is a general greeter, responding to all
+URIs.  To make a more exclusive greeter, we need to inspect the request
+object, and conditionally produce different results.  So let's load up
+the request, response, and URI modules, and do just that.
+
+@example
+(use-modules (web server)) ; you probably did this already
+(use-modules (web request)
+             (web response)
+             (web uri))
+
+(define (request-path-components request)
+  (split-and-decode-uri-path (uri-path (request-uri request))))
+
+(define (hello-hacker-handler request body)
+  (if (equal? (request-path-components request)
+              '("hacker"))
+      (values '((content-type . ("text/plain")))
+              "Hello hacker!")
+      (not-found request)))
+
+(run-server hello-hacker-handler)
+@end example
+
+Here we see that we have defined a helper to return the components of
+the URI path as a list of strings, and used that to check for a request
+to @code{/hacker/}. Then the success case is just as before -- visit
+@code{http://localhost:8080/hacker/} in your browser to check.
+
+You should always match against URI path components as decoded by
+@code{split-and-decode-uri-path}. The above example will work for
+@code{/hacker/}, @code{//hacker///}, and @code{/h%61ck%65r}.
+
+But we forgot to define @code{not-found}!  If you are pasting these
+examples into a REPL, accessing any other URI in your web browser will
+drop your Guile console into the debugger:
+
+@example
+<unnamed port>:38:7: In procedure module-lookup:
+<unnamed port>:38:7: Unbound variable: not-found
+
+Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+scheme@@(guile-user) [1]> 
+@end example
+
+So let's define the function, right there in the debugger.  As you
+probably know, we'll want to return a 404 response.
+
+@example
+;; Paste this in your REPL
+(define (not-found request)
+  (values (build-response #:code 404)
+          (string-append "Resource not found: "
+                         (unparse-uri (request-uri request)))))
+
+;; Now paste this to let the web server keep going:
+,continue
+@end example
+
+Now if you access @code{http://localhost/foo/}, you get this error
+message.  (Note that some popular web browsers won't show
+server-generated 404 messages, showing their own instead, unless the 404
+message body is long enough.)
+
+@subsubsection Higher-Level Interfaces
+
+The web handler interface is a common baseline that all kinds of Guile
+web applications can use.  You will usually want to build something on
+top of it, however, especially when producing HTML.  Here is a simple
+example that builds up HTML output using SXML (@pxref{sxml simple}).
+
+First, load up the modules:
+
+@example
+(use-modules (web server)
+             (web request)
+             (web response)
+             (sxml simple))
+@end example
+
+Now we define a simple templating function that takes a list of HTML
+body elements, as SXML, and puts them in our super template:
+
+@example
+(define (templatize title body)
+  `(html (head (title ,title))
+         (body ,@@body)))
+@end example
+
+For example, the simplest Hello HTML can be produced like this:
+
+@example
+(sxml->xml (templatize "Hello!" '((b "Hi!"))))
+@print{}
+<html><head><title>Hello!</title></head><body><b>Hi!</b></body></html>
+@end example
+
+Much better to work with Scheme data types than to work with HTML as
+strings. Now we define a little response helper:
+
+@example
+(define* (respond #:optional body #:key
+                  (status 200)
+                  (title "Hello hello!")
+                  (doctype "<!DOCTYPE html>\n")
+                  (content-type-params '(("charset" . "utf-8")))
+                  (content-type "text/html")
+                  (extra-headers '())
+                  (sxml (and body (templatize title body))))
+  (values (build-response
+           #:code status
+           #:headers `((content-type
+                        . (,content-type ,@@content-type-params))
+                       ,@@extra-headers))
+          (lambda (port)
+            (if sxml
+                (begin
+                  (if doctype (display doctype port))
+                  (sxml->xml sxml port))))))
+@end example
+
+Here we see the power of keyword arguments with default initializers. By
+the time the arguments are fully parsed, the @code{sxml} local variable
+will hold the templated SXML, ready for sending out to the client.
+
+Instead of returning the body as a string, here we give a procedure,
+which will be called by the web server to write out the response to the
+client.
+
+Now, a simple example using this responder, which lays out the incoming
+headers in an HTML table.
+
+@example
+(define (debug-page request body)
+  (respond
+   `((h1 "hello world!")
+     (table
+      (tr (th "header") (th "value"))
+      ,@@(map (lambda (pair)
+               `(tr (td (tt ,(with-output-to-string
+                               (lambda () (display (car pair))))))
+                    (td (tt ,(with-output-to-string
+                               (lambda ()
+                                 (write (cdr pair))))))))
+             (request-headers request))))))
+
+(run-server debug-page)
+@end example
+
+Now if you visit any local address in your web browser, we actually see
+some HTML, finally.
+
+@subsubsection Conclusion
+
+Well, this is about as far as Guile's built-in web support goes, for
+now.  There are many ways to make a web application, but hopefully by
+standardizing the most fundamental data types, users will be able to
+choose the approach that suits them best, while also being able to
+switch between implementations of the server.  This is a relatively new
+part of Guile, so if you have feedback, let us know, and we can take it
+into account.  Happy hacking on the web!
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
