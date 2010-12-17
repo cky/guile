@@ -19,7 +19,7 @@
 (define-module (ice-9 futures)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
-  #:use-module (ice-9 match)
+  #:use-module (ice-9 q)
   #:export (future make-future future? touch))
 
 ;;; Author: Ludovic Courtès <ludo@gnu.org>
@@ -63,20 +63,16 @@ touched."
 ;;; Future queues.
 ;;;
 
-(define %futures '())
+(define %futures (make-q))
 (define %futures-mutex (make-mutex))
 (define %futures-available (make-condition-variable))
 
 (define (register-future! future)
   ;; Register FUTURE as being processable.
   (lock-mutex %futures-mutex)
-  (set! %futures (cons future %futures)) ;; FIXME: use a FIFO
+  (enq! %futures future)
   (signal-condition-variable %futures-available)
   (unlock-mutex %futures-mutex))
-
-(define (unregister-future! future)
-  ;; Assume %FUTURES-MUTEX is taken.
-  (set! %futures (delq future %futures)))
 
 (define (process-future! future)
   ;; Process FUTURE, assuming its mutex is already taken.
@@ -98,29 +94,27 @@ touched."
   (let loop ()
     (wait-condition-variable %futures-available
                              %futures-mutex)
-    (match %futures
-      (() (loop))
-      ((future _ ...)
-       (lock-mutex (future-mutex future))
-       (or (and (future-done? future)
-                (unlock-mutex (future-mutex future)))
-           (begin
-             ;; Do the actual work.
-             (unregister-future! future)
+    (or (q-empty? %futures)
+        (let ((future (deq! %futures)))
+          (lock-mutex (future-mutex future))
+          (or (and (future-done? future)
+                   (unlock-mutex (future-mutex future)))
+              (begin
+                ;; Do the actual work.
 
-             ;; We want to release %FUTURES-MUTEX so that other workers
-             ;; can progress.  However, to avoid deadlocks, we have to
-             ;; unlock FUTURE as well, to preserve lock ordering.
-             (unlock-mutex (future-mutex future))
-             (unlock-mutex %futures-mutex)
+                ;; We want to release %FUTURES-MUTEX so that other workers
+                ;; can progress.  However, to avoid deadlocks, we have to
+                ;; unlock FUTURE as well, to preserve lock ordering.
+                (unlock-mutex (future-mutex future))
+                (unlock-mutex %futures-mutex)
 
-             (lock-mutex (future-mutex future))
-             (or (future-done? future)            ; lost the race?
-                 (process-future! future))
-             (unlock-mutex (future-mutex future))
+                (lock-mutex (future-mutex future))
+                (or (future-done? future)            ; lost the race?
+                    (process-future! future))
+                (unlock-mutex (future-mutex future))
 
-             (lock-mutex %futures-mutex)))
-       (loop)))))
+                (lock-mutex %futures-mutex)))))
+    (loop)))
 
 (define (touch future)
   "Return the result of FUTURE, computing it if not already done."
@@ -132,7 +126,7 @@ touched."
         (unlock-mutex (future-mutex future))
 
         (lock-mutex %futures-mutex)
-        (unregister-future! future)
+        (q-remove! %futures future)
         (unlock-mutex %futures-mutex)
 
         (lock-mutex (future-mutex future))
