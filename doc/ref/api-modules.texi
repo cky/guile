@@ -563,6 +563,11 @@ arguments should be module objects, and @var{interface} should very
 likely be a module returned by @code{resolve-interface}.
 @end deffn
 
+@deffn {Scheme Procedure} reload-module module
+Revisit the source file that corresponds to @var{module}.  Raises an
+error if no source file is associated with the given module.
+@end deffn
+
 
 @node Included Guile Modules
 @subsection Included Guile Modules

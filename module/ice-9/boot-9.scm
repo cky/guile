@@ -2276,6 +2276,7 @@ VALUE."
   (try-module-autoload name version))
 
 (define (reload-module m)
+  "Revisit the source file corresponding to the module @var{m}."
   (let ((f (module-filename m)))
     (if f
         (save-module-excursion

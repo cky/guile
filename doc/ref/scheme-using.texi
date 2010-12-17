@@ -223,6 +223,10 @@ Import modules / List those imported.
 Load a file in the current module.
 @end deffn
 
+@deffn {REPL Command} reload [module]
+Reload the given module, or the current module if none was given.
+@end deffn
+
 @deffn {REPL Command} binding
 List current bindings.
 @end deffn

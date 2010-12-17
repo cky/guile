@@ -50,7 +50,7 @@
 
 (define *command-table*
   '((help     (help h) (show) (apropos a) (describe d))
-    (module   (module m) (import use) (load l) (binding b) (in))
+    (module   (module m) (import use) (load l) (reload re) (binding b) (in))
     (language (language L))
     (compile  (compile c) (compile-file cc)
 	      (disassemble x) (disassemble-file xx))
@@ -390,6 +390,15 @@ Import modules / List those imported."
   "load FILE
 Load a file in the current module."
   (load (->string file)))
+
+(define-meta-command (reload repl . args)
+  "reload [MODULE]
+Reload the given module, or the current module if none was given."
+  (pmatch args
+    (() (reload-module (current-module)))
+    ((,mod-name) (guard (list? mod-name))
+     (reload-module (resolve-module mod-name)))
+    (,mod-name (reload-module (resolve-module mod-name)))))
 
 (define-meta-command (binding repl)
   "binding
