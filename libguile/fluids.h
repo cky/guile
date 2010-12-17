@@ -60,7 +60,7 @@
 #endif
 
 SCM_API SCM scm_make_fluid (void);
-SCM_API SCM scm_make_undefined_fluid (void);
+SCM_API SCM scm_make_unbound_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);
 SCM_API SCM scm_fluid_ref (SCM fluid);

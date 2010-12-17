@@ -181,10 +181,10 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_make_undefined_fluid, "make-undefined-fluid", 0, 0, 0,
+SCM_DEFINE (scm_make_unbound_fluid, "make-unbound-fluid", 0, 0, 0,
             (),
-            "")
-#define FUNC_NAME s_scm_make_undefined_fluid
+            "Make a fluid that is initially unbound.")
+#define FUNC_NAME s_scm_make_unbound_fluid
 {
   SCM f = new_fluid ();
   scm_fluid_set_x (f, SCM_UNDEFINED);

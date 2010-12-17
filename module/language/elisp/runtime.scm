@@ -73,7 +73,7 @@
   (let ((intf (resolve-interface module))
         (resolved (resolve-module module)))
     (if (not (module-defined? intf sym))
-        (let ((fluid (make-undefined-fluid)))
+        (let ((fluid (make-unbound-fluid)))
           (module-define! resolved sym fluid)
           (module-export! resolved `(,sym))))))
 
