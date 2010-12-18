@@ -32,34 +32,9 @@
 (define-module (ice-9 format)
   #:use-module (ice-9 and-let-star)
   #:autoload (ice-9 pretty-print) (pretty-print truncated-print)
-  #:replace (format)
-  #:export (format:symbol-case-conv
-            format:iobj-case-conv
-            format:expch))
+  #:replace (format))
 
 ;;; Configuration ------------------------------------------------------------
-
-(define format:symbol-case-conv #f)
-;; Symbols are converted by symbol->string so the case of the printed
-;; symbols is implementation dependent. format:symbol-case-conv is a
-;; one arg closure which is either #f (no conversion), string-upcase!,
-;; string-downcase! or string-capitalize!.
-
-(define format:iobj-case-conv #f)
-;; As format:symbol-case-conv but applies for the representation of
-;; implementation internal objects.
-
-(define format:expch #\E)
-;; The character prefixing the exponent value in ~e printing.
-
-(define format:floats (provided? 'inexact))
-;; Detects if the scheme system implements flonums (see at eof).
-
-(define format:complex-numbers (provided? 'complex))
-;; Detects if the scheme system implements complex numbers.
-
-(define format:radix-pref (char=? #\# (string-ref (number->string 8 8) 0)))
-;; Detects if number->string adds a radix prefix.
 
 (define format:ascii-non-printable-charnames
   '#("nul" "soh" "stx" "etx" "eot" "enq" "ack" "bel"
@@ -385,30 +360,19 @@
 			   (format:out-num-padded ; any Radix
 			    modifier (next-arg) (cdr params) (car params)))
 		       (anychar-dispatch))
-		      ((#\F)			; Fixed-format floating-point
-		       (if format:floats
-			   (format:out-fixed modifier (next-arg) params)
-			   (format:out-str (number->string (next-arg))))
-		       (anychar-dispatch))
-		      ((#\E)			; Exponential floating-point
-		       (if format:floats
-			   (format:out-expon modifier (next-arg) params)
-			   (format:out-str (number->string (next-arg))))
-		       (anychar-dispatch))
-		      ((#\G)			; General floating-point
-		       (if format:floats
-			   (format:out-general modifier (next-arg) params)
-			   (format:out-str (number->string (next-arg))))
-		       (anychar-dispatch))
-		      ((#\$)			; Dollars floating-point
-		       (if format:floats
-			   (format:out-dollar modifier (next-arg) params)
-			   (format:out-str (number->string (next-arg))))
-		       (anychar-dispatch))
+		      ((#\F)            ; Fixed-format floating-point
+		       (format:out-fixed modifier (next-arg) params)
+                       (anychar-dispatch))
+		      ((#\E)            ; Exponential floating-point
+		       (format:out-expon modifier (next-arg) params)
+                       (anychar-dispatch))
+		      ((#\G)            ; General floating-point
+		       (format:out-general modifier (next-arg) params)
+                       (anychar-dispatch))
+		      ((#\$)            ; Dollars floating-point
+		       (format:out-dollar modifier (next-arg) params)
+                       (anychar-dispatch))
 		      ((#\I)			; Complex numbers
-		       (if (not format:complex-numbers)
-			   (format:error
-			    "complex numbers not supported by this scheme system"))
 		       (let ((z (next-arg)))
 			 (if (not (complex? z))
 			     (format:error "argument not a complex number"))
@@ -440,10 +404,7 @@
 			       ((>= c #x7f)
 				(format:out-str "#\\")
 				(format:out-str
-				 (if format:radix-pref
-				     (let ((s (number->string c 8)))
-				       (substring s 2 (string-length s)))
-				     (number->string c 8))))
+				 (number->string c 8)))
 			       (else
 				(format:out-char ch)))))
 			   (else (format:out-char ch))))
@@ -887,10 +848,7 @@
 	       (vector-ref format:ascii-non-printable-charnames int-rep))
 	      ((= int-rep 127) "del")
 	      ((>= int-rep 128)		; octal representation
-	       (if format:radix-pref
-		   (let ((s (number->string int-rep 8)))
-		     (substring s 2 (string-length s)))
-		   (number->string int-rep 8)))
+	       (number->string int-rep 8))
 	      (else (string ch)))))))
 
        (format:space-ch (char->integer #\space))
@@ -934,8 +892,6 @@
 	(lambda (modifier number pars radix)
 	  (if (not (integer? number)) (format:error "argument not an integer"))
 	  (let ((numstr (number->string number radix)))
-	    (if (and format:radix-pref (not (= radix 10)))
-		(set! numstr (substring numstr 2 (string-length numstr))))
 	    (if (and (null? pars) (not modifier))
 		(format:out-str numstr)
 		(let ((l (length pars))
@@ -1676,7 +1632,7 @@
 
        (format:en-out
 	(lambda (edigits expch)
-	  (format:out-char (if expch (integer->char expch) format:expch))
+	  (format:out-char (if expch (integer->char expch) #\E))
 	  (format:out-char (if format:en-pos? #\+ #\-))
 	  (if edigits 
 	      (if (< format:en-len edigits)
