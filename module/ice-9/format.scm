@@ -131,45 +131,6 @@
 	      
   (define format:error-save #f)
 
-  (define (format:format . args)        ; the formatter entry
-    (set! format:args args)
-    (set! format:arg-pos 0)
-    (set! format:pos 0)
-    (if (< (length args) 1)
-        (format:error "not enough arguments"))
-
-    ;; If the first argument is a string, then that's the format string.
-    ;; (Scheme->C)
-    ;; In this case, put the argument list in canonical form.
-    (let ((args (if (string? (car args))
-                    (cons #f args)
-                    args)))
-      ;; Use this canonicalized version when reporting errors.
-      (set! format:args args)
-
-      (let ((destination (car args))
-            (arglist (cdr args)))
-        (cond
-         ((or (and (boolean? destination) ; port output
-                   destination)
-              (output-port? destination))
-          (format:out (cond
-                       ((boolean? destination) (current-output-port))
-                       ((output-port? destination) destination)
-                       ((number? destination) (current-error-port)))
-                      (car arglist) (cdr arglist)))
-         ((number? destination)
-          (issue-deprecation-warning
-           "Passing a number to format as the destination is deprecated."
-           "Pass (current-error-port) instead.")
-          (format:out (current-error-port) (car arglist) (cdr arglist)))
-         ((and (boolean? destination)   ; string output
-               (not destination))
-          (call-with-output-string
-           (lambda (port) (format:out port (car arglist) (cdr arglist)))))
-         (else
-          (format:error "illegal destination `~a'" destination))))))
-
   (define (format:out port fmt args)     ; the output handler for a port
     (set! format:port port)              ; global port for
 					; output routines
@@ -1645,7 +1606,30 @@
   (set! format:fn-str (make-string format:fn-max)) ; number buffer
   (set! format:en-str (make-string format:en-max)) ; exponent buffer
 
-  (apply format:format port format-string args))
+  (set! format:args (cons* port format-string args))
+  (set! format:arg-pos 0)
+  (set! format:pos 0)
+
+  (cond
+   ((or (and (boolean? port)     ; port output
+             port)
+        (output-port? port))
+    (format:out (cond
+                 ((boolean? port) (current-output-port))
+                 ((output-port? port) port)
+                 ((number? port) (current-error-port)))
+                format-string args))
+   ((number? port)
+    (issue-deprecation-warning
+     "Passing a number to format as the port is deprecated."
+     "Pass (current-error-port) instead.")
+    (format:out (current-error-port) format-string args))
+   ((and (boolean? port)         ; string output
+         (not port))
+    (call-with-output-string
+     (lambda (port) (format:out port format-string args))))
+   (else
+    (format:error "bad destination `~a'" port))))
 
 (begin-deprecated
  (set! format
