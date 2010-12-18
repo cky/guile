@@ -33,15 +33,7 @@
   #:autoload (ice-9 pretty-print) (pretty-print truncated-print)
   #:replace (format))
 
-;;; Configuration ------------------------------------------------------------
-
-(define format:ascii-non-printable-charnames
-  '#("nul" "soh" "stx" "etx" "eot" "enq" "ack" "bel"
-     "bs"  "ht"  "nl"  "vt"  "np"  "cr"  "so"  "si"
-     "dle" "dc1" "dc2" "dc3" "dc4" "nak" "syn" "etb"
-     "can" "em"  "sub" "esc" "fs"  "gs"  "rs"  "us" "space"))
-
-;;; End of configuration ----------------------------------------------------
+(define format:version "3.0")
 
 (define (format destination format-string . format-args)
   (if (not (string? format-string))
@@ -59,10 +51,11 @@
             (current-error-port))
            (else
             (error "format: bad destination `~a'" destination))))
-         (output-col (or (port-column port) 0)))
 
-    (define format:version "3.0")
-    (define format:flush-output #f)  ; flush output at end of formatting
+         (output-col (or (port-column port) 0))
+
+         (flush-output? #f))
+
     (define format:case-conversion #f)
     (define format:pos 0)        ; curr. format string parsing position
     (define format:arg-pos 0)    ; curr. format argument position
@@ -328,7 +321,7 @@
                          (format:error "~~c expects a character"))
                      (case modifier
                        ((at)
-                        (format:out-str (format:char->str ch)))
+                        (format:out-str (object->string ch)))
                        ((colon)
                         (let ((c (char->integer ch)))
                           (if (< c 0)
@@ -446,7 +439,7 @@
                        (format:format-work frmt args))))
                    (anychar-dispatch))
                   ((#\!)                ; Flush output
-                   (set! format:flush-output #t)
+                   (set! flush-output? #t)
                    (anychar-dispatch))
                   ((#\newline)		; Continuation lines
                    (if (eq? modifier 'at)
@@ -768,26 +761,6 @@
         (if (and format:read-proof (string-prefix? "#<" res))
             (object->string res)
             res)))
-
-    ;; format:char->str converts a character into a slashified string as
-    ;; done by `write'. The procedure is dependent on the integer
-    ;; representation of characters and assumes a character number according to
-    ;; the ASCII character set.
-
-    (define (format:char->str ch)
-      (let ((int-rep (char->integer ch)))
-        (if (< int-rep 0)               ; if chars are [-128...+127]
-            (set! int-rep (+ int-rep 256)))
-        (string-append
-         "#\\"
-         (cond
-          ((char=? ch #\newline) "newline")
-          ((and (>= int-rep 0) (<= int-rep 32))
-           (vector-ref format:ascii-non-printable-charnames int-rep))
-          ((= int-rep 127) "del")
-          ((>= int-rep 128)		; octal representation
-           (number->string int-rep 8))
-          (else (string ch))))))
 
     (define format:space-ch (char->integer #\space))
     (define format:zero-ch (char->integer #\0))
@@ -1599,7 +1572,7 @@
         (display format:arg-pos)
         (format:error "~a missing argument~:p" (- arg-pos arg-len)))
        (else
-        (if format:flush-output
+        (if flush-output?
             (force-output port))
         (if destination
             #t
