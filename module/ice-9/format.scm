@@ -44,7 +44,7 @@
 
 ;;; End of configuration ----------------------------------------------------
 
-(define (format port format-string . args)
+(define (format destination format-string . args)
   (define format:version "3.0")
   (define format:port #f)            ; curr. format output port
   (define format:output-col 0)       ; curr. format output tty column
@@ -1606,43 +1606,43 @@
   (set! format:fn-str (make-string format:fn-max)) ; number buffer
   (set! format:en-str (make-string format:en-max)) ; exponent buffer
 
-  (set! format:args (cons* port format-string args))
+  (set! format:args (cons* destination format-string args))
   (set! format:arg-pos 0)
   (set! format:pos 0)
 
   (cond
-   ((or (and (boolean? port)     ; port output
-             port)
-        (output-port? port))
+   ((or (and (boolean? destination)     ; port output
+             destination)
+        (output-port? destination))
     (format:out (cond
-                 ((boolean? port) (current-output-port))
-                 ((output-port? port) port)
-                 ((number? port) (current-error-port)))
+                 ((boolean? destination) (current-output-port))
+                 ((output-port? destination) destination)
+                 ((number? destination) (current-error-port)))
                 format-string args))
-   ((number? port)
+   ((number? destination)
     (issue-deprecation-warning
      "Passing a number to format as the port is deprecated."
      "Pass (current-error-port) instead.")
     (format:out (current-error-port) format-string args))
-   ((and (boolean? port)         ; string output
-         (not port))
+   ((and (boolean? destination)         ; string output
+         (not destination))
     (call-with-output-string
      (lambda (port) (format:out port format-string args))))
    (else
-    (format:error "bad destination `~a'" port))))
+    (format:error "bad destination `~a'" destination))))
 
 (begin-deprecated
  (set! format
        (let ((format format))
          (case-lambda
-           ((port format-string . args)
-            (if (string? port)
+           ((destination format-string . args)
+            (if (string? destination)
                 (begin
                   (issue-deprecation-warning
-                   "Omitting the destination port on a call to format is deprecated."
-                   "Pass #f as the destination port, before the format string.")
-                  (apply format #f port format-string args))
-                (apply format port format-string args)))
+                   "Omitting the destination on a call to format is deprecated."
+                   "Pass #f as the destination, before the format string.")
+                  (apply format #f destination format-string args))
+                (apply format destination format-string args)))
            ((deprecated-format-string-only)
             (issue-deprecation-warning
              "Omitting the destination port on a call to format is deprecated."
