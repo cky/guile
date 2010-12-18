@@ -1,23 +1,41 @@
 ;;;; "format.scm" Common LISP text output formatter for SLIB
-;;; Written 1992-1994 by Dirk Lutzebaeck (lutzeb@cs.tu-berlin.de)
-;;; Assimilated into Guile May 1999
-;;
-;; This code is in the public domain.
+;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
+;;; 
+;;; This library is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
+;;; 
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+;;;
 
-;; Authors of the original version (< 1.4) were Ken Dickey and Aubrey Jaffer.
-;; Please send error reports to bug-guile@gnu.org.
-;; For documentation see slib.texi and format.doc.
-;; For testing load formatst.scm.
-;;
-;; Version 3.0
+;;; This code was orignally in the public domain.
+;;;
+;;; Written 1992-1994 by Dirk Lutzebaeck (lutzeb@cs.tu-berlin.de).
+;;;
+;;; Authors of the version from SLIB (< 1.4) were Ken Dickey and Aubrey
+;;; Jaffer.
+;;;
+;;; Assimilated into Guile May 1999.
+;;;
+;;; Please don't bother the original authors with bug reports, though;
+;;; send them to bug-guile@gnu.org.
+;;;
 
 (define-module (ice-9 format)
-  :use-module (ice-9 and-let-star)
-  :autoload (ice-9 pretty-print) (pretty-print truncated-print)
-  :replace (format)
-  :export (format:symbol-case-conv
-	   format:iobj-case-conv
-	   format:expch))
+  #:use-module (ice-9 and-let-star)
+  #:autoload (ice-9 pretty-print) (pretty-print truncated-print)
+  #:replace (format)
+  #:export (format:symbol-case-conv
+            format:iobj-case-conv
+            format:expch))
 
 ;;; Configuration ------------------------------------------------------------
 
