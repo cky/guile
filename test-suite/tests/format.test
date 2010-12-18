@@ -26,9 +26,9 @@
 
 (with-test-prefix "format basic output"
   (pass-if "format ~% produces a new line"
-	   (string=? (format "~%") "\n"))
+	   (string=? (format #f "~%") "\n"))
   (pass-if "format ~& starts a fresh line"
-	   (string=? (format "~&abc~&~&") "abc\n"))
+	   (string=? (format #f "~&abc~&~&") "abc\n"))
   (pass-if "format ~& is stateless but works properly across outputs via port-column"
 	   (string=?
 	    (with-output-to-string
@@ -39,7 +39,7 @@
 		(format #t "~&~&")))
 	    "xyz\nabc\n"))
   (pass-if "format ~F (format-out-substr) maintains the column correctly"
-	   (= (string-length (format "~@F~20T" 1)) 20)))
+	   (= (string-length (format #f "~@F~20T" 1)) 20)))
 
 ;;;
 ;;; misc
@@ -99,4 +99,4 @@
   ;; In Guile 1.6.4 and earlier, the maximum iterations parameter defaulted
   ;; to 100, but it's now like Common Lisp where the default is no limit
   (pass-if "no arbitrary iteration limit"
-    (= (string-length (format "~{~a~}" (make-list 200 #\b))) 200)))
+    (= (string-length (format #f "~{~a~}" (make-list 200 #\b))) 200)))

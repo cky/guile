@@ -44,15 +44,15 @@
 
 ;;; End of configuration ----------------------------------------------------
 
-(define (format . args)
+(define (format port format-string . args)
   (define format:version "3.0")
-  (define format:port #f)                   ; curr. format output port
-  (define format:output-col 0)              ; curr. format output tty column
-  (define format:flush-output #f)           ; flush output at end of formatting
+  (define format:port #f)            ; curr. format output port
+  (define format:output-col 0)       ; curr. format output tty column
+  (define format:flush-output #f)    ; flush output at end of formatting
   (define format:case-conversion #f)
   (define format:args #f)
-  (define format:pos 0)                 ; curr. format string parsing position
-  (define format:arg-pos 0)             ; curr. format argument position
+  (define format:pos 0)          ; curr. format string parsing position
+  (define format:arg-pos 0)      ; curr. format argument position
 					; this is global for error presentation
        
   ;; format string and char output routines on format:port
@@ -170,8 +170,8 @@
          (else
           (format:error "illegal destination `~a'" destination))))))
 
-  (define (format:out port fmt args)                   ; the output handler for a port
-    (set! format:port port)             ; global port for
+  (define (format:out port fmt args)     ; the output handler for a port
+    (set! format:port port)              ; global port for
 					; output routines
     (set! format:case-conversion #f)	; modifier case
 					; conversion procedure
@@ -190,9 +190,9 @@
         #t))))
 
   (define format:parameter-characters
-   '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
+    '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
 
-  (define (format:format-work format-string arglist)          ; does the formatting work
+  (define (format:format-work format-string arglist) ; does the formatting work
     (letrec
         ((format-string-len (string-length format-string))
          (arg-pos 0)                 ; argument position in arglist
@@ -946,11 +946,11 @@
   ;; roman numerals (from dorai@cs.rice.edu).
 
   (define format:roman-alist
-   '((1000 #\M) (500 #\D) (100 #\C) (50 #\L)
-     (10 #\X) (5 #\V) (1 #\I)))
+    '((1000 #\M) (500 #\D) (100 #\C) (50 #\L)
+      (10 #\X) (5 #\V) (1 #\I)))
 
   (define format:roman-boundary-values
-   '(100 100 10 10 1 1 #f))
+    '(100 100 10 10 1 1 #f))
 
   (define (format:num->old-roman n)
     (if (and (integer? n) (>= n 1))
@@ -996,14 +996,14 @@
   ;; cardinals & ordinals (from dorai@cs.rice.edu)
 
   (define format:cardinal-ones-list
-   '(#f "one" "two" "three" "four" "five"
-        "six" "seven" "eight" "nine" "ten" "eleven" "twelve" "thirteen"
-        "fourteen" "fifteen" "sixteen" "seventeen" "eighteen"
-        "nineteen"))
+    '(#f "one" "two" "three" "four" "five"
+         "six" "seven" "eight" "nine" "ten" "eleven" "twelve" "thirteen"
+         "fourteen" "fifteen" "sixteen" "seventeen" "eighteen"
+         "nineteen"))
 
   (define format:cardinal-tens-list
-   '(#f #f "twenty" "thirty" "forty" "fifty" "sixty" "seventy" "eighty"
-        "ninety"))
+    '(#f #f "twenty" "thirty" "forty" "fifty" "sixty" "seventy" "eighty"
+         "ninety"))
 
   (define (format:num->cardinal999 n)
     ;; this procedure is inspired by the Bruno Haible's CLisp
@@ -1037,11 +1037,11 @@
                 '()))))))
 
   (define format:cardinal-thousand-block-list
-   '("" " thousand" " million" " billion" " trillion" " quadrillion"
-     " quintillion" " sextillion" " septillion" " octillion" " nonillion"
-     " decillion" " undecillion" " duodecillion" " tredecillion"
-     " quattuordecillion" " quindecillion" " sexdecillion" " septendecillion"
-     " octodecillion" " novemdecillion" " vigintillion"))
+    '("" " thousand" " million" " billion" " trillion" " quadrillion"
+      " quintillion" " sextillion" " septillion" " octillion" " nonillion"
+      " decillion" " undecillion" " duodecillion" " tredecillion"
+      " quattuordecillion" " quindecillion" " sexdecillion" " septendecillion"
+      " octodecillion" " novemdecillion" " vigintillion"))
 
   (define (format:num->cardinal n)
     (cond ((not (integer? n))
@@ -1081,14 +1081,14 @@
                                s)))))))))
 
   (define format:ordinal-ones-list
-   '(#f "first" "second" "third" "fourth" "fifth"
-        "sixth" "seventh" "eighth" "ninth" "tenth" "eleventh" "twelfth"
-        "thirteenth" "fourteenth" "fifteenth" "sixteenth" "seventeenth"
-        "eighteenth" "nineteenth"))
+    '(#f "first" "second" "third" "fourth" "fifth"
+         "sixth" "seventh" "eighth" "ninth" "tenth" "eleventh" "twelfth"
+         "thirteenth" "fourteenth" "fifteenth" "sixteenth" "seventeenth"
+         "eighteenth" "nineteenth"))
 
   (define format:ordinal-tens-list
-   '(#f #f "twentieth" "thirtieth" "fortieth" "fiftieth" "sixtieth"
-        "seventieth" "eightieth" "ninetieth"))
+    '(#f #f "twentieth" "thirtieth" "fortieth" "fiftieth" "sixtieth"
+         "seventieth" "eightieth" "ninetieth"))
 
   (define (format:num->ordinal n)
     (cond ((not (integer? n))
@@ -1386,15 +1386,15 @@
 
 					; the flonum buffers
 
-  (define format:fn-max 400)                   ; max. number of number digits
-  (define format:fn-str #f)                    ; number buffer
-  (define format:fn-len 0)                     ; digit length of number
-  (define format:fn-dot #f)                    ; dot position of number
-  (define format:fn-pos? #t)                   ; number positive?
-  (define format:en-max 10)                    ; max. number of exponent digits
-  (define format:en-str #f)                    ; exponent buffer
-  (define format:en-len 0)                     ; digit length of exponent
-  (define format:en-pos? #t)                   ; exponent positive?
+  (define format:fn-max 400)            ; max. number of number digits
+  (define format:fn-str #f)             ; number buffer
+  (define format:fn-len 0)              ; digit length of number
+  (define format:fn-dot #f)             ; dot position of number
+  (define format:fn-pos? #t)            ; number positive?
+  (define format:en-max 10)             ; max. number of exponent digits
+  (define format:en-str #f)             ; exponent buffer
+  (define format:en-len 0)              ; digit length of exponent
+  (define format:en-pos? #t)            ; exponent positive?
 
   (define (format:parse-float num fixed? scale)
     (let ((num-str (if (string? num)
@@ -1540,7 +1540,7 @@
               (string-set! format:en-str format:en-len c)
               (set! format:en-len (+ format:en-len 1)))))))
 
-  (define (format:fn-zfill left? n)         ; fill current number string with 0s
+  (define (format:fn-zfill left? n) ; fill current number string with 0s
     (if (> (+ n format:fn-len) format:fn-max) ; from the left or right
         (format:error "number is too long to format (enlarge format:fn-max)"))
     (set! format:fn-len (+ format:fn-len n))
@@ -1555,7 +1555,7 @@
             ((= i format:fn-len))
           (string-set! format:fn-str i #\0))))
 
-  (define (format:fn-shiftleft n)  ; shift left current number n positions
+  (define (format:fn-shiftleft n) ; shift left current number n positions
     (if (> n format:fn-len)
         (format:error "internal error in format:fn-shiftleft (~d,~d)"
                       n format:fn-len))
@@ -1564,7 +1564,7 @@
          (set! format:fn-len (- format:fn-len n)))
       (string-set! format:fn-str (- i n) (string-ref format:fn-str i))))
 
-  (define (format:fn-round digits)             ; round format:fn-str
+  (define (format:fn-round digits)      ; round format:fn-str
     (set! digits (+ digits format:fn-dot))
     (do ((i digits (- i 1))		; "099",2 -> "10"
          (c 5))                         ; "023",2 -> "02"
@@ -1622,10 +1622,10 @@
 
 ;;; some global functions not found in SLIB
 
-  (define (string-capitalize-first str)      ; "hello" -> "Hello"
-    (let ((cap-str (string-copy str))     ; "hELLO" -> "Hello"
-          (non-first-alpha #f)            ; "*hello" -> "*Hello"
-          (str-len (string-length str)))  ; "hello you" -> "Hello you"
+  (define (string-capitalize-first str)  ; "hello" -> "Hello"
+    (let ((cap-str (string-copy str))    ; "hELLO" -> "Hello"
+          (non-first-alpha #f)           ; "*hello" -> "*Hello"
+          (str-len (string-length str))) ; "hello you" -> "Hello you"
       (do ((i 0 (+ i 1)))
           ((= i str-len) cap-str)
         (let ((c (string-ref str i)))
@@ -1642,10 +1642,29 @@
   (define (format:abort) (error "error in format"))
     
   (set! format:error-save format:error)
-  (set! format:fn-str (make-string format:fn-max))   ; number buffer
-  (set! format:en-str (make-string format:en-max))   ; exponent buffer
+  (set! format:fn-str (make-string format:fn-max)) ; number buffer
+  (set! format:en-str (make-string format:en-max)) ; exponent buffer
 
-  (apply format:format args))
+  (apply format:format port format-string args))
+
+(begin-deprecated
+ (set! format
+       (let ((format format))
+         (case-lambda
+           ((port format-string . args)
+            (if (string? port)
+                (begin
+                  (issue-deprecation-warning
+                   "Omitting the destination port on a call to format is deprecated."
+                   "Pass #f as the destination port, before the format string.")
+                  (apply format #f port format-string args))
+                (apply format port format-string args)))
+           ((deprecated-format-string-only)
+            (issue-deprecation-warning
+             "Omitting the destination port on a call to format is deprecated."
+             "Pass #f as the destination port, before the format string.")
+            (format #f deprecated-format-string-only))))))
+
 
 ;; Thanks to Shuji Narazaki
 (module-set! the-root-module 'format format)
