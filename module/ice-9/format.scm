@@ -30,7 +30,6 @@
 ;;;
 
 (define-module (ice-9 format)
-  #:use-module (ice-9 and-let-star)
   #:autoload (ice-9 pretty-print) (pretty-print truncated-print)
   #:replace (format))
 
@@ -124,25 +123,6 @@
     (format:abort))
 	      
   (define format:error-save #f)
-
-  (define (format:out port fmt args)     ; the output handler for a port
-    (set! format:port port)              ; global port for
-					; output routines
-    (set! format:case-conversion #f)	; modifier case
-					; conversion procedure
-    (set! format:flush-output #f)       ; ~! reset
-    (and-let* ((col (port-column port))) ; get current column from port
-              (set! format:output-col col))
-    (let ((arg-pos (format:format-work fmt args))
-          (arg-len (length args)))
-      (cond
-       ((> arg-pos arg-len)
-        (set! format:arg-pos (+ arg-len 1))
-        (display format:arg-pos)
-        (format:error "~a missing argument~:p" (- arg-pos arg-len)))
-       (else
-        (if format:flush-output (force-output port))
-        #t))))
 
   (define format:parameter-characters
     '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
@@ -1606,26 +1586,37 @@
   (if (not (string? format-string))
       (error "format: expected a string for format string" format-string))
 
-  (cond
-   ((or (and (boolean? destination)     ; port output
-             destination)
-        (output-port? destination))
-    (format:out (cond
-                 ((boolean? destination) (current-output-port))
-                 ((output-port? destination) destination)
-                 ((number? destination) (current-error-port)))
-                format-string format-args))
-   ((number? destination)
-    (issue-deprecation-warning
-     "Passing a number to format as the port is deprecated."
-     "Pass (current-error-port) instead.")
-    (format:out (current-error-port) format-string format-args))
-   ((and (boolean? destination)         ; string output
-         (not destination))
-    (call-with-output-string
-     (lambda (port) (format:out port format-string format-args))))
-   (else
-    (format:error "bad destination `~a'" destination))))
+  (set! format:port
+        (cond
+         ((not destination) (open-output-string))
+         ((boolean? destination) (current-output-port)) ; boolean but not false
+         ((output-port? destination) destination)
+         ((number? destination)
+          (issue-deprecation-warning
+           "Passing a number to format as the port is deprecated."
+           "Pass (current-error-port) instead.")
+          (current-error-port))
+         (else
+          (format:error "bad destination `~a'" destination))))
+  
+  (and=> (port-column format:port)
+         (lambda (col) (set! format:output-col col)))
+
+  (let ((arg-pos (format:format-work format-string format-args))
+        (arg-len (length format-args)))
+    (cond
+     ((> arg-pos arg-len)
+      (set! format:arg-pos (+ arg-len 1))
+      (display format:arg-pos)
+      (format:error "~a missing argument~:p" (- arg-pos arg-len)))
+     (else
+      (if format:flush-output
+          (force-output format:port))
+      (if destination
+          #t
+          (let ((str (get-output-string format:port)))
+            (close-port format:port)
+            str))))))
 
 (begin-deprecated
  (set! format
