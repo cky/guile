@@ -47,7 +47,7 @@
   (if (not (string? format-string))
       (error "format: expected a string for format string" format-string))
 
-  (let* ((format:port
+  (let* ((port
           (cond
            ((not destination) (open-output-string))
            ((boolean? destination) (current-output-port)) ; boolean but not false
@@ -59,7 +59,7 @@
             (current-error-port))
            (else
             (error "format: bad destination `~a'" destination))))
-         (format:output-col (or (port-column format:port) 0)))
+         (output-col (or (port-column port) 0)))
 
     (define format:version "3.0")
     (define format:flush-output #f)  ; flush output at end of formatting
@@ -68,34 +68,34 @@
     (define format:arg-pos 0)    ; curr. format argument position
 					; this is global for error presentation
        
-    ;; format string and char output routines on format:port
+    ;; format string and char output routines on port
 
     (define (format:out-str str)
       (if format:case-conversion
-          (display (format:case-conversion str) format:port)
-          (display str format:port))
-      (set! format:output-col
-            (+ format:output-col (string-length str))))
+          (display (format:case-conversion str) port)
+          (display str port))
+      (set! output-col
+            (+ output-col (string-length str))))
 
     (define (format:out-char ch)
       (if format:case-conversion
           (display (format:case-conversion (string ch))
-                   format:port)
-          (write-char ch format:port))
-      (set! format:output-col
+                   port)
+          (write-char ch port))
+      (set! output-col
             (if (char=? ch #\newline)
                 0
-                (+ format:output-col 1))))
+                (+ output-col 1))))
        
     ;;(define (format:out-substr str i n)  ; this allocates a new string
-    ;;  (display (substring str i n) format:port)
-    ;;  (set! format:output-col (+ format:output-col n)))
+    ;;  (display (substring str i n) port)
+    ;;  (set! output-col (+ output-col n)))
 
     (define (format:out-substr str i n)
       (do ((k i (+ k 1)))
           ((= k n))
-        (write-char (string-ref str k) format:port))
-      (set! format:output-col (+ format:output-col (- n i))))
+        (write-char (string-ref str k) port))
+      (set! output-col (+ output-col (- n i))))
 
     ;;(define (format:out-fill n ch)       ; this allocates a new string
     ;;  (format:out-str (make-string n ch)))
@@ -103,8 +103,8 @@
     (define (format:out-fill n ch)
       (do ((i 0 (+ i 1)))
           ((= i n))
-        (write-char ch format:port))
-      (set! format:output-col (+ format:output-col n)))
+        (write-char ch port))
+      (set! output-col (+ output-col n)))
 
     ;; format's user error handler
 
@@ -371,7 +371,7 @@
                    (if (one-positive-integer? params)
                        (format:out-fill (car params) #\newline)
                        (format:out-char #\newline))
-                   (set! format:output-col 0)
+                   (set! output-col 0)
                    (anychar-dispatch))
                   ((#\&)                ; Fresh line
                    (if (one-positive-integer? params)
@@ -379,11 +379,11 @@
                          (if (> (car params) 0)
                              (format:out-fill (- (car params)
                                                  (if (>
-                                                      format:output-col
+                                                      output-col
                                                       0) 0 1))
                                               #\newline))
-                         (set! format:output-col 0))
-                       (if (> format:output-col 0)
+                         (set! output-col 0))
+                       (if (> output-col 0)
                            (format:out-char #\newline)))
                    (anychar-dispatch))
                   ((#\_)                ; Space character
@@ -400,7 +400,7 @@
                    (if (one-positive-integer? params)
                        (format:out-fill (car params) #\page)
                        (format:out-char #\page))
-                   (set! format:output-col 0)
+                   (set! output-col 0)
                    (anychar-dispatch))
                   ((#\T)                ; Tabulate
                    (format:tabulate modifier params)
@@ -423,14 +423,14 @@
                              (truncated-print (next-arg)
                                               #:width
                                               (max (- width
-                                                      format:output-col)
+                                                      output-col)
                                                    1))))))
                        ((colon)
                         (format:error "illegal modifier in ~~?"))
                        (else
-                        (pretty-print (next-arg) format:port
+                        (pretty-print (next-arg) port
                                       #:width width)
-                        (set! format:output-col 0))))
+                        (set! output-col 0))))
                    (anychar-dispatch))
                   ((#\? #\K)         ; Indirection (is "~K" in T-Scheme)
                    (cond
@@ -875,21 +875,21 @@
               (if (= colinc 0)
                   colnum                ; colnum = colrel
                   (do ((c 0 (+ c colinc))
-                       (col (+ format:output-col colnum)))
+                       (col (+ output-col colnum)))
                       ((>= c col)
-                       (- c format:output-col))))
+                       (- c output-col))))
               padch))
             (else                       ; absolute tabulation
              (format:out-fill
               (cond
-               ((< format:output-col colnum)
-                (- colnum format:output-col))
+               ((< output-col colnum)
+                (- colnum output-col))
                ((= colinc 0)
                 0)
                (else
                 (do ((c colnum (+ c colinc)))
-                    ((>= c format:output-col)
-                     (- c format:output-col)))))
+                    ((>= c output-col)
+                     (- c output-col)))))
               padch))))))
 
 
@@ -1600,11 +1600,11 @@
         (format:error "~a missing argument~:p" (- arg-pos arg-len)))
        (else
         (if format:flush-output
-            (force-output format:port))
+            (force-output port))
         (if destination
             #t
-            (let ((str (get-output-string format:port)))
-              (close-port format:port)
+            (let ((str (get-output-string port)))
+              (close-port port)
               str)))))))
 
 (begin-deprecated
