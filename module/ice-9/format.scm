@@ -122,8 +122,8 @@
     (set! format:error format:error-save)
     (format:abort))
 	      
-  (define format:error-save #f)
-
+  (define format:error-save format:error)
+  
   (define format:parameter-characters
     '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\- #\+ #\v #\# #\'))
 
@@ -1322,12 +1322,12 @@
 					; the flonum buffers
 
   (define format:fn-max 400)            ; max. number of number digits
-  (define format:fn-str #f)             ; number buffer
+  (define format:fn-str (make-string format:fn-max)) ; number buffer
   (define format:fn-len 0)              ; digit length of number
   (define format:fn-dot #f)             ; dot position of number
   (define format:fn-pos? #t)            ; number positive?
   (define format:en-max 10)             ; max. number of exponent digits
-  (define format:en-str #f)             ; exponent buffer
+  (define format:en-str (make-string format:en-max)) ; exponent buffer
   (define format:en-len 0)              ; digit length of exponent
   (define format:en-pos? #t)            ; exponent positive?
 
@@ -1576,13 +1576,6 @@
 
   (define (format:abort) (error "error in format"))
     
-  (set! format:error-save format:error)
-  (set! format:fn-str (make-string format:fn-max)) ; number buffer
-  (set! format:en-str (make-string format:en-max)) ; exponent buffer
-
-  (set! format:arg-pos 0)
-  (set! format:pos 0)
-
   (if (not (string? format-string))
       (error "format: expected a string for format string" format-string))
 
