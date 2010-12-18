@@ -44,13 +44,12 @@
 
 ;;; End of configuration ----------------------------------------------------
 
-(define (format destination format-string . args)
+(define (format destination format-string . format-args)
   (define format:version "3.0")
   (define format:port #f)            ; curr. format output port
   (define format:output-col 0)       ; curr. format output tty column
   (define format:flush-output #f)    ; flush output at end of formatting
   (define format:case-conversion #f)
-  (define format:args #f)
   (define format:pos 0)          ; curr. format string parsing position
   (define format:arg-pos 0)      ; curr. format argument position
 					; this is global for error presentation
@@ -96,26 +95,19 @@
   ;; format's user error handler
 
   (define (format:error . args)         ; never returns!
-    (let ((format-args format:args)
-          (port (current-error-port)))
+    (let ((port (current-error-port)))
       (set! format:error format:intern-error)
-      (if (and (>= (length format:args) 2)
-               (string? (cadr format:args)))
-          (let ((format-string (cadr format-args)))
-            (if (not (zero? format:arg-pos))
-                (set! format:arg-pos (- format:arg-pos 1)))
-            (format port
-                    "~%FORMAT: error with call: (format ~a \"~a<===~a\" ~
+      (if (not (zero? format:arg-pos))
+          (set! format:arg-pos (- format:arg-pos 1)))
+      (format port
+              "~%FORMAT: error with call: (format ~a \"~a<===~a\" ~
                                   ~{~a ~}===>~{~a ~})~%        "
-                    (car format:args)
-                    (substring format-string 0 format:pos)
-                    (substring format-string format:pos
-                               (string-length format-string))
-                    (list-head (cddr format:args) format:arg-pos)
-                    (list-tail (cddr format:args) format:arg-pos)))
-          (format port 
-                  "~%FORMAT: error with call: (format~{ ~a~})~%        "
-                  format:args))
+              destination
+              (substring format-string 0 format:pos)
+              (substring format-string format:pos
+                         (string-length format-string))
+              (list-head format-args format:arg-pos)
+              (list-tail format-args format:arg-pos))
       (apply format port args)
       (newline port)
       (set! format:error format:error-save)
@@ -124,7 +116,9 @@
   (define (format:intern-error . args)
     ;;if something goes wrong in format:error
     (display "FORMAT: INTERNAL ERROR IN FORMAT:ERROR!") (newline)
-    (display "        format args: ") (write format:args) (newline)
+    (display "        destination: ") (write destination) (newline)
+    (display "        format string: ") (write format-string) (newline)
+    (display "        format args: ") (write format-args) (newline)
     (display "        error args:  ") (write args) (newline)
     (set! format:error format:error-save)
     (format:abort))
@@ -1606,9 +1600,11 @@
   (set! format:fn-str (make-string format:fn-max)) ; number buffer
   (set! format:en-str (make-string format:en-max)) ; exponent buffer
 
-  (set! format:args (cons* destination format-string args))
   (set! format:arg-pos 0)
   (set! format:pos 0)
+
+  (if (not (string? format-string))
+      (error "format: expected a string for format string" format-string))
 
   (cond
    ((or (and (boolean? destination)     ; port output
@@ -1618,16 +1614,16 @@
                  ((boolean? destination) (current-output-port))
                  ((output-port? destination) destination)
                  ((number? destination) (current-error-port)))
-                format-string args))
+                format-string format-args))
    ((number? destination)
     (issue-deprecation-warning
      "Passing a number to format as the port is deprecated."
      "Pass (current-error-port) instead.")
-    (format:out (current-error-port) format-string args))
+    (format:out (current-error-port) format-string format-args))
    ((and (boolean? destination)         ; string output
          (not destination))
     (call-with-output-string
-     (lambda (port) (format:out port format-string args))))
+     (lambda (port) (format:out port format-string format-args))))
    (else
     (format:error "bad destination `~a'" destination))))
 
