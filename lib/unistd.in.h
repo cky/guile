@@ -435,6 +435,10 @@ _GL_EXTERN_C void _gl_unregister_fd (int fd);
 _GL_EXTERN_C int _gl_register_dup (int oldfd, int newfd);
 _GL_EXTERN_C const char *_gl_directory_name (int fd);
 
+# else
+#  if !@HAVE_DECL_FCHDIR@
+_GL_FUNCDECL_SYS (fchdir, int, (int /*fd*/));
+#  endif
 # endif
 _GL_CXXALIAS_SYS (fchdir, int, (int /*fd*/));
 _GL_CXXALIASWARN (fchdir);
@@ -650,7 +654,8 @@ _GL_CXXALIAS_RPL (gethostname, int, (char *name, size_t len));
 _GL_FUNCDECL_SYS (gethostname, int, (char *name, size_t len)
                                     _GL_ARG_NONNULL ((1)));
 #  endif
-/* Need to cast, because on Solaris 10 systems, the second parameter is
+/* Need to cast, because on Solaris 10 and OSF/1 5.1 systems, the second
+   parameter is
                                                       int len.  */
 _GL_CXXALIAS_SYS_CAST (gethostname, int, (char *name, size_t len));
 # endif
@@ -972,6 +977,24 @@ _GL_WARN_ON_USE (lseek, "lseek does not fail with ESPIPE on pipes on some "
 #endif
 
 
+#if @GNULIB_PIPE@
+/* Create a pipe, defaulting to O_BINARY mode.
+   Store the read-end as fd[0] and the write-end as fd[1].
+   Return 0 upon success, or -1 with errno set upon failure.  */
+# if !@HAVE_PIPE@
+_GL_FUNCDECL_SYS (pipe, int, (int fd[2]) _GL_ARG_NONNULL ((1)));
+# endif
+_GL_CXXALIAS_SYS (pipe, int, (int fd[2]));
+_GL_CXXALIASWARN (pipe);
+#elif defined GNULIB_POSIXCHECK
+# undef pipe
+# if HAVE_RAW_DECL_PIPE
+_GL_WARN_ON_USE (pipe, "pipe is unportable - "
+                 "use gnulib module pipe-posix for portability");
+# endif
+#endif
+
+
 #if @GNULIB_PIPE2@
 /* Create a pipe, applying the given flags when opening the read-end of the
    pipe and the write-end of the pipe.
@@ -1226,7 +1249,7 @@ _GL_FUNCDECL_RPL (ttyname_r, int,
 _GL_CXXALIAS_RPL (ttyname_r, int,
                   (int fd, char *buf, size_t buflen));
 # else
-#  if !@HAVE_TTYNAME_R@
+#  if !@HAVE_DECL_TTYNAME_R@
 _GL_FUNCDECL_SYS (ttyname_r, int,
                   (int fd, char *buf, size_t buflen) _GL_ARG_NONNULL ((2)));
 #  endif

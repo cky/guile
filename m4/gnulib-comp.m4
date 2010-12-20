@@ -191,6 +191,7 @@ AC_DEFUN([gl_INIT],
   gl_STDLIB_MODULE_INDICATOR([realpath])
   # Code from module close-hook:
   # Code from module configmake:
+  gl_CONFIGMAKE_PREP
   # Code from module duplocale:
   gl_FUNC_DUPLOCALE
   gl_LOCALE_MODULE_INDICATOR([duplocale])
@@ -238,7 +239,8 @@ AC_DEFUN([gl_INIT],
   gl_HOSTENT
   # Code from module iconv:
   AM_ICONV
-  gl_ICONV_MODULE_INDICATOR([iconv])
+  m4_ifdef([gl_ICONV_MODULE_INDICATOR],
+    [gl_ICONV_MODULE_INDICATOR([iconv])])
   # Code from module iconv-h:
   gl_ICONV_H
   # Code from module iconv_open:
@@ -715,6 +717,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/canonicalize.m4
   m4/check-math-lib.m4
   m4/codeset.m4
+  m4/configmake.m4
   m4/dos.m4
   m4/double-slash-root.m4
   m4/duplocale.m4
