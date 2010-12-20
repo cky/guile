@@ -1,7 +1,7 @@
-;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: iso-8859-1; -*-
+;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: utf-8; -*-
 ;;;;
 ;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
-;;;; Ludovic Courtès
+;;;; Ludovic CourtÃ¨s
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -48,8 +48,20 @@
   (pass-if "lookahead-u8"
     (let ((port (open-input-string "A")))
       (and (= (char->integer #\A) (lookahead-u8 port))
-           (not (eof-object? port))
+           (= (char->integer #\A) (lookahead-u8 port))
            (= (char->integer #\A) (get-u8 port))
+           (eof-object? (get-u8 port)))))
+
+  (pass-if "lookahead-u8 non-ASCII"
+    (let ((port (with-fluids ((%default-port-encoding "UTF-8"))
+                  (open-input-string "Î»"))))
+      (and (= 206 (lookahead-u8 port))
+           (= 206 (lookahead-u8 port))
+           (= 206 (get-u8 port))
+           (= 187 (lookahead-u8 port))
+           (= 187 (lookahead-u8 port))
+           (= 187 (get-u8 port))
+           (eof-object? (lookahead-u8 port))
            (eof-object? (get-u8 port)))))
 
   (pass-if "lookahead-u8: result is unsigned"
@@ -501,7 +513,7 @@
 (with-test-prefix "8.2.6  Input and output ports"
 
   (pass-if "transcoded-port [output]"
-    (let ((s "Hello\nÄÖÜ"))
+    (let ((s "Hello\nÃ„Ã–Ãœ"))
       (bytevector=?
        (string->utf8 s)
        (call-with-bytevector-output-port
@@ -511,7 +523,7 @@
                (put-string utf8-port s))))))))
 
   (pass-if "transcoded-port [input]"
-    (let ((s "Hello\nÄÖÜ"))
+    (let ((s "Hello\nÃ„Ã–Ãœ"))
       (string=?
        s
        (get-string-all
@@ -519,9 +531,9 @@
                          (make-transcoder (utf-8-codec)))))))
 
   (pass-if "transcoded-port [input line]"
-    (string=? "ÄÖÜ"
+    (string=? "Ã„Ã–Ãœ"
               (get-line (transcoded-port
-                         (open-bytevector-input-port (string->utf8 "ÄÖÜ\nFooBar"))
+                         (open-bytevector-input-port (string->utf8 "Ã„Ã–Ãœ\nFooBar"))
                          (make-transcoder (utf-8-codec))))))
 
   (pass-if "transcoded-port [error handling mode = raise]"

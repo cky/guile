@@ -433,7 +433,7 @@ SCM_DEFINE (scm_get_u8, "get-u8", 1, 0, 0,
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
-  c_result = scm_getc (port);
+  c_result = scm_get_byte_or_eof (port);
   if (c_result == EOF)
     result = SCM_EOF_VAL;
   else
@@ -449,15 +449,19 @@ SCM_DEFINE (scm_lookahead_u8, "lookahead-u8", 1, 0, 0,
 	    "point past the octet.")
 #define FUNC_NAME s_scm_lookahead_u8
 {
+  int u8;
   SCM result;
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
-  result = scm_peek_char (port);
-  if (SCM_CHARP (result))
-    result = SCM_I_MAKINUM ((unsigned char) SCM_CHAR (result));
-  else
+  u8 = scm_get_byte_or_eof (port);
+  if (u8 == EOF)
     result = SCM_EOF_VAL;
+  else
+    {
+      scm_unget_byte (u8, port);
+      result = SCM_I_MAKINUM ((scm_t_uint8) u8);
+    }
 
   return result;
 }
