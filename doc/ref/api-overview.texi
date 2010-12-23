@@ -107,5 +107,5 @@ These two variants can also be combined.
 
 The type of the return value of a C function that corresponds to a
 Scheme function is always @code{SCM}.  In the descriptions below,
-types are therefore often omitted bot for the return value and for the
+types are therefore often omitted but for the return value and for the
 arguments.
