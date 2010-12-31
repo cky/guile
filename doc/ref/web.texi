@@ -9,28 +9,31 @@
 @cindex WWW
 @cindex HTTP
 
-When Guile started back in the mid-nineties, the GNU system was still
-focused on producing a good POSIX implementation.  This is why Guile's
-POSIX support is good, and has been so for a while.
+It has always been possible to connect computers together and share
+information between them, but the rise of the World-Wide Web over the
+last couple of decades has made it much easier to do so.  The result is
+a richly connected network of computation, in which Guile forms a part.
 
-But times change, and in a way these days the web is the new POSIX: a
-standard and a motley set of implementations on which much computing is
-done.  So today's Guile also supports the web at the programming
-language level, by defining common data types and operations for the
-technologies underpinning the web: URIs, HTTP, and XML.
+By ``the web'', we mean the HTTP protocol@footnote{Yes, the P is for
+protocol, but this phrase appears repeatedly in RFC 2616.} as handled by
+servers, clients, proxies, caches, and the various kinds of messages and
+message components that can be sent and received by that protocol,
+notably HTML.
 
-It is particularly important to define native web data types.  Though
-the web is text in motion, programming the web in text is like
-programming with @code{goto}: muddy, and error-prone.  Most current
-security problems on the web are due to treating the web as text instead
-of as instances of the proper data types.
+On one level, the web is text in motion: the protocols themselves are
+textual (though the payload may be binary), and it's possible to create
+a socket and speak text to the web.  But such an approach is obviously
+primitive.  This section details the higher-level data types and
+operations provided by Guile: URIs, HTTP request and response records,
+and a conventional web server implementation.
 
-In addition, common web data types help programmers to share code.
-
-Well.  That's all very nice and opinionated and such, but how do I use
-the thing?  Read on!
+The material in this section is arranged in ascending order, in which
+later concepts build on previous ones.  If you prefer to start with the
+highest-level perspective, @pxref{Web Examples}, and work your way
+back.
 
 @menu
+* Types and the Web::           Types prevent bugs and security problems.
 * URIs::                        Universal Resource Identifiers.
 * HTTP::                        The Hyper-Text Transfer Protocol.
 * HTTP Headers::                How Guile represents specific header values.
@@ -39,6 +42,125 @@ the thing?  Read on!
 * Web Server::                  Serving HTTP to the internet.
 * Web Examples::                How to use this thing.
 @end menu
+
+@node Types and the Web
+@subsection Types and the Web
+
+It is a truth universally acknowledged, that a program with good use of
+data types, will be free from many common bugs.  Unfortunately, the
+common practice in web programming seems to ignore this maxim.  This
+subsection makes the case for expressive data types in web programming.
+
+By ``expressive data types'', we mean that the data types @emph{say}
+something about how a program solves a problem.  For example, if we
+choose to represent dates using SRFI 19 date records (@pxref{SRFI-19}),
+this indicates that there is a part of the program that will always have
+valid dates.  Error handling for a number of basic cases, like invalid
+dates, occurs on the boundary in which we produce a SRFI 19 date record
+from other types, like strings.
+
+With regards to the web, data types are help in the two broad phases of
+HTTP messages: parsing and generation.
+
+Consider a server, which has to parse a request, and produce a response.
+Guile will parse the request into an HTTP request object
+(@pxref{Requests}), with each header parsed into an appropriate Scheme
+data type.  This transition from an incoming stream of characters to
+typed data is a state change in a program---the strings might parse, or
+they might not, and something has to happen if they do not.  (Guile
+throws an error in this case.)  But after you have the parsed request,
+``client'' code (code built on top of the Guile web framework) will not
+have to check for syntactic validity.  The types already make this
+information manifest.
+
+This state change on the parsing boundary makes programs more robust,
+as they themselves are freed from the need to do a number of common
+error checks, and they can use normal Scheme procedures to handle a
+request instead of ad-hoc string parsers.
+
+The need for types on the response generation side (in a server) is more
+subtle, though not less important.  Consider the example of a POST
+handler, which prints out the text that a user submits from a form.
+Such a handler might include a procedure like this:
+
+@example
+;; First, a helper procedure
+(define (para . contents)
+  (string-append "<p>" (string-concatenate contents) "</p>"))
+
+;; Now the meat of our simple web application
+(define (you-said text)
+  (para "You said: " text))
+
+(display (you-said "Hi!"))
+@print{} <p>You said: Hi!</p>
+@end example
+
+This is a perfectly valid implementation, provided that the incoming
+text does not contain the special HTML characters @samp{<}, @samp{>}, or
+@samp{&}.  But this provision of a restricted character set is not
+reflected anywhere in the program itself: we must @emph{assume} that the
+programmer understands this, and performs the check elsewhere.
+
+Unfortunately, the short history of the practice of programming does not
+bear out this assumption.  A @dfn{cross-site scripting} (@acronym{XSS})
+vulnerability is just such a common error in which unfiltered user input
+is allowed into the output.  A user could submit a crafted comment to
+your web site which results in visitors running malicious Javascript,
+within the security context of your domain:
+
+@example
+(display (you-said "<script src=\"http://bad.com/nasty.js\" />"))
+@print{} <p>You said: <script src="http://bad.com/nasty.js" /></p>
+@end example
+
+The fundamental problem here is that both user data and the program
+template are represented using strings.  This identity means that types
+can't help the programmer to make a distinction between these two, so
+they get confused.
+
+There are a number of possible solutions, but perhaps the best is to
+treat HTML not as strings, but as native s-expressions: as SXML.  The
+basic idea is that HTML is either text, represented by a string, or an
+element, represented as a tagged list.  So @samp{foo} becomes
+@samp{"foo"}, and @samp{<b>foo</b>} becomes @samp{(b "foo")}.
+Attributes, if present, go in a tagged list headed by @samp{@@}, like
+@samp{(img (@@ (src "http://example.com/foo.png")))}.  @xref{sxml
+simple}, for more information.
+
+The good thing about SXML is that HTML elements cannot be confused with
+text.  Let's make a new definition of @code{para}:
+
+@example
+(define (para . contents)
+  `(p ,@@contents))
+
+(use-modules (sxml simple))
+(sxml->xml (you-said "Hi!"))
+@print{} <p>You said: Hi!</p>
+
+(sxml->xml (you-said "<i>Rats, foiled again!</i>"))
+@print{} <p>You said: &lt;i&gt;Rats, foiled again!&lt;/i&gt;</p>
+@end example
+
+So we see in the second example that HTML elements cannot be unwittingly
+introduced into the output.  However it is perfectly acceptable to pass
+SXML to @code{you-said}; in fact, that is the big advantage of SXML over
+everything-as-a-string.
+
+@example
+(sxml->xml (you-said (you-said "<Hi!>")))
+@print{} <p>You said: <p>You said: &lt;Hi!&gt;</p></p>
+@end example
+
+The SXML types allow procedures to @emph{compose}.  The types make
+manifest which parts are HTML elements, and which are text.  So you
+needn't worry about escaping user input; the type transition back to a
+string handles that for you.  @acronym{XSS} vulnerabilities are a thing
+of the past.
+
+Well.  That's all very nice and opinionated and such, but how do I use
+the thing?  Read on!
 
 @node URIs
 @subsection Universal Resource Identifiers
