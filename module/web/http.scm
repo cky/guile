@@ -628,7 +628,7 @@ ordered alist."
   (display (date->string date "~a, ~d ~b ~Y ~H:~M:~S GMT") port))
 
 (define (write-uri uri port)
-  (display (unparse-uri uri) port))
+  (display (uri->string uri) port))
 
 (define (parse-entity-tag val)
   (if (string-prefix? "W/" val)
@@ -751,7 +751,7 @@ not have to have a scheme or host name.  The result is a URI object."
                  #:query (and q (substring str (1+ q) (or f end)))
                  #:fragment (and f (substring str (1+ f) end)))))
    (else
-    (or (parse-uri (substring str start end))
+    (or (string->uri (substring str start end))
         (bad-request "Invalid URI: ~a" (substring str start end))))))
 
 (define (read-request-line port)
@@ -890,7 +890,7 @@ phrase\"."
     ((_ sym name)
      (declare-header sym
        name
-       (lambda (str) (or (parse-uri str) (bad-header-component 'uri str)))
+       (lambda (str) (or (string->uri str) (bad-header-component 'uri str)))
        uri?
        write-uri))))
 

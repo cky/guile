@@ -37,7 +37,7 @@
 
             build-uri
             declare-default-port!
-            parse-uri unparse-uri
+            string->uri uri->string
             uri-decode uri-encode
             split-and-decode-uri-path
             encode-and-join-uri-path))
@@ -160,7 +160,7 @@ consistency checks to make sure that the constructed URI is valid."
 (define uri-regexp
   (make-regexp uri-pat))
 
-(define (parse-uri string)
+(define (string->uri string)
   "Parse @var{string} into a URI object. Returns @code{#f} if the string
 could not be parsed."
   (% (let ((m (regexp-exec uri-regexp string)))
@@ -197,7 +197,7 @@ printed."
 (declare-default-port! 'http 80)
 (declare-default-port! 'https 443)
 
-(define (unparse-uri uri)
+(define (uri->string uri)
   "Serialize @var{uri} to a string."
   (let* ((scheme-str (string-append
                       (symbol->string (uri-scheme uri)) ":"))

@@ -107,25 +107,25 @@
                          (build-uri 'http #:userinfo "foo")))
 
 
-(with-test-prefix "parse-uri"
+(with-test-prefix "string->uri"
   (pass-if "ftp:"
-    (uri=? (parse-uri "ftp:")
+    (uri=? (string->uri "ftp:")
            #:scheme 'ftp
            #:path ""))
   
   (pass-if "ftp:foo"
-    (uri=? (parse-uri "ftp:foo")
+    (uri=? (string->uri "ftp:foo")
            #:scheme 'ftp
            #:path "foo"))
   
   (pass-if "ftp://foo/bar"
-    (uri=? (parse-uri "ftp://foo/bar")
+    (uri=? (string->uri "ftp://foo/bar")
            #:scheme 'ftp
            #:host "foo"
            #:path "/bar"))
   
   (pass-if "ftp://foo@bar:22/baz"
-    (uri=? (parse-uri "ftp://foo@bar:22/baz")
+    (uri=? (string->uri "ftp://foo@bar:22/baz")
            #:scheme 'ftp
            #:userinfo "foo"
            #:host "bar"
@@ -133,49 +133,49 @@
            #:path "/baz"))
 
   (pass-if "http://bad.host.1"
-    (not (parse-uri "http://bad.host.1")))
+    (not (string->uri "http://bad.host.1")))
 
   (pass-if "http://foo:"
-    (uri=? (parse-uri "http://foo:")
+    (uri=? (string->uri "http://foo:")
            #:scheme 'http #:host "foo" #:path ""))
 
   (pass-if "http://foo:/"
-    (uri=? (parse-uri "http://foo:/")
+    (uri=? (string->uri "http://foo:/")
            #:scheme 'http #:host "foo" #:path "/"))
 
   (pass-if "http://foo:not-a-port"
-    (not (parse-uri "http://foo:not-a-port")))
+    (not (string->uri "http://foo:not-a-port")))
   
   (pass-if "http://:10"
-    (not (parse-uri "http://:10")))
+    (not (string->uri "http://:10")))
 
   (pass-if "http://foo@"
-    (not (parse-uri "http://foo@"))))
+    (not (string->uri "http://foo@"))))
 
-(with-test-prefix "unparse-uri"
+(with-test-prefix "uri->string"
   (pass-if "ftp:"
     (equal? "ftp:"
-            (unparse-uri (parse-uri "ftp:"))))
+            (uri->string (string->uri "ftp:"))))
   
   (pass-if "ftp:foo"
     (equal? "ftp:foo"
-            (unparse-uri (parse-uri "ftp:foo"))))
+            (uri->string (string->uri "ftp:foo"))))
   
   (pass-if "ftp://foo/bar"
     (equal? "ftp://foo/bar"
-            (unparse-uri (parse-uri "ftp://foo/bar"))))
+            (uri->string (string->uri "ftp://foo/bar"))))
   
   (pass-if "ftp://foo@bar:22/baz"
     (equal? "ftp://foo@bar:22/baz"
-            (unparse-uri (parse-uri "ftp://foo@bar:22/baz"))))
+            (uri->string (string->uri "ftp://foo@bar:22/baz"))))
   
   (pass-if "http://foo:"
     (equal? "http://foo"
-            (unparse-uri (parse-uri "http://foo:"))))
+            (uri->string (string->uri "http://foo:"))))
   
   (pass-if "http://foo:/"
     (equal? "http://foo/"
-            (unparse-uri (parse-uri "http://foo:/")))))
+            (uri->string (string->uri "http://foo:/")))))
 
 (with-test-prefix "decode"
   (pass-if (equal? "foo bar" (uri-decode "foo%20bar"))))
