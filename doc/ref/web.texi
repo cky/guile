@@ -175,23 +175,26 @@ URI := scheme ":" ["//" [userinfo "@@"] host [":" port]] path \
        [ "?" query ] [ "#" fragment ]
 @end example
 
-So, all URIs have a scheme and a path. Some URIs have a host, and some
-of those have ports and userinfo. Any URI might have a query part or a
-fragment.
+For example, in the URI, @indicateurl{http://www.gnu.org/help/}, the
+scheme is @code{http}, the host is @code{www.gnu.org}, the path is
+@code{/help/}, and there is no userinfo, port, query, or path.  All URIs
+have a scheme and a path (though the path might be empty).  Some URIs
+have a host, and some of those have ports and userinfo.  Any URI might
+have a query part or a fragment.
 
 Userinfo is something of an abstraction, as some legacy URI schemes
-allowed userinfo of the form @code{@var{username}:@var{passwd}}.
-Passwords don't belong in URIs, so the RFC does not want to condone
-this, but neither can it say that what is before the @code{@@} sign is
-just a username, so the RFC punts on the issue and calls it
+allowed userinfo of the form @code{@var{username}:@var{passwd}}.  But
+since passwords do not belong in URIs, the RFC does not want to condone
+this practice, so it calls anything before the @code{@@} sign
 @dfn{userinfo}.
 
-Also, strictly speaking, a URI with a fragment is a @dfn{URI
-reference}.  A fragment is typically not serialized when sending a URI
-over the wire; that is, it is not part of the identifier of a resource.
-It only identifies a part of a given resource.  But it's useful to have
-a field for it in the URI record itself, so we hope you will forgive the
-inconsistency.
+Properly speaking, a fragment is not part of a URI.  For example, when a
+web browser follows a link to @indicateurl{http://example.com/#foo}, it
+sends a request for @indicateurl{http://example.com/}, then looks in the
+resulting page for the fragment identified @code{foo} reference.  A
+fragment identifies a part of a resource, not the resource itself.  But
+it is useful to have a fragment field in the URI record itself, so we
+hope you will forgive the inconsistency.
 
 @example
 (use-modules (web uri))
