@@ -352,10 +352,35 @@ A writer, which writes a value to the port given in the second argument.
 @end table
 @end defun
 
-@defun declare-header! sym name [#:multiple?] [#:parser] [#:validator] [#:writer]
+@defun declare-header! sym name [#:multiple?=@code{#f}] [#:parser] [#:validator] [#:writer]
 Make a header declaration, as above, and register it by symbol and by
-name.
+name. The @var{parser}, @var{validator}, and @var{writer} arguments are
+all mandatory.
 @end defun
+
+For example, let's say you are running a web server behind some sort of
+proxy, and your proxy adds an @code{X-Client-Address} header, indicating
+the IPv4 address of the original client.  You would like for the HTTP
+request record to parse out this header to a Scheme value, instead of
+leaving it as a string.  You could register this header with Guile's
+HTTP stack like this:
+
+@example
+(define (parse-ip str)
+  (inet-aton str)
+(define (validate-ip ip)
+(define (write-ip ip port)
+  (display (inet-ntoa ip) port))
+
+(declare-header! 'x-client-address
+  "X-Client-Address"
+  #:parser    (lambda (str)
+                (inet-aton str))
+  #:validator (lambda (ip)
+                (and (integer? ip) (exact? ip) (<= 0 ip 4294967295)))
+  #:writer    (lambda (ip port)
+                (display (inet-ntoa ip) port)))
+@end example
 
 @defun lookup-header-decl name
 Return the @var{header-decl} object registered for the given @var{name}.
@@ -365,27 +390,27 @@ a case-insensitive fashion.
 @end defun
 
 @defun valid-header? sym val
-Returns a true value iff @var{val} is a valid Scheme value for the
-header with name @var{sym}.
+Return a true value iff @var{val} is a valid Scheme value for the header
+with name @var{sym}.
 @end defun
 
 Now that we have a generic interface for reading and writing headers, we
 do just that.
 
 @defun read-header port
-Reads one HTTP header from @var{port}. Returns two values: the header
+Read one HTTP header from @var{port}. Return two values: the header
 name and the parsed Scheme value. May raise an exception if the header
 was known but the value was invalid.
 
-Returns @var{#f} for both values if the end of the message body was
-reached (i.e., a blank line).
+Returns the end-of-file object for both values if the end of the message
+body was reached (i.e., a blank line).
 @end defun
 
 @defun parse-header name val
 Parse @var{val}, a string, with the parser for the header named
 @var{name}.
 
-Returns two values, the header name and parsed value. If a parser was
+Return two values, the header name and parsed value. If a parser was
 found, the header name will be returned as a symbol. If a parser was not
 found, both the header name and the value are returned as strings.
 @end defun
@@ -397,8 +422,8 @@ value is written using @var{display}.
 @end defun
 
 @defun read-headers port
-Read an HTTP message from @var{port}, returning the headers as an
-ordered alist.
+Read the headers of an HTTP message from @var{port}, returning the
+headers as an ordered alist.
 @end defun
 
 @defun write-headers headers port

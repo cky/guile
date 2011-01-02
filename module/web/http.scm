@@ -130,17 +130,19 @@ port, and writes the value to the port."
                                                (read-line* port))))
       val))
 
+(define *eof* (call-with-input-string "" read))
+
 (define (read-header port)
   "Reads one HTTP header from @var{port}. Returns two values: the header
 name and the parsed Scheme value. May raise an exception if the header
 was known but the value was invalid.
 
-Returns @var{#f} for both values if the end of the message body was
-reached (i.e., a blank line)."
+Returns the end-of-file object for both values if the end of the message
+body was reached (i.e., a blank line)."
   (let ((line (read-line* port)))
     (if (or (string-null? line)
             (string=? line "\r"))
-        (values #f #f)
+        (values *eof* *eof*)
         (let ((delim (or (string-index line #\:)
                          (bad-header '%read line))))
           (parse-header
@@ -205,9 +207,9 @@ ordered alist."
   (let lp ((headers '()))
     (call-with-values (lambda () (read-header port))
       (lambda (k v)
-        (if k
-            (lp (acons k v headers))
-            (reverse! headers))))))
+        (if (eof-object? k)
+            (reverse! headers)
+            (lp (acons k v headers)))))))
 
 (define (write-headers headers port)
   "Write the given header alist to @var{port}.  Doesn't write the final
