@@ -227,29 +227,29 @@ printed."
          ""))))
 
 
-(define (call-with-encoded-output-string charset proc)
-  (if (string-ci=? charset "utf-8")
+(define (call-with-encoded-output-string encoding proc)
+  (if (string-ci=? encoding "utf-8")
       (string->utf8 (call-with-output-string proc))
       (call-with-values
           (lambda ()
             (open-bytevector-output-port))
         (lambda (port get-bytevector)
-          (set-port-encoding! port charset)
+          (set-port-encoding! port encoding)
           (proc port)
           (get-bytevector)))))
 
-(define (encode-string str charset)
-  (if (string-ci=? charset "utf-8")
+(define (encode-string str encoding)
+  (if (string-ci=? encoding "utf-8")
       (string->utf8 str)
-      (call-with-encoded-output-string charset
+      (call-with-encoded-output-string encoding
                                        (lambda (port)
                                          (display str port)))))
 
-(define (decode-string bv charset)
-  (if (string-ci=? charset "utf-8")
+(define (decode-string bv encoding)
+  (if (string-ci=? encoding "utf-8")
       (utf8->string bv)
       (let ((p (open-bytevector-input-port bv)))
-        (set-port-encoding! p charset)
+        (set-port-encoding! p encoding)
         (read-delimited "" p))))
 
 
@@ -266,8 +266,8 @@ printed."
 (define hex-chars
   (string->char-set "0123456789abcdefABCDEF"))
 
-(define* (uri-decode str #:key (charset "utf-8"))
-  "Percent-decode the given @var{str}, according to @var{charset}.
+(define* (uri-decode str #:key (encoding "utf-8"))
+  "Percent-decode the given @var{str}, according to @var{encoding}.
 
 Note that this function should not generally be applied to a full URI
 string. For paths, use split-and-decode-uri-path instead. For query
@@ -278,14 +278,14 @@ Note that percent-encoded strings encode @emph{bytes}, not characters.
 There is no guarantee that a given byte sequence is a valid string
 encoding. Therefore this routine may signal an error if the decoded
 bytes are not valid for the given encoding. Pass @code{#f} for
-@var{charset} if you want decoded bytes as a bytevector directly."
+@var{encoding} if you want decoded bytes as a bytevector directly."
   (let ((len (string-length str)))
     (call-with-values open-bytevector-output-port
       (lambda (port get-bytevector)
         (let lp ((i 0))
           (if (= i len)
-              (if charset
-                  (decode-string (get-bytevector) charset)
+              (if encoding
+                  (decode-string (get-bytevector) encoding)
                   (get-bytevector)) ; raw bytevector
               (let ((ch (string-ref str i)))
                 (cond
@@ -328,12 +328,12 @@ bytes are not valid for the given encoding. Pass @code{#f} for
 ;; Return a new string made from uri-encoding @var{str}, unconditionally
 ;; transforming any characters not in @var{unescaped-chars}.
 ;;
-(define* (uri-encode str #:key (charset "utf-8")
+(define* (uri-encode str #:key (encoding "utf-8")
                      (unescaped-chars unreserved-chars))
   "Percent-encode any character not in @var{unescaped-chars}.
 
 Percent-encoding first writes out the given character to a bytevector
-within the given @var{charset}, then encodes each byte as
+within the given @var{encoding}, then encodes each byte as
 @code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
 the byte."
   (call-with-output-string
@@ -342,7 +342,7 @@ the byte."
       (lambda (ch)
         (if (char-set-contains? unescaped-chars ch)
             (display ch port)
-            (let* ((bv (encode-string (string ch) charset))
+            (let* ((bv (encode-string (string ch) encoding))
                    (len (bytevector-length bv)))
               (let lp ((i 0))
                 (if (< i len)
