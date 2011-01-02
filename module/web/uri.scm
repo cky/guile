@@ -330,27 +330,29 @@ bytes are not valid for the given encoding. Pass @code{#f} for
 ;;
 (define* (uri-encode str #:key (encoding "utf-8")
                      (unescaped-chars unreserved-chars))
-  "Percent-encode any character not in @var{unescaped-chars}.
+  "Percent-encode any character not in the character set, @var{unescaped-chars}.
 
 Percent-encoding first writes out the given character to a bytevector
 within the given @var{encoding}, then encodes each byte as
 @code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
 the byte."
-  (call-with-output-string
-   (lambda (port)
-     (string-for-each
-      (lambda (ch)
-        (if (char-set-contains? unescaped-chars ch)
-            (display ch port)
-            (let* ((bv (encode-string (string ch) encoding))
-                   (len (bytevector-length bv)))
-              (let lp ((i 0))
-                (if (< i len)
-                    (let ((byte (bytevector-u8-ref bv i)))
-                      (display #\% port)
-                      (display (number->string byte 16) port)
-                      (lp (1+ i))))))))
-      str))))
+  (if (string-index str unescaped-chars)
+      (call-with-output-string
+       (lambda (port)
+         (string-for-each
+          (lambda (ch)
+            (if (char-set-contains? unescaped-chars ch)
+                (display ch port)
+                (let* ((bv (encode-string (string ch) encoding))
+                       (len (bytevector-length bv)))
+                  (let lp ((i 0))
+                    (if (< i len)
+                        (let ((byte (bytevector-u8-ref bv i)))
+                          (display #\% port)
+                          (display (number->string byte 16) port)
+                          (lp (1+ i))))))))
+          str)))
+      str))
 
 (define (split-and-decode-uri-path path)
   "Split @var{path} into its components, and decode each
