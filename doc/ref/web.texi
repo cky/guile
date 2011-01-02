@@ -144,9 +144,9 @@ text.  Let's make a new definition of @code{para}:
 @end example
 
 So we see in the second example that HTML elements cannot be unwittingly
-introduced into the output.  However it is perfectly acceptable to pass
-SXML to @code{you-said}; in fact, that is the big advantage of SXML over
-everything-as-a-string.
+introduced into the output.  However it is now perfectly acceptable to
+pass SXML to @code{you-said}; in fact, that is the big advantage of SXML
+over everything-as-a-string.
 
 @example
 (sxml->xml (you-said (you-said "<Hi!>")))
@@ -204,9 +204,13 @@ The following procedures can be found in the @code{(web uri)}
 module. Load it into your Guile, using a form like the above, to have
 access to them.
 
-@defun build-uri scheme [#:userinfo] [#:host] [#:port] [#:path] [#:query] [#:fragment] [#:validate?]
-Construct a URI object. If @var{validate?} is true, also run some
-consistency checks to make sure that the constructed URI is valid.
+@defun build-uri scheme [#:userinfo=@code{#f}] [#:host=@code{#f}] @
+       [#:port=@code{#f}] [#:path=@code{""}] [#:query=@code{#f}] @
+       [#:fragment=@code{#f}] [#:validate?=@code{#t}]
+Construct a URI object.  @var{scheme} should be a symbol, and the rest
+of the fields are either strings or @code{#f}.  If @var{validate?} is
+true, also run some consistency checks to make sure that the constructed
+URI is valid.
 @end defun
 
 @defun uri? x
@@ -217,45 +221,58 @@ consistency checks to make sure that the constructed URI is valid.
 @defunx uri-path uri
 @defunx uri-query uri
 @defunx uri-fragment uri
-A predicate and field accessors for the URI record type.
+A predicate and field accessors for the URI record type.  The URI scheme
+will be a symbol, and the rest either strings or @code{#f} if not
+present.
+@end defun
+
+@defun string->uri string
+Parse @var{string} into a URI object.  Return @code{#f} if the string
+could not be parsed.
+@end defun
+
+@defun uri->string uri
+Serialize @var{uri} to a string.  If the URI has a port that is the
+default port for its scheme, the port is not included in the
+serialization.
 @end defun
 
 @defun declare-default-port! scheme port
 Declare a default port for the given URI scheme.
-
-Default ports are for printing URI objects: a default port is not
-printed.
 @end defun
 
-@defun parse-uri string
-Parse @var{string} into a URI object. Returns @code{#f} if the string
-could not be parsed.
-@end defun
-
-@defun unparse-uri uri
-Serialize @var{uri} to a string.
-@end defun
-
-@defun uri-decode str [#:charset]
-Percent-decode the given @var{str}, according to @var{charset}.
+@defun uri-decode str [#:encoding=@code{"utf-8"}]
+Percent-decode the given @var{str}, according to @var{encoding}, which
+should be the name of a character encoding.
 
 Note that this function should not generally be applied to a full URI
 string. For paths, use split-and-decode-uri-path instead. For query
 strings, split the query on @code{&} and @code{=} boundaries, and decode
 the components separately.
 
-Note that percent-encoded strings encode @emph{bytes}, not characters.
-There is no guarantee that a given byte sequence is a valid string
-encoding. Therefore this routine may signal an error if the decoded
-bytes are not valid for the given encoding. Pass @code{#f} for
-@var{charset} if you want decoded bytes as a bytevector directly.
+Note also that percent-encoded strings encode @emph{bytes}, not
+characters.  There is no guarantee that a given byte sequence is a valid
+string encoding. Therefore this routine may signal an error if the
+decoded bytes are not valid for the given encoding. Pass @code{#f} for
+@var{encoding} if you want decoded bytes as a bytevector directly.
+@xref{Ports, @code{set-port-encoding!}}, for more information on
+character encodings.
+
+Returns a string of the decoded characters, or a bytevector if
+@var{encoding} was @code{#f}.
 @end defun
 
-@defun uri-encode str [#:charset] [#:unescaped-chars]
-Percent-encode any character not in @var{unescaped-chars}.
+Fixme: clarify return type. indicate default values. type of
+unescaped-chars.
 
-Percent-encoding first writes out the given character to a bytevector
-within the given @var{charset}, then encodes each byte as
+@defun uri-encode str [#:encoding=@code{"utf-8"}] [#:unescaped-chars]
+Percent-encode any character not in the character set,
+@var{unescaped-chars}.
+
+The default character set includes alphanumerics from ASCII, as well as
+the special characters @samp{-}, @samp{.}, @samp{_}, and @samp{~}.  Any
+other character will be percent-encoded, by writing out the character to
+a bytevector within the given @var{encoding}, then encoding each byte as
 @code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
 the byte.
 @end defun
@@ -264,13 +281,16 @@ the byte.
 Split @var{path} into its components, and decode each component,
 removing empty components.
 
-For example, @code{"/foo/bar/"} decodes to the two-element list,
-@code{("foo" "bar")}.
+For example, @code{"/foo/bar%20baz/"} decodes to the two-element list,
+@code{("foo" "bar baz")}.
 @end defun
 
 @defun encode-and-join-uri-path parts
 URI-encode each element of @var{parts}, which should be a list of
 strings, and join the parts together with @code{/} as a delimiter.
+
+For example, the list @code{("scrambled eggs" "biscuits&gravy")} encodes
+as @code{"scrambled%20eggs/biscuits%26gravy"}.
 @end defun
 
 @node HTTP
