@@ -366,16 +366,16 @@
        `(apply ,(@implv new-array)
                ,@(map (lambda (x) (comp x e)) args)))
       ((object . ,args)
-       (@impl new-object
-              (map (lambda (x)
-                     (pmatch x
-                       ((,prop ,val)
-                        (-> (apply (-> (primitive 'cons))
-                                   (-> (const prop))
-                                   (comp val e))))
-                       (else
-                        (error "bad prop-val pair" x))))
-                   args)))
+       `(apply (@ (language ecmascript impl) new-object)
+               ,@(map (lambda (x)
+                         (pmatch x
+                                 ((,prop ,val)
+                                  (-> (apply (-> (primitive 'cons))
+                                             (-> (const prop))
+                                             (comp val e))))
+                                 (else
+                                  (error "bad prop-val pair" x))))
+                       args)))
       ((pref ,obj ,prop)
        (@impl pget
               (comp obj e)

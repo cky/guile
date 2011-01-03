@@ -1,6 +1,6 @@
 ;;;; ecmascript.test --- ECMAScript.      -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -53,6 +53,12 @@
 
 (define-syntax ecompile
   (syntax-rules ()
+    ((_ expression)
+     (pass-if expression
+       (not (not
+             (compile (call-with-input-string expression read-ecmascript)
+                      #:from 'ecmascript
+                      #:to 'value)))))
     ((_ expression expected)
      (pass-if expression
        (equal? expected
@@ -65,6 +71,7 @@
   (ecompile "true;" #t)
   (ecompile "2 + 2;" 4)
   (ecompile "\"hello\";" "hello")
+  (ecompile "var test = { bar: 1 };")
 
   ;; FIXME: Broken!
   ;; (ecompile "[1,2,3,4].map(function(x) { return x * x; });"
