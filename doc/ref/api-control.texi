@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1493,13 +1493,18 @@ and the call to these routines doesn't change @code{errno}.
 @deftypefnx {C Function} void scm_wrong_type_arg_msg (char *@var{subr}, int @var{argnum}, SCM @var{bad_value}, const char *@var{expected})
 @deftypefnx {C Function} void scm_memory_error (char *@var{subr})
 Throw an error with the various keys described above.
+@deftypefnx {C Function} void scm_misc_error (const char *@var{subr}, const char *@var{message}, SCM @var{args})
 
-For @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
+In @code{scm_wrong_num_args}, @var{proc} should be a Scheme symbol
 which is the name of the procedure incorrectly invoked.  The other
 routines take the name of the invoked procedure as a C string.
 
 In @code{scm_wrong_type_arg_msg}, @var{expected} is a C string
 describing the type of argument that was expected.
+
+In @code{scm_misc_error}, @var{message} is the error message string,
+possibly containing @code{simple-format} escapes (@pxref{Writing}), and
+the corresponding arguments in the @var{args} list.
 @end deftypefn
 
 
