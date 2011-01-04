@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1651,7 +1651,8 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	    "\n"
 	    "@item\n"
 	    "is in the set @var{char_pred}, if it is a character set.\n"
-	    "@end itemize")
+	    "@end itemize\n\n"
+	    "Return @code{#f} if no match is found.")
 #define FUNC_NAME s_scm_string_index
 {
   size_t cstart, cend;
@@ -1715,7 +1716,8 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	    "\n"
 	    "@item\n"
 	    "is in the set if @var{char_pred} is a character set.\n"
-	    "@end itemize")
+	    "@end itemize\n\n"
+	    "Return @code{#f} if no match is found.")
 #define FUNC_NAME s_scm_string_index_right
 {
   size_t cstart, cend;
@@ -1779,7 +1781,8 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 	    "\n"
 	    "@item\n"
 	    "is in the set if @var{char_pred} is a character set.\n"
-	    "@end itemize")
+	    "@end itemize\n\n"
+	    "Return @code{#f} if no match is found.")
 #define FUNC_NAME s_scm_string_rindex
 {
   return scm_string_index_right (s, char_pred, start, end);

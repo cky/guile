@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -3398,6 +3398,8 @@ satisfies the predicate @var{char_pred}, if it is a procedure,
 @item
 is in the set @var{char_pred}, if it is a character set.
 @end itemize
+
+Return @code{#f} if no match is found.
 @end deffn
 
 @deffn {Scheme Procedure} string-rindex s char_pred [start [end]]
@@ -3415,6 +3417,8 @@ satisfies the predicate @var{char_pred}, if it is a procedure,
 @item
 is in the set if @var{char_pred} is a character set.
 @end itemize
+
+Return @code{#f} if no match is found.
 @end deffn
 
 @deffn {Scheme Procedure} string-prefix-length s1 s2 [start1 [end1 [start2 [end2]]]]
@@ -3476,6 +3480,8 @@ satisfies the predicate @var{char_pred}, if it is a procedure,
 @item
 is in the set if @var{char_pred} is a character set.
 @end itemize
+
+Return @code{#f} if no match is found.
 @end deffn
 
 @deffn {Scheme Procedure} string-skip s char_pred [start [end]]
