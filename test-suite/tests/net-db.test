@@ -1,7 +1,7 @@
 ;;;; net-db.test --- Test suite for `net-db' -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -73,9 +73,16 @@
             (throw 'unresolved))
           (lambda (key errcode)
             ;; In some cases (e.g., in a chroot without
-            ;; /etc/{hosts,resolv.conf}), this can result in `EAI_EAGAIN'.
+            ;; /etc/{hosts,resolv.conf}), this can result in
+            ;; `EAI_EAGAIN' (glibc 2.11), or `EAI_NODATA' (glibc 2.12).
             (and (or (= errcode EAI_NONAME)
-                     (= errcode EAI_AGAIN))
+                     (and (defined? 'EAI_NODATA)  ; GNU extension
+                          (= errcode EAI_NODATA))
+                     (= errcode EAI_AGAIN)
+                     (begin
+                       (format #t "unexpected error code: ~a ~s~%"
+                               errcode (gai-strerror errcode))
+                       #f))
                  (string? (gai-strerror errcode))))))
 
       (pass-if "wrong service name"

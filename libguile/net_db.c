@@ -1,5 +1,5 @@
 /* "net_db.c" network database support
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2009, 2010 Free Software Foundation, Inc.
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -590,6 +590,11 @@ SCM_DEFINE (scm_getaddrinfo, "getaddrinfo", 1, 5, 0,
 	    "@item EAI_NONAME\n"
 	    "Either @var{name} does not resolve for the supplied parameters, "
 	    "or neither @var{name} nor @var{service} were supplied.\n\n"
+	    "@item EAI_NODATA\n"
+	    "This non-POSIX error code can be returned on GNU systems when a\n"
+	    "request was actually made but returned no data, meaning\n"
+	    "that no address is associated with @var{name}.  Error handling\n"
+	    "code should be prepared to handle it when it is defined.\n\n"
 	    "@item EAI_SERVICE\n"
 	    "@var{service} was not recognized for the specified socket type.\n\n"
 	    "@item EAI_SOCKTYPE\n"
