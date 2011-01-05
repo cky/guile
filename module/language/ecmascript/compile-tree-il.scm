@@ -1,6 +1,6 @@
 ;;; ECMAScript for Guile
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -366,7 +366,7 @@
        `(apply ,(@implv new-array)
                ,@(map (lambda (x) (comp x e)) args)))
       ((object . ,args)
-       `(apply (@ (language ecmascript impl) new-object)
+       `(apply ,(@implv new-object)
                ,@(map (lambda (x)
                          (pmatch x
                                  ((,prop ,val)
