@@ -443,6 +443,32 @@ scm_take_locale_symbol (char *sym)
   return scm_take_locale_symboln (sym, (size_t)-1);
 }
 
+SCM
+scm_from_latin1_symbol (const char *sym)
+{
+  return scm_from_latin1_symboln (sym, -1);
+}
+
+SCM
+scm_from_latin1_symboln (const char *sym, size_t len)
+{
+  SCM str = scm_from_latin1_stringn (sym, len);
+  return scm_i_str2symbol (str);
+}
+
+SCM
+scm_from_utf8_symbol (const char *sym)
+{
+  return scm_from_utf8_symboln (sym, -1);
+}
+
+SCM
+scm_from_utf8_symboln (const char *sym, size_t len)
+{
+  SCM str = scm_from_utf8_stringn (sym, len);
+  return scm_i_str2symbol (str);
+}
+
 void
 scm_symbols_prehistory ()
 {

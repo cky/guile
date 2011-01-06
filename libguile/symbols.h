@@ -67,10 +67,26 @@ SCM_API SCM scm_symbol_pset_x (SCM s, SCM val);
 SCM_API SCM scm_symbol_hash (SCM s);
 SCM_API SCM scm_gensym (SCM prefix);
 
+/* Use locale encoding for user input, user output, or interacting with
+   the C library.  Use latin-1 for ASCII, and for literals in source
+   code.  Use UTF-8 for interaction with modern libraries which deal in
+   UTF-8.  Otherwise use scm_to_stringn or scm_from_stringn, and
+   convert.  */
+
 SCM_API SCM scm_from_locale_symbol (const char *str);
 SCM_API SCM scm_from_locale_symboln (const char *str, size_t len);
 SCM_API SCM scm_take_locale_symbol (char *sym);
 SCM_API SCM scm_take_locale_symboln (char *sym, size_t len);
+
+SCM_API SCM scm_from_latin1_symbol (const char *str);
+SCM_API SCM scm_from_latin1_symboln (const char *str, size_t len);
+SCM_API SCM scm_take_latin1_symbol (char *sym);
+SCM_API SCM scm_take_latin1_symboln (char *sym, size_t len);
+
+SCM_API SCM scm_from_utf8_symbol (const char *str);
+SCM_API SCM scm_from_utf8_symboln (const char *str, size_t len);
+SCM_API SCM scm_take_utf8_symbol (char *sym);
+SCM_API SCM scm_take_utf8_symboln (char *sym, size_t len);
 
 /* internal functions. */
 
