@@ -68,128 +68,108 @@ SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
 /* {Symbols}
  */
 
-/* In order to optimize reading speed, this function breaks part of
- * the hashtable abstraction.  The optimizations are:
- *
- * 1. The argument string can be compared directly to symbol objects
- *    without first creating an SCM string object.  (This would have
- *    been necessary if we had used the hashtable API in hashtab.h.)
- *
- * 2. We can use the raw hash value stored in scm_i_symbol_hash (sym)
- *    to speed up lookup.
- *
- * Both optimizations might be possible without breaking the
- * abstraction if the API in hashtab.c is improved.
- */
-
 unsigned long
 scm_i_hash_symbol (SCM obj, unsigned long n, void *closure)
 {
   return scm_i_symbol_hash (obj) % n;
 }
 
+struct string_lookup_data
+{
+  unsigned long string_hash;
+};
+
+static unsigned long
+string_lookup_hash_fn (SCM obj, unsigned long max, void *closure)
+{
+  struct string_lookup_data *data = closure;
+
+  if (scm_is_symbol (obj))
+    return scm_i_symbol_hash (obj) % max;
+  else
+    return data->string_hash % max;
+}
+
+static SCM
+string_lookup_assoc_fn (SCM obj, SCM alist, void *closure)
+{
+  struct string_lookup_data *data = closure;
+
+  for (; !scm_is_null (alist); alist = SCM_CDR (alist))
+    {
+      SCM sym = SCM_CAAR (alist);
+
+      if (scm_i_symbol_hash (sym) == data->string_hash
+          && scm_is_true (scm_string_equal_p (scm_symbol_to_string (sym), obj)))
+        return SCM_CAR (alist);
+    }
+
+  return SCM_BOOL_F;
+}
+
 static SCM
 lookup_interned_symbol (SCM name, unsigned long raw_hash)
 {
-  /* Try to find the symbol in the symbols table */
-  SCM result = SCM_BOOL_F;
-  SCM bucket, elt, previous_elt;
-  size_t len;
-  unsigned long hash = raw_hash % SCM_HASHTABLE_N_BUCKETS (symbols);
+  struct string_lookup_data data;
+  SCM handle;
 
-  len = scm_i_string_length (name);
-  bucket = SCM_HASHTABLE_BUCKET (symbols, hash);
+  data.string_hash = raw_hash;
+  
+  /* Strictly speaking, we should take a lock here.  But instead we rely
+     on the fact that if this fails, we do take the lock on the
+     intern_symbol path; and since nothing deletes from the hash table,
+     we should be OK.  Though, weak pair deletion is somewhat
+     worrying...  */
+  handle = scm_hash_fn_get_handle (symbols, name,
+                                   string_lookup_hash_fn,
+                                   string_lookup_assoc_fn,
+                                   &data);  
 
-  for (elt = bucket, previous_elt = SCM_BOOL_F;
-       !scm_is_null (elt);
-       previous_elt = elt, elt = SCM_CDR (elt))
-    {
-      SCM pair, sym;
-
-      pair = SCM_CAR (elt);
-      if (!scm_is_pair (pair))
-	abort ();
-
-      if (SCM_WEAK_PAIR_CAR_DELETED_P (pair))
-	{
-	  /* PAIR is a weak pair whose key got nullified: remove it from
-	     BUCKET.  */
-	  /* FIXME: Since this is done lazily, i.e., only when a new symbol
-	     is to be inserted in a bucket containing deleted symbols, the
-	     number of items in the hash table may remain erroneous for some
-	     time, thus precluding proper rehashing.  */
-	  if (previous_elt != SCM_BOOL_F)
-	    SCM_SETCDR (previous_elt, SCM_CDR (elt));
-	  else
-	    bucket = SCM_CDR (elt);
-
-	  SCM_HASHTABLE_DECREMENT (symbols);
-	  continue;
-	}
-
-      sym = SCM_CAR (pair);
-
-      if (scm_i_symbol_hash (sym) == raw_hash
-	  && scm_i_symbol_length (sym) == len)
-	{
-          size_t i = len;
-
-          /* Slightly faster path for comparing narrow to narrow.  */
-          if (scm_i_is_narrow_string (name) && scm_i_is_narrow_symbol (sym))
-            {
-              const char *chrs = scm_i_symbol_chars (sym);
-              const char *str = scm_i_string_chars (name);
-
-              while (i != 0)
-                {
-                  --i;
-                  if (str[i] != chrs[i])
-                    goto next_symbol;
-                }
-            }
-          else
-            {
-              /* Somewhat slower path for comparing narrow to wide or
-                 wide to wide.  */
-              while (i != 0)
-                {
-                  --i;
-                  if (scm_i_string_ref (name, i) != scm_i_symbol_ref (sym, i))
-                    goto next_symbol;
-                }
-            }
-
-	  /* We found it.  */
-	  result = sym;
-	  break;
-	}
-    next_symbol:
-      ;
-    }
-
-  if (SCM_HASHTABLE_N_ITEMS (symbols) < SCM_HASHTABLE_LOWER (symbols))
-    /* We removed many symbols in this pass so trigger a rehashing.  */
-    scm_i_rehash (symbols, scm_i_hash_symbol, 0, "lookup_interned_symbol");
-
-  return result;
+  if (scm_is_true (handle))
+    return SCM_CAR (handle);
+  else
+    return SCM_BOOL_F;
 }
 
-/* Intern SYMBOL, an uninterned symbol.  */
-static void
+static unsigned long
+symbol_lookup_hash_fn (SCM obj, unsigned long max, void *closure)
+{
+  return scm_i_symbol_hash (obj) % max;
+}
+
+static SCM
+symbol_lookup_assoc_fn (SCM obj, SCM alist, void *closure)
+{
+  for (; !scm_is_null (alist); alist = SCM_CDR (alist))
+    {
+      SCM sym = SCM_CAAR (alist);
+
+      if (scm_i_symbol_hash (sym) == scm_i_symbol_hash (obj)
+          && scm_is_true (scm_string_equal_p (scm_symbol_to_string (sym),
+                                              scm_symbol_to_string (obj))))
+        return SCM_CAR (alist);
+    }
+
+  return SCM_BOOL_F;
+}
+
+static scm_i_pthread_mutex_t intern_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
+/* Intern SYMBOL, an uninterned symbol.  Might return a different
+   symbol, if another one was interned at the same time.  */
+static SCM
 intern_symbol (SCM symbol)
 {
-  SCM slot, cell;
-  unsigned long hash;
+  SCM handle;
 
-  hash = scm_i_symbol_hash (symbol) % SCM_HASHTABLE_N_BUCKETS (symbols);
-  slot = SCM_HASHTABLE_BUCKET (symbols, hash);
-  cell = scm_cons (symbol, SCM_UNDEFINED);
+  scm_i_pthread_mutex_lock (&intern_lock);
+  handle = scm_hash_fn_create_handle_x (symbols, symbol, SCM_UNDEFINED,
+                                        symbol_lookup_hash_fn,
+                                        symbol_lookup_assoc_fn,
+                                        NULL);
+  scm_i_pthread_mutex_unlock (&intern_lock);
 
-  SCM_SET_HASHTABLE_BUCKET (symbols, hash, scm_cons (cell, slot));
-  SCM_HASHTABLE_INCREMENT (symbols);
-
-  if (SCM_HASHTABLE_N_ITEMS (symbols) > SCM_HASHTABLE_UPPER (symbols))
-    scm_i_rehash (symbols, scm_i_hash_symbol, 0, "intern_symbol");
+  return SCM_CAR (handle);
 }
 
 static SCM
@@ -199,15 +179,15 @@ scm_i_str2symbol (SCM str)
   size_t raw_hash = scm_i_string_hash (str);
 
   symbol = lookup_interned_symbol (str, raw_hash);
-  if (scm_is_false (symbol))
+  if (scm_is_true (symbol))
+    return symbol;
+  else
     {
       /* The symbol was not found, create it.  */
       symbol = scm_i_make_symbol (str, 0, raw_hash,
 				  scm_cons (SCM_BOOL_F, SCM_EOL));
-      intern_symbol (symbol);
+      return intern_symbol (symbol);
     }
-
-  return symbol;
 }
 
 
