@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1437,8 +1437,13 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   int wide = 0;
   SCM res;
 
+  /* The order of these checks is important. */
   if (len == 0)
     return scm_nullstr;
+  if (!str)
+    scm_misc_error ("scm_from_stringn", "NULL string pointer", SCM_EOL);
+  if (len == (size_t) -1)
+    len = strlen (str);
 
   if (encoding == NULL)
     {
@@ -1502,9 +1507,9 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
 }
 
 SCM
-scm_from_latin1_stringn (const char *str, size_t len)
+scm_from_locale_string (const char *str)
 {
-  return scm_from_stringn (str, len, NULL, SCM_FAILED_CONVERSION_ERROR);
+  return scm_from_locale_stringn (str, -1);
 }
 
 SCM
@@ -1514,11 +1519,6 @@ scm_from_locale_stringn (const char *str, size_t len)
   scm_t_string_failed_conversion_handler hndl;
   SCM inport;
   scm_t_port *pt;
-
-  if (len == (size_t) -1)
-    len = strlen (str);
-  if (len == 0)
-    return scm_nullstr;
 
   inport = scm_current_input_port ();
   if (!SCM_UNBNDP (inport) && SCM_OPINPORTP (inport))
@@ -1537,20 +1537,27 @@ scm_from_locale_stringn (const char *str, size_t len)
 }
 
 SCM
-scm_from_locale_string (const char *str)
+scm_from_latin1_string (const char *str)
 {
-  if (str == NULL)
-    return scm_nullstr;
-
-  return scm_from_locale_stringn (str, -1);
+  return scm_from_latin1_stringn (str, -1);
 }
 
 SCM
-scm_i_from_utf8_string (const scm_t_uint8 *str)
+scm_from_latin1_stringn (const char *str, size_t len)
 {
-  return scm_from_stringn ((const char *) str,
-                           strlen ((char *) str), "UTF-8",
-                           SCM_FAILED_CONVERSION_ERROR);
+  return scm_from_stringn (str, len, NULL, SCM_FAILED_CONVERSION_ERROR);
+}
+
+SCM
+scm_from_utf8_string (const char *str)
+{
+  return scm_from_utf8_stringn (str, -1);
+}
+
+SCM
+scm_from_utf8_stringn (const char *str, size_t len)
+{
+  return scm_from_stringn (str, len, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
 }
 
 /* Create a new scheme string from the C string STR.  The memory of
@@ -1707,9 +1714,9 @@ scm_i_unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
 }
 
 char *
-scm_to_latin1_stringn (SCM str, size_t *lenp)
+scm_to_locale_string (SCM str)
 {
-  return scm_to_stringn (str, lenp, NULL, SCM_FAILED_CONVERSION_ERROR);
+  return scm_to_locale_stringn (str, NULL);
 }
 
 char *
@@ -1731,6 +1738,30 @@ scm_to_locale_stringn (SCM str, size_t *lenp)
   return scm_to_stringn (str, lenp, 
                          enc,
                          scm_i_get_conversion_strategy (SCM_BOOL_F));
+}
+
+char *
+scm_to_latin1_string (SCM str)
+{
+  return scm_to_latin1_stringn (str, NULL);
+}
+
+char *
+scm_to_latin1_stringn (SCM str, size_t *lenp)
+{
+  return scm_to_stringn (str, lenp, NULL, SCM_FAILED_CONVERSION_ERROR);
+}
+
+char *
+scm_to_utf8_string (SCM str)
+{
+  return scm_to_utf8_stringn (str, NULL);
+}
+
+char *
+scm_to_utf8_stringn (SCM str, size_t *lenp)
+{
+  return scm_to_stringn (str, lenp, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
 }
 
 /* Return a malloc(3)-allocated buffer containing the contents of STR encoded
@@ -1843,20 +1874,6 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 
   scm_remember_upto_here_1 (str);
   return buf;
-}
-
-char *
-scm_to_locale_string (SCM str)
-{
-  return scm_to_locale_stringn (str, NULL);
-}
-
-scm_t_uint8 *
-scm_i_to_utf8_string (SCM str)
-{
-  char *u8str;
-  u8str = scm_to_stringn (str, NULL, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
-  return (scm_t_uint8 *) u8str;
 }
 
 size_t

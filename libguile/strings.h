@@ -3,7 +3,7 @@
 #ifndef SCM_STRINGS_H
 #define SCM_STRINGS_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -125,18 +125,31 @@ SCM_API SCM scm_c_substring_read_only (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_shared (SCM str, size_t start, size_t end);
 SCM_API SCM scm_c_substring_copy (SCM str, size_t start, size_t end);
 
-SCM_API SCM scm_from_latin1_stringn (const char *str, size_t len);
+/* Use locale encoding for user input, user output, or interacting with
+   the C library.  Use latin1 for ASCII, and for literals in source
+   code.  Use utf8 for interaction with modern libraries which deal in
+   UTF-8.  Otherwise use scm_to_stringn or scm_from_stringn with a
+   specific encoding. */
+
 SCM_API SCM scm_from_locale_string (const char *str);
 SCM_API SCM scm_from_locale_stringn (const char *str, size_t len);
-SCM_INTERNAL SCM scm_i_from_utf8_string (const scm_t_uint8 *str);
 SCM_API SCM scm_take_locale_string (char *str);
 SCM_API SCM scm_take_locale_stringn (char *str, size_t len);
-SCM_API char *scm_to_latin1_stringn (SCM str, size_t *lenp);
 SCM_API char *scm_to_locale_string (SCM str);
 SCM_API char *scm_to_locale_stringn (SCM str, size_t *lenp);
+
+SCM_API SCM scm_from_latin1_string (const char *str);
+SCM_API SCM scm_from_latin1_stringn (const char *str, size_t len);
+SCM_API char *scm_to_latin1_string (SCM str);
+SCM_API char *scm_to_latin1_stringn (SCM str, size_t *lenp);
+
+SCM_API char *scm_to_utf8_string (SCM str);
+SCM_API char *scm_to_utf8_stringn (SCM str, size_t *lenp);
+SCM_API SCM scm_from_utf8_string (const char *str);
+SCM_API SCM scm_from_utf8_stringn (const char *str, size_t len);
+
 SCM_API char *scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                               scm_t_string_failed_conversion_handler handler);
-SCM_INTERNAL scm_t_uint8 *scm_i_to_utf8_string (SCM str);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);
 
 SCM_API SCM scm_string_normalize_nfd (SCM str);
