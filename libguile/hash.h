@@ -3,7 +3,7 @@
 #ifndef SCM_HASH_H
 #define SCM_HASH_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000, 2006, 2008, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,6 +28,13 @@
 
 
 SCM_API unsigned long scm_string_hash (const unsigned char *str, size_t len);
+SCM_INTERNAL unsigned long scm_i_locale_string_hash (const char *str,
+                                                     size_t len);
+SCM_INTERNAL unsigned long scm_i_latin1_string_hash (const  char *str,
+                                                     size_t len);
+SCM_INTERNAL unsigned long scm_i_utf8_string_hash (const char *str,
+                                                   size_t len);
+
 SCM_INTERNAL unsigned long scm_i_string_hash (SCM str);
 SCM_API unsigned long scm_hasher (SCM obj, unsigned long n, size_t d);
 SCM_API unsigned long scm_ihashq (SCM obj, unsigned long n);
