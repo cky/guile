@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -228,12 +228,12 @@ fixup_multibyte_match (regmatch_t *matches, int nmatches, char *str)
         }
 
       nbytes = mbrlen (str + byte_idx, MB_LEN_MAX, &state);
+      if (nbytes == (size_t) -2 || nbytes == (size_t) -1)
+        /* Something is wrong. Shouldn't be possible, as the regex match
+           succeeded.  */
+        abort ();
     }
 
-  if (nbytes >= (size_t) -2)
-    /* Something is wrong. Shouldn't be possible, as the regex match
-       succeeded.  */
-    abort ();
 }
 #endif
 
