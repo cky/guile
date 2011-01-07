@@ -121,6 +121,49 @@ lookup_interned_symbol (SCM name, unsigned long raw_hash)
     return SCM_BOOL_F;
 }
 
+struct latin1_lookup_data
+{
+  const char *str;
+  size_t len;
+  unsigned long string_hash;
+};
+
+static int
+latin1_lookup_predicate_fn (SCM sym, void *closure)
+{
+  struct latin1_lookup_data *data = closure;
+
+  return scm_i_symbol_hash (sym) == data->string_hash
+    && scm_i_is_narrow_symbol (sym)
+    && scm_i_symbol_length (sym) == data->len
+    && strncmp (scm_i_symbol_chars (sym), data->str, data->len) == 0;
+}
+
+static SCM
+lookup_interned_latin1_symbol (const char *str, size_t len,
+                               unsigned long raw_hash)
+{
+  struct latin1_lookup_data data;
+  SCM handle;
+
+  data.str = str;
+  data.len = len;
+  data.string_hash = raw_hash;
+  
+  /* Strictly speaking, we should take a lock here.  But instead we rely
+     on the fact that if this fails, we do take the lock on the
+     intern_symbol path; and since nothing deletes from the hash table
+     except GC, we should be OK.  */
+  handle = scm_hash_fn_get_handle_by_hash (symbols, raw_hash,
+                                           latin1_lookup_predicate_fn,
+                                           &data);  
+
+  if (scm_is_true (handle))
+    return SCM_CAR (handle);
+  else
+    return SCM_BOOL_F;
+}
+
 static unsigned long
 symbol_lookup_hash_fn (SCM obj, unsigned long max, void *closure)
 {
@@ -422,8 +465,21 @@ scm_from_latin1_symbol (const char *sym)
 SCM
 scm_from_latin1_symboln (const char *sym, size_t len)
 {
-  SCM str = scm_from_latin1_stringn (sym, len);
-  return scm_i_str2symbol (str);
+  unsigned long hash;
+  SCM ret;
+
+  if (len == (size_t) -1)
+    len = strlen (sym);
+  hash = scm_i_latin1_string_hash (sym, len);
+
+  ret = lookup_interned_latin1_symbol (sym, len, hash);
+  if (scm_is_false (ret))
+    {
+      SCM str = scm_from_latin1_stringn (sym, len);
+      ret = scm_i_str2symbol (str);
+    }
+
+  return ret;
 }
 
 SCM
