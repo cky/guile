@@ -70,6 +70,10 @@ typedef unsigned long (*scm_t_hash_fn) (SCM obj, unsigned long max,
    some equality predicate.  */
 typedef SCM (*scm_t_assoc_fn) (SCM obj, SCM alist, void *closure);
 
+/* Function that returns true if the given object is the one we are
+   looking for, for scm_hash_fn_ref_by_hash.  */
+typedef int (*scm_t_hash_predicate_fn) (SCM obj, void *closure);
+
 /* Function to fold over the entries of a hash table.  */
 typedef SCM (*scm_t_hash_fold_fn) (void *closure, SCM key, SCM value,
 				   SCM result);
@@ -110,6 +114,10 @@ SCM_API SCM scm_hash_fn_get_handle (SCM table, SCM obj,
 				    scm_t_hash_fn hash_fn,
 				    scm_t_assoc_fn assoc_fn,
 				    void *closure);
+SCM_INTERNAL
+SCM scm_hash_fn_get_handle_by_hash (SCM table, unsigned long raw_hash,
+                                    scm_t_hash_predicate_fn predicate_fn,
+                                    void *closure);
 SCM_API SCM scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
 					 scm_t_hash_fn hash_fn,
 					 scm_t_assoc_fn assoc_fn,

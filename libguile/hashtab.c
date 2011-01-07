@@ -213,6 +213,37 @@ weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
 }
 
 
+/* Packed arguments for `weak_bucket_assoc_by_hash'.  */
+struct assoc_by_hash_data
+{
+  SCM alist;
+  SCM ret;
+  scm_t_hash_predicate_fn predicate;
+  void *closure;
+};
+
+/* See scm_hash_fn_get_handle_by_hash below.  */
+static void*
+weak_bucket_assoc_by_hash (void *args)
+{
+  struct assoc_by_hash_data *data = args;
+  SCM alist = data->alist;
+
+  for (; scm_is_pair (alist); alist = SCM_CDR (alist))
+    {
+      SCM pair = SCM_CAR (alist);
+      
+      if (!SCM_WEAK_PAIR_DELETED_P (pair)
+          && data->predicate (SCM_CAR (pair), data->closure))
+        {
+          data->ret = pair;
+          break;
+        }
+    }
+  return args;
+}
+        
+
 
 static SCM
 make_hash_table (int flags, unsigned long k, const char *func_name) 
@@ -491,6 +522,64 @@ scm_hash_fn_get_handle (SCM table, SCM obj,
 			   assoc_fn, obj, closure);
   else
     h = assoc_fn (obj, SCM_SIMPLE_VECTOR_REF (buckets, k), closure);
+
+  return h;
+}
+#undef FUNC_NAME
+
+
+/* This procedure implements three optimizations, with respect to the
+   raw get_handle():
+
+   1. For weak tables, it's assumed that calling the predicate in the
+      allocation lock is safe. In practice this means that the predicate
+      cannot call arbitrary scheme functions. 
+
+   2. We don't check for overflow / underflow and rehash.
+
+   3. We don't actually have to allocate a key -- instead we get the
+      hash value directly. This is useful for, for example, looking up
+      strings in the symbol table.
+ */
+SCM
+scm_hash_fn_get_handle_by_hash (SCM table, unsigned long raw_hash,
+                                scm_t_hash_predicate_fn predicate_fn,
+                                void *closure)
+#define FUNC_NAME "scm_hash_fn_ref_by_hash"
+{
+  unsigned long k;
+  SCM buckets, alist, h = SCM_BOOL_F;
+
+  SCM_VALIDATE_HASHTABLE (SCM_ARG1, table);
+  buckets = SCM_HASHTABLE_VECTOR (table);
+
+  if (SCM_SIMPLE_VECTOR_LENGTH (buckets) == 0)
+    return SCM_BOOL_F;
+
+  k = raw_hash % SCM_SIMPLE_VECTOR_LENGTH (buckets);
+  alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
+
+  if (SCM_HASHTABLE_WEAK_P (table))
+    {
+      struct assoc_by_hash_data args;
+
+      args.alist = alist;
+      args.ret = SCM_BOOL_F;
+      args.predicate = predicate_fn;
+      args.closure = closure;
+      GC_call_with_alloc_lock (weak_bucket_assoc_by_hash, &args);
+      h = args.ret;
+    }
+  else
+    for (; scm_is_pair (alist); alist = SCM_CDR (alist))
+      {
+        SCM pair = SCM_CAR (alist);
+        if (predicate_fn (SCM_CAR (pair), closure))
+          {
+            h = pair;
+            break;
+          }
+      }
 
   return h;
 }
