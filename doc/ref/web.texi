@@ -472,13 +472,48 @@ Write the first line of an HTTP response to @var{port}.
 @node HTTP Headers
 @subsection HTTP Headers
 
-The @code{(web http)} module defines parsers and unparsers for all
-headers defined in the HTTP/1.1 standard.  This section describes the
+In addition to defining the infrastructure to parse headers, the
+@code{(web http)} module defines specific parsers and unparsers for all
+headers defined in the HTTP/1.1 standard.
+
+For example, if you receive a header named @samp{Accept-Language} with a
+value @samp{en, es;q=0.8}, Guile parses it as follows:
+
+@example
+(parse-header "Accept-Language" "en, es;q=0.8")
+@result{} accept-language
+@result{} ((1000 . "en") (800 . "es"))
+@end example
+
+There are two results, because @code{parse-header} returns two
+values.  The first value is a symbol, because the @code{accept-language}
+header is known to Guile and has a parser registered.  The format of the
+value for @code{accept-language} headers is defined below, along with
+all other headers defined in the HTTP standard.  (If the header were not
+recognized, it and the value would be returned as strings.)
+
+For brevity, the header definitions below are given in the form,
+@var{type} @code{@var{name}}, indicating that values for the header
+@code{@var{name}} will be of the given @var{type}.  A short description
+of the each header's purpose and an example follow.  For full details on
+the meanings of all of these headers, see the HTTP 1.1 standard, RFC
+2616.
+
+@subsubsection HTTP Header Types
+@deftp {HTTP Header Type} Date
+foo
+@end deftp
+
+So for example if you are implementing a
+
+This section describes the
 parsed format of the various headers.
 
 We cannot describe the function of all of these headers, however, in
 sufficient detail.  The interested reader would do well to download a
 copy of RFC 2616 and have it on hand.
+
+example? and examples in each, and brief meaning description.
 
 To begin with, we should make a few definitions:
 
@@ -490,11 +525,6 @@ are left as strings.  Keys with values are parsed to pairs, the car of
 which is the symbol or string key, and the cdr is the parsed value.
 Parsed values for known keys have key-dependent formats.  Parsed values
 for unknown keys are strings.
-
-@item param list
-A param list is a list of key-value lists.  When serialized to a string,
-items in the inner lists are separated by semicolons.  Again, known keys
-are parsed to symbols.
 
 @item quality
 A number of headers have quality values in them, which are decimal
@@ -515,8 +545,7 @@ true iff the entity tag is a ``strong'' entity tag.
 
 @subsubsection General Headers
 
-@table @code
-@item cache-control
+@deftypevr {HTTP Header} KVList cache-control
 A key-value list of cache-control directives. Known keys are
 @code{max-age}, @code{max-stale}, @code{min-fresh},
 @code{must-revalidate}, @code{no-cache}, @code{no-store},
@@ -530,68 +559,82 @@ integers.
 If present, parameters to @code{private} and @code{no-cache} are parsed
 as lists of header names, represented as symbols if they are known
 headers or strings otherwise.
+@end deftypevr
 
-@item connection
+@deftypevr {HTTP Header} @i{List of Strings} connection
 A list of connection tokens.  A connection token is a string.
+@end deftypevr
 
-@item date
+@deftypevr {HTTP Header} {date} date
 A SRFI-19 date record.
+@end deftypevr
 
-@item pragma
+@deftypevr {HTTP Header} {Key-Value List} pragma
 A key-value list of pragma directives.  @code{no-cache} is the only
 known key.
+@end deftypevr
 
-@item trailer
+@deftypevr {HTTP Header} {tp} trailer
 A list of header names.  Known header names are parsed to symbols,
 otherwise they are left as strings.
+@end deftypevr
 
-@item transfer-encoding
+@deftypevr {HTTP Header} {tp} transfer-encoding
 A param list of transfer codings.  @code{chunked} is the only known key.
+@end deftypevr
 
-@item upgrade
+@deftypevr {HTTP Header} {tp} upgrade
 A list of strings.
+@end deftypevr
 
-@item via
+@deftypevr {HTTP Header} {tp} via
 A list of strings.  There may be multiple @code{via} headers in ne
 message.
+@end deftypevr
 
-@item warning
+@deftypevr {HTTP Header} {tp} warning
 A list of warnings.  Each warning is a itself a list of four elements: a
 code, as an exact integer between 0 and 1000, a host as a string, the
 warning text as a string, and either @code{#f} or a SRFI-19 date.
 
 There may be multiple @code{warning} headers in one message.
-@end table
+@end deftypevr
 
 
 @subsubsection Entity Headers
 
-@table @code
-@item allow
+@deftypevr {HTTP Header} {tp} allow
 A list of methods, as strings.  Methods are parsed as strings instead of
 @code{parse-http-method} so as to allow for new methods.
+@end deftypevr
 
-@item content-encoding
+@deftypevr {HTTP Header} {tp} content-encoding
 A list of content codings, as strings.
+@end deftypevr
 
-@item content-language
+@deftypevr {HTTP Header} {tp} content-language
 A list of language tags, as strings.
+@end deftypevr
 
-@item content-length
+@deftypevr {HTTP Header} {tp} content-length
 An exact, non-negative integer.
+@end deftypevr
 
-@item content-location
+@deftypevr {HTTP Header} {tp} content-location
 A URI record.
+@end deftypevr
 
-@item content-md5
+@deftypevr {HTTP Header} {tp} content-md5
 A string.
+@end deftypevr
 
-@item content-range
+@deftypevr {HTTP Header} {tp} content-range
 A list of three elements: the symbol @code{bytes}, either the symbol
 @code{*} or a pair of integers, indicating the byte rage, and either
 @code{*} or an integer, for the instance length.
+@end deftypevr
 
-@item content-type
+@deftypevr {HTTP Header} {tp} content-type
 A pair, the car of which is the media type as a string, and the cdr is
 an alist of parameters, with strings as keys and values.
 
@@ -599,116 +642,144 @@ For example, @code{"text/plain"} parses as @code{("text/plain")}, and
 @code{"text/plain;charset=utf-8"} parses as @code{("text/plain"
 ("charset" . "utf-8"))}.
 
-@item expires
-A SRFI-19 date.
+note charset and encoding
+@end deftypevr
 
-@item last-modified
+@deftypevr {HTTP Header} {tp} expires
 A SRFI-19 date.
+@end deftypevr
 
-@end table
+@deftypevr {HTTP Header} {tp} last-modified
+A SRFI-19 date.
+@end deftypevr
 
 
 @subsubsection Request Headers
 
-@table @code
-@item accept
+@deftypevr {HTTP Header} {tp} accept
 A param list.  Each element in the list indicates one media-range
 with accept-params.  They only known key is @code{q}, whose value is
 parsed as a quality value.
+@end deftypevr
 
-@item accept-charset
+@deftypevr {HTTP Header} {tp} accept-charset
 A quality-list of charsets, as strings.
 
-@item accept-encoding
+charset and encoding
+@end deftypevr
+@deftypevr {HTTP Header} {tp} accept-encoding
 A quality-list of content codings, as strings.
+@end deftypevr
 
-@item accept-language
+@deftypevr {HTTP Header} {tp} accept-language
 A quality-list of languages, as strings.
+@end deftypevr
 
-@item authorization
+@deftypevr {HTTP Header} {tp} authorization
 A string.
+@end deftypevr
 
-@item expect
+@deftypevr {HTTP Header} {tp} expect
 A param list of expectations.  The only known key is
 @code{100-continue}.
+@end deftypevr
 
-@item from
+@deftypevr {HTTP Header} {tp} from
 A string.
+@end deftypevr
 
-@item host
+@deftypevr {HTTP Header} {tp} host
 A pair of the host, as a string, and the port, as an integer. If no port
 is given, port is @code{#f}.
+@end deftypevr
 
-@item if-match
+@deftypevr {HTTP Header} {tp} if-match
 Either the symbol @code{*}, or a list of entity tags (see above).
+@end deftypevr
 
-@item if-modified-since
+@deftypevr {HTTP Header} {tp} if-modified-since
 A SRFI-19 date.
+@end deftypevr
 
-@item if-none-match
+@deftypevr {HTTP Header} {tp} if-none-match
 Either the symbol @code{*}, or a list of entity tags (see above).
+@end deftypevr
 
-@item if-range
+@deftypevr {HTTP Header} {tp} if-range
 Either an entity tag, or a SRFI-19 date.
+@end deftypevr
 
-@item if-unmodified-since
+@deftypevr {HTTP Header} {tp} if-unmodified-since
 A SRFI-19 date.
+@end deftypevr
 
-@item max-forwards
+@deftypevr {HTTP Header} {tp} max-forwards
 An exact non-negative integer.
+@end deftypevr
 
-@item proxy-authorization
+@deftypevr {HTTP Header} {tp} proxy-authorization
 A string.
+@end deftypevr
 
-@item range
+@deftypevr {HTTP Header} {tp} range
 A pair whose car is the symbol @code{bytes}, and whose cdr is a list of
 pairs. Each element of the cdr indicates a range; the car is the first
 byte position and the cdr is the last byte position, as integers, or
 @code{#f} if not given.
+@end deftypevr
 
-@item referer
+@deftypevr {HTTP Header} {tp} referer
 A URI.
+@end deftypevr
 
-@item te
+@deftypevr {HTTP Header} {tp} te
 A param list of transfer-codings.  The only known key is
 @code{trailers}.
+@end deftypevr
 
-@item user-agent
+@deftypevr {HTTP Header} {tp} user-agent
 A string.
-@end table
+@end deftypevr
 
 
 @subsubsection Response Headers
 
-@table @code
-@item accept-ranges
+@deftypevr {HTTP Header} {tp} accept-ranges
 A list of strings.
+@end deftypevr
 
-@item age
+@deftypevr {HTTP Header} {tp} age
 An exact, non-negative integer.
+@end deftypevr
 
-@item etag
+@deftypevr {HTTP Header} {tp} etag
 An entity tag.
+@end deftypevr
 
-@item location
+@deftypevr {HTTP Header} {tp} location
 A URI.
+@end deftypevr
 
-@item proxy-authenticate
+@deftypevr {HTTP Header} {tp} proxy-authenticate
 A string.
+@end deftypevr
 
-@item retry-after
+@deftypevr {HTTP Header} {tp} retry-after
 Either an exact, non-negative integer, or a SRFI-19 date.
+@end deftypevr
 
-@item server
+@deftypevr {HTTP Header} {tp} server
 A string.
+@end deftypevr
 
-@item vary
+@deftypevr {HTTP Header} {tp} vary
 Either the symbol @code{*}, or a list of headers, with known headers
 parsed to symbols.
+@end deftypevr
 
-@item www-authenticate
-A string.
-@end table
+@deftypevr {HTTP Header} {tp} www-authenticate
+A string. (FIXME)
+@end deftypevr
 
 
 @node Requests
@@ -722,6 +793,8 @@ The request module contains a data type for HTTP requests.  Note that
 the body is not part of the request, but the port is.  Once you have
 read a request, you may read the body separately, and likewise for
 writing requests.
+
+discussion of charsets and bytes and stuff.
 
 @defun build-request [#:method] [#:uri] [#:version] [#:headers] [#:port] [#:meta] [#:validate-headers?]
 Construct an HTTP request object. If @var{validate-headers?} is true,
@@ -765,10 +838,12 @@ discussion of character sets in "HTTP Requests" in the manual, for more
 information.
 @end defun
 
+Fixme^
+
 @defun write-request r port
 Write the given HTTP request to @var{port}.
 
-Returns a new request, whose @code{request-port} will continue writing
+Return a new request, whose @code{request-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
 @end defun
 
@@ -777,7 +852,7 @@ Reads the request body from @var{r}, as a string.
 
 Assumes that the request port has ISO-8859-1 encoding, so that the
 number of characters to read is the same as the
-@code{request-content-length}. Returns @code{#f} if there was no request
+@code{request-content-length}.  Return @code{#f} if there was no request
 body.
 @end defun
 
@@ -787,7 +862,7 @@ corresponding to the HTTP request @var{r}.
 @end defun
 
 @defun read-request-body/bytevector r
-Reads the request body from @var{r}, as a bytevector. Returns @code{#f}
+Reads the request body from @var{r}, as a bytevector.  Return @code{#f}
 if there was no request body.
 @end defun
 
@@ -896,13 +971,14 @@ Construct an HTTP response object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators.
 @end defun
 
+FIXME
 @defun extend-response r k v . additional
 Extend an HTTP response by setting additional HTTP headers @var{k},
-@var{v}. Returns a new HTTP response.
+@var{v}.  Return a new HTTP response.
 @end defun
 
 @defun adapt-response-version response version
-Adapt the given response to a different HTTP version. Returns a new HTTP
+Adapt the given response to a different HTTP version.  Return a new HTTP
 response.
 
 The idea is that many applications might just build a response for the
@@ -915,7 +991,7 @@ the version field.
 @defun write-response r port
 Write the given HTTP response to @var{port}.
 
-Returns a new response, whose @code{response-port} will continue writing
+Return a new response, whose @code{response-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
 @end defun
 
@@ -924,7 +1000,7 @@ Reads the response body from @var{r}, as a string.
 
 Assumes that the response port has ISO-8859-1 encoding, so that the
 number of characters to read is the same as the
-@code{response-content-length}. Returns @code{#f} if there was no
+@code{response-content-length}. Return @code{#f} if there was no
 response body.
 @end defun
 
@@ -934,7 +1010,7 @@ corresponding to the HTTP response @var{r}.
 @end defun
 
 @defun read-response-body/bytevector r
-Reads the response body from @var{r}, as a bytevector. Returns @code{#f}
+Read the response body from @var{r}, as a bytevector.  Return @code{#f}
 if there was no response body.
 @end defun
 
@@ -1028,7 +1104,7 @@ A user-provided handler procedure is called, with the request
 and body as its arguments.  The handler should return two
 values: the response, as a @code{<response>} record from @code{(web
 response)}, and the response body as a string, bytevector, or
-@code{#f} if not present.  We also allow the reponse to be simply an
+@code{#f} if not present.  We also allow the response to be simply an
 alist of headers, in which case a default response object is
 constructed with those headers.
 
@@ -1071,16 +1147,16 @@ that we don't expose the accessors for the various fields of a
 any access to the impl objects.
 
 @defun open-server impl open-params
-Open a server for the given implementation. Returns one value, the new
+Open a server for the given implementation.  Return one value, the new
 server object. The implementation's @code{open} procedure is applied to
 @var{open-params}, which should be a list.
 @end defun
 
 @defun read-client impl server
 Read a new client from @var{server}, by applying the implementation's
-@code{read} procedure to the server. If successful, returns three
+@code{read} procedure to the server.  If successful, return three
 values: an object corresponding to the client, a request object, and the
-request body. If any exception occurs, returns @code{#f} for all three
+request body. If any exception occurs, return @code{#f} for all three
 values.
 @end defun
 
@@ -1132,7 +1208,7 @@ Given the procedures above, it is a small matter to make a web server:
 
 @defun serve-one-client handler impl server state
 Read one request from @var{server}, call @var{handler} on the request
-and body, and write the response to the client. Returns the new state
+and body, and write the response to the client.  Return the new state
 produced by the handler procedure.
 @end defun
 
@@ -1159,6 +1235,8 @@ Additional arguments to @var{handler} are taken from @var{state}.
 Additional return values are accumulated into a new @var{state}, which
 will be used for subsequent requests. In this way a handler can
 explicitly manage its state.
+
+FIXME: elide?
 
 The default server implementation is @code{http}, which accepts
 @var{open-params} like @code{(#:port 8081)}, among others. See "Web
@@ -1335,9 +1413,9 @@ Here we see the power of keyword arguments with default initializers. By
 the time the arguments are fully parsed, the @code{sxml} local variable
 will hold the templated SXML, ready for sending out to the client.
 
-Instead of returning the body as a string, here we give a procedure,
-which will be called by the web server to write out the response to the
-client.
+Also, instead of returning the body as a string, @code{respond} gives a
+procedure, which will be called by the web server to write out the
+response to the client.
 
 Now, a simple example using this responder, which lays out the incoming
 headers in an HTML table.

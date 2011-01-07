@@ -76,35 +76,26 @@ scm_i_hash_symbol (SCM obj, unsigned long n, void *closure)
 
 struct string_lookup_data
 {
+  SCM string;
   unsigned long string_hash;
 };
 
-static unsigned long
-string_lookup_hash_fn (SCM obj, unsigned long max, void *closure)
+static int
+string_lookup_predicate_fn (SCM sym, void *closure)
 {
   struct string_lookup_data *data = closure;
 
-  if (scm_is_symbol (obj))
-    return scm_i_symbol_hash (obj) % max;
-  else
-    return data->string_hash % max;
-}
-
-static SCM
-string_lookup_assoc_fn (SCM obj, SCM alist, void *closure)
-{
-  struct string_lookup_data *data = closure;
-
-  for (; !scm_is_null (alist); alist = SCM_CDR (alist))
+  if (scm_i_symbol_hash (sym) == data->string_hash
+      && scm_i_symbol_length (sym) == scm_i_string_length (data->string))
     {
-      SCM sym = SCM_CAAR (alist);
-
-      if (scm_i_symbol_hash (sym) == data->string_hash
-          && scm_is_true (scm_string_equal_p (scm_symbol_to_string (sym), obj)))
-        return SCM_CAR (alist);
+      size_t n = scm_i_symbol_length (sym);
+      while (n--)
+        if (scm_i_symbol_ref (sym, n) != scm_i_string_ref (data->string, n))
+          return 0;
+      return 1;
     }
-
-  return SCM_BOOL_F;
+  else
+    return 0;
 }
 
 static SCM
@@ -113,17 +104,16 @@ lookup_interned_symbol (SCM name, unsigned long raw_hash)
   struct string_lookup_data data;
   SCM handle;
 
+  data.string = name;
   data.string_hash = raw_hash;
   
   /* Strictly speaking, we should take a lock here.  But instead we rely
      on the fact that if this fails, we do take the lock on the
-     intern_symbol path; and since nothing deletes from the hash table,
-     we should be OK.  Though, weak pair deletion is somewhat
-     worrying...  */
-  handle = scm_hash_fn_get_handle (symbols, name,
-                                   string_lookup_hash_fn,
-                                   string_lookup_assoc_fn,
-                                   &data);  
+     intern_symbol path; and since nothing deletes from the hash table
+     except GC, we should be OK.  */
+  handle = scm_hash_fn_get_handle_by_hash (symbols, raw_hash,
+                                           string_lookup_predicate_fn,
+                                           &data);  
 
   if (scm_is_true (handle))
     return SCM_CAR (handle);
