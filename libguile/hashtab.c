@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -40,17 +40,6 @@
 
 
 
-/* NOTES
- *
- * 1. The current hash table implementation uses weak alist vectors
- *    (implementation in weaks.c) internally, but we do the scanning
- *    ourselves (in scan_weak_hashtables) because we need to update the
- *    hash table structure when items are dropped during GC.
- *
- * 2. All hash table operations still work on alist vectors.
- *
- */
-
 /* A hash table is a cell containing a vector of association lists.
  *
  * Growing or shrinking, with following rehashing, is triggered when
@@ -63,6 +52,9 @@
  * The implementation stores the upper and lower number of items which
  * trigger a resize in the hashtable object.
  *
+ * Weak hash tables use weak pairs in the bucket lists rather than
+ * normal pairs.
+ *
  * Possible hash table sizes (primes) are stored in the array
  * hashtable_size.
  */
@@ -70,10 +62,11 @@
 static unsigned long hashtable_size[] = {
   31, 61, 113, 223, 443, 883, 1759, 3517, 7027, 14051, 28099, 56197, 112363,
   224717, 449419, 898823, 1797641, 3595271, 7190537, 14381041
-#if 0
-  /* vectors are currently restricted to 2^24-1 = 16777215 elements. */
-  28762081, 57524111, 115048217, 230096423, 460192829
-  /* larger values can't be represented as INUMs */
+#if SIZEOF_SCM_T_BITS > 4
+  /* vector lengths are stored in the first word of vectors, shifted by
+     8 bits for the tc8, so for 32-bit we only get 2^24-1 = 16777215
+     elements.  But we allow a few more sizes for 64-bit. */
+  , 28762081, 57524111, 115048217, 230096423, 460192829
 #endif
 };
 
