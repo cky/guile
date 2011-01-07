@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software
+/* Copyright (C) 1995,1996,1997,1999,2000,2001,2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software
  * Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -111,7 +111,7 @@ scm_i_input_error (char const *function,
     
   string = scm_get_output_string (string_port);
   scm_close_output_port (string_port);
-  scm_error_scm (scm_from_locale_symbol ("read-error"),
+  scm_error_scm (scm_from_latin1_symbol ("read-error"),
 		 function? scm_from_locale_string (function) : SCM_BOOL_F,
 		 string,
 		 arg,

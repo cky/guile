@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -680,7 +680,7 @@ do_try_autocompile (void *data)
 
   comp_mod = scm_c_resolve_module ("system base compile");
   compile_file = scm_module_variable
-    (comp_mod, scm_from_locale_symbol ("compile-file"));
+    (comp_mod, scm_from_latin1_symbol ("compile-file"));
 
   if (scm_is_true (compile_file))
     {

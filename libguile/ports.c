@@ -2233,11 +2233,11 @@ SCM_DEFINE (scm_port_conversion_strategy, "port-conversion-strategy",
 
   h = scm_i_get_conversion_strategy (port);
   if (h == SCM_FAILED_CONVERSION_ERROR)
-    return scm_from_locale_symbol ("error");
+    return scm_from_latin1_symbol ("error");
   else if (h == SCM_FAILED_CONVERSION_QUESTION_MARK)
-    return scm_from_locale_symbol ("substitute");
+    return scm_from_latin1_symbol ("substitute");
   else if (h == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
-    return scm_from_locale_symbol ("escape");
+    return scm_from_latin1_symbol ("escape");
   else
     abort ();
 
@@ -2275,14 +2275,14 @@ SCM_DEFINE (scm_set_port_conversion_strategy_x, "set-port-conversion-strategy!",
       SCM_VALIDATE_OPPORT (1, port);
     }
 
-  err = scm_from_locale_symbol ("error");
+  err = scm_from_latin1_symbol ("error");
   if (scm_is_true (scm_eqv_p (sym, err)))
     {
       scm_i_set_conversion_strategy_x (port, SCM_FAILED_CONVERSION_ERROR);
       return SCM_UNSPECIFIED;
     }
 
-  qm = scm_from_locale_symbol ("substitute");
+  qm = scm_from_latin1_symbol ("substitute");
   if (scm_is_true (scm_eqv_p (sym, qm)))
     {
       scm_i_set_conversion_strategy_x (port, 
@@ -2290,7 +2290,7 @@ SCM_DEFINE (scm_set_port_conversion_strategy_x, "set-port-conversion-strategy!",
       return SCM_UNSPECIFIED;
     }
 
-  esc = scm_from_locale_symbol ("escape");
+  esc = scm_from_latin1_symbol ("escape");
   if (scm_is_true (scm_eqv_p (sym, esc)))
     {
       scm_i_set_conversion_strategy_x (port,

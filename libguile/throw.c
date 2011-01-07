@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -341,7 +341,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
   char *prog_name = (char *) handler_data;
   SCM p = scm_current_error_port ();
 
-  if (scm_is_eq (tag, scm_from_locale_symbol ("syntax-error"))
+  if (scm_is_eq (tag, scm_from_latin1_symbol ("syntax-error"))
       && scm_ilength (args) >= 5)
     {
       SCM who = SCM_CAR (args);
@@ -465,7 +465,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
 SCM
 scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 {
-  if (scm_is_true (scm_eq_p (tag, scm_from_locale_symbol ("quit"))))
+  if (scm_is_true (scm_eq_p (tag, scm_from_latin1_symbol ("quit"))))
     exit (scm_exit_status (args));
 
   handler_message (handler_data, tag, args);
@@ -485,7 +485,7 @@ scm_handle_by_message (void *handler_data, SCM tag, SCM args)
 SCM
 scm_handle_by_message_noexit (void *handler_data, SCM tag, SCM args)
 {
-  if (scm_is_true (scm_eq_p (tag, scm_from_locale_symbol ("quit"))))
+  if (scm_is_true (scm_eq_p (tag, scm_from_latin1_symbol ("quit"))))
     exit (scm_exit_status (args));
 
   handler_message (handler_data, tag, args);

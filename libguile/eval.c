@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -162,14 +162,14 @@ static void error_used_before_defined (void)
 
 static void error_invalid_keyword (SCM proc)
 {
-  scm_error_scm (scm_from_locale_symbol ("keyword-argument-error"), proc,
+  scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
                  scm_from_locale_string ("Invalid keyword"), SCM_EOL,
                  SCM_BOOL_F);
 }
 
 static void error_unrecognized_keyword (SCM proc)
 {
-  scm_error_scm (scm_from_locale_symbol ("keyword-argument-error"), proc,
+  scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
                  scm_from_locale_string ("Unrecognized keyword"), SCM_EOL,
                  SCM_BOOL_F);
 }
@@ -1012,9 +1012,9 @@ boot_closure_print (SCM closure, SCM port, scm_print_state *pstate)
   scm_uintprint ((scm_t_bits)SCM2PTR (closure), 16, port);
   scm_putc (' ', port);
   args = scm_make_list (scm_from_int (BOOT_CLOSURE_NUM_REQUIRED_ARGS (closure)),
-                        scm_from_locale_symbol ("_"));
+                        scm_from_latin1_symbol ("_"));
   if (!BOOT_CLOSURE_IS_FIXED (closure) && BOOT_CLOSURE_HAS_REST_ARGS (closure))
-    args = scm_cons_star (scm_from_locale_symbol ("_"), args);
+    args = scm_cons_star (scm_from_latin1_symbol ("_"), args);
   /* FIXME: optionals and rests */
   scm_display (args, port);
   scm_putc ('>', port);

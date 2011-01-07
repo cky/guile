@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -77,7 +77,7 @@ scm_i_program_print (SCM program, SCM port, scm_print_state *pstate)
   if (scm_is_false (write_program) && scm_module_system_booted_p)
     write_program = scm_module_local_variable
       (scm_c_resolve_module ("system vm program"),
-       scm_from_locale_symbol ("write-program"));
+       scm_from_latin1_symbol ("write-program"));
   
   if (SCM_PROGRAM_IS_CONTINUATION (program))
     {

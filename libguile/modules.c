@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,7 +59,7 @@ static SCM default_duplicate_binding_procedures_var;
 
 static SCM unbound_variable (const char *func, SCM sym)
 {
-  scm_error (scm_from_locale_symbol ("unbound-variable"), func,
+  scm_error (scm_from_latin1_symbol ("unbound-variable"), func,
              "Unbound variable: ~S", scm_list_1 (sym), SCM_BOOL_F);
 }
 

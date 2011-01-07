@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -883,11 +883,11 @@ scm_bootstrap_vm (void)
                             "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
 
-  sym_vm_run = scm_from_locale_symbol ("vm-run");
-  sym_vm_error = scm_from_locale_symbol ("vm-error");
-  sym_keyword_argument_error = scm_from_locale_symbol ("keyword-argument-error");
-  sym_regular = scm_from_locale_symbol ("regular");
-  sym_debug = scm_from_locale_symbol ("debug");
+  sym_vm_run = scm_from_latin1_symbol ("vm-run");
+  sym_vm_error = scm_from_latin1_symbol ("vm-error");
+  sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
+  sym_regular = scm_from_latin1_symbol ("regular");
+  sym_debug = scm_from_latin1_symbol ("debug");
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
   vm_stack_gc_kind =

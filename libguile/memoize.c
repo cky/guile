@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -496,8 +496,8 @@ static SCM m_apply (SCM proc, SCM arg, SCM rest)
       
       while (scm_is_pair (rest))
         {
-          tail = MAKMEMO_CALL (MAKMEMO_MOD_REF (scm_list_1 (scm_from_locale_symbol ("guile")),
-                                                scm_from_locale_symbol ("cons"),
+          tail = MAKMEMO_CALL (MAKMEMO_MOD_REF (scm_list_1 (scm_from_latin1_symbol ("guile")),
+                                                scm_from_latin1_symbol ("cons"),
                                                 SCM_BOOL_F),
                                2,
                                scm_list_2 (scm_car (rest), tail));
@@ -868,7 +868,7 @@ scm_init_memoize ()
 
 #include "libguile/memoize.x"
 
-  list_of_guile = scm_list_1 (scm_from_locale_symbol ("guile"));
+  list_of_guile = scm_list_1 (scm_from_latin1_symbol ("guile"));
 }
 
 /*

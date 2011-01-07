@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1363,9 +1363,9 @@ scm_init_print ()
 
   scm_init_opts (scm_print_options, scm_print_opts);
 
-  scm_print_options (scm_list_4 (scm_from_locale_symbol ("highlight-prefix"),
+  scm_print_options (scm_list_4 (scm_from_latin1_symbol ("highlight-prefix"),
 				 scm_from_locale_string ("{"),
-				 scm_from_locale_symbol ("highlight-suffix"),
+				 scm_from_latin1_symbol ("highlight-suffix"),
 				 scm_from_locale_string ("}")));
 
   scm_gc_register_root (&print_state_pool);
@@ -1374,7 +1374,7 @@ scm_init_print ()
   layout =
     scm_make_struct_layout (scm_from_locale_string (SCM_PRINT_STATE_LAYOUT));
   type = scm_make_struct (vtable, SCM_INUM0, scm_list_1 (layout));
-  scm_set_struct_vtable_name_x (type, scm_from_locale_symbol ("print-state"));
+  scm_set_struct_vtable_name_x (type, scm_from_latin1_symbol ("print-state"));
   scm_print_state_vtable = type;
 
   /* Don't want to bind a wrapper class in GOOPS, so pass 0 as arg1. */

@@ -857,31 +857,31 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
   SCM_VALIDATE_STRING (1, str);
 
   /* String info */
-  e1 = scm_cons (scm_from_locale_symbol ("string"),
+  e1 = scm_cons (scm_from_latin1_symbol ("string"),
                  str);
-  e2 = scm_cons (scm_from_locale_symbol ("start"),
+  e2 = scm_cons (scm_from_latin1_symbol ("start"),
                  scm_from_size_t (STRING_START (str)));
-  e3 = scm_cons (scm_from_locale_symbol ("length"),
+  e3 = scm_cons (scm_from_latin1_symbol ("length"),
                  scm_from_size_t (STRING_LENGTH (str)));
 
   if (IS_SH_STRING (str))
     {
-      e4 = scm_cons (scm_from_locale_symbol ("shared"),
+      e4 = scm_cons (scm_from_latin1_symbol ("shared"),
                      SH_STRING_STRING (str));
       buf = STRING_STRINGBUF (SH_STRING_STRING (str));
     }
   else
     {
-      e4 = scm_cons (scm_from_locale_symbol ("shared"),
+      e4 = scm_cons (scm_from_latin1_symbol ("shared"),
                      SCM_BOOL_F);
       buf = STRING_STRINGBUF (str);
     }
 
   if (IS_RO_STRING (str))
-    e5 = scm_cons (scm_from_locale_symbol ("read-only"),
+    e5 = scm_cons (scm_from_latin1_symbol ("read-only"),
                    SCM_BOOL_T);
   else
-    e5 = scm_cons (scm_from_locale_symbol ("read-only"),
+    e5 = scm_cons (scm_from_latin1_symbol ("read-only"),
                    SCM_BOOL_F);
 
   /* Stringbuf info */
@@ -891,7 +891,7 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
       char *cbuf;
       SCM sbc = scm_i_make_string (len, &cbuf);
       memcpy (cbuf, STRINGBUF_CHARS (buf), len);
-      e6 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+      e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
     }
   else
@@ -901,22 +901,22 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
       SCM sbc = scm_i_make_wide_string (len, &cbuf);
       u32_cpy ((scm_t_uint32 *) cbuf, 
                (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
-      e6 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+      e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
     }
-  e7 = scm_cons (scm_from_locale_symbol ("stringbuf-length"), 
+  e7 = scm_cons (scm_from_latin1_symbol ("stringbuf-length"), 
                  scm_from_size_t (STRINGBUF_LENGTH (buf)));
   if (STRINGBUF_SHARED (buf))
-    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+    e8 = scm_cons (scm_from_latin1_symbol ("stringbuf-shared"), 
                    SCM_BOOL_T);
   else
-    e8 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+    e8 = scm_cons (scm_from_latin1_symbol ("stringbuf-shared"), 
                    SCM_BOOL_F);
   if (STRINGBUF_WIDE (buf))
-    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+    e9 = scm_cons (scm_from_latin1_symbol ("stringbuf-wide"),
 		   SCM_BOOL_T);
   else
-    e9 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+    e9 = scm_cons (scm_from_latin1_symbol ("stringbuf-wide"),
 		   SCM_BOOL_F);
 
   return scm_list_n (e1, e2, e3, e4, e5, e6, e7, e8, e9, SCM_UNDEFINED);
@@ -949,11 +949,11 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
   SCM e1, e2, e3, e4, e5, e6, e7;
   SCM buf;
   SCM_VALIDATE_SYMBOL (1, sym);
-  e1 = scm_cons (scm_from_locale_symbol ("symbol"),
+  e1 = scm_cons (scm_from_latin1_symbol ("symbol"),
                  sym);
-  e2 = scm_cons (scm_from_locale_symbol ("hash"),
+  e2 = scm_cons (scm_from_latin1_symbol ("hash"),
                  scm_from_ulong (scm_i_symbol_hash (sym)));
-  e3 = scm_cons (scm_from_locale_symbol ("interned"),
+  e3 = scm_cons (scm_from_latin1_symbol ("interned"),
                  scm_symbol_interned_p (sym));
   buf = SYMBOL_STRINGBUF (sym);
 
@@ -964,7 +964,7 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
       char *cbuf;
       SCM sbc = scm_i_make_string (len, &cbuf);
       memcpy (cbuf, STRINGBUF_CHARS (buf), len);
-      e4 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+      e4 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
     }
   else
@@ -974,22 +974,22 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
       SCM sbc = scm_i_make_wide_string (len, &cbuf);
       u32_cpy ((scm_t_uint32 *) cbuf, 
                (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
-      e4 = scm_cons (scm_from_locale_symbol ("stringbuf-chars"),
+      e4 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
     }
-  e5 = scm_cons (scm_from_locale_symbol ("stringbuf-length"), 
+  e5 = scm_cons (scm_from_latin1_symbol ("stringbuf-length"), 
                  scm_from_size_t (STRINGBUF_LENGTH (buf)));
   if (STRINGBUF_SHARED (buf))
-    e6 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+    e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-shared"), 
                    SCM_BOOL_T);
   else
-    e6 = scm_cons (scm_from_locale_symbol ("stringbuf-shared"), 
+    e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-shared"), 
                    SCM_BOOL_F);
   if (STRINGBUF_WIDE (buf))
-    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+    e7 = scm_cons (scm_from_latin1_symbol ("stringbuf-wide"),
                     SCM_BOOL_T);
   else
-    e7 = scm_cons (scm_from_locale_symbol ("stringbuf-wide"),
+    e7 = scm_cons (scm_from_latin1_symbol ("stringbuf-wide"),
                     SCM_BOOL_F);
   return scm_list_n (e1, e2, e3, e4, e5, e6, e7, SCM_UNDEFINED);
 

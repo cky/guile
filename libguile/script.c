@@ -1,4 +1,4 @@
-/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -803,9 +803,9 @@ scm_compile_shell_switches (int argc, char **argv)
 
     /* Wrap the expression in a prompt. */
     val = scm_list_2 (scm_list_3 (scm_sym_at,
-                                      scm_list_2 (scm_from_locale_symbol ("ice-9"),
-                                                  scm_from_locale_symbol ("control")),
-                                      scm_from_locale_symbol ("%")),
+                                      scm_list_2 (scm_from_latin1_symbol ("ice-9"),
+                                                  scm_from_latin1_symbol ("control")),
+                                      scm_from_latin1_symbol ("%")),
                       val);
 
 #if 0

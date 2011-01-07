@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2221,9 +2221,9 @@ scm_bootstrap_bytevectors (void)
   scm_null_bytevector = make_bytevector (0, SCM_ARRAY_ELEMENT_TYPE_VU8);
 
 #ifdef WORDS_BIGENDIAN
-  scm_i_native_endianness = scm_from_locale_symbol ("big");
+  scm_i_native_endianness = scm_from_latin1_symbol ("big");
 #else
-  scm_i_native_endianness = scm_from_locale_symbol ("little");
+  scm_i_native_endianness = scm_from_latin1_symbol ("little");
 #endif
 
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,

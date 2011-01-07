@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -896,7 +896,7 @@ create_basic_classes (void)
 
   /**** <class> ****/
   SCM cs = scm_from_locale_string (SCM_CLASS_CLASS_LAYOUT);
-  SCM name = scm_from_locale_symbol ("<class>");
+  SCM name = scm_from_latin1_symbol ("<class>");
   scm_class_class = scm_make_vtable_vtable (cs, SCM_INUM0, SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_class, (SCM_CLASSF_GOOPS_OR_VALID
 					 | SCM_CLASSF_METACLASS));
@@ -918,14 +918,14 @@ create_basic_classes (void)
   DEFVAR(name, scm_class_class);
 
   /**** <top> ****/
-  name = scm_from_locale_symbol ("<top>");
+  name = scm_from_latin1_symbol ("<top>");
   scm_class_top = scm_basic_make_class (scm_class_class, name,
                                         SCM_EOL, SCM_EOL);
 
   DEFVAR(name, scm_class_top);
 
   /**** <object> ****/
-  name	 = scm_from_locale_symbol ("<object>");
+  name	 = scm_from_latin1_symbol ("<object>");
   scm_class_object = scm_basic_make_class (scm_class_class, name,
                                            scm_list_1 (scm_class_top), SCM_EOL);
 
@@ -1089,7 +1089,7 @@ SCM_DEFINE (scm_method_generic_function, "method-generic-function", 1, 0, 0,
 #define FUNC_NAME s_scm_method_generic_function
 {
   SCM_VALIDATE_METHOD (1, obj);
-  return scm_slot_ref (obj, scm_from_locale_symbol ("generic-function"));
+  return scm_slot_ref (obj, scm_from_latin1_symbol ("generic-function"));
 }
 #undef FUNC_NAME
 
@@ -1099,7 +1099,7 @@ SCM_DEFINE (scm_method_specializers, "method-specializers", 1, 0, 0,
 #define FUNC_NAME s_scm_method_specializers
 {
   SCM_VALIDATE_METHOD (1, obj);
-  return scm_slot_ref (obj, scm_from_locale_symbol ("specializers"));
+  return scm_slot_ref (obj, scm_from_latin1_symbol ("specializers"));
 }
 #undef FUNC_NAME
 
@@ -2158,7 +2158,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 	    scm_i_get_keyword (k_name,
 			       args,
 			       len - 1,
-			       scm_from_locale_symbol ("???"),
+			       scm_from_latin1_symbol ("???"),
 			       FUNC_NAME));
 	  SCM_SET_SLOT (z, scm_si_direct_supers,
 	    scm_i_get_keyword (k_dsupers,
@@ -2286,26 +2286,26 @@ static void
 create_standard_classes (void)
 {
   SCM slots;
-  SCM method_slots = scm_list_n (scm_from_locale_symbol ("generic-function"),
-				 scm_from_locale_symbol ("specializers"),
+  SCM method_slots = scm_list_n (scm_from_latin1_symbol ("generic-function"),
+				 scm_from_latin1_symbol ("specializers"),
 				 sym_procedure,
-				 scm_from_locale_symbol ("formals"),
-				 scm_from_locale_symbol ("body"),
-				 scm_from_locale_symbol ("make-procedure"),
+				 scm_from_latin1_symbol ("formals"),
+				 scm_from_latin1_symbol ("body"),
+				 scm_from_latin1_symbol ("make-procedure"),
                                  SCM_UNDEFINED);
-  SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("slot-definition"),
+  SCM amethod_slots = scm_list_1 (scm_list_3 (scm_from_latin1_symbol ("slot-definition"),
 					      k_init_keyword,
 					      k_slot_definition));
-  SCM gf_slots = scm_list_4 (scm_from_locale_symbol ("methods"),
-			     scm_list_3 (scm_from_locale_symbol ("n-specialized"),
+  SCM gf_slots = scm_list_4 (scm_from_latin1_symbol ("methods"),
+			     scm_list_3 (scm_from_latin1_symbol ("n-specialized"),
 					 k_init_value,
 					 SCM_INUM0),
-			     scm_list_3 (scm_from_locale_symbol ("extended-by"),
+			     scm_list_3 (scm_from_latin1_symbol ("extended-by"),
 					 k_init_value,
 					 SCM_EOL),
-                             scm_from_locale_symbol ("effective-methods"));
+                             scm_from_latin1_symbol ("effective-methods"));
   SCM setter_slots = scm_list_1 (sym_setter);
-  SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_locale_symbol ("extends"),
+  SCM egf_slots = scm_list_1 (scm_list_3 (scm_from_latin1_symbol ("extends"),
 					  k_init_value,
 					  SCM_EOL));
   /* Foreign class slot classes */
@@ -2745,7 +2745,7 @@ scm_init_goops_builtins (void)
   create_port_classes ();
 
   {
-    SCM name = scm_from_locale_symbol ("no-applicable-method");
+    SCM name = scm_from_latin1_symbol ("no-applicable-method");
     scm_no_applicable_method =
       scm_make (scm_list_3 (scm_class_generic, k_name, name));
     DEFVAR (name, scm_no_applicable_method);

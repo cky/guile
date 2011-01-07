@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1629,27 +1629,27 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	  switch (*c_result)
 	    {
 	    case 0:
-	      result = scm_from_locale_symbol ("parenthesize");
+	      result = scm_from_latin1_symbol ("parenthesize");
 	      break;
 
 	    case 1:
-	      result = scm_from_locale_symbol ("sign-before");
+	      result = scm_from_latin1_symbol ("sign-before");
 	      break;
 
 	    case 2:
-	      result = scm_from_locale_symbol ("sign-after");
+	      result = scm_from_latin1_symbol ("sign-after");
 	      break;
 
 	    case 3:
-	      result = scm_from_locale_symbol ("sign-before-currency-symbol");
+	      result = scm_from_latin1_symbol ("sign-before-currency-symbol");
 	      break;
 
 	    case 4:
-	      result = scm_from_locale_symbol ("sign-after-currency-symbol");
+	      result = scm_from_latin1_symbol ("sign-after-currency-symbol");
 	      break;
 
 	    default:
-	      result = scm_from_locale_symbol ("unspecified");
+	      result = scm_from_latin1_symbol ("unspecified");
 	    }
 	  break;
 #endif

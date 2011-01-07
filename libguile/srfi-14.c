@@ -1,6 +1,6 @@
 /* srfi-14.c --- SRFI-14 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2006, 2007, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2036,9 +2036,9 @@ SCM_DEFINE (scm_sys_char_set_dump, "%char-set-dump", 1, 0, 0, (SCM charset),
   SCM_VALIDATE_SMOB (1, charset, charset);
   cs = SCM_CHARSET_DATA (charset);
 
-  e1 = scm_cons (scm_from_locale_symbol ("char-set"),
+  e1 = scm_cons (scm_from_latin1_symbol ("char-set"),
                  charset);
-  e2 = scm_cons (scm_from_locale_symbol ("n"),
+  e2 = scm_cons (scm_from_latin1_symbol ("n"),
                  scm_from_size_t (cs->len));
 
   for (i = 0; i < cs->len; i++)
@@ -2059,7 +2059,7 @@ SCM_DEFINE (scm_sys_char_set_dump, "%char-set-dump", 1, 0, 0, (SCM charset),
       ranges = scm_append (scm_list_2 (ranges,
                                        scm_list_1 (elt)));
     }
-  e3 = scm_cons (scm_from_locale_symbol ("ranges"),
+  e3 = scm_cons (scm_from_latin1_symbol ("ranges"),
                  ranges);
 
   return scm_list_3 (e1, e2, e3);
