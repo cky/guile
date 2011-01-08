@@ -36,16 +36,14 @@
   #:use-module (ice-9 regex)
   #:use-module (ice-9 rdelim)
   #:use-module (web uri)
-  #:export (header-decl?
-            make-header-decl
-            header-decl-sym
-            header-decl-name
-            header-decl-multiple?
-            header-decl-parser
-            header-decl-validator
-            header-decl-writer
-            lookup-header-decl
+  #:export (string->header
+            header->string
+
             declare-header!
+            known-header?
+            header-parser
+            header-validator
+            header-writer
 
             read-header
             parse-header
@@ -72,18 +70,24 @@
 ;;; 
 
 
+(define (string->header name)
+  "Parse @var{name} to a symbolic header name."
+  (string->symbol (string-downcase name)))
+
 (define-record-type <header-decl>
-  (make-header-decl sym name multiple? parser validator writer)
+  (make-header-decl name parser validator writer multiple?)
   header-decl?
-  (sym header-decl-sym)
   (name header-decl-name)
-  (multiple? header-decl-multiple?)
   (parser header-decl-parser)
   (validator header-decl-validator)
-  (writer header-decl-writer))
+  (writer header-decl-writer)
+  (multiple? header-decl-multiple?))
 
 ;; sym -> header
 (define *declared-headers* (make-hash-table))
+
+(define (lookup-header-decl sym)
+  (hashq-ref *declared-headers* sym))
 
 (define* (declare-header! name
                           parser
@@ -97,12 +101,44 @@ Scheme value.  @var{validator} is a predicate for whether the given
 Scheme value is valid for this header.  @var{writer} takes a value and a
 port, and writes the value to the port."
   (if (and (string? name) parser validator writer)
-      (let* ((sym (string->symbol (string-downcase name)))
-             (decl (make-header-decl sym name
-                                     multiple? parser validator writer)))
-        (hashq-set! *declared-headers* sym decl)
+      (let ((decl (make-header-decl name parser validator writer multiple?)))
+        (hashq-set! *declared-headers* (string->header name) decl)
         decl)
-      (error "bad header decl" name multiple? parser validator writer)))
+      (error "bad header decl" name parser validator writer multiple?)))
+
+(define (header->string sym)
+  "Return the string form for the header named @var{sym}."
+  (let ((decl (lookup-header-decl sym)))
+    (if decl
+        (header-decl-name decl)
+        (string-titlecase (symbol->string sym)))))
+
+(define (known-header? sym)
+  "Return @code{#t} if there are parsers and writers registered for this
+header, otherwise @code{#f}."
+  (and (lookup-header-decl sym) #t))
+
+(define (header-parser sym)
+  "Returns a procedure to parse values for the given header."
+  (let ((decl (lookup-header-decl sym)))
+    (if decl
+        (header-decl-parser decl)
+        (lambda (x) x))))
+
+(define (header-validator sym)
+  "Returns a procedure to validate values for the given header."
+  (let ((decl (lookup-header-decl sym)))
+    (if decl
+        (header-decl-validator decl)
+        string?)))
+
+(define (header-writer sym)
+  "Returns a procedure to write values for the given header to a given
+port."
+  (let ((decl (lookup-header-decl sym)))
+    (if decl
+        (header-decl-writer decl)
+        display)))
 
 (define (read-line* port)
   (let* ((pair (%read-line port))
@@ -143,8 +179,7 @@ body was reached (i.e., a blank line)."
         (values *eof* *eof*)
         (let* ((delim (or (string-index line #\:)
                           (bad-header '%read line)))
-               (sym (string->symbol
-                     (string-downcase! (substring/copy line 0 delim)))))
+               (sym (string->header (substring line 0 delim))))
           (values
            sym
            (parse-header
@@ -153,42 +188,29 @@ body was reached (i.e., a blank line)."
              port
              (string-trim-both line char-whitespace? (1+ delim)))))))))
 
-(define (lookup-header-decl sym)
-  "Return the @var{header-decl} object registered for the given
-@var{sym}, which should be a symbol."
-  (hashq-ref *declared-headers* sym))
-
 (define (parse-header sym val)
   "Parse @var{val}, a string, with the parser registered for the header
 named @var{sym}.
 
 Returns the parsed value.  If a parser was not found, the value is
 returned as a string."
-  (let ((decl (lookup-header-decl sym)))
-    (if decl
-        ((header-decl-parser decl) val)
-        val)))
+  ((header-parser sym) val))
 
 (define (valid-header? sym val)
   "Returns a true value iff @var{val} is a valid Scheme value for the
 header with name @var{sym}."
   (if (symbol? sym)
-      (let ((decl (lookup-header-decl sym)))
-        (or (not decl)
-            ((header-decl-validator decl) val)))
+      ((header-validator sym) val)
       (error "header name not a symbol" sym)))
 
 (define (write-header sym val port)
   "Writes the given header name and value to @var{port}.  If @var{sym}
 is a known header, uses the specific writer registered for that header.
 Otherwise the value is written using @var{display}."
-  (let ((decl (lookup-header-decl sym)))
-    (if decl
-        (display (header-decl-name decl) port)
-        (display (string-titlecase (symbol->string sym)) port))
-    (display ": " port)
-    ((if decl (header-decl-writer decl) display) val port)
-    (display "\r\n" port)))
+  (display (header->string sym) port)
+  (display ": " port)
+  ((header-writer sym) val port)
+  (display "\r\n" port))
 
 (define (read-headers port)
   "Read an HTTP message from @var{port}, returning the headers as an
@@ -267,9 +289,7 @@ ordered alist."
   (write-list val port display ", "))
 
 (define (split-header-names str)
-  (map (lambda (f)
-         (string->symbol (string-downcase f)))
-       (split-and-trim str)))
+  (map string->header (split-and-trim str)))
 
 (define (list-of-header-names? val)
   (list-of? val symbol?))
@@ -277,10 +297,7 @@ ordered alist."
 (define (write-header-list val port)
   (write-list val port
               (lambda (x port)
-                (display (or (and=> (lookup-header-decl x)
-                                    header-decl-name)
-                             (string-titlecase (symbol->string x)))
-                         port))
+                (display (header->string x) port))
               ", "))
 
 (define (collect-escaped-string from start len escapes)
