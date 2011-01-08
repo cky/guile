@@ -1146,8 +1146,7 @@ SCM_DEFINE (scm_hash_fold, "hash-fold", 3, 0, 0,
 #define FUNC_NAME s_scm_hash_fold
 {
   SCM_VALIDATE_PROC (1, proc);
-  if (!SCM_HASHTABLE_P (table))
-    SCM_VALIDATE_VECTOR (3, table);
+  SCM_VALIDATE_HASHTABLE (3, table);
   return scm_internal_hash_fold ((scm_t_hash_fold_fn) scm_call_3,
 				 (void *) SCM_UNPACK (proc), init, table);
 }
@@ -1168,8 +1167,7 @@ SCM_DEFINE (scm_hash_for_each, "hash-for-each", 2, 0, 0,
 #define FUNC_NAME s_scm_hash_for_each
 {
   SCM_VALIDATE_PROC (1, proc);
-  if (!SCM_HASHTABLE_P (table))
-    SCM_VALIDATE_VECTOR (2, table);
+  SCM_VALIDATE_HASHTABLE (2, table);
   
   scm_internal_hash_for_each_handle (for_each_proc,
 				     (void *) SCM_UNPACK (proc),
@@ -1185,8 +1183,7 @@ SCM_DEFINE (scm_hash_for_each_handle, "hash-for-each-handle", 2, 0, 0,
 #define FUNC_NAME s_scm_hash_for_each_handle
 {
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, 1, FUNC_NAME);
-  if (!SCM_HASHTABLE_P (table))
-    SCM_VALIDATE_VECTOR (2, table);
+  SCM_VALIDATE_HASHTABLE (2, table);
   
   scm_internal_hash_for_each_handle ((scm_t_hash_handle_fn) scm_call_1,
 				     (void *) SCM_UNPACK (proc),
@@ -1210,8 +1207,7 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 #define FUNC_NAME s_scm_hash_map_to_list
 {
   SCM_VALIDATE_PROC (1, proc);
-  if (!SCM_HASHTABLE_P (table))
-    SCM_VALIDATE_VECTOR (2, table);
+  SCM_VALIDATE_HASHTABLE (2, table);
   return scm_internal_hash_fold (map_proc,
 				 (void *) SCM_UNPACK (proc),
 				 SCM_EOL,
@@ -1224,15 +1220,13 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 SCM
 scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
 			SCM init, SCM table)
+#define FUNC_NAME s_scm_hash_fold
 {
   long i, n;
   SCM buckets, result = init;
   
-  if (SCM_HASHTABLE_P (table))
-    buckets = SCM_HASHTABLE_VECTOR (table);
-  else
-    /* Weak alist vector.  */
-    buckets = table;
+  SCM_VALIDATE_HASHTABLE (0, table);
+  buckets = SCM_HASHTABLE_VECTOR (table);
   
   n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < n; ++i)
@@ -1246,11 +1240,11 @@ scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
 	  SCM handle;
 
 	  if (!scm_is_pair (ls))
-	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
 
 	  handle = SCM_CAR (ls);
 	  if (!scm_is_pair (handle))
-	    scm_wrong_type_arg (s_scm_hash_fold, SCM_ARG3, buckets);
+	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
 
 	  if (SCM_HASHTABLE_WEAK_P (table))
 	    {
@@ -1263,9 +1257,8 @@ scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
 		  else
 		    SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_CDR (ls));
 
-		  if (SCM_HASHTABLE_P (table))
-		    /* Update the item count.  */
-		    SCM_HASHTABLE_DECREMENT (table);
+                  /* Update the item count.  */
+                  SCM_HASHTABLE_DECREMENT (table);
 
 		  continue;
 		}
@@ -1277,6 +1270,7 @@ scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
 
   return result;
 }
+#undef FUNC_NAME
 
 /* The following redundant code is here in order to be able to support
    hash-for-each-handle.  An alternative would have been to replace
@@ -1287,31 +1281,31 @@ scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
 void
 scm_internal_hash_for_each_handle (scm_t_hash_handle_fn fn, void *closure,
 				   SCM table)
+#define FUNC_NAME s_scm_hash_for_each
 {
   long i, n;
   SCM buckets;
   
-  if (SCM_HASHTABLE_P (table))
-    buckets = SCM_HASHTABLE_VECTOR (table);
-  else
-    buckets = table;
-  
+  SCM_VALIDATE_HASHTABLE (0, table);
+  buckets = SCM_HASHTABLE_VECTOR (table);
   n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
+
   for (i = 0; i < n; ++i)
     {
       SCM ls = SCM_SIMPLE_VECTOR_REF (buckets, i), handle;
       while (!scm_is_null (ls))
 	{
 	  if (!scm_is_pair (ls))
-	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
+	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
 	  handle = SCM_CAR (ls);
 	  if (!scm_is_pair (handle))
-	    scm_wrong_type_arg (s_scm_hash_for_each, SCM_ARG3, buckets);
+	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
 	  fn (closure, handle);
 	  ls = SCM_CDR (ls);
 	}
     }
 }
+#undef FUNC_NAME
 
 
 

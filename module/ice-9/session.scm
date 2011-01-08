@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -355,7 +355,7 @@ Fourth arg FOLDER is one of
   apropos-fold-exported		   ;fold over all exported bindings
   apropos-fold-all		   ;fold over all bindings"
   (let ((match (make-regexp rgx))
-	(recorded (make-vector 61 '())))
+	(recorded (make-hash-table)))
     (let ((fold-module
 	   (lambda (module data)
 	     (let* ((obarray-filter
