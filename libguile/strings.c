@@ -1438,12 +1438,12 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   SCM res;
 
   /* The order of these checks is important. */
-  if (len == 0)
-    return scm_nullstr;
-  if (!str)
+  if (!str && len != 0)
     scm_misc_error ("scm_from_stringn", "NULL string pointer", SCM_EOL);
   if (len == (size_t) -1)
     len = strlen (str);
+  if (len == 0)
+    return scm_nullstr;
 
   if (encoding == NULL)
     {
