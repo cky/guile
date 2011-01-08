@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2010 Free Software Foundation, Inc.
+@c Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Web
@@ -319,43 +319,64 @@ Guile tries to follow RFCs fairly strictly---the road to perdition being
 paved with compatibility hacks---though some allowances are made for
 not-too-divergent texts.
 
-The first bit is to define a registry of parsers, validators, and
-unparsers, keyed by header name.  That is the function of the
-@code{<header-decl>} object.
+Header names are represented as lower-case symbols.
 
-@defun make-header-decl sym name multiple? parser validator writer
-@defunx header-decl? x
-@defunx header-decl-sym decl
-@defunx header-decl-name decl
-@defunx header-decl-multiple? decl
-@defunx header-decl-parser decl
-@defunx header-decl-validator decl
-@defunx header-decl-writer decl.
-A constructor, predicate, and field accessors for the
-@code{<header-decl>} type. The fields are as follows:
-
-@table @code
-@item sym
-The symbol name for this header field, always in lower-case.  For
-example, @code{"Content-Length"} has a symbolic name of
-@code{content-length}.
-@item name
-The string name of the header, in its preferred capitalization.
-@item multiple?
-@code{#t} iff this header may appear multiple times in a message.
-@item parser
-A procedure which takes a string and returns a parsed value.
-@item validator
-A predicate, returning @code{#t} iff the value is valid for this header.
-@item writer
-A writer, which writes a value to the port given in the second argument.
-@end table
+@defun string->header name
+Parse @var{name} to a symbolic header name.
 @end defun
 
-@defun declare-header! sym name [#:multiple?=@code{#f}] [#:parser] [#:validator] [#:writer]
-Make a header declaration, as above, and register it by symbol and by
-name. The @var{parser}, @var{validator}, and @var{writer} arguments are
-all mandatory.
+@defun header->string sym
+Return the string form for the header named @var{sym}.
+@end defun
+
+For example:
+
+@example
+(string->header "Content-Length")
+@result{} content-length
+(header->string 'content-length)
+@result{} "Content-Length"
+
+(string->header "FOO")
+@result{} foo
+(header->string 'foo
+@result{} "Foo"
+@end example
+
+Guile keeps a registry of known headers, their string names, and some
+parsing and serialization procedures.  If a header is unknown, its
+string name is simply its symbol name in title-case.
+
+@defun known-header? sym
+Return @code{#t} iff @var{sym} is a known header, with associated
+parsers and serialization procedures.
+@end defun
+
+@defun header-parser sym
+Return the value parser for headers named @var{sym}.  The result is a
+procedure that takes one argument, a string, and returns the parsed
+value.  If the header isn't known to Guile, a default parser is returned
+that passes through the string unchanged.
+@end defun
+
+@defun header-validator sym
+Return a predicate which returns @code{#t} if the given value is valid
+for headers named @var{sym}.  The default validator for unknown headers
+is @code{string?}.
+@end defun
+
+@defun header-writer sym
+Return a procedure that writes values for headers named @var{sym} to a
+port.  The resulting procedure takes two arguments: a value and a port.
+The default writer is @code{display}.
+@end defun
+
+For more on the set of headers that Guile knows about out of the box,
+@pxref{HTTP Headers}.  To add your own, use the @code{declare-header!}
+procedure:
+
+@defun declare-header! name parser validator writer [#:multiple?=@code{#f}]
+Declare a parser, validator, and writer for a given header.
 @end defun
 
 For example, let's say you are running a web server behind some sort of
@@ -372,22 +393,14 @@ HTTP stack like this:
 (define (write-ip ip port)
   (display (inet-ntoa ip) port))
 
-(declare-header! 'x-client-address
-  "X-Client-Address"
-  #:parser    (lambda (str)
-                (inet-aton str))
-  #:validator (lambda (ip)
-                (and (integer? ip) (exact? ip) (<= 0 ip 4294967295)))
-  #:writer    (lambda (ip port)
-                (display (inet-ntoa ip) port)))
+(declare-header! "X-Client-Address"
+  (lambda (str)
+    (inet-aton str))
+  (lambda (ip)
+    (and (integer? ip) (exact? ip) (<= 0 ip #xffffffff)))
+  (lambda (ip port)
+    (display (inet-ntoa ip) port)))
 @end example
-
-@defun lookup-header-decl name
-Return the @var{header-decl} object registered for the given @var{name}.
-
-@var{name} may be a symbol or a string. Strings are mapped to headers in
-a case-insensitive fashion.
-@end defun
 
 @defun valid-header? sym val
 Return a true value iff @var{val} is a valid Scheme value for the header
@@ -408,17 +421,12 @@ body was reached (i.e., a blank line).
 
 @defun parse-header name val
 Parse @var{val}, a string, with the parser for the header named
-@var{name}.
-
-Return two values, the header name and parsed value. If a parser was
-found, the header name will be returned as a symbol. If a parser was not
-found, both the header name and the value are returned as strings.
+@var{name}.  Returns the parsed value.
 @end defun
 
 @defun write-header name val port
-Writes the given header name and value to @var{port}. If @var{name} is a
-symbol, looks up a declared header and uses that writer. Otherwise the
-value is written using @var{display}.
+Write the given header name and value to @var{port}, using the writer
+from @code{header-writer}.
 @end defun
 
 @defun read-headers port
@@ -428,7 +436,7 @@ headers as an ordered alist.
 
 @defun write-headers headers port
 Write the given header alist to @var{port}. Doesn't write the final
-\r\n, as the user might want to add another header.
+@samp{\r\n}, as the user might want to add another header.
 @end defun
 
 The @code{(web http)} module also has some utility procedures to read
