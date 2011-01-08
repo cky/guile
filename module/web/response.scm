@@ -1,6 +1,6 @@
 ;;; HTTP response objects
 
-;; Copyright (C)  2010 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -101,13 +101,9 @@
       (let ((h (car headers)))
         (if (pair? h)
             (let ((k (car h)) (v (cdr h)))
-              (if (symbol? k)
-                  (if (not (valid-header? k v))
-                      (bad-response "Bad value for header ~a: ~s" k v))
-                  (if (not (and (string? k) (string? v)))
-                      (bad-response "Unknown header not a pair of strings: ~s"
-                                    h)))
-              (validate-headers (cdr headers)))
+              (if (valid-header? k v)
+                  (validate-headers (cdr headers))
+                  (bad-response "Bad value for header ~a: ~s" k v)))
             (bad-response "Header not a pair: ~a" h)))
       (if (not (null? headers))
           (bad-response "Headers not a list: ~a" headers))))

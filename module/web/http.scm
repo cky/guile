@@ -1,6 +1,6 @@
 ;;; HTTP messages
 
-;; Copyright (C)  2010 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -84,27 +84,25 @@
 
 ;; sym -> header
 (define *declared-headers* (make-hash-table))
-;; downcased name -> header
-(define *declared-headers-by-name* (make-hash-table))
 
-(define* (declare-header! sym name #:key 
-                          multiple?
+(define* (declare-header! name
                           parser
                           validator
-                          writer)
+                          writer
+                          #:key multiple?)
   "Define a parser, validator, and writer for the HTTP header, @var{name}.
 
 @var{parser} should be a procedure that takes a string and returns a
 Scheme value.  @var{validator} is a predicate for whether the given
 Scheme value is valid for this header.  @var{writer} takes a value and a
 port, and writes the value to the port."
-  (if (and (symbol? sym) (string? name) parser validator writer)
-      (let ((decl (make-header-decl sym name
-                                    multiple? parser validator writer)))
+  (if (and (string? name) parser validator writer)
+      (let* ((sym (string->symbol (string-downcase name)))
+             (decl (make-header-decl sym name
+                                     multiple? parser validator writer)))
         (hashq-set! *declared-headers* sym decl)
-        (hash-set! *declared-headers-by-name* (string-downcase name) decl)
         decl)
-      (error "bad header decl" sym name multiple? parser validator writer)))
+      (error "bad header decl" name multiple? parser validator writer)))
 
 (define (read-line* port)
   (let* ((pair (%read-line port))
@@ -143,63 +141,54 @@ body was reached (i.e., a blank line)."
     (if (or (string-null? line)
             (string=? line "\r"))
         (values *eof* *eof*)
-        (let ((delim (or (string-index line #\:)
-                         (bad-header '%read line))))
-          (parse-header
-           (substring line 0 delim)
-           (read-continuation-line
-            port
-            (string-trim-both line char-whitespace? (1+ delim))))))))
+        (let* ((delim (or (string-index line #\:)
+                          (bad-header '%read line)))
+               (sym (string->symbol
+                     (string-downcase! (substring/copy line 0 delim)))))
+          (values
+           sym
+           (parse-header
+            sym
+            (read-continuation-line
+             port
+             (string-trim-both line char-whitespace? (1+ delim)))))))))
 
-(define (lookup-header-decl name)
-  "Return the @var{header-decl} object registered for the given @var{name}.
+(define (lookup-header-decl sym)
+  "Return the @var{header-decl} object registered for the given
+@var{sym}, which should be a symbol."
+  (hashq-ref *declared-headers* sym))
 
-@var{name} may be a symbol or a string.  Strings are mapped to headers
-in a case-insensitive fashion."
-  (if (string? name)
-      (hash-ref *declared-headers-by-name* (string-downcase name))
-      (hashq-ref *declared-headers* name)))
+(define (parse-header sym val)
+  "Parse @var{val}, a string, with the parser registered for the header
+named @var{sym}.
 
-(define (parse-header name val)
-  "Parse @var{val}, a string, with the parser for the header named @var{name}.
-
-Returns two values, the header name and parsed value.  If a parser was
-found, the header name will be returned as a symbol.  If a parser was
-not found, both the header name and the value are returned as strings."
-  (let* ((down (string-downcase name))
-         (decl (hash-ref *declared-headers-by-name* down)))
+Returns the parsed value.  If a parser was not found, the value is
+returned as a string."
+  (let ((decl (lookup-header-decl sym)))
     (if decl
-        (values (header-decl-sym decl)
-                ((header-decl-parser decl) val))
-        (values down val))))
+        ((header-decl-parser decl) val)
+        val)))
 
 (define (valid-header? sym val)
   "Returns a true value iff @var{val} is a valid Scheme value for the
 header with name @var{sym}."
-  (let ((decl (hashq-ref *declared-headers* sym)))
-    (if (not decl)
-        (error "Unknown header" sym)
-        ((header-decl-validator decl) val))))
+  (if (symbol? sym)
+      (let ((decl (lookup-header-decl sym)))
+        (or (not decl)
+            ((header-decl-validator decl) val)))
+      (error "header name not a symbol" sym)))
 
-(define (write-header name val port)
-  "Writes the given header name and value to @var{port}.  If @var{name}
-is a symbol, looks up a declared header and uses that writer. Otherwise
-the value is written using @var{display}."
-  (if (string? name)
-      ;; assume that it's a header we don't know about...
-      (begin
-        (display name port)
-        (display ": " port)
-        (display val port)
-        (display "\r\n" port))
-      (let ((decl (hashq-ref *declared-headers* name)))
-        (if (not decl)
-            (error "Unknown header" name)
-            (begin
-              (display (header-decl-name decl) port)
-              (display ": " port)
-              ((header-decl-writer decl) val port)
-              (display "\r\n" port))))))
+(define (write-header sym val port)
+  "Writes the given header name and value to @var{port}.  If @var{sym}
+is a known header, uses the specific writer registered for that header.
+Otherwise the value is written using @var{display}."
+  (let ((decl (lookup-header-decl sym)))
+    (if decl
+        (display (header-decl-name decl) port)
+        (display (string-titlecase (symbol->string sym)) port))
+    (display ": " port)
+    ((if decl (header-decl-writer decl) display) val port)
+    (display "\r\n" port)))
 
 (define (read-headers port)
   "Read an HTTP message from @var{port}, returning the headers as an
@@ -279,20 +268,18 @@ ordered alist."
 
 (define (split-header-names str)
   (map (lambda (f)
-         (or (and=> (lookup-header-decl f) header-decl-sym)
-             f))
+         (string->symbol (string-downcase f)))
        (split-and-trim str)))
 
 (define (list-of-header-names? val)
-  (list-of? val (lambda (x) (or (string? x) (symbol? x)))))
+  (list-of? val symbol?))
 
 (define (write-header-list val port)
   (write-list val port
               (lambda (x port)
-                (display (or (and (symbol? x)
-                                  (and=> (lookup-header-decl x)
-                                         header-decl-name))
-                             x)
+                (display (or (and=> (lookup-header-decl x)
+                                    header-decl-name)
+                             (string-titlecase (symbol->string x)))
                          port))
               ", "))
 
@@ -834,120 +821,78 @@ phrase\"."
 
 
 ;;;
-;;; Syntax for declaring headers
+;;; Helpers for declaring headers
 ;;;
 
-;; emacs: (put 'declare-header 'scheme-indent-function 1)
-(define-syntax declare-header
-  (syntax-rules ()
-    ((_ sym name parser validator writer arg ...)
-     (declare-header!
-      'sym name
-      #:parser parser #:validator validator #:writer writer
-      arg ...))))
+;; emacs: (put 'declare-header! 'scheme-indent-function 1)
+;; emacs: (put 'declare-opaque!-header 'scheme-indent-function 1)
+(define (declare-opaque-header! name)
+  (declare-header! name
+    parse-opaque-string validate-opaque-string write-opaque-string))
 
-;; emacs: (put 'declare-opaque-header 'scheme-indent-function 1)
-(define-syntax declare-opaque-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       parse-opaque-string validate-opaque-string write-opaque-string))))
+;; emacs: (put 'declare-date-header! 'scheme-indent-function 1)
+(define (declare-date-header! name)
+  (declare-header! name
+    parse-date date? write-date))
 
-;; emacs: (put 'declare-date-header 'scheme-indent-function 1)
-(define-syntax declare-date-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       parse-date date? write-date))))
+;; emacs: (put 'declare-string-list-header! 'scheme-indent-function 1)
+(define (declare-string-list-header! name)
+  (declare-header! name
+    split-and-trim list-of-strings? write-list-of-strings))
 
-;; emacs: (put 'declare-string-list-header 'scheme-indent-function 1)
-(define-syntax declare-string-list-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       split-and-trim list-of-strings? write-list-of-strings))))
+;; emacs: (put 'declare-header-list-header! 'scheme-indent-function 1)
+(define (declare-header-list-header! name)
+  (declare-header! name
+    split-header-names list-of-header-names? write-header-list))
 
-;; emacs: (put 'declare-header-list-header 'scheme-indent-function 1)
-(define-syntax declare-header-list-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       split-header-names list-of-header-names? write-header-list))))
+;; emacs: (put 'declare-integer-header! 'scheme-indent-function 1)
+(define (declare-integer-header! name)
+  (declare-header! name
+    parse-non-negative-integer non-negative-integer? display))
 
-;; emacs: (put 'declare-integer-header 'scheme-indent-function 1)
-(define-syntax declare-integer-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       parse-non-negative-integer non-negative-integer? display))))
+;; emacs: (put 'declare-uri-header! 'scheme-indent-function 1)
+(define (declare-uri-header! name)
+  (declare-header! name
+    (lambda (str) (or (string->uri str) (bad-header-component 'uri str)))
+    uri?
+    write-uri))
 
-;; emacs: (put 'declare-uri-header 'scheme-indent-function 1)
-(define-syntax declare-uri-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       (lambda (str) (or (string->uri str) (bad-header-component 'uri str)))
-       uri?
-       write-uri))))
+;; emacs: (put 'declare-quality-list-header! 'scheme-indent-function 1)
+(define (declare-quality-list-header! name)
+  (declare-header! name
+    parse-quality-list validate-quality-list write-quality-list))
 
-;; emacs: (put 'declare-quality-list-header 'scheme-indent-function 1)
-(define-syntax declare-quality-list-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       parse-quality-list validate-quality-list write-quality-list))))
+;; emacs: (put 'declare-param-list-header! 'scheme-indent-function 1)
+(define* (declare-param-list-header! name #:optional
+                                     (kproc identity)
+                                     (kons default-kons)
+                                     (val-validator default-kv-validator)
+                                     (val-writer default-val-writer))
+  (declare-header! name
+    (lambda (str) (parse-param-list str kproc kons))
+    (lambda (val) (validate-param-list val val-validator))
+    (lambda (val port) (write-param-list val port val-writer))))
 
-;; emacs: (put 'declare-param-list-header 'scheme-indent-function 1)
-(define-syntax declare-param-list-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-param-list-header sym name identity default-kons
-                                default-kv-validator default-val-writer))
-    ((_ sym name kproc)
-     (declare-param-list-header sym name kproc default-kons
-                                default-kv-validator default-val-writer))
-    ((_ sym name kproc kons val-validator val-writer)
-     (declare-header sym
-       name
-       (lambda (str) (parse-param-list str kproc kons))
-       (lambda (val) (validate-param-list val val-validator))
-       (lambda (val port) (write-param-list val port val-writer))))))
+;; emacs: (put 'declare-key-value-list-header! 'scheme-indent-function 1)
+(define* (declare-key-value-list-header! name #:optional
+                                         (kproc identity)
+                                         (kons default-kons)
+                                         (val-validator default-kv-validator)
+                                         (val-writer default-val-writer))
+  (declare-header! name
+    (lambda (str) (parse-key-value-list str kproc kons))
+    (lambda (val) (key-value-list? val val-validator))
+    (lambda (val port) (write-key-value-list val port val-writer))))
 
-;; emacs: (put 'declare-key-value-list-header 'scheme-indent-function 1)
-(define-syntax declare-key-value-list-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-key-value-list-header sym name identity default-kons
-                                    default-kv-validator default-val-writer))
-    ((_ sym name kproc)
-     (declare-key-value-list-header sym name kproc default-kons
-                                    default-kv-validator default-val-writer))
-    ((_ sym name kproc kons val-validator val-writer)
-     (declare-header sym
-       name
-       (lambda (str) (parse-key-value-list str kproc kons))
-       (lambda (val) (key-value-list? val val-validator))
-       (lambda (val port) (write-key-value-list val port val-writer))))))
-
-;; emacs: (put 'declare-entity-tag-list-header 'scheme-indent-function 1)
-(define-syntax declare-entity-tag-list-header
-  (syntax-rules ()
-    ((_ sym name)
-     (declare-header sym
-       name
-       (lambda (str) (if (string=? str "*") '* (parse-entity-tag-list str)))
-       (lambda (val) (or (eq? val '*) (entity-tag-list? val)))
-       (lambda (val port)
-         (if (eq? val '*)
-             (display "*" port)
-             (write-entity-tag-list val port)))))))
+;; emacs: (put 'declare-entity-tag-list-header! 'scheme-indent-function 1)
+(define (declare-entity-tag-list-header! name)
+  (declare-header! name
+    (lambda (str) (if (string=? str "*") '* (parse-entity-tag-list str)))
+    (lambda (val) (or (eq? val '*) (entity-tag-list? val)))
+    (lambda (val port)
+      (if (eq? val '*)
+          (display "*" port)
+          (write-entity-tag-list val port)))))
 
 
 
@@ -980,8 +925,7 @@ phrase\"."
 ;;      | cache-extension                        ; Section 14.9.6
 ;; cache-extension = token [ "=" ( token | quoted-string ) ]
 ;;
-(declare-key-value-list-header cache-control
-  "Cache-Control"
+(declare-key-value-list-header! "Cache-Control"
   (let ((known-directives (make-hash-table)))
     (for-each (lambda (s) 
                 (hash-set! known-directives s (string->symbol s)))
@@ -1017,40 +961,34 @@ phrase\"."
 ;; e.g.
 ;;     Connection: close, foo-header
 ;; 
-(declare-string-list-header connection
-  "Connection")
+(declare-string-list-header! "Connection")
 
 ;; Date  = "Date" ":" HTTP-date
 ;; e.g.
 ;;     Date: Tue, 15 Nov 1994 08:12:31 GMT
 ;;
-(declare-date-header date
-  "Date")
+(declare-date-header! "Date")
 
 ;; Pragma            = "Pragma" ":" 1#pragma-directive
 ;; pragma-directive  = "no-cache" | extension-pragma
 ;; extension-pragma  = token [ "=" ( token | quoted-string ) ]
 ;;
-(declare-key-value-list-header pragma
-  "Pragma"
+(declare-key-value-list-header! "Pragma"
   (lambda (k) (if (equal? k "no-cache") 'no-cache k)))
 
 ;; Trailer  = "Trailer" ":" 1#field-name
 ;;
-(declare-header-list-header trailer
-  "Trailer")
+(declare-header-list-header! "Trailer")
 
 ;; Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 ;;
-(declare-param-list-header transfer-encoding
-  "Transfer-Encoding"
+(declare-param-list-header! "Transfer-Encoding"
   (lambda (k)
     (if (equal? k "chunked") 'chunked k)))
 
 ;; Upgrade = "Upgrade" ":" 1#product
 ;;
-(declare-string-list-header upgrade
-  "Upgrade")
+(declare-string-list-header! "Upgrade")
 
 ;; Via =  "Via" ":" 1#( received-protocol received-by [ comment ] )
 ;; received-protocol = [ protocol-name "/" ] protocol-version
@@ -1059,8 +997,7 @@ phrase\"."
 ;; received-by       = ( host [ ":" port ] ) | pseudonym
 ;; pseudonym         = token
 ;;
-(declare-header via
-  "Via"
+(declare-header! "Via"
   split-and-trim
   list-of-strings?
   write-list-of-strings
@@ -1077,8 +1014,7 @@ phrase\"."
 ;;                 ; the Warning header, for use in debugging
 ;; warn-text  = quoted-string
 ;; warn-date  = <"> HTTP-date <">
-(declare-header warning
-  "Warning"
+(declare-header! "Warning"
   (lambda (str)
     (let ((len (string-length str)))
       (let lp ((i (skip-whitespace str 0)))
@@ -1149,33 +1085,27 @@ phrase\"."
 
 ;; Allow = #Method
 ;;
-(declare-string-list-header allow
-  "Allow")
+(declare-string-list-header! "Allow")
 
 ;; Content-Encoding = 1#content-coding
 ;;
-(declare-string-list-header content-encoding
-  "Content-Encoding")
+(declare-string-list-header! "Content-Encoding")
 
 ;; Content-Language = 1#language-tag
 ;;
-(declare-string-list-header content-language
-  "Content-Language")
+(declare-string-list-header! "Content-Language")
 
 ;; Content-Length = 1*DIGIT
 ;;
-(declare-integer-header content-length
-  "Content-Length")
+(declare-integer-header! "Content-Length")
 
 ;; Content-Location = ( absoluteURI | relativeURI )
 ;;
-(declare-uri-header content-location
-  "Content-Location")
+(declare-uri-header! "Content-Location")
 
 ;; Content-MD5 = <base64 of 128 bit MD5 digest as per RFC 1864>
 ;;
-(declare-opaque-header content-md5
-  "Content-MD5")
+(declare-opaque-header! "Content-MD5")
 
 ;; Content-Range = content-range-spec
 ;; content-range-spec      = byte-content-range-spec
@@ -1186,8 +1116,7 @@ phrase\"."
 ;;                                | "*"
 ;; instance-length           = 1*DIGIT
 ;;
-(declare-header content-range
-  "Content-Range"
+(declare-header! "Content-Range"
   (lambda (str)
     (let ((dash (string-index str #\-))
           (slash (string-index str #\/)))
@@ -1232,8 +1161,7 @@ phrase\"."
 
 ;; Content-Type = media-type
 ;;
-(declare-header content-type
-  "Content-Type"
+(declare-header! "Content-Type"
   (lambda (str)
     (let ((parts (string-split str #\;)))
       (cons (parse-media-type (car parts))
@@ -1265,13 +1193,11 @@ phrase\"."
 
 ;; Expires = HTTP-date
 ;;
-(declare-date-header expires
-  "Expires")
+(declare-date-header! "Expires")
 
 ;; Last-Modified = HTTP-date
 ;;
-(declare-date-header last-modified
-  "Last-Modified")
+(declare-date-header! "Last-Modified")
 
 
 
@@ -1286,8 +1212,7 @@ phrase\"."
 ;; accept-params = ";" "q" "=" qvalue *( accept-extension )
 ;; accept-extension = ";" token [ "=" ( token | quoted-string ) ]
 ;;
-(declare-param-list-header accept
-  "Accept"
+(declare-param-list-header! "Accept"
   ;; -> ("type/subtype" (str-prop . str-val) ...) ...)
   ;;
   ;; with the exception of prop = "q", in which case the prop will be
@@ -1309,28 +1234,24 @@ phrase\"."
 
 ;; Accept-Charset = 1#( ( charset | "*" )[ ";" "q" "=" qvalue ] )
 ;;
-(declare-quality-list-header accept-charset
-  "Accept-Charset")
+(declare-quality-list-header! "Accept-Charset")
 
 ;; Accept-Encoding = 1#( codings [ ";" "q" "=" qvalue ] )
 ;; codings = ( content-coding | "*" )
 ;;
-(declare-quality-list-header accept-encoding
-  "Accept-Encoding")
+(declare-quality-list-header! "Accept-Encoding")
 
 ;; Accept-Language = 1#( language-range [ ";" "q" "=" qvalue ] )
 ;; language-range  = ( ( 1*8ALPHA *( "-" 1*8ALPHA ) ) | "*" )
 ;;
-(declare-quality-list-header accept-language
-  "Accept-Language")
+(declare-quality-list-header! "Accept-Language")
 
 ;; Authorization = credentials
 ;;
 ;; Authorization is basically opaque to this HTTP stack, we just pass
 ;; the string value through.
 ;; 
-(declare-opaque-header authorization
-  "Authorization")
+(declare-opaque-header! "Authorization")
 
 ;; Expect = 1#expectation
 ;; expectation = "100-continue" | expectation-extension
@@ -1338,8 +1259,7 @@ phrase\"."
 ;;                         *expect-params ]
 ;; expect-params = ";" token [ "=" ( token | quoted-string ) ]
 ;;
-(declare-param-list-header expect
-  "Expect"
+(declare-param-list-header! "Expect"
   (lambda (k)
     (if (equal? k "100-continue")
         '100-continue
@@ -1349,13 +1269,11 @@ phrase\"."
 ;;
 ;; Should be an email address; we just pass on the string as-is.
 ;;
-(declare-opaque-header from
-  "From")
+(declare-opaque-header! "From")
 
 ;; Host = host [ ":" port ]
 ;; 
-(declare-header host
-  "Host"
+(declare-header! "Host"
   (lambda (str)
     (let ((colon (string-index str #\:)))
       (if colon
@@ -1376,23 +1294,19 @@ phrase\"."
 
 ;; If-Match = ( "*" | 1#entity-tag )
 ;;
-(declare-entity-tag-list-header if-match
-  "If-Match")
+(declare-entity-tag-list-header! "If-Match")
 
 ;; If-Modified-Since = HTTP-date
 ;;
-(declare-date-header if-modified-since
-  "If-Modified-Since")
+(declare-date-header! "If-Modified-Since")
 
 ;; If-None-Match = ( "*" | 1#entity-tag )
 ;;
-(declare-entity-tag-list-header if-none-match
-  "If-None-Match")
+(declare-entity-tag-list-header! "If-None-Match")
 
 ;; If-Range = ( entity-tag | HTTP-date )
 ;;
-(declare-header if-range
-  "If-Range"
+(declare-header! "If-Range"
   (lambda (str)
     (if (or (string-prefix? "\"" str)
             (string-prefix? "W/" str))
@@ -1407,18 +1321,15 @@ phrase\"."
 
 ;; If-Unmodified-Since = HTTP-date
 ;;
-(declare-date-header if-unmodified-since
-  "If-Unmodified-Since")
+(declare-date-header! "If-Unmodified-Since")
 
 ;; Max-Forwards = 1*DIGIT
 ;;
-(declare-integer-header max-forwards
-  "Max-Forwards")
+(declare-integer-header! "Max-Forwards")
 
 ;; Proxy-Authorization = credentials
 ;;
-(declare-opaque-header proxy-authorization
-  "Proxy-Authorization")
+(declare-opaque-header! "Proxy-Authorization")
 
 ;; Range = "Range" ":" ranges-specifier
 ;; ranges-specifier = byte-ranges-specifier
@@ -1430,8 +1341,7 @@ phrase\"."
 ;; suffix-byte-range-spec = "-" suffix-length
 ;; suffix-length = 1*DIGIT
 ;;
-(declare-header range
-  "Range"
+(declare-header! "Range"
   (lambda (str)
     (if (string-prefix? "bytes=" str)
         (cons
@@ -1475,20 +1385,17 @@ phrase\"."
 
 ;; Referer = ( absoluteURI | relativeURI )
 ;;
-(declare-uri-header referer
-  "Referer")
+(declare-uri-header! "Referer")
 
 ;; TE = #( t-codings )
 ;; t-codings = "trailers" | ( transfer-extension [ accept-params ] )
 ;;
-(declare-param-list-header te
-  "TE"
+(declare-param-list-header! "TE"
   (lambda (k) (if (equal? k "trailers") 'trailers k)))
 
 ;; User-Agent = 1*( product | comment )
 ;;
-(declare-opaque-header user-agent
-  "User-Agent")
+(declare-opaque-header! "User-Agent")
 
 
 
@@ -1500,38 +1407,32 @@ phrase\"."
 ;; Accept-Ranges = acceptable-ranges
 ;; acceptable-ranges = 1#range-unit | "none"
 ;;
-(declare-string-list-header accept-ranges
-  "Accept-Ranges")
+(declare-string-list-header! "Accept-Ranges")
 
 ;; Age = age-value
 ;; age-value = delta-seconds
 ;;
-(declare-integer-header age
-  "Age")
+(declare-integer-header! "Age")
 
 ;; ETag = entity-tag
 ;;
-(declare-header etag
-  "ETag"
+(declare-header! "ETag"
   parse-entity-tag
   entity-tag?
   write-entity-tag)
 
 ;; Location = absoluteURI
 ;; 
-(declare-uri-header location
-  "Location")
+(declare-uri-header! "Location")
 
 ;; Proxy-Authenticate = 1#challenge
 ;;
 ;; FIXME: split challenges ?
-(declare-opaque-header proxy-authenticate
-  "Proxy-Authenticate")
+(declare-opaque-header! "Proxy-Authenticate")
 
 ;; Retry-After  = ( HTTP-date | delta-seconds )
 ;;
-(declare-header retry-after
-  "Retry-After"
+(declare-header! "Retry-After"
   (lambda (str)
     (if (and (not (string-null? str))
              (char-numeric? (string-ref str 0)))
@@ -1546,13 +1447,11 @@ phrase\"."
 
 ;; Server = 1*( product | comment )
 ;;
-(declare-opaque-header server
-  "Server")
+(declare-opaque-header! "Server")
 
 ;; Vary = ( "*" | 1#field-name )
 ;;
-(declare-header vary
-  "Vary"
+(declare-header! "Vary"
   (lambda (str)
     (if (equal? str "*")
         '*
@@ -1567,5 +1466,4 @@ phrase\"."
 ;; WWW-Authenticate = 1#challenge
 ;;
 ;; Hum.
-(declare-opaque-header www-authenticate
-  "WWW-Authenticate")
+(declare-opaque-header! "WWW-Authenticate")

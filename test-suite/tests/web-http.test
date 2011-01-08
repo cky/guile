@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -41,9 +41,8 @@
   (syntax-rules ()
     ((_ sym str val)
      (pass-if (format #f "~a: ~s -> ~s" 'sym str val)
-       (call-with-values (lambda () (parse-header (symbol->string 'sym) str))
-         (lambda (k v)
-           (equal? v val)))))))
+       (equal? (parse-header 'sym str)
+               val)))))
 
 (define-syntax pass-if-any-error
   (syntax-rules ()
@@ -51,7 +50,7 @@
      (pass-if (format #f "~a: ~s -> any error" 'sym str)
        (% (catch #t
             (lambda ()
-              (parse-header (symbol->string 'sym) str)
+              (parse-header 'sym str)
               (abort (lambda () (error "expected exception"))))
             (lambda (k . args)
               #t))
@@ -64,7 +63,7 @@
      (pass-if (format #f "~a: ~s -> ~a error" 'sym str 'expected-component)
        (catch 'bad-header
          (lambda ()
-           (parse-header (symbol->string 'sym) str)
+           (parse-header 'sym str)
            (error "expected exception" 'expected-component))
          (lambda (k component arg)
            (if (or (not 'expected-component)
@@ -80,7 +79,7 @@
   (pass-if-parse cache-control "no-cache=\"Authorization, Date\""
                  '((no-cache . (authorization date))))
   (pass-if-parse cache-control "private=\"Foo\""
-                 '((private . ("Foo"))))
+                 '((private . (foo))))
   (pass-if-parse cache-control "no-cache,max-age=10"
                  '(no-cache (max-age . 10)))
 
@@ -96,8 +95,8 @@
   (pass-if-parse pragma "no-cache" '(no-cache))
   (pass-if-parse pragma "no-cache, foo" '(no-cache "foo"))
 
-  (pass-if-parse trailer "foo, bar" '("foo" "bar"))
-  (pass-if-parse trailer "connection, bar" '(connection "bar"))
+  (pass-if-parse trailer "foo, bar" '(foo bar))
+  (pass-if-parse trailer "connection, bar" '(connection bar))
 
   (pass-if-parse transfer-encoding "foo, chunked" '(("foo") (chunked)))
 
@@ -201,5 +200,5 @@
   (pass-if-parse retry-after "20" 20)
   (pass-if-parse server "guile!" "guile!")
   (pass-if-parse vary "*" '*)
-  (pass-if-parse vary "foo, bar" '("foo" "bar"))
+  (pass-if-parse vary "foo, bar" '(foo bar))
   (pass-if-parse www-authenticate "secret" "secret"))
