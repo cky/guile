@@ -258,7 +258,7 @@ ordered alist."
          (not (string-index str separators-without-slash)))))
 (define (parse-media-type str)
   (if (validate-media-type str)
-      str
+      (string->symbol str)
       (bad-header-component 'media-type str)))
 
 (define* (skip-whitespace str #:optional (start 0) (end (string-length str)))
@@ -467,13 +467,11 @@ ordered alist."
 (define (non-negative-integer? code)
   (and (number? code) (>= code 0) (exact? code) (integer? code)))
                                     
-(define (default-kons k val)
-  (if val
-      (cons k val)
-      k))
+(define (default-val-parser k val)
+  val)
 
-(define (default-kv-validator k val)
-  #t)
+(define (default-val-validator k val)
+  (string? val))
 
 (define (default-val-writer k val port)
   (if (or (string-index val #\;)
@@ -482,8 +480,8 @@ ordered alist."
       (write-qstring val port)
       (display val port)))
 
-(define* (parse-key-value-list str #:optional (kproc identity)
-                               (kons default-kons)
+(define* (parse-key-value-list str #:optional
+                               (val-parser default-val-parser)
                                (start 0) (end (string-length str)))
   (let lp ((i start) (out '()))
     (if (not (< i end))
@@ -492,7 +490,8 @@ ordered alist."
                (eq (string-index str #\= i end))
                (comma (string-index str #\, i end))
                (delim (min (or eq end) (or comma end)))
-               (k (kproc (substring str i (trim-whitespace str i delim)))))
+               (k (string->symbol
+                   (substring str i (trim-whitespace str i delim)))))
           (call-with-values
               (lambda ()
                 (if (and eq (or (not comma) (< eq comma)))
@@ -505,14 +504,15 @@ ordered alist."
                                   (or comma end))))
                     (values #f delim)))
             (lambda (v-str next-i)
-              (let ((i (skip-whitespace str next-i end)))
+              (let ((v (val-parser k v-str))
+                    (i (skip-whitespace str next-i end)))
                 (if (or (= i end) (eqv? (string-ref str i) #\,))
-                    (lp (1+ i) (cons (kons k v-str) out))
+                    (lp (1+ i) (cons (if v (cons k v) k) out))
                     (bad-header-component 'key-value-list
                                           (substring str start end))))))))))
 
 (define* (key-value-list? list #:optional
-                          (valid? default-kv-validator))
+                          (valid? default-val-validator))
   (list-of? list
             (lambda (elt)
               (cond
@@ -542,8 +542,8 @@ ordered alist."
 ;; param-component = token [ "=" (token | quoted-string) ] \
 ;;    *(";" token [ "=" (token | quoted-string) ])
 ;;
-(define* (parse-param-component str #:optional (kproc identity)
-                                (kons default-kons)
+(define* (parse-param-component str #:optional
+                                (val-parser default-val-parser)
                                 (start 0) (end (string-length str)))
   (let lp ((i start) (out '()))
     (if (not (< i end))
@@ -551,7 +551,7 @@ ordered alist."
         (let ((delim (string-index str
                                    (lambda (c) (memq c '(#\, #\; #\=)))
                                    i)))
-          (let ((k (kproc
+          (let ((k (string->symbol
                     (substring str i (trim-whitespace str i (or delim end)))))
                 (delimc (and delim (string-ref str delim))))
             (case delimc
@@ -573,8 +573,9 @@ ordered alist."
                              (values (substring str i delim)
                                      delim)))))
                  (lambda (v-str next-i)
-                   (let ((x (kons k v-str))
-                         (i (skip-whitespace str next-i end)))
+                   (let* ((v (val-parser k v-str))
+                          (x (if v (cons k v) k))
+                          (i (skip-whitespace str next-i end)))
                      (case (and (< i end) (string-ref str i))
                        ((#f)
                         (values (reverse! (cons x out)) end))
@@ -584,19 +585,21 @@ ordered alist."
                        (else            ; including #\,
                         (values (reverse! (cons x out)) i)))))))
               ((#\;)
-               (lp (skip-whitespace str (1+ delim) end)
-                   (cons (kons k #f) out)))
+               (let ((v (val-parser k #f)))
+                 (lp (skip-whitespace str (1+ delim) end)
+                     (cons (if v (cons k v) k) out))))
              
               (else ;; either the end of the string or a #\,
-               (values (reverse! (cons (kons k #f) out))
-                       (or delim end)))))))))
+               (let ((v (val-parser k #f)))
+                 (values (reverse! (cons (if v (cons k v) k) out))
+                         (or delim end))))))))))
 
 (define* (parse-param-list str #:optional
-                           (kproc identity) (kons default-kons)
+                           (val-parser default-val-parser)
                            (start 0) (end (string-length str)))
   (let lp ((i start) (out '()))
     (call-with-values
-        (lambda () (parse-param-component str kproc kons i end))
+        (lambda () (parse-param-component str val-parser i end))
       (lambda (item i)
         (if (< i end)
             (if (eqv? (string-ref str i) #\,)
@@ -606,7 +609,7 @@ ordered alist."
             (reverse! (cons item out)))))))
 
 (define* (validate-param-list list #:optional
-                              (valid? default-kv-validator))
+                              (valid? default-val-validator))
   (list-of? list
             (lambda (elt)
               (key-value-list? list valid?))))
@@ -881,23 +884,21 @@ phrase\"."
 
 ;; emacs: (put 'declare-param-list-header! 'scheme-indent-function 1)
 (define* (declare-param-list-header! name #:optional
-                                     (kproc identity)
-                                     (kons default-kons)
-                                     (val-validator default-kv-validator)
+                                     (val-parser default-val-parser)
+                                     (val-validator default-val-validator)
                                      (val-writer default-val-writer))
   (declare-header! name
-    (lambda (str) (parse-param-list str kproc kons))
+    (lambda (str) (parse-param-list str val-parser))
     (lambda (val) (validate-param-list val val-validator))
     (lambda (val port) (write-param-list val port val-writer))))
 
 ;; emacs: (put 'declare-key-value-list-header! 'scheme-indent-function 1)
 (define* (declare-key-value-list-header! name #:optional
-                                         (kproc identity)
-                                         (kons default-kons)
-                                         (val-validator default-kv-validator)
+                                         (val-parser default-val-parser)
+                                         (val-validator default-val-validator)
                                          (val-writer default-val-writer))
   (declare-header! name
-    (lambda (str) (parse-key-value-list str kproc kons))
+    (lambda (str) (parse-key-value-list str val-parser))
     (lambda (val) (key-value-list? val val-validator))
     (lambda (val port) (write-key-value-list val port val-writer))))
 
@@ -943,24 +944,14 @@ phrase\"."
 ;; cache-extension = token [ "=" ( token | quoted-string ) ]
 ;;
 (declare-key-value-list-header! "Cache-Control"
-  (let ((known-directives (make-hash-table)))
-    (for-each (lambda (s) 
-                (hash-set! known-directives s (string->symbol s)))
-              '("no-cache" "no-store" "max-age" "max-stale" "min-fresh"
-                "no-transform" "only-if-cached" "public" "private"
-                "must-revalidate" "proxy-revalidate" "s-maxage"))
-    (lambda (k-str)
-      (hash-ref known-directives k-str k-str)))
   (lambda (k v-str)
     (case k
       ((max-age max-stale min-fresh s-maxage)
-       (cons k (parse-non-negative-integer v-str)))
+       (parse-non-negative-integer v-str))
       ((private no-cache)
-       (if v-str
-           (cons k (split-header-names v-str))
-           k))
-      (else (if v-str (cons k v-str) k))))
-  default-kv-validator
+       (and v-str (split-header-names v-str)))
+      (else v-str)))
+  default-val-validator
   (lambda (k v port)
     (cond
      ((string? v) (display v port))
@@ -990,8 +981,7 @@ phrase\"."
 ;; pragma-directive  = "no-cache" | extension-pragma
 ;; extension-pragma  = token [ "=" ( token | quoted-string ) ]
 ;;
-(declare-key-value-list-header! "Pragma"
-  (lambda (k) (if (equal? k "no-cache") 'no-cache k)))
+(declare-key-value-list-header! "Pragma")
 
 ;; Trailer  = "Trailer" ":" 1#field-name
 ;;
@@ -999,9 +989,7 @@ phrase\"."
 
 ;; Transfer-Encoding = "Transfer-Encoding" ":" 1#transfer-coding
 ;;
-(declare-param-list-header! "Transfer-Encoding"
-  (lambda (k)
-    (if (equal? k "chunked") 'chunked k)))
+(declare-param-list-header! "Transfer-Encoding")
 
 ;; Upgrade = "Upgrade" ":" 1#product
 ;;
@@ -1185,16 +1173,17 @@ phrase\"."
             (map (lambda (x)
                    (let ((eq (string-index x #\=)))
                      (if (and eq (= eq (string-rindex x #\=)))
-                         (cons (string-trim x char-whitespace? 0 eq)
+                         (cons (string->symbol
+                                (string-trim x char-whitespace? 0 eq))
                                (string-trim-right x char-whitespace? (1+ eq)))
                          (bad-header 'content-type str))))
                  (cdr parts)))))
   (lambda (val)
     (and (pair? val)
-         (string? (car val))
+         (symbol? (car val))
          (list-of? (cdr val)
                    (lambda (x)
-                     (and (pair? x) (string? (car x)) (string? (cdr x)))))))
+                     (and (pair? x) (symbol? (car x)) (string? (cdr x)))))))
   (lambda (val port)
     (display (car val) port)
     (if (pair? (cdr val)) 
@@ -1230,20 +1219,19 @@ phrase\"."
 ;; accept-extension = ";" token [ "=" ( token | quoted-string ) ]
 ;;
 (declare-param-list-header! "Accept"
-  ;; -> ("type/subtype" (str-prop . str-val) ...) ...)
+  ;; -> (type/subtype (sym-prop . str-val) ...) ...)
   ;;
-  ;; with the exception of prop = "q", in which case the prop will be
-  ;; the symbol 'q, and the val will be a valid quality value
+  ;; with the exception of prop `q', in which case the val will be a
+  ;; valid quality value
   ;;
-  (lambda (k) (if (string=? k "q") 'q k))
   (lambda (k v)
-    (if (eq? k 'q)
-        (cons k (parse-quality v))
-        (default-kons k v)))
+    (if (eq? k 'q) 
+        (parse-quality v)
+        v))
   (lambda (k v)
     (if (eq? k 'q)
         (valid-quality? v)
-        (default-kv-validator k v)))
+        (string? v)))
   (lambda (k v port)
     (if (eq? k 'q)
         (write-quality v port)
@@ -1276,11 +1264,7 @@ phrase\"."
 ;;                         *expect-params ]
 ;; expect-params = ";" token [ "=" ( token | quoted-string ) ]
 ;;
-(declare-param-list-header! "Expect"
-  (lambda (k)
-    (if (equal? k "100-continue")
-        '100-continue
-        k)))
+(declare-param-list-header! "Expect")
 
 ;; From = mailbox
 ;;
@@ -1407,8 +1391,7 @@ phrase\"."
 ;; TE = #( t-codings )
 ;; t-codings = "trailers" | ( transfer-extension [ accept-params ] )
 ;;
-(declare-param-list-header! "TE"
-  (lambda (k) (if (equal? k "trailers") 'trailers k)))
+(declare-param-list-header! "TE")
 
 ;; User-Agent = 1*( product | comment )
 ;;

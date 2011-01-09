@@ -1,6 +1,6 @@
 ;;; Web server
 
-;; Copyright (C)  2010 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -219,27 +219,27 @@ on the procedure being called at any particular time."
     (values response #vu8()))
    ((string? body)
     (let* ((type (response-content-type response
-                                        '("text/plain")))
-           (declared-charset (assoc-ref (cdr type) "charset"))
+                                        '(text/plain)))
+           (declared-charset (assq-ref (cdr type) 'charset))
            (charset (or declared-charset "utf-8")))
       (sanitize-response
        request
        (if declared-charset
            response
            (extend-response response 'content-type
-                            `(,@type ("charset" . ,charset))))
+                            `(,@type (charset . ,charset))))
        (encode-string body charset))))
    ((procedure? body)
     (let* ((type (response-content-type response
-                                        '("text/plain")))
-           (declared-charset (assoc-ref (cdr type) "charset"))
+                                        '(text/plain)))
+           (declared-charset (assq-ref (cdr type) 'charset))
            (charset (or declared-charset "utf-8")))
       (sanitize-response
        request
        (if declared-charset
            response
            (extend-response response 'content-type
-                            `(,@type ("charset" . ,charset))))
+                            `(,@type (charset . ,charset))))
        (call-with-encoded-output-string charset body))))
    ((bytevector? body)
     ;; check length; assert type; add other required fields?
@@ -370,7 +370,7 @@ For example, here is a simple \"Hello, World!\" server:
 
 @example
  (define (handler request body)
-   (values '((content-type . (\"text/plain\")))
+   (values '((content-type . (text/plain)))
            \"Hello, World!\"))
  (run-server handler)
 @end example

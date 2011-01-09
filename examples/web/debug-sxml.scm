@@ -30,8 +30,8 @@
                   (status 200)
                   (title default-title)
                   (doctype html5-doctype)
-                  (content-type-params '(("charset" . "utf-8")))
-                  (content-type "text/html")
+                  (content-type-params '((charset . "utf-8")))
+                  (content-type 'text/html)
                   (extra-headers '())
                   (sxml (and body (templatize #:title title #:body body))))
   (values (build-response

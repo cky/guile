@@ -74,7 +74,7 @@
 (with-test-prefix "general headers"
 
   (pass-if-parse cache-control "no-transform" '(no-transform))
-  (pass-if-parse cache-control "no-transform,foo" '(no-transform "foo"))
+  (pass-if-parse cache-control "no-transform,foo" '(no-transform foo))
   (pass-if-parse cache-control "no-cache" '(no-cache))
   (pass-if-parse cache-control "no-cache=\"Authorization, Date\""
                  '((no-cache . (authorization date))))
@@ -93,12 +93,12 @@
   (pass-if-any-error date "Tue, 15 Qux 1994 08:12:31 EST")
 
   (pass-if-parse pragma "no-cache" '(no-cache))
-  (pass-if-parse pragma "no-cache, foo" '(no-cache "foo"))
+  (pass-if-parse pragma "no-cache, foo" '(no-cache foo))
 
   (pass-if-parse trailer "foo, bar" '(foo bar))
   (pass-if-parse trailer "connection, bar" '(connection bar))
 
-  (pass-if-parse transfer-encoding "foo, chunked" '(("foo") (chunked)))
+  (pass-if-parse transfer-encoding "foo, chunked" '((foo) (chunked)))
 
   (pass-if-parse upgrade "qux" '("qux"))
 
@@ -125,8 +125,8 @@
   (pass-if-parse content-range "bytes 10-20/*" '(bytes (10 . 20) *))
   (pass-if-parse content-range "bytes */*" '(bytes * *))
   (pass-if-parse content-range "bytes */30" '(bytes * 30))
-  (pass-if-parse content-type "foo/bar" '("foo/bar"))
-  (pass-if-parse content-type "foo/bar; baz=qux" '("foo/bar" ("baz" . "qux")))
+  (pass-if-parse content-type "foo/bar" '(foo/bar))
+  (pass-if-parse content-type "foo/bar; baz=qux" '(foo/bar (baz . "qux")))
   (pass-if-parse expires "Tue, 15 Nov 1994 08:12:31 GMT"
                  (string->date "Tue, 15 Nov 1994 08:12:31 +0000"
                          "~a, ~d ~b ~Y ~H:~M:~S ~z"))
@@ -136,9 +136,9 @@
 
 (with-test-prefix "request headers"
   (pass-if-parse accept "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
-                 '(("text/*" (q . 300))
-                   ("text/html" (q . 700))
-                   ("text/html" ("level" . "1"))))
+                 '((text/* (q . 300))
+                   (text/html (q . 700))
+                   (text/html (level . "1"))))
   (pass-if-parse accept-charset "iso-8859-5, unicode-1-1;q=0.8"
                  '((1000 . "iso-8859-5") (800 . "unicode-1-1")))
   (pass-if-parse accept-encoding "gzip;q=1.0, identity; q=0.5, *;q=0"
@@ -150,7 +150,7 @@
   ;; Allow nonstandard .2 to mean 0.2
   (pass-if-parse accept-language "en-gb;q=.2" '((200 . "en-gb")))
   (pass-if-parse authorization "foo" "foo")
-  (pass-if-parse expect "100-continue, foo" '((100-continue) ("foo")))
+  (pass-if-parse expect "100-continue, foo" '((100-continue) (foo)))
   (pass-if-parse from "foo@bar" "foo@bar")
   (pass-if-parse host "qux" '("qux" . #f))
   (pass-if-parse host "qux:80" '("qux" . 80))
@@ -180,7 +180,7 @@
   (pass-if-parse referer "http://foo/bar?baz"
                  (build-uri 'http #:host "foo" #:path "/bar" #:query "baz"))
   (pass-if-parse te "trailers" '((trailers)))
-  (pass-if-parse te "trailers,foo" '((trailers) ("foo")))
+  (pass-if-parse te "trailers,foo" '((trailers) (foo)))
   (pass-if-parse user-agent "guile" "guile"))
 
 

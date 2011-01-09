@@ -23,7 +23,7 @@
 ;; for us with a 200 OK status.
 ;;
 (define (handler request body)
-  (values '((content-type . ("text/plain")))
+  (values '((content-type . (text/plain)))
           "Hello, World!"))
 
 (run-server handler)

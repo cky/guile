@@ -1,6 +1,6 @@
 ;;;; web-response.test --- HTTP responses       -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -79,7 +79,7 @@ abcdefghijklmnopqrstuvwxyz0123456789")
          (vary . (accept-encoding))
          (content-encoding . ("gzip"))
          (content-length . 36)
-         (content-type . ("text/html" ("charset" . "utf-8"))))))
+         (content-type . (text/html (charset . "utf-8"))))))
     
     (pass-if "write then read"
       (call-with-values
