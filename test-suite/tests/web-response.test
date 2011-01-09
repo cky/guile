@@ -72,12 +72,12 @@ abcdefghijklmnopqrstuvwxyz0123456789")
        `((date . ,(string->date "Wed, 03 Nov 2010 22:27:07 +0000"
                                 "~a, ~d ~b ~Y ~H:~M:~S ~z"))
          (server . "Apache/2.0.55")
-         (accept-ranges . ("bytes"))
+         (accept-ranges . (bytes))
          (cache-control . ((max-age . 543234)))
          (expires . ,(string->date "Thu, 28 Oct 2010 15:33:13 GMT +0000"
                                    "~a, ~d ~b ~Y ~H:~M:~S ~z"))
          (vary . (accept-encoding))
-         (content-encoding . ("gzip"))
+         (content-encoding . (gzip))
          (content-length . 36)
          (content-type . (text/html (charset . "utf-8"))))))
     
@@ -96,4 +96,4 @@ abcdefghijklmnopqrstuvwxyz0123456789")
           (responses-equal? r body r* body*))))
 
     (pass-if "by accessor"
-      (equal? (response-content-encoding r) '("gzip")))))
+      (equal? (response-content-encoding r) '(gzip)))))

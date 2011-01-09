@@ -83,8 +83,8 @@
   (pass-if-parse cache-control "no-cache,max-age=10"
                  '(no-cache (max-age . 10)))
 
-  (pass-if-parse connection "close" '("close"))
-  (pass-if-parse connection "close, foo" '("close" "foo"))
+  (pass-if-parse connection "close" '(close))
+  (pass-if-parse connection "Content-Encoding" '(content-encoding))
 
   (pass-if-parse date "Tue, 15 Nov 1994 08:12:31 GMT"
                  (string->date "Tue, 15 Nov 1994 08:12:31 +0000"
@@ -114,8 +114,8 @@
                          "~a, ~d ~b ~Y ~H:~M:~S ~z")))))
 
 (with-test-prefix "entity headers"
-  (pass-if-parse allow "foo, bar" '("foo" "bar"))
-  (pass-if-parse content-encoding "qux, baz" '("qux" "baz"))
+  (pass-if-parse allow "foo, bar" '(foo bar))
+  (pass-if-parse content-encoding "qux, baz" '(qux baz))
   (pass-if-parse content-language "qux, baz" '("qux" "baz"))
   (pass-if-parse content-length "100" 100)
   (pass-if-parse content-length "0" 0)
@@ -187,7 +187,7 @@
 ;; Response headers
 ;;
 (with-test-prefix "response headers"
-  (pass-if-parse accept-ranges "foo,bar" '("foo" "bar"))
+  (pass-if-parse accept-ranges "foo,bar" '(foo bar))
   (pass-if-parse age "30" 30)
   (pass-if-parse etag "\"foo\"" '("foo" . #t))
   (pass-if-parse etag "W/\"foo\"" '("foo" . #f))

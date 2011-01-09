@@ -860,6 +860,16 @@ phrase\"."
   (declare-header! name
     split-and-trim list-of-strings? write-list-of-strings))
 
+;; emacs: (put 'declare-symbol-list-header! 'scheme-indent-function 1)
+(define (declare-symbol-list-header! name)
+  (declare-header! name
+    (lambda (str)
+      (map string->symbol (split-and-trim str)))
+    (lambda (v)
+      (list-of? symbol? v))
+    (lambda (v port)
+      (write-list v port display ", "))))
+
 ;; emacs: (put 'declare-header-list-header! 'scheme-indent-function 1)
 (define (declare-header-list-header! name)
   (declare-header! name
@@ -969,7 +979,7 @@ phrase\"."
 ;; e.g.
 ;;     Connection: close, foo-header
 ;; 
-(declare-string-list-header! "Connection")
+(declare-header-list-header! "Connection")
 
 ;; Date  = "Date" ":" HTTP-date
 ;; e.g.
@@ -1090,11 +1100,11 @@ phrase\"."
 
 ;; Allow = #Method
 ;;
-(declare-string-list-header! "Allow")
+(declare-symbol-list-header! "Allow")
 
 ;; Content-Encoding = 1#content-coding
 ;;
-(declare-string-list-header! "Content-Encoding")
+(declare-symbol-list-header! "Content-Encoding")
 
 ;; Content-Language = 1#language-tag
 ;;
@@ -1407,7 +1417,7 @@ phrase\"."
 ;; Accept-Ranges = acceptable-ranges
 ;; acceptable-ranges = 1#range-unit | "none"
 ;;
-(declare-string-list-header! "Accept-Ranges")
+(declare-symbol-list-header! "Accept-Ranges")
 
 ;; Age = age-value
 ;; age-value = delta-seconds
