@@ -149,7 +149,10 @@
                  '((1000 . "da") (800 . "en-gb") (700 . "en")))
   ;; Allow nonstandard .2 to mean 0.2
   (pass-if-parse accept-language "en-gb;q=.2" '((200 . "en-gb")))
-  (pass-if-parse authorization "foo" "foo")
+  (pass-if-parse authorization "Basic foooo" '(basic . "foooo"))
+  (pass-if-parse authorization "Digest foooo" '(digest foooo))
+  (pass-if-parse authorization "Digest foo=bar,baz=qux"
+                 '(digest (foo . "bar") (baz . "qux")))
   (pass-if-parse expect "100-continue, foo" '((100-continue) (foo)))
   (pass-if-parse from "foo@bar" "foo@bar")
   (pass-if-parse host "qux" '("qux" . #f))
@@ -172,7 +175,10 @@
                          "~a, ~d ~b ~Y ~H:~M:~S ~z"))
   (pass-if-parse max-forwards "10" 10)
   (pass-if-parse max-forwards "00" 0)
-  (pass-if-parse proxy-authorization "foo" "foo")
+  (pass-if-parse proxy-authorization "Basic foooo" '(basic . "foooo"))
+  (pass-if-parse proxy-authorization "Digest foooo" '(digest foooo))
+  (pass-if-parse proxy-authorization "Digest foo=bar,baz=qux"
+                 '(digest (foo . "bar") (baz . "qux")))
   (pass-if-parse range "bytes=10-20" '(bytes (10 . 20)))
   (pass-if-parse range "bytes=10-" '(bytes (10 . #f)))
   (pass-if-parse range "bytes=-20" '(bytes (#f . 20)))
@@ -193,7 +199,8 @@
   (pass-if-parse etag "W/\"foo\"" '("foo" . #f))
   (pass-if-parse location "http://other-place"
                  (build-uri 'http #:host "other-place"))
-  (pass-if-parse proxy-authenticate "ho-hum" "ho-hum")
+  (pass-if-parse proxy-authenticate "Basic realm=\"guile\""
+                 '((basic (realm . "guile"))))
   (pass-if-parse retry-after "Tue, 15 Nov 1994 08:12:31 GMT"
                  (string->date "Tue, 15 Nov 1994 08:12:31 +0000"
                          "~a, ~d ~b ~Y ~H:~M:~S ~z"))
@@ -201,4 +208,5 @@
   (pass-if-parse server "guile!" "guile!")
   (pass-if-parse vary "*" '*)
   (pass-if-parse vary "foo, bar" '(foo bar))
-  (pass-if-parse www-authenticate "secret" "secret"))
+  (pass-if-parse www-authenticate "Basic realm=\"guile\""
+                 '((basic (realm . "guile")))))

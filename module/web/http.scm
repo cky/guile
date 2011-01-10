@@ -677,6 +677,108 @@ ordered alist."
 (define (write-entity-tag-list val port)
   (write-list val port write-entity-tag  ", "))
 
+;; credentials = auth-scheme #auth-param
+;; auth-scheme = token
+;; auth-param = token "=" ( token | quoted-string )
+;;
+;; That's what the spec says. In reality the Basic scheme doesn't have
+;; k-v pairs, just one auth token, so we give that token as a string.
+;;
+(define* (parse-credentials str #:optional (val-parser default-val-parser)
+                            (start 0) (end (string-length str)))
+  (let* ((start (skip-whitespace str start end))
+         (delim (or (string-index str char-whitespace? start end) end)))
+    (if (= start end)
+        (bad-header-component 'authorization str))
+    (let ((scheme (string->symbol
+                   (string-downcase (substring str start (or delim end))))))
+      (case scheme
+        ((basic)
+         (let* ((start (skip-whitespace str delim end)))
+           (if (< start end)
+               (cons scheme (substring str start end))
+               (bad-header-component 'credentials str))))
+        (else
+         (cons scheme (parse-key-value-list str default-val-parser delim end)))))))
+
+(define (validate-credentials val)
+  (and (pair? val) (symbol? (car val)) (key-value-list? (cdr val))))
+
+(define (write-credentials val port)
+  (display (car val) port)
+  (if (pair? (cdr val))
+      (begin
+        (display #\space port)
+        (write-key-value-list (cdr val) port))))
+
+;; challenges = 1#challenge
+;; challenge = auth-scheme 1*SP 1#auth-param
+;;
+;; A pain to parse, as both challenges and auth params are delimited by
+;; commas, and qstrings can contain anything. We rely on auth params
+;; necessarily having "=" in them.
+;;
+(define* (parse-challenge str #:optional
+                          (start 0) (end (string-length str)))
+  (let* ((start (skip-whitespace str start end))
+         (sp (string-index str #\space start end))
+         (scheme (if sp
+                     (string->symbol (string-downcase (substring str start sp)))
+                     (bad-header-component 'challenge str))))
+    (let lp ((i sp) (out (list scheme)))
+      (if (not (< i end))
+          (values (reverse! out) end)
+          (let* ((i (skip-whitespace str i end))
+                 (eq (string-index str #\= i end))
+                 (comma (string-index str #\, i end))
+                 (delim (min (or eq end) (or comma end)))
+                 (token-end (trim-whitespace str i delim)))
+            (if (string-index str #\space i token-end)
+                (values (reverse! out) i)
+                (let ((k (string->symbol (substring str i token-end))))
+                  (call-with-values
+                      (lambda ()
+                        (if (and eq (or (not comma) (< eq comma)))
+                            (let ((i (skip-whitespace str (1+ eq) end)))
+                              (if (and (< i end) (eqv? (string-ref str i) #\"))
+                                  (parse-qstring str i end #:incremental? #t)
+                                  (values (substring
+                                           str i
+                                           (trim-whitespace str i
+                                                            (or comma end)))
+                                          (or comma end))))
+                            (values #f delim)))
+                    (lambda (v next-i)
+                      (let ((i (skip-whitespace str next-i end)))
+                        (if (or (= i end) (eqv? (string-ref str i) #\,))
+                            (lp (1+ i) (cons (if v (cons k v) k) out))
+                            (bad-header-component
+                             'challenge
+                             (substring str start end)))))))))))))
+
+(define* (parse-challenges str #:optional (val-parser default-val-parser)
+                           (start 0) (end (string-length str)))
+  (let lp ((i start) (ret '()))
+    (let ((i (skip-whitespace str i end)))
+      (if (< i end)
+          (call-with-values (lambda () (parse-challenge str i end))
+            (lambda (challenge i)
+              (lp i (cons challenge ret))))
+          (reverse ret)))))
+
+(define (validate-challenges val)
+  (list-of? val (lambda (x)
+                  (and (pair? x) (symbol? (car x))
+                       (key-value-list? (cdr x))))))
+
+(define (write-challenge val port)
+  (display (car val) port)
+  (display #\space port)
+  (write-key-value-list (cdr val) port))
+
+(define (write-challenges val port)
+  (write-list val port write-challenge ", "))
+
 
 
 
@@ -921,6 +1023,16 @@ phrase\"."
       (if (eq? val '*)
           (display "*" port)
           (write-entity-tag-list val port)))))
+
+;; emacs: (put 'declare-credentials-header! 'scheme-indent-function 1)
+(define (declare-credentials-header! name)
+  (declare-header! name
+    parse-credentials validate-credentials write-credentials))
+
+;; emacs: (put 'declare-challenge-list-header! 'scheme-indent-function 1)
+(define (declare-challenge-list-header! name)
+  (declare-header! name
+    parse-challenges validate-challenges write-challenges))
 
 
 
@@ -1262,11 +1374,11 @@ phrase\"."
 (declare-quality-list-header! "Accept-Language")
 
 ;; Authorization = credentials
+;; credentials = auth-scheme #auth-param
+;; auth-scheme = token
+;; auth-param = token "=" ( token | quoted-string )
 ;;
-;; Authorization is basically opaque to this HTTP stack, we just pass
-;; the string value through.
-;; 
-(declare-opaque-header! "Authorization")
+(declare-credentials-header! "Authorization")
 
 ;; Expect = 1#expectation
 ;; expectation = "100-continue" | expectation-extension
@@ -1340,7 +1452,7 @@ phrase\"."
 
 ;; Proxy-Authorization = credentials
 ;;
-(declare-opaque-header! "Proxy-Authorization")
+(declare-credentials-header! "Proxy-Authorization")
 
 ;; Range = "Range" ":" ranges-specifier
 ;; ranges-specifier = byte-ranges-specifier
@@ -1437,8 +1549,7 @@ phrase\"."
 
 ;; Proxy-Authenticate = 1#challenge
 ;;
-;; FIXME: split challenges ?
-(declare-opaque-header! "Proxy-Authenticate")
+(declare-challenge-list-header! "Proxy-Authenticate")
 
 ;; Retry-After  = ( HTTP-date | delta-seconds )
 ;;
@@ -1475,5 +1586,4 @@ phrase\"."
 
 ;; WWW-Authenticate = 1#challenge
 ;;
-;; Hum.
-(declare-opaque-header! "WWW-Authenticate")
+(declare-challenge-list-header! "WWW-Authenticate")
