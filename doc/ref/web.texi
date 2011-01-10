@@ -480,243 +480,550 @@ Write the first line of an HTTP response to @var{port}.
 @node HTTP Headers
 @subsection HTTP Headers
 
-The @code{(web http)} module defines parsers and unparsers for all
-headers defined in the HTTP/1.1 standard.  This section describes the
-parsed format of the various headers.
+In addition to defining the infrastructure to parse headers, the
+@code{(web http)} module defines specific parsers and unparsers for all
+headers defined in the HTTP/1.1 standard.
 
-We cannot describe the function of all of these headers, however, in
-sufficient detail.  The interested reader would do well to download a
-copy of RFC 2616 and have it on hand.
+For example, if you receive a header named @samp{Accept-Language} with a
+value @samp{en, es;q=0.8}, Guile parses it as a quality list (defined
+below):
 
-To begin with, we should make a few definitions:
+@example
+(parse-header 'accept-language "en, es;q=0.8")
+@result{} ((1000 . "en") (800 . "es"))
+@end example
 
-@table @dfn
-@item key-value list
-A key-value list is a list of values.  Each value may be a string,
-a symbol, or a pair.  Known keys are parsed to symbols; otherwise keys
-are left as strings.  Keys with values are parsed to pairs, the car of
-which is the symbol or string key, and the cdr is the parsed value.
-Parsed values for known keys have key-dependent formats.  Parsed values
-for unknown keys are strings.
+The format of the value for @samp{Accept-Language} headers is defined
+below, along with all other headers defined in the HTTP standard.  (If
+the header were unknown, the value would have been returned as a
+string.)
 
-@item param list
-A param list is a list of key-value lists.  When serialized to a string,
-items in the inner lists are separated by semicolons.  Again, known keys
-are parsed to symbols.
+For brevity, the header definitions below are given in the form,
+@var{Type} @code{@var{name}}, indicating that values for the header
+@code{@var{name}} will be of the given @var{Type}.  Since Guile
+internally treats header names in lower case, in this document we give
+types title-cased names.  A short description of the each header's
+purpose and an example follow.
 
-@item quality
-A number of headers have quality values in them, which are decimal
-fractions between zero and one indicating a preference for various kinds
-of responses, which the server may choose to heed.  Given that only
-three digits are allowed in the fractional part, Guile parses quality
-values to integers between 0 and 1000 instead of inexact numbers between
-0.0 and 1.0.
+For full details on the meanings of all of these headers, see the HTTP
+1.1 standard, RFC 2616.
 
-@item quality list
-A list of pairs, the car of which is a quality value.
+@subsubsection HTTP Header Types
 
-@item entity tag
-A pair, the car of which is an opaque string, and the cdr of which is
-true iff the entity tag is a ``strong'' entity tag.
-@end table
+Here we define the types that are used below, when defining headers.
 
+@deftp {HTTP Header Type} Date
+A SRFI-19 date.
+@end deftp
+
+@deftp {HTTP Header Type} KVList
+A list whose elements are keys or key-value pairs.  Keys are parsed to
+symbols.  Values are strings by default.  Non-string values are the
+exception, and are mentioned explicitly below, as appropriate.
+@end deftp
+
+@deftp {HTTP Header Type} SList
+A list of strings.
+@end deftp
+
+@deftp {HTTP Header Type} Quality
+An exact integer between 0 and 1000.  Qualities are used to express
+preference, given multiple options.  An option with a quality of 870,
+for example, is preferred over an option with quality 500.
+
+(Qualities are written out over the wire as numbers between 0.0 and
+1.0, but since the standard only allows three digits after the decimal,
+it's equivalent to integers between 0 and 1000, so that's what Guile
+uses.)
+@end deftp
+
+@deftp {HTTP Header Type} QList
+A quality list: a list of pairs, the car of which is a quality, and the
+cdr a string.  Used to express a list of options, along with their
+qualities.
+@end deftp
+
+@deftp {HTTP Header Type} ETag
+An entity tag, represented as a pair.  The car of the pair is an opaque
+string, and the cdr is @code{#t} if the entity tag is a ``strong'' entity
+tag, and @code{#f} otherwise.
+@end deftp
 
 @subsubsection General Headers
 
-@table @code
-@item cache-control
-A key-value list of cache-control directives. Known keys are
-@code{max-age}, @code{max-stale}, @code{min-fresh},
-@code{must-revalidate}, @code{no-cache}, @code{no-store},
-@code{no-transform}, @code{only-if-cached}, @code{private},
-@code{proxy-revalidate}, @code{public}, and @code{s-maxage}.
+General HTTP headers may be present in any HTTP message.
+
+@deftypevr {HTTP Header} KVList cache-control
+A key-value list of cache-control directives.  See RFC 2616, for more
+details.
 
 If present, parameters to @code{max-age}, @code{max-stale},
 @code{min-fresh}, and @code{s-maxage} are all parsed as non-negative
 integers.
 
 If present, parameters to @code{private} and @code{no-cache} are parsed
-as lists of header names, represented as symbols if they are known
-headers or strings otherwise.
+as lists of header names, as symbols.
 
-@item connection
-A list of connection tokens.  A connection token is a string.
+@example
+(parse-header 'cache-control "no-cache,no-store"
+@result{} (no-cache no-store)
+(parse-header 'cache-control "no-cache=\"Authorization,Date\",no-store"
+@result{} ((no-cache . (authorization date)) no-store)
+(parse-header 'cache-control "no-cache=\"Authorization,Date\",max-age=10"
+@result{} ((no-cache . (authorization date)) (max-age . 10))
+@end example
+@end deftypevr
 
-@item date
-A SRFI-19 date record.
+@deftypevr {HTTP Header} List connection
+A list of header names that apply only to this HTTP connection, as
+symbols.  Additionally, the symbol @samp{close} may be present, to
+indicate that the server should close the connection after responding to
+the request.
+@example
+(parse-header 'connection "close")
+@result{} (close)
+@end example
+@end deftypevr
 
-@item pragma
-A key-value list of pragma directives.  @code{no-cache} is the only
-known key.
+@deftypevr {HTTP Header} Date date
+The date that a given HTTP message was originated.
+@example
+(parse-header 'date "Tue, 15 Nov 1994 08:12:31 GMT")
+@result{} #<date ...>
+@end example
+@end deftypevr
 
-@item trailer
-A list of header names.  Known header names are parsed to symbols,
-otherwise they are left as strings.
+@deftypevr {HTTP Header} KVList pragma
+A key-value list of implementation-specific directives.
+@example
+(parse-header 'pragma "no-cache, broccoli=tasty")
+@result{} (no-cache (broccoli . "tasty"))
+@end example
+@end deftypevr
 
-@item transfer-encoding
-A param list of transfer codings.  @code{chunked} is the only known key.
+@deftypevr {HTTP Header} List trailer
+A list of header names which will appear after the message body, instead
+of with the message headers.
+@example
+(parse-header 'trailer "ETag")
+@result{} (etag)
+@end example
+@end deftypevr
 
-@item upgrade
-A list of strings.
+@deftypevr {HTTP Header} List transfer-encoding
+A list of transfer codings, expressed as key-value lists.  The only
+transfer coding defined by the specification is @code{chunked}.
+@example
+(parse-header 'transfer-encoding "chunked")
+@result{} (chunked)
+@end example
+@end deftypevr
 
-@item via
-A list of strings.  There may be multiple @code{via} headers in ne
-message.
+@deftypevr {HTTP Header} List upgrade
+A list of strings, indicating additional protocols that a server could use
+in response to a request.
+@example
+(parse-header 'upgrade "WebSocket")
+@result{} ("WebSocket")
+@end example
+@end deftypevr
 
-@item warning
-A list of warnings.  Each warning is a itself a list of four elements: a
-code, as an exact integer between 0 and 1000, a host as a string, the
-warning text as a string, and either @code{#f} or a SRFI-19 date.
+FIXME: parse out more fully?
+@deftypevr {HTTP Header} List via
+A list of strings, indicating the protocol versions and hosts of
+intermediate servers and proxies.  There may be multiple @code{via}
+headers in one message.
+@example
+(parse-header 'via "1.0 venus, 1.1 mars")
+@result{} ("1.0 venus" "1.1 mars")
+@end example
+@end deftypevr
+
+@deftypevr {HTTP Header} List warning
+A list of warnings given by a server or intermediate proxy.  Each
+warning is a itself a list of four elements: a code, as an exact integer
+between 0 and 1000, a host as a string, the warning text as a string,
+and either @code{#f} or a SRFI-19 date.
 
 There may be multiple @code{warning} headers in one message.
-@end table
+@example
+(parse-header 'warning "123 foo \"core breach imminent\"")
+@result{} ((123 "foo" "core-breach imminent" #f))
+@end example
+@end deftypevr
 
 
 @subsubsection Entity Headers
 
-@table @code
-@item allow
-A list of methods, as strings.  Methods are parsed as strings instead of
-@code{parse-http-method} so as to allow for new methods.
+Entity headers may be present in any HTTP message, and refer to the
+resource referenced in the HTTP request or response.
 
-@item content-encoding
-A list of content codings, as strings.
+@deftypevr {HTTP Header} List allow
+A list of allowed methods on a given resource, as symbols.
+@example
+(parse-header 'allow "GET, HEAD")
+@result{} (GET HEAD)
+@end example
+@end deftypevr
 
-@item content-language
-A list of language tags, as strings.
+@deftypevr {HTTP Header} List content-encoding
+A list of content codings, as symbols.
+@example
+(parse-header 'content-encoding "gzip")
+@result{} (GET HEAD)
+@end example
+@end deftypevr
 
-@item content-length
-An exact, non-negative integer.
+@deftypevr {HTTP Header} List content-language
+The languages that a resource is in, as strings.
+@example
+(parse-header 'content-language "en")
+@result{} ("en")
+@end example
+@end deftypevr
 
-@item content-location
-A URI record.
+@deftypevr {HTTP Header} UInt content-length
+The number of bytes in a resource, as an exact, non-negative integer.
+@example
+(parse-header 'content-length "300")
+@result{} 300
+@end example
+@end deftypevr
 
-@item content-md5
-A string.
+@deftypevr {HTTP Header} URI content-location
+The canonical URI for a resource, in the case that it is also accessible
+from a different URI.
+@example
+(parse-header 'content-location "http://example.com/foo")
+@result{} #<<uri> ...>
+@end example
+@end deftypevr
 
-@item content-range
-A list of three elements: the symbol @code{bytes}, either the symbol
-@code{*} or a pair of integers, indicating the byte rage, and either
-@code{*} or an integer, for the instance length.
+@deftypevr {HTTP Header} String content-md5
+The MD5 digest of a resource.
+@example
+(parse-header 'content-md5 "ffaea1a79810785575e29e2bd45e2fa5")
+@result{} "ffaea1a79810785575e29e2bd45e2fa5"
+@end example
+@end deftypevr
 
-@item content-type
-A pair, the car of which is the media type as a string, and the cdr is
-an alist of parameters, with strings as keys and values.
+@deftypevr {HTTP Header} List content-range
+A range specification, as a list of three elements: the symbol
+@code{bytes}, either the symbol @code{*} or a pair of integers,
+indicating the byte rage, and either @code{*} or an integer, for the
+instance length.  Used to indicate that a response only includes part of
+a resource.
+@example
+(parse-header 'content-range "bytes 10-20/*")
+@result{} (bytes (10 . 20) *)
+@end example
+@end deftypevr
 
-For example, @code{"text/plain"} parses as @code{("text/plain")}, and
-@code{"text/plain;charset=utf-8"} parses as @code{("text/plain"
-("charset" . "utf-8"))}.
+@deftypevr {HTTP Header} List content-type
+The MIME type of a resource, as a symbol, along with any parameters.
+@example
+(parse-header 'content-length "text/plain")
+@result{} (text/plain)
+(parse-header 'content-length "text/plain;charset=utf-8")
+@result{} (text/plain (charset . "utf-8"))
+@end example
+Note that the @code{charset} parameter is something is a misnomer, and
+the HTTP specification admits this.  It specifies the @emph{encoding} of
+the characters, not the character set.
+@end deftypevr
 
-@item expires
-A SRFI-19 date.
+@deftypevr {HTTP Header} Date expires
+The date/time after which the resource given in a response is considered
+stale.
+@example
+(parse-header 'expires "Tue, 15 Nov 1994 08:12:31 GMT")
+@result{} #<date ...>
+@end example
+@end deftypevr
 
-@item last-modified
-A SRFI-19 date.
-
-@end table
+@deftypevr {HTTP Header} Date last-modified
+The date/time on which the resource given in a response was last
+modified.
+@example
+(parse-header 'expires "Tue, 15 Nov 1994 08:12:31 GMT")
+@result{} #<date ...>
+@end example
+@end deftypevr
 
 
 @subsubsection Request Headers
 
-@table @code
-@item accept
-A param list.  Each element in the list indicates one media-range
-with accept-params.  They only known key is @code{q}, whose value is
-parsed as a quality value.
+Request headers may only appear in an HTTP request, not in a response.
 
-@item accept-charset
-A quality-list of charsets, as strings.
+@deftypevr {HTTP Header} List accept
+A list of preferred media types for a response.  Each element of the
+list is itself a list, in the same format as @code{content-type}.  
+@example
+(parse-header 'accept "text/html,text/plain;charset=utf-8")
+@result{} ((text/html) (text/plain (charset . "utf-8")))
+@end example
+Preference is expressed with qualitiy values:
+@example
+(parse-header 'accept "text/html;q=0.8,text/plain;q=0.6")
+@result{} ((text/html (q . 800)) (text/plain (q . 600)))
+@end example
+@end deftypevr
 
-@item accept-encoding
-A quality-list of content codings, as strings.
+@deftypevr {HTTP Header} QList accept-charset
+A quality list of acceptable charsets.  Note again that what HTTP calls
+a ``charset'' is what Guile calls a ``character encoding''.
+@example
+(parse-header 'accept-charset "iso-8859-5, unicode-1-1;q=0.8")
+@result{} ((1000 . "iso-8859-5") (800 . "unicode-1-1"))
+@end example
+@end deftypevr
 
-@item accept-language
-A quality-list of languages, as strings.
+@deftypevr {HTTP Header} QList accept-encoding
+A quality list of acceptable content codings.
+@example
+(parse-header 'accept-encoding "gzip,identity=0.8")
+@result{} ((1000 . "gzip") (800 . "identity"))
+@end example
+@end deftypevr
 
-@item authorization
-A string.
+@deftypevr {HTTP Header} QList accept-language
+A quality list of acceptable languages.
+@example
+(parse-header 'accept-language "cn,en=0.75")
+@result{} ((1000 . "cn") (750 . "en"))
+@end example
+@end deftypevr
 
-@item expect
-A param list of expectations.  The only known key is
-@code{100-continue}.
+@deftypevr {HTTP Header} Pair authorization
+Authorization credentials.  The car of the pair indicates the
+authentication scheme, like @code{basic}.  For basic authentication, the
+cdr of the pair will be the base64-encoded @samp{@var{user}:@var{pass}}
+string.  For other authentication schemes, like @code{digest}, the cdr
+will be a key-value list of credentials.
+@example
+(parse-header 'authorization "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
+@result{} (basic . "QWxhZGRpbjpvcGVuIHNlc2FtZQ==")
+@end example
+@end deftypevr
 
-@item from
-A string.
+@deftypevr {HTTP Header} List expect
+A list of expectations that a client has of a server.  The expectations
+are key-value lists.
+@example
+(parse-header 'expect "100-continue")
+@result{} ((100-continue))
+@end example
+@end deftypevr
 
-@item host
-A pair of the host, as a string, and the port, as an integer. If no port
-is given, port is @code{#f}.
+@deftypevr {HTTP Header} String from
+The email address of a user making an HTTP request.
+@example
+(parse-header 'from "bob@@example.com")
+@result{} "bob@@example.com"
+@end example
+@end deftypevr
 
-@item if-match
-Either the symbol @code{*}, or a list of entity tags (see above).
+@deftypevr {HTTP Header} Pair host
+The host for the resource being requested, as a hostname-port pair.  If
+no port is given, the port is @code{#f}.
+@example
+(parse-header 'host "gnu.org:80")
+@result{} ("gnu.org" . 80)
+(parse-header 'host "gnu.org")
+@result{} ("gnu.org" . #f)
+@end example
+@end deftypevr
 
-@item if-modified-since
-A SRFI-19 date.
+@deftypevr {HTTP Header} *|List if-match
+A set of etags, indicating that the request should proceed if and only
+if the etag of the resource is in that set.  Either the symbol @code{*},
+indicating any etag, or a list of entity tags.
+@example
+(parse-header 'if-match "*")
+@result{} *
+(parse-header 'if-match "asdfadf")
+@result{} (("asdfadf" . #t))
+(parse-header 'if-match W/"asdfadf")
+@result{} (("asdfadf" . #f))
+@end example
+@end deftypevr
 
-@item if-none-match
-Either the symbol @code{*}, or a list of entity tags (see above).
+@deftypevr {HTTP Header} Date if-modified-since
+Indicates that a response should proceed if and only if the resource has
+been modified since the given date.
+@example
+(parse-header if-modified-since "Tue, 15 Nov 1994 08:12:31 GMT")
+@result{} #<date ...>
+@end example
+@end deftypevr
 
-@item if-range
-Either an entity tag, or a SRFI-19 date.
+@deftypevr {HTTP Header} *|List if-none-match
+A set of etags, indicating that the request should proceed if and only
+if the etag of the resource is not in the set.  Either the symbol
+@code{*}, indicating any etag, or a list of entity tags.
+@example
+(parse-header 'if-none-match "*")
+@result{} *
+@end example
+@end deftypevr
 
-@item if-unmodified-since
-A SRFI-19 date.
+@deftypevr {HTTP Header} ETag|Date if-range
+Indicates that the range request should proceed if and only if the
+resource matches a modification date or an etag.  Either an entity tag,
+or a SRFI-19 date.
+@example
+(parse-header 'if-range "\"original-etag\"")
+@result{} ("original-etag" . #t)
+@end example
+@end deftypevr
 
-@item max-forwards
-An exact non-negative integer.
+@deftypevr {HTTP Header} Date if-unmodified-since
+Indicates that a response should proceed if and only if the resource has
+not been modified since the given date.
+@example
+(parse-header 'if-not-modified-since "Tue, 15 Nov 1994 08:12:31 GMT")
+@result{} #<date ...>
+@end example
+@end deftypevr
 
-@item proxy-authorization
-A string.
+@deftypevr {HTTP Header} UInt max-forwards
+The maximum number of proxy or gateway hops that a request should be
+subject to.
+@example
+(parse-header 'max-forwards "10")
+@result{} 10
+@end example
+@end deftypevr
 
-@item range
-A pair whose car is the symbol @code{bytes}, and whose cdr is a list of
-pairs. Each element of the cdr indicates a range; the car is the first
-byte position and the cdr is the last byte position, as integers, or
-@code{#f} if not given.
+@deftypevr {HTTP Header} Pair proxy-authorization
+Authorization credentials for a proxy connection.  See the documentation
+for @code{authorization} above for more information on the format.
+@example
+(parse-header 'proxy-authorization "Digest foo=bar,baz=qux"
+@result{} (digest (foo . "bar") (baz . "qux"))
+@end example
+@end deftypevr
 
-@item referer
-A URI.
+@deftypevr {HTTP Header} Pair range
+A range request, indicating that the client wants only part of a
+resource.  The car of the pair is the symbol @code{bytes}, and the cdr
+is a list of pairs. Each element of the cdr indicates a range; the car
+is the first byte position and the cdr is the last byte position, as
+integers, or @code{#f} if not given.
+@example
+(parse-header 'range "bytes=10-30,50-")
+@result{} (bytes (10 . 30) (50 . #f))
+@end example
+@end deftypevr
 
-@item te
-A param list of transfer-codings.  The only known key is
-@code{trailers}.
+@deftypevr {HTTP Header} URI referer
+The URI of the resource that referred the user to this resource.  The
+name of the header is a misspelling, but we are stuck with it.
+@example
+(parse-header 'referer "http://www.gnu.org/")
+@result{} #<uri ...>
+@end example
+@end deftypevr
 
-@item user-agent
-A string.
-@end table
+@deftypevr {HTTP Header} List te
+A list of transfer codings, expressed as key-value lists.  A common
+transfer coding is @code{trailers}.
+@example
+(parse-header 'te "trailers")
+@result{} ((trailers))
+@end example
+@end deftypevr
+
+@deftypevr {HTTP Header} String user-agent
+A string indicating the user agent making the request.  The
+specification defines a structured format for this header, but it is
+widely disregarded, so Guile does not attempt to parse strictly.
+@example
+(parse-header 'user-agent "Mozilla/5.0")
+@result{} "Mozilla/5.0"
+@end example
+@end deftypevr
 
 
 @subsubsection Response Headers
 
-@table @code
-@item accept-ranges
-A list of strings.
+@deftypevr {HTTP Header} List accept-ranges
+A list of range units that the server supports, as symbols.
+@example
+(parse-header 'accept-ranges "bytes")
+@result{} (bytes)
+@end example
+@end deftypevr
 
-@item age
-An exact, non-negative integer.
+@deftypevr {HTTP Header} UInt age
+The age of a cached response, in seconds.
+@example
+(parse-header 'age "3600")
+@result{} 3600
+@end example
+@end deftypevr
 
-@item etag
-An entity tag.
+@deftypevr {HTTP Header} ETag etag
+The entity-tag of the resource.
+@example
+(parse-header 'etag "\"foo\"")
+@result{} ("foo" . #t)
+@end example
+@end deftypevr
 
-@item location
-A URI.
+@deftypevr {HTTP Header} URI location
+A URI on which a request may be completed.  Used in combination with a
+redirecting status code to perform client-side redirection.
+@example
+(parse-header 'location "http://example.com/other")
+@result{} #<uri ...>
+@end example
+@end deftypevr
 
-@item proxy-authenticate
-A string.
+@deftypevr {HTTP Header} List proxy-authenticate
+A list of challenges to a proxy, indicating the need for authentication.
+@example
+(parse-header 'proxy-authenticate "Basic realm=\"foo\"")
+@result{} ((basic (realm . "foo")))
+@end example
+@end deftypevr
 
-@item retry-after
-Either an exact, non-negative integer, or a SRFI-19 date.
+@deftypevr {HTTP Header} UInt|Date retry-after
+Used in combination with a server-busy status code, like 503, to
+indicate that a client should retry later.  Either a number of seconds,
+or a date.
+@example
+(parse-header 'retry-after "60")
+@result{} 60
+@end example
+@end deftypevr
 
-@item server
-A string.
+@deftypevr {HTTP Header} String server
+A string identifying the server.
+@example
+(parse-header 'server "My first web server")
+@result{} "My first web server"
+@end example
+@end deftypevr
 
-@item vary
-Either the symbol @code{*}, or a list of headers, with known headers
-parsed to symbols.
+@deftypevr {HTTP Header} *|List vary
+A set of request headers that were used in computing this response.
+Used to indicate that server-side content negotation was performed, for
+example in response to the @code{accept-language} header.  Can also be
+the symbol @code{*}, indicating that all headers were considered.
+@example
+(parse-header 'vary "Accept-Language, Accept")
+@result{} (accept-language accept)
+@end example
+@end deftypevr
 
-@item www-authenticate
-A string.
-@end table
+@deftypevr {HTTP Header} List www-authenticate
+A list of challenges to a user, indicating the need for authentication.
+@example
+(parse-header 'www-authenticate "Basic realm=\"foo\"")
+@result{} ((basic (realm . "foo")))
+@end example
+@end deftypevr
 
 
 @node Requests
