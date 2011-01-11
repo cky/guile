@@ -48,7 +48,11 @@
   (parse "var x = { foo: 12, bar: \"hello\" };"
          '(begin (var (x (object (foo (number 12))
                                  (bar (string "hello")))))
-                 (begin))))
+                 (begin)))
+  (parse "\"\\x12\";"   ; Latin-1 escape in string literal
+         '(string "\x12"))
+  (parse "\"\\u1234\";" ; Unicode escape in string literal
+         '(string "\u1234")))
 
 
 (define-syntax ecompile
