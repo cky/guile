@@ -412,7 +412,7 @@
   (let ((c   (peek-char port))
         (loc (port-source-location port)))
     (case c
-      ((#\ht #\vt #\np #\space)         ; whitespace
+      ((#\ht #\vt #\np #\space #\x00A0) ; whitespace
        (read-char port)
        (next-token port div?))
       ((#\newline #\cr)                 ; line break
