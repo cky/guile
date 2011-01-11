@@ -37,11 +37,8 @@
             adapt-response-version
             write-response
 
-            read-response-body/latin-1
-            write-response-body/latin-1
-
-            read-response-body/bytevector
-            write-response-body/bytevector
+            read-response-body
+            write-response-body
 
             ;; General headers
             ;;
@@ -233,44 +230,7 @@ on @var{port}, perhaps using some transfer encoding."
       (make-response (response-version r) (response-code r)
                      (response-reason-phrase r) (response-headers r) port)))
 
-;; Probably not what you want to use "in production". Relies on one byte
-;; per char because we are in latin-1 encoding.
-;;
-(define (read-response-body/latin-1 r)
-  "Reads the response body from @var{r}, as a string.
-
-Assumes that the response port has ISO-8859-1 encoding, so that the
-number of characters to read is the same as the
-@code{response-content-length}. Returns @code{#f} if there was no
-response body."
-  (cond 
-   ((response-content-length r) =>
-    (lambda (nbytes)
-      (let ((buf (make-string nbytes))
-            (port (response-port r)))
-        (let lp ((i 0))
-          (cond
-           ((< i nbytes)
-            (let ((c (read-char port)))
-              (cond
-               ((eof-object? c)
-                (bad-response "EOF while reading response body: ~a bytes of ~a"
-                              i nbytes))
-               (else
-                (string-set! buf i c)
-                (lp (1+ i))))))
-           (else buf))))))
-   (else #f)))
-
-;; Likewise, assumes that body can be written in the latin-1 encoding,
-;; and that the latin-1 encoding is what is expected by the client.
-;;
-(define (write-response-body/latin-1 r body)
-  "Write @var{body}, a string encodable in ISO-8859-1, to the port
-corresponding to the HTTP response @var{r}."
-  (display body (response-port r)))
-
-(define (read-response-body/bytevector r)
+(define (read-response-body r)
   "Reads the response body from @var{r}, as a bytevector.  Returns
 @code{#f} if there was no response body."
   (let ((nbytes (response-content-length r)))
@@ -281,7 +241,7 @@ corresponding to the HTTP response @var{r}."
                (bad-response "EOF while reading response body: ~a bytes of ~a"
                             (bytevector-length bv) nbytes))))))
 
-(define (write-response-body/bytevector r bv)
+(define (write-response-body r bv)
   "Write @var{body}, a bytevector, to the port corresponding to the HTTP
 response @var{r}."
   (put-bytevector (response-port r) bv))

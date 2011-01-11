@@ -38,11 +38,8 @@
             build-request
             write-request
 
-            read-request-body/latin-1
-            write-request-body/latin-1
-
-            read-request-body/bytevector
-            write-request-body/bytevector
+            read-request-body
+            write-request-body
 
             ;; General headers
             ;;
@@ -198,44 +195,7 @@ on @var{port}, perhaps using some transfer encoding."
       (make-request (request-method r) (request-uri r) (request-version r)
                     (request-headers r) (request-meta r) port)))
 
-;; Probably not what you want to use "in production". Relies on one byte
-;; per char because we are in latin-1 encoding.
-;;
-(define (read-request-body/latin-1 r)
-  "Reads the request body from @var{r}, as a string.
-
-Assumes that the request port has ISO-8859-1 encoding, so that the
-number of characters to read is the same as the
-@code{request-content-length}. Returns @code{#f} if there was no request
-body."
-  (cond 
-   ((request-content-length r) =>
-    (lambda (nbytes)
-      (let ((buf (make-string nbytes))
-            (port (request-port r)))
-        (let lp ((i 0))
-          (cond
-           ((< i nbytes)
-            (let ((c (read-char port)))
-              (cond
-               ((eof-object? c)
-                (bad-request "EOF while reading request body: ~a bytes of ~a"
-                             i nbytes))
-               (else
-                (string-set! buf i c)
-                (lp (1+ i))))))
-           (else buf))))))
-   (else #f)))
-
-;; Likewise, assumes that body can be written in the latin-1 encoding,
-;; and that the latin-1 encoding is what is expected by the server.
-;;
-(define (write-request-body/latin-1 r body)
-  "Write @var{body}, a string encodable in ISO-8859-1, to the port
-corresponding to the HTTP request @var{r}."
-  (display body (request-port r)))
-
-(define (read-request-body/bytevector r)
+(define (read-request-body r)
   "Reads the request body from @var{r}, as a bytevector.  Returns
 @code{#f} if there was no request body."
   (let ((nbytes (request-content-length r)))
@@ -246,7 +206,7 @@ corresponding to the HTTP request @var{r}."
                (bad-request "EOF while reading request body: ~a bytes of ~a"
                             (bytevector-length bv) nbytes))))))
 
-(define (write-request-body/bytevector r bv)
+(define (write-request-body r bv)
   "Write @var{body}, a bytevector, to the port corresponding to the HTTP
 request @var{r}."
   (put-bytevector (request-port r) bv))

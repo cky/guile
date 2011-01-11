@@ -20,6 +20,7 @@
 (define-module (test-suite web-response)
   #:use-module (web uri)
   #:use-module (web response)
+  #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-19)
   #:use-module (test-suite lib))
 
@@ -53,9 +54,9 @@ abcdefghijklmnopqrstuvwxyz0123456789")
         (set! r (read-response (open-input-string example-1)))
         (response? r)))
     
-    (pass-if "read-response-body/latin-1"
+    (pass-if "read-response-body"
       (begin
-        (set! body (read-response-body/latin-1 r))
+        (set! body (read-response-body r))
         #t))
     
     (pass-if (equal? (response-version r) '(1 . 1)))
@@ -64,7 +65,9 @@ abcdefghijklmnopqrstuvwxyz0123456789")
     
     (pass-if (equal? (response-reason-phrase r) "OK"))
     
-    (pass-if (equal? body "abcdefghijklmnopqrstuvwxyz0123456789"))
+    (pass-if (equal? body 
+                     (string->utf8
+                      "abcdefghijklmnopqrstuvwxyz0123456789")))
     
     (pass-if "checking all headers"
       (equal?
@@ -88,10 +91,10 @@ abcdefghijklmnopqrstuvwxyz0123456789")
                 (with-output-to-string
                   (lambda ()
                     (let ((r (write-response r (current-output-port))))
-                      (write-response-body/latin-1 r body))))
+                      (write-response-body r body))))
               (lambda ()
                 (let ((r (read-response (current-input-port))))
-                  (values r (read-response-body/latin-1 r))))))
+                  (values r (read-response-body r))))))
         (lambda (r* body*)
           (responses-equal? r body r* body*))))
 

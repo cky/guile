@@ -51,11 +51,8 @@ Accept-Language: en-gb, en;q=0.9\r
     
     (pass-if (equal? (request-uri r) (build-uri 'http #:path "/qux")))
     
-    (pass-if (equal? (read-request-body/latin-1 r) #f))
-    ;; Since it's #f, should be an idempotent read, so we can try
-    ;; bytevectors too
-    (pass-if (equal? (read-request-body/bytevector r) #f))
-    
+    (pass-if (equal? (read-request-body r) #f))
+
     (pass-if "checking all headers"
       (equal?
        (request-headers r)

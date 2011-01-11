@@ -1,6 +1,6 @@
 ;;; Web I/O: HTTP
 
-;; Copyright (C)  2010 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -121,7 +121,7 @@
                  (let ((req (read-request port)))
                    (values port
                            req
-                           (read-request-body/bytevector req))))
+                           (read-request-body req))))
                (lambda (k . args)
                  (false-if-exception (close-port port)))))))))))))
 
@@ -142,12 +142,10 @@
          (port (response-port response)))
     (cond
      ((not body))                       ; pass
-     ((string? body)
-      (write-response-body/latin-1 response body))
      ((bytevector? body)
-      (write-response-body/bytevector response body))
+      (write-response-body response body))
      (else
-      (error "Expected a string or bytevector for body" body)))
+      (error "Expected a bytevector for body" body)))
     (cond
      ((keep-alive? response)
       (force-output port)
