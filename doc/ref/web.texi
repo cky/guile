@@ -1033,15 +1033,35 @@ A list of challenges to a user, indicating the need for authentication.
 (use-modules (web request))
 @end example
 
-The request module contains a data type for HTTP requests.  Note that
-the body is not part of the request, but the port is.  Once you have
-read a request, you may read the body separately, and likewise for
-writing requests.
+The request module contains a data type for HTTP requests.  
 
-@defun build-request [#:method] [#:uri] [#:version] [#:headers] [#:port] [#:meta] [#:validate-headers?]
-Construct an HTTP request object. If @var{validate-headers?} is true,
-the headers are each run through their respective validators.
-@end defun
+@subsubsection An Important Note on Character Sets
+
+HTTP requests consist of two parts: the request proper, consisting of a
+request line and a set of headers, and (optionally) a body.  The body
+might have a binary content-type, and even in the textual case its
+length is specified in bytes, not characters.
+
+Therefore, HTTP is a fundamentally binary protocol.  However the request
+line and headers are specified to be in a subset of ASCII, so they can
+be treated as text, provided that the port's encoding is set to an
+ASCII-compatible one-byte-per-character encoding.  ISO-8859-1 (latin-1)
+is just such an encoding, and happens to be very efficient for Guile.
+
+So what Guile does when reading requests from the wire, or writing them
+out, is to set the port's encoding to latin-1, and treating the request
+headers as text.
+
+The request body is another issue.  For binary data, the data is
+probably in a bytevector, so we use the R6RS binary output procedures to
+write out the binary payload.  Textual data usually has to be written
+out to some character encoding, usually UTF-8, and then the resulting
+bytevector is written out to the port.
+
+In summary, Guile reads and writes HTTP over latin-1 sockets, without
+any loss of generality.
+
+@subsubsection Request API
 
 @defun request? 
 @defunx request-method 
@@ -1070,43 +1090,37 @@ The port on which to read or write a request body, if any.
 @end table
 @end defun
 
-@defun read-request port [meta]
+@defun read-request port [meta='()]
 Read an HTTP request from @var{port}, optionally attaching the given
 metadata, @var{meta}.
 
 As a side effect, sets the encoding on @var{port} to ISO-8859-1
 (latin-1), so that reading one character reads one byte. See the
-discussion of character sets in "HTTP Requests" in the manual, for more
-information.
+discussion of character sets above, for more information.
+
+Note that the body is not part of the request.  Once you have read a
+request, you may read the body separately, and likewise for writing
+requests.
+@end defun
+
+@defun build-request uri [#:method='GET] [#:version='(1 . 1)] [#:headers='()] [#:port=#f] [#:meta='()] [#:validate-headers?=#t]
+Construct an HTTP request object. If @var{validate-headers?} is true,
+the headers are each run through their respective validators.
 @end defun
 
 @defun write-request r port
 Write the given HTTP request to @var{port}.
 
-Returns a new request, whose @code{request-port} will continue writing
+Return a new request, whose @code{request-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
 @end defun
 
-@defun read-request-body/latin-1 r
-Reads the request body from @var{r}, as a string.
-
-Assumes that the request port has ISO-8859-1 encoding, so that the
-number of characters to read is the same as the
-@code{request-content-length}. Returns @code{#f} if there was no request
-body.
-@end defun
-
-@defun write-request-body/latin-1 r body
-Write @var{body}, a string encodable in ISO-8859-1, to the port
-corresponding to the HTTP request @var{r}.
-@end defun
-
-@defun read-request-body/bytevector r
-Reads the request body from @var{r}, as a bytevector. Returns @code{#f}
+@defun read-request-body r
+Reads the request body from @var{r}, as a bytevector.  Return @code{#f}
 if there was no request body.
 @end defun
 
-@defun write-request-body/bytevector r bv
+@defun write-request-body r bv
 Write @var{body}, a bytevector, to the port corresponding to the HTTP
 request @var{r}.
 @end defun
@@ -1156,11 +1170,10 @@ more information on the format of parsed headers.
 Return the given request header, or @var{default} if none was present.
 @end defun
 
-@defun request-absolute-uri r [default-host] [default-port]
+@defun request-absolute-uri r [default-host=#f] [default-port=#f]
 A helper routine to determine the absolute URI of a request, using the
 @code{host} header and the default host and port.
 @end defun
-
 
 
 @node Responses
@@ -1197,27 +1210,20 @@ The port on which to read or write a response body, if any.
 @end defun
 
 @defun read-response port
-Read an HTTP response from @var{port}, optionally attaching the given
-metadata, @var{meta}.
+Read an HTTP response from @var{port}.
 
 As a side effect, sets the encoding on @var{port} to ISO-8859-1
 (latin-1), so that reading one character reads one byte. See the
-discussion of character sets in "HTTP Responses" in the manual, for more
-information.
+discussion of character sets in @ref{Responses}, for more information.
 @end defun
 
-@defun build-response [#:version] [#:code] [#:reason-phrase] [#:headers] [#:port]
+@defun build-response [#:version='(1 . 1)] [#:code=200] [#:reason-phrase=#f] [#:headers='()] [#:port=#f] [#:validate-headers=#t]
 Construct an HTTP response object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators.
 @end defun
 
-@defun extend-response r k v . additional
-Extend an HTTP response by setting additional HTTP headers @var{k},
-@var{v}. Returns a new HTTP response.
-@end defun
-
 @defun adapt-response-version response version
-Adapt the given response to a different HTTP version. Returns a new HTTP
+Adapt the given response to a different HTTP version.  Return a new HTTP
 response.
 
 The idea is that many applications might just build a response for the
@@ -1230,30 +1236,16 @@ the version field.
 @defun write-response r port
 Write the given HTTP response to @var{port}.
 
-Returns a new response, whose @code{response-port} will continue writing
+Return a new response, whose @code{response-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
 @end defun
 
-@defun read-response-body/latin-1 r
-Reads the response body from @var{r}, as a string.
-
-Assumes that the response port has ISO-8859-1 encoding, so that the
-number of characters to read is the same as the
-@code{response-content-length}. Returns @code{#f} if there was no
-response body.
-@end defun
-
-@defun write-response-body/latin-1 r body
-Write @var{body}, a string encodable in ISO-8859-1, to the port
-corresponding to the HTTP response @var{r}.
-@end defun
-
-@defun read-response-body/bytevector r
-Reads the response body from @var{r}, as a bytevector. Returns @code{#f}
+@defun read-response-body r
+Read the response body from @var{r}, as a bytevector.  Returns @code{#f}
 if there was no response body.
 @end defun
 
-@defun write-response-body/bytevector r bv
+@defun write-response-body r bv
 Write @var{body}, a bytevector, to the port corresponding to the HTTP
 response @var{r}.
 @end defun
@@ -1291,7 +1283,7 @@ headers.
 @defunx response-via response [default='()]
 @defunx response-warning response [default='()]
 @defunx response-www-authenticate response [default=#f]
-Return the given request header, or @var{default} if none was present.
+Return the given response header, or @var{default} if none was present.
 @end defun
 
 
