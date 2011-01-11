@@ -197,6 +197,7 @@
                       (StringLiteral) : `(string ,$1)
                       (RegexpLiteral) : `(regexp ,$1)
                       (NumericLiteral) : `(number ,$1)
+                      (dot NumericLiteral) : `(number ,(string->number (string-append "." (number->string $2))))
                       (ArrayLiteral) : $1
                       (ObjectLiteral) : $1
                       (lparen Expression rparen) : $2)
