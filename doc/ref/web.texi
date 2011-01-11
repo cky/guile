@@ -1335,7 +1335,7 @@ A user-provided handler procedure is called, with the request
 and body as its arguments.  The handler should return two
 values: the response, as a @code{<response>} record from @code{(web
 response)}, and the response body as a string, bytevector, or
-@code{#f} if not present.  We also allow the reponse to be simply an
+@code{#f} if not present.  We also allow the response to be simply an
 alist of headers, in which case a default response object is
 constructed with those headers.
 
@@ -1378,16 +1378,16 @@ that we don't expose the accessors for the various fields of a
 any access to the impl objects.
 
 @defun open-server impl open-params
-Open a server for the given implementation. Returns one value, the new
+Open a server for the given implementation.  Return one value, the new
 server object. The implementation's @code{open} procedure is applied to
 @var{open-params}, which should be a list.
 @end defun
 
 @defun read-client impl server
 Read a new client from @var{server}, by applying the implementation's
-@code{read} procedure to the server. If successful, returns three
+@code{read} procedure to the server.  If successful, return three
 values: an object corresponding to the client, a request object, and the
-request body. If any exception occurs, returns @code{#f} for all three
+request body. If any exception occurs, return @code{#f} for all three
 values.
 @end defun
 
@@ -1439,25 +1439,18 @@ Given the procedures above, it is a small matter to make a web server:
 
 @defun serve-one-client handler impl server state
 Read one request from @var{server}, call @var{handler} on the request
-and body, and write the response to the client. Returns the new state
+and body, and write the response to the client.  Return the new state
 produced by the handler procedure.
 @end defun
 
-@defun run-server handler [impl] [open-params] . state
+@defun run-server handler [impl='http] [open-params='()] . state
 Run Guile's built-in web server.
 
 @var{handler} should be a procedure that takes two or more arguments,
 the HTTP request and request body, and returns two or more values, the
 response and response body.
 
-For example, here is a simple "Hello, World!" server:
-
-@example 
- (define (handler request body)
-   (values '((content-type . ("text/plain")))
-           "Hello, World!"))
- (run-server handler)
-@end example
+For examples, skip ahead to the next section, @ref{Web Examples}.
 
 The response and body will be run through @code{sanitize-response}
 before sending back to the client.
@@ -1466,12 +1459,30 @@ Additional arguments to @var{handler} are taken from @var{state}.
 Additional return values are accumulated into a new @var{state}, which
 will be used for subsequent requests. In this way a handler can
 explicitly manage its state.
-
-The default server implementation is @code{http}, which accepts
-@var{open-params} like @code{(#:port 8081)}, among others. See "Web
-Server" in the manual, for more information.
 @end defun
 
+The default web server implementation is @code{http}, which binds to a
+socket, listening for request on that port.
+
+@deffn {HTTP Implementation} http [#:host=#f] [#:family=AF_INET] [#:addr=INADDR_LOOPBACK] [#:port 8080] [#:socket]
+The default HTTP implementation.  We document it as a function with
+keyword arguments, because that is precisely the way that it is -- all
+of the @var{open-params} to @code{run-server} get passed to the
+implementation's open function.
+
+@example
+;; The defaults: localhost:8080
+(run-server handler)
+;; Same thing
+(run-server handler 'http '())
+;; On a different port
+(run-server handler 'http '(#:port 8081))
+;; IPv6
+(run-server handler 'http '(#:family AF_INET6 #:port 8081))
+;; Custom socket
+(run-server handler 'http `(#:socket ,(sudo-make-me-a-socket)))
+@end example
+@end deffn
 
 @node Web Examples
 @subsection Web Examples
@@ -1498,7 +1509,7 @@ is our payload:
 
 @example
 (define (hello-world-handler request request-body)
-  (values '((content-type . ("text/plain")))
+  (values '((content-type . (text/plain)))
           "Hello World!"))
 @end example
 
@@ -1534,7 +1545,7 @@ the request, response, and URI modules, and do just that.
 (define (hello-hacker-handler request body)
   (if (equal? (request-path-components request)
               '("hacker"))
-      (values '((content-type . ("text/plain")))
+      (values '((content-type . (text/plain)))
               "Hello hacker!")
       (not-found request)))
 
@@ -1622,8 +1633,8 @@ strings. Now we define a little response helper:
                   (status 200)
                   (title "Hello hello!")
                   (doctype "<!DOCTYPE html>\n")
-                  (content-type-params '(("charset" . "utf-8")))
-                  (content-type "text/html")
+                  (content-type-params '((charset . "utf-8")))
+                  (content-type 'text/html)
                   (extra-headers '())
                   (sxml (and body (templatize title body))))
   (values (build-response
@@ -1642,9 +1653,9 @@ Here we see the power of keyword arguments with default initializers. By
 the time the arguments are fully parsed, the @code{sxml} local variable
 will hold the templated SXML, ready for sending out to the client.
 
-Instead of returning the body as a string, here we give a procedure,
-which will be called by the web server to write out the response to the
-client.
+Also, instead of returning the body as a string, @code{respond} gives a
+procedure, which will be called by the web server to write out the
+response to the client.
 
 Now, a simple example using this responder, which lays out the incoming
 headers in an HTML table.
