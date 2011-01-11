@@ -204,44 +204,44 @@ The following procedures can be found in the @code{(web uri)}
 module. Load it into your Guile, using a form like the above, to have
 access to them.
 
-@defun build-uri scheme [#:userinfo=@code{#f}] [#:host=@code{#f}] @
+@deffn {Scheme Procedure} build-uri scheme [#:userinfo=@code{#f}] [#:host=@code{#f}] @
        [#:port=@code{#f}] [#:path=@code{""}] [#:query=@code{#f}] @
        [#:fragment=@code{#f}] [#:validate?=@code{#t}]
 Construct a URI object.  @var{scheme} should be a symbol, and the rest
 of the fields are either strings or @code{#f}.  If @var{validate?} is
 true, also run some consistency checks to make sure that the constructed
 URI is valid.
-@end defun
+@end deffn
 
-@defun uri? x
-@defunx uri-scheme uri
-@defunx uri-userinfo uri
-@defunx uri-host uri
-@defunx uri-port uri
-@defunx uri-path uri
-@defunx uri-query uri
-@defunx uri-fragment uri
+@deffn {Scheme Procedure} uri? x
+@deffnx {Scheme Procedure} uri-scheme uri
+@deffnx {Scheme Procedure} uri-userinfo uri
+@deffnx {Scheme Procedure} uri-host uri
+@deffnx {Scheme Procedure} uri-port uri
+@deffnx {Scheme Procedure} uri-path uri
+@deffnx {Scheme Procedure} uri-query uri
+@deffnx {Scheme Procedure} uri-fragment uri
 A predicate and field accessors for the URI record type.  The URI scheme
 will be a symbol, and the rest either strings or @code{#f} if not
 present.
-@end defun
+@end deffn
 
-@defun string->uri string
+@deffn {Scheme Procedure} string->uri string
 Parse @var{string} into a URI object.  Return @code{#f} if the string
 could not be parsed.
-@end defun
+@end deffn
 
-@defun uri->string uri
+@deffn {Scheme Procedure} uri->string uri
 Serialize @var{uri} to a string.  If the URI has a port that is the
 default port for its scheme, the port is not included in the
 serialization.
-@end defun
+@end deffn
 
-@defun declare-default-port! scheme port
+@deffn {Scheme Procedure} declare-default-port! scheme port
 Declare a default port for the given URI scheme.
-@end defun
+@end deffn
 
-@defun uri-decode str [#:encoding=@code{"utf-8"}]
+@deffn {Scheme Procedure} uri-decode str [#:encoding=@code{"utf-8"}]
 Percent-decode the given @var{str}, according to @var{encoding}, which
 should be the name of a character encoding.
 
@@ -260,12 +260,12 @@ character encodings.
 
 Returns a string of the decoded characters, or a bytevector if
 @var{encoding} was @code{#f}.
-@end defun
+@end deffn
 
 Fixme: clarify return type. indicate default values. type of
 unescaped-chars.
 
-@defun uri-encode str [#:encoding=@code{"utf-8"}] [#:unescaped-chars]
+@deffn {Scheme Procedure} uri-encode str [#:encoding=@code{"utf-8"}] [#:unescaped-chars]
 Percent-encode any character not in the character set,
 @var{unescaped-chars}.
 
@@ -275,23 +275,23 @@ other character will be percent-encoded, by writing out the character to
 a bytevector within the given @var{encoding}, then encoding each byte as
 @code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
 the byte.
-@end defun
+@end deffn
 
-@defun split-and-decode-uri-path path
+@deffn {Scheme Procedure} split-and-decode-uri-path path
 Split @var{path} into its components, and decode each component,
 removing empty components.
 
 For example, @code{"/foo/bar%20baz/"} decodes to the two-element list,
 @code{("foo" "bar baz")}.
-@end defun
+@end deffn
 
-@defun encode-and-join-uri-path parts
+@deffn {Scheme Procedure} encode-and-join-uri-path parts
 URI-encode each element of @var{parts}, which should be a list of
 strings, and join the parts together with @code{/} as a delimiter.
 
 For example, the list @code{("scrambled eggs" "biscuits&gravy")} encodes
 as @code{"scrambled%20eggs/biscuits%26gravy"}.
-@end defun
+@end deffn
 
 @node HTTP
 @subsection The Hyper-Text Transfer Protocol
@@ -321,13 +321,13 @@ not-too-divergent texts.
 
 Header names are represented as lower-case symbols.
 
-@defun string->header name
+@deffn {Scheme Procedure} string->header name
 Parse @var{name} to a symbolic header name.
-@end defun
+@end deffn
 
-@defun header->string sym
+@deffn {Scheme Procedure} header->string sym
 Return the string form for the header named @var{sym}.
-@end defun
+@end deffn
 
 For example:
 
@@ -347,37 +347,37 @@ Guile keeps a registry of known headers, their string names, and some
 parsing and serialization procedures.  If a header is unknown, its
 string name is simply its symbol name in title-case.
 
-@defun known-header? sym
+@deffn {Scheme Procedure} known-header? sym
 Return @code{#t} iff @var{sym} is a known header, with associated
 parsers and serialization procedures.
-@end defun
+@end deffn
 
-@defun header-parser sym
+@deffn {Scheme Procedure} header-parser sym
 Return the value parser for headers named @var{sym}.  The result is a
 procedure that takes one argument, a string, and returns the parsed
 value.  If the header isn't known to Guile, a default parser is returned
 that passes through the string unchanged.
-@end defun
+@end deffn
 
-@defun header-validator sym
+@deffn {Scheme Procedure} header-validator sym
 Return a predicate which returns @code{#t} if the given value is valid
 for headers named @var{sym}.  The default validator for unknown headers
 is @code{string?}.
-@end defun
+@end deffn
 
-@defun header-writer sym
+@deffn {Scheme Procedure} header-writer sym
 Return a procedure that writes values for headers named @var{sym} to a
 port.  The resulting procedure takes two arguments: a value and a port.
 The default writer is @code{display}.
-@end defun
+@end deffn
 
 For more on the set of headers that Guile knows about out of the box,
 @pxref{HTTP Headers}.  To add your own, use the @code{declare-header!}
 procedure:
 
-@defun declare-header! name parser validator writer [#:multiple?=@code{#f}]
+@deffn {Scheme Procedure} declare-header! name parser validator writer [#:multiple?=@code{#f}]
 Declare a parser, validator, and writer for a given header.
-@end defun
+@end deffn
 
 For example, let's say you are running a web server behind some sort of
 proxy, and your proxy adds an @code{X-Client-Address} header, indicating
@@ -402,79 +402,79 @@ HTTP stack like this:
     (display (inet-ntoa ip) port)))
 @end example
 
-@defun valid-header? sym val
+@deffn {Scheme Procedure} valid-header? sym val
 Return a true value iff @var{val} is a valid Scheme value for the header
 with name @var{sym}.
-@end defun
+@end deffn
 
 Now that we have a generic interface for reading and writing headers, we
 do just that.
 
-@defun read-header port
+@deffn {Scheme Procedure} read-header port
 Read one HTTP header from @var{port}. Return two values: the header
 name and the parsed Scheme value. May raise an exception if the header
 was known but the value was invalid.
 
 Returns the end-of-file object for both values if the end of the message
 body was reached (i.e., a blank line).
-@end defun
+@end deffn
 
-@defun parse-header name val
+@deffn {Scheme Procedure} parse-header name val
 Parse @var{val}, a string, with the parser for the header named
 @var{name}.  Returns the parsed value.
-@end defun
+@end deffn
 
-@defun write-header name val port
+@deffn {Scheme Procedure} write-header name val port
 Write the given header name and value to @var{port}, using the writer
 from @code{header-writer}.
-@end defun
+@end deffn
 
-@defun read-headers port
+@deffn {Scheme Procedure} read-headers port
 Read the headers of an HTTP message from @var{port}, returning the
 headers as an ordered alist.
-@end defun
+@end deffn
 
-@defun write-headers headers port
+@deffn {Scheme Procedure} write-headers headers port
 Write the given header alist to @var{port}. Doesn't write the final
 @samp{\r\n}, as the user might want to add another header.
-@end defun
+@end deffn
 
 The @code{(web http)} module also has some utility procedures to read
 and write request and response lines.
 
-@defun parse-http-method str [start] [end]
+@deffn {Scheme Procedure} parse-http-method str [start] [end]
 Parse an HTTP method from @var{str}. The result is an upper-case symbol,
 like @code{GET}.
-@end defun
+@end deffn
 
-@defun parse-http-version str [start] [end]
+@deffn {Scheme Procedure} parse-http-version str [start] [end]
 Parse an HTTP version from @var{str}, returning it as a major-minor
 pair. For example, @code{HTTP/1.1} parses as the pair of integers,
 @code{(1 . 1)}.
-@end defun
+@end deffn
 
-@defun parse-request-uri str [start] [end]
+@deffn {Scheme Procedure} parse-request-uri str [start] [end]
 Parse a URI from an HTTP request line. Note that URIs in requests do not
 have to have a scheme or host name. The result is a URI object.
-@end defun
+@end deffn
 
-@defun read-request-line port
+@deffn {Scheme Procedure} read-request-line port
 Read the first line of an HTTP request from @var{port}, returning three
 values: the method, the URI, and the version.
-@end defun
+@end deffn
 
-@defun write-request-line method uri version port
+@deffn {Scheme Procedure} write-request-line method uri version port
 Write the first line of an HTTP request to @var{port}.
-@end defun
+@end deffn
 
-@defun read-response-line port
+@deffn {Scheme Procedure} read-response-line port
 Read the first line of an HTTP response from @var{port}, returning three
 values: the HTTP version, the response code, and the "reason phrase".
-@end defun
+@end deffn
 
-@defun write-response-line version code reason-phrase port
+@deffn {Scheme Procedure} write-response-line version code reason-phrase port
 Write the first line of an HTTP response to @var{port}.
-@end defun
+@end deffn
 
 
 @node HTTP Headers
@@ -1063,13 +1063,13 @@ any loss of generality.
 
 @subsubsection Request API
 
-@defun request? 
-@defunx request-method 
-@defunx request-uri 
-@defunx request-version 
-@defunx request-headers 
-@defunx request-meta 
-@defunx request-port 
+@deffn {Scheme Procedure} request? 
+@deffnx {Scheme Procedure} request-method 
+@deffnx {Scheme Procedure} request-uri 
+@deffnx {Scheme Procedure} request-version 
+@deffnx {Scheme Procedure} request-headers 
+@deffnx {Scheme Procedure} request-meta 
+@deffnx {Scheme Procedure} request-port 
 A predicate and field accessors for the request type.  The fields are as
 follows:
 @table @code
@@ -1088,9 +1088,9 @@ Communication}).
 @item port
 The port on which to read or write a request body, if any.
 @end table
-@end defun
+@end deffn
 
-@defun read-request port [meta='()]
+@deffn {Scheme Procedure} read-request port [meta='()]
 Read an HTTP request from @var{port}, optionally attaching the given
 metadata, @var{meta}.
 
@@ -1101,79 +1101,79 @@ discussion of character sets above, for more information.
 Note that the body is not part of the request.  Once you have read a
 request, you may read the body separately, and likewise for writing
 requests.
-@end defun
+@end deffn
 
-@defun build-request uri [#:method='GET] [#:version='(1 . 1)] [#:headers='()] [#:port=#f] [#:meta='()] [#:validate-headers?=#t]
+@deffn {Scheme Procedure} build-request uri [#:method='GET] [#:version='(1 . 1)] [#:headers='()] [#:port=#f] [#:meta='()] [#:validate-headers?=#t]
 Construct an HTTP request object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators.
-@end defun
+@end deffn
 
-@defun write-request r port
+@deffn {Scheme Procedure} write-request r port
 Write the given HTTP request to @var{port}.
 
 Return a new request, whose @code{request-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
-@end defun
+@end deffn
 
-@defun read-request-body r
+@deffn {Scheme Procedure} read-request-body r
 Reads the request body from @var{r}, as a bytevector.  Return @code{#f}
 if there was no request body.
-@end defun
+@end deffn
 
-@defun write-request-body r bv
+@deffn {Scheme Procedure} write-request-body r bv
 Write @var{body}, a bytevector, to the port corresponding to the HTTP
 request @var{r}.
-@end defun
+@end deffn
 
 The various headers that are typically associated with HTTP requests may
 be accessed with these dedicated accessors.  @xref{HTTP Headers}, for
 more information on the format of parsed headers.
 
-@defun request-accept request [default='()]
-@defunx request-accept-charset request [default='()]
-@defunx request-accept-encoding request [default='()]
-@defunx request-accept-language request [default='()]
-@defunx request-allow request [default='()]
-@defunx request-authorization request [default=#f]
-@defunx request-cache-control request [default='()]
-@defunx request-connection request [default='()]
-@defunx request-content-encoding request [default='()]
-@defunx request-content-language request [default='()]
-@defunx request-content-length request [default=#f]
-@defunx request-content-location request [default=#f]
-@defunx request-content-md5 request [default=#f]
-@defunx request-content-range request [default=#f]
-@defunx request-content-type request [default=#f]
-@defunx request-date request [default=#f]
-@defunx request-expect request [default='()]
-@defunx request-expires request [default=#f]
-@defunx request-from request [default=#f]
-@defunx request-host request [default=#f]
-@defunx request-if-match request [default=#f]
-@defunx request-if-modified-since request [default=#f]
-@defunx request-if-none-match request [default=#f]
-@defunx request-if-range request [default=#f]
-@defunx request-if-unmodified-since request [default=#f]
-@defunx request-last-modified request [default=#f]
-@defunx request-max-forwards request [default=#f]
-@defunx request-pragma request [default='()]
-@defunx request-proxy-authorization request [default=#f]
-@defunx request-range request [default=#f]
-@defunx request-referer request [default=#f]
-@defunx request-te request [default=#f]
-@defunx request-trailer request [default='()]
-@defunx request-transfer-encoding request [default='()]
-@defunx request-upgrade request [default='()]
-@defunx request-user-agent request [default=#f]
-@defunx request-via request [default='()]
-@defunx request-warning request [default='()]
+@deffn {Scheme Procedure} request-accept request [default='()]
+@deffnx {Scheme Procedure} request-accept-charset request [default='()]
+@deffnx {Scheme Procedure} request-accept-encoding request [default='()]
+@deffnx {Scheme Procedure} request-accept-language request [default='()]
+@deffnx {Scheme Procedure} request-allow request [default='()]
+@deffnx {Scheme Procedure} request-authorization request [default=#f]
+@deffnx {Scheme Procedure} request-cache-control request [default='()]
+@deffnx {Scheme Procedure} request-connection request [default='()]
+@deffnx {Scheme Procedure} request-content-encoding request [default='()]
+@deffnx {Scheme Procedure} request-content-language request [default='()]
+@deffnx {Scheme Procedure} request-content-length request [default=#f]
+@deffnx {Scheme Procedure} request-content-location request [default=#f]
+@deffnx {Scheme Procedure} request-content-md5 request [default=#f]
+@deffnx {Scheme Procedure} request-content-range request [default=#f]
+@deffnx {Scheme Procedure} request-content-type request [default=#f]
+@deffnx {Scheme Procedure} request-date request [default=#f]
+@deffnx {Scheme Procedure} request-expect request [default='()]
+@deffnx {Scheme Procedure} request-expires request [default=#f]
+@deffnx {Scheme Procedure} request-from request [default=#f]
+@deffnx {Scheme Procedure} request-host request [default=#f]
+@deffnx {Scheme Procedure} request-if-match request [default=#f]
+@deffnx {Scheme Procedure} request-if-modified-since request [default=#f]
+@deffnx {Scheme Procedure} request-if-none-match request [default=#f]
+@deffnx {Scheme Procedure} request-if-range request [default=#f]
+@deffnx {Scheme Procedure} request-if-unmodified-since request [default=#f]
+@deffnx {Scheme Procedure} request-last-modified request [default=#f]
+@deffnx {Scheme Procedure} request-max-forwards request [default=#f]
+@deffnx {Scheme Procedure} request-pragma request [default='()]
+@deffnx {Scheme Procedure} request-proxy-authorization request [default=#f]
+@deffnx {Scheme Procedure} request-range request [default=#f]
+@deffnx {Scheme Procedure} request-referer request [default=#f]
+@deffnx {Scheme Procedure} request-te request [default=#f]
+@deffnx {Scheme Procedure} request-trailer request [default='()]
+@deffnx {Scheme Procedure} request-transfer-encoding request [default='()]
+@deffnx {Scheme Procedure} request-upgrade request [default='()]
+@deffnx {Scheme Procedure} request-user-agent request [default=#f]
+@deffnx {Scheme Procedure} request-via request [default='()]
+@deffnx {Scheme Procedure} request-warning request [default='()]
 Return the given request header, or @var{default} if none was present.
-@end defun
+@end deffn
 
-@defun request-absolute-uri r [default-host=#f] [default-port=#f]
+@deffn {Scheme Procedure} request-absolute-uri r [default-host=#f] [default-port=#f]
 A helper routine to determine the absolute URI of a request, using the
 @code{host} header and the default host and port.
-@end defun
+@end deffn
 
 
 @node Responses
@@ -1186,12 +1186,12 @@ A helper routine to determine the absolute URI of a request, using the
 As with requests (@pxref{Requests}), Guile offers a data type for HTTP
 responses.  Again, the body is represented separately from the request.
 
-@defun response? 
-@defunx response-version 
-@defunx response-code 
-@defunx response-reason-phrase response
-@defunx response-headers 
-@defunx response-port 
+@deffn {Scheme Procedure} response? 
+@deffnx {Scheme Procedure} response-version 
+@deffnx {Scheme Procedure} response-code 
+@deffnx {Scheme Procedure} response-reason-phrase response
+@deffnx {Scheme Procedure} response-headers 
+@deffnx {Scheme Procedure} response-port 
 A predicate and field accessors for the response type.  The fields are as
 follows:
 @table @code
@@ -1207,22 +1207,22 @@ The response headers, as an alist of parsed values.
 @item port
 The port on which to read or write a response body, if any.
 @end table
-@end defun
+@end deffn
 
-@defun read-response port
+@deffn {Scheme Procedure} read-response port
 Read an HTTP response from @var{port}.
 
 As a side effect, sets the encoding on @var{port} to ISO-8859-1
 (latin-1), so that reading one character reads one byte. See the
 discussion of character sets in @ref{Responses}, for more information.
-@end defun
+@end deffn
 
-@defun build-response [#:version='(1 . 1)] [#:code=200] [#:reason-phrase=#f] [#:headers='()] [#:port=#f] [#:validate-headers=#t]
+@deffn {Scheme Procedure} build-response [#:version='(1 . 1)] [#:code=200] [#:reason-phrase=#f] [#:headers='()] [#:port=#f] [#:validate-headers=#t]
 Construct an HTTP response object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators.
-@end defun
+@end deffn
 
-@defun adapt-response-version response version
+@deffn {Scheme Procedure} adapt-response-version response version
 Adapt the given response to a different HTTP version.  Return a new HTTP
 response.
 
@@ -1231,60 +1231,60 @@ default HTTP version, and this method could handle a number of
 programmatic transformations to respond to older HTTP versions (0.9 and
 1.0). But currently this function is a bit heavy-handed, just updating
 the version field.
-@end defun
+@end deffn
 
-@defun write-response r port
+@deffn {Scheme Procedure} write-response r port
 Write the given HTTP response to @var{port}.
 
 Return a new response, whose @code{response-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
-@end defun
+@end deffn
 
-@defun read-response-body r
+@deffn {Scheme Procedure} read-response-body r
 Read the response body from @var{r}, as a bytevector.  Returns @code{#f}
 if there was no response body.
-@end defun
+@end deffn
 
-@defun write-response-body r bv
+@deffn {Scheme Procedure} write-response-body r bv
 Write @var{body}, a bytevector, to the port corresponding to the HTTP
 response @var{r}.
-@end defun
+@end deffn
 
 As with requests, the various headers that are typically associated with
 HTTP responses may be accessed with these dedicated accessors.
 @xref{HTTP Headers}, for more information on the format of parsed
 headers.
 
-@defun response-accept-ranges response [default=#f]
-@defunx response-age response [default='()]
-@defunx response-allow response [default='()]
-@defunx response-cache-control response [default='()]
-@defunx response-connection response [default='()]
-@defunx response-content-encoding response [default='()]
-@defunx response-content-language response [default='()]
-@defunx response-content-length response [default=#f]
-@defunx response-content-location response [default=#f]
-@defunx response-content-md5 response [default=#f]
-@defunx response-content-range response [default=#f]
-@defunx response-content-type response [default=#f]
-@defunx response-date response [default=#f]
-@defunx response-etag response [default=#f]
-@defunx response-expires response [default=#f]
-@defunx response-last-modified response [default=#f]
-@defunx response-location response [default=#f]
-@defunx response-pragma response [default='()]
-@defunx response-proxy-authenticate response [default=#f]
-@defunx response-retry-after response [default=#f]
-@defunx response-server response [default=#f]
-@defunx response-trailer response [default='()]
-@defunx response-transfer-encoding response [default='()]
-@defunx response-upgrade response [default='()]
-@defunx response-vary response [default='()]
-@defunx response-via response [default='()]
-@defunx response-warning response [default='()]
-@defunx response-www-authenticate response [default=#f]
+@deffn {Scheme Procedure} response-accept-ranges response [default=#f]
+@deffnx {Scheme Procedure} response-age response [default='()]
+@deffnx {Scheme Procedure} response-allow response [default='()]
+@deffnx {Scheme Procedure} response-cache-control response [default='()]
+@deffnx {Scheme Procedure} response-connection response [default='()]
+@deffnx {Scheme Procedure} response-content-encoding response [default='()]
+@deffnx {Scheme Procedure} response-content-language response [default='()]
+@deffnx {Scheme Procedure} response-content-length response [default=#f]
+@deffnx {Scheme Procedure} response-content-location response [default=#f]
+@deffnx {Scheme Procedure} response-content-md5 response [default=#f]
+@deffnx {Scheme Procedure} response-content-range response [default=#f]
+@deffnx {Scheme Procedure} response-content-type response [default=#f]
+@deffnx {Scheme Procedure} response-date response [default=#f]
+@deffnx {Scheme Procedure} response-etag response [default=#f]
+@deffnx {Scheme Procedure} response-expires response [default=#f]
+@deffnx {Scheme Procedure} response-last-modified response [default=#f]
+@deffnx {Scheme Procedure} response-location response [default=#f]
+@deffnx {Scheme Procedure} response-pragma response [default='()]
+@deffnx {Scheme Procedure} response-proxy-authenticate response [default=#f]
+@deffnx {Scheme Procedure} response-retry-after response [default=#f]
+@deffnx {Scheme Procedure} response-server response [default=#f]
+@deffnx {Scheme Procedure} response-trailer response [default='()]
+@deffnx {Scheme Procedure} response-transfer-encoding response [default='()]
+@deffnx {Scheme Procedure} response-upgrade response [default='()]
+@deffnx {Scheme Procedure} response-vary response [default='()]
+@deffnx {Scheme Procedure} response-via response [default='()]
+@deffnx {Scheme Procedure} response-warning response [default='()]
+@deffnx {Scheme Procedure} response-www-authenticate response [default=#f]
 Return the given response header, or @var{default} if none was present.
-@end defun
+@end deffn
 
 
 @node Web Server
@@ -1355,13 +1355,13 @@ the server socket.
 
 A user may define a server implementation with the following form:
 
-@defun define-server-impl name open read write close
+@deffn {Scheme Procedure} define-server-impl name open read write close
 Make a @code{<server-impl>} object with the hooks @var{open},
 @var{read}, @var{write}, and @var{close}, and bind it to the symbol
 @var{name} in the current module.
-@end defun
+@end deffn
 
-@defun lookup-server-impl impl
+@deffn {Scheme Procedure} lookup-server-impl impl
 Look up a server implementation. If @var{impl} is a server
 implementation already, it is returned directly. If it is a symbol, the
 binding named @var{impl} in the @code{(web server @var{impl})} module is
@@ -1369,7 +1369,7 @@ looked up. Otherwise an error is signaled.
 
 Currently a server implementation is a somewhat opaque type, useful only
 for passing to other procedures in this module, like @code{read-client}.
-@end defun
+@end deffn
 
 The @code{(web server)} module defines a number of routines that use
 @code{<server-impl>} objects to implement parts of a web server.  Given
@@ -1377,21 +1377,21 @@ that we don't expose the accessors for the various fields of a
 @code{<server-impl>}, indeed these routines are the only procedures with
 any access to the impl objects.
 
-@defun open-server impl open-params
+@deffn {Scheme Procedure} open-server impl open-params
 Open a server for the given implementation.  Return one value, the new
 server object. The implementation's @code{open} procedure is applied to
 @var{open-params}, which should be a list.
-@end defun
+@end deffn
 
-@defun read-client impl server
+@deffn {Scheme Procedure} read-client impl server
 Read a new client from @var{server}, by applying the implementation's
 @code{read} procedure to the server.  If successful, return three
 values: an object corresponding to the client, a request object, and the
 request body. If any exception occurs, return @code{#f} for all three
 values.
-@end defun
+@end deffn
 
-@defun handle-request handler request body state
+@deffn {Scheme Procedure} handle-request handler request body state
 Handle a given request, returning the response and body.
 
 The response and response body are produced by calling the given
@@ -1403,9 +1403,9 @@ arguments, and may be returned as additional values. The new
 returned as a list. The idea is that a server loop receives a handler
 from the user, along with whatever state values the user is interested
 in, allowing the user's handler to explicitly manage its state.
-@end defun
+@end deffn
 
-@defun sanitize-response request response body
+@deffn {Scheme Procedure} sanitize-response request response body
 "Sanitize" the given response and body, making them appropriate for the
 given request.
 
@@ -1421,29 +1421,29 @@ and the output collected as a bytevector. In the future we might try to
 instead use a compressing, chunk-encoded port, and call this procedure
 later, in the write-client procedure. Authors are advised not to rely on
 the procedure being called at any particular time.
-@end defun
+@end deffn
 
-@defun write-client impl server client response body
+@deffn {Scheme Procedure} write-client impl server client response body
 Write an HTTP response and body to @var{client}. If the server and
 client support persistent connections, it is the implementation's
 responsibility to keep track of the client thereafter, presumably by
 attaching it to the @var{server} argument somehow.
-@end defun
+@end deffn
 
-@defun close-server impl server
+@deffn {Scheme Procedure} close-server impl server
 Release resources allocated by a previous invocation of
 @code{open-server}.
-@end defun
+@end deffn
 
 Given the procedures above, it is a small matter to make a web server:
 
-@defun serve-one-client handler impl server state
+@deffn {Scheme Procedure} serve-one-client handler impl server state
 Read one request from @var{server}, call @var{handler} on the request
 and body, and write the response to the client.  Return the new state
 produced by the handler procedure.
-@end defun
+@end deffn
 
-@defun run-server handler [impl='http] [open-params='()] . state
+@deffn {Scheme Procedure} run-server handler [impl='http] [open-params='()] . state
 Run Guile's built-in web server.
 
 @var{handler} should be a procedure that takes two or more arguments,
@@ -1459,7 +1459,7 @@ Additional arguments to @var{handler} are taken from @var{state}.
 Additional return values are accumulated into a new @var{state}, which
 will be used for subsequent requests. In this way a handler can
 explicitly manage its state.
-@end defun
+@end deffn
 
 The default web server implementation is @code{http}, which binds to a
 socket, listening for request on that port.
