@@ -262,7 +262,7 @@
          (c1 (peek-char port)))
     (cond
      ((eof-object? c1) (digit->number c0))
-     ((and (char=? c0 #\0) (char=? c1 #\x))
+     ((and (char=? c0 #\0) (or (char=? c1 #\x) (char=? c1 #\X)))
       (read-char port)
       (let ((c (peek-char port)))
         (if (not (char-hex? c))
