@@ -187,6 +187,17 @@ values."
                                        (lambda (port)
                                          (display str port)))))
 
+(define (extend-response r k v . additional)
+  (let ((r (build-response #:version (response-version r)
+                           #:code (response-code r)
+                           #:headers
+                           (assoc-set! (copy-tree (response-headers r))
+                                       k v)
+                           #:port (response-port r))))
+    (if (null? additional)
+        r
+        (apply extend-response r additional))))
+
 ;; -> response body
 (define (sanitize-response request response body)
   "\"Sanitize\" the given response and body, making them appropriate for

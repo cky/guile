@@ -33,7 +33,6 @@
             response-port
             read-response
             build-response
-            extend-response
             adapt-response-version
             write-response
 
@@ -123,20 +122,6 @@ the headers are each run through their respective validators."
         (validate-headers headers))))
   (make-response version code reason-phrase headers port))
 
-(define (extend-response r k v . additional)
-  "Extend an HTTP response by setting additional HTTP headers @var{k},
-@var{v}.  Returns a new HTTP response."
-  (let ((r (build-response #:version (response-version r)
-                           #:code (response-code r)
-                           #:reason-phrase (%response-reason-phrase r)
-                           #:headers
-                           (assoc-set! (copy-tree (response-headers r))
-                                       k v)
-                           #:port (response-port r))))
-    (if (null? additional)
-        r
-        (apply extend-response r additional))))
-
 (define *reason-phrases*
   '((100 . "Continue")
     (101 . "Switching Protocols")
@@ -190,8 +175,7 @@ reason phrase for the response's code."
       (code->reason-phrase (response-code response))))
 
 (define (read-response port)
-  "Read an HTTP response from @var{port}, optionally attaching the given
-metadata, @var{meta}.
+  "Read an HTTP response from @var{port}.
 
 As a side effect, sets the encoding on @var{port} to
 ISO-8859-1 (latin-1), so that reading one character reads one byte.  See

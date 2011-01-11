@@ -146,7 +146,7 @@
       (if (not (null? headers))
           (bad-request "Headers not a list: ~a" headers))))
 
-(define* (build-request #:key (method 'GET) uri (version '(1 . 1))
+(define* (build-request uri #:key (method 'GET) (version '(1 . 1))
                         (headers '()) port (meta '())
                         (validate-headers? #t))
   "Construct an HTTP request object. If @var{validate-headers?} is true,
