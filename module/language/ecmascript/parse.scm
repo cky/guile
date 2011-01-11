@@ -85,7 +85,8 @@
                    (SourceElements SourceElement) : (if (and (pair? $1) (eq? (car $1) 'begin))
                                                          `(begin ,@(cdr $1) ,$2)
                                                          `(begin ,$1 ,$2)))
-   (FunctionBody (SourceElements) : $1)
+   (FunctionBody (SourceElements) : $1
+                 () : '(begin))
 
    (Statement (Block) : $1
               (VariableStatement) : $1
