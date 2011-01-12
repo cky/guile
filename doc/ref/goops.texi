@@ -47,8 +47,6 @@ module.  You can do this at the Guile REPL by evaluating:
 * Class Options::
 * Accessing Slots::
 * Generic Functions and Accessors::
-* Adding Methods to Generic Functions::
-* Invoking Generic Functions::
 * Redefining a Class::
 * Changing the Class of an Instance::
 * Introspection::
@@ -619,105 +617,225 @@ you'd just write
 and the question of which class the method is more associated with does
 not need answering.
 
-A generic function is a collection of methods with the same name but
-different sets of specializing argument classes.
+There can simultaneously be several methods with the same name but
+different sets of specializing argument classes; for example:
 
-@menu
-* Generic functions and methods::  
-* Next-method::                 
-* Example::                     
-@end menu
+@lisp
+(define-method (+ (x <string>) (y <string)) ...)
+(define-method (+ (x <matrix>) (y <matrix>)) ...)
+(define-method (+ (f <fish>) (b <bicyle>)) ...)
+(define-method (+ (a <foo>) (b <bar>) (c <baz>)) ...)
+@end lisp
 
-@node Generic functions and methods
-@subsection Generic functions and methods
+@noindent
+A generic function is a container for the set of such methods that a
+program intends to use.
 
-@c \label{gf-n-methods}
-Neither @goops{} nor CLOS use the message mechanism for methods as most
-Object Oriented language do. Instead, they use the notion of
-@dfn{generic functions}.  A generic function can be seen as a methods
-``tanker''. When the evaluator requested the application of a generic
-function, all the methods of this generic function will be grabbed and
-the most specific among them will be applied. We say that a method
-@var{M} is @emph{more specific} than a method @var{M'} if the class of
-its parameters are more specific than the @var{M'} ones.  To be more
-precise, when a generic function must be ``called'' the system will:
+If you look at a program's source code, and see @code{(+ x y)} somewhere
+in it, conceptually what is happening is that the program at that point
+calls a generic function (in this case, the generic function bound to
+the identifier @code{+}).  When that happens, Guile works out which of
+the generic function's methods is the most appropriate for the arguments
+that the function is being called with; then it evaluates the method's
+code with the arguments as formal parameters.  This happens every time
+that a generic function call is evaluated --- it isn't assumed that a
+given source code call will end up invoking the same method every time.
 
-@cindex generic function
-@enumerate
-@item
-search among all the generic function those which are applicable
-@item
-sort the list of applicable methods in the ``most specific'' order
-@item
-call the most specific method of this list (i.e. the first method of 
-the sorted methods list).
-@end enumerate
-
-The definition of a generic function is done with the
-@code{define-generic} macro. Definition of a new method is done with the
-@code{define-method} macro.  Note that @code{define-method} automatically
-defines the generic function if it has not been defined
-before. Consequently, most of the time, the @code{define-generic} needs
-not be used.
+Defining an identifier as a generic function is done with the
+@code{define-generic} macro.  Definition of a new method is done with
+the @code{define-method} macro.  Note that @code{define-method}
+automatically does a @code{define-generic} if the identifier concerned
+is not already a generic function, so often an explicit
+@code{define-generic} call is not needed.
 @findex define-generic
 @findex define-method
-Consider the following definitions:
+
+@deffn syntax define-generic symbol
+Create a generic function with name @var{symbol} and bind it to the
+variable @var{symbol}.  If @var{symbol} was previously bound to a Scheme
+procedure (or procedure-with-setter), the old procedure (and setter) is
+incorporated into the new generic function as its default procedure (and
+setter).  Any other previous value, including an existing generic
+function, is discarded and replaced by a new, empty generic function.
+@end deffn
+
+@deffn syntax define-method (generic parameter @dots{}) . body
+Define a method for the generic function or accessor @var{generic} with
+parameters @var{parameter}s and body @var{body}.
+
+@var{generic} is a generic function.  If @var{generic} is a variable
+which is not yet bound to a generic function object, the expansion of
+@code{define-method} will include a call to @code{define-generic}.  If
+@var{generic} is @code{(setter @var{generic-with-setter})}, where
+@var{generic-with-setter} is a variable which is not yet bound to a
+generic-with-setter object, the expansion will include a call to
+@code{define-accessor}.
+
+Each @var{parameter} must be either a symbol or a two-element list
+@code{(@var{symbol} @var{class})}.  The symbols refer to variables in
+the @var{body} that will be bound to the parameters supplied by the
+caller when calling this method.  The @var{class}es, if present,
+specify the possible combinations of parameters to which this method
+can be applied.
+
+@var{body} is the body of the method definition.
+@end deffn
+
+@code{define-method} expressions look a little like Scheme procedure
+definitions of the form
+
+@example
+(define (name formals @dots{}) . body)
+@end example
+
+The important difference is that each formal parameter, apart from the
+possible ``rest'' argument, can be qualified by a class name:
+@code{@var{formal}} becomes @code{(@var{formal} @var{class})}.  The
+meaning of this qualification is that the method being defined
+will only be applicable in a particular generic function invocation if
+the corresponding argument is an instance of @code{@var{class}} (or one of
+its subclasses).  If more than one of the formal parameters is qualified
+in this way, then the method will only be applicable if each of the
+corresponding arguments is an instance of its respective qualifying class.
+
+Note that unqualified formal parameters act as though they are qualified
+by the class @code{<top>}, which GOOPS uses to mean the superclass of
+all valid Scheme types, including both primitive types and GOOPS classes.
+
+For example, if a generic function method is defined with
+@var{parameter}s @code{(s1 <square>)} and @code{(n <number>)}, that
+method is only applicable to invocations of its generic function that
+have two parameters where the first parameter is an instance of the
+@code{<square>} class and the second parameter is a number.
+
+@menu
+* Accessors::
+* Extending Primitives::
+* Merging Generics::
+* Next-method::                 
+* Generic Function and Method Examples::                     
+* Handling Invocation Errors::
+@end menu
+
+
+@node Accessors
+@subsection Accessors
+
+An accessor is a generic function that can also be used with the
+generalized @code{set!} syntax (@pxref{Procedures with Setters}).  Guile
+will handle a call like
+
+@example
+(set! (@code{accessor} @code{args}@dots{}) @code{value})
+@end example
+
+@noindent
+by calling the most specialized method of @code{accessor} that matches
+the classes of @code{args} and @code{value}.  @code{define-accessor} is
+used to bind an identifier to an accessor.
+
+@deffn syntax define-accessor symbol
+Create an accessor with name @var{symbol} and bind it to the variable
+@var{symbol}.  If @var{symbol} was previously bound to a Scheme
+procedure (or procedure-with-setter), the old procedure (and setter) is
+incorporated into the new accessor as its default procedure (and
+setter).  Any other previous value, including an existing generic
+function or accessor, is discarded and replaced by a new, empty
+accessor.
+@end deffn
+
+
+@node Extending Primitives
+@subsection Extending Primitives
+
+Many of Guile's primitive procedures can be extended by giving them a
+generic function definition that operates in conjunction with their
+normal C-coded implementation.  When a primitive is extended in this
+way, it behaves like a generic function with the C-coded implementation
+as its default method.
+
+This extension happens automatically if a method is defined (by a
+@code{define-method} call) for a variable whose current value is a
+primitive.  But it can also be forced by calling
+@code{enable-primitive-generic!}.
+
+@deffn {primitive procedure} enable-primitive-generic! primitive
+Force the creation of a generic function definition for
+@var{primitive}.
+@end deffn
+
+Once the generic function definition for a primitive has been created,
+it can be retrieved using @code{primitive-generic-generic}.
+
+@deffn {primitive procedure} primitive-generic-generic primitive
+Return the generic function definition of @var{primitive}.
+
+@code{primitive-generic-generic} raises an error if @var{primitive}
+is not a primitive with generic capability.
+@end deffn
+
+@node Merging Generics
+@subsection Merging Generics
+
+GOOPS generic functions and accessors often have short, generic names.
+For example, if a vector package provides an accessor for the X
+coordinate of a vector, that accessor may just be called @code{x}.  It
+doesn't need to be called, for example, @code{vector:x}, because
+GOOPS will work out, when it sees code like @code{(x @var{obj})}, that
+the vector-specific method of @code{x} should be called if @var{obj} is
+a vector.
+
+That raises the question, though, of what happens when different
+packages define a generic function with the same name.  Suppose we work
+with a graphical package which needs to use two independent vector
+packages for 2D and 3D vectors respectively.  If both packages export
+@code{x}, what does the code using those packages end up with?
+
+@ref{Creating Guile Modules,,duplicate binding handlers} explains how
+this is resolved for conflicting bindings in general.  For generics,
+there is a special duplicates handler, @code{merge-generics}, which
+tells the module system to merge generic functions with the same name.
+Here is an example:
 
 @lisp
-(define-generic G)
-(define-method  (G (a <integer>) b) 'integer)
-(define-method  (G (a <real>) b) 'real)
-(define-method  (G a b) 'top)
+(define-module (math 2D-vectors)
+  #:use-module (oop goops)
+  #:export (x y ...))
+		  
+(define-module (math 3D-vectors)
+  #:use-module (oop goops)
+  #:export (x y z ...))
+
+(define-module (my-module)
+  #:use-module (math 2D-vectors)
+  #:use-module (math 3D-vectors)
+  #:duplicates merge-generics)
 @end lisp
 
-The @code{define-generic} call defines @var{G} as a generic
-function. Note that the signature of the generic function is not given
-upon definition, contrarily to CLOS. This will permit methods with
-different signatures for a given generic function, as we shall see
-later. The three next lines define methods for the @var{G} generic
-function. Each method uses a sequence of @dfn{parameter specializers}
-that specify when the given method is applicable. A specializer permits
-to indicate the class a parameter must belong to (directly or
-indirectly) to be applicable. If no specializer is given, the system
-defaults it to @code{<top>}. Thus, the first method definition is
-equivalent to
+The generic function @code{x} in @code{(my-module)} will now incorporate
+all of the methods of @code{x} from both imported modules.
 
-@cindex parameter specializers
-@lisp
-(define-method (G (a <integer>) (b <top>)) 'integer)
-@end lisp
+To be precise, there will now be three distinct generic functions named
+@code{x}: @code{x} in @code{(math 2D-vectors)}, @code{x} in @code{(math
+3D-vectors)}, and @code{x} in @code{(my-module)}; and these functions
+share their methods in an interesting and dynamic way.
 
-Now, let us look at some possible calls to generic function @var{G}:
+To explain, let's call the imported generic functions (in @code{(math
+2D-vectors)} and @code{(math 3D-vectors)}) the @dfn{ancestors}, and the
+merged generic function (in @code{(my-module)}), the @dfn{descendant}.
+The general rule is that for any generic function G, the applicable
+methods are selected from the union of the methods of G's descendant
+functions, the methods of G itself and the methods of G's ancestor
+functions.
 
-@lisp
-(G 2 3)    @result{} integer
-(G 2 #t)   @result{} integer
-(G 1.2 'a) @result{} real
-@c (G #3 'a) @result{} real       @c was {\sharpsign}
-(G #t #f)  @result{} top
-(G 1 2 3)  @result{} error (since no method exists for 3 parameters)
-@end lisp
-
-The preceding methods use only one specializer per parameter list. Of
-course, each parameter can use a specializer. In this case, the
-parameter list is scanned from left to right to determine the
-applicability of a method. Suppose we declare now
-
-@lisp
-(define-method (G (a <integer>) (b <number>))  'integer-number)
-(define-method (G (a <integer>) (b <real>))    'integer-real)
-(define-method (G (a <integer>) (b <integer>)) 'integer-integer)
-(define-method (G a (b <number>))              'top-number)
-@end lisp
-
-In this case,
-
-@lisp
-(G 1 2)   @result{} integer-integer
-(G 1 1.0) @result{} integer-real
-(G 1 #t)  @result{} integer
-(G 'a 1)  @result{} top-number
-@end lisp
+Thus ancestor functions effectively share methods with their
+descendants, and vice versa.  In the example above, @code{x} in
+@code{(math 2D-vectors)} will share the methods of @code{x} in
+@code{(my-module)} and vice versa.@footnote{But note that @code{x} in
+@code{(math 2D-vectors)} doesn't share methods with @code{x} in
+@code{(math 3D-vectors)}, so modularity is still preserved.}  Sharing is
+dynamic, so adding another new method to a descendant implies adding it
+to that descendant's ancestors too.
 
 @node Next-method
 @subsection Next-method
@@ -769,13 +887,66 @@ Number is in range
 lead to an infinite recursion, but this consideration is just the same
 as in Scheme code in general.)
 
-@node Example
-@subsection Example
+@node Generic Function and Method Examples
+@subsection Generic Function and Method Examples
 
-In this section we shall continue to define operations on the
+Consider the following definitions:
+
+@lisp
+(define-generic G)
+(define-method (G (a <integer>) b) 'integer)
+(define-method (G (a <real>) b) 'real)
+(define-method (G a b) 'top)
+@end lisp
+
+The @code{define-generic} call defines @var{G} as a generic function.
+The three next lines define methods for @var{G}.  Each method uses a
+sequence of @dfn{parameter specializers} that specify when the given
+method is applicable.  A specializer permits to indicate the class a
+parameter must belong to (directly or indirectly) to be applicable.  If
+no specializer is given, the system defaults it to @code{<top>}.  Thus,
+the first method definition is equivalent to
+
+@cindex parameter specializers
+@lisp
+(define-method (G (a <integer>) (b <top>)) 'integer)
+@end lisp
+
+Now, let's look at some possible calls to the generic function @var{G}:
+
+@lisp
+(G 2 3)    @result{} integer
+(G 2 #t)   @result{} integer
+(G 1.2 'a) @result{} real
+@c (G #3 'a) @result{} real       @c was {\sharpsign}
+(G #t #f)  @result{} top
+(G 1 2 3)  @result{} error (since no method exists for 3 parameters)
+@end lisp
+
+The methods above use only one specializer per parameter list.  But in
+general, any or all of a method's parameters may be specialized.
+Suppose we define now:
+
+@lisp
+(define-method (G (a <integer>) (b <number>))  'integer-number)
+(define-method (G (a <integer>) (b <real>))    'integer-real)
+(define-method (G (a <integer>) (b <integer>)) 'integer-integer)
+(define-method (G a (b <number>))              'top-number)
+@end lisp
+
+@noindent With these definitions:
+
+@lisp
+(G 1 2)   @result{} integer-integer
+(G 1 1.0) @result{} integer-real
+(G 1 #t)  @result{} integer
+(G 'a 1)  @result{} top-number
+@end lisp
+
+As a further example we shall continue to define operations on the
 @code{<my-complex>} class.  Suppose that we want to use it to implement
 complex numbers completely.  For instance a definition for the addition
-of two complexes could be
+of two complex numbers could be
 
 @lisp
 (define-method (new-+ (a <my-complex>) (b <my-complex>))
@@ -833,24 +1004,22 @@ symbol.  A complete writing of the @code{new-+} methods is shown in
 @caption{Extending @code{+} to handle complex numbers}
 @end float
 
-@sp 3
-We use here the fact that generic function are not obliged to have the
-same number of parameters, contrarily to CLOS.  The four first methods
-implement the dyadic addition. The fifth method says that the addition
-of a single element is this element itself. The sixth method says that
-using the addition with no parameter always return 0. The last method
-takes an arbitrary number of parameters@footnote{The parameter list for
-a @code{define-method} follows the conventions used for Scheme
-procedures. In particular it can use the dot notation or a symbol to
-denote an arbitrary number of parameters}.  This method acts as a kind
-of @code{reduce}: it calls the dyadic addition on the @emph{car} of the
-list and on the result of applying it on its rest.  To finish, the
-@code{set!} permits to redefine the @code{+} symbol to our extended
-addition.
+We take advantage here of the fact that generic function are not obliged
+to have a fixed number of parameters.  The four first methods implement
+dyadic addition.  The fifth method says that the addition of a single
+element is this element itself.  The sixth method says that using the
+addition with no parameter always return 0 (as is also true for the
+primitive @code{+}).  The last method takes an arbitrary number of
+parameters@footnote{The parameter list for a @code{define-method}
+follows the conventions used for Scheme procedures. In particular it can
+use the dot notation or a symbol to denote an arbitrary number of
+parameters}.  This method acts as a kind of @code{reduce}: it calls the
+dyadic addition on the @emph{car} of the list and on the result of
+applying it on its rest.  To finish, the @code{set!} permits to redefine
+the @code{+} symbol to our extended addition.
 
-@sp 3
-To terminate our implementation (integration?) of  complex numbers, we can 
-redefine standard Scheme predicates in the following manner:
+To conclude our implementation (integration?) of complex numbers, we
+could redefine standard Scheme predicates in the following manner:
 
 @lisp
 (define-method (complex? c <my-complex>) #t)
@@ -859,11 +1028,42 @@ redefine standard Scheme predicates in the following manner:
 (define-method (number? n <number>) #t)
 (define-method (number? n)          #f)
 @dots{}
-@dots{}
 @end lisp
 
 Standard primitives in which complex numbers are involved could also be
 redefined in the same manner.
+
+
+@node Handling Invocation Errors
+@subsection Handling Invocation Errors
+
+If a generic function is invoked with a combination of parameters for
+which there is no applicable method, GOOPS raises an error.
+
+@deffn generic no-method
+@deffnx method no-method (gf <generic>) args
+When an application invokes a generic function, and no methods at all
+have been defined for that generic function, GOOPS calls the
+@code{no-method} generic function.  The default method calls
+@code{goops-error} with an appropriate message.
+@end deffn
+
+@deffn generic no-applicable-method
+@deffnx method no-applicable-method (gf <generic>) args
+When an application applies a generic function to a set of arguments,
+and no methods have been defined for those argument types, GOOPS calls
+the @code{no-applicable-method} generic function.  The default method
+calls @code{goops-error} with an appropriate message.
+@end deffn
+
+@deffn generic no-next-method
+@deffnx method no-next-method (gf <generic>) args
+When a generic function method calls @code{(next-method)} to invoke the
+next less specialized method for that generic function, and no less
+specialized methods have been defined for the current generic function
+arguments, GOOPS calls the @code{no-next-method} generic function.  The
+default method calls @code{goops-error} with an appropriate message.
+@end deffn
 
 
 @node Inheritance
@@ -920,26 +1120,38 @@ instance of D will have three slots, @code{a}, @code{b} and
 The ordering of the returned slots is not significant.
 
 @menu
-* Class precedence list::       
+* Class Precedence List::
+* Sorting Methods::
 @end menu
 
 
-@node Class precedence list
-@subsection Class precedence list
+@node Class Precedence List
+@subsection Class Precedence List
 
-A class may have more than one superclass.  @footnote{This section is an
-adaptation of Jeff Dalton's (J.Dalton@@ed.ac.uk) @cite{Brief
-introduction to CLOS}} With single inheritance (one superclass), it is
-easy to order the superclasses from most to least specific. This is the
-rule:
+What happens when a class inherits from two or more superclasses that
+have a slot with the same name but incompatible definitions --- for
+example, different init values or slot allocations?  We need a rule for
+deciding which slot definition the derived class ends up with, and this
+rule is provided by the class's @dfn{Class Precedence
+List}.@footnote{This section is an adaptation of material from Jeff
+Dalton's (J.Dalton@@ed.ac.uk) @cite{Brief introduction to CLOS}}
 
-@display
-@cartouche
-Rule 1: Each class is more specific than its superclasses.@c was \bf
-@end cartouche
-@end display
+Another problem arises when invoking a generic function, and there is
+more than one method that could apply to the call arguments.  Here we
+need a way of ordering the applicable methods, so that Guile knows which
+method to use first, which to use next if that method calls
+@code{next-method}, and so on.  One of the ingredients for this ordering
+is determining, for each given call argument, which of the specializing
+classes, from each applicable method's definition, is the most specific
+for that argument; and here again the class precedence list helps.
 
-With multiple inheritance, ordering is harder. Suppose we have
+If inheritance was restricted such that each class could only have one
+superclass --- which is known as @dfn{single} inheritance --- class
+ordering would be easy.  The rule would be simply that a subclass is
+considered more specific than its superclass.
+
+With multiple inheritance, ordering is less obvious, and we have to
+impose an arbitrary rule to determine precedence. Suppose we have
 
 @lisp
 (define-class X ()
@@ -952,42 +1164,38 @@ With multiple inheritance, ordering is harder. Suppose we have
    (@dots{}))
 @end lisp
 
-In this case, the @code{Z} class is more specific than the @code{X} or
-@code{Y} class for instances of @code{Z}. However, the @code{#:init-value}
-specified in @code{X} and @code{Y} leads to a problem: which one
-overrides the other?  The rule in @goops{}, as in CLOS, is that the
-superclasses listed earlier are more specific than those listed later.
-So:
+@noindent
+Clearly the @code{Z} class is more specific than @code{X} or @code{Y},
+for instances of @code{Z}.  But which is more specific out of @code{X}
+and @code{Y} --- and hence, for the definitions above, which
+@code{#:init-value} will take effect when creating an instance of
+@code{Z}?  The rule in @goops{} is that the superclasses listed earlier
+are more specific than those listed later.  Hence @code{X} is more
+specific than @code{Y}, and the @code{#:init-value} for slot @code{x} in
+instances of @code{Z} will be 1.
 
-@display
-@cartouche
-Rule 2: For a given class, superclasses listed earlier are more
-        specific than those listed later.
-@end cartouche
-@end display
+Hence there is a linear ordering for a class and all its
+superclasses, from most specific to least specific, and this ordering is
+called the Class Precedence List of the class.
 
-These rules are used to compute a linear order for a class and all its
-superclasses, from most specific to least specific.  This order is
-called the ``class precedence list'' of the class. Given these two
-rules, we can claim that the initial form for the @code{x} slot of
-previous example is 1 since the class @code{X} is placed before @code{Y}
-in class precedence list of @code{Z}.
-
-These two rules are not always enough to determine a unique order,
-however, but they give an idea of how things work.  Taking the @code{F}
-class shown in @ref{fig:hier}, the class precedence list is
+In fact the rules above are not quite enough to always determine a
+unique order, but they give an idea of how things work.  For example,
+for the @code{F} class shown in @ref{fig:hier}, the class precedence
+list is
 
 @example
 (f d e a c b <object> <top>)
 @end example
 
-However, it is usually considered a bad idea for programmers to rely on
-exactly what the order is.  If the order for some superclasses is important,
-it can be expressed directly in the class definition.
+@noindent
+In cases where there is any ambiguity (like this one), it is a bad idea
+for programmers to rely on exactly what the order is.  If the order for
+some superclasses is important, it can be expressed directly in the
+class definition.
 
-The precedence list of a class can be obtained by the function 
-@code{class-precedence-list}. This function returns a ordered 
-list whose first element is the most specific class. For instance,
+The precedence list of a class can be obtained by calling
+@code{class-precedence-list}.  This function returns a ordered list
+whose first element is the most specific class.  For instance:
 
 @lisp
 (class-precedence-list B) @result{} (#<<class> B 401b97c8> 
@@ -995,12 +1203,38 @@ list whose first element is the most specific class. For instance,
                                      #<<class> <top> 4026a9d8>)
 @end lisp
 
-However, this result is not too much readable; using the function
-@code{class-name} yields a clearer result:
+@noindent
+Or for a more immediately readable result:
 
 @lisp
 (map class-name (class-precedence-list B)) @result{} (B <object> <top>) 
 @end lisp
+
+
+@node Sorting Methods
+@subsection Sorting Methods
+
+Now, with the idea of the class precedence list, we can state precisely
+how the possible methods are sorted when more than one of the methods of
+a generic function are applicable to the call arguments.
+
+The rules are that
+@itemize
+@item
+the applicable methods are sorted in order of specificity, and the most
+specific method is used first, then the next if that method calls
+@code{next-method}, and so on
+
+@item
+a method M1 is more specific than another method M2 if the first
+specializing class that differs, between the definitions of M1 and M2,
+is more specific, in M1's definition, for the corresponding actual call
+argument, than the specializing class in M2's definition
+
+@item
+a class C1 is more specific than another class C2, for an object of
+actual class C, if C1 comes before C2 in C's class precedence list.
+@end itemize
 
 
 @node Class Options
@@ -1195,216 +1429,8 @@ determining which of the methods should be applied for any given
 invocation of the generic function.  GOOPS represents generic functions
 as metaobjects of the class @code{<generic>} (or one of its subclasses).
 
-An accessor is a generic function that can also be used with the
-generalized @code{set!} syntax (@pxref{Procedures with Setters}).  Guile
-will handle a call like
-
-@example
-(set! (@code{accessor} @code{args}@dots{}) @code{value})
-@end example
-
-@noindent
-by calling the most specialized method of @code{accessor} that matches
-the classes of @code{args} and @code{value}.
-
-The following forms define a variable as a generic function or accessor.
-Depending on that variable's previous value, the generic function may be
-created empty --- with no methods --- or with methods that are inferred
-from the previous value.
-
-@deffn syntax define-generic symbol
-Create a generic function with name @var{symbol} and bind it to the
-variable @var{symbol}.  If @var{symbol} was previously bound to a Scheme
-procedure (or procedure-with-setter), the old procedure (and setter) is
-incorporated into the new generic function as its default procedure (and
-setter).  Any other previous value, including an existing generic
-function, is discarded and replaced by a new, empty generic function.
-@end deffn
-
-@deffn syntax define-accessor symbol
-Create an accessor with name @var{symbol} and bind it to the variable
-@var{symbol}.  If @var{symbol} was previously bound to a Scheme
-procedure (or procedure-with-setter), the old procedure (and setter) is
-incorporated into the new accessor as its default procedure (and
-setter).  Any other previous value, including an existing generic
-function or accessor, is discarded and replaced by a new, empty
-accessor.
-@end deffn
-
-@menu
-* Extending Primitives::
-* Merging Generics::
-@end menu
-
-@node Extending Primitives
-@subsection Extending Primitives
-
-Many of Guile's primitive procedures can be extended by giving them a
-generic function definition that operates in conjunction with their
-normal C-coded implementation.  When a primitive is extended in this
-way, it behaves like a generic function with the C-coded implementation
-as its default method.
-
-This extension happens automatically if a method is defined (by a
-@code{define-method} call) for a variable whose current value is a
-primitive.  But it can also be forced by calling
-@code{enable-primitive-generic!}.
-
-@deffn {primitive procedure} enable-primitive-generic! primitive
-Force the creation of a generic function definition for
-@var{primitive}.
-@end deffn
-
-Once the generic function definition for a primitive has been created,
-it can be retrieved using @code{primitive-generic-generic}.
-
-@deffn {primitive procedure} primitive-generic-generic primitive
-Return the generic function definition of @var{primitive}.
-
-@code{primitive-generic-generic} raises an error if @var{primitive}
-is not a primitive with generic capability.
-@end deffn
-
-@node Merging Generics
-@subsection Merging Generics
-
-GOOPS generic functions and accessors often have short, generic names.
-For example, if a vector package provides an accessor for the X
-coordinate of a vector, that accessor may just be called @code{x}.  It
-doesn't need to be called, for example, @code{vector:x}, because
-GOOPS will work out, when it sees code like @code{(x @var{obj})}, that
-the vector-specific method of @code{x} should be called if @var{obj} is
-a vector.
-
-That raises the question, however, of what happens when different
-packages define a generic function with the same name.  Suppose we
-work with a graphical package which needs to use two independent vector
-packages for 2D and 3D vectors respectively.  If both packages export
-@code{x}, what does the code using those packages end up with?
-
-@ref{Creating Guile Modules,,duplicate binding handlers} explains how
-this is resolved for conflicting bindings in general.  For generics,
-there is a special duplicates handler, @code{merge-generics}, which
-tells the module system to merge generic functions with the same name.
-Here is an example:
-
-@lisp
-(define-module (math 2D-vectors)
-  #:use-module (oop goops)
-  #:export (x y ...))
-		  
-(define-module (math 3D-vectors)
-  #:use-module (oop goops)
-  #:export (x y z ...))
-
-(define-module (my-module)
-  #:use-module (math 2D-vectors)
-  #:use-module (math 3D-vectors)
-  #:duplicates merge-generics)
-@end lisp
-
-The generic function @code{x} in @code{(my-module)} will now incorporate
-all of the methods of @code{x} from both imported modules.
-
-To be precise, there will now be three distinct generic functions named
-@code{x}: @code{x} in @code{(math 2D-vectors)}, @code{x} in @code{(math
-3D-vectors)}, and @code{x} in @code{(my-module)}; and these functions
-share their methods in an interesting and dynamic way.
-
-To explain, let's call the imported generic functions (in @code{(math
-2D-vectors)} and @code{(math 3D-vectors)}) the @dfn{ancestors}, and the
-merged generic function (in @code{(my-module)}), the @dfn{descendant}.
-The general rule is that for any generic function G, the applicable
-methods are selected from the union of the methods of G's descendant
-functions, the methods of G itself and the methods of G's ancestor
-functions.
-
-Thus ancestor functions effectively share methods with their
-descendants, and vice versa.  In the example above, @code{x} in
-@code{(math 2D-vectors)} will share the methods of @code{x} in
-@code{(my-module)} and vice versa.@footnote{But note that @code{x} in
-@code{(math 2D-vectors)} doesn't share methods with @code{x} in
-@code{(math 3D-vectors)}, so modularity is still preserved.}  Sharing is
-dynamic, so adding another new method to a descendant implies adding it
-to that descendant's ancestors too.
-
-@node Adding Methods to Generic Functions
-@section Adding Methods to Generic Functions
-
-To add a method to a generic function, use @code{define-method}.
-
-@deffn syntax define-method (generic parameter @dots{}) . body
-Define a method for the generic function or accessor @var{generic} with
-parameters @var{parameter}s and body @var{body}.
-
-@var{generic} is a generic function.  If @var{generic} is a variable
-which is not yet bound to a generic function object, the expansion of
-@code{define-method} will include a call to @code{define-generic}.  If
-@var{generic} is @code{(setter @var{generic-with-setter})}, where
-@var{generic-with-setter} is a variable which is not yet bound to a
-generic-with-setter object, the expansion will include a call to
-@code{define-accessor}.
-
-Each @var{parameter} must be either a symbol or a two-element list
-@code{(@var{symbol} @var{class})}.  The symbols refer to variables in
-the @var{body} that will be bound to the parameters supplied by the
-caller when calling this method.  The @var{class}es, if present,
-specify the possible combinations of parameters to which this method
-can be applied.
-
-@var{body} is the body of the method definition.
-@end deffn
-
-@code{define-method} expressions look a little like Scheme procedure
-definitions of the form
-
-@example
-(define (name formals @dots{}) . body)
-@end example
-
-The important difference is that each formal parameter, apart from the
-possible ``rest'' argument, can be qualified by a class name:
-@code{@var{formal}} becomes @code{(@var{formal} @var{class})}.  The
-meaning of this qualification is that the method being defined
-will only be applicable in a particular generic function invocation if
-the corresponding argument is an instance of @code{@var{class}} (or one of
-its subclasses).  If more than one of the formal parameters is qualified
-in this way, then the method will only be applicable if each of the
-corresponding arguments is an instance of its respective qualifying class.
-
-Note that unqualified formal parameters act as though they are qualified
-by the class @code{<top>}, which GOOPS uses to mean the superclass of
-all valid Scheme types, including both primitive types and GOOPS classes.
-
-For example, if a generic function method is defined with
-@var{parameter}s @code{((s1 <square>) (n <number>))}, that method is
-only applicable to invocations of its generic function that have two
-parameters where the first parameter is an instance of the
-@code{<square>} class and the second parameter is a number.
-
-@node Invoking Generic Functions
-@section Invoking Generic Functions
-
-When a variable with a generic function definition appears as the first
-element of a list that is being evaluated, the Guile evaluator tries
-to apply the generic function to the arguments obtained by evaluating
-the remaining elements of the list.  [ *fixme* How do I put this in a
-more Schemely and less Lispy way? ]
-
-Usually a generic function contains several method definitions, with
-varying degrees of formal parameter specialization (@pxref{Adding
-Methods to Generic Functions,, define-method}).  So it is necessary to
-sort these methods by specificity with respect to the supplied
-arguments, and then apply the most specific method definition.  Less
-specific methods may be applied subsequently if a method that is being
-applied calls @code{next-method}.
-
-If a generic function is invoked with a combination of parameters for
-which there is no applicable method, GOOPS raises an error.
-
 @menu
 * Determining Which Methods to Apply::
-* Handling Invocation Errors::
 @end menu
 
 @node Determining Which Methods to Apply
@@ -1436,34 +1462,6 @@ kind person consider filling it in? ]
 
 @deffn generic apply-methods
 @deffnx method apply-methods (gf <generic>) (l <list>) args
-@end deffn
-
-@node Handling Invocation Errors
-@subsection Handling Invocation Errors
-
-@deffn generic no-method
-@deffnx method no-method (gf <generic>) args
-When an application invokes a generic function, and no methods at all
-have been defined for that generic function, GOOPS calls the
-@code{no-method} generic function.  The default method calls
-@code{goops-error} with an appropriate message.
-@end deffn
-
-@deffn generic no-applicable-method
-@deffnx method no-applicable-method (gf <generic>) args
-When an application applies a generic function to a set of arguments,
-and no methods have been defined for those argument types, GOOPS calls
-the @code{no-applicable-method} generic function.  The default method
-calls @code{goops-error} with an appropriate message.
-@end deffn
-
-@deffn generic no-next-method
-@deffnx method no-next-method (gf <generic>) args
-When a generic function method calls @code{(next-method)} to invoke the
-next less specialized method for that generic function, and no less
-specialized methods have been defined for the current generic function
-arguments, GOOPS calls the @code{no-next-method} generic function.  The
-default method calls @code{goops-error} with an appropriate message.
 @end deffn
 
 @node Redefining a Class
@@ -1714,7 +1712,7 @@ slot.
 
 @deffn {primitive procedure} class-precedence-list class
 Return the class precedence list for class @var{class} (@pxref{Class
-precedence list}).
+Precedence List}).
 This is the value of the @var{class} metaobject's @code{cpl} slot.
 @end deffn
 
@@ -2302,7 +2300,7 @@ the class precedence list of <starfish> would be
 
 With multiple inheritance, the algorithm is a little more complicated.
 A full description is provided by the GOOPS Tutorial: see @ref{Class
-precedence list}.
+Precedence List}.
 
 ``Class precedence list'' is often abbreviated, in documentation and
 Scheme variable names, to @dfn{cpl}.
@@ -2673,7 +2671,7 @@ metaclass, that can modify or override the default behaviour of
 @code{initialize}, @code{compute-cpl} or @code{compute-get-n-set}.
 
 @code{compute-cpl} computes the class precedence list (``CPL'') for the
-new class (@pxref{Class precedence list}), and returns it as a list of
+new class (@pxref{Class Precedence List}), and returns it as a list of
 class objects.  The CPL is important because it defines a superclass
 ordering that is used, when a generic function is invoked upon an
 instance of the class, to decide which of the available generic function
@@ -2687,7 +2685,7 @@ method.
 
 @deffn procedure compute-std-cpl class
 Compute and return the class precedence list for @var{class} according
-to the algorithm described in @ref{Class precedence list}.
+to the algorithm described in @ref{Class Precedence List}.
 @end deffn
 
 @code{compute-slots} computes and returns a list of all slot definitions
@@ -2967,7 +2965,7 @@ Make a method whose specializers are defined by the classes in
 @var{parameter} symbols and @var{body} forms.
 
 The @var{parameter} and @var{body} parameters should be as for
-@code{define-method} (@pxref{Adding Methods to Generic Functions,,
+@code{define-method} (@pxref{Methods and Generic Functions,,
 define-method}).
 @end deffn
 
