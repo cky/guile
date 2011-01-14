@@ -46,7 +46,6 @@ module.  You can do this at the Guile REPL by evaluating:
 * Inheritance::                 
 * Introspection::
 * Class Options::
-* Generic Functions and Accessors::
 * Redefining a Class::
 * Changing the Class of an Instance::
 * GOOPS Error Handling::
@@ -1650,49 +1649,6 @@ If the @code{#:name} option is absent, GOOPS uses the first argument to
 @code{define-class} as the class name.
 @end deffn
 
-
-@node Generic Functions and Accessors
-@section Generic Functions and Accessors
-
-A generic function is a collection of methods, with rules for
-determining which of the methods should be applied for any given
-invocation of the generic function.  GOOPS represents generic functions
-as metaobjects of the class @code{<generic>} (or one of its subclasses).
-
-@menu
-* Determining Which Methods to Apply::
-@end menu
-
-@node Determining Which Methods to Apply
-@subsection Determining Which Methods to Apply
-
-[ *fixme*  Sorry - this is the area of GOOPS that I understand least of
-all, so I'm afraid I have to pass on this section.  Would some other
-kind person consider filling it in? ]
-
-@deffn generic apply-generic
-@deffnx method apply-generic (gf <generic>) args
-@end deffn
-
-@deffn generic compute-applicable-methods
-@deffnx method compute-applicable-methods (gf <generic>) args
-@end deffn
-
-@deffn generic sort-applicable-methods
-@deffnx method sort-applicable-methods (gf <generic>) methods args
-@end deffn
-
-@deffn generic method-more-specific?
-@deffnx method method-more-specific? (m1 <method>) (m2 <method>) args
-@end deffn
-
-@deffn generic apply-method
-@deffnx method apply-method (gf <generic>) methods build-next args
-@end deffn
-
-@deffn generic apply-methods
-@deffnx method apply-methods (gf <generic>) (l <list>) args
-@end deffn
 
 @node Redefining a Class
 @section Redefining a Class
