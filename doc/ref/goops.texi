@@ -1270,8 +1270,8 @@ GOOPS equivalents --- to be obtained dynamically, at run time.
 
 @menu
 * Classes::
-* Slots::
 * Instances::
+* Slots::
 * Generic Functions::
 @end menu
 
@@ -1329,6 +1329,47 @@ Return a list of all subclasses of @var{class}.
 Return a list of all methods that use @var{class} or a subclass of
 @var{class} as one of its formal parameter specializers.
 @end deffn
+
+
+@node Instances
+@subsection Instances
+
+@deffn {primitive procedure} class-of value
+Return the GOOPS class of any Scheme @var{value}.
+@end deffn
+
+@deffn {primitive procedure} instance? object
+Return @code{#t} if @var{object} is any GOOPS instance, otherwise
+@code{#f}.
+@end deffn
+
+@deffn procedure is-a? object class
+Return @code{#t} if @var{object} is an instance of @var{class} or one of
+its subclasses.
+@end deffn
+
+You can use the @code{is-a?} predicate to ask whether any given value
+belongs to a given class, or @code{class-of} to discover the class of a
+given value.  Note that when GOOPS is loaded (by code using the
+@code{(oop goops)} module) built-in classes like @code{<string>},
+@code{<list>} and @code{<number>} are automatically set up,
+corresponding to all Guile Scheme types.
+
+@lisp
+(is-a? 2.3 <number>) @result{} #t
+(is-a? 2.3 <real>) @result{} #t
+(is-a? 2.3 <string>) @result{} #f
+(is-a? '("a" "b") <string>) @result{} #f
+(is-a? '("a" "b") <list>) @result{} #t
+(is-a? (car '("a" "b")) <string>) @result{} #t
+(is-a? <string> <class>) @result{} #t
+(is-a? <class> <string>) @result{} #f
+
+(class-of 2.3) @result{} #<<class> <real> 908c708>
+(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
+(class-of <string>) @result{} #<<class> <class> 8bd3e10>
+(class-of <class>) @result{} #<<class> <class> 8bd3e10>
+@end lisp
 
 
 @node Slots
@@ -1411,46 +1452,6 @@ method, so, in general, the function returned by
 @code{slot-init-function} may be irrelevant.  For a fuller discussion,
 see @ref{Slot Options,, init-value}.
 @end deffn
-
-@node Instances
-@subsection Instances
-
-@deffn {primitive procedure} class-of value
-Return the GOOPS class of any Scheme @var{value}.
-@end deffn
-
-@deffn {primitive procedure} instance? object
-Return @code{#t} if @var{object} is any GOOPS instance, otherwise
-@code{#f}.
-@end deffn
-
-@deffn procedure is-a? object class
-Return @code{#t} if @var{object} is an instance of @var{class} or one of
-its subclasses.
-@end deffn
-
-You can use the @code{is-a?} predicate to ask whether any given value
-belongs to a given class, or @code{class-of} to discover the class of a
-given value.  Note that when GOOPS is loaded (by code using the
-@code{(oop goops)} module) built-in classes like @code{<string>},
-@code{<list>} and @code{<number>} are automatically set up,
-corresponding to all Guile Scheme types.
-
-@lisp
-(is-a? 2.3 <number>) @result{} #t
-(is-a? 2.3 <real>) @result{} #t
-(is-a? 2.3 <string>) @result{} #f
-(is-a? '("a" "b") <string>) @result{} #f
-(is-a? '("a" "b") <list>) @result{} #t
-(is-a? (car '("a" "b")) <string>) @result{} #t
-(is-a? <string> <class>) @result{} #t
-(is-a? <class> <string>) @result{} #f
-
-(class-of 2.3) @result{} #<<class> <real> 908c708>
-(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
-(class-of <string>) @result{} #<<class> <class> 8bd3e10>
-(class-of <class>) @result{} #<<class> <class> 8bd3e10>
-@end lisp
 
 
 @node Generic Functions
