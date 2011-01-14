@@ -47,10 +47,10 @@ module.  You can do this at the Guile REPL by evaluating:
 * Introspection::
 * GOOPS Error Handling::
 * GOOPS Object Miscellany::
+* The Metaobject Protocol::
 * Class Options::
 * Redefining a Class::
 * Changing the Class of an Instance::
-* The Metaobject Protocol::
 @end menu
 
 @node Copyright Notice
@@ -1761,210 +1761,21 @@ In addition to the cases mentioned, you can of course define
 customize how they are printed.
 
 
-@node Class Options
-@section Class Options
-
-@deffn {class option} #:metaclass metaclass
-The @code{#:metaclass} class option specifies the metaclass of the class
-being defined.  @var{metaclass} must be a class that inherits from
-@code{<class>}.  For the use of metaclasses, see @ref{Metaobjects and
-the Metaobject Protocol} and @ref{Terminology}.
-
-If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
-metaclass for the new class by calling @code{ensure-metaclass}
-(@pxref{Class Definition Internals,, ensure-metaclass}).
-@end deffn
-
-@deffn {class option} #:name name
-The @code{#:name} class option specifies the new class's name.  This
-name is used to identify the class whenever related objects - the class
-itself, its instances and its subclasses - are printed.
-
-If the @code{#:name} option is absent, GOOPS uses the first argument to
-@code{define-class} as the class name.
-@end deffn
-
-
-@node Redefining a Class
-@section Redefining a Class
-
-Suppose that a class @code{<my-class>} is defined using @code{define-class}
-(@pxref{Class Definition,, define-class}), with slots that have
-accessor functions, and that an application has created several instances
-of @code{<my-class>} using @code{make} (@pxref{Instance Creation,,
-make}).  What then happens if @code{<my-class>} is redefined by calling
-@code{define-class} again?
-
-@menu
-* Default Class Redefinition Behaviour::
-* Customizing Class Redefinition::
-@end menu
-
-@node Default Class Redefinition Behaviour
-@subsection Default Class Redefinition Behaviour
-
-GOOPS' default answer to this question is as follows.
-
-@itemize @bullet
-@item
-All existing direct instances of @code{<my-class>} are converted to be
-instances of the new class.  This is achieved by preserving the values
-of slots that exist in both the old and new definitions, and
-initializing the values of new slots in the usual way (@pxref{Instance
-Creation,, make}).
-
-@item
-All existing subclasses of @code{<my-class>} are redefined, as though
-the @code{define-class} expressions that defined them were re-evaluated
-following the redefinition of @code{<my-class>}, and the class
-redefinition process described here is applied recursively to the
-redefined subclasses.
-
-@item
-Once all of its instances and subclasses have been updated, the class
-metaobject previously bound to the variable @code{<my-class>} is no
-longer needed and so can be allowed to be garbage collected.
-@end itemize
-
-To keep things tidy, GOOPS also needs to do a little housekeeping on
-methods that are associated with the redefined class.
-
-@itemize @bullet
-@item
-Slot accessor methods for slots in the old definition should be removed
-from their generic functions.  They will be replaced by accessor methods
-for the slots of the new class definition.
-
-@item
-Any generic function method that uses the old @code{<my-class>} metaobject
-as one of its formal parameter specializers must be updated to refer to
-the new @code{<my-class>} metaobject.  (Whenever a new generic function
-method is defined, @code{define-method} adds the method to a list stored
-in the class metaobject for each class used as a formal parameter
-specializer, so it is easy to identify all the methods that must be
-updated when a class is redefined.)
-@end itemize
-
-If this class redefinition strategy strikes you as rather counter-intuitive,
-bear in mind that it is derived from similar behaviour in other object
-systems such as CLOS, and that experience in those systems has shown it to be
-very useful in practice.
-
-Also bear in mind that, like most of GOOPS' default behaviour, it can
-be customized@dots{}
-
-@node Customizing Class Redefinition
-@subsection Customizing Class Redefinition
-
-When @code{define-class} notices that a class is being redefined,
-it constructs the new class metaobject as usual, and then invokes the
-@code{class-redefinition} generic function with the old and new classes
-as arguments.  Therefore, if the old or new classes have metaclasses
-other than the default @code{<class>}, class redefinition behaviour can
-be customized by defining a @code{class-redefinition} method that is
-specialized for the relevant metaclasses.
-
-@deffn generic class-redefinition
-Handle the class redefinition from @var{old-class} to @var{new-class},
-and return the new class metaobject that should be bound to the
-variable specified by @code{define-class}'s first argument.
-@end deffn
-
-@deffn method class-redefinition (old-class <class>) (new-class <class>)
-Implements GOOPS' default class redefinition behaviour, as described in
-@ref{Default Class Redefinition Behaviour}.  Returns the metaobject
-for the new class definition.
-@end deffn
-
-An alternative class redefinition strategy could be to leave all
-existing instances as instances of the old class, but accepting that the
-old class is now ``nameless'', since its name has been taken over by the
-new definition.  In this strategy, any existing subclasses could also
-be left as they are, on the understanding that they inherit from a nameless
-superclass.
-
-This strategy is easily implemented in GOOPS, by defining a new metaclass,
-that will be used as the metaclass for all classes to which the strategy
-should apply, and then defining a @code{class-redefinition} method that
-is specialized for this metaclass:
-
-@example
-(define-class <can-be-nameless> (<class>))
-
-(define-method (class-redefinition (old <can-be-nameless>)
-                                   (new <class>))
-  new)
-@end example
-
-When customization can be as easy as this, aren't you glad that GOOPS
-implements the far more difficult strategy as its default!
-
-Finally, note that, if @code{class-redefinition} itself is not customized,
-the default @code{class-redefinition} method invokes three further
-generic functions that could be individually customized:
-
-@itemize @bullet
-@item
-(remove-class-accessors! @var{old-class})
-
-@item
-(update-direct-method! @var{method} @var{old-class} @var{new-class})
-
-@item
-(update-direct-subclass! @var{subclass} @var{old-class} @var{new-class})
-@end itemize
-
-and the default methods for these generic functions invoke further
-generic functions, and so on@dots{}  The detailed protocol for all of these
-is described in @ref{MOP Specification}.
-
-@node Changing the Class of an Instance
-@section Changing the Class of an Instance
-
-You can change the class of an existing instance by invoking the
-generic function @code{change-class} with two arguments: the instance
-and the new class.
-
-@deffn generic change-class
-@end deffn
-
-The default method for @code{change-class} decides how to implement the
-change of class by looking at the slot definitions for the instance's
-existing class and for the new class.  If the new class has slots with
-the same name as slots in the existing class, the values for those slots
-are preserved.  Slots that are present only in the existing class are
-discarded.  Slots that are present only in the new class are initialized
-using the corresponding slot definition's init function (@pxref{Classes,,
-slot-init-function}).
-
-@deffn {method} change-class (obj <object>) (new <class>)
-Modify instance @var{obj} to make it an instance of class @var{new}.
-
-The value of each of @var{obj}'s slots is preserved only if a similarly named
-slot exists in @var{new}; any other slot values are discarded.
-
-The slots in @var{new} that do not correspond to any of @var{obj}'s
-pre-existing slots are initialized according to @var{new}'s slot definitions'
-init functions.
-@end deffn
-
-Customized change of class behaviour can be implemented by defining
-@code{change-class} methods that are specialized either by the class
-of the instances to be modified or by the metaclass of the new class.
-
-When a class is redefined (@pxref{Redefining a Class}), and the default
-class redefinition behaviour is not overridden, GOOPS (eventually)
-invokes the @code{change-class} generic function for each existing
-instance of the redefined class.
-
-
 @node The Metaobject Protocol
 @section The Metaobject Protocol
 
-GOOPS is based on a ``metaobject protocol'' (aka ``MOP'') derived from
-the ones used in CLOS (the Common Lisp Object System), tiny-clos (a
-small Scheme implementation of a subset of CLOS functionality) and
-STKlos.
+At this point, we've said about as much as can be said about GOOPS
+without having to confront the idea of the metaobject protocol.  There
+are a couple more topics that could be discussed in isolation first ---
+class redefinition, and changing the class of existing instances --- but
+in practice developers using them will be advanced enough to want to
+understand the metaobject protocol too, and will probably be using the
+protocol to customize exactly what happens during these events.
+
+So let's plunge in.  GOOPS is based on a ``metaobject protocol'' (aka
+``MOP'') derived from the ones used in CLOS (the Common Lisp Object
+System), tiny-clos (a small Scheme implementation of a subset of CLOS
+functionality) and STKlos.
 
 GOOPS can be used by application authors at a basic level without any
 need to understand what the MOP is and how it works.  On the other hand,
@@ -3066,3 +2877,200 @@ accessor, passing the setter generic function as the value of the
 @item
 @code{no-next-method}
 @end itemize
+
+
+@node Class Options
+@section Class Options
+
+@deffn {class option} #:metaclass metaclass
+The @code{#:metaclass} class option specifies the metaclass of the class
+being defined.  @var{metaclass} must be a class that inherits from
+@code{<class>}.  For the use of metaclasses, see @ref{Metaobjects and
+the Metaobject Protocol} and @ref{Terminology}.
+
+If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
+metaclass for the new class by calling @code{ensure-metaclass}
+(@pxref{Class Definition Internals,, ensure-metaclass}).
+@end deffn
+
+@deffn {class option} #:name name
+The @code{#:name} class option specifies the new class's name.  This
+name is used to identify the class whenever related objects - the class
+itself, its instances and its subclasses - are printed.
+
+If the @code{#:name} option is absent, GOOPS uses the first argument to
+@code{define-class} as the class name.
+@end deffn
+
+
+@node Redefining a Class
+@section Redefining a Class
+
+Suppose that a class @code{<my-class>} is defined using @code{define-class}
+(@pxref{Class Definition,, define-class}), with slots that have
+accessor functions, and that an application has created several instances
+of @code{<my-class>} using @code{make} (@pxref{Instance Creation,,
+make}).  What then happens if @code{<my-class>} is redefined by calling
+@code{define-class} again?
+
+@menu
+* Default Class Redefinition Behaviour::
+* Customizing Class Redefinition::
+@end menu
+
+@node Default Class Redefinition Behaviour
+@subsection Default Class Redefinition Behaviour
+
+GOOPS' default answer to this question is as follows.
+
+@itemize @bullet
+@item
+All existing direct instances of @code{<my-class>} are converted to be
+instances of the new class.  This is achieved by preserving the values
+of slots that exist in both the old and new definitions, and
+initializing the values of new slots in the usual way (@pxref{Instance
+Creation,, make}).
+
+@item
+All existing subclasses of @code{<my-class>} are redefined, as though
+the @code{define-class} expressions that defined them were re-evaluated
+following the redefinition of @code{<my-class>}, and the class
+redefinition process described here is applied recursively to the
+redefined subclasses.
+
+@item
+Once all of its instances and subclasses have been updated, the class
+metaobject previously bound to the variable @code{<my-class>} is no
+longer needed and so can be allowed to be garbage collected.
+@end itemize
+
+To keep things tidy, GOOPS also needs to do a little housekeeping on
+methods that are associated with the redefined class.
+
+@itemize @bullet
+@item
+Slot accessor methods for slots in the old definition should be removed
+from their generic functions.  They will be replaced by accessor methods
+for the slots of the new class definition.
+
+@item
+Any generic function method that uses the old @code{<my-class>} metaobject
+as one of its formal parameter specializers must be updated to refer to
+the new @code{<my-class>} metaobject.  (Whenever a new generic function
+method is defined, @code{define-method} adds the method to a list stored
+in the class metaobject for each class used as a formal parameter
+specializer, so it is easy to identify all the methods that must be
+updated when a class is redefined.)
+@end itemize
+
+If this class redefinition strategy strikes you as rather counter-intuitive,
+bear in mind that it is derived from similar behaviour in other object
+systems such as CLOS, and that experience in those systems has shown it to be
+very useful in practice.
+
+Also bear in mind that, like most of GOOPS' default behaviour, it can
+be customized@dots{}
+
+@node Customizing Class Redefinition
+@subsection Customizing Class Redefinition
+
+When @code{define-class} notices that a class is being redefined,
+it constructs the new class metaobject as usual, and then invokes the
+@code{class-redefinition} generic function with the old and new classes
+as arguments.  Therefore, if the old or new classes have metaclasses
+other than the default @code{<class>}, class redefinition behaviour can
+be customized by defining a @code{class-redefinition} method that is
+specialized for the relevant metaclasses.
+
+@deffn generic class-redefinition
+Handle the class redefinition from @var{old-class} to @var{new-class},
+and return the new class metaobject that should be bound to the
+variable specified by @code{define-class}'s first argument.
+@end deffn
+
+@deffn method class-redefinition (old-class <class>) (new-class <class>)
+Implements GOOPS' default class redefinition behaviour, as described in
+@ref{Default Class Redefinition Behaviour}.  Returns the metaobject
+for the new class definition.
+@end deffn
+
+An alternative class redefinition strategy could be to leave all
+existing instances as instances of the old class, but accepting that the
+old class is now ``nameless'', since its name has been taken over by the
+new definition.  In this strategy, any existing subclasses could also
+be left as they are, on the understanding that they inherit from a nameless
+superclass.
+
+This strategy is easily implemented in GOOPS, by defining a new metaclass,
+that will be used as the metaclass for all classes to which the strategy
+should apply, and then defining a @code{class-redefinition} method that
+is specialized for this metaclass:
+
+@example
+(define-class <can-be-nameless> (<class>))
+
+(define-method (class-redefinition (old <can-be-nameless>)
+                                   (new <class>))
+  new)
+@end example
+
+When customization can be as easy as this, aren't you glad that GOOPS
+implements the far more difficult strategy as its default!
+
+Finally, note that, if @code{class-redefinition} itself is not customized,
+the default @code{class-redefinition} method invokes three further
+generic functions that could be individually customized:
+
+@itemize @bullet
+@item
+(remove-class-accessors! @var{old-class})
+
+@item
+(update-direct-method! @var{method} @var{old-class} @var{new-class})
+
+@item
+(update-direct-subclass! @var{subclass} @var{old-class} @var{new-class})
+@end itemize
+
+and the default methods for these generic functions invoke further
+generic functions, and so on@dots{}  The detailed protocol for all of these
+is described in @ref{MOP Specification}.
+
+@node Changing the Class of an Instance
+@section Changing the Class of an Instance
+
+You can change the class of an existing instance by invoking the
+generic function @code{change-class} with two arguments: the instance
+and the new class.
+
+@deffn generic change-class
+@end deffn
+
+The default method for @code{change-class} decides how to implement the
+change of class by looking at the slot definitions for the instance's
+existing class and for the new class.  If the new class has slots with
+the same name as slots in the existing class, the values for those slots
+are preserved.  Slots that are present only in the existing class are
+discarded.  Slots that are present only in the new class are initialized
+using the corresponding slot definition's init function (@pxref{Classes,,
+slot-init-function}).
+
+@deffn {method} change-class (obj <object>) (new <class>)
+Modify instance @var{obj} to make it an instance of class @var{new}.
+
+The value of each of @var{obj}'s slots is preserved only if a similarly named
+slot exists in @var{new}; any other slot values are discarded.
+
+The slots in @var{new} that do not correspond to any of @var{obj}'s
+pre-existing slots are initialized according to @var{new}'s slot definitions'
+init functions.
+@end deffn
+
+Customized change of class behaviour can be implemented by defining
+@code{change-class} methods that are specialized either by the class
+of the instances to be modified or by the metaclass of the new class.
+
+When a class is redefined (@pxref{Redefining a Class}), and the default
+class redefinition behaviour is not overridden, GOOPS (eventually)
+invokes the @code{change-class} generic function for each existing
+instance of the redefined class.
