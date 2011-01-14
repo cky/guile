@@ -1521,28 +1521,28 @@ Return @code{#t} if the slot named @var{slot-name} in @var{obj} has a
 value, otherwise @code{#f}.
 
 @code{slot-bound?} calls the generic function @code{slot-missing} if
-@var{obj} does not have a slot called @var{slot-name} (@pxref{Handling
-Slot Access Errors, slot-missing}).
+@var{obj} does not have a slot called @var{slot-name} (@pxref{Accessing
+Slots, slot-missing}).
 @end deffn
 
 @deffn {primitive procedure} slot-ref obj slot-name
 Return the value of the slot named @var{slot-name} in @var{obj}.
 
 @code{slot-ref} calls the generic function @code{slot-missing} if
-@var{obj} does not have a slot called @var{slot-name} (@pxref{Handling
-Slot Access Errors, slot-missing}).
+@var{obj} does not have a slot called @var{slot-name} (@pxref{Accessing
+Slots, slot-missing}).
 
 @code{slot-ref} calls the generic function @code{slot-unbound} if the
-named slot in @var{obj} does not have a value (@pxref{Handling Slot
-Access Errors, slot-unbound}).
+named slot in @var{obj} does not have a value (@pxref{Accessing Slots,
+slot-unbound}).
 @end deffn
 
 @deffn {primitive procedure} slot-set! obj slot-name value
 Set the value of the slot named @var{slot-name} in @var{obj} to @var{value}.
 
 @code{slot-set!} calls the generic function @code{slot-missing} if
-@var{obj} does not have a slot called @var{slot-name} (@pxref{Handling
-Slot Access Errors, slot-missing}).
+@var{obj} does not have a slot called @var{slot-name} (@pxref{Accessing
+Slots, slot-missing}).
 @end deffn
 
 GOOPS stores information about slots in classes.  Internally,
@@ -1569,7 +1569,7 @@ arguments would call the generic function @code{slot-unbound}, otherwise
 
 @code{slot-bound-using-class?} calls the generic function
 @code{slot-missing} if @var{class} does not have a slot definition for a
-slot called @var{slot-name} (@pxref{Handling Slot Access Errors,
+slot called @var{slot-name} (@pxref{Accessing Slots,
 slot-missing}).
 @end deffn
 
@@ -1579,12 +1579,12 @@ Apply the ``getter'' closure for the slot named @var{slot-name} in
 
 @code{slot-ref-using-class} calls the generic function
 @code{slot-missing} if @var{class} does not have a slot definition for a
-slot called @var{slot-name} (@pxref{Handling Slot Access Errors,
+slot called @var{slot-name} (@pxref{Accessing Slots,
 slot-missing}).
 
 @code{slot-ref-using-class} calls the generic function
 @code{slot-unbound} if the application of the ``getter'' closure to
-@var{obj} returns an unbound value (@pxref{Handling Slot Access Errors,
+@var{obj} returns an unbound value (@pxref{Accessing Slots,
 slot-unbound}).
 @end deffn
 
@@ -1594,8 +1594,7 @@ Apply the ``setter'' closure for the slot named @var{slot-name} in
 
 @code{slot-set-using-class!} calls the generic function
 @code{slot-missing} if @var{class} does not have a slot definition for a
-slot called @var{slot-name} (@pxref{Handling Slot Access Errors,
-slot-missing}).
+slot called @var{slot-name} (@pxref{Accessing Slots, slot-missing}).
 @end deffn
 
 Slots whose allocation is per-class rather than per-instance can be
@@ -1621,6 +1620,34 @@ Set the value of the slot named @var{slot-name} in class @var{class} to
 If there is no such slot with @code{#:class} or @code{#:each-subclass}
 allocation, @code{class-slot-ref} calls the @code{slot-missing} generic
 function with arguments @var{class} and @var{slot-name}.
+@end deffn
+
+When a @code{slot-ref} or @code{slot-set!} call specifies a non-existent
+slot name, or tries to reference a slot whose value is unbound, GOOPS
+calls one of the following generic functions.
+
+@deffn generic slot-missing
+@deffnx method slot-missing (class <class>) slot-name
+@deffnx method slot-missing (class <class>) (object <object>) slot-name
+@deffnx method slot-missing (class <class>) (object <object>) slot-name value
+When an application attempts to reference or set a class or instance
+slot by name, and the slot name is invalid for the specified @var{class}
+or @var{object}, GOOPS calls the @code{slot-missing} generic function.
+
+The default methods all call @code{goops-error} with an appropriate
+message.
+@end deffn
+
+@deffn generic slot-unbound
+@deffnx method slot-unbound (object <object>)
+@deffnx method slot-unbound (class <class>) slot-name
+@deffnx method slot-unbound (class <class>) (object <object>) slot-name
+When an application attempts to reference a class or instance slot, and
+the slot's value is unbound, GOOPS calls the @code{slot-unbound} generic
+function.
+
+The default methods all call @code{goops-error} with an appropriate
+message.
 @end deffn
 
 
@@ -1902,10 +1929,10 @@ by the default methods of the following generic functions:
 
 @itemize @bullet
 @item
-@code{slot-missing} (@pxref{Handling Slot Access Errors,, slot-missing})
+@code{slot-missing} (@pxref{Accessing Slots,, slot-missing})
 
 @item
-@code{slot-unbound} (@pxref{Handling Slot Access Errors,, slot-unbound})
+@code{slot-unbound} (@pxref{Accessing Slots,, slot-unbound})
 
 @item
 @code{no-method} (@pxref{Handling Invocation Errors,, no-method})
@@ -1927,42 +1954,6 @@ conditions that you detect.
 Raise an error with key @code{goops-error} and error message constructed
 from @var{format-string} and @var{args}.  Error message formatting is
 as done by @code{scm-error}.
-@end deffn
-
-@menu
-* Handling Slot Access Errors::
-@end menu
-
-
-@node Handling Slot Access Errors
-@subsection Handling Slot Access Errors
-
-GOOPS calls one of the following generic functions when a ``slot-ref''
-or ``slot-set!'' call specifies a non-existent slot name, or tries to
-reference a slot whose value is unbound.
-
-@deffn generic slot-missing
-@deffnx method slot-missing (class <class>) slot-name
-@deffnx method slot-missing (class <class>) (object <object>) slot-name
-@deffnx method slot-missing (class <class>) (object <object>) slot-name value
-When an application attempts to reference or set a class or instance
-slot by name, and the slot name is invalid for the specified @var{class}
-or @var{object}, GOOPS calls the @code{slot-missing} generic function.
-
-The default methods all call @code{goops-error} with an appropriate
-message.
-@end deffn
-
-@deffn generic slot-unbound
-@deffnx method slot-unbound (object <object>)
-@deffnx method slot-unbound (class <class>) slot-name
-@deffnx method slot-unbound (class <class>) (object <object>) slot-name
-When an application attempts to reference a class or instance slot, and
-the slot's value is unbound, GOOPS calls the @code{slot-unbound} generic
-function.
-
-The default methods all call @code{goops-error} with an appropriate
-message.
 @end deffn
 
 
