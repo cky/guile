@@ -44,12 +44,12 @@ module.  You can do this at the Guile REPL by evaluating:
 * Slot Description Example::
 * Methods and Generic Functions::           
 * Inheritance::                 
+* Introspection::
 * Class Options::
 * Accessing Slots::
 * Generic Functions and Accessors::
 * Redefining a Class::
 * Changing the Class of an Instance::
-* Introspection::
 * GOOPS Error Handling::
 * Object Comparisons::
 * Cloning Objects::
@@ -1237,6 +1237,285 @@ actual class C, if C1 comes before C2 in C's class precedence list.
 @end itemize
 
 
+@node Introspection
+@section Introspection
+
+@dfn{Introspection}, also known as @dfn{reflection}, is the name given
+to the ability to obtain information dynamically about GOOPS metaobjects.
+It is perhaps best illustrated by considering an object oriented language
+that does not provide any introspection, namely C++.
+
+Nothing in C++ allows a running program to obtain answers to the following
+types of question:
+
+@itemize @bullet
+@item
+What are the data members of this object or class?
+
+@item
+What classes does this class inherit from?
+
+@item
+Is this method call virtual or non-virtual?
+
+@item
+If I invoke @code{Employee::adjustHoliday()}, what class contains the
+@code{adjustHoliday()} method that will be applied?
+@end itemize
+
+In C++, answers to such questions can only be determined by looking at
+the source code, if you have access to it.  GOOPS, on the other hand,
+includes procedures that allow answers to these questions --- or their
+GOOPS equivalents --- to be obtained dynamically, at run time.
+
+@menu
+* Classes::
+* Slots::
+* Instances::
+* Built-in classes::
+* Generic Functions::
+* Generic Function Methods::
+@end menu
+
+@node Classes
+@subsection Classes
+
+@deffn {primitive procedure} class-name class
+Return the name of class @var{class}.
+This is the value of the @var{class} metaobject's @code{name} slot.
+@end deffn
+
+@deffn {primitive procedure} class-direct-supers class
+Return a list containing the direct superclasses of @var{class}.
+This is the value of the @var{class} metaobject's
+@code{direct-supers} slot.
+@end deffn
+
+@deffn {primitive procedure} class-direct-slots class
+Return a list containing the slot definitions of the direct slots of
+@var{class}.
+This is the value of the @var{class} metaobject's @code{direct-slots}
+slot.
+@end deffn
+
+@deffn {primitive procedure} class-direct-subclasses class
+Return a list containing the direct subclasses of @var{class}.
+This is the value of the @var{class} metaobject's
+@code{direct-subclasses} slot.
+@end deffn
+
+@deffn {primitive procedure} class-direct-methods class
+Return a list of all the generic function methods that use @var{class}
+as a formal parameter specializer.
+This is the value of the @var{class} metaobject's @code{direct-methods}
+slot.
+@end deffn
+
+@deffn {primitive procedure} class-precedence-list class
+Return the class precedence list for class @var{class} (@pxref{Class
+Precedence List}).
+This is the value of the @var{class} metaobject's @code{cpl} slot.
+@end deffn
+
+@deffn {primitive procedure} class-slots class
+Return a list containing the slot definitions for all @var{class}'s slots,
+including any slots that are inherited from superclasses.
+This is the value of the @var{class} metaobject's @code{slots} slot.
+@end deffn
+
+@deffn {primitive procedure} class-environment class
+Return the value of @var{class}'s @code{environment} slot.
+[ *fixme*  I don't know what this value is used for. ]
+@end deffn
+
+@deffn procedure class-subclasses class
+Return a list of all subclasses of @var{class}.
+@end deffn
+
+@deffn procedure class-methods class
+Return a list of all methods that use @var{class} or a subclass of
+@var{class} as one of its formal parameter specializers.
+@end deffn
+
+@node Slots
+@subsection Slots
+
+@deffn procedure class-slot-definition class slot-name
+Return the slot definition for the slot named @var{slot-name} in class
+@var{class}.  @var{slot-name} should be a symbol.
+@end deffn
+
+@deffn procedure slot-definition-name slot-def
+Extract and return the slot name from @var{slot-def}.
+@end deffn
+
+@deffn procedure slot-definition-options slot-def
+Extract and return the slot options from @var{slot-def}.
+@end deffn
+
+@deffn procedure slot-definition-allocation slot-def
+Extract and return the slot allocation option from @var{slot-def}.  This
+is the value of the @code{#:allocation} keyword (@pxref{Slot Options,,
+allocation}), or @code{#:instance} if the @code{#:allocation} keyword is
+absent.
+@end deffn
+
+@deffn procedure slot-definition-getter slot-def
+Extract and return the slot getter option from @var{slot-def}.  This is
+the value of the @code{#:getter} keyword (@pxref{Slot Options,,
+getter}), or @code{#f} if the @code{#:getter} keyword is absent.
+@end deffn
+
+@deffn procedure slot-definition-setter slot-def
+Extract and return the slot setter option from @var{slot-def}.  This is
+the value of the @code{#:setter} keyword (@pxref{Slot Options,,
+setter}), or @code{#f} if the @code{#:setter} keyword is absent.
+@end deffn
+
+@deffn procedure slot-definition-accessor slot-def
+Extract and return the slot accessor option from @var{slot-def}.  This
+is the value of the @code{#:accessor} keyword (@pxref{Slot Options,,
+accessor}), or @code{#f} if the @code{#:accessor} keyword is absent.
+@end deffn
+
+@deffn procedure slot-definition-init-value slot-def
+Extract and return the slot init-value option from @var{slot-def}.  This
+is the value of the @code{#:init-value} keyword (@pxref{Slot Options,,
+init-value}), or the unbound value if the @code{#:init-value} keyword is
+absent.
+@end deffn
+
+@deffn procedure slot-definition-init-form slot-def
+Extract and return the slot init-form option from @var{slot-def}.  This
+is the value of the @code{#:init-form} keyword (@pxref{Slot Options,,
+init-form}), or the unbound value if the @code{#:init-form} keyword is
+absent.
+@end deffn
+
+@deffn procedure slot-definition-init-thunk slot-def
+Extract and return the slot init-thunk option from @var{slot-def}.  This
+is the value of the @code{#:init-thunk} keyword (@pxref{Slot Options,,
+init-thunk}), or @code{#f} if the @code{#:init-thunk} keyword is absent.
+@end deffn
+
+@deffn procedure slot-definition-init-keyword slot-def
+Extract and return the slot init-keyword option from @var{slot-def}.
+This is the value of the @code{#:init-keyword} keyword (@pxref{Slot
+Options,, init-keyword}), or @code{#f} if the @code{#:init-keyword}
+keyword is absent.
+@end deffn
+
+@deffn procedure slot-init-function class slot-name
+Return the initialization function for the slot named @var{slot-name} in
+class @var{class}.  @var{slot-name} should be a symbol.
+
+The returned initialization function incorporates the effects of the
+standard @code{#:init-thunk}, @code{#:init-form} and @code{#:init-value}
+slot options.  These initializations can be overridden by the
+@code{#:init-keyword} slot option or by a specialized @code{initialize}
+method, so, in general, the function returned by
+@code{slot-init-function} may be irrelevant.  For a fuller discussion,
+see @ref{Slot Options,, init-value}.
+@end deffn
+
+@node Instances
+@subsection Instances
+
+@deffn {primitive procedure} class-of value
+Return the GOOPS class of any Scheme @var{value}.
+@end deffn
+
+@deffn {primitive procedure} instance? object
+Return @code{#t} if @var{object} is any GOOPS instance, otherwise
+@code{#f}.
+@end deffn
+
+@deffn procedure is-a? object class
+Return @code{#t} if @var{object} is an instance of @var{class} or one of
+its subclasses.
+@end deffn
+
+Implementation notes: @code{is-a?} uses @code{class-of} and
+@code{class-precedence-list} to obtain the class precedence list for
+@var{object}.
+
+@node Built-in classes
+@subsection Built-in classes
+
+There are built-in classes like @code{<string>}, @code{<list>} and
+@code{<number>} corresponding to all the Guile Scheme types.  You can
+use the @code{is-a?} predicate to ask whether any given value belongs to
+a given class, or @code{class-of} to discover the class of a given
+value.
+
+@lisp
+(is-a? 2.3 <number>) @result{} #t
+(is-a? 2.3 <real>) @result{} #t
+(is-a? 2.3 <string>) @result{} #f
+(is-a? '("a" "b") <string>) @result{} #f
+(is-a? '("a" "b") <list>) @result{} #t
+(is-a? (car '("a" "b")) <string>) @result{} #t
+(is-a? <string> <class>) @result{} #t
+(is-a? <class> <string>) @result{} #f
+
+(class-of 2.3) @result{} #<<class> <real> 908c708>
+(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
+(class-of <string>) @result{} #<<class> <class> 8bd3e10>
+(class-of <class>) @result{} #<<class> <class> 8bd3e10>
+@end lisp
+
+
+@node Generic Functions
+@subsection Generic Functions
+
+@deffn {primitive procedure} generic-function-name gf
+Return the name of generic function @var{gf}.
+@end deffn
+
+@deffn {primitive procedure} generic-function-methods gf
+Return a list of the methods of generic function @var{gf}.
+This is the value of the @var{gf} metaobject's @code{methods} slot.
+@end deffn
+
+@node Generic Function Methods
+@subsection Generic Function Methods
+
+@deffn {primitive procedure} method-generic-function method
+Return the generic function that @var{method} belongs to.
+This is the value of the @var{method} metaobject's
+@code{generic-function} slot.
+@end deffn
+
+@deffn {primitive procedure} method-specializers method
+Return a list of @var{method}'s formal parameter specializers .
+This is the value of the @var{method} metaobject's
+@code{specializers} slot.
+@end deffn
+
+@deffn {primitive procedure} method-procedure method
+Return the procedure that implements @var{method}.
+This is the value of the @var{method} metaobject's
+@code{procedure} slot.
+@end deffn
+
+@deffn generic method-source
+@deffnx method method-source (m <method>)
+Return an expression that prints to show the definition of method
+@var{m}.
+
+@example
+(define-generic cube)
+
+(define-method (cube (n <number>))
+  (* n n n))
+
+(map method-source (generic-function-methods cube))
+@result{}
+((method ((n <number>)) (* n n n)))
+@end example
+@end deffn
+
+
 @node Class Options
 @section Class Options
 
@@ -1635,284 +1914,6 @@ When a class is redefined (@pxref{Redefining a Class}), and the default
 class redefinition behaviour is not overridden, GOOPS (eventually)
 invokes the @code{change-class} generic function for each existing
 instance of the redefined class.
-
-@node Introspection
-@section Introspection
-
-@dfn{Introspection}, also known as @dfn{reflection}, is the name given
-to the ability to obtain information dynamically about GOOPS metaobjects.
-It is perhaps best illustrated by considering an object oriented language
-that does not provide any introspection, namely C++.
-
-Nothing in C++ allows a running program to obtain answers to the following
-types of question:
-
-@itemize @bullet
-@item
-What are the data members of this object or class?
-
-@item
-What classes does this class inherit from?
-
-@item
-Is this method call virtual or non-virtual?
-
-@item
-If I invoke @code{Employee::adjustHoliday()}, what class contains the
-@code{adjustHoliday()} method that will be applied?
-@end itemize
-
-In C++, answers to such questions can only be determined by looking at
-the source code, if you have access to it.  GOOPS, on the other hand,
-includes procedures that allow answers to these questions --- or their
-GOOPS equivalents --- to be obtained dynamically, at run time.
-
-@menu
-* Classes::
-* Slots::
-* Instances::
-* Built-in classes::
-* Generic Functions::
-* Generic Function Methods::
-@end menu
-
-@node Classes
-@subsection Classes
-
-@deffn {primitive procedure} class-name class
-Return the name of class @var{class}.
-This is the value of the @var{class} metaobject's @code{name} slot.
-@end deffn
-
-@deffn {primitive procedure} class-direct-supers class
-Return a list containing the direct superclasses of @var{class}.
-This is the value of the @var{class} metaobject's
-@code{direct-supers} slot.
-@end deffn
-
-@deffn {primitive procedure} class-direct-slots class
-Return a list containing the slot definitions of the direct slots of
-@var{class}.
-This is the value of the @var{class} metaobject's @code{direct-slots}
-slot.
-@end deffn
-
-@deffn {primitive procedure} class-direct-subclasses class
-Return a list containing the direct subclasses of @var{class}.
-This is the value of the @var{class} metaobject's
-@code{direct-subclasses} slot.
-@end deffn
-
-@deffn {primitive procedure} class-direct-methods class
-Return a list of all the generic function methods that use @var{class}
-as a formal parameter specializer.
-This is the value of the @var{class} metaobject's @code{direct-methods}
-slot.
-@end deffn
-
-@deffn {primitive procedure} class-precedence-list class
-Return the class precedence list for class @var{class} (@pxref{Class
-Precedence List}).
-This is the value of the @var{class} metaobject's @code{cpl} slot.
-@end deffn
-
-@deffn {primitive procedure} class-slots class
-Return a list containing the slot definitions for all @var{class}'s slots,
-including any slots that are inherited from superclasses.
-This is the value of the @var{class} metaobject's @code{slots} slot.
-@end deffn
-
-@deffn {primitive procedure} class-environment class
-Return the value of @var{class}'s @code{environment} slot.
-[ *fixme*  I don't know what this value is used for. ]
-@end deffn
-
-@deffn procedure class-subclasses class
-Return a list of all subclasses of @var{class}.
-@end deffn
-
-@deffn procedure class-methods class
-Return a list of all methods that use @var{class} or a subclass of
-@var{class} as one of its formal parameter specializers.
-@end deffn
-
-@node Slots
-@subsection Slots
-
-@deffn procedure class-slot-definition class slot-name
-Return the slot definition for the slot named @var{slot-name} in class
-@var{class}.  @var{slot-name} should be a symbol.
-@end deffn
-
-@deffn procedure slot-definition-name slot-def
-Extract and return the slot name from @var{slot-def}.
-@end deffn
-
-@deffn procedure slot-definition-options slot-def
-Extract and return the slot options from @var{slot-def}.
-@end deffn
-
-@deffn procedure slot-definition-allocation slot-def
-Extract and return the slot allocation option from @var{slot-def}.  This
-is the value of the @code{#:allocation} keyword (@pxref{Slot Options,,
-allocation}), or @code{#:instance} if the @code{#:allocation} keyword is
-absent.
-@end deffn
-
-@deffn procedure slot-definition-getter slot-def
-Extract and return the slot getter option from @var{slot-def}.  This is
-the value of the @code{#:getter} keyword (@pxref{Slot Options,,
-getter}), or @code{#f} if the @code{#:getter} keyword is absent.
-@end deffn
-
-@deffn procedure slot-definition-setter slot-def
-Extract and return the slot setter option from @var{slot-def}.  This is
-the value of the @code{#:setter} keyword (@pxref{Slot Options,,
-setter}), or @code{#f} if the @code{#:setter} keyword is absent.
-@end deffn
-
-@deffn procedure slot-definition-accessor slot-def
-Extract and return the slot accessor option from @var{slot-def}.  This
-is the value of the @code{#:accessor} keyword (@pxref{Slot Options,,
-accessor}), or @code{#f} if the @code{#:accessor} keyword is absent.
-@end deffn
-
-@deffn procedure slot-definition-init-value slot-def
-Extract and return the slot init-value option from @var{slot-def}.  This
-is the value of the @code{#:init-value} keyword (@pxref{Slot Options,,
-init-value}), or the unbound value if the @code{#:init-value} keyword is
-absent.
-@end deffn
-
-@deffn procedure slot-definition-init-form slot-def
-Extract and return the slot init-form option from @var{slot-def}.  This
-is the value of the @code{#:init-form} keyword (@pxref{Slot Options,,
-init-form}), or the unbound value if the @code{#:init-form} keyword is
-absent.
-@end deffn
-
-@deffn procedure slot-definition-init-thunk slot-def
-Extract and return the slot init-thunk option from @var{slot-def}.  This
-is the value of the @code{#:init-thunk} keyword (@pxref{Slot Options,,
-init-thunk}), or @code{#f} if the @code{#:init-thunk} keyword is absent.
-@end deffn
-
-@deffn procedure slot-definition-init-keyword slot-def
-Extract and return the slot init-keyword option from @var{slot-def}.
-This is the value of the @code{#:init-keyword} keyword (@pxref{Slot
-Options,, init-keyword}), or @code{#f} if the @code{#:init-keyword}
-keyword is absent.
-@end deffn
-
-@deffn procedure slot-init-function class slot-name
-Return the initialization function for the slot named @var{slot-name} in
-class @var{class}.  @var{slot-name} should be a symbol.
-
-The returned initialization function incorporates the effects of the
-standard @code{#:init-thunk}, @code{#:init-form} and @code{#:init-value}
-slot options.  These initializations can be overridden by the
-@code{#:init-keyword} slot option or by a specialized @code{initialize}
-method, so, in general, the function returned by
-@code{slot-init-function} may be irrelevant.  For a fuller discussion,
-see @ref{Slot Options,, init-value}.
-@end deffn
-
-@node Instances
-@subsection Instances
-
-@deffn {primitive procedure} class-of value
-Return the GOOPS class of any Scheme @var{value}.
-@end deffn
-
-@deffn {primitive procedure} instance? object
-Return @code{#t} if @var{object} is any GOOPS instance, otherwise
-@code{#f}.
-@end deffn
-
-@deffn procedure is-a? object class
-Return @code{#t} if @var{object} is an instance of @var{class} or one of
-its subclasses.
-@end deffn
-
-Implementation notes: @code{is-a?} uses @code{class-of} and
-@code{class-precedence-list} to obtain the class precedence list for
-@var{object}.
-
-@node Built-in classes
-@subsection Built-in classes
-
-There are built-in classes like @code{<string>}, @code{<list>} and
-@code{<number>} corresponding to all the Guile Scheme types.  You can
-use the @code{is-a?} predicate to ask whether any given value belongs to
-a given class, or @code{class-of} to discover the class of a given
-value.
-
-@lisp
-(is-a? 2.3 <number>) @result{} #t
-(is-a? 2.3 <real>) @result{} #t
-(is-a? 2.3 <string>) @result{} #f
-(is-a? '("a" "b") <string>) @result{} #f
-(is-a? '("a" "b") <list>) @result{} #t
-(is-a? (car '("a" "b")) <string>) @result{} #t
-(is-a? <string> <class>) @result{} #t
-(is-a? <class> <string>) @result{} #f
-
-(class-of 2.3) @result{} #<<class> <real> 908c708>
-(class-of #(1 2 3)) @result{} #<<class> <vector> 908cd20>
-(class-of <string>) @result{} #<<class> <class> 8bd3e10>
-(class-of <class>) @result{} #<<class> <class> 8bd3e10>
-@end lisp
-
-
-@node Generic Functions
-@subsection Generic Functions
-
-@deffn {primitive procedure} generic-function-name gf
-Return the name of generic function @var{gf}.
-@end deffn
-
-@deffn {primitive procedure} generic-function-methods gf
-Return a list of the methods of generic function @var{gf}.
-This is the value of the @var{gf} metaobject's @code{methods} slot.
-@end deffn
-
-@node Generic Function Methods
-@subsection Generic Function Methods
-
-@deffn {primitive procedure} method-generic-function method
-Return the generic function that @var{method} belongs to.
-This is the value of the @var{method} metaobject's
-@code{generic-function} slot.
-@end deffn
-
-@deffn {primitive procedure} method-specializers method
-Return a list of @var{method}'s formal parameter specializers .
-This is the value of the @var{method} metaobject's
-@code{specializers} slot.
-@end deffn
-
-@deffn {primitive procedure} method-procedure method
-Return the procedure that implements @var{method}.
-This is the value of the @var{method} metaobject's
-@code{procedure} slot.
-@end deffn
-
-@deffn generic method-source
-@deffnx method method-source (m <method>)
-Return an expression that prints to show the definition of method
-@var{m}.
-
-@example
-(define-generic cube)
-
-(define-method (cube (n <number>))
-  (* n n n))
-
-(map method-source (generic-function-methods cube))
-@result{}
-((method ((n <number>)) (* n n n)))
-@end example
-@end deffn
 
 @node GOOPS Error Handling
 @section Error Handling
