@@ -45,11 +45,11 @@ module.  You can do this at the Guile REPL by evaluating:
 * Methods and Generic Functions::           
 * Inheritance::                 
 * Introspection::
+* GOOPS Error Handling::
 * GOOPS Object Miscellany::
 * Class Options::
 * Redefining a Class::
 * Changing the Class of an Instance::
-* GOOPS Error Handling::
 * The Metaobject Protocol::
 @end menu
 
@@ -1651,6 +1651,42 @@ message.
 @end deffn
 
 
+@node GOOPS Error Handling
+@section Error Handling
+
+The procedure @code{goops-error} is called to raise an appropriate error
+by the default methods of the following generic functions:
+
+@itemize @bullet
+@item
+@code{slot-missing} (@pxref{Accessing Slots,, slot-missing})
+
+@item
+@code{slot-unbound} (@pxref{Accessing Slots,, slot-unbound})
+
+@item
+@code{no-method} (@pxref{Handling Invocation Errors,, no-method})
+
+@item
+@code{no-applicable-method} (@pxref{Handling Invocation Errors,,
+no-applicable-method})
+
+@item
+@code{no-next-method} (@pxref{Handling Invocation Errors,,
+no-next-method})
+@end itemize
+
+If you customize these functions for particular classes or metaclasses,
+you may still want to use @code{goops-error} to signal any error
+conditions that you detect.
+
+@deffn procedure goops-error format-string . args
+Raise an error with key @code{goops-error} and error message constructed
+from @var{format-string} and @var{args}.  Error message formatting is
+as done by @code{scm-error}.
+@end deffn
+
+
 @node GOOPS Object Miscellany
 @section GOOPS Object Miscellany
 
@@ -1920,41 +1956,6 @@ When a class is redefined (@pxref{Redefining a Class}), and the default
 class redefinition behaviour is not overridden, GOOPS (eventually)
 invokes the @code{change-class} generic function for each existing
 instance of the redefined class.
-
-@node GOOPS Error Handling
-@section Error Handling
-
-The procedure @code{goops-error} is called to raise an appropriate error
-by the default methods of the following generic functions:
-
-@itemize @bullet
-@item
-@code{slot-missing} (@pxref{Accessing Slots,, slot-missing})
-
-@item
-@code{slot-unbound} (@pxref{Accessing Slots,, slot-unbound})
-
-@item
-@code{no-method} (@pxref{Handling Invocation Errors,, no-method})
-
-@item
-@code{no-applicable-method} (@pxref{Handling Invocation Errors,,
-no-applicable-method})
-
-@item
-@code{no-next-method} (@pxref{Handling Invocation Errors,,
-no-next-method})
-@end itemize
-
-If you customize these functions for particular classes or metaclasses,
-you may still want to use @code{goops-error} to signal any error
-conditions that you detect.
-
-@deffn procedure goops-error format-string . args
-Raise an error with key @code{goops-error} and error message constructed
-from @var{format-string} and @var{args}.  Error message formatting is
-as done by @code{scm-error}.
-@end deffn
 
 
 @node The Metaobject Protocol
