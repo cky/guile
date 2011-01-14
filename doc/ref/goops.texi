@@ -45,13 +45,11 @@ module.  You can do this at the Guile REPL by evaluating:
 * Methods and Generic Functions::           
 * Inheritance::                 
 * Introspection::
+* GOOPS Object Miscellany::
 * Class Options::
 * Redefining a Class::
 * Changing the Class of an Instance::
 * GOOPS Error Handling::
-* Object Comparisons::
-* Cloning Objects::
-* Write and Display::
 * The Metaobject Protocol::
 @end menu
 
@@ -1626,6 +1624,80 @@ function with arguments @var{class} and @var{slot-name}.
 @end deffn
 
 
+@node GOOPS Object Miscellany
+@section GOOPS Object Miscellany
+
+Here we cover some points about GOOPS objects that aren't substantial
+enough to merit sections on their own.
+
+@subheading Object Equality
+
+When GOOPS is loaded, @code{eqv?}, @code{equal?} and @code{=} become
+generic functions, and you can define methods for them, specialized for
+your own classes, so as to control what the various kinds of equality
+mean for your classes.
+
+For example, the @code{assoc} procedure, for looking up an entry in an
+alist, is specified as using @code{equal?} to determine when the car of
+an entry in the alist is the same as the key parameter that @code{assoc}
+is called with.  Hence, if you had defined a new class, and wanted to
+use instances of that class as the keys in an alist, you could define a
+method for @code{equal?}, for your class, to control @code{assoc}'s
+lookup precisely.
+
+@subheading Cloning Objects
+
+@deffn generic shallow-clone
+@deffnx method shallow-clone (self <object>)
+Return a ``shallow'' clone of @var{self}.  The default method makes a
+shallow clone by allocating a new instance and copying slot values from
+self to the new instance.  Each slot value is copied either as an
+immediate value or by reference.
+@end deffn
+
+@deffn generic deep-clone
+@deffnx method deep-clone (self <object>)
+Return a ``deep'' clone of @var{self}.  The default method makes a deep
+clone by allocating a new instance and copying or cloning slot values
+from self to the new instance.  If a slot value is an instance
+(satisfies @code{instance?}), it is cloned by calling @code{deep-clone}
+on that value.  Other slot values are copied either as immediate values
+or by reference.
+@end deffn
+
+@subheading Write and Display
+
+@deffn {primitive generic} write object port
+@deffnx {primitive generic} display object port
+When GOOPS is loaded, @code{write} and @code{display} become generic
+functions with special methods for printing
+
+@itemize @bullet
+@item
+objects - instances of the class @code{<object>}
+
+@item
+foreign objects - instances of the class @code{<foreign-object>}
+
+@item
+classes - instances of the class @code{<class>}
+
+@item
+generic functions - instances of the class @code{<generic>}
+
+@item
+methods - instances of the class @code{<method>}.
+@end itemize
+
+@code{write} and @code{display} print non-GOOPS values in the same way
+as the Guile primitive @code{write} and @code{display} functions.
+@end deffn
+
+In addition to the cases mentioned, you can of course define
+@code{write} and @code{display} methods for your own classes, to
+customize how they are printed.
+
+
 @node Class Options
 @section Class Options
 
@@ -1893,84 +1965,6 @@ The default methods all call @code{goops-error} with an appropriate
 message.
 @end deffn
 
-@node Object Comparisons
-@section Object Comparisons
-
-@deffn generic eqv?
-@deffnx method eqv? ((x <top>) (y <top>))
-@deffnx generic equal?
-@deffnx method equal? ((x <top>) (y <top>))
-@deffnx generic =
-@deffnx method = ((x <number>) (y <number>))
-Generic functions and default (unspecialized) methods for comparing two
-GOOPS objects.
-
-The default method for @code{eqv?} returns @code{#t} for all values
-that are equal in the sense defined by R5RS and the Guile reference
-manual, otherwise @code{#f}.  The default method for @code{equal?}
-returns @code{#t} or @code{#f} in the sense defined by R5RS and the
-Guile reference manual.  If no such comparison is defined,
-@code{equal?} returns the result of a call to @code{eqv?}.  The
-default method for = returns @code{#t} if @var{x} and @var{y} are
-numerically equal, otherwise @code{#f}.
-
-Application class authors may wish to define specialized methods for
-@code{eqv?}, @code{equal?} and @code{=} that compare instances of the
-same class for equality in whatever sense is useful to the
-application.  Such methods will only be called if the arguments have
-the same class and the result of the comparison isn't defined by R5RS
-and the Guile reference manual.
-@end deffn
-
-@node Cloning Objects
-@section Cloning Objects
-
-@deffn generic shallow-clone
-@deffnx method shallow-clone (self <object>)
-Return a ``shallow'' clone of @var{self}.  The default method makes a
-shallow clone by allocating a new instance and copying slot values from
-self to the new instance.  Each slot value is copied either as an
-immediate value or by reference.
-@end deffn
-
-@deffn generic deep-clone
-@deffnx method deep-clone (self <object>)
-Return a ``deep'' clone of @var{self}.  The default method makes a deep
-clone by allocating a new instance and copying or cloning slot values
-from self to the new instance.  If a slot value is an instance
-(satisfies @code{instance?}), it is cloned by calling @code{deep-clone}
-on that value.  Other slot values are copied either as immediate values
-or by reference.
-@end deffn
-
-@node Write and Display
-@section Write and Display
-
-@deffn {primitive generic} write object port
-@deffnx {primitive generic} display object port
-When GOOPS is loaded, @code{write} and @code{display} become generic
-functions with special methods for printing
-
-@itemize @bullet
-@item
-objects - instances of the class @code{<object>}
-
-@item
-foreign objects - instances of the class @code{<foreign-object>}
-
-@item
-classes - instances of the class @code{<class>}
-
-@item
-generic functions - instances of the class @code{<generic>}
-
-@item
-methods - instances of the class @code{<method>}.
-@end itemize
-
-@code{write} and @code{display} print non-GOOPS values in the same way
-as the Guile primitive @code{write} and @code{display} functions.
-@end deffn
 
 @node The Metaobject Protocol
 @section The Metaobject Protocol
