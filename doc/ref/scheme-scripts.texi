@@ -218,6 +218,17 @@ That said, @code{--listen} is great for interactive debugging and
 development.
 
 @vnew{2.0}
+
+@item --autocompile
+Compile source files automatically (default behavior).
+
+@vnew{2.0}
+
+@item --no-autocompile
+Disable automatic source file compilation.
+
+@vnew{2.0}
+
 @item -h@r{, }--help
 Display help on invoking Guile, and then exit.
 
