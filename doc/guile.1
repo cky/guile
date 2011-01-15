@@ -29,9 +29,7 @@ This manpage provides only brief instruction in invoking
 from the command line.  Please consult the guile info documentation
 (type 
 .B info guile
-at a command prompt) for more information.  There is also a tutorial
-.B (info guile-tut) 
-available.
+at a command prompt) for more information.
 
 .SH OPTIONS
 .IP -l FILE
@@ -56,6 +54,8 @@ Stop argument processing, start guile in interactive mode.
 Stop argument processing, evaluate EXPR as a scheme expression.
 .IP -s SCRIPT-FILE
 Load Scheme source from SCRIPT-FILE and execute as a script.
+.IP -q
+Suppress loading the user's ~/.guile file.
 
 .SH ENVIRONMENT
 .\".TP \w'MANROFFSEQ\ \ 'u
