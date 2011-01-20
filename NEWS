@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -8,114 +8,7 @@ Please send Guile bug reports to bug-guile@gnu.org.
 Note: During the 1.9 series, we will keep an incremental NEWS for the
 latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
-Changes in 1.9.14 (since the 1.9.13 prerelease):
-
-** New module: `(ice-9 futures)'.
-    
-See "Futures" in the manual, for more information.
-
-** Add bindings to GNU `sched_setaffinity' and `sched_getaffinity'.
-    
-See "Processes" in the manual, for more information.
-
-** New module `(srfi srfi-38)', External Representation for Data With Shared Structure
-
-See "SRFI-38" in the manual, for more information.  Thanks to Andreas
-Rottmann.
-
-** New module: `(web uri)', URI data type, parser, and unparser
-** New module: `(web http)', HTTP header parsers and unparsers
-** New module: `(web request)', HTTP request data type, reader, and writer
-** New module: `(web response)', HTTP response data type, reader, and writer
-** New module: `(web server)', Generic HTTP server
-** New module: `(ice-9 poll)', a poll wrapper
-** New module: `(web server http)', HTTP-over-TCP web server implementation
-
-See "Web" in the manual, for more information, but as a taste of things,
-try the following command line:
-
-  meta/guile examples/web/debug-sxml.scm
-
-Then visit http://localhost:8080/ in your web browser.  Let us know how
-it goes!
-
-** Better Emacs Lisp implementation
-
-Brian Templeton's Summer-of-Code work was finally merged in, which
-should improve the state of Guile's Elisp support.  There is still some
-work to do, so patches are welcome!
-
-** R6RS fixes
-
-There were many fixes and enhancements to the R6RS support.  Thanks to
-Julian Graham, Andreas Rottmann, and Göran Weinholt.
-
-** Expression-oriented readline history
-    
-Guile's readline history now tries to operate on expressions instead of
-input lines.  Let us know what you think!
-
-** Better syntax errors
-
-The Scheme expander, Ecmascript compiler, and other language
-implementations now produce more useful syntax errors.  The default
-error handlers print them out more nicely now.
-
-** Lots of documentation updates
-
-In particular, the documentation for GOOPS and regular expressions has
-seen some work.  Unfortunately the code has come too fast and furious
-for full documentary folios, so some of the new modules are still
-undocumented.
-
-** Better pretty-printing
-
-Indentation recognizes more special forms, like `syntax-case', and read
-macros like `quote' are printed better.
-
-** Multicast socket options
-
-Support was added for the IP_MULTICAST_TTL and IP_MULTICAST_IF socket
-options.  See "Network Sockets and Communication" in the manual, for
-more information.
-
-** Deprecate `cuserid'
-    
-`cuserid' has been deprecated, as it only returns 8 bytes of a user's
-login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
-    
-** New procedure `reload-module', and `,reload' REPL command
-    
-See "Module System Reflection" and "Module Commands" in the manual, for
-more information.
-
-** New `,in' REPL command
-
-See "Module Commands" in the manual, for more information.
-
-** Allow user-defined REPL meta-commands
-    
-This feature is not documented yet.  See `define-meta-command' in
-`(system repl command)'.
-
-** Add support for unbound fluids
-    
-See `make-unbound-fluid', `fluid-unset!', and `fluid-bound?' in the
-manual.
-
-** Add `variable-unset!'
-    
-See "Variables" in the manual, for more details.
-
-** New procedures: `compose', `negate', and `const'
-
-See "Higher-Order Functions" in the manual, for more information.
-
-** Command line additions
-
-The guile binary now supports a new switch "-x", which can be used to
-extend the list of filename extensions tried when loading files
-(%load-extensions).
+Changes in 1.9.15 (since the 1.9.14 prerelease):
 
 ** And of course, the usual collection of bugfixes
  
@@ -129,10 +22,12 @@ Changes in 1.9.x (since the 1.8.x series):
 
 ** `(srfi srfi-18)', more sophisticated multithreading support
 ** `(srfi srfi-27)', sources of random bits
+** `(srfi srfi-38)', External Representation for Data With Shared Structure
 ** `(srfi srfi-42)', eager comprehensions
 ** `(srfi srfi-45)', primitives for expressing iterative lazy algorithms
 ** `(srfi srfi-67)', compare procedures
 ** `(ice-9 i18n)', internationalization support
+** `(ice-9 futures)', fine-grain parallelism
 ** `(rnrs bytevectors)', the R6RS bytevector API
 ** `(rnrs io ports)', a subset of the R6RS I/O port API
 ** `(system xref)', a cross-referencing facility (FIXME undocumented)
@@ -141,6 +36,13 @@ Changes in 1.9.x (since the 1.8.x series):
 ** `(sxml match)', a pattern matcher for SXML
 ** `(srfi srfi-9 gnu)', extensions to the SRFI-9 record library
 ** `(system vm coverage)', a line-by-line code coverage library
+** `(web uri)', URI data type, parser, and unparser
+** `(web http)', HTTP header parsers and unparsers
+** `(web request)', HTTP request data type, reader, and writer
+** `(web response)', HTTP response data type, reader, and writer
+** `(web server)', Generic HTTP server
+** `(ice-9 poll)', a poll wrapper
+** `(web server http)', HTTP-over-TCP web server implementation
 
 ** Replaced `(ice-9 match)' with Alex Shinn's compatible, hygienic matcher.
     
@@ -205,6 +107,12 @@ command-line argument allows any Guile program to thus be remotely
 debuggable.
 
 See "Invoking Guile" for more information on `--listen'.
+
+** Command line additions
+
+The guile binary now supports a new switch "-x", which can be used to
+extend the list of filename extensions tried when loading files
+(%load-extensions).
 
 ** New reader options: `square-brackets' and `r6rs-hex-escapes'
 
@@ -275,6 +183,11 @@ control this. See "Value History" in the manual, for more information.
 
 When readline is enabled, tab completion works for arguments too, not
 just for the operator position.
+
+** Expression-oriented readline history
+    
+Guile's readline history now tries to operate on expressions instead of
+input lines.  Let us know what you think!
 
 ** Interactive Guile follows GNU conventions
 
@@ -383,6 +296,20 @@ Scheme binding for the `getsid' C library call.
 
 Scheme binding for the `getaddrinfo' C library function.
 
+** Multicast socket options
+
+Support was added for the IP_MULTICAST_TTL and IP_MULTICAST_IF socket
+options.  See "Network Sockets and Communication" in the manual, for
+more information.
+
+** New GNU procedures: `setaffinity' and `getaffinity'.
+    
+See "Processes" in the manual, for more information.
+
+** New procedures: `compose', `negate', and `const'
+
+See "Higher-Order Functions" in the manual, for more information.
+
 ** New procedure in `(oops goops)': `method-formals'
 
 ** New procedures in (ice-9 session): `add-value-help-handler!',
@@ -429,7 +356,7 @@ Brainfuck language itself.
 
 Guile now has an experimental Emacs Lisp compiler and runtime. You can
 now switch to Elisp at the repl: `,language elisp'. All kudos to Daniel
-Kraft, and all bugs to bug-guile@gnu.org.
+Kraft and Brian Templeton, and all bugs to bug-guile@gnu.org.
 
 ** Better documentation infrastructure for macros
 
@@ -501,6 +428,11 @@ for more information.
 This procedure exports all current and future bindings from a module.
 Use as `(module-export-all! (current-module))'.
     
+** New procedure `reload-module', and `,reload' REPL command
+    
+See "Module System Reflection" and "Module Commands" in the manual, for
+more information.
+
 ** `eval-case' has been deprecated, and replaced by `eval-when'.
 
 The semantics of `eval-when' are easier to understand. See "Eval When"
@@ -985,6 +917,11 @@ There is a new `format' specifier, `~@y', for doing a truncated
 print (as opposed to `~y', which does a pretty-print). See the `format'
 documentation for more details.
 
+** Better pretty-printing
+
+Indentation recognizes more special forms, like `syntax-case', and read
+macros like `quote' are printed better.
+
 ** Passing a number as the destination of `format' is deprecated
 
 The `format' procedure in `(ice-9 format)' now emits a deprecation
@@ -1412,7 +1349,19 @@ and is no longer used.
 
 `apply-to-args', `has-suffix?', `scheme-file-suffix'
 `get-option', `for-next-option', `display-usage-report',
-`transform-usage-lambda', `collect', `set-batch-mode?!'
+`transform-usage-lambda', `collect', `set-batch-mode?!',
+
+`cuserid' has been deprecated, as it only returns 8 bytes of a user's
+login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
+    
+** Add support for unbound fluids
+    
+See `make-unbound-fluid', `fluid-unset!', and `fluid-bound?' in the
+manual.
+
+** Add `variable-unset!'
+    
+See "Variables" in the manual, for more details.
 
 ** Last but not least, the `λ' macro can be used in lieu of `lambda'
 
