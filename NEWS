@@ -10,6 +10,14 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.15 (since the 1.9.14 prerelease):
 
+** `expt' and `integer-expt' changes when the base is 0
+
+While `(expt 0 0)' is still 1, `(expt 0 N)' for N > 0 is now 0, and
+`(expt 0 N)' for N < 0 is now a NaN value, and likewise for
+integer-expt.  This is more correct, and conforming to R6RS, but seems
+to be incompatible with R5RS, which would always return 0 for all values
+of N.
+
 ** And of course, the usual collection of bugfixes
  
 Interested users should see the ChangeLog for more information.
