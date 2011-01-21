@@ -2671,6 +2671,23 @@ Backspace character (ASCII 8).
 @item @nicode{\0}
 NUL character (ASCII 0).
 
+@item @nicode{\} followed by newline (ASCII 10)
+Nothing.  This way if @nicode{\} is the last character in a line, the
+string will continue with the first character from the next line,
+without a line break.
+
+If the @code{hungry-eol-escapes} reader option is enabled, which is not
+the case by default, leading whitespace on the next line is discarded.
+
+@lisp
+"foo\
+  bar"
+@result{} "foo  bar"
+(read-enable 'hungry-eol-escapes)
+"foo\
+  bar"
+@result{} "foobar"
+@end lisp
 @item @nicode{\xHH}
 Character code given by two hexadecimal digits.  For example
 @nicode{\x7f} for an ASCII DEL (127).

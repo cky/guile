@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -331,6 +331,8 @@ case-insensitive  no    Convert symbols to lower case.
 keywords          #f    Style of keyword recognition: #f, 'prefix or 'postfix.
 r6rs-hex-escapes  no    Use R6RS variable-length character and string hex escapes.
 square-brackets   yes   Treat `[' and `]' as parentheses, for R6RS compatibility.
+hungry-eol-escapes no   In strings, consume leading whitespace after an
+                        escaped end-of-line.
 @end smalllisp
 
 The boolean options may be toggled with @code{read-enable} and
@@ -352,8 +354,8 @@ For example, to make @code{read} fold all symbols to their lower case
 (read-enable 'case-insensitive)
 @end lisp
 
-For more information on the effect of the @code{r6rs-hex-escapes} option, see
-(@pxref{String Syntax}).
+For more information on the effect of the @code{r6rs-hex-escapes} and
+@code{hungry-eol-escapes} options, see (@pxref{String Syntax}).
 
 
 @node Scheme Write
