@@ -1,6 +1,6 @@
 ;;;; ports.scm --- R6RS port API                    -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@
            
           ;; input & output ports
           port? input-port? output-port?
+          port-eof?
           port-transcoder binary-port? transcoded-port
           port-position set-port-position!
           port-has-port-position? port-has-set-port-position!?
@@ -190,6 +191,11 @@
 (define (binary-port? port)
   ;; So far, we don't support transcoders other than the binary transcoder.
   #t)
+
+(define (port-eof? port)
+  (eof-object? (if (binary-port? port)
+                   (lookahead-u8 port)
+                   (lookahead-char port))))
 
 (define (transcoded-port port transcoder)
   "Return a new textual port based on @var{port}, using

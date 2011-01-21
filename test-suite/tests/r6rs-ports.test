@@ -1,6 +1,6 @@
 ;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -35,7 +35,10 @@
 
   (pass-if "eof-object"
     (and (eqv? (eof-object) (eof-object))
-         (eq?  (eof-object) (eof-object)))))
+         (eq?  (eof-object) (eof-object))))
+
+  (pass-if "port-eof?"
+    (port-eof? (open-input-string ""))))
 
 
 (with-test-prefix "7.2.8 Binary Input"

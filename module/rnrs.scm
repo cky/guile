@@ -1,6 +1,6 @@
 ;;; rnrs.scm --- The R6RS composite library
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -165,7 +165,8 @@
 	  make-transcoder transcoder-codec native-transcoder
 	  latin-1-codec utf-8-codec utf-16-codec
 	  
-	  eof-object? port? input-port? output-port? eof-object port-transcoder
+	  eof-object? port? input-port? output-port? eof-object port-eof?
+	  port-transcoder
 	  binary-port? transcoded-port port-position set-port-position!
 	  port-has-port-position? port-has-set-port-position!?
           close-port call-with-port
