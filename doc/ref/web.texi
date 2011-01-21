@@ -59,8 +59,8 @@ valid dates.  Error handling for a number of basic cases, like invalid
 dates, occurs on the boundary in which we produce a SRFI 19 date record
 from other types, like strings.
 
-With regards to the web, data types are help in the two broad phases of
-HTTP messages: parsing and generation.
+With regards to the web, data types are helpful in the two broad phases
+of HTTP messages: parsing and generation.
 
 Consider a server, which has to parse a request, and produce a response.
 Guile will parse the request into an HTTP request object
@@ -339,7 +339,7 @@ For example:
 
 (string->header "FOO")
 @result{} foo
-(header->string 'foo
+(header->string 'foo)
 @result{} "Foo"
 @end example
 
@@ -387,12 +387,6 @@ leaving it as a string.  You could register this header with Guile's
 HTTP stack like this:
 
 @example
-(define (parse-ip str)
-  (inet-aton str)
-(define (validate-ip ip)
-(define (write-ip ip port)
-  (display (inet-ntoa ip) port))
-
 (declare-header! "X-Client-Address"
   (lambda (str)
     (inet-aton str))
