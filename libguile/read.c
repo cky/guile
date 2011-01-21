@@ -29,6 +29,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <unicase.h>
+#include <unictype.h>
 
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
@@ -75,6 +76,8 @@ scm_t_option scm_read_opts[] = {
     "Use R6RS variable-length character and string hex escapes."},
   { SCM_OPTION_BOOLEAN, "square-brackets", 1,
     "Treat `[' and `]' as parentheses, for R6RS compatibility."},
+  { SCM_OPTION_BOOLEAN, "hungry-eol-escapes", 0,
+    "In strings, consume leading whitespace after an escaped end-of-line."},
   { 0, },
 };
 
@@ -486,6 +489,22 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
         }                                                          \
     } while (0)
 
+static void
+skip_intraline_whitespace (SCM port)
+{
+  scm_t_wchar c;
+  
+  do
+    {
+      c = scm_getc (port);
+      if (c == EOF)
+        return;
+    }
+  while (c == '\t' || uc_is_general_category (c, UC_SPACE_SEPARATOR));
+
+  scm_ungetc (c, port);
+}                                         
+
 static SCM
 scm_read_string (int chr, SCM port)
 #define FUNC_NAME "scm_lreadr"
@@ -524,6 +543,8 @@ scm_read_string (int chr, SCM port)
             case '\\':
               break;
             case '\n':
+              if (SCM_HUNGRY_EOL_ESCAPES_P)
+                skip_intraline_whitespace (port);
               continue;
             case '0':
               c = '\0';

@@ -1,6 +1,6 @@
 ;;;; reader.test --- Reader test.    -*- coding: iso-8859-1; mode: scheme -*-
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2002, 2003, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; Jim Blandy <jimb@red-bean.com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -364,8 +364,24 @@
            (with-output-to-string
              (lambda ()
                (write (integer->char #x80))))))
-       "#\\x80"))))
+       "#\\x80")))
 
+  (with-test-prefix "hungry escapes"
+    (pass-if "default not hungry"
+      ;; Assume default setting of not hungry.
+      (equal? (with-input-from-string "\"foo\\\n  bar\""
+                read)
+              "foo  bar"))
+    (pass-if "hungry"
+      (dynamic-wind
+        (lambda ()
+          (read-enable 'hungry-eol-escapes))
+        (lambda ()
+          (equal? (with-input-from-string "\"foo\\\n  bar\""
+                    read)
+                  "foobar"))
+        (lambda ()
+          (read-disable 'hungry-eol-escapes))))))
 
 
 (with-test-prefix "#;"
