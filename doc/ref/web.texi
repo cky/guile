@@ -615,7 +615,7 @@ A list of transfer codings, expressed as key-value lists.  The only
 transfer coding defined by the specification is @code{chunked}.
 @example
 (parse-header 'transfer-encoding "chunked")
-@result{} (chunked)
+@result{} ((chunked))
 @end example
 @end deftypevr
 
