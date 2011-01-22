@@ -1235,8 +1235,11 @@ save_LIBS="$LIBS"
 LIBS="$BDW_GC_LIBS $LIBS"
 CFLAGS="$BDW_GC_CFLAGS $CFLAGS"
 
-# `GC_do_blocking ()' is available in GC 7.1 but not declared.
-AC_CHECK_FUNCS([GC_do_blocking])
+AC_CHECK_FUNCS([GC_do_blocking GC_call_with_gc_active])
+
+# Though the `GC_do_blocking ()' symbol is present in GC 7.1, it is not
+# declared, and has a different type (returning void instead of
+# void*).
 AC_CHECK_DECL([GC_do_blocking],
   [AC_DEFINE([HAVE_DECL_GC_DO_BLOCKING], [1],
     [Define this if the `GC_do_blocking ()' function is declared])],

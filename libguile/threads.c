@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -66,6 +66,58 @@
 #endif /* __MINGW32__ */
 
 #include <full-read.h>
+
+
+
+
+/* First some libgc shims. */
+
+/* Make sure GC_fn_type is defined; it is missing from the public
+   headers of GC 7.1 and earlier.  */
+#ifndef HAVE_GC_FN_TYPE
+typedef void * (* GC_fn_type) (void *);
+#endif
+
+
+/* Now define with_gc_active and with_gc_inactive.  */
+
+#if (defined(HAVE_GC_DO_BLOCKING) && defined (HAVE_DECL_GC_DO_BLOCKING) && defined (HAVE_GC_CALL_WITH_GC_ACTIVE))
+
+/* We have a sufficiently new libgc (7.2 or newer).  */
+
+static void*
+with_gc_inactive (GC_fn_type func, void *data)
+{
+  return GC_do_blocking (func, data);
+}
+
+static void*
+with_gc_active (GC_fn_type func, void *data)
+{
+  return GC_call_with_gc_active (func, data);
+}
+
+#else
+
+/* libgc not new enough, so never actually deactivate GC.
+
+   Note that though GC 7.1 does have a GC_do_blocking, it doesn't have
+   GC_call_with_gc_active.  */
+
+static void*
+with_gc_inactive (GC_fn_type func, void *data)
+{
+  return func (data);
+}
+
+static void*
+with_gc_active (GC_fn_type func, void *data)
+{
+  return func (data);
+}
+
+#endif /* HAVE_GC_DO_BLOCKING */
+
 
 
 static void
@@ -553,29 +605,37 @@ init_thread_key (void)
 
 #endif
 
-/* Perform any initializations necessary to bring the current thread
-   into guile mode, initializing Guile itself, if necessary.
+/* Perform any initializations necessary to make the current thread
+   known to Guile (via SCM_I_CURRENT_THREAD), initializing Guile itself,
+   if necessary.
 
    BASE is the stack base to use with GC.
 
    PARENT is the dynamic state to use as the parent, ot SCM_BOOL_F in
    which case the default dynamic state is used.
 
-   Return zero when the thread was in guile mode already; otherwise
+   Returns zero when the thread was known to guile already; otherwise
    return 1.
-*/
+
+   Note that it could be the case that the thread was known
+   to Guile, but not in guile mode (because we are within a
+   scm_without_guile call).   Check SCM_I_CURRENT_THREAD->guile_mode to
+   be sure.  New threads are put into guile mode implicitly.  */
 
 static int
 scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 {
-  scm_i_thread *t;
-
 #ifndef SCM_HAVE_THREAD_STORAGE_CLASS
   scm_i_pthread_once (&init_thread_key_once, init_thread_key);
 #endif
 
-  t = SCM_I_CURRENT_THREAD;
-  if (t == NULL)
+  if (SCM_I_CURRENT_THREAD)
+    {
+      /* Thread is already known to Guile.
+      */
+      return 0;
+    }
+  else
     {
       /* This thread has not been guilified yet.
        */
@@ -599,32 +659,6 @@ scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 	  guilify_self_2 (parent);
 	}
       return 1;
-    }
-  else if (t->top)
-    {
-      /* This thread is already guilified but not in guile mode, just
-	 resume it.
-
-         A user call to scm_with_guile() will lead us to here.  This could
-         happen from anywhere on the stack, and in particular lower on the
-         stack than when it was when this thread was first guilified.  Thus,
-         `base' must be updated.  */
-#if SCM_STACK_GROWS_UP
-      if (base < t->base)
-         t->base = base;
-#else
-      if (base > t->base)
-         t->base = base;
-#endif
-
-      t->top = NULL;
-      return 1;
-    }
-  else
-    {
-      /* Thread is already in guile mode.  Nothing to do.
-      */
-      return 0;
     }
 }
 
@@ -727,81 +761,89 @@ scm_leave_guile_cleanup (void *x)
   on_thread_exit (SCM_I_CURRENT_THREAD);
 }
 
+struct with_guile_trampoline_args
+{
+  GC_fn_type func;
+  void *data;
+};
+
+static void *
+with_guile_trampoline (void *data)
+{
+  struct with_guile_trampoline_args *args = data;
+
+  return scm_c_with_continuation_barrier (args->func, args->data);
+}
+  
 void *
 scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
 {
   void *res;
-  int really_entered;
+  int new_thread;
+  scm_i_thread *t;
   SCM_STACKITEM base_item;
 
-  really_entered = scm_i_init_thread_for_guile (&base_item, parent);
-  if (really_entered)
+  new_thread = scm_i_init_thread_for_guile (&base_item, parent);
+  t = SCM_I_CURRENT_THREAD;
+  if (new_thread)
     {
+      /* We are in Guile mode.  */
+      assert (t->guile_mode);
+
       scm_i_pthread_cleanup_push (scm_leave_guile_cleanup, NULL);
       res = scm_c_with_continuation_barrier (func, data);
       scm_i_pthread_cleanup_pop (0);
+
+      /* Leave Guile mode.  */
+      t->guile_mode = 0;
+    }
+  else if (t->guile_mode)
+    {
+      /* Already in Guile mode.  */
+      res = scm_c_with_continuation_barrier (func, data);
     }
   else
-    res = scm_c_with_continuation_barrier (func, data);
+    {
+      struct with_guile_trampoline_args args;
+      args.func = func;
+      args.data = data;
 
+      /* We are not in Guile mode, either because we are not within a
+         scm_with_guile, or because we are within a scm_without_guile.
+
+         This call to scm_with_guile() could happen from anywhere on the
+         stack, and in particular lower on the stack than when it was
+         when this thread was first guilified.  Thus, `base' must be
+         updated.  */
+#if SCM_STACK_GROWS_UP
+      if (SCM_STACK_PTR (&base_item) < t->base)
+        t->base = SCM_STACK_PTR (&base_item);
+#else
+      if (SCM_STACK_PTR (&base_item) > t->base)
+        t->base = SCM_STACK_PTR (&base_item);
+#endif
+
+      t->guile_mode = 1;
+      res = with_gc_active (with_guile_trampoline, &args);
+      t->guile_mode = 0;
+    }
   return res;
 }
-
-
-/*** Non-guile mode.  */
-
-#ifdef HAVE_GC_DO_BLOCKING
-
-# ifndef HAVE_GC_FN_TYPE
-/* This typedef is missing from the public headers of GC 7.1 and earlier.  */
-typedef void * (* GC_fn_type) (void *);
-# endif /* HAVE_GC_FN_TYPE */
-
-# ifndef HAVE_DECL_GC_DO_BLOCKING
-/* This declaration is missing from the public headers of GC 7.1.  */
-extern void GC_do_blocking (GC_fn_type, void *);
-# endif /* HAVE_DECL_GC_DO_BLOCKING  */
-
-struct without_guile_arg
-{
-  void * (*function) (void *);
-  void    *data;
-  void    *result;
-};
-
-static void
-without_guile_trampoline (void *closure)
-{
-  struct without_guile_arg *arg;
-
-  SCM_I_CURRENT_THREAD->guile_mode = 0;
-
-  arg = (struct without_guile_arg *) closure;
-  arg->result = arg->function (arg->data);
-
-  SCM_I_CURRENT_THREAD->guile_mode = 1;
-}
-
-#endif /* HAVE_GC_DO_BLOCKING */
-
 
 void *
 scm_without_guile (void *(*func)(void *), void *data)
 {
   void *result;
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
 
-#ifdef HAVE_GC_DO_BLOCKING
-  if (SCM_I_CURRENT_THREAD->guile_mode)
+  if (t->guile_mode)
     {
-      struct without_guile_arg arg;
-
-      arg.function = func;
-      arg.data = data;
-      GC_do_blocking ((GC_fn_type) without_guile_trampoline, &arg);
-      result = arg.result;
+      SCM_I_CURRENT_THREAD->guile_mode = 0;
+      result = with_gc_inactive (func, data);
+      SCM_I_CURRENT_THREAD->guile_mode = 1;
     }
   else
-#endif
+    /* Otherwise we're not in guile mode, so nothing to do.  */
     result = func (data);
 
   return result;
