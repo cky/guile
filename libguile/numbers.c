@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -530,7 +530,7 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
       return scm_from_bool (odd_p);
     }
   else if (scm_is_true (scm_inf_p (n)))
-    return SCM_BOOL_T;
+    SCM_WRONG_TYPE_ARG (1, n);
   else if (SCM_REALP (n))
     {
       double rem = fabs (fmod (SCM_REAL_VALUE(n), 2.0));
@@ -565,7 +565,7 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
       return scm_from_bool (even_p);
     }
   else if (scm_is_true (scm_inf_p (n)))
-    return SCM_BOOL_T;
+    SCM_WRONG_TYPE_ARG (1, n);
   else if (SCM_REALP (n))
     {
       double rem = fabs (fmod (SCM_REAL_VALUE(n), 2.0));
@@ -3333,7 +3333,8 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
   if (SCM_COMPLEXP (x))
     return SCM_BOOL_F;
   r = SCM_REAL_VALUE (x);
-  /* +/-inf passes r==floor(r), making those #t */
+  if (isinf (r))
+    return SCM_BOOL_F;
   if (r == floor (r))
     return SCM_BOOL_T;
   return SCM_BOOL_F;

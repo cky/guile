@@ -303,10 +303,6 @@ representation where the required number does not fit in the native
 form.  Conversion between these two representations is automatic and
 completely invisible to the Scheme level programmer.
 
-The infinities @samp{+inf.0} and @samp{-inf.0} are considered to be
-inexact integers.  They are explained in detail in the next section,
-together with reals and rationals.
-
 C has a host of different integer types, and Guile offers a host of
 functions to convert between them and the @code{SCM} representation.
 For example, a C @code{int} can be handled with @code{scm_to_int} and
@@ -537,7 +533,8 @@ infinity, depending on the sign of the divided number.
 
 The infinities are written @samp{+inf.0} and @samp{-inf.0},
 respectively.  This syntax is also recognized by @code{read} as an
-extension to the usual Scheme syntax.
+extension to the usual Scheme syntax.  The infinities are considered to
+be inexact, non-integer values.
 
 Dividing zero by zero yields something that is not a number at all:
 @samp{+nan.0}.  This is the special `not a number' value.
@@ -548,9 +545,8 @@ are implemented using the corresponding @acronym{IEEE} 754 values.
 They behave in arithmetic operations like @acronym{IEEE} 754 describes
 it, i.e., @code{(= +nan.0 +nan.0)} @result{} @code{#f}.
 
-The infinities are inexact integers and are considered to be both even
-and odd.  While @samp{+nan.0} is not @code{=} to itself, it is
-@code{eqv?} to itself.
+While @samp{+nan.0} is not @code{=} to itself, it is @code{eqv?} to
+itself.
 
 To test for the special values, use the functions @code{inf?} and
 @code{nan?}.

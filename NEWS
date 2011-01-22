@@ -10,6 +10,11 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.15 (since the 1.9.14 prerelease):
 
+** Infinities are no longer integers.
+
+Following the R6RS, infinities (+inf.0 and -inf.0) are no longer
+considered to be integers.
+
 ** New reader option: `hungry-eol-escapes'
 
 Guile's string syntax is more compatible with R6RS when the
