@@ -1,6 +1,6 @@
 ;;;; encoding-escapes.test --- test suite for Guile's string encodings -*- mode: scheme; coding: utf-8 -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -118,8 +118,21 @@
       (set-port-encoding! pt "ASCII")
       (set-port-conversion-strategy! pt 'escape)
       (display s4 pt)
-      (string=? "\\u7F85\\u751F\\u9580"
-                (get-output-string pt)))))
+      (string=? "\\u7f85\\u751f\\u9580"
+                (get-output-string pt))))
+
+  (pass-if "fake escape"
+           ;; The input string below contains something that looks like
+           ;; an escape in libunistring syntax, but which should be left
+           ;; as is in the output.  See
+           ;; <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00004.html>
+           ;; for background info.
+           (let ((pt (open-output-string)))
+	     (set-port-encoding! pt "ASCII")
+             (set-port-conversion-strategy! pt 'escape)
+             (display "λ -- \\u0012" pt)
+             (string=? "\\u03bb -- \\u0012"
+                       (get-output-string pt)))))
 
 (with-test-prefix "input escapes"
 

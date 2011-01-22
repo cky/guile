@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
+ *   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -30,6 +31,7 @@
 #include <errno.h>
 #include <fcntl.h>  /* for chsize on mingw */
 #include <assert.h>
+#include <iconv.h>
 #include <uniconv.h>
 #include <unistr.h>
 #include <striconveh.h>
@@ -515,22 +517,21 @@ scm_i_pthread_mutex_t scm_i_port_table_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 static void finalize_port (GC_PTR, GC_PTR);
 
-/* Register a finalizer for PORT, if needed by its port type.  */
+/* Register a finalizer for PORT.  */
 static SCM_C_INLINE_KEYWORD void
 register_finalizer_for_port (SCM port)
 {
   long port_type;
+  GC_finalization_proc prev_finalizer;
+  GC_PTR prev_finalization_data;
 
   port_type = SCM_TC2PTOBNUM (SCM_CELL_TYPE (port));
-  if (scm_ptobs[port_type].free)
-    {
-      GC_finalization_proc prev_finalizer;
-      GC_PTR prev_finalization_data;
 
-      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (port), finalize_port, 0,
-				      &prev_finalizer,
-				      &prev_finalization_data);
-    }
+  /* Register a finalizer for PORT so that its iconv CDs get freed and
+     optionally its type's `free' function gets called.  */
+  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (port), finalize_port, 0,
+				  &prev_finalizer,
+				  &prev_finalization_data);
 }
 
 /* Finalize the object (a port) pointed to by PTR.  */
@@ -550,6 +551,8 @@ finalize_port (GC_PTR ptr, GC_PTR data)
 	register_finalizer_for_port (port);
       else
 	{
+	  scm_t_port *entry;
+
 	  port_type = SCM_TC2PTOBNUM (SCM_CELL_TYPE (port));
 	  if (port_type >= scm_numptob)
 	    abort ();
@@ -558,6 +561,13 @@ finalize_port (GC_PTR ptr, GC_PTR data)
 	    /* Yes, I really do mean `.free' rather than `.close'.  `.close'
 	       is for explicit `close-port' by user.  */
 	    scm_ptobs[port_type].free (port);
+
+	  entry = SCM_PTAB_ENTRY (port);
+
+	  if (entry->input_cd != (iconv_t) -1)
+	    iconv_close (entry->input_cd);
+	  if (entry->output_cd != (iconv_t) -1)
+	    iconv_close (entry->output_cd);
 
 	  SCM_SETSTREAM (port, 0);
 	  SCM_CLR_PORT_OPEN_FLAG (port);
@@ -594,6 +604,11 @@ scm_new_port_table_entry (scm_t_bits tag)
     entry->encoding = NULL;
   else
     entry->encoding = scm_gc_strdup (enc, "port");
+
+  /* The conversion descriptors will be opened lazily.  */
+  entry->input_cd = (iconv_t) -1;
+  entry->output_cd = (iconv_t) -1;
+
   entry->ilseq_handler = scm_i_get_conversion_strategy (SCM_BOOL_F);
 
   SCM_SET_CELL_TYPE (z, tag);
@@ -1028,100 +1043,11 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-#define SCM_MBCHAR_BUF_SIZE (4)
-
-/* Read a codepoint from PORT and return it.  Fill BUF with the byte
-   representation of the codepoint in PORT's encoding, and set *LEN to
-   the length in bytes of that representation.  Raise an error on
-   failure.  */
-static scm_t_wchar
-get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
+/* Update the line and column number of PORT after consumption of C.  */
+static inline void
+update_port_lf (scm_t_wchar c, SCM port)
 {
-  int c;
-  size_t bufcount = 0;
-  scm_t_uint32 result_buf;
-  scm_t_wchar codepoint = 0;
-  scm_t_uint32 *u32;
-  size_t u32len;
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-
-  c = scm_get_byte_or_eof (port);
-  if (c == EOF)
-    return (scm_t_wchar) EOF;
-
-  buf[0] = c;
-  bufcount++;
-
-  if (pt->encoding == NULL)
-    {
-      /* The encoding is Latin-1: bytes are characters.  */
-      codepoint = (unsigned char) buf[0];
-      goto success;
-    }
-
-  for (;;)
-    {
-      u32len = sizeof (result_buf) / sizeof (scm_t_uint32);
-      u32 = u32_conv_from_encoding (pt->encoding,
-                                    (enum iconv_ilseq_handler) pt->ilseq_handler,
-				    buf, bufcount, NULL, &result_buf, &u32len);
-      if (u32 == NULL || u32len == 0)
-	{
-	  if (errno == ENOMEM)
-	    scm_memory_error ("Input decoding");
-
-	  /* Otherwise errno is EILSEQ or EINVAL, so perhaps more
-             bytes are needed.  Keep looping.  */
-	}
-      else
-	{
-	  /* Complete codepoint found. */
-	  codepoint = u32[0];
-
-	  if (SCM_UNLIKELY (u32 != &result_buf))
-	    /* libunistring up to 0.9.3 (included) would always heap-allocate
-	       the result even when a large-enough RESULT_BUF is supplied, see
-	       <http://lists.gnu.org/archive/html/bug-libunistring/2010-07/msg00003.html>.  */
-	    free (u32);
-
-	  goto success;
-	}
-
-      if (bufcount == SCM_MBCHAR_BUF_SIZE)
-	{
-	  /* We've read several bytes and didn't find a good
-	     codepoint.  Give up.  */
-	  goto failure;
-	}
-
-      c = scm_get_byte_or_eof (port);
-
-      if (c == EOF)
-	{
-	  /* EOF before a complete character was read.  Push it all
-	     back and return EOF. */
-	  while (bufcount > 0)
-	    {
-	      /* FIXME: this will probably cause errors in the port column. */
-	      scm_unget_byte (buf[bufcount-1], port);
-	      bufcount --;
-	    }
-          return EOF;
-	}
-      
-      if (c == '\n')
-	{
-          /* It is always invalid to have EOL in the middle of a
-             multibyte character.  */
-	  scm_unget_byte ('\n', port);
-	  goto failure;
-	}
-	
-      buf[bufcount++] = c;
-    }
-
- success:
-  switch (codepoint)
+  switch (c)
     {
     case '\a':
       break;
@@ -1130,7 +1056,7 @@ get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
       break;
     case '\n':
       SCM_INCLINE (port);
-        break;
+      break;
     case '\r':
       SCM_ZEROCOL (port);
       break;
@@ -1141,18 +1067,120 @@ get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
       SCM_INCCOL (port);
       break;
     }
+}
 
-  *len = bufcount;
+#define SCM_MBCHAR_BUF_SIZE (4)
+
+/* Convert the SIZE-byte UTF-8 sequence in UTF8_BUF to a codepoint.
+   UTF8_BUF is assumed to contain a valid UTF-8 sequence.  */
+static scm_t_wchar
+utf8_to_codepoint (const scm_t_uint8 *utf8_buf, size_t size)
+{
+  scm_t_wchar codepoint;
+
+  if (utf8_buf[0] <= 0x7f)
+    {
+      assert (size == 1);
+      codepoint = utf8_buf[0];
+    }
+  else if ((utf8_buf[0] & 0xe0) == 0xc0)
+    {
+      assert (size == 2);
+      codepoint = ((scm_t_wchar) utf8_buf[0] & 0x1f) << 6UL
+	| (utf8_buf[1] & 0x3f);
+    }
+  else if ((utf8_buf[0] & 0xf0) == 0xe0)
+    {
+      assert (size == 3);
+      codepoint = ((scm_t_wchar) utf8_buf[0] & 0x0f) << 12UL
+	| ((scm_t_wchar) utf8_buf[1] & 0x3f) << 6UL
+	| (utf8_buf[2] & 0x3f);
+    }
+  else
+    {
+      assert (size == 4);
+      codepoint = ((scm_t_wchar) utf8_buf[0] & 0x07) << 18UL
+	| ((scm_t_wchar) utf8_buf[1] & 0x3f) << 12UL
+	| ((scm_t_wchar) utf8_buf[2] & 0x3f) << 6UL
+	| (utf8_buf[3] & 0x3f);
+    }
+
+  return codepoint;
+}
+
+/* Read a codepoint from PORT and return it.  Fill BUF with the byte
+   representation of the codepoint in PORT's encoding, and set *LEN to
+   the length in bytes of that representation.  Raise an error on
+   failure.  */
+static scm_t_wchar
+get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
+{
+  int err, byte_read;
+  size_t bytes_consumed, output_size;
+  scm_t_wchar codepoint;
+  char *output;
+  scm_t_uint8 utf8_buf[SCM_MBCHAR_BUF_SIZE];
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (SCM_UNLIKELY (pt->input_cd == (iconv_t) -1))
+    /* Initialize the conversion descriptors.  */
+    scm_i_set_port_encoding_x (port, pt->encoding);
+
+  for (output_size = 0, output = (char *) utf8_buf,
+	 bytes_consumed = 0, err = 0;
+       err == 0 && output_size == 0
+	 && (bytes_consumed == 0 || byte_read != EOF);
+       bytes_consumed++)
+    {
+      char *input;
+      size_t input_left, output_left, done;
+
+      byte_read = scm_get_byte_or_eof (port);
+      if (byte_read == EOF)
+	{
+	  if (bytes_consumed == 0)
+	    return (scm_t_wchar) EOF;
+	  else
+	    continue;
+	}
+
+      buf[bytes_consumed] = byte_read;
+
+      input = buf;
+      input_left = bytes_consumed + 1;
+      output_left = sizeof (utf8_buf);
+
+      done = iconv (pt->input_cd, &input, &input_left,
+		    &output, &output_left);
+      if (done == (size_t) -1)
+	{
+	  err = errno;
+	  if (err == EINVAL)
+	    /* Missing input: keep trying.  */
+	    err = 0;
+	}
+      else
+	output_size = sizeof (utf8_buf) - output_left;
+    }
+
+  if (err != 0)
+    goto failure;
+
+  /* Convert the UTF8_BUF sequence to a Unicode code point.  */
+  codepoint = utf8_to_codepoint (utf8_buf, output_size);
+  update_port_lf (codepoint, port);
+
+  *len = bytes_consumed;
 
   return codepoint;
 
  failure:
   {
     char *err_buf;
-    SCM err_str = scm_i_make_string (bufcount, &err_buf);
-    memcpy (err_buf, buf, bufcount);
+    SCM err_str = scm_i_make_string (bytes_consumed, &err_buf);
+    memcpy (err_buf, buf, bytes_consumed);
 
-    if (errno == EILSEQ)
+    if (err == EILSEQ)
       scm_misc_error (NULL, "input encoding error for ~s: ~s",
 		      scm_list_2 (scm_from_locale_string (scm_i_get_port_encoding (port)),
 				  err_str));
@@ -1204,23 +1232,6 @@ scm_fill_input (SCM port)
  *
  * This function differs from scm_c_write; it updates port line and
  * column. */
-
-static void
-update_port_lf (scm_t_wchar c, SCM port)
-{
-  if (c == '\a')
-    ;                           /* Do nothing. */
-  else if (c == '\b')
-    SCM_DECCOL (port);
-  else if (c == '\n')
-    SCM_INCLINE (port);
-  else if (c == '\r')
-    SCM_ZEROCOL (port);
-  else if (c == '\t')
-    SCM_TABCOL (port);
-  else
-    SCM_INCCOL (port);
-}
 
 void
 scm_lfwrite (const char *ptr, size_t size, SCM port)
@@ -1278,6 +1289,7 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
 }
 
 /* Write a scheme string STR to PORT.  */
+/* FIXME: Get rid of it.  */
 void
 scm_lfwrite_str (SCM str, SCM port)
 {
@@ -2060,12 +2072,7 @@ scm_i_set_port_encoding_x (SCM port, const char *enc)
     {
       valid_enc = find_valid_encoding (enc);
       if (valid_enc == NULL)
-        {
-          SCM err;
-          err = scm_from_locale_string (enc);
-          scm_misc_error (NULL, "invalid or unknown character encoding ~s",
-                          scm_list_1 (err));
-        }
+	goto invalid_encoding;
     }
 
   if (scm_is_false (port))
@@ -2087,13 +2094,62 @@ scm_i_set_port_encoding_x (SCM port, const char *enc)
     }
   else
     {
+      iconv_t new_input_cd, new_output_cd;
+
+      new_input_cd = (iconv_t) -1;
+      new_output_cd = (iconv_t) -1;
+
       /* Set the character encoding for this port.  */
       pt = SCM_PTAB_ENTRY (port);
       if (valid_enc == NULL)
         pt->encoding = NULL;
       else
         pt->encoding = scm_gc_strdup (valid_enc, "port");
+
+      if (valid_enc == NULL)
+	valid_enc = "ISO-8859-1";
+
+      if (SCM_CELL_WORD_0 (port) & SCM_RDNG)
+	{
+	  /* Open an input iconv conversion descriptor, from VALID_ENC
+	     to UTF-8.  We choose UTF-8, not UTF-32, because iconv
+	     implementations can typically convert from anything to
+	     UTF-8, but not to UTF-32 (see
+	     <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00007.html>).  */
+	  new_input_cd = iconv_open ("UTF-8", valid_enc);
+	  if (new_input_cd == (iconv_t) -1)
+	    goto invalid_encoding;
+	}
+
+      if (SCM_CELL_WORD_0 (port) & SCM_WRTNG)
+	{
+	  new_output_cd = iconv_open (valid_enc, "UTF-8");
+	  if (new_output_cd == (iconv_t) -1)
+	    {
+	      if (new_input_cd != (iconv_t) -1)
+		iconv_close (new_input_cd);
+	      goto invalid_encoding;
+	    }
+	}
+
+      if (pt->input_cd != (iconv_t) -1)
+	iconv_close (pt->input_cd);
+      if (pt->output_cd != (iconv_t) -1)
+	iconv_close (pt->output_cd);
+
+      pt->input_cd = new_input_cd;
+      pt->output_cd = new_output_cd;
     }
+
+  return;
+
+ invalid_encoding:
+  {
+    SCM err;
+    err = scm_from_locale_string (enc);
+    scm_misc_error (NULL, "invalid or unknown character encoding ~s",
+		    scm_list_1 (err));
+  }
 }
 
 SCM_DEFINE (scm_port_encoding, "port-encoding", 1, 0, 0,

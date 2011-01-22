@@ -3,7 +3,7 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -109,6 +109,10 @@ typedef struct
   /* a buffer for un-read chars and strings.  */
   unsigned char *putback_buf;
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
+
+  /* input/output iconv conversion descriptors */
+  void *input_cd;
+  void *output_cd;
 } scm_t_port;
 
 
