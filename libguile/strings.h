@@ -216,10 +216,6 @@ SCM_INTERNAL char **scm_i_allocate_string_pointers (SCM list);
 SCM_INTERNAL void scm_i_get_substring_spec (size_t len,
 					    SCM start, size_t *cstart,
 					    SCM end, size_t *cend);
-SCM_INTERNAL void scm_i_unistring_escapes_to_guile_escapes (char *buf,
-							    size_t *len);
-SCM_INTERNAL void scm_i_unistring_escapes_to_r6rs_escapes (char *buf,
-							   size_t *len);
 
 /* Debugging functions */
 

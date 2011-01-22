@@ -1584,9 +1584,13 @@ scm_take_locale_string (char *str)
 
 /* Change libunistring escapes (`\uXXXX' and `\UXXXXXXXX') in BUF, a
    *LENP-byte locale-encoded string, to `\xXX', `\uXXXX', or `\UXXXXXX'.
-   Set *LENP to the size of the resulting string.  */
-void
-scm_i_unistring_escapes_to_guile_escapes (char *buf, size_t *lenp)
+   Set *LENP to the size of the resulting string.
+
+   FIXME: This is a hack we should get rid of.  See
+   <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00004.html>
+   for details.  */
+static void
+unistring_escapes_to_guile_escapes (char *buf, size_t *lenp)
 {
   char *before, *after;
   size_t i, j;
@@ -1642,8 +1646,8 @@ scm_i_unistring_escapes_to_guile_escapes (char *buf, size_t *lenp)
    of the resulting string.  BUF must be large enough to handle the
    worst case when `\uXXXX' escapes (6 characters) are replaced by
    `\xXXXX;' (7 characters).  */
-void
-scm_i_unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
+static void
+unistring_escapes_to_r6rs_escapes (char *buf, size_t *lenp)
 {
   char *before, *after;
   size_t i, j;
@@ -1857,10 +1861,10 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 	     (seven characters).  Make BUF large enough to hold
 	     that.  */
 	  buf = scm_realloc (buf, (len * 7) / 6 + 1);
-	  scm_i_unistring_escapes_to_r6rs_escapes (buf, &len);
+	  unistring_escapes_to_r6rs_escapes (buf, &len);
 	}
       else
-        scm_i_unistring_escapes_to_guile_escapes (buf, &len);
+        unistring_escapes_to_guile_escapes (buf, &len);
 
       buf = scm_realloc (buf, len);
     }
