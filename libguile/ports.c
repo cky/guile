@@ -1288,36 +1288,6 @@ scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
     pt->rw_active = SCM_PORT_WRITE;
 }
 
-/* Write a scheme string STR to PORT.  */
-/* FIXME: Get rid of it.  */
-void
-scm_lfwrite_str (SCM str, SCM port)
-{
-  size_t i, size = scm_i_string_length (str);
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
-  scm_t_wchar p;
-  char *buf;
-  size_t len;
-
-  if (pt->rw_active == SCM_PORT_READ)
-    scm_end_input (port);
-
-  buf = scm_to_stringn (str, &len,
-			pt->encoding, pt->ilseq_handler);
-  ptob->write (port, buf, len);
-  free (buf);
-
-  for (i = 0; i < size; i++)
-    {
-      p = scm_i_string_ref (str, i);
-      update_port_lf (p, port);
-    }
-
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_WRITE;
-}
-
 /* scm_c_read
  *
  * Used by an application to read arbitrary number of bytes from an

@@ -2530,7 +2530,7 @@ scm_i_print_fraction (SCM sexp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   SCM str;
   str = scm_number_to_string (sexp, SCM_UNDEFINED);
-  scm_lfwrite_str (str, port);
+  scm_display (str, port);
   scm_remember_upto_here_1 (str);
   return !0;
 }
