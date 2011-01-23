@@ -25,7 +25,7 @@
   #:export (fix-letrec!))
 
 ;; For a detailed discussion, see "Fixing Letrec: A Faithful Yet
-;; Efficient Implementation of Scheme’s Recursive Binding Construct", by
+;; Efficient Implementation of Scheme's Recursive Binding Construct", by
 ;; Oscar Waddell, Dipanwita Sarkar, and R. Kent Dybvig.
 
 (define fix-fold
