@@ -1251,38 +1251,19 @@ scm_lfwrite (const char *ptr, size_t size, SCM port)
     pt->rw_active = SCM_PORT_WRITE;
 }
 
-/* Write a scheme string STR to PORT from START inclusive to END
-   exclusive.  */
+/* Write STR to PORT from START inclusive to END exclusive.  */
 void
 scm_lfwrite_substr (SCM str, size_t start, size_t end, SCM port)
 {
-  size_t i, size = scm_i_string_length (str);
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  scm_t_ptob_descriptor *ptob = &scm_ptobs[SCM_PTOBNUM (port)];
-  scm_t_wchar p;
-  char *buf;
-  size_t len;
 
   if (pt->rw_active == SCM_PORT_READ)
     scm_end_input (port);
 
-  if (end == (size_t) (-1))
-    end = size;
-  size = end - start;
+  if (end == (size_t) -1)
+    end = scm_i_string_length (str);
 
-  /* Note that making a substring will likely take the
-     stringbuf_write_mutex.  So, one shouldn't use scm_lfwrite_substr
-     if the stringbuf write mutex may still be held elsewhere.  */
-  buf = scm_to_stringn (scm_c_substring (str, start, end), &len,
-			pt->encoding, pt->ilseq_handler);
-  ptob->write (port, buf, len);
-  free (buf);
-
-  for (i = 0; i < size; i++)
-    {
-      p = scm_i_string_ref (str, i + start);
-      update_port_lf (p, port);
-    }
+  scm_display (scm_c_substring (str, start, end), port);
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_WRITE;
