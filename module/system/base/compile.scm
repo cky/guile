@@ -1,6 +1,6 @@
 ;;; High-level compiler interface
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -120,8 +120,9 @@
     (let* ((comp (or output-file (compiled-file-name file)))
            (in (open-input-file file))
            (enc (file-encoding in)))
-      (if enc
-          (set-port-encoding! in enc))
+      ;; Choose the input encoding deterministically.
+      (set-port-encoding! in (or enc "UTF-8"))
+
       (ensure-writable-dir (dirname comp))
       (call-with-output-file/atomic comp
         (lambda (port)

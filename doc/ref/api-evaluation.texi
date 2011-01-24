@@ -567,8 +567,9 @@ Add @var{dir} to the front of the module load path.
 
 @item -o @var{ofile}
 @itemx --output=@var{ofile}
-Write output bytecode to @var{ofile}.  By convention, bytecode file names end
-in @code{.go}.
+Write output bytecode to @var{ofile}.  By convention, bytecode file
+names end in @code{.go}.  When @option{-o} is omitted, the output file
+name is as for @code{compile-file} (see below).
 
 @item -W @var{warning}
 @itemx --warn=@var{warning}
@@ -589,6 +590,9 @@ Use @var{lang} as the target language of @var{file}.  If this option is omitted,
 
 @end table
 
+Each @var{file} is assumed to be UTF-8-encoded, unless it contains a
+coding declaration as recognized by @code{file-encoding}
+(@pxref{Character Encoding of Source Files}).
 @end deffn
 
 The compiler can also be invoked directly by Scheme code using the procedures
@@ -608,6 +612,9 @@ Compile the file named @var{file}.
 
 Output will be written to a file in the current directory whose name
 is computed as @code{(compiled-file-name @var{file})}.
+
+As with @command{guile-tools compile}, @var{file} is assumed to be
+UTF-8-encoded unless it contains a coding declaration.
 @end deffn
 
 @deffn {Scheme Procedure} compiled-file-name file
