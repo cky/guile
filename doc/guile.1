@@ -5,57 +5,78 @@
 .\"
 .TH GUILE 1
 .SH NAME
-guile \- a Scheme interpreter
+guile \- the GNU extension language
 .SH SYNOPSIS
-.B guile [-q] [-ds] [--help] [--version] [--emacs] [--debug]
-.B [-l FILE] [-e FUNCTION] [\]
-.B [-c EXPR] [-s SCRIPT] [--]
+.B guile [-L DIRECTORY] [-l FILE] [-e FUNCTION] [\\\\]
+.B [-c EXPR] [-s SCRIPT] [--] [SCRIPT] [ARG...]
+
+Only the most useful options are listed here; see below for the
+remainder.
 .SH DESCRIPTION
-GNU Guile is an interpreter for the Scheme programming language.  It
-implements R5RS, providing additional features
-necessary for real-world use.  It is extremely simple to embed guile
-into a C program, calling C from Scheme and Scheme from C.  Guile's
-design makes it very suitable for use as an "extension" or "glue"
-language, but it also works well as a stand-alone scheme development
-environment.
+GNU Guile is an implemention of the Scheme programming language.  It
+extends the R5RS and R6RS language standards, providing additional
+features necessary for real-world use.  Guile works well for interactive
+use, basic scripting, and extension of larger applications, as well as
+for stand-alone Scheme application development.
 
 The
 .B guile
-executable itself provides a stand-alone interpreter for scheme
-programs, for either interactive use or executing scripts.
+executable itself provides a stand-alone interactive compiler and
+run-time for Scheme programs, both for interactive use and for executing
+Scheme scripts or programs.
 
-This manpage provides only brief instruction in invoking
+This manual page provides only brief instruction in invoking
 .B guile
 from the command line.  Please consult the guile info documentation
 (type 
-.B info guile
+.B info "guile(Invoking Guile)"
 at a command prompt) for more information.
 
 .SH OPTIONS
+.IP -L DIRECTORY
+Add DIRECTORY to the front of Guile's module load path.
 .IP -l FILE
 Load scheme source code from file.
 .IP -e FUNCTION
-After reading script, apply FUNCTION to command-line arguments
-.IP -ds
-do -s SCRIPT at this point (note that this argument must be used in
-conjuction with -s)
-.IP --help 
-Describe command line options and exit
-.IP --debug
-Start guile with debugging evaluator and backtraces enabled 
-(useful for debugging guile scripts)
-.IP --version
-Display guile version and exit.
-.IP --emacs
-Enable emacs protocol for use from within emacs (experimental)
+After reading script, apply FUNCTION to command-line arguments.  Note
+that FUNCTION is evaluated, so e.g.
+.B (@ (my-module) my-proc)
+is valid here.
+.IP \\\\
+The "meta switch", used to work around limitations in #! scripts.
+See "The Meta Switch" in the texinfo documentation, for more details.
 .IP --
 Stop argument processing, start guile in interactive mode.
 .IP -c EXPR
 Stop argument processing, evaluate EXPR as a scheme expression.
 .IP -s SCRIPT-FILE
-Load Scheme source from SCRIPT-FILE and execute as a script.
+Load Scheme source from SCRIPT-FILE and execute as a script.  Note that
+the in many cases it is not necessary to use -s; one may invoke Guile
+just as
+.B guile SCRIPT-FILE ARG...
+.IP -ds
+Do -s SCRIPT at this point.  Note that this argument must be used in
+conjuction with -s.
+.IP --debug
+Start guile with the debugging VM.  By default, on when invoked
+interactively, off otherwise.
+.IP --autocompile
+Compile source files automatically (default behavior).
+.IP --no-autocompile
+Disable automatic source file compilation.
+.IP --listen[=P]
+Listen on a port or socket for remote REPL connections.  See the manual
+for more details.
+.IP --use-srfi=N,M...
+Load SRFI extensions N, M, etc. For example, "--use-srfi=8,13".
+.IP -x EXTENSION
+Add EXTENSION to the Guile's load extension list.
+.IP --help 
+Describe command line options and exit
+.IP --version
+Display guile version and exit.
 .IP -q
-Suppress loading the user's ~/.guile file.
+In interactive mode, suppress loading the user's ~/.guile file.
 
 .SH ENVIRONMENT
 .\".TP \w'MANROFFSEQ\ \ 'u
@@ -66,6 +87,13 @@ If
 is set, its value is used to agument the path to search for scheme
 files when loading.  It should be a colon separated list of
 directories which will be prepended to the default %load-path.
+
+.B GUILE_LOAD_COMPILED_PATH
+If
+.RB $ GUILE_LOAD_COMPILED_PATH
+is set, its value is used to agument the path to search for compiled
+Scheme files (.go files) when loading.  It should be a colon separated
+list of directories which will be prepended to the default %load-path.
 
 .SH FILES
 .I ~/.guile
