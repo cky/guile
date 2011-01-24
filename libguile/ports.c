@@ -2052,13 +2052,11 @@ scm_i_set_port_encoding_x (SCM port, const char *enc)
 
       /* Set the character encoding for this port.  */
       pt = SCM_PTAB_ENTRY (port);
-      if (valid_enc == NULL)
-        pt->encoding = NULL;
-      else
-        pt->encoding = scm_gc_strdup (valid_enc, "port");
 
       if (valid_enc == NULL)
 	valid_enc = "ISO-8859-1";
+
+      pt->encoding = scm_gc_strdup (valid_enc, "port");
 
       if (SCM_CELL_WORD_0 (port) & SCM_RDNG)
 	{
