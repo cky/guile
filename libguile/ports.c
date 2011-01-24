@@ -1977,10 +1977,7 @@ scm_i_get_port_encoding (SCM port)
     {
       scm_t_port *pt;
       pt = SCM_PTAB_ENTRY (port);
-      if (pt->encoding)
-	return pt->encoding;
-      else
-	return NULL;
+      return pt->encoding;
     }
 }
 
@@ -2131,24 +2128,13 @@ SCM_DEFINE (scm_set_port_encoding_x, "set-port-encoding!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_port_encoding_x
 {
   char *enc_str;
-  const char *valid_enc_str;
 
   SCM_VALIDATE_PORT (1, port);
   SCM_VALIDATE_STRING (2, enc);
 
   enc_str = scm_to_locale_string (enc);
-  valid_enc_str = find_valid_encoding (enc_str);
-  if (valid_enc_str == NULL)
-    {
-      free (enc_str);
-      scm_misc_error (FUNC_NAME, "invalid or unknown character encoding ~s",
-		      scm_list_1 (enc));
-    }
-  else
-    {
-      scm_i_set_port_encoding_x (port, valid_enc_str);
-      free (enc_str);
-    }
+  scm_i_set_port_encoding_x (port, enc_str);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
