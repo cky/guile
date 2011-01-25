@@ -3,7 +3,7 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -68,8 +68,9 @@ typedef scm_t_int32 scm_t_wchar;
 #define SCM_FIXABLE(n) (SCM_POSFIXABLE (n) && SCM_NEGFIXABLE (n))
 
 
-/* A name for 0. */
-#define SCM_INUM0 (SCM_I_MAKINUM (0))
+#define SCM_INUM0 (SCM_I_MAKINUM (0))  /* A name for 0 */
+#define SCM_INUM1 (SCM_I_MAKINUM (1))  /* A name for 1 */
+
 
 /* SCM_MAXEXP is the maximum double precision exponent
  * SCM_FLTMAX is less than or scm_equal the largest single precision float

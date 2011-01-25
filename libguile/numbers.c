@@ -403,7 +403,7 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
     {
       if (scm_is_eq (denominator, SCM_INUM0))
 	scm_num_overflow ("make-ratio");
-      if (scm_is_eq (denominator, SCM_I_MAKINUM(1)))
+      if (scm_is_eq (denominator, SCM_INUM1))
 	return numerator;
     }
   else 
@@ -435,7 +435,7 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
 	  scm_t_inum y;
 	  y = SCM_I_INUM (denominator);
 	  if (x == y)
-	    return SCM_I_MAKINUM(1);
+	    return SCM_INUM1;
 	  if ((x % y) == 0)
 	    return SCM_I_MAKINUM (x / y);
 	}
@@ -462,7 +462,7 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
       else
 	{
 	  if (scm_is_eq (numerator, denominator))
-	    return SCM_I_MAKINUM(1);
+	    return SCM_INUM1;
 	  if (mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
 			       SCM_I_BIG_MPZ (denominator)))
 	    return scm_divide(numerator, denominator);
@@ -473,7 +473,7 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
    */
   {
     SCM divisor = scm_gcd (numerator, denominator);
-    if (!(scm_is_eq (divisor, SCM_I_MAKINUM(1))))
+    if (!(scm_is_eq (divisor, SCM_INUM1)))
       {
 	numerator = scm_divide (numerator, divisor);
 	denominator = scm_divide (denominator, divisor);
@@ -772,7 +772,7 @@ scm_quotient (SCM x, SCM y)
               return SCM_I_MAKINUM (-1);
             }
 	  else
-	    return SCM_I_MAKINUM (0);
+	    return SCM_INUM0;
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
@@ -849,7 +849,7 @@ scm_remainder (SCM x, SCM y)
             {
               /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
 	      scm_remember_upto_here_1 (y);
-              return SCM_I_MAKINUM (0);
+              return SCM_INUM0;
             }
 	  else
 	    return x;
@@ -1932,7 +1932,7 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
         {
           bits_to_shift = -bits_to_shift;
           if (bits_to_shift >= SCM_LONG_BIT)
-            return (nn >= 0 ? SCM_I_MAKINUM (0) : SCM_I_MAKINUM(-1));
+            return (nn >= 0 ? SCM_INUM0 : SCM_I_MAKINUM(-1));
           else
             return SCM_I_MAKINUM (SCM_SRS (nn, bits_to_shift));
         }
@@ -2694,7 +2694,7 @@ mem2decimal_from_point (SCM result, SCM mem,
       scm_t_bits shift = 1;
       scm_t_bits add = 0;
       unsigned int digit_value;
-      SCM big_shift = SCM_I_MAKINUM (1);
+      SCM big_shift = SCM_INUM1;
 
       idx++;
       while (idx != len)
@@ -2882,7 +2882,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
       else if (!uc_is_property_decimal_digit ((scm_t_uint32) scm_i_string_ref (mem, idx+1)))
 	return SCM_BOOL_F;
       else
-	result = mem2decimal_from_point (SCM_I_MAKINUM (0), mem,
+	result = mem2decimal_from_point (SCM_INUM0, mem,
 					 p_idx, &x);
     }
   else
@@ -2933,7 +2933,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
   /* When returning an inexact zero, make sure it is represented as a
      floating point value so that we can change its sign. 
   */
-  if (scm_is_eq (result, SCM_I_MAKINUM(0)) && *p_exactness == INEXACT)
+  if (scm_is_eq (result, SCM_INUM0) && *p_exactness == INEXACT)
     result = scm_from_double (0.0);
 
   return result;
@@ -2984,7 +2984,7 @@ mem2complex (SCM mem, unsigned int idx,
 	  if (idx != len)
 	    return SCM_BOOL_F;
 	  
-	  return scm_make_rectangular (SCM_I_MAKINUM (0), SCM_I_MAKINUM (sign));
+	  return scm_make_rectangular (SCM_INUM0, SCM_I_MAKINUM (sign));
 	}
       else
 	return SCM_BOOL_F;
@@ -3008,7 +3008,7 @@ mem2complex (SCM mem, unsigned int idx,
 	    return SCM_BOOL_F;
 	  if (idx != len)
 	    return SCM_BOOL_F;
-	  return scm_make_rectangular (SCM_I_MAKINUM (0), ureal);
+	  return scm_make_rectangular (SCM_INUM0, ureal);
 
 	case '@':
 	  /* polar input: <real>@<real>. */
@@ -4398,7 +4398,7 @@ SCM_DEFINE (scm_oneplus, "1+", 1, 0, 0,
 	    "Return @math{@var{x}+1}.")
 #define FUNC_NAME s_scm_oneplus
 {
-  return scm_sum (x, SCM_I_MAKINUM (1));
+  return scm_sum (x, SCM_INUM1);
 }
 #undef FUNC_NAME
 
@@ -4658,7 +4658,7 @@ SCM_DEFINE (scm_oneminus, "1-", 1, 0, 0,
 	    "Return @math{@var{x}-1}.")
 #define FUNC_NAME s_scm_oneminus
 {
-  return scm_difference (x, SCM_I_MAKINUM (1));
+  return scm_difference (x, SCM_INUM1);
 }
 #undef FUNC_NAME
 
@@ -4939,14 +4939,14 @@ do_divide (SCM x, SCM y, int inexact)
 	    {
 	      if (inexact)
 		return scm_from_double (1.0 / (double) xx);
-	      else return scm_i_make_ratio (SCM_I_MAKINUM(1), x);
+	      else return scm_i_make_ratio (SCM_INUM1, x);
 	    }
 	}
       else if (SCM_BIGP (x))
 	{
 	  if (inexact)
 	    return scm_from_double (1.0 / scm_i_big2dbl (x));
-	  else return scm_i_make_ratio (SCM_I_MAKINUM(1), x);
+	  else return scm_i_make_ratio (SCM_INUM1, x);
 	}
       else if (SCM_REALP (x))
 	{
@@ -5410,7 +5410,7 @@ SCM_DEFINE (scm_round_number, "round", 1, 0, 0,
       /* Adjust so that the rounding is towards even.  */
       if (scm_is_true (scm_num_eq_p (plus_half, result))
           && scm_is_true (scm_odd_p (result)))
-        return scm_difference (result, SCM_I_MAKINUM (1));
+        return scm_difference (result, SCM_INUM1);
       else
         return result;
     }
@@ -5440,7 +5440,7 @@ SCM_PRIMITIVE_GENERIC (scm_floor, "floor", 1, 0, 0,
 	  /* For negative x, we need to return q-1 unless x is an
 	     integer.  But fractions are never integer, per our
 	     assumptions. */
-	  return scm_difference (q, SCM_I_MAKINUM (1));
+	  return scm_difference (q, SCM_INUM1);
 	}
     }
   else
@@ -5471,7 +5471,7 @@ SCM_PRIMITIVE_GENERIC (scm_ceiling, "ceiling", 1, 0, 0,
 	  /* For positive x, we need to return q+1 unless x is an
 	     integer.  But fractions are never integer, per our
 	     assumptions. */
-	  return scm_sum (q, SCM_I_MAKINUM (1));
+	  return scm_sum (q, SCM_INUM1);
 	}
     }
   else
@@ -5743,7 +5743,7 @@ SCM_PRIMITIVE_GENERIC (scm_sys_asinh, "asinh", 1, 0, 0,
   else if (scm_is_number (z))
     return scm_log (scm_sum (z,
                              scm_sqrt (scm_sum (scm_product (z, z),
-                                                SCM_I_MAKINUM (1)))));
+                                                SCM_INUM1))));
   else
     SCM_WTA_DISPATCH_1 (g_scm_sys_asinh, z, 1, s_scm_sys_asinh);
 }
@@ -5759,7 +5759,7 @@ SCM_PRIMITIVE_GENERIC (scm_sys_acosh, "acosh", 1, 0, 0,
   else if (scm_is_number (z))
     return scm_log (scm_sum (z,
                              scm_sqrt (scm_difference (scm_product (z, z),
-                                                       SCM_I_MAKINUM (1)))));
+                                                       SCM_INUM1))));
   else
     SCM_WTA_DISPATCH_1 (g_scm_sys_acosh, z, 1, s_scm_sys_acosh);
 }
@@ -5773,8 +5773,8 @@ SCM_PRIMITIVE_GENERIC (scm_sys_atanh, "atanh", 1, 0, 0,
   if (scm_is_real (z) && scm_to_double (z) >= -1.0 && scm_to_double (z) <= 1.0)
     return scm_from_double (atanh (scm_to_double (z)));
   else if (scm_is_number (z))
-    return scm_divide (scm_log (scm_divide (scm_sum (SCM_I_MAKINUM (1), z),
-                                            scm_difference (SCM_I_MAKINUM (1), z))),
+    return scm_divide (scm_log (scm_divide (scm_sum (SCM_INUM1, z),
+                                            scm_difference (SCM_INUM1, z))),
                        SCM_I_MAKINUM (2));
   else
     SCM_WTA_DISPATCH_1 (g_scm_sys_atanh, z, 1, s_scm_sys_atanh);
@@ -5911,9 +5911,9 @@ SCM
 scm_denominator (SCM z)
 {
   if (SCM_I_INUMP (z))
-    return SCM_I_MAKINUM (1);
+    return SCM_INUM1;
   else if (SCM_BIGP (z)) 
-    return SCM_I_MAKINUM (1);
+    return SCM_INUM1;
   else if (SCM_FRACTIONP (z))
     return SCM_FRACTION_DENOMINATOR (z);
   else if (SCM_REALP (z))
@@ -6093,9 +6093,9 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 
       SCM ex = scm_inexact_to_exact (x);
       SCM int_part = scm_floor (ex);
-      SCM tt = SCM_I_MAKINUM (1);
-      SCM a1 = SCM_I_MAKINUM (0), a2 = SCM_I_MAKINUM (1), a = SCM_I_MAKINUM (0);
-      SCM b1 = SCM_I_MAKINUM (1), b2 = SCM_I_MAKINUM (0), b = SCM_I_MAKINUM (0);
+      SCM tt = SCM_INUM1;
+      SCM a1 = SCM_INUM0, a2 = SCM_INUM1, a = SCM_INUM0;
+      SCM b1 = SCM_INUM1, b2 = SCM_INUM0, b = SCM_INUM0;
       SCM rx;
       int i = 0;
 
@@ -6664,7 +6664,7 @@ scm_init_numbers ()
   scm_dblprec[10-2] = (DBL_DIG > 20) ? 20 : DBL_DIG;
 #endif
 
-  exactly_one_half = scm_divide (SCM_I_MAKINUM (1), SCM_I_MAKINUM (2));
+  exactly_one_half = scm_divide (SCM_INUM1, SCM_I_MAKINUM (2));
 #include "libguile/numbers.x"
 }
 
