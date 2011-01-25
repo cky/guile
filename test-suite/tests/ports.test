@@ -1,8 +1,9 @@
 ;;;; ports.test --- Guile I/O ports.    -*- coding: utf-8; mode: scheme; -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
-;;;; 
+;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010,
+;;;;      2011 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
@@ -18,11 +19,11 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-ports)
-  :use-module (test-suite lib)
-  :use-module (test-suite guile-test)
-  :use-module (ice-9 popen)
-  :use-module (ice-9 rdelim)
-  :use-module (rnrs bytevectors))
+  #:use-module (test-suite lib)
+  #:use-module (test-suite guile-test)
+  #:use-module (ice-9 popen)
+  #:use-module (ice-9 rdelim)
+  #:use-module (rnrs bytevectors))
 
 (define (display-line . args)
   (for-each display args)
@@ -423,6 +424,26 @@
                (string=? from "UTF-32")
                (string=? to "ISO-8859-1")
                (string? (strerror errno)))))))
+
+  (pass-if "wrong encoding, substitute"
+    (let ((str "ĉu bone?"))
+      (with-fluids ((%default-port-encoding "ISO-8859-1"))
+        (string=? (with-output-to-string
+                    (lambda ()
+                      (set-port-conversion-strategy! (current-output-port)
+                                                     'substitute)
+                      (display str)))
+                  "?u bone?"))))
+
+  (pass-if "wrong encoding, escape"
+    (let ((str "ĉu bone?"))
+      (with-fluids ((%default-port-encoding "ISO-8859-1"))
+        (string=? (with-output-to-string
+                    (lambda ()
+                      (set-port-conversion-strategy! (current-output-port)
+                                                     'escape)
+                      (display str)))
+                  "\\u0109u bone?"))))
 
   (pass-if "peek-char [latin-1]"
     (let ((p (with-fluids ((%default-port-encoding #f))
