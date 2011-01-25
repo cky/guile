@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2015,7 +2015,7 @@ SCM_DEFINE (scm_current_processor_count, "current-processor-count", 0, 0, 0,
 	    "processors available to the current process.  See\n"
 	    "@code{setaffinity} and @code{getaffinity} for more\n"
 	    "information.\n")
-#define FUNC_NAME s_scm_total_processor_count
+#define FUNC_NAME s_scm_current_processor_count
 {
   return scm_from_ulong (num_processors (NPROC_CURRENT));
 }
