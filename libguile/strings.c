@@ -1545,7 +1545,17 @@ scm_from_latin1_string (const char *str)
 SCM
 scm_from_latin1_stringn (const char *str, size_t len)
 {
-  return scm_from_stringn (str, len, NULL, SCM_FAILED_CONVERSION_ERROR);
+  char *buf;
+  SCM result;
+
+  if (len == (size_t) -1)
+    len = strlen (str);
+
+  /* Make a narrow string and copy STR as is.  */
+  result = scm_i_make_string (len, &buf);
+  memcpy (buf, str, len);
+
+  return result;
 }
 
 SCM
@@ -1752,9 +1762,26 @@ scm_to_latin1_string (SCM str)
 
 char *
 scm_to_latin1_stringn (SCM str, size_t *lenp)
+#define FUNC_NAME "scm_to_latin1_stringn"
 {
-  return scm_to_stringn (str, lenp, NULL, SCM_FAILED_CONVERSION_ERROR);
+  char *result;
+
+  SCM_VALIDATE_STRING (1, str);
+
+  if (scm_i_is_narrow_string (str))
+    {
+      if (lenp)
+	*lenp = scm_i_string_length (str);
+
+      result = scm_strdup (scm_i_string_data (str));
+    }
+  else
+    result = scm_to_stringn (str, lenp, NULL,
+			     SCM_FAILED_CONVERSION_ERROR);
+
+  return result;
 }
+#undef FUNC_NAME
 
 char *
 scm_to_utf8_string (SCM str)
