@@ -1114,6 +1114,7 @@ utf8_to_codepoint (const scm_t_uint8 *utf8_buf, size_t size)
    failure.  */
 static scm_t_wchar
 get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
+#define FUNC_NAME "scm_getc"
 {
   int err, byte_read;
   size_t bytes_consumed, output_size;
@@ -1164,10 +1165,22 @@ get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
     }
 
   if (err != 0)
-    goto failure;
+    {
+      /* Reset the `iconv' state.  */
+      iconv (pt->input_cd, NULL, NULL, NULL, NULL);
 
-  /* Convert the UTF8_BUF sequence to a Unicode code point.  */
-  codepoint = utf8_to_codepoint (utf8_buf, output_size);
+      if (pt->ilseq_handler == SCM_ICONVEH_QUESTION_MARK)
+	codepoint = '?';
+      else
+	/* Fail when the strategy is SCM_ICONVEH_ERROR or
+	   SCM_ICONVEH_ESCAPE_SEQUENCE (the latter doesn't make sense
+	   for input encoding errors.)  */
+	goto failure;
+    }
+  else
+    /* Convert the UTF8_BUF sequence to a Unicode code point.  */
+    codepoint = utf8_to_codepoint (utf8_buf, output_size);
+
   update_port_lf (codepoint, port);
 
   *len = bytes_consumed;
@@ -1176,23 +1189,18 @@ get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 
  failure:
   {
-    char *err_buf;
-    SCM err_str = scm_i_make_string (bytes_consumed, &err_buf);
-    memcpy (err_buf, buf, bytes_consumed);
+    SCM bv;
 
-    if (err == EILSEQ)
-      scm_misc_error (NULL, "input encoding error for ~s: ~s",
-		      scm_list_2 (scm_from_locale_string (scm_i_get_port_encoding (port)),
-				  err_str));
-    else
-      scm_misc_error (NULL, "input encoding error (invalid) for ~s: ~s\n", 
-		      scm_list_2 (scm_from_locale_string (scm_i_get_port_encoding (port)),
-				  err_str));
+    bv = scm_c_make_bytevector (bytes_consumed);
+    memcpy (SCM_BYTEVECTOR_CONTENTS (bv), buf, bytes_consumed);
+    scm_encoding_error (FUNC_NAME, err, "input decoding error",
+			pt->encoding, "UTF-8", bv);
   }
 
   /* Never gets here.  */
   return 0;
 }
+#undef FUNC_NAME
 
 /* Read a codepoint from PORT and return it.  */
 scm_t_wchar
