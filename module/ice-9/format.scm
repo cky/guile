@@ -1,5 +1,5 @@
 ;;;; "format.scm" Common LISP text output formatter for SLIB
-;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -1079,7 +1079,8 @@
               (padch (format:par pars l 4 format:space-ch #f)))
 
           (cond
-           ((or (inf? number) (nan? number))
+           ((and (number? number)
+                 (or (inf? number) (nan? number)))
             (format:out-inf-nan number width digits #f overch padch))
 
            (digits
@@ -1140,7 +1141,8 @@
               (expch (format:par pars l 6 #f #f)))
 	      
           (cond
-           ((or (inf? number) (nan? number))
+           ((and (number? number)
+                 (or (inf? number) (nan? number)))
             (format:out-inf-nan number width digits edigits overch padch))
 
            (digits                      ; fixed precision
@@ -1231,7 +1233,8 @@
               (overch (if (> l 4) (list-ref pars 4) #f))
               (padch (if (> l 5) (list-ref pars 5) #f)))
           (cond
-           ((or (inf? number) (nan? number))
+           ((and (number? number)
+                 (or (inf? number) (nan? number)))
             ;; FIXME: this isn't right.
             (format:out-inf-nan number width digits edigits overch padch))
            (else
@@ -1265,7 +1268,8 @@
               (padch (format:par pars l 3 format:space-ch #f)))
 
           (cond
-           ((or (inf? number) (nan? number))
+           ((and (number? number)
+                 (or (inf? number) (nan? number)))
             (format:out-inf-nan number width digits #f #f padch))
 
            (else
