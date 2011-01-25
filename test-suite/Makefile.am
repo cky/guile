@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Software Foundation, Inc.
+## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+##   2010, 2011 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -100,6 +101,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/r6rs-unicode.test		\
 	    tests/rnrs-libraries.test		\
 	    tests/ramap.test			\
+	    tests/rdelim.test			\
 	    tests/reader.test			\
 	    tests/receive.test			\
 	    tests/regexp.test			\

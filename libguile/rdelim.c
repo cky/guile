@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2006,
+ *   2011 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -100,88 +101,6 @@ SCM_DEFINE (scm_read_delimited_x, "%read-delimited!", 3, 3, 0,
 }
 #undef FUNC_NAME
 
-static unsigned char *
-scm_do_read_line (SCM port, size_t *len_p)
-{
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  unsigned char *end;
-
-  /* I thought reading lines was simple.  Mercy me.  */
-
-  /* The common case: the buffer contains a complete line. 
-     This needs to be fast.  */
-  if ((end = memchr (pt->read_pos, '\n', (pt->read_end - pt->read_pos)))
-	   != 0)
-    {
-      size_t buf_len = (end + 1) - pt->read_pos;
-      /* Allocate a buffer of the perfect size.  */
-      unsigned char *buf = scm_malloc (buf_len + 1);
-
-      memcpy (buf, pt->read_pos, buf_len);
-      pt->read_pos += buf_len;
-
-      buf[buf_len] = '\0';
-
-      *len_p = buf_len;
-      return buf;
-    }
-
-  /* The buffer contains no newlines.  */
-  {
-    /* When live, len is always the number of characters in the
-       current buffer that are part of the current line.  */
-    size_t len = (pt->read_end - pt->read_pos);
-    size_t buf_size = (len < 50) ? 60 : len * 2;
-    /* Invariant: buf always has buf_size + 1 characters allocated;
-       the `+ 1' is for the final '\0'.  */
-    unsigned char *buf = scm_malloc (buf_size + 1);
-    size_t buf_len = 0;
-
-    for (;;)
-      {
-	if (buf_len + len > buf_size)
-	  {
-	    size_t new_size = (buf_len + len) * 2;
-	    buf = scm_realloc (buf, new_size + 1);
-	    buf_size = new_size;
-	  }
-
-	/* Copy what we've got out of the port, into our buffer.  */
-	memcpy (buf + buf_len, pt->read_pos, len);
-	buf_len += len;
-	pt->read_pos += len;
-
-	/* If we had seen a newline, we're done now.  */
-	if (end)
-	  break;
-
-	/* Get more characters.  */
-	if (scm_fill_input (port) == EOF)
-	  {
-	    /* If we're missing a final newline in the file, return
-	       what we did get, sans newline.  */
-	    if (buf_len > 0)
-	      break;
-
-	    free (buf);
-	    return 0;
-	  }
-
-	/* Search the buffer for newlines.  */
-	if ((end = memchr (pt->read_pos, '\n',
-			   (len = (pt->read_end - pt->read_pos))))
-	    != 0)
-	  len = (end - pt->read_pos) + 1;
-      }
-
-    /* I wonder how expensive this realloc is.  */
-    buf = scm_realloc (buf, buf_len + 1);
-    buf[buf_len] = '\0';
-    *len_p = buf_len;
-    return buf;
-  }
-}
-
 
 /*
  * %read-line 
@@ -201,52 +120,67 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 	    "@code{(#<eof> . #<eof>)}.")
 #define FUNC_NAME s_scm_read_line
 {
-  scm_t_port *pt;
-  char *s;
-  size_t slen = 0;
-  SCM line, term;
-  const char *enc;
-  scm_t_string_failed_conversion_handler hndl;
+/* Threshold under which the only allocation performed is that of the
+   resulting string and pair.  */
+#define LINE_BUFFER_SIZE 1024
+
+  SCM line, strings, result;
+  scm_t_wchar buf[LINE_BUFFER_SIZE], delim;
+  size_t index;
 
   if (SCM_UNBNDP (port))
     port = scm_current_input_port ();
+
   SCM_VALIDATE_OPINPORT (1,port);
 
-  pt = SCM_PTAB_ENTRY (port);
-  enc = pt->encoding;
-  hndl = pt->ilseq_handler;
-  if (pt->rw_active == SCM_PORT_WRITE)
-    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
+  index = 0;
+  delim = 0;
+  strings = SCM_EOL;
 
-  s = (char *) scm_do_read_line (port, &slen);
-
-  if (s == NULL)
-    term = line = SCM_EOF_VAL;
-  else
+  do
     {
-      if (s[slen - 1] == '\n')
+      if (index >= sizeof (buf))
 	{
-	  term = SCM_MAKE_CHAR ('\n');
-	  s[slen - 1] = '\0';
-
-	  line = scm_from_stringn (s, slen - 1, enc, hndl);
-	  free (s);
-	  SCM_INCLINE (port);
+	  /* The line is getting longer than BUF so store its current
+	     contents in STRINGS.  */
+	  strings = scm_cons (scm_from_utf32_stringn (buf, index),
+			      scm_is_false (strings) ? SCM_EOL : strings);
+	  index = 0;
 	}
       else
 	{
-	  /* Fix: we should check for eof on the port before assuming this. */
-	  term = SCM_EOF_VAL;
-	  line = scm_from_stringn (s, slen, enc, hndl);
-	  free (s);
-	  SCM_COL (port) += scm_i_string_length (line);
+	  buf[index] = scm_getc (port);
+	  switch (buf[index])
+	    {
+	    case EOF:
+	    case '\n':
+	      delim = buf[index];
+	      break;
+
+	    default:
+	      index++;
+	    }
 	}
     }
+  while (delim == 0);
 
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_READ;
+  if (scm_is_false (strings))
+    line = scm_from_utf32_stringn (buf, index);
+  else
+    {
+      /* Aggregate the intermediary results.  */
+      strings = scm_cons (scm_from_utf32_stringn (buf, index), strings);
+      line = scm_string_concatenate (scm_reverse (strings));
+    }
 
-  return scm_cons (line, term);
+  if (delim == EOF && scm_i_string_length (line) == 0)
+    result = scm_cons (SCM_EOF_VAL, SCM_EOF_VAL);
+  else
+    result = scm_cons (line,
+		       delim == EOF ? SCM_EOF_VAL : SCM_MAKE_CHAR (delim));
+
+  return result;
+#undef LINE_BUFFER_SIZE
 }
 #undef FUNC_NAME
 

@@ -1,0 +1,76 @@
+;;;; rdelim.test --- Delimited I/O.      -*- mode: scheme; coding: utf-8; -*-
+;;;; Ludovic Courtès <ludo@gnu.org>
+;;;;
+;;;; 	Copyright (C) 2011 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite test-rdelim)
+  #:use-module (ice-9 rdelim)
+  #:use-module (test-suite lib))
+
+(with-fluids ((%default-port-encoding "UTF-8"))
+
+  (with-test-prefix "read-line"
+
+    (pass-if "one line"
+      (let* ((s "hello, world")
+             (p (open-input-string s)))
+        (and (string=? s (read-line p))
+             (eof-object? (read-line p)))))
+
+    (pass-if "two lines, trim"
+      (let* ((s "foo\nbar\n")
+             (p (open-input-string s)))
+        (and (equal? (string-tokenize s)
+                     (list (read-line p) (read-line p)))
+             (eof-object? (read-line p)))))
+
+    (pass-if "two lines, concat"
+      (let* ((s "foo\nbar\n")
+             (p (open-input-string s)))
+        (and (equal? '("foo\n" "bar\n")
+                     (list (read-line p 'concat)
+                           (read-line p 'concat)))
+             (eof-object? (read-line p)))))
+
+    (pass-if "two lines, peek"
+      (let* ((s "foo\nbar\n")
+             (p (open-input-string s)))
+        (and (equal? '("foo" #\newline "bar" #\newline)
+                     (list (read-line p 'peek) (read-char p)
+                           (read-line p 'peek) (read-char p)))
+             (eof-object? (read-line p)))))
+
+    (pass-if "two lines, split"
+      (let* ((s "foo\nbar\n")
+             (p (open-input-string s)))
+        (and (equal? '(("foo" . #\newline)
+                       ("bar" . #\newline))
+                     (list (read-line p 'split)
+                           (read-line p 'split)))
+             (eof-object? (read-line p)))))
+
+    (pass-if  "two Greek lines, trim"
+      (let* ((s "λαμβδα\nμυ\n")
+             (p (open-input-string s)))
+        (and (equal? (string-tokenize s)
+                     (list (read-line p) (read-line p)))
+             (eof-object? (read-line p)))))))
+
+;;; Local Variables:
+;;; eval: (put 'with-test-prefix 'scheme-indent-function 1)
+;;; eval: (put 'pass-if 'scheme-indent-function 1)
+;;; End:
