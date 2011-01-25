@@ -23,11 +23,11 @@ manual, for more information.
 
 ** `expt' and `integer-expt' changes when the base is 0
 
-While `(expt 0 0)' is still 1, `(expt 0 N)' for N > 0 is now 0, and
-`(expt 0 N)' for N < 0 is now a NaN value, and likewise for
+While `(expt 0 0)' is still 1, and `(expt 0 N)' for N > 0 is still
+zero, `(expt 0 N)' for N < 0 is now a NaN value, and likewise for
 integer-expt.  This is more correct, and conforming to R6RS, but seems
-to be incompatible with R5RS, which would always return 0 for all values
-of N.
+to be incompatible with R5RS, which would return 0 for all non-zero
+values of N.
 
 ** And of course, the usual collection of bugfixes
  
