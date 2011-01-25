@@ -4040,14 +4040,21 @@ conversion functions are provided to convert between Latin-1 C strings
 and Guile strings.
 
 @deftypefn {C Function} SCM scm_from_latin1_stringn (const char *str, size_t len)
-This function returns a scheme string from an ISO-8859-1-encoded C
-string @var{str} of length @var{len}.
+@deftypefnx {C Function} SCM scm_from_utf8_stringn (const char *str, size_t len)
+@deftypefnx {C Function} SCM scm_from_utf32_stringn (const scm_t_wchar *str, size_t len)
+Return a scheme string from C string @var{str}, which is ISO-8859-1-,
+UTF-8-, or UTF-32-encoded, of length @var{len}.  @var{len} is the number
+of bytes pointed to by @var{str} for @code{scm_from_latin1_stringn} and
+@code{scm_from_utf8_stringn}; it is the number of elements (code points)
+in @var{str} in the case of @code{scm_from_utf32_stringn}.
 @end deftypefn
 
-@deftypefn {C function} char * scm_to_latin1_stringn (SCM str, size_t *lenp)
-This function returns a newly allocated, ISO-8859-1-encoded C string
-from the scheme string @var{str}.  An error will be thrown if the scheme
-string cannot be converted to the ISO-8859-1 encoding.  If @var{lenp} is
+@deftypefn {C function} char *scm_to_latin1_stringn (SCM str, size_t *lenp)
+@deftypefnx {C function} char *scm_to_utf8_stringn (SCM str, size_t *lenp)
+@deftypefnx {C function} scm_t_wchar *scm_to_utf32_stringn (SCM str, size_t *lenp)
+Return a newly allocated, ISO-8859-1-, UTF-8-, or UTF-32-encoded C string
+from Scheme string @var{str}.  An error is thrown when @var{str}
+string cannot be converted to the specified encoding.  If @var{lenp} is
 @code{NULL}, the returned C string will be null terminated, and an error
 will be thrown if the C string would otherwise contain null
 characters. If @var{lenp} is not NULL, the length of the string is

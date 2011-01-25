@@ -148,6 +148,11 @@ SCM_API char *scm_to_utf8_stringn (SCM str, size_t *lenp);
 SCM_API SCM scm_from_utf8_string (const char *str);
 SCM_API SCM scm_from_utf8_stringn (const char *str, size_t len);
 
+SCM_API scm_t_wchar *scm_to_utf32_string (SCM str);
+SCM_API scm_t_wchar *scm_to_utf32_stringn (SCM str, size_t *lenp);
+SCM_API SCM scm_from_utf32_string (const scm_t_wchar *str);
+SCM_API SCM scm_from_utf32_stringn (const scm_t_wchar *str, size_t len);
+
 SCM_API char *scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                               scm_t_string_failed_conversion_handler handler);
 SCM_API size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len);

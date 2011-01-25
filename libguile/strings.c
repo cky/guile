@@ -1570,6 +1570,28 @@ scm_from_utf8_stringn (const char *str, size_t len)
   return scm_from_stringn (str, len, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
 }
 
+SCM
+scm_from_utf32_string (const scm_t_wchar *str)
+{
+  return scm_from_utf32_stringn (str, -1);
+}
+
+SCM
+scm_from_utf32_stringn (const scm_t_wchar *str, size_t len)
+{
+  SCM result;
+  scm_t_wchar *buf;
+
+  if (len == (size_t) -1)
+    len = u32_strlen ((uint32_t *) str);
+
+  result = scm_i_make_wide_string (len, &buf);
+  memcpy (buf, str, len * sizeof (scm_t_wchar));
+  scm_i_try_narrow_string (result);
+
+  return result;
+}
+
 /* Create a new scheme string from the C string STR.  The memory of
    STR may be used directly as storage for the new string.  */
 /* FIXME: GC-wise, the only way to use the memory area pointed to by STR
@@ -1794,6 +1816,42 @@ scm_to_utf8_stringn (SCM str, size_t *lenp)
 {
   return scm_to_stringn (str, lenp, "UTF-8", SCM_FAILED_CONVERSION_ERROR);
 }
+
+scm_t_wchar *
+scm_to_utf32_string (SCM str)
+{
+  return scm_to_utf32_stringn (str, NULL);
+}
+
+scm_t_wchar *
+scm_to_utf32_stringn (SCM str, size_t *lenp)
+#define FUNC_NAME "scm_to_utf32_stringn"
+{
+  scm_t_wchar *result;
+
+  SCM_VALIDATE_STRING (1, str);
+
+  if (scm_i_is_narrow_string (str))
+    result = (scm_t_wchar *)
+      scm_to_stringn (str, lenp, "UTF-32",
+		      SCM_FAILED_CONVERSION_ERROR);
+  else
+    {
+      size_t len;
+
+      len = scm_i_string_length (str);
+      if (lenp)
+	*lenp = len;
+
+      result = scm_malloc ((len + 1) * sizeof (scm_t_wchar));
+      memcpy (result, scm_i_string_wide_chars (str),
+	      len * sizeof (scm_t_wchar));
+      result[len] = 0;
+    }
+
+  return result;
+}
+#undef FUNC_NAME
 
 /* Return a malloc(3)-allocated buffer containing the contents of STR encoded
    according to ENCODING.  If LENP is non-NULL, set it to the size in bytes of
