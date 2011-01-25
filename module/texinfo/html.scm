@@ -148,8 +148,14 @@ name, @code{#}, and the node name."
                (apply append body)))))
 
 (define (entry tag args . body)
-  `((dt ,@(arg-req 'heading args))
-    (dd ,@body)))
+  (let lp ((headings (list (arg-req 'heading args))) (body body))
+    (if (and (pair? body) (pair? (car body)) (eq? (caar body) 'itemx))
+        (lp (cons (cdar body) headings)
+            (cdr body))
+        `(,@(map (lambda (heading)
+                   `(dt ,@(map stexi->shtml heading)))
+                 headings)
+          (dd ,@(map stexi->shtml body))))))
 
 (define tag-replacements
   '((titlepage    div (@ (class "titlepage")))
@@ -230,7 +236,7 @@ name, @code{#}, and the node name."
     (node . ,node) (anchor . ,node)
     (table . ,table)
     (enumerate . ,enumerate)
-    (entry . ,entry)
+    (entry *preorder* . ,entry)
 
     (deftp . ,def) (defcv . ,def) (defivar . ,def) (deftypeivar . ,def)
     (defop . ,def) (deftypeop . ,def) (defmethod . ,def)
