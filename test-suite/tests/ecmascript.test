@@ -40,6 +40,7 @@
 
   (parse "true;" 'true)
   (parse "2 + 2;" '(+ (number 2) (number 2)))
+  (parse "2\xa0+2;" '(+ (number 2) (number 2))) ; U+00A0 is whitespace
   (parse "\"hello\";" '(string "hello"))
   (parse "function square(x) { return x * x; }"
          '(var (square (lambda (x) (return (* (ref x) (ref x)))))))
@@ -52,7 +53,11 @@
   (parse "\"\\x12\";"   ; Latin-1 escape in string literal
          '(string "\x12"))
   (parse "\"\\u1234\";" ; Unicode escape in string literal
-         '(string "\u1234")))
+         '(string "\u1234"))
+  (parse "function foo(x) { }" ; empty function body
+         '(var (foo (lambda (x) (begin)))))
+  (parse ".123;"  '(number 0.123))
+  (parse "0xff;"  '(number 255)))
 
 
 (define-syntax ecompile
