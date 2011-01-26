@@ -4864,7 +4864,37 @@ strings returned by this procedure.
 
 Most symbols are created by writing them literally in code.  However it
 is also possible to create symbols programmatically using the following
-@code{string->symbol} and @code{string-ci->symbol} procedures:
+procedures:
+
+@deffn {Scheme Procedure} symbol char@dots{}
+@rnindex symbol
+Return a newly allocated symbol made from the given character arguments.
+
+@example
+(symbol #\x #\y #\z) @result{} xyz
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} list->symbol lst
+@rnindex list->symbol
+Return a newly allocated symbol made from a list of characters.
+
+@example
+(list->symbol '(#\a #\b #\c)) @result{} abc
+@end example
+@end deffn
+
+@rnindex symbol-append
+@deffn {Scheme Procedure} symbol-append . args
+Return a newly allocated symbol whose characters form the
+concatenation of the given symbols, @var{args}.
+
+@example
+(let ((h 'hello))
+  (symbol-append h 'world))
+@result{} helloworld
+@end example
+@end deffn
 
 @rnindex string->symbol
 @deffn {Scheme Procedure} string->symbol string
