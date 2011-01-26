@@ -139,7 +139,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 
   do
     {
-      if (SCM_UNLIKELY (index >= sizeof (buf)))
+      if (SCM_UNLIKELY (index >= LINE_BUFFER_SIZE))
 	{
 	  /* The line is getting longer than BUF so store its current
 	     contents in STRINGS.  */
