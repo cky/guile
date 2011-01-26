@@ -240,7 +240,11 @@
       (eq? #f (exact? (sqrt (- (expt fixnum-max 2) 1)))))
 
     (pass-if "sqrt ((fixnum-max+1)^2 - 1)"
-      (eq? #f (exact? (sqrt (- (expt (+ fixnum-max 1) 2) 1)))))))
+      (eq? #f (exact? (sqrt (- (expt (+ fixnum-max 1) 2) 1)))))
+
+    (pass-if (not (exact? +inf.0)))
+    (pass-if (not (exact? -inf.0)))
+    (pass-if (not (exact? +nan.0)))))
 
 ;;;
 ;;; exp
@@ -1559,6 +1563,9 @@
   (pass-if (not (inexact? (- 1 fixnum-min))))
   (pass-if (inexact? 1.3))
   (pass-if (inexact? 3.1+4.2i))
+  (pass-if (inexact? +inf.0))
+  (pass-if (inexact? -inf.0))
+  (pass-if (inexact? +nan.0))
   (pass-if-exception "char"
 		     exception:wrong-type-arg
 		     (not (inexact? #\a)))

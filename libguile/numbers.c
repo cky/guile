@@ -503,15 +503,28 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
 	    "otherwise.")
 #define FUNC_NAME s_scm_exact_p
 {
-  if (SCM_I_INUMP (x))
-    return SCM_BOOL_T;
-  if (SCM_BIGP (x))
-    return SCM_BOOL_T;
-  if (SCM_FRACTIONP (x))
-    return SCM_BOOL_T;
-  if (SCM_NUMBERP (x))
+  if (SCM_INEXACTP (x))
     return SCM_BOOL_F;
-  SCM_WRONG_TYPE_ARG (1, x);
+  else if (SCM_NUMBERP (x))
+    return SCM_BOOL_T;
+  else
+    SCM_WRONG_TYPE_ARG (1, x);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0,
+            (SCM x),
+	    "Return @code{#t} if @var{x} is an inexact number, @code{#f}\n"
+	    "else.")
+#define FUNC_NAME s_scm_inexact_p
+{
+  if (SCM_INEXACTP (x))
+    return SCM_BOOL_T;
+  else if (SCM_NUMBERP (x))
+    return SCM_BOOL_F;
+  else
+    SCM_WRONG_TYPE_ARG (1, x);
 }
 #undef FUNC_NAME
 
@@ -3360,21 +3373,6 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
   if (r == floor (r))
     return SCM_BOOL_T;
   return SCM_BOOL_F;
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0, 
-            (SCM x),
-	    "Return @code{#t} if @var{x} is an inexact number, @code{#f}\n"
-	    "else.")
-#define FUNC_NAME s_scm_inexact_p
-{
-  if (SCM_INEXACTP (x))
-    return SCM_BOOL_T;
-  if (SCM_NUMBERP (x))
-    return SCM_BOOL_F;
-  SCM_WRONG_TYPE_ARG (1, x);
 }
 #undef FUNC_NAME
 
