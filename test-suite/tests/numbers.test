@@ -317,20 +317,26 @@
   (pass-if (not (finite? (inf))))
   (pass-if (not (finite? +inf.0)))
   (pass-if (not (finite? -inf.0)))
-  (pass-if (not (finite? +inf.0+1i)))
-  (pass-if (not (finite? -inf.0+1i)))
-  (pass-if (not (finite? +1+inf.0i)))
-  (pass-if (not (finite? +1-inf.0i)))
+  (pass-if-exception
+   "complex numbers not in doman of finite?"
+   exception:wrong-type-arg
+   (finite? +inf.0+1i))
+  (pass-if-exception
+   "complex numbers not in doman of finite? (2)"
+   exception:wrong-type-arg
+   (finite? +1+inf.0i))
+  (pass-if-exception
+   "complex numbers not in doman of finite? (3)"
+   exception:wrong-type-arg
+   (finite? +1+1i))
+  (pass-if (finite? 3+0i))
   (pass-if (not (finite? (nan))))
   (pass-if (not (finite? +nan.0)))
-  (pass-if (not (finite? 1+nan.0i)))
-  (pass-if (not (finite? +nan.0+nan.0i)))
   (pass-if (finite? 0))
   (pass-if (finite? 0.0))
   (pass-if (finite? -0.0))
   (pass-if (finite? 42.0))
   (pass-if (finite? 1/2))
-  (pass-if (finite? 42.0+700i))
   (pass-if (finite? (+ fixnum-max 1)))
   (pass-if (finite? (- fixnum-min 1))))
 
@@ -344,6 +350,11 @@
   ;; FIXME: what are the expected behaviors?
   ;; (pass-if (inf? (/ 1.0 0.0))
   ;; (pass-if (inf? (/ 1 0.0))
+  (pass-if-exception
+   "complex numbers not in doman of inf?"
+   exception:wrong-type-arg
+   (inf? +1+inf.0i))
+  (pass-if (inf? +inf.0+0i))
   (pass-if (not (inf? 0)))
   (pass-if (not (inf? 42.0)))
   (pass-if (not (inf? (+ fixnum-max 1))))

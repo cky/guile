@@ -589,19 +589,20 @@ to use @code{inexact->exact} on the arguments.
 
 @deffn  {Scheme Procedure} inf? x
 @deffnx {C Function} scm_inf_p (x)
-Return @code{#t} if @var{x} is either @samp{+inf.0} or @samp{-inf.0},
-@code{#f} otherwise.
+Return @code{#t} if the real number @var{x} is @samp{+inf.0} or
+@samp{-inf.0}.  Otherwise return @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} nan? x
 @deffnx {C Function} scm_nan_p (x)
-Return @code{#t} if @var{x} is @samp{+nan.0}, @code{#f} otherwise.
+Return @code{#t} if the real number @var{x} is @samp{+nan.0}, or
+@code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} finite? x
 @deffnx {C Function} scm_finite_p (x)
-Return @code{#t} if @var{x} is neither infinite nor a NaN,
-@code{#f} otherwise.
+Return @code{#t} if the real number @var{x} is neither infinite nor a
+NaN, @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} nan
