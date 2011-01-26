@@ -122,7 +122,7 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 {
 /* Threshold under which the only allocation performed is that of the
    resulting string and pair.  */
-#define LINE_BUFFER_SIZE 1024
+#define LINE_BUFFER_SIZE 256
 
   SCM line, strings, result;
   scm_t_wchar buf[LINE_BUFFER_SIZE], delim;
@@ -135,11 +135,11 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
 
   index = 0;
   delim = 0;
-  strings = SCM_EOL;
+  strings = SCM_BOOL_F;
 
   do
     {
-      if (index >= sizeof (buf))
+      if (SCM_UNLIKELY (index >= sizeof (buf)))
 	{
 	  /* The line is getting longer than BUF so store its current
 	     contents in STRINGS.  */
@@ -164,7 +164,8 @@ SCM_DEFINE (scm_read_line, "%read-line", 0, 1, 0,
     }
   while (delim == 0);
 
-  if (scm_is_false (strings))
+  if (SCM_LIKELY (scm_is_false (strings)))
+    /* The fast path.  */
     line = scm_from_utf32_stringn (buf, index);
   else
     {
