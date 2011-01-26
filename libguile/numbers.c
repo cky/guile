@@ -4488,7 +4488,11 @@ scm_difference (SCM x, SCM y)
 	  scm_t_inum xx = SCM_I_INUM (x);
 
 	  if (xx == 0)
-	    return scm_i_clonebig (y, 0);
+	    {
+	      /* Must scm_i_normbig here because -SCM_MOST_NEGATIVE_FIXNUM is a
+		 bignum, but negating that gives a fixnum.  */
+	      return scm_i_normbig (scm_i_clonebig (y, 0));
+	    }
 	  else
 	    {
 	      int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
@@ -4720,6 +4724,17 @@ scm_product (SCM x, SCM y)
 	{
         case 0: return x; break;
         case 1: return y; break;
+	  /*
+	   * The following case (x = -1) is important for more than
+	   * just optimization.  It handles the case of negating
+	   * (+ 1 most-positive-fixnum) aka (- most-negative-fixnum),
+	   * which is a bignum that must be changed back into a fixnum.
+	   * Failure to do so will cause the following to return #f:
+	   * (= most-negative-fixnum (* -1 (- most-negative-fixnum)))
+	   */
+        case -1:
+	  return scm_difference(y, SCM_UNDEFINED);
+	  break;
 	}
 
       if (SCM_LIKELY (SCM_I_INUMP (y)))

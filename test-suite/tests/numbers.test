@@ -2525,6 +2525,20 @@
 
 (with-test-prefix/c&e "-"
 
+  (pass-if "double-negation of fixnum-min: ="
+    (=      fixnum-min (- (- fixnum-min))))
+  (pass-if "double-negation of fixnum-min: eqv?"
+    (eqv?   fixnum-min (- (- fixnum-min))))
+  (pass-if "double-negation of fixnum-min: equal?"
+    (equal? fixnum-min (- (- fixnum-min))))
+
+  (pass-if "binary double-negation of fixnum-min: ="
+    (=      fixnum-min (- 0 (- 0 fixnum-min))))
+  (pass-if "binary double-negation of fixnum-min: eqv?"
+    (eqv?   fixnum-min (- 0 (- 0 fixnum-min))))
+  (pass-if "binary double-negation of fixnum-min: equal?"
+    (equal? fixnum-min (- 0 (- 0 fixnum-min))))
+
   (pass-if "-inum - +bignum"
     (= #x-100000000000000000000000000000001
        (- -1 #x100000000000000000000000000000000)))
@@ -2553,6 +2567,14 @@
 ;;;
 
 (with-test-prefix "*"
+
+  (with-test-prefix "double-negation of fixnum-min"
+    (pass-if (=      fixnum-min (* -1 (* -1 fixnum-min))))
+    (pass-if (eqv?   fixnum-min (* -1 (* -1 fixnum-min))))
+    (pass-if (equal? fixnum-min (* -1 (* -1 fixnum-min))))
+    (pass-if (=      fixnum-min (* (* fixnum-min -1) -1)))
+    (pass-if (eqv?   fixnum-min (* (* fixnum-min -1) -1)))
+    (pass-if (equal? fixnum-min (* (* fixnum-min -1) -1))))
 
   (with-test-prefix "inum * bignum"
 
@@ -2606,6 +2628,11 @@
 ;;;
 
 (with-test-prefix "/"
+
+  (with-test-prefix "double-negation of fixnum-min"
+    (pass-if (=      fixnum-min (/ (/ fixnum-min -1) -1)))
+    (pass-if (eqv?   fixnum-min (/ (/ fixnum-min -1) -1)))
+    (pass-if (equal? fixnum-min (/ (/ fixnum-min -1) -1))))
 
   (pass-if "documented?"
     (documented? /))
