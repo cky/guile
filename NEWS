@@ -10,24 +10,47 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.15 (since the 1.9.14 prerelease):
 
-** Infinities are no longer integers.
+** Changes and bugfixes in numerics code
+
+*** Infinities are no longer integers.
 
 Following the R6RS, infinities (+inf.0 and -inf.0) are no longer
 considered to be integers.
 
-** New reader option: `hungry-eol-escapes'
-
-Guile's string syntax is more compatible with R6RS when the
-`hungry-eol-escapes' option is enabled.  See "String Syntax" in the
-manual, for more information.
-
-** `expt' and `integer-expt' changes when the base is 0
+*** `expt' and `integer-expt' changes when the base is 0
 
 While `(expt 0 0)' is still 1, and `(expt 0 N)' for N > 0 is still
 zero, `(expt 0 N)' for N < 0 is now a NaN value, and likewise for
 integer-expt.  This is more correct, and conforming to R6RS, but seems
 to be incompatible with R5RS, which would return 0 for all non-zero
 values of N.
+
+*** New procedure: `finite?'
+
+Add scm_finite_p `finite?' from R6RS to guile core, which returns #t
+if and only if its argument is neither infinite nor a NaN.  Note that
+this is not the same as (not (inf? x)) or (not (infinite? x)), since
+NaNs are neither finite nor infinite.
+
+*** R6RS base library changes
+
+**** `infinite?' changes
+
+`infinite?' now returns #t for non-real complex infinities, and throws
+exceptions for non-numbers.  (Note that NaNs _are_ considered numbers
+by scheme, despite their name).
+
+**** `finite?' changes
+
+`finite?' now returns #f for NaNs and non-real complex infinities, and
+throws exceptions for non-numbers.  (Note that NaNs _are_ considered
+numbers by scheme, despite their name).
+
+** New reader option: `hungry-eol-escapes'
+
+Guile's string syntax is more compatible with R6RS when the
+`hungry-eol-escapes' option is enabled.  See "String Syntax" in the
+manual, for more information.
 
 ** And of course, the usual collection of bugfixes
  

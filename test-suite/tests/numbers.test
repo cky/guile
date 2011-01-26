@@ -305,6 +305,32 @@
   (pass-if (even? (* 2 fixnum-min))))
 
 ;;;
+;;; finite?
+;;;
+
+(with-test-prefix "finite?"
+  (pass-if (documented? finite?))
+  (pass-if (not (finite? (inf))))
+  (pass-if (not (finite? +inf.0)))
+  (pass-if (not (finite? -inf.0)))
+  (pass-if (not (finite? +inf.0+1i)))
+  (pass-if (not (finite? -inf.0+1i)))
+  (pass-if (not (finite? +1+inf.0i)))
+  (pass-if (not (finite? +1-inf.0i)))
+  (pass-if (not (finite? (nan))))
+  (pass-if (not (finite? +nan.0)))
+  (pass-if (not (finite? 1+nan.0i)))
+  (pass-if (not (finite? +nan.0+nan.0i)))
+  (pass-if (finite? 0))
+  (pass-if (finite? 0.0))
+  (pass-if (finite? -0.0))
+  (pass-if (finite? 42.0))
+  (pass-if (finite? 1/2))
+  (pass-if (finite? 42.0+700i))
+  (pass-if (finite? (+ fixnum-max 1)))
+  (pass-if (finite? (- fixnum-min 1))))
+
+;;;
 ;;; inf? and inf
 ;;;
 

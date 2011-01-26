@@ -79,6 +79,10 @@
 typedef scm_t_signed_bits scm_t_inum;
 #define scm_from_inum(x) (scm_from_signed_integer (x))
 
+/* Tests to see if a C double is neither infinite nor a NaN.
+   TODO: if it's available, use C99's isfinite(x) instead */
+#define DOUBLE_IS_FINITE(x) (!isinf(x) && !isnan(x))
+
 
 
 /*
@@ -578,6 +582,24 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
     }
   else
     SCM_WRONG_TYPE_ARG (1, n);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_finite_p, "finite?", 1, 0, 0,
+            (SCM x),
+	    "Return @code{#t} if @var{x} is neither infinite\n"
+	    "nor a NaN, @code{#f} otherwise.")
+#define FUNC_NAME s_scm_finite_p
+{
+  if (SCM_REALP (x))
+    return scm_from_bool (DOUBLE_IS_FINITE (SCM_REAL_VALUE (x)));
+  else if (SCM_COMPLEXP (x))
+    return scm_from_bool (DOUBLE_IS_FINITE (SCM_COMPLEX_REAL (x))
+			  && DOUBLE_IS_FINITE (SCM_COMPLEX_IMAG (x)));
+  else if (SCM_NUMBERP (x))
+    return SCM_BOOL_T;
+  else
+    SCM_WRONG_TYPE_ARG (1, x);
 }
 #undef FUNC_NAME
 

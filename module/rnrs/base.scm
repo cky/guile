@@ -1,6 +1,6 @@
 ;;; base.scm --- The R6RS base library
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -76,6 +76,7 @@
   (import (rename (except (guile) error raise)
                   (quotient div) 
                   (modulo mod)
+                  (inf? infinite?)
                   (exact->inexact inexact)
                   (inexact->exact exact))
           (srfi srfi-11))
@@ -97,9 +98,6 @@
    (or (null? syms)
        (let ((sym (car syms)))
          (and (symbol? sym) (symbol=?-internal (cdr syms) sym)))))
-
- (define (infinite? x) (or (eqv? x +inf.0) (eqv? x -inf.0)))
- (define (finite? x) (not (infinite? x)))
 
  (define (exact-integer-sqrt x)
    (let* ((s (exact (floor (sqrt x)))) (e (- x (* s s)))) (values s e)))

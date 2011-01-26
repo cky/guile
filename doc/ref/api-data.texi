@@ -549,7 +549,8 @@ While @samp{+nan.0} is not @code{=} to itself, it is @code{eqv?} to
 itself.
 
 To test for the special values, use the functions @code{inf?} and
-@code{nan?}.
+@code{nan?}.  To test for numbers than are neither infinite nor a NaN,
+use @code{finite?}.
 
 @deffn {Scheme Procedure} real? obj
 @deffnx {C Function} scm_real_p (obj)
@@ -595,6 +596,12 @@ Return @code{#t} if @var{x} is either @samp{+inf.0} or @samp{-inf.0},
 @deffn {Scheme Procedure} nan? x
 @deffnx {C Function} scm_nan_p (x)
 Return @code{#t} if @var{x} is @samp{+nan.0}, @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} finite? x
+@deffnx {C Function} scm_finite_p (x)
+Return @code{#t} if @var{x} is neither infinite nor a NaN,
+@code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} nan
