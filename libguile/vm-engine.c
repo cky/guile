@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -154,8 +154,9 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     goto vm_error;
 
   vm_error_apply_to_non_list:
+    SYNC_ALL ();
     scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
-               finish_args, finish_args);
+               scm_list_1 (finish_args), scm_list_1 (finish_args));
     goto vm_error;
 
   vm_error_kwargs_length_not_even:
