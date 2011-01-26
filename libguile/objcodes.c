@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -79,7 +79,7 @@ make_objcode_by_mmap (int fd)
 
   if (memcmp (addr, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE)))
     {
-      SCM args = scm_list_1 (scm_from_locale_stringn
+      SCM args = scm_list_1 (scm_from_latin1_stringn
                              (addr, strlen (SCM_OBJCODE_COOKIE)));
       (void) close (fd);
       (void) munmap (addr, st.st_size);
