@@ -1,6 +1,6 @@
 ;;; ports.bm --- Port I/O.         -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -18,6 +18,7 @@
 ;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (benchmarks ports)
+  #:use-module (ice-9 rdelim)
   #:use-module (benchmark-suite lib))
 
 (define %latin1-port
@@ -65,3 +66,23 @@
 
   (benchmark "utf-8 port, Korean character" 10000000
     (char-ready? %utf8/wide-port)))
+
+
+(with-benchmark-prefix "rdelim"
+
+  (let-syntax ((sequence (lambda (s)
+                           ;; Create a sequence `(begin EXPR ...)' with
+                           ;; COUNT occurrences of EXPR.
+                           (syntax-case s ()
+                             ((_ expr count)
+                              (number? (syntax->datum #'count))
+                              (cons #'begin
+                                    (make-list
+                                     (syntax->datum #'count)
+                                     #'expr)))))))
+    (let ((str (string-concatenate
+                (make-list 1000 "one line\n"))))
+      (benchmark "read-line" 1000
+        (let ((port (with-fluids ((%default-port-encoding "UTF-8"))
+                      (open-input-string str))))
+          (sequence (read-line port) 1000))))))
