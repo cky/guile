@@ -18,7 +18,9 @@ The next stable release will likely be version 2.0.0.
 
 Please send bug reports to bug-guile@gnu.org.
 
-See the LICENSE file for the specific terms that apply to Guile.
+See the LICENSE file for the specific terms that apply to Guile.  Note
+that for any copyright year range specified as YYYY-ZZZZ in this
+package, the range specifies every single year in that closed interval.
 
 
 Additional INSTALL instructions ===========================================
@@ -326,10 +328,9 @@ Example:
 
 Guile Documentation ==================================================
 
-If you've never used Scheme before, then the Guile Tutorial
-(guile-tut.info) is a good starting point.  The Guile Reference Manual
-(guile.info) is the primary documentation for Guile.  A copy of the
-R5RS Scheme specification is included too (r5rs.info).
+The Guile Reference Manual (guile.info) is the primary documentation for
+Guile.  A copy of the R5RS Scheme specification is included too
+(r5rs.info).
 
 Info format versions of this documentation are installed as part of
 the normal build process.  The texinfo sources are under the doc
