@@ -6,7 +6,7 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 ;;;; guile-tools --- running scripts bundled with Guile
 ;;;; Andy Wingo <wingo@pobox.com> --- April 2009
 ;;;; 
-;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -23,21 +23,14 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 ;;;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(define-module (guile-tools))
+(define-module (guile-tools)
+  #:use-module ((srfi srfi-1) #:select (fold append-map)))
 
 ;; Hack to provide scripts with the bug-report address.
 (module-define! the-scm-module
                 '%guile-bug-report-address
                 "@PACKAGE_BUGREPORT@")
 
-
-;; We can't import srfi-1, unfortunately, as we are used early in the
-;; boot process, before the srfi-1 shlib is built.
-
-(define (fold kons seed seq)
-  (if (null? seq)
-      seed
-      (fold kons (kons (car seq) seed) (cdr seq))))
 
 (define (display-help)
   (display "\
@@ -86,10 +79,6 @@ There is NO WARRANTY, to the extent permitted by law.
         ((null? (cdr l)) l)
         ((equal? (car l) (cadr l)) (unique (cdr l)))
         (else (cons (car l) (unique (cdr l))))))
-
-;; for want of srfi-1
-(define (append-map f l)
-  (apply append (map f l)))
 
 (define (find-submodules head)
   (let ((shead (map symbol->string head)))
