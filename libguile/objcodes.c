@@ -45,11 +45,11 @@ verify (((sizeof (SCM_OBJCODE_COOKIE) - 1) & 7) == 0);
  */
 
 /* The words in an objcode SCM object are as follows:
-     - scm_tc7_objcode | the flags for this objcode
+     - scm_tc7_objcode | type | flags
      - the struct scm_objcode C object
-     - the parent of this objcode, if this is a slice, or #f if none
-     - the file descriptor this objcode came from if this was mmaped,
-       or 0 if none
+     - the parent of this objcode: either another objcode, a bytevector,
+       or, in the case of mmap types, file descriptors (as an inum)
+     - "native code" -- not currently used.
  */
 
 static SCM
@@ -100,8 +100,7 @@ make_objcode_by_mmap (int fd)
 
   sret = scm_double_cell (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_MMAP, 0),
                           (scm_t_bits)(addr + strlen (SCM_OBJCODE_COOKIE)),
-                          SCM_UNPACK (SCM_BOOL_F),
-                          (scm_t_bits)fd);
+                          SCM_UNPACK (scm_from_int (fd)), 0);
 
   /* FIXME: we leak ourselves and the file descriptor. but then again so does
      dlopen(). */

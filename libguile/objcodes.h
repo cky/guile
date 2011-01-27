@@ -57,6 +57,9 @@ struct scm_objcode
 #define SCM_OBJCODE_IS_SLICE(x) (SCM_OBJCODE_TYPE (x) == SCM_OBJCODE_TYPE_SLICE)
 #define SCM_OBJCODE_IS_STATIC(x) (SCM_OBJCODE_TYPE (x) == SCM_OBJCODE_TYPE_STATIC)
 
+#define SCM_OBJCODE_NATIVE_CODE(x) (SCM_CELL_WORD_3 (x))
+#define SCM_SET_OBJCODE_NATIVE_CODE(x, code) (SCM_SET_CELL_WORD_3 (x, code))
+
 SCM scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr);
 SCM_API SCM scm_load_objcode (SCM file);
 SCM_API SCM scm_objcode_p (SCM obj);
