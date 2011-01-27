@@ -24,13 +24,19 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 ;;;; Boston, MA 02110-1301 USA
 
 (define-module (guile-tools)
-  #:use-module ((srfi srfi-1) #:select (fold append-map)))
+  #:use-module ((srfi srfi-1) #:select (fold append-map))
+  #:autoload (ice-9 format) (format)
+  #:use-module (ice-9 getopt-long))
 
 ;; Hack to provide scripts with the bug-report address.
 (module-define! the-scm-module
                 '%guile-bug-report-address
                 "@PACKAGE_BUGREPORT@")
 
+
+(define *option-grammar*
+  '((help (single-char #\h))
+    (version (single-char #\v))))
 
 (define (display-help)
   (display "\
@@ -105,24 +111,31 @@ There is NO WARRANTY, to the extent permitted by law.
     (and (module-public-interface m)
          m)))
 
+(define (getopt args grammar)
+  (catch 'misc-error
+    (lambda ()
+      (getopt-long args grammar))
+    (lambda (k proc fmt args . extra)
+      (format (current-error-port)
+              "guile-tools: ~?~%" fmt args)
+      (format (current-error-port)
+              "Try `guile-tools --help' for more information.~%")
+      (exit 1))))
+
 (define (main args)
   (setlocale LC_ALL "")
-  (cond
-   ((or (equal? (cdr args) '())
-        (equal? (cdr args) '("list")))
-    (list-scripts))
-   ((string-prefix? "-" (cadr args))
-    (let ((option (cadr args)))
-      (cond
-       ((equal? option "--help")
-        (display-help)
-        (exit 0))
-       ((equal? option "--version")
-        (display-version)
-        (exit 0))
-       (else
-        (format (current-error-port) "Unrecognized option: ~an" option)
-        (exit 1)))))
-   (else
-    (let ((mod (find-script (cadr args))))
-      (exit (apply (module-ref mod 'main) (cddr args)))))))
+  (let* ((options (getopt args *option-grammar*))
+         (args (option-ref options '() '())))
+    (cond
+     ((option-ref options 'help #f)
+      (display-help)
+      (exit 0))
+     ((option-ref options 'version #f)
+      (display-version)
+      (exit 0))
+     ((or (equal? args '())
+          (equal? args '("list")))
+      (list-scripts))
+     (else
+      (let ((mod (find-script (car args))))
+        (exit (apply (module-ref mod 'main) (cdr args))))))))
