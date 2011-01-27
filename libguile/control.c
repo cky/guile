@@ -1,4 +1,4 @@
-/* Copyright (C) 2010  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011  Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -99,7 +99,7 @@ static const type sym##__unaligned[]
 #endif
 
 #define STATIC_OBJCODE_TAG                                      \
-  SCM_PACK (scm_tc7_objcode | (SCM_F_OBJCODE_IS_STATIC << 8))
+  SCM_PACK (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_STATIC, 0))
 
 #define SCM_STATIC_OBJCODE(sym)                                         \
   SCM_DECLARE_STATIC_ALIGNED_ARRAY (scm_t_uint8, sym##__bytecode);      \

@@ -98,7 +98,7 @@ make_objcode_by_mmap (int fd)
 						   + data->metalen)));
     }
 
-  sret = scm_double_cell (scm_tc7_objcode | (SCM_F_OBJCODE_IS_MMAP<<8),
+  sret = scm_double_cell (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_MMAP, 0),
                           (scm_t_bits)(addr + strlen (SCM_OBJCODE_COOKIE)),
                           SCM_UNPACK (SCM_BOOL_F),
                           (scm_t_bits)fd);
@@ -139,7 +139,7 @@ scm_c_make_objcode_slice (SCM parent, const scm_t_uint8 *ptr)
   assert (SCM_C_OBJCODE_BASE (data) + data->len + data->metalen
 	  <= parent_base + parent_data->len + parent_data->metalen);
 
-  return scm_double_cell (scm_tc7_objcode | (SCM_F_OBJCODE_IS_SLICE<<8),
+  return scm_double_cell (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_SLICE, 0),
                           (scm_t_bits)data, SCM_UNPACK (parent), 0);
 }
 #undef FUNC_NAME
@@ -198,7 +198,7 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
 
   /* foolishly, we assume that as long as bytecode is around, that c_bytecode
      will be of the same length; perhaps a bad assumption? */
-  return scm_double_cell (scm_tc7_objcode | (SCM_F_OBJCODE_IS_BYTEVECTOR<<8),
+  return scm_double_cell (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_BYTEVECTOR, 0),
                           (scm_t_bits)data, SCM_UNPACK (bytecode), 0);
 }
 #undef FUNC_NAME

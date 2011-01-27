@@ -1,4 +1,4 @@
-/* Copyright (C) 2010  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -734,7 +734,7 @@ static const struct
        (setq i (1+ i)))))
 */
 #define STATIC_OBJCODE_TAG                                      \
-  SCM_PACK (scm_tc7_objcode | (SCM_F_OBJCODE_IS_STATIC << 8))
+  SCM_PACK (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_STATIC, 0))
 
 static const struct
 {
