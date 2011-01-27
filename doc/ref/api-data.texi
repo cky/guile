@@ -712,13 +712,18 @@ Equivalent to @code{scm_is_true (scm_complex_p (val))}.
 @rnindex exact->inexact
 @rnindex inexact->exact
 
-R5RS requires that a calculation involving inexact numbers always
-produces an inexact result.  To meet this requirement, Guile
-distinguishes between an exact integer value such as @samp{5} and the
-corresponding inexact real value which, to the limited precision
+R5RS requires that, with few exceptions, a calculation involving inexact
+numbers always produces an inexact result.  To meet this requirement,
+Guile distinguishes between an exact integer value such as @samp{5} and
+the corresponding inexact integer value which, to the limited precision
 available, has no fractional part, and is printed as @samp{5.0}.  Guile
 will only convert the latter value to the former when forced to do so by
 an invocation of the @code{inexact->exact} procedure.
+
+The only exception to the above requirement is when the values of the
+inexact numbers do not affect the result.  For example @code{(expt n 0)}
+is @samp{1} for any value of @code{n}, therefore @code{(expt 5.0 0)} is
+permitted to return an exact @samp{1}.
 
 @deffn {Scheme Procedure} exact? z
 @deffnx {C Function} scm_exact_p (z)
