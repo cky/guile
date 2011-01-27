@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -300,7 +300,17 @@ VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 1, 1)
 {
   SCM x = *sp;
 
-  if (SCM_UNLIKELY (!VARIABLE_BOUNDP (x)))
+  /* We don't use ASSERT_VARIABLE or ASSERT_BOUND_VARIABLE here because,
+     unlike in top-variable-ref, it really isn't an internal assertion
+     that can be optimized out -- the variable could be coming directly
+     from the user.  */
+  if (SCM_UNLIKELY (!SCM_VARIABLEP (x)))
+    {
+      func_name = "variable-ref";
+      finish_args = x;
+      goto vm_error_not_a_variable;
+    }
+  else if (SCM_UNLIKELY (!VARIABLE_BOUNDP (x)))
     {
       SCM var_name;
 
@@ -320,10 +330,16 @@ VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 1, 1)
 
 VM_DEFINE_INSTRUCTION (26, variable_bound, "variable-bound?", 0, 1, 1)
 {
-  if (VARIABLE_BOUNDP (*sp))
-    *sp = SCM_BOOL_T;
+  SCM x = *sp;
+  
+  if (SCM_UNLIKELY (!SCM_VARIABLEP (x)))
+    {
+      func_name = "variable-bound?";
+      finish_args = x;
+      goto vm_error_not_a_variable;
+    }
   else
-    *sp = SCM_BOOL_F;
+    *sp = scm_from_bool (VARIABLE_BOUNDP (x));
   NEXT;
 }
 
@@ -398,6 +414,12 @@ VM_DEFINE_INSTRUCTION (30, long_local_set, "long-local-set", 2, 1, 0)
 
 VM_DEFINE_INSTRUCTION (31, variable_set, "variable-set", 0, 2, 0)
 {
+  if (SCM_UNLIKELY (!SCM_VARIABLEP (sp[0])))
+    {
+      func_name = "variable-set!";
+      finish_args = sp[0];
+      goto vm_error_not_a_variable;
+    }
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
   NEXT;

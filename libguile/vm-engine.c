@@ -153,6 +153,12 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
                    scm_list_1 (finish_args), SCM_BOOL_F);
     goto vm_error;
 
+  vm_error_not_a_variable:
+    SYNC_ALL ();
+    scm_error (scm_arg_type_key, func_name, "Not a variable: ~S",
+               scm_list_1 (finish_args), scm_list_1 (finish_args));
+    goto vm_error;
+
   vm_error_apply_to_non_list:
     SYNC_ALL ();
     scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
