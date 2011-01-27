@@ -107,9 +107,7 @@ There is NO WARRANTY, to the extent permitted by law.
             (find-submodules '(scripts))))
 
 (define (find-script s)
-  (let ((m (resolve-module (append '(scripts) (list (string->symbol s))))))
-    (and (module-public-interface m)
-         m)))
+  (resolve-module (list 'scripts (string->symbol s)) #:ensure #f))
 
 (define (getopt args grammar)
   (catch 'misc-error
@@ -136,6 +134,12 @@ There is NO WARRANTY, to the extent permitted by law.
      ((or (equal? args '())
           (equal? args '("list")))
       (list-scripts))
+     ((find-script (car args))
+      => (lambda (mod)
+           (exit (apply (module-ref mod 'main) (cdr args)))))
      (else
-      (let ((mod (find-script (car args))))
-        (exit (apply (module-ref mod 'main) (cdr args))))))))
+      (format (current-error-port)
+              "guile-tools: unknown script ~s~%" (car args))
+      (format (current-error-port)
+              "Try `guile-tools --help' for more information.~%")
+      (exit 1)))))
