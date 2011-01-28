@@ -607,24 +607,35 @@ For a discussion of languages and compiler options, @xref{Compiling to
 the Virtual Machine}.
 @end deffn
 
-@deffn {Scheme Procedure} compile-file file [to=objcode] [opts='()]
+@deffn {Scheme Procedure} compile-file file [output-file=#f] @
+  [from=(current-language)] [to='objcode] @
+  [env=(default-environment from)] [opts='()] @
+  [canonicalization 'relative]
 Compile the file named @var{file}.
 
-Output will be written to a file in the current directory whose name
-is computed as @code{(compiled-file-name @var{file})}.
+Output will be written to a @var{output-file}.   If you do not supply an
+output file name, output is written to a file in the cache directory, as
+computed by @code{(compiled-file-name @var{file})}.
+
+@var{from} and @var{to} specify the source and target languages.
+@xref{Compiling to the Virtual Machine}, for more information on these
+options, and on @var{env} and @var{opts}.
 
 As with @command{guile-tools compile}, @var{file} is assumed to be
 UTF-8-encoded unless it contains a coding declaration.
 @end deffn
 
 @deffn {Scheme Procedure} compiled-file-name file
-Compute an appropriate name for a compiled version of a Scheme file
-named @var{file}.
+Compute a cached location for a compiled version of a Scheme file named
+@var{file}.
 
-Usually, the result will be the original file name with the
-@code{.scm} suffix replaced with @code{.go}, but the exact behavior
-depends on the contents of the @code{%load-extensions} and
-@code{%load-compiled-extensions} lists.
+This file will usually be below the @file{$HOME/.cache/guile/ccache}
+directory, depending on the value of the @env{XDG_CACHE_HOME}
+environment variable.  The intention is that @code{compiled-file-name}
+provides a fallback location for caching auto-compiled files.  If you
+want to place a compile file in the @code{%load-compiled-path}, you
+should pass the @var{output-file} option to @code{compile-file},
+explicitly.
 @end deffn
 
 @node Loading
