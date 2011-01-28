@@ -25,6 +25,13 @@ integer-expt.  This is more correct, and conforming to R6RS, but seems
 to be incompatible with R5RS, which would return 0 for all non-zero
 values of N.
 
+*** `inf?' and `nan?' now throw exceptions for non-reals
+
+The domain of `inf?' and `nan?' is the real numbers.  Guile now signals
+an error when a non-real number or non-number is passed to these
+procedures.  (Note that NaNs _are_ considered numbers by scheme, despite
+their name).
+
 *** New procedure: `finite?'
 
 Add scm_finite_p `finite?' from R6RS to guile core, which returns #t
