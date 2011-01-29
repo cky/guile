@@ -26,6 +26,7 @@
 
 #include "libguile/__scm.h"
 
+#include <unistd.h>
 #include "libguile/print.h"
 #include "libguile/struct.h"
 #include "libguile/threads.h"
