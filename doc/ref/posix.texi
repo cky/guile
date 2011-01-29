@@ -3188,7 +3188,7 @@ Note that on many systems the address of a socket in the
 Receive data from a socket port.
 @var{sock} must already
 be bound to the address from which data is to be received.
-@var{buf} is a string into which
+@var{buf} is a bytevector into which
 the data will be written.  The size of @var{buf} limits
 the amount of
 data which can be received: in the case of packet
@@ -3215,7 +3215,7 @@ any unread buffered port data is ignored.
 @vindex MSG_OOB
 @vindex MSG_PEEK
 @vindex MSG_DONTROUTE
-Transmit the string @var{message} on a socket port @var{sock}.
+Transmit bytevector @var{message} on socket port @var{sock}.
 @var{sock} must already be bound to a destination address.  The value
 returned is the number of bytes transmitted---it's possible for this
 to be less than the length of @var{message} if the socket is set to be
@@ -3227,17 +3227,18 @@ file descriptor:
 any unflushed buffered port data is ignored.
 @end deffn
 
-@deffn {Scheme Procedure} recvfrom! sock str [flags [start [end]]]
-@deffnx {C Function} scm_recvfrom (sock, str, flags, start, end)
+@deffn {Scheme Procedure} recvfrom! sock buf [flags [start [end]]]
+@deffnx {C Function} scm_recvfrom (sock, buf, flags, start, end)
 Receive data from socket port @var{sock}, returning the originating
 address as well as the data.  This function is usually for datagram
 sockets, but can be used on stream-oriented sockets too.
 
-The data received is stored in the given @var{str}, the whole string
-or just the region between the optional @var{start} and @var{end}
-positions.  The size of @var{str} limits the amount of data which can
-be received.  For datagram protocols if a packet larger than this is
-received then excess bytes are irrevocably lost.
+The data received is stored in bytevector @var{buf}, using
+either the whole bytevector or just the region between the optional
+@var{start} and @var{end} positions.  The size of @var{buf}
+limits the amount of data that can be received.  For datagram
+protocols if a packet larger than this is received then excess
+bytes are irrevocably lost.
 
 The return value is a pair.  The @code{car} is the number of bytes
 read.  The @code{cdr} is a socket address object (@pxref{Network
@@ -3267,7 +3268,7 @@ application may need to use @code{select}, @code{O_NONBLOCK} or
 @deffnx {Scheme Procedure} sendto sock message AF_INET6 ipv6addr port [flowinfo [scopeid [flags]]]
 @deffnx {Scheme Procedure} sendto sock message AF_UNIX path [flags]
 @deffnx {C Function} scm_sendto (sock, message, fam, address, args_and_flags)
-Transmit the string @var{message} as a datagram on socket port
+Transmit bytevector @var{message} as a datagram socket port
 @var{sock}.  The destination is specified either as a socket address
 object, or as arguments the same as would be taken by
 @code{make-socket-address} to create such an object (@pxref{Network

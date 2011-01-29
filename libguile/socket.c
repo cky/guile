@@ -1,5 +1,6 @@
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2009 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
+ *   2006, 2007, 2009, 2011 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -37,6 +38,10 @@
 
 #include "libguile/validate.h"
 #include "libguile/socket.h"
+
+#if SCM_ENABLE_DEPRECATED == 1
+# include "libguile/deprecation.h"
+#endif
 
 #ifdef __MINGW32__
 #include "win32-socket.h"
@@ -1352,15 +1357,13 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 	    "Receive data from a socket port.\n"
 	    "@var{sock} must already\n"
 	    "be bound to the address from which data is to be received.\n"
-	    "@var{buf} is a string into which\n"
+	    "@var{buf} is a bytevector into which\n"
 	    "the data will be written.  The size of @var{buf} limits\n"
 	    "the amount of\n"
 	    "data which can be received: in the case of packet\n"
 	    "protocols, if a packet larger than this limit is encountered\n"
 	    "then some data\n"
 	    "will be irrevocably lost.\n\n"
-	    "The data is assumed to be binary, and there is no decoding of\n"
-	    "of locale-encoded strings.\n\n"
 	    "The optional @var{flags} argument is a value or\n"
 	    "bitwise OR of MSG_OOB, MSG_PEEK, MSG_DONTROUTE etc.\n\n"
 	    "The value returned is the number of bytes read from the\n"
@@ -1370,38 +1373,55 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 	    "any unread buffered port data is ignored.")
 #define FUNC_NAME s_scm_recv
 {
-  int rv;
-  int fd;
-  int flg;
-  char *dest;
-  size_t len;
-  SCM msg;
+  int rv, fd, flg;
 
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_STRING (2, buf);
+
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
     flg = scm_to_int (flags);
   fd = SCM_FPORT_FDES (sock);
 
-  len = scm_i_string_length (buf);
-  msg = scm_i_make_string (len, &dest);
-  SCM_SYSCALL (rv = recv (fd, dest, len, flg));
-  scm_string_copy_x (buf, scm_from_int (0), 
-		     msg, scm_from_int (0), scm_from_size_t (len));
+#if SCM_ENABLE_DEPRECATED == 1
+  if (SCM_UNLIKELY (scm_is_string (buf)))
+    {
+      SCM msg;
+      char *dest;
+      size_t len;
 
-  if (rv == -1)
+      scm_c_issue_deprecation_warning
+	("Passing a string to `recv!' is deprecated, "
+	 "use a bytevector instead.");
+
+      len = scm_i_string_length (buf);
+      msg = scm_i_make_string (len, &dest);
+      SCM_SYSCALL (rv = recv (fd, dest, len, flg));
+      scm_string_copy_x (buf, scm_from_int (0),
+			 msg, scm_from_int (0), scm_from_size_t (len));
+    }
+  else
+#endif
+    {
+      SCM_VALIDATE_BYTEVECTOR (1, buf);
+
+      SCM_SYSCALL (rv = recv (fd,
+			      SCM_BYTEVECTOR_CONTENTS (buf),
+			      SCM_BYTEVECTOR_LENGTH (buf),
+			      flg));
+    }
+
+  if (SCM_UNLIKELY (rv == -1))
     SCM_SYSERROR;
 
-  scm_remember_upto_here_2 (buf, msg);
+  scm_remember_upto_here (buf);
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_send, "send", 2, 1, 0,
             (SCM sock, SCM message, SCM flags),
-	    "Transmit the string @var{message} on a socket port @var{sock}.\n"
+	    "Transmit bytevector @var{message} on socket port @var{sock}.\n"
 	    "@var{sock} must already be bound to a destination address.  The\n"
 	    "value returned is the number of bytes transmitted --\n"
 	    "it's possible for\n"
@@ -1417,34 +1437,47 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 	    "zero to 255.")
 #define FUNC_NAME s_scm_send
 {
-  int rv;
-  int fd;
-  int flg;
-  char *src;
-  size_t len;
+  int rv, fd, flg;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
-  SCM_VALIDATE_STRING (2, message);
-  
-  /* If the string is wide, see if it can be coerced into
-     a narrow string.  */
-  if (!scm_i_is_narrow_string (message)
-      || scm_i_try_narrow_string (message))
-    SCM_MISC_ERROR ("the message string is not 8-bit: ~s", 
-                        scm_list_1 (message));
 
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
     flg = scm_to_int (flags);
+
   fd = SCM_FPORT_FDES (sock);
 
-  len = scm_i_string_length (message);
-  message = scm_i_string_start_writing (message);
-  src = scm_i_string_writable_chars (message);
-  SCM_SYSCALL (rv = send (fd, src, len, flg));
-  scm_i_string_stop_writing ();
+#if SCM_ENABLE_DEPRECATED == 1
+  if (SCM_UNLIKELY (scm_is_string (message)))
+    {
+      scm_c_issue_deprecation_warning
+	("Passing a string to `send' is deprecated, "
+	 "use a bytevector instead.");
+
+      /* If the string is wide, see if it can be coerced into a narrow
+	 string.  */
+      if (!scm_i_is_narrow_string (message)
+	  || !scm_i_try_narrow_string (message))
+	SCM_MISC_ERROR ("the message string is not 8-bit: ~s",
+                        scm_list_1 (message));
+
+      SCM_SYSCALL (rv = send (fd,
+			      scm_i_string_chars (message),
+			      scm_i_string_length (message),
+			      flg));
+    }
+  else
+#endif
+    {
+      SCM_VALIDATE_BYTEVECTOR (1, message);
+
+      SCM_SYSCALL (rv = send (fd,
+			      SCM_BYTEVECTOR_CONTENTS (message),
+			      SCM_BYTEVECTOR_LENGTH (message),
+			      flg));
+    }
 
   if (rv == -1)
     SCM_SYSERROR;
@@ -1455,22 +1488,22 @@ SCM_DEFINE (scm_send, "send", 2, 1, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
-            (SCM sock, SCM str, SCM flags, SCM start, SCM end),
+            (SCM sock, SCM buf, SCM flags, SCM start, SCM end),
 	    "Receive data from socket port @var{sock} (which must be already\n"
 	    "bound), returning the originating address as well as the data.\n"
 	    "This is usually for use on datagram sockets, but can be used on\n"
 	    "stream-oriented sockets too.\n"
 	    "\n"
-	    "The data received is stored in the given @var{str}, using\n"
-	    "either the whole string or just the region between the optional\n"
-	    "@var{start} and @var{end} positions.  The size of @var{str}\n"
-	    "limits the amount of data which can be received.  For datagram\n"
+	    "The data received is stored in bytevector @var{buf}, using\n"
+	    "either the whole bytevector or just the region between the optional\n"
+	    "@var{start} and @var{end} positions.  The size of @var{buf}\n"
+	    "limits the amount of data that can be received.  For datagram\n"
 	    "protocols, if a packet larger than this is received then excess\n"
 	    "bytes are irrevocably lost.\n"
 	    "\n"
 	    "The return value is a pair.  The @code{car} is the number of\n"
 	    "bytes read.  The @code{cdr} is a socket address object which is\n"
-	    "where the data come from, or @code{#f} if the origin is\n"
+	    "where the data came from, or @code{#f} if the origin is\n"
 	    "unknown.\n"
 	    "\n"
 	    "The optional @var{flags} argument is a or bitwise OR\n"
@@ -1486,46 +1519,79 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 	    "or @code{MSG_DONTWAIT} to avoid this.")
 #define FUNC_NAME s_scm_recvfrom
 {
-  int rv;
-  int fd;
-  int flg;
-  char *buf;
-  size_t offset;
-  size_t cend;
+  int rv, fd, flg;
   SCM address;
+  size_t offset, cend;
   socklen_t addr_size = MAX_ADDR_SIZE;
   scm_t_max_sockaddr addr;
 
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  
-  SCM_VALIDATE_STRING (2, str);
-  scm_i_get_substring_spec (scm_i_string_length (str),
-			    start, &offset, end, &cend);
 
   if (SCM_UNBNDP (flags))
     flg = 0;
   else
     SCM_VALIDATE_ULONG_COPY (3, flags, flg);
 
-  /* recvfrom will not necessarily return an address.  usually nothing
-     is returned for stream sockets.  */
-  str = scm_i_string_start_writing (str);
-  buf = scm_i_string_writable_chars (str);
   ((struct sockaddr *) &addr)->sa_family = AF_UNSPEC;
-  SCM_SYSCALL (rv = recvfrom (fd, buf + offset,
-			      cend - offset, flg,
-			      (struct sockaddr *) &addr, &addr_size));
-  scm_i_string_stop_writing ();
+
+#if SCM_ENABLE_DEPRECATED == 1
+  if (SCM_UNLIKELY (scm_is_string (buf)))
+    {
+      char *cbuf;
+
+      scm_c_issue_deprecation_warning
+	("Passing a string to `recvfrom!' is deprecated, "
+	 "use a bytevector instead.");
+
+      scm_i_get_substring_spec (scm_i_string_length (buf),
+				start, &offset, end, &cend);
+
+      buf = scm_i_string_start_writing (buf);
+      cbuf = scm_i_string_writable_chars (buf);
+
+      SCM_SYSCALL (rv = recvfrom (fd, cbuf + offset,
+				  cend - offset, flg,
+				  (struct sockaddr *) &addr, &addr_size));
+      scm_i_string_stop_writing ();
+    }
+  else
+#endif
+    {
+      SCM_VALIDATE_BYTEVECTOR (1, buf);
+
+      if (SCM_UNBNDP (start))
+	offset = 0;
+      else
+	offset = scm_to_size_t (start);
+
+      if (SCM_UNBNDP (end))
+	cend = SCM_BYTEVECTOR_LENGTH (buf);
+      else
+	{
+	  cend = scm_to_size_t (end);
+	  if (SCM_UNLIKELY (cend >= SCM_BYTEVECTOR_LENGTH (buf)
+			    || cend < offset))
+	    scm_out_of_range (FUNC_NAME, end);
+	}
+
+      SCM_SYSCALL (rv = recvfrom (fd,
+				  SCM_BYTEVECTOR_CONTENTS (buf) + offset,
+				  cend - offset, flg,
+				  (struct sockaddr *) &addr, &addr_size));
+    }
 
   if (rv == -1)
     SCM_SYSERROR;
+
+  /* `recvfrom' does not necessarily return an address.  Usually nothing
+     is returned for stream sockets.  */
   if (((struct sockaddr *) &addr)->sa_family != AF_UNSPEC)
     address = _scm_from_sockaddr (&addr, addr_size, FUNC_NAME);
   else
     address = SCM_BOOL_F;
 
-  scm_remember_upto_here_1 (str);
+  scm_remember_upto_here_1 (buf);
 
   return scm_cons (scm_from_int (rv), address);
 }
@@ -1533,7 +1599,7 @@ SCM_DEFINE (scm_recvfrom, "recvfrom!", 2, 3, 0,
 
 SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
             (SCM sock, SCM message, SCM fam_or_sockaddr, SCM address, SCM args_and_flags),
-	    "Transmit the string @var{message} on the socket port\n"
+	    "Transmit bytevector @var{message} on socket port\n"
 	    "@var{sock}.  The\n"
 	    "destination address is specified using the @var{fam},\n"
 	    "@var{address} and\n"
@@ -1555,15 +1621,12 @@ SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
 	    "zero to 255.")
 #define FUNC_NAME s_scm_sendto
 {
-  int rv;
-  int fd;
-  int flg;
+  int rv, fd, flg;
   struct sockaddr *soka;
   size_t size;
 
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_FPORT (1, sock);
-  SCM_VALIDATE_STRING (2, message);
   fd = SCM_FPORT_FDES (sock);
 
   if (!scm_is_number (fam_or_sockaddr))
@@ -1586,10 +1649,37 @@ SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
       SCM_VALIDATE_CONS (5, args_and_flags);
       flg = SCM_NUM2ULONG (5, SCM_CAR (args_and_flags));
     }
-  SCM_SYSCALL (rv = sendto (fd,
-			    scm_i_string_chars (message),
-			    scm_i_string_length (message),
-			    flg, soka, size));
+
+#if SCM_ENABLE_DEPRECATED == 1
+  if (SCM_UNLIKELY (scm_is_string (message)))
+    {
+      scm_c_issue_deprecation_warning
+	("Passing a string to `sendto' is deprecated, "
+	 "use a bytevector instead.");
+
+      /* If the string is wide, see if it can be coerced into a narrow
+	 string.  */
+      if (!scm_i_is_narrow_string (message)
+	  || !scm_i_try_narrow_string (message))
+	SCM_MISC_ERROR ("the message string is not 8-bit: ~s",
+                        scm_list_1 (message));
+
+      SCM_SYSCALL (rv = sendto (fd,
+				scm_i_string_chars (message),
+				scm_i_string_length (message),
+				flg, soka, size));
+    }
+  else
+#endif
+    {
+      SCM_VALIDATE_BYTEVECTOR (1, message);
+
+      SCM_SYSCALL (rv = sendto (fd,
+				SCM_BYTEVECTOR_CONTENTS (message),
+				SCM_BYTEVECTOR_LENGTH (message),
+				flg, soka, size));
+    }
+
   if (rv == -1)
     {
       int save_errno = errno;
