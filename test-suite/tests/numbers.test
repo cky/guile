@@ -318,15 +318,15 @@
   (pass-if (not (finite? +inf.0)))
   (pass-if (not (finite? -inf.0)))
   (pass-if-exception
-   "complex numbers not in doman of finite?"
+   "complex numbers not in domain of finite?"
    exception:wrong-type-arg
    (finite? +inf.0+1i))
   (pass-if-exception
-   "complex numbers not in doman of finite? (2)"
+   "complex numbers not in domain of finite? (2)"
    exception:wrong-type-arg
    (finite? +1+inf.0i))
   (pass-if-exception
-   "complex numbers not in doman of finite? (3)"
+   "complex numbers not in domain of finite? (3)"
    exception:wrong-type-arg
    (finite? +1+1i))
   (pass-if (finite? 3+0i))
@@ -351,7 +351,7 @@
   ;; (pass-if (inf? (/ 1.0 0.0))
   ;; (pass-if (inf? (/ 1 0.0))
   (pass-if-exception
-   "complex numbers not in doman of inf?"
+   "complex numbers not in domain of inf?"
    exception:wrong-type-arg
    (inf? +1+inf.0i))
   (pass-if (inf? +inf.0+0i))
@@ -3386,15 +3386,3 @@
   (pass-if "-100i swings back to 45deg down"
     (eqv-loosely? +7.071-7.071i (sqrt -100.0i))))
 
-
-;;
-;; equal? 
-;; 
-
-
-(with-test-prefix "equal?"
-  (pass-if
-
-   ;; lazy reduction bit for rationals should not affect equal?
-   (equal? 1/2 ((lambda (x) (denominator x) x) 1/2))))
-   
