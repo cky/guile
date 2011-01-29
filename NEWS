@@ -27,11 +27,6 @@ Previously, `(equal? +nan.0 +nan.0)' returned #f, although
 both returned #t.  R5RS requires that `equal?' behave like
 `eqv?' when comparing numbers.
 
-*** Infinities are no longer integers.
-
-Following the R6RS, infinities (+inf.0 and -inf.0) are no longer
-considered to be integers.
-
 *** `expt' and `integer-expt' changes when the base is 0
 
 While `(expt 0 0)' is still 1, and `(expt 0 N)' for N > 0 is still
@@ -39,6 +34,19 @@ zero, `(expt 0 N)' for N < 0 is now a NaN value, and likewise for
 integer-expt.  This is more correct, and conforming to R6RS, but seems
 to be incompatible with R5RS, which would return 0 for all non-zero
 values of N.
+
+*** Infinities are no longer integers, nor rationals
+
+scm_integer_p `integer?' and scm_rational_p `rational?' now return #f
+for infinities, per R6RS.  Previously they returned #t for real
+infinities.  The real infinities and NaNs are still considered real by
+scm_real `real?' however, per R6RS.
+
+*** NaNs are no longer rationals
+
+scm_rational_p `rational?' now returns #f for NaN values, per R6RS.
+Previously it returned #t for real NaN values.  They are still
+considered real by scm_real `real?' however, per R6RS.
 
 *** `inf?' and `nan?' now throw exceptions for non-reals
 

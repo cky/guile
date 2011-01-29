@@ -492,10 +492,10 @@ are not rational, for example @m{\sqrt2, the square root of 2}, and
 @m{\pi,pi}.
 
 Guile can represent both exact and inexact rational numbers, but it
-can not represent irrational numbers.  Exact rationals are represented
-by storing the numerator and denominator as two exact integers.
-Inexact rationals are stored as floating point numbers using the C
-type @code{double}.
+cannot represent precise finite irrational numbers.  Exact rationals are
+represented by storing the numerator and denominator as two exact
+integers.  Inexact rationals are stored as floating point numbers using
+the C type @code{double}.
 
 Exact rationals are written as a fraction of integers.  There must be
 no whitespace around the slash:
@@ -518,39 +518,47 @@ example:
 4.0
 @end lisp
 
-The limited precision of Guile's encoding means that any ``real'' number
-in Guile can be written in a rational form, by multiplying and then dividing
-by sufficient powers of 10 (or in fact, 2).  For example,
-@samp{-0.00000142857931198} is the same as @minus{}142857931198 divided by
-100000000000000000.  In Guile's current incarnation, therefore, the
-@code{rational?} and @code{real?} predicates are equivalent.
+The limited precision of Guile's encoding means that any finite ``real''
+number in Guile can be written in a rational form, by multiplying and
+then dividing by sufficient powers of 10 (or in fact, 2).  For example,
+@samp{-0.00000142857931198} is the same as @minus{}142857931198 divided
+by 100000000000000000.  In Guile's current incarnation, therefore, the
+@code{rational?} and @code{real?} predicates are equivalent for finite
+numbers.
 
 
-Dividing by an exact zero leads to a error message, as one might
-expect.  However, dividing by an inexact zero does not produce an
-error.  Instead, the result of the division is either plus or minus
-infinity, depending on the sign of the divided number.
+Dividing by an exact zero leads to a error message, as one might expect.
+However, dividing by an inexact zero does not produce an error.
+Instead, the result of the division is either plus or minus infinity,
+depending on the sign of the divided number and the sign of the zero
+divisor (some platforms support signed zeroes @samp{-0.0} and
+@samp{+0.0}; @samp{0.0} is the same as @samp{+0.0}).
 
-The infinities are written @samp{+inf.0} and @samp{-inf.0},
-respectively.  This syntax is also recognized by @code{read} as an
-extension to the usual Scheme syntax.  The infinities are considered to
-be inexact, non-integer values.
+Dividing zero by an inexact zero yields a @acronym{NaN} (`not a number')
+value, although they are actually considered numbers by Scheme.
+Attempts to compare a @acronym{NaN} value with any number (including
+itself) using @code{=}, @code{<}, @code{>}, @code{<=} or @code{>=}
+always returns @code{#f}.  Although a @acronym{NaN} value is not
+@code{=} to itself, it is both @code{eqv?} and @code{equal?} to itself
+and other @acronym{NaN} values.  However, the preferred way to test for
+them is by using @code{nan?}.
 
-Dividing zero by zero yields something that is not a number at all:
-@samp{+nan.0}.  This is the special `not a number' value.
+The real @acronym{NaN} values and infinities are written @samp{+nan.0},
+@samp{+inf.0} and @samp{-inf.0}.  This syntax is also recognized by
+@code{read} as an extension to the usual Scheme syntax.  These special
+values are considered by Scheme to be inexact real numbers but not
+rational.  Note that non-real complex numbers may also contain
+infinities or @acronym{NaN} values in their real or imaginary parts.  To
+test a real number to see if it is infinite, a @acronym{NaN} value, or
+neither, use @code{inf?}, @code{nan?}, or @code{finite?}, respectively.
+Every real number in Scheme belongs to precisely one of those three
+classes.
 
 On platforms that follow @acronym{IEEE} 754 for their floating point
 arithmetic, the @samp{+inf.0}, @samp{-inf.0}, and @samp{+nan.0} values
 are implemented using the corresponding @acronym{IEEE} 754 values.
 They behave in arithmetic operations like @acronym{IEEE} 754 describes
 it, i.e., @code{(= +nan.0 +nan.0)} @result{} @code{#f}.
-
-While @samp{+nan.0} is not @code{=} to itself, it is @code{eqv?} to
-itself.
-
-To test for the special values, use the functions @code{inf?} and
-@code{nan?}.  To test for numbers than are neither infinite nor a NaN,
-use @code{finite?}.
 
 @deffn {Scheme Procedure} real? obj
 @deffnx {C Function} scm_real_p (obj)
@@ -566,9 +574,6 @@ Return @code{#t} if @var{x} is a rational number, @code{#f} otherwise.
 Note that the set of integer values forms a subset of the set of
 rational numbers, i. e. the predicate will also be fulfilled if
 @var{x} is an integer number.
-
-Since Guile can not represent irrational numbers, every number
-satisfying @code{real?} also satisfies @code{rational?} in Guile.
 @end deffn
 
 @deffn {Scheme Procedure} rationalize x eps
@@ -607,12 +612,12 @@ NaN, @code{#f} otherwise.
 
 @deffn {Scheme Procedure} nan
 @deffnx {C Function} scm_nan ()
-Return NaN.
+Return @samp{+nan.0}, a @acronym{NaN} value.
 @end deffn
 
 @deffn {Scheme Procedure} inf
 @deffnx {C Function} scm_inf ()
-Return Inf.
+Return @samp{+inf.0}, positive infinity.
 @end deffn
 
 @deffn {Scheme Procedure} numerator x

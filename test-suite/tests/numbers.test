@@ -1505,6 +1505,11 @@
   (pass-if (real? (+ 1 fixnum-max)))
   (pass-if (real? (- 1 fixnum-min)))
   (pass-if (real? 1.3))
+  (pass-if (real? +inf.0))
+  (pass-if (real? -inf.0))
+  (pass-if (real? +nan.0))
+  (pass-if (not (real? +inf.0-inf.0i)))
+  (pass-if (not (real? +nan.0+nan.0i)))
   (pass-if (not (real? 3+4i)))
   (pass-if (not (real? #\a)))
   (pass-if (not (real? "a")))
@@ -1515,7 +1520,7 @@
   (pass-if (not (real? (current-input-port)))))
 
 ;;;
-;;; rational? (same as real? right now)
+;;; rational?
 ;;;
 
 (with-test-prefix "rational?"
@@ -1526,6 +1531,11 @@
   (pass-if (rational? (+ 1 fixnum-max)))
   (pass-if (rational? (- 1 fixnum-min)))
   (pass-if (rational? 1.3))
+  (pass-if (not (rational? +inf.0)))
+  (pass-if (not (rational? -inf.0)))
+  (pass-if (not (rational? +nan.0)))
+  (pass-if (not (rational? +inf.0-inf.0i)))
+  (pass-if (not (rational? +nan.0+nan.0i)))
   (pass-if (not (rational? 3+4i)))
   (pass-if (not (rational? #\a)))
   (pass-if (not (rational? "a")))

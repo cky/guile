@@ -3281,8 +3281,8 @@ SCM_DEFINE (scm_real_p, "real?", 1, 0, 0,
 	    "fulfilled if @var{x} is an integer number.")
 #define FUNC_NAME s_scm_real_p
 {
-  /* we can't represent irrational numbers. */
-  return scm_rational_p (x);
+  return scm_from_bool
+    (SCM_I_INUMP (x) || SCM_REALP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x));
 }
 #undef FUNC_NAME
 
@@ -3294,18 +3294,12 @@ SCM_DEFINE (scm_rational_p, "rational?", 1, 0, 0,
 	    "fulfilled if @var{x} is an integer number.")
 #define FUNC_NAME s_scm_rational_p
 {
-  if (SCM_I_INUMP (x))
-    return SCM_BOOL_T;
-  else if (SCM_IMP (x))
-    return SCM_BOOL_F;
-  else if (SCM_BIGP (x))
-    return SCM_BOOL_T;
-  else if (SCM_FRACTIONP (x))
+  if (SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x))
     return SCM_BOOL_T;
   else if (SCM_REALP (x))
-    /* due to their limited precision, all floating point numbers are
-       rational as well. */
-    return SCM_BOOL_T;
+    /* due to their limited precision, finite floating point numbers are
+       rational as well. (finite means neither infinity nor a NaN) */
+    return scm_from_bool (DOUBLE_IS_FINITE (SCM_REAL_VALUE (x)));
   else
     return SCM_BOOL_F;
 }
@@ -3317,23 +3311,15 @@ SCM_DEFINE (scm_integer_p, "integer?", 1, 0, 0,
 	    "else.")
 #define FUNC_NAME s_scm_integer_p
 {
-  double r;
-  if (SCM_I_INUMP (x))
+  if (SCM_I_INUMP (x) || SCM_BIGP (x))
     return SCM_BOOL_T;
-  if (SCM_IMP (x))
+  else if (SCM_REALP (x))
+    {
+      double val = SCM_REAL_VALUE (x);
+      return scm_from_bool (!isinf (val) && (val == floor (val)));
+    }
+  else
     return SCM_BOOL_F;
-  if (SCM_BIGP (x))
-    return SCM_BOOL_T;
-  if (!SCM_INEXACTP (x))
-    return SCM_BOOL_F;
-  if (SCM_COMPLEXP (x))
-    return SCM_BOOL_F;
-  r = SCM_REAL_VALUE (x);
-  if (isinf (r))
-    return SCM_BOOL_F;
-  if (r == floor (r))
-    return SCM_BOOL_T;
-  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
