@@ -1,6 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+##   Copyright (C) 1998, 2004, 2006, 2008, 2009, 2010,
+##     2011 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -146,7 +147,7 @@ $(snarf_doc).texi: $(standard_library_scm_files)
 	  "$(abs_srcdir)/$(snarf_doc).scm" > "$@.tmp"
 	mv "$@.tmp" "$@"
 
-CLEANFILES = $(snarf_doc).texi
+DISTCLEANFILES = $(snarf_doc).texi
 EXTRA_DIST += $(snarf_doc).scm make-texinfo.scm $(snarf_doc).texi $(snarf_doc).am
 
 
