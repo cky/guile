@@ -45,7 +45,11 @@ XDG_CACHE_HOME=${top_builddir}/cache
 export XDG_CACHE_HOME
 
 # do it
-exec ${top_builddir}/meta/uninstalled-env $GUILE "$@"
+if test "@cross_compiling@" = "no"; then
+    exec ${top_builddir}/meta/uninstalled-env $GUILE "$@"
+else
+    exec @GUILE_FOR_BUILD@ "$@"
+fi
 
 # never reached
 exit 1
