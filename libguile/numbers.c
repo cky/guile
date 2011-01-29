@@ -774,18 +774,18 @@ SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
 SCM
 scm_quotient (SCM x, SCM y)
 {
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
       scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (yy == 0)
+	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_quotient);
 	  else
 	    {
 	      scm_t_inum z = xx / yy;
-	      if (SCM_FIXABLE (z))
+	      if (SCM_LIKELY (SCM_FIXABLE (z)))
 		return SCM_I_MAKINUM (z);
 	      else
 		return scm_i_inum2big (z);
@@ -809,12 +809,12 @@ scm_quotient (SCM x, SCM y)
     }
   else if (SCM_BIGP (x))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (yy == 0)
+	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_quotient);
-	  else if (yy == 1)
+	  else if (SCM_UNLIKELY (yy == 1))
 	    return x;
 	  else
 	    {
@@ -858,15 +858,18 @@ SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
 SCM
 scm_remainder (SCM x, SCM y)
 {
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (yy == 0)
+	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_remainder);
 	  else
 	    {
+	      /* C99 specifies that "%" is the remainder corresponding to a
+                 quotient rounded towards zero, and that's also traditional
+                 for machine division, so z here should be well defined.  */
 	      scm_t_inum z = SCM_I_INUM (x) % yy;
 	      return SCM_I_MAKINUM (z);
 	    }
@@ -889,10 +892,10 @@ scm_remainder (SCM x, SCM y)
     }
   else if (SCM_BIGP (x))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (yy == 0)
+	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_remainder);
 	  else
 	    {
@@ -931,13 +934,13 @@ SCM_GPROC (s_modulo, "modulo", 2, 0, 0, scm_modulo, g_modulo);
 SCM
 scm_modulo (SCM x, SCM y)
 {
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
       scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (yy == 0)
+	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_modulo);
 	  else
 	    {
@@ -1008,10 +1011,10 @@ scm_modulo (SCM x, SCM y)
     }
   else if (SCM_BIGP (x))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (yy == 0)
+	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_modulo);
 	  else
 	    {
@@ -1029,22 +1032,20 @@ scm_modulo (SCM x, SCM y)
 	}
       else if (SCM_BIGP (y))
 	{
-	    {
-	      SCM result = scm_i_mkbig ();
-	      int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
-	      SCM pos_y = scm_i_clonebig (y, y_sgn >= 0);
-	      mpz_mod (SCM_I_BIG_MPZ (result),
-		       SCM_I_BIG_MPZ (x),
-		       SCM_I_BIG_MPZ (pos_y));
+	  SCM result = scm_i_mkbig ();
+	  int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  SCM pos_y = scm_i_clonebig (y, y_sgn >= 0);
+	  mpz_mod (SCM_I_BIG_MPZ (result),
+		   SCM_I_BIG_MPZ (x),
+		   SCM_I_BIG_MPZ (pos_y));
         
-	      scm_remember_upto_here_1 (x);
-	      if ((y_sgn < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0))
-		mpz_add (SCM_I_BIG_MPZ (result),
-			 SCM_I_BIG_MPZ (y),
-			 SCM_I_BIG_MPZ (result));
-	      scm_remember_upto_here_2 (y, pos_y);
-	      return scm_i_normbig (result);
-	    }
+	  scm_remember_upto_here_1 (x);
+	  if ((y_sgn < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0))
+	    mpz_add (SCM_I_BIG_MPZ (result),
+		     SCM_I_BIG_MPZ (y),
+		     SCM_I_BIG_MPZ (result));
+	  scm_remember_upto_here_2 (y, pos_y);
+	  return scm_i_normbig (result);
 	}
       else
 	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
