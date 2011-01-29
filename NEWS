@@ -76,6 +76,10 @@ by scheme, despite their name).
 throws exceptions for non-numbers.  (Note that NaNs _are_ considered
 numbers by scheme, despite their name).
 
+**** `real-valued?', `rational-valued?' and `integer-valued?' changes
+
+These predicates are now implemented in accordance with R6RS.
+
 ** New reader option: `hungry-eol-escapes'
 
 Guile's string syntax is more compatible with R6RS when the

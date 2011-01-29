@@ -102,14 +102,17 @@
  (define (exact-integer-sqrt x)
    (let* ((s (exact (floor (sqrt x)))) (e (- x (* s s)))) (values s e)))
 
- ;; These definitions should be revisited, since the behavior of Guile's 
- ;; implementations of `integer?', `rational?', and `real?' (exported from this
- ;; library) is not entirely consistent with R6RS's requirements for those 
- ;; functions.
+ (define (real-valued? x)
+   (and (complex? x)
+        (zero? (imag-part x))))
 
- (define integer-valued? integer?)
- (define rational-valued? rational?)
- (define real-valued? real?)
+ (define (rational-valued? x)
+   (and (real-valued? x)
+        (rational? (real-part x))))
+
+ (define (integer-valued? x)
+   (and (rational-valued? x)
+        (= x (floor (real-part x)))))
 
  (define (vector-for-each proc . vecs)
    (apply for-each (cons proc (map vector->list vecs))))
