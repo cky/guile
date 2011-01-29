@@ -45,6 +45,7 @@
 
 #ifdef __MINGW32__
 #include "win32-socket.h"
+#include <netdb.h>
 #endif
 
 #ifdef HAVE_STDINT_H
@@ -308,41 +309,9 @@ scm_to_ipv6 (scm_t_uint8 dst[16], SCM src)
     scm_wrong_type_arg_msg ("scm_to_ipv6", 0, src, "integer");
 }
 
-SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
-            (SCM family, SCM address),
-	    "Convert a string containing a printable network address to\n"
-	    "an integer address.  Note that unlike the C version of this\n"
-	    "function,\n"
-	    "the result is an integer with normal host byte ordering.\n"
-	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
-	    "@lisp\n"
-	    "(inet-pton AF_INET \"127.0.0.1\") @result{} 2130706433\n"
-	    "(inet-pton AF_INET6 \"::1\") @result{} 1\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_inet_pton
-{
-  int af;
-  char *src;
-  scm_t_uint32 dst[4];
-  int rv, eno;
+#endif  /* HAVE_IPV6 */
 
-  af = scm_to_int (family);
-  SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
-  src = scm_to_locale_string (address);
-  rv = inet_pton (af, src, dst);
-  eno = errno;
-  free (src);
-  errno = eno;
-  if (rv == -1)
-    SCM_SYSERROR;
-  else if (rv == 0)
-    SCM_MISC_ERROR ("Bad address", SCM_EOL);
-  if (af == AF_INET)
-    return scm_from_ulong (ntohl (*dst));
-  else
-    return scm_from_ipv6 ((scm_t_uint8 *) dst);
-}
-#undef FUNC_NAME
+
 
 SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
             (SCM family, SCM address),
@@ -366,7 +335,12 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
   const char *result;
 
   af = scm_to_int (family);
-  SCM_ASSERT_RANGE (1, family, af == AF_INET || af == AF_INET6);
+  SCM_ASSERT_RANGE (1, family,
+		    af == AF_INET
+#ifdef HAVE_IPV6
+		    || af == AF_INET6
+#endif
+		    );
   if (af == AF_INET)
     {
       scm_t_uint32 addr4;
@@ -374,13 +348,17 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
       addr4 = htonl (SCM_NUM2ULONG (2, address));
       result = inet_ntop (af, &addr4, dst, sizeof (dst));
     }
-  else
+#ifdef HAVE_IPV6
+  else if (af == AF_INET6)
     {
       char addr6[16];
 
       scm_to_ipv6 ((scm_t_uint8 *) addr6, address);
       result = inet_ntop (af, &addr6, dst, sizeof (dst));
     }
+#endif
+  else
+    SCM_MISC_ERROR ("unsupported address family", family);
 
   if (result == NULL)
     SCM_SYSERROR;
@@ -389,8 +367,54 @@ SCM_DEFINE (scm_inet_ntop, "inet-ntop", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-#endif  /* HAVE_IPV6 */
+SCM_DEFINE (scm_inet_pton, "inet-pton", 2, 0, 0,
+            (SCM family, SCM address),
+	    "Convert a string containing a printable network address to\n"
+	    "an integer address.  Note that unlike the C version of this\n"
+	    "function,\n"
+	    "the result is an integer with normal host byte ordering.\n"
+	    "@var{family} can be @code{AF_INET} or @code{AF_INET6}.  E.g.,\n\n"
+	    "@lisp\n"
+	    "(inet-pton AF_INET \"127.0.0.1\") @result{} 2130706433\n"
+	    "(inet-pton AF_INET6 \"::1\") @result{} 1\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_inet_pton
+{
+  int af;
+  char *src;
+  scm_t_uint32 dst[4];
+  int rv, eno;
 
+  af = scm_to_int (family);
+  SCM_ASSERT_RANGE (1, family,
+		    af == AF_INET
+#ifdef HAVE_IPV6
+		    || af == AF_INET6
+#endif
+		    );
+
+  src = scm_to_locale_string (address);
+  rv = inet_pton (af, src, dst);
+  eno = errno;
+  free (src);
+  errno = eno;
+
+  if (rv == -1)
+    SCM_SYSERROR;
+  else if (rv == 0)
+    SCM_MISC_ERROR ("Bad address", SCM_EOL);
+  if (af == AF_INET)
+    return scm_from_ulong (ntohl (*dst));
+#ifdef HAVE_IPV6
+  else if (af == AF_INET6)
+    return scm_from_ipv6 ((scm_t_uint8 *) dst);
+#endif
+  else
+    SCM_MISC_ERROR ("unsupported address family", family);
+}
+#undef FUNC_NAME
+
+
 SCM_SYMBOL (sym_socket, "socket");
 
 #define SCM_SOCK_FD_TO_PORT(fd) scm_fdes_to_port (fd, "r+0", sym_socket)
