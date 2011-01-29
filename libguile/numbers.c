@@ -3249,40 +3249,6 @@ SCM_DEFINE (scm_string_to_number, "string->number", 1, 1, 0,
 /*** END strs->nums ***/
 
 
-SCM
-scm_bigequal (SCM x, SCM y)
-{
-  int result = mpz_cmp (SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-  scm_remember_upto_here_2 (x, y);
-  return scm_from_bool (0 == result);
-}
-
-SCM
-scm_real_equalp (SCM x, SCM y)
-{
-  return scm_from_bool (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
-}
-
-SCM
-scm_complex_equalp (SCM x, SCM y)
-{
-  return scm_from_bool (SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y)
-		   && SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y));
-}
-
-SCM
-scm_i_fraction_equalp (SCM x, SCM y)
-{
-  if (scm_is_false (scm_equal_p (SCM_FRACTION_NUMERATOR (x),
-			       SCM_FRACTION_NUMERATOR (y)))
-      || scm_is_false (scm_equal_p (SCM_FRACTION_DENOMINATOR (x),
-				  SCM_FRACTION_DENOMINATOR (y))))
-    return SCM_BOOL_F;
-  else
-    return SCM_BOOL_T;
-}
-
-
 SCM_DEFINE (scm_number_p, "number?", 1, 0, 0, 
             (SCM x),
 	    "Return @code{#t} if @var{x} is a number, @code{#f}\n"

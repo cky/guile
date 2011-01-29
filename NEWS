@@ -12,6 +12,21 @@ Changes in 1.9.15 (since the 1.9.14 prerelease):
 
 ** Changes and bugfixes in numerics code
 
+*** `eqv?' and `equal?' now compare numbers equivalently
+
+scm_equal_p `equal?' now behaves equivalently to scm_eqv_p `eqv?' for
+numeric values, per R5RS.  Previously, equal? worked differently,
+e.g. `(equal? 0.0 -0.0)' returned #t but `(eqv? 0.0 -0.0)' returned #f,
+and `(equal? +nan.0 +nan.0)' returned #f but `(eqv? +nan.0 +nan.0)'
+returned #t.
+
+*** `(equal? +nan.0 +nan.0)' now returns #t
+
+Previously, `(equal? +nan.0 +nan.0)' returned #f, although
+`(let ((x +nan.0)) (equal? x x))' and `(eqv? +nan.0 +nan.0)'
+both returned #t.  R5RS requires that `equal?' behave like
+`eqv?' when comparing numbers.
+
 *** Infinities are no longer integers.
 
 Following the R6RS, infinities (+inf.0 and -inf.0) are no longer

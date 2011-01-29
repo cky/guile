@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2003, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,6 +20,8 @@
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
+
+#include <math.h>
 
 #include "libguile/_scm.h"
 #include "libguile/array-map.h"
@@ -118,7 +120,40 @@ scm_eq_p (SCM x, SCM y)
 static int
 real_eqv (double x, double y)
 {
-  return !memcmp (&x, &y, sizeof(double)) || (x != x && y != y);
+  return !memcmp (&x, &y, sizeof(double))
+    || (SCM_UNLIKELY (isnan (x)) && SCM_UNLIKELY (isnan (y)));
+}
+
+SCM
+scm_real_equalp (SCM x, SCM y)
+{
+  return scm_from_bool (real_eqv (SCM_REAL_VALUE (x),
+				  SCM_REAL_VALUE (y)));
+}
+
+SCM
+scm_bigequal (SCM x, SCM y)
+{
+  return scm_from_bool (scm_i_bigcmp (x, y) == 0);
+}
+
+SCM
+scm_complex_equalp (SCM x, SCM y)
+{
+  return scm_from_bool (real_eqv (SCM_COMPLEX_REAL (x),
+				  SCM_COMPLEX_REAL (y))
+			&& real_eqv (SCM_COMPLEX_IMAG (x),
+				     SCM_COMPLEX_IMAG (y)));
+}
+
+SCM
+scm_i_fraction_equalp (SCM x, SCM y)
+{
+  return scm_from_bool
+    (scm_is_true (scm_equal_p (SCM_FRACTION_NUMERATOR (x),
+			       SCM_FRACTION_NUMERATOR (y)))
+     && scm_is_true (scm_equal_p (SCM_FRACTION_DENOMINATOR (x),
+				  SCM_FRACTION_DENOMINATOR (y))));
 }
 
 static SCM scm_i_eqv_p (SCM x, SCM y, SCM rest);
@@ -166,48 +201,26 @@ SCM scm_eqv_p (SCM x, SCM y)
     return SCM_BOOL_F;
   if (SCM_IMP (y))
     return SCM_BOOL_F;
+
   /* this ensures that types and scm_length are the same. */
-
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
+    return SCM_BOOL_F;
+  switch (SCM_TYP7 (x))
     {
-      /* fractions use 0x10000 as a flag (at the suggestion of Marius Vollmer),
-	 but this checks the entire type word, so fractions may be accidentally
-	 flagged here as unequal.  Perhaps I should use the 4th double_cell word?
-      */
-
-      /* treat mixes of real and complex types specially */
-      if (SCM_INEXACTP (x))
-	{
-	  if (SCM_REALP (x))
-	    return scm_from_bool (SCM_COMPLEXP (y)
-			     && real_eqv (SCM_REAL_VALUE (x),
-					  SCM_COMPLEX_REAL (y))
-			     && SCM_COMPLEX_IMAG (y) == 0.0);
-	  else
-	    return scm_from_bool (SCM_REALP (y)
-			     && real_eqv (SCM_COMPLEX_REAL (x),
-					  SCM_REAL_VALUE (y))
-			     && SCM_COMPLEX_IMAG (x) == 0.0);
-	}
-
-      if (SCM_FRACTIONP (x) && SCM_FRACTIONP (y))
-	return scm_i_fraction_equalp (x, y);
-      return SCM_BOOL_F;
-    }
-  if (SCM_NUMP (x))
-    {
-      if (SCM_BIGP (x)) {
-	return scm_from_bool (scm_i_bigcmp (x, y) == 0);
-      } else if (SCM_REALP (x)) {
-	return scm_from_bool (real_eqv (SCM_REAL_VALUE (x), SCM_REAL_VALUE (y)));
-      } else if (SCM_FRACTIONP (x)) {
-	return scm_i_fraction_equalp (x, y);
-      } else { /* complex */
-	return scm_from_bool (real_eqv (SCM_COMPLEX_REAL (x),
-				   SCM_COMPLEX_REAL (y)) 
-			 && real_eqv (SCM_COMPLEX_IMAG (x),
-				      SCM_COMPLEX_IMAG (y)));
-      }
+    default:
+      break;
+    case scm_tc7_number:
+      switch SCM_TYP16 (x)
+        {
+        case scm_tc16_big:
+          return scm_bigequal (x, y);
+        case scm_tc16_real:
+          return scm_real_equalp (x, y);
+        case scm_tc16_complex:
+          return scm_complex_equalp (x, y);
+	case scm_tc16_fraction:
+          return scm_i_fraction_equalp (x, y);
+        }
     }
   return SCM_BOOL_F;
 }
@@ -309,19 +322,6 @@ scm_equal_p (SCM x, SCM y)
   /* This ensures that types and scm_length are the same.  */
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
     {
-      /* treat mixes of real and complex types specially */
-      if (SCM_INEXACTP (x) && SCM_INEXACTP (y))
-	{
-	  if (SCM_REALP (x))
-	    return scm_from_bool (SCM_COMPLEXP (y)
-			     && SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y)
-			     && SCM_COMPLEX_IMAG (y) == 0.0);
-	  else
-	    return scm_from_bool (SCM_REALP (y)
-			     && SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y)
-			     && SCM_COMPLEX_IMAG (x) == 0.0);
-	}
-
       /* Vectors can be equal to one-dimensional arrays.
        */
       if (scm_is_array (x) && scm_is_array (y))
