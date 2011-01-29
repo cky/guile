@@ -14,6 +14,6 @@ libguileinterface=@LIBGUILE_INTERFACE@
 Name: GNU Guile
 Description: GNU's Ubiquitous Intelligent Language for Extension
 Version: @GUILE_VERSION@
-Libs: -L${libdir} -lguile-@GUILE_EFFECTIVE_VERSION@
-Libs.private: @LIBGMP@ @LIBLTDL@ @BDW_GC_LIBS@ @LIBFFI_LIBS@ @GUILE_LIBS@
+Libs: -L${libdir} -lguile-@GUILE_EFFECTIVE_VERSION@ @BDW_GC_LIBS@
+Libs.private: @LIBGMP@ @LIBLTDL@ @LIBFFI_LIBS@ @GUILE_LIBS@
 Cflags: -I${pkgincludedir}/@GUILE_EFFECTIVE_VERSION@ @GUILE_CFLAGS@ @BDW_GC_CFLAGS@
