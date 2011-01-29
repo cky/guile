@@ -19,6 +19,7 @@
 
 (define-module (test-suite test-socket)
   #:use-module (rnrs bytevectors)
+  #:use-module (srfi srfi-26)
   #:use-module (test-suite lib))
 
 
@@ -339,7 +340,80 @@
 
 	(false-if-exception (delete-file path))
 
-	#t)))
+	#t)
+
+
+      ;; Testing `send', `recv!' & co. on stream-oriented sockets (with
+      ;; a bit of duplication with the above.)
+
+      (let ((server-socket     (socket AF_UNIX SOCK_STREAM 0))
+            (server-bound?     #f)
+            (server-listening? #f)
+            (server-pid        #f)
+            (message           "hello, world!")
+            (path              (temp-file-path)))
+
+        (define (sub-bytevector bv len)
+          (let ((c (make-bytevector len)))
+            (bytevector-copy! bv 0 c 0 len)
+            c))
+
+        (pass-if "bind (bis)"
+          (catch 'system-error
+            (lambda ()
+              (bind server-socket AF_UNIX path)
+              (set! server-bound? #t)
+              #t)
+            (lambda args
+              (let ((errno (system-error-errno args)))
+                (cond ((= errno EADDRINUSE) (throw 'unresolved))
+                      (else (apply throw args)))))))
+
+        (pass-if "listen (bis)"
+          (if (not server-bound?)
+              (throw 'unresolved)
+              (begin
+                (listen server-socket 123)
+                (set! server-listening? #t)
+                #t)))
+
+        (force-output (current-output-port))
+        (force-output (current-error-port))
+        (if server-listening?
+            (let ((pid (primitive-fork)))
+              ;; Spawn a server process.
+              (case pid
+                ((-1) (throw 'unresolved))
+                ((0)   ;; the kid: send MESSAGE and exit
+                 (exit
+                  (false-if-exception
+                   (let ((conn (car (accept server-socket)))
+                         (bv   (string->utf8 message)))
+                     (= (bytevector-length bv)
+                        (send conn bv))))))
+                (else  ;; the parent
+                 (set! server-pid pid)
+                 #t))))
+
+        (pass-if "recv!"
+          (if (not server-pid)
+              (throw 'unresolved)
+              (let ((s (socket AF_UNIX SOCK_STREAM 0)))
+                (connect s AF_UNIX path)
+                (let* ((buf      (make-bytevector 123))
+                       (received (recv! s buf)))
+                  (string=? (utf8->string (sub-bytevector buf received))
+                            message)))))
+
+        (pass-if "accept (bis)"
+          (if (not server-pid)
+              (throw 'unresolved)
+              (let ((status (cdr (waitpid server-pid))))
+                (eq? 0 (status:exit-val status)))))
+
+        (false-if-exception (delete-file path))
+
+        #t)))
 
 
 (if (defined? 'AF_INET6)
