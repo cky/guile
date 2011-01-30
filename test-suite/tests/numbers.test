@@ -281,8 +281,7 @@
 ;;;
 
 (with-test-prefix "exp"
-  (pass-if "documented?"
-    (documented? exp))
+  (pass-if (documented? exp))
 
   (pass-if-exception "no args" exception:wrong-num-args
     (exp))
@@ -426,9 +425,7 @@
 ;;;
 
 (with-test-prefix "quotient"
-
-  (expect-fail "documented?"
-    (documented? quotient))
+  (pass-if (documented? quotient))
 
   (with-test-prefix "0 / n"
 
@@ -642,9 +639,7 @@
 ;;;
 
 (with-test-prefix "remainder"
-
-  (expect-fail "documented?"
-    (documented? remainder))
+  (pass-if (documented? remainder))
 
   (with-test-prefix "0 / n"
 
@@ -837,9 +832,7 @@
 ;;;
 
 (with-test-prefix "modulo"
-
-  (expect-fail "documented?"
-    (documented? modulo))
+  (pass-if (documented? modulo))
 
   (with-test-prefix "0 % n"
 
@@ -2354,7 +2347,7 @@
 ;;;
 
 (with-test-prefix "zero?"
-  (expect-fail (documented? zero?))
+  (pass-if (documented? zero?))
   (pass-if (zero? 0))
   (pass-if (not (zero? 7)))
   (pass-if (not (zero? -7)))
@@ -2368,7 +2361,7 @@
 ;;;
 
 (with-test-prefix "positive?"
-  (expect-fail (documented? positive?))
+  (pass-if (documented? positive?))
   (pass-if (positive? 1))
   (pass-if (positive? (+ fixnum-max 1)))
   (pass-if (positive? 1.3))
@@ -2382,7 +2375,7 @@
 ;;;
 
 (with-test-prefix "negative?"
-  (expect-fail (documented? negative?))
+  (pass-if (documented? negative?))
   (pass-if (not (negative? 1)))
   (pass-if (not (negative? (+ fixnum-max 1))))
   (pass-if (not (negative? 1.3)))
@@ -3118,6 +3111,7 @@
 ;;;
 
 (with-test-prefix "expt"
+  (pass-if (documented? expt))
   (pass-if-exception "non-numeric base" exception:wrong-type-arg
                      (expt #t 0))
   (pass-if (eqv? 1 (expt 0 0)))
@@ -3199,15 +3193,32 @@
 ;;; real-part
 ;;;
 
+(with-test-prefix "real-part"
+  (pass-if (documented? real-part))
+  (pass-if (eqv? 5.0 (real-part  5.0)))
+  (pass-if (eqv? 0.0 (real-part +5.0i)))
+  (pass-if (eqv? 5   (real-part  5)))
+  (pass-if (eqv? 1/5 (real-part  1/5)))
+  (pass-if (eqv? (1+ fixnum-max) (real-part (1+ fixnum-max)))))
+
 ;;;
 ;;; imag-part
 ;;;
+
+(with-test-prefix "imag-part"
+  (pass-if (documented? imag-part))
+  (pass-if (eqv? 0.0 (imag-part  5.0)))
+  (pass-if (eqv? 5.0 (imag-part +5.0i)))
+  (pass-if (eqv? 0   (imag-part  5)))
+  (pass-if (eqv? 0   (imag-part  1/5)))
+  (pass-if (eqv? 0   (imag-part (1+ fixnum-max)))))
 
 ;;;
 ;;; magnitude
 ;;;
 
 (with-test-prefix "magnitude"
+  (pass-if (documented? magnitude))
   (pass-if (= 0 (magnitude 0)))
   (pass-if (= 1 (magnitude 1)))
   (pass-if (= 1 (magnitude -1)))
@@ -3227,6 +3238,8 @@
   (define (almost= x y)
     (> 0.01 (magnitude (- x y))))
   
+  (pass-if (documented? angle))
+
   (pass-if "inum +ve"   (=        0 (angle 1)))
   (pass-if "inum -ve"   (almost= pi (angle -1)))
 
@@ -3241,7 +3254,8 @@
 ;;;
 
 (with-test-prefix "inexact->exact"
-  
+  (pass-if (documented? inexact->exact))
+
   (pass-if-exception "+inf" exception:out-of-range
     (inexact->exact +inf.0))
   
@@ -3263,6 +3277,7 @@
 ;;;
 
 (with-test-prefix "integer-expt"
+  (pass-if (documented? integer-expt))
 
   (pass-if-exception "non-numeric base" exception:wrong-type-arg
                      (integer-expt #t 0))
@@ -3294,6 +3309,7 @@
 ;;;
 
 (with-test-prefix "integer-length"
+  (pass-if (documented? integer-length))
   
   (with-test-prefix "-2^i, ...11100..00"
     (do ((n -1 (ash n 1))
@@ -3321,8 +3337,7 @@
 ;;;
 
 (with-test-prefix "log"
-  (pass-if "documented?"
-    (documented? log))
+  (pass-if (documented? log))
 
   (pass-if-exception "no args" exception:wrong-num-args
     (log))
@@ -3349,8 +3364,7 @@
 ;;;
 
 (with-test-prefix "log10"
-  (pass-if "documented?"
-    (documented? log10))
+  (pass-if (documented? log10))
 
   (pass-if-exception "no args" exception:wrong-num-args
     (log10))
@@ -3377,6 +3391,8 @@
 ;;;
 
 (with-test-prefix "logbit?"
+  (pass-if (documented? logbit?))
+
   (pass-if (eq? #f (logbit?  0 0)))
   (pass-if (eq? #f (logbit?  1 0)))
   (pass-if (eq? #f (logbit? 31 0)))
@@ -3412,6 +3428,7 @@
 ;;;
 
 (with-test-prefix "logcount"
+  (pass-if (documented? logcount))
   
   (with-test-prefix "-2^i, meaning ...11100..00"
     (do ((n -1 (ash n 1))
@@ -3439,6 +3456,8 @@
 ;;;
 
 (with-test-prefix "logior"
+  (pass-if (documented? logior))
+
   (pass-if (eqv? -1 (logior (ash -1 1) 1)))
 
   ;; check that bignum or bignum+inum args will reduce to an inum
@@ -3468,6 +3487,8 @@
 ;;;
 
 (with-test-prefix "lognot"
+  (pass-if (documented? lognot))
+
   (pass-if (= -1 (lognot 0)))
   (pass-if (= 0  (lognot -1)))
   (pass-if (= -2 (lognot 1)))
@@ -3483,8 +3504,7 @@
 ;;;
 
 (with-test-prefix "sqrt"
-  (pass-if "documented?"
-    (documented? sqrt))
+  (pass-if (documented? sqrt))
 
   (pass-if-exception "no args" exception:wrong-num-args
     (sqrt))
@@ -3625,6 +3645,13 @@
                                                (test-eqv? r r1))))))
                           test-numerators))
               test-denominators))
+
+  (pass-if (documented? euclidean/))
+  (pass-if (documented? euclidean-quotient))
+  (pass-if (documented? euclidean-remainder))
+  (pass-if (documented? centered/))
+  (pass-if (documented? centered-quotient))
+  (pass-if (documented? centered-remainder))
 
   (with-test-prefix "euclidean-quotient"
     (do-tests-1 'euclidean-quotient

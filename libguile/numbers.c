@@ -498,8 +498,8 @@ scm_i_fraction2double (SCM z)
 					 SCM_FRACTION_DENOMINATOR (z)));
 }
 
-SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0, 
-            (SCM x),
+SCM_PRIMITIVE_GENERIC (scm_exact_p, "exact?", 1, 0, 0, 
+		       (SCM x),
 	    "Return @code{#t} if @var{x} is an exact number, @code{#f}\n"
 	    "otherwise.")
 #define FUNC_NAME s_scm_exact_p
@@ -509,12 +509,12 @@ SCM_DEFINE (scm_exact_p, "exact?", 1, 0, 0,
   else if (SCM_NUMBERP (x))
     return SCM_BOOL_T;
   else
-    SCM_WRONG_TYPE_ARG (1, x);
+    SCM_WTA_DISPATCH_1 (g_scm_exact_p, x, 1, s_scm_exact_p);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0,
+SCM_PRIMITIVE_GENERIC (scm_inexact_p, "inexact?", 1, 0, 0,
             (SCM x),
 	    "Return @code{#t} if @var{x} is an inexact number, @code{#f}\n"
 	    "else.")
@@ -525,12 +525,12 @@ SCM_DEFINE (scm_inexact_p, "inexact?", 1, 0, 0,
   else if (SCM_NUMBERP (x))
     return SCM_BOOL_F;
   else
-    SCM_WRONG_TYPE_ARG (1, x);
+    SCM_WTA_DISPATCH_1 (g_scm_inexact_p, x, 1, s_scm_inexact_p);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0, 
+SCM_PRIMITIVE_GENERIC (scm_odd_p, "odd?", 1, 0, 0, 
             (SCM n),
 	    "Return @code{#t} if @var{n} is an odd number, @code{#f}\n"
 	    "otherwise.")
@@ -547,25 +547,24 @@ SCM_DEFINE (scm_odd_p, "odd?", 1, 0, 0,
       scm_remember_upto_here_1 (n);
       return scm_from_bool (odd_p);
     }
-  else if (scm_is_true (scm_inf_p (n)))
-    SCM_WRONG_TYPE_ARG (1, n);
   else if (SCM_REALP (n))
     {
-      double rem = fabs (fmod (SCM_REAL_VALUE(n), 2.0));
-      if (rem == 1.0)
-	return SCM_BOOL_T;
-      else if (rem == 0.0)
-	return SCM_BOOL_F;
-      else
-	SCM_WRONG_TYPE_ARG (1, n);
+      double val = SCM_REAL_VALUE (n);
+      if (DOUBLE_IS_FINITE (val))
+	{
+	  double rem = fabs (fmod (val, 2.0));
+	  if (rem == 1.0)
+	    return SCM_BOOL_T;
+	  else if (rem == 0.0)
+	    return SCM_BOOL_F;
+	}
     }
-  else
-    SCM_WRONG_TYPE_ARG (1, n);
+  SCM_WTA_DISPATCH_1 (g_scm_odd_p, n, 1, s_scm_odd_p);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_even_p, "even?", 1, 0, 0, 
+SCM_PRIMITIVE_GENERIC (scm_even_p, "even?", 1, 0, 0, 
             (SCM n),
 	    "Return @code{#t} if @var{n} is an even number, @code{#f}\n"
 	    "otherwise.")
@@ -582,25 +581,24 @@ SCM_DEFINE (scm_even_p, "even?", 1, 0, 0,
       scm_remember_upto_here_1 (n);
       return scm_from_bool (even_p);
     }
-  else if (scm_is_true (scm_inf_p (n)))
-    SCM_WRONG_TYPE_ARG (1, n);
   else if (SCM_REALP (n))
     {
-      double rem = fabs (fmod (SCM_REAL_VALUE(n), 2.0));
-      if (rem == 1.0)
-	return SCM_BOOL_F;
-      else if (rem == 0.0)
-	return SCM_BOOL_T;
-      else
-	SCM_WRONG_TYPE_ARG (1, n);
+      double val = SCM_REAL_VALUE (n);
+      if (DOUBLE_IS_FINITE (val))
+	{
+	  double rem = fabs (fmod (val, 2.0));
+	  if (rem == 1.0)
+	    return SCM_BOOL_F;
+	  else if (rem == 0.0)
+	    return SCM_BOOL_T;
+	}
     }
-  else
-    SCM_WRONG_TYPE_ARG (1, n);
+  SCM_WTA_DISPATCH_1 (g_scm_even_p, n, 1, s_scm_even_p);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_finite_p, "finite?", 1, 0, 0,
-            (SCM x),
+SCM_PRIMITIVE_GENERIC (scm_finite_p, "finite?", 1, 0, 0,
+		       (SCM x),
 	    "Return @code{#t} if the real number @var{x} is neither\n"
 	    "infinite nor a NaN, @code{#f} otherwise.")
 #define FUNC_NAME s_scm_finite_p
@@ -610,14 +608,14 @@ SCM_DEFINE (scm_finite_p, "finite?", 1, 0, 0,
   else if (scm_is_real (x))
     return SCM_BOOL_T;
   else
-    SCM_WRONG_TYPE_ARG (1, x);
+    SCM_WTA_DISPATCH_1 (g_scm_finite_p, x, 1, s_scm_finite_p);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_inf_p, "inf?", 1, 0, 0, 
-            (SCM x),
-	    "Return @code{#t} if the real number @var{x} is @samp{+inf.0} or\n"
-            "@samp{-inf.0}.  Otherwise return @code{#f}.")
+SCM_PRIMITIVE_GENERIC (scm_inf_p, "inf?", 1, 0, 0, 
+		       (SCM x),
+	"Return @code{#t} if the real number @var{x} is @samp{+inf.0} or\n"
+        "@samp{-inf.0}.  Otherwise return @code{#f}.")
 #define FUNC_NAME s_scm_inf_p
 {
   if (SCM_REALP (x))
@@ -625,12 +623,12 @@ SCM_DEFINE (scm_inf_p, "inf?", 1, 0, 0,
   else if (scm_is_real (x))
     return SCM_BOOL_F;
   else
-    SCM_WRONG_TYPE_ARG (1, x);
+    SCM_WTA_DISPATCH_1 (g_scm_inf_p, x, 1, s_scm_inf_p);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_nan_p, "nan?", 1, 0, 0, 
-            (SCM x),
+SCM_PRIMITIVE_GENERIC (scm_nan_p, "nan?", 1, 0, 0, 
+		       (SCM x),
 	    "Return @code{#t} if the real number @var{x} is a NaN,\n"
             "or @code{#f} otherwise.")
 #define FUNC_NAME s_scm_nan_p
@@ -640,7 +638,7 @@ SCM_DEFINE (scm_nan_p, "nan?", 1, 0, 0,
   else if (scm_is_real (x))
     return SCM_BOOL_F;
   else
-    SCM_WRONG_TYPE_ARG (1, x);
+    SCM_WTA_DISPATCH_1 (g_scm_nan_p, x, 1, s_scm_nan_p);
 }
 #undef FUNC_NAME
 
@@ -727,7 +725,7 @@ SCM_DEFINE (scm_nan, "nan", 0, 0, 0,
 SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
 		       (SCM x),
 		       "Return the absolute value of @var{x}.")
-#define FUNC_NAME
+#define FUNC_NAME s_scm_abs
 {
   if (SCM_I_INUMP (x))
     {
@@ -769,11 +767,10 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_GPROC (s_quotient, "quotient", 2, 0, 0, scm_quotient, g_quotient);
-/* "Return the quotient of the numbers @var{x} and @var{y}."
- */
-SCM
-scm_quotient (SCM x, SCM y)
+SCM_PRIMITIVE_GENERIC (scm_quotient, "quotient", 2, 0, 0,
+		       (SCM x, SCM y),
+	"Return the quotient of the numbers @var{x} and @var{y}.")
+#define FUNC_NAME s_scm_quotient
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
@@ -782,7 +779,7 @@ scm_quotient (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_quotient);
+	    scm_num_overflow (s_scm_quotient);
 	  else
 	    {
 	      scm_t_inum z = xx / yy;
@@ -806,7 +803,7 @@ scm_quotient (SCM x, SCM y)
 	    return SCM_INUM0;
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+	SCM_WTA_DISPATCH_2 (g_scm_quotient, x, y, SCM_ARG2, s_scm_quotient);
     }
   else if (SCM_BIGP (x))
     {
@@ -814,7 +811,7 @@ scm_quotient (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_quotient);
+	    scm_num_overflow (s_scm_quotient);
 	  else if (SCM_UNLIKELY (yy == 1))
 	    return x;
 	  else
@@ -843,21 +840,21 @@ scm_quotient (SCM x, SCM y)
 	  return scm_i_normbig (result);
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG2, s_quotient);
+	SCM_WTA_DISPATCH_2 (g_scm_quotient, x, y, SCM_ARG2, s_scm_quotient);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_quotient, x, y, SCM_ARG1, s_quotient);
+    SCM_WTA_DISPATCH_2 (g_scm_quotient, x, y, SCM_ARG1, s_scm_quotient);
 }
+#undef FUNC_NAME
 
-SCM_GPROC (s_remainder, "remainder", 2, 0, 0, scm_remainder, g_remainder);
-/* "Return the remainder of the numbers @var{x} and @var{y}.\n"
- * "@lisp\n"
- * "(remainder 13 4) @result{} 1\n"
- * "(remainder -13 4) @result{} -1\n"
- * "@end lisp"
- */
-SCM
-scm_remainder (SCM x, SCM y)
+SCM_PRIMITIVE_GENERIC (scm_remainder, "remainder", 2, 0, 0,
+		       (SCM x, SCM y),
+	"Return the remainder of the numbers @var{x} and @var{y}.\n"
+	"@lisp\n"
+	"(remainder 13 4) @result{} 1\n"
+	"(remainder -13 4) @result{} -1\n"
+	"@end lisp")
+#define FUNC_NAME s_scm_remainder
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
@@ -865,7 +862,7 @@ scm_remainder (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_remainder);
+	    scm_num_overflow (s_scm_remainder);
 	  else
 	    {
 	      /* C99 specifies that "%" is the remainder corresponding to a
@@ -889,7 +886,7 @@ scm_remainder (SCM x, SCM y)
 	    return x;
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
+	SCM_WTA_DISPATCH_2 (g_scm_remainder, x, y, SCM_ARG2, s_scm_remainder);
     }
   else if (SCM_BIGP (x))
     {
@@ -897,7 +894,7 @@ scm_remainder (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_remainder);
+	    scm_num_overflow (s_scm_remainder);
 	  else
 	    {
 	      SCM result = scm_i_mkbig ();
@@ -918,22 +915,22 @@ scm_remainder (SCM x, SCM y)
 	  return scm_i_normbig (result);
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG2, s_remainder);
+	SCM_WTA_DISPATCH_2 (g_scm_remainder, x, y, SCM_ARG2, s_scm_remainder);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_remainder, x, y, SCM_ARG1, s_remainder);
+    SCM_WTA_DISPATCH_2 (g_scm_remainder, x, y, SCM_ARG1, s_scm_remainder);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_modulo, "modulo", 2, 0, 0, scm_modulo, g_modulo);
-/* "Return the modulo of the numbers @var{x} and @var{y}.\n"
- * "@lisp\n"
- * "(modulo 13 4) @result{} 1\n"
- * "(modulo -13 4) @result{} 3\n"
- * "@end lisp"
- */
-SCM
-scm_modulo (SCM x, SCM y)
+SCM_PRIMITIVE_GENERIC (scm_modulo, "modulo", 2, 0, 0,
+		       (SCM x, SCM y),
+	"Return the modulo of the numbers @var{x} and @var{y}.\n"
+	"@lisp\n"
+	"(modulo 13 4) @result{} 1\n"
+	"(modulo -13 4) @result{} 3\n"
+	"@end lisp")
+#define FUNC_NAME s_scm_modulo
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
@@ -942,7 +939,7 @@ scm_modulo (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_modulo);
+	    scm_num_overflow (s_scm_modulo);
 	  else
 	    {
 	      /* C99 specifies that "%" is the remainder corresponding to a
@@ -1008,7 +1005,7 @@ scm_modulo (SCM x, SCM y)
 	    }
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+	SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG2, s_scm_modulo);
     }
   else if (SCM_BIGP (x))
     {
@@ -1016,7 +1013,7 @@ scm_modulo (SCM x, SCM y)
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_modulo);
+	    scm_num_overflow (s_scm_modulo);
 	  else
 	    {
 	      SCM result = scm_i_mkbig ();
@@ -1049,11 +1046,12 @@ scm_modulo (SCM x, SCM y)
 	  return scm_i_normbig (result);
 	}
       else
-	SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG2, s_modulo);
+	SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG2, s_scm_modulo);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_modulo, x, y, SCM_ARG1, s_modulo);
+    SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG1, s_scm_modulo);
 }
+#undef FUNC_NAME
 
 static SCM scm_i_inexact_euclidean_quotient (double x, double y);
 static SCM scm_i_slow_exact_euclidean_quotient (SCM x, SCM y);
@@ -3036,8 +3034,9 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 	    "Return @var{n} raised to the power @var{k}.  @var{k} must be an\n"
 	    "exact integer, @var{n} can be any number.\n"
 	    "\n"
-	    "Negative @var{k} is supported, and results in @math{1/n^abs(k)}\n"
-	    "in the usual way.  @math{@var{n}^0} is 1, as usual, and that\n"
+	    "Negative @var{k} is supported, and results in\n"
+	    "@math{1/@var{n}^abs(@var{k})} in the usual way.\n"
+	    "@math{@var{n}^0} is 1, as usual, and that\n"
 	    "includes @math{0^0} is 1.\n"
 	    "\n"
 	    "@lisp\n"
@@ -5020,12 +5019,11 @@ scm_geq_p (SCM x, SCM y)
 #undef FUNC_NAME
 
 
-SCM_GPROC (s_zero_p, "zero?", 1, 0, 0, scm_zero_p, g_zero_p);
-/* "Return @code{#t} if @var{z} is an exact or inexact number equal to\n"
- * "zero."
- */
-SCM
-scm_zero_p (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_zero_p, "zero?", 1, 0, 0,
+		       (SCM z),
+	"Return @code{#t} if @var{z} is an exact or inexact number equal to\n"
+	"zero.")
+#define FUNC_NAME s_scm_zero_p
 {
   if (SCM_I_INUMP (z))
     return scm_from_bool (scm_is_eq (z, SCM_INUM0));
@@ -5039,16 +5037,16 @@ scm_zero_p (SCM z)
   else if (SCM_FRACTIONP (z))
     return SCM_BOOL_F;
   else
-    SCM_WTA_DISPATCH_1 (g_zero_p, z, SCM_ARG1, s_zero_p);
+    SCM_WTA_DISPATCH_1 (g_scm_zero_p, z, SCM_ARG1, s_scm_zero_p);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_positive_p, "positive?", 1, 0, 0, scm_positive_p, g_positive_p);
-/* "Return @code{#t} if @var{x} is an exact or inexact number greater than\n"
- * "zero."
- */
-SCM
-scm_positive_p (SCM x)
+SCM_PRIMITIVE_GENERIC (scm_positive_p, "positive?", 1, 0, 0,
+		       (SCM x),
+	"Return @code{#t} if @var{x} is an exact or inexact number greater than\n"
+	"zero.")
+#define FUNC_NAME s_scm_positive_p
 {
   if (SCM_I_INUMP (x))
     return scm_from_bool (SCM_I_INUM (x) > 0);
@@ -5063,16 +5061,16 @@ scm_positive_p (SCM x)
   else if (SCM_FRACTIONP (x))
     return scm_positive_p (SCM_FRACTION_NUMERATOR (x));
   else
-    SCM_WTA_DISPATCH_1 (g_positive_p, x, SCM_ARG1, s_positive_p);
+    SCM_WTA_DISPATCH_1 (g_scm_positive_p, x, SCM_ARG1, s_scm_positive_p);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_negative_p, "negative?", 1, 0, 0, scm_negative_p, g_negative_p);
-/* "Return @code{#t} if @var{x} is an exact or inexact number less than\n"
- * "zero."
- */
-SCM
-scm_negative_p (SCM x)
+SCM_PRIMITIVE_GENERIC (scm_negative_p, "negative?", 1, 0, 0,
+		       (SCM x),
+	"Return @code{#t} if @var{x} is an exact or inexact number less than\n"
+	"zero.")
+#define FUNC_NAME s_scm_negative_p
 {
   if (SCM_I_INUMP (x))
     return scm_from_bool (SCM_I_INUM (x) < 0);
@@ -5087,8 +5085,9 @@ scm_negative_p (SCM x)
   else if (SCM_FRACTIONP (x))
     return scm_negative_p (SCM_FRACTION_NUMERATOR (x));
   else
-    SCM_WTA_DISPATCH_1 (g_negative_p, x, SCM_ARG1, s_negative_p);
+    SCM_WTA_DISPATCH_1 (g_scm_negative_p, x, SCM_ARG1, s_scm_negative_p);
 }
+#undef FUNC_NAME
 
 
 /* scm_min and scm_max return an inexact when either argument is inexact, as
@@ -6677,9 +6676,9 @@ SCM_PRIMITIVE_GENERIC (scm_ceiling, "ceiling", 1, 0, 0,
    Written by Jerry D. Hedden, (C) FSF.
    See the file `COPYING' for terms applying to this program. */
 
-SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
-            (SCM x, SCM y),
-	    "Return @var{x} raised to the power of @var{y}.") 
+SCM_PRIMITIVE_GENERIC (scm_expt, "expt", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return @var{x} raised to the power of @var{y}.")
 #define FUNC_NAME s_scm_expt
 {
   if (scm_is_integer (y))
@@ -6709,8 +6708,12 @@ SCM_DEFINE (scm_expt, "expt", 2, 0, 0,
     {
       return scm_from_double (pow (scm_to_double (x), scm_to_double (y)));
     }
-  else
+  else if (scm_is_complex (x) && scm_is_complex (y))
     return scm_exp (scm_product (scm_log (x), y));
+  else if (scm_is_complex (x))
+    SCM_WTA_DISPATCH_2 (g_scm_expt, x, y, SCM_ARG2, s_scm_expt);
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_expt, x, y, SCM_ARG1, s_scm_expt);
 }
 #undef FUNC_NAME
 
@@ -7036,90 +7039,76 @@ SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_GPROC (s_real_part, "real-part", 1, 0, 0, scm_real_part, g_real_part);
-/* "Return the real part of the number @var{z}."
- */
-SCM
-scm_real_part (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_real_part, "real-part", 1, 0, 0,
+		       (SCM z),
+		       "Return the real part of the number @var{z}.")
+#define FUNC_NAME s_scm_real_part
 {
-  if (SCM_I_INUMP (z))
-    return z;
-  else if (SCM_BIGP (z))
-    return z;
-  else if (SCM_REALP (z))
-    return z;
-  else if (SCM_COMPLEXP (z))
+  if (SCM_COMPLEXP (z))
     return scm_from_double (SCM_COMPLEX_REAL (z));
-  else if (SCM_FRACTIONP (z))
+  else if (SCM_I_INUMP (z) || SCM_BIGP (z) || SCM_REALP (z) || SCM_FRACTIONP (z))
     return z;
   else
-    SCM_WTA_DISPATCH_1 (g_real_part, z, SCM_ARG1, s_real_part);
+    SCM_WTA_DISPATCH_1 (g_scm_real_part, z, SCM_ARG1, s_scm_real_part);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_imag_part, "imag-part", 1, 0, 0, scm_imag_part, g_imag_part);
-/* "Return the imaginary part of the number @var{z}."
- */
-SCM
-scm_imag_part (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_imag_part, "imag-part", 1, 0, 0,
+		       (SCM z),
+		       "Return the imaginary part of the number @var{z}.")
+#define FUNC_NAME s_scm_imag_part
 {
-  if (SCM_I_INUMP (z))
-    return SCM_INUM0;
-  else if (SCM_BIGP (z))
-    return SCM_INUM0;
+  if (SCM_COMPLEXP (z))
+    return scm_from_double (SCM_COMPLEX_IMAG (z));
   else if (SCM_REALP (z))
     return flo0;
-  else if (SCM_COMPLEXP (z))
-    return scm_from_double (SCM_COMPLEX_IMAG (z));
-  else if (SCM_FRACTIONP (z))
+  else if (SCM_I_INUMP (z) || SCM_BIGP (z) || SCM_FRACTIONP (z))
     return SCM_INUM0;
   else
-    SCM_WTA_DISPATCH_1 (g_imag_part, z, SCM_ARG1, s_imag_part);
+    SCM_WTA_DISPATCH_1 (g_scm_imag_part, z, SCM_ARG1, s_scm_imag_part);
 }
+#undef FUNC_NAME
 
-SCM_GPROC (s_numerator, "numerator", 1, 0, 0, scm_numerator, g_numerator);
-/* "Return the numerator of the number @var{z}."
- */
-SCM
-scm_numerator (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_numerator, "numerator", 1, 0, 0,
+		       (SCM z),
+		       "Return the numerator of the number @var{z}.")
+#define FUNC_NAME s_scm_numerator
 {
-  if (SCM_I_INUMP (z))
-    return z;
-  else if (SCM_BIGP (z))
+  if (SCM_I_INUMP (z) || SCM_BIGP (z))
     return z;
   else if (SCM_FRACTIONP (z))
     return SCM_FRACTION_NUMERATOR (z);
   else if (SCM_REALP (z))
     return scm_exact_to_inexact (scm_numerator (scm_inexact_to_exact (z)));
   else
-    SCM_WTA_DISPATCH_1 (g_numerator, z, SCM_ARG1, s_numerator);
+    SCM_WTA_DISPATCH_1 (g_scm_numerator, z, SCM_ARG1, s_scm_numerator);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_denominator, "denominator", 1, 0, 0, scm_denominator, g_denominator);
-/* "Return the denominator of the number @var{z}."
- */
-SCM
-scm_denominator (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_denominator, "denominator", 1, 0, 0,
+		       (SCM z),
+		       "Return the denominator of the number @var{z}.")
+#define FUNC_NAME s_scm_denominator
 {
-  if (SCM_I_INUMP (z))
-    return SCM_INUM1;
-  else if (SCM_BIGP (z)) 
+  if (SCM_I_INUMP (z) || SCM_BIGP (z)) 
     return SCM_INUM1;
   else if (SCM_FRACTIONP (z))
     return SCM_FRACTION_DENOMINATOR (z);
   else if (SCM_REALP (z))
     return scm_exact_to_inexact (scm_denominator (scm_inexact_to_exact (z)));
   else
-    SCM_WTA_DISPATCH_1 (g_denominator, z, SCM_ARG1, s_denominator);
+    SCM_WTA_DISPATCH_1 (g_scm_denominator, z, SCM_ARG1, s_scm_denominator);
 }
+#undef FUNC_NAME
 
-SCM_GPROC (s_magnitude, "magnitude", 1, 0, 0, scm_magnitude, g_magnitude);
-/* "Return the magnitude of the number @var{z}. This is the same as\n"
- * "@code{abs} for real arguments, but also allows complex numbers."
- */
-SCM
-scm_magnitude (SCM z)
+
+SCM_PRIMITIVE_GENERIC (scm_magnitude, "magnitude", 1, 0, 0,
+		       (SCM z),
+	"Return the magnitude of the number @var{z}. This is the same as\n"
+	"@code{abs} for real arguments, but also allows complex numbers.")
+#define FUNC_NAME s_scm_magnitude
 {
   if (SCM_I_INUMP (z))
     {
@@ -7152,15 +7141,15 @@ scm_magnitude (SCM z)
 			     SCM_FRACTION_DENOMINATOR (z));
     }
   else
-    SCM_WTA_DISPATCH_1 (g_magnitude, z, SCM_ARG1, s_magnitude);
+    SCM_WTA_DISPATCH_1 (g_scm_magnitude, z, SCM_ARG1, s_scm_magnitude);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_angle, "angle", 1, 0, 0, scm_angle, g_angle);
-/* "Return the angle of the complex number @var{z}."
- */
-SCM
-scm_angle (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_angle, "angle", 1, 0, 0,
+		       (SCM z),
+		       "Return the angle of the complex number @var{z}.")
+#define FUNC_NAME s_scm_angle
 {
   /* atan(0,-1) is pi and it'd be possible to have that as a constant like
      flo0 to save allocating a new flonum with scm_from_double each time.
@@ -7198,15 +7187,15 @@ scm_angle (SCM z)
       else return scm_from_double (atan2 (0.0, -1.0));
     }
   else
-    SCM_WTA_DISPATCH_1 (g_angle, z, SCM_ARG1, s_angle);
+    SCM_WTA_DISPATCH_1 (g_scm_angle, z, SCM_ARG1, s_scm_angle);
 }
+#undef FUNC_NAME
 
 
-SCM_GPROC (s_exact_to_inexact, "exact->inexact", 1, 0, 0, scm_exact_to_inexact, g_exact_to_inexact);
-/* Convert the number @var{x} to its inexact representation.\n" 
- */
-SCM
-scm_exact_to_inexact (SCM z)
+SCM_PRIMITIVE_GENERIC (scm_exact_to_inexact, "exact->inexact", 1, 0, 0,
+		       (SCM z),
+	"Convert the number @var{z} to its inexact representation.\n")
+#define FUNC_NAME s_scm_exact_to_inexact
 {
   if (SCM_I_INUMP (z))
     return scm_from_double ((double) SCM_I_INUM (z));
@@ -7217,22 +7206,21 @@ scm_exact_to_inexact (SCM z)
   else if (SCM_INEXACTP (z))
     return z;
   else
-    SCM_WTA_DISPATCH_1 (g_exact_to_inexact, z, 1, s_exact_to_inexact);
+    SCM_WTA_DISPATCH_1 (g_scm_exact_to_inexact, z, 1, s_scm_exact_to_inexact);
 }
+#undef FUNC_NAME
 
 
-SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
-            (SCM z),
-	    "Return an exact number that is numerically closest to @var{z}.")
+SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0, 
+		       (SCM z),
+	"Return an exact number that is numerically closest to @var{z}.")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
-  if (SCM_I_INUMP (z))
-    return z;
-  else if (SCM_BIGP (z))
+  if (SCM_I_INUMP (z) || SCM_BIGP (z))
     return z;
   else if (SCM_REALP (z))
     {
-      if (isinf (SCM_REAL_VALUE (z)) || isnan (SCM_REAL_VALUE (z)))
+      if (!DOUBLE_IS_FINITE (SCM_REAL_VALUE (z)))
 	SCM_OUT_OF_RANGE (1, z);
       else
 	{
@@ -7254,7 +7242,7 @@ SCM_DEFINE (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
   else if (SCM_FRACTIONP (z))
     return z;
   else
-    SCM_WRONG_TYPE_ARG (1, z);
+    SCM_WTA_DISPATCH_1 (g_scm_inexact_to_exact, z, 1, s_scm_inexact_to_exact);
 }
 #undef FUNC_NAME
 
@@ -7694,9 +7682,9 @@ scm_is_number (SCM z)
    real-only case, and because we have to test SCM_COMPLEXP anyway so may as
    well use it to go straight to the applicable C func.  */
 
-SCM_DEFINE (scm_log, "log", 1, 0, 0,
-            (SCM z),
-	    "Return the natural logarithm of @var{z}.")
+SCM_PRIMITIVE_GENERIC (scm_log, "log", 1, 0, 0,
+		       (SCM z),
+		       "Return the natural logarithm of @var{z}.")
 #define FUNC_NAME s_scm_log
 {
   if (SCM_COMPLEXP (z))
@@ -7710,7 +7698,7 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
                                      atan2 (im, re));
 #endif
     }
-  else
+  else if (SCM_NUMBERP (z))
     {
       /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
          although the value itself overflows.  */
@@ -7721,13 +7709,15 @@ SCM_DEFINE (scm_log, "log", 1, 0, 0,
       else
         return scm_c_make_rectangular (l, M_PI);
     }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_log, z, 1, s_scm_log);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
-            (SCM z),
-	    "Return the base 10 logarithm of @var{z}.")
+SCM_PRIMITIVE_GENERIC (scm_log10, "log10", 1, 0, 0,
+		       (SCM z),
+		       "Return the base 10 logarithm of @var{z}.")
 #define FUNC_NAME s_scm_log10
 {
   if (SCM_COMPLEXP (z))
@@ -7745,7 +7735,7 @@ SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
                                      M_LOG10E * atan2 (im, re));
 #endif
     }
-  else
+  else if (SCM_NUMBERP (z))
     {
       /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
          although the value itself overflows.  */
@@ -7756,14 +7746,16 @@ SCM_DEFINE (scm_log10, "log10", 1, 0, 0,
       else
         return scm_c_make_rectangular (l, M_LOG10E * M_PI);
     }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_log10, z, 1, s_scm_log10);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
-            (SCM z),
-	    "Return @math{e} to the power of @var{z}, where @math{e} is the\n"
-	    "base of natural logarithms (2.71828@dots{}).")
+SCM_PRIMITIVE_GENERIC (scm_exp, "exp", 1, 0, 0,
+		       (SCM z),
+	"Return @math{e} to the power of @var{z}, where @math{e} is the\n"
+	"base of natural logarithms (2.71828@dots{}).")
 #define FUNC_NAME s_scm_exp
 {
   if (SCM_COMPLEXP (z))
@@ -7775,51 +7767,55 @@ SCM_DEFINE (scm_exp, "exp", 1, 0, 0,
                                SCM_COMPLEX_IMAG (z));
 #endif
     }
-  else
+  else if (SCM_NUMBERP (z))
     {
       /* When z is a negative bignum the conversion to double overflows,
          giving -infinity, but that's ok, the exp is still 0.0.  */
       return scm_from_double (exp (scm_to_double (z)));
     }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_exp, z, 1, s_scm_exp);
 }
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_sqrt, "sqrt", 1, 0, 0,
-            (SCM x),
-	    "Return the square root of @var{z}.  Of the two possible roots\n"
-	    "(positive and negative), the one with the a positive real part\n"
-	    "is returned, or if that's zero then a positive imaginary part.\n"
-	    "Thus,\n"
-	    "\n"
-	    "@example\n"
-	    "(sqrt 9.0)       @result{} 3.0\n"
-	    "(sqrt -9.0)      @result{} 0.0+3.0i\n"
-	    "(sqrt 1.0+1.0i)  @result{} 1.09868411346781+0.455089860562227i\n"
-	    "(sqrt -1.0-1.0i) @result{} 0.455089860562227-1.09868411346781i\n"
-	    "@end example")
+SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
+		       (SCM z),
+	"Return the square root of @var{z}.  Of the two possible roots\n"
+	"(positive and negative), the one with the a positive real part\n"
+	"is returned, or if that's zero then a positive imaginary part.\n"
+	"Thus,\n"
+	"\n"
+	"@example\n"
+	"(sqrt 9.0)       @result{} 3.0\n"
+	"(sqrt -9.0)      @result{} 0.0+3.0i\n"
+	"(sqrt 1.0+1.0i)  @result{} 1.09868411346781+0.455089860562227i\n"
+	"(sqrt -1.0-1.0i) @result{} 0.455089860562227-1.09868411346781i\n"
+	"@end example")
 #define FUNC_NAME s_scm_sqrt
 {
-  if (SCM_COMPLEXP (x))
+  if (SCM_COMPLEXP (z))
     {
 #if defined HAVE_COMPLEX_DOUBLE && defined HAVE_USABLE_CSQRT	\
       && defined SCM_COMPLEX_VALUE
-      return scm_from_complex_double (csqrt (SCM_COMPLEX_VALUE (x)));
+      return scm_from_complex_double (csqrt (SCM_COMPLEX_VALUE (z)));
 #else
-      double re = SCM_COMPLEX_REAL (x);
-      double im = SCM_COMPLEX_IMAG (x);
+      double re = SCM_COMPLEX_REAL (z);
+      double im = SCM_COMPLEX_IMAG (z);
       return scm_c_make_polar (sqrt (hypot (re, im)),
                                0.5 * atan2 (im, re));
 #endif
     }
-  else
+  else if (SCM_NUMBERP (z))
     {
-      double xx = scm_to_double (x);
+      double xx = scm_to_double (z);
       if (xx < 0)
         return scm_c_make_rectangular (0.0, sqrt (-xx));
       else
         return scm_from_double (sqrt (xx));
     }
+  else
+    SCM_WTA_DISPATCH_1 (g_scm_sqrt, z, 1, s_scm_sqrt);
 }
 #undef FUNC_NAME
 
