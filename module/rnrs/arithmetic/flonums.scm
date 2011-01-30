@@ -1,6 +1,6 @@
 ;;; flonums.scm --- The R6RS flonums arithmetic library
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -127,40 +127,27 @@
 
   (define (fldiv-and-mod fl1 fl2)
     (assert-iflonum fl1 fl2)
-    (if (zero? fl2) (raise (make-assertion-violation)))
-    (let ((fx1 (inexact->exact fl1))
-	  (fx2 (inexact->exact fl2)))
-      (call-with-values (lambda () (div-and-mod fx1 fx2))
-	(lambda (div mod) (values (exact->inexact div)
-				  (exact->inexact mod))))))
+    (div-and-mod fl1 fl2))
 
   (define (fldiv fl1 fl2)
     (assert-iflonum fl1 fl2)
-    (if (zero? fl2) (raise (make-assertion-violation)))
-    (let ((fx1 (inexact->exact fl1))
-	  (fx2 (inexact->exact fl2)))
-      (exact->inexact (quotient fx1 fx2))))
+    (div fl1 fl2))
 
   (define (flmod fl1 fl2)
     (assert-iflonum fl1 fl2)
-    (if (zero? fl2) (raise (make-assertion-violation)))
-    (let ((fx1 (inexact->exact fl1))
-	  (fx2 (inexact->exact fl2)))
-      (exact->inexact (modulo fx1 fx2))))
+    (mod fl1 fl2))
 
   (define (fldiv0-and-mod0 fl1 fl2)
     (assert-iflonum fl1 fl2)
-    (if (zero? fl2) (raise (make-assertion-violation)))
-    (let* ((fx1 (inexact->exact fl1))
-	   (fx2 (inexact->exact fl2)))
-      (call-with-values (lambda () (div0-and-mod0 fx1 fx2))
-	(lambda (q r) (values (real->flonum q) (real->flonum r))))))
+    (div0-and-mod0 fl1 fl2))
 
   (define (fldiv0 fl1 fl2)
-    (call-with-values (lambda () (fldiv0-and-mod0 fl1 fl2)) (lambda (q r) q)))
+    (assert-iflonum fl1 fl2)
+    (div0 fl1 fl2))
 
   (define (flmod0 fl1 fl2)
-    (call-with-values (lambda () (fldiv0-and-mod0 fl1 fl2)) (lambda (q r) r)))
+    (assert-iflonum fl1 fl2)
+    (mod0 fl1 fl2))
 
   (define (flnumerator fl) 
     (assert-flonum fl) 

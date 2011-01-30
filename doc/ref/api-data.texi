@@ -897,6 +897,9 @@ sign as @var{n}.  In all cases quotient and remainder satisfy
 (remainder 13 4) @result{} 1
 (remainder -13 4) @result{} -1
 @end lisp
+
+See also @code{euclidean-quotient}, @code{euclidean-remainder} and
+related operations in @ref{Arithmetic}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "modulo")
@@ -911,6 +914,9 @@ sign as @var{d}.
 (modulo 13 -4) @result{} -3
 (modulo -13 -4) @result{} -1
 @end lisp
+
+See also @code{euclidean-quotient}, @code{euclidean-remainder} and
+related operations in @ref{Arithmetic}.
 @end deffn
 
 @c begin (texi-doc-string "guile" "gcd")
@@ -1130,6 +1136,12 @@ Returns the magnitude or angle of @var{z} as a @code{double}.
 @rnindex ceiling
 @rnindex truncate
 @rnindex round
+@rnindex euclidean/
+@rnindex euclidean-quotient
+@rnindex euclidean-remainder
+@rnindex centered/
+@rnindex centered-quotient
+@rnindex centered-remainder
 
 The C arithmetic functions below always takes two arguments, while the
 Scheme functions can take an arbitrary number.  When you need to
@@ -1228,6 +1240,73 @@ Like @code{scm_truncate_number} or @code{scm_round_number},
 respectively, but these functions take and return @code{double}
 values.
 @end deftypefn
+
+@deffn {Scheme Procedure} euclidean/ x y
+@deffnx {Scheme Procedure} euclidean-quotient x y
+@deffnx {Scheme Procedure} euclidean-remainder x y
+@deffnx {C Function} scm_euclidean_quo_and_rem (x y)
+@deffnx {C Function} scm_euclidean_quotient (x y)
+@deffnx {C Function} scm_euclidean_remainder (x y)
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{euclidean-quotient} returns the
+integer @var{q} and @code{euclidean-remainder} returns the real number
+@var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
+@math{0 <= @var{r} < abs(@var{y})}.  @code{euclidean/} returns both @var{q} and
+@var{r}, and is more efficient than computing each separately.  Note
+that when @math{@var{y} > 0}, @code{euclidean-quotient} returns
+@math{floor(@var{x}/@var{y})}, otherwise it returns
+@math{ceiling(@var{x}/@var{y})}.
+
+Note that these operators are equivalent to the R6RS operators
+@code{div}, @code{mod}, and @code{div-and-mod}.
+
+@lisp
+(euclidean-quotient 123 10) @result{} 12
+(euclidean-remainder 123 10) @result{} 3
+(euclidean/ 123 10) @result{} 12 and 3
+(euclidean/ 123 -10) @result{} -12 and 3
+(euclidean/ -123 10) @result{} -13 and 7
+(euclidean/ -123 -10) @result{} 13 and 7
+(euclidean/ -123.2 -63.5) @result{} 2.0 and 3.8
+(euclidean/ 16/3 -10/7) @result{} -3 and 22/21
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} centered/ x y
+@deffnx {Scheme Procedure} centered-quotient x y
+@deffnx {Scheme Procedure} centered-remainder x y
+@deffnx {C Function} scm_centered_quo_and_rem (x y)
+@deffnx {C Function} scm_centered_quotient (x y)
+@deffnx {C Function} scm_centered_remainder (x y)
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{centered-quotient} returns the
+integer @var{q} and @code{centered-remainder} returns the real number
+@var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
+@math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.  @code{centered/}
+returns both @var{q} and @var{r}, and is more efficient than computing
+each separately.
+
+Note that @code{centered-quotient} returns @math{@var{x}/@var{y}}
+rounded to the nearest integer.  When @math{@var{x}/@var{y}} lies
+exactly half-way between two integers, the tie is broken according to
+the sign of @var{y}.  If @math{@var{y} > 0}, ties are rounded toward
+positive infinity, otherwise they are rounded toward negative infinity.
+This is a consequence of the requirement that @math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.
+
+Note that these operators are equivalent to the R6RS operators
+@code{div0}, @code{mod0}, and @code{div0-and-mod0}.
+
+@lisp
+(centered-quotient 123 10) @result{} 12
+(centered-remainder 123 10) @result{} 3
+(centered/ 123 10) @result{} 12 and 3
+(centered/ 123 -10) @result{} -12 and 3
+(centered/ -123 10) @result{} -12 and -3
+(centered/ -123 -10) @result{} 12 and -3
+(centered/ -123.2 -63.5) @result{} 2.0 and 3.8
+(centered/ 16/3 -10/7) @result{} -4 and -8/21
+@end lisp
+@end deffn
 
 @node Scientific
 @subsubsection Scientific Functions

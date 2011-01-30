@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2010
+@c Copyright (C)  2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -464,21 +464,65 @@ grouped below by the existing manual sections to which they correspond.
 @xref{Arithmetic}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} div x1 x2
-@deffnx {Scheme Procedure} mod x1 x2
-@deffnx {Scheme Procedure} div-and-mod x1 x2
-These procedures implement number-theoretic division.
+@rnindex div
+@rnindex mod
+@rnindex div-and-mod
+@deffn {Scheme Procedure} div x y
+@deffnx {Scheme Procedure} mod x y
+@deffnx {Scheme Procedure} div-and-mod x y
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{div} returns the integer @var{q}
+and @code{mod} returns the real number @var{r} such that
+@math{@var{x} = @var{q}*@var{y} + @var{r}} and @math{0 <= @var{r} < abs(@var{y})}.
+@code{div-and-mod} returns both @var{q} and @var{r}, and is more
+efficient than computing each separately.  Note that when @math{@var{y} > 0},
+@code{div} returns @math{floor(@var{x}/@var{y})}, otherwise
+it returns @math{ceiling(@var{x}/@var{y})}.
 
-@code{div-and-mod} returns two values, the respective results of
-@code{(div x1 x2)} and @code{(mod x1 x2)}.
+@lisp
+(div 123 10) @result{} 12
+(mod 123 10) @result{} 3
+(div-and-mod 123 10) @result{} 12 and 3
+(div-and-mod 123 -10) @result{} -12 and 3
+(div-and-mod -123 10) @result{} -13 and 7
+(div-and-mod -123 -10) @result{} 13 and 7
+(div-and-mod -123.2 -63.5) @result{} 2.0 and 3.8
+(div-and-mod 16/3 -10/7) @result{} -3 and 22/21
+@end lisp
 @end deffn
 
-@deffn {Scheme Procedure} div0 x1 x2
-@deffnx {Scheme Procedure} mod0 x1 x2
-@deffnx {Scheme Procedure} div0-and-mod0 x1 x2
-These procedures are similar to @code{div}, @code{mod}, and 
-@code{div-and-mod}, except that @code{mod0} returns values that lie
-within a half-open interval centered on zero.
+@rnindex div0
+@rnindex mod0
+@rnindex div0-and-mod0
+@deffn {Scheme Procedure} div0 x y
+@deffnx {Scheme Procedure} mod0 x y
+@deffnx {Scheme Procedure} div0-and-mod0 x y
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{div0} returns the
+integer @var{q} and @code{rem0} returns the real number
+@var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
+@math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.  @code{div0-and-mod0}
+returns both @var{q} and @var{r}, and is more efficient than computing
+each separately.
+
+Note that @code{div0} returns @math{@var{x}/@var{y}} rounded to the
+nearest integer.  When @math{@var{x}/@var{y}} lies exactly half-way
+between two integers, the tie is broken according to the sign of
+@var{y}.  If @math{@var{y} > 0}, ties are rounded toward positive
+infinity, otherwise they are rounded toward negative infinity.
+This is a consequence of the requirement that
+@math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.
+
+@lisp
+(div0 123 10) @result{} 12
+(mod0 123 10) @result{} 3
+(div0-and-mod0 123 10) @result{} 12 and 3
+(div0-and-mod0 123 -10) @result{} -12 and 3
+(div0-and-mod0 -123 10) @result{} -12 and -3
+(div0-and-mod0 -123 -10) @result{} 12 and -3
+(div0-and-mod0 -123.2 -63.5) @result{} 2.0 and 3.8
+(div0-and-mod0 16/3 -10/7) @result{} -4 and -8/21
+@end lisp
 @end deffn
 
 @deffn {Scheme Procedure} exact-integer-sqrt k

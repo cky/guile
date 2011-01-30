@@ -74,8 +74,12 @@
 
 	  syntax-rules identifier-syntax)
   (import (rename (except (guile) error raise)
-                  (quotient div) 
-                  (modulo mod)
+                  (euclidean-quotient div)
+                  (euclidean-remainder mod)
+                  (euclidean/ div-and-mod)
+                  (centered-quotient div0)
+                  (centered-remainder mod0)
+                  (centered/ div0-and-mod0)
                   (inf? infinite?)
                   (exact->inexact inexact)
                   (inexact->exact exact))
@@ -118,21 +122,6 @@
    (apply for-each (cons proc (map vector->list vecs))))
  (define (vector-map proc . vecs)
    (list->vector (apply map (cons proc (map vector->list vecs)))))
-
- (define (div-and-mod x y) (let ((q (div x y)) (r (mod x y))) (values q r)))
-
- (define (div0 x y)
-   (call-with-values (lambda () (div0-and-mod0 x y)) (lambda (q r) q)))
-
- (define (mod0 x y)
-   (call-with-values (lambda () (div0-and-mod0 x y)) (lambda (q r) r)))
-
- (define (div0-and-mod0 x y)
-   (call-with-values (lambda () (div-and-mod x y))
-     (lambda (q r)
-       (cond ((< r (abs (/ y 2))) (values q r))
-	     ((negative? y) (values (- q 1) (+ r y)))
-	     (else (values (+ q 1) (+ r y)))))))
 
  (define raise
    (@ (rnrs exceptions) raise))

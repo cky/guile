@@ -1,6 +1,6 @@
 ;;; arithmetic-fixnums.test --- Test suite for R6RS (rnrs arithmetic bitwise)
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -121,32 +121,25 @@
   (pass-if "simple"
     (call-with-values (lambda () (fxdiv-and-mod 123 10))
       (lambda (d m) 
-	(or (and (fx=? d 12) (fx=? m 3))
-	    (throw 'unresolved))))))
+	(and (fx=? d 12) (fx=? m 3))))))
 
-(with-test-prefix "fxdiv"
-  (pass-if "simple" (or (fx=? (fxdiv -123 10) -13) (throw 'unresolved))))
-
-(with-test-prefix "fxmod"
-  (pass-if "simple" (or (fx=? (fxmod -123 10) 7) (throw 'unresolved))))
+(with-test-prefix "fxdiv" (pass-if "simple" (fx=? (fxdiv -123 10) -13)))
+(with-test-prefix "fxmod" (pass-if "simple" (fx=? (fxmod -123 10) 7)))
 
 (with-test-prefix "fxdiv0-and-mod0"
   (pass-if "simple"
     (call-with-values (lambda () (fxdiv0-and-mod0 -123 10))
       (lambda (d m)
-	(or (and (fx=? d 12) (fx=? m -3))
-	    (throw 'unresolved))))))
+	(and (fx=? d -12) (fx=? m -3))))))
 
-(with-test-prefix "fxdiv0"
-  (pass-if "simple" (or (fx=? (fxdiv0 -123 10) 12) (throw 'unresolved))))
-
-(with-test-prefix "fxmod0"
-  (pass-if "simple" (or (fx=? (fxmod0 -123 10) -3) (throw 'unresolved))))
+(with-test-prefix "fxdiv0" (pass-if "simple" (fx=? (fxdiv0 -123 10) -12)))
+(with-test-prefix "fxmod0" (pass-if "simple" (fx=? (fxmod0 -123 10) -3)))
 
 
 ;; Without working div and mod implementations and without any example results
 ;; from the spec, I have no idea what the results of these functions should
 ;; be.  -juliang
+;; UPDATE: div and mod implementations are now working properly  -mhw
 
 (with-test-prefix "fx+/carry" (pass-if "simple" (throw 'unresolved)))
 

@@ -1,6 +1,6 @@
 ;;; fixnums.scm --- The R6RS fixnums arithmetic library
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -175,40 +175,33 @@
 
   (define (fxdiv fx1 fx2)
     (assert-fixnum fx1 fx2)
-    (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (div fx1 fx2))) r))
+    (div fx1 fx2))
 
   (define (fxmod fx1 fx2)
     (assert-fixnum fx1 fx2)
-    (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (mod fx1 fx2))) r))
+    (mod fx1 fx2))
 
   (define (fxdiv-and-mod fx1 fx2)
     (assert-fixnum fx1 fx2)
-    (if (zero? fx2) (raise (make-assertion-violation)))
     (div-and-mod fx1 fx2))
 
   (define (fxdiv0 fx1 fx2)
     (assert-fixnum fx1 fx2)
-    (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (div0 fx1 fx2))) r))
+    (div0 fx1 fx2))
   
   (define (fxmod0 fx1 fx2)
     (assert-fixnum fx1 fx2)
-    (if (zero? fx2) (raise (make-assertion-violation)))
-    (let ((r (mod0 fx1 fx2))) r))    
+    (mod0 fx1 fx2))
 
   (define (fxdiv0-and-mod0 fx1 fx2)
     (assert-fixnum fx1 fx2)
-    (if (zero? fx2) (raise (make-assertion-violation)))
-    (call-with-values (lambda () (div0-and-mod0 fx1 fx2))
-      (lambda (q r) (values q r))))
+    (div0-and-mod0 fx1 fx2))
 
   (define (fx+/carry fx1 fx2 fx3)
     (assert-fixnum fx1 fx2 fx3)
     (let* ((s (+ fx1 fx2 fx3))
-	   (s0 (mod0 s (inexact->exact (expt 2 (fixnum-width)))))
-	   (s1 (div0 s (inexact->exact (expt 2 (fixnum-width))))))
+	   (s0 (mod0 s (expt 2 (fixnum-width))))
+	   (s1 (div0 s (expt 2 (fixnum-width)))))
       (values s0 s1)))
 
   (define (fx-/carry fx1 fx2 fx3)

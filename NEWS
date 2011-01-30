@@ -12,6 +12,29 @@ Changes in 1.9.15 (since the 1.9.14 prerelease):
 
 ** Changes and bugfixes in numerics code
 
+*** Added two new sets of fast quotient and remainder operators
+
+Added two new sets of fast quotient and remainder operator pairs with
+different semantics than the R5RS operators.  They support not only
+integers, but all reals, including exact rationals and inexact
+floating point numbers.
+
+These procedures accept two real numbers N and D, where the divisor D
+must be non-zero.  `euclidean-quotient' returns the integer Q and
+`euclidean-remainder' returns the real R such that N = Q*D + R and
+0 <= R < |D|.  `euclidean/' returns both Q and R, and is more
+efficient than computing each separately.  Note that when D > 0,
+`euclidean-quotient' returns floor(N/D), and when D < 0 it returns
+ceiling(N/D).
+
+`centered-quotient', `centered-remainder', and `centered/' are similar
+except that the range of remainders is -abs(D/2) <= R < abs(D/2), and
+`centered-quotient' rounds N/D to the nearest integer.
+
+Note that these operators are equivalent to the R6RS integer division
+operators `div', `mod', `div-and-mod', `div0', `mod0', and
+`div0-and-mod0'.
+
 *** `eqv?' and `equal?' now compare numbers equivalently
 
 scm_equal_p `equal?' now behaves equivalently to scm_eqv_p `eqv?' for
@@ -63,6 +86,12 @@ this is not the same as (not (inf? x)) or (not (infinite? x)), since
 NaNs are neither finite nor infinite.
 
 *** R6RS base library changes
+
+**** `div', `mod', `div-and-mod', `div0', `mod0', `div0-and-mod0'
+
+Efficient versions of these R6RS division operators are now supported.
+See the NEWS entry entitled `Added two new sets of fast quotient and
+remainder operators' for more information.
 
 **** `infinite?' changes
 

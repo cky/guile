@@ -1,6 +1,6 @@
 ;;; arithmetic-flonums.test --- Test suite for R6RS (rnrs arithmetic flonums)
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -195,14 +195,13 @@
   (pass-if "simple"
     (call-with-values (lambda () (fldiv0-and-mod0 -123.0 10.0))
       (lambda (div mod) 
-	(or (and (fl=? div -12.0) (fl=? mod -3.0))
-	    (throw 'unresolved))))))
+	(and (fl=? div -12.0) (fl=? mod -3.0))))))
 
 (with-test-prefix "fldiv0" 
-  (pass-if "simple" (or (fl=? (fldiv0 -123.0 10.0) -12.0) (throw 'unresolved))))
+  (pass-if "simple" (fl=? (fldiv0 -123.0 10.0) -12.0)))
 
 (with-test-prefix "flmod0" 
-  (pass-if "simple" (or (fl=? (flmod0 -123.0 10.0) -3.0) (throw 'unresolved))))
+  (pass-if "simple" (fl=? (flmod0 -123.0 10.0) -3.0)))
 
 (with-test-prefix "flnumerator"
   (pass-if "simple" (fl=? (flnumerator 0.5) 1.0))
