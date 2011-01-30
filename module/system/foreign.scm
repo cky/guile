@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,8 @@
 (define-module (system foreign)
   #:use-module (rnrs bytevectors)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:export (void
             float double
             short
@@ -46,7 +48,9 @@
 
             pointer->procedure
             ;; procedure->pointer (see below)
-            make-c-struct parse-c-struct))
+            make-c-struct parse-c-struct
+
+            define-wrapped-pointer-type))
 
 (eval-when (load eval compile)
   (load-extension (string-append "libguile-" (effective-version))
@@ -159,3 +163,36 @@
                     0
                     types)))
     (read-c-struct (pointer->bytevector foreign size) 0 types)))
+
+
+;;;
+;;; Wrapped pointer types.
+;;;
+
+(define-syntax define-wrapped-pointer-type
+  (lambda (stx)
+    "Define helper procedures to wrap pointer objects into Scheme
+objects with a disjoint type.  Specifically, this macro defines PRED, a
+predicate for the new Scheme type, WRAP, a procedure that takes a
+pointer object and returns an object that satisfies PRED, and UNWRAP
+which does the reverse.  PRINT must name a user-defined object printer."
+    (syntax-case stx ()
+      ((_ pred wrap unwrap print)
+       (with-syntax ((type-name (datum->syntax #'pred (gensym)))
+                     (%wrap     (datum->syntax #'wrap (gensym))))
+         #'(begin
+             (define-record-type type-name
+               (%wrap pointer)
+               pred
+               (pointer unwrap))
+             (define wrap
+               ;; Use a weak hash table to preserve pointer identity, i.e.,
+               ;; PTR1 == PTR2 <-> (eq? (wrap PTR1) (wrap PTR2)).
+               (let ((ptr->obj (make-weak-value-hash-table 3000)))
+                 (lambda (ptr)
+                   (let ((key+value (hash-create-handle! ptr->obj ptr #f)))
+                     (or (cdr key+value)
+                         (let ((o (%wrap ptr)))
+                           (set-cdr! key+value o)
+                           o))))))
+             (set-record-type-printer! type-name print)))))))

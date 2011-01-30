@@ -1,6 +1,6 @@
 ;;;; foreign.test --- FFI.           -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -59,6 +59,33 @@
 
   (pass-if "not equal?"
     (not (equal? (make-pointer 123) (make-pointer 456)))))
+
+
+(define-wrapped-pointer-type foo?
+  wrap-foo unwrap-foo
+  (lambda (x p)
+    (format p "#<foo! ~a>" (pointer-address (unwrap-foo x)))))
+
+(with-test-prefix "define-wrapped-pointer-type"
+
+  (pass-if "foo?"
+    (foo? (wrap-foo %null-pointer)))
+
+  (pass-if "unwrap-foo"
+    (let ((p (make-pointer 123)))
+      (eq? p (unwrap-foo (wrap-foo p)))))
+
+  (pass-if "identity"
+    (let ((p1 (make-pointer 123))
+          (p2 (make-pointer 123)))
+      (eq? (wrap-foo p1)
+           (wrap-foo p2))))
+
+  (pass-if "printer"
+    (string=? "#<foo! 123>"
+              (with-output-to-string
+                (lambda ()
+                  (write (wrap-foo (make-pointer 123))))))))
 
 
 (with-test-prefix "pointer<->bytevector"

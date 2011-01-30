@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010
-@c   Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008,
+@c   2009, 2010, 2011 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Foreign Function Interface
@@ -495,6 +495,10 @@ The @code{void} type.  It can be used as the first argument to
 @code{pointer->procedure} to wrap a C function that returns nothing.
 @end defvr
 
+In addition, the symbol @code{*} is used by convention to denote pointer
+types.  Procedures detailed in the following sections, such as
+@code{pointer->procedure}, accept it as a type descriptor.
+
 @node Foreign Variables
 @subsubsection Foreign Variables
 
@@ -611,6 +615,72 @@ pointed to by @var{pointer}.  The C string is assumed to be
 in the current locale encoding.
 
 This is the Scheme equivalent of @code{scm_from_locale_string}.
+@end deffn
+
+@cindex wrapped pointer types
+Most object-oriented C libraries use pointers to specific data
+structures to identify objects.  It is useful in such cases to reify the
+different pointer types as disjoint Scheme types.  The
+@code{define-wrapped-pointer-type} macro simplifies this.
+
+@deffn {Scheme Syntax} define-wrapped-pointer-type pred wrap unwrap print
+Define helper procedures to wrap pointer objects into Scheme objects
+with a disjoint type.  Specifically, this macro defines:
+
+@itemize
+@item @var{pred}, a predicate for the new Scheme type;
+@item @var{wrap}, a procedure that takes a pointer object and returns an
+object that satisfies @var{pred};
+@item @var{unwrap}, which does the reverse.
+@end itemize
+
+@var{wrap} preserves pointer identity, for two pointer objects @var{p1}
+and @var{p2} that are @code{equal?}, @code{(eq? (@var{wrap} @var{p1})
+(@var{wrap} @var{p2})) @result{} #t}.
+
+Finally, @var{print} should name a user-defined procedure to print such
+objects.  The procedure is passed the wrapped object and a port to write
+to.
+
+For example, assume we are wrapping a C library that defines a type,
+@code{bottle_t}, and functions that can be passed @code{bottle_t *}
+pointers to manipulate them.  We could write:
+
+@example
+(define-wrapped-pointer-type bottle?
+  wrap-bottle unwrap-bottle
+  (lambda (b p)
+    (format p "#<bottle of ~a ~x>"
+            (bottle-contents b)
+            (pointer-address (unwrap-foo b)))))
+
+(define grab-bottle
+  ;; Wrapper for `bottle_t *grab (void)'.
+  (let ((grab (pointer->procedure '*
+                                  (dynamic-func "grab_bottle" libbottle)
+                                  '())))
+    (lambda ()
+      "Return a new bottle."
+      (wrap-bottle (grab)))))
+
+(define bottle-contents
+  ;; Wrapper for `const char *bottle_contents (bottle_t *)'.
+  (let ((contents (pointer->procedure '*
+                                      (dynamic-func "bottle_contents"
+                                                     libbottle)
+                                      '(*))))
+    (lambda (b)
+      "Return the contents of B."
+      (pointer->string (contents (unwrap-bottle b))))))
+
+(write (grab-bottle))
+@result{} #<bottle of Ch@^ateau Haut-Brion 803d36>
+@end example
+
+In this example, @code{grab-bottle} is guaranteed to return a genuine
+@code{bottle} object satisfying @code{bottle?}.  Likewise,
+@code{bottle-contents} errors out when its argument is not a genuine
+@code{bottle} object.
 @end deffn
 
 Going back to the @code{scm_numptob} example above, here is how we can
