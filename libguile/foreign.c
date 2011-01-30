@@ -133,10 +133,7 @@ scm_from_pointer (void *ptr, scm_t_pointer_finalizer finalizer)
     ret = null_pointer;
   else
     {
-      scm_t_bits type;
-
-      type = scm_tc7_pointer | (finalizer ? (1 << 16UL) : 0UL);
-      ret = scm_cell (type, (scm_t_bits) ptr);
+      ret = scm_cell (scm_tc7_pointer, (scm_t_bits) ptr);
 
       if (finalizer)
 	{
