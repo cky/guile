@@ -48,7 +48,7 @@
   (let ((make-procedure (slot-ref (car methods) 'make-procedure)))
     (if make-procedure
         (make-procedure
-         (if (null? methods)
+         (if (null? (cdr methods))
              (lambda args
                (no-next-method (method-generic-function (car methods)) args))
              (compute-cmethod (cdr methods) types)))
