@@ -3110,8 +3110,21 @@
 
 (with-test-prefix "expt"
   (pass-if (documented? expt))
-  (pass-if-exception "non-numeric base" exception:wrong-type-arg
-                     (expt #t 0))
+
+  ;;
+  ;; expt no longer requires its first argument to be a scheme number,
+  ;; for the sake of extensibility, and expt calls integer-expt for
+  ;; integer powers.  To raise to a positive power, all that is required
+  ;; is that it can be multiplied using `*'.  For negative powers we
+  ;; must also be able to find the reciprocal.  If we try to raise #t to
+  ;; any power other than 0 or 1 it may throw an exception, depending on
+  ;; whether * has been defined for #t.  However, when raising to the 0
+  ;; or 1 power, the first argument is not manipulated at all.
+  ;;
+  ;; (pass-if-exception "non-numeric base" exception:wrong-type-arg
+  ;;                    (expt #t 0))
+  ;;
+
   (pass-if (eqv? 1 (expt 0 0)))
   (pass-if (eqv? 1 (expt 0.0 0)))
   (pass-if (eqv? 1.0 (expt 0 0.0)))
@@ -3277,8 +3290,6 @@
 (with-test-prefix "integer-expt"
   (pass-if (documented? integer-expt))
 
-  (pass-if-exception "non-numeric base" exception:wrong-type-arg
-                     (integer-expt #t 0))
   (pass-if-exception "2^+inf" exception:wrong-type-arg
     (integer-expt 2 +inf.0))
   (pass-if-exception "2^-inf" exception:wrong-type-arg

@@ -3052,23 +3052,29 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
   int i2_is_big = 0;
   SCM acc = SCM_I_MAKINUM (1L);
 
-  SCM_VALIDATE_NUMBER (SCM_ARG1, n);
-  if (!SCM_I_INUMP (k) && !SCM_BIGP (k))
+  /* Specifically refrain from checking the type of the first argument.
+     This allows us to exponentiate any object that can be multiplied.
+     If we must raise to a negative power, we must also be able to
+     take its reciprocal. */
+  if (!SCM_LIKELY (SCM_I_INUMP (k)) && !SCM_LIKELY (SCM_BIGP (k)))
     SCM_WRONG_TYPE_ARG (2, k);
 
-  if (scm_is_true (scm_zero_p (n)))
+  if (SCM_UNLIKELY (scm_is_eq (k, SCM_INUM0)))
+    return SCM_INUM1;  /* n^(exact0) is exact 1, regardless of n */
+  else if (SCM_UNLIKELY (scm_is_eq (n, SCM_I_MAKINUM (-1L))))
+    return scm_is_false (scm_even_p (k)) ? n : SCM_INUM1;
+  /* The next check is necessary only because R6RS specifies different
+     behavior for 0^(-k) than for (/ 0).  If n is not a scheme number,
+     we simply skip this case and move on. */
+  else if (SCM_NUMBERP (n) && scm_is_true (scm_zero_p (n)))
     {
-      if (scm_is_true (scm_zero_p (k)))  /* 0^0 == 1 per R5RS */
-	return acc;        /* return exact 1, regardless of n */
-      else if (scm_is_true (scm_positive_p (k)))
+      /* k cannot be 0 at this point, because we
+	 have already checked for that case above */
+      if (scm_is_true (scm_positive_p (k)))
 	return n;
       else  /* return NaN for (0 ^ k) for negative k per R6RS */
 	return scm_nan ();
     }
-  else if (scm_is_eq (n, acc))
-    return acc;
-  else if (scm_is_eq (n, SCM_I_MAKINUM (-1L)))
-    return scm_is_false (scm_even_p (k)) ? n : acc;
 
   if (SCM_I_INUMP (k))
     i2 = SCM_I_INUM (k);

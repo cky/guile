@@ -58,6 +58,17 @@ integer-expt.  This is more correct, and conforming to R6RS, but seems
 to be incompatible with R5RS, which would return 0 for all non-zero
 values of N.
 
+*** `expt' and `integer-expt' are more generic, less strict
+
+When raising to an exact non-negative integer exponent, `expt' and
+`integer-expt' are now able to exponentiate any object that can be
+multiplied using `*'.  They can also raise an object to an exact
+negative integer power if its reciprocal can be taken using `/'.
+In order to allow this, the type of the first argument is no longer
+checked when raising to an exact integer power.  If the exponent is 0
+or 1, the first parameter is not manipulated at all, and need not
+even support multiplication.
+
 *** Infinities are no longer integers, nor rationals
 
 scm_integer_p `integer?' and scm_rational_p `rational?' now return #f
