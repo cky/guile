@@ -549,6 +549,10 @@ function that will be called when the pointer object becomes
 unreachable.
 @end deffn
 
+@deffn {Scheme Procedure} pointer? obj
+Return @code{#t} if @var{obj} is a pointer object, @code{#f} otherwise.
+@end deffn
+
 @defvr {Scheme Variable} %null-pointer
 A foreign pointer whose value is 0.
 @end defvr

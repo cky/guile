@@ -100,6 +100,16 @@ pointer_finalizer_trampoline (GC_PTR ptr, GC_PTR data)
   finalizer (SCM_POINTER_VALUE (PTR2SCM (ptr)));
 }
 
+SCM_DEFINE (scm_pointer_p, "pointer?", 1, 0, 0,
+	    (SCM obj),
+	    "Return @code{#t} if @var{obj} is a pointer object, "
+	    "@code{#f} otherwise.\n")
+#define FUNC_NAME s_scm_pointer_p
+{
+  return scm_from_bool (SCM_POINTER_P (obj));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
 	    (SCM address, SCM finalizer),
 	    "Return a foreign pointer object pointing to @var{address}. "

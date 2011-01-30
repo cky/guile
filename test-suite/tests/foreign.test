@@ -30,6 +30,9 @@
 
 (with-test-prefix "null pointer"
 
+  (pass-if "pointer?"
+    (pointer? %null-pointer))
+
   (pass-if "zero"
     (= 0 (pointer-address %null-pointer)))
 
@@ -45,6 +48,9 @@
 
 
 (with-test-prefix "make-pointer"
+
+  (pass-if "pointer?"
+    (pointer? (make-pointer 123)))
 
   (pass-if "address preserved"
     (= 123 (pointer-address (make-pointer 123))))

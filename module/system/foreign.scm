@@ -35,6 +35,7 @@
 
             %null-pointer
             null-pointer?
+            pointer?
             make-pointer
             pointer-address
 
