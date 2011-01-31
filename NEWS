@@ -10,6 +10,86 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes in 1.9.15 (since the 1.9.14 prerelease):
 
+** Formally deprecate omission of port to `format'
+    
+It used to be that you could omit passing a port to `format', in some
+cases.  This still works, but has been formally deprecated.
+    
+** ECMAScript fixes
+
+Noah Lavine and Kan-Ru Chen noticed and fixed a number of embarrassing
+bugs in object creation, unicode literals in strings, empty function
+bodies, non-breaking whitespace, and numeric literals.
+
+** `(web ...)' changes
+
+*** `parse-uri', `unparse-uri' now called `string->uri', `uri->string'
+    
+*** `uri-decode' takes `#:encoding' keyword argument, not `#:charset'
+
+*** HTTP header representation change
+
+Guile properly garbage-collects symbols, so there's no need to read some
+headers as symbols and some as strings: all header names are symbols
+now.  The same goes for many key-value constructs in headers.  Guile
+parses the challenge/authentication headers now, as well.  Header decl
+objects are no longer exposed to the user.
+
+*** Request and response bodies are always bytevectors
+
+Reading bodies as latin-1 strings was a cute hack, but not general, so
+Guile's only official fetch-me-the-body procedures return bytevectors
+now.
+
+** New procedures: scm_{to,from}_{utf8,latin1}_symbol{n,}
+** New procedures: scm_{to,from}_{utf8,utf32,latin1}_symbol{n,}
+    
+These new procedures convert to and from string representations in
+particular encodings.
+
+Basically, continue to use locale encoding for user input, user output,
+or interacting with the C library.  Use latin1 for ASCII, and for
+literals in source code.  Use utf8 for interaction with modern libraries
+which deal in UTF-8.  Use utf32 for interaction with utf32-using
+libraries.  Otherwise use scm_to_stringn or scm_from_stringn with a
+specific encoding.
+
+Also, scm_from_latin1_symbol is quite a bit faster now.
+
+** Documentation updates
+
+The GOOPS manual saw a lot of work, as well as documentation for the
+`(web ...)' modules.
+
+** Guile uses iconv directly for reading from and writing to ports.
+
+[What does this mean for users?]
+
+** Source files default to UTF-8.
+
+If source files do not specify their encoding via a `coding:' block,
+the default encoding is UTF-8, instead of being taken from the current
+locale.
+
+** Man page updates
+
+Thanks to Mark Harig for many suggestions regarding the manual page,
+which is getting better.
+
+** Interactive Guile installs the current locale.
+    
+Instead of leaving the user in the "C" locale, running the Guile REPL
+installs the current locale.  [FIXME xref?]
+
+** `recv!', `recvfrom!', `send', `sendto' now deal in bytevectors
+
+These socket procedures now take bytevectors as arguments, instead of
+strings.  There is some deprecated string support, however.
+
+** New foreign API: `define-wrapped-pointer-type', `pointer?'
+    
+See "Foreign Types", for more.
+
 ** Changes and bugfixes in numerics code
 
 *** Added two new sets of fast quotient and remainder operators
