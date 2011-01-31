@@ -1244,7 +1244,7 @@ values.
 @deffn {Scheme Procedure} euclidean/ x y
 @deffnx {Scheme Procedure} euclidean-quotient x y
 @deffnx {Scheme Procedure} euclidean-remainder x y
-@deffnx {C Function} scm_euclidean_quo_and_rem (x y)
+@deffnx {C Function} scm_euclidean_divide (x y)
 @deffnx {C Function} scm_euclidean_quotient (x y)
 @deffnx {C Function} scm_euclidean_remainder (x y)
 These procedures accept two real numbers @var{x} and @var{y}, where the
@@ -1275,7 +1275,7 @@ Note that these operators are equivalent to the R6RS operators
 @deffn {Scheme Procedure} centered/ x y
 @deffnx {Scheme Procedure} centered-quotient x y
 @deffnx {Scheme Procedure} centered-remainder x y
-@deffnx {C Function} scm_centered_quo_and_rem (x y)
+@deffnx {C Function} scm_centered_divide (x y)
 @deffnx {C Function} scm_centered_quotient (x y)
 @deffnx {C Function} scm_centered_remainder (x y)
 These procedures accept two real numbers @var{x} and @var{y}, where the

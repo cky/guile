@@ -1384,10 +1384,10 @@ scm_i_slow_exact_euclidean_remainder (SCM x, SCM y)
 }
 
 
-static SCM scm_i_inexact_euclidean_quo_and_rem (double x, double y);
-static SCM scm_i_slow_exact_euclidean_quo_and_rem (SCM x, SCM y);
+static SCM scm_i_inexact_euclidean_divide (double x, double y);
+static SCM scm_i_slow_exact_euclidean_divide (SCM x, SCM y);
 
-SCM_PRIMITIVE_GENERIC (scm_euclidean_quo_and_rem, "euclidean/", 2, 0, 0,
+SCM_PRIMITIVE_GENERIC (scm_euclidean_divide, "euclidean/", 2, 0, 0,
 		       (SCM x, SCM y),
 		       "Return the integer @var{q} and the real number @var{r}\n"
 		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
@@ -1400,7 +1400,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quo_and_rem, "euclidean/", 2, 0, 0,
 		       "(euclidean/ -123.2 -63.5) @result{} 2.0 and 3.8\n"
 		       "(euclidean/ 16/3 -10/7) @result{} -3 and 22/21\n"
 		       "@end lisp")
-#define FUNC_NAME s_scm_euclidean_quo_and_rem
+#define FUNC_NAME s_scm_euclidean_divide
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
@@ -1408,7 +1408,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quo_and_rem, "euclidean/", 2, 0, 0,
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_quo_and_rem);
+	    scm_num_overflow (s_scm_euclidean_divide);
 	  else
 	    {
 	      scm_t_inum xx = SCM_I_INUM (x);
@@ -1448,13 +1448,13 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quo_and_rem, "euclidean/", 2, 0, 0,
 	    }
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quo_and_rem
+	return scm_i_inexact_euclidean_divide
 	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_quo_and_rem (x, y);
+	return scm_i_slow_exact_euclidean_divide (x, y);
       else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quo_and_rem, x, y, SCM_ARG2,
-			    s_scm_euclidean_quo_and_rem);
+	SCM_WTA_DISPATCH_2 (g_scm_euclidean_divide, x, y, SCM_ARG2,
+			    s_scm_euclidean_divide);
     }
   else if (SCM_BIGP (x))
     {
@@ -1462,7 +1462,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quo_and_rem, "euclidean/", 2, 0, 0,
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_quo_and_rem);
+	    scm_num_overflow (s_scm_euclidean_divide);
 	  else
 	    {
 	      SCM q = scm_i_mkbig ();
@@ -1496,40 +1496,40 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quo_and_rem, "euclidean/", 2, 0, 0,
 					 scm_i_normbig (r)));
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quo_and_rem
+	return scm_i_inexact_euclidean_divide
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_quo_and_rem (x, y);
+	return scm_i_slow_exact_euclidean_divide (x, y);
       else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quo_and_rem, x, y, SCM_ARG2,
-			    s_scm_euclidean_quo_and_rem);
+	SCM_WTA_DISPATCH_2 (g_scm_euclidean_divide, x, y, SCM_ARG2,
+			    s_scm_euclidean_divide);
     }
   else if (SCM_REALP (x))
     {
       if (SCM_REALP (y) || SCM_I_INUMP (y) ||
 	  SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_inexact_euclidean_quo_and_rem
+	return scm_i_inexact_euclidean_divide
 	  (SCM_REAL_VALUE (x), scm_to_double (y));
       else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quo_and_rem, x, y, SCM_ARG2,
-			    s_scm_euclidean_quo_and_rem);
+	SCM_WTA_DISPATCH_2 (g_scm_euclidean_divide, x, y, SCM_ARG2,
+			    s_scm_euclidean_divide);
     }
   else if (SCM_FRACTIONP (x))
     {
       if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quo_and_rem
+	return scm_i_inexact_euclidean_divide
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
       else
-	return scm_i_slow_exact_euclidean_quo_and_rem (x, y);
+	return scm_i_slow_exact_euclidean_divide (x, y);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_quo_and_rem, x, y, SCM_ARG1,
-			s_scm_euclidean_quo_and_rem);
+    SCM_WTA_DISPATCH_2 (g_scm_euclidean_divide, x, y, SCM_ARG1,
+			s_scm_euclidean_divide);
 }
 #undef FUNC_NAME
 
 static SCM
-scm_i_inexact_euclidean_quo_and_rem (double x, double y)
+scm_i_inexact_euclidean_divide (double x, double y)
 {
   double q, r;
 
@@ -1538,7 +1538,7 @@ scm_i_inexact_euclidean_quo_and_rem (double x, double y)
   else if (SCM_LIKELY (y < 0))
     q = ceil (x / y);
   else if (y == 0)
-    scm_num_overflow (s_scm_euclidean_quo_and_rem);  /* or return a NaN? */
+    scm_num_overflow (s_scm_euclidean_divide);  /* or return a NaN? */
   else
     q = guile_NaN;
   r = x - q * y;
@@ -1550,22 +1550,22 @@ scm_i_inexact_euclidean_quo_and_rem (double x, double y)
    We use this only if both arguments are exact,
    and at least one of them is a fraction */
 static SCM
-scm_i_slow_exact_euclidean_quo_and_rem (SCM x, SCM y)
+scm_i_slow_exact_euclidean_divide (SCM x, SCM y)
 {
   SCM q, r;
 
   if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_quo_and_rem, x, y, SCM_ARG1,
-			s_scm_euclidean_quo_and_rem);
+    SCM_WTA_DISPATCH_2 (g_scm_euclidean_divide, x, y, SCM_ARG1,
+			s_scm_euclidean_divide);
   else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_quo_and_rem, x, y, SCM_ARG2,
-			s_scm_euclidean_quo_and_rem);
+    SCM_WTA_DISPATCH_2 (g_scm_euclidean_divide, x, y, SCM_ARG2,
+			s_scm_euclidean_divide);
   else if (scm_is_true (scm_positive_p (y)))
     q = scm_floor (scm_divide (x, y));
   else if (scm_is_true (scm_negative_p (y)))
     q = scm_ceiling (scm_divide (x, y));
   else
-    scm_num_overflow (s_scm_euclidean_quo_and_rem);
+    scm_num_overflow (s_scm_euclidean_divide);
   r = scm_difference (x, scm_product (q, y));
   return scm_values (scm_list_2 (q, r));
 }
@@ -2025,11 +2025,11 @@ scm_i_slow_exact_centered_remainder (SCM x, SCM y)
 }
 
 
-static SCM scm_i_inexact_centered_quo_and_rem (double x, double y);
-static SCM scm_i_bigint_centered_quo_and_rem (SCM x, SCM y);
-static SCM scm_i_slow_exact_centered_quo_and_rem (SCM x, SCM y);
+static SCM scm_i_inexact_centered_divide (double x, double y);
+static SCM scm_i_bigint_centered_divide (SCM x, SCM y);
+static SCM scm_i_slow_exact_centered_divide (SCM x, SCM y);
 
-SCM_PRIMITIVE_GENERIC (scm_centered_quo_and_rem, "centered/", 2, 0, 0,
+SCM_PRIMITIVE_GENERIC (scm_centered_divide, "centered/", 2, 0, 0,
 		       (SCM x, SCM y),
 		       "Return the integer @var{q} and the real number @var{r}\n"
 		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
@@ -2042,7 +2042,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quo_and_rem, "centered/", 2, 0, 0,
 		       "(centered/ -123.2 -63.5) @result{} 2.0 and 3.8\n"
 		       "(centered/ 16/3 -10/7) @result{} -4 and -8/21\n"
 		       "@end lisp")
-#define FUNC_NAME s_scm_centered_quo_and_rem
+#define FUNC_NAME s_scm_centered_divide
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
@@ -2050,7 +2050,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quo_and_rem, "centered/", 2, 0, 0,
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_centered_quo_and_rem);
+	    scm_num_overflow (s_scm_centered_divide);
 	  else
 	    {
 	      scm_t_inum xx = SCM_I_INUM (x);
@@ -2089,18 +2089,18 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quo_and_rem, "centered/", 2, 0, 0,
       else if (SCM_BIGP (y))
 	{
 	  /* Pass a denormalized bignum version of x (even though it
-	     can fit in a fixnum) to scm_i_bigint_centered_quo_and_rem */
-	  return scm_i_bigint_centered_quo_and_rem
+	     can fit in a fixnum) to scm_i_bigint_centered_divide */
+	  return scm_i_bigint_centered_divide
 	    (scm_i_long2big (SCM_I_INUM (x)), y);
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_centered_quo_and_rem
+	return scm_i_inexact_centered_divide
 	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_quo_and_rem (x, y);
+	return scm_i_slow_exact_centered_divide (x, y);
       else
-	SCM_WTA_DISPATCH_2 (g_scm_centered_quo_and_rem, x, y, SCM_ARG2,
-			    s_scm_centered_quo_and_rem);
+	SCM_WTA_DISPATCH_2 (g_scm_centered_divide, x, y, SCM_ARG2,
+			    s_scm_centered_divide);
     }
   else if (SCM_BIGP (x))
     {
@@ -2108,7 +2108,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quo_and_rem, "centered/", 2, 0, 0,
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_centered_quo_and_rem);
+	    scm_num_overflow (s_scm_centered_divide);
 	  else
 	    {
 	      SCM q = scm_i_mkbig ();
@@ -2146,42 +2146,42 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quo_and_rem, "centered/", 2, 0, 0,
 	    }
 	}
       else if (SCM_BIGP (y))
-	return scm_i_bigint_centered_quo_and_rem (x, y);
+	return scm_i_bigint_centered_divide (x, y);
       else if (SCM_REALP (y))
-	return scm_i_inexact_centered_quo_and_rem
+	return scm_i_inexact_centered_divide
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_quo_and_rem (x, y);
+	return scm_i_slow_exact_centered_divide (x, y);
       else
-	SCM_WTA_DISPATCH_2 (g_scm_centered_quo_and_rem, x, y, SCM_ARG2,
-			    s_scm_centered_quo_and_rem);
+	SCM_WTA_DISPATCH_2 (g_scm_centered_divide, x, y, SCM_ARG2,
+			    s_scm_centered_divide);
     }
   else if (SCM_REALP (x))
     {
       if (SCM_REALP (y) || SCM_I_INUMP (y) ||
 	  SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_inexact_centered_quo_and_rem
+	return scm_i_inexact_centered_divide
 	  (SCM_REAL_VALUE (x), scm_to_double (y));
      else
-	SCM_WTA_DISPATCH_2 (g_scm_centered_quo_and_rem, x, y, SCM_ARG2,
-			    s_scm_centered_quo_and_rem);
+	SCM_WTA_DISPATCH_2 (g_scm_centered_divide, x, y, SCM_ARG2,
+			    s_scm_centered_divide);
     }
   else if (SCM_FRACTIONP (x))
     {
       if (SCM_REALP (y))
-	return scm_i_inexact_centered_quo_and_rem
+	return scm_i_inexact_centered_divide
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
       else
-	return scm_i_slow_exact_centered_quo_and_rem (x, y);
+	return scm_i_slow_exact_centered_divide (x, y);
     }
   else
-    SCM_WTA_DISPATCH_2 (g_scm_centered_quo_and_rem, x, y, SCM_ARG1,
-			s_scm_centered_quo_and_rem);
+    SCM_WTA_DISPATCH_2 (g_scm_centered_divide, x, y, SCM_ARG1,
+			s_scm_centered_divide);
 }
 #undef FUNC_NAME
 
 static SCM
-scm_i_inexact_centered_quo_and_rem (double x, double y)
+scm_i_inexact_centered_divide (double x, double y)
 {
   double q, r;
 
@@ -2190,7 +2190,7 @@ scm_i_inexact_centered_quo_and_rem (double x, double y)
   else if (SCM_LIKELY (y < 0))
     q = ceil (x/y - 0.5);
   else if (y == 0)
-    scm_num_overflow (s_scm_centered_quo_and_rem);  /* or return a NaN? */
+    scm_num_overflow (s_scm_centered_divide);  /* or return a NaN? */
   else
     q = guile_NaN;
   r = x - q * y;
@@ -2201,7 +2201,7 @@ scm_i_inexact_centered_quo_and_rem (double x, double y)
 /* Assumes that both x and y are bigints, though
    x might be able to fit into a fixnum. */
 static SCM
-scm_i_bigint_centered_quo_and_rem (SCM x, SCM y)
+scm_i_bigint_centered_divide (SCM x, SCM y)
 {
   SCM q, r, min_r;
 
@@ -2254,16 +2254,16 @@ scm_i_bigint_centered_quo_and_rem (SCM x, SCM y)
    We use this only if both arguments are exact,
    and at least one of them is a fraction */
 static SCM
-scm_i_slow_exact_centered_quo_and_rem (SCM x, SCM y)
+scm_i_slow_exact_centered_divide (SCM x, SCM y)
 {
   SCM q, r;
 
   if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    SCM_WTA_DISPATCH_2 (g_scm_centered_quo_and_rem, x, y, SCM_ARG1,
-			s_scm_centered_quo_and_rem);
+    SCM_WTA_DISPATCH_2 (g_scm_centered_divide, x, y, SCM_ARG1,
+			s_scm_centered_divide);
   else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    SCM_WTA_DISPATCH_2 (g_scm_centered_quo_and_rem, x, y, SCM_ARG2,
-			s_scm_centered_quo_and_rem);
+    SCM_WTA_DISPATCH_2 (g_scm_centered_divide, x, y, SCM_ARG2,
+			s_scm_centered_divide);
   else if (scm_is_true (scm_positive_p (y)))
     q = scm_floor (scm_sum (scm_divide (x, y),
 			    exactly_one_half));
@@ -2271,7 +2271,7 @@ scm_i_slow_exact_centered_quo_and_rem (SCM x, SCM y)
     q = scm_ceiling (scm_difference (scm_divide (x, y),
 				     exactly_one_half));
   else
-    scm_num_overflow (s_scm_centered_quo_and_rem);
+    scm_num_overflow (s_scm_centered_divide);
   r = scm_difference (x, scm_product (q, y));
   return scm_values (scm_list_2 (q, r));
 }
