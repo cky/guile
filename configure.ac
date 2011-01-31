@@ -4,7 +4,8 @@ dnl
 
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -74,6 +75,8 @@ AM_PROG_CC_C_O
 
 AC_LIBTOOL_DLOPEN
 AC_PROG_LIBTOOL
+
+AM_CONDITIONAL([HAVE_SHARED_LIBRARIES], [test "x$enable_shared" = "xyes"])
 
 dnl Check for libltdl.
 AC_LIB_HAVE_LINKFLAGS([ltdl], [], [#include <ltdl.h>],

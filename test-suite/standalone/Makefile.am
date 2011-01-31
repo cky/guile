@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Software Foundation, Inc.
+## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
+##   2011 Free Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -78,6 +79,8 @@ test_round_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.l
 check_PROGRAMS += test-round
 TESTS += test-round
 
+if HAVE_SHARED_LIBRARIES
+
 # test-asmobs
 noinst_LTLIBRARIES += libtest-asmobs.la
 libtest_asmobs_la_SOURCES = test-asmobs-lib.c
@@ -96,6 +99,8 @@ libtest_ffi_la_LDFLAGS = -module -no-undefined -rpath `pwd` # so libtool will re
 libtest_ffi_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
 check_SCRIPTS += test-ffi
 TESTS += test-ffi
+
+endif HAVE_SHARED_LIBRARIES
 
 # test-list
 test_list_SOURCES = test-list.c
@@ -154,6 +159,8 @@ test_scm_take_u8vector_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIV
 check_PROGRAMS += test-scm-take-u8vector
 TESTS += test-scm-take-u8vector
 
+if HAVE_SHARED_LIBRARIES
+
 # test-extensions
 noinst_LTLIBRARIES += libtest-extensions.la
 libtest_extensions_la_SOURCES = test-extensions-lib.c
@@ -162,6 +169,8 @@ libtest_extensions_la_LDFLAGS = -module -no-undefined -rpath `pwd` # so libtool 
 libtest_extensions_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
 check_SCRIPTS += test-extensions
 TESTS += test-extensions
+
+endif HAVE_SHARED_LIBRARIES
 
 if BUILD_PTHREAD_SUPPORT
 
