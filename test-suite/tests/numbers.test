@@ -18,6 +18,7 @@
 (define-module (test-suite test-numbers)
   #:use-module (test-suite lib)
   #:use-module (ice-9 documentation)
+  #:use-module (srfi srfi-1)    ; list library
   #:use-module (srfi srfi-11))  ; let-values
 
 ;;;
@@ -100,12 +101,9 @@
 
 ;;
 ;; Like eqv?, except that inexact finite numbers need only be within
-;; test-epsilon (1e-10) to be considered equal.  An exception is made
-;; for zeroes, however.  If X is zero, then it is tested using eqv?
-;; without any allowance for imprecision.  In particular, 0.0 is
-;; considered distinct from -0.0.  For non-real complex numbers,
-;; each component is tested according to these rules.  The intent
-;; is that the known-correct value will be the first parameter.
+;; test-epsilon (1e-10) to be considered equal.  For non-real complex
+;; numbers, each component is tested according to these rules.  The
+;; intent is that the known-correct value will be the first parameter.
 ;;
 (define (test-eqv? x y)
   (cond ((real? x)
@@ -118,7 +116,7 @@
 
 ;; Auxiliary predicate used by test-eqv?
 (define (test-real-eqv? x y)
-  (cond ((or (exact? x) (zero? x) (nan? x) (inf? x))
+  (cond ((or (exact? x) (nan? x) (inf? x))
 	 (eqv? x y))
 	(else (and (inexact? y) (> test-epsilon (abs (- x y)))))))
 
@@ -3551,6 +3549,24 @@
               (hi (+ hi test-epsilon)))
           (<= lo x hi))))
 
+  ;; (cartesian-product-map list '(a b) '(1 2))
+  ;; ==> ((a 1) (a 2) (b 1) (b 2))
+  (define (cartesian-product-map f . lsts)
+    (define (cartmap rev-head lsts)
+      (if (null? lsts)
+          (list (apply f (reverse rev-head)))
+          (append-map (lambda (x) (cartmap (cons x rev-head) (cdr lsts)))
+                      (car lsts))))
+    (cartmap '() lsts))
+
+  (define (cartesian-product-for-each f . lsts)
+    (define (cartfor rev-head lsts)
+      (if (null? lsts)
+          (apply f (reverse rev-head))
+          (for-each (lambda (x) (cartfor (cons x rev-head) (cdr lsts)))
+                    (car lsts))))
+    (cartfor '() lsts))
+
   (define (safe-euclidean-quotient x y)
     (cond ((not (and (real? x) (real? y))) (throw 'wrong-type-arg))
           ((zero? y) (throw 'divide-by-zero))
@@ -3560,20 +3576,19 @@
           (else (throw 'unknown-problem))))
 
   (define (safe-euclidean-remainder x y)
-    (- x (* y (safe-euclidean-quotient x y))))
+    (let ((q (safe-euclidean-quotient x y)))
+      (- x (* y q))))
 
-  (define (safe-euclidean/ x y)
-    (let ((q (safe-euclidean-quotient x y))
-          (r (safe-euclidean-remainder x y)))
-      (if (not (and (eq? (exact? q) (exact? r))
-                    (eq? (exact? q) (and (exact? x) (exact? y)))
-                    (test-real-eqv? r (- x (* q y)))
-                    (or (and (integer? q)
-                             (test-within-range? 0 (abs y) r))
-                        (not (finite? x))
-                        (not (finite? y)))))
-          (throw 'safe-euclidean/-is-broken (list x y q r))
-          (values q r))))
+  (define (valid-euclidean-answer? x y q r)
+    (if (and (finite? x) (finite? y))
+        (and (eq? (exact? q)
+                  (exact? r)
+                  (and (exact? x) (exact? y)))
+             (integer? q)
+             (test-eqv? r (- x (* q y)))
+             (test-within-range? 0 (abs y) r))
+        (and (test-eqv? q (safe-euclidean-quotient  x y))
+             (test-eqv? r (safe-euclidean-remainder x y)))))
 
   (define (safe-centered-quotient x y)
     (cond ((not (and (real? x) (real? y))) (throw 'wrong-type-arg))
@@ -3584,37 +3599,36 @@
           (else (throw 'unknown-problem))))
 
   (define (safe-centered-remainder x y)
-    (- x (* y (safe-centered-quotient x y))))
+    (let ((q (safe-centered-quotient x y)))
+      (- x (* y q))))
 
-  (define (safe-centered/ x y)
-    (let ((q (safe-centered-quotient x y))
-          (r (safe-centered-remainder x y)))
-      (if (not (and (eq? (exact? q) (exact? r))
-                    (eq? (exact? q) (and (exact? x) (exact? y)))
-                    (test-real-eqv? r (- x (* q y)))
-                    (or (and (integer? q)
-                             (test-within-range? (* -1/2 (abs y))
-                                                 (* +1/2 (abs y))
-                                                 r))
-                        (not (finite? x))
-                        (not (finite? y)))))
-          (throw 'safe-centered/-is-broken (list x y q r))
-          (values q r))))
+  (define (valid-centered-answer? x y q r)
+    (if (and (finite? x) (finite? y))
+        (and (eq? (exact? q)
+                  (exact? r)
+                  (and (exact? x) (exact? y)))
+             (integer? q)
+             (test-eqv? r (- x (* q y)))
+             (test-within-range? (* -1/2 (abs y))
+                                 (* +1/2 (abs y))
+                                 r))
+        (and (test-eqv? q (safe-centered-quotient  x y))
+             (test-eqv? r (safe-centered-remainder x y)))))
 
   (define test-numerators
-    (append
-     (list  123  125  127  130  3  5  10  123.2  125.0
-            -123 -125 -127 -130 -3 -5 -10 -123.2 -125.0
-            127.2  130.0  123/7  125/7  127/7  130/7
-            -127.2 -130.0 -123/7 -125/7 -127/7 -130/7
-            0 +0.0 -0.0 +inf.0 -inf.0 +nan.0
-            most-negative-fixnum (1+ most-positive-fixnum)
-            (1- most-negative-fixnum))
-     (apply append
-            (map (lambda (x) (list (* x (+ 1 most-positive-fixnum))
-                                   (* x (+ 2 most-positive-fixnum))))
-                 '( 123  125  127  130  3  5  10
-                   -123 -125 -127 -130 -3 -5 -10)))))
+    (append (cartesian-product-map * '(1 -1)
+                                   '(123 125 127 130 3 5 10
+                                         123.2 125.0 127.2 130.0
+                                         123/7 125/7 127/7 130/7))
+            (cartesian-product-map * '(1 -1)
+                                   '(123 125 127 130 3 5 10)
+                                   (list 1
+                                         (+ 1 most-positive-fixnum)
+                                         (+ 2 most-positive-fixnum)))
+            (list 0 +0.0 -0.0 +inf.0 -inf.0 +nan.0
+                  most-negative-fixnum
+                  (1+ most-positive-fixnum)
+                  (1- most-negative-fixnum))))
 
   (define test-denominators
     (list   10  5  10/7  127/2  10.0  63.5
@@ -3623,58 +3637,32 @@
             (+ 1 most-positive-fixnum) (+ -1 most-negative-fixnum)
             (+ 2 most-positive-fixnum) (+ -2 most-negative-fixnum)))
 
-  (define (do-tests-1 op-name real-op safe-op)
-    (for-each (lambda (d)
-                (for-each (lambda (n)
-                            (run-test (list op-name n d) #t
-                                      (lambda ()
-                                        (test-eqv? (real-op n d)
-                                                   (safe-op n d)))))
-                          test-numerators))
-              test-denominators))
-
-  (define (do-tests-2 op-name real-op safe-op)
-    (for-each (lambda (d)
-                (for-each (lambda (n)
-                            (run-test (list op-name n d) #t
-                                      (lambda ()
-                                        (let-values
-                                            (((q  r)  (safe-op n d))
-                                             ((q1 r1) (real-op n d)))
-                                          (and (test-eqv? q q1)
-                                               (test-eqv? r r1))))))
-                          test-numerators))
-              test-denominators))
-
-  (pass-if (documented? euclidean/))
-  (pass-if (documented? euclidean-quotient))
-  (pass-if (documented? euclidean-remainder))
-  (pass-if (documented? centered/))
-  (pass-if (documented? centered-quotient))
-  (pass-if (documented? centered-remainder))
-
-  (with-test-prefix "euclidean-quotient"
-    (do-tests-1 'euclidean-quotient
-                euclidean-quotient
-                safe-euclidean-quotient))
-  (with-test-prefix "euclidean-remainder"
-    (do-tests-1 'euclidean-remainder
-                euclidean-remainder
-                safe-euclidean-remainder))
   (with-test-prefix "euclidean/"
-    (do-tests-2 'euclidean/
-                euclidean/
-                safe-euclidean/))
+    (pass-if (documented? euclidean/))
+    (pass-if (documented? euclidean-quotient))
+    (pass-if (documented? euclidean-remainder))
 
-  (with-test-prefix "centered-quotient"
-    (do-tests-1 'centered-quotient
-                centered-quotient
-                safe-centered-quotient))
-  (with-test-prefix "centered-remainder"
-    (do-tests-1 'centered-remainder
-                centered-remainder
-                safe-centered-remainder))
+    (cartesian-product-for-each
+     (lambda (n d)
+       (run-test (list 'euclidean/ n d) #t
+                 (lambda ()
+                   (let-values (((q r) (euclidean/ n d)))
+                     (and (test-eqv? q (euclidean-quotient n d))
+                          (test-eqv? r (euclidean-remainder n d))
+                          (valid-euclidean-answer? n d q r))))))
+     test-numerators test-denominators))
+
   (with-test-prefix "centered/"
-    (do-tests-2 'centered/
-                centered/
-                safe-centered/)))
+    (pass-if (documented? centered/))
+    (pass-if (documented? centered-quotient))
+    (pass-if (documented? centered-remainder))
+
+    (cartesian-product-for-each
+     (lambda (n d)
+       (run-test (list 'centered/ n d) #t
+                 (lambda ()
+                   (let-values (((q r) (centered/ n d)))
+                     (and (test-eqv? q (centered-quotient n d))
+                          (test-eqv? r (centered-remainder n d))
+                          (valid-centered-answer? n d q r))))))
+     test-numerators test-denominators)))
