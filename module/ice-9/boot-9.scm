@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
 ;;;; Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -334,12 +334,13 @@ If there is no handler at all, Guile prints an error and then exits."
 ;; have booted.
 (define (module-name x)
   '(guile))
+(define (module-add! module sym var)
+  (hashq-set! (%get-pre-modules-obarray) sym var))
 (define (module-define! module sym val)
   (let ((v (hashq-ref (%get-pre-modules-obarray) sym)))
     (if v
         (variable-set! v val)
-        (hashq-set! (%get-pre-modules-obarray) sym
-                    (make-variable val)))))
+        (module-add! (current-module) sym (make-variable val)))))
 (define (module-ref module sym)
   (let ((v (module-variable module sym)))
     (if v (variable-ref v) (error "badness!" (pk module) (pk sym)))))

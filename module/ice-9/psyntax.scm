@@ -1,6 +1,6 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1143,10 +1143,9 @@
                         (let ((old (module-variable (current-module) n)))
                           ;; use value of the same-named imported variable, if
                           ;; any
-                          (module-define! (current-module) n
-                                          (if (variable? old)
-                                              (variable-ref old)
-                                              #f))))
+                          (if (and (variable? old) (variable-bound? old))
+                              (module-define! (current-module) n (variable-ref old))
+                              (module-add! (current-module) n (make-undefined-variable)))))
                     (eval-if-c&e m
                                  (build-global-definition s n (chi e r w mod))
                                  mod))
