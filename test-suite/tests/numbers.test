@@ -2745,6 +2745,115 @@
     (pass-if (eqv?   fixnum-min (* (* fixnum-min -1) -1)))
     (pass-if (equal? fixnum-min (* (* fixnum-min -1) -1))))
 
+  (with-test-prefix "exactness propagation"
+    (pass-if (eqv? -0.0 (*  0 -1.0 )))
+    (pass-if (eqv?  0.0 (*  0  1.0 )))
+    (pass-if (eqv? -0.0 (* -1.0  0 )))
+    (pass-if (eqv?  0.0 (*  1.0  0 )))
+    (pass-if (eqv?  0   (*  0  1/2 )))
+    (pass-if (eqv?  0   (*  1/2  0 )))
+    (pass-if (eqv?  0.0+0.0i (*  0  1+i )))
+    (pass-if (eqv?  0.0+0.0i (*  1+i  0 )))
+    (pass-if (eqv? -1.0 (*  1 -1.0 )))
+    (pass-if (eqv?  1.0 (*  1  1.0 )))
+    (pass-if (eqv? -1.0 (* -1.0  1 )))
+    (pass-if (eqv?  1.0 (*  1.0  1 )))
+    (pass-if (eqv?  1/2 (*  1  1/2 )))
+    (pass-if (eqv?  1/2 (*  1/2  1 )))
+    (pass-if (eqv?  1+i (*  1  1+i )))
+    (pass-if (eqv?  1+i (*  1+i  1 ))))
+
+  (with-test-prefix "propagation of NaNs"
+    (pass-if (real-nan?      (* +nan.0 +nan.0)))
+    (pass-if (real-nan?      (* +nan.0    1  )))
+    (pass-if (real-nan?      (* +nan.0   -1  )))
+    (pass-if (real-nan?      (* +nan.0 -7/2  )))
+    (pass-if (real-nan?      (* +nan.0 1e20  )))
+    (pass-if (real-nan?      (*  1     +nan.0)))
+    (pass-if (real-nan?      (* -1     +nan.0)))
+    (pass-if (real-nan?      (* -7/2   +nan.0)))
+    (pass-if (real-nan?      (* 1e20   +nan.0)))
+    (pass-if (real-nan?      (* +inf.0 +nan.0)))
+    (pass-if (real-nan?      (* +nan.0 +inf.0)))
+    (pass-if (real-nan?      (* -inf.0 +nan.0)))
+    (pass-if (real-nan?      (* +nan.0 -inf.0)))
+    (pass-if (real-nan?      (* (* fixnum-max 2) +nan.0)))
+    (pass-if (real-nan?      (* +nan.0 (* fixnum-max 2))))
+
+    (pass-if (real-nan?      (*     0     +nan.0  )))
+    (pass-if (real-nan?      (*  +nan.0      0    )))
+    (pass-if (real-nan?      (*     0     +nan.0+i)))
+    (pass-if (real-nan?      (*  +nan.0+i    0    )))
+
+    (pass-if (imaginary-nan? (*     0     +nan.0i )))
+    (pass-if (imaginary-nan? (*  +nan.0i     0    )))
+    (pass-if (imaginary-nan? (*     0    1+nan.0i )))
+    (pass-if (imaginary-nan? (* 1+nan.0i     0    )))
+
+    (pass-if (complex-nan?   (* 0   +nan.0+nan.0i )))
+    (pass-if (complex-nan?   (* +nan.0+nan.0i   0 ))))
+
+  (with-test-prefix "infinities"
+    (pass-if (eqv?   +inf.0  (* +inf.0  5  )))
+    (pass-if (eqv?   -inf.0  (* +inf.0 -5  )))
+    (pass-if (eqv?   +inf.0  (* +inf.0 73.1)))
+    (pass-if (eqv?   -inf.0  (* +inf.0 -9.2)))
+    (pass-if (eqv?   +inf.0  (* +inf.0  5/2)))
+    (pass-if (eqv?   -inf.0  (* +inf.0 -5/2)))
+    (pass-if (eqv?   -inf.0  (* -5   +inf.0)))
+    (pass-if (eqv?   +inf.0  (* 73.1 +inf.0)))
+    (pass-if (eqv?   -inf.0  (* -9.2 +inf.0)))
+    (pass-if (eqv?   +inf.0  (*  5/2 +inf.0)))
+    (pass-if (eqv?   -inf.0  (* -5/2 +inf.0)))
+
+    (pass-if (eqv?   -inf.0  (* -inf.0  5  )))
+    (pass-if (eqv?   +inf.0  (* -inf.0 -5  )))
+    (pass-if (eqv?   -inf.0  (* -inf.0 73.1)))
+    (pass-if (eqv?   +inf.0  (* -inf.0 -9.2)))
+    (pass-if (eqv?   -inf.0  (* -inf.0  5/2)))
+    (pass-if (eqv?   +inf.0  (* -inf.0 -5/2)))
+    (pass-if (eqv?   +inf.0  (* -5   -inf.0)))
+    (pass-if (eqv?   -inf.0  (* 73.1 -inf.0)))
+    (pass-if (eqv?   +inf.0  (* -9.2 -inf.0)))
+    (pass-if (eqv?   -inf.0  (* 5/2  -inf.0)))
+    (pass-if (eqv?   +inf.0  (* -5/2 -inf.0)))
+
+    (pass-if (real-nan?      (*    0.0 +inf.0)))
+    (pass-if (real-nan?      (*   -0.0 +inf.0)))
+    (pass-if (real-nan?      (* +inf.0    0.0)))
+    (pass-if (real-nan?      (* +inf.0   -0.0)))
+
+    (pass-if (real-nan?      (*    0.0 -inf.0)))
+    (pass-if (real-nan?      (*   -0.0 -inf.0)))
+    (pass-if (real-nan?      (* -inf.0    0.0)))
+    (pass-if (real-nan?      (* -inf.0   -0.0)))
+
+    (pass-if (real-nan?      (*     0     +inf.0  )))
+    (pass-if (real-nan?      (*  +inf.0      0    )))
+    (pass-if (real-nan?      (*     0     +inf.0+i)))
+    (pass-if (real-nan?      (*  +inf.0+i    0    )))
+
+    (pass-if (real-nan?      (*     0     -inf.0  )))
+    (pass-if (real-nan?      (*  -inf.0      0    )))
+    (pass-if (real-nan?      (*     0     -inf.0+i)))
+    (pass-if (real-nan?      (*  -inf.0+i    0    )))
+
+    (pass-if (imaginary-nan? (*     0     +inf.0i )))
+    (pass-if (imaginary-nan? (*  +inf.0i     0    )))
+    (pass-if (imaginary-nan? (*     0    1+inf.0i )))
+    (pass-if (imaginary-nan? (* 1+inf.0i     0    )))
+
+    (pass-if (imaginary-nan? (*     0     -inf.0i )))
+    (pass-if (imaginary-nan? (*  -inf.0i     0    )))
+    (pass-if (imaginary-nan? (*     0    1-inf.0i )))
+    (pass-if (imaginary-nan? (* 1-inf.0i     0    )))
+
+    (pass-if (complex-nan?   (* 0   +inf.0+inf.0i )))
+    (pass-if (complex-nan?   (* +inf.0+inf.0i   0 )))
+
+    (pass-if (complex-nan?   (* 0   +inf.0-inf.0i )))
+    (pass-if (complex-nan?   (* -inf.0+inf.0i   0 ))))
+
   (with-test-prefix "inum * bignum"
 
     (pass-if "0 * 2^256 = 0"
@@ -2752,13 +2861,13 @@
 
   (with-test-prefix "inum * flonum"
 
-    (pass-if "0 * 1.0 = 0"
-      (eqv? 0 (* 0 1.0))))
+    (pass-if "0 * 1.0 = 0.0"
+      (eqv? 0.0 (* 0 1.0))))
 
   (with-test-prefix "inum * complex"
 
-    (pass-if "0 * 1+1i = 0"
-      (eqv? 0 (* 0 1+1i))))
+    (pass-if "0 * 1+1i = 0.0+0.0i"
+      (eqv? 0.0+0.0i (* 0 1+1i))))
 
   (with-test-prefix "inum * frac"
 
@@ -2771,16 +2880,12 @@
       (eqv? 0 (* (ash 1 256) 0))))
 
   (with-test-prefix "flonum * inum"
-
-    ;; in guile 1.6.8 and 1.8.1 and earlier this returned inexact 0.0
-    (pass-if "1.0 * 0 = 0"
-      (eqv? 0 (* 1.0 0))))
+    (pass-if "1.0 * 0 = 0.0"
+      (eqv? 0.0 (* 1.0 0))))
 
   (with-test-prefix "complex * inum"
-
-    ;; in guile 1.6.8 and 1.8.1 and earlier this returned inexact 0.0
-    (pass-if "1+1i * 0 = 0"
-      (eqv? 0 (* 1+1i 0))))
+    (pass-if "1+1i * 0 = 0.0+0.0i"
+      (eqv? 0.0+0.0i (* 1+1i 0))))
 
   (pass-if "complex * bignum"
     (let ((big (ash 1 90)))

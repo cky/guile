@@ -5900,22 +5900,43 @@ scm_product (SCM x, SCM y)
     {
       scm_t_inum xx;
 
-    intbig:
+    xinum:
       xx = SCM_I_INUM (x);
 
       switch (xx)
 	{
-        case 0: return x; break;
-        case 1: return y; break;
+        case 1:
+	  /* exact1 is the universal multiplicative identity */
+	  return y;
+	  break;
+        case 0:
+	  /* exact0 times a fixnum is exact0: optimize this case */
+	  if (SCM_LIKELY (SCM_I_INUMP (y)))
+	    return SCM_INUM0;
+	  /* if the other argument is inexact, the result is inexact,
+	     and we must do the multiplication in order to handle
+	     infinities and NaNs properly. */
+	  else if (SCM_REALP (y))
+	    return scm_from_double (0.0 * SCM_REAL_VALUE (y));
+	  else if (SCM_COMPLEXP (y))
+	    return scm_c_make_rectangular (0.0 * SCM_COMPLEX_REAL (y),
+					   0.0 * SCM_COMPLEX_IMAG (y));
+	  /* we've already handled inexact numbers,
+	     so y must be exact, and we return exact0 */
+	  else if (SCM_NUMP (y))
+	    return SCM_INUM0;
+	  else
+	    SCM_WTA_DISPATCH_2 (g_product, x, y, SCM_ARGn, s_product);
+	  break;
+        case -1:
 	  /*
-	   * The following case (x = -1) is important for more than
-	   * just optimization.  It handles the case of negating
+	   * This case is important for more than just optimization.
+	   * It handles the case of negating
 	   * (+ 1 most-positive-fixnum) aka (- most-negative-fixnum),
 	   * which is a bignum that must be changed back into a fixnum.
 	   * Failure to do so will cause the following to return #f:
 	   * (= most-negative-fixnum (* -1 (- most-negative-fixnum)))
 	   */
-        case -1:
 	  return scm_difference(y, SCM_UNDEFINED);
 	  break;
 	}
@@ -5957,7 +5978,7 @@ scm_product (SCM x, SCM y)
       if (SCM_I_INUMP (y))
 	{
 	  SCM_SWAP (x, y);
-	  goto intbig;
+	  goto xinum;
 	}
       else if (SCM_BIGP (y))
 	{
@@ -5990,12 +6011,10 @@ scm_product (SCM x, SCM y)
   else if (SCM_REALP (x))
     {
       if (SCM_I_INUMP (y))
-        {
-          /* inexact*exact0 => exact 0, per R5RS "Exactness" section */
-          if (scm_is_eq (y, SCM_INUM0))
-            return y;
-          return scm_from_double (SCM_I_INUM (y) * SCM_REAL_VALUE (x));
-        }
+	{
+	  SCM_SWAP (x, y);
+	  goto xinum;
+	}
       else if (SCM_BIGP (y))
 	{
 	  double result = mpz_get_d (SCM_I_BIG_MPZ (y)) * SCM_REAL_VALUE (x);
@@ -6015,13 +6034,10 @@ scm_product (SCM x, SCM y)
   else if (SCM_COMPLEXP (x))
     {
       if (SCM_I_INUMP (y))
-        {
-          /* inexact*exact0 => exact 0, per R5RS "Exactness" section */
-          if (scm_is_eq (y, SCM_INUM0))
-            return y;
-          return scm_c_make_rectangular (SCM_I_INUM (y) * SCM_COMPLEX_REAL (x),
-                                         SCM_I_INUM (y) * SCM_COMPLEX_IMAG (x));
-        }
+	{
+	  SCM_SWAP (x, y);
+	  goto xinum;
+	}
       else if (SCM_BIGP (y))
 	{
 	  double z = mpz_get_d (SCM_I_BIG_MPZ (y));

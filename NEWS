@@ -130,6 +130,16 @@ Previously, `(equal? +nan.0 +nan.0)' returned #f, although
 both returned #t.  R5RS requires that `equal?' behave like
 `eqv?' when comparing numbers.
 
+*** Change in handling products `*' involving exact 0
+
+scm_product `*' now handles exact 0 differently.  A product containing
+an exact 0 now returns an exact 0 if and only if the other arguments
+are all exact.  An inexact zero is returned if and only if the other
+arguments are all finite but not all exact.  If an infinite or NaN
+value is present, a NaN value is returned.  Previously, any product
+containing an exact 0 yielded an exact 0, regardless of the other
+arguments.
+
 *** `expt' and `integer-expt' changes when the base is 0
 
 While `(expt 0 0)' is still 1, and `(expt 0 N)' for N > 0 is still
