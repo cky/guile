@@ -186,15 +186,8 @@ remainder operators' for more information.
 
 **** `infinite?' changes
 
-`infinite?' now returns #t for non-real complex infinities, and throws
-exceptions for non-numbers.  (Note that NaNs _are_ considered numbers
-by scheme, despite their name).
-
-**** `finite?' changes
-
-`finite?' now returns #f for NaNs and non-real complex infinities, and
-throws exceptions for non-numbers.  (Note that NaNs _are_ considered
-numbers by scheme, despite their name).
+`infinite?' and `finite?' now throw exceptions for non-numbers.  (Note
+that NaNs _are_ considered numbers by scheme, despite their name).
 
 **** `real-valued?', `rational-valued?' and `integer-valued?' changes
 
