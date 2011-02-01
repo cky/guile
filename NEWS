@@ -169,6 +169,14 @@ an error when a non-real number or non-number is passed to these
 procedures.  (Note that NaNs _are_ considered numbers by scheme, despite
 their name).
 
+*** `rationalize' bugfixes and changes
+
+Fixed bugs in scm_rationalize `rationalize'.  Previously, it returned
+exact integers unmodified, although that was incorrect if the epsilon
+was at least 1 or inexact, e.g. (rationalize 4 1) should return 3 per
+R5RS and R6RS, but previously it returned 4.  It also now handles
+cases involving infinities and NaNs properly, per R6RS.
+
 *** New procedure: `finite?'
 
 Add scm_finite_p `finite?' from R6RS to guile core, which returns #t

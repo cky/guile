@@ -7267,11 +7267,46 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_rationalize
 {
-  if (SCM_I_INUMP (x))
+  SCM_ASSERT_TYPE (scm_is_real (x), x, SCM_ARG1, FUNC_NAME, "real");
+  SCM_ASSERT_TYPE (scm_is_real (eps), eps, SCM_ARG2, FUNC_NAME, "real");
+  eps = scm_abs (eps);
+  if (scm_is_false (scm_positive_p (eps)))
+    {
+      /* eps is either zero or a NaN */
+      if (scm_is_true (scm_nan_p (eps)))
+	return scm_nan ();
+      else if (SCM_INEXACTP (eps))
+	return scm_exact_to_inexact (x);
+      else
+	return x;
+    }
+  else if (scm_is_false (scm_finite_p (eps)))
+    {
+      if (scm_is_true (scm_finite_p (x)))
+	return flo0;
+      else
+	return scm_nan ();
+    }
+  else if (scm_is_false (scm_finite_p (x))) /* checks for both inf and nan */
     return x;
-  else if (SCM_BIGP (x))
-    return x;
-  else if ((SCM_REALP (x)) || SCM_FRACTIONP (x)) 
+  else if (scm_is_false (scm_less_p (scm_floor (scm_sum (x, eps)),
+				     scm_ceiling (scm_difference (x, eps)))))
+    {
+      /* There's an integer within range; we want the one closest to zero */
+      if (scm_is_false (scm_less_p (eps, scm_abs (x))))
+	{
+	  /* zero is within range */
+	  if (SCM_INEXACTP (x) || SCM_INEXACTP (eps))
+	    return flo0;
+	  else
+	    return SCM_INUM0;
+	}
+      else if (scm_is_true (scm_positive_p (x)))
+	return scm_ceiling (scm_difference (x, eps));
+      else
+	return scm_floor (scm_sum (x, eps));
+    }
+  else
     {
       /* Use continued fractions to find closest ratio.  All
 	 arithmetic is done with exact numbers.
@@ -7285,9 +7320,6 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
       SCM rx;
       int i = 0;
 
-      if (scm_is_true (scm_num_eq_p (ex, int_part)))
-	return ex;
-      
       ex = scm_difference (ex, int_part);            /* x = x-int_part */
       rx = scm_divide (ex, SCM_UNDEFINED); 	       /* rx = 1/x */
 
@@ -7296,7 +7328,6 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	 converges after less than a dozen iterations.
       */
 
-      eps = scm_abs (eps);
       while (++i < 1000000)
 	{
 	  a = scm_sum (scm_product (a1, tt), a2);    /* a = a1*tt + a2 */
@@ -7307,8 +7338,7 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 			 eps)))                      /* abs(x-a/b) <= eps */
 	    {
 	      SCM res = scm_sum (int_part, scm_divide (a, b));
-	      if (scm_is_false (scm_exact_p (x))
-		  || scm_is_false (scm_exact_p (eps)))
+	      if (SCM_INEXACTP (x) || SCM_INEXACTP (eps))
 		return scm_exact_to_inexact (res);
 	      else
 		return res;
@@ -7323,8 +7353,6 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 	}
       scm_num_overflow (s_scm_rationalize);
     }
-  else
-    SCM_WRONG_TYPE_ARG (1, x);
 }
 #undef FUNC_NAME
 
