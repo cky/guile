@@ -6801,7 +6801,9 @@ SCM_PRIMITIVE_GENERIC (scm_sin, "sin", 1, 0, 0,
                        "Compute the sine of @var{z}.")
 #define FUNC_NAME s_scm_sin
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* sin(exact0) = exact0 */
+  else if (scm_is_real (z))
     return scm_from_double (sin (scm_to_double (z)));
   else if (SCM_COMPLEXP (z))
     { double x, y;
@@ -6820,7 +6822,9 @@ SCM_PRIMITIVE_GENERIC (scm_cos, "cos", 1, 0, 0,
                        "Compute the cosine of @var{z}.")
 #define FUNC_NAME s_scm_cos
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return SCM_INUM1;  /* cos(exact0) = exact1 */
+  else if (scm_is_real (z))
     return scm_from_double (cos (scm_to_double (z)));
   else if (SCM_COMPLEXP (z))
     { double x, y;
@@ -6839,7 +6843,9 @@ SCM_PRIMITIVE_GENERIC (scm_tan, "tan", 1, 0, 0,
                        "Compute the tangent of @var{z}.")
 #define FUNC_NAME s_scm_tan
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* tan(exact0) = exact0 */
+  else if (scm_is_real (z))
     return scm_from_double (tan (scm_to_double (z)));
   else if (SCM_COMPLEXP (z))
     { double x, y, w;
@@ -6862,7 +6868,9 @@ SCM_PRIMITIVE_GENERIC (scm_sinh, "sinh", 1, 0, 0,
                        "Compute the hyperbolic sine of @var{z}.")
 #define FUNC_NAME s_scm_sinh
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* sinh(exact0) = exact0 */
+  else if (scm_is_real (z))
     return scm_from_double (sinh (scm_to_double (z)));
   else if (SCM_COMPLEXP (z))
     { double x, y;
@@ -6881,7 +6889,9 @@ SCM_PRIMITIVE_GENERIC (scm_cosh, "cosh", 1, 0, 0,
                        "Compute the hyperbolic cosine of @var{z}.")
 #define FUNC_NAME s_scm_cosh
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return SCM_INUM1;  /* cosh(exact0) = exact1 */
+  else if (scm_is_real (z))
     return scm_from_double (cosh (scm_to_double (z)));
   else if (SCM_COMPLEXP (z))
     { double x, y;
@@ -6900,7 +6910,9 @@ SCM_PRIMITIVE_GENERIC (scm_tanh, "tanh", 1, 0, 0,
                        "Compute the hyperbolic tangent of @var{z}.")
 #define FUNC_NAME s_scm_tanh
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* tanh(exact0) = exact0 */
+  else if (scm_is_real (z))
     return scm_from_double (tanh (scm_to_double (z)));
   else if (SCM_COMPLEXP (z))
     { double x, y, w;
@@ -6923,7 +6935,9 @@ SCM_PRIMITIVE_GENERIC (scm_asin, "asin", 1, 0, 0,
                        "Compute the arc sine of @var{z}.")
 #define FUNC_NAME s_scm_asin
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* asin(exact0) = exact0 */
+  else if (scm_is_real (z))
     {
       double w = scm_to_double (z);
       if (w >= -1.0 && w <= 1.0)
@@ -6949,7 +6963,9 @@ SCM_PRIMITIVE_GENERIC (scm_acos, "acos", 1, 0, 0,
                        "Compute the arc cosine of @var{z}.")
 #define FUNC_NAME s_scm_acos
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM1)))
+    return SCM_INUM0;  /* acos(exact1) = exact0 */
+  else if (scm_is_real (z))
     {
       double w = scm_to_double (z);
       if (w >= -1.0 && w <= 1.0)
@@ -6981,7 +6997,9 @@ SCM_PRIMITIVE_GENERIC (scm_atan, "atan", 1, 1, 0,
 {
   if (SCM_UNBNDP (y))
     {
-      if (scm_is_real (z))
+      if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+	return z;  /* atan(exact0) = exact0 */
+      else if (scm_is_real (z))
         return scm_from_double (atan (scm_to_double (z)));
       else if (SCM_COMPLEXP (z))
         {
@@ -7012,7 +7030,9 @@ SCM_PRIMITIVE_GENERIC (scm_sys_asinh, "asinh", 1, 0, 0,
                        "Compute the inverse hyperbolic sine of @var{z}.")
 #define FUNC_NAME s_scm_sys_asinh
 {
-  if (scm_is_real (z))
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* asinh(exact0) = exact0 */
+  else if (scm_is_real (z))
     return scm_from_double (asinh (scm_to_double (z)));
   else if (scm_is_number (z))
     return scm_log (scm_sum (z,
@@ -7028,7 +7048,9 @@ SCM_PRIMITIVE_GENERIC (scm_sys_acosh, "acosh", 1, 0, 0,
                        "Compute the inverse hyperbolic cosine of @var{z}.")
 #define FUNC_NAME s_scm_sys_acosh
 {
-  if (scm_is_real (z) && scm_to_double (z) >= 1.0)
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM1)))
+    return SCM_INUM0;  /* acosh(exact1) = exact0 */
+  else if (scm_is_real (z) && scm_to_double (z) >= 1.0)
     return scm_from_double (acosh (scm_to_double (z)));
   else if (scm_is_number (z))
     return scm_log (scm_sum (z,
@@ -7044,7 +7066,9 @@ SCM_PRIMITIVE_GENERIC (scm_sys_atanh, "atanh", 1, 0, 0,
                        "Compute the inverse hyperbolic tangent of @var{z}.")
 #define FUNC_NAME s_scm_sys_atanh
 {
-  if (scm_is_real (z) && scm_to_double (z) >= -1.0 && scm_to_double (z) <= 1.0)
+  if (SCM_UNLIKELY (scm_is_eq (z, SCM_INUM0)))
+    return z;  /* atanh(exact0) = exact0 */
+  else if (scm_is_real (z) && scm_to_double (z) >= -1.0 && scm_to_double (z) <= 1.0)
     return scm_from_double (atanh (scm_to_double (z)));
   else if (scm_is_number (z))
     return scm_divide (scm_log (scm_divide (scm_sum (SCM_INUM1, z),

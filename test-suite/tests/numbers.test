@@ -3422,25 +3422,121 @@
 
 
 ;;;
+;;; sin
+;;;
+
+(with-test-prefix "sin"
+  (pass-if (eqv? 0   (sin 0)))
+  (pass-if (eqv? 0.0 (sin 0.0)))
+  (pass-if (eqv-loosely? 1.0 (sin 1.57)))
+  (pass-if (eqv-loosely? +1.175i (sin +i)))
+  (pass-if (real-nan? (sin +nan.0)))
+  (pass-if (real-nan? (sin +inf.0)))
+  (pass-if (real-nan? (sin -inf.0))))
+
+;;;
+;;; cos
+;;;
+
+(with-test-prefix "cos"
+  (pass-if (eqv? 1   (cos 0)))
+  (pass-if (eqv? 1.0 (cos 0.0)))
+  (pass-if (eqv-loosely? 0.0 (cos 1.57)))
+  (pass-if (eqv-loosely? 1.543 (cos +i)))
+  (pass-if (real-nan? (cos +nan.0)))
+  (pass-if (real-nan? (cos +inf.0)))
+  (pass-if (real-nan? (cos -inf.0))))
+
+;;;
+;;; tan
+;;;
+
+(with-test-prefix "tan"
+  (pass-if (eqv? 0   (tan 0)))
+  (pass-if (eqv? 0.0 (tan 0.0)))
+  (pass-if (eqv-loosely? 1.0 (tan 0.785)))
+  (pass-if (eqv-loosely? +0.76i (tan +i)))
+  (pass-if (real-nan? (tan +nan.0)))
+  (pass-if (real-nan? (tan +inf.0)))
+  (pass-if (real-nan? (tan -inf.0))))
+
+;;;
+;;; asin
+;;;
+
+(with-test-prefix "asin"
+  (pass-if (complex-nan? (asin +nan.0)))
+  (pass-if (eqv? 0 (asin 0)))
+  (pass-if (eqv? 0.0 (asin 0.0))))
+
+;;;
+;;; acos
+;;;
+
+(with-test-prefix "acos"
+  (pass-if (complex-nan? (acos +nan.0)))
+  (pass-if (eqv? 0 (acos 1)))
+  (pass-if (eqv? 0.0 (acos 1.0))))
+
+;;;
+;;; atan
+;;;
+;;; FIXME: add tests for two-argument atan
+;;;
+(with-test-prefix "atan"
+  (pass-if (real-nan? (atan +nan.0)))
+  (pass-if (eqv? 0 (atan 0)))
+  (pass-if (eqv? 0.0 (atan 0.0)))
+  (pass-if (eqv-loosely?  1.57 (atan +inf.0)))
+  (pass-if (eqv-loosely? -1.57 (atan -inf.0))))
+
+;;;
+;;; sinh
+;;;
+
+(with-test-prefix "sinh"
+  (pass-if (= 0 (sinh 0)))
+  (pass-if (= 0.0 (sinh 0.0))))
+
+;;;
+;;; cosh
+;;;
+
+(with-test-prefix "cosh"
+  (pass-if (= 1 (cosh 0)))
+  (pass-if (= 1.0 (cosh 0.0))))
+
+;;;
+;;; tanh
+;;;
+
+(with-test-prefix "tanh"
+  (pass-if (= 0 (tanh 0)))
+  (pass-if (= 0.0 (tanh 0.0))))
+
+;;;
 ;;; asinh
 ;;;
 
 (with-test-prefix "asinh"
-  (pass-if (= 0 (asinh 0))))
+  (pass-if (= 0 (asinh 0)))
+  (pass-if (= 0.0 (asinh 0.0))))
 
 ;;;
 ;;; acosh
 ;;;
 
 (with-test-prefix "acosh"
-  (pass-if (= 0 (acosh 1))))
+  (pass-if (= 0 (acosh 1)))
+  (pass-if (= 0.0 (acosh 1.0))))
 
 ;;;
 ;;; atanh
 ;;;
 
 (with-test-prefix "atanh"
-  (pass-if (= 0 (atanh 0))))
+  (pass-if (= 0 (atanh 0)))
+  (pass-if (= 0.0 (atanh 0.0))))
 
 ;;;
 ;;; make-rectangular

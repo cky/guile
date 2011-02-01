@@ -193,6 +193,13 @@ was at least 1 or inexact, e.g. (rationalize 4 1) should return 3 per
 R5RS and R6RS, but previously it returned 4.  It also now handles
 cases involving infinities and NaNs properly, per R6RS.
 
+*** Trigonometric functions now return exact numbers in some cases
+
+scm_sin `sin', scm_cos `cos', scm_tan `tan', scm_asin `asin', scm_acos
+`acos', scm_atan `atan', scm_sinh `sinh', scm_cosh `cosh', scm_tanh
+`tanh', scm_sys_asinh `asinh', scm_sys_acosh `acosh', and
+scm_sys_atanh `atanh' now return exact results in some cases.
+
 *** New procedure: `finite?'
 
 Add scm_finite_p `finite?' from R6RS to guile core, which returns #t
