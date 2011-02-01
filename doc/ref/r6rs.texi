@@ -499,7 +499,7 @@ it returns @math{ceiling(@var{x}/@var{y})}.
 @deffnx {Scheme Procedure} div0-and-mod0 x y
 These procedures accept two real numbers @var{x} and @var{y}, where the
 divisor @var{y} must be non-zero.  @code{div0} returns the
-integer @var{q} and @code{rem0} returns the real number
+integer @var{q} and @code{mod0} returns the real number
 @var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
 @math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.  @code{div0-and-mod0}
 returns both @var{q} and @var{r}, and is more efficient than computing
