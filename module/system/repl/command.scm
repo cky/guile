@@ -311,19 +311,23 @@ Without any argument, a list of topics is displayed."
     (else
      (format #t "Bad arguments: ~A~%" args))))
 
-(define (warranty repl)
+;;; `warranty', `copying' and `version' are "hidden" meta-commands, only
+;;; accessible via `show'. They have an entry in *command-infos* but not
+;;; in *command-table*.
+
+(define-meta-command (warranty repl)
   "show warranty
 Details on the lack of warranty."
   (display *warranty*)
   (newline))
 
-(define (copying repl)
+(define-meta-command (copying repl)
   "show copying
 Show the LGPLv3."
   (display *copying*)
   (newline))
 
-(define (version repl)
+(define-meta-command (version repl)
   "show version
 Version information."
   (display *version*)
