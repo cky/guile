@@ -6692,12 +6692,6 @@ SCM_PRIMITIVE_GENERIC (scm_ceiling, "ceiling", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* sin/cos/tan/asin/acos/atan
-   sinh/cosh/tanh/asinh/acosh/atanh
-   Derived from "Transcen.scm", Complex trancendental functions for SCM.
-   Written by Jerry D. Hedden, (C) FSF.
-   See the file `COPYING' for terms applying to this program. */
-
 SCM_PRIMITIVE_GENERIC (scm_expt, "expt", 2, 0, 0,
 		       (SCM x, SCM y),
 		       "Return @var{x} raised to the power of @var{y}.")
@@ -6738,6 +6732,12 @@ SCM_PRIMITIVE_GENERIC (scm_expt, "expt", 2, 0, 0,
     SCM_WTA_DISPATCH_2 (g_scm_expt, x, y, SCM_ARG1, s_scm_expt);
 }
 #undef FUNC_NAME
+
+/* sin/cos/tan/asin/acos/atan
+   sinh/cosh/tanh/asinh/acosh/atanh
+   Derived from "Transcen.scm", Complex trancendental functions for SCM.
+   Written by Jerry D. Hedden, (C) FSF.
+   See the file `COPYING' for terms applying to this program. */
 
 SCM_PRIMITIVE_GENERIC (scm_sin, "sin", 1, 0, 0,
                        (SCM z),
