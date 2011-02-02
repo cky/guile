@@ -1407,9 +1407,11 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 
 
 
-/* Conversion to/from other encodings.  */
+/* Charset conversion error handling.  */
 
 SCM_SYMBOL (scm_encoding_error_key, "encoding-error");
+SCM_SYMBOL (scm_decoding_error_key, "decoding-error");
+
 void
 scm_encoding_error (const char *subr, int err, const char *message,
 		    const char *from, const char *to, SCM string_or_bv)
@@ -1427,6 +1429,22 @@ scm_encoding_error (const char *subr, int err, const char *message,
 			 string_or_bv,
 			 SCM_UNDEFINED));
 }
+
+/* Raise an exception informing of an encoding error on PORT.  This
+   means that a character could not be written in PORT's encoding.  */
+void
+scm_decoding_error (const char *subr, int err, const char *message, SCM port)
+{
+  scm_throw (scm_decoding_error_key,
+	     scm_list_n (scm_from_locale_string (subr),
+			 scm_from_locale_string (message),
+			 scm_from_int (err),
+			 port,
+			 SCM_UNDEFINED));
+}
+
+
+/* String conversion to/from C.  */
 
 SCM
 scm_from_stringn (const char *str, size_t len, const char *encoding,
@@ -1473,9 +1491,8 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
       memcpy (buf, str, len);
       bv = scm_c_take_bytevector (buf, len);
 
-      scm_encoding_error (__func__, errno,
-			  "input locale conversion error",
-			  encoding, "UTF-32", bv);
+      scm_decoding_error (__func__, errno,
+			  "input locale conversion error", bv);
     }
 
   i = 0;

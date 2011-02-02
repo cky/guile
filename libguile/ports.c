@@ -1029,7 +1029,11 @@ SCM_DEFINE (scm_read_char, "read-char", 0, 1, 0,
            (SCM port),
 	    "Return the next character available from @var{port}, updating\n"
 	    "@var{port} to point to the following character.  If no more\n"
-	    "characters are available, the end-of-file object is returned.")
+	    "characters are available, the end-of-file object is returned.\n"
+	    "\n"
+	    "When @var{port}'s data cannot be decoded according to its\n"
+	    "character encoding, a @code{decoding-error} is raised and\n"
+	    "@var{port} points past the erroneous byte sequence.\n")
 #define FUNC_NAME s_scm_read_char
 {
   scm_t_wchar c;
@@ -1108,17 +1112,16 @@ utf8_to_codepoint (const scm_t_uint8 *utf8_buf, size_t size)
   return codepoint;
 }
 
-/* Read a codepoint from PORT and return it.  Fill BUF with the byte
-   representation of the codepoint in PORT's encoding, and set *LEN to
-   the length in bytes of that representation.  Raise an error on
-   failure.  */
-static scm_t_wchar
-get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
-#define FUNC_NAME "scm_getc"
+/* Read a codepoint from PORT and return it in *CODEPOINT.  Fill BUF
+   with the byte representation of the codepoint in PORT's encoding, and
+   set *LEN to the length in bytes of that representation.  Return 0 on
+   success and an errno value on error.  */
+static int
+get_codepoint (SCM port, scm_t_wchar *codepoint,
+	       char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 {
   int err, byte_read;
   size_t bytes_consumed, output_size;
-  scm_t_wchar codepoint;
   char *output;
   scm_t_uint8 utf8_buf[SCM_MBCHAR_BUF_SIZE];
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -1140,7 +1143,11 @@ get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
       if (byte_read == EOF)
 	{
 	  if (bytes_consumed == 0)
-	    return (scm_t_wchar) EOF;
+	    {
+	      *codepoint = (scm_t_wchar) EOF;
+	      *len = 0;
+	      return 0;
+	    }
 	  else
 	    continue;
 	}
@@ -1164,53 +1171,52 @@ get_codepoint (SCM port, char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 	output_size = sizeof (utf8_buf) - output_left;
     }
 
-  if (err != 0)
+  if (SCM_UNLIKELY (err != 0))
     {
       /* Reset the `iconv' state.  */
       iconv (pt->input_cd, NULL, NULL, NULL, NULL);
 
       if (pt->ilseq_handler == SCM_ICONVEH_QUESTION_MARK)
-	codepoint = '?';
-      else
-	/* Fail when the strategy is SCM_ICONVEH_ERROR or
-	   SCM_ICONVEH_ESCAPE_SEQUENCE (the latter doesn't make sense
-	   for input encoding errors.)  */
-	goto failure;
+	{
+	  *codepoint = '?';
+	  err = 0;
+	}
+
+      /* Fail when the strategy is SCM_ICONVEH_ERROR or
+	 SCM_ICONVEH_ESCAPE_SEQUENCE (the latter doesn't make sense for
+	 input encoding errors.)  */
     }
   else
     /* Convert the UTF8_BUF sequence to a Unicode code point.  */
-    codepoint = utf8_to_codepoint (utf8_buf, output_size);
+    *codepoint = utf8_to_codepoint (utf8_buf, output_size);
 
-  update_port_lf (codepoint, port);
+  if (SCM_LIKELY (err == 0))
+    update_port_lf (*codepoint, port);
 
   *len = bytes_consumed;
 
-  return codepoint;
-
- failure:
-  {
-    SCM bv;
-
-    bv = scm_c_make_bytevector (bytes_consumed);
-    memcpy (SCM_BYTEVECTOR_CONTENTS (bv), buf, bytes_consumed);
-    scm_encoding_error (FUNC_NAME, err, "input decoding error",
-			pt->encoding, "UTF-8", bv);
-  }
-
-  /* Never gets here.  */
-  return 0;
+  return err;
 }
-#undef FUNC_NAME
 
 /* Read a codepoint from PORT and return it.  */
 scm_t_wchar
 scm_getc (SCM port)
+#define FUNC_NAME "scm_getc"
 {
+  int err;
   size_t len;
+  scm_t_wchar codepoint;
   char buf[SCM_MBCHAR_BUF_SIZE];
 
-  return get_codepoint (port, buf, &len);
+  err = get_codepoint (port, &codepoint, buf, &len);
+  if (SCM_UNLIKELY (err != 0))
+    /* At this point PORT should point past the invalid encoding, as per
+       R6RS-lib Section 8.2.4.  */
+    scm_decoding_error (FUNC_NAME, err, "input decoding error", port);
+
+  return codepoint;
 }
+#undef FUNC_NAME
 
 /* this should only be called when the read buffer is empty.  it
    tries to refill the read buffer.  it returns the first char from
@@ -1623,13 +1629,19 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 	    "return the value returned by the preceding call to\n"
 	    "@code{peek-char}.  In particular, a call to @code{peek-char} on\n"
 	    "an interactive port will hang waiting for input whenever a call\n"
-	    "to @code{read-char} would have hung.")
+	    "to @code{read-char} would have hung.\n"
+	    "\n"
+	    "As for @code{read-char}, a @code{decoding-error} may be raised\n"
+	    "if such a situation occurs.  However, unlike with @code{read-char},\n"
+	    "@var{port} still points at the beginning of the erroneous byte\n"
+	    "sequence when the error is raised.\n")
 #define FUNC_NAME s_scm_peek_char
 {
+  int err;
   SCM result;
   scm_t_wchar c;
   char bytes[SCM_MBCHAR_BUF_SIZE];
-  long column, line;
+  long column, line, i;
   size_t len;
 
   if (SCM_UNBNDP (port))
@@ -1639,21 +1651,25 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
   column = SCM_COL (port);
   line = SCM_LINUM (port);
 
-  c = get_codepoint (port, bytes, &len);
-  if (c == EOF)
+  err = get_codepoint (port, &c, bytes, &len);
+
+  for (i = len - 1; i >= 0; i--)
+    scm_unget_byte (bytes[i], port);
+
+  SCM_COL (port) = column;
+  SCM_LINUM (port) = line;
+
+  if (SCM_UNLIKELY (err != 0))
+    {
+      scm_decoding_error (FUNC_NAME, err, "input decoding error", port);
+
+      /* Shouldn't happen since `catch' always aborts to prompt.  */
+      result = SCM_BOOL_F;
+    }
+  else if (c == EOF)
     result = SCM_EOF_VAL;
   else
-    {
-      long i;
-
-      result = SCM_MAKE_CHAR (c);
-
-      for (i = len - 1; i >= 0; i--)
-	scm_unget_byte (bytes[i], port);
-
-      SCM_COL (port) = column;
-      SCM_LINUM (port) = line;
-    }
+    result = SCM_MAKE_CHAR (c);
 
   return result;
 }

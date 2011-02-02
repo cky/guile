@@ -464,29 +464,80 @@
            (= (port-line p) 0)
            (= (port-column p) 0))))
 
-  (pass-if-exception "read-char, wrong encoding, error"
-    exception:encoding-error
+  (pass-if "read-char, wrong encoding, error"
     (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
-               (open-bytevector-input-port #vu8(255 1 2 3)))))
-      (set-port-conversion-strategy! p 'error)
-      (read-char p)
-      #t))
+               (open-bytevector-input-port #vu8(255 65 66 67)))))
+      (catch 'decoding-error
+        (lambda ()
+          (set-port-conversion-strategy! p 'error)
+          (read-char p)
+          #f)
+        (lambda (key subr message err port)
+          (and (eq? port p)
 
-  (pass-if-exception "read-char, wrong encoding, escape"
-    exception:encoding-error
-    ;; `escape' should behave like `error'.
+               ;; PORT should point past the error.
+               (equal? '(#\A #\B #\C)
+                       (list (read-char port)
+                             (read-char port)
+                             (read-char port)))
+
+               (eof-object? (read-char port)))))))
+
+  (pass-if "read-char, wrong encoding, escape"
+    ;; `escape' should behave exactly like `error'.
     (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
-               (open-bytevector-input-port #vu8(255 1 2 3)))))
-      (set-port-conversion-strategy! p 'escape)
-      (read-char p)
-      #t))
+               (open-bytevector-input-port #vu8(255 65 66 67)))))
+      (catch 'decoding-error
+        (lambda ()
+          (set-port-conversion-strategy! p 'escape)
+          (read-char p)
+          #f)
+        (lambda (key subr message err port)
+          (and (eq? port p)
+
+               ;; PORT should point past the error.
+               (equal? '(#\A #\B #\C)
+                       (list (read-char port)
+                             (read-char port)
+                             (read-char port)))
+
+               (eof-object? (read-char port)))))))
 
   (pass-if "read-char, wrong encoding, substitute"
     (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
                (open-bytevector-input-port #vu8(255 206 187 206 188)))))
       (set-port-conversion-strategy! p 'substitute)
       (equal? (list (read-char p) (read-char p) (read-char p))
-              '(#\? #\λ #\μ)))))
+              '(#\? #\λ #\μ))))
+
+  (pass-if "peek-char, wrong encoding, error"
+    (let-syntax ((decoding-error?
+                  (syntax-rules ()
+                    ((_ port exp)
+                     (catch 'decoding-error
+                       (lambda ()
+                         (pk 'exp exp)
+                         #f)
+                       (lambda (key subr message errno p)
+                         (eq? p port)))))))
+      (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
+                 (open-bytevector-input-port #vu8(255 65 66 67)))))
+        (set-port-conversion-strategy! p 'error)
+
+        ;; `peek-char' should repeatedly raise an error.
+        (and (decoding-error? p (peek-char p))
+             (decoding-error? p (peek-char p))
+             (decoding-error? p (peek-char p))
+
+             ;; Move past the error.
+             (decoding-error? p (read-char p))
+
+             ;; Finish happily.
+             (equal? '(#\A #\B #\C)
+                     (list (read-char p)
+                           (read-char p)
+                           (read-char p)))
+             (eof-object? (read-char p)))))))
 
 (with-test-prefix "call-with-output-string"
 

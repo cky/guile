@@ -19,6 +19,7 @@
 
 (define-module (test-suite test-rdelim)
   #:use-module (ice-9 rdelim)
+  #:use-module ((rnrs io ports) #:select (open-bytevector-input-port))
   #:use-module (test-suite lib))
 
 (with-fluids ((%default-port-encoding "UTF-8"))
@@ -63,11 +64,33 @@
                            (read-line p 'split)))
              (eof-object? (read-line p)))))
 
-    (pass-if  "two Greek lines, trim"
+    (pass-if "two Greek lines, trim"
       (let* ((s "λαμβδα\nμυ\n")
              (p (open-input-string s)))
         (and (equal? (string-tokenize s)
                      (list (read-line p) (read-line p)))
+             (eof-object? (read-line p)))))
+
+    (pass-if "decoding error"
+      (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
+                 (open-bytevector-input-port #vu8(65 255 66 67 68)))))
+        (set-port-conversion-strategy! p 'error)
+        (catch 'decoding-error
+          (lambda ()
+            (read-line p)
+            #f)
+          (lambda (key subr message err port)
+            (and (eq? port p)
+
+                 ;; PORT should now point past the error.
+                 (string=? (read-line p) "BCD")
+                 (eof-object? (read-line p)))))))
+
+    (pass-if "decoding error, substitute"
+      (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
+                 (open-bytevector-input-port #vu8(65 255 66 67 68)))))
+        (set-port-conversion-strategy! p 'substitute)
+        (and (string=? (read-line p) "A?BCD")
              (eof-object? (read-line p)))))))
 
 ;;; Local Variables:

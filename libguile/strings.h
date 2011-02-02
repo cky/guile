@@ -214,6 +214,8 @@ SCM_INTERNAL void scm_encoding_error (const char *subr, int err,
 				      const char *message,
 				      const char *from, const char *to,
 				      SCM string_or_bv);
+SCM_INTERNAL void scm_decoding_error (const char *subr, int err,
+				      const char *message, SCM port);
 
 /* internal utility functions. */
 
