@@ -123,8 +123,13 @@
  (define (vector-map proc . vecs)
    (list->vector (apply map (cons proc (map vector->list vecs)))))
 
- (define raise
-   (@ (rnrs exceptions) raise))
+ (define-syntax raise
+   ;; Resolve the real `raise' lazily to avoid a circular dependency
+   ;; between `(rnrs base)' and `(rnrs exceptions)'.
+   (syntax-rules ()
+     ((_ c)
+      ((@ (rnrs exceptions) raise) c))))
+
  (define condition
    (@ (rnrs conditions) condition))
  (define make-error
