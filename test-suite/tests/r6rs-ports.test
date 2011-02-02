@@ -552,7 +552,20 @@
                                 (error-handling-mode replace)))
            (b  (open-bytevector-input-port #vu8(255 1 2 3 103 110 117)))
            (tp (transcoded-port b t)))
-      (string-suffix? "gnu" (get-line tp)))))
+      (string-suffix? "gnu" (get-line tp))))
+
+  (pass-if "transcoded-port, output [error handling mode = raise]"
+    (let-values (((p get)
+                  (open-bytevector-output-port)))
+      (let* ((t  (make-transcoder (latin-1-codec) (native-eol-style)
+                                  (error-handling-mode raise)))
+             (tp (transcoded-port p t)))
+        (guard (c ((i/o-encoding-error? c)
+                   (and (eq? (i/o-error-port c) tp)
+                        (char=? (i/o-encoding-error-char c) #\λ)
+                        (bytevector=? (get) (string->utf8 "The letter ")))))
+          (put-string tp "The letter λ cannot be represented in Latin-1.")
+          #f)))))
 
 ;;; Local Variables:
 ;;; mode: scheme

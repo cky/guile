@@ -95,7 +95,9 @@
           &i/o-port i/o-port-error? make-i/o-port-error
           i/o-error-port
           &i/o-decoding-error i/o-decoding-error?
-          make-i/o-decoding-error)
+          make-i/o-decoding-error
+          &i/o-encoding-error i/o-encoding-error?
+          make-i/o-encoding-error i/o-encoding-error-char)
   (import (only (rnrs base) assertion-violation)
           (rnrs enums)
           (rnrs records syntactic)
@@ -316,21 +318,42 @@ return the characters accumulated in that port."
 (define (flush-output-port port)
   (force-output port))
 
+
+;;;
+;;; Textual output.
+;;;
+
+(define-condition-type &i/o-encoding &i/o-port
+  make-i/o-encoding-error i/o-encoding-error?
+  (char i/o-encoding-error-char))
+
+(define-syntax with-i/o-encoding-error
+  (syntax-rules ()
+    "Convert Guile throws to `encoding-error' to `&i/o-encoding-error'."
+    ((_ body ...)
+     ;; XXX: This is heavyweight for small functions like `put-char'.
+     (with-throw-handler 'encoding-error
+       (lambda ()
+         (begin body ...))
+       (lambda (key subr message errno port chr)
+         (raise (make-i/o-encoding-error port chr)))))))
+
 (define (put-char port char)
-  (write-char char port))
+  (with-i/o-encoding-error (write-char char port)))
 
 (define (put-datum port datum)
-  (write datum port))
+  (with-i/o-encoding-error (write datum port)))
 
 (define* (put-string port s #:optional start count)
-  (cond ((not (string? s))
-         (assertion-violation 'put-string "expected string" s))
-        ((and start count)
-         (display (substring/shared s start (+ start count)) port))
-        (start
-         (display (substring/shared s start (string-length s)) port))
-        (else
-         (display s port))))
+  (with-i/o-encoding-error
+   (cond ((not (string? s))
+          (assertion-violation 'put-string "expected string" s))
+         ((and start count)
+          (display (substring/shared s start (+ start count)) port))
+         (start
+          (display (substring/shared s start (string-length s)) port))
+         (else
+          (display s port)))))
 
 
 ;;;
