@@ -1,4 +1,4 @@
-/* Copyright (C) 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -71,7 +71,7 @@ test_scm_c_round ()
          table.  */
       if (i != 0)
         {
-#if HAVE_FESETROUND
+#ifdef HAVE_FESETROUND
           fesetround (modes[i]);
 #endif
         }
