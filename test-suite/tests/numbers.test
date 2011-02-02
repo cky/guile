@@ -423,17 +423,23 @@
 
 (with-test-prefix "abs"
   (pass-if (documented? abs))
-  (pass-if (zero? (abs 0)))
-  (pass-if (= 1 (abs 1)))
-  (pass-if (= 1 (abs -1)))
-  (pass-if (= (+ fixnum-max 1) (abs (+ fixnum-max 1))))
-  (pass-if (= (+ (- fixnum-min) 1) (abs (- fixnum-min 1))))  
-  (pass-if (= 0.0 (abs 0.0)))
-  (pass-if (= 1.0 (abs 1.0)))
-  (pass-if (= 1.0 (abs -1.0)))
-  (pass-if (real-nan? (abs +nan.0)))
-  (pass-if (= +inf.0 (abs +inf.0)))
-  (pass-if (= +inf.0 (abs -inf.0))))
+  (pass-if (eqv? 0 (abs 0)))
+  (pass-if (eqv? 1 (abs 1)))
+  (pass-if (eqv? 1 (abs -1)))
+
+  (with-test-prefix "double-negation of fixnum-min"
+    (pass-if (eqv?   fixnum-min (- (abs fixnum-min)))))
+
+  (pass-if (eqv? (+    fixnum-max  1) (abs (+ fixnum-max 1))))
+  (pass-if (eqv? (+ (- fixnum-min) 1) (abs (- fixnum-min 1))))
+
+  (pass-if (eqv? 0.0    (abs  0.0)))
+  (pass-if (eqv? 0.0    (abs -0.0)))
+  (pass-if (eqv? 1.0    (abs  1.0)))
+  (pass-if (eqv? 1.0    (abs -1.0)))
+  (pass-if (real-nan?   (abs +nan.0)))
+  (pass-if (eqv? +inf.0 (abs +inf.0)))
+  (pass-if (eqv? +inf.0 (abs -inf.0))))
 
 ;;;
 ;;; quotient
@@ -2813,6 +2819,55 @@
     (eqv?   fixnum-min (- 0 (- 0 fixnum-min))))
   (pass-if "binary double-negation of fixnum-min: equal?"
     (equal? fixnum-min (- 0 (- 0 fixnum-min))))
+
+  (pass-if "signed zeroes"
+    (and (eqv? +0.0 (- -0.0))
+         (eqv? -0.0 (- +0.0))
+         (eqv?  0.0 (-  0.0  0.0))
+         (eqv?  0.0 (-  0.0 -0.0))
+         (eqv?  0.0 (- -0.0 -0.0))
+         (eqv? -0.0 (- -0.0  0.0))))
+
+  (pass-if "exactness propagation"
+    (and (eqv?  3   (- 8 5))
+         (eqv?  3.0 (- 8 5.0))
+         (eqv?  3.0 (- 8.0 5))
+         (eqv?  3.0 (- 8.0 5.0))
+         (eqv? -1/6  (- 1/3 1/2))
+         (eqv? -4.5  (- 1/2 5.0))
+         (eqv?  2.75 (- 3.0 1/4))))
+
+  (pass-if "infinities"
+    (and (eqv? +inf.0 (- +inf.0 -inf.0))
+         (eqv? -inf.0 (- -inf.0 +inf.0))
+         (real-nan?   (- +inf.0 +inf.0))
+         (real-nan?   (- -inf.0 -inf.0))))
+
+  (pass-if "NaNs"
+    (and (real-nan?  (- +nan.0 +nan.0))
+         (real-nan?  (- 0 +nan.0))
+         (real-nan?  (- +nan.0 0))
+         (real-nan?  (- 1 +nan.0))
+         (real-nan?  (- +nan.0 1))
+         (real-nan?  (- -1 +nan.0))
+         (real-nan?  (- +nan.0 -1))
+         (real-nan?  (- -7/2 +nan.0))
+         (real-nan?  (- +nan.0 -7/2))
+         (real-nan?  (- 1e20 +nan.0))
+         (real-nan?  (- +nan.0 1e20))
+         (real-nan?  (- +inf.0 +nan.0))
+         (real-nan?  (- +nan.0 +inf.0))
+         (real-nan?  (- -inf.0 +nan.0))
+         (real-nan?  (- +nan.0 -inf.0))
+         (real-nan?  (- (* fixnum-max 2) +nan.0))
+         (real-nan?  (- +nan.0 (* fixnum-max 2)))))
+
+  (pass-if "(eqv? fixnum-min (- (- fixnum-min)))"
+    (eqv? fixnum-min (- (- fixnum-min))))
+  (pass-if "(eqv? fixnum-min (- 0 (- 0 fixnum-min)))"
+    (eqv? fixnum-min (- 0 (- 0 fixnum-min))))
+  (pass-if "(eqv? fixnum-num (apply - (list (apply - (list fixnum-min)))))"
+    (eqv? fixnum-min (apply - (list (apply - (list fixnum-min))))))
 
   (pass-if "-inum - +bignum"
     (= #x-100000000000000000000000000000001

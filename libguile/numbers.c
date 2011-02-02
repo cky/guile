@@ -745,6 +745,18 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
       else
 	return scm_i_inum2big (-xx);
     }
+  else if (SCM_LIKELY (SCM_REALP (x)))
+    {
+      double xx = SCM_REAL_VALUE (x);
+      /* If x is a NaN then xx<0 is false so we return x unchanged */
+      if (xx < 0.0)
+        return scm_from_double (-xx);
+      /* Handle signed zeroes properly */
+      else if (SCM_UNLIKELY (xx == 0.0))
+	return flo0;
+      else
+        return x;
+    }
   else if (SCM_BIGP (x))
     {
       const int sgn = mpz_sgn (SCM_I_BIG_MPZ (x));
@@ -752,15 +764,6 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
 	return scm_i_clonebig (x, 0);
       else
 	return x;
-    }
-  else if (SCM_REALP (x))
-    {
-      /* note that if x is a NaN then xx<0 is false so we return x unchanged */
-      double xx = SCM_REAL_VALUE (x);
-      if (xx < 0.0)
-        return scm_from_double (-xx);
-      else
-        return x;
     }
   else if (SCM_FRACTIONP (x))
     {
@@ -5758,13 +5761,35 @@ scm_difference (SCM x, SCM y)
       else if (SCM_REALP (y))
 	{
 	  scm_t_inum xx = SCM_I_INUM (x);
-	  return scm_from_double (xx - SCM_REAL_VALUE (y));
+
+	  /*
+	   * We need to handle x == exact 0
+	   * specially because R6RS states that:
+	   *   (- 0.0)     ==> -0.0  and
+	   *   (- 0.0 0.0) ==>  0.0
+	   * and the scheme compiler changes
+	   *   (- 0.0) into (- 0 0.0)
+	   * So we need to treat (- 0 0.0) like (- 0.0).
+	   * At the C level, (-x) is different than (0.0 - x).
+	   * (0.0 - 0.0) ==> 0.0, but (- 0.0) ==> -0.0.
+	   */
+	  if (xx == 0)
+	    return scm_from_double (- SCM_REAL_VALUE (y));
+	  else
+	    return scm_from_double (xx - SCM_REAL_VALUE (y));
 	}
       else if (SCM_COMPLEXP (y))
 	{
 	  scm_t_inum xx = SCM_I_INUM (x);
-	  return scm_c_make_rectangular (xx - SCM_COMPLEX_REAL (y),
-				   - SCM_COMPLEX_IMAG (y));
+
+	  /* We need to handle x == exact 0 specially.
+	     See the comment above (for SCM_REALP (y)) */
+	  if (xx == 0)
+	    return scm_c_make_rectangular (- SCM_COMPLEX_REAL (y),
+					   - SCM_COMPLEX_IMAG (y));
+	  else
+	    return scm_c_make_rectangular (xx - SCM_COMPLEX_REAL (y),
+					      - SCM_COMPLEX_IMAG (y));
 	}
       else if (SCM_FRACTIONP (y))
 	/* a - b/c = (ac - b) / c */
