@@ -1571,15 +1571,9 @@ scm_ungetc (scm_t_wchar c, SCM port)
 				 result_buf, &len);
 
   if (SCM_UNLIKELY (result == NULL || len == 0))
-    {
-      SCM chr;
-
-      chr = scm_integer_to_char (scm_from_uint32 (c));
-      scm_encoding_error (FUNC_NAME, errno,
-			  "conversion to port encoding failed",
-			  "UTF-32", encoding,
-			  scm_string (scm_list_1 (chr)));
-    }
+    scm_encoding_error (FUNC_NAME, errno,
+			"conversion to port encoding failed",
+			SCM_BOOL_F, SCM_MAKE_CHAR (c));
 
   for (i = len - 1; i >= 0; i--)
     scm_unget_byte (result[i], port);

@@ -67,19 +67,45 @@
 
 (with-test-prefix "display output errors"
 
-  (pass-if-exception "ultima"
-		     exception:encoding-error
-		     (let ((pt (open-output-string)))
-		       (set-port-encoding! pt "ASCII")
-		       (set-port-conversion-strategy! pt 'error)
-		       (display s1 pt)))
+  (pass-if "ultima"
+    (let ((pt (open-output-string)))
+      (set-port-encoding! pt "ASCII")
+      (set-port-conversion-strategy! pt 'error)
+      (catch 'encoding-error
+        (lambda ()
+          (display s1 pt)
+          #f)
+        (lambda (key subr message errno port chr)
+          (and (eq? port pt)
+               (char=? chr (string-ref s1 0))
+               (string=? (get-output-string pt) ""))))))
 
-  (pass-if-exception "Rashomon"
-		     exception:encoding-error
-		     (let ((pt (open-output-string)))
-		       (set-port-encoding! pt "ASCII")
-		       (set-port-conversion-strategy! pt 'error)
-		       (display s4 pt))))
+  (pass-if "Rashomon"
+    (let ((pt (open-output-string)))
+      (set-port-encoding! pt "ASCII")
+      (set-port-conversion-strategy! pt 'error)
+      (catch 'encoding-error
+        (lambda ()
+          (display s4 pt)
+          #f)
+        (lambda (key subr message errno port chr)
+          (and (eq? port pt)
+               (char=? chr (string-ref s4 0))
+               (string=? (get-output-string pt) ""))))))
+
+  (pass-if "tekniko"
+    (let ((pt (open-output-string)))
+      (set-port-encoding! pt "ASCII")
+      (set-port-conversion-strategy! pt 'error)
+      (catch 'encoding-error
+        (lambda ()
+          ;; This time encoding should fail on the 3rd character.
+          (display "teĥniko" pt)
+          #f)
+        (lambda (key subr message errno port chr)
+          (and (eq? port pt)
+               (char=? chr #\ĥ)
+               (string=? "te" (get-output-string pt))))))))
 
 ;; Check that questions marks or substitutions appear when the conversion
 ;; mode is substitute

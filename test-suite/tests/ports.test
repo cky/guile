@@ -420,10 +420,8 @@
             (with-output-to-string
               (lambda ()
                 (display str)))))
-        (lambda (key subr message errno from to faulty-str)
-          (and (eq? faulty-str str)
-               (string=? from "UTF-32")
-               (string=? to "ISO-8859-1")
+        (lambda (key subr message errno port chr)
+          (and (eq? chr #\ĉ)
                (string? (strerror errno)))))))
 
   (pass-if "wrong encoding, substitute"

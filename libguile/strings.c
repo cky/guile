@@ -1412,21 +1412,17 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 SCM_SYMBOL (scm_encoding_error_key, "encoding-error");
 SCM_SYMBOL (scm_decoding_error_key, "decoding-error");
 
+/* Raise an exception informing that character CHR could not be written
+   to PORT in its current encoding.  */
 void
 scm_encoding_error (const char *subr, int err, const char *message,
-		    const char *from, const char *to, SCM string_or_bv)
+		    SCM port, SCM chr)
 {
-  /* Raise an exception that conveys all the information needed to debug the
-     problem.  Only perform locale conversions that are safe; in particular,
-     don't try to display STRING_OR_BV when it's a string since converting it to
-     the output locale may fail.  */
   scm_throw (scm_encoding_error_key,
 	     scm_list_n (scm_from_locale_string (subr),
 			 scm_from_locale_string (message),
 			 scm_from_int (err),
-			 scm_from_locale_string (from),
-			 scm_from_locale_string (to),
-			 string_or_bv,
+			 port, chr,
 			 SCM_UNDEFINED));
 }
 
@@ -1938,8 +1934,10 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
 
       if (ret != 0)
         scm_encoding_error (__func__, errno,
-			    "cannot convert to output locale",
-			    "ISO-8859-1", enc, str);
+			    "cannot convert narrow string to output locale",
+			    SCM_BOOL_F,
+			    /* FIXME: Faulty character unknown.  */
+			    SCM_BOOL_F);
     }
   else
     {
@@ -1951,8 +1949,10 @@ scm_to_stringn (SCM str, size_t *lenp, const char *encoding,
                                   NULL, &len);
       if (buf == NULL)
         scm_encoding_error (__func__, errno,
-			    "cannot convert to output locale",
-			    "UTF-32", enc, str);
+			    "cannot convert wide string to output locale",
+			    SCM_BOOL_F,
+			    /* FIXME: Faulty character unknown.  */
+			    SCM_BOOL_F);
     }
   if (handler == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
     {

@@ -484,8 +484,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 				      scm_i_get_conversion_strategy (port)))
 		scm_encoding_error (__func__, errno,
 				    "cannot convert to output locale",
-				    "UTF-32", scm_i_get_port_encoding (port),
-				    scm_string (scm_list_1 (exp)));
+				    port, exp);
 	    }
 	}
       else if (SCM_IFLAGP (exp)
@@ -570,11 +569,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 					len, port,
 					scm_i_get_conversion_strategy (port));
 	      if (SCM_UNLIKELY (printed < len))
-		/* FIXME: Provide the error location.  */
 		scm_encoding_error (__func__, errno,
 				    "cannot convert to output locale",
-				    "UTF-32", scm_i_get_port_encoding (port),
-				    exp);
+				    port, scm_c_string_ref (exp, printed));
 	    }
 
           scm_remember_upto_here_1 (exp);
@@ -1388,8 +1385,7 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
 			  scm_i_get_conversion_strategy (port)))
     scm_encoding_error (__func__, errno,
 			"cannot convert to output locale",
-			"UTF-32", scm_i_get_port_encoding (port),
-			scm_string (scm_list_1 (chr)));
+			port, chr);
 
   return SCM_UNSPECIFIED;
 }
