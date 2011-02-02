@@ -1,7 +1,7 @@
 dnl -*- Autoconf -*-
 
 dnl Copyright (C) 1997, 1999, 2000, 2001, 2002, 2004, 2006,
-dnl   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+dnl   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GUILE
 dnl
@@ -360,6 +360,8 @@ dnl GUILE_THREAD_LOCAL_STORAGE
 dnl
 dnl Check for compiler thread-local storage (TLS) support.
 AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
+  AC_REQUIRE([AC_CANONICAL_HOST])
+
   AC_CACHE_CHECK([whether the `__thread' storage class is available],
     [ac_cv_have_thread_storage_class],
     [dnl On some systems, e.g., NetBSD 5.0 with GCC 4.1, `__thread' is
@@ -373,8 +375,12 @@ AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
      dnl Known broken systems includes:
      dnl   - x86_64-unknown-netbsd5.0.
      dnl   - sparc-sun-solaris2.8
-     case "x$enable_shared--$host" in
-       xyes--*netbsd[0-5].[0-9].|xyes--*solaris2.8)
+     dnl
+     dnl On `x86_64-unknown-freebsd8.0', thread-local storage appears to
+     dnl be reclaimed at the wrong time, leading to a segfault when
+     dnl running `threads.test'.  So disable it.
+     case "x$enable_shared--$host_os" in
+       xyes--netbsd[0-5].[0-9].|xyes--solaris2.8|xyes--freebsd[0-8]*)
          ac_cv_have_thread_storage_class="no"
 	 ;;
        *)
