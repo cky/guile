@@ -868,19 +868,19 @@ display_string (const void *str, int narrow_p,
 	  /* Reset the `iconv' state.  */
 	  iconv (pt->output_cd, NULL, NULL, NULL, NULL);
 
+	  /* Print the OUTPUT_LEN bytes successfully converted.  */
+	  scm_lfwrite (encoded_output, output_len, port);
+
+	  /* See how many input codepoints these OUTPUT_LEN bytes
+	     corresponds to.  */
+	  codepoints_read = offsets[input - utf8_buf] - printed;
+	  printed += codepoints_read;
+
 	  if (errno == EILSEQ &&
 	      strategy != SCM_FAILED_CONVERSION_ERROR)
 	    {
 	      /* Conversion failed somewhere in INPUT and we want to
 		 escape or substitute the offending input character.  */
-
-	      /* Print the OUTPUT_LEN bytes successfully converted.  */
-	      scm_lfwrite (encoded_output, output_len, port);
-
-	      /* See how many input codepoints these OUTPUT_LEN bytes
-		 corresponds to.  */
-	      codepoints_read = offsets[input - utf8_buf] - printed;
-	      printed += codepoints_read;
 
 	      if (strategy == SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE)
 		{
