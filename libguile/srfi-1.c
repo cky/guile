@@ -1,7 +1,7 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006, 2008, 2009, 2010
- *   	Free Software Foundation, Inc.
+ * Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006,
+ *   2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -188,7 +188,7 @@ SCM_DEFINE (scm_srfi1_concatenate_x, "concatenate!", 1, 0, 0,
 	    "have a limit on the number of arguments a function takes, which\n"
 	    "the @code{apply} might exceed.  In Guile there is no such\n"
 	    "limit.")
-#define FUNC_NAME s_scm_srfi1_concatenate
+#define FUNC_NAME s_scm_srfi1_concatenate_x
 {
   SCM_VALIDATE_LIST (SCM_ARG1, lstlst);
   return scm_append_x (lstlst);
