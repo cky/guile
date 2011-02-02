@@ -93,7 +93,9 @@
           &i/o-file-does-not-exist i/o-file-does-not-exist-error?
           make-i/o-file-does-not-exist-error
           &i/o-port i/o-port-error? make-i/o-port-error
-          i/o-error-port)
+          i/o-error-port
+          &i/o-decoding-error i/o-decoding-error?
+          make-i/o-decoding-error)
   (import (only (rnrs base) assertion-violation)
           (rnrs enums)
           (rnrs records syntactic)
@@ -330,23 +332,46 @@ return the characters accumulated in that port."
         (else
          (display s port))))
 
+
+;;;
+;;; Textual input.
+;;;
+
+(define-condition-type &i/o-decoding &i/o-port
+  make-i/o-decoding-error i/o-decoding-error?)
+
+(define-syntax with-i/o-decoding-error
+  (syntax-rules ()
+    "Convert Guile throws to `decoding-error' to `&i/o-decoding-error'."
+    ((_ body ...)
+     ;; XXX: This is heavyweight for small functions like `get-char' and
+     ;; `lookahead-char'.
+     (with-throw-handler 'decoding-error
+       (lambda ()
+         (begin body ...))
+       (lambda (key subr message errno port)
+         (raise (make-i/o-decoding-error port)))))))
+
 (define (get-char port)
-  (read-char port))
+  (with-i/o-decoding-error (read-char port)))
 
 (define (get-datum port)
-  (read port))
+  (with-i/o-decoding-error (read port)))
 
 (define (get-line port)
-  (read-line port 'trim))
+  (with-i/o-decoding-error (read-line port 'trim)))
 
 (define (get-string-all port)
-  (read-delimited "" port 'concat))
+  (with-i/o-decoding-error (read-delimited "" port 'concat)))
 
 (define (lookahead-char port)
-  (peek-char port))
-
+  (with-i/o-decoding-error (peek-char port)))
 
 
+;;;
+;;; Standard ports.
+;;;
+
 (define (standard-input-port)
   (dup->inport 0))
 
