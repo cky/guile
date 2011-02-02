@@ -2471,26 +2471,79 @@
         (big*5 (* fixnum-max 5)))
 
     (with-test-prefix "inum / frac"
-      (pass-if (= 3 (max 3 5/2)))
-      (pass-if (= 5/2 (max 2 5/2))))
+      (pass-if (eqv? 3 (max 3 5/2)))
+      (pass-if (eqv? 5/2 (max 2 5/2))))
 
     (with-test-prefix "frac / inum"
-      (pass-if (= 3 (max 5/2 3)))
-      (pass-if (= 5/2 (max 5/2 2))))
+      (pass-if (eqv? 3 (max 5/2 3)))
+      (pass-if (eqv? 5/2 (max 5/2 2))))
 
-    (with-test-prefix "inum / real"
-      (pass-if (real-nan? (max 123 +nan.0))))
+    (with-test-prefix "infinities and NaNs"
+      ;; +inf.0 beats everything else, including NaNs
+      (pass-if (eqv?  +inf.0   (max   +inf.0    123   )))
+      (pass-if (eqv?  +inf.0   (max    123     +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0   -123.3 )))
+      (pass-if (eqv?  +inf.0   (max   -123.3   +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0   -7/2   )))
+      (pass-if (eqv?  +inf.0   (max   -7/2     +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0  -1e20   )))
+      (pass-if (eqv?  +inf.0   (max  -1e20     +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0 (- big*2))))
+      (pass-if (eqv?  +inf.0   (max (- big*2)  +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0   +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0   +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0   +nan.0 )))
+      (pass-if (eqv?  +inf.0   (max   +nan.0   +inf.0 )))
+      (pass-if (eqv?  +inf.0   (max   +inf.0   +inf.0 )))
 
-    (with-test-prefix "real / inum"
-      (pass-if (real-nan? (max +nan.0 123))))
+      ;; NaNs beat everything except +inf.0
+      (pass-if (real-nan?      (max   +nan.0    123   )))
+      (pass-if (real-nan?      (max    123     +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0    123.3 )))
+      (pass-if (real-nan?      (max    123.3   +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0   -7/2   )))
+      (pass-if (real-nan?      (max   -7/2     +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0  -1e20   )))
+      (pass-if (real-nan?      (max  -1e20     +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0 (- big*2))))
+      (pass-if (real-nan?      (max (- big*2)  +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0   -inf.0 )))
+      (pass-if (real-nan?      (max   -inf.0   +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0   +nan.0 )))
+
+      ;; -inf.0 always loses, except against itself
+      (pass-if (eqv?   -inf.0  (max   -inf.0   -inf.0 )))
+      (pass-if (eqv?   -123.0  (max   -inf.0   -123   )))
+      (pass-if (eqv?   -123.0  (max   -123     -inf.0 )))
+      (pass-if (eqv?   -123.3  (max   -inf.0   -123.3 )))
+      (pass-if (eqv?   -123.3  (max   -123.3   -inf.0 )))
+      (pass-if (eqv?     -3.5  (max   -inf.0   -7/2   )))
+      (pass-if (eqv?     -3.5  (max   -7/2     -inf.0 )))
+      (pass-if (eqv?  -1.0e20  (max   -inf.0  -1e20   )))
+      (pass-if (eqv?  -1.0e20  (max  -1e20     -inf.0 )))
+      (pass-if (eqv? (exact->inexact (- big*2))
+                     (max   -inf.0 (- big*2))))
+      (pass-if (eqv? (exact->inexact (- big*2))
+                     (max (- big*2)  -inf.0 ))))
+
+    (with-test-prefix "signed zeroes"
+      (pass-if (eqv?  0.0  (max  0.0  0.0)))
+      (pass-if (eqv?  0.0  (max  0.0 -0.0)))
+      (pass-if (eqv?  0.0  (max -0.0  0.0)))
+      (pass-if (eqv? -0.0  (max -0.0 -0.0)))
+      (pass-if (eqv?  0.0  (max -0.0  0  )))
+      (pass-if (eqv?  0.0  (max  0.0  0  )))
+      (pass-if (eqv?  0.0  (max  0   -0.0)))
+      (pass-if (eqv?  0.0  (max  0    0.0)))
+      (pass-if (eqv?  0    (min  0    0  ))))
 
     (with-test-prefix "big / frac"
-      (pass-if (= big*2 (max big*2 5/2)))
-      (pass-if (= 5/2 (max (- big*2) 5/2))))
+      (pass-if (eqv? big*2 (max big*2 5/2)))
+      (pass-if (eqv? 5/2 (max (- big*2) 5/2))))
 
     (with-test-prefix "frac / big"
-      (pass-if (= big*2 (max 5/2 big*2)))
-      (pass-if (= 5/2 (max 5/2 (- big*2)))))
+      (pass-if (eqv? big*2 (max 5/2 big*2)))
+      (pass-if (eqv? 5/2 (max 5/2 (- big*2)))))
 
     (with-test-prefix "big / real"
       (pass-if (real-nan? (max big*5 +nan.0)))
@@ -2507,29 +2560,29 @@
       (pass-if (eqv? 1.0                     (max 1.0 (- big*5)))))
 
     (with-test-prefix "frac / frac"
-      (pass-if (= 2/3 (max 1/2 2/3)))
-      (pass-if (= 2/3 (max 2/3 1/2)))
-      (pass-if (= -1/2 (max -1/2 -2/3)))
-      (pass-if (= -1/2 (max -2/3 -1/2))))
+      (pass-if (eqv? 2/3 (max 1/2 2/3)))
+      (pass-if (eqv? 2/3 (max 2/3 1/2)))
+      (pass-if (eqv? -1/2 (max -1/2 -2/3)))
+      (pass-if (eqv? -1/2 (max -2/3 -1/2))))
 
     (with-test-prefix "real / real"
       (pass-if (real-nan? (max 123.0 +nan.0)))
       (pass-if (real-nan? (max +nan.0 123.0)))
       (pass-if (real-nan? (max +nan.0 +nan.0)))
-      (pass-if (= 456.0 (max 123.0 456.0)))
-      (pass-if (= 456.0 (max 456.0 123.0)))))
+      (pass-if (eqv? 456.0 (max 123.0 456.0)))
+      (pass-if (eqv? 456.0 (max 456.0 123.0)))))
 
   ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
   ;; sure we've avoided that
   (for-each (lambda (b)
 	      (pass-if (list b +inf.0)
-		(= +inf.0 (max b +inf.0)))
+		(eqv? +inf.0 (max b +inf.0)))
 	      (pass-if (list +inf.0 b)
-		(= +inf.0 (max b +inf.0)))
+		(eqv? +inf.0 (max b +inf.0)))
 	      (pass-if (list b -inf.0)
-		(= (exact->inexact b) (max b -inf.0)))
+		(eqv? (exact->inexact b) (max b -inf.0)))
 	      (pass-if (list -inf.0 b)
-		(= (exact->inexact b) (max b -inf.0))))
+		(eqv? (exact->inexact b) (max b -inf.0))))
 	    (list (1- (ash 1 1024))
 		  (ash 1 1024)
 		  (1+ (ash 1 1024))
@@ -2579,43 +2632,96 @@
         (big*5 (* fixnum-max 5)))
 
     (pass-if (documented? min))
-    (pass-if (= 1 (min 7 3 1 5)))
-    (pass-if (= 1 (min 1 7 3 5)))
-    (pass-if (= 1 (min 7 3 5 1)))
-    (pass-if (= -7 (min 2 3 4 -2 5 -7 1 -1 4 2)))
-    (pass-if (= -7 (min -7 2 3 4 -2 5 1 -1 4 2)))
-    (pass-if (= -7 (min 2 3 4 -2 5 1 -1 4 2 -7)))
-    (pass-if (= big*2 (min big*3 big*5 big*2 big*4)))
-    (pass-if (= big*2 (min big*2 big*3 big*5 big*4)))
-    (pass-if (= big*2 (min big*3 big*5 big*4 big*2)))
+    (pass-if (eqv? 1 (min 7 3 1 5)))
+    (pass-if (eqv? 1 (min 1 7 3 5)))
+    (pass-if (eqv? 1 (min 7 3 5 1)))
+    (pass-if (eqv? -7 (min 2 3 4 -2 5 -7 1 -1 4 2)))
+    (pass-if (eqv? -7 (min -7 2 3 4 -2 5 1 -1 4 2)))
+    (pass-if (eqv? -7 (min 2 3 4 -2 5 1 -1 4 2 -7)))
+    (pass-if (eqv? big*2 (min big*3 big*5 big*2 big*4)))
+    (pass-if (eqv? big*2 (min big*2 big*3 big*5 big*4)))
+    (pass-if (eqv? big*2 (min big*3 big*5 big*4 big*2)))
     (pass-if
-        (= (- fixnum-min 1) (min 2 4 (- fixnum-min 1) 3 (* 2 fixnum-max))))
+        (eqv? (- fixnum-min 1) (min 2 4 (- fixnum-min 1) 3 (* 2 fixnum-max))))
     (pass-if
-        (= (- fixnum-min 1) (min (- fixnum-min 1) 2 4 3 (* 2 fixnum-max))))
+        (eqv? (- fixnum-min 1) (min (- fixnum-min 1) 2 4 3 (* 2 fixnum-max))))
     (pass-if
-        (= (- fixnum-min 1) (min 2 4 3 (* 2 fixnum-max) (- fixnum-min 1))))
+        (eqv? (- fixnum-min 1) (min 2 4 3 (* 2 fixnum-max) (- fixnum-min 1))))
 
     (with-test-prefix "inum / frac"
-      (pass-if (= 5/2 (min 3 5/2)))
-      (pass-if (= 2   (min 2 5/2))))
+      (pass-if (eqv? 5/2 (min 3 5/2)))
+      (pass-if (eqv? 2   (min 2 5/2))))
 
     (with-test-prefix "frac / inum"
-      (pass-if (= 5/2 (min 5/2 3)))
-      (pass-if (= 2   (min 5/2 2))))
+      (pass-if (eqv? 5/2 (min 5/2 3)))
+      (pass-if (eqv? 2   (min 5/2 2))))
 
-    (with-test-prefix "inum / real"
-      (pass-if (real-nan? (min 123 +nan.0))))
+    (with-test-prefix "infinities and NaNs"
+      ;; -inf.0 beats everything else, including NaNs
+      (pass-if (eqv?  -inf.0   (min   -inf.0    123   )))
+      (pass-if (eqv?  -inf.0   (min    123     -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0   -123.3 )))
+      (pass-if (eqv?  -inf.0   (min   -123.3   -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0   -7/2   )))
+      (pass-if (eqv?  -inf.0   (min   -7/2     -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0  -1e20   )))
+      (pass-if (eqv?  -inf.0   (min  -1e20     -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0 (- big*2))))
+      (pass-if (eqv?  -inf.0   (min (- big*2)  -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0   +inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   +inf.0   -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0   +nan.0 )))
+      (pass-if (eqv?  -inf.0   (min   +nan.0   -inf.0 )))
+      (pass-if (eqv?  -inf.0   (min   -inf.0   -inf.0 )))
 
-    (with-test-prefix "real / inum"
-      (pass-if (real-nan? (min +nan.0 123))))
+      ;; NaNs beat everything except -inf.0
+      (pass-if (real-nan?      (min   +nan.0    123   )))
+      (pass-if (real-nan?      (min    123     +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0    123.3 )))
+      (pass-if (real-nan?      (min    123.3   +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0   -7/2   )))
+      (pass-if (real-nan?      (min   -7/2     +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0  -1e20   )))
+      (pass-if (real-nan?      (min  -1e20     +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0 (- big*2))))
+      (pass-if (real-nan?      (min (- big*2)  +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0   +inf.0 )))
+      (pass-if (real-nan?      (min   +inf.0   +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0   +nan.0 )))
+
+      ;; +inf.0 always loses, except against itself
+      (pass-if (eqv?   +inf.0  (min   +inf.0   +inf.0 )))
+      (pass-if (eqv?   -123.0  (min   +inf.0   -123   )))
+      (pass-if (eqv?   -123.0  (min   -123     +inf.0 )))
+      (pass-if (eqv?   -123.3  (min   +inf.0   -123.3 )))
+      (pass-if (eqv?   -123.3  (min   -123.3   +inf.0 )))
+      (pass-if (eqv?     -3.5  (min   +inf.0   -7/2   )))
+      (pass-if (eqv?     -3.5  (min   -7/2     +inf.0 )))
+      (pass-if (eqv?  -1.0e20  (min   +inf.0  -1e20   )))
+      (pass-if (eqv?  -1.0e20  (min  -1e20     +inf.0 )))
+      (pass-if (eqv? (exact->inexact (- big*2))
+                     (min   +inf.0 (- big*2))))
+      (pass-if (eqv? (exact->inexact (- big*2))
+                     (min (- big*2)  +inf.0 ))))
+
+    (with-test-prefix "signed zeroes"
+      (pass-if (eqv?  0.0  (min  0.0  0.0)))
+      (pass-if (eqv? -0.0  (min  0.0 -0.0)))
+      (pass-if (eqv? -0.0  (min -0.0  0.0)))
+      (pass-if (eqv? -0.0  (min -0.0 -0.0)))
+      (pass-if (eqv? -0.0  (min -0.0  0  )))
+      (pass-if (eqv?  0.0  (min  0.0  0  )))
+      (pass-if (eqv? -0.0  (min  0   -0.0)))
+      (pass-if (eqv?  0.0  (min  0    0.0)))
+      (pass-if (eqv?  0    (min  0    0  ))))
 
     (with-test-prefix "big / frac"
-      (pass-if (= 5/2       (min big*2 5/2)))
-      (pass-if (= (- big*2) (min (- big*2) 5/2))))
+      (pass-if (eqv? 5/2       (min big*2 5/2)))
+      (pass-if (eqv? (- big*2) (min (- big*2) 5/2))))
 
     (with-test-prefix "frac / big"
-      (pass-if (= 5/2       (min 5/2 big*2)))
-      (pass-if (= (- big*2) (min 5/2 (- big*2)))))
+      (pass-if (eqv? 5/2       (min 5/2 big*2)))
+      (pass-if (eqv? (- big*2) (min 5/2 (- big*2)))))
 
     (with-test-prefix "big / real"
       (pass-if (real-nan? (min big*5 +nan.0)))
@@ -2632,30 +2738,30 @@
       (pass-if (eqv? (exact->inexact (- big*5))  (min 1.0 (- big*5)))))
 
     (with-test-prefix "frac / frac"
-      (pass-if (= 1/2 (min 1/2 2/3)))
-      (pass-if (= 1/2 (min 2/3 1/2)))
-      (pass-if (= -2/3 (min -1/2 -2/3)))
-      (pass-if (= -2/3 (min -2/3 -1/2))))
+      (pass-if (eqv? 1/2 (min 1/2 2/3)))
+      (pass-if (eqv? 1/2 (min 2/3 1/2)))
+      (pass-if (eqv? -2/3 (min -1/2 -2/3)))
+      (pass-if (eqv? -2/3 (min -2/3 -1/2))))
 
     (with-test-prefix "real / real"
       (pass-if (real-nan? (min 123.0 +nan.0)))
       (pass-if (real-nan? (min +nan.0 123.0)))
       (pass-if (real-nan? (min +nan.0 +nan.0)))
-      (pass-if (= 123.0 (min 123.0 456.0)))
-      (pass-if (= 123.0 (min 456.0 123.0)))))
+      (pass-if (eqv? 123.0 (min 123.0 456.0)))
+      (pass-if (eqv? 123.0 (min 456.0 123.0)))))
 
 
   ;; in gmp prior to 4.2, mpz_cmp_d ended up treating Inf as 2^1024, make
   ;; sure we've avoided that
   (for-each (lambda (b)
 	      (pass-if (list b +inf.0)
-		(= (exact->inexact b) (min b +inf.0)))
+		(eqv? (exact->inexact b) (min b +inf.0)))
 	      (pass-if (list +inf.0 b)
-		(= (exact->inexact b) (min b +inf.0)))
+		(eqv? (exact->inexact b) (min b +inf.0)))
 	      (pass-if (list b -inf.0)
-		(= -inf.0 (min b -inf.0)))
+		(eqv? -inf.0 (min b -inf.0)))
 	      (pass-if (list -inf.0 b)
-		(= -inf.0 (min b -inf.0))))
+		(eqv? -inf.0 (min b -inf.0))))
 	    (list (1- (ash 1 1024))
 		  (ash 1 1024)
 		  (1+ (ash 1 1024))

@@ -498,6 +498,14 @@ scm_i_fraction2double (SCM z)
 					 SCM_FRACTION_DENOMINATOR (z)));
 }
 
+static int
+double_is_non_negative_zero (double x)
+{
+  static double zero = 0.0;
+
+  return !memcmp (&x, &zero, sizeof(double));
+}
+
 SCM_PRIMITIVE_GENERIC (scm_exact_p, "exact?", 1, 0, 0, 
 		       (SCM x),
 	    "Return @code{#t} if @var{x} is an exact number, @code{#f}\n"
@@ -5148,9 +5156,19 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	{
-	  double z = xx;
-	  /* if y==NaN then ">" is false and we return NaN */
-	  return (z > SCM_REAL_VALUE (y)) ? scm_from_double (z) : y;
+	  double xxd = xx;
+	  double yyd = SCM_REAL_VALUE (y);
+
+	  if (xxd > yyd)
+	    return scm_from_double (xxd);
+	  /* If y is a NaN, then "==" is false and we return the NaN */
+	  else if (SCM_LIKELY (!(xxd == yyd)))
+	    return y;
+	  /* Handle signed zeroes properly */
+	  else if (xx == 0)
+	    return flo0;
+	  else
+	    return y;
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -5194,9 +5212,20 @@ scm_max (SCM x, SCM y)
     {
       if (SCM_I_INUMP (y))
 	{
-	  double z = SCM_I_INUM (y);
-	  /* if x==NaN then "<" is false and we return NaN */
-	  return (SCM_REAL_VALUE (x) < z) ? scm_from_double (z) : x;
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  double xxd = SCM_REAL_VALUE (x);
+	  double yyd = yy;
+
+	  if (yyd > xxd)
+	    return scm_from_double (yyd);
+	  /* If x is a NaN, then "==" is false and we return the NaN */
+	  else if (SCM_LIKELY (!(xxd == yyd)))
+	    return x;
+	  /* Handle signed zeroes properly */
+	  else if (yy == 0)
+	    return flo0;
+	  else
+	    return x;
 	}
       else if (SCM_BIGP (y))
 	{
@@ -5205,12 +5234,25 @@ scm_max (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	{
-	  /* if x==NaN then our explicit check means we return NaN
-	     if y==NaN then ">" is false and we return NaN
-	     calling isnan is unavoidable, since it's the only way to know
-	     which of x or y causes any compares to be false */
 	  double xx = SCM_REAL_VALUE (x);
-	  return (isnan (xx) || xx > SCM_REAL_VALUE (y)) ? x : y;
+	  double yy = SCM_REAL_VALUE (y);
+
+	  /* For purposes of max: +inf.0 > nan > everything else, per R6RS */
+	  if (xx > yy)
+	    return x;
+	  else if (SCM_LIKELY (xx < yy))
+	    return y;
+	  /* If neither (xx > yy) nor (xx < yy), then
+	     either they're equal or one is a NaN */
+	  else if (SCM_UNLIKELY (isnan (xx)))
+	    return (isinf (yy) == 1) ? y : x;
+	  else if (SCM_UNLIKELY (isnan (yy)))
+	    return (isinf (xx) == 1) ? x : y;
+	  /* xx == yy, but handle signed zeroes properly */
+	  else if (double_is_non_negative_zero (yy))
+	    return y;
+	  else
+	    return x;
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -5234,7 +5276,8 @@ scm_max (SCM x, SCM y)
       else if (SCM_REALP (y))
 	{
 	  double xx = scm_i_fraction2double (x);
-	  return (xx < SCM_REAL_VALUE (y)) ? y : scm_from_double (xx);
+	  /* if y==NaN then ">" is false, so we return the NaN y */
+	  return (xx > SCM_REAL_VALUE (y)) ? scm_from_double (xx) : y;
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -5351,12 +5394,25 @@ scm_min (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	{
-	  /* if x==NaN then our explicit check means we return NaN
-	     if y==NaN then "<" is false and we return NaN
-	     calling isnan is unavoidable, since it's the only way to know
-	     which of x or y causes any compares to be false */
 	  double xx = SCM_REAL_VALUE (x);
-	  return (isnan (xx) || xx < SCM_REAL_VALUE (y)) ? x : y;
+	  double yy = SCM_REAL_VALUE (y);
+
+	  /* For purposes of min: -inf.0 < nan < everything else, per R6RS */
+	  if (xx < yy)
+	    return x;
+	  else if (SCM_LIKELY (xx > yy))
+	    return y;
+	  /* If neither (xx < yy) nor (xx > yy), then
+	     either they're equal or one is a NaN */
+	  else if (SCM_UNLIKELY (isnan (xx)))
+	    return (isinf (yy) == -1) ? y : x;
+	  else if (SCM_UNLIKELY (isnan (yy)))
+	    return (isinf (xx) == -1) ? x : y;
+	  /* xx == yy, but handle signed zeroes properly */
+	  else if (double_is_non_negative_zero (xx))
+	    return y;
+	  else
+	    return x;
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -5380,7 +5436,8 @@ scm_min (SCM x, SCM y)
       else if (SCM_REALP (y))
 	{
 	  double xx = scm_i_fraction2double (x);
-	  return (SCM_REAL_VALUE (y) < xx) ? y : scm_from_double (xx);
+	  /* if y==NaN then "<" is false, so we return the NaN y */
+	  return (xx < SCM_REAL_VALUE (y)) ? scm_from_double (xx) : y;
 	}
       else if (SCM_FRACTIONP (y))
 	{
