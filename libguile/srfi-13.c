@@ -3051,10 +3051,11 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
   SCM result;
   size_t idx;
 
+#if SCM_ENABLE_DEPRECATED == 1
   if (scm_is_string (char_pred))
     {
       SCM tmp;
-      
+
       scm_c_issue_deprecation_warning
         ("Guile used to use the wrong argument order for string-filter.\n"
          "This call to string-filter had the arguments in the wrong order.\n"
@@ -3064,6 +3065,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
       char_pred = s;
       s = tmp;
     }
+#endif
 
   MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
@@ -3182,10 +3184,11 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
   SCM result;
   size_t idx;
 
+#if SCM_ENABLE_DEPRECATED == 1
   if (scm_is_string (char_pred))
     {
       SCM tmp;
-      
+
       scm_c_issue_deprecation_warning
         ("Guile used to use the wrong argument order for string-delete.\n"
          "This call to string-filter had the arguments in the wrong order.\n"
@@ -3195,6 +3198,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
       char_pred = s;
       s = tmp;
     }
+#endif
 
   MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
