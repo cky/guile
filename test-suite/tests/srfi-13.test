@@ -1,7 +1,7 @@
 ;;;; srfi-13.test --- Test suite for Guile's SRFI-13 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-07
 ;;;;
-;;;; Copyright (C) 2001, 2004, 2005, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2004, 2005, 2006, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1409,97 +1409,100 @@
   (with-test-prefix "bad char_pred"
 
     (pass-if-exception "integer" exception:wrong-type-arg
-      (string-filter "abcde" 123))
+      (string-filter 123 "abcde"))
 
+    ;; Have to comment out this test for now, given that it triggers the
+    ;; deprecation warning, even as the test passes.
+    #;
     (pass-if-exception "string" exception:wrong-type-arg
-      (string-filter "abcde" "zzz")))
+      (string-filter "zzz" "abcde")))
 
   (pass-if "empty string, char"
-    (string=? "" (string-filter "" #\.)))
+    (string=? "" (string-filter #\. "")))
 
   (pass-if "empty string, charset"
-    (string=? "" (string-filter "" char-set:punctuation)))
+    (string=? "" (string-filter char-set:punctuation "")))
 
   (pass-if "empty string, pred"
-    (string=? "" (string-filter "" char-alphabetic?)))
+    (string=? "" (string-filter char-alphabetic? "")))
 
   (pass-if "char"
-    (string=? "..." (string-filter ".foo.bar." #\.)))
+    (string=? "..." (string-filter #\. ".foo.bar.")))
 
   (pass-if "charset"
-    (string=? "..." (string-filter ".foo.bar." char-set:punctuation)))
+    (string=? "..." (string-filter char-set:punctuation ".foo.bar.")))
 
   (pass-if "pred"
-    (string=? "foobar" (string-filter ".foo.bar." char-alphabetic?)))
+    (string=? "foobar" (string-filter char-alphabetic? ".foo.bar.")))
 
   (pass-if "char, start index"
-    (string=? ".." (string-filter ".foo.bar." #\. 2)))
+    (string=? ".." (string-filter #\. ".foo.bar." 2)))
 
   (pass-if "charset, start index"
-    (string=? ".." (string-filter ".foo.bar." char-set:punctuation 2)))
+    (string=? ".." (string-filter char-set:punctuation ".foo.bar." 2)))
 
   (pass-if "pred, start index"
-    (string=? "oobar" (string-filter ".foo.bar." char-alphabetic? 2)))
+    (string=? "oobar" (string-filter char-alphabetic? ".foo.bar." 2)))
 
   (pass-if "char, start and end index"
-    (string=? "" (string-filter ".foo.bar." #\. 2 4)))
+    (string=? "" (string-filter #\. ".foo.bar." 2 4)))
 
   (pass-if "charset, start and end index"
-    (string=? "" (string-filter ".foo.bar." char-set:punctuation 2 4)))
+    (string=? "" (string-filter char-set:punctuation ".foo.bar." 2 4)))
 
   (pass-if "pred, start and end index"
-    (string=? "oo" (string-filter ".foo.bar." char-alphabetic? 2 4)))
+    (string=? "oo" (string-filter char-alphabetic? ".foo.bar." 2 4)))
 
   (with-test-prefix "char"
 
-    (pass-if (equal? "x" (string-filter "x" #\x)))
-    (pass-if (equal? "xx" (string-filter "xx" #\x)))
-    (pass-if (equal? "xx" (string-filter "xyx" #\x)))
-    (pass-if (equal? "x" (string-filter "xyyy" #\x)))
-    (pass-if (equal? "x" (string-filter "yyyx" #\x)))
+    (pass-if (equal? "x" (string-filter #\x "x")))
+    (pass-if (equal? "xx" (string-filter #\x "xx")))
+    (pass-if (equal? "xx" (string-filter #\x "xyx")))
+    (pass-if (equal? "x" (string-filter #\x "xyyy")))
+    (pass-if (equal? "x" (string-filter #\x "yyyx")))
 
-    (pass-if (equal? "xx" (string-filter "xxx" #\x 1)))
-    (pass-if (equal? "xx" (string-filter "xxx" #\x 0 2)))
-    (pass-if (equal? "x" (string-filter "xyx" #\x 1)))
-    (pass-if (equal? "x" (string-filter "yxx" #\x 0 2)))
+    (pass-if (equal? "xx" (string-filter #\x "xxx" 1)))
+    (pass-if (equal? "xx" (string-filter #\x "xxx" 0 2)))
+    (pass-if (equal? "x" (string-filter #\x "xyx" 1)))
+    (pass-if (equal? "x" (string-filter #\x "yxx" 0 2)))
 
     ;; leading and trailing removals
-    (pass-if (string=? "" (string-filter "." #\x)))
-    (pass-if (string=? "" (string-filter ".." #\x)))
-    (pass-if (string=? "" (string-filter "..." #\x)))
-    (pass-if (string=? "x" (string-filter ".x" #\x)))
-    (pass-if (string=? "x" (string-filter "..x" #\x)))
-    (pass-if (string=? "x" (string-filter "...x" #\x)))
-    (pass-if (string=? "x" (string-filter "x." #\x)))
-    (pass-if (string=? "x" (string-filter "x.." #\x)))
-    (pass-if (string=? "x" (string-filter "x..." #\x)))
-    (pass-if (string=? "x" (string-filter "...x..." #\x))))
+    (pass-if (string=? "" (string-filter #\x ".")))
+    (pass-if (string=? "" (string-filter #\x "..")))
+    (pass-if (string=? "" (string-filter #\x "...")))
+    (pass-if (string=? "x" (string-filter #\x ".x")))
+    (pass-if (string=? "x" (string-filter #\x "..x")))
+    (pass-if (string=? "x" (string-filter #\x "...x")))
+    (pass-if (string=? "x" (string-filter #\x "x.")))
+    (pass-if (string=? "x" (string-filter #\x "x..")))
+    (pass-if (string=? "x" (string-filter #\x "x...")))
+    (pass-if (string=? "x" (string-filter #\x "...x..."))))
 
   (with-test-prefix "charset"
 
     (let ((charset (char-set #\x #\y)))
-      (pass-if (equal? "x" (string-filter "x" charset)))
-      (pass-if (equal? "xx" (string-filter "xx" charset)))
-      (pass-if (equal? "xy" (string-filter "xy" charset)))
-      (pass-if (equal? "x" (string-filter "xaaa" charset)))
-      (pass-if (equal? "y" (string-filter "aaay" charset)))
+      (pass-if (equal? "x" (string-filter charset "x")))
+      (pass-if (equal? "xx" (string-filter charset "xx")))
+      (pass-if (equal? "xy" (string-filter charset "xy")))
+      (pass-if (equal? "x" (string-filter charset "xaaa")))
+      (pass-if (equal? "y" (string-filter charset "aaay")))
 
-      (pass-if (equal? "yx" (string-filter "xyx" charset 1)))
-      (pass-if (equal? "xy" (string-filter "xyx" charset 0 2)))
-      (pass-if (equal? "x" (string-filter "xax" charset 1)))
-      (pass-if (equal? "x" (string-filter "axx" charset 0 2))))
+      (pass-if (equal? "yx" (string-filter charset "xyx" 1)))
+      (pass-if (equal? "xy" (string-filter charset "xyx" 0 2)))
+      (pass-if (equal? "x" (string-filter charset "xax" 1)))
+      (pass-if (equal? "x" (string-filter charset "axx" 0 2))))
 
     ;; leading and trailing removals
-    (pass-if (string=? "" (string-filter "." char-set:letter)))
-    (pass-if (string=? "" (string-filter ".." char-set:letter)))
-    (pass-if (string=? "" (string-filter "..." char-set:letter)))
-    (pass-if (string=? "x" (string-filter ".x" char-set:letter)))
-    (pass-if (string=? "x" (string-filter "..x" char-set:letter)))
-    (pass-if (string=? "x" (string-filter "...x" char-set:letter)))
-    (pass-if (string=? "x" (string-filter "x." char-set:letter)))
-    (pass-if (string=? "x" (string-filter "x.." char-set:letter)))
-    (pass-if (string=? "x" (string-filter "x..." char-set:letter)))
-    (pass-if (string=? "x" (string-filter "...x..." char-set:letter)))))
+    (pass-if (string=? "" (string-filter char-set:letter ".")))
+    (pass-if (string=? "" (string-filter char-set:letter "..")))
+    (pass-if (string=? "" (string-filter char-set:letter "...")))
+    (pass-if (string=? "x" (string-filter char-set:letter ".x")))
+    (pass-if (string=? "x" (string-filter char-set:letter "..x")))
+    (pass-if (string=? "x" (string-filter char-set:letter "...x")))
+    (pass-if (string=? "x" (string-filter char-set:letter "x.")))
+    (pass-if (string=? "x" (string-filter char-set:letter "x..")))
+    (pass-if (string=? "x" (string-filter char-set:letter "x...")))
+    (pass-if (string=? "x" (string-filter char-set:letter "...x...")))))
 
 ;;;
 ;;; string-delete
@@ -1510,70 +1513,72 @@
   (with-test-prefix "bad char_pred"
 
     (pass-if-exception "integer" exception:wrong-type-arg
-      (string-delete "abcde" 123))
+      (string-delete 123 "abcde"))
 
+    ;; Like string-filter, commenting out this test.
+    #;
     (pass-if-exception "string" exception:wrong-type-arg
-      (string-delete "abcde" "zzz")))
+      (string-delete "zzz" "abcde")))
 
   (pass-if "empty string, char"
-    (string=? "" (string-delete "" #\.)))
+    (string=? "" (string-delete #\. "")))
 
   (pass-if "empty string, charset"
-    (string=? "" (string-delete "" char-set:punctuation)))
+    (string=? "" (string-delete char-set:punctuation "")))
 
   (pass-if "empty string, pred"
-    (string=? "" (string-delete "" char-alphabetic?)))
+    (string=? "" (string-delete char-alphabetic? "")))
 
   (pass-if "char"
-    (string=? "foobar" (string-delete ".foo.bar." #\.)))
+    (string=? "foobar" (string-delete #\. ".foo.bar.")))
 
   (pass-if "charset"
-    (string=? "foobar" (string-delete ".foo.bar." char-set:punctuation)))
+    (string=? "foobar" (string-delete char-set:punctuation ".foo.bar.")))
 
   (pass-if "pred"
-    (string=? "..." (string-delete ".foo.bar." char-alphabetic?)))
+    (string=? "..." (string-delete char-alphabetic? ".foo.bar.")))
 
   (pass-if "char, start index"
-    (string=? "oobar" (string-delete ".foo.bar." #\. 2)))
+    (string=? "oobar" (string-delete #\. ".foo.bar." 2)))
 
   (pass-if "charset, start index"
-    (string=? "oobar" (string-delete ".foo.bar." char-set:punctuation 2)))
+    (string=? "oobar" (string-delete char-set:punctuation ".foo.bar." 2)))
 
   (pass-if "pred, start index"
-    (string=? ".." (string-delete ".foo.bar." char-alphabetic? 2)))
+    (string=? ".." (string-delete char-alphabetic? ".foo.bar." 2)))
 
   (pass-if "char, start and end index"
-    (string=? "oo" (string-delete ".foo.bar." #\. 2 4)))
+    (string=? "oo" (string-delete #\. ".foo.bar." 2 4)))
 
   (pass-if "charset, start and end index"
-    (string=? "oo" (string-delete ".foo.bar." char-set:punctuation 2 4)))
+    (string=? "oo" (string-delete char-set:punctuation ".foo.bar." 2 4)))
 
   (pass-if "pred, start and end index"
-    (string=? "" (string-delete ".foo.bar." char-alphabetic? 2 4)))
+    (string=? "" (string-delete char-alphabetic? ".foo.bar." 2 4)))
 
   ;; leading and trailing removals
-  (pass-if (string=? "" (string-delete "." #\.)))
-  (pass-if (string=? "" (string-delete ".." #\.)))
-  (pass-if (string=? "" (string-delete "..." #\.)))
-  (pass-if (string=? "x" (string-delete ".x" #\.)))
-  (pass-if (string=? "x" (string-delete "..x" #\.)))
-  (pass-if (string=? "x" (string-delete "...x" #\.)))
-  (pass-if (string=? "x" (string-delete "x." #\.)))
-  (pass-if (string=? "x" (string-delete "x.." #\.)))
-  (pass-if (string=? "x" (string-delete "x..." #\.)))
-  (pass-if (string=? "x" (string-delete "...x..." #\.)))
+  (pass-if (string=? "" (string-delete #\. ".")))
+  (pass-if (string=? "" (string-delete #\. "..")))
+  (pass-if (string=? "" (string-delete #\. "...")))
+  (pass-if (string=? "x" (string-delete #\. ".x")))
+  (pass-if (string=? "x" (string-delete #\. "..x")))
+  (pass-if (string=? "x" (string-delete #\. "...x")))
+  (pass-if (string=? "x" (string-delete #\. "x.")))
+  (pass-if (string=? "x" (string-delete #\. "x..")))
+  (pass-if (string=? "x" (string-delete #\. "x...")))
+  (pass-if (string=? "x" (string-delete #\. "...x...")))
 
   ;; leading and trailing removals
-  (pass-if (string=? "" (string-delete "." char-set:punctuation)))
-  (pass-if (string=? "" (string-delete ".." char-set:punctuation)))
-  (pass-if (string=? "" (string-delete "..." char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete ".x" char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete "..x" char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete "...x" char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete "x." char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete "x.." char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete "x..." char-set:punctuation)))
-  (pass-if (string=? "x" (string-delete "...x..." char-set:punctuation))))
+  (pass-if (string=? "" (string-delete char-set:punctuation ".")))
+  (pass-if (string=? "" (string-delete char-set:punctuation "..")))
+  (pass-if (string=? "" (string-delete char-set:punctuation "...")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation ".x")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation "..x")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation "...x")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation "x.")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation "x..")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation "x...")))
+  (pass-if (string=? "x" (string-delete char-set:punctuation "...x..."))))
 
 
 (with-test-prefix "string-map"
