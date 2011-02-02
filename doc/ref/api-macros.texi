@@ -574,11 +574,14 @@ Here's another solution that doesn't work:
              (if it then else)))))))
 @end example
 
-The reason that this one doesn't work is that there are really two environments
-at work here -- the environment of pattern variables, as bound by
-@code{syntax-case}, and the environment of lexical variables, as bound by normal
-Scheme. Here we need to introduce a piece of Scheme's environment into that of
-the syntax expander, and we can do so using @code{syntax-case} itself:
+The reason that this one doesn't work is that there are really two
+environments at work here -- the environment of pattern variables, as
+bound by @code{syntax-case}, and the environment of lexical variables,
+as bound by normal Scheme. The outer let form establishes a binding in
+the environment of lexical variables, but the inner let form is inside a
+syntax form, where only pattern variables will be substituted. Here we
+need to introduce a piece of the lexical environment into the pattern
+variable environment, and we can do so using @code{syntax-case} itself:
 
 @example
 ;; works, but is obtuse
