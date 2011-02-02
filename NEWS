@@ -121,6 +121,48 @@ Note that these operators are equivalent to the R6RS integer division
 operators `div', `mod', `div-and-mod', `div0', `mod0', and
 `div0-and-mod0'.
 
+*** Complex number changes
+
+Guile is now able to represent non-real complex numbers whose
+imaginary part is an _inexact_ zero (0.0 or -0.0), per R6RS.
+Previously, such numbers were immediately changed into inexact reals.
+
+(real? 0.0+0.0i) now returns #f, per R6RS, although (zero? 0.0+0.0i)
+still returns #t, per R6RS.  (= 0 0.0+0.0i) and (= 0.0 0.0+0.0i) are
+#t, but the same comparisons using `eqv?' or `equal?' are #f.
+
+Like other non-real numbers, these complex numbers with inexact zero
+imaginary part will raise exceptions is passed to procedures requiring
+reals, such as `<', `>', `<=', `>=', `min', `max', `positive?',
+`negative?', `inf?', `nan?', `finite?', etc.
+
+**** `make-rectangular' changes
+
+scm_make_rectangular `make-rectangular' now returns a real number only
+if the imaginary part is an _exact_ 0.  Previously, it would return a
+real number if the imaginary part was an inexact zero.
+
+scm_c_make_rectangular now always returns a non-real complex number,
+even if the imaginary part is zero.  Previously, it would return a
+real number if the imaginary part was zero.
+
+**** `make-polar' changes
+
+scm_make_polar `make-polar' now returns a real number only if the
+angle or magnitude is an _exact_ 0.  If the magnitude is an exact 0,
+it now returns an exact 0.  Previously, it would return a real
+number if the imaginary part was an inexact zero.
+
+scm_c_make_polar now always returns a non-real complex number, even if
+the imaginary part is 0.0.  Previously, it would return a real number
+if the imaginary part was 0.0.
+
+**** `imag-part' changes
+
+scm_imag_part `imag-part' now returns an exact 0 if applied to an
+inexact real number.  Previously it returned an inexact zero in this
+case.
+
 *** `eqv?' and `equal?' now compare numbers equivalently
 
 scm_equal_p `equal?' now behaves equivalently to scm_eqv_p `eqv?' for

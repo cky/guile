@@ -22,10 +22,10 @@
 
 
 /* General assumptions:
- * All objects satisfying SCM_COMPLEXP() have a non-zero complex component.
  * All objects satisfying SCM_BIGP() are too large to fit in a fixnum.
  * If an object satisfies integer?, it's either an inum, a bignum, or a real.
  * If floor (r) == r, r is an int, and mpz_set_d will DTRT.
+ *     XXX What about infinities?  They are equal to their own floor!  -mhw
  * All objects satisfying SCM_FRACTIONP are never an integer.
  */
 
@@ -3649,17 +3649,20 @@ static size_t
 icmplx2str (double real, double imag, char *str, int radix)
 {
   size_t i;
+  double sgn;
   
   i = idbl2str (real, str, radix);
-  if (imag != 0.0)
-    {
-      /* Don't output a '+' for negative numbers or for Inf and
-	 NaN.  They will provide their own sign. */
-      if (0 <= imag && !isinf (imag) && !isnan (imag))
-	str[i++] = '+';
-      i += idbl2str (imag, &str[i], radix);
-      str[i++] = 'i';
-    }
+#ifdef HAVE_COPYSIGN
+  sgn = copysign (1.0, imag);
+#else
+  sgn = imag;
+#endif
+  /* Don't output a '+' for negative numbers or for Inf and
+     NaN.  They will provide their own sign. */
+  if (sgn >= 0 && DOUBLE_IS_FINITE (imag))
+    str[i++] = '+';
+  i += idbl2str (imag, &str[i], radix);
+  str[i++] = 'i';
   return i;
 }
 
@@ -4206,7 +4209,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
      floating point value so that we can change its sign. 
   */
   if (scm_is_eq (result, SCM_INUM0) && *p_exactness == INEXACT)
-    result = scm_from_double (0.0);
+    result = flo0;
 
   return result;
 }
@@ -7107,19 +7110,14 @@ SCM_PRIMITIVE_GENERIC (scm_sys_atanh, "atanh", 1, 0, 0,
 SCM
 scm_c_make_rectangular (double re, double im)
 {
-  if (im == 0.0)
-    return scm_from_double (re);
-  else
-    {
-      SCM z;
+  SCM z;
 
-      z = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_complex),
-					      "complex"));
-      SCM_SET_CELL_TYPE (z, scm_tc16_complex);
-      SCM_COMPLEX_REAL (z) = re;
-      SCM_COMPLEX_IMAG (z) = im;
-      return z;
-    }
+  z = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_complex),
+					  "complex"));
+  SCM_SET_CELL_TYPE (z, scm_tc16_complex);
+  SCM_COMPLEX_REAL (z) = re;
+  SCM_COMPLEX_IMAG (z) = im;
+  return z;
 }
 
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
@@ -7132,8 +7130,13 @@ SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
                    SCM_ARG1, FUNC_NAME, "real");
   SCM_ASSERT_TYPE (scm_is_real (imaginary_part), imaginary_part,
                    SCM_ARG2, FUNC_NAME, "real");
-  return scm_c_make_rectangular (scm_to_double (real_part),
-                                 scm_to_double (imaginary_part));
+
+  /* Return a real if and only if the imaginary_part is an _exact_ 0 */
+  if (scm_is_eq (imaginary_part, SCM_INUM0))
+    return real_part;
+  else
+    return scm_c_make_rectangular (scm_to_double (real_part),
+				   scm_to_double (imaginary_part));
 }
 #undef FUNC_NAME
 
@@ -7156,13 +7159,21 @@ scm_c_make_polar (double mag, double ang)
 }
 
 SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
-            (SCM x, SCM y),
-	    "Return the complex number @var{x} * e^(i * @var{y}).")
+            (SCM mag, SCM ang),
+	    "Return the complex number @var{mag} * e^(i * @var{ang}).")
 #define FUNC_NAME s_scm_make_polar
 {
-  SCM_ASSERT_TYPE (scm_is_real (x), x, SCM_ARG1, FUNC_NAME, "real");
-  SCM_ASSERT_TYPE (scm_is_real (y), y, SCM_ARG2, FUNC_NAME, "real");
-  return scm_c_make_polar (scm_to_double (x), scm_to_double (y));
+  SCM_ASSERT_TYPE (scm_is_real (mag), mag, SCM_ARG1, FUNC_NAME, "real");
+  SCM_ASSERT_TYPE (scm_is_real (ang), ang, SCM_ARG2, FUNC_NAME, "real");
+
+  /* If mag is exact0, return exact0 */
+  if (scm_is_eq (mag, SCM_INUM0))
+    return SCM_INUM0;
+  /* Return a real if ang is exact0 */
+  else if (scm_is_eq (ang, SCM_INUM0))
+    return mag;
+  else
+    return scm_c_make_polar (scm_to_double (mag), scm_to_double (ang));
 }
 #undef FUNC_NAME
 
@@ -7189,9 +7200,7 @@ SCM_PRIMITIVE_GENERIC (scm_imag_part, "imag-part", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     return scm_from_double (SCM_COMPLEX_IMAG (z));
-  else if (SCM_REALP (z))
-    return flo0;
-  else if (SCM_I_INUMP (z) || SCM_BIGP (z) || SCM_FRACTIONP (z))
+  else if (SCM_I_INUMP (z) || SCM_REALP (z) || SCM_BIGP (z) || SCM_FRACTIONP (z))
     return SCM_INUM0;
   else
     SCM_WTA_DISPATCH_1 (g_scm_imag_part, z, SCM_ARG1, s_scm_imag_part);
@@ -7344,11 +7353,20 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	"Return an exact number that is numerically closest to @var{z}.")
 #define FUNC_NAME s_scm_inexact_to_exact
 {
-  if (SCM_I_INUMP (z) || SCM_BIGP (z))
+  if (SCM_I_INUMP (z) || SCM_BIGP (z) || SCM_FRACTIONP (z))
     return z;
-  else if (SCM_REALP (z))
+  else
     {
-      if (!DOUBLE_IS_FINITE (SCM_REAL_VALUE (z)))
+      double val;
+
+      if (SCM_REALP (z))
+	val = SCM_REAL_VALUE (z);
+      else if (SCM_COMPLEXP (z) && SCM_COMPLEX_IMAG (z) == 0.0)
+	val = SCM_COMPLEX_REAL (z);
+      else
+	SCM_WTA_DISPATCH_1 (g_scm_inexact_to_exact, z, 1, s_scm_inexact_to_exact);
+
+      if (!SCM_LIKELY (DOUBLE_IS_FINITE (val)))
 	SCM_OUT_OF_RANGE (1, z);
       else
 	{
@@ -7356,9 +7374,9 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	  SCM q;
 	  
 	  mpq_init (frac);
-	  mpq_set_d (frac, SCM_REAL_VALUE (z));
+	  mpq_set_d (frac, val);
 	  q = scm_i_make_ratio (scm_i_mpz2num (mpq_numref (frac)),
-			      scm_i_mpz2num (mpq_denref (frac)));
+				scm_i_mpz2num (mpq_denref (frac)));
 
 	  /* When scm_i_make_ratio throws, we leak the memory allocated
 	     for frac...
@@ -7367,10 +7385,6 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	  return q;
 	}
     }
-  else if (SCM_FRACTIONP (z))
-    return z;
-  else
-    SCM_WTA_DISPATCH_1 (g_scm_inexact_to_exact, z, 1, s_scm_inexact_to_exact);
 }
 #undef FUNC_NAME
 
