@@ -1,6 +1,6 @@
 ;;; Describe objects
 
-;; Copyright (C) 2001, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2011 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -165,7 +165,7 @@
 (define-method (display-description (obj <top>))
   (let* ((doc (with-output-to-string (lambda () (display-documentation obj))))
 	 (index (string-index doc #\newline)))
-    (display (make-shared-substring doc 0 (1+ index)))))
+    (display (substring doc 0 (1+ index)))))
 
 (define-method (display-documentation (obj <top>))
   (display "Not documented.\n"))
