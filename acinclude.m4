@@ -379,16 +379,16 @@ AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
      dnl On `x86_64-unknown-freebsd8.0', thread-local storage appears to
      dnl be reclaimed at the wrong time, leading to a segfault when
      dnl running `threads.test'.  So disable it.
-     case "x$enable_shared--$host_os" in
-       xyes--netbsd[0-5].[0-9].|xyes--solaris2.8|xyes--freebsd[0-8]*)
+     case "$enable_shared--$host_os" in
+       [yes--netbsd[0-5].[0-9].|yes--solaris2.8|yes--freebsd[0-8]*])
          ac_cv_have_thread_storage_class="no"
-	 ;;
+         ;;
        *)
-	 AC_LINK_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
-			  [tls_integer = 123;])],
-	   [ac_cv_have_thread_storage_class="yes"],
-	   [ac_cv_have_thread_storage_class="no"])
-	 ;;
+         AC_LINK_IFELSE([AC_LANG_PROGRAM([__thread int tls_integer;],
+                          [tls_integer = 123;])],
+           [ac_cv_have_thread_storage_class="yes"],
+           [ac_cv_have_thread_storage_class="no"])
+         ;;
      esac])
 
   if test "x$ac_cv_have_thread_storage_class" = "xyes"; then
