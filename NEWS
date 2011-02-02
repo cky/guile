@@ -63,7 +63,13 @@ The GOOPS manual saw a lot of work, as well as documentation for the
 
 ** Guile uses iconv directly for reading from and writing to ports.
 
-[What does this mean for users?]
+In addition to providing faster Unicode I/O (e.g., `display',
+`read-char'), this change improves error reporting.
+
+For instance, the `encoding-error' exception conveys information about
+the port and character that could not be encoded.  Likewise, the new
+`decoding-error' exception conveys information about the port from which
+data failed to be decoded, and leaves the port in a known position.
 
 ** Source files default to UTF-8.
 
@@ -210,6 +216,11 @@ that NaNs _are_ considered numbers by scheme, despite their name).
 **** `real-valued?', `rational-valued?' and `integer-valued?' changes
 
 These predicates are now implemented in accordance with R6RS.
+
+** R6RS textual I/O procedures raise R6RS error conditions
+
+R6RS procedures `get-char', `put-string', etc. now raise the correct
+R6RS error coding, i.e., `&i/o-decoding-error' or `&i/o-encoding-error'.
 
 ** New reader option: `hungry-eol-escapes'
 
