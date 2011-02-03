@@ -83,6 +83,11 @@ typedef scm_t_signed_bits scm_t_inum;
    TODO: if it's available, use C99's isfinite(x) instead */
 #define DOUBLE_IS_FINITE(x) (!isinf(x) && !isnan(x))
 
+/* On some platforms, isinf(x) returns 0, 1 or -1, indicating the sign
+   of the infinity, but other platforms return a boolean only. */
+#define DOUBLE_IS_POSITIVE_INFINITY(x) (isinf(x) && ((x) > 0))
+#define DOUBLE_IS_NEGATIVE_INFINITY(x) (isinf(x) && ((x) < 0))
+
 
 
 /*
@@ -5251,9 +5256,9 @@ scm_max (SCM x, SCM y)
 	  /* If neither (xx > yy) nor (xx < yy), then
 	     either they're equal or one is a NaN */
 	  else if (SCM_UNLIKELY (isnan (xx)))
-	    return (isinf (yy) == 1) ? y : x;
+	    return DOUBLE_IS_POSITIVE_INFINITY (yy) ? y : x;
 	  else if (SCM_UNLIKELY (isnan (yy)))
-	    return (isinf (xx) == 1) ? x : y;
+	    return DOUBLE_IS_POSITIVE_INFINITY (xx) ? x : y;
 	  /* xx == yy, but handle signed zeroes properly */
 	  else if (double_is_non_negative_zero (yy))
 	    return y;
@@ -5411,9 +5416,9 @@ scm_min (SCM x, SCM y)
 	  /* If neither (xx < yy) nor (xx > yy), then
 	     either they're equal or one is a NaN */
 	  else if (SCM_UNLIKELY (isnan (xx)))
-	    return (isinf (yy) == -1) ? y : x;
+	    return DOUBLE_IS_NEGATIVE_INFINITY (yy) ? y : x;
 	  else if (SCM_UNLIKELY (isnan (yy)))
-	    return (isinf (xx) == -1) ? x : y;
+	    return DOUBLE_IS_NEGATIVE_INFINITY (xx) ? x : y;
 	  /* xx == yy, but handle signed zeroes properly */
 	  else if (double_is_non_negative_zero (xx))
 	    return y;
