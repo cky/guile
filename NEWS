@@ -8,6 +8,31 @@ Please send Guile bug reports to bug-guile@gnu.org.
 Note: During the 1.9 series, we will keep an incremental NEWS for the
 latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
+Changes since the 1.9.15 prerelease:
+
+** Improved exactness handling for complex number parsing
+
+When parsing non-real complex numbers, exactness specifiers are now
+applied to each component, as is done in PLT Scheme.  For complex
+numbers written in rectangular form, exactness specifiers are applied
+to the real and imaginary parts before calling scm_make_rectangular.
+For complex numbers written in polar form, exactness specifiers are
+applied to the magnitude and angle before calling scm_make_polar.
+
+Previously, exactness specifiers were applied to the number as a whole
+_after_ calling scm_make_rectangular or scm_make_polar.
+
+For example, (string->number "#i5.0+0i") now does the equivalent of:
+
+  (make-rectangular (exact->inexact 5.0) (exact->inexact 0))
+
+which yields 5.0+0.0i.  Previously it did the equivalent of:
+
+  (exact->inexact (make-rectangular 5.0 0))
+
+which yielded 5.0.
+
+
 Changes in 1.9.15 (since the 1.9.14 prerelease):
 
 ** Formally deprecate omission of port to `format'

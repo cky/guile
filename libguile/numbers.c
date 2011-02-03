@@ -4124,7 +4124,7 @@ mem2decimal_from_point (SCM result, SCM mem,
 
 static SCM
 mem2ureal (SCM mem, unsigned int *p_idx,
-	   unsigned int radix, enum t_exactness *p_exactness)
+	   unsigned int radix, enum t_exactness forced_x)
 {
   unsigned int idx = *p_idx;
   SCM result;
@@ -4132,7 +4132,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
 
   /* Start off believing that the number will be exact.  This changes
      to INEXACT if we see a decimal point or a hash. */
-  enum t_exactness x = EXACT;
+  enum t_exactness implicit_x = EXACT;
 
   if (idx == len)
     return SCM_BOOL_F;
@@ -4148,7 +4148,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
       /* Cobble up the fractional part.  We might want to set the
 	 NaN's mantissa from it. */
       idx += 4;
-      mem2uinteger (mem, &idx, 10, &x);
+      mem2uinteger (mem, &idx, 10, &implicit_x);
       *p_idx = idx;
       return scm_nan ();
     }
@@ -4163,13 +4163,13 @@ mem2ureal (SCM mem, unsigned int *p_idx,
 	return SCM_BOOL_F;
       else
 	result = mem2decimal_from_point (SCM_INUM0, mem,
-					 p_idx, &x);
+					 p_idx, &implicit_x);
     }
   else
     {
       SCM uinteger;
 
-      uinteger = mem2uinteger (mem, &idx, radix, &x);
+      uinteger = mem2uinteger (mem, &idx, radix, &implicit_x);
       if (scm_is_false (uinteger))
 	return SCM_BOOL_F;
 
@@ -4183,7 +4183,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
           if (idx == len)
             return SCM_BOOL_F;
 
-	  divisor = mem2uinteger (mem, &idx, radix, &x);
+	  divisor = mem2uinteger (mem, &idx, radix, &implicit_x);
 	  if (scm_is_false (divisor))
 	    return SCM_BOOL_F;
 
@@ -4192,7 +4192,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
 	}
       else if (radix == 10)
 	{
-	  result = mem2decimal_from_point (uinteger, mem, &idx, &x);
+	  result = mem2decimal_from_point (uinteger, mem, &idx, &implicit_x);
 	  if (scm_is_false (result))
 	    return SCM_BOOL_F;
 	}
@@ -4202,21 +4202,32 @@ mem2ureal (SCM mem, unsigned int *p_idx,
       *p_idx = idx;
     }
 
-  /* Update *p_exactness if the number just read was inexact.  This is
-     important for complex numbers, so that a complex number is
-     treated as inexact overall if either its real or imaginary part
-     is inexact.
-  */
-  if (x == INEXACT)
-    *p_exactness = x;
+  switch (forced_x)
+    {
+    case EXACT:
+      if (SCM_INEXACTP (result))
+	return scm_inexact_to_exact (result);
+      else
+	return result;
+    case INEXACT:
+      if (SCM_INEXACTP (result))
+	return result;
+      else
+	return scm_exact_to_inexact (result);
+    case NO_EXACTNESS:
+      if (implicit_x == INEXACT)
+	{
+	  if (SCM_INEXACTP (result))
+	    return result;
+	  else
+	    return scm_exact_to_inexact (result);
+	}
+      else
+	return result;
+    }
 
-  /* When returning an inexact zero, make sure it is represented as a
-     floating point value so that we can change its sign. 
-  */
-  if (scm_is_eq (result, SCM_INUM0) && *p_exactness == INEXACT)
-    result = flo0;
-
-  return result;
+  /* We should never get here */
+  scm_syserror ("mem2ureal");
 }
 
 
@@ -4224,7 +4235,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
 
 static SCM
 mem2complex (SCM mem, unsigned int idx,
-	     unsigned int radix, enum t_exactness *p_exactness)
+	     unsigned int radix, enum t_exactness forced_x)
 {
   scm_t_wchar c;
   int sign = 0;
@@ -4249,7 +4260,7 @@ mem2complex (SCM mem, unsigned int idx,
   if (idx == len)
     return SCM_BOOL_F;
 
-  ureal = mem2ureal (mem, &idx, radix, p_exactness);
+  ureal = mem2ureal (mem, &idx, radix, forced_x);
   if (scm_is_false (ureal))
     {
       /* input must be either +i or -i */
@@ -4320,7 +4331,7 @@ mem2complex (SCM mem, unsigned int idx,
 	      else
 		sign = 1;
 
-	      angle = mem2ureal (mem, &idx, radix, p_exactness);
+	      angle = mem2ureal (mem, &idx, radix, forced_x);
 	      if (scm_is_false (angle))
 		return SCM_BOOL_F;
 	      if (idx != len)
@@ -4342,7 +4353,7 @@ mem2complex (SCM mem, unsigned int idx,
 	  else
 	    {
 	      int sign = (c == '+') ? 1 : -1;
-	      SCM imag = mem2ureal (mem, &idx, radix, p_exactness);
+	      SCM imag = mem2ureal (mem, &idx, radix, forced_x);
 
 	      if (scm_is_false (imag))
 		imag = SCM_I_MAKINUM (sign);
@@ -4378,8 +4389,6 @@ scm_i_string_to_number (SCM mem, unsigned int default_radix)
   unsigned int idx = 0;
   unsigned int radix = NO_RADIX;
   enum t_exactness forced_x = NO_EXACTNESS;
-  enum t_exactness implicit_x = EXACT;
-  SCM result;
   size_t len = scm_i_string_length (mem);
 
   /* R5RS, section 7.1.1, lexical structure of numbers: <prefix R> */
@@ -4425,37 +4434,9 @@ scm_i_string_to_number (SCM mem, unsigned int default_radix)
 
   /* R5RS, section 7.1.1, lexical structure of numbers: <complex R> */
   if (radix == NO_RADIX)
-    result = mem2complex (mem, idx, default_radix, &implicit_x);
-  else
-    result = mem2complex (mem, idx, (unsigned int) radix, &implicit_x);
+    radix = default_radix;
 
-  if (scm_is_false (result))
-    return SCM_BOOL_F;
-
-  switch (forced_x)
-    {
-    case EXACT:
-      if (SCM_INEXACTP (result))
-	return scm_inexact_to_exact (result);
-      else
-	return result;
-    case INEXACT:
-      if (SCM_INEXACTP (result))
-	return result;
-      else
-	return scm_exact_to_inexact (result);
-    case NO_EXACTNESS:
-    default:
-      if (implicit_x == INEXACT)
-	{
-	  if (SCM_INEXACTP (result))
-	    return result;
-	  else
-	    return scm_exact_to_inexact (result);
-	}
-      else
-	return result;
-    }
+  return mem2complex (mem, idx, radix, forced_x);
 }
 
 SCM
@@ -7160,7 +7141,23 @@ scm_c_make_polar (double mag, double ang)
   s = sin (ang);
   c = cos (ang);
 #endif
-  return scm_c_make_rectangular (mag * c, mag * s);
+
+  /* If s and c are NaNs, this indicates that the angle is a NaN,
+     infinite, or perhaps simply too large to determine its value
+     mod 2*pi.  However, we know something that the floating-point
+     implementation doesn't know:  We know that s and c are finite.
+     Therefore, if the magnitude is zero, return a complex zero.
+
+     The reason we check for the NaNs instead of using this case
+     whenever mag == 0.0 is because when the angle is known, we'd
+     like to return the correct kind of non-real complex zero:
+     +0.0+0.0i, -0.0+0.0i, -0.0-0.0i, or +0.0-0.0i, depending
+     on which quadrant the angle is in.
+  */
+  if (SCM_UNLIKELY (isnan(s)) && isnan(c) && (mag == 0.0))
+    return scm_c_make_rectangular (0.0, 0.0);
+  else
+    return scm_c_make_rectangular (mag * c, mag * s);
 }
 
 SCM_DEFINE (scm_make_polar, "make-polar", 2, 0, 0,
