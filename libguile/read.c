@@ -1750,7 +1750,7 @@ scm_i_scan_for_encoding (SCM port)
 SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
             (SCM port),
             "Scans the port for an Emacs-like character coding declaration\n"
-            "near the top of the contents of a port with random-acessible contents.\n"
+            "near the top of the contents of a port with random-accessible contents.\n"
             "The coding declaration is of the form\n"
             "@code{coding: XXXXX} and must appear in a scheme comment.\n"
             "\n"

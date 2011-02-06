@@ -160,7 +160,7 @@ scm_c_uniform_vector_ref (SCM v, size_t idx)
 SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	    (SCM v, SCM idx),
 	    "Return the element at index @var{idx} of the\n"
-	    "homogenous numeric vector @var{v}.")
+	    "homogeneous numeric vector @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
 {
   return scm_c_uniform_vector_ref (v, scm_to_size_t (idx));
@@ -178,7 +178,7 @@ scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
 SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
 	    (SCM v, SCM idx, SCM val),
 	    "Set the element at index @var{idx} of the\n"
-	    "homogenous numeric vector @var{v} to @var{val}.")
+	    "homogeneous numeric vector @var{v} to @var{val}.")
 #define FUNC_NAME s_scm_uniform_vector_set_x
 {
   scm_c_uniform_vector_set_x (v, scm_to_size_t (idx), val);

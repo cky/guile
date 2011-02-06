@@ -1026,7 +1026,7 @@ SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 SCM_DEFINE (scm_srfi1_partition, "partition", 2, 0, 0,
 	    (SCM pred, SCM list),
 	    "Partition the elements of @var{list} with predicate @var{pred}.\n"
-	    "Return two values: the list of elements satifying @var{pred} and\n"
+	    "Return two values: the list of elements satisfying @var{pred} and\n"
 	    "the list of elements @emph{not} satisfying @var{pred}.  The order\n"
 	    "of the output lists follows the order of @var{list}.  @var{list}\n"
 	    "is not mutated.  One of the output lists may share memory with @var{list}.\n")
@@ -1185,7 +1185,7 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
 
 SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
             (SCM lst, SCM n),
-	    "Return the a list containing the @var{n} last elements of\n"
+	    "Return a list containing the @var{n} last elements of\n"
 	    "@var{lst}.")
 #define FUNC_NAME s_scm_srfi1_take_right
 {

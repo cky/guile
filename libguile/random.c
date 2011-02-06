@@ -447,7 +447,7 @@ SCM_DEFINE (scm_seed_to_random_state, "seed->random-state", 1, 0, 0,
 SCM_DEFINE (scm_datum_to_random_state, "datum->random-state", 1, 0, 0, 
             (SCM datum),
             "Return a new random state using @var{datum}, which should have\n"
-            "been obtailed from @code{random-state->datum}.")
+            "been obtained from @code{random-state->datum}.")
 #define FUNC_NAME s_scm_datum_to_random_state
 {
   return make_rstate (scm_c_rstate_from_datum (datum));

@@ -1341,7 +1341,7 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
 	    "leaving the remainder of the vector unchanged.\n\n"
 	    "When @var{port-or-fdes} is a port, all specified elements\n"
 	    "of @var{uvec} are attempted to be read, potentially blocking\n"
-	    "while waiting formore input or end-of-file.\n"
+	    "while waiting for more input or end-of-file.\n"
 	    "When @var{port-or-fd} is an integer, a single call to\n"
 	    "read(2) is made.\n\n"
 	    "An error is signalled when the last element has only\n"

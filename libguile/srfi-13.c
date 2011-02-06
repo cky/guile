@@ -1640,14 +1640,14 @@ SCM_DEFINE (scm_string_suffix_ci_p, "string-suffix-ci?", 2, 4, 0,
 SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
 	    "Search through the string @var{s} from left to right, returning\n"
-	    "the index of the first occurence of a character which\n"
+	    "the index of the first occurrence of a character which\n"
 	    "\n"
 	    "@itemize @bullet\n"
 	    "@item\n"
 	    "equals @var{char_pred}, if it is character,\n"
 	    "\n"
 	    "@item\n"
-	    "satisifies the predicate @var{char_pred}, if it is a procedure,\n"
+	    "satisfies the predicate @var{char_pred}, if it is a procedure,\n"
 	    "\n"
 	    "@item\n"
 	    "is in the set @var{char_pred}, if it is a character set.\n"
@@ -1705,14 +1705,14 @@ SCM_DEFINE (scm_string_index, "string-index", 2, 2, 0,
 SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
 	    "Search through the string @var{s} from right to left, returning\n"
-	    "the index of the last occurence of a character which\n"
+	    "the index of the last occurrence of a character which\n"
 	    "\n"
 	    "@itemize @bullet\n"
 	    "@item\n"
 	    "equals @var{char_pred}, if it is character,\n"
 	    "\n"
 	    "@item\n"
-	    "satisifies the predicate @var{char_pred}, if it is a procedure,\n"
+	    "satisfies the predicate @var{char_pred}, if it is a procedure,\n"
 	    "\n"
 	    "@item\n"
 	    "is in the set if @var{char_pred} is a character set.\n"
@@ -1770,14 +1770,14 @@ SCM_DEFINE (scm_string_index_right, "string-index-right", 2, 2, 0,
 SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
 	    "Search through the string @var{s} from right to left, returning\n"
-	    "the index of the last occurence of a character which\n"
+	    "the index of the last occurrence of a character which\n"
 	    "\n"
 	    "@itemize @bullet\n"
 	    "@item\n"
 	    "equals @var{char_pred}, if it is character,\n"
 	    "\n"
 	    "@item\n"
-	    "satisifies the predicate @var{char_pred}, if it is a procedure,\n"
+	    "satisfies the predicate @var{char_pred}, if it is a procedure,\n"
 	    "\n"
 	    "@item\n"
 	    "is in the set if @var{char_pred} is a character set.\n"
@@ -1792,14 +1792,14 @@ SCM_DEFINE (scm_string_rindex, "string-rindex", 2, 2, 0,
 SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
 	    "Search through the string @var{s} from left to right, returning\n"
-	    "the index of the first occurence of a character which\n"
+	    "the index of the first occurrence of a character which\n"
 	    "\n"
 	    "@itemize @bullet\n"
 	    "@item\n"
 	    "does not equal @var{char_pred}, if it is character,\n"
 	    "\n"
 	    "@item\n"
-	    "does not satisify the predicate @var{char_pred}, if it is a\n"
+	    "does not satisfy the predicate @var{char_pred}, if it is a\n"
 	    "procedure,\n"
 	    "\n"
 	    "@item\n"
@@ -1858,7 +1858,7 @@ SCM_DEFINE (scm_string_skip, "string-skip", 2, 2, 0,
 SCM_DEFINE (scm_string_skip_right, "string-skip-right", 2, 2, 0,
 	    (SCM s, SCM char_pred, SCM start, SCM end),
 	    "Search through the string @var{s} from right to left, returning\n"
-	    "the index of the last occurence of a character which\n"
+	    "the index of the last occurrence of a character which\n"
 	    "\n"
 	    "@itemize @bullet\n"
 	    "@item\n"
@@ -1932,7 +1932,7 @@ SCM_DEFINE (scm_string_count, "string-count", 2, 2, 0,
 	    "equals @var{char_pred}, if it is character,\n"
 	    "\n"
 	    "@item\n"
-	    "satisifies the predicate @var{char_pred}, if it is a procedure.\n"
+	    "satisfies the predicate @var{char_pred}, if it is a procedure.\n"
 	    "\n"
 	    "@item\n"
 	    "is in the set @var{char_pred}, if it is a character set.\n"
@@ -2459,7 +2459,7 @@ SCM_DEFINE (scm_string_concatenate_shared, "string-concatenate/shared", 1, 0, 0,
 SCM_DEFINE (scm_string_concatenate_reverse_shared, "string-concatenate-reverse/shared", 1, 2, 0,
             (SCM ls, SCM final_string, SCM end),
 	    "Like @code{string-concatenate-reverse}, but the result may\n"
-	    "share memory with the the strings in the @var{ls} arguments.")
+	    "share memory with the strings in the @var{ls} arguments.")
 #define FUNC_NAME s_scm_string_concatenate_reverse_shared
 {
   /* Just call the non-sharing version.  */
@@ -2969,7 +2969,7 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 
 SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	    (SCM str, SCM chr),
-	    "Split the string @var{str} into the a list of the substrings delimited\n"
+	    "Split the string @var{str} into a list of the substrings delimited\n"
 	    "by appearances of the character @var{chr}.  Note that an empty substring\n"
 	    "between separator characters will result in an empty string in the\n"
 	    "result list.\n"

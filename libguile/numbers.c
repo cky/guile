@@ -7954,7 +7954,7 @@ SCM_PRIMITIVE_GENERIC (scm_exp, "exp", 1, 0, 0,
 SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
 		       (SCM z),
 	"Return the square root of @var{z}.  Of the two possible roots\n"
-	"(positive and negative), the one with the a positive real part\n"
+	"(positive and negative), the one with positive real part\n"
 	"is returned, or if that's zero then a positive imaginary part.\n"
 	"Thus,\n"
 	"\n"

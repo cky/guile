@@ -155,9 +155,9 @@ cwdr (SCM proc, SCM a1, SCM args, SCM handler, SCM_STACKITEM *stack_start)
 
 SCM_DEFINE (scm_call_with_dynamic_root, "call-with-dynamic-root", 2, 0, 0,
            (SCM thunk, SCM handler),
-	    "Call @var{thunk} with a new dynamic state and within"
-	    "a continuation barrier.  The @var{handler} catches all"
-	    "otherwise uncaught throws and executes within the same"
+	    "Call @var{thunk} with a new dynamic state and within\n"
+	    "a continuation barrier.  The @var{handler} catches all\n"
+	    "otherwise uncaught throws and executes within the same\n"
 	    "dynamic context as @var{thunk}.")
 #define FUNC_NAME s_scm_call_with_dynamic_root
 {

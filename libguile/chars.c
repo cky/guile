@@ -265,7 +265,7 @@ SCM scm_char_ci_less_p (SCM x, SCM y)
 static SCM scm_i_char_ci_leq_p (SCM x, SCM y, SCM rest);
 SCM_DEFINE (scm_i_char_ci_leq_p, "char-ci<=?", 0, 2, 1,
             (SCM x, SCM y, SCM rest),
-            "Return @code{#t} iff the case-folded Unicodd code point of @var{x} is\n"
+            "Return @code{#t} iff the case-folded Unicode code point of @var{x} is\n"
             "less than or equal to the case-folded code point of @var{y}, else\n"
             "@code{#f}")
 #define FUNC_NAME s_scm_i_char_ci_leq_p

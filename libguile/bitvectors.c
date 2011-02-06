@@ -496,7 +496,7 @@ find_first_one (scm_t_uint32 x)
 
 SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
            (SCM item, SCM v, SCM k),
-	    "Return the index of the first occurrance of @var{item} in bit\n"
+	    "Return the index of the first occurrence of @var{item} in bit\n"
 	    "vector @var{v}, starting from @var{k}.  If there is no\n"
 	    "@var{item} entry between @var{k} and the end of\n"
 	    "@var{bitvector}, then return @code{#f}.  For example,\n"
