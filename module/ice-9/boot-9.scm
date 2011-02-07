@@ -2872,8 +2872,13 @@ module '(ice-9 q) '(make-q q-length))}."
        (and-map symbol? (syntax->datum #'(name name* ...)))
        (with-syntax (((quoted-arg ...)
                       (parse #'(arg ...) '() '() '() '() '()))
-                     (filename (assq-ref (or (syntax-source x) '())
-                                         'filename)))
+                     ;; Ideally the filename is either a string or #f;
+                     ;; this hack is to work around a case in which
+                     ;; port-filename returns a symbol (`socket') for
+                     ;; sockets.
+                     (filename (let ((f (assq-ref (or (syntax-source x) '())
+                                                  'filename)))
+                                 (and (string? f) f))))
          #'(eval-when (eval load compile expand)
              (let ((m (define-module* '(name name* ...)
                         #:filename filename quoted-arg ...)))
