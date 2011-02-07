@@ -179,8 +179,19 @@ pointer object and returns an object that satisfies PRED, and UNWRAP
 which does the reverse.  PRINT must name a user-defined object printer."
     (syntax-case stx ()
       ((_ pred wrap unwrap print)
-       (with-syntax ((type-name (datum->syntax #'pred (gensym)))
-                     (%wrap     (datum->syntax #'wrap (gensym))))
+       (and (symbol? (syntax->datum #'pred))
+            (symbol? (syntax->datum #'wrap))
+            (symbol? (syntax->datum #'unwrap)))
+
+       ;; Choose TYPE-NAME deterministically to help separate
+       ;; compilation.  It could be an arg of the macro, but that would
+       ;; expose an implementation detail.
+       (with-syntax ((type-name (datum->syntax
+                                 #'pred
+                                 (symbol-append '%%
+                                                (syntax->datum #'pred)
+                                                '-type-name)))
+                     (%wrap     (datum->syntax #'wrap (gensym "wrap"))))
          #'(begin
              (define-record-type type-name
                (%wrap pointer)
