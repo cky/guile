@@ -1,6 +1,6 @@
 ;;; a simple inliner
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -47,6 +47,46 @@
             (else x)))
          (else x)))
       
+      ((<application> src proc args)
+       (record-case proc
+         ;; ((lambda (y ...) x) z ...) => (let ((y z) ...) x)
+         ((<primitive-ref> name)
+          (case name
+            ((memq memv)
+             (pmatch args
+               ((,k ,l) (guard (const? l) (list? (const-exp l)))
+                (cond
+                 ((null? (const-exp l))
+                  (make-const #f #f))
+                 ((const? k)
+                  (make-const #f (->bool ((case name
+                                            ((memq) memq)
+                                            ((memv) memv)
+                                            (else (error "unexpected member func" name)))
+                                          (const-exp k) (const-exp l)))))
+                 (else
+                  (let lp ((elts (const-exp l)))
+                    (let ((test (make-application
+                                 #f
+                                 (make-primitive-ref #f (case name
+                                                          ((memq) 'eq?)
+                                                          ((memv) 'eqv?)
+                                                          (else (error "what"))))
+                                 (list k (make-const #f (car elts))))))
+                      (if (null? (cdr elts))
+                          test
+                          (make-conditional
+                           src
+                           test
+                           (make-const #f #t)
+                           (lp (cdr elts)))))))))
+
+               (else x)))
+
+            (else x)))
+
+         (else x)))
+       
       ((<lambda> meta body)
        (make-const src #t))
 
@@ -96,29 +136,6 @@
                  (let ((x (make-application src producer '())))
                    (or (inline1 x) x))
                  (lambda-body consumer)))
-               (else #f)))
-
-            ((memq memv)
-             (pmatch args
-               ((,k ,l) (guard (const? l) (list? (const-exp l)))
-                (if (null? (const-exp l))
-                    (make-const #f #f)
-                    (let lp ((elts (const-exp l)))
-                      (let ((test (make-application
-                                   #f
-                                   (make-primitive-ref #f (case name
-                                                            ((memq) 'eq?)
-                                                            ((memv) 'eqv?)
-                                                            (else (error "what"))))
-                                   (list k (make-const #f (car elts))))))
-                        (if (null? (cdr elts))
-                            test
-                            (make-conditional
-                             src
-                             test
-                             (make-const #f #t)
-                             (lp (cdr elts))))))))
-
                (else #f)))
 
             (else #f)))
