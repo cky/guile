@@ -1965,10 +1965,16 @@ VALUE."
 ;; Same as MODULE-USE! but add multiple interfaces and check for duplicates
 ;;
 (define (module-use-interfaces! module interfaces)
-  (set-module-uses! module
-                    (append (module-uses module) interfaces))
-  (hash-clear! (module-import-obarray module))
-  (module-modified module))
+  (let ((prev (filter (lambda (used)
+                        (and-map (lambda (iface)
+                                   (not (equal? (module-name used)
+                                                (module-name iface))))
+                                 interfaces))
+                      (module-uses module))))
+    (set-module-uses! module
+                      (append prev interfaces))
+    (hash-clear! (module-import-obarray module))
+    (module-modified module)))
 
 
 
