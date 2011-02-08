@@ -134,8 +134,8 @@ SCM_DEFINE (scm_procedure, "procedure", 1, 0, 0,
 	    "applicable struct.")
 #define FUNC_NAME s_scm_procedure
 {
-  SCM_VALIDATE_NIM (1, proc);
-  SCM_ASSERT (SCM_STRUCT_APPLICABLE_P (proc), proc, SCM_ARG1, FUNC_NAME);
+  SCM_ASSERT (SCM_STRUCTP (proc) && SCM_STRUCT_APPLICABLE_P (proc),
+              proc, SCM_ARG1, FUNC_NAME);
   return SCM_STRUCT_PROCEDURE (proc);
 }
 #undef FUNC_NAME
