@@ -67,7 +67,8 @@
     (not (equal? (make-pointer 123) (make-pointer 456)))))
 
 
-(define-wrapped-pointer-type foo?
+(define-wrapped-pointer-type foo
+  foo?
   wrap-foo unwrap-foo
   (lambda (x p)
     (format p "#<foo! ~a>" (pointer-address (unwrap-foo x)))))

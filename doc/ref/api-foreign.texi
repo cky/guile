@@ -627,7 +627,7 @@ structures to identify objects.  It is useful in such cases to reify the
 different pointer types as disjoint Scheme types.  The
 @code{define-wrapped-pointer-type} macro simplifies this.
 
-@deffn {Scheme Syntax} define-wrapped-pointer-type pred wrap unwrap print
+@deffn {Scheme Syntax} define-wrapped-pointer-type type-name pred wrap unwrap print
 Define helper procedures to wrap pointer objects into Scheme objects
 with a disjoint type.  Specifically, this macro defines:
 
@@ -651,7 +651,8 @@ For example, assume we are wrapping a C library that defines a type,
 pointers to manipulate them.  We could write:
 
 @example
-(define-wrapped-pointer-type bottle?
+(define-wrapped-pointer-type bottle
+  bottle?
   wrap-bottle unwrap-bottle
   (lambda (b p)
     (format p "#<bottle of ~a ~x>"
