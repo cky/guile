@@ -814,6 +814,7 @@ cif_to_procedure (SCM cif, SCM func_ptr)
 /* Set *LOC to the foreign representation of X with TYPE.  */
 static void
 unpack (const ffi_type *type, void *loc, SCM x)
+#define FUNC_NAME "scm_i_foreign_call"
 {
   switch (type->type)
     {
@@ -848,15 +849,18 @@ unpack (const ffi_type *type, void *loc, SCM x)
       *(scm_t_int64 *) loc = scm_to_int64 (x);
       break;
     case FFI_TYPE_STRUCT:
+      SCM_VALIDATE_POINTER (1, x);
       memcpy (loc, SCM_POINTER_VALUE (x), type->size);
       break;
     case FFI_TYPE_POINTER:
+      SCM_VALIDATE_POINTER (1, x);
       *(void **) loc = SCM_POINTER_VALUE (x);
       break;
     default:
       abort ();
     }
 }
+#undef FUNC_NAME
 
 /* Return a Scheme representation of the foreign value at LOC of type TYPE.  */
 static SCM

@@ -137,6 +137,14 @@
         (string=? s (pointer->string (string->pointer s)))))))
 
 
+(with-test-prefix "pointer->procedure"
+
+  (pass-if-exception "object instead of pointer"
+    exception:wrong-type-arg
+    (let ((p (pointer->procedure '* %null-pointer '(*))))
+      (p #t))))
+
+
 (with-test-prefix "procedure->pointer"
 
   (define qsort
