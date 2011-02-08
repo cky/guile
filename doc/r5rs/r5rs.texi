@@ -4446,7 +4446,7 @@ With log defined this way, the values of sin^-1 z, cos^-1 z,
 and tan^-1 z are according to the following formulae:
 
 
-@center sin^-1 z = -i log (i z + sqrt1 - z^2)
+@center sin^-1 z = -i log (i z + sqrt(1 - z^2))
 
 
 
