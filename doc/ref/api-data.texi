@@ -488,7 +488,7 @@ all possible points along a continuous, infinite, one-dimensional line.
 The rational numbers are the set of all numbers that can be written as
 fractions @var{p}/@var{q}, where @var{p} and @var{q} are integers.
 All rational numbers are also real, but there are real numbers that
-are not rational, for example @m{\sqrt2, the square root of 2}, and
+are not rational, for example @m{\sqrt{2}, the square root of 2}, and
 @m{\pi,pi}.
 
 Guile can represent both exact and inexact rational numbers, but it
@@ -572,7 +572,7 @@ is an integer number or a rational number.
 @deffnx {C Function} scm_rational_p (x)
 Return @code{#t} if @var{x} is a rational number, @code{#f} otherwise.
 Note that the set of integer values forms a subset of the set of
-rational numbers, i. e. the predicate will also be fulfilled if
+rational numbers, i.e.@: the predicate will also be fulfilled if
 @var{x} is an integer number.
 @end deffn
 
