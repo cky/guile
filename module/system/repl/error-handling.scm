@@ -1,6 +1,6 @@
 ;;; Error handling in the REPL
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -29,12 +29,38 @@
 
 
 
+;; Temporary hacked copy of repl.scm's display-syntax error, until we
+;; merge in the proper display-exception patches.
+(define (display-syntax-error port who what where form subform extra)
+  (display "Syntax error:" port)
+  (newline port)
+  (if where
+      (let ((file (or (assq-ref where 'filename) "unknown file"))
+            (line (and=> (assq-ref where 'line) 1+))
+            (col (assq-ref where 'column)))
+        (format port "~a:~a:~a: " file line col))
+      (format port "unknown location: "))
+  (if who
+      (format port "~a: " who))
+  (format port "~a" what)
+  (if subform
+      (format port " in subform ~s of ~s" subform form)
+      (if form
+          (format port " in form ~s" form)))
+  (newline port))
+
 ;;;
 ;;; Error handling via repl debugging
 ;;;
 
 (define (error-string stack key args)
   (pmatch args
+    ((,who ,message ,where ,form ,subform . ,rest)
+     (guard (eq? key 'syntax-error))
+     (with-output-to-string
+       (lambda ()
+         (display-syntax-error (current-output-port)
+                               who message where form subform rest))))
     ((,subr ,msg ,args . ,rest)
      (guard (> (vector-length stack) 0))
      (with-output-to-string
