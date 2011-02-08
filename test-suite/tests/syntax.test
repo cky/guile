@@ -1,6 +1,6 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -140,10 +140,10 @@
 
   (with-test-prefix "unquote-splicing"
 
-    (pass-if-syntax-error "extra arguments"
-      "unquote-splicing takes exactly one argument"
-      (eval '(quasiquote ((unquote-splicing (list 1 2) (list 3 4))))
-            (interaction-environment)))))
+    (pass-if "extra arguments"
+      (equal? (eval '(quasiquote ((unquote-splicing (list 1 2) (list 3 4))))
+                    (interaction-environment))
+              '(1 2 3 4)))))
 
 (with-test-prefix "begin"
 
