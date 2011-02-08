@@ -1,18 +1,18 @@
 ;;;; format.test --- test suite for Guile's CL-ish format  -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2004, 2006, 2010 Free Software Foundation, Inc.
-;;;; 
+;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010, 2011 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -25,6 +25,12 @@
 ;;; FORMAT Basic Output
 
 (with-test-prefix "format basic output"
+  (pass-if "default to Unicode-capable port"
+    ;; `(format #f ...)' should be able to deal with Unicode characters.
+    (with-fluids ((%default-port-encoding "ISO-8859-1"))
+      (let ((alpha (integer->char #x03b1)))  ; GREEK SMALL LETTER ALPHA
+        (= 1 (string-length (format #f (string alpha)))))))
+
   (pass-if "format ~% produces a new line"
 	   (string=? (format #f "~%") "\n"))
   (pass-if "format ~& starts a fresh line"

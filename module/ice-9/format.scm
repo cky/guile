@@ -41,7 +41,10 @@
 
   (let* ((port
           (cond
-           ((not destination) (open-output-string))
+           ((not destination)
+            ;; Use a Unicode-capable output string port.
+            (with-fluids ((%default-port-encoding "UTF-8"))
+              (open-output-string)))
            ((boolean? destination) (current-output-port)) ; boolean but not false
            ((output-port? destination) destination)
            ((number? destination)
