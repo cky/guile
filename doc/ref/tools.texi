@@ -252,7 +252,7 @@ functions.
 @node Writing your own snarfing macros
 @subsubsection Writing your own snarfing macros
 
-When you want to use the general snarfing machanism, but none of the
+When you want to use the general snarfing mechanism, but none of the
 provided macros fits your need, you can use the macro
 @code{SCM_SNARF_INIT}.
 

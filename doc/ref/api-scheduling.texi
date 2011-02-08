@@ -743,7 +743,7 @@ Set @var{fluids} to @var{values} temporary, and call @var{thunk}.
 @var{fluids} must be a list of fluids and @var{values} must be the
 same number of their values to be applied.  Each substitution is done
 in the order given.  @var{thunk} must be a procedure with no argument.
-it is called inside a @code{dynamic-wind} and the fluids are
+It is called inside a @code{dynamic-wind} and the fluids are
 set/restored when control enter or leaves the established dynamic
 extent.
 @end deffn

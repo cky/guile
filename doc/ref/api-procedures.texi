@@ -489,7 +489,7 @@ take @code{lambda*}-style extended parameter lists, where @code{#:optional},
 semantics. Here is an example of a macro with an optional argument:
 
 @lisp
-(defmacro* transmorgify (a #:optional b)
+(defmacro* transmogrify (a #:optional b)
   (a 1))
 @end lisp
 @end deffn

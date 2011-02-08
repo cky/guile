@@ -1155,7 +1155,7 @@ Returns the magnitude or angle of @var{z} as a @code{double}.
 The C arithmetic functions below always takes two arguments, while the
 Scheme functions can take an arbitrary number.  When you need to
 invoke them with just one argument, for example to compute the
-equivalent od @code{(- x)}, pass @code{SCM_UNDEFINED} as the second
+equivalent of @code{(- x)}, pass @code{SCM_UNDEFINED} as the second
 one: @code{scm_difference (x, SCM_UNDEFINED)}.
 
 @c begin (texi-doc-string "guile" "+")
@@ -1327,7 +1327,7 @@ including complex numbers.
 @c begin (texi-doc-string "guile" "sqrt")
 @deffn {Scheme Procedure} sqrt z
 Return the square root of @var{z}.  Of the two possible roots
-(positive and negative), the one with the a positive real part is
+(positive and negative), the one with a positive real part is
 returned, or if that's zero then a positive imaginary part.  Thus,
 
 @example
@@ -2989,7 +2989,7 @@ Convert the string @var{str} into a list of characters.
 
 @deffn {Scheme Procedure} string-split str chr
 @deffnx {C Function} scm_string_split (str, chr)
-Split the string @var{str} into the a list of the substrings delimited
+Split the string @var{str} into a list of substrings delimited
 by appearances of the character @var{chr}.  Note that an empty substring
 between separator characters will result in an empty string in the
 result list.
@@ -3422,12 +3422,12 @@ case-insensitively.
 
 @deffn {Scheme Procedure} string-hash s [bound [start [end]]]
 @deffnx {C Function} scm_substring_hash (s, bound, start, end)
-Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+Compute a hash value for @var{S}.  The optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
 @end deffn
 
 @deffn {Scheme Procedure} string-hash-ci s [bound [start [end]]]
 @deffnx {C Function} scm_substring_hash_ci (s, bound, start, end)
-Compute a hash value for @var{S}.  the optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
+Compute a hash value for @var{S}.  The optional argument @var{bound} is a non-negative exact integer specifying the range of the hash function. A positive value restricts the return value to the range [0,bound).
 @end deffn
 
 Because the same visual appearance of an abstract Unicode character can 
@@ -3449,7 +3449,7 @@ Unicode Standard; and composition, which performs the converse.
 
 There are two decomposition operations.  ``Canonical decomposition'' 
 produces character sequences that share the same visual appearance as
-the original characters, while ``compatiblity decomposition'' produces
+the original characters, while ``compatibility decomposition'' produces
 ones whose visual appearances may differ from the originals but which
 represent the same abstract character.
 
@@ -4069,7 +4069,7 @@ If a character in @var{str} cannot be represented in the locale encoding
 of the current output port, the port conversion strategy of the current
 output port will determine the result, @xref{Ports}.  If output port's
 conversion strategy is @code{error}, an error will be raised.  If it is
-@code{subsitute}, a replacement character, such as a question mark, will
+@code{substitute}, a replacement character, such as a question mark, will
 be inserted in its place.  If it is @code{escape}, a hex escape will be
 inserted in its place.
 @end deftypefn
@@ -5128,8 +5128,8 @@ Guile currently retains some elements of the traditional structure in
 case they turn out to be useful when implementing translators for other
 languages, in particular Emacs Lisp.
 
-Specifically, Guile symbols have two extra slots. for a symbol's
-property list, and for its ``function value.''  The following procedures
+Specifically, Guile symbols have two extra slots, one for a symbol's
+property list, and one for its ``function value.''  The following procedures
 are provided to access these slots.
 
 @deffn {Scheme Procedure} symbol-fref symbol

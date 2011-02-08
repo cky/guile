@@ -746,7 +746,7 @@ Jump to @var{offset} if the number of arguments is not equal to, greater
 than, or less than @var{n}. @var{n} is encoded over two bytes, and
 @var{offset} has the normal three-byte encoding.
 
-These instructions are used to implement muliple arities, as in
+These instructions are used to implement multiple arities, as in
 @code{case-lambda}. @xref{Case-lambda}, for more information.
 @end deffn
 
@@ -803,7 +803,7 @@ keyword arguments to their local variable indices.
 There are two bitflags that affect the parser, @code{allow-other-keys?}
 (@code{0x1}) and @code{rest?} (@code{0x2}). Unless
 @code{allow-other-keys?} is set, the parser will signal an error if an
-unknown key is found. If @code{rest?} is set, errors parsing the the
+unknown key is found. If @code{rest?} is set, errors parsing the
 keyword arguments will be ignored, as a later @code{bind-rest}
 instruction will collect all of the tail arguments, including the
 keywords, into a list. Otherwise if the keyword arguments are invalid,
@@ -940,7 +940,7 @@ Jump to @var{offset} if the object on the stack is not @code{'()}.
 @subsubsection Data Constructor Instructions
 
 These instructions push simple immediate values onto the stack,
-or constructo compound data structures from values the stack.
+or construct compound data structures from values on the stack.
 
 @deffn Instruction make-int8 value
 Push @var{value}, an 8-bit integer, onto the stack.
@@ -1067,7 +1067,7 @@ encoded in the ``latin1'' locale.
 @end deffn
 @deffn Instruction load-wide-string length
 Load a UTF-32 string from the instruction stream. @var{length} is the
-length in bytes, not in codepoints
+length in bytes, not in codepoints.
 @end deffn
 @deffn Instruction load-symbol length
 Load a symbol from the instruction stream. The symbol is assumed to be
@@ -1228,7 +1228,7 @@ Since most of these operations are historically implemented as C
 primitives, not inlining them would entail constantly calling out from
 the VM to the interpreter, which has some costs---registers must be
 saved, the interpreter has to dispatch, called procedures have to do
-much typechecking, etc. It's much more efficient to inline these
+much type checking, etc. It's much more efficient to inline these
 operations in the virtual machine itself.
 
 All of these instructions pop their arguments from the stack and push

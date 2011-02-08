@@ -568,7 +568,7 @@ as @var{array}, if used as the @var{prototype} for
 
 @deffn {Scheme Procedure} call-with-dynamic-root thunk handler
 @deffnx {C Function} scm_call_with_dynamic_root (thunk, handler)
-Call @var{thunk} with a new dynamic state and withina continuation barrier.  The @var{handler} catches allotherwise uncaught throws and executes within the samedynamic context as @var{thunk}.
+Call @var{thunk} with a new dynamic state and within a continuation barrier.  The @var{handler} catches all otherwise uncaught throws and executes within the same dynamic context as @var{thunk}.
 @end deffn
 
 @deffn {Scheme Procedure} dynamic-root
@@ -587,13 +587,13 @@ Return @code{#t} if @var{obj} is a uniform vector.
 @deffn {Scheme Procedure} uniform-vector-ref v idx
 @deffnx {C Function} scm_uniform_vector_ref (v, idx)
 Return the element at index @var{idx} of the
-homogenous numeric vector @var{v}.
+homogeneous numeric vector @var{v}.
 @end deffn
 
 @deffn {Scheme Procedure} uniform-vector-set! v idx val
 @deffnx {C Function} scm_uniform_vector_set_x (v, idx, val)
 Set the element at index @var{idx} of the
-homogenous numeric vector @var{v} to @var{val}.
+homogeneous numeric vector @var{v} to @var{val}.
 @end deffn
 
 @deffn {Scheme Procedure} uniform-vector->list uvec

@@ -299,7 +299,7 @@ expression.
 
 This property is sometimes known as @dfn{hygiene}, and it does aid in code
 cleanliness. In your macro definitions, you can feel free to introduce temporary
-variables, without worrying about inadvertantly introducing bindings into the
+variables, without worrying about inadvertently introducing bindings into the
 macro expansion.
 
 Consider the definition of @code{my-or} from the previous section:
@@ -461,7 +461,7 @@ found @var{exp} referenced outside a @code{syntax} form.
 
 Since @code{syntax} appears frequently in macro-heavy code, it has a special
 reader macro: @code{#'}. @code{#'foo} is transformed by the reader into
-@code{(syntax foo)}, just as @code{'foo} is tranformed into @code{(quote foo)}.
+@code{(syntax foo)}, just as @code{'foo} is transformed into @code{(quote foo)}.
 
 The pattern language used by @code{syntax-case} is conveniently the same
 language used by @code{syntax-rules}. Given this, Guile actually defines
@@ -763,7 +763,7 @@ macro. @code{syntax-rules} provides some syntax to effect this transformation
 more easily.
 
 @deffn {Syntax} identifier-syntax exp
-Returns a macro transformer that will replace occurences of the macro with
+Returns a macro transformer that will replace occurrences of the macro with
 @var{exp}.
 @end deffn
 
@@ -814,7 +814,7 @@ bar-alias @result{} 30
 @end example
 @end deffn
 
-There is an extension to identifer-syntax which allows it to handle the
+There is an extension to identifier-syntax which allows it to handle the
 @code{set!} case as well:
 
 @deffn {Syntax} identifier-syntax (var exp1) ((set! var val) exp2)

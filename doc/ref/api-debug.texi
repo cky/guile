@@ -1030,7 +1030,7 @@ of an application of @var{proc}.
 
 @deffn {Scheme Procedure} trap-instructions-in-dynamic-extent proc @
        next-handler [#:current-frame] [#:vm] [#:closure?]
-A trap that calls @var{next-handler} for all retired intructions within
+A trap that calls @var{next-handler} for all retired instructions within
 the dynamic extent of a call to @var{proc}.
 @end deffn
 

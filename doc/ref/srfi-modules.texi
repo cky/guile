@@ -391,13 +391,13 @@ Return a list containing all but the first @var{i} elements of
 @end deffn
 
 @deffn {Scheme Procedure} take-right lst i
-Return the a list containing the @var{i} last elements of @var{lst}.
+Return a list containing the @var{i} last elements of @var{lst}.
 The return shares a common tail with @var{lst}.
 @end deffn
 
 @deffn {Scheme Procedure} drop-right lst i
 @deffnx {Scheme Procedure} drop-right! lst i
-Return the a list containing all but the @var{i} last elements of
+Return a list containing all but the @var{i} last elements of
 @var{lst}.
 
 @code{drop-right} always returns a new list, even when @var{i} is
@@ -633,7 +633,7 @@ Determines when to stop unfolding.
 Maps each seed value to the corresponding list element.
 
 @item g
-Maps each seed value to next seed valu.
+Maps each seed value to next seed value.
 
 @item seed
 The state value for the unfold.
@@ -665,7 +665,7 @@ Determines when to stop unfolding.
 Maps each seed value to the corresponding list element.
 
 @item g
-Maps each seed value to next seed valu.
+Maps each seed value to next seed value.
 
 @item seed
 The state value for the unfold.
@@ -1678,7 +1678,7 @@ at the following odd index.
 @deftypefnx {C Function} {const scm_t_int32 *} scm_s32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const scm_t_uint64 *} scm_u64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const scm_t_int64 *} scm_s64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {const float *} scm_f23vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {const float *} scm_f32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const double *} scm_f64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const float *} scm_c32vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {const double *} scm_c64vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
@@ -1695,7 +1695,7 @@ indicated kind.
 @deftypefnx {C Function} {scm_t_int32 *} scm_s32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {scm_t_uint64 *} scm_u64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {scm_t_int64 *} scm_s64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-@deftypefnx {C Function} {float *} scm_f23vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
+@deftypefnx {C Function} {float *} scm_f32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {double *} scm_f64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {float *} scm_c32vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
 @deftypefnx {C Function} {double *} scm_c64vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
@@ -1884,7 +1884,7 @@ The @var{fieldname}s provide the names for the record fields, as per
 the core @code{record-type-fields} etc, and are referred to in the
 subsequent accessor/modifier forms.
 
-@var{predictate} is bound to a function to be called as
+@var{predicate} is bound to a function to be called as
 @code{(@var{predicate} obj)}.  It returns @code{#t} or @code{#f}
 according to whether @var{obj} is a record of this type.
 
@@ -4117,7 +4117,7 @@ stream-filter algorithm, expressed in a hypothetical lazy language as
             (stream-filter p? t)))))
 @end lisp
 
-This algorithm can be espressed as follows in Scheme:
+This algorithm can be expressed as follows in Scheme:
 
 @lisp
 (define (stream-filter p? s)

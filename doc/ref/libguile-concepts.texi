@@ -515,7 +515,7 @@ modified in another thread while the loop iterates over it.  Thus, while
 copying its elements into the vector, the list might get longer or
 shorter.  For this reason, the loop must check both that it doesn't
 overrun the vector (@code{SCM_SIMPLE_VECTOR_SET} does no range-checking)
-and that it doesn't overrung the list (@code{SCM_CAR} and @code{SCM_CDR}
+and that it doesn't overrun the list (@code{SCM_CAR} and @code{SCM_CDR}
 likewise do no type checking).
 
 It is safe to use @code{SCM_CAR} and @code{SCM_CDR} on the local

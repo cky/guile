@@ -55,7 +55,7 @@ Library}):
 @item
 Unpack SLIB and install it using @code{make install} from its directory.
 By default, this will install SLIB in @file{/usr/local/lib/slib/}.
-Running @code{make installinfo} installs its documentation, by default
+Running @code{make install-info} installs its documentation, by default
 under @file{/usr/local/info/}.
 
 @item

@@ -871,7 +871,7 @@ requested, @code{open-file} throws an exception.
 When the file is opened, this procedure will scan for a coding
 declaration (@pxref{Character Encoding of Source Files}). If present
 will use that encoding for interpreting the file.  Otherwise, the
-port's encoding will be used.  To supress this behavior, open
+port's encoding will be used.  To suppress this behavior, open
 the file in binary mode and then set the port encoding explicitly
 using @code{set-port-encoding!}.
 
@@ -976,7 +976,7 @@ Determine whether @var{obj} is a port that is related to a file.
 @cindex String port
 @cindex Port, string
 
-The following allow string ports to be opened by analogy to R4R*
+The following allow string ports to be opened by analogy to R4RS
 file port facilities:
 
 With string ports, the port-encoding is treated differently than other

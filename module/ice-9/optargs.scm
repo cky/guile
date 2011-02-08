@@ -269,7 +269,7 @@
 ;; take lambda*-style extended paramter lists, where #:optional,
 ;; #:key, #:allow-other-keys and #:rest are allowed with the usual
 ;; semantics. Here is an example of a macro with an optional argument:
-;;   (defmacro* transmorgify (a #:optional b)
+;;   (defmacro* transmogrify (a #:optional b)
 
 (define-syntax defmacro*
   (lambda (x)

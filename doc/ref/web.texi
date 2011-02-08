@@ -762,7 +762,7 @@ list is itself a list, in the same format as @code{content-type}.
 (parse-header 'accept "text/html,text/plain;charset=utf-8")
 @result{} ((text/html) (text/plain (charset . "utf-8")))
 @end example
-Preference is expressed with qualitiy values:
+Preference is expressed with quality values:
 @example
 (parse-header 'accept "text/html;q=0.8,text/plain;q=0.6")
 @result{} ((text/html (q . 800)) (text/plain (q . 600)))
@@ -1008,7 +1008,7 @@ A string identifying the server.
 
 @deftypevr {HTTP Header} *|List vary
 A set of request headers that were used in computing this response.
-Used to indicate that server-side content negotation was performed, for
+Used to indicate that server-side content negotiation was performed, for
 example in response to the @code{accept-language} header.  Can also be
 the symbol @code{*}, indicating that all headers were considered.
 @example

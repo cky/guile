@@ -159,7 +159,7 @@ The @var{init} expressions are not allowed to refer to any of the
 @var{variables}.
 @end deffn
 
-The other binding contructs are variations on the same theme: making new
+The other binding constructs are variations on the same theme: making new
 values, binding them to variables, and executing a body in that new,
 extended lexical context.
 

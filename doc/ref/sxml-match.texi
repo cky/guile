@@ -298,7 +298,7 @@ basic arithmetic operations, which are represented by the XML elements
 @end lisp
 
 Using the catamorphism feature of @code{sxml-match}, a more concise version of
-@code{simple-eval} can be written.  The pattern @code{,[x]} recusively invokes
+@code{simple-eval} can be written.  The pattern @code{,[x]} recursively invokes
 the pattern matcher on the value bound in this position.
 
 @lisp

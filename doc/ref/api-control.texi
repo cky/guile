@@ -148,7 +148,7 @@ and the last @var{clause} may have the form
 @end lisp
 
 All @var{datum}s must be distinct.  First, @var{key} is evaluated.  The
-the result of this evaluation is compared against all @var{datum}s using
+result of this evaluation is compared against all @var{datum} values using
 @code{eqv?}.  When this comparison succeeds, the expression(s) following
 the @var{datum} are evaluated from left to right, returning the value of
 the last expression as the result of the @code{case} expression.
@@ -1303,7 +1303,7 @@ frees the memory.  But once the memory is freed, we can not get it
 back on reentry.  Thus reentry can not be allowed.
 
 The consequence is that continuations become less useful when
-non-reenterable contexts are captured, but you don't need to worry
+non-reentrant contexts are captured, but you don't need to worry
 about that too much.
 
 The context is ended either implicitly when a non-local exit happens,

@@ -1125,7 +1125,7 @@ called on exceptions thrown by the corresponding @code{raise} procedure.
 
 @deffn {Scheme Procedure} with-exception-handler handler thunk
 Installs @var{handler}, which must be a procedure taking one argument,
-as the current exception handler during the invokation of @var{thunk}, a
+as the current exception handler during the invocation of @var{thunk}, a
 procedure taking zero arguments.  The handler in place at the time
 @code{with-exception-handler} is called is made current again once 
 either @var{thunk} returns or @var{handler} is invoked after an 
@@ -1290,7 +1290,7 @@ condition in a compound condition.
 @deffn {Condition Type} &who
 @deffnx {Scheme Procedure} make-who-condition who
 @deffnx {Scheme Procedure} who-condition? obj
-@deffnx {Scheme Procedure} condiction-who condition
+@deffnx {Scheme Procedure} condition-who condition
 A base type used for storing the identity, a string or symbol, of the
 entity responsible for another condition in a compound condition.
 @end deffn
@@ -1544,7 +1544,7 @@ value, and the maximum fixnum value.
 @deffnx {Scheme Procedure} fx<=? fx1 fx2 fx3 ...
 These procedures return @code{#t} if their fixnum arguments are
 (respectively): equal, monotonically increasing, monotonically
-decreasing, monotonically nondecreasing, or monotonically nonincrasing;
+decreasing, monotonically nondecreasing, or monotonically nonincreasing;
 @code{#f} otherwise.
 @end deffn
 
@@ -1716,7 +1716,7 @@ Returns the flonum that is numerically closest to the real number
 @deffnx {Scheme Procedure} fl>=? fl1 fl2 fl3 ...
 These procedures return @code{#t} if their flonum arguments are
 (respectively): equal, monotonically increasing, monotonically
-decreasing, monotonically nondecreasing, or monotonically nonincrasing;
+decreasing, monotonically nondecreasing, or monotonically nonincreasing;
 @code{#f} otherwise.
 @end deffn
 
@@ -1915,8 +1915,8 @@ in the direction of more significant bits.
 @end deffn
 
 @deffn {Scheme Procedure} bitwise-reverse-bit-field ei1 ei2 ei3
-Returns the result of reversing the order of the bits of @var{e1} 
-between position @var{ei2} (inclusive) and position @var{ei3} 
+Returns the result of reversing the order of the bits of @var{ei1}
+between position @var{ei2} (inclusive) and position @var{ei3}
 (exclusive).
 @end deffn
 

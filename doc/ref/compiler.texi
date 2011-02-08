@@ -295,7 +295,7 @@ Properties}, for more information.
 
 Although Tree-IL objects are represented internally using records,
 there is also an equivalent S-expression external representation for
-each kind of Tree-IL. For example, an the S-expression representation
+each kind of Tree-IL. For example, the S-expression representation
 of @code{#<const src: #f exp: 3>} expression would be:
 
 @example
@@ -418,7 +418,7 @@ argument, or @code{#f}.
 (@var{keyword} @var{name} @var{var}) ...)}, where @var{keyword} is the
 keyword corresponding to the argument named @var{name}, and whose
 corresponding gensym is @var{var}. @var{inits} are tree-il expressions
-corresponding to all of the optional and keyword argumens, evaluated
+corresponding to all of the optional and keyword arguments, evaluated
 to bind variables whose value is not supplied by the procedure caller.
 Each @var{init} expression is evaluated in the lexical context of
 previously bound variables, from left to right.
@@ -877,7 +877,7 @@ next step.
 The compiler also needs help at the top end, enhancing the Scheme that
 it knows to also understand R6RS, and adding new high-level compilers.
 We have JavaScript and Emacs Lisp mostly complete, but they could use
-some love; Lua would be nice as well, butq whatever language it is
+some love; Lua would be nice as well, but whatever language it is
 that strikes your fancy would be welcome too.
 
 Compilers are for hacking, not for admiring or for complaining about.

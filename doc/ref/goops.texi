@@ -535,7 +535,7 @@ other.  A better solution is to use virtual slots, like this:
 
 @end lisp
 
-In this class definition, the magniture @code{m} and angle @code{a}
+In this class definition, the magnitude @code{m} and angle @code{a}
 slots are virtual, and are calculated, when referenced, from the normal
 (i.e. @code{#:allocation #:instance}) slots @code{r} and @code{i}, by
 calling the function defined in the relevant @code{#:slot-ref} option.
@@ -619,7 +619,7 @@ different sets of specializing argument classes; for example:
 @lisp
 (define-method (+ (x <string>) (y <string)) ...)
 (define-method (+ (x <matrix>) (y <matrix>)) ...)
-(define-method (+ (f <fish>) (b <bicyle>)) ...)
+(define-method (+ (f <fish>) (b <bicycle>)) ...)
 (define-method (+ (a <foo>) (b <bar>) (c <baz>)) ...)
 @end lisp
 

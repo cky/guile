@@ -204,7 +204,7 @@ arrays, uniform arrays, bit vectors:
 @deffn procedure array-prototype ra
 @end deffn
 
-Unform arrays can be written and read, but @code{read} won't recognize
+Uniform arrays can be written and read, but @code{read} won't recognize
 them unless the optional @code{read-sharp} parameter is supplied,
 e.g, 
 @smalllisp

@@ -27,7 +27,7 @@ Part I: Guile Scheme
     Keywords
     Exceptions
     Modules
-	--- the preceeding three come first, because we need them
+	--- the preceding three come first, because we need them
 	    in order to explain the behavior of some things later
     Exception Handling
         --- mention that repls usually establish default exception handlers

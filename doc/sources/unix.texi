@@ -28,7 +28,7 @@ be required to make them available.
 The low-level interfaces are designed to give Scheme programs
 access to as much functionality as possible from the underlying
 Unix system.  They can be used to implement higher level
-intefaces such as the Scheme shell @ref{scsh}.
+interfaces such as the Scheme shell @ref{scsh}.
 
 Generally there is a single procedure for each corresponding Unix
 facility.  However some of the procedures are implemented for
@@ -53,7 +53,7 @@ facility.
 Underscores in Unix names are converted to hyphens.
 @item
 Procedures which destructively modify Scheme data gain postpended
-exclaimation marks, e.g., @code{recv!}.
+exclamation marks, e.g., @code{recv!}.
 @item
 Predicates are postpended with question marks, e.g., @code{access?}.
 @item

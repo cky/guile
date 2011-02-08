@@ -909,7 +909,7 @@ Sets the element at position @var{idx} in the simple vector
 Acquire a handle for the vector @var{vec} and return a pointer to the
 elements of it.  This pointer can only be used to read the elements of
 @var{vec}.  When @var{vec} is not a vector, an error is signaled.  The
-handle mustr eventually be released with
+handle must eventually be released with
 @code{scm_array_handle_release}.
 
 The variables pointed to by @var{lenp} and @var{incp} are filled with
@@ -2377,7 +2377,7 @@ to be stored along side usual Scheme @code{SCM} values.
 
 A vtable is a structure type, specifying its layout, and other
 information.  A vtable is actually itself a structure, but there's no
-need to worray about that initially (@pxref{Vtable Contents}.)
+need to worry about that initially (@pxref{Vtable Contents}.)
 
 @deffn {Scheme Procedure} make-vtable fields [print]
 Create a new vtable.
@@ -2786,7 +2786,7 @@ of tools for using either association lists or hash tables.
 @tpindex Alist
 @cindex association List
 @cindex alist
-@cindex aatabase
+@cindex database
 
 An association list is a conventional data structure that is often used
 to implement simple key-value databases.  It consists of a list of
