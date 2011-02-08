@@ -95,12 +95,12 @@ your site should be installed.  On Unix-like systems, this is usually
 @file{/usr/local/share/guile/site} or @file{/usr/share/guile/site}.
 @end deffn
 
-@cindex GUILE_LOAD_PATH
+@cindex @env{GUILE_LOAD_PATH}
 @defvar %load-path
 List of directories which should be searched for Scheme modules and
 libraries.  @code{%load-path} is initialized when Guile starts up to
 @code{(list (%site-dir) (%library-dir) (%package-data-dir))},
-prepended with the contents of the GUILE_LOAD_PATH environment variable,
+prepended with the contents of the @env{GUILE_LOAD_PATH} environment variable,
 if it is set.
 @end defvar
 
