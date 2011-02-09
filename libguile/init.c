@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -148,43 +148,6 @@
 #endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-
-
-#if 0
-static char remsg[] = "remove\n#define ", addmsg[] = "add\n#define ";
-
-
-static void 
-fixconfig (char *s1, char *s2, int s)
-{
-  fputs (s1, stderr);
-  fputs (s2, stderr);
-  fputs ("\nin ", stderr);
-  fputs (s ? "setjump" : "scmfig", stderr);
-  fputs (".h and recompile scm\n", stderr);
-  exit (EXIT_FAILURE);
-}
-
-
-static void
-check_config (void)
-{
-  size_t j;
-
-  j = HEAP_SEG_SIZE;
-  if (HEAP_SEG_SIZE != j)
-    fixconfig ("reduce", "size of HEAP_SEG_SIZE", 0);
-
-#if SCM_STACK_GROWS_UP
-  if (((SCM_STACKITEM *) & j - stack_start_ptr) < 0)
-    fixconfig (remsg, "SCM_STACK_GROWS_UP", 1);
-#else
-  if ((stack_start_ptr - (SCM_STACKITEM *) & j) < 0)
-    fixconfig (addmsg, "SCM_STACK_GROWS_UP", 1);
-#endif
-}
 #endif
 
 
