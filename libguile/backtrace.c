@@ -1,5 +1,5 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010, 2011 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -200,7 +200,8 @@ display_error_body (struct display_error_args *a)
 
  if (SCM_FRAMEP (a->frame))
     {
-      source = scm_frame_source (a->frame);
+      if (scm_initialized_p)
+        source = scm_frame_source (a->frame);
       if (!scm_is_symbol (pname) && !scm_is_string (pname))
 	pname = scm_procedure_name (scm_frame_procedure (a->frame));
     }

@@ -404,7 +404,7 @@ handler_message (void *handler_data, SCM tag, SCM args)
       SCM parts   = SCM_CADDR (args);
       SCM rest    = SCM_CADDDR (args);
 
-      if (SCM_BACKTRACE_P && scm_is_true (stack))
+      if (SCM_BACKTRACE_P && scm_is_true (stack) && scm_initialized_p)
 	{
 	  SCM highlights;
 
