@@ -473,6 +473,11 @@ If there is no handler at all, Guile prints an error and then exits."
        (with-syntax ((s (datum->syntax x (syntax-source x))))
          #''s)))))
 
+(define-syntax define-once
+  (syntax-rules ()
+    ((_ sym val)
+     (define sym
+       (if (module-locally-bound? (current-module) 'sym) sym val)))))
 
 
 

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -87,6 +87,23 @@ longer visible.
 
 Attention: Scheme definitions inside local binding constructs
 (@pxref{Local Bindings}) act differently (@pxref{Internal Definitions}).
+
+Many people end up in a development style of adding and changing
+definitions at runtime, building out their program without restarting
+it.  (You can do this using @code{reload-module}, the @code{reload} REPL
+command, the @code{load} procedure, or even just pasting code into a
+REPL.)  If you are one of these people, you will find that sometimes you
+there are some variables that you @emph{don't} want to redefine all the
+time.  For these, use @code{define-once}.
+
+@fnindex defvar
+@deffn {Scheme Syntax} define-once name value
+Create a top level variable named @var{name} with value @var{value}, but
+only if @var{name} is not already bound in the current module.
+@end deffn
+
+Old Lispers probably know @code{define-once} under its Lisp name,
+@code{defvar}.
 
 
 @node Local Bindings

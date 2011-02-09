@@ -10,6 +10,11 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes since the 1.9.15 prerelease:
 
+** New syntax: define-once
+
+`define-once' is like Lisp's `defvar': it creates a toplevel binding,
+but only if one does not exist already.
+
 ** Improved exactness handling for complex number parsing
 
 When parsing non-real complex numbers, exactness specifiers are now
