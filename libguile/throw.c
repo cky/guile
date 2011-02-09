@@ -566,8 +566,28 @@ pre_init_throw (SCM k, SCM args)
     return scm_at_abort (sym_pre_init_catch_tag, scm_cons (k, args));
   else
     { 
-      fprintf (stderr, "Throw without catch before boot:\n");
-      scm_handle_by_message_noexit (NULL, k, args);
+      static int error_printing_error = 0;
+      static int error_printing_fallback = 0;
+      
+      if (error_printing_fallback)
+        fprintf (stderr, "\nFailed to print exception.\n");
+      else if (error_printing_error)
+        {
+          fprintf (stderr, "\nError while printing exception:\n");
+          error_printing_fallback = 1;
+          fprintf (stderr, "Key: ");
+          scm_write (k, scm_current_error_port ());
+          fprintf (stderr, ", args: ");
+          scm_write (args, scm_current_error_port ());
+          scm_newline (scm_current_error_port ());
+        }
+      else
+        {
+          fprintf (stderr, "Throw without catch before boot:\n");
+          error_printing_error = 1;
+          scm_handle_by_message_noexit (NULL, k, args);
+        }
+
       fprintf (stderr, "Aborting.\n");
       abort ();
       return SCM_BOOL_F; /* not reached */
