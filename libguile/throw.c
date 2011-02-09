@@ -566,8 +566,10 @@ pre_init_throw (SCM k, SCM args)
     return scm_at_abort (sym_pre_init_catch_tag, scm_cons (k, args));
   else
     { 
+      fprintf (stderr, "Throw without catch before boot:\n");
       scm_handle_by_message_noexit (NULL, k, args);
-      exit (1);
+      fprintf (stderr, "Aborting.\n");
+      abort ();
       return SCM_BOOL_F; /* not reached */
     }
 }
