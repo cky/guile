@@ -544,10 +544,32 @@ pre_init_catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   return res;
 }
 
-static SCM
-pre_init_throw (SCM args)
+static int
+find_pre_init_catch (void)
 {
-  return scm_at_abort (sym_pre_init_catch_tag, args);
+  SCM winds;
+
+  /* Search the wind list for an appropriate prompt.
+     "Waiter, please bring us the wind list." */
+  for (winds = scm_i_dynwinds (); scm_is_pair (winds); winds = SCM_CDR (winds))
+    if (SCM_PROMPT_P (SCM_CAR (winds))
+        && scm_is_eq (SCM_PROMPT_TAG (SCM_CAR (winds)), sym_pre_init_catch_tag))
+      return 1;
+
+  return 0;
+}
+
+static SCM
+pre_init_throw (SCM k, SCM args)
+{
+  if (find_pre_init_catch ())
+    return scm_at_abort (sym_pre_init_catch_tag, scm_cons (k, args));
+  else
+    { 
+      scm_handle_by_message_noexit (NULL, k, args);
+      exit (1);
+      return SCM_BOOL_F; /* not reached */
+    }
 }
 
 void
@@ -557,7 +579,7 @@ scm_init_throw ()
   scm_set_smob_apply (tc16_catch_closure, apply_catch_closure, 0, 0, 1);
 
   scm_c_define ("catch", scm_c_make_gsubr ("catch", 3, 1, 0, pre_init_catch));
-  scm_c_define ("throw", scm_c_make_gsubr ("throw", 0, 0, 1, pre_init_throw));
+  scm_c_define ("throw", scm_c_make_gsubr ("throw", 1, 0, 1, pre_init_throw));
 
 #include "libguile/throw.x"
 }
