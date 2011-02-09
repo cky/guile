@@ -1,6 +1,6 @@
 ;;;; readline.scm --- support functions for command-line editing
 ;;;;
-;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1999, 2000, 2001, 2002, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This program is free software; you can redistribute it and/or modify
 ;;;; it under the terms of the GNU General Public License as published by
@@ -73,11 +73,11 @@
 ;;; Dirk:FIXME:: If the-readline-port, input-port or output-port are closed,
 ;;; guile will enter an endless loop or crash.
 
-(define new-input-prompt "")
-(define continuation-prompt "")
-(define input-port (current-input-port))
-(define output-port (current-output-port))
-(define read-hook #f)
+(define-once new-input-prompt "")
+(define-once continuation-prompt "")
+(define-once input-port (current-input-port))
+(define-once output-port (current-output-port))
+(define-once read-hook #f)
 
 (define (make-readline-port)
   (let ((history-buffer #f))
@@ -115,10 +115,10 @@
 ;;; everything except the prompt.  And don't forget the
 ;;; compile/load/run phase distinctions.  Also, the readline library
 ;;; isn't reentrant.
-(define the-readline-port #f)
+(define-once the-readline-port #f)
 
-(define history-variable "GUILE_HISTORY")
-(define history-file (string-append (getenv "HOME") "/.guile_history"))
+(define-once history-variable "GUILE_HISTORY")
+(define-once history-file (string-append (getenv "HOME") "/.guile_history"))
 
 (define-public readline-port
   (let ((do (lambda (r/w)
@@ -215,7 +215,7 @@
 	(lambda ()
 	  (set! *readline-completion-function* old-completer)))))
 
-(define readline-repl-reader
+(define-once readline-repl-reader
   (let ((boot-9-repl-reader repl-reader))
     (lambda* (repl-prompt #:optional (reader (fluid-ref current-reader)))
       (let ((port (current-input-port)))
