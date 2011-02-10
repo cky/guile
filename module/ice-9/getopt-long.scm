@@ -159,6 +159,7 @@
 (define-module (ice-9 getopt-long)
   #:use-module ((ice-9 common-list) #:select (some remove-if-not))
   #:use-module (srfi srfi-9)
+  #:use-module (ice-9 match)
   #:export (getopt-long option-ref))
 
 (define-record-type option-spec
@@ -183,28 +184,23 @@
 
 (define (parse-option-spec desc)
   (let ((spec (make-option-spec (symbol->string (car desc)))))
-    (for-each (lambda (desc-elem)
-                (let ((given (lambda () (cadr desc-elem))))
-                  (case (car desc-elem)
-                    ((required?)
-                     (set-option-spec-required?! spec (given)))
-                    ((value)
-                     (set-option-spec-value-policy! spec (given)))
-                    ((single-char)
-                     (or (char? (given))
-                         (error "`single-char' value must be a char!"))
-                     (set-option-spec-single-char! spec (given)))
-                    ((predicate)
-                     (set-option-spec-predicate!
-                      spec ((lambda (pred)
-                              (lambda (name val)
-                                (or (not val)
-                                    (pred val)
-                                    (error "option predicate failed:" name))))
-                            (given))))
-                    (else
-                     (error "invalid getopt-long option property:"
-                            (car desc-elem))))))
+    (for-each (match-lambda
+               (('required? val)
+                (set-option-spec-required?! spec val))
+               (('value val)
+                (set-option-spec-value-policy! spec val))
+               (('single-char val)
+                (or (char? val)
+                    (error "`single-char' value must be a char!"))
+                (set-option-spec-single-char! spec val))
+               (('predicate pred)
+                (set-option-spec-predicate!
+                 spec (lambda (name val)
+                        (or (not val)
+                            (pred val)
+                            (error "option predicate failed:" name)))))
+               ((prop val)
+                (error "invalid getopt-long option property:" prop)))
               (cdr desc))
     spec))
 
