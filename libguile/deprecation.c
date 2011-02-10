@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2006, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -63,24 +63,36 @@ scm_c_issue_deprecation_warning (const char *msg)
       scm_i_pthread_mutex_lock (&warn_lock);
       for (iw = issued_warnings; iw; iw = iw->prev)
 	if (!strcmp (iw->message, msg))
-	  goto done;
-      if (scm_gc_running_p)
-	fprintf (stderr, "%s\n", msg);
-      else
-	{
-	  scm_puts (msg, scm_current_error_port ());
-	  scm_newline (scm_current_error_port ());
-	}
-      msg = strdup (msg);
-      iw = malloc (sizeof (struct issued_warning));
-      if (msg == NULL || iw == NULL)
-	goto done;
-      iw->message = msg;
-      iw->prev = issued_warnings;
-      issued_warnings = iw;
-
-    done:
+	  {
+            msg = NULL;
+            break;
+          }
+      if (msg)
+        {
+          msg = strdup (msg);
+          iw = malloc (sizeof (struct issued_warning));
+          if (msg == NULL || iw == NULL)
+            /* Nothing sensible to do if you can't allocate this small
+               amount of memory.  */
+            abort ();
+          iw->message = msg;
+          iw->prev = issued_warnings;
+          issued_warnings = iw;
+        }
       scm_i_pthread_mutex_unlock (&warn_lock);
+
+      /* All this dance is to avoid printing to a port inside a mutex,
+         which could recurse and deadlock.  */
+      if (msg)
+        {
+          if (scm_gc_running_p)
+            fprintf (stderr, "%s\n", msg);
+          else
+            {
+              scm_puts (msg, scm_current_error_port ());
+              scm_newline (scm_current_error_port ());
+            }
+        }
     }
 }
 
