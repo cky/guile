@@ -157,7 +157,7 @@
 ;;; Code:
 
 (define-module (ice-9 getopt-long)
-  #:use-module ((ice-9 common-list) #:select (some remove-if-not))
+  #:use-module ((ice-9 common-list) #:select (remove-if-not))
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
@@ -239,11 +239,9 @@
                       (cons (car opt-ls) ret-ls))))))
 
 (define (looks-like-an-option string)
-  (some (lambda (rx)
-          (regexp-exec rx string))
-        `(,short-opt-rx
-          ,long-opt-with-value-rx
-          ,long-opt-no-value-rx)))
+  (or (regexp-exec short-opt-rx string)
+      (regexp-exec long-opt-with-value-rx string)
+      (regexp-exec long-opt-no-value-rx string)))
 
 (define (process-options specs argument-ls)
   ;; Use SPECS to scan ARGUMENT-LS; return (FOUND . ETC).
