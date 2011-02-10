@@ -326,6 +326,8 @@ resolve_duplicate_binding (SCM module, SCM sym,
   return result;
 }
 
+/* No lock is needed for access to this variable, as there are no
+   threads before modules are booted.  */
 SCM scm_pre_modules_obarray;
 
 /* Lookup SYM as an imported variable of MODULE.  */
