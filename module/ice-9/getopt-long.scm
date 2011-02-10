@@ -256,77 +256,64 @@
                              spec))
                      (remove-if-not option-spec->single-char specs))))
     (let loop ((argument-ls argument-ls) (found '()) (etc '()))
-      (let ((eat! (lambda (spec ls)
-                    (let ((val!loop (lambda (val n-ls n-found n-etc)
-                                      (set-option-spec-value!
-                                       spec
-                                       ;; handle multiple occurrances
-                                       (cond ((option-spec->value spec)
-                                              => (lambda (cur)
-                                                   ((if (list? cur) cons list)
-                                                    val cur)))
-                                             (else val)))
-                                      (loop n-ls n-found n-etc)))
-                          (ERR:no-arg (lambda ()
-                                        (error (string-append
-                                                "option must be specified"
-                                                " with argument:")
-                                               (option-spec->name spec)))))
-                      (cond
-                       ((eq? 'optional (option-spec->value-policy spec))
-                        (if (or (null? (cdr ls))
-                                (looks-like-an-option (cadr ls)))
-                            (val!loop #t
-                                      (cdr ls)
-                                      (cons spec found)
-                                      etc)
-                            (val!loop (cadr ls)
-                                      (cddr ls)
-                                      (cons spec found)
-                                      etc)))
-                       ((eq? #t (option-spec->value-policy spec))
-                        (if (or (null? (cdr ls))
-                                (looks-like-an-option (cadr ls)))
-                            (ERR:no-arg)
-                            (val!loop (cadr ls)
-                                      (cddr ls)
-                                      (cons spec found)
-                                      etc)))
-                       (else
-                        (val!loop #t
-                                  (cdr ls)
-                                  (cons spec found)
-                                  etc)))))))
-        (if (null? argument-ls)
-            (cons found (reverse etc))                          ;;; retval
-            (cond ((regexp-exec short-opt-rx (car argument-ls))
-                   => (lambda (match)
-                        (let* ((c (match:substring match 1))
-                               (spec (or (assoc-ref sc-idx c)
-                                         (error "no such option:" c))))
-                          (eat! spec argument-ls))))
-                  ((regexp-exec long-opt-no-value-rx (car argument-ls))
-                   => (lambda (match)
-                        (let* ((opt (match:substring match 1))
-                               (spec (or (assoc-ref idx opt)
-                                         (error "no such option:" opt))))
-                          (eat! spec argument-ls))))
-                  ((regexp-exec long-opt-with-value-rx (car argument-ls))
-                   => (lambda (match)
-                        (let* ((opt (match:substring match 1))
-                               (spec (or (assoc-ref idx opt)
-                                         (error "no such option:" opt))))
-                          (if (option-spec->value-policy spec)
-                              (eat! spec (append
-                                          (list 'ignored
-                                                (match:substring match 2))
-                                          (cdr argument-ls)))
-                              (error "option does not support argument:"
-                                     opt)))))
-                  (else
-                   (loop (cdr argument-ls)
-                         found
-                         (cons (car argument-ls) etc)))))))))
+      (define (eat! spec ls)
+        (define (val!loop val n-ls n-found n-etc)
+          (set-option-spec-value!
+           spec
+           ;; handle multiple occurrances
+           (cond ((option-spec->value spec)
+                  => (lambda (cur)
+                       ((if (list? cur) cons list)
+                        val cur)))
+                 (else val)))
+          (loop n-ls n-found n-etc))
+        (define (ERR:no-arg) 
+          (error "option must be specified with argument:"
+                 (option-spec->name spec)))
+        (cond
+         ((eq? 'optional (option-spec->value-policy spec))
+          (if (or (null? (cdr ls))
+                  (looks-like-an-option (cadr ls)))
+              (val!loop #t (cdr ls) (cons spec found) etc)
+              (val!loop (cadr ls) (cddr ls) (cons spec found) etc)))
+         ((eq? #t (option-spec->value-policy spec))
+          (if (or (null? (cdr ls))
+                  (looks-like-an-option (cadr ls)))
+              (ERR:no-arg)
+              (val!loop (cadr ls) (cddr ls) (cons spec found) etc)))
+         (else
+          (val!loop #t (cdr ls) (cons spec found) etc))))
+      
+      (if (null? argument-ls)
+          (cons found (reverse etc)) ;;; retval
+          (cond ((regexp-exec short-opt-rx (car argument-ls))
+                 => (lambda (match)
+                      (let* ((c (match:substring match 1))
+                             (spec (or (assoc-ref sc-idx c)
+                                       (error "no such option:" c))))
+                        (eat! spec argument-ls))))
+                ((regexp-exec long-opt-no-value-rx (car argument-ls))
+                 => (lambda (match)
+                      (let* ((opt (match:substring match 1))
+                             (spec (or (assoc-ref idx opt)
+                                       (error "no such option:" opt))))
+                        (eat! spec argument-ls))))
+                ((regexp-exec long-opt-with-value-rx (car argument-ls))
+                 => (lambda (match)
+                      (let* ((opt (match:substring match 1))
+                             (spec (or (assoc-ref idx opt)
+                                       (error "no such option:" opt))))
+                        (if (option-spec->value-policy spec)
+                            (eat! spec (append
+                                        (list 'ignored
+                                              (match:substring match 2))
+                                        (cdr argument-ls)))
+                            (error "option does not support argument:"
+                                   opt)))))
+                (else
+                 (loop (cdr argument-ls)
+                       found
+                       (cons (car argument-ls) etc))))))))
 
 (define (getopt-long program-arguments option-desc-list)
   "Process options, handling both long and short options, similar to
