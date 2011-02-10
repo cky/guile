@@ -163,6 +163,16 @@
   #:use-module (ice-9 regex)
   #:export (getopt-long option-ref))
 
+(define %program-name (make-fluid))
+(define (program-name)
+  (or (fluid-ref %program-name) "guile"))
+
+(define (fatal-error fmt . args)
+  (format (current-error-port) "~a: " (program-name))
+  (apply format (current-error-port) fmt args)
+  (newline (current-error-port))
+  (exit 1))
+
 (define-record-type option-spec
   (%make-option-spec name value required? single-char predicate
                      value-policy)
@@ -199,7 +209,8 @@
                  spec (lambda (name val)
                         (or (not val)
                             (pred val)
-                            (error "option predicate failed:" name)))))
+                            (fatal-error "option predicate failed: --~a"
+                                         name)))))
                ((prop val)
                 (error "invalid getopt-long option property:" prop)))
               (cdr desc))
@@ -267,9 +278,6 @@
                         val cur)))
                  (else val)))
           (loop n-ls n-found n-etc))
-        (define (ERR:no-arg) 
-          (error "option must be specified with argument:"
-                 (option-spec->name spec)))
         (cond
          ((eq? 'optional (option-spec->value-policy spec))
           (if (or (null? ls)
@@ -279,7 +287,8 @@
          ((eq? #t (option-spec->value-policy spec))
           (if (or (null? ls)
                   (looks-like-an-option (car ls)))
-              (ERR:no-arg)
+              (fatal-error "option must be specified with argument: --~a"
+                           (option-spec->name spec))
               (val!loop (car ls) (cdr ls) (cons spec found) etc)))
          (else
           (val!loop #t ls (cons spec found) etc))))
@@ -293,23 +302,23 @@
            => (lambda (match)
                 (let* ((c (match:substring match 1))
                        (spec (or (assoc-ref sc-idx c)
-                                 (error "no such option:" c))))
+                                 (fatal-error "no such option: -~a" c))))
                   (eat! spec rest))))
           ((regexp-exec long-opt-no-value-rx opt)
            => (lambda (match)
                 (let* ((opt (match:substring match 1))
                        (spec (or (assoc-ref idx opt)
-                                 (error "no such option:" opt))))
+                                 (fatal-error "no such option: --~a" opt))))
                   (eat! spec rest))))
           ((regexp-exec long-opt-with-value-rx opt)
            => (lambda (match)
                 (let* ((opt (match:substring match 1))
                        (spec (or (assoc-ref idx opt)
-                                 (error "no such option:" opt))))
+                                 (fatal-error "no such option: --~a" opt))))
                   (if (option-spec->value-policy spec)
                       (eat! spec (cons (match:substring match 2) rest))
-                      (error "option does not support argument:"
-                             opt)))))
+                      (fatal-error "option does not support argument: --~a"
+                                   opt)))))
           (else
            (loop rest found (cons opt etc)))))))))
 
@@ -344,44 +353,47 @@ or option values.
 required.  By default, single character equivalents are not supported;
 if you want to allow the user to use single character options, you need
 to add a `single-char' clause to the option description."
-  (let* ((specifications (map parse-option-spec option-desc-list))
-	 (pair (split-arg-list (cdr program-arguments)))
-	 (split-ls (expand-clumped-singles (car pair)))
-	 (non-split-ls (cdr pair))
-         (found/etc (process-options specifications split-ls))
-         (found (car found/etc))
-         (rest-ls (append (cdr found/etc) non-split-ls)))
-    (for-each (lambda (spec)
-                (let ((name (option-spec->name spec))
-                      (val (option-spec->value spec)))
-                  (and (option-spec->required? spec)
-                       (or (memq spec found)
-                           (error "option must be specified:" name)))
-                  (and (memq spec found)
-                       (eq? #t (option-spec->value-policy spec))
-                       (or val
-                           (error "option must be specified with argument:"
-                                  name)))
-                  (let ((pred (option-spec->predicate spec)))
-                    (and pred (pred name val)))))
-              specifications)
-    (cons (cons '() rest-ls)
-          (let ((multi-count (map (lambda (desc)
-                                    (cons (car desc) 0))
-                                  option-desc-list)))
-            (map (lambda (spec)
-                   (let ((name (string->symbol (option-spec->name spec))))
-                     (cons name
-                           ;; handle multiple occurrances
-                           (let ((maybe-ls (option-spec->value spec)))
-                             (if (list? maybe-ls)
-                                 (let* ((look (assq name multi-count))
-                                        (idx (cdr look))
-                                        (val (list-ref maybe-ls idx)))
-                                   (set-cdr! look (1+ idx)) ; ugh!
-                                   val)
-                                 maybe-ls)))))
-                 found)))))
+  (with-fluids ((%program-name (car program-arguments)))
+    (let* ((specifications (map parse-option-spec option-desc-list))
+           (pair (split-arg-list (cdr program-arguments)))
+           (split-ls (expand-clumped-singles (car pair)))
+           (non-split-ls (cdr pair))
+           (found/etc (process-options specifications split-ls))
+           (found (car found/etc))
+           (rest-ls (append (cdr found/etc) non-split-ls)))
+      (for-each (lambda (spec)
+                  (let ((name (option-spec->name spec))
+                        (val (option-spec->value spec)))
+                    (and (option-spec->required? spec)
+                         (or (memq spec found)
+                             (fatal-error "option must be specified: --~a"
+                                          name)))
+                    (and (memq spec found)
+                         (eq? #t (option-spec->value-policy spec))
+                         (or val
+                             (fatal-error
+                              "option must be specified with argument: --~a"
+                              name)))
+                    (let ((pred (option-spec->predicate spec)))
+                      (and pred (pred name val)))))
+                specifications)
+      (cons (cons '() rest-ls)
+            (let ((multi-count (map (lambda (desc)
+                                      (cons (car desc) 0))
+                                    option-desc-list)))
+              (map (lambda (spec)
+                     (let ((name (string->symbol (option-spec->name spec))))
+                       (cons name
+                             ;; handle multiple occurrances
+                             (let ((maybe-ls (option-spec->value spec)))
+                               (if (list? maybe-ls)
+                                   (let* ((look (assq name multi-count))
+                                          (idx (cdr look))
+                                          (val (list-ref maybe-ls idx)))
+                                     (set-cdr! look (1+ idx)) ; ugh!
+                                     val)
+                                   maybe-ls)))))
+                   found))))))
 
 (define (option-ref options key default)
   "Return value in alist OPTIONS using KEY, a symbol; or DEFAULT if not found.

@@ -1,7 +1,7 @@
 ;;;; getopt-long.test --- long options processing -*- scheme -*-
 ;;;; Thien-Thi Nguyen <ttn@gnu.org> --- August 2001
 ;;;;
-;;;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,15 +21,33 @@
              (ice-9 getopt-long)
              (ice-9 regex))
 
+(define-syntax pass-if-fatal-exception
+  (syntax-rules ()
+    ((_ name exn exp)
+     (let ((port (open-output-string)))
+       (with-error-to-port port
+         (lambda ()
+           (run-test
+            name #t
+            (lambda ()
+              (catch (car exn)
+                (lambda () exp #f)
+                (lambda (k . args)
+                  (let ((output (get-output-string port)))
+                    (close-port port)
+                    (if (string-match (cdr exn) output)
+                        #t
+                        (error "Unexpected output" output)))))))))))))
+
 (defmacro deferr (name-frag re)
   (let ((name (symbol-append 'exception: name-frag)))
-    `(define ,name (cons 'misc-error ,re))))
+    `(define ,name (cons 'quit ,re))))
 
-(deferr no-such-option              "^no such option")
-(deferr option-predicate-failed     "^option predicate failed")
-(deferr option-does-not-support-arg "^option does not support argument")
-(deferr option-must-be-specified    "^option must be specified")
-(deferr option-must-have-arg        "^option must be specified with argument")
+(deferr no-such-option              "no such option")
+(deferr option-predicate-failed     "option predicate failed")
+(deferr option-does-not-support-arg "option does not support argument")
+(deferr option-must-be-specified    "option must be specified")
+(deferr option-must-have-arg        "option must be specified with argument")
 
 (with-test-prefix "exported procs"
   (pass-if "`option-ref' defined"  (defined? 'option-ref))
@@ -47,11 +65,11 @@
            (equal? (test1 "foo" "bar" "--test=123")
                    '((() "bar") (test . "123"))))
 
-  (pass-if-exception "invalid arg"
+  (pass-if-fatal-exception "invalid arg"
                      exception:option-predicate-failed
                      (test1 "foo" "bar" "--test=foo"))
 
-  (pass-if-exception "option has no arg"
+  (pass-if-fatal-exception "option has no arg"
                      exception:option-must-have-arg
                      (test1 "foo" "bar" "--test"))
 
@@ -138,7 +156,7 @@
            (equal? (test5 '() '())
                    '((()))))
 
-  (pass-if-exception "not mentioned, given"
+  (pass-if-fatal-exception "not mentioned, given"
                      exception:no-such-option
                      (test5 '("--req") '((something))))
 
@@ -158,7 +176,7 @@
            (equal? (test5 '("--req" "7") '((req (required? #f) (value #t))))
                    '((()) (req . "7"))))
 
-  (pass-if-exception "specified required, not given"
+  (pass-if-fatal-exception "specified required, not given"
                      exception:option-must-be-specified
                      (test5 '() '((req (required? #t)))))
 
@@ -169,7 +187,7 @@
   (define (test6 args specs)
     (getopt-long (cons "foo" args) specs))
 
-  (pass-if-exception "using \"=\" syntax"
+  (pass-if-fatal-exception "using \"=\" syntax"
                      exception:option-does-not-support-arg
                      (test6 '("--maybe=yes") '((maybe))))
 
@@ -193,15 +211,15 @@
            (equal? (test7 '("--hmm=101"))
                    '((()) (hmm . "101"))))
 
-  (pass-if-exception "short opt, arg not given"
+  (pass-if-fatal-exception "short opt, arg not given"
                      exception:option-must-have-arg
                      (test7 '("-H")))
 
-  (pass-if-exception "long non-\"=\" opt, arg not given (next arg an option)"
+  (pass-if-fatal-exception "long non-\"=\" opt, arg not given (next arg an option)"
                      exception:option-must-have-arg
                      (test7 '("--hmm" "--ignore")))
 
-  (pass-if-exception "long \"=\" opt, arg not given"
+  (pass-if-fatal-exception "long \"=\" opt, arg not given"
                      exception:option-must-have-arg
                      (test7 '("--hmm")))
 
@@ -228,7 +246,7 @@
   (pass-if "normal 2" (test8 "-ab" "bang" "-c" "couth"))
   (pass-if "normal 3" (test8 "-ac" "couth" "-b" "bang"))
 
-  (pass-if-exception "bad ordering causes missing option"
+  (pass-if-fatal-exception "bad ordering causes missing option"
                      exception:option-must-have-arg
                      (test8 "-abc" "couth" "bang"))
 
