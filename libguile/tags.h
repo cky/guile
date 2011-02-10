@@ -258,8 +258,8 @@ typedef scm_t_uintptr scm_t_bits;
  *
  * If the cell holds a scheme pair, then we already know that the first
  * scm_t_bits variable of the cell will hold a scheme object with one of the
- * following tc3-codes: #b000 (non-immediate), #b010 (small integer), #b100
- * (small integer), #b110 (non-integer immediate).  All these tc3-codes have
+ * following tc3-codes: #b000 (non-immediate), #b010 (small integer), #b110
+ * (small integer), #b100 (non-integer immediate).  All these tc3-codes have
  * in common, that their least significant bit is #b0.  This fact is used by
  * the garbage collector to identify cells that hold pairs.  The remaining
  * tc3-codes are assigned as follows: #b001 (class instance or, more
