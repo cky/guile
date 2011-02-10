@@ -587,10 +587,18 @@ VALUE."
 ;; properties within the object itself.
 
 (define (make-object-property)
-  (let ((prop (primitive-make-property #f)))
+  (define-syntax with-mutex
+    (syntax-rules ()
+      ((_ lock exp)
+       (dynamic-wind (lambda () (lock-mutex lock))
+                     (lambda () exp)
+                     (lambda () (unlock-mutex lock))))))
+  (let ((prop (make-weak-key-hash-table))
+        (lock (make-mutex)))
     (make-procedure-with-setter
-     (lambda (obj) (primitive-property-ref prop obj))
-     (lambda (obj val) (primitive-property-set! prop obj val)))))
+     (lambda (obj) (with-mutex lock (hashq-ref prop obj)))
+     (lambda (obj val) (with-mutex lock (hashq-set! prop obj val))))))
+
 
 
 

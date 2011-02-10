@@ -99,7 +99,6 @@
 #include "libguile/procs.h"
 #include "libguile/programs.h"
 #include "libguile/promises.h"
-#include "libguile/properties.h"
 #include "libguile/array-map.h"
 #include "libguile/random.h"
 #include "libguile/rdelim.h"
@@ -458,7 +457,6 @@ scm_i_init_guile (SCM_STACKITEM *base)
   scm_init_deprecation ();
   scm_init_objprop ();
   scm_init_promises ();         /* requires smob_prehistory */
-  scm_init_properties ();
   scm_init_hooks ();            /* Requires smob_prehistory */
   scm_init_gc ();		/* Requires hooks */
   scm_init_gc_protect_object ();  /* requires threads_prehistory */

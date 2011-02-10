@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -738,7 +738,16 @@ SCM_DEPRECATED int scm_internal_select (int fds,
 
 /* Deprecated because the cuserid call is deprecated.
  */
-SCM_API SCM scm_cuserid (void);
+SCM_DEPRECATED SCM scm_cuserid (void);
+
+
+
+/* Deprecated because it's yet another property interface.
+ */
+SCM_DEPRECATED SCM scm_primitive_make_property (SCM not_found_proc);
+SCM_DEPRECATED SCM scm_primitive_property_ref (SCM prop, SCM obj);
+SCM_DEPRECATED SCM scm_primitive_property_set_x (SCM prop, SCM obj, SCM val);
+SCM_DEPRECATED SCM scm_primitive_property_del_x (SCM prop, SCM obj);
 
 
 

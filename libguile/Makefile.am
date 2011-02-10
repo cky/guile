@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -177,7 +177,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	procs.c					\
 	programs.c				\
 	promises.c				\
-	properties.c				\
 	r6rs-ports.c				\
 	random.c				\
 	rdelim.c				\
@@ -274,7 +273,6 @@ DOT_X_FILES =					\
 	procprop.x				\
 	procs.x					\
 	promises.x				\
-	properties.x				\
 	r6rs-ports.x				\
 	random.x				\
 	rdelim.x				\
@@ -375,7 +373,6 @@ DOT_DOC_FILES = 				\
 	procprop.doc				\
 	procs.doc				\
 	promises.doc				\
-	properties.doc				\
 	r6rs-ports.doc				\
 	random.doc				\
 	rdelim.doc				\
@@ -550,7 +547,6 @@ modinclude_HEADERS =				\
 	procs.h					\
 	programs.h				\
 	promises.h				\
-	properties.h				\
 	pthread-threads.h			\
 	r6rs-ports.h				\
 	random.h				\

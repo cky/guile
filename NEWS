@@ -10,6 +10,14 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes since the 1.9.15 prerelease:
 
+** Deprecated: primitive properties
+
+The `primitive-make-property', `primitive-property-set!',
+`primitive-property-ref', and `primitive-property-del!' procedures were
+crufty and only used to implement object properties, which has a new,
+threadsafe implementation.  Use object properties or weak hash tables
+instead.
+
 ** New syntax: define-once
 
 `define-once' is like Lisp's `defvar': it creates a toplevel binding,

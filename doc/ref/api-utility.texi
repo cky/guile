@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -229,57 +229,10 @@ protected.  When the Scheme value is collected, its entry in the
 property table is removed and so the (ex-) property values are no longer
 protected by the table.
 
-@menu
-* Property Primitives::         Low level property implementation.
-* Old-fashioned Properties::    An older approach to properties.
-@end menu
-
-
-@node Property Primitives
-@subsubsection Low Level Property Implementation.
-
-@deffn {Scheme Procedure} primitive-make-property not-found-proc
-@deffnx {C Function} scm_primitive_make_property (not_found_proc)
-Create a @dfn{property token} that can be used with
-@code{primitive-property-ref} and @code{primitive-property-set!}.
-See @code{primitive-property-ref} for the significance of
-@var{not-found-proc}.
-@end deffn
-
-@deffn {Scheme Procedure} primitive-property-ref prop obj
-@deffnx {C Function} scm_primitive_property_ref (prop, obj)
-Return the property @var{prop} of @var{obj}.
-
-When no value has yet been associated with @var{prop} and @var{obj},
-the @var{not-found-proc} from @var{prop} is used.  A call
-@code{(@var{not-found-proc} @var{prop} @var{obj})} is made and the
-result set as the property value.  If @var{not-found-proc} is
-@code{#f} then @code{#f} is the property value.
-@end deffn
-
-@deffn {Scheme Procedure} primitive-property-set! prop obj val
-@deffnx {C Function} scm_primitive_property_set_x (prop, obj, val)
-Set the property @var{prop} of @var{obj} to @var{val}.
-@end deffn
-
-@deffn {Scheme Procedure} primitive-property-del! prop obj
-@deffnx {C Function} scm_primitive_property_del_x (prop, obj)
-Remove any value associated with @var{prop} and @var{obj}.
-@end deffn
-
-
-@node Old-fashioned Properties
-@subsubsection An Older Approach to Properties
-
-Traditionally, Lisp systems provide a different object property
-interface to that provided by @code{make-object-property}, in which the
-object property that is being set or retrieved is indicated by a symbol.
-
-Guile includes this older kind of interface as well, but it may well be
-removed in a future release, as it is less powerful than
-@code{make-object-property} and so increases the size of the Guile
-library for no benefit.  (And it is trivial to write a compatibility
-layer in Scheme.)
+Guile also implements a more traditional Lispy interface to properties,
+in which each object has an list of key-value pairs associated with it.
+Properties in that list are keyed by symbols.  This is a legacy
+interface; you should use weak hash tables or object properties instead.
 
 @deffn {Scheme Procedure} object-properties obj
 @deffnx {C Function} scm_object_properties (obj)

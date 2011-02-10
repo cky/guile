@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2390,9 +2390,120 @@ SCM_DEFINE (scm_cuserid, "cuserid", 0, 0, 0,
 
 
 
+/* {Properties}
+ */
+
+static SCM properties_whash;
+
+SCM_DEFINE (scm_primitive_make_property, "primitive-make-property", 1, 0, 0,
+	    (SCM not_found_proc),
+	    "Create a @dfn{property token} that can be used with\n"
+	    "@code{primitive-property-ref} and @code{primitive-property-set!}.\n"
+	    "See @code{primitive-property-ref} for the significance of\n"
+	    "@var{not_found_proc}.")
+#define FUNC_NAME s_scm_primitive_make_property
+{
+  scm_c_issue_deprecation_warning
+    ("`primitive-make-property' is deprecated.  Use object properties.");
+
+  if (not_found_proc != SCM_BOOL_F)
+    SCM_VALIDATE_PROC (SCM_ARG1, not_found_proc);
+  return scm_cons (not_found_proc, SCM_EOL);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
+	    (SCM prop, SCM obj),
+	    "Return the property @var{prop} of @var{obj}.\n"
+	    "\n"
+	    "When no value has yet been associated with @var{prop} and\n"
+	    "@var{obj}, the @var{not-found-proc} from @var{prop} is used.  A\n"
+	    "call @code{(@var{not-found-proc} @var{prop} @var{obj})} is made\n"
+	    "and the result set as the property value.  If\n"
+	    "@var{not-found-proc} is @code{#f} then @code{#f} is the\n"
+	    "property value.")
+#define FUNC_NAME s_scm_primitive_property_ref
+{
+  SCM h;
+
+  scm_c_issue_deprecation_warning
+    ("`primitive-property-ref' is deprecated.  Use object properties.");
+
+  SCM_VALIDATE_CONS (SCM_ARG1, prop);
+
+  h = scm_hashq_get_handle (properties_whash, obj);
+  if (scm_is_true (h))
+    {
+      SCM assoc = scm_assq (prop, SCM_CDR (h));
+      if (scm_is_true (assoc))
+	return SCM_CDR (assoc);
+    }
+
+  if (scm_is_false (SCM_CAR (prop)))
+    return SCM_BOOL_F;
+  else
+    {
+      SCM val = scm_call_2 (SCM_CAR (prop), prop, obj);
+      if (scm_is_false (h))
+	h = scm_hashq_create_handle_x (properties_whash, obj, SCM_EOL);
+      SCM_SETCDR (h, scm_acons (prop, val, SCM_CDR (h)));
+      return val;
+    }
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_primitive_property_set_x, "primitive-property-set!", 3, 0, 0,
+	    (SCM prop, SCM obj, SCM val),
+	    "Set the property @var{prop} of @var{obj} to @var{val}.")
+#define FUNC_NAME s_scm_primitive_property_set_x
+{
+  SCM h, assoc;
+
+  scm_c_issue_deprecation_warning
+    ("`primitive-property-set!' is deprecated.  Use object properties.");
+
+  SCM_VALIDATE_CONS (SCM_ARG1, prop);
+  h = scm_hashq_create_handle_x (properties_whash, obj, SCM_EOL);
+  assoc = scm_assq (prop, SCM_CDR (h));
+  if (SCM_NIMP (assoc))
+    SCM_SETCDR (assoc, val);
+  else
+    {
+      assoc = scm_acons (prop, val, SCM_CDR (h));
+      SCM_SETCDR (h, assoc);
+    }
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
+	    (SCM prop, SCM obj),
+	    "Remove any value associated with @var{prop} and @var{obj}.")
+#define FUNC_NAME s_scm_primitive_property_del_x
+{
+  SCM h;
+
+  scm_c_issue_deprecation_warning
+    ("`primitive-property-del!' is deprecated.  Use object properties.");
+
+  SCM_VALIDATE_CONS (SCM_ARG1, prop);
+  h = scm_hashq_get_handle (properties_whash, obj);
+  if (scm_is_true (h))
+    SCM_SETCDR (h, scm_assq_remove_x (SCM_CDR (h), prop));
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+
+
 void
 scm_i_init_deprecated ()
 {
+  properties_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/deprecated.x"
 }
 
