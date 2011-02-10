@@ -783,6 +783,17 @@
       (set-port-line! port n)
       (eqv? n (port-line port)))))
 
+(with-test-prefix "port-encoding"
+
+  (pass-if-exception "set-port-encoding!, wrong encoding"
+    exception:miscellaneous-error
+    (set-port-encoding! (open-input-string "") "does-not-exist"))
+
+  (pass-if-exception "%default-port-encoding, wrong encoding"
+    exception:miscellaneous-error
+    (read (with-fluids ((%default-port-encoding "does-not-exist"))
+            (open-input-string "")))))
+
 ;;;
 ;;; port-for-each
 ;;;
