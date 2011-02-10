@@ -205,6 +205,9 @@ typedef struct scm_t_ptob_descriptor
 
 
 
+/* Hey you!  Yes you, reading the header file!  We're going to deprecate
+   scm_ptobs in 2.2, so please don't write any new code that uses it.
+   Thanks.  */
 SCM_API scm_t_ptob_descriptor *scm_ptobs;
 SCM_API long scm_numptob;
 
