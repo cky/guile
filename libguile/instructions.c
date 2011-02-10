@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,7 +23,9 @@
 #include <string.h>
 
 #include "_scm.h"
+#include "threads.h"
 #include "instructions.h"
+
 
 struct scm_instruction {
   enum scm_opcode opcode;	/* opcode */
@@ -45,11 +47,15 @@ struct scm_instruction {
   } while (0)
 
 
+static scm_i_pthread_mutex_t itable_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
+
 static struct scm_instruction*
 fetch_instruction_table ()
 {
   static struct scm_instruction *table = NULL;
 
+  scm_i_pthread_mutex_lock (&itable_lock);
   if (SCM_UNLIKELY (!table))
     {
       size_t bytes = SCM_VM_NUM_INSTRUCTIONS * sizeof(struct scm_instruction);
@@ -71,6 +77,8 @@ fetch_instruction_table ()
             table[i].symname = SCM_BOOL_F;
         }
     }
+  scm_i_pthread_mutex_unlock (&itable_lock);
+
   return table;
 }
 
