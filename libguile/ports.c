@@ -867,44 +867,29 @@ SCM_DEFINE (scm_close_output_port, "close-output-port", 1, 0, 0,
 #undef FUNC_NAME
 
 static SCM
-scm_i_collect_keys_in_vector (void *closure, SCM key, SCM value, SCM result)
+collect_keys (void *unused, SCM key, SCM value, SCM result)
 {
-  int *i = (int*) closure;
-  scm_c_vector_set_x (result, *i, key);
-  (*i)++;
-
-  return result;
+  return scm_cons (key, result);
 }
 
 void
 scm_c_port_for_each (void (*proc)(void *data, SCM p), void *data)
 {
-  int i = 0;
-  size_t n;
   SCM ports;
 
-  /* Even without pre-emptive multithreading, running arbitrary code
-     while scanning the port table is unsafe because the port table
-     can change arbitrarily (from a GC, for example).  So we first
-     collect the ports into a vector. -mvo */
-
-  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
-  n = SCM_HASHTABLE_N_ITEMS (scm_i_port_weak_hash);
-  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
-  ports = scm_c_make_vector (n, SCM_BOOL_F);
-
+  /* Copy out the port table as a list so that we get strong references
+     to all the values.  */
   scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
-  ports = scm_internal_hash_fold (scm_i_collect_keys_in_vector, &i,
-				  ports, scm_i_port_weak_hash);
+  ports = scm_internal_hash_fold (collect_keys, NULL,
+				  SCM_EOL, scm_i_port_weak_hash);
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
-  for (i = 0; i < n; i++) {
-    SCM p = SCM_SIMPLE_VECTOR_REF (ports, i);
-    if (SCM_PORTP (p))
-      proc (data, p);
-  }
-
-  scm_remember_upto_here_1 (ports);
+  for (; scm_is_pair (ports); ports = scm_cdr (ports))
+    {
+      SCM p = scm_car (ports);
+      if (SCM_PORTP (p))
+        proc (data, p);
+    }
 }
 
 SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
