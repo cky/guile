@@ -30,6 +30,8 @@ SCM_API SCM scm_values_vtable;
 #define SCM_VALUESP(x) (SCM_STRUCTP (x)\
                         && scm_is_eq (scm_struct_vtable (x), scm_values_vtable))
 
+SCM_INTERNAL void scm_i_extract_values_2 (SCM obj, SCM *p1, SCM *p2);
+
 SCM_API SCM scm_values (SCM args);
 SCM_INTERNAL void scm_init_values (void);
 

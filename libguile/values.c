@@ -35,6 +35,24 @@
 
 SCM scm_values_vtable;
 
+/* OBJ must be a values object containing exactly two values.
+   scm_i_extract_values_2 puts those two values into *p1 and *p2.  */
+void
+scm_i_extract_values_2 (SCM obj, SCM *p1, SCM *p2)
+{
+  SCM values;
+
+  SCM_ASSERT_TYPE (SCM_VALUESP (obj), obj, SCM_ARG1,
+		   "scm_i_extract_values_2", "values");
+  values = scm_struct_ref (obj, SCM_INUM0);
+  if (!scm_is_null_or_nil (SCM_CDDR (values)))
+    scm_wrong_type_arg_msg
+      ("scm_i_extract_values_2", SCM_ARG1, obj,
+       "a values object containing exactly two values");
+  *p1 = SCM_CAR (values);
+  *p2 = SCM_CADR (values);
+}
+
 static SCM
 print_values (SCM obj, SCM pwps)
 {
