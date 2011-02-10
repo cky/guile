@@ -91,7 +91,105 @@
                  (open-bytevector-input-port #vu8(65 255 66 67 68)))))
         (set-port-conversion-strategy! p 'substitute)
         (and (string=? (read-line p) "A?BCD")
-             (eof-object? (read-line p)))))))
+             (eof-object? (read-line p))))))
+
+
+  (with-test-prefix "read-delimited"
+
+    (pass-if "delimiter hit"
+      (let ((p (open-input-string "hello, world!")))
+        (and (string=? "hello" (read-delimited ",.;" p))
+             (string=? " world!" (read-delimited ",.;" p))
+             (eof-object? (read-delimited ",.;" p)))))
+
+    (pass-if "delimiter hit, split"
+      (equal? '("hello" . #\,)
+              (read-delimited ",.;"
+                              (open-input-string "hello, world!")
+                              'split)))
+
+    (pass-if "delimiter hit, concat"
+      (equal? '"hello,"
+              (read-delimited ",.;" (open-input-string "hello, world!")
+                              'concat)))
+
+    (pass-if "delimiter hit, peek"
+      (let ((p (open-input-string "hello, world!")))
+        (and (string=? "hello" (read-delimited ",.;" p 'peek))
+             (char=? #\, (peek-char p)))))
+
+    (pass-if "eof"
+      (eof-object? (read-delimited "}{" (open-input-string "")))))
+
+
+  (with-test-prefix "read-delimited!"
+
+    (pass-if "delimiter hit"
+      (let ((s (make-string 123))
+            (p (open-input-string "hello, world!")))
+        (and (= 5 (read-delimited! ",.;" s p))
+             (string=? (substring s 0 5) "hello")
+             (= 7 (read-delimited! ",.;" s p))
+             (string=? (substring s 0 7) " world!")
+             (eof-object? (read-delimited! ",.;" s p)))))
+
+    (pass-if "delimiter hit, start+end"
+      (let ((s (make-string 123))
+            (p (open-input-string "hello, world!")))
+        (and (= 5 (read-delimited! ",.;" s p 'trim 10 30))
+             (string=? (substring s 10 15) "hello"))))
+
+    (pass-if "delimiter hit, split"
+      (let ((s (make-string 123)))
+        (and (equal? '(5 . #\,)
+                     (read-delimited! ",.;" s
+                                      (open-input-string "hello, world!")
+                                      'split))
+             (string=? (substring s 0 5) "hello"))))
+
+    (pass-if "delimiter hit, concat"
+      (let ((s (make-string 123)))
+        (and (= 6 (read-delimited! ",.;" s
+                                   (open-input-string "hello, world!")
+                                   'concat))
+             (string=? (substring s 0 6) "hello,"))))
+
+    (pass-if "delimiter hit, peek"
+      (let ((s (make-string 123))
+            (p (open-input-string "hello, world!")))
+        (and (= 5 (read-delimited! ",.;" s p 'peek))
+             (string=? (substring s 0 5) "hello")
+             (char=? #\, (peek-char p)))))
+
+    (pass-if "string too small"
+      (let ((s (make-string 7)))
+        (and (= 7 (read-delimited! "}{" s
+                                   (open-input-string "hello, world!")))
+             (string=? s "hello, "))))
+
+    (pass-if "string too small, start+end"
+      (let ((s (make-string 123)))
+        (and (= 7 (read-delimited! "}{" s
+                                   (open-input-string "hello, world!")
+                                   'trim
+                                   70 77))
+             (string=? (substring s 70 77) "hello, "))))
+
+    (pass-if "string too small, split"
+      (let ((s (make-string 7)))
+        (and (equal? '(7 . #f)
+                     (read-delimited! "}{" s
+                                      (open-input-string "hello, world!")
+                                      'split))
+             (string=? s "hello, "))))
+
+    (pass-if "eof"
+      (eof-object? (read-delimited! ":" (make-string 7)
+                                    (open-input-string ""))))
+
+    (pass-if "eof, split"
+      (eof-object? (read-delimited! ":" (make-string 7)
+                                    (open-input-string ""))))))
 
 ;;; Local Variables:
 ;;; eval: (put 'with-test-prefix 'scheme-indent-function 1)
