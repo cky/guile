@@ -160,6 +160,7 @@
   #:use-module ((ice-9 common-list) #:select (some remove-if-not))
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 regex)
   #:export (getopt-long option-ref))
 
 (define-record-type option-spec
@@ -216,11 +217,6 @@
 (define long-opt-no-value-rx   (make-regexp "^--([^=]+)$"))
 (define long-opt-with-value-rx (make-regexp "^--([^=]+)=(.*)"))
 
-(define (match-substring match which)
-  ;; condensed from (ice-9 regex) `match:{substring,start,end}'
-  (let ((sel (vector-ref match (1+ which))))
-    (substring (vector-ref match 0) (car sel) (cdr sel))))
-
 (define (expand-clumped-singles opt-ls)
   ;; example: ("--xyz" "-abc5d") => ("--xyz" "-a" "-b" "-c" "5d")
   (let loop ((opt-ls opt-ls) (ret-ls '()))
@@ -232,8 +228,8 @@
                                 (map (lambda (c)
                                        (string-append "-" (make-string 1 c)))
                                      (string->list
-                                      (match-substring match 1)))))
-                      (extra (match-substring match 2)))
+                                      (match:substring match 1)))))
+                      (extra (match:substring match 2)))
                   (loop (cdr opt-ls)
                         (append (if (string=? "" extra)
                                     singles
@@ -307,25 +303,25 @@
             (cons found (reverse etc))                          ;;; retval
             (cond ((regexp-exec short-opt-rx (car argument-ls))
                    => (lambda (match)
-                        (let* ((c (match-substring match 1))
+                        (let* ((c (match:substring match 1))
                                (spec (or (assoc-ref sc-idx c)
                                          (error "no such option:" c))))
                           (eat! spec argument-ls))))
                   ((regexp-exec long-opt-no-value-rx (car argument-ls))
                    => (lambda (match)
-                        (let* ((opt (match-substring match 1))
+                        (let* ((opt (match:substring match 1))
                                (spec (or (assoc-ref idx opt)
                                          (error "no such option:" opt))))
                           (eat! spec argument-ls))))
                   ((regexp-exec long-opt-with-value-rx (car argument-ls))
                    => (lambda (match)
-                        (let* ((opt (match-substring match 1))
+                        (let* ((opt (match:substring match 1))
                                (spec (or (assoc-ref idx opt)
                                          (error "no such option:" opt))))
                           (if (option-spec->value-policy spec)
                               (eat! spec (append
                                           (list 'ignored
-                                                (match-substring match 2))
+                                                (match:substring match 2))
                                           (cdr argument-ls)))
                               (error "option does not support argument:"
                                      opt)))))
