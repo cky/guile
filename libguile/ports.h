@@ -255,7 +255,6 @@ SCM_API void scm_dynwind_current_input_port (SCM port);
 SCM_API void scm_dynwind_current_output_port (SCM port);
 SCM_API void scm_dynwind_current_error_port (SCM port);
 SCM_API SCM scm_new_port_table_entry (scm_t_bits tag);
-SCM_INTERNAL void scm_i_remove_port (SCM port);
 SCM_API void scm_grow_port_cbuf (SCM port, size_t requested);
 SCM_API SCM scm_pt_size (void);
 SCM_API SCM scm_pt_member (SCM member);

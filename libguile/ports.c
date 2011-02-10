@@ -40,6 +40,7 @@
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
+#include "libguile/deprecation.h"
 #include "libguile/eval.h"
 #include "libguile/fports.h"  /* direct access for seek and truncate */
 #include "libguile/goops.h"
@@ -624,16 +625,23 @@ scm_new_port_table_entry (scm_t_bits tag)
 #undef FUNC_NAME
 
 #if SCM_ENABLE_DEPRECATED==1
-SCM_API scm_t_port *
+scm_t_port *
 scm_add_to_port_table (SCM port)
 {
-  SCM z = scm_new_port_table_entry (scm_tc7_port);
-  scm_t_port * pt = SCM_PTAB_ENTRY(z);
+  SCM z;
+  scm_t_port * pt;
 
+  scm_c_issue_deprecation_warning ("scm_add_to_port_table is deprecated.");
+
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
+  z = scm_new_port_table_entry (scm_tc7_port);
+  pt = SCM_PTAB_ENTRY(z);
   pt->port = port;
   SCM_SETCAR (z, SCM_EOL);
   SCM_SETCDR (z, SCM_EOL);
   SCM_SETPTAB_ENTRY (port, pt);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+
   return pt;
 }
 #endif
@@ -641,20 +649,23 @@ scm_add_to_port_table (SCM port)
 
 /* Remove a port from the table and destroy it.  */
 
-/* This function is not and should not be thread safe. */
-void
+static void
 scm_i_remove_port (SCM port)
 #define FUNC_NAME "scm_remove_port"
 {
-  scm_t_port *p = SCM_PTAB_ENTRY (port);
+  scm_t_port *p;
 
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
+
+  p = SCM_PTAB_ENTRY (port);
   scm_port_non_buffer (p);
-
   p->putback_buf = NULL;
   p->putback_buf_size = 0;
-
   SCM_SETPTAB_ENTRY (port, 0);
+
   scm_hashq_remove_x (scm_i_port_weak_hash, port);
+
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 }
 #undef FUNC_NAME
 
@@ -827,9 +838,7 @@ SCM_DEFINE (scm_close_port, "close-port", 1, 0, 0,
     rv = (scm_ptobs[i].close) (port);
   else
     rv = 0;
-  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
   scm_i_remove_port (port);
-  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
   SCM_CLR_PORT_OPEN_FLAG (port);
   return scm_from_bool (rv >= 0);
 }
