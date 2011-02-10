@@ -598,12 +598,11 @@ scm_new_port_table_entry (scm_t_bits tag)
   entry->file_name = SCM_BOOL_F;
   entry->rw_active = SCM_PORT_NEITHER;
   entry->port = z;
+
   /* Initialize this port with the thread's current default
      encoding.  */
-  if ((enc = scm_i_get_port_encoding (SCM_BOOL_F)) == NULL)
-    entry->encoding = NULL;
-  else
-    entry->encoding = scm_gc_strdup (enc, "port");
+  enc = scm_i_default_port_encoding ();
+  entry->encoding = enc ? scm_gc_strdup (enc, "port") : NULL;
 
   /* The conversion descriptors will be opened lazily.  */
   entry->input_cd = (iconv_t) -1;
@@ -1970,32 +1969,43 @@ SCM_VARIABLE (default_port_encoding_var, "%default-port-encoding");
 
 static int scm_port_encoding_init = 0;
 
-/* Return a C string representation of the current encoding.  */
-const char *
-scm_i_get_port_encoding (SCM port)
+/* Use ENCODING as the default encoding for future ports.  */
+void
+scm_i_set_default_port_encoding (const char *encoding)
 {
-  SCM encoding;
-  
-  if (scm_is_false (port))
-    {
-      if (!scm_port_encoding_init)
-	return NULL;
-      else if (!scm_is_fluid (SCM_VARIABLE_REF (default_port_encoding_var)))
-	return NULL;
-      else
-	{
-	  encoding = scm_fluid_ref (SCM_VARIABLE_REF (default_port_encoding_var));
-	  if (!scm_is_string (encoding))
-	    return NULL;
-	  else
-	    return scm_i_string_chars (encoding);
-	}
-    }
+  if (!scm_port_encoding_init
+      || !scm_is_fluid (SCM_VARIABLE_REF (default_port_encoding_var)))
+    scm_misc_error (NULL, "tried to set port encoding fluid before it is initialized",
+		    SCM_EOL);
+
+  if (encoding == NULL
+      || !strcmp (encoding, "ASCII")
+      || !strcmp (encoding, "ANSI_X3.4-1968")
+      || !strcmp (encoding, "ISO-8859-1"))
+    scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
+  else
+    scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var),
+		     scm_from_locale_string (encoding));
+}
+
+/* Return the name of the default encoding for newly created ports; a
+   return value of NULL means "ISO-8859-1".  */
+const char *
+scm_i_default_port_encoding (void)
+{
+  if (!scm_port_encoding_init)
+    return NULL;
+  else if (!scm_is_fluid (SCM_VARIABLE_REF (default_port_encoding_var)))
+    return NULL;
   else
     {
-      scm_t_port *pt;
-      pt = SCM_PTAB_ENTRY (port);
-      return pt->encoding;
+      SCM encoding;
+
+      encoding = scm_fluid_ref (SCM_VARIABLE_REF (default_port_encoding_var));
+      if (!scm_is_string (encoding))
+	return NULL;
+      else
+	return scm_i_string_chars (encoding);
     }
 }
 
@@ -2003,70 +2013,49 @@ void
 scm_i_set_port_encoding_x (SCM port, const char *encoding)
 {
   scm_t_port *pt;
+  iconv_t new_input_cd, new_output_cd;
 
-  if (scm_is_false (port))
+  new_input_cd = (iconv_t) -1;
+  new_output_cd = (iconv_t) -1;
+
+  /* Set the character encoding for this port.  */
+  pt = SCM_PTAB_ENTRY (port);
+
+  if (encoding == NULL)
+    encoding = "ISO-8859-1";
+
+  pt->encoding = scm_gc_strdup (encoding, "port");
+
+  if (SCM_CELL_WORD_0 (port) & SCM_RDNG)
     {
-      /* Set the default encoding for future ports.  */
-      if (!scm_port_encoding_init
-	  || !scm_is_fluid (SCM_VARIABLE_REF (default_port_encoding_var)))
-	scm_misc_error (NULL, "tried to set port encoding fluid before it is initialized",
-                       SCM_EOL);
-
-      if (encoding == NULL
-          || !strcmp (encoding, "ASCII")
-          || !strcmp (encoding, "ANSI_X3.4-1968")
-          || !strcmp (encoding, "ISO-8859-1"))
-        scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
-      else
-        scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), 
-                         scm_from_locale_string (encoding));
+      /* Open an input iconv conversion descriptor, from ENCODING
+	 to UTF-8.  We choose UTF-8, not UTF-32, because iconv
+	 implementations can typically convert from anything to
+	 UTF-8, but not to UTF-32 (see
+	 <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00007.html>).  */
+      new_input_cd = iconv_open ("UTF-8", encoding);
+      if (new_input_cd == (iconv_t) -1)
+	goto invalid_encoding;
     }
-  else
+
+  if (SCM_CELL_WORD_0 (port) & SCM_WRTNG)
     {
-      iconv_t new_input_cd, new_output_cd;
-
-      new_input_cd = (iconv_t) -1;
-      new_output_cd = (iconv_t) -1;
-
-      /* Set the character encoding for this port.  */
-      pt = SCM_PTAB_ENTRY (port);
-
-      if (encoding == NULL)
-	encoding = "ISO-8859-1";
-
-      pt->encoding = scm_gc_strdup (encoding, "port");
-
-      if (SCM_CELL_WORD_0 (port) & SCM_RDNG)
+      new_output_cd = iconv_open (encoding, "UTF-8");
+      if (new_output_cd == (iconv_t) -1)
 	{
-	  /* Open an input iconv conversion descriptor, from ENCODING
-	     to UTF-8.  We choose UTF-8, not UTF-32, because iconv
-	     implementations can typically convert from anything to
-	     UTF-8, but not to UTF-32 (see
-	     <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00007.html>).  */
-	  new_input_cd = iconv_open ("UTF-8", encoding);
-	  if (new_input_cd == (iconv_t) -1)
-	    goto invalid_encoding;
+	  if (new_input_cd != (iconv_t) -1)
+	    iconv_close (new_input_cd);
+	  goto invalid_encoding;
 	}
-
-      if (SCM_CELL_WORD_0 (port) & SCM_WRTNG)
-	{
-	  new_output_cd = iconv_open (encoding, "UTF-8");
-	  if (new_output_cd == (iconv_t) -1)
-	    {
-	      if (new_input_cd != (iconv_t) -1)
-		iconv_close (new_input_cd);
-	      goto invalid_encoding;
-	    }
-	}
-
-      if (pt->input_cd != (iconv_t) -1)
-	iconv_close (pt->input_cd);
-      if (pt->output_cd != (iconv_t) -1)
-	iconv_close (pt->output_cd);
-
-      pt->input_cd = new_input_cd;
-      pt->output_cd = new_output_cd;
     }
+
+  if (pt->input_cd != (iconv_t) -1)
+    iconv_close (pt->input_cd);
+  if (pt->output_cd != (iconv_t) -1)
+    iconv_close (pt->output_cd);
+
+  pt->input_cd = new_input_cd;
+  pt->output_cd = new_output_cd;
 
   return;
 
@@ -2092,7 +2081,7 @@ SCM_DEFINE (scm_port_encoding, "port-encoding", 1, 0, 0,
   SCM_VALIDATE_PORT (1, port);
 
   pt = SCM_PTAB_ENTRY (port);
-  enc = scm_i_get_port_encoding (port);
+  enc = pt->encoding;
   if (enc)
     return scm_from_locale_string (pt->encoding);
   else

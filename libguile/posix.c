@@ -1631,8 +1631,10 @@ SCM_DEFINE (scm_setlocale, "setlocale", 1, 1, 0,
     }
 
   enc = locale_charset ();
+
   /* Set the default encoding for new ports.  */
-  scm_i_set_port_encoding_x (SCM_BOOL_F, enc);
+  scm_i_set_default_port_encoding (enc);
+
   /* Set the encoding for the stdio ports.  */
   scm_i_set_port_encoding_x (scm_current_input_port (), enc);
   scm_i_set_port_encoding_x (scm_current_output_port (), enc);
