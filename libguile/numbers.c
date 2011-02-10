@@ -3834,14 +3834,15 @@ scm_bigprint (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
  * in R5RS.  Thus, the functions resemble syntactic units (<ureal R>,
  * <uinteger R>, ...) that are used to build up numbers in the grammar.  Some
  * points should be noted about the implementation:
+ *
  * * Each function keeps a local index variable 'idx' that points at the
  * current position within the parsed string.  The global index is only
  * updated if the function could parse the corresponding syntactic unit
  * successfully.
+ *
  * * Similarly, the functions keep track of indicators of inexactness ('#',
- * '.' or exponents) using local variables ('hash_seen', 'x').  Again, the
- * global exactness information is only updated after each part has been
- * successfully parsed.
+ * '.' or exponents) using local variables ('hash_seen', 'x').
+ *
  * * Sequences of digits are parsed into temporary variables holding fixnums.
  * Only if these fixnums would overflow, the result variables are updated
  * using the standard functions scm_add, scm_product, scm_divide etc.  Then,
@@ -3850,6 +3851,34 @@ scm_bigprint (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
  * digits, a number 1234567890 would be parsed in two parts 12345 and 67890,
  * and the result was computed as 12345 * 100000 + 67890.  In other words,
  * only every five digits two bignum operations were performed.
+ *
+ * Notes on the handling of exactness specifiers:
+ *
+ * When parsing non-real complex numbers, we apply exactness specifiers on
+ * per-component basis, as is done in PLT Scheme.  For complex numbers
+ * written in rectangular form, exactness specifiers are applied to the
+ * real and imaginary parts before calling scm_make_rectangular.  For
+ * complex numbers written in polar form, exactness specifiers are applied
+ * to the magnitude and angle before calling scm_make_polar.
+ * 
+ * There are two kinds of exactness specifiers: forced and implicit.  A
+ * forced exactness specifier is a "#e" or "#i" prefix at the beginning of
+ * the entire number, and applies to both components of a complex number.
+ * "#e" causes each component to be made exact, and "#i" causes each
+ * component to be made inexact.  If no forced exactness specifier is
+ * present, then the exactness of each component is determined
+ * independently by the presence or absence of a decimal point or hash mark
+ * within that component.  If a decimal point or hash mark is present, the
+ * component is made inexact, otherwise it is made exact.
+ *  
+ * After the exactness specifiers have been applied to each component, they
+ * are passed to either scm_make_rectangular or scm_make_polar to produce
+ * the final result.  Note that this will result in a real number if the
+ * imaginary part, magnitude, or angle is an exact 0.
+ * 
+ * For example, (string->number "#i5.0+0i") does the equivalent of:
+ * 
+ *   (make-rectangular (exact->inexact 5) (exact->inexact 0))
  */
 
 enum t_exactness {NO_EXACTNESS, INEXACT, EXACT};
