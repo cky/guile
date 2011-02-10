@@ -1089,6 +1089,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
@@ -1096,7 +1097,6 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
 	    scm_num_overflow (s_scm_euclidean_quotient);
 	  else
 	    {
-	      scm_t_inum xx = SCM_I_INUM (x);
 	      scm_t_inum qq = xx / yy;
 	      if (xx < qq * yy)
 		{
@@ -1105,19 +1105,25 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
 		  else
 		    qq++;
 		}
-	      return SCM_I_MAKINUM (qq);
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		return SCM_I_MAKINUM (qq);
+	      else
+		return scm_i_inum2big (qq);
 	    }
 	}
       else if (SCM_BIGP (y))
 	{
-	  if (SCM_I_INUM (x) >= 0)
+	  if (xx >= 0)
 	    return SCM_INUM0;
 	  else
-	    return SCM_I_MAKINUM (- mpz_sgn (SCM_I_BIG_MPZ (y)));
+	    {
+	      scm_t_inum qq = - mpz_sgn (SCM_I_BIG_MPZ (y));
+	      scm_remember_upto_here_1 (y);
+	      return SCM_I_MAKINUM (qq);
+	    }
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quotient
-	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
+	return scm_i_inexact_euclidean_quotient (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
 	return scm_i_slow_exact_euclidean_quotient (x, y);
       else
@@ -1131,6 +1137,8 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_scm_euclidean_quotient);
+	  else if (SCM_UNLIKELY (yy == 1))
+	    return x;
 	  else
 	    {
 	      SCM q = scm_i_mkbig ();
@@ -1246,6 +1254,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
@@ -1253,7 +1262,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
 	    scm_num_overflow (s_scm_euclidean_remainder);
 	  else
 	    {
-	      scm_t_inum rr = SCM_I_INUM (x) % yy;
+	      scm_t_inum rr = xx % yy;
 	      if (rr >= 0)
 		return SCM_I_MAKINUM (rr);
 	      else if (yy > 0)
@@ -1264,7 +1273,6 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
 	}
       else if (SCM_BIGP (y))
 	{
-	  scm_t_inum xx = SCM_I_INUM (x);
 	  if (xx >= 0)
 	    return x;
 	  else if (mpz_sgn (SCM_I_BIG_MPZ (y)) > 0)
@@ -1284,8 +1292,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
 	    }
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_remainder
-	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
+	return scm_i_inexact_euclidean_remainder (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
 	return scm_i_slow_exact_euclidean_remainder (x, y);
       else
@@ -1420,6 +1427,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_divide, "euclidean/", 2, 0, 0,
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
@@ -1427,9 +1435,10 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_divide, "euclidean/", 2, 0, 0,
 	    scm_num_overflow (s_scm_euclidean_divide);
 	  else
 	    {
-	      scm_t_inum xx = SCM_I_INUM (x);
 	      scm_t_inum qq = xx / yy;
-	      scm_t_inum rr = xx - qq * yy;
+	      scm_t_inum rr = xx % yy;
+	      SCM q;
+
 	      if (rr < 0)
 		{
 		  if (yy > 0)
@@ -1437,13 +1446,15 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_divide, "euclidean/", 2, 0, 0,
 		  else
 		    { rr -= yy; qq++; }
 		}
-	      return scm_values (scm_list_2 (SCM_I_MAKINUM (qq),
-					     SCM_I_MAKINUM (rr)));
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		q = SCM_I_MAKINUM (qq);
+	      else
+		q = scm_i_inum2big (qq);
+	      return scm_values (scm_list_2 (q, SCM_I_MAKINUM (rr)));
 	    }
 	}
       else if (SCM_BIGP (y))
 	{
-	  scm_t_inum xx = SCM_I_INUM (x);
 	  if (xx >= 0)
 	    return scm_values (scm_list_2 (SCM_INUM0, x));
 	  else if (mpz_sgn (SCM_I_BIG_MPZ (y)) > 0)
@@ -1464,8 +1475,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_divide, "euclidean/", 2, 0, 0,
 	    }
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_divide
-	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
+	return scm_i_inexact_euclidean_divide (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
 	return scm_i_slow_exact_euclidean_divide (x, y);
       else
@@ -1482,19 +1492,19 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_divide, "euclidean/", 2, 0, 0,
 	  else
 	    {
 	      SCM q = scm_i_mkbig ();
-	      SCM r = scm_i_mkbig ();
+	      scm_t_inum rr;
 	      if (yy > 0)
-		mpz_fdiv_qr_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
-				SCM_I_BIG_MPZ (x), yy);
+		rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
+				    SCM_I_BIG_MPZ (x), yy);
 	      else
 		{
-		  mpz_fdiv_qr_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
-				  SCM_I_BIG_MPZ (x), -yy);
+		  rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
+				      SCM_I_BIG_MPZ (x), -yy);
 		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
 		}
 	      scm_remember_upto_here_1 (x);
 	      return scm_values (scm_list_2 (scm_i_normbig (q),
-					     scm_i_normbig (r)));
+					     SCM_I_MAKINUM (rr)));
 	    }
 	}
       else if (SCM_BIGP (y))
@@ -1607,6 +1617,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
@@ -1614,9 +1625,8 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
 	    scm_num_overflow (s_scm_centered_quotient);
 	  else
 	    {
-	      scm_t_inum xx = SCM_I_INUM (x);
 	      scm_t_inum qq = xx / yy;
-	      scm_t_inum rr = xx - qq * yy;
+	      scm_t_inum rr = xx % yy;
 	      if (SCM_LIKELY (xx > 0))
 		{
 		  if (SCM_LIKELY (yy > 0))
@@ -1643,19 +1653,20 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
 			qq++;
 		    }
 		}
-	      return SCM_I_MAKINUM (qq);
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		return SCM_I_MAKINUM (qq);
+	      else
+		return scm_i_inum2big (qq);
 	    }
 	}
       else if (SCM_BIGP (y))
 	{
 	  /* Pass a denormalized bignum version of x (even though it
 	     can fit in a fixnum) to scm_i_bigint_centered_quotient */
-	  return scm_i_bigint_centered_quotient
-	    (scm_i_long2big (SCM_I_INUM (x)), y);
+	  return scm_i_bigint_centered_quotient (scm_i_long2big (xx), y);
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_centered_quotient
-	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
+	return scm_i_inexact_centered_quotient (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
 	return scm_i_slow_exact_centered_quotient (x, y);
       else
@@ -1669,6 +1680,8 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
 	  scm_t_inum yy = SCM_I_INUM (y);
 	  if (SCM_UNLIKELY (yy == 0))
 	    scm_num_overflow (s_scm_centered_quotient);
+	  else if (SCM_UNLIKELY (yy == 1))
+	    return x;
 	  else
 	    {
 	      SCM q = scm_i_mkbig ();
@@ -1833,6 +1846,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
@@ -1840,7 +1854,6 @@ SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
 	    scm_num_overflow (s_scm_centered_remainder);
 	  else
 	    {
-	      scm_t_inum xx = SCM_I_INUM (x);
 	      scm_t_inum rr = xx % yy;
 	      if (SCM_LIKELY (xx > 0))
 		{
@@ -1875,12 +1888,10 @@ SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
 	{
 	  /* Pass a denormalized bignum version of x (even though it
 	     can fit in a fixnum) to scm_i_bigint_centered_remainder */
-	  return scm_i_bigint_centered_remainder
-	    (scm_i_long2big (SCM_I_INUM (x)), y);
+	  return scm_i_bigint_centered_remainder (scm_i_long2big (xx), y);
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_centered_remainder
-	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
+	return scm_i_inexact_centered_remainder (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
 	return scm_i_slow_exact_centered_remainder (x, y);
       else
@@ -2062,6 +2073,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_divide, "centered/", 2, 0, 0,
 {
   if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
+      scm_t_inum xx = SCM_I_INUM (x);
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
@@ -2069,9 +2081,10 @@ SCM_PRIMITIVE_GENERIC (scm_centered_divide, "centered/", 2, 0, 0,
 	    scm_num_overflow (s_scm_centered_divide);
 	  else
 	    {
-	      scm_t_inum xx = SCM_I_INUM (x);
 	      scm_t_inum qq = xx / yy;
-	      scm_t_inum rr = xx - qq * yy;
+	      scm_t_inum rr = xx % yy;
+	      SCM q;
+
 	      if (SCM_LIKELY (xx > 0))
 		{
 		  if (SCM_LIKELY (yy > 0))
@@ -2098,20 +2111,21 @@ SCM_PRIMITIVE_GENERIC (scm_centered_divide, "centered/", 2, 0, 0,
 			{ qq++; rr -= yy; }
 		    }
 		}
-	      return scm_values (scm_list_2 (SCM_I_MAKINUM (qq),
-					     SCM_I_MAKINUM (rr)));
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		q = SCM_I_MAKINUM (qq);
+	      else
+		q = scm_i_inum2big (qq);
+	      return scm_values (scm_list_2 (q, SCM_I_MAKINUM (rr)));
 	    }
 	}
       else if (SCM_BIGP (y))
 	{
 	  /* Pass a denormalized bignum version of x (even though it
 	     can fit in a fixnum) to scm_i_bigint_centered_divide */
-	  return scm_i_bigint_centered_divide
-	    (scm_i_long2big (SCM_I_INUM (x)), y);
+	  return scm_i_bigint_centered_divide (scm_i_long2big (xx), y);
 	}
       else if (SCM_REALP (y))
-	return scm_i_inexact_centered_divide
-	  (SCM_I_INUM (x), SCM_REAL_VALUE (y));
+	return scm_i_inexact_centered_divide (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
 	return scm_i_slow_exact_centered_divide (x, y);
       else
