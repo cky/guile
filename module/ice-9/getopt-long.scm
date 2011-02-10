@@ -1,4 +1,4 @@
-;;; Copyright (C) 1998, 2001, 2006, 2009 Free Software Foundation, Inc.
+;;; Copyright (C) 1998, 2001, 2006, 2009, 2011 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -157,44 +157,29 @@
 ;;; Code:
 
 (define-module (ice-9 getopt-long)
-  :use-module ((ice-9 common-list) :select (some remove-if-not))
-  :export (getopt-long option-ref))
+  #:use-module ((ice-9 common-list) #:select (some remove-if-not))
+  #:use-module (srfi srfi-9)
+  #:export (getopt-long option-ref))
 
-(eval-when (eval load compile)
-  ;; This binding is used both at compile-time and run-time.
-  (define option-spec-fields '(name
-                               value
-                               required?
-                               single-char
-                               predicate
-                               value-policy)))
+(define-record-type option-spec
+  (%make-option-spec name value required? single-char predicate
+                     value-policy)
+  option-spec?
+  (name
+   option-spec->name set-option-spec-name!)
+  (value 
+   option-spec->value set-option-spec-value!)
+  (required?
+   option-spec->required? set-option-spec-required?!)
+  (option-spec->single-char
+   option-spec->single-char set-option-spec-single-char!)
+  (predicate
+   option-spec->predicate set-option-spec-predicate!)
+  (value-policy
+   option-spec->value-policy set-option-spec-value-policy!))
 
-(define option-spec (make-record-type 'option-spec option-spec-fields))
-(define make-option-spec (record-constructor option-spec option-spec-fields))
-
-(eval-when (eval load compile)
-  ;; The following procedures are used only at compile-time when expanding
-  ;; `define-all-option-spec-accessors/modifiers' (see below).
-
-  (define (define-one-option-spec-field-accessor field)
-    `(define ,(symbol-append 'option-spec-> field) ;;; name slib-compat
-       (record-accessor option-spec ',field)))
-
-  (define (define-one-option-spec-field-modifier field)
-    `(define ,(symbol-append 'set-option-spec- field '!) ;;; name slib-compat
-       (record-modifier option-spec ',field))))
-
-(defmacro define-all-option-spec-accessors/modifiers ()
-  `(begin
-     ,@(map define-one-option-spec-field-accessor option-spec-fields)
-     ,@(map define-one-option-spec-field-modifier option-spec-fields)))
-
-(define-all-option-spec-accessors/modifiers)
-
-(define make-option-spec
-  (let ((ctor (record-constructor option-spec '(name))))
-    (lambda (name)
-      (ctor name))))
+(define (make-option-spec name)
+  (%make-option-spec name #f #f #f #f #f))
 
 (define (parse-option-spec desc)
   (let ((spec (make-option-spec (symbol->string (car desc)))))
