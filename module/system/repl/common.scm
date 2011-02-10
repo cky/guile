@@ -36,7 +36,7 @@
 
 (define *version*
   (format #f "GNU Guile ~A
-Copyright (C) 1995-2010 Free Software Foundation, Inc.
+Copyright (C) 1995-2011 Free Software Foundation, Inc.
 
 Guile comes with ABSOLUTELY NO WARRANTY; for details type `,show w'.
 This program is free software, and you are welcome to redistribute it
