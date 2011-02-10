@@ -408,7 +408,10 @@ eval (SCM x, SCM env)
 
     case SCM_M_PROMPT:
       {
-        SCM vm, prompt, handler, res;
+        SCM vm, res;
+        /* We need the prompt and handler values after a longjmp case,
+           so make sure they are volatile.  */
+        volatile SCM handler, prompt;
 
         vm = scm_the_vm ();
         prompt = scm_c_make_prompt (eval (CAR (mx), env), SCM_VM_DATA (vm)->fp,
