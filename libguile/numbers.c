@@ -7025,7 +7025,7 @@ SCM_PRIMITIVE_GENERIC (scm_atan, "atan", 1, 1, 0,
                              scm_c_make_rectangular (0, 2));
         }
       else
-        SCM_WTA_DISPATCH_2 (g_scm_atan, z, y, SCM_ARG1, s_scm_atan);
+        SCM_WTA_DISPATCH_1 (g_scm_atan, z, SCM_ARG1, s_scm_atan);
     }
   else if (scm_is_real (z))
     {
