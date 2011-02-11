@@ -29,47 +29,16 @@
 
 
 
-;; Temporary hacked copy of repl.scm's display-syntax error, until we
-;; merge in the proper display-exception patches.
-(define (display-syntax-error port who what where form subform extra)
-  (display "Syntax error:" port)
-  (newline port)
-  (if where
-      (let ((file (or (assq-ref where 'filename) "unknown file"))
-            (line (and=> (assq-ref where 'line) 1+))
-            (col (assq-ref where 'column)))
-        (format port "~a:~a:~a: " file line col))
-      (format port "unknown location: "))
-  (if who
-      (format port "~a: " who))
-  (format port "~a" what)
-  (if subform
-      (format port " in subform ~s of ~s" subform form)
-      (if form
-          (format port " in form ~s" form)))
-  (newline port))
-
 ;;;
 ;;; Error handling via repl debugging
 ;;;
 
 (define (error-string stack key args)
-  (pmatch args
-    ((,who ,message ,where ,form ,subform . ,rest)
-     (guard (eq? key 'syntax-error))
-     (with-output-to-string
-       (lambda ()
-         (display-syntax-error (current-output-port)
-                               who message where form subform rest))))
-    ((,subr ,msg ,args . ,rest)
-     (guard (> (vector-length stack) 0))
-     (with-output-to-string
-       (lambda ()
-         (display-error (vector-ref stack 0) (current-output-port)
-                        subr msg args rest))))
-    (else
-     (format #f "Throw to key `~a' with args `~s'." key args))))
-
+  (call-with-output-string
+   (lambda (port)
+     (let ((frame (and (< 0 (vector-length stack)) (vector-ref stack 0))))
+       (print-exception port frame key args)))))
+                  
 (define* (call-with-error-handling thunk #:key
                                    (on-error 'debug) (post-error 'catch)
                                    (pass-keys '(quit)) (trap-handler 'debug))
@@ -133,17 +102,12 @@
            (if (memq key pass-keys)
                (apply throw key args)
                (begin
-                 (pmatch args
-                   ((,subr ,msg ,args . ,rest)
-                    (with-saved-ports
-                     (lambda ()
-                       (run-hook before-error-hook)
-                       (display-error #f err subr msg args rest)
-                       (run-hook after-error-hook)
-                       (force-output err))))
-                   (else
-                    (format err "\nERROR: uncaught throw to `~a', args: ~a\n"
-                            key args)))
+                 (with-saved-ports
+                   (lambda ()
+                     (run-hook before-error-hook)
+                     (print-exception err #f key args)
+                     (run-hook after-error-hook)
+                     (force-output err)))
                  (if #f #f)))))
         ((catch)
          (lambda (key . args)
