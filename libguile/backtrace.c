@@ -109,171 +109,11 @@ scm_print_exception (SCM port, SCM frame, SCM key, SCM args)
           return SCM_BOOL_F;
 
 
-static void
-display_header (SCM source, SCM port)
-{
-  if (scm_is_true (source))
-    {
-      /* source := (addr . (filename . (line . column))) */
-      SCM fname = scm_cadr (source);
-      SCM line = scm_caddr (source);
-      SCM col = scm_cdddr (source);
-
-      if (scm_is_true (fname))
-	scm_prin1 (fname, port, 0);
-      else
-	scm_puts ("<unnamed port>", port);
-
-      if (scm_is_true (line) && scm_is_true (col))
-	{
-	  scm_putc (':', port);
-	  scm_intprint (scm_to_long (line) + 1, 10, port);
-	  scm_putc (':', port);
-	  scm_intprint (scm_to_long (col) + 1, 10, port);
-	}
-    }
-  else
-    scm_puts ("ERROR", port);
-  scm_puts (": ", port);
-}
-
-
-struct display_error_message_data {
-  SCM message;
-  SCM args;
-  SCM port;
-  scm_print_state *pstate;
-  int old_fancyp;
-  int old_level;
-  int old_length;
-};
-
-static SCM
-display_error_message (struct display_error_message_data *d)
-{
-  if (scm_is_string (d->message) && scm_is_true (scm_list_p (d->args)))
-    scm_simple_format (d->port, d->message, d->args);
-  else
-    scm_display (d->message, d->port);
-  scm_newline (d->port);
-  return SCM_UNSPECIFIED;
-}
-
-static void
-before_display_error_message (struct display_error_message_data *d)
-{
-  scm_print_state *pstate = d->pstate;
-  d->old_fancyp = pstate->fancyp;
-  d->old_level  = pstate->level;
-  d->old_length = pstate->length;
-  pstate->fancyp = 1;
-  pstate->level  = DISPLAY_ERROR_MESSAGE_MAX_LEVEL;
-  pstate->length = DISPLAY_ERROR_MESSAGE_MAX_LENGTH;
-}
-
-static void
-after_display_error_message (struct display_error_message_data *d)
-{
-  scm_print_state *pstate = d->pstate;
-  pstate->fancyp = d->old_fancyp;
-  pstate->level  = d->old_level;
-  pstate->length = d->old_length;
-}
-
 void
 scm_display_error_message (SCM message, SCM args, SCM port)
 {
-  struct display_error_message_data d;
-  SCM print_state;
-  scm_print_state *pstate;
-
-  port = scm_i_port_with_print_state (port, SCM_UNDEFINED);
-  print_state = SCM_PORT_WITH_PS_PS (port);
-  pstate = SCM_PRINT_STATE (print_state);
-  
-  d.message = message;
-  d.args = args;
-  d.port = port;
-  d.pstate = pstate;
-  scm_internal_dynamic_wind ((scm_t_guard) before_display_error_message,
-			     (scm_t_inner) display_error_message,
-			     (scm_t_guard) after_display_error_message,
-			     &d,
-			     &d);
-}
-
-static void
-display_expression (SCM frame, SCM pname, SCM source, SCM port)
-{
-  SCM print_state = scm_make_print_state ();
-  scm_print_state *pstate = SCM_PRINT_STATE (print_state);
-  pstate->writingp = 0;
-  pstate->fancyp = 1;
-  pstate->level  = DISPLAY_EXPRESSION_MAX_LEVEL;
-  pstate->length = DISPLAY_EXPRESSION_MAX_LENGTH;
-  if (scm_is_symbol (pname) || scm_is_string (pname))
-    {
-      scm_puts ("In procedure ", port);
-      scm_iprin1 (pname, port, pstate);
-    }
-  scm_puts (":\n", port);
-  scm_free_print_state (print_state);
-}
-
-struct display_error_args {
-  SCM frame;
-  SCM port;
-  SCM subr;
-  SCM message;
-  SCM args;
-  SCM rest;
-};
-
-static SCM
-display_error_body (struct display_error_args *a)
-{
-  SCM source = SCM_BOOL_F;
-  SCM pname = a->subr;
-
- if (SCM_FRAMEP (a->frame))
-    {
-      if (scm_initialized_p)
-        source = scm_frame_source (a->frame);
-      if (!scm_is_symbol (pname) && !scm_is_string (pname))
-	pname = scm_procedure_name (scm_frame_procedure (a->frame));
-    }
-
-  if (scm_is_symbol (pname) || scm_is_string (pname))
-    {
-      display_header (source, a->port);
-      display_expression (a->frame, pname, source, a->port);
-    }
-  display_header (source, a->port);
-  scm_display_error_message (a->message, a->args, a->port);
-  return SCM_UNSPECIFIED;
-}
-
-struct display_error_handler_data {
-  char *mode;
-  SCM port;
-};
-
-/* This is the exception handler for error reporting routines.
-   Note that it is very important that this handler *doesn't* try to
-   print more than the error tag, since the error very probably is
-   caused by an erroneous print call-back routine.  If we would
-   try to print all objects, we would enter an infinite loop. */
-static SCM
-display_error_handler (struct display_error_handler_data *data,
-		       SCM tag, SCM args SCM_UNUSED)
-{
-  SCM print_state = scm_make_print_state ();
-  scm_puts ("\nException during displaying of ", data->port);
-  scm_puts (data->mode, data->port);
-  scm_puts (": ", data->port);
-  scm_iprin1 (tag, data->port, SCM_PRINT_STATE (print_state));
-  scm_putc ('\n', data->port);
-  return SCM_UNSPECIFIED;
+  scm_print_exception (port, SCM_BOOL_F, scm_misc_error_key,
+                       scm_list_3 (SCM_BOOL_F, message, args));
 }
 
 
@@ -285,31 +125,8 @@ display_error_handler (struct display_error_handler_data *data,
 void
 scm_i_display_error (SCM frame, SCM port, SCM subr, SCM message, SCM args, SCM rest)
 {
-  struct display_error_args a;
-  struct display_error_handler_data data;
-
-  if (SCM_FRAMEP (frame))
-    a.frame = frame;
-#if SCM_ENABLE_DEPRECATED
-  else if (SCM_STACKP (frame))
-    {
-      scm_c_issue_deprecation_warning
-        ("Passing a stack to display-error is deprecated. Pass a frame instead.");
-      a.frame = scm_stack_ref (frame, SCM_INUM0);
-    }
-#endif
-  else
-    a.frame = SCM_BOOL_F;
-  a.port  = port;
-  a.subr  = subr;
-  a.message = message;
-  a.args  = args;
-  a.rest  = rest;
-  data.mode = "error";
-  data.port = port;
-  scm_internal_catch (SCM_BOOL_T,
-		      (scm_t_catch_body) display_error_body, &a,
-		      (scm_t_catch_handler) display_error_handler, &data);
+  scm_print_exception (port, frame, scm_misc_error_key,
+                       scm_list_3 (subr, message, args));
 }
 
 
@@ -696,6 +513,18 @@ display_backtrace_body (struct display_backtrace_args *a)
 }
 #undef FUNC_NAME
 
+static SCM
+error_during_backtrace (void *data, SCM tag, SCM throw_args)
+{
+  SCM port = PTR2SCM (data);
+  
+  scm_puts ("Exception thrown while printing backtrace:\n", port);
+  scm_print_exception (port, SCM_BOOL_F, tag, throw_args);
+
+  return SCM_UNSPECIFIED;
+}
+
+
 SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace", 2, 3, 0, 
 	    (SCM stack, SCM port, SCM first, SCM depth, SCM highlights),
 	    "Display a backtrace to the output port @var{port}.  @var{stack}\n"
@@ -709,7 +538,6 @@ SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace", 2, 3, 0,
 #define FUNC_NAME s_scm_display_backtrace_with_highlights
 {
   struct display_backtrace_args a;
-  struct display_error_handler_data data;
   a.stack = stack;
   a.port  = port;
   a.first = first;
@@ -718,11 +546,11 @@ SCM_DEFINE (scm_display_backtrace_with_highlights, "display-backtrace", 2, 3, 0,
     a.highlight_objects = SCM_EOL;
   else
     a.highlight_objects = highlights;
-  data.mode = "backtrace";
-  data.port = port;
+
   scm_internal_catch (SCM_BOOL_T,
 		      (scm_t_catch_body) display_backtrace_body, &a,
-		      (scm_t_catch_handler) display_error_handler, &data);
+		      (scm_t_catch_handler) error_during_backtrace, SCM2PTR (port));
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
