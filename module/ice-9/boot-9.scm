@@ -481,6 +481,110 @@ If there is no handler at all, Guile prints an error and then exits."
 
 
 
+;;;
+;;; Extensible exception printing.
+;;;
+
+(define set-exception-printer! #f)
+(define print-exception #f)
+
+(let ((exception-printers '()))
+  (define (print-location frame port)
+    (let ((source (and=> frame frame-source)))
+      ;; source := (addr . (filename . (line . column)))
+      (if source
+          (let ((filename (or (cadr source) "<unnamed port>"))
+                (line (caddr source))
+                (col (cdddr source)))
+            (format port "~a:~a:~a: " filename line col))
+          (format port "ERROR: "))))
+
+  (set! set-exception-printer!
+        (lambda (key proc)
+          (set! exception-printers (acons key proc exception-printers))))
+
+  (set! print-exception
+        (lambda (port frame key args)
+          (define (default-printer)
+            (format port "Throw to key `~a' with args `~s'." key args))
+
+          (if frame
+              (let ((proc (frame-procedure frame)))
+                (print-location frame port)
+                (format port "In procedure ~a:\n"
+                        (or (procedure-name proc) proc))))
+
+          (print-location frame port)
+          (catch #t
+            (lambda ()
+              (let ((printer (assq-ref exception-printers key)))
+                (if printer
+                    (printer port key args default-printer)
+                    (default-printer))))
+            (lambda (k . args)
+              (format port "Error while printing exception.")))
+          (newline port)
+          (force-output port))))
+
+;;;
+;;; Printers for those keys thrown by Guile.
+;;;
+(let ()
+  (define (scm-error-printer port key args default-printer)
+    ;; Abuse case-lambda as a pattern matcher, given that we don't have
+    ;; ice-9 match at this point.
+    (apply (case-lambda
+             ((subr msg args . rest)
+              (if subr
+                  (format port "In procedure ~a: " subr))
+              (apply format port msg args))
+             (_ (default-printer)))
+           args))
+
+  (define (syntax-error-printer port key args default-printer)
+    (apply (case-lambda
+             ((who what where form subform extra)
+              (format port "Syntax error:\n")
+              (if where
+                  (let ((file (or (assq-ref where 'filename) "unknown file"))
+                        (line (and=> (assq-ref where 'line) 1+))
+                        (col (assq-ref where 'column)))
+                    (format port "~a:~a:~a: " file line col))
+                  (format port "unknown location: "))
+              (if who
+                  (format port "~a: " who))
+              (format port "~a" what)
+              (if subform
+                  (format port " in subform ~s of ~s" subform form)
+                  (if form
+                      (format port " in form ~s" form))))
+             (_ (default-printer)))
+           args))
+
+  (set-exception-printer! 'goops-error scm-error-printer)
+  (set-exception-printer! 'host-not-found scm-error-printer)
+  (set-exception-printer! 'keyword-argument-error scm-error-printer)
+  (set-exception-printer! 'misc-error scm-error-printer)
+  (set-exception-printer! 'no-data scm-error-printer)
+  (set-exception-printer! 'no-recovery scm-error-printer)
+  (set-exception-printer! 'null-pointer-error scm-error-printer)
+  (set-exception-printer! 'out-of-range scm-error-printer)
+  (set-exception-printer! 'program-error scm-error-printer)
+  (set-exception-printer! 'read-error scm-error-printer)
+  (set-exception-printer! 'regular-expression-syntax scm-error-printer)
+  (set-exception-printer! 'signal scm-error-printer)
+  (set-exception-printer! 'stack-overflow scm-error-printer)
+  (set-exception-printer! 'system-error scm-error-printer)
+  (set-exception-printer! 'try-again scm-error-printer)
+  (set-exception-printer! 'unbound-variable scm-error-printer)
+  (set-exception-printer! 'wrong-number-of-args scm-error-printer)
+  (set-exception-printer! 'wrong-type-arg scm-error-printer)
+
+  (set-exception-printer! 'syntax-error syntax-error-printer))
+
+
+
+
 ;;; {Defmacros}
 ;;;
 
