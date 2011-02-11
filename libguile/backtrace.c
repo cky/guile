@@ -80,8 +80,9 @@ scm_print_exception (SCM port, SCM frame, SCM key, SCM args)
   SCM_VALIDATE_LIST (4, args);
   
   if (scm_is_false (print_exception))
-    print_exception = scm_c_module_lookup (scm_the_root_module (),
-                                           "print-exception");
+    print_exception =
+      scm_module_variable (scm_the_root_module (),
+                           scm_from_latin1_symbol ("print-exception"));
 
   return scm_call_4 (scm_variable_ref (print_exception),
                      port, frame, key, args);

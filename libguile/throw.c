@@ -58,7 +58,7 @@
   if (scm_is_false (var))                                               \
     {                                                                   \
       var = scm_module_variable (scm_the_root_module (),                \
-                                 scm_from_locale_symbol (name));        \
+                                 scm_from_latin1_symbol (name));        \
       if (scm_is_false (var))                                           \
         abort ();                                                       \
     }
