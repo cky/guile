@@ -353,7 +353,13 @@ handler_message (void *handler_data, SCM tag, SCM args)
   SCM p, stack, frame;
 
   p = scm_current_error_port ();
-  stack = scm_make_stack (SCM_BOOL_T, SCM_EOL);
+  /* Usually we get here via a throw to a catch-all.  In that case
+     there is the throw frame active, and the catch closure, so narrow by
+     two frames.  It is possible for a user to invoke
+     scm_handle_by_message directly, though, so it could be this
+     narrows too much.  We'll have to see how this works out in
+     practice.  */
+  stack = scm_make_stack (SCM_BOOL_T, scm_list_1 (scm_from_int (2)));
   frame = scm_is_true (stack) ? scm_stack_ref (stack, SCM_INUM0) : SCM_BOOL_F;
 
   if (should_print_backtrace (tag, stack))
