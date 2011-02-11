@@ -1,6 +1,6 @@
 ;;; Read-Eval-Print Loop
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -30,29 +30,6 @@
   #:use-module (system repl command)
   #:use-module (ice-9 control)
   #:export (start-repl run-repl))
-
-
-
-;;;
-;;; Syntax errors
-;;;
-
-(define (display-syntax-error port who what where form subform extra)
-  (format port "Syntax error:~%")
-  (if where
-      (let ((file (or (assq-ref where 'filename) "unknown file"))
-            (line (and=> (assq-ref where 'line) 1+))
-            (col (assq-ref where 'column)))
-        (format port "~a:~a:~a: " file line col))
-      (format port "unknown location: "))
-  (if who
-      (format port "~a: " who))
-  (format port "~a" what)
-  (if subform
-      (format port " in subform ~s of ~s" subform form)
-      (if form
-          (format port " in form ~s" form)))
-  (newline port))
 
 
 
@@ -93,17 +70,8 @@
         ((quit)
          (apply throw key args))
         (else
-         (pmatch (cons key args)
-           ((syntax-error ,who ,message ,where ,form ,subform . ,rest)
-            (display-syntax-error (current-output-port)
-                                  who message where form subform rest))
-           ((_ ,subr ,msg ,args . ,rest)
-            (format #t "Throw to key `~a' while reading expression:\n" key)
-            (display-error #f (current-output-port) subr msg args rest))
-           (else
-            (format #t "Throw to key `~a' with args `~s' while reading expression.\n"
-                    key args)))
-         (force-output)
+         (format (current-output-port) "While reading expression:\n")
+         (print-exception (current-output-port) #f key args)
          *unspecified*)))))
 
 
@@ -123,15 +91,7 @@
        (lambda () exp)
        (lambda (key . args)
          (format #t "While ~A:~%" string)
-         (pmatch (cons key args)
-           ((syntax-error ,who ,message ,where ,form ,subform . ,rest)
-            (display-syntax-error (current-output-port)
-                                  who message where form subform rest))
-           ((_ ,subr ,msg ,args . ,rest)
-            (display-error #f (current-output-port) subr msg args rest))
-           (else
-            (format #t "ERROR: Throw to key `~a' with args `~s'.\n" key args)))
-         (force-output)
+         (print-exception (current-output-port) #f key args)
          (abort))))))
 
 (define (run-repl repl)
@@ -158,15 +118,7 @@
                      (abort args)
                      (begin
                        (format #t "While executing meta-command:~%")
-                       (pmatch args
-                         ((syntax-error ,who ,message ,where ,form ,subform . ,rest)
-                          (display-syntax-error (current-output-port)
-                                                who message where form subform rest))
-                         ((,subr ,msg ,args . ,rest)
-                          (display-error #f (current-output-port) subr msg args rest))
-                         (else
-                          (format #t "ERROR: Throw to key `~a' with args `~s'.\n" k args)))
-                       (force-output))))))
+                       (print-exception (current-output-port) #f k args))))))
             ((eof-object? exp)
              (newline)
              (abort '()))
