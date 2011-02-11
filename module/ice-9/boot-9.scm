@@ -486,7 +486,8 @@ If there is no handler at all, Guile prints an error and then exits."
 ;;;
 
 (define set-exception-printer! #f)
-(define print-exception #f)
+;; There is already a definition of print-exception from backtrace.c
+;; that we will override.
 
 (let ((exception-printers '()))
   (define (print-location frame port)

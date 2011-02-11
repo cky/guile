@@ -55,6 +55,42 @@
  * Note that these functions shouldn't generate errors themselves.
  */
 
+static SCM
+boot_print_exception (SCM port, SCM frame, SCM key, SCM args)
+#define FUNC_NAME "boot-print-exception"
+{
+  scm_puts ("Throw to key ", port);
+  scm_write (key, port);
+  scm_puts (" with args ", port);
+  scm_write (args, port);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM
+scm_print_exception (SCM port, SCM frame, SCM key, SCM args)
+#define FUNC_NAME "print-exception"
+{
+  static SCM print_exception = SCM_BOOL_F;
+
+  SCM_VALIDATE_OPOUTPORT (1, port);
+  if (scm_is_true (frame))
+    SCM_VALIDATE_FRAME (2, frame);
+  SCM_VALIDATE_SYMBOL (3, key);
+  SCM_VALIDATE_LIST (4, args);
+  
+  if (scm_is_false (print_exception))
+    print_exception = scm_c_module_lookup (scm_the_root_module (),
+                                           "print-exception");
+
+  return scm_call_4 (scm_variable_ref (print_exception),
+                     port, frame, key, args);
+}
+#undef FUNC_NAME
+
+
+
+
 /* Print parameters for error messages. */
 
 #define DISPLAY_ERROR_MESSAGE_MAX_LEVEL   7
@@ -71,6 +107,7 @@
 #define SCM_ASSERT(_cond, _arg, _pos, _subr) \
 	if (!(_cond)) \
           return SCM_BOOL_F;
+
 
 static void
 display_header (SCM source, SCM port)
@@ -734,6 +771,7 @@ scm_backtrace (void)
 void
 scm_init_backtrace ()
 {
+  scm_c_define_gsubr ("print-exception", 4, 0, 0, boot_print_exception);
 #include "libguile/backtrace.x"
 }
 
