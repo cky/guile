@@ -138,9 +138,7 @@ typedef scm_t_int32 scm_t_wchar;
 
 #define SCM_NUMBERP(x) (SCM_I_INUMP(x) || SCM_NUMP(x))
 #define SCM_NUMP(x) (!SCM_IMP(x) \
-  && (((0xfcff & SCM_CELL_TYPE (x)) == scm_tc7_number) \
-      || ((0xfbff & SCM_CELL_TYPE (x)) == scm_tc7_number)))
-/* 0xfcff (#b1100) for 0 free, 1 big, 2 real, 3 complex, then 0xfbff (#b1011) for 4 fraction */
+		     && ((0x00ff & SCM_CELL_TYPE (x)) == scm_tc7_number))
 
 #define SCM_FRACTIONP(x) (!SCM_IMP (x) && SCM_TYP16 (x) == scm_tc16_fraction)
 #define SCM_FRACTION_NUMERATOR(x) (SCM_CELL_OBJECT_1 (x))
