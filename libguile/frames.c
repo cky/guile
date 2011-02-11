@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -92,17 +92,18 @@ SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM
-scm_frame_source (SCM frame)
+SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
+	    (SCM frame),
+	    "")
+#define FUNC_NAME s_scm_frame_source
 {
-  static SCM var = SCM_BOOL_F;
-  
-  if (scm_is_false (var))
-    var = scm_c_module_lookup (scm_c_resolve_module ("system vm frame"),
-                               "frame-source");
+  SCM_VALIDATE_VM_FRAME (1, frame);
 
-  return scm_call_1 (SCM_VARIABLE_REF (var), frame);
+  return scm_program_source (scm_frame_procedure (frame),
+                             scm_frame_instruction_pointer (frame),
+                             SCM_UNDEFINED);
 }
+#undef FUNC_NAME
 
 /* The number of locals would be a simple thing to compute, if it weren't for
    the presence of not-yet-active frames on the stack. So we have a cheap

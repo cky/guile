@@ -1,6 +1,6 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001, 2005, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2005, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,7 @@
   #:export (frame-bindings
             frame-lookup-binding
             frame-binding-ref frame-binding-set!
-            frame-source frame-next-source frame-call-representation
+            frame-next-source frame-call-representation
             frame-environment
             frame-object-binding frame-object-name
             frame-return-values))
@@ -69,12 +69,6 @@
 ;;;
 ;;; Pretty printing
 ;;;
-
-(define (frame-source frame)
-  (let ((proc (frame-procedure frame)))
-    (program-source proc
-                    (frame-instruction-pointer frame)
-                    (program-sources proc))))
 
 (define (frame-next-source frame)
   (let ((proc (frame-procedure frame)))
