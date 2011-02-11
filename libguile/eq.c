@@ -332,6 +332,14 @@ scm_equal_p (SCM x, SCM y)
   switch (SCM_TYP7 (x))
     {
     default:
+      /* Check equality between structs of equal type (see cell-type test above). */
+      if (SCM_STRUCTP (x))
+	{
+	  if (SCM_INSTANCEP (x))
+	    goto generic_equal;
+	  else
+	    return scm_i_struct_equalp (x, y);
+	}
       break;
     case scm_tc7_number:
       switch SCM_TYP16 (x)
@@ -348,14 +356,6 @@ scm_equal_p (SCM x, SCM y)
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);
-    }
-  /* Check equality between structs of equal type (see cell-type test above). */
-  if (SCM_STRUCTP (x))
-    {
-      if (SCM_INSTANCEP (x))
-        goto generic_equal;
-      else
-        return scm_i_struct_equalp (x, y);
     }
 
   /* Otherwise just return false. Dispatching to the generic is the wrong thing
