@@ -391,7 +391,8 @@
 		 #:default (procedure old-definition)
 		 #:setter (setter old-definition)))
 	  ((procedure? old-definition)
-	   (make <generic> #:name name #:default old-definition))
+           (if (generic-capability? old-definition) old-definition
+               (make <generic> #:name name #:default old-definition)))
 	  (else (make <generic> #:name name)))))
 
 ;; same semantics as <generic>
@@ -428,7 +429,10 @@
 		 #:default (procedure proc)
 		 #:setter (ensure-generic (setter proc) name)))
 	  ((procedure? proc)
-	   (ensure-accessor (ensure-generic proc name) name))
+           (ensure-accessor (if (generic-capability? proc)
+                                (make <generic> #:name name #:default proc)
+                                (ensure-generic proc name))
+                            name))
 	  (else
 	   (make-accessor name)))))
 
