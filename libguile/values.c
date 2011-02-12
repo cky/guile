@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -66,8 +66,7 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
     result = SCM_CAR (args);
   else
     {
-      result = scm_make_struct (scm_values_vtable, SCM_INUM0,
-				scm_list_1 (args));
+      result = scm_c_make_struct (scm_values_vtable, 0, 1, SCM_UNPACK (args));
     }
 
   return result;
