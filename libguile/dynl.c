@@ -1,7 +1,7 @@
 /* dynl.c - dynamic linking
  *
  * Copyright (C) 1990, 91, 92, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002,
- * 2003, 2008, 2009, 2010 Free Software Foundation, Inc.
+ * 2003, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,8 @@
 # include <config.h>
 #endif
 
+#include <alloca.h>
+
 /* "dynl.c" dynamically link&load object files.
    Author: Aubrey Jaffer
    Modified for libguile by Marius Vollmer */
@@ -44,6 +46,7 @@ maybe_drag_in_eprintf ()
 }
 #endif
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -118,6 +121,30 @@ sysdep_dynl_value (const char *symb, void *handle, const char *subr)
   return fptr;
 }
 
+/* Augment environment variable VARIABLE with VALUE, assuming VARIABLE
+   is a path kind of variable.  */
+static void
+augment_env (const char *variable, const char *value)
+{
+  const char *env;
+
+  env = getenv (variable);
+  if (env != NULL)
+    {
+      char *new_value;
+      static const char path_sep[] = { LT_PATHSEP_CHAR, 0 };
+
+      new_value = alloca (strlen (env) + strlen (value) + 2);
+      strcpy (new_value, env);
+      strcat (new_value, path_sep);
+      strcat (new_value, value);
+
+      setenv (variable, new_value, 1);
+    }
+  else
+    setenv (variable, value, 1);
+}
+
 static void
 sysdep_dynl_init ()
 {
@@ -129,15 +156,22 @@ sysdep_dynl_init ()
   if (env && strcmp (env, "") == 0)
     /* special-case interpret system-ltdl-path=="" as meaning no system path,
        which is the case during the build */
-    ; 
+    ;
   else if (env)
     /* FIXME: should this be a colon-separated path? Or is the only point to
        allow the build system to turn off the installed extensions path? */
     lt_dladdsearchdir (env);
   else
     {
-      lt_dladdsearchdir (SCM_LIB_DIR);
-      lt_dladdsearchdir (SCM_EXTENSIONS_DIR);
+      /* Add SCM_LIB_DIR and SCM_EXTENSIONS_DIR to the loader's search
+	 path.  `lt_dladdsearchdir' and $LTDL_LIBRARY_PATH can't be used
+	 for that because they are searched before the system-dependent
+	 search path, which is the one `libtool --mode=execute -dlopen'
+	 fiddles with (info "(libtool) Libltdl Interface").  See
+	 <http://lists.gnu.org/archive/html/guile-devel/2010-11/msg00095.html>
+	 for details.  */
+      augment_env (SHARED_LIBRARY_PATH_VARIABLE, SCM_LIB_DIR);
+      augment_env (SHARED_LIBRARY_PATH_VARIABLE, SCM_EXTENSIONS_DIR);
     }
 }
 
