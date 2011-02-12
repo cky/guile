@@ -544,7 +544,7 @@ If there is no handler at all, Guile prints an error and then exits."
 
   (define (syntax-error-printer port key args default-printer)
     (apply (case-lambda
-             ((who what where form subform extra)
+             ((who what where form subform . extra)
               (format port "Syntax error:\n")
               (if where
                   (let ((file (or (assq-ref where 'filename) "unknown file"))
