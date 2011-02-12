@@ -35,7 +35,7 @@
               (set! handler
                     (sigaction SIGINT
                       (lambda (sig)
-                        (scm-error 'signal #f "User interrupt" #f
+                        (scm-error 'signal #f "User interrupt" '()
                                    (list sig))))))
             thunk
             (lambda ()
