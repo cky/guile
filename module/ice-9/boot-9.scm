@@ -1226,71 +1226,6 @@ VALUE."
 
 (set! %load-hook %load-announce)
 
-(define* (load name #:optional reader)
-  ;; Returns the .go file corresponding to `name'. Does not search load
-  ;; paths, only the fallback path. If the .go file is missing or out of
-  ;; date, and autocompilation is enabled, will try autocompilation, just
-  ;; as primitive-load-path does internally. primitive-load is
-  ;; unaffected. Returns #f if autocompilation failed or was disabled.
-  ;;
-  ;; NB: Unless we need to compile the file, this function should not cause
-  ;; (system base compile) to be loaded up. For that reason compiled-file-name
-  ;; partially duplicates functionality from (system base compile).
-  (define (compiled-file-name canon-path)
-    (and %compile-fallback-path
-         (string-append
-          %compile-fallback-path
-          ;; no need for '/' separator here, canon-path is absolute
-          canon-path
-          (cond ((or (null? %load-compiled-extensions)
-                     (string-null? (car %load-compiled-extensions)))
-                 (warn "invalid %load-compiled-extensions"
-                       %load-compiled-extensions)
-                 ".go")
-                (else (car %load-compiled-extensions))))))
-  (define (fresh-compiled-file-name go-path)
-    (catch #t
-      (lambda ()
-        (let* ((scmstat (stat name))
-               (gostat  (stat go-path #f)))
-          (if (and gostat
-                   (or (> (stat:mtime gostat) (stat:mtime scmstat))
-                       (and (= (stat:mtime gostat) (stat:mtime scmstat))
-                            (>= (stat:mtimensec gostat)
-                                (stat:mtimensec scmstat)))))
-              go-path
-              (begin
-                (if gostat
-                    (format (current-error-port)
-                            ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                            name go-path))
-                (cond
-                 (%load-should-autocompile
-                  (%warn-autocompilation-enabled)
-                  (format (current-error-port) ";;; compiling ~a\n" name)
-                  ;; This use of @ is (ironically?) boot-safe, as modules have
-                  ;; not been booted yet, so the resolve-module call in psyntax
-                  ;; doesn't try to load a module, and compile-file will be
-                  ;; treated as a function, not a macro.
-                  (let ((cfn ((@ (system base compile) compile-file) name
-                              #:env (current-module))))
-                    (format (current-error-port) ";;; compiled ~a\n" cfn)
-                    cfn))
-                 (else #f))))))
-      (lambda (k . args)
-        (format (current-error-port)
-                ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
-                name k args)
-        #f)))
-  (with-fluids ((current-reader reader))
-    (let ((cfn (and=> (and=> (false-if-exception (canonicalize-path name))
-                             compiled-file-name)
-                      fresh-compiled-file-name)))
-      (if cfn
-          (load-compiled cfn)
-          (start-stack 'load-stack
-                       (primitive-load name))))))
-
 
 
 ;;; {Reader Extensions}
@@ -1988,22 +1923,6 @@ VALUE."
                     (set! inner-module (current-module))
                     (set-current-module outer-module)
                     (set! outer-module #f)))))
-
-(define basic-load load)
-
-(define* (load-module filename #:optional reader)
-  (save-module-excursion
-   (lambda ()
-     (let ((oldname (and (current-load-port)
-                         (port-filename (current-load-port)))))
-       (basic-load (if (and oldname
-                            (> (string-length filename) 0)
-                            (not (char=? (string-ref filename 0) #\/))
-                            (not (string=? (dirname oldname) ".")))
-                       (string-append (dirname oldname) "/" filename)
-                       filename)
-                   reader)))))
-
 
 
 
@@ -3194,8 +3113,6 @@ module '(ice-9 q) '(make-q q-length))}."
     ((_ name ...)
      (re-export name ...))))
 
-(define load load-module)
-
 
 
 ;;; {Parameters}
@@ -3316,6 +3233,125 @@ module '(ice-9 q) '(make-q q-length))}."
                             (default-duplicate-binding-procedures
                               (lookup-duplicates-handlers handler-names))
                             handler-names)))
+
+
+
+;;; {`load'.}
+;;;
+;;; Load is tricky when combined with relative paths, compilation, and
+;;; the filesystem.  If a path is relative, what is it relative to?  The
+;;; path of the source file at the time it was compiled?  The path of
+;;; the compiled file?  What if both or either were installed?  And how
+;;; do you get that information?  Tricky, I say.
+;;;
+;;; To get around all of this, we're going to do something nasty, and
+;;; turn `load' into a macro.  That way it can know the path of the
+;;; source file with respect to which it was invoked, so it can resolve
+;;; relative paths with respect to the original source path.
+;;;
+;;; There is an exception, and that is that if the source file was in
+;;; the load path when it was compiled, instead of looking up against
+;;; the absolute source location, we load-from-path against the relative
+;;; source location.
+;;;
+
+(define* (load-in-vicinity dir path #:optional reader)
+  ;; Returns the .go file corresponding to `name'. Does not search load
+  ;; paths, only the fallback path. If the .go file is missing or out of
+  ;; date, and autocompilation is enabled, will try autocompilation, just
+  ;; as primitive-load-path does internally. primitive-load is
+  ;; unaffected. Returns #f if autocompilation failed or was disabled.
+  ;;
+  ;; NB: Unless we need to compile the file, this function should not cause
+  ;; (system base compile) to be loaded up. For that reason compiled-file-name
+  ;; partially duplicates functionality from (system base compile).
+  ;;
+  (define (compiled-file-name canon-path)
+    (and %compile-fallback-path
+         (string-append
+          %compile-fallback-path
+          ;; no need for '/' separator here, canon-path is absolute
+          canon-path
+          (cond ((or (null? %load-compiled-extensions)
+                     (string-null? (car %load-compiled-extensions)))
+                 (warn "invalid %load-compiled-extensions"
+                       %load-compiled-extensions)
+                 ".go")
+                (else (car %load-compiled-extensions))))))
+
+  (define (fresh-compiled-file-name name go-path)
+    (catch #t
+      (lambda ()
+        (let* ((scmstat (stat name))
+               (gostat  (stat go-path #f)))
+          (if (and gostat
+                   (or (> (stat:mtime gostat) (stat:mtime scmstat))
+                       (and (= (stat:mtime gostat) (stat:mtime scmstat))
+                            (>= (stat:mtimensec gostat)
+                                (stat:mtimensec scmstat)))))
+              go-path
+              (begin
+                (if gostat
+                    (format (current-error-port)
+                            ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
+                            name go-path))
+                (cond
+                 (%load-should-autocompile
+                  (%warn-autocompilation-enabled)
+                  (format (current-error-port) ";;; compiling ~a\n" name)
+                  (let ((cfn ((module-ref
+                               (resolve-interface '(system base compile))
+                               'compile-file)
+                              name
+                              #:env (current-module))))
+                    (format (current-error-port) ";;; compiled ~a\n" cfn)
+                    cfn))
+                 (else #f))))))
+      (lambda (k . args)
+        (format (current-error-port)
+                ";;; WARNING: compilation of ~a failed:\n;;; key ~a, throw_args ~s\n"
+                name k args)
+        #f)))
+
+  (define (absolute-path? path)
+    (string-prefix? "/" path))
+
+  (define (load-absolute abs-path)
+    (let ((cfn (let ((canon (false-if-exception (canonicalize-path abs-path))))
+                 (and canon
+                      (let ((go-path (compiled-file-name canon)))
+                        (and go-path
+                             (fresh-compiled-file-name abs-path go-path)))))))
+      (if cfn
+          (load-compiled cfn)
+          (start-stack 'load-stack
+                       (primitive-load abs-path)))))
+  
+  (save-module-excursion
+   (lambda ()
+     (with-fluids ((current-reader reader)
+                   (%file-port-name-canonicalization 'relative))
+       (cond
+        ((or (absolute-path? path))
+         (load-absolute path))
+        ((absolute-path? dir)
+         (load-absolute (in-vicinity dir path)))
+        (else
+         (load-from-path (in-vicinity dir path))))))))
+
+(define-syntax load
+  (make-variable-transformer
+   (lambda (x)
+     (let* ((src (syntax-source x))
+            (file (and src (assq-ref src 'filename)))
+            (dir (and (string? file) (dirname file))))
+       (syntax-case x ()
+         ((_ arg ...)
+          #`(load-in-vicinity #,(or dir #'(getcwd)) arg ...))
+         (id
+          (identifier? #'id)
+          #`(lambda args
+              (apply load-in-vicinity #,(or dir #'(getcwd)) args))))))))
 
 
 
