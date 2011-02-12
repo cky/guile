@@ -855,6 +855,7 @@ main (void)
   esac
 fi
 
+AC_CACHE_SAVE
 
 dnl GMP tests
 AC_LIB_HAVE_LINKFLAGS([gmp],
