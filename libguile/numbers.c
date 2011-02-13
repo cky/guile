@@ -8851,8 +8851,9 @@ scm_c_truncate (double x)
   return trunc (x);
 #else
   if (x < 0.0)
-    return -floor (-x);
-  return floor (x);
+    return ceil (x);
+  else
+    return floor (x);
 #endif
 }
 
@@ -8898,43 +8899,41 @@ scm_c_round (double x)
 	  : result);
 }
 
-SCM_DEFINE (scm_truncate_number, "truncate", 1, 0, 0,
-	    (SCM x),
-	    "Round the number @var{x} towards zero.")
+SCM_PRIMITIVE_GENERIC (scm_truncate_number, "truncate", 1, 0, 0,
+		       (SCM x),
+		       "Round the number @var{x} towards zero.")
 #define FUNC_NAME s_scm_truncate_number
 {
-  if (scm_is_false (scm_negative_p (x)))
-    return scm_floor (x);
+  if (SCM_I_INUMP (x) || SCM_BIGP (x))
+    return x;
+  else if (SCM_REALP (x))
+    return scm_from_double (scm_c_truncate (SCM_REAL_VALUE (x)));
+  else if (SCM_FRACTIONP (x))
+    return scm_truncate_quotient (SCM_FRACTION_NUMERATOR (x),
+				  SCM_FRACTION_DENOMINATOR (x));
   else
-    return scm_ceiling (x);
+    SCM_WTA_DISPATCH_1 (g_scm_truncate_number, x, SCM_ARG1,
+			s_scm_truncate_number);
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_round_number, "round", 1, 0, 0,
-	    (SCM x),
-	    "Round the number @var{x} towards the nearest integer. "
-	    "When it is exactly halfway between two integers, "
-	    "round towards the even one.")
+SCM_PRIMITIVE_GENERIC (scm_round_number, "round", 1, 0, 0,
+		       (SCM x),
+		       "Round the number @var{x} towards the nearest integer. "
+		       "When it is exactly halfway between two integers, "
+		       "round towards the even one.")
 #define FUNC_NAME s_scm_round_number
 {
   if (SCM_I_INUMP (x) || SCM_BIGP (x))
     return x;
   else if (SCM_REALP (x))
     return scm_from_double (scm_c_round (SCM_REAL_VALUE (x)));
+  else if (SCM_FRACTIONP (x))
+    return scm_round_quotient (SCM_FRACTION_NUMERATOR (x),
+			       SCM_FRACTION_DENOMINATOR (x));
   else
-    {
-      /* OPTIMIZE-ME: Fraction case could be done more efficiently by a
-         single quotient+remainder division then examining to see which way
-         the rounding should go.  */
-      SCM plus_half = scm_sum (x, exactly_one_half);
-      SCM result = scm_floor (plus_half);
-      /* Adjust so that the rounding is towards even.  */
-      if (scm_is_true (scm_num_eq_p (plus_half, result))
-          && scm_is_true (scm_odd_p (result)))
-        return scm_difference (result, SCM_INUM1);
-      else
-        return result;
-    }
+    SCM_WTA_DISPATCH_1 (g_scm_round_number, x, SCM_ARG1,
+			s_scm_round_number);
 }
 #undef FUNC_NAME
 
@@ -8948,22 +8947,8 @@ SCM_PRIMITIVE_GENERIC (scm_floor, "floor", 1, 0, 0,
   else if (SCM_REALP (x))
     return scm_from_double (floor (SCM_REAL_VALUE (x)));
   else if (SCM_FRACTIONP (x))
-    {
-      SCM q = scm_quotient (SCM_FRACTION_NUMERATOR (x),
-			    SCM_FRACTION_DENOMINATOR (x));
-      if (scm_is_false (scm_negative_p (x)))
-	{
-	  /* For positive x, rounding towards zero is correct. */
-	  return q;
-	}
-      else
-	{
-	  /* For negative x, we need to return q-1 unless x is an
-	     integer.  But fractions are never integer, per our
-	     assumptions. */
-	  return scm_difference (q, SCM_INUM1);
-	}
-    }
+    return scm_floor_quotient (SCM_FRACTION_NUMERATOR (x),
+			       SCM_FRACTION_DENOMINATOR (x));
   else
     SCM_WTA_DISPATCH_1 (g_scm_floor, x, 1, s_scm_floor);
 }  
@@ -8979,22 +8964,8 @@ SCM_PRIMITIVE_GENERIC (scm_ceiling, "ceiling", 1, 0, 0,
   else if (SCM_REALP (x))
     return scm_from_double (ceil (SCM_REAL_VALUE (x)));
   else if (SCM_FRACTIONP (x))
-    {
-      SCM q = scm_quotient (SCM_FRACTION_NUMERATOR (x),
-			    SCM_FRACTION_DENOMINATOR (x));
-      if (scm_is_false (scm_positive_p (x)))
-	{
-	  /* For negative x, rounding towards zero is correct. */
-	  return q;
-	}
-      else
-	{
-	  /* For positive x, we need to return q+1 unless x is an
-	     integer.  But fractions are never integer, per our
-	     assumptions. */
-	  return scm_sum (q, SCM_INUM1);
-	}
-    }
+    return scm_ceiling_quotient (SCM_FRACTION_NUMERATOR (x),
+				 SCM_FRACTION_DENOMINATOR (x));
   else
     SCM_WTA_DISPATCH_1 (g_scm_ceiling, x, 1, s_scm_ceiling);
 }
