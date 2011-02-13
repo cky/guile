@@ -1,6 +1,6 @@
 ;;; Repl common routines
 
-;; Copyright (C) 2001, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
   #:use-module (system base syntax)
   #:use-module (system base compile)
   #:use-module (system base language)
+  #:use-module (system base message)
   #:use-module (system vm program)
   #:use-module (ice-9 control)
   #:use-module (ice-9 history)
@@ -158,8 +159,9 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 (define (repl-compile repl form)
   (let ((from (repl-language repl))
         (opts (repl-compile-options repl)))
-    (compile form #:from from #:to 'objcode #:opts opts
-             #:env (current-module))))
+    (with-fluids ((*current-warning-prefix* ""))  ; XXX: Keep ";;; "?
+      (compile form #:from from #:to 'objcode #:opts opts
+               #:env (current-module)))))
 
 (define (repl-parse repl form)
   (let ((parser (language-parser (repl-language repl))))

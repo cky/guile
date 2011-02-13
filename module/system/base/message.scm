@@ -1,6 +1,6 @@
 ;;; User interface messages
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,9 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 match)
-  #:export (*current-warning-port* warning
+  #:export (*current-warning-port*
+            *current-warning-prefix*
+            warning
 
             warning-type? warning-type-name warning-type-description
             warning-type-printer lookup-warning-type
@@ -58,6 +60,13 @@
 
 (fluid-set! *current-warning-port* (current-error-port))
 
+(define *current-warning-prefix*
+  ;; Prefix string when emitting a warning.
+  (make-fluid))
+
+(fluid-set! *current-warning-prefix* ";;; ")
+
+
 (define-record-type <warning-type>
   (make-warning-type name description printer)
   warning-type?
@@ -70,100 +79,112 @@
   (map (lambda (args)
          (apply make-warning-type args))
 
-       `((unsupported-warning ;; a "meta warning"
-          "warn about unknown warning types"
-          ,(lambda (port unused name)
-             (format port "warning: unknown warning type `~A'~%"
+       (let-syntax ((emit
+                     (lambda (s)
+                       (syntax-case s ()
+                         ((_ port fmt args ...)
+                          (string? (syntax->datum #'fmt))
+                          (with-syntax ((fmt
+                                         (string-append "~a"
+                                                        (syntax->datum
+                                                         #'fmt))))
+                            #'(format port fmt
+                                      (fluid-ref *current-warning-prefix*)
+                                      args ...)))))))
+         `((unsupported-warning ;; a "meta warning"
+            "warn about unknown warning types"
+            ,(lambda (port unused name)
+               (emit port "warning: unknown warning type `~A'~%"
                      name)))
 
-         (unused-variable
-          "report unused variables"
-          ,(lambda (port loc name)
-             (format port "~A: warning: unused variable `~A'~%"
+           (unused-variable
+            "report unused variables"
+            ,(lambda (port loc name)
+               (emit port "~A: warning: unused variable `~A'~%"
                      loc name)))
 
-         (unused-toplevel
-          "report unused local top-level variables"
-          ,(lambda (port loc name)
-             (format port "~A: warning: possibly unused local top-level variable `~A'~%"
+           (unused-toplevel
+            "report unused local top-level variables"
+            ,(lambda (port loc name)
+               (emit port "~A: warning: possibly unused local top-level variable `~A'~%"
                      loc name)))
 
-         (unbound-variable
-          "report possibly unbound variables"
-          ,(lambda (port loc name)
-             (format port "~A: warning: possibly unbound variable `~A'~%"
+           (unbound-variable
+            "report possibly unbound variables"
+            ,(lambda (port loc name)
+               (emit port "~A: warning: possibly unbound variable `~A'~%"
                      loc name)))
 
-         (arity-mismatch
-          "report procedure arity mismatches (wrong number of arguments)"
-          ,(lambda (port loc name certain?)
-             (if certain?
-                 (format port
+           (arity-mismatch
+            "report procedure arity mismatches (wrong number of arguments)"
+            ,(lambda (port loc name certain?)
+               (if certain?
+                   (emit port
                          "~A: warning: wrong number of arguments to `~A'~%"
                          loc name)
-                 (format port
+                   (emit port
                          "~A: warning: possibly wrong number of arguments to `~A'~%"
                          loc name))))
 
-         (format
-          "report wrong number of arguments to `format'"
-          ,(lambda (port loc . rest)
-             (define (escape-newlines str)
-               (list->string
-                (string-fold-right (lambda (c r)
-                                     (if (eq? c #\newline)
-                                         (append '(#\\ #\n) r)
-                                         (cons c r)))
-                                   '()
-                                   str)))
+           (format
+            "report wrong number of arguments to `format'"
+            ,(lambda (port loc . rest)
+               (define (escape-newlines str)
+                 (list->string
+                  (string-fold-right (lambda (c r)
+                                       (if (eq? c #\newline)
+                                           (append '(#\\ #\n) r)
+                                           (cons c r)))
+                                     '()
+                                     str)))
 
-             (define (range min max)
-               (cond ((eq? min 'any)
-                      (if (eq? max 'any)
-                          "any number" ;; can't happen
-                          (format #f "up to ~a" max)))
-                     ((eq? max 'any)
-                      (format #f "at least ~a" min))
-                     ((= min max) (number->string min))
-                     (else
-                      (format #f "~a to ~a" min max))))
+               (define (range min max)
+                 (cond ((eq? min 'any)
+                        (if (eq? max 'any)
+                            "any number" ;; can't happen
+                            (emit #f "up to ~a" max)))
+                       ((eq? max 'any)
+                        (emit #f "at least ~a" min))
+                       ((= min max) (number->string min))
+                       (else
+                        (emit #f "~a to ~a" min max))))
 
-             (match rest
-               (('wrong-format-arg-count fmt min max actual)
-                (format port
+               (match rest
+                 (('wrong-format-arg-count fmt min max actual)
+                  (emit port
                         "~A: warning: ~S: wrong number of `format' arguments: expected ~A, got ~A~%"
                         loc (escape-newlines fmt)
                         (range min max) actual))
-               (('syntax-error 'unterminated-iteration fmt)
-                (format port "~A: warning: ~S: unterminated iteration~%"
+                 (('syntax-error 'unterminated-iteration fmt)
+                  (emit port "~A: warning: ~S: unterminated iteration~%"
                         loc (escape-newlines fmt)))
-               (('syntax-error 'unterminated-conditional fmt)
-                (format port "~A: warning: ~S: unterminated conditional~%"
+                 (('syntax-error 'unterminated-conditional fmt)
+                  (emit port "~A: warning: ~S: unterminated conditional~%"
                         loc (escape-newlines fmt)))
-               (('syntax-error 'unexpected-semicolon fmt)
-                (format port "~A: warning: ~S: unexpected `~~;'~%"
+                 (('syntax-error 'unexpected-semicolon fmt)
+                  (emit port "~A: warning: ~S: unexpected `~~;'~%"
                         loc (escape-newlines fmt)))
-               (('syntax-error 'unexpected-conditional-termination fmt)
-                (format port "~A: warning: ~S: unexpected `~~]'~%"
+                 (('syntax-error 'unexpected-conditional-termination fmt)
+                  (emit port "~A: warning: ~S: unexpected `~~]'~%"
                         loc (escape-newlines fmt)))
-               (('wrong-port wrong-port)
-                (format port
+                 (('wrong-port wrong-port)
+                  (emit port
                         "~A: warning: ~S: wrong port argument~%"
                         loc wrong-port))
-               (('wrong-format-string fmt)
-                (format port
+                 (('wrong-format-string fmt)
+                  (emit port
                         "~A: warning: ~S: wrong format string~%"
                         loc fmt))
-               (('non-literal-format-string)
-                (format port
+                 (('non-literal-format-string)
+                  (emit port
                         "~A: warning: non-literal format string~%"
                         loc))
-               (('wrong-num-args count)
-                (format port
+                 (('wrong-num-args count)
+                  (emit port
                         "~A: warning: wrong number of arguments to `format'~%"
                         loc))
-               (else
-                (format port "~A: `format' warning~%" loc))))))))
+                 (else
+                  (emit port "~A: `format' warning~%" loc)))))))))
 
 (define (lookup-warning-type name)
   "Return the warning type NAME or `#f' if not found."

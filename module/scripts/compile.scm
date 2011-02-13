@@ -168,11 +168,12 @@ Report bugs to <~A>.~%"
 
     (for-each (lambda (file)
                 (format #t "wrote `~A'\n"
-                        (compile-file file
-                                      #:output-file output-file
-                                      #:from from
-                                      #:to to
-                                      #:opts compile-opts)))
+                        (with-fluids ((*current-warning-prefix* ""))
+                          (compile-file file
+                                        #:output-file output-file
+                                        #:from from
+                                        #:to to
+                                        #:opts compile-opts))))
               input-files)))
 
 (define main compile)
