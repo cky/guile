@@ -2187,6 +2187,10 @@ VALUE."
     (set-module-name! m '(guile))
     (set-module-kind! m 'interface)
     (set-system-module! m #t)
+
+    ;; In Guile 1.8 and earlier M was its own public interface.
+    (set-module-public-interface! m m)
+
     m))
 
 (set-module-public-interface! the-root-module the-scm-module)

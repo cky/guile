@@ -1,6 +1,6 @@
 ;;;; modules.test --- exercise some of guile's module stuff -*- scheme -*-
 
-;;;; Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,10 +17,10 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-modules)
-  :use-module (srfi srfi-1)
-  :use-module ((ice-9 streams)  ;; for test purposes
-               #:renamer (symbol-prefix-proc 's:))
-  :use-module (test-suite lib))
+  #:use-module (srfi srfi-1)
+  #:use-module ((ice-9 streams)  ;; for test purposes
+                #:renamer (symbol-prefix-proc 's:))
+  #:use-module (test-suite lib))
 
 
 (define (every? . args)
@@ -133,7 +133,15 @@
 
   (pass-if-exception "module-reverse-lookup [wrong-type-arg]"
     exception:wrong-type-arg
-    (module-reverse-lookup (current-module) 'foo)))
+    (module-reverse-lookup (current-module) 'foo))
+
+  (pass-if "the-root-module"
+    (eq? (module-public-interface the-root-module) the-scm-module))
+
+  (pass-if "the-scm-module"
+    ;; THE-SCM-MODULE is its own public interface.  See
+    ;; <https://savannah.gnu.org/bugs/index.php?30623>.
+    (eq? (module-public-interface the-scm-module) the-scm-module)))
 
 
 
