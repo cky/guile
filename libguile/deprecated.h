@@ -133,12 +133,12 @@ SCM_DEPRECATED SCM scm_internal_with_fluids (SCM fluids, SCM vals,
 
 SCM_DEPRECATED SCM scm_make_gsubr (const char *name,
 				   int req, int opt, int rst,
-				   SCM (*fcn)());
+				   scm_t_subr fcn);
 SCM_DEPRECATED SCM scm_make_gsubr_with_generic (const char *name,
 						int req,
 						int opt,
 						int rst,
-						SCM (*fcn)(),
+						scm_t_subr fcn,
 						SCM *gf);
 
 SCM_DEPRECATED SCM scm_create_hook (const char* name, int n_args);
@@ -173,7 +173,8 @@ SCM_DEPRECATED SCM scm_read_and_eval_x (SCM port);
 
 #define SCM_SUBR_DOC(x) SCM_BOOL_F
 
-SCM_DEPRECATED SCM scm_call_catching_errors (SCM (*thunk)(), SCM (*err_filter)(),
+SCM_DEPRECATED SCM scm_call_catching_errors (scm_t_subr thunk,
+					     scm_t_subr err_filter,
 					     void * closure);
 
 SCM_DEPRECATED long scm_make_smob_type_mfpe (char *name, size_t size,

@@ -3,7 +3,8 @@
 #ifndef SCM_GSUBR_H
 #define SCM_GSUBR_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2006, 2008, 2009,
+ *   2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,16 +60,16 @@ SCM_API SCM scm_subr_objcode_trampoline (unsigned int nreq,
 
 
 
-SCM_API SCM scm_c_make_gsubr (const char *name, 
-			      int req, int opt, int rst, SCM (*fcn) ());
+SCM_API SCM scm_c_make_gsubr (const char *name,
+			      int req, int opt, int rst, scm_t_subr fcn);
 SCM_API SCM scm_c_make_gsubr_with_generic (const char *name,
 					   int req, int opt, int rst,
-					   SCM (*fcn) (), SCM *gf);
-SCM_API SCM scm_c_define_gsubr (const char *name, 
-				int req, int opt, int rst, SCM (*fcn) ());
+					   scm_t_subr fcn, SCM *gf);
+SCM_API SCM scm_c_define_gsubr (const char *name,
+				int req, int opt, int rst, scm_t_subr fcn);
 SCM_API SCM scm_c_define_gsubr_with_generic (const char *name,
 					     int req, int opt, int rst,
-					     SCM (*fcn) (), SCM *gf);
+					     scm_t_subr fcn, SCM *gf);
 
 SCM_INTERNAL void scm_init_gsubr (void);
 

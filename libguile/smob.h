@@ -3,7 +3,8 @@
 #ifndef SCM_SMOB_H
 #define SCM_SMOB_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2004, 2006, 2009,
+ *   2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -40,7 +41,7 @@ typedef struct scm_smob_descriptor
   size_t (*free) (SCM);
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
-  SCM (*apply) ();
+  scm_t_subr apply;
   SCM apply_trampoline_objcode;
 } scm_smob_descriptor;
 
@@ -202,7 +203,7 @@ SCM_API void scm_set_smob_print (scm_t_bits tc,
 				 int (*print) (SCM, SCM, scm_print_state*));
 SCM_API void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM, SCM));
 SCM_API void scm_set_smob_apply (scm_t_bits tc,
-				 SCM (*apply) (),
+				 scm_t_subr apply,
 				 unsigned int req,
 				 unsigned int opt,
 				 unsigned int rst);
