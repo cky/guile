@@ -4414,19 +4414,27 @@ The most generic procedures to interpret bytevector contents as integers
 are described below.
 
 @deffn {Scheme Procedure} bytevector-uint-ref bv index endianness size
-@deffnx {Scheme Procedure} bytevector-sint-ref bv index endianness size
 @deffnx {C Function} scm_bytevector_uint_ref (bv, index, endianness, size)
+Return the @var{size}-byte long unsigned integer at index @var{index} in
+@var{bv}, decoded according to @var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-sint-ref bv index endianness size
 @deffnx {C Function} scm_bytevector_sint_ref (bv, index, endianness, size)
-Return the @var{size}-byte long unsigned (resp. signed) integer at
-index @var{index} in @var{bv}, decoded according to @var{endianness}.
+Return the @var{size}-byte long signed integer at index @var{index} in
+@var{bv}, decoded according to @var{endianness}.
 @end deffn
 
 @deffn {Scheme Procedure} bytevector-uint-set! bv index value endianness size
-@deffnx {Scheme Procedure} bytevector-sint-set! bv index value endianness size
 @deffnx {C Function} scm_bytevector_uint_set_x (bv, index, value, endianness, size)
+Set the @var{size}-byte long unsigned integer at @var{index} to
+@var{value}, encoded according to @var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector-sint-set! bv index value endianness size
 @deffnx {C Function} scm_bytevector_sint_set_x (bv, index, value, endianness, size)
-Set the @var{size}-byte long unsigned (resp. signed) integer at
-@var{index} to @var{value}, encoded according to @var{endianness}.
+Set the @var{size}-byte long signed integer at @var{index} to
+@var{value}, encoded according to @var{endianness}.
 @end deffn
 
 The following procedures are similar to the ones above, but specialized
@@ -4538,21 +4546,27 @@ integers listed in @var{lst}.
 @end deffn
 
 @deffn {Scheme Procedure} bytevector->uint-list bv endianness size
-@deffnx {Scheme Procedure} bytevector->sint-list bv endianness size
 @deffnx {C Function} scm_bytevector_to_uint_list (bv, endianness, size)
+Return a list of unsigned integers of @var{size} bytes representing the
+contents of @var{bv}, decoded according to @var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector->sint-list bv endianness size
 @deffnx {C Function} scm_bytevector_to_sint_list (bv, endianness, size)
-Return a list of unsigned (resp. signed) integers of @var{size} bytes
-representing the contents of @var{bv}, decoded according to
-@var{endianness}.
+Return a list of signed integers of @var{size} bytes representing the
+contents of @var{bv}, decoded according to @var{endianness}.
 @end deffn
 
 @deffn {Scheme Procedure} uint-list->bytevector lst endianness size
-@deffnx {Scheme Procedure} sint-list->bytevector lst endianness size
 @deffnx {C Function} scm_uint_list_to_bytevector (lst, endianness, size)
+Return a new bytevector containing the unsigned integers listed in
+@var{lst} and encoded on @var{size} bytes according to @var{endianness}.
+@end deffn
+
+@deffn {Scheme Procedure} sint-list->bytevector lst endianness size
 @deffnx {C Function} scm_sint_list_to_bytevector (lst, endianness, size)
-Return a new bytevector containing the unsigned (resp. signed) integers
-listed in @var{lst} and encoded on @var{size} bytes according to
-@var{endianness}.
+Return a new bytevector containing the signed integers listed in
+@var{lst} and encoded on @var{size} bytes according to @var{endianness}.
 @end deffn
 
 @node Bytevectors as Floats
