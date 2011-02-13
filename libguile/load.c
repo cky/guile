@@ -105,8 +105,9 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     if (encoding)
       scm_i_set_port_encoding_x (port, encoding);
     else
-      /* The file has no encoding declared.  We'll presume Latin-1.  */
-      scm_i_set_port_encoding_x (port, NULL);
+      /* The file has no encoding declared.  We'll presume UTF-8, like
+         compile-file does.  */
+      scm_i_set_port_encoding_x (port, "UTF-8");
 
     while (1)
       {
