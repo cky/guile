@@ -957,10 +957,7 @@ AC_CHECK_FUNCS(sethostent   gethostent   endhostent   dnl
                getnetbyaddr getnetbyname dnl
 	       inet_lnaof inet_makeaddr inet_netof hstrerror)
 
-# struct sockaddr field sin_len is only present on BSD systems.
-# On 4.4BSD apparently a #define SIN_LEN exists, but on other BSD systems
-# (eg. FreeBSD 4.9) it doesn't and we must use this configure check
-AC_CHECK_MEMBERS([struct sockaddr.sin_len],,,
+AC_CHECK_MEMBERS([struct sockaddr_in.sin_len],,,
 [#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
 #endif

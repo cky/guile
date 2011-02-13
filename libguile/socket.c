@@ -798,7 +798,7 @@ scm_fill_sockaddr (int fam, SCM address, SCM *args, int which_arg,
 	soka = (struct sockaddr_in *) scm_malloc (sizeof (struct sockaddr_in));
         memset (soka, '\0', sizeof (struct sockaddr_in));
 
-#ifdef HAVE_STRUCT_SOCKADDR_SIN_LEN
+#ifdef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
 	soka->sin_len = sizeof (struct sockaddr_in);
 #endif
 	soka->sin_family = AF_INET;
@@ -1133,6 +1133,10 @@ scm_to_sockaddr (SCM address, size_t *address_size)
 	    struct sockaddr_in c_inet;
 
             memset (&c_inet, '\0', sizeof (struct sockaddr_in));
+
+#ifdef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
+            c_inet.sin_len = sizeof (struct sockaddr_in);
+#endif
 
 	    c_inet.sin_addr.s_addr =
 	      htonl (scm_to_ulong (SCM_SIMPLE_VECTOR_REF (address, 1)));
