@@ -3259,6 +3259,10 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; source location.
 ;;;
 
+(define %auto-compilation-options
+  ;; Default `compile-file' option when auto-compiling.
+  '(#:warnings (unbound-variable arity-mismatch)))
+
 (define* (load-in-vicinity dir path #:optional reader)
   ;; Returns the .go file corresponding to `name'. Does not search load
   ;; paths, only the fallback path. If the .go file is missing or out of
@@ -3303,10 +3307,12 @@ module '(ice-9 q) '(make-q q-length))}."
                  (%load-should-auto-compile
                   (%warn-auto-compilation-enabled)
                   (format (current-error-port) ";;; compiling ~a\n" name)
-                  (let ((cfn ((module-ref
+                  (let ((cfn
+                         ((module-ref
                                (resolve-interface '(system base compile))
                                'compile-file)
                               name
+                              #:opts %auto-compilation-options
                               #:env (current-module))))
                     (format (current-error-port) ";;; compiled ~a\n" cfn)
                     cfn))

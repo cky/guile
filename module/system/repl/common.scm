@@ -107,7 +107,7 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 
 (define repl-default-options
   (copy-tree
-   `((compile-options (#:warnings (unbound-variable arity-mismatch)) #f)
+   `((compile-options ,%auto-compilation-options #f)
      (trace #f #f)
      (interp #f #f)
      (prompt #f ,(lambda (prompt)

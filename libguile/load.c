@@ -668,6 +668,10 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 }
 
 SCM_KEYWORD (kw_env, "env");
+SCM_KEYWORD (kw_opts, "opts");
+
+SCM_SYMBOL (sym_compile_file, "compile-file");
+SCM_SYMBOL (sym_auto_compilation_options, "%auto-compilation-options");
 
 static SCM
 do_try_auto_compile (void *data)
@@ -680,14 +684,30 @@ do_try_auto_compile (void *data)
   scm_newline (scm_current_error_port ());
 
   comp_mod = scm_c_resolve_module ("system base compile");
-  compile_file = scm_module_variable
-    (comp_mod, scm_from_latin1_symbol ("compile-file"));
+  compile_file = scm_module_variable (comp_mod, sym_compile_file);
 
   if (scm_is_true (compile_file))
     {
       /* Auto-compile in the context of the current module.  */
-      SCM res = scm_call_3 (scm_variable_ref (compile_file), source,
-			    kw_env, scm_current_module ());
+      SCM res, opts;
+      SCM args[5];
+
+      opts = scm_module_variable (scm_the_root_module (),
+				  sym_auto_compilation_options);
+      if (SCM_VARIABLEP (opts))
+	opts = SCM_VARIABLE_REF (opts);
+      else
+	opts = SCM_EOL;
+
+      args[0] = source;
+      args[1] = kw_opts;
+      args[2] = opts;
+      args[3] = kw_env;
+      args[4] = scm_current_module ();
+
+      /* Assume `*current-warning-prefix*' has an appropriate value.  */
+      res = scm_call_n (scm_variable_ref (compile_file), args, 5);
+
       scm_puts (";;; compiled ", scm_current_error_port ());
       scm_display (res, scm_current_error_port ());
       scm_newline (scm_current_error_port ());
