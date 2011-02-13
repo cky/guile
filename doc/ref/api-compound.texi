@@ -1819,12 +1819,10 @@ have smaller rank than @var{array}.
 @node Accessing Arrays from C
 @subsubsection Accessing Arrays from C
 
-Arrays, especially uniform numeric arrays, are useful to efficiently
-represent large amounts of rectangularily organized information, such as
-matrices, images, or generally blobs of binary data.  It is desirable to
-access these blobs in a C like manner so that they can be handed to
-external C code such as linear algebra libraries or image processing
-routines.
+For interworking with external C code, Guile provides an API to allow C
+code to access the elements of a Scheme array.  In particular, for
+uniform numeric arrays, the API exposes the underlying uniform data as a
+C array of numbers of the relevant type.
 
 While pointers to the elements of an array are in use, the array itself
 must be protected so that the pointer remains valid.  Such a protected
