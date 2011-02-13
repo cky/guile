@@ -168,13 +168,16 @@ scm_ra_matchp (SCM ra0, SCM ras)
      SCM lra;           list of source arrays.
      const char *what;  caller, for error reporting. */
 int 
-scm_ramapc (int (*cproc)(), SCM data, SCM ra0, SCM lra, const char *what)
+scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
 {
   SCM z;
   SCM vra0, ra1, vra1;
   SCM lvra, *plvra;
   long *vinds;
   int k, kmax;
+  int (*cproc) ();
+
+  cproc = cproc_ptr;
   switch (scm_ra_matchp (ra0, lra))
     {
     default:

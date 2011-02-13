@@ -3,7 +3,8 @@
 #ifndef SCM_ARRAY_MAP_H
 #define SCM_ARRAY_MAP_H
 
-/* Copyright (C) 1995,1996,1997,2000, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 2000, 2006, 2008, 2009, 2010,
+ *   2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,7 +29,7 @@
 
 
 SCM_API int scm_ra_matchp (SCM ra0, SCM ras);
-SCM_API int scm_ramapc (int (*cproc) (), SCM data, SCM ra0, SCM lra,
+SCM_API int scm_ramapc (void *cproc, SCM data, SCM ra0, SCM lra,
 			const char *what);
 SCM_API int scm_array_fill_int (SCM ra, SCM fill, SCM ignore);
 SCM_API SCM scm_array_fill_x (SCM ra, SCM fill);
