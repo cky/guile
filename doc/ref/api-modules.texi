@@ -813,7 +813,7 @@ as a mechanism by which a library author can indicate that a
 particular library import should take place at a particular phase 
 with respect to the lifecycle of the importing library.  
 
-Guile's libraries implementation uses a technique called 
+Guile's library implementation uses a technique called 
 @dfn{implicit phasing} (first described by Abdulaziz Ghuloum and R. 
 Kent Dybvig), which allows the expander and compiler to automatically 
 determine the necessary visibility of a binding imported from another 
