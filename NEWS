@@ -581,12 +581,12 @@ newer than that of the .scm file; if the .scm or .go files are moved
 after installation, care should be taken to preserve their original
 timestamps.
 
-Autocompiled files will be stored in the $XDG_CACHE_HOME/guile/ccache
+Auto-compiled files will be stored in the $XDG_CACHE_HOME/guile/ccache
 directory, where $XDG_CACHE_HOME defaults to ~/.cache. This directory
 will be created if needed.
 
-To inhibit autocompilation, set the GUILE_AUTO_COMPILE environment
-variable to 0, or pass --no-autocompile on the Guile command line.
+To inhibit automatic compilation, set the GUILE_AUTO_COMPILE environment
+variable to 0, or pass --no-auto-compile on the Guile command line.
 
 ** New POSIX procedures: `getrlimit' and `setrlimit'
 

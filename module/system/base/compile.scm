@@ -118,7 +118,7 @@
                        (canonicalization 'relative))
   (with-fluids ((%file-port-name-canonicalization canonicalization))
     (let* ((comp (or output-file (compiled-file-name file)
-                     (error "failed to create path for autocompiled file"
+                     (error "failed to create path for auto-compiled file"
                             file)))
            (in (open-input-file file))
            (enc (file-encoding in)))

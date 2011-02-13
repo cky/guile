@@ -1,6 +1,6 @@
 ;;; Compile --- Command-line Guile Scheme compiler  -*- coding: iso-8859-1 -*-
 
-;; Copyright 2005,2008,2009,2010 Free Software Foundation, Inc.
+;; Copyright 2005,2008,2009,2010,2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -151,14 +151,14 @@ Compile each Guile source file FILE into a Guile object.
   -f, --from=LANG      specify a source language other than `scheme'
   -t, --to=LANG        specify a target language other than `objcode'
 
-Note that autocompilation will be turned off.
+Note that auto-compilation will be turned off.
 
 Report bugs to <~A>.~%"
                   %guile-bug-report-address)
           (exit 0)))
 
     (set! %load-path (append load-path %load-path))
-    (set! %load-should-autocompile #f)
+    (set! %load-should-auto-compile #f)
 
     (if (and output-file
              (or (null? input-files)

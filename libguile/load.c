@@ -207,9 +207,9 @@ static SCM *scm_loc_load_compiled_path;
 static SCM *scm_loc_load_compiled_extensions;
 
 /* Whether we should try to auto-compile. */
-static SCM *scm_loc_load_should_autocompile;
+static SCM *scm_loc_load_should_auto_compile;
 
-/* The fallback path for autocompilation */
+/* The fallback path for auto-compilation */
 static SCM *scm_loc_compile_fallback_path;
 
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
@@ -669,7 +669,7 @@ compiled_is_fresh (SCM full_filename, SCM compiled_filename)
 SCM_KEYWORD (kw_env, "env");
 
 static SCM
-do_try_autocompile (void *data)
+do_try_auto_compile (void *data)
 {
   SCM source = PTR2SCM (data);
   SCM comp_mod, compile_file;
@@ -696,14 +696,14 @@ do_try_autocompile (void *data)
     {
       scm_puts (";;; it seems ", scm_current_error_port ());
       scm_display (source, scm_current_error_port ());
-      scm_puts ("\n;;; is part of the compiler; skipping autocompilation\n",
+      scm_puts ("\n;;; is part of the compiler; skipping auto-compilation\n",
                 scm_current_error_port ());
       return SCM_BOOL_F;
     }
 }
 
 static SCM
-autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
+auto_compile_catch_handler (void *data, SCM tag, SCM throw_args)
 {
   SCM source = PTR2SCM (data);
   scm_puts (";;; WARNING: compilation of ", scm_current_error_port ());
@@ -717,16 +717,16 @@ autocompile_catch_handler (void *data, SCM tag, SCM throw_args)
   return SCM_BOOL_F;
 }
 
-SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled", 0, 0, 0,
+SCM_DEFINE (scm_sys_warn_auto_compilation_enabled, "%warn-auto-compilation-enabled", 0, 0, 0,
 	    (void), "")
-#define FUNC_NAME s_scm_sys_warn_autocompilation_enabled
+#define FUNC_NAME s_scm_sys_warn_auto_compilation_enabled
 {
   static int message_shown = 0;
 
   if (!message_shown)
     {
-      scm_puts (";;; note: autocompilation is enabled, set GUILE_AUTO_COMPILE=0\n"
-                ";;;       or pass the --no-autocompile argument to disable.\n",
+      scm_puts (";;; note: auto-compilation is enabled, set GUILE_AUTO_COMPILE=0\n"
+                ";;;       or pass the --no-auto-compile argument to disable.\n",
                 scm_current_error_port ());
       message_shown = 1;
     }
@@ -736,16 +736,16 @@ SCM_DEFINE (scm_sys_warn_autocompilation_enabled, "%warn-autocompilation-enabled
 #undef FUNC_NAME
 
 static SCM
-scm_try_autocompile (SCM source)
+scm_try_auto_compile (SCM source)
 {
-  if (scm_is_false (*scm_loc_load_should_autocompile))
+  if (scm_is_false (*scm_loc_load_should_auto_compile))
     return SCM_BOOL_F;
 
-  scm_sys_warn_autocompilation_enabled ();
+  scm_sys_warn_auto_compilation_enabled ();
   return scm_c_catch (SCM_BOOL_T,
-                      do_try_autocompile,
+                      do_try_auto_compile,
                       SCM2PTR (source),
-                      autocompile_catch_handler,
+                      auto_compile_catch_handler,
                       SCM2PTR (source),
                       NULL, NULL);
 }
@@ -855,7 +855,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
 
   /* Otherwise, we bottom out here. */
   {
-    SCM freshly_compiled = scm_try_autocompile (full_filename);
+    SCM freshly_compiled = scm_try_auto_compile (full_filename);
 
     if (scm_is_true (freshly_compiled))
       return scm_load_compiled_with_vm (freshly_compiled);
@@ -933,8 +933,8 @@ scm_init_load ()
 
   scm_loc_compile_fallback_path
     = SCM_VARIABLE_LOC (scm_c_define ("%compile-fallback-path", SCM_BOOL_F));
-  scm_loc_load_should_autocompile
-    = SCM_VARIABLE_LOC (scm_c_define ("%load-should-autocompile", SCM_BOOL_F));
+  scm_loc_load_should_auto_compile
+    = SCM_VARIABLE_LOC (scm_c_define ("%load-should-auto-compile", SCM_BOOL_F));
 
   the_reader = scm_make_fluid ();
   scm_fluid_set_x (the_reader, SCM_BOOL_F);
@@ -950,9 +950,9 @@ scm_init_load ()
 }
 
 void
-scm_init_load_should_autocompile ()
+scm_init_load_should_auto_compile ()
 {
-  *scm_loc_load_should_autocompile =
+  *scm_loc_load_should_auto_compile =
     scm_from_bool (scm_getenv_int ("GUILE_AUTO_COMPILE", 1));
 }
   

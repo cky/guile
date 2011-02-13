@@ -3,7 +3,7 @@
 #ifndef SCM_LOAD_H
 #define SCM_LOAD_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,10 +37,10 @@ SCM_API SCM scm_search_path (SCM path, SCM filename, SCM rest);
 SCM_API SCM scm_sys_search_load_path (SCM filename);
 SCM_API SCM scm_primitive_load_path (SCM filename_and_exception_on_not_found);
 SCM_API SCM scm_c_primitive_load_path (const char *filename);
-SCM_INTERNAL SCM scm_sys_warn_autocompilation_enabled (void);
+SCM_INTERNAL SCM scm_sys_warn_auto_compilation_enabled (void);
 SCM_INTERNAL void scm_init_load_path (void);
 SCM_INTERNAL void scm_init_load (void);
-SCM_INTERNAL void scm_init_load_should_autocompile (void);
+SCM_INTERNAL void scm_init_load_should_auto_compile (void);
 SCM_INTERNAL void scm_init_eval_in_scheme (void);
 
 #endif  /* SCM_LOAD_H */

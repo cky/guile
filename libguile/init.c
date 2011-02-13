@@ -546,7 +546,7 @@ scm_i_init_guile (SCM_STACKITEM *base)
 
   atexit (cleanup_for_exit);
   scm_load_startup_files ();
-  scm_init_load_should_autocompile ();
+  scm_init_load_should_auto_compile ();
 
   /* Capture the dynamic state after loading boot-9, so that new threads end up
      in the guile-user module. */

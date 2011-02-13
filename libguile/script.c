@@ -383,9 +383,9 @@ scm_shell_usage (int fatal, char *message)
            "  --no-debug     start with normal evaluator\n"
            "                 Default is to enable debugging for interactive\n"
            "                 use, but not for `-s' and `-c'.\n"
-           "  --autocompile  compile source files automatically\n"
-           "  --no-autocompile  disable automatic source file compilation\n"
-           "                 Default is to enable autocompilation of source\n"
+           "  --auto-compile compile source files automatically\n"
+           "  --no-auto-compile disable automatic source file compilation\n"
+           "                 Default is to enable auto-compilation of source\n"
            "                 files.\n"
            "  --listen[=P]   Listen on a local port or a path for REPL clients.\n"
            "                 If P is not given, the default is local port 37146.\n"
@@ -417,7 +417,7 @@ SCM_SYMBOL (sym_use_srfis, "use-srfis");
 SCM_SYMBOL (sym_load_path, "%load-path");
 SCM_SYMBOL (sym_load_extensions, "%load-extensions");
 SCM_SYMBOL (sym_set_x, "set!");
-SCM_SYMBOL (sym_sys_load_should_autocompile, "%load-should-autocompile");
+SCM_SYMBOL (sym_sys_load_should_auto_compile, "%load-should-auto-compile");
 SCM_SYMBOL (sym_cons, "cons");
 SCM_SYMBOL (sym_at, "@");
 SCM_SYMBOL (sym_atat, "@@");
@@ -612,14 +612,14 @@ scm_compile_shell_switches (int argc, char **argv)
 	  turn_on_debugging = 0;
 	}
 
-      /* Do autocompile on/off now, because the form itself might need this
+      /* Do auto-compile on/off now, because the form itself might need this
          decision. */
-      else if (! strcmp (argv[i], "--autocompile"))
-        scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
+      else if (! strcmp (argv[i], "--auto-compile"))
+        scm_variable_set_x (scm_c_lookup ("%load-should-auto-compile"),
                             SCM_BOOL_T);
 
-      else if (! strcmp (argv[i], "--no-autocompile"))
-        scm_variable_set_x (scm_c_lookup ("%load-should-autocompile"),
+      else if (! strcmp (argv[i], "--no-auto-compile"))
+        scm_variable_set_x (scm_c_lookup ("%load-should-auto-compile"),
                             SCM_BOOL_F);
 
       else if (! strcmp (argv[i], "-q")) /* don't load user init */ 

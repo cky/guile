@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+##  	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -75,7 +75,7 @@ ETAGS_ARGS +=					\
 
 include $(top_srcdir)/am/pre-inst-guile
 ice-9/psyntax-pp.scm.gen:
-	$(preinstguile) --no-autocompile -s $(srcdir)/ice-9/compile-psyntax.scm \
+	$(preinstguile) --no-auto-compile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 .PHONY: ice-9/psyntax-pp.scm.gen

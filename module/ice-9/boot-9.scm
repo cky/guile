@@ -2580,7 +2580,7 @@ module '(ice-9 q) '(make-q q-length))}."
                    ;; Here we could allow some other search strategy (other than
                    ;; primitive-load-path), for example using versions encoded
                    ;; into the file system -- but then we would have to figure
-                   ;; out how to locate the compiled file, do autocompilation,
+                   ;; out how to locate the compiled file, do auto-compilation,
                    ;; etc. Punt for now, and don't use versions when locating
                    ;; the file.
                    (primitive-load-path (in-vicinity dir-hint name) #f)
@@ -3258,9 +3258,9 @@ module '(ice-9 q) '(make-q q-length))}."
 (define* (load-in-vicinity dir path #:optional reader)
   ;; Returns the .go file corresponding to `name'. Does not search load
   ;; paths, only the fallback path. If the .go file is missing or out of
-  ;; date, and autocompilation is enabled, will try autocompilation, just
+  ;; date, and auto-compilation is enabled, will try auto-compilation, just
   ;; as primitive-load-path does internally. primitive-load is
-  ;; unaffected. Returns #f if autocompilation failed or was disabled.
+  ;; unaffected. Returns #f if auto-compilation failed or was disabled.
   ;;
   ;; NB: Unless we need to compile the file, this function should not cause
   ;; (system base compile) to be loaded up. For that reason compiled-file-name
@@ -3296,8 +3296,8 @@ module '(ice-9 q) '(make-q q-length))}."
                             ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
                             name go-path))
                 (cond
-                 (%load-should-autocompile
-                  (%warn-autocompilation-enabled)
+                 (%load-should-auto-compile
+                  (%warn-auto-compilation-enabled)
                   (format (current-error-port) ";;; compiling ~a\n" name)
                   (let ((cfn ((module-ref
                                (resolve-interface '(system base compile))
