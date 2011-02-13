@@ -684,7 +684,7 @@ If this approach is not enough, because the functionality that your
 application needs is not already available in this form, and it is
 impossible to write the new functionality in Scheme, you will need to
 write some C code.  If the required function is already available in C
-(e.g. in a library), all you need is a little glue to connect it to the
+(e.g.@: in a library), all you need is a little glue to connect it to the
 world of Guile.  If not, you need both to write the basic code and to
 plumb it into Guile.
 

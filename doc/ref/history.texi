@@ -122,7 +122,7 @@ creation of a module system, and a start at a rich POSIX interface.
 
 Only some of those features remain in Guile. There were ongoing
 tensions between providing a small, embeddable language, and one which
-had all of the features (e.g. a graphical toolkit) that a modern Emacs
+had all of the features (e.g.@: a graphical toolkit) that a modern Emacs
 might need. In the end, as Guile gained in uptake, the development
 team decided to focus on depth, documentation and orthogonality rather
 than on breadth. This has been the focus of Guile ever since, although
@@ -279,7 +279,7 @@ from VM bytecode to native code.
 Still, even with an all-Guile application, sometimes you want to
 provide an opportunity for users to extend your program from a
 language with a syntax that is closer to C, or to Python. Another
-interesting idea to consider is compiling e.g. Python to Guile. It's
+interesting idea to consider is compiling e.g.@: Python to Guile. It's
 not that far-fetched of an idea: see for example IronPython or JRuby.
 
 And then there's Emacs itself. Though there is a somewhat-working Emacs

@@ -178,7 +178,7 @@
 ;;;;   ("basic arithmetic" "subtraction"), and
 ;;;;   ("multiplication").
 ;;;;
-;;;; WITH-TEST-PREFIX can be nested.  Each WITH-TEST-PREFIX postpends
+;;;; WITH-TEST-PREFIX can be nested.  Each WITH-TEST-PREFIX appends
 ;;;; a new element to the current prefix:
 ;;;;
 ;;;; (with-test-prefix "arithmetic"

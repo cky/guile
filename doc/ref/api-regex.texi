@@ -402,7 +402,7 @@ Return the ending position of submatch number @var{n}.
 @end deffn
 
 In the following example, the result is 8, since the match runs between
-characters 4 and 8 (i.e. the ``2002'').
+characters 4 and 8 (i.e.@: the ``2002'').
 
 @lisp
 (define s (string-match "[0-9][0-9][0-9][0-9]" "blah2002foo"))

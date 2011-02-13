@@ -1332,11 +1332,11 @@ is a uniform u8 array of rank 1.
 is a uniform u8 array of rank 2 with index ranges 2..3 and 3..4.
 
 @item #2()
-is a two-dimensional array with index ranges 0..-1 and 0..-1, i.e. both
-dimensions have length zero.
+is a two-dimensional array with index ranges 0..-1 and 0..-1, i.e.@:
+both dimensions have length zero.
 
 @item #2:0:2()
-is a two-dimensional array with index ranges 0..-1 and 0..1, i.e. the
+is a two-dimensional array with index ranges 0..-1 and 0..1, i.e.@: the
 first dimension has length zero, but the second has length 2.
 
 @item #0(12)
@@ -2749,7 +2749,7 @@ A @dfn{dictionary} object is a data structure used to index
 information in a user-defined way.  In standard Scheme, the main
 aggregate data types are lists and vectors.  Lists are not really
 indexed at all, and vectors are indexed only by number
-(e.g. @code{(vector-ref foo 5)}).  Often you will find it useful
+(e.g.@: @code{(vector-ref foo 5)}).  Often you will find it useful
 to index your data on some other type; for example, in a library
 catalog you might want to look up a book by the name of its
 author.  Dictionaries are used to help you organize information in

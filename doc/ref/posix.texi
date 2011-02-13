@@ -2863,7 +2863,7 @@ The following functions access the fields of a socket address object,
 
 @deffn {Scheme Procedure} sockaddr:fam sa
 Return the address family from socket address object @var{sa}.  This
-is one of the @code{AF} constants (eg. @code{AF_INET}).
+is one of the @code{AF} constants (e.g.@: @code{AF_INET}).
 @end deffn
 
 @deffn {Scheme Procedure} sockaddr:path sa
@@ -3122,7 +3122,7 @@ either a socket address object, or arguments the same as
 (@pxref{Network Socket Address}).  The return value is unspecified.
 
 Generally a socket is only explicitly bound to a particular address
-when making a server, ie. to listen on a particular port.  For an
+when making a server, i.e.@: to listen on a particular port.  For an
 outgoing connection the system will assign a local address
 automatically, if not already bound.
 
@@ -3177,7 +3177,7 @@ Note that on many systems the address of a socket in the
 @deffn {Scheme Procedure} getpeername sock
 @deffnx {C Function} scm_getpeername (sock)
 Return a socket address object which is where @var{sock} is connected
-to, ie. the remote endpoint.
+to, i.e.@: the remote endpoint.
 
 Note that on many systems the address of a socket in the
 @code{AF_UNIX} namespace cannot be read.

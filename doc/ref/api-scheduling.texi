@@ -79,7 +79,7 @@ System asyncs can also be queued for threads other than the current one.
 This way, you can cause threads to asynchronously execute arbitrary
 code.
 
-User asyncs offer a convenient means of queueing procedures for future
+User asyncs offer a convenient means of queuing procedures for future
 execution and triggering this execution.  They will not be executed
 automatically.
 

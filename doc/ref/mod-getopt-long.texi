@@ -263,7 +263,7 @@ The @var{grammar} argument is expected to be a list of this form:
 @code{((@var{option} (@var{property} @var{value}) @dots{}) @dots{})}
 
 where each @var{option} is a symbol denoting the long option, but
-without the two leading dashes (e.g. @code{version} if the option is
+without the two leading dashes (e.g.@: @code{version} if the option is
 called @code{--version}).
 
 For each option, there may be list of arbitrarily many property/value
@@ -284,7 +284,7 @@ If @var{bool} is @code{#t}, the option accepts a value; if it is
 @code{#f}, it does not; and if it is the symbol @code{optional}, the
 option may appear in @var{args} with or without a value.
 @item @code{(predicate @var{func})}
-If the option accepts a value (i.e. you specified @code{(value #t)} for
+If the option accepts a value (i.e.@: you specified @code{(value #t)} for
 this option), then @code{getopt-long} will apply @var{func} to the
 value, and throw an exception if it returns @code{#f}.  @var{func}
 should be a procedure which accepts a string and returns a boolean

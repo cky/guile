@@ -357,7 +357,7 @@ Sets a lexically-bound variable.
 @deftpx {External Representation} (@@ @var{mod} @var{name})
 @deftpx {External Representation} (@@@@ @var{mod} @var{name})
 A reference to a variable in a specific module. @var{mod} should be
-the name of the module, e.g. @code{(guile-user)}.
+the name of the module, e.g.@: @code{(guile-user)}.
 
 If @var{public?} is true, the variable named @var{name} will be looked
 up in @var{mod}'s public interface, and serialized with @code{@@};
@@ -522,7 +522,7 @@ Tree-IL expressions, writing out GLIL expressions into a linear list.
 The compiler also keeps some state as to whether the current
 expression is in tail context, and whether its value will be used in
 future computations. This state allows the compiler not to emit code
-for constant expressions that will not be used (e.g. docstrings), and
+for constant expressions that will not be used (e.g.@: docstrings), and
 to perform tail calls when in tail position.
 
 Most optimization, such as it currently is, is performed on Tree-IL
@@ -600,7 +600,7 @@ offset within a VM program.
 @deftp {Scheme Variable} <glil-source> loc
 Records source information for the preceding expression. @var{loc}
 should be an association list of containing @code{line} @code{column},
-and @code{filename} keys, e.g. as returned by
+and @code{filename} keys, e.g.@: as returned by
 @code{source-properties}.
 @end deftp
 @deftp {Scheme Variable} <glil-void>

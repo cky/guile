@@ -777,7 +777,7 @@ means that the @code{catch} applies to all exceptions, irrespective of
 their type.
 
 The second argument of a @code{catch} expression should be a thunk
-(i.e. a procedure that accepts no arguments) that specifies the normal
+(i.e.@: a procedure that accepts no arguments) that specifies the normal
 case code.  The @code{catch} is active for the execution of this thunk,
 including any code called directly or indirectly by the thunk's body.
 Evaluation of the @code{catch} expression activates the catch and then

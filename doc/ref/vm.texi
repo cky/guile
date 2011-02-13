@@ -371,7 +371,7 @@ their own test-and-branch instructions:
 @end example
 
 In addition, some Scheme primitives have their own inline
-implementations, e.g. @code{cons}, and @code{list}, as we saw in the
+implementations, e.g.@: @code{cons}, and @code{list}, as we saw in the
 previous section.
 
 So Guile's instruction set is a @emph{complete} instruction set, in
@@ -524,7 +524,7 @@ relative to the module that was current when the current program was
 created.
 
 Alternately, the lookup may be performed relative to a particular
-module, determined at compile-time (e.g. via @code{@@} or
+module, determined at compile-time (e.g.@: via @code{@@} or
 @code{@@@@}). In that case, the cell in the object table holds a list:
 @code{(@var{modname} @var{sym} @var{public?})}. The symbol @var{sym}
 will be looked up in the module named @var{modname} (a list of
@@ -673,7 +673,7 @@ If the current continuation is a multiple-value continuation,
 @code{return/values} pushes the number of values on the stack, then
 returns as in @code{return}, but to the multiple-value return address.
 
-Otherwise if the current continuation accepts only one value, i.e. the
+Otherwise if the current continuation accepts only one value, i.e.@: the
 multiple-value return address is @code{NULL}, then we assume the user
 only wants one value, and we give them the first one. If there are no
 values, an error is signaled.

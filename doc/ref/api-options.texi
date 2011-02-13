@@ -59,7 +59,7 @@ The @code{effective-version} function returns the version name that
 should remain unchanged during a stable series.  Currently that means
 that it omits the micro version.  The effective version should be used
 for items like the versioned share directory name
-i.e. @file{/usr/share/guile/1.6/}
+i.e.@: @file{/usr/share/guile/1.6/}
 
 @lisp
 (version) @result{} "1.6.0"
@@ -249,7 +249,7 @@ this Guile process.
 
 In general, a particular feature may be available for one of two
 reasons.  Either because the Guile library was configured and compiled
-with that feature enabled --- i.e. the feature is built into the library
+with that feature enabled --- i.e.@: the feature is built into the library
 on your system.  Or because some C or Scheme code that was dynamically
 loaded by Guile has added that feature to the list.
 

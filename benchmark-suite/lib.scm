@@ -110,7 +110,7 @@
 ;;;;   ("multiplication").
 ;;;;
 ;;;; WITH-BENCHMARK-PREFIX can be nested.  Each WITH-BENCHMARK-PREFIX
-;;;; postpends a new element to the current prefix:
+;;;; appends a new element to the current prefix:
 ;;;;
 ;;;; (with-benchmark-prefix "arithmetic"
 ;;;;   (with-benchmark-prefix "addition"

@@ -976,7 +976,7 @@ extends the core @code{assoc} (@pxref{Retrieving Alist Entries}) by
 taking an optional @var{=} comparison procedure.
 
 The default comparison is @code{equal?}.  If an @var{=} parameter is
-given it's called @code{(@var{=} @var{key} @var{alistcar})}, ie. the
+given it's called @code{(@var{=} @var{key} @var{alistcar})}, i.e.@: the
 given target @var{key} is the first argument, and a @code{car} from
 @var{alist} is second.
 
@@ -1013,7 +1013,7 @@ elements will be in the same order as they were in @var{alist}.
 
 Equality is determined by the @var{=} predicate, or @code{equal?} if
 not given.  The order in which elements are tested is unspecified, but
-each equality call is made @code{(= key alistkey)}, ie. the given
+each equality call is made @code{(= key alistkey)}, i.e.@: the given
 @var{key} parameter is first and the key from @var{alist} second.
 This means for instance all associations with a key greater than 5 can
 be removed with @code{(alist-delete 5 alist <)}.
@@ -1978,7 +1978,7 @@ parameters.  @var{tag}s are registered with the following procedure.
 
 @deffn {Scheme Procedure} define-reader-ctor tag proc
 Register @var{proc} as the constructor for a hash-comma read syntax
-starting with symbol @var{tag}, ie. @nicode{#,(@var{tag} arg@dots{})}.
+starting with symbol @var{tag}, i.e.@: @nicode{#,(@var{tag} arg@dots{})}.
 @var{proc} is called with the given arguments @code{(@var{proc}
 arg@dots{})} and the object it returns is the result of the read.
 @end deffn
@@ -3010,7 +3010,7 @@ locale.
 @cindex date, from string
 
 @c  FIXME: Can we say what happens when an incomplete date is
-@c  converted?  Ie. fields left as 0, or what?  The spec seems to be
+@c  converted?  I.e. fields left as 0, or what?  The spec seems to be
 @c  silent on this.
 
 @defun string->date input template
@@ -3337,7 +3337,7 @@ with the following procedures:
 @defunx random-source-state-set! source state
 Get and set the state of a random source.  No assumptions should be made
 about the nature of the state object, besides it having an external
-representation (i.e. it can be passed to @code{write} and subsequently
+representation (i.e.@: it can be passed to @code{write} and subsequently
 @code{read} back).
 @end defun
 

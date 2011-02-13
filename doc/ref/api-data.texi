@@ -697,7 +697,7 @@ value, including the special values @samp{+nan.0}, @samp{+inf.0} and
 @deffnx {C Function} scm_complex_p (z)
 Return @code{#t} if @var{x} is a complex number, @code{#f}
 otherwise.  Note that the sets of real, rational and integer
-values form subsets of the set of complex numbers, i. e. the
+values form subsets of the set of complex numbers, i.e.@: the
 predicate will also be fulfilled if @var{x} is a real,
 rational or integer number.
 @end deffn
@@ -1053,7 +1053,7 @@ Return a number of the maximally precise representation
 expressed by the given @var{string}. @var{radix} must be an
 exact integer, either 2, 8, 10, or 16. If supplied, @var{radix}
 is a default radix that may be overridden by an explicit radix
-prefix in @var{string} (e.g. "#o177"). If @var{radix} is not
+prefix in @var{string} (e.g.@: "#o177"). If @var{radix} is not
 supplied, then the default radix is 10. If string is not a
 syntactically valid notation for a number, then
 @code{string->number} returns @code{#f}.
@@ -1608,7 +1608,7 @@ through @var{end} (exclusive) bits of @var{n}.  The
 
 Pseudo-random numbers are generated from a random state object, which
 can be created with @code{seed->random-state} or
-@code{datum->random-state}.  An external representation (i.e. one
+@code{datum->random-state}.  An external representation (i.e.@: one
 which can written with @code{write} and read with @code{read}) of a
 random state object can be obtained via
 @code{random-state->datum}.  The @var{state} parameter to the
@@ -5128,7 +5128,7 @@ code in a variable reference context
 
 @item
 a @dfn{function} value, which is used when the symbol appears in
-code in a function name position (i.e. as the first element in an
+code in a function name position (i.e.@: as the first element in an
 unquoted list)
 
 @item
@@ -5267,7 +5267,7 @@ just returns that symbol.  When not, a new symbol with the name is
 created and entered into the table so that it can be found later.
 
 Sometimes you might want to create a symbol that is guaranteed `fresh',
-i.e. a symbol that did not exist previously.  You might also want to
+i.e.@: a symbol that did not exist previously.  You might also want to
 somehow guarantee that no one else will ever unintentionally stumble
 across your symbol in the future.  These properties of a symbol are
 often needed when generating code during macro expansion.  When

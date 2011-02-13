@@ -475,7 +475,7 @@ in which case leading zeros are shown after the decimal point.
 
 @c  FIXME: MANTDIGITS with negative INTDIGITS doesn't match CL spec,
 @c  believe the spec says it ought to still show mantdigits+1 sig
-@c  figures, ie. leading zeros don't count towards MANTDIGITS, but it
+@c  figures, i.e. leading zeros don't count towards MANTDIGITS, but it
 @c  seems to just treat MANTDIGITS as how many digits after the
 @c  decimal point.
 

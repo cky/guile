@@ -52,10 +52,10 @@ facility.
 @item
 Underscores in Unix names are converted to hyphens.
 @item
-Procedures which destructively modify Scheme data gain postpended
+Procedures which destructively modify Scheme data gain appended
 exclamation marks, e.g., @code{recv!}.
 @item
-Predicates are postpended with question marks, e.g., @code{access?}.
+Predicates have question marks appended, e.g., @code{access?}.
 @item
 Some names are changed to avoid conflict with dissimilar interfaces
 defined by scsh.

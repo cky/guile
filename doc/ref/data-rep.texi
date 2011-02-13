@@ -401,7 +401,7 @@ corresponding @code{SCM} value using the @code{SCM_PACK} macro.
 @node Immediate objects
 @subsubsection Immediate objects
 
-A Scheme object may either be an immediate, i.e. carrying all necessary
+A Scheme object may either be an immediate, i.e.@: carrying all necessary
 information by itself, or it may contain a reference to a @dfn{cell}
 with additional information on the heap.  Although in general it should
 be irrelevant for user code whether an object is an immediate or not,
