@@ -23,6 +23,34 @@ instead.
 `define-once' is like Lisp's `defvar': it creates a toplevel binding,
 but only if one does not exist already.
 
+** Added four new sets of fast quotient and remainder operators
+
+Added four new sets of fast quotient and remainder operators with
+different semantics than the R5RS operators.  They support not only
+integers, but all reals, including exact rationals and inexact
+floating point numbers.
+
+These procedures accept two real numbers N and D, where the divisor D
+must be non-zero.  Each set of operators computes an integer quotient
+Q and a real remainder R such that N = Q*D + R and |R| < |D|.  They
+differ only in how N/D is rounded to produce Q.
+
+`floor-quotient' and `floor-remainder' compute Q and R, respectively,
+where Q has been rounded toward negative infinity.  `floor/' returns
+both Q and R, and is more efficient than computing each separately.
+Note that when applied to integers, `floor-remainder' is equivalent to
+the R5RS integer-only `modulo' operator.  `ceiling-quotient',
+`ceiling-remainder', and `ceiling/' are similar except that Q is
+rounded toward positive infinity.
+
+For `truncate-quotient', `truncate-remainder', and `truncate/', Q is
+rounded toward zero.  Note that when applied to integers,
+`truncate-quotient' and `truncate-remainder' are equivalent to the
+R5RS integer-only operators `quotient' and `remainder'.
+
+For `round-quotient', `round-remainder', and `round/', Q is rounded to
+the nearest integer, with ties going to the nearest even integer.
+
 ** Improved exactness handling for complex number parsing
 
 When parsing non-real complex numbers, exactness specifiers are now

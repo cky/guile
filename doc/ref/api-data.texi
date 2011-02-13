@@ -907,7 +907,7 @@ sign as @var{n}.  In all cases quotient and remainder satisfy
 (remainder -13 4) @result{} -1
 @end lisp
 
-See also @code{euclidean-quotient}, @code{euclidean-remainder} and
+See also @code{truncate-quotient}, @code{truncate-remainder} and
 related operations in @ref{Arithmetic}.
 @end deffn
 
@@ -924,7 +924,7 @@ sign as @var{d}.
 (modulo -13 -4) @result{} -1
 @end lisp
 
-See also @code{euclidean-quotient}, @code{euclidean-remainder} and
+See also @code{floor-quotient}, @code{floor-remainder} and
 related operations in @ref{Arithmetic}.
 @end deffn
 
@@ -1148,9 +1148,21 @@ Returns the magnitude or angle of @var{z} as a @code{double}.
 @rnindex euclidean/
 @rnindex euclidean-quotient
 @rnindex euclidean-remainder
+@rnindex floor/
+@rnindex floor-quotient
+@rnindex floor-remainder
+@rnindex ceiling/
+@rnindex ceiling-quotient
+@rnindex ceiling-remainder
+@rnindex truncate/
+@rnindex truncate-quotient
+@rnindex truncate-remainder
 @rnindex centered/
 @rnindex centered-quotient
 @rnindex centered-remainder
+@rnindex round/
+@rnindex round-quotient
+@rnindex round-remainder
 
 The C arithmetic functions below always takes two arguments, while the
 Scheme functions can take an arbitrary number.  When you need to
@@ -1281,6 +1293,93 @@ Note that these operators are equivalent to the R6RS operators
 @end lisp
 @end deftypefn
 
+@deftypefn {Scheme Procedure} {} floor/ @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} floor-quotient @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} floor-remainder @var{x} @var{y}
+@deftypefnx {C Function} void scm_floor_divide (SCM @var{x}, SCM @var{y}, SCM *@var{q}, SCM *@var{r})
+@deftypefnx {C Function} SCM scm_floor_quotient (@var{x}, @var{y})
+@deftypefnx {C Function} SCM scm_floor_remainder (@var{x}, @var{y})
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{floor-quotient} returns the
+integer @var{q} and @code{floor-remainder} returns the real number
+@var{r} such that @math{@var{q} = floor(@var{x}/@var{y})} and
+@math{@var{x} = @var{q}*@var{y} + @var{r}}.  @code{floor/} returns
+both @var{q} and @var{r}, and is more efficient than computing each
+separately.  Note that @var{r}, if non-zero, will have the same sign
+as @var{y}.
+
+When @var{x} and @var{y} are integers, @code{floor-quotient} is
+equivalent to the R5RS integer-only operator @code{modulo}.
+
+@lisp
+(floor-quotient 123 10) @result{} 12
+(floor-remainder 123 10) @result{} 3
+(floor/ 123 10) @result{} 12 and 3
+(floor/ 123 -10) @result{} -13 and -7
+(floor/ -123 10) @result{} -13 and 7
+(floor/ -123 -10) @result{} 12 and -3
+(floor/ -123.2 -63.5) @result{} 1.0 and -59.7
+(floor/ 16/3 -10/7) @result{} -4 and -8/21
+@end lisp
+@end deftypefn
+
+@deftypefn {Scheme Procedure} {} ceiling/ @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} ceiling-quotient @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} ceiling-remainder @var{x} @var{y}
+@deftypefnx {C Function} void scm_ceiling_divide (SCM @var{x}, SCM @var{y}, SCM *@var{q}, SCM *@var{r})
+@deftypefnx {C Function} SCM scm_ceiling_quotient (@var{x}, @var{y})
+@deftypefnx {C Function} SCM scm_ceiling_remainder (@var{x}, @var{y})
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{ceiling-quotient} returns the
+integer @var{q} and @code{ceiling-remainder} returns the real number
+@var{r} such that @math{@var{q} = ceiling(@var{x}/@var{y})} and
+@math{@var{x} = @var{q}*@var{y} + @var{r}}.  @code{ceiling/} returns
+both @var{q} and @var{r}, and is more efficient than computing each
+separately.  Note that @var{r}, if non-zero, will have the opposite sign
+of @var{y}.
+
+@lisp
+(ceiling-quotient 123 10) @result{} 13
+(ceiling-remainder 123 10) @result{} -7
+(ceiling/ 123 10) @result{} 13 and -7
+(ceiling/ 123 -10) @result{} -12 and 3
+(ceiling/ -123 10) @result{} -12 and -3
+(ceiling/ -123 -10) @result{} 13 and 7
+(ceiling/ -123.2 -63.5) @result{} 2.0 and 3.8
+(ceiling/ 16/3 -10/7) @result{} -3 and 22/21
+@end lisp
+@end deftypefn
+
+@deftypefn {Scheme Procedure} {} truncate/ @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} truncate-quotient @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} truncate-remainder @var{x} @var{y}
+@deftypefnx {C Function} void scm_truncate_divide (SCM @var{x}, SCM @var{y}, SCM *@var{q}, SCM *@var{r})
+@deftypefnx {C Function} SCM scm_truncate_quotient (@var{x}, @var{y})
+@deftypefnx {C Function} SCM scm_truncate_remainder (@var{x}, @var{y})
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{truncate-quotient} returns the
+integer @var{q} and @code{truncate-remainder} returns the real number
+@var{r} such that @var{q} is @math{@var{x}/@var{y}} rounded toward zero,
+and @math{@var{x} = @var{q}*@var{y} + @var{r}}.  @code{truncate/} returns
+both @var{q} and @var{r}, and is more efficient than computing each
+separately.  Note that @var{r}, if non-zero, will have the same sign
+as @var{x}.
+
+When @var{x} and @var{y} are integers, these operators are equivalent to
+the R5RS integer-only operators @code{quotient} and @code{remainder}.
+
+@lisp
+(truncate-quotient 123 10) @result{} 12
+(truncate-remainder 123 10) @result{} 3
+(truncate/ 123 10) @result{} 12 and 3
+(truncate/ 123 -10) @result{} -12 and 3
+(truncate/ -123 10) @result{} -12 and -3
+(truncate/ -123 -10) @result{} 12 and -3
+(truncate/ -123.2 -63.5) @result{} 1.0 and -59.7
+(truncate/ 16/3 -10/7) @result{} -3 and 22/21
+@end lisp
+@end deftypefn
+
 @deftypefn {Scheme Procedure} {} centered/ @var{x} @var{y}
 @deftypefnx {Scheme Procedure} {} centered-quotient @var{x} @var{y}
 @deftypefnx {Scheme Procedure} {} centered-remainder @var{x} @var{y}
@@ -1313,8 +1412,53 @@ Note that these operators are equivalent to the R6RS operators
 (centered/ 123 -10) @result{} -12 and 3
 (centered/ -123 10) @result{} -12 and -3
 (centered/ -123 -10) @result{} 12 and -3
+(centered/ 125 10) @result{} 13 and -5
+(centered/ 127 10) @result{} 13 and -3
+(centered/ 135 10) @result{} 14 and -5
 (centered/ -123.2 -63.5) @result{} 2.0 and 3.8
 (centered/ 16/3 -10/7) @result{} -4 and -8/21
+@end lisp
+@end deftypefn
+
+@deftypefn {Scheme Procedure} {} round/ @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} round-quotient @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} round-remainder @var{x} @var{y}
+@deftypefnx {C Function} void scm_round_divide (SCM @var{x}, SCM @var{y}, SCM *@var{q}, SCM *@var{r})
+@deftypefnx {C Function} SCM scm_round_quotient (@var{x}, @var{y})
+@deftypefnx {C Function} SCM scm_round_remainder (@var{x}, @var{y})
+These procedures accept two real numbers @var{x} and @var{y}, where the
+divisor @var{y} must be non-zero.  @code{round-quotient} returns the
+integer @var{q} and @code{round-remainder} returns the real number
+@var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
+@var{q} is @math{@var{x}/@var{y}} rounded to the nearest integer,
+with ties going to the nearest even integer.  @code{round/}
+returns both @var{q} and @var{r}, and is more efficient than computing
+each separately.
+
+Note that @code{round/} and @code{centered/} are almost equivalent, but
+their behavior differs when @math{@var{x}/@var{y}} lies exactly half-way
+between two integers.  In this case, @code{round/} chooses the nearest
+even integer, whereas @code{centered/} chooses in such a way to satisfy
+the constraint @math{-|@var{y}/2| <= @var{r} < |@var{y}/2|}, which
+is stronger than the corresponding constraint for @code{round/},
+@math{-|@var{y}/2| <= @var{r} <= |@var{y}/2|}.  In particular,
+when @var{x} and @var{y} are integers, the number of possible remainders
+returned by @code{centered/} is @math{|@var{y}|}, whereas the number of
+possible remainders returned by @code{round/} is @math{|@var{y}|+1} when
+@var{y} is even.
+
+@lisp
+(round-quotient 123 10) @result{} 12
+(round-remainder 123 10) @result{} 3
+(round/ 123 10) @result{} 12 and 3
+(round/ 123 -10) @result{} -12 and 3
+(round/ -123 10) @result{} -12 and -3
+(round/ -123 -10) @result{} 12 and -3
+(round/ 125 10) @result{} 12 and 5
+(round/ 127 10) @result{} 13 and -3
+(round/ 135 10) @result{} 14 and -5
+(round/ -123.2 -63.5) @result{} 2.0 and 3.8
+(round/ 16/3 -10/7) @result{} -4 and -8/21
 @end lisp
 @end deftypefn
 

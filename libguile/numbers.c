@@ -1616,6 +1616,1537 @@ scm_i_exact_rational_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
   *rp = scm_divide (r1, scm_product (xd, yd));
 }
 
+static SCM scm_i_inexact_floor_quotient (double x, double y);
+static SCM scm_i_exact_rational_floor_quotient (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_floor_quotient, "floor-quotient", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the floor of @math{@var{x} / @var{y}}.\n"
+		       "@lisp\n"
+		       "(floor-quotient 123 10) @result{} 12\n"
+		       "(floor-quotient 123 -10) @result{} -13\n"
+		       "(floor-quotient -123 10) @result{} -13\n"
+		       "(floor-quotient -123 -10) @result{} 12\n"
+		       "(floor-quotient -123.2 -63.5) @result{} 1.0\n"
+		       "(floor-quotient 16/3 -10/7) @result{} -4\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_floor_quotient
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  scm_t_inum xx1 = xx;
+	  scm_t_inum qq;
+	  if (SCM_LIKELY (yy > 0))
+	    {
+	      if (SCM_UNLIKELY (xx < 0))
+		xx1 = xx - yy + 1;
+	    }
+	  else if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_floor_quotient);
+	  else if (xx > 0)
+	    xx1 = xx - yy - 1;
+	  qq = xx1 / yy;
+	  if (SCM_LIKELY (SCM_FIXABLE (qq)))
+	    return SCM_I_MAKINUM (qq);
+	  else
+	    return scm_i_inum2big (qq);
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sign = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  if (sign > 0)
+	    return SCM_I_MAKINUM ((xx < 0) ? -1 : 0);
+	  else
+	    return SCM_I_MAKINUM ((xx > 0) ? -1 : 0);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_floor_quotient (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_quotient, x, y, SCM_ARG2,
+			    s_scm_floor_quotient);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_floor_quotient);
+	  else if (SCM_UNLIKELY (yy == 1))
+	    return x;
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      if (yy > 0)
+		mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), yy);
+	      else
+		{
+		  mpz_cdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      scm_remember_upto_here_1 (x);
+	      return scm_i_normbig (q);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM q = scm_i_mkbig ();
+	  mpz_fdiv_q (SCM_I_BIG_MPZ (q),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (q);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_floor_quotient
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_quotient, x, y, SCM_ARG2,
+			    s_scm_floor_quotient);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_floor_quotient
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_quotient, x, y, SCM_ARG2,
+			    s_scm_floor_quotient);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_floor_quotient
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_quotient, x, y, SCM_ARG2,
+			    s_scm_floor_quotient);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_floor_quotient, x, y, SCM_ARG1,
+			s_scm_floor_quotient);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_floor_quotient (double x, double y)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_floor_quotient);  /* or return a NaN? */
+  else
+    return scm_from_double (floor (x / y));
+}
+
+static SCM
+scm_i_exact_rational_floor_quotient (SCM x, SCM y)
+{
+  return scm_floor_quotient
+    (scm_product (scm_numerator (x), scm_denominator (y)),
+     scm_product (scm_numerator (y), scm_denominator (x)));
+}
+
+static SCM scm_i_inexact_floor_remainder (double x, double y);
+static SCM scm_i_exact_rational_floor_remainder (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_floor_remainder, "floor-remainder", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the real number @var{r} such that\n"
+		       "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "where @math{@var{q} = floor(@var{x} / @var{y})}.\n"
+		       "@lisp\n"
+		       "(floor-remainder 123 10) @result{} 3\n"
+		       "(floor-remainder 123 -10) @result{} -7\n"
+		       "(floor-remainder -123 10) @result{} 7\n"
+		       "(floor-remainder -123 -10) @result{} -3\n"
+		       "(floor-remainder -123.2 -63.5) @result{} -59.7\n"
+		       "(floor-remainder 16/3 -10/7) @result{} -8/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_floor_remainder
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_floor_remainder);
+	  else
+	    {
+	      scm_t_inum rr = xx % yy;
+	      int needs_adjustment;
+
+	      if (SCM_LIKELY (yy > 0))
+		needs_adjustment = (rr < 0);
+	      else
+		needs_adjustment = (rr > 0);
+
+	      if (needs_adjustment)
+		rr += yy;
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sign = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  if (sign > 0)
+	    {
+	      if (xx < 0)
+		{
+		  SCM r = scm_i_mkbig ();
+		  mpz_sub_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
+		  scm_remember_upto_here_1 (y);
+		  return scm_i_normbig (r);
+		}
+	      else
+		return x;
+	    }
+	  else if (xx <= 0)
+	    return x;
+	  else
+	    {
+	      SCM r = scm_i_mkbig ();
+	      mpz_add_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), xx);
+	      scm_remember_upto_here_1 (y);
+	      return scm_i_normbig (r);
+	    }
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_floor_remainder (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_remainder, x, y, SCM_ARG2,
+			    s_scm_floor_remainder);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_floor_remainder);
+	  else
+	    {
+	      scm_t_inum rr;
+	      if (yy > 0)
+		rr = mpz_fdiv_ui (SCM_I_BIG_MPZ (x), yy);
+	      else
+		rr = -mpz_cdiv_ui (SCM_I_BIG_MPZ (x), -yy);
+	      scm_remember_upto_here_1 (x);
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM r = scm_i_mkbig ();
+	  mpz_fdiv_r (SCM_I_BIG_MPZ (r),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (r);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_floor_remainder
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_remainder, x, y, SCM_ARG2,
+			    s_scm_floor_remainder);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_floor_remainder
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_remainder, x, y, SCM_ARG2,
+			    s_scm_floor_remainder);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_floor_remainder
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_floor_remainder, x, y, SCM_ARG2,
+			    s_scm_floor_remainder);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_floor_remainder, x, y, SCM_ARG1,
+			s_scm_floor_remainder);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_floor_remainder (double x, double y)
+{
+  /* Although it would be more efficient to use fmod here, we can't
+     because it would in some cases produce results inconsistent with
+     scm_i_inexact_floor_quotient, such that x != q * y + r (not even
+     close).  In particular, when x is very close to a multiple of y,
+     then r might be either 0.0 or y, but those two cases must
+     correspond to different choices of q.  If r = 0.0 then q must be
+     x/y, and if r = y then q must be x/y-1.  If quotient chooses one
+     and remainder chooses the other, it would be bad.  */
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_floor_remainder);  /* or return a NaN? */
+  else
+    return scm_from_double (x - y * floor (x / y));
+}
+
+static SCM
+scm_i_exact_rational_floor_remainder (SCM x, SCM y)
+{
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+  SCM r1 = scm_floor_remainder (scm_product (scm_numerator (x), yd),
+				scm_product (scm_numerator (y), xd));
+  return scm_divide (r1, scm_product (xd, yd));
+}
+
+
+static void scm_i_inexact_floor_divide (double x, double y,
+					SCM *qp, SCM *rp);
+static void scm_i_exact_rational_floor_divide (SCM x, SCM y,
+					       SCM *qp, SCM *rp);
+
+SCM_PRIMITIVE_GENERIC (scm_i_floor_divide, "floor/", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the integer @var{q} and the real number @var{r}\n"
+		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "and @math{@var{q} = floor(@var{x} / @var{y})}.\n"
+		       "@lisp\n"
+		       "(floor/ 123 10) @result{} 12 and 3\n"
+		       "(floor/ 123 -10) @result{} -13 and -7\n"
+		       "(floor/ -123 10) @result{} -13 and 7\n"
+		       "(floor/ -123 -10) @result{} 12 and -3\n"
+		       "(floor/ -123.2 -63.5) @result{} 1.0 and -59.7\n"
+		       "(floor/ 16/3 -10/7) @result{} -4 and -8/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_i_floor_divide
+{
+  SCM q, r;
+
+  scm_floor_divide(x, y, &q, &r);
+  return scm_values (scm_list_2 (q, r));
+}
+#undef FUNC_NAME
+
+#define s_scm_floor_divide s_scm_i_floor_divide
+#define g_scm_floor_divide g_scm_i_floor_divide
+
+void
+scm_floor_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_floor_divide);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      scm_t_inum rr = xx % yy;
+	      int needs_adjustment;
+
+	      if (SCM_LIKELY (yy > 0))
+		needs_adjustment = (rr < 0);
+	      else
+		needs_adjustment = (rr > 0);
+
+	      if (needs_adjustment)
+		{
+		  rr += yy;
+		  qq--;
+		}
+
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		*qp = SCM_I_MAKINUM (qq);
+	      else
+		*qp = scm_i_inum2big (qq);
+	      *rp = SCM_I_MAKINUM (rr);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sign = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  if (sign > 0)
+	    {
+	      if (xx < 0)
+		{
+		  SCM r = scm_i_mkbig ();
+		  mpz_sub_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
+		  scm_remember_upto_here_1 (y);
+		  *qp = SCM_I_MAKINUM (-1);
+		  *rp = scm_i_normbig (r);
+		}
+	      else
+		{
+		  *qp = SCM_INUM0;
+		  *rp = x;
+		}
+	    }
+	  else if (xx <= 0)
+	    {
+	      *qp = SCM_INUM0;
+	      *rp = x;
+	    }
+	  else
+	    {
+	      SCM r = scm_i_mkbig ();
+	      mpz_add_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), xx);
+	      scm_remember_upto_here_1 (y);
+	      *qp = SCM_I_MAKINUM (-1);
+	      *rp = scm_i_normbig (r);
+	    }
+	  return;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_floor_divide (xx, SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_floor_divide, x, y, SCM_ARG2,
+					  s_scm_floor_divide, qp, rp);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_floor_divide);
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      SCM r = scm_i_mkbig ();
+	      if (yy > 0)
+		mpz_fdiv_qr_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+				SCM_I_BIG_MPZ (x), yy);
+	      else
+		{
+		  mpz_cdiv_qr_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+				  SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      scm_remember_upto_here_1 (x);
+	      *qp = scm_i_normbig (q);
+	      *rp = scm_i_normbig (r);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM q = scm_i_mkbig ();
+	  SCM r = scm_i_mkbig ();
+	  mpz_fdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+		       SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  *qp = scm_i_normbig (q);
+	  *rp = scm_i_normbig (r);
+	  return;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_floor_divide
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_floor_divide, x, y, SCM_ARG2,
+					  s_scm_floor_divide, qp, rp);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_floor_divide
+	  (SCM_REAL_VALUE (x), scm_to_double (y), qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_floor_divide, x, y, SCM_ARG2,
+					  s_scm_floor_divide, qp, rp);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_floor_divide
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_floor_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_floor_divide, x, y, SCM_ARG2,
+					  s_scm_floor_divide, qp, rp);
+    }
+  else
+    return two_valued_wta_dispatch_2 (g_scm_floor_divide, x, y, SCM_ARG1,
+				      s_scm_floor_divide, qp, rp);
+}
+
+static void
+scm_i_inexact_floor_divide (double x, double y, SCM *qp, SCM *rp)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_floor_divide);  /* or return a NaN? */
+  else
+    {
+      double q = floor (x / y);
+      double r = x - q * y;
+      *qp = scm_from_double (q);
+      *rp = scm_from_double (r);
+    }
+}
+
+static void
+scm_i_exact_rational_floor_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  SCM r1;
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+
+  scm_floor_divide (scm_product (scm_numerator (x), yd),
+		    scm_product (scm_numerator (y), xd),
+		    qp, &r1);
+  *rp = scm_divide (r1, scm_product (xd, yd));
+}
+
+static SCM scm_i_inexact_ceiling_quotient (double x, double y);
+static SCM scm_i_exact_rational_ceiling_quotient (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_ceiling_quotient, "ceiling-quotient", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the ceiling of @math{@var{x} / @var{y}}.\n"
+		       "@lisp\n"
+		       "(ceiling-quotient 123 10) @result{} 13\n"
+		       "(ceiling-quotient 123 -10) @result{} -12\n"
+		       "(ceiling-quotient -123 10) @result{} -12\n"
+		       "(ceiling-quotient -123 -10) @result{} 13\n"
+		       "(ceiling-quotient -123.2 -63.5) @result{} 2.0\n"
+		       "(ceiling-quotient 16/3 -10/7) @result{} -3\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_ceiling_quotient
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_ceiling_quotient);
+	  else
+	    {
+	      scm_t_inum xx1 = xx;
+	      scm_t_inum qq;
+	      if (SCM_LIKELY (yy > 0))
+		{
+		  if (SCM_LIKELY (xx >= 0))
+		    xx1 = xx + yy - 1;
+		}
+	      else if (SCM_UNLIKELY (yy == 0))
+		scm_num_overflow (s_scm_ceiling_quotient);
+	      else if (xx < 0)
+		xx1 = xx + yy + 1;
+	      qq = xx1 / yy;
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		return SCM_I_MAKINUM (qq);
+	      else
+		return scm_i_inum2big (qq);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sign = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  if (SCM_LIKELY (sign > 0))
+	    {
+	      if (SCM_LIKELY (xx > 0))
+		return SCM_INUM1;
+	      else if (SCM_UNLIKELY (xx == SCM_MOST_NEGATIVE_FIXNUM)
+		       && SCM_UNLIKELY (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+				       - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+		{
+		  /* Special case: x == fixnum-min && y == abs (fixnum-min) */
+		  scm_remember_upto_here_1 (y);
+		  return SCM_I_MAKINUM (-1);
+		}
+	      else
+		return SCM_INUM0;
+	    }
+	  else if (xx >= 0)
+	    return SCM_INUM0;
+	  else
+	    return SCM_INUM1;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_quotient (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_quotient, x, y, SCM_ARG2,
+			    s_scm_ceiling_quotient);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_ceiling_quotient);
+	  else if (SCM_UNLIKELY (yy == 1))
+	    return x;
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      if (yy > 0)
+		mpz_cdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), yy);
+	      else
+		{
+		  mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      scm_remember_upto_here_1 (x);
+	      return scm_i_normbig (q);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM q = scm_i_mkbig ();
+	  mpz_cdiv_q (SCM_I_BIG_MPZ (q),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (q);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_quotient
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_quotient, x, y, SCM_ARG2,
+			    s_scm_ceiling_quotient);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_ceiling_quotient
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_quotient, x, y, SCM_ARG2,
+			    s_scm_ceiling_quotient);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_quotient
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_quotient, x, y, SCM_ARG2,
+			    s_scm_ceiling_quotient);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_ceiling_quotient, x, y, SCM_ARG1,
+			s_scm_ceiling_quotient);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_ceiling_quotient (double x, double y)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_ceiling_quotient);  /* or return a NaN? */
+  else
+    return scm_from_double (ceil (x / y));
+}
+
+static SCM
+scm_i_exact_rational_ceiling_quotient (SCM x, SCM y)
+{
+  return scm_ceiling_quotient
+    (scm_product (scm_numerator (x), scm_denominator (y)),
+     scm_product (scm_numerator (y), scm_denominator (x)));
+}
+
+static SCM scm_i_inexact_ceiling_remainder (double x, double y);
+static SCM scm_i_exact_rational_ceiling_remainder (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_ceiling_remainder, "ceiling-remainder", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the real number @var{r} such that\n"
+		       "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "where @math{@var{q} = ceiling(@var{x} / @var{y})}.\n"
+		       "@lisp\n"
+		       "(ceiling-remainder 123 10) @result{} -7\n"
+		       "(ceiling-remainder 123 -10) @result{} 3\n"
+		       "(ceiling-remainder -123 10) @result{} -3\n"
+		       "(ceiling-remainder -123 -10) @result{} 7\n"
+		       "(ceiling-remainder -123.2 -63.5) @result{} 3.8\n"
+		       "(ceiling-remainder 16/3 -10/7) @result{} 22/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_ceiling_remainder
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_ceiling_remainder);
+	  else
+	    {
+	      scm_t_inum rr = xx % yy;
+	      int needs_adjustment;
+
+	      if (SCM_LIKELY (yy > 0))
+		needs_adjustment = (rr > 0);
+	      else
+		needs_adjustment = (rr < 0);
+
+	      if (needs_adjustment)
+		rr -= yy;
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sign = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  if (SCM_LIKELY (sign > 0))
+	    {
+	      if (SCM_LIKELY (xx > 0))
+		{
+		  SCM r = scm_i_mkbig ();
+		  mpz_sub_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), xx);
+		  scm_remember_upto_here_1 (y);
+		  mpz_neg (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r));
+		  return scm_i_normbig (r);
+		}
+	      else if (SCM_UNLIKELY (xx == SCM_MOST_NEGATIVE_FIXNUM)
+		       && SCM_UNLIKELY (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+				       - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+		{
+		  /* Special case: x == fixnum-min && y == abs (fixnum-min) */
+		  scm_remember_upto_here_1 (y);
+		  return SCM_INUM0;
+		}
+	      else
+		return x;
+	    }
+	  else if (xx >= 0)
+	    return x;
+	  else
+	    {
+	      SCM r = scm_i_mkbig ();
+	      mpz_add_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
+	      scm_remember_upto_here_1 (y);
+	      mpz_neg (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r));
+	      return scm_i_normbig (r);
+	    }
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_remainder (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_remainder, x, y, SCM_ARG2,
+			    s_scm_ceiling_remainder);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_ceiling_remainder);
+	  else
+	    {
+	      scm_t_inum rr;
+	      if (yy > 0)
+		rr = -mpz_cdiv_ui (SCM_I_BIG_MPZ (x), yy);
+	      else
+		rr = mpz_fdiv_ui (SCM_I_BIG_MPZ (x), -yy);
+	      scm_remember_upto_here_1 (x);
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM r = scm_i_mkbig ();
+	  mpz_cdiv_r (SCM_I_BIG_MPZ (r),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (r);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_remainder
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_remainder, x, y, SCM_ARG2,
+			    s_scm_ceiling_remainder);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_ceiling_remainder
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_remainder, x, y, SCM_ARG2,
+			    s_scm_ceiling_remainder);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_remainder
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_ceiling_remainder, x, y, SCM_ARG2,
+			    s_scm_ceiling_remainder);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_ceiling_remainder, x, y, SCM_ARG1,
+			s_scm_ceiling_remainder);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_ceiling_remainder (double x, double y)
+{
+  /* Although it would be more efficient to use fmod here, we can't
+     because it would in some cases produce results inconsistent with
+     scm_i_inexact_ceiling_quotient, such that x != q * y + r (not even
+     close).  In particular, when x is very close to a multiple of y,
+     then r might be either 0.0 or -y, but those two cases must
+     correspond to different choices of q.  If r = 0.0 then q must be
+     x/y, and if r = -y then q must be x/y+1.  If quotient chooses one
+     and remainder chooses the other, it would be bad.  */
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_ceiling_remainder);  /* or return a NaN? */
+  else
+    return scm_from_double (x - y * ceil (x / y));
+}
+
+static SCM
+scm_i_exact_rational_ceiling_remainder (SCM x, SCM y)
+{
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+  SCM r1 = scm_ceiling_remainder (scm_product (scm_numerator (x), yd),
+				  scm_product (scm_numerator (y), xd));
+  return scm_divide (r1, scm_product (xd, yd));
+}
+
+static void scm_i_inexact_ceiling_divide (double x, double y,
+					  SCM *qp, SCM *rp);
+static void scm_i_exact_rational_ceiling_divide (SCM x, SCM y,
+						 SCM *qp, SCM *rp);
+
+SCM_PRIMITIVE_GENERIC (scm_i_ceiling_divide, "ceiling/", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the integer @var{q} and the real number @var{r}\n"
+		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "and @math{@var{q} = ceiling(@var{x} / @var{y})}.\n"
+		       "@lisp\n"
+		       "(ceiling/ 123 10) @result{} 13 and -7\n"
+		       "(ceiling/ 123 -10) @result{} -12 and 3\n"
+		       "(ceiling/ -123 10) @result{} -12 and -3\n"
+		       "(ceiling/ -123 -10) @result{} 13 and 7\n"
+		       "(ceiling/ -123.2 -63.5) @result{} 2.0 and 3.8\n"
+		       "(ceiling/ 16/3 -10/7) @result{} -3 and 22/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_i_ceiling_divide
+{
+  SCM q, r;
+
+  scm_ceiling_divide(x, y, &q, &r);
+  return scm_values (scm_list_2 (q, r));
+}
+#undef FUNC_NAME
+
+#define s_scm_ceiling_divide s_scm_i_ceiling_divide
+#define g_scm_ceiling_divide g_scm_i_ceiling_divide
+
+void
+scm_ceiling_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_ceiling_divide);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      scm_t_inum rr = xx % yy;
+	      int needs_adjustment;
+
+	      if (SCM_LIKELY (yy > 0))
+		needs_adjustment = (rr > 0);
+	      else
+		needs_adjustment = (rr < 0);
+
+	      if (needs_adjustment)
+		{
+		  rr -= yy;
+		  qq++;
+		}
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		*qp = SCM_I_MAKINUM (qq);
+	      else
+		*qp = scm_i_inum2big (qq);
+	      *rp = SCM_I_MAKINUM (rr);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  int sign = mpz_sgn (SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_1 (y);
+	  if (SCM_LIKELY (sign > 0))
+	    {
+	      if (SCM_LIKELY (xx > 0))
+		{
+		  SCM r = scm_i_mkbig ();
+		  mpz_sub_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), xx);
+		  scm_remember_upto_here_1 (y);
+		  mpz_neg (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r));
+		  *qp = SCM_INUM1;
+		  *rp = scm_i_normbig (r);
+		}
+	      else if (SCM_UNLIKELY (xx == SCM_MOST_NEGATIVE_FIXNUM)
+		       && SCM_UNLIKELY (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+				       - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+		{
+		  /* Special case: x == fixnum-min && y == abs (fixnum-min) */
+		  scm_remember_upto_here_1 (y);
+		  *qp = SCM_I_MAKINUM (-1);
+		  *rp = SCM_INUM0;
+		}
+	      else
+		{
+		  *qp = SCM_INUM0;
+		  *rp = x;
+		}
+	    }
+	  else if (xx >= 0)
+	    {
+	      *qp = SCM_INUM0;
+	      *rp = x;
+	    }
+	  else
+	    {
+	      SCM r = scm_i_mkbig ();
+	      mpz_add_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
+	      scm_remember_upto_here_1 (y);
+	      mpz_neg (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r));
+	      *qp = SCM_INUM1;
+	      *rp = scm_i_normbig (r);
+	    }
+	  return;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_divide (xx, SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_ceiling_divide, x, y, SCM_ARG2,
+					  s_scm_ceiling_divide, qp, rp);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_ceiling_divide);
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      SCM r = scm_i_mkbig ();
+	      if (yy > 0)
+		mpz_cdiv_qr_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+				SCM_I_BIG_MPZ (x), yy);
+	      else
+		{
+		  mpz_fdiv_qr_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+				  SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      scm_remember_upto_here_1 (x);
+	      *qp = scm_i_normbig (q);
+	      *rp = scm_i_normbig (r);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM q = scm_i_mkbig ();
+	  SCM r = scm_i_mkbig ();
+	  mpz_cdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+		       SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  *qp = scm_i_normbig (q);
+	  *rp = scm_i_normbig (r);
+	  return;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_divide
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_ceiling_divide, x, y, SCM_ARG2,
+					  s_scm_ceiling_divide, qp, rp);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_ceiling_divide
+	  (SCM_REAL_VALUE (x), scm_to_double (y), qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_ceiling_divide, x, y, SCM_ARG2,
+					  s_scm_ceiling_divide, qp, rp);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_ceiling_divide
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_ceiling_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_ceiling_divide, x, y, SCM_ARG2,
+					  s_scm_ceiling_divide, qp, rp);
+    }
+  else
+    return two_valued_wta_dispatch_2 (g_scm_ceiling_divide, x, y, SCM_ARG1,
+				      s_scm_ceiling_divide, qp, rp);
+}
+
+static void
+scm_i_inexact_ceiling_divide (double x, double y, SCM *qp, SCM *rp)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_ceiling_divide);  /* or return a NaN? */
+  else
+    {
+      double q = ceil (x / y);
+      double r = x - q * y;
+      *qp = scm_from_double (q);
+      *rp = scm_from_double (r);
+    }
+}
+
+static void
+scm_i_exact_rational_ceiling_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  SCM r1;
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+
+  scm_ceiling_divide (scm_product (scm_numerator (x), yd),
+		      scm_product (scm_numerator (y), xd),
+		      qp, &r1);
+  *rp = scm_divide (r1, scm_product (xd, yd));
+}
+
+static SCM scm_i_inexact_truncate_quotient (double x, double y);
+static SCM scm_i_exact_rational_truncate_quotient (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_truncate_quotient, "truncate-quotient", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return @math{@var{x} / @var{y}} rounded toward zero.\n"
+		       "@lisp\n"
+		       "(truncate-quotient 123 10) @result{} 12\n"
+		       "(truncate-quotient 123 -10) @result{} -12\n"
+		       "(truncate-quotient -123 10) @result{} -12\n"
+		       "(truncate-quotient -123 -10) @result{} 12\n"
+		       "(truncate-quotient -123.2 -63.5) @result{} 1.0\n"
+		       "(truncate-quotient 16/3 -10/7) @result{} -3\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_truncate_quotient
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_truncate_quotient);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		return SCM_I_MAKINUM (qq);
+	      else
+		return scm_i_inum2big (qq);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  if (SCM_UNLIKELY (xx == SCM_MOST_NEGATIVE_FIXNUM)
+	      && SCM_UNLIKELY (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+					   - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+	    {
+	      /* Special case: x == fixnum-min && y == abs (fixnum-min) */
+	      scm_remember_upto_here_1 (y);
+	      return SCM_I_MAKINUM (-1);
+	    }
+	  else
+	    return SCM_INUM0;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_truncate_quotient (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_quotient, x, y, SCM_ARG2,
+			    s_scm_truncate_quotient);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_truncate_quotient);
+	  else if (SCM_UNLIKELY (yy == 1))
+	    return x;
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      if (yy > 0)
+		mpz_tdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), yy);
+	      else
+		{
+		  mpz_tdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      scm_remember_upto_here_1 (x);
+	      return scm_i_normbig (q);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM q = scm_i_mkbig ();
+	  mpz_tdiv_q (SCM_I_BIG_MPZ (q),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (q);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_truncate_quotient
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_quotient, x, y, SCM_ARG2,
+			    s_scm_truncate_quotient);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_truncate_quotient
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_quotient, x, y, SCM_ARG2,
+			    s_scm_truncate_quotient);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_truncate_quotient
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_quotient, x, y, SCM_ARG2,
+			    s_scm_truncate_quotient);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_truncate_quotient, x, y, SCM_ARG1,
+			s_scm_truncate_quotient);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_truncate_quotient (double x, double y)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_truncate_quotient);  /* or return a NaN? */
+  else
+    return scm_from_double (scm_c_truncate (x / y));
+}
+
+static SCM
+scm_i_exact_rational_truncate_quotient (SCM x, SCM y)
+{
+  return scm_truncate_quotient
+    (scm_product (scm_numerator (x), scm_denominator (y)),
+     scm_product (scm_numerator (y), scm_denominator (x)));
+}
+
+static SCM scm_i_inexact_truncate_remainder (double x, double y);
+static SCM scm_i_exact_rational_truncate_remainder (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_truncate_remainder, "truncate-remainder", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the real number @var{r} such that\n"
+		       "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "where @math{@var{q} = truncate(@var{x} / @var{y})}.\n"
+		       "@lisp\n"
+		       "(truncate-remainder 123 10) @result{} 3\n"
+		       "(truncate-remainder 123 -10) @result{} 3\n"
+		       "(truncate-remainder -123 10) @result{} -3\n"
+		       "(truncate-remainder -123 -10) @result{} -3\n"
+		       "(truncate-remainder -123.2 -63.5) @result{} -59.7\n"
+		       "(truncate-remainder 16/3 -10/7) @result{} 22/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_truncate_remainder
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_truncate_remainder);
+	  else
+	    return SCM_I_MAKINUM (xx % yy);
+	}
+      else if (SCM_BIGP (y))
+	{
+	  if (SCM_UNLIKELY (xx == SCM_MOST_NEGATIVE_FIXNUM)
+	      && SCM_UNLIKELY (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+					   - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+	    {
+	      /* Special case: x == fixnum-min && y == abs (fixnum-min) */
+	      scm_remember_upto_here_1 (y);
+	      return SCM_INUM0;
+	    }
+	  else
+	    return x;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_truncate_remainder (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_remainder, x, y, SCM_ARG2,
+			    s_scm_truncate_remainder);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_truncate_remainder);
+	  else
+	    {
+	      scm_t_inum rr = (mpz_tdiv_ui (SCM_I_BIG_MPZ (x),
+					    (yy > 0) ? yy : -yy)
+			       * mpz_sgn (SCM_I_BIG_MPZ (x)));
+	      scm_remember_upto_here_1 (x);
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM r = scm_i_mkbig ();
+	  mpz_tdiv_r (SCM_I_BIG_MPZ (r),
+		      SCM_I_BIG_MPZ (x),
+		      SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  return scm_i_normbig (r);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_truncate_remainder
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_remainder, x, y, SCM_ARG2,
+			    s_scm_truncate_remainder);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_truncate_remainder
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_remainder, x, y, SCM_ARG2,
+			    s_scm_truncate_remainder);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_truncate_remainder
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_truncate_remainder, x, y, SCM_ARG2,
+			    s_scm_truncate_remainder);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_truncate_remainder, x, y, SCM_ARG1,
+			s_scm_truncate_remainder);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_truncate_remainder (double x, double y)
+{
+  /* Although it would be more efficient to use fmod here, we can't
+     because it would in some cases produce results inconsistent with
+     scm_i_inexact_truncate_quotient, such that x != q * y + r (not even
+     close).  In particular, when x is very close to a multiple of y,
+     then r might be either 0.0 or sgn(x)*|y|, but those two cases must
+     correspond to different choices of q.  If quotient chooses one and
+     remainder chooses the other, it would be bad.  */
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_truncate_remainder);  /* or return a NaN? */
+  else
+    return scm_from_double (x - y * scm_c_truncate (x / y));
+}
+
+static SCM
+scm_i_exact_rational_truncate_remainder (SCM x, SCM y)
+{
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+  SCM r1 = scm_truncate_remainder (scm_product (scm_numerator (x), yd),
+				   scm_product (scm_numerator (y), xd));
+  return scm_divide (r1, scm_product (xd, yd));
+}
+
+
+static void scm_i_inexact_truncate_divide (double x, double y,
+					   SCM *qp, SCM *rp);
+static void scm_i_exact_rational_truncate_divide (SCM x, SCM y,
+						  SCM *qp, SCM *rp);
+
+SCM_PRIMITIVE_GENERIC (scm_i_truncate_divide, "truncate/", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the integer @var{q} and the real number @var{r}\n"
+		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "and @math{@var{q} = truncate(@var{x} / @var{y})}.\n"
+		       "@lisp\n"
+		       "(truncate/ 123 10) @result{} 12 and 3\n"
+		       "(truncate/ 123 -10) @result{} -12 and 3\n"
+		       "(truncate/ -123 10) @result{} -12 and -3\n"
+		       "(truncate/ -123 -10) @result{} 12 and -3\n"
+		       "(truncate/ -123.2 -63.5) @result{} 1.0 and -59.7\n"
+		       "(truncate/ 16/3 -10/7) @result{} -3 and 22/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_i_truncate_divide
+{
+  SCM q, r;
+
+  scm_truncate_divide(x, y, &q, &r);
+  return scm_values (scm_list_2 (q, r));
+}
+#undef FUNC_NAME
+
+#define s_scm_truncate_divide s_scm_i_truncate_divide
+#define g_scm_truncate_divide g_scm_i_truncate_divide
+
+void
+scm_truncate_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_truncate_divide);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      scm_t_inum rr = xx % yy;
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		*qp = SCM_I_MAKINUM (qq);
+	      else
+		*qp = scm_i_inum2big (qq);
+	      *rp = SCM_I_MAKINUM (rr);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  if (SCM_UNLIKELY (xx == SCM_MOST_NEGATIVE_FIXNUM)
+	      && SCM_UNLIKELY (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
+					   - SCM_MOST_NEGATIVE_FIXNUM) == 0))
+	    {
+	      /* Special case: x == fixnum-min && y == abs (fixnum-min) */
+	      scm_remember_upto_here_1 (y);
+	      *qp = SCM_I_MAKINUM (-1);
+	      *rp = SCM_INUM0;
+	    }
+	  else
+	    {
+	      *qp = SCM_INUM0;
+	      *rp = x;
+	    }
+	  return;
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_truncate_divide (xx, SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2
+	  (g_scm_truncate_divide, x, y, SCM_ARG2,
+	   s_scm_truncate_divide, qp, rp);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_truncate_divide);
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      scm_t_inum rr;
+	      if (yy > 0)
+		rr = mpz_tdiv_q_ui (SCM_I_BIG_MPZ (q),
+				    SCM_I_BIG_MPZ (x), yy);
+	      else
+		{
+		  rr = mpz_tdiv_q_ui (SCM_I_BIG_MPZ (q),
+				      SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      rr *= mpz_sgn (SCM_I_BIG_MPZ (x));
+	      scm_remember_upto_here_1 (x);
+	      *qp = scm_i_normbig (q);
+	      *rp = SCM_I_MAKINUM (rr);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  SCM q = scm_i_mkbig ();
+	  SCM r = scm_i_mkbig ();
+	  mpz_tdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+		       SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+	  scm_remember_upto_here_2 (x, y);
+	  *qp = scm_i_normbig (q);
+	  *rp = scm_i_normbig (r);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_truncate_divide
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2
+	  (g_scm_truncate_divide, x, y, SCM_ARG2,
+	   s_scm_truncate_divide, qp, rp);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_truncate_divide
+	  (SCM_REAL_VALUE (x), scm_to_double (y), qp, rp);
+      else
+	return two_valued_wta_dispatch_2
+	  (g_scm_truncate_divide, x, y, SCM_ARG2,
+	   s_scm_truncate_divide, qp, rp);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_truncate_divide
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_truncate_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2
+	  (g_scm_truncate_divide, x, y, SCM_ARG2,
+	   s_scm_truncate_divide, qp, rp);
+    }
+  else
+    return two_valued_wta_dispatch_2 (g_scm_truncate_divide, x, y, SCM_ARG1,
+				      s_scm_truncate_divide, qp, rp);
+}
+
+static void
+scm_i_inexact_truncate_divide (double x, double y, SCM *qp, SCM *rp)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_truncate_divide);  /* or return a NaN? */
+  else
+    {
+      double q, r, q1;
+      /* FIXME: Use trunc, after it has been imported from gnulib */
+      q1 = x / y;
+      q = (q1 >= 0) ? floor (q1) : ceil (q1);
+      r = x - q * y;
+      *qp = scm_from_double (q);
+      *rp = scm_from_double (r);
+    }
+}
+
+static void
+scm_i_exact_rational_truncate_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  SCM r1;
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+
+  scm_truncate_divide (scm_product (scm_numerator (x), yd),
+		       scm_product (scm_numerator (y), xd),
+		       qp, &r1);
+  *rp = scm_divide (r1, scm_product (xd, yd));
+}
+
 static SCM scm_i_inexact_centered_quotient (double x, double y);
 static SCM scm_i_bigint_centered_quotient (SCM x, SCM y);
 static SCM scm_i_exact_rational_centered_quotient (SCM x, SCM y);
@@ -2310,6 +3841,662 @@ scm_i_exact_rational_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
   scm_centered_divide (scm_product (scm_numerator (x), yd),
 		       scm_product (scm_numerator (y), xd),
 		       qp, &r1);
+  *rp = scm_divide (r1, scm_product (xd, yd));
+}
+
+static SCM scm_i_inexact_round_quotient (double x, double y);
+static SCM scm_i_bigint_round_quotient (SCM x, SCM y);
+static SCM scm_i_exact_rational_round_quotient (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_round_quotient, "round-quotient", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return @math{@var{x} / @var{y}} to the nearest integer,\n"
+		       "with ties going to the nearest even integer.\n"
+		       "@lisp\n"
+		       "(round-quotient 123 10) @result{} 12\n"
+		       "(round-quotient 123 -10) @result{} -12\n"
+		       "(round-quotient -123 10) @result{} -12\n"
+		       "(round-quotient -123 -10) @result{} 12\n"
+		       "(round-quotient 125 10) @result{} 12\n"
+		       "(round-quotient 127 10) @result{} 13\n"
+		       "(round-quotient 135 10) @result{} 14\n"
+		       "(round-quotient -123.2 -63.5) @result{} 2.0\n"
+		       "(round-quotient 16/3 -10/7) @result{} -4\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_round_quotient
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_round_quotient);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      scm_t_inum rr = xx % yy;
+	      scm_t_inum ay = yy;
+	      scm_t_inum r2 = 2 * rr;
+
+	      if (SCM_LIKELY (yy < 0))
+		{
+		  ay = -ay;
+		  r2 = -r2;
+		}
+
+	      if (qq & 1L)
+		{
+		  if (r2 >= ay)
+		    qq++;
+		  else if (r2 <= -ay)
+		    qq--;
+		}
+	      else
+		{
+		  if (r2 > ay)
+		    qq++;
+		  else if (r2 < -ay)
+		    qq--;
+		}
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		return SCM_I_MAKINUM (qq);
+	      else
+		return scm_i_inum2big (qq);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  /* Pass a denormalized bignum version of x (even though it
+	     can fit in a fixnum) to scm_i_bigint_round_quotient */
+	  return scm_i_bigint_round_quotient (scm_i_long2big (xx), y);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_round_quotient (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_quotient, x, y, SCM_ARG2,
+			    s_scm_round_quotient);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_round_quotient);
+	  else if (SCM_UNLIKELY (yy == 1))
+	    return x;
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      scm_t_inum rr;
+	      int needs_adjustment;
+
+	      if (yy > 0)
+		{
+		  rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
+				      SCM_I_BIG_MPZ (x), yy);
+		  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+		    needs_adjustment = (2*rr >= yy);
+		  else
+		    needs_adjustment = (2*rr > yy);
+		}
+	      else
+		{
+		  rr = - mpz_cdiv_q_ui (SCM_I_BIG_MPZ (q),
+					SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+		    needs_adjustment = (2*rr <= yy);
+		  else
+		    needs_adjustment = (2*rr < yy);
+		}
+	      scm_remember_upto_here_1 (x);
+	      if (needs_adjustment)
+		mpz_add_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q), 1);
+	      return scm_i_normbig (q);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	return scm_i_bigint_round_quotient (x, y);
+      else if (SCM_REALP (y))
+	return scm_i_inexact_round_quotient
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_quotient, x, y, SCM_ARG2,
+			    s_scm_round_quotient);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_round_quotient
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_quotient, x, y, SCM_ARG2,
+			    s_scm_round_quotient);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_round_quotient
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_quotient (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_quotient, x, y, SCM_ARG2,
+			    s_scm_round_quotient);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_round_quotient, x, y, SCM_ARG1,
+			s_scm_round_quotient);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_round_quotient (double x, double y)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_round_quotient);  /* or return a NaN? */
+  else
+    return scm_from_double (scm_c_round (x / y));
+}
+
+/* Assumes that both x and y are bigints, though
+   x might be able to fit into a fixnum. */
+static SCM
+scm_i_bigint_round_quotient (SCM x, SCM y)
+{
+  SCM q, r, r2;
+  int cmp, needs_adjustment;
+
+  /* Note that x might be small enough to fit into a
+     fixnum, so we must not let it escape into the wild */
+  q = scm_i_mkbig ();
+  r = scm_i_mkbig ();
+  r2 = scm_i_mkbig ();
+
+  mpz_fdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+	       SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+  mpz_mul_2exp (SCM_I_BIG_MPZ (r2), SCM_I_BIG_MPZ (r), 1);  /* r2 = 2*r */
+  scm_remember_upto_here_2 (x, r);
+
+  cmp = mpz_cmpabs (SCM_I_BIG_MPZ (r2), SCM_I_BIG_MPZ (y));
+  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+    needs_adjustment = (cmp >= 0);
+  else
+    needs_adjustment = (cmp > 0);
+  scm_remember_upto_here_2 (r2, y);
+
+  if (needs_adjustment)
+    mpz_add_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q), 1);
+
+  return scm_i_normbig (q);
+}
+
+static SCM
+scm_i_exact_rational_round_quotient (SCM x, SCM y)
+{
+  return scm_round_quotient
+    (scm_product (scm_numerator (x), scm_denominator (y)),
+     scm_product (scm_numerator (y), scm_denominator (x)));
+}
+
+static SCM scm_i_inexact_round_remainder (double x, double y);
+static SCM scm_i_bigint_round_remainder (SCM x, SCM y);
+static SCM scm_i_exact_rational_round_remainder (SCM x, SCM y);
+
+SCM_PRIMITIVE_GENERIC (scm_round_remainder, "round-remainder", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the real number @var{r} such that\n"
+		       "@math{@var{x} = @var{q}*@var{y} + @var{r}}, where\n"
+		       "@var{q} is @math{@var{x} / @var{y}} rounded to the\n"
+		       "nearest integer, with ties going to the nearest\n"
+		       "even integer.\n"
+		       "@lisp\n"
+		       "(round-remainder 123 10) @result{} 3\n"
+		       "(round-remainder 123 -10) @result{} 3\n"
+		       "(round-remainder -123 10) @result{} -3\n"
+		       "(round-remainder -123 -10) @result{} -3\n"
+		       "(round-remainder 125 10) @result{} 5\n"
+		       "(round-remainder 127 10) @result{} -3\n"
+		       "(round-remainder 135 10) @result{} -5\n"
+		       "(round-remainder -123.2 -63.5) @result{} 3.8\n"
+		       "(round-remainder 16/3 -10/7) @result{} -8/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_round_remainder
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_round_remainder);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      scm_t_inum rr = xx % yy;
+	      scm_t_inum ay = yy;
+	      scm_t_inum r2 = 2 * rr;
+
+	      if (SCM_LIKELY (yy < 0))
+		{
+		  ay = -ay;
+		  r2 = -r2;
+		}
+
+	      if (qq & 1L)
+		{
+		  if (r2 >= ay)
+		    rr -= yy;
+		  else if (r2 <= -ay)
+		    rr += yy;
+		}
+	      else
+		{
+		  if (r2 > ay)
+		    rr -= yy;
+		  else if (r2 < -ay)
+		    rr += yy;
+		}
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	{
+	  /* Pass a denormalized bignum version of x (even though it
+	     can fit in a fixnum) to scm_i_bigint_round_remainder */
+	  return scm_i_bigint_round_remainder
+	    (scm_i_long2big (xx), y);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_round_remainder (xx, SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_remainder, x, y, SCM_ARG2,
+			    s_scm_round_remainder);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_round_remainder);
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      scm_t_inum rr;
+	      int needs_adjustment;
+
+	      if (yy > 0)
+		{
+		  rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
+				      SCM_I_BIG_MPZ (x), yy);
+		  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+		    needs_adjustment = (2*rr >= yy);
+		  else
+		    needs_adjustment = (2*rr > yy);
+		}
+	      else
+		{
+		  rr = - mpz_cdiv_q_ui (SCM_I_BIG_MPZ (q),
+					SCM_I_BIG_MPZ (x), -yy);
+		  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+		    needs_adjustment = (2*rr <= yy);
+		  else
+		    needs_adjustment = (2*rr < yy);
+		}
+	      scm_remember_upto_here_2 (x, q);
+	      if (needs_adjustment)
+		rr -= yy;
+	      return SCM_I_MAKINUM (rr);
+	    }
+	}
+      else if (SCM_BIGP (y))
+	return scm_i_bigint_round_remainder (x, y);
+      else if (SCM_REALP (y))
+	return scm_i_inexact_round_remainder
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_remainder, x, y, SCM_ARG2,
+			    s_scm_round_remainder);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_round_remainder
+	  (SCM_REAL_VALUE (x), scm_to_double (y));
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_remainder, x, y, SCM_ARG2,
+			    s_scm_round_remainder);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_round_remainder
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_remainder (x, y);
+      else
+	SCM_WTA_DISPATCH_2 (g_scm_round_remainder, x, y, SCM_ARG2,
+			    s_scm_round_remainder);
+    }
+  else
+    SCM_WTA_DISPATCH_2 (g_scm_round_remainder, x, y, SCM_ARG1,
+			s_scm_round_remainder);
+}
+#undef FUNC_NAME
+
+static SCM
+scm_i_inexact_round_remainder (double x, double y)
+{
+  /* Although it would be more efficient to use fmod here, we can't
+     because it would in some cases produce results inconsistent with
+     scm_i_inexact_round_quotient, such that x != r + q * y (not even
+     close).  In particular, when x-y/2 is very close to a multiple of
+     y, then r might be either -abs(y/2) or abs(y/2), but those two
+     cases must correspond to different choices of q.  If quotient
+     chooses one and remainder chooses the other, it would be bad. */
+
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_round_remainder);  /* or return a NaN? */
+  else
+    {
+      double q = scm_c_round (x / y);
+      return scm_from_double (x - q * y);
+    }
+}
+
+/* Assumes that both x and y are bigints, though
+   x might be able to fit into a fixnum. */
+static SCM
+scm_i_bigint_round_remainder (SCM x, SCM y)
+{
+  SCM q, r, r2;
+  int cmp, needs_adjustment;
+
+  /* Note that x might be small enough to fit into a
+     fixnum, so we must not let it escape into the wild */
+  q = scm_i_mkbig ();
+  r = scm_i_mkbig ();
+  r2 = scm_i_mkbig ();
+
+  mpz_fdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+	       SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+  scm_remember_upto_here_1 (x);
+  mpz_mul_2exp (SCM_I_BIG_MPZ (r2), SCM_I_BIG_MPZ (r), 1);  /* r2 = 2*r */
+
+  cmp = mpz_cmpabs (SCM_I_BIG_MPZ (r2), SCM_I_BIG_MPZ (y));
+  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+    needs_adjustment = (cmp >= 0);
+  else
+    needs_adjustment = (cmp > 0);
+  scm_remember_upto_here_2 (q, r2);
+
+  if (needs_adjustment)
+    mpz_sub (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y));
+
+  scm_remember_upto_here_1 (y);
+  return scm_i_normbig (r);
+}
+
+static SCM
+scm_i_exact_rational_round_remainder (SCM x, SCM y)
+{
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+  SCM r1 = scm_round_remainder (scm_product (scm_numerator (x), yd),
+				scm_product (scm_numerator (y), xd));
+  return scm_divide (r1, scm_product (xd, yd));
+}
+
+
+static void scm_i_inexact_round_divide (double x, double y, SCM *qp, SCM *rp);
+static void scm_i_bigint_round_divide (SCM x, SCM y, SCM *qp, SCM *rp);
+static void scm_i_exact_rational_round_divide (SCM x, SCM y, SCM *qp, SCM *rp);
+
+SCM_PRIMITIVE_GENERIC (scm_i_round_divide, "round/", 2, 0, 0,
+		       (SCM x, SCM y),
+		       "Return the integer @var{q} and the real number @var{r}\n"
+		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+		       "and @var{q} is @math{@var{x} / @var{y}} rounded to the\n"
+		       "nearest integer, with ties going to the nearest even integer.\n"
+		       "@lisp\n"
+		       "(round/ 123 10) @result{} 12 and 3\n"
+		       "(round/ 123 -10) @result{} -12 and 3\n"
+		       "(round/ -123 10) @result{} -12 and -3\n"
+		       "(round/ -123 -10) @result{} 12 and -3\n"
+		       "(round/ 125 10) @result{} 12 and 5\n"
+		       "(round/ 127 10) @result{} 13 and -3\n"
+		       "(round/ 135 10) @result{} 14 and -5\n"
+		       "(round/ -123.2 -63.5) @result{} 2.0 and 3.8\n"
+		       "(round/ 16/3 -10/7) @result{} -4 and -8/21\n"
+		       "@end lisp")
+#define FUNC_NAME s_scm_i_round_divide
+{
+  SCM q, r;
+
+  scm_round_divide(x, y, &q, &r);
+  return scm_values (scm_list_2 (q, r));
+}
+#undef FUNC_NAME
+
+#define s_scm_round_divide s_scm_i_round_divide
+#define g_scm_round_divide g_scm_i_round_divide
+
+void
+scm_round_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
+    {
+      scm_t_inum xx = SCM_I_INUM (x);
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_round_divide);
+	  else
+	    {
+	      scm_t_inum qq = xx / yy;
+	      scm_t_inum rr = xx % yy;
+	      scm_t_inum ay = yy;
+	      scm_t_inum r2 = 2 * rr;
+
+	      if (SCM_LIKELY (yy < 0))
+		{
+		  ay = -ay;
+		  r2 = -r2;
+		}
+
+	      if (qq & 1L)
+		{
+		  if (r2 >= ay)
+		    { qq++; rr -= yy; }
+		  else if (r2 <= -ay)
+		    { qq--; rr += yy; }
+		}
+	      else
+		{
+		  if (r2 > ay)
+		    { qq++; rr -= yy; }
+		  else if (r2 < -ay)
+		    { qq--; rr += yy; }
+		}
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		*qp = SCM_I_MAKINUM (qq);
+	      else
+		*qp = scm_i_inum2big (qq);
+	      *rp = SCM_I_MAKINUM (rr);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	{
+	  /* Pass a denormalized bignum version of x (even though it
+	     can fit in a fixnum) to scm_i_bigint_round_divide */
+	  return scm_i_bigint_round_divide
+	    (scm_i_long2big (SCM_I_INUM (x)), y, qp, rp);
+	}
+      else if (SCM_REALP (y))
+	return scm_i_inexact_round_divide (xx, SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_round_divide, x, y, SCM_ARG2,
+					  s_scm_round_divide, qp, rp);
+    }
+  else if (SCM_BIGP (x))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
+	{
+	  scm_t_inum yy = SCM_I_INUM (y);
+	  if (SCM_UNLIKELY (yy == 0))
+	    scm_num_overflow (s_scm_round_divide);
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      scm_t_inum rr;
+	      int needs_adjustment;
+
+	      if (yy > 0)
+		{
+		  rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
+				      SCM_I_BIG_MPZ (x), yy);
+		  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+		    needs_adjustment = (2*rr >= yy);
+		  else
+		    needs_adjustment = (2*rr > yy);
+		}
+	      else
+		{
+		  rr = - mpz_cdiv_q_ui (SCM_I_BIG_MPZ (q),
+					SCM_I_BIG_MPZ (x), -yy);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+		    needs_adjustment = (2*rr <= yy);
+		  else
+		    needs_adjustment = (2*rr < yy);
+		}
+	      scm_remember_upto_here_1 (x);
+	      if (needs_adjustment)
+		{
+		  mpz_add_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q), 1);
+		  rr -= yy;
+		}
+	      *qp = scm_i_normbig (q);
+	      *rp = SCM_I_MAKINUM (rr);
+	    }
+	  return;
+	}
+      else if (SCM_BIGP (y))
+	return scm_i_bigint_round_divide (x, y, qp, rp);
+      else if (SCM_REALP (y))
+	return scm_i_inexact_round_divide
+	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_round_divide, x, y, SCM_ARG2,
+					  s_scm_round_divide, qp, rp);
+    }
+  else if (SCM_REALP (x))
+    {
+      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
+	  SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_inexact_round_divide
+	  (SCM_REAL_VALUE (x), scm_to_double (y), qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_round_divide, x, y, SCM_ARG2,
+					  s_scm_round_divide, qp, rp);
+    }
+  else if (SCM_FRACTIONP (x))
+    {
+      if (SCM_REALP (y))
+	return scm_i_inexact_round_divide
+	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_round_divide (x, y, qp, rp);
+      else
+	return two_valued_wta_dispatch_2 (g_scm_round_divide, x, y, SCM_ARG2,
+					  s_scm_round_divide, qp, rp);
+    }
+  else
+    return two_valued_wta_dispatch_2 (g_scm_round_divide, x, y, SCM_ARG1,
+				      s_scm_round_divide, qp, rp);
+}
+
+static void
+scm_i_inexact_round_divide (double x, double y, SCM *qp, SCM *rp)
+{
+  if (SCM_UNLIKELY (y == 0))
+    scm_num_overflow (s_scm_round_divide);  /* or return a NaN? */
+  else
+    {
+      double q = scm_c_round (x / y);
+      double r = x - q * y;
+      *qp = scm_from_double (q);
+      *rp = scm_from_double (r);
+    }
+}
+
+/* Assumes that both x and y are bigints, though
+   x might be able to fit into a fixnum. */
+static void
+scm_i_bigint_round_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  SCM q, r, r2;
+  int cmp, needs_adjustment;
+
+  /* Note that x might be small enough to fit into a
+     fixnum, so we must not let it escape into the wild */
+  q = scm_i_mkbig ();
+  r = scm_i_mkbig ();
+  r2 = scm_i_mkbig ();
+
+  mpz_fdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
+	       SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
+  scm_remember_upto_here_1 (x);
+  mpz_mul_2exp (SCM_I_BIG_MPZ (r2), SCM_I_BIG_MPZ (r), 1);  /* r2 = 2*r */
+
+  cmp = mpz_cmpabs (SCM_I_BIG_MPZ (r2), SCM_I_BIG_MPZ (y));
+  if (mpz_odd_p (SCM_I_BIG_MPZ (q)))
+    needs_adjustment = (cmp >= 0);
+  else
+    needs_adjustment = (cmp > 0);
+
+  if (needs_adjustment)
+    {
+      mpz_add_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q), 1);
+      mpz_sub (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y));
+    }
+
+  scm_remember_upto_here_2 (r2, y);
+  *qp = scm_i_normbig (q);
+  *rp = scm_i_normbig (r);
+}
+
+static void
+scm_i_exact_rational_round_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+{
+  SCM r1;
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+
+  scm_round_divide (scm_product (scm_numerator (x), yd),
+		    scm_product (scm_numerator (y), xd),
+		    qp, &r1);
   *rp = scm_divide (r1, scm_product (xd, yd));
 }
 

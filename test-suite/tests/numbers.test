@@ -4148,6 +4148,42 @@
                   (test-within-range? 0 <= r < (abs y)))
              (test-eqv? q (/ x y)))))
 
+  (define (valid-floor-answer? x y q r)
+    (and (eq? (exact? q)
+              (exact? r)
+              (and (exact? x) (exact? y)))
+         (test-eqv? r (- x (* q y)))
+         (if (and (finite? x) (finite? y))
+             (and (integer? q)
+                  (if (> y 0)
+                      (test-within-range? 0 <= r < y)
+                      (test-within-range? y < r <= 0)))
+             (test-eqv? q (/ x y)))))
+
+  (define (valid-ceiling-answer? x y q r)
+    (and (eq? (exact? q)
+              (exact? r)
+              (and (exact? x) (exact? y)))
+         (test-eqv? r (- x (* q y)))
+         (if (and (finite? x) (finite? y))
+             (and (integer? q)
+                  (if (> y 0)
+                      (test-within-range? (- y) < r <= 0)
+                      (test-within-range?    0 <= r < (- y))))
+             (test-eqv? q (/ x y)))))
+
+  (define (valid-truncate-answer? x y q r)
+    (and (eq? (exact? q)
+              (exact? r)
+              (and (exact? x) (exact? y)))
+         (test-eqv? r (- x (* q y)))
+         (if (and (finite? x) (finite? y))
+             (and (integer? q)
+                  (if (> x 0)
+                      (test-within-range?          0 <= r < (abs y))
+                      (test-within-range? (- (abs y)) < r <= 0)))
+             (test-eqv? q (/ x y)))))
+
   (define (valid-centered-answer? x y q r)
     (and (eq? (exact? q)
               (exact? r)
@@ -4157,6 +4193,19 @@
              (and (integer? q)
                   (test-within-range?
                    (* -1/2 (abs y)) <= r < (* +1/2 (abs y))))
+             (test-eqv? q (/ x y)))))
+
+  (define (valid-round-answer? x y q r)
+    (and (eq? (exact? q)
+              (exact? r)
+              (and (exact? x) (exact? y)))
+         (test-eqv? r (- x (* q y)))
+         (if (and (finite? x) (finite? y))
+             (and (integer? q)
+                  (let ((ay/2 (/ (abs y) 2)))
+                    (if (even? q)
+                        (test-within-range? (- ay/2) <= r <= ay/2)
+                        (test-within-range? (- ay/2) <  r <  ay/2))))
              (test-eqv? q (/ x y)))))
 
   (define (for lsts f) (apply for-each f lsts))
@@ -4284,8 +4333,32 @@
                         euclidean-remainder
                         valid-euclidean-answer?))
 
+  (with-test-prefix "floor/"
+    (run-division-tests floor/
+                        floor-quotient
+                        floor-remainder
+                        valid-floor-answer?))
+
+  (with-test-prefix "ceiling/"
+    (run-division-tests ceiling/
+                        ceiling-quotient
+                        ceiling-remainder
+                        valid-ceiling-answer?))
+
+  (with-test-prefix "truncate/"
+    (run-division-tests truncate/
+                        truncate-quotient
+                        truncate-remainder
+                        valid-truncate-answer?))
+
   (with-test-prefix "centered/"
     (run-division-tests centered/
                         centered-quotient
                         centered-remainder
-                        valid-centered-answer?)))
+                        valid-centered-answer?))
+
+  (with-test-prefix "round/"
+    (run-division-tests round/
+                        round-quotient
+                        round-remainder
+                        valid-round-answer?)))
