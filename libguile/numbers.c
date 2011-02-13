@@ -1093,7 +1093,7 @@ two_valued_wta_dispatch_2 (SCM gf, SCM a1, SCM a2, int pos,
 }
 
 static SCM scm_i_inexact_euclidean_quotient (double x, double y);
-static SCM scm_i_slow_exact_euclidean_quotient (SCM x, SCM y);
+static SCM scm_i_exact_rational_euclidean_quotient (SCM x, SCM y);
 
 SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
 		       (SCM x, SCM y),
@@ -1148,7 +1148,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
       else if (SCM_REALP (y))
 	return scm_i_inexact_euclidean_quotient (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_quotient (x, y);
+	return scm_i_exact_rational_euclidean_quotient (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
 			    s_scm_euclidean_quotient);
@@ -1194,7 +1194,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
 	return scm_i_inexact_euclidean_quotient
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_quotient (x, y);
+	return scm_i_exact_rational_euclidean_quotient (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
 			    s_scm_euclidean_quotient);
@@ -1214,8 +1214,11 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
       if (SCM_REALP (y))
 	return scm_i_inexact_euclidean_quotient
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_euclidean_quotient (x, y);
       else
-	return scm_i_slow_exact_euclidean_quotient (x, y);
+	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
+			    s_scm_euclidean_quotient);
     }
   else
     SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG1,
@@ -1236,28 +1239,16 @@ scm_i_inexact_euclidean_quotient (double x, double y)
     return scm_nan ();
 }
 
-/* Compute exact euclidean_quotient the slow way.
-   We use this only if both arguments are exact,
-   and at least one of them is a fraction */
 static SCM
-scm_i_slow_exact_euclidean_quotient (SCM x, SCM y)
+scm_i_exact_rational_euclidean_quotient (SCM x, SCM y)
 {
-  if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG1,
-			s_scm_euclidean_quotient);
-  else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
-			s_scm_euclidean_quotient);
-  else if (scm_is_true (scm_positive_p (y)))
-    return scm_floor (scm_divide (x, y));
-  else if (scm_is_true (scm_negative_p (y)))
-    return scm_ceiling (scm_divide (x, y));
-  else
-    scm_num_overflow (s_scm_euclidean_quotient);
+  return scm_euclidean_quotient
+    (scm_product (scm_numerator (x), scm_denominator (y)),
+     scm_product (scm_numerator (y), scm_denominator (x)));
 }
 
 static SCM scm_i_inexact_euclidean_remainder (double x, double y);
-static SCM scm_i_slow_exact_euclidean_remainder (SCM x, SCM y);
+static SCM scm_i_exact_rational_euclidean_remainder (SCM x, SCM y);
 
 SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
 		       (SCM x, SCM y),
@@ -1317,7 +1308,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
       else if (SCM_REALP (y))
 	return scm_i_inexact_euclidean_remainder (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_remainder (x, y);
+	return scm_i_exact_rational_euclidean_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
 			    s_scm_euclidean_remainder);
@@ -1352,7 +1343,7 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
 	return scm_i_inexact_euclidean_remainder
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_remainder (x, y);
+	return scm_i_exact_rational_euclidean_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
 			    s_scm_euclidean_remainder);
@@ -1372,8 +1363,11 @@ SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
       if (SCM_REALP (y))
 	return scm_i_inexact_euclidean_remainder
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_euclidean_remainder (x, y);
       else
-	return scm_i_slow_exact_euclidean_remainder (x, y);
+	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
+			    s_scm_euclidean_remainder);
     }
   else
     SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG1,
@@ -1406,33 +1400,21 @@ scm_i_inexact_euclidean_remainder (double x, double y)
   return scm_from_double (x - q * y);
 }
 
-/* Compute exact euclidean_remainder the slow way.
-   We use this only if both arguments are exact,
-   and at least one of them is a fraction */
 static SCM
-scm_i_slow_exact_euclidean_remainder (SCM x, SCM y)
+scm_i_exact_rational_euclidean_remainder (SCM x, SCM y)
 {
-  SCM q;
-
-  if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG1,
-			s_scm_euclidean_remainder);
-  else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
-			s_scm_euclidean_remainder);
-  else if (scm_is_true (scm_positive_p (y)))
-    q = scm_floor (scm_divide (x, y));
-  else if (scm_is_true (scm_negative_p (y)))
-    q = scm_ceiling (scm_divide (x, y));
-  else
-    scm_num_overflow (s_scm_euclidean_remainder);
-  return scm_difference (x, scm_product (y, q));
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+  SCM r1 = scm_euclidean_remainder (scm_product (scm_numerator (x), yd),
+				    scm_product (scm_numerator (y), xd));
+  return scm_divide (r1, scm_product (xd, yd));
 }
 
 
 static void scm_i_inexact_euclidean_divide (double x, double y,
 					    SCM *qp, SCM *rp);
-static void scm_i_slow_exact_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp);
+static void scm_i_exact_rational_euclidean_divide (SCM x, SCM y,
+						   SCM *qp, SCM *rp);
 
 SCM_PRIMITIVE_GENERIC (scm_i_euclidean_divide, "euclidean/", 2, 0, 0,
 		       (SCM x, SCM y),
@@ -1518,7 +1500,7 @@ scm_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
       else if (SCM_REALP (y))
 	return scm_i_inexact_euclidean_divide (xx, SCM_REAL_VALUE (y), qp, rp);
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_divide (x, y, qp, rp);
+	return scm_i_exact_rational_euclidean_divide (x, y, qp, rp);
       else
 	return two_valued_wta_dispatch_2
 	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
@@ -1569,7 +1551,7 @@ scm_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
 	return scm_i_inexact_euclidean_divide
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_euclidean_divide (x, y, qp, rp);
+	return scm_i_exact_rational_euclidean_divide (x, y, qp, rp);
       else
 	return two_valued_wta_dispatch_2
 	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
@@ -1591,8 +1573,12 @@ scm_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
       if (SCM_REALP (y))
 	return scm_i_inexact_euclidean_divide
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_euclidean_divide (x, y, qp, rp);
       else
-	return scm_i_slow_exact_euclidean_divide (x, y, qp, rp);
+	return two_valued_wta_dispatch_2
+	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
+	   s_scm_euclidean_divide, qp, rp);
     }
   else
     return two_valued_wta_dispatch_2 (g_scm_euclidean_divide, x, y, SCM_ARG1,
@@ -1617,33 +1603,22 @@ scm_i_inexact_euclidean_divide (double x, double y, SCM *qp, SCM *rp)
   *rp = scm_from_double (r);
 }
 
-/* Compute exact euclidean quotient and remainder the slow way.
-   We use this only if both arguments are exact,
-   and at least one of them is a fraction */
 static void
-scm_i_slow_exact_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+scm_i_exact_rational_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
 {
-  SCM q;
+  SCM r1;
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
 
-  if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    return two_valued_wta_dispatch_2 (g_scm_euclidean_divide, x, y, SCM_ARG1,
-				      s_scm_euclidean_divide, qp, rp);
-  else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    return two_valued_wta_dispatch_2 (g_scm_euclidean_divide, x, y, SCM_ARG2,
-				      s_scm_euclidean_divide, qp, rp);
-  else if (scm_is_true (scm_positive_p (y)))
-    q = scm_floor (scm_divide (x, y));
-  else if (scm_is_true (scm_negative_p (y)))
-    q = scm_ceiling (scm_divide (x, y));
-  else
-    scm_num_overflow (s_scm_euclidean_divide);
-  *qp = q;
-  *rp = scm_difference (x, scm_product (q, y));
+  scm_euclidean_divide (scm_product (scm_numerator (x), yd),
+			scm_product (scm_numerator (y), xd),
+			qp, &r1);
+  *rp = scm_divide (r1, scm_product (xd, yd));
 }
 
 static SCM scm_i_inexact_centered_quotient (double x, double y);
 static SCM scm_i_bigint_centered_quotient (SCM x, SCM y);
-static SCM scm_i_slow_exact_centered_quotient (SCM x, SCM y);
+static SCM scm_i_exact_rational_centered_quotient (SCM x, SCM y);
 
 SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
 		       (SCM x, SCM y),
@@ -1713,7 +1688,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
       else if (SCM_REALP (y))
 	return scm_i_inexact_centered_quotient (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_quotient (x, y);
+	return scm_i_exact_rational_centered_quotient (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_centered_quotient, x, y, SCM_ARG2,
 			    s_scm_centered_quotient);
@@ -1762,7 +1737,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
 	return scm_i_inexact_centered_quotient
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_quotient (x, y);
+	return scm_i_exact_rational_centered_quotient (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_centered_quotient, x, y, SCM_ARG2,
 			    s_scm_centered_quotient);
@@ -1782,8 +1757,11 @@ SCM_PRIMITIVE_GENERIC (scm_centered_quotient, "centered-quotient", 2, 0, 0,
       if (SCM_REALP (y))
 	return scm_i_inexact_centered_quotient
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_centered_quotient (x, y);
       else
-	return scm_i_slow_exact_centered_quotient (x, y);
+	SCM_WTA_DISPATCH_2 (g_scm_centered_quotient, x, y, SCM_ARG2,
+			    s_scm_centered_quotient);
     }
   else
     SCM_WTA_DISPATCH_2 (g_scm_centered_quotient, x, y, SCM_ARG1,
@@ -1847,31 +1825,17 @@ scm_i_bigint_centered_quotient (SCM x, SCM y)
   return scm_i_normbig (q);
 }
 
-/* Compute exact centered quotient the slow way.
-   We use this only if both arguments are exact,
-   and at least one of them is a fraction */
 static SCM
-scm_i_slow_exact_centered_quotient (SCM x, SCM y)
+scm_i_exact_rational_centered_quotient (SCM x, SCM y)
 {
-  if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    SCM_WTA_DISPATCH_2 (g_scm_centered_quotient, x, y, SCM_ARG1,
-			s_scm_centered_quotient);
-  else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    SCM_WTA_DISPATCH_2 (g_scm_centered_quotient, x, y, SCM_ARG2,
-			s_scm_centered_quotient);
-  else if (scm_is_true (scm_positive_p (y)))
-    return scm_floor (scm_sum (scm_divide (x, y),
-			       exactly_one_half));
-  else if (scm_is_true (scm_negative_p (y)))
-    return scm_ceiling (scm_difference (scm_divide (x, y),
-					exactly_one_half));
-  else
-    scm_num_overflow (s_scm_centered_quotient);
+  return scm_centered_quotient
+    (scm_product (scm_numerator (x), scm_denominator (y)),
+     scm_product (scm_numerator (y), scm_denominator (x)));
 }
 
 static SCM scm_i_inexact_centered_remainder (double x, double y);
 static SCM scm_i_bigint_centered_remainder (SCM x, SCM y);
-static SCM scm_i_slow_exact_centered_remainder (SCM x, SCM y);
+static SCM scm_i_exact_rational_centered_remainder (SCM x, SCM y);
 
 SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
 		       (SCM x, SCM y),
@@ -1938,7 +1902,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
       else if (SCM_REALP (y))
 	return scm_i_inexact_centered_remainder (xx, SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_remainder (x, y);
+	return scm_i_exact_rational_centered_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_centered_remainder, x, y, SCM_ARG2,
 			    s_scm_centered_remainder);
@@ -1979,7 +1943,7 @@ SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
 	return scm_i_inexact_centered_remainder
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_remainder (x, y);
+	return scm_i_exact_rational_centered_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_centered_remainder, x, y, SCM_ARG2,
 			    s_scm_centered_remainder);
@@ -1999,8 +1963,11 @@ SCM_PRIMITIVE_GENERIC (scm_centered_remainder, "centered-remainder", 2, 0, 0,
       if (SCM_REALP (y))
 	return scm_i_inexact_centered_remainder
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_centered_remainder (x, y);
       else
-	return scm_i_slow_exact_centered_remainder (x, y);
+	SCM_WTA_DISPATCH_2 (g_scm_centered_remainder, x, y, SCM_ARG2,
+			    s_scm_centered_remainder);
     }
   else
     SCM_WTA_DISPATCH_2 (g_scm_centered_remainder, x, y, SCM_ARG1,
@@ -2073,34 +2040,22 @@ scm_i_bigint_centered_remainder (SCM x, SCM y)
   return scm_i_normbig (r);
 }
 
-/* Compute exact centered_remainder the slow way.
-   We use this only if both arguments are exact,
-   and at least one of them is a fraction */
 static SCM
-scm_i_slow_exact_centered_remainder (SCM x, SCM y)
+scm_i_exact_rational_centered_remainder (SCM x, SCM y)
 {
-  SCM q;
-
-  if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    SCM_WTA_DISPATCH_2 (g_scm_centered_remainder, x, y, SCM_ARG1,
-			s_scm_centered_remainder);
-  else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    SCM_WTA_DISPATCH_2 (g_scm_centered_remainder, x, y, SCM_ARG2,
-			s_scm_centered_remainder);
-  else if (scm_is_true (scm_positive_p (y)))
-    q = scm_floor (scm_sum (scm_divide (x, y), exactly_one_half));
-  else if (scm_is_true (scm_negative_p (y)))
-    q = scm_ceiling (scm_difference (scm_divide (x, y), exactly_one_half));
-  else
-    scm_num_overflow (s_scm_centered_remainder);
-  return scm_difference (x, scm_product (y, q));
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
+  SCM r1 = scm_centered_remainder (scm_product (scm_numerator (x), yd),
+				   scm_product (scm_numerator (y), xd));
+  return scm_divide (r1, scm_product (xd, yd));
 }
 
 
 static void scm_i_inexact_centered_divide (double x, double y,
 					   SCM *qp, SCM *rp);
 static void scm_i_bigint_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp);
-static void scm_i_slow_exact_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp);
+static void scm_i_exact_rational_centered_divide (SCM x, SCM y,
+						  SCM *qp, SCM *rp);
 
 SCM_PRIMITIVE_GENERIC (scm_i_centered_divide, "centered/", 2, 0, 0,
 		       (SCM x, SCM y),
@@ -2185,7 +2140,7 @@ scm_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
       else if (SCM_REALP (y))
 	return scm_i_inexact_centered_divide (xx, SCM_REAL_VALUE (y), qp, rp);
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_divide (x, y, qp, rp);
+	return scm_i_exact_rational_centered_divide (x, y, qp, rp);
       else
 	return two_valued_wta_dispatch_2
 	  (g_scm_centered_divide, x, y, SCM_ARG2,
@@ -2241,7 +2196,7 @@ scm_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
 	return scm_i_inexact_centered_divide
 	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
       else if (SCM_FRACTIONP (y))
-	return scm_i_slow_exact_centered_divide (x, y, qp, rp);
+	return scm_i_exact_rational_centered_divide (x, y, qp, rp);
       else
 	return two_valued_wta_dispatch_2
 	  (g_scm_centered_divide, x, y, SCM_ARG2,
@@ -2253,7 +2208,7 @@ scm_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
 	  SCM_BIGP (y) || SCM_FRACTIONP (y))
 	return scm_i_inexact_centered_divide
 	  (SCM_REAL_VALUE (x), scm_to_double (y), qp, rp);
-     else
+      else
 	return two_valued_wta_dispatch_2
 	  (g_scm_centered_divide, x, y, SCM_ARG2,
 	   s_scm_centered_divide, qp, rp);
@@ -2263,8 +2218,12 @@ scm_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
       if (SCM_REALP (y))
 	return scm_i_inexact_centered_divide
 	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
+      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
+	return scm_i_exact_rational_centered_divide (x, y, qp, rp);
       else
-	return scm_i_slow_exact_centered_divide (x, y, qp, rp);
+	return two_valued_wta_dispatch_2
+	  (g_scm_centered_divide, x, y, SCM_ARG2,
+	   s_scm_centered_divide, qp, rp);
     }
   else
     return two_valued_wta_dispatch_2 (g_scm_centered_divide, x, y, SCM_ARG1,
@@ -2341,30 +2300,17 @@ scm_i_bigint_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
   *rp = scm_i_normbig (r);
 }
 
-/* Compute exact centered quotient and remainder the slow way.
-   We use this only if both arguments are exact,
-   and at least one of them is a fraction */
 static void
-scm_i_slow_exact_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
+scm_i_exact_rational_centered_divide (SCM x, SCM y, SCM *qp, SCM *rp)
 {
-  SCM q;
+  SCM r1;
+  SCM xd = scm_denominator (x);
+  SCM yd = scm_denominator (y);
 
-  if (!(SCM_I_INUMP (x) || SCM_BIGP (x) || SCM_FRACTIONP (x)))
-    return two_valued_wta_dispatch_2 (g_scm_centered_divide, x, y, SCM_ARG1,
-				      s_scm_centered_divide, qp, rp);
-  else if (!(SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y)))
-    return two_valued_wta_dispatch_2 (g_scm_centered_divide, x, y, SCM_ARG2,
-				      s_scm_centered_divide, qp, rp);
-  else if (scm_is_true (scm_positive_p (y)))
-    q = scm_floor (scm_sum (scm_divide (x, y),
-			    exactly_one_half));
-  else if (scm_is_true (scm_negative_p (y)))
-    q = scm_ceiling (scm_difference (scm_divide (x, y),
-				     exactly_one_half));
-  else
-    scm_num_overflow (s_scm_centered_divide);
-  *qp = q;
-  *rp = scm_difference (x, scm_product (q, y));
+  scm_centered_divide (scm_product (scm_numerator (x), yd),
+		       scm_product (scm_numerator (y), xd),
+		       qp, &r1);
+  *rp = scm_divide (r1, scm_product (xd, yd));
 }
 
 
