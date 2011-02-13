@@ -3,7 +3,7 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -205,8 +205,8 @@
 #define SCM_OBJCODE_WORD_SIZE  SCM_CPP_STRINGIFY (SIZEOF_VOID_P)
 
 /* Major and minor versions must be single characters. */
-#define SCM_OBJCODE_MAJOR_VERSION 0
-#define SCM_OBJCODE_MINOR_VERSION T
+#define SCM_OBJCODE_MAJOR_VERSION 2
+#define SCM_OBJCODE_MINOR_VERSION 0
 #define SCM_OBJCODE_MAJOR_VERSION_STRING        \
   SCM_CPP_STRINGIFY(SCM_OBJCODE_MAJOR_VERSION)
 #define SCM_OBJCODE_MINOR_VERSION_STRING        \
@@ -214,11 +214,11 @@
 #define SCM_OBJCODE_VERSION_STRING                                      \
   SCM_OBJCODE_MAJOR_VERSION_STRING "." SCM_OBJCODE_MINOR_VERSION_STRING
 #define SCM_OBJCODE_MACHINE_VERSION_STRING                              \
-  SCM_OBJCODE_VERSION_STRING "-" SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE
+  SCM_OBJCODE_ENDIANNESS "-" SCM_OBJCODE_WORD_SIZE "-" SCM_OBJCODE_VERSION_STRING
 
 /* The objcode magic header.  */
 #define SCM_OBJCODE_COOKIE                              \
-  "GOOF-" SCM_OBJCODE_MACHINE_VERSION_STRING "---"
+  "GOOF----" SCM_OBJCODE_MACHINE_VERSION_STRING
 
 #endif  /* SCM__SCM_H */
 

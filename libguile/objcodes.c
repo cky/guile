@@ -77,7 +77,13 @@ make_objcode_by_mmap (int fd)
       SCM_SYSERROR;
     }
 
-  if (memcmp (addr, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE)))
+  /* The cookie ends with a version of the form M.N, where M is the
+     major version and N is the minor version.  For this Guile to be
+     able to load an objcode, M must be SCM_OBJCODE_MAJOR_VERSION, and N
+     must be less than or equal to SCM_OBJCODE_MINOR_VERSION.  Since N
+     is the last character, we do a strict comparison on all but the
+     last, then a <= on the last one.  */
+  if (memcmp (addr, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE) - 1))
     {
       SCM args = scm_list_1 (scm_from_latin1_stringn
                              (addr, strlen (SCM_OBJCODE_COOKIE)));
@@ -85,6 +91,16 @@ make_objcode_by_mmap (int fd)
       (void) munmap (addr, st.st_size);
       scm_misc_error (FUNC_NAME, "bad header on object file: ~s", args);
     }
+
+  {
+    char minor_version = addr[strlen (SCM_OBJCODE_COOKIE) - 1];
+
+    if (minor_version > SCM_OBJCODE_MINOR_VERSION_STRING[0])
+      scm_misc_error (FUNC_NAME, "objcode minor version too new (~a > ~a)",
+                      scm_list_2 (scm_from_latin1_stringn (&minor_version, 1),
+                                  scm_from_latin1_string
+                                  (SCM_OBJCODE_MINOR_VERSION_STRING)));
+  }
 
   data = (struct scm_objcode*)(addr + strlen (SCM_OBJCODE_COOKIE));
 
