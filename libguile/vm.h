@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,7 +59,7 @@ SCM_API SCM scm_the_vm_fluid;
 #define SCM_VM_DATA(vm)		((struct scm_vm *) SCM_CELL_WORD_1 (vm))
 #define SCM_VALIDATE_VM(pos,x)	SCM_MAKE_VALIDATE (pos, x, VM_P)
 
-SCM_API SCM scm_the_vm ();
+SCM_API SCM scm_the_vm (void);
 SCM_API SCM scm_make_vm (void);
 
 SCM_API SCM scm_the_vm (void);
