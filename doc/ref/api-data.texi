@@ -1308,7 +1308,7 @@ both @var{q} and @var{r}, and is more efficient than computing each
 separately.  Note that @var{r}, if non-zero, will have the same sign
 as @var{y}.
 
-When @var{x} and @var{y} are integers, @code{floor-quotient} is
+When @var{x} and @var{y} are exact integers, @code{floor-remainder} is
 equivalent to the R5RS integer-only operator @code{modulo}.
 
 @lisp
@@ -1365,8 +1365,9 @@ both @var{q} and @var{r}, and is more efficient than computing each
 separately.  Note that @var{r}, if non-zero, will have the same sign
 as @var{x}.
 
-When @var{x} and @var{y} are integers, these operators are equivalent to
-the R5RS integer-only operators @code{quotient} and @code{remainder}.
+When @var{x} and @var{y} are exact integers, these operators are
+equivalent to the R5RS integer-only operators @code{quotient} and
+@code{remainder}.
 
 @lisp
 (truncate-quotient 123 10) @result{} 12
