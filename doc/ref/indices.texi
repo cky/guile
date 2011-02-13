@@ -21,6 +21,7 @@ features, to make it easier to locate the desired sections.
 @c FIXME::martin: Review me!
 
 This is an alphabetical list of all the procedures and macros in Guile.
+It also includes Guile's Autoconf macros.
 
 When looking for a particular procedure, please look under its Scheme
 name as well as under its C name.  The C name can be constructed from
