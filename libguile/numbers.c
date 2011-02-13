@@ -788,73 +788,10 @@ SCM_PRIMITIVE_GENERIC (scm_quotient, "quotient", 2, 0, 0,
 	"Return the quotient of the numbers @var{x} and @var{y}.")
 #define FUNC_NAME s_scm_quotient
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)))
+  if (SCM_LIKELY (SCM_I_INUMP (x)) || SCM_LIKELY (SCM_BIGP (x)))
     {
-      scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_quotient);
-	  else
-	    {
-	      scm_t_inum z = xx / yy;
-	      if (SCM_LIKELY (SCM_FIXABLE (z)))
-		return SCM_I_MAKINUM (z);
-	      else
-		return scm_i_inum2big (z);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  if ((SCM_I_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
-	      && (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
-                              - SCM_MOST_NEGATIVE_FIXNUM) == 0))
-            {
-              /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
-	      scm_remember_upto_here_1 (y);
-              return SCM_I_MAKINUM (-1);
-            }
-	  else
-	    return SCM_INUM0;
-	}
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_quotient, x, y, SCM_ARG2, s_scm_quotient);
-    }
-  else if (SCM_BIGP (x))
-    {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_quotient);
-	  else if (SCM_UNLIKELY (yy == 1))
-	    return x;
-	  else
-	    {
-	      SCM result = scm_i_mkbig ();
-	      if (yy < 0)
-		{
-		  mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result),
-				 SCM_I_BIG_MPZ (x),
-				 - yy);
-		  mpz_neg (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result));
-		}
-	      else
-		mpz_tdiv_q_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (x), yy);
-	      scm_remember_upto_here_1 (x);
-	      return scm_i_normbig (result);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  SCM result = scm_i_mkbig ();
-	  mpz_tdiv_q (SCM_I_BIG_MPZ (result),
-		      SCM_I_BIG_MPZ (x),
-		      SCM_I_BIG_MPZ (y));
-	  scm_remember_upto_here_2 (x, y);
-	  return scm_i_normbig (result);
-	}
+      if (SCM_LIKELY (SCM_I_INUMP (y)) || SCM_LIKELY (SCM_BIGP (y)))
+	return scm_truncate_quotient (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_quotient, x, y, SCM_ARG2, s_scm_quotient);
     }
@@ -872,64 +809,10 @@ SCM_PRIMITIVE_GENERIC (scm_remainder, "remainder", 2, 0, 0,
 	"@end lisp")
 #define FUNC_NAME s_scm_remainder
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)))
+  if (SCM_LIKELY (SCM_I_INUMP (x)) || SCM_LIKELY (SCM_BIGP (x)))
     {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_remainder);
-	  else
-	    {
-	      /* C99 specifies that "%" is the remainder corresponding to a
-                 quotient rounded towards zero, and that's also traditional
-                 for machine division, so z here should be well defined.  */
-	      scm_t_inum z = SCM_I_INUM (x) % yy;
-	      return SCM_I_MAKINUM (z);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  if ((SCM_I_INUM (x) == SCM_MOST_NEGATIVE_FIXNUM)
-	      && (mpz_cmp_ui (SCM_I_BIG_MPZ (y),
-                              - SCM_MOST_NEGATIVE_FIXNUM) == 0))
-            {
-              /* Special case:  x == fixnum-min && y == abs (fixnum-min) */
-	      scm_remember_upto_here_1 (y);
-              return SCM_INUM0;
-            }
-	  else
-	    return x;
-	}
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_remainder, x, y, SCM_ARG2, s_scm_remainder);
-    }
-  else if (SCM_BIGP (x))
-    {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_remainder);
-	  else
-	    {
-	      SCM result = scm_i_mkbig ();
-	      if (yy < 0)
-		yy = - yy;
-	      mpz_tdiv_r_ui (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ(x), yy);
-	      scm_remember_upto_here_1 (x);
-	      return scm_i_normbig (result);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  SCM result = scm_i_mkbig ();
-	  mpz_tdiv_r (SCM_I_BIG_MPZ (result),
-		      SCM_I_BIG_MPZ (x),
-		      SCM_I_BIG_MPZ (y));
-	  scm_remember_upto_here_2 (x, y);
-	  return scm_i_normbig (result);
-	}
+      if (SCM_LIKELY (SCM_I_INUMP (y)) || SCM_LIKELY (SCM_BIGP (y)))
+	return scm_truncate_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_remainder, x, y, SCM_ARG2, s_scm_remainder);
     }
@@ -948,119 +831,10 @@ SCM_PRIMITIVE_GENERIC (scm_modulo, "modulo", 2, 0, 0,
 	"@end lisp")
 #define FUNC_NAME s_scm_modulo
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)))
+  if (SCM_LIKELY (SCM_I_INUMP (x)) || SCM_LIKELY (SCM_BIGP (x)))
     {
-      scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_modulo);
-	  else
-	    {
-	      /* C99 specifies that "%" is the remainder corresponding to a
-                 quotient rounded towards zero, and that's also traditional
-                 for machine division, so z here should be well defined.  */
-	      scm_t_inum z = xx % yy;
-	      scm_t_inum result;
-
-	      if (yy < 0)
-		{
-		  if (z > 0)
-		    result = z + yy;
-		  else
-		    result = z;
-		}
-	      else
-		{
-		  if (z < 0)
-		    result = z + yy;
-		  else
-		    result = z;
-		}
-	      return SCM_I_MAKINUM (result);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  int sgn_y = mpz_sgn (SCM_I_BIG_MPZ (y));
-	    {
-	      mpz_t z_x;
-	      SCM result;
-
-	      if (sgn_y < 0)
-		{
-		  SCM pos_y = scm_i_clonebig (y, 0);
-		  /* do this after the last scm_op */
-		  mpz_init_set_si (z_x, xx);
-		  result = pos_y; /* re-use this bignum */
-		  mpz_mod (SCM_I_BIG_MPZ (result),
-			   z_x,
-			   SCM_I_BIG_MPZ (pos_y));        
-		  scm_remember_upto_here_1 (pos_y);
-		}
-	      else
-		{
-		  result = scm_i_mkbig ();
-		  /* do this after the last scm_op */
-		  mpz_init_set_si (z_x, xx);
-		  mpz_mod (SCM_I_BIG_MPZ (result),
-			   z_x,
-			   SCM_I_BIG_MPZ (y));        
-		  scm_remember_upto_here_1 (y);
-		}
-        
-	      if ((sgn_y < 0) && mpz_sgn (SCM_I_BIG_MPZ (result)) != 0)
-		mpz_add (SCM_I_BIG_MPZ (result),
-			 SCM_I_BIG_MPZ (y),
-			 SCM_I_BIG_MPZ (result));
-	      scm_remember_upto_here_1 (y);
-	      /* and do this before the next one */
-	      mpz_clear (z_x);
-	      return scm_i_normbig (result);
-	    }
-	}
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG2, s_scm_modulo);
-    }
-  else if (SCM_BIGP (x))
-    {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_modulo);
-	  else
-	    {
-	      SCM result = scm_i_mkbig ();
-	      mpz_mod_ui (SCM_I_BIG_MPZ (result),
-			  SCM_I_BIG_MPZ (x),
-			  (yy < 0) ? - yy : yy);
-	      scm_remember_upto_here_1 (x);
-	      if ((yy < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0))
-		mpz_sub_ui (SCM_I_BIG_MPZ (result),
-			    SCM_I_BIG_MPZ (result),
-			    - yy);
-	      return scm_i_normbig (result);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  SCM result = scm_i_mkbig ();
-	  int y_sgn = mpz_sgn (SCM_I_BIG_MPZ (y));
-	  SCM pos_y = scm_i_clonebig (y, y_sgn >= 0);
-	  mpz_mod (SCM_I_BIG_MPZ (result),
-		   SCM_I_BIG_MPZ (x),
-		   SCM_I_BIG_MPZ (pos_y));
-        
-	  scm_remember_upto_here_1 (x);
-	  if ((y_sgn < 0) && (mpz_sgn (SCM_I_BIG_MPZ (result)) != 0))
-	    mpz_add (SCM_I_BIG_MPZ (result),
-		     SCM_I_BIG_MPZ (y),
-		     SCM_I_BIG_MPZ (result));
-	  scm_remember_upto_here_2 (y, pos_y);
-	  return scm_i_normbig (result);
-	}
+      if (SCM_LIKELY (SCM_I_INUMP (y)) || SCM_LIKELY (SCM_BIGP (y)))
+	return scm_floor_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG2, s_scm_modulo);
     }
@@ -1092,528 +866,80 @@ two_valued_wta_dispatch_2 (SCM gf, SCM a1, SCM a2, int pos,
     scm_wrong_type_arg (subr, pos, (pos == SCM_ARG1) ? a1 : a2);
 }
 
-static SCM scm_i_inexact_euclidean_quotient (double x, double y);
-static SCM scm_i_exact_rational_euclidean_quotient (SCM x, SCM y);
-
-SCM_PRIMITIVE_GENERIC (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
-		       (SCM x, SCM y),
-		       "Return the integer @var{q} such that\n"
-		       "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
-		       "where @math{0 <= @var{r} < abs(@var{y})}.\n"
-		       "@lisp\n"
-		       "(euclidean-quotient 123 10) @result{} 12\n"
-		       "(euclidean-quotient 123 -10) @result{} -12\n"
-		       "(euclidean-quotient -123 10) @result{} -13\n"
-		       "(euclidean-quotient -123 -10) @result{} 13\n"
-		       "(euclidean-quotient -123.2 -63.5) @result{} 2.0\n"
-		       "(euclidean-quotient 16/3 -10/7) @result{} -3\n"
-		       "@end lisp")
+SCM_DEFINE (scm_euclidean_quotient, "euclidean-quotient", 2, 0, 0,
+	    (SCM x, SCM y),
+	    "Return the integer @var{q} such that\n"
+	    "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+	    "where @math{0 <= @var{r} < abs(@var{y})}.\n"
+	    "@lisp\n"
+	    "(euclidean-quotient 123 10) @result{} 12\n"
+	    "(euclidean-quotient 123 -10) @result{} -12\n"
+	    "(euclidean-quotient -123 10) @result{} -13\n"
+	    "(euclidean-quotient -123 -10) @result{} 13\n"
+	    "(euclidean-quotient -123.2 -63.5) @result{} 2.0\n"
+	    "(euclidean-quotient 16/3 -10/7) @result{} -3\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_euclidean_quotient
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)))
-    {
-      scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_quotient);
-	  else
-	    {
-	      scm_t_inum qq = xx / yy;
-	      if (xx < qq * yy)
-		{
-		  if (yy > 0)
-		    qq--;
-		  else
-		    qq++;
-		}
-	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
-		return SCM_I_MAKINUM (qq);
-	      else
-		return scm_i_inum2big (qq);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  if (xx >= 0)
-	    return SCM_INUM0;
-	  else
-	    {
-	      scm_t_inum qq = - mpz_sgn (SCM_I_BIG_MPZ (y));
-	      scm_remember_upto_here_1 (y);
-	      return SCM_I_MAKINUM (qq);
-	    }
-	}
-      else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quotient (xx, SCM_REAL_VALUE (y));
-      else if (SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_quotient (x, y);
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
-			    s_scm_euclidean_quotient);
-    }
-  else if (SCM_BIGP (x))
-    {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_quotient);
-	  else if (SCM_UNLIKELY (yy == 1))
-	    return x;
-	  else
-	    {
-	      SCM q = scm_i_mkbig ();
-	      if (yy > 0)
-		mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), yy);
-	      else
-		{
-		  mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (x), -yy);
-		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
-		}
-	      scm_remember_upto_here_1 (x);
-	      return scm_i_normbig (q);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  SCM q = scm_i_mkbig ();
-	  if (mpz_sgn (SCM_I_BIG_MPZ (y)) > 0)
-	    mpz_fdiv_q (SCM_I_BIG_MPZ (q),
-			SCM_I_BIG_MPZ (x),
-			SCM_I_BIG_MPZ (y));
-	  else
-	    mpz_cdiv_q (SCM_I_BIG_MPZ (q),
-			SCM_I_BIG_MPZ (x),
-			SCM_I_BIG_MPZ (y));
-	  scm_remember_upto_here_2 (x, y);
-	  return scm_i_normbig (q);
-	}
-      else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quotient
-	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
-      else if (SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_quotient (x, y);
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
-			    s_scm_euclidean_quotient);
-    }
-  else if (SCM_REALP (x))
-    {
-      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
-	  SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_inexact_euclidean_quotient
-	  (SCM_REAL_VALUE (x), scm_to_double (y));
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
-			    s_scm_euclidean_quotient);
-    }
-  else if (SCM_FRACTIONP (x))
-    {
-      if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_quotient
-	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
-      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_quotient (x, y);
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG2,
-			    s_scm_euclidean_quotient);
-    }
+  if (scm_is_false (scm_negative_p (y)))
+    return scm_floor_quotient (x, y);
   else
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_quotient, x, y, SCM_ARG1,
-			s_scm_euclidean_quotient);
+    return scm_ceiling_quotient (x, y);
 }
 #undef FUNC_NAME
 
-static SCM
-scm_i_inexact_euclidean_quotient (double x, double y)
-{
-  if (SCM_LIKELY (y > 0))
-    return scm_from_double (floor (x / y));
-  else if (SCM_LIKELY (y < 0))
-    return scm_from_double (ceil (x / y));
-  else if (y == 0)
-    scm_num_overflow (s_scm_euclidean_quotient);  /* or return a NaN? */
-  else
-    return scm_nan ();
-}
-
-static SCM
-scm_i_exact_rational_euclidean_quotient (SCM x, SCM y)
-{
-  return scm_euclidean_quotient
-    (scm_product (scm_numerator (x), scm_denominator (y)),
-     scm_product (scm_numerator (y), scm_denominator (x)));
-}
-
-static SCM scm_i_inexact_euclidean_remainder (double x, double y);
-static SCM scm_i_exact_rational_euclidean_remainder (SCM x, SCM y);
-
-SCM_PRIMITIVE_GENERIC (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
-		       (SCM x, SCM y),
-		       "Return the real number @var{r} such that\n"
-		       "@math{0 <= @var{r} < abs(@var{y})} and\n"
-		       "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
-		       "for some integer @var{q}.\n"
-		       "@lisp\n"
-		       "(euclidean-remainder 123 10) @result{} 3\n"
-		       "(euclidean-remainder 123 -10) @result{} 3\n"
-		       "(euclidean-remainder -123 10) @result{} 7\n"
-		       "(euclidean-remainder -123 -10) @result{} 7\n"
-		       "(euclidean-remainder -123.2 -63.5) @result{} 3.8\n"
-		       "(euclidean-remainder 16/3 -10/7) @result{} 22/21\n"
-		       "@end lisp")
+SCM_DEFINE (scm_euclidean_remainder, "euclidean-remainder", 2, 0, 0,
+	    (SCM x, SCM y),
+	    "Return the real number @var{r} such that\n"
+	    "@math{0 <= @var{r} < abs(@var{y})} and\n"
+	    "@math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+	    "for some integer @var{q}.\n"
+	    "@lisp\n"
+	    "(euclidean-remainder 123 10) @result{} 3\n"
+	    "(euclidean-remainder 123 -10) @result{} 3\n"
+	    "(euclidean-remainder -123 10) @result{} 7\n"
+	    "(euclidean-remainder -123 -10) @result{} 7\n"
+	    "(euclidean-remainder -123.2 -63.5) @result{} 3.8\n"
+	    "(euclidean-remainder 16/3 -10/7) @result{} 22/21\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_euclidean_remainder
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)))
-    {
-      scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_remainder);
-	  else
-	    {
-	      scm_t_inum rr = xx % yy;
-	      if (rr >= 0)
-		return SCM_I_MAKINUM (rr);
-	      else if (yy > 0)
-		return SCM_I_MAKINUM (rr + yy);
-	      else
-		return SCM_I_MAKINUM (rr - yy);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  if (xx >= 0)
-	    return x;
-	  else if (mpz_sgn (SCM_I_BIG_MPZ (y)) > 0)
-	    {
-	      SCM r = scm_i_mkbig ();
-	      mpz_sub_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
-	      scm_remember_upto_here_1 (y);
-	      return scm_i_normbig (r);
-	    }
-	  else
-	    {
-	      SCM r = scm_i_mkbig ();
-	      mpz_add_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
-	      scm_remember_upto_here_1 (y);
-	      mpz_neg (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r));
-	      return scm_i_normbig (r);
-	    }
-	}
-      else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_remainder (xx, SCM_REAL_VALUE (y));
-      else if (SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_remainder (x, y);
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
-			    s_scm_euclidean_remainder);
-    }
-  else if (SCM_BIGP (x))
-    {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_remainder);
-	  else
-	    {
-	      scm_t_inum rr;
-	      if (yy < 0)
-		yy = -yy;
-	      rr = mpz_fdiv_ui (SCM_I_BIG_MPZ (x), yy);
-	      scm_remember_upto_here_1 (x);
-	      return SCM_I_MAKINUM (rr);
-	    }
-	}
-      else if (SCM_BIGP (y))
-	{
-	  SCM r = scm_i_mkbig ();
-	  mpz_mod (SCM_I_BIG_MPZ (r),
-		   SCM_I_BIG_MPZ (x),
-		   SCM_I_BIG_MPZ (y));
-	  scm_remember_upto_here_2 (x, y);
-	  return scm_i_normbig (r);
-	}
-      else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_remainder
-	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y));
-      else if (SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_remainder (x, y);
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
-			    s_scm_euclidean_remainder);
-    }
-  else if (SCM_REALP (x))
-    {
-      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
-	  SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_inexact_euclidean_remainder
-	  (SCM_REAL_VALUE (x), scm_to_double (y));
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
-			    s_scm_euclidean_remainder);
-    }
-  else if (SCM_FRACTIONP (x))
-    {
-      if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_remainder
-	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y));
-      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_remainder (x, y);
-      else
-	SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG2,
-			    s_scm_euclidean_remainder);
-    }
+  if (scm_is_false (scm_negative_p (y)))
+    return scm_floor_remainder (x, y);
   else
-    SCM_WTA_DISPATCH_2 (g_scm_euclidean_remainder, x, y, SCM_ARG1,
-			s_scm_euclidean_remainder);
+    return scm_ceiling_remainder (x, y);
 }
 #undef FUNC_NAME
 
-static SCM
-scm_i_inexact_euclidean_remainder (double x, double y)
-{
-  double q;
-
-  /* Although it would be more efficient to use fmod here, we can't
-     because it would in some cases produce results inconsistent with
-     scm_i_inexact_euclidean_quotient, such that x != q * y + r (not
-     even close).  In particular, when x is very close to a multiple of
-     y, then r might be either 0.0 or abs(y)-epsilon, but those two
-     cases must correspond to different choices of q.  If r = 0.0 then q
-     must be x/y, and if r = abs(y) then q must be (x-r)/y.  If quotient
-     chooses one and remainder chooses the other, it would be bad.  This
-     problem was observed with x = 130.0 and y = 10/7. */
-  if (SCM_LIKELY (y > 0))
-    q = floor (x / y);
-  else if (SCM_LIKELY (y < 0))
-    q = ceil (x / y);
-  else if (y == 0)
-    scm_num_overflow (s_scm_euclidean_remainder);  /* or return a NaN? */
-  else
-    return scm_nan ();
-  return scm_from_double (x - q * y);
-}
-
-static SCM
-scm_i_exact_rational_euclidean_remainder (SCM x, SCM y)
-{
-  SCM xd = scm_denominator (x);
-  SCM yd = scm_denominator (y);
-  SCM r1 = scm_euclidean_remainder (scm_product (scm_numerator (x), yd),
-				    scm_product (scm_numerator (y), xd));
-  return scm_divide (r1, scm_product (xd, yd));
-}
-
-
-static void scm_i_inexact_euclidean_divide (double x, double y,
-					    SCM *qp, SCM *rp);
-static void scm_i_exact_rational_euclidean_divide (SCM x, SCM y,
-						   SCM *qp, SCM *rp);
-
-SCM_PRIMITIVE_GENERIC (scm_i_euclidean_divide, "euclidean/", 2, 0, 0,
-		       (SCM x, SCM y),
-		       "Return the integer @var{q} and the real number @var{r}\n"
-		       "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
-		       "and @math{0 <= @var{r} < abs(@var{y})}.\n"
-		       "@lisp\n"
-		       "(euclidean/ 123 10) @result{} 12 and 3\n"
-		       "(euclidean/ 123 -10) @result{} -12 and 3\n"
-		       "(euclidean/ -123 10) @result{} -13 and 7\n"
-		       "(euclidean/ -123 -10) @result{} 13 and 7\n"
-		       "(euclidean/ -123.2 -63.5) @result{} 2.0 and 3.8\n"
-		       "(euclidean/ 16/3 -10/7) @result{} -3 and 22/21\n"
-		       "@end lisp")
+SCM_DEFINE (scm_i_euclidean_divide, "euclidean/", 2, 0, 0,
+	    (SCM x, SCM y),
+	    "Return the integer @var{q} and the real number @var{r}\n"
+	    "such that @math{@var{x} = @var{q}*@var{y} + @var{r}}\n"
+	    "and @math{0 <= @var{r} < abs(@var{y})}.\n"
+	    "@lisp\n"
+	    "(euclidean/ 123 10) @result{} 12 and 3\n"
+	    "(euclidean/ 123 -10) @result{} -12 and 3\n"
+	    "(euclidean/ -123 10) @result{} -13 and 7\n"
+	    "(euclidean/ -123 -10) @result{} 13 and 7\n"
+	    "(euclidean/ -123.2 -63.5) @result{} 2.0 and 3.8\n"
+	    "(euclidean/ 16/3 -10/7) @result{} -3 and 22/21\n"
+	    "@end lisp")
 #define FUNC_NAME s_scm_i_euclidean_divide
 {
-  SCM q, r;
-
-  scm_euclidean_divide(x, y, &q, &r);
-  return scm_values (scm_list_2 (q, r));
+  if (scm_is_false (scm_negative_p (y)))
+    return scm_i_floor_divide (x, y);
+  else
+    return scm_i_ceiling_divide (x, y);
 }
 #undef FUNC_NAME
-
-#define s_scm_euclidean_divide s_scm_i_euclidean_divide
-#define g_scm_euclidean_divide g_scm_i_euclidean_divide
 
 void
 scm_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)))
-    {
-      scm_t_inum xx = SCM_I_INUM (x);
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_divide);
-	  else
-	    {
-	      scm_t_inum qq = xx / yy;
-	      scm_t_inum rr = xx % yy;
-	      if (rr < 0)
-		{
-		  if (yy > 0)
-		    { rr += yy; qq--; }
-		  else
-		    { rr -= yy; qq++; }
-		}
-	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
-		*qp = SCM_I_MAKINUM (qq);
-	      else
-		*qp = scm_i_inum2big (qq);
-	      *rp = SCM_I_MAKINUM (rr);
-	    }
-	  return;
-	}
-      else if (SCM_BIGP (y))
-	{
-	  if (xx >= 0)
-	    {
-	      *qp = SCM_INUM0;
-	      *rp = x;
-	    }
-	  else if (mpz_sgn (SCM_I_BIG_MPZ (y)) > 0)
-	    {
-	      SCM r = scm_i_mkbig ();
-	      mpz_sub_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
-	      scm_remember_upto_here_1 (y);
-	      *qp = SCM_I_MAKINUM (-1);
-	      *rp = scm_i_normbig (r);
-	    }
-	  else
-	    {
-	      SCM r = scm_i_mkbig ();
-	      mpz_add_ui (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (y), -xx);
-	      scm_remember_upto_here_1 (y);
-	      mpz_neg (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r));
-	      *qp = SCM_INUM1;
-	      *rp = scm_i_normbig (r);
-	    }
-	  return;
-	}
-      else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_divide (xx, SCM_REAL_VALUE (y), qp, rp);
-      else if (SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_divide (x, y, qp, rp);
-      else
-	return two_valued_wta_dispatch_2
-	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
-	   s_scm_euclidean_divide, qp, rp);
-    }
-  else if (SCM_BIGP (x))
-    {
-      if (SCM_LIKELY (SCM_I_INUMP (y)))
-	{
-	  scm_t_inum yy = SCM_I_INUM (y);
-	  if (SCM_UNLIKELY (yy == 0))
-	    scm_num_overflow (s_scm_euclidean_divide);
-	  else
-	    {
-	      SCM q = scm_i_mkbig ();
-	      scm_t_inum rr;
-	      if (yy > 0)
-		rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
-				    SCM_I_BIG_MPZ (x), yy);
-	      else
-		{
-		  rr = mpz_fdiv_q_ui (SCM_I_BIG_MPZ (q),
-				      SCM_I_BIG_MPZ (x), -yy);
-		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
-		}
-	      scm_remember_upto_here_1 (x);
-	      *qp = scm_i_normbig (q);
-	      *rp = SCM_I_MAKINUM (rr);
-	    }
-	  return;
-	}
-      else if (SCM_BIGP (y))
-	{
-	  SCM q = scm_i_mkbig ();
-	  SCM r = scm_i_mkbig ();
-	  if (mpz_sgn (SCM_I_BIG_MPZ (y)) > 0)
-	    mpz_fdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
-			 SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-	  else
-	    mpz_cdiv_qr (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (r),
-			 SCM_I_BIG_MPZ (x), SCM_I_BIG_MPZ (y));
-	  scm_remember_upto_here_2 (x, y);
-	  *qp = scm_i_normbig (q);
-	  *rp = scm_i_normbig (r);
-	  return;
-	}
-      else if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_divide
-	  (scm_i_big2dbl (x), SCM_REAL_VALUE (y), qp, rp);
-      else if (SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_divide (x, y, qp, rp);
-      else
-	return two_valued_wta_dispatch_2
-	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
-	   s_scm_euclidean_divide, qp, rp);
-    }
-  else if (SCM_REALP (x))
-    {
-      if (SCM_REALP (y) || SCM_I_INUMP (y) ||
-	  SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_inexact_euclidean_divide
-	  (SCM_REAL_VALUE (x), scm_to_double (y), qp, rp);
-      else
-	return two_valued_wta_dispatch_2
-	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
-	   s_scm_euclidean_divide, qp, rp);
-    }
-  else if (SCM_FRACTIONP (x))
-    {
-      if (SCM_REALP (y))
-	return scm_i_inexact_euclidean_divide
-	  (scm_i_fraction2double (x), SCM_REAL_VALUE (y), qp, rp);
-      else if (SCM_I_INUMP (y) || SCM_BIGP (y) || SCM_FRACTIONP (y))
-	return scm_i_exact_rational_euclidean_divide (x, y, qp, rp);
-      else
-	return two_valued_wta_dispatch_2
-	  (g_scm_euclidean_divide, x, y, SCM_ARG2,
-	   s_scm_euclidean_divide, qp, rp);
-    }
+  if (scm_is_false (scm_negative_p (y)))
+    return scm_floor_divide (x, y, qp, rp);
   else
-    return two_valued_wta_dispatch_2 (g_scm_euclidean_divide, x, y, SCM_ARG1,
-				      s_scm_euclidean_divide, qp, rp);
-}
-
-static void
-scm_i_inexact_euclidean_divide (double x, double y, SCM *qp, SCM *rp)
-{
-  double q, r;
-
-  if (SCM_LIKELY (y > 0))
-    q = floor (x / y);
-  else if (SCM_LIKELY (y < 0))
-    q = ceil (x / y);
-  else if (y == 0)
-    scm_num_overflow (s_scm_euclidean_divide);  /* or return a NaN? */
-  else
-    q = guile_NaN;
-  r = x - q * y;
-  *qp = scm_from_double (q);
-  *rp = scm_from_double (r);
-}
-
-static void
-scm_i_exact_rational_euclidean_divide (SCM x, SCM y, SCM *qp, SCM *rp)
-{
-  SCM r1;
-  SCM xd = scm_denominator (x);
-  SCM yd = scm_denominator (y);
-
-  scm_euclidean_divide (scm_product (scm_numerator (x), yd),
-			scm_product (scm_numerator (y), xd),
-			qp, &r1);
-  *rp = scm_divide (r1, scm_product (xd, yd));
+    return scm_ceiling_divide (x, y, qp, rp);
 }
 
 static SCM scm_i_inexact_floor_quotient (double x, double y);
