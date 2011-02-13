@@ -178,10 +178,10 @@ SCM_API SCM scm_abs (SCM x);
 SCM_API SCM scm_quotient (SCM x, SCM y);
 SCM_API SCM scm_remainder (SCM x, SCM y);
 SCM_API SCM scm_modulo (SCM x, SCM y);
-SCM_API SCM scm_euclidean_divide (SCM x, SCM y);
+SCM_API void scm_euclidean_divide (SCM x, SCM y, SCM *q, SCM *r);
 SCM_API SCM scm_euclidean_quotient (SCM x, SCM y);
 SCM_API SCM scm_euclidean_remainder (SCM x, SCM y);
-SCM_API SCM scm_centered_divide (SCM x, SCM y);
+SCM_API void scm_centered_divide (SCM x, SCM y, SCM *q, SCM *r);
 SCM_API SCM scm_centered_quotient (SCM x, SCM y);
 SCM_API SCM scm_centered_remainder (SCM x, SCM y);
 SCM_API SCM scm_gcd (SCM x, SCM y);
@@ -198,6 +198,9 @@ SCM_API SCM scm_ash (SCM n, SCM cnt);
 SCM_API SCM scm_bit_extract (SCM n, SCM start, SCM end);
 SCM_API SCM scm_logcount (SCM n);
 SCM_API SCM scm_integer_length (SCM n);
+
+SCM_INTERNAL SCM scm_i_euclidean_divide (SCM x, SCM y);
+SCM_INTERNAL SCM scm_i_centered_divide (SCM x, SCM y);
 
 SCM_INTERNAL SCM scm_i_gcd (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_lcm (SCM x, SCM y, SCM rest);

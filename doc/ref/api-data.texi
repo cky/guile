@@ -1250,17 +1250,17 @@ respectively, but these functions take and return @code{double}
 values.
 @end deftypefn
 
-@deffn {Scheme Procedure} euclidean/ x y
-@deffnx {Scheme Procedure} euclidean-quotient x y
-@deffnx {Scheme Procedure} euclidean-remainder x y
-@deffnx {C Function} scm_euclidean_divide (x y)
-@deffnx {C Function} scm_euclidean_quotient (x y)
-@deffnx {C Function} scm_euclidean_remainder (x y)
+@deftypefn {Scheme Procedure} {} euclidean/ @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} euclidean-quotient @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} euclidean-remainder @var{x} @var{y}
+@deftypefnx {C Function} void scm_euclidean_divide (SCM @var{x}, SCM @var{y}, SCM *@var{q}, SCM *@var{r})
+@deftypefnx {C Function} SCM scm_euclidean_quotient (SCM @var{x}, SCM @var{y})
+@deftypefnx {C Function} SCM scm_euclidean_remainder (SCM @var{x}, SCM @var{y})
 These procedures accept two real numbers @var{x} and @var{y}, where the
 divisor @var{y} must be non-zero.  @code{euclidean-quotient} returns the
 integer @var{q} and @code{euclidean-remainder} returns the real number
 @var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
-@math{0 <= @var{r} < abs(@var{y})}.  @code{euclidean/} returns both @var{q} and
+@math{0 <= @var{r} < |@var{y}|}.  @code{euclidean/} returns both @var{q} and
 @var{r}, and is more efficient than computing each separately.  Note
 that when @math{@var{y} > 0}, @code{euclidean-quotient} returns
 @math{floor(@var{x}/@var{y})}, otherwise it returns
@@ -1279,19 +1279,19 @@ Note that these operators are equivalent to the R6RS operators
 (euclidean/ -123.2 -63.5) @result{} 2.0 and 3.8
 (euclidean/ 16/3 -10/7) @result{} -3 and 22/21
 @end lisp
-@end deffn
+@end deftypefn
 
-@deffn {Scheme Procedure} centered/ x y
-@deffnx {Scheme Procedure} centered-quotient x y
-@deffnx {Scheme Procedure} centered-remainder x y
-@deffnx {C Function} scm_centered_divide (x y)
-@deffnx {C Function} scm_centered_quotient (x y)
-@deffnx {C Function} scm_centered_remainder (x y)
+@deftypefn {Scheme Procedure} {} centered/ @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} centered-quotient @var{x} @var{y}
+@deftypefnx {Scheme Procedure} {} centered-remainder @var{x} @var{y}
+@deftypefnx {C Function} void scm_centered_divide (SCM @var{x}, SCM @var{y}, SCM *@var{q}, SCM *@var{r})
+@deftypefnx {C Function} SCM scm_centered_quotient (SCM @var{x}, SCM @var{y})
+@deftypefnx {C Function} SCM scm_centered_remainder (SCM @var{x}, SCM @var{y})
 These procedures accept two real numbers @var{x} and @var{y}, where the
 divisor @var{y} must be non-zero.  @code{centered-quotient} returns the
 integer @var{q} and @code{centered-remainder} returns the real number
 @var{r} such that @math{@var{x} = @var{q}*@var{y} + @var{r}} and
-@math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.  @code{centered/}
+@math{-|@var{y}/2| <= @var{r} < |@var{y}/2|}.  @code{centered/}
 returns both @var{q} and @var{r}, and is more efficient than computing
 each separately.
 
@@ -1300,7 +1300,8 @@ rounded to the nearest integer.  When @math{@var{x}/@var{y}} lies
 exactly half-way between two integers, the tie is broken according to
 the sign of @var{y}.  If @math{@var{y} > 0}, ties are rounded toward
 positive infinity, otherwise they are rounded toward negative infinity.
-This is a consequence of the requirement that @math{-abs(@var{y}/2) <= @var{r} < abs(@var{y}/2)}.
+This is a consequence of the requirement that
+@math{-|@var{y}/2| <= @var{r} < |@var{y}/2|}.
 
 Note that these operators are equivalent to the R6RS operators
 @code{div0}, @code{mod0}, and @code{div0-and-mod0}.
@@ -1315,7 +1316,7 @@ Note that these operators are equivalent to the R6RS operators
 (centered/ -123.2 -63.5) @result{} 2.0 and 3.8
 (centered/ 16/3 -10/7) @result{} -4 and -8/21
 @end lisp
-@end deffn
+@end deftypefn
 
 @node Scientific
 @subsubsection Scientific Functions
