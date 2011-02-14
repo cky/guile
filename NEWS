@@ -74,281 +74,6 @@ which yields 5.0+0.0i.  Previously it did the equivalent of:
 which yielded 5.0.
 
 
-Changes in 1.9.15 (since the 1.9.14 prerelease):
-
-** Formally deprecate omission of port to `format'
-    
-It used to be that you could omit passing a port to `format', in some
-cases.  This still works, but has been formally deprecated.
-    
-** ECMAScript fixes
-
-Noah Lavine and Kan-Ru Chen noticed and fixed a number of embarrassing
-bugs in object creation, unicode literals in strings, empty function
-bodies, non-breaking whitespace, and numeric literals.
-
-** `(web ...)' changes
-
-*** `parse-uri', `unparse-uri' now called `string->uri', `uri->string'
-    
-*** `uri-decode' takes `#:encoding' keyword argument, not `#:charset'
-
-*** HTTP header representation change
-
-Guile properly garbage-collects symbols, so there's no need to read some
-headers as symbols and some as strings: all header names are symbols
-now.  The same goes for many key-value constructs in headers.  Guile
-parses the challenge/authentication headers now, as well.  Header decl
-objects are no longer exposed to the user.
-
-*** Request and response bodies are always bytevectors
-
-Reading bodies as latin-1 strings was a cute hack, but not general, so
-Guile's only official fetch-me-the-body procedures return bytevectors
-now.
-
-** New procedures: scm_{to,from}_{utf8,latin1}_symbol{n,}
-** New procedures: scm_{to,from}_{utf8,utf32,latin1}_symbol{n,}
-    
-These new procedures convert to and from string representations in
-particular encodings.
-
-Basically, continue to use locale encoding for user input, user output,
-or interacting with the C library.  Use latin1 for ASCII, and for
-literals in source code.  Use utf8 for interaction with modern libraries
-which deal in UTF-8.  Use utf32 for interaction with utf32-using
-libraries.  Otherwise use scm_to_stringn or scm_from_stringn with a
-specific encoding.
-
-Also, scm_from_latin1_symbol is quite a bit faster now.
-
-** Documentation updates
-
-The GOOPS manual saw a lot of work, as well as documentation for the
-`(web ...)' modules.
-
-** Guile uses iconv directly for reading from and writing to ports.
-
-In addition to providing faster Unicode I/O (e.g., `display',
-`read-char'), this change improves error reporting.
-
-For instance, the `encoding-error' exception conveys information about
-the port and character that could not be encoded.  Likewise, the new
-`decoding-error' exception conveys information about the port from which
-data failed to be decoded, and leaves the port in a known position.
-
-** Source files default to UTF-8.
-
-If source files do not specify their encoding via a `coding:' block,
-the default encoding is UTF-8, instead of being taken from the current
-locale.
-
-** Man page updates
-
-Thanks to Mark Harig for many suggestions regarding the manual page,
-which is getting better.
-
-** Interactive Guile installs the current locale.
-    
-Instead of leaving the user in the "C" locale, running the Guile REPL
-installs the current locale.  [FIXME xref?]
-
-** `recv!', `recvfrom!', `send', `sendto' now deal in bytevectors
-
-These socket procedures now take bytevectors as arguments, instead of
-strings.  There is some deprecated string support, however.
-
-** New foreign API: `define-wrapped-pointer-type', `pointer?'
-    
-See "Foreign Types", for more.
-
-** Changes and bugfixes in numerics code
-
-*** Added two new sets of fast quotient and remainder operators
-
-Added two new sets of fast quotient and remainder operator pairs with
-different semantics than the R5RS operators.  They support not only
-integers, but all reals, including exact rationals and inexact
-floating point numbers.
-
-These procedures accept two real numbers N and D, where the divisor D
-must be non-zero.  `euclidean-quotient' returns the integer Q and
-`euclidean-remainder' returns the real R such that N = Q*D + R and
-0 <= R < |D|.  `euclidean/' returns both Q and R, and is more
-efficient than computing each separately.  Note that when D > 0,
-`euclidean-quotient' returns floor(N/D), and when D < 0 it returns
-ceiling(N/D).
-
-`centered-quotient', `centered-remainder', and `centered/' are similar
-except that the range of remainders is -abs(D/2) <= R < abs(D/2), and
-`centered-quotient' rounds N/D to the nearest integer.
-
-Note that these operators are equivalent to the R6RS integer division
-operators `div', `mod', `div-and-mod', `div0', `mod0', and
-`div0-and-mod0'.
-
-*** Complex number changes
-
-Guile is now able to represent non-real complex numbers whose
-imaginary part is an _inexact_ zero (0.0 or -0.0), per R6RS.
-Previously, such numbers were immediately changed into inexact reals.
-
-(real? 0.0+0.0i) now returns #f, per R6RS, although (zero? 0.0+0.0i)
-still returns #t, per R6RS.  (= 0 0.0+0.0i) and (= 0.0 0.0+0.0i) are
-#t, but the same comparisons using `eqv?' or `equal?' are #f.
-
-Like other non-real numbers, these complex numbers with inexact zero
-imaginary part will raise exceptions is passed to procedures requiring
-reals, such as `<', `>', `<=', `>=', `min', `max', `positive?',
-`negative?', `inf?', `nan?', `finite?', etc.
-
-**** `make-rectangular' changes
-
-scm_make_rectangular `make-rectangular' now returns a real number only
-if the imaginary part is an _exact_ 0.  Previously, it would return a
-real number if the imaginary part was an inexact zero.
-
-scm_c_make_rectangular now always returns a non-real complex number,
-even if the imaginary part is zero.  Previously, it would return a
-real number if the imaginary part was zero.
-
-**** `make-polar' changes
-
-scm_make_polar `make-polar' now returns a real number only if the
-angle or magnitude is an _exact_ 0.  If the magnitude is an exact 0,
-it now returns an exact 0.  Previously, it would return a real
-number if the imaginary part was an inexact zero.
-
-scm_c_make_polar now always returns a non-real complex number, even if
-the imaginary part is 0.0.  Previously, it would return a real number
-if the imaginary part was 0.0.
-
-**** `imag-part' changes
-
-scm_imag_part `imag-part' now returns an exact 0 if applied to an
-inexact real number.  Previously it returned an inexact zero in this
-case.
-
-*** `eqv?' and `equal?' now compare numbers equivalently
-
-scm_equal_p `equal?' now behaves equivalently to scm_eqv_p `eqv?' for
-numeric values, per R5RS.  Previously, equal? worked differently,
-e.g. `(equal? 0.0 -0.0)' returned #t but `(eqv? 0.0 -0.0)' returned #f,
-and `(equal? +nan.0 +nan.0)' returned #f but `(eqv? +nan.0 +nan.0)'
-returned #t.
-
-*** `(equal? +nan.0 +nan.0)' now returns #t
-
-Previously, `(equal? +nan.0 +nan.0)' returned #f, although
-`(let ((x +nan.0)) (equal? x x))' and `(eqv? +nan.0 +nan.0)'
-both returned #t.  R5RS requires that `equal?' behave like
-`eqv?' when comparing numbers.
-
-*** Change in handling products `*' involving exact 0
-
-scm_product `*' now handles exact 0 differently.  A product containing
-an exact 0 now returns an exact 0 if and only if the other arguments
-are all exact.  An inexact zero is returned if and only if the other
-arguments are all finite but not all exact.  If an infinite or NaN
-value is present, a NaN value is returned.  Previously, any product
-containing an exact 0 yielded an exact 0, regardless of the other
-arguments.
-
-*** `expt' and `integer-expt' changes when the base is 0
-
-While `(expt 0 0)' is still 1, and `(expt 0 N)' for N > 0 is still
-zero, `(expt 0 N)' for N < 0 is now a NaN value, and likewise for
-integer-expt.  This is more correct, and conforming to R6RS, but seems
-to be incompatible with R5RS, which would return 0 for all non-zero
-values of N.
-
-*** `expt' and `integer-expt' are more generic, less strict
-
-When raising to an exact non-negative integer exponent, `expt' and
-`integer-expt' are now able to exponentiate any object that can be
-multiplied using `*'.  They can also raise an object to an exact
-negative integer power if its reciprocal can be taken using `/'.
-In order to allow this, the type of the first argument is no longer
-checked when raising to an exact integer power.  If the exponent is 0
-or 1, the first parameter is not manipulated at all, and need not
-even support multiplication.
-
-*** Infinities are no longer integers, nor rationals
-
-scm_integer_p `integer?' and scm_rational_p `rational?' now return #f
-for infinities, per R6RS.  Previously they returned #t for real
-infinities.  The real infinities and NaNs are still considered real by
-scm_real `real?' however, per R6RS.
-
-*** NaNs are no longer rationals
-
-scm_rational_p `rational?' now returns #f for NaN values, per R6RS.
-Previously it returned #t for real NaN values.  They are still
-considered real by scm_real `real?' however, per R6RS.
-
-*** `inf?' and `nan?' now throw exceptions for non-reals
-
-The domain of `inf?' and `nan?' is the real numbers.  Guile now signals
-an error when a non-real number or non-number is passed to these
-procedures.  (Note that NaNs _are_ considered numbers by scheme, despite
-their name).
-
-*** `rationalize' bugfixes and changes
-
-Fixed bugs in scm_rationalize `rationalize'.  Previously, it returned
-exact integers unmodified, although that was incorrect if the epsilon
-was at least 1 or inexact, e.g. (rationalize 4 1) should return 3 per
-R5RS and R6RS, but previously it returned 4.  It also now handles
-cases involving infinities and NaNs properly, per R6RS.
-
-*** Trigonometric functions now return exact numbers in some cases
-
-scm_sin `sin', scm_cos `cos', scm_tan `tan', scm_asin `asin', scm_acos
-`acos', scm_atan `atan', scm_sinh `sinh', scm_cosh `cosh', scm_tanh
-`tanh', scm_sys_asinh `asinh', scm_sys_acosh `acosh', and
-scm_sys_atanh `atanh' now return exact results in some cases.
-
-*** New procedure: `finite?'
-
-Add scm_finite_p `finite?' from R6RS to guile core, which returns #t
-if and only if its argument is neither infinite nor a NaN.  Note that
-this is not the same as (not (inf? x)) or (not (infinite? x)), since
-NaNs are neither finite nor infinite.
-
-*** R6RS base library changes
-
-**** `div', `mod', `div-and-mod', `div0', `mod0', `div0-and-mod0'
-
-Efficient versions of these R6RS division operators are now supported.
-See the NEWS entry entitled `Added two new sets of fast quotient and
-remainder operators' for more information.
-
-**** `infinite?' changes
-
-`infinite?' and `finite?' now throw exceptions for non-numbers.  (Note
-that NaNs _are_ considered numbers by scheme, despite their name).
-
-**** `real-valued?', `rational-valued?' and `integer-valued?' changes
-
-These predicates are now implemented in accordance with R6RS.
-
-** R6RS textual I/O procedures raise R6RS error conditions
-
-R6RS procedures `get-char', `put-string', etc. now raise the correct
-R6RS error coding, i.e., `&i/o-decoding-error' or `&i/o-encoding-error'.
-
-** New reader option: `hungry-eol-escapes'
-
-Guile's string syntax is more compatible with R6RS when the
-`hungry-eol-escapes' option is enabled.  See "String Syntax" in the
-manual, for more information.
-
-** And of course, the usual collection of bugfixes
- 
-Interested users should see the ChangeLog for more information.
-
-
-
 Changes in 1.9.x (since the 1.8.x series):
 
 * New modules (see the manual for details)
@@ -447,7 +172,8 @@ The guile binary now supports a new switch "-x", which can be used to
 extend the list of filename extensions tried when loading files
 (%load-extensions).
 
-** New reader options: `square-brackets' and `r6rs-hex-escapes'
+** New reader options: `square-brackets', `r6rs-hex-escapes',
+   `hungry-eol-escapes'
 
 The reader supports a new option (changeable via `read-options'),
 `square-brackets', which instructs it to interpret square brackets as
@@ -457,6 +183,11 @@ When the new `r6rs-hex-escapes' reader option is enabled, the reader
 will recognize string escape sequences as defined in R6RS.  R6RS string
 escape sequences are incompatible with Guile's existing escapes, though,
 so this option is off by default.
+
+Additionally, Guile follows the R6RS newline escaping rules when the
+`hungry-eol-escapes' option is enabled.
+
+See "String Syntax" in the manual, for more information.
 
 ** Function profiling and tracing at the REPL
     
@@ -634,6 +365,11 @@ Scheme binding for the `getaddrinfo' C library function.
 Support was added for the IP_MULTICAST_TTL and IP_MULTICAST_IF socket
 options.  See "Network Sockets and Communication" in the manual, for
 more information.
+
+** `recv!', `recvfrom!', `send', `sendto' now deal in bytevectors
+
+These socket procedures now take bytevectors as arguments, instead of
+strings.  There is some deprecated string support, however.
 
 ** New GNU procedures: `setaffinity' and `getaffinity'.
     
@@ -1239,6 +975,11 @@ compatibility purposes. No semantic change has been made (we hope).
 Optional and keyword arguments now dispatch via special VM operations,
 without the need to cons rest arguments, making them very fast.
 
+** New syntax: define-once
+
+`define-once' is like Lisp's `defvar': it creates a toplevel binding,
+but only if one does not exist already.
+
 ** New function, `truncated-print', with `format' support
 
 `(ice-9 pretty-print)' now exports `truncated-print', a printer that
@@ -1260,6 +1001,9 @@ macros like `quote' are printed better.
 The `format' procedure in `(ice-9 format)' now emits a deprecation
 warning if a number is passed as its first argument.
 
+Also, it used to be that you could omit passing a port to `format', in
+some cases.  This still works, but has been formally deprecated.
+    
 ** SRFI-4 vectors reimplemented in terms of R6RS bytevectors
 
 Guile now implements SRFI-4 vectors using bytevectors. Often when you
@@ -1314,6 +1058,198 @@ implementation.
 `*unspecified*' is no longer a variable, so it is optimized properly by
 the compiler, and is not `set!'-able.
 
+** Changes and bugfixes in numerics code
+
+*** Added six new sets of fast quotient and remainder operators
+
+Added six new sets of fast quotient and remainder operator pairs with
+different semantics than the R5RS operators.  They support not only
+integers, but all reals, including exact rationals and inexact
+floating point numbers.
+
+These procedures accept two real numbers N and D, where the divisor D
+must be non-zero.  Each set of operators computes an integer quotient
+Q and a real remainder R such that N = Q*D + R and |R| < |D|.  They
+differ only in how N/D is rounded to produce Q.
+
+`euclidean-quotient' returns the integer Q and `euclidean-remainder'
+returns the real R such that N = Q*D + R and 0 <= R < |D|.  `euclidean/'
+returns both Q and R, and is more efficient than computing each
+separately.  Note that when D > 0, `euclidean-quotient' returns
+floor(N/D), and when D < 0 it returns ceiling(N/D).
+
+`centered-quotient', `centered-remainder', and `centered/' are similar
+except that the range of remainders is -abs(D/2) <= R < abs(D/2), and
+`centered-quotient' rounds N/D to the nearest integer.  Note that these
+operators are equivalent to the R6RS integer division operators `div',
+`mod', `div-and-mod', `div0', `mod0', and `div0-and-mod0'.
+
+`floor-quotient' and `floor-remainder' compute Q and R, respectively,
+where Q has been rounded toward negative infinity.  `floor/' returns
+both Q and R, and is more efficient than computing each separately.
+Note that when applied to integers, `floor-remainder' is equivalent to
+the R5RS integer-only `modulo' operator.  `ceiling-quotient',
+`ceiling-remainder', and `ceiling/' are similar except that Q is
+rounded toward positive infinity.
+
+For `truncate-quotient', `truncate-remainder', and `truncate/', Q is
+rounded toward zero.  Note that when applied to integers,
+`truncate-quotient' and `truncate-remainder' are equivalent to the
+R5RS integer-only operators `quotient' and `remainder'.
+
+For `round-quotient', `round-remainder', and `round/', Q is rounded to
+the nearest integer, with ties going to the nearest even integer.
+
+*** Complex number changes
+
+Guile is now able to represent non-real complex numbers whose
+imaginary part is an _inexact_ zero (0.0 or -0.0), per R6RS.
+Previously, such numbers were immediately changed into inexact reals.
+
+(real? 0.0+0.0i) now returns #f, per R6RS, although (zero? 0.0+0.0i)
+still returns #t, per R6RS.  (= 0 0.0+0.0i) and (= 0.0 0.0+0.0i) are
+#t, but the same comparisons using `eqv?' or `equal?' are #f.
+
+Like other non-real numbers, these complex numbers with inexact zero
+imaginary part will raise exceptions is passed to procedures requiring
+reals, such as `<', `>', `<=', `>=', `min', `max', `positive?',
+`negative?', `inf?', `nan?', `finite?', etc.
+
+**** `make-rectangular' changes
+
+scm_make_rectangular `make-rectangular' now returns a real number only
+if the imaginary part is an _exact_ 0.  Previously, it would return a
+real number if the imaginary part was an inexact zero.
+
+scm_c_make_rectangular now always returns a non-real complex number,
+even if the imaginary part is zero.  Previously, it would return a
+real number if the imaginary part was zero.
+
+**** `make-polar' changes
+
+scm_make_polar `make-polar' now returns a real number only if the
+angle or magnitude is an _exact_ 0.  If the magnitude is an exact 0,
+it now returns an exact 0.  Previously, it would return a real
+number if the imaginary part was an inexact zero.
+
+scm_c_make_polar now always returns a non-real complex number, even if
+the imaginary part is 0.0.  Previously, it would return a real number
+if the imaginary part was 0.0.
+
+**** `imag-part' changes
+
+scm_imag_part `imag-part' now returns an exact 0 if applied to an
+inexact real number.  Previously it returned an inexact zero in this
+case.
+
+*** `eqv?' and `equal?' now compare numbers equivalently
+
+scm_equal_p `equal?' now behaves equivalently to scm_eqv_p `eqv?' for
+numeric values, per R5RS.  Previously, equal? worked differently,
+e.g. `(equal? 0.0 -0.0)' returned #t but `(eqv? 0.0 -0.0)' returned #f,
+and `(equal? +nan.0 +nan.0)' returned #f but `(eqv? +nan.0 +nan.0)'
+returned #t.
+
+*** `(equal? +nan.0 +nan.0)' now returns #t
+
+Previously, `(equal? +nan.0 +nan.0)' returned #f, although
+`(let ((x +nan.0)) (equal? x x))' and `(eqv? +nan.0 +nan.0)'
+both returned #t.  R5RS requires that `equal?' behave like
+`eqv?' when comparing numbers.
+
+*** Change in handling products `*' involving exact 0
+
+scm_product `*' now handles exact 0 differently.  A product containing
+an exact 0 now returns an exact 0 if and only if the other arguments
+are all exact.  An inexact zero is returned if and only if the other
+arguments are all finite but not all exact.  If an infinite or NaN
+value is present, a NaN value is returned.  Previously, any product
+containing an exact 0 yielded an exact 0, regardless of the other
+arguments.
+
+*** `expt' and `integer-expt' changes when the base is 0
+
+While `(expt 0 0)' is still 1, and `(expt 0 N)' for N > 0 is still
+zero, `(expt 0 N)' for N < 0 is now a NaN value, and likewise for
+integer-expt.  This is more correct, and conforming to R6RS, but seems
+to be incompatible with R5RS, which would return 0 for all non-zero
+values of N.
+
+*** `expt' and `integer-expt' are more generic, less strict
+
+When raising to an exact non-negative integer exponent, `expt' and
+`integer-expt' are now able to exponentiate any object that can be
+multiplied using `*'.  They can also raise an object to an exact
+negative integer power if its reciprocal can be taken using `/'.
+In order to allow this, the type of the first argument is no longer
+checked when raising to an exact integer power.  If the exponent is 0
+or 1, the first parameter is not manipulated at all, and need not
+even support multiplication.
+
+*** Infinities are no longer integers, nor rationals
+
+scm_integer_p `integer?' and scm_rational_p `rational?' now return #f
+for infinities, per R6RS.  Previously they returned #t for real
+infinities.  The real infinities and NaNs are still considered real by
+scm_real `real?' however, per R6RS.
+
+*** NaNs are no longer rationals
+
+scm_rational_p `rational?' now returns #f for NaN values, per R6RS.
+Previously it returned #t for real NaN values.  They are still
+considered real by scm_real `real?' however, per R6RS.
+
+*** `inf?' and `nan?' now throw exceptions for non-reals
+
+The domain of `inf?' and `nan?' is the real numbers.  Guile now signals
+an error when a non-real number or non-number is passed to these
+procedures.  (Note that NaNs _are_ considered numbers by scheme, despite
+their name).
+
+*** `rationalize' bugfixes and changes
+
+Fixed bugs in scm_rationalize `rationalize'.  Previously, it returned
+exact integers unmodified, although that was incorrect if the epsilon
+was at least 1 or inexact, e.g. (rationalize 4 1) should return 3 per
+R5RS and R6RS, but previously it returned 4.  It also now handles
+cases involving infinities and NaNs properly, per R6RS.
+
+*** Trigonometric functions now return exact numbers in some cases
+
+scm_sin `sin', scm_cos `cos', scm_tan `tan', scm_asin `asin', scm_acos
+`acos', scm_atan `atan', scm_sinh `sinh', scm_cosh `cosh', scm_tanh
+`tanh', scm_sys_asinh `asinh', scm_sys_acosh `acosh', and
+scm_sys_atanh `atanh' now return exact results in some cases.
+
+*** New procedure: `finite?'
+
+Add scm_finite_p `finite?' from R6RS to guile core, which returns #t
+if and only if its argument is neither infinite nor a NaN.  Note that
+this is not the same as (not (inf? x)) or (not (infinite? x)), since
+NaNs are neither finite nor infinite.
+
+*** Improved exactness handling for complex number parsing
+
+When parsing non-real complex numbers, exactness specifiers are now
+applied to each component, as is done in PLT Scheme.  For complex
+numbers written in rectangular form, exactness specifiers are applied
+to the real and imaginary parts before calling scm_make_rectangular.
+For complex numbers written in polar form, exactness specifiers are
+applied to the magnitude and angle before calling scm_make_polar.
+
+Previously, exactness specifiers were applied to the number as a whole
+_after_ calling scm_make_rectangular or scm_make_polar.
+
+For example, (string->number "#i5.0+0i") now does the equivalent of:
+
+  (make-rectangular (exact->inexact 5.0) (exact->inexact 0))
+
+which yields 5.0+0.0i.  Previously it did the equivalent of:
+
+  (exact->inexact (make-rectangular 5.0 0))
+
+which yielded 5.0.
+
 ** Unicode characters
 
 Unicode characters may be entered in octal format via e.g. `#\454', or
@@ -1347,6 +1283,17 @@ of Source Files".
 The pre-1.9.3 reader handled 8-bit clean but otherwise unspecified source
 code.  This use is now discouraged.  Binary input and output is
 currently supported by opening ports in the ISO-8859-1 locale.
+
+** Source files default to UTF-8.
+
+If source files do not specify their encoding via a `coding:' block,
+the default encoding is UTF-8, instead of being taken from the current
+locale.
+
+** Interactive Guile installs the current locale.
+    
+Instead of leaving the user in the "C" locale, running the Guile REPL
+installs the current locale.  [FIXME xref?]
 
 ** Support for locale transcoding when reading from and writing to ports
 
@@ -1673,6 +1620,14 @@ should use Guile with Emacs.
 crazy. Please change to use `catch', possibly with a throw-handler, or
 `with-throw-handler'.
 
+** Deprecated: primitive properties
+
+The `primitive-make-property', `primitive-property-set!',
+`primitive-property-ref', and `primitive-property-del!' procedures were
+crufty and only used to implement object properties, which has a new,
+threadsafe implementation.  Use object properties or weak hash tables
+instead.
+
 ** Deprecated `@bind' syntax
 
 `@bind' was part of an older implementation of the Emacs Lisp language,
@@ -1680,13 +1635,14 @@ and is no longer used.
     
 ** Miscellaneous other deprecations
 
-`apply-to-args', `has-suffix?', `scheme-file-suffix'
-`get-option', `for-next-option', `display-usage-report',
-`transform-usage-lambda', `collect', `set-batch-mode?!',
-
 `cuserid' has been deprecated, as it only returns 8 bytes of a user's
 login.  Use `(passwd:name (getpwuid (geteuid)))' instead.
     
+Additionally, the procedures `apply-to-args', `has-suffix?', `scheme-file-suffix'
+`get-option', `for-next-option', `display-usage-report',
+`transform-usage-lambda', `collect', and `set-batch-mode?!' have all
+been deprecated.
+
 ** Add support for unbound fluids
     
 See `make-unbound-fluid', `fluid-unset!', and `fluid-bound?' in the
@@ -1709,15 +1665,23 @@ backward-compatible way.  A new allocation routine,
 Libgc is a conservative GC, which we hope will make interaction with C
 code easier and less error-prone.
 
-** New procedures: `scm_to_latin1_stringn', `scm_from_latin1_stringn'
-
-Use these procedures when you know you have latin1-encoded or
-ASCII-encoded strings.
-
 ** New procedures: `scm_to_stringn', `scm_from_stringn'
+** New procedures: scm_{to,from}_{utf8,latin1}_symbol{n,}
+** New procedures: scm_{to,from}_{utf8,utf32,latin1}_string{n,}
+    
+These new procedures convert to and from string representations in
+particular encodings.
 
-Use these procedures if you want to encode or decode from a particular
-locale.
+Users should continue to use locale encoding for user input, user
+output, or interacting with the C library.
+
+Use the Latin-1 functions for ASCII, and for literals in source code.
+
+Use UTF-8 functions for interaction with modern libraries which deal in
+UTF-8, and UTF-32 for interaction with utf32-using libraries.
+
+Otherwise, use scm_to_stringn or scm_from_stringn with a specific
+encoding.
 
 ** New type definitions for `scm_t_intptr' and friends.
 
