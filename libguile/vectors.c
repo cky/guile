@@ -533,7 +533,7 @@ SCM_DEFINE (scm_vector_move_left_x, "vector-move-left!", 5, 0, 0,
 
   i = scm_to_unsigned_integer (start1, 0, len1);
   e = scm_to_unsigned_integer (end1, i, len1);
-  SCM_ASSERT_RANGE (SCM_ARG3, end1, (e-i) < len2);
+  SCM_ASSERT_RANGE (SCM_ARG3, end1, (e-i) <= len2);
   j = scm_to_unsigned_integer (start2, 0, len2);
   SCM_ASSERT_RANGE (SCM_ARG5, start2, j <= len2 - (e - i));
   
@@ -573,7 +573,7 @@ SCM_DEFINE (scm_vector_move_right_x, "vector-move-right!", 5, 0, 0,
 
   i = scm_to_unsigned_integer (start1, 0, len1);
   e = scm_to_unsigned_integer (end1, i, len1);
-  SCM_ASSERT_RANGE (SCM_ARG3, end1, (e-i) < len2);
+  SCM_ASSERT_RANGE (SCM_ARG3, end1, (e-i) <= len2);
   j = scm_to_unsigned_integer (start2, 0, len2);
   SCM_ASSERT_RANGE (SCM_ARG5, start2, j <= len2 - (e - i));
   
