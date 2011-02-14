@@ -1,23 +1,39 @@
 Contributors since the last release:
 
-	    Jim Bender
-	    Rob Browning
+        Tristan Colgate-McFarlane
         Ludovic Courtès
+          Brian Gough
+         Volker Grabsch
          Julian Graham
-	   Mike Gran
-	   Mark Harig
-         Stefan Jahn
+        Michael Gran
+             No Itisnt
            Neil Jerram
+         Daniel Kraft
+           Noah Lavine
         Gregory Marton
-        Antoine Mathys
       Thien-Thi Nguyen
         Han-Wen Nienhuys
+            Jan Nieuwenhuizen
+        Keisuke Nishida
          Jose A Ortega Ruiz
-	  Kevin Ryde
-	   Bill Schottstaedt
+            Ian Price
+            Ken Raeburn
+        Andreas Rottmann
+          Kevin Ryde
+          Brian Templeton
+         Mark H Weaver
+          Göran Weinholt
+           Ralf Wildenhues
+           Andy Wingo
+
+Authors of free software libraries that have been included into Guile
+since the last release:
+
+	    Jim Bender
+	    Rob Browning
+           Oleg Kiselyov
 	   Alex Shinn
         Richard Todd
-           Andy Wingo
 
 For fixes or providing information which led to a fix:
 
@@ -58,6 +74,7 @@ For fixes or providing information which led to a fix:
          Szavai Gyula
          Roland Haeder
 	  Bruno Haible
+	   Mark Harig
 	   Sven Hartrumpf
 	   Eric Hanchrow
 	   Judy Hawkins
