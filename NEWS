@@ -572,11 +572,9 @@ In this specific case, it would be better to do:
 
   (define foo (if test 'bar 'baz))
 
-It is certainly possible to circumvent this resriction with e.g.
-`(module-define! (current-module) 'foo 'baz)'. We would appreciate
-feedback about this change (a consequence of using psyntax as the
-default expander), and may choose to revisit this situation before 2.0
-in response to user feedback.
+It is possible to circumvent this restriction with e.g.
+`(module-define! (current-module) 'foo 'baz)'.  Contact the list if you
+have any questions.
 
 ** Support for `letrec*'
 
