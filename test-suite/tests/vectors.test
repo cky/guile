@@ -1,6 +1,6 @@
 ;;;; vectors.test --- test suite for Guile's vector functions -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2003, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -97,6 +97,12 @@
        (vector-move-left! a 3 5 b 7)
        (equal? b #(10 20 30 40 50 60 70 4 5))))
 
+  (pass-if "whole thing"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+       (vector-move-left! a 0 9 b 0)
+       (equal? b #(1 2 3 4 5 6 7 8 9))))
+
   (pass-if-exception "past end" exception:out-of-range
     (let ((a (vector 1 2 3 4 5 6 7 8 9))
           (b (vector 10 20 30 40 50 60 70 80 90)))
@@ -136,6 +142,12 @@
           (b (vector 10 20 30 40 50 60 70 80 90)))
        (vector-move-right! a 3 5 b 7)
        (equal? b #(10 20 30 40 50 60 70 4 5))))
+
+  (pass-if "whole thing"
+    (let ((a (vector 1 2 3 4 5 6 7 8 9))
+          (b (vector 10 20 30 40 50 60 70 80 90)))
+       (vector-move-right! a 0 9 b 0)
+       (equal? b #(1 2 3 4 5 6 7 8 9))))
 
   (pass-if-exception "past end" exception:out-of-range
     (let ((a (vector 1 2 3 4 5 6 7 8 9))
