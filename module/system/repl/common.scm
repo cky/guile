@@ -159,9 +159,8 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 (define (repl-compile repl form)
   (let ((from (repl-language repl))
         (opts (repl-compile-options repl)))
-    (with-fluids ((*current-warning-prefix* ""))  ; XXX: Keep ";;; "?
-      (compile form #:from from #:to 'objcode #:opts opts
-               #:env (current-module)))))
+    (compile form #:from from #:to 'objcode #:opts opts
+             #:env (current-module))))
 
 (define (repl-parse repl form)
   (let ((parser (language-parser (repl-language repl))))
