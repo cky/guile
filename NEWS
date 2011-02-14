@@ -10,6 +10,59 @@ latest prerelease, and a full NEWS corresponding to 1.8 -> 2.0.
 
 Changes since the 1.9.15 prerelease:
 
+** `unquote' and `unquote-splicing' accept multiple expressions
+    
+As per the R6RS, these syntax operators can now accept any number of
+expressions to unquote.
+
+** `getopt-long' parsing errors throw to `quit', not `misc-error'
+
+This change should inhibit backtraces on argument parsing errors.
+`getopt-long' has been modified to print out the error that it throws
+itself.
+
+** New helpers: `print-exception', `set-exception-printer!'
+
+These functions implement an extensible exception printer.  Guile
+registers printers for all of the exceptions it throws.  Users may add
+their own printers.  There is also `scm_print_exception', for use by C
+programs.  Pleasantly, this allows SRFI-35 and R6RS exceptions to be
+printed appropriately.
+
+** `positions' reader option enabled by default
+    
+This change allows primitive-load without --auto-compile to also
+propagate source information through the expander, for better errors and
+to let macros know their source locations.  The compiler was already
+turning it on anyway.
+
+** `load' is a macro (!) that resolves paths relative to source file dir
+    
+The familiar Schem `load' procedure is now a macro that captures the
+name of the source file being expanded, and dispatches to the new
+`load-in-vicinity'.  Referencing `load' by bare name returns a closure
+that embeds the current source file name.
+
+This fix allows `load' of relative paths to be resolved with respect to
+the location of the file that calls `load'.
+
+** "autocompile" -> "auto-compile"
+
+The "--autocompile" and "--no-autocompile" arguments were renamed to
+have a dash, for consistency with the GUILE_AUTO_COMPILE environment
+variable, and with common conventions.  A number of variables were also
+appropriately renamed.
+    
+** `scm_primitive_load' defaults to UTF-8, not Latin-1
+    
+Like `compile-file', `primitive-load' now defaults to UTF-8.
+
+** Warning now available for auto-compiled files.
+
+See the `%auto-compilation-options' variable.  Warnings at
+auto-compilation time are preceded with the `*current-warning-prefix*'
+(a fluid).
+    
 ** Deprecated: primitive properties
 
 The `primitive-make-property', `primitive-property-set!',
@@ -670,6 +723,11 @@ subsequent datum: #'foo => foo. In the unlikely event that anyone
 actually used this, this behavior may be reinstated via the
 `read-hash-extend' mechanism.
 
+** `unquote' and `unquote-splicing' accept multiple expressions
+    
+As per the R6RS, these syntax operators can now accept any number of
+expressions to unquote.
+
 ** Scheme expresssions may be commented out with #;
 
 #; comments out an entire expression.  See SRFI-62 or the R6RS for more
@@ -704,6 +762,13 @@ Similarly to the previous issue, backtraces in compiled code may be
 different from backtraces in interpreted code. There are no semantic
 differences, however. Please mail bug-guile@gnu.org if you see any
 deficiencies with Guile's backtraces.
+
+** `positions' reader option enabled by default
+    
+This change allows primitive-load without --auto-compile to also
+propagate source information through the expander, for better errors and
+to let macros know their source locations.  The compiler was already
+turning it on anyway.
 
 ** New macro: `current-source-location'
 
@@ -798,6 +863,16 @@ It takes a few procedure calls to define a module, and those procedure
 calls need to be in scope. Now we ensure that the current module when
 loading a module is one that has the needed bindings, instead of relying
 on chance.
+
+** `load' is a macro (!) that resolves paths relative to source file dir
+    
+The familiar Schem `load' procedure is now a macro that captures the
+name of the source file being expanded, and dispatches to the new
+`load-in-vicinity'.  Referencing `load' by bare name returns a closure
+that embeds the current source file name.
+
+This fix allows `load' of relative paths to be resolved with respect to
+the location of the file that calls `load'.
 
 ** Many syntax errors have different texts now
 
@@ -1370,6 +1445,14 @@ It used to be that a new thread entering Guile would do so in the
 in which case it was `(guile-user)'. This has been fixed to have all
 new threads unknown to Guile default to `(guile-user)'.
 
+** New helpers: `print-exception', `set-exception-printer!'
+
+These functions implement an extensible exception printer.  Guile
+registers printers for all of the exceptions it throws.  Users may add
+their own printers.  There is also `scm_print_exception', for use by C
+programs.  Pleasantly, this allows SRFI-35 and R6RS exceptions to be
+printed appropriately.
+
 ** GOOPS dispatch in scheme
 
 As an implementation detail, GOOPS dispatch is no longer implemented by
@@ -1419,6 +1502,12 @@ sense to allow extensions that would subvert this optimization.
 Guile now use a portable implementation of `inet_pton'/`inet_ntop', so
 there is no more need to use `inet-aton'/`inet-ntoa'. The latter
 functions are deprecated.
+
+** `getopt-long' parsing errors throw to `quit', not `misc-error'
+
+This change should inhibit backtraces on argument parsing errors.
+`getopt-long' has been modified to print out the error that it throws
+itself.
 
 ** New primitive: `tmpfile'.
     
