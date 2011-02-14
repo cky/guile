@@ -2139,7 +2139,7 @@ scm_i_inexact_truncate_quotient (double x, double y)
   if (SCM_UNLIKELY (y == 0))
     scm_num_overflow (s_scm_truncate_quotient);  /* or return a NaN? */
   else
-    return scm_from_double (scm_c_truncate (x / y));
+    return scm_from_double (trunc (x / y));
 }
 
 static SCM
@@ -2274,7 +2274,7 @@ scm_i_inexact_truncate_remainder (double x, double y)
   if (SCM_UNLIKELY (y == 0))
     scm_num_overflow (s_scm_truncate_remainder);  /* or return a NaN? */
   else
-    return scm_from_double (x - y * scm_c_truncate (x / y));
+    return scm_from_double (x - y * trunc (x / y));
 }
 
 static SCM
@@ -8173,14 +8173,7 @@ static SCM scm_divide2real (SCM x, SCM y)
 double
 scm_c_truncate (double x)
 {
-#if HAVE_TRUNC
   return trunc (x);
-#else
-  if (x < 0.0)
-    return ceil (x);
-  else
-    return floor (x);
-#endif
 }
 
 /* scm_c_round is done using floor(x+0.5) to round to nearest and with
@@ -8233,7 +8226,7 @@ SCM_PRIMITIVE_GENERIC (scm_truncate_number, "truncate", 1, 0, 0,
   if (SCM_I_INUMP (x) || SCM_BIGP (x))
     return x;
   else if (SCM_REALP (x))
-    return scm_from_double (scm_c_truncate (SCM_REAL_VALUE (x)));
+    return scm_from_double (trunc (SCM_REAL_VALUE (x)));
   else if (SCM_FRACTIONP (x))
     return scm_truncate_quotient (SCM_FRACTION_NUMERATOR (x),
 				  SCM_FRACTION_DENOMINATOR (x));
