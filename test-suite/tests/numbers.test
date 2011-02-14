@@ -4512,12 +4512,26 @@
 
 
 ;;;
+;;; Tests for number-theoretic division operators:
+;;;
 ;;; euclidean/
 ;;; euclidean-quotient
 ;;; euclidean-remainder
+;;; floor/
+;;; floor-quotient
+;;; floor-remainder
+;;; ceiling/
+;;; ceiling-quotient
+;;; ceiling-remainder
+;;; truncate/
+;;; truncate-quotient
+;;; truncate-remainder
 ;;; centered/
 ;;; centered-quotient
 ;;; centered-remainder
+;;; round/
+;;; round-quotient
+;;; round-remainder
 ;;;
 
 (with-test-prefix "Number-theoretic division"
