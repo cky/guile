@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2010 Free Software Foundation, Inc.
+   Copyright (C) 2003-2011 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -88,9 +88,11 @@
 # include <io.h>
 #endif
 
-/* AIX and OSF/1 5.1 declare getdomainname in <netdb.h>, not in <unistd.h>.  */
+/* AIX and OSF/1 5.1 declare getdomainname in <netdb.h>, not in <unistd.h>.
+   NonStop Kernel declares gethostname in <netdb.h>, not in <unistd.h>.  */
 /* But avoid namespace pollution on glibc systems.  */
-#if @GNULIB_GETDOMAINNAME@ && (defined _AIX || defined __osf__) \
+#if ((@GNULIB_GETDOMAINNAME@ && (defined _AIX || defined __osf__)) \
+     || (@GNULIB_GETHOSTNAME@ && defined __TANDEM)) \
     && !defined __GLIBC__
 # include <netdb.h>
 #endif
@@ -712,13 +714,22 @@ _GL_WARN_ON_USE (getlogin, "getlogin is unportable - "
      ${LOGNAME-$USER}        on Unix platforms,
      $USERNAME               on native Windows platforms.
  */
-# if !@HAVE_DECL_GETLOGIN_R@
+# if @REPLACE_GETLOGIN_R@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   define getlogin_r rpl_getlogin_r
+#  endif
+_GL_FUNCDECL_RPL (getlogin_r, int, (char *name, size_t size)
+                                   _GL_ARG_NONNULL ((1)));
+_GL_CXXALIAS_RPL (getlogin_r, int, (char *name, size_t size));
+# else
+#  if !@HAVE_DECL_GETLOGIN_R@
 _GL_FUNCDECL_SYS (getlogin_r, int, (char *name, size_t size)
                                    _GL_ARG_NONNULL ((1)));
-# endif
+#  endif
 /* Need to cast, because on Solaris 10 systems, the second argument is
                                                      int size.  */
 _GL_CXXALIAS_SYS_CAST (getlogin_r, int, (char *name, size_t size));
+# endif
 _GL_CXXALIASWARN (getlogin_r);
 #elif defined GNULIB_POSIXCHECK
 # undef getlogin_r
@@ -785,11 +796,14 @@ _GL_CXXALIAS_RPL (getpagesize, int, (void));
 #    if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #     define getpagesize() _gl_getpagesize ()
 #    else
+#     if !GNULIB_defined_getpagesize_function
 static inline int
 getpagesize ()
 {
   return _gl_getpagesize ();
 }
+#      define GNULIB_defined_getpagesize_function 1
+#     endif
 #    endif
 #   endif
 #  endif

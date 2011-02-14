@@ -1,5 +1,5 @@
-# unistd_h.m4 serial 51
-dnl Copyright (C) 2006-2010 Free Software Foundation, Inc.
+# unistd_h.m4 serial 53
+dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -14,8 +14,6 @@ AC_DEFUN([gl_UNISTD_H],
   AC_REQUIRE([AC_C_INLINE])
 
   gl_CHECK_NEXT_HEADERS([unistd.h])
-
-  AC_CHECK_HEADERS_ONCE([unistd.h])
   if test $ac_cv_header_unistd_h = yes; then
     HAVE_UNISTD_H=1
   else
@@ -140,6 +138,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   REPLACE_FCHOWNAT=0;     AC_SUBST([REPLACE_FCHOWNAT])
   REPLACE_GETCWD=0;       AC_SUBST([REPLACE_GETCWD])
   REPLACE_GETDOMAINNAME=0; AC_SUBST([REPLACE_GETDOMAINNAME])
+  REPLACE_GETLOGIN_R=0;   AC_SUBST([REPLACE_GETLOGIN_R])
   REPLACE_GETGROUPS=0;    AC_SUBST([REPLACE_GETGROUPS])
   REPLACE_GETPAGESIZE=0;  AC_SUBST([REPLACE_GETPAGESIZE])
   REPLACE_LCHOWN=0;       AC_SUBST([REPLACE_LCHOWN])

@@ -1,5 +1,5 @@
-# locale_h.m4 serial 11
-dnl Copyright (C) 2007, 2009-2010 Free Software Foundation, Inc.
+# locale_h.m4 serial 13
+dnl Copyright (C) 2007, 2009-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
@@ -55,7 +55,7 @@ AC_DEFUN([gl_LOCALE_H],
   AC_SUBST([HAVE_XLOCALE_H])
 
   dnl <locale.h> is always overridden, because of GNULIB_POSIXCHECK.
-  gl_CHECK_NEXT_HEADERS([locale.h])
+  gl_NEXT_HEADERS([locale.h])
 
   if test -n "$STDDEF_H" \
      || test $gl_cv_header_locale_h_posix2001 = no \
@@ -70,7 +70,8 @@ AC_DEFUN([gl_LOCALE_H],
 #if HAVE_XLOCALE_H
 # include <xlocale.h>
 #endif
-   ]], [duplocale])
+    ]],
+    [setlocale duplocale])
 ])
 
 dnl Unconditionally enables the replacement of <locale.h>.
@@ -91,8 +92,10 @@ AC_DEFUN([gl_LOCALE_MODULE_INDICATOR],
 
 AC_DEFUN([gl_LOCALE_H_DEFAULTS],
 [
+  GNULIB_SETLOCALE=0;  AC_SUBST([GNULIB_SETLOCALE])
   GNULIB_DUPLOCALE=0;  AC_SUBST([GNULIB_DUPLOCALE])
   dnl Assume proper GNU behavior unless another module says otherwise.
   HAVE_DUPLOCALE=1;    AC_SUBST([HAVE_DUPLOCALE])
+  REPLACE_SETLOCALE=0; AC_SUBST([REPLACE_SETLOCALE])
   REPLACE_DUPLOCALE=0; AC_SUBST([REPLACE_DUPLOCALE])
 ])

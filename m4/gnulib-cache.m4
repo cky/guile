@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2010 Free Software Foundation, Inc.
+# Copyright (C) 2002-2011 Free Software Foundation, Inc.
 #
 # This file is free software, distributed under the terms of the GNU
 # General Public License.  As a special exception to the GNU General
@@ -15,17 +15,21 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files alignof alloca-opt announce-gen autobuild byteswap canonicalize-lgpl duplocale environ extensions flock fpieee full-read full-write func gendocs getaddrinfo git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan lib-symbol-versions lib-symbol-visibility libunistring locale maintainer-makefile nproc putenv stat-time stdlib strcase strftime striconveh string sys_stat verify version-etc-fsf vsnprintf warnings
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files accept alignof alloca-opt announce-gen autobuild bind byteswap canonicalize-lgpl close connect duplocale environ extensions flock fpieee full-read full-write func gendocs getaddrinfo getpeername getsockname getsockopt git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan lib-symbol-versions lib-symbol-visibility libunistring listen locale maintainer-makefile malloc malloca nproc putenv recv recvfrom send sendto setsockopt shutdown socket sockets stat-time stdlib strcase strftime striconveh string sys_stat trunc verify version-etc-fsf vsnprintf warnings
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
 gl_MODULES([
+  accept
   alignof
   alloca-opt
   announce-gen
   autobuild
+  bind
   byteswap
   canonicalize-lgpl
+  close
+  connect
   duplocale
   environ
   extensions
@@ -36,6 +40,9 @@ gl_MODULES([
   func
   gendocs
   getaddrinfo
+  getpeername
+  getsockname
+  getsockopt
   git-version-gen
   gitlog-to-changelog
   gnu-web-doc-update
@@ -49,10 +56,21 @@ gl_MODULES([
   lib-symbol-versions
   lib-symbol-visibility
   libunistring
+  listen
   locale
   maintainer-makefile
+  malloc
+  malloca
   nproc
   putenv
+  recv
+  recvfrom
+  send
+  sendto
+  setsockopt
+  shutdown
+  socket
+  sockets
   stat-time
   stdlib
   strcase
@@ -60,6 +78,7 @@ gl_MODULES([
   striconveh
   string
   sys_stat
+  trunc
   verify
   version-etc-fsf
   vsnprintf

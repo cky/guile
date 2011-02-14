@@ -1,6 +1,6 @@
-/* Recognize multibyte character.
-   Copyright (C) 1999-2000, 2008-2010 Free Software Foundation, Inc.
-   Written by Bruno Haible <bruno@clisp.org>, 2008.
+/* send.c --- wrappers for Windows send function
+
+   Copyright (C) 2008-2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -15,18 +15,26 @@
    You should have received a copy of the GNU Lesser General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
+/* Written by Paolo Bonzini */
+
 #include <config.h>
 
-/* Specification.  */
-#include <wchar.h>
+#define WIN32_LEAN_AND_MEAN
+/* Get winsock2.h. */
+#include <sys/socket.h>
 
+/* Get set_winsock_errno, FD_TO_SOCKET etc. */
+#include "w32sock.h"
 
-static mbstate_t internal_state;
+#undef send
 
-size_t
-mbrlen (const char *s, size_t n, mbstate_t *ps)
+ssize_t
+rpl_send (int fd, const void *buf, size_t len, int flags)
 {
-  if (ps == NULL)
-    ps = &internal_state;
-  return mbrtowc (NULL, s, n, ps);
+  SOCKET sock = FD_TO_SOCKET (fd);
+  int r = send (sock, buf, len, flags);
+  if (r < 0)
+    set_winsock_errno ();
+
+  return r;
 }

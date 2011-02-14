@@ -1,5 +1,5 @@
 /* A POSIX <locale.h>.
-   Copyright (C) 2007-2010 Free Software Foundation, Inc.
+   Copyright (C) 2007-2011 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -45,6 +45,27 @@
    On systems that don't define it, use the same value as GNU libintl.  */
 #if !defined LC_MESSAGES
 # define LC_MESSAGES 1729
+#endif
+
+#if @GNULIB_SETLOCALE@
+# if @REPLACE_SETLOCALE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef setlocale
+#   define setlocale rpl_setlocale
+#   define GNULIB_defined_setlocale 1
+#  endif
+_GL_FUNCDECL_RPL (setlocale, char *, (int category, const char *locale));
+_GL_CXXALIAS_RPL (setlocale, char *, (int category, const char *locale));
+# else
+_GL_CXXALIAS_SYS (setlocale, char *, (int category, const char *locale));
+# endif
+_GL_CXXALIASWARN (setlocale);
+#elif defined GNULIB_POSIXCHECK
+# undef setlocale
+# if HAVE_RAW_DECL_SETLOCALE
+_GL_WARN_ON_USE (setlocale, "setlocale works differently on native Windows - "
+                 "use gnulib module setlocale for portability");
+# endif
 #endif
 
 #if @GNULIB_DUPLOCALE@
