@@ -45,7 +45,7 @@ scm_i_extract_values_2 (SCM obj, SCM *p1, SCM *p2)
   SCM_ASSERT_TYPE (SCM_VALUESP (obj), obj, SCM_ARG1,
 		   "scm_i_extract_values_2", "values");
   values = scm_struct_ref (obj, SCM_INUM0);
-  if (!scm_is_null_or_nil (SCM_CDDR (values)))
+  if (scm_ilength (values) != 2)
     scm_wrong_type_arg_msg
       ("scm_i_extract_values_2", SCM_ARG1, obj,
        "a values object containing exactly two values");
