@@ -2450,11 +2450,8 @@ scm_i_inexact_truncate_divide (double x, double y, SCM *qp, SCM *rp)
     scm_num_overflow (s_scm_truncate_divide);  /* or return a NaN? */
   else
     {
-      double q, r, q1;
-      /* FIXME: Use trunc, after it has been imported from gnulib */
-      q1 = x / y;
-      q = (q1 >= 0) ? floor (q1) : ceil (q1);
-      r = x - q * y;
+      double q = trunc (x / y);
+      double r = x - q * y;
       *qp = scm_from_double (q);
       *rp = scm_from_double (r);
     }
