@@ -94,7 +94,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module log1p:
   # Code from module lstat:
   # Code from module maintainer-makefile:
-  # Code from module malloc:
   # Code from module malloc-gnu:
   # Code from module malloc-posix:
   # Code from module malloca:
@@ -353,7 +352,6 @@ AC_DEFUN([gl_INIT],
   # Code from module maintainer-makefile:
   AC_CONFIG_COMMANDS_PRE([m4_ifdef([AH_HEADER],
     [AC_SUBST([CONFIG_INCLUDE], m4_defn([AH_HEADER]))])])
-  # Code from module malloc:
   # Code from module malloc-gnu:
   gl_FUNC_MALLOC_GNU
   gl_MODULE_INDICATOR([malloc-gnu])
