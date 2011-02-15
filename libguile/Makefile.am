@@ -453,14 +453,31 @@ noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c
 libguile_@GUILE_EFFECTIVE_VERSION@_la_DEPENDENCIES = @LIBLOBJS@
 
 libguile_@GUILE_EFFECTIVE_VERSION@_la_LIBADD =		\
-  @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBLTDL)	\
-  $(LTLIBUNISTRING) $(LTLIBICONV) $(LTLIBINTL)
+  @LIBLOBJS@ $(gnulib_library) $(LTLIBGMP) $(LTLIBLTDL)
 
-libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =								\
-  $(BDW_GC_LIBS) $(LIBFFI_LIBS) $(INET_NTOP_LIB) $(INET_PTON_LIB)					\
-  $(GETADDRINFO_LIB) $(HOSTENT_LIB) $(SERVENT_LIB)							\
-  -version-info @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@	\
-  -export-dynamic -no-undefined										\
+# Libtool version info.
+version_info = @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGUILE_INTERFACE_AGE@
+
+libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =	\
+  $(BDW_GC_LIBS) $(LIBFFI_LIBS)			\
+  $(FLOOR_LIBM)					\
+  $(GETADDRINFO_LIB)				\
+  $(HOSTENT_LIB)				\
+  $(INET_NTOP_LIB)				\
+  $(INET_PTON_LIB)				\
+  $(ISNAND_LIBM)				\
+  $(ISNANF_LIBM)				\
+  $(ISNANL_LIBM)				\
+  $(LIBSOCKET)					\
+  $(LOG1P_LIBM)					\
+  $(LTLIBICONV)					\
+  $(LTLIBINTL)					\
+  $(LTLIBUNISTRING)				\
+  $(ROUND_LIBM)					\
+  $(SERVENT_LIB)				\
+  $(TRUNC_LIBM)					\
+  -version-info $(version_info)			\
+  -export-dynamic -no-undefined			\
   $(GNU_LD_FLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
