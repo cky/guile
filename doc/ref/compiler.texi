@@ -853,12 +853,12 @@ for more information about the Brainfuck language itself.
 @subsection Extending the Compiler
 
 At this point, we break with the impersonal tone of the rest of the
-manual, and make an intervention. Admit it: if you've read this far
-into the compiler internals manual, you are a junkie. Perhaps a course
-at your university left you unsated, or perhaps you've always harbored
-a sublimated desire to hack the holy of computer science holies: a
-compiler. Well you're in good company, and in a good position. Guile's
-compiler needs your help.
+manual, and make an intervention. Admit it: if you've read this far into
+the compiler internals manual, you are a junkie. Perhaps a course at
+your university left you unsated, or perhaps you've always harbored a
+desire to hack the holy of computer science holies: a compiler. Well
+you're in good company, and in a good position. Guile's compiler needs
+your help.
 
 There are many possible avenues for improving Guile's compiler.
 Probably the most important improvement, speed-wise, will be some form
