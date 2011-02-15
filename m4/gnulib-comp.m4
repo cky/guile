@@ -53,6 +53,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module fclose:
   # Code from module float:
   # Code from module flock:
+  # Code from module floor:
   # Code from module fpieee:
   AC_REQUIRE([gl_FP_IEEE])
   # Code from module full-read:
@@ -90,6 +91,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module libunistring:
   # Code from module listen:
   # Code from module locale:
+  # Code from module log1p:
   # Code from module lstat:
   # Code from module maintainer-makefile:
   # Code from module malloc:
@@ -107,6 +109,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module readlink:
   # Code from module recv:
   # Code from module recvfrom:
+  # Code from module round:
   # Code from module safe-read:
   # Code from module safe-write:
   # Code from module send:
@@ -242,6 +245,9 @@ AC_DEFUN([gl_INIT],
   # Code from module flock:
   gl_FUNC_FLOCK
   gl_HEADER_SYS_FILE_MODULE_INDICATOR([flock])
+  # Code from module floor:
+  gl_FUNC_FLOOR
+  gl_MATH_MODULE_INDICATOR([floor])
   # Code from module fpieee:
   # Code from module full-read:
   # Code from module full-write:
@@ -339,6 +345,8 @@ AC_DEFUN([gl_INIT],
   gl_SYS_SOCKET_MODULE_INDICATOR([listen])
   # Code from module locale:
   gl_LOCALE_H
+  # Code from module log1p:
+  gl_COMMON_DOUBLE_MATHFUNC([log1p])
   # Code from module lstat:
   gl_FUNC_LSTAT
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
@@ -388,6 +396,9 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([recvfrom])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([recvfrom])
+  # Code from module round:
+  gl_FUNC_ROUND
+  gl_MATH_MODULE_INDICATOR([round])
   # Code from module safe-read:
   gl_SAFE_READ
   # Code from module safe-write:
@@ -714,6 +725,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/float+.h
   lib/float.in.h
   lib/flock.c
+  lib/floor.c
   lib/full-read.c
   lib/full-read.h
   lib/full-write.c
@@ -765,6 +777,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/recv.c
   lib/recvfrom.c
+  lib/round.c
   lib/safe-read.c
   lib/safe-read.h
   lib/safe-write.c
@@ -832,6 +845,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/autobuild.m4
   m4/byteswap.m4
   m4/canonicalize.m4
+  m4/ceil.m4
   m4/check-math-lib.m4
   m4/close.m4
   m4/dos.m4
@@ -847,6 +861,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fclose.m4
   m4/float_h.m4
   m4/flock.m4
+  m4/floor.m4
   m4/fpieee.m4
   m4/func.m4
   m4/getaddrinfo.m4
@@ -878,6 +893,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/malloc.m4
   m4/malloca.m4
   m4/math_h.m4
+  m4/mathfunc.m4
   m4/memchr.m4
   m4/mmap-anon.m4
   m4/multiarch.m4
@@ -888,6 +904,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/printf.m4
   m4/putenv.m4
   m4/readlink.m4
+  m4/round.m4
   m4/safe-read.m4
   m4/safe-write.m4
   m4/servent.m4

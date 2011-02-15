@@ -138,3 +138,4 @@ INSTALL
 /lib/c++defs.h
 /.sc-start-*
 /lib/math.h
+/lib/sys/time.h
