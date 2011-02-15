@@ -1,17 +1,17 @@
 /* image-type.c
- * 
- *	Copyright (C) 1998, 2000, 2004, 2006 Free Software Foundation, Inc.
- * 
+ *
+ * Copyright (C) 1998, 2000, 2004, 2006, 2011 Free Software Foundation, Inc.
+ *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this software; see the file COPYING.LESSER.  If
  * not, write to the Free Software Foundation, Inc., 51 Franklin
@@ -23,7 +23,8 @@
 
 static scm_t_bits image_tag;
 
-struct image {
+struct image
+{
   int width, height;
   char *pixels;
 
@@ -63,7 +64,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
   /* Step 4: Finish the initialization.
    */
   image->name = name;
-  image->pixels = scm_gc_malloc (width * height, "image pixels");
+  image->pixels = scm_gc_malloc_pointerless (width * height, "image pixels");
 
   return smob;
 }
@@ -90,27 +91,6 @@ clear_image (SCM image_smob)
   return SCM_UNSPECIFIED;
 }
 
-static SCM
-mark_image (SCM image_smob)
-{
-  /* Mark the image's name and update function.  */
-  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
-
-  scm_gc_mark (image->name);
-  return image->update_func;
-}
-
-static size_t
-free_image (SCM image_smob)
-{
-  struct image *image = (struct image *) SCM_SMOB_DATA (image_smob);
-
-  scm_gc_free (image->pixels, image->width * image->height, "image pixels");
-  scm_gc_free (image, sizeof (struct image), "image");
-
-  return 0;
-}
-
 static int
 print_image (SCM image_smob, SCM port, scm_print_state *pstate)
 {
@@ -128,8 +108,6 @@ void
 init_image_type (void)
 {
   image_tag = scm_make_smob_type ("image", sizeof (struct image));
-  scm_set_smob_mark (image_tag, mark_image);
-  scm_set_smob_free (image_tag, free_image);
   scm_set_smob_print (image_tag, print_image);
 
   scm_c_define_gsubr ("clear-image", 1, 0, 0, clear_image);
