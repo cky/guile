@@ -534,11 +534,13 @@ interpreter.
 Functions from system modules in a Guile installation are normally
 compiled already, so they load and run quickly.
 
+@cindex automatic compilation
 Note that well-written Scheme programs will not typically call the
 procedures in this section, for the same reason that it is often bad
-taste to use @code{eval}. The normal interface to the compiler is the
-command-line file compiler, which can be invoked from the shell as
-@code{guile-tools compile foo.scm}.
+taste to use @code{eval}.  By default, Guile automatically compiles any
+files it encounters that have not been compiled yet (@pxref{Invoking
+Guile, @code{--auto-compile}}).  The compiler can also be invoked
+explicitly from the shell as @code{guile-tools compile foo.scm}.
 
 (Why are calls to @code{eval} and @code{compile} usually in bad taste?
 Because they are limited, in that they can only really make sense for
@@ -637,6 +639,12 @@ want to place a compile file in the @code{%load-compiled-path}, you
 should pass the @var{output-file} option to @code{compile-file},
 explicitly.
 @end deffn
+
+@defvr {Scheme Variable} %auto-compilation-options
+This variable contains the options passed to the @code{compile-file}
+procedure when auto-compiling source files.  By default, it enables
+useful compilation warnings.  It can be customized from @file{~/.guile}.
+@end defvr
 
 @node Loading
 @subsection Loading Scheme Code from File
