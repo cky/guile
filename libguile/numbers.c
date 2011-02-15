@@ -111,6 +111,7 @@ typedef scm_t_signed_bits scm_t_inum;
 
 static SCM flo0;
 static SCM exactly_one_half;
+static SCM flo_log10e;
 
 #define SCM_SWAP(x, y) do { SCM __t = x; x = y; y = __t; } while (0)
 
@@ -9372,6 +9373,62 @@ scm_is_number (SCM z)
 }
 
 
+/* Returns log(x * 2^shift) */
+static SCM
+log_of_shifted_double (double x, long shift)
+{
+  double ans = log (fabs (x)) + shift * M_LN2;
+
+  if (x > 0.0 || double_is_non_negative_zero (x))
+    return scm_from_double (ans);
+  else
+    return scm_c_make_rectangular (ans, M_PI);
+}
+
+/* Returns log(n), for exact integer n of integer-length size */
+static SCM
+log_of_exact_integer_with_size (SCM n, long size)
+{
+  long shift = size - 2 * scm_dblprec[0];
+
+  if (shift > 0)
+    return log_of_shifted_double
+      (scm_to_double (scm_ash (n, scm_from_long(-shift))),
+       shift);
+  else
+    return log_of_shifted_double (scm_to_double (n), 0);
+}
+
+/* Returns log(n), for exact integer n of integer-length size */
+static SCM
+log_of_exact_integer (SCM n)
+{
+  return log_of_exact_integer_with_size
+    (n, scm_to_long (scm_integer_length (n)));
+}
+
+/* Returns log(n/d), for exact non-zero integers n and d */
+static SCM
+log_of_fraction (SCM n, SCM d)
+{
+  long n_size = scm_to_long (scm_integer_length (n));
+  long d_size = scm_to_long (scm_integer_length (d));
+
+  if (abs (n_size - d_size) > 1)
+    return (scm_difference (log_of_exact_integer_with_size (n, n_size),
+			    log_of_exact_integer_with_size (d, d_size)));
+  else if (scm_is_false (scm_negative_p (n)))
+    return scm_from_double
+      (log1p (scm_to_double (scm_divide2real (scm_difference (n, d), d))));
+  else
+    return scm_c_make_rectangular
+      (log1p (scm_to_double (scm_divide2real
+			     (scm_difference (scm_abs (n), d),
+			      d))),
+       M_PI);
+}
+
+
 /* In the following functions we dispatch to the real-arg funcs like log()
    when we know the arg is real, instead of just handing everything to
    clog() for instance.  This is in case clog() doesn't optimize for a
@@ -9394,17 +9451,21 @@ SCM_PRIMITIVE_GENERIC (scm_log, "log", 1, 0, 0,
                                      atan2 (im, re));
 #endif
     }
-  else if (SCM_NUMBERP (z))
+  else if (SCM_REALP (z))
+    return log_of_shifted_double (SCM_REAL_VALUE (z), 0);
+  else if (SCM_I_INUMP (z))
     {
-      /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
-         although the value itself overflows.  */
-      double re = scm_to_double (z);
-      double l = log (fabs (re));
-      if (re >= 0.0)
-        return scm_from_double (l);
-      else
-        return scm_c_make_rectangular (l, M_PI);
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
+      if (scm_is_eq (z, SCM_INUM0))
+	scm_num_overflow (s_scm_log);
+#endif
+      return log_of_shifted_double (SCM_I_INUM (z), 0);
     }
+  else if (SCM_BIGP (z))
+    return log_of_exact_integer (z);
+  else if (SCM_FRACTIONP (z))
+    return log_of_fraction (SCM_FRACTION_NUMERATOR (z),
+			    SCM_FRACTION_DENOMINATOR (z));
   else
     SCM_WTA_DISPATCH_1 (g_scm_log, z, 1, s_scm_log);
 }
@@ -9431,17 +9492,27 @@ SCM_PRIMITIVE_GENERIC (scm_log10, "log10", 1, 0, 0,
                                      M_LOG10E * atan2 (im, re));
 #endif
     }
-  else if (SCM_NUMBERP (z))
+  else if (SCM_REALP (z) || SCM_I_INUMP (z))
     {
-      /* ENHANCE-ME: When z is a bignum the logarithm will fit a double
-         although the value itself overflows.  */
-      double re = scm_to_double (z);
-      double l = log10 (fabs (re));
-      if (re >= 0.0)
-        return scm_from_double (l);
-      else
-        return scm_c_make_rectangular (l, M_LOG10E * M_PI);
+#ifndef ALLOW_DIVIDE_BY_EXACT_ZERO
+      if (scm_is_eq (z, SCM_INUM0))
+	scm_num_overflow (s_scm_log10);
+#endif
+      {
+	double re = scm_to_double (z);
+	double l = log10 (fabs (re));
+	if (re > 0.0 || double_is_non_negative_zero (re))
+	  return scm_from_double (l);
+	else
+	  return scm_c_make_rectangular (l, M_LOG10E * M_PI);
+      }
     }
+  else if (SCM_BIGP (z))
+    return scm_product (flo_log10e, log_of_exact_integer (z));
+  else if (SCM_FRACTIONP (z))
+    return scm_product (flo_log10e,
+			log_of_fraction (SCM_FRACTION_NUMERATOR (z),
+					 SCM_FRACTION_DENOMINATOR (z)));
   else
     SCM_WTA_DISPATCH_1 (g_scm_log10, z, 1, s_scm_log10);
 }
@@ -9536,6 +9607,7 @@ scm_init_numbers ()
   scm_add_feature ("complex");
   scm_add_feature ("inexact");
   flo0 = scm_from_double (0.0);
+  flo_log10e = scm_from_double (M_LOG10E);
 
   /* determine floating point precision */
   for (i=2; i <= SCM_MAX_DBL_RADIX; ++i)

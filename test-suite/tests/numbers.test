@@ -4323,14 +4323,36 @@
     (log))
   (pass-if-exception "two args" exception:wrong-num-args
     (log 123 456))
+  (pass-if-exception "(log 0)" exception:numerical-overflow
+    (log 0))
 
-  (pass-if (negative-infinity? (log 0)))
-  (pass-if (negative-infinity? (log 0.0)))
-  (pass-if (eqv? 0.0 (log 1)))
-  (pass-if (eqv? 0.0 (log 1.0)))
-  (pass-if (eqv-loosely? 1.0  (log const-e)))
-  (pass-if (eqv-loosely? 2.0  (log const-e^2)))
-  (pass-if (eqv-loosely? -1.0 (log const-1/e)))
+  (pass-if (test-eqv? -inf.0 (log 0.0)))
+  (pass-if (test-eqv? +inf.0 (log +inf.0)))
+  (pass-if (test-eqv? -inf.0+3.14159265358979i (log -0.0)))
+  (pass-if (test-eqv? +inf.0+3.14159265358979i (log -inf.0)))
+  (pass-if (test-eqv?  0.0 (log 1  )))
+  (pass-if (test-eqv?  0.0 (log 1.0)))
+  (pass-if (test-eqv?  1.0 (log const-e)))
+  (pass-if (test-eqv?  2.0 (log const-e^2)))
+  (pass-if (test-eqv? -1.0 (log const-1/e)))
+  (pass-if (test-eqv? -1.0+3.14159265358979i (log (- const-1/e))))
+  (pass-if (test-eqv?  2.30258509299405 (log 10)))
+  (pass-if (test-eqv?  2.30258509299405+3.14159265358979i (log -10)))
+
+  (pass-if (test-eqv?  1.0+0.0i (log (+ const-e +0.0i))))
+  (pass-if (test-eqv?  1.0-0.0i (log (+ const-e -0.0i))))
+
+  (pass-if (eqv-loosely?  230258.509299405 (log (expt 10  100000))))
+  (pass-if (eqv-loosely? -230258.509299405 (log (expt 10 -100000))))
+  (pass-if (eqv-loosely?  230257.410687116 (log (/ (expt 10 100000) 3))))
+  (pass-if (eqv-loosely?  230258.509299405+3.14159265358979i
+                          (log (- (expt 10 100000)))))
+  (pass-if (eqv-loosely? -230258.509299405+3.14159265358979i
+                          (log (- (expt 10 -100000)))))
+  (pass-if (eqv-loosely?  230257.410687116+3.14159265358979i
+                          (log (- (/ (expt 10 100000) 3)))))
+  (pass-if (test-eqv?  3.05493636349961e-151
+                       (log (/ (1+ (expt 2 500)) (expt 2 500)))))
 
   (pass-if (eqv-loosely? 1.0+1.57079i (log 0+2.71828i)))
   (pass-if (eqv-loosely? 1.0-1.57079i (log 0-2.71828i)))
@@ -4350,20 +4372,42 @@
     (log10))
   (pass-if-exception "two args" exception:wrong-num-args
     (log10 123 456))
+  (pass-if-exception "(log10 0)" exception:numerical-overflow
+    (log10 0))
 
-  (pass-if (negative-infinity? (log10 0)))
-  (pass-if (negative-infinity? (log10 0.0)))
-  (pass-if (eqv? 0.0 (log10 1)))
-  (pass-if (eqv? 0.0 (log10 1.0)))
-  (pass-if (eqv-loosely? 1.0  (log10 10.0)))
-  (pass-if (eqv-loosely? 2.0  (log10 100.0)))
-  (pass-if (eqv-loosely? -1.0 (log10 0.1)))
+  (pass-if (test-eqv? -inf.0 (log10 0.0)))
+  (pass-if (test-eqv? +inf.0 (log10 +inf.0)))
+  (pass-if (test-eqv? -inf.0+1.36437635384184i (log10 -0.0)))
+  (pass-if (test-eqv? +inf.0+1.36437635384184i (log10 -inf.0)))
+  (pass-if (test-eqv?  0.0 (log10   1  )))
+  (pass-if (test-eqv?  0.0 (log10   1.0)))
+  (pass-if (test-eqv?  1.0 (log10  10  )))
+  (pass-if (test-eqv?  1.0 (log10  10.0)))
+  (pass-if (test-eqv?  2.0 (log10 100.0)))
+  (pass-if (test-eqv? -1.0 (log10   0.1)))
+  (pass-if (test-eqv? -1.0+1.36437635384184i (log10  -0.1)))
+  (pass-if (test-eqv?  1.0+1.36437635384184i (log10 -10  )))
+
+  (pass-if (test-eqv?  1.0+0.0i (log10  10.0+0.0i)))
+  (pass-if (test-eqv?  1.0-0.0i (log10  10.0-0.0i)))
+
+  (pass-if (eqv-loosely?  100000.0 (log10 (expt 10  100000))))
+  (pass-if (eqv-loosely? -100000.0 (log10 (expt 10 -100000))))
+  (pass-if (eqv-loosely?   99999.5228787453 (log10 (/ (expt 10 100000) 3))))
+  (pass-if (eqv-loosely?  100000.0+1.36437635384184i
+                          (log10 (- (expt 10 100000)))))
+  (pass-if (eqv-loosely? -100000.0+1.36437635384184i
+                          (log10 (- (expt 10 -100000)))))
+  (pass-if (eqv-loosely?   99999.5228787453+1.36437635384184i
+                          (log10 (- (/ (expt 10 100000) 3)))))
+  (pass-if (test-eqv?  1.32674200523347e-151
+                       (log10 (/ (1+ (expt 2 500)) (expt 2 500)))))
 
   (pass-if (eqv-loosely? 1.0+0.68218i (log10 0+10.0i)))
   (pass-if (eqv-loosely? 1.0-0.68218i (log10 0-10.0i)))
 
-  (pass-if (eqv-loosely? 0.0+1.36437i (log10 -1)))
-  (pass-if (eqv-loosely? 1.0+1.36437i (log10 -10)))
+  (pass-if (eqv-loosely? 0.0+1.36437i (log10   -1)))
+  (pass-if (eqv-loosely? 1.0+1.36437i (log10  -10)))
   (pass-if (eqv-loosely? 2.0+1.36437i (log10 -100))))
 
 ;;;
