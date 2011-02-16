@@ -72,6 +72,9 @@
 #ifndef M_LOG10E
 #define M_LOG10E   0.43429448190325182765
 #endif
+#ifndef M_LN2
+#define M_LN2	   0.69314718055994530942
+#endif
 #ifndef M_PI
 #define M_PI       3.14159265358979323846
 #endif
@@ -9399,7 +9402,7 @@ log_of_exact_integer_with_size (SCM n, long size)
     return log_of_shifted_double (scm_to_double (n), 0);
 }
 
-/* Returns log(n), for exact integer n of integer-length size */
+/* Returns log(n), for exact integer n */
 static SCM
 log_of_exact_integer (SCM n)
 {
