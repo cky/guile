@@ -1777,21 +1777,19 @@ So let's plunge in.  GOOPS is based on a ``metaobject protocol'' (aka
 System), tiny-clos (a small Scheme implementation of a subset of CLOS
 functionality) and STKlos.
 
-GOOPS can be used by application authors at a basic level without any
-need to understand what the MOP is and how it works.  On the other hand,
-the MOP underlies even very simple customizations --- such as defining
-an @code{initialize} method to customize the initialization of instances
-of an application-defined class --- and an understanding of the MOP
-makes it much easier to explain such customizations in a precise way.
-And in the long run, understanding the MOP is the key both to
-understanding GOOPS at a deeper level and to taking full advantage of
-GOOPS' power, by customizing the behaviour of GOOPS itself.
+The MOP underlies many possible GOOPS customizations --- such as
+defining an @code{initialize} method to customize the initialization of
+instances of an application-defined class --- and an understanding of
+the MOP makes it much easier to explain such customizations in a precise
+way.  And at a deeper level, understanding the MOP is a key part of
+understanding GOOPS, and of taking full advantage of GOOPS' power, by
+customizing the behaviour of GOOPS itself.
 
 @menu
 * Metaobjects and the Metaobject Protocol::
-* Terminology::
+* Metaclasses::
 * MOP Specification::
-* Class Definition Internals::
+* Class Definition Protocol::
 * Customizing Class Definition::
 * Customizing Instance Creation::
 * Class Redefinition::
@@ -1828,7 +1826,7 @@ as regards accessibility and protection from garbage collection.
 Instances are of course objects in the usual sense, and there is no
 benefit from thinking of them as metaobjects.)
 
-The ``metaobject protocol'' (aka ``MOP'') is the specification of the
+The ``metaobject protocol'' (or ``MOP'') is the specification of the
 generic functions which determine the behaviour of these metaobjects and
 the circumstances in which these generic functions are invoked.
 
@@ -1854,7 +1852,7 @@ superclasses, slot definitions and class options that were specified in
 the @code{define-class} form.
 
 @item
-@code{make} allocates memory for the new instance, and then invokes the
+@code{make} allocates memory for the new instance, and invokes the
 @code{initialize} generic function to initialize the new instance's
 slots.
 
@@ -1865,8 +1863,8 @@ performs the slot calculation.
 @end itemize
 
 In other words, rather than being hardcoded in @code{define-class}, the
-behaviour of class definition is encapsulated by generic function
-methods that are specialized for the class @code{<class>}.
+default behaviour of class definition is encapsulated by generic
+function methods that are specialized for the class @code{<class>}.
 
 It is possible to create a new class that inherits from @code{<class>},
 which is called a ``metaclass'', and to write a new @code{initialize}
@@ -1897,19 +1895,8 @@ Each following section covers a particular area of GOOPS functionality,
 and describes the generic functions that are relevant for customization
 of that area.
 
-@node Terminology
-@subsection Terminology
-
-It is assumed that the reader is already familiar with standard object
-orientation concepts such as classes, objects/instances,
-inheritance/subclassing, generic functions and methods, encapsulation
-and polymorphism.
-
-This section explains some of the less well known concepts and
-terminology that GOOPS uses, which are assumed by the following sections
-of the reference manual.
-
-@subsubheading Metaclass
+@node Metaclasses
+@subsection Metaclasses
 
 A @dfn{metaclass} is the class of an object which represents a GOOPS
 class.  Put more succinctly, a metaclass is a class's class.
@@ -1925,30 +1912,29 @@ at what happens when a new class is created using @code{define-class}:
 (define-class <my-class> (<object>) . slots)
 @end example
 
-GOOPS actually expands the @code{define-class} form to something like
-this
+@noindent
+Guile expands this to something like:
 
 @example
 (define <my-class> (class (<object>) . slots))
 @end example
 
-and thence to
+@noindent
+which in turn expands to:
 
 @example
 (define <my-class>
   (make <class> #:supers (list <object>) #:slots slots))
 @end example
 
-In other words, the value of @code{<my-class>} is in fact an instance of
-the class @code{<class>} with slot values specifying the superclasses
-and slot definitions for the class @code{<my-class>}.  (@code{#:supers}
-and @code{#:slots} are initialization keywords for the @code{dsupers}
-and @code{dslots} slots of the @code{<class>} class.)
+As this expansion makes clear, the resulting value of @code{<my-class>}
+is an instance of the class @code{<class>} with slot values specifying
+the superclasses and slot definitions for the class @code{<my-class>}.
+(@code{#:supers} and @code{#:slots} are initialization keywords for the
+@code{dsupers} and @code{dslots} slots of the @code{<class>} class.)
 
-In order to take advantage of the full power of the GOOPS metaobject
-protocol (@pxref{MOP Specification}), it is sometimes desirable to
-create a new class with a metaclass other than the default
-@code{<class>}.  This is done by writing:
+Now suppose that you want to define a new class with a metaclass other
+than the default @code{<class>}.  This is done by writing:
 
 @example
 (define-class <my-class2> (<object>)
@@ -1956,7 +1942,8 @@ create a new class with a metaclass other than the default
    #:metaclass <my-metaclass>)
 @end example
 
-GOOPS expands this to something like:
+@noindent
+and Guile expands @emph{this} to something like:
 
 @example
 (define <my-class2>
@@ -1993,91 +1980,12 @@ relationships between @code{my-object}, @code{<my-class2>},
 The class of @code{my-object} is @code{<my-class2>}.
 
 @item
-The metaclass of @code{my-object} is @code{<my-metaclass>}.
-
-@item
 The class of @code{<my-class2>} is @code{<my-metaclass>}.
 
 @item
-The metaclass of @code{<my-class2>} is @code{<class>}.
-
-@item
 The class of @code{<my-metaclass>} is @code{<class>}.
-
-@item
-The metaclass of @code{<my-metaclass>} is @code{<class>}.
-
-@item
-@code{<my-class2>} is not a metaclass, since it is does not inherit from
-@code{<class>}.
-
-@item
-@code{<my-metaclass>} is a metaclass, since it inherits from
-@code{<class>}.
 @end itemize
 
-@subsubheading Class Precedence List
-
-The @dfn{class precedence list} of a class is the list of all direct and
-indirect superclasses of that class, including the class itself.
-
-In the absence of multiple inheritance, the class precedence list is
-ordered straightforwardly, beginning with the class itself and ending
-with @code{<top>}.
-
-For example, given this inheritance hierarchy:
-
-@example
-(define-class <invertebrate> (<object>) @dots{})
-(define-class <echinoderm> (<invertebrate>) @dots{})
-(define-class <starfish> (<echinoderm>) @dots{})
-@end example
-
-the class precedence list of <starfish> would be
-
-@example
-(<starfish> <echinoderm> <invertebrate> <object> <top>)
-@end example
-
-With multiple inheritance, the algorithm is a little more complicated.
-A full description is provided by the GOOPS Tutorial: see @ref{Class
-Precedence List}.
-
-``Class precedence list'' is often abbreviated, in documentation and
-Scheme variable names, to @dfn{cpl}.
-
-@subsubheading Accessor
-
-An @dfn{accessor} is a generic function with both reference and setter
-methods.
-
-@example
-(define-accessor perimeter)
-@end example
-
-Reference methods for an accessor are defined in the same way as generic
-function methods.
-
-@example
-(define-method (perimeter (s <square>))
-  (* 4 (side-length s)))
-@end example
-
-Setter methods for an accessor are defined by specifying ``(setter
-<accessor-name>)'' as the first parameter of the @code{define-method}
-call.
-
-@example
-(define-method ((setter perimeter) (s <square>) (n <number>))
-  (set! (side-length s) (/ n 4)))
-@end example
-
-Once an appropriate setter method has been defined in this way, it can
-be invoked using the generalized @code{set!} syntax, as in:
-
-@example
-(set! (perimeter s1) 18.3)
-@end example
 
 @node MOP Specification
 @subsection MOP Specification
@@ -2087,22 +1995,17 @@ customizable generic function invocations that can be made by the standard
 GOOPS syntax, procedures and methods, and to explain the protocol for
 customizing such invocations.
 
-A generic function invocation is customizable if the types of the arguments
-to which it is applied are not all determined by the lexical context in
-which the invocation appears.  For example,
+A generic function invocation is customizable if the types of the
+arguments to which it is applied are not completely determined by the
+lexical context in which the invocation appears.  For example, the
+@code{(initialize @var{instance} @var{initargs})} invocation in the
+default @code{make-instance} method is customizable, because the type of
+the @code{@var{instance}} argument is determined by the class that was
+passed to @code{make-instance}.
 
-@itemize @bullet
-@item
-the @code{(initialize @var{instance} @var{initargs})} invocation in the
-default @code{make-instance} method is customizable, because the type of the
-@code{@var{instance}} argument is determined by the class that was passed to
-@code{make-instance}.
-
-@item
-the @code{(make <generic> #:name ',name)} invocation in @code{define-generic}
-is not customizable, because all of its arguments have lexically determined
-types.
-@end itemize
+(Whereas --- to give a counter-example --- the @code{(make <generic>
+#:name ',name)} invocation in @code{define-generic} is not customizable,
+because all of its arguments have lexically determined types.)
 
 When using this rule to decide whether a given generic function invocation
 is customizable, we ignore arguments that are expected to be handled in
@@ -2123,8 +2026,8 @@ effects
 what the caller expects to get as the applied method's return value.
 @end itemize
 
-@node Class Definition Internals
-@subsection Class Definition Internals
+@node Class Definition Protocol
+@subsection Class Definition Protocol
 
 @code{define-class} (syntax)
 
@@ -2267,7 +2170,7 @@ defines any accessors that are implied by the @var{slot-definition}s
 
 @item
 uses @code{class} to create the new class (@pxref{Class Definition
-Internals,, class})
+Protocol,, class})
 
 @item
 checks for a previous class definition for @var{name} and, if found,
@@ -2318,7 +2221,7 @@ class precedence list
 defaults the @code{#:environment}, @code{#:name} and @code{#:metaclass}
 options, if they are not specified by @var{options}, to the current
 top-level environment, the unbound value, and @code{(ensure-metaclass
-@var{supers})} respectively (@pxref{Class Definition Internals,,
+@var{supers})} respectively (@pxref{Class Definition Protocol,,
 ensure-metaclass})
 
 @item
@@ -2357,7 +2260,7 @@ The @code{env} parameter is ignored.
 
 @deffn procedure ensure-metaclass-with-supers meta-supers
 @code{ensure-metaclass-with-supers} is an internal procedure used by
-@code{ensure-metaclass} (@pxref{Class Definition Internals,,
+@code{ensure-metaclass} (@pxref{Class Definition Protocol,,
 ensure-metaclass}).  It returns a metaclass that is the union by
 inheritance of the metaclasses in @var{meta-supers}.
 @end deffn
@@ -2886,11 +2789,11 @@ accessor, passing the setter generic function as the value of the
 The @code{#:metaclass} class option specifies the metaclass of the class
 being defined.  @var{metaclass} must be a class that inherits from
 @code{<class>}.  For the use of metaclasses, see @ref{Metaobjects and
-the Metaobject Protocol} and @ref{Terminology}.
+the Metaobject Protocol} and @ref{Metaclasses}.
 
 If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
 metaclass for the new class by calling @code{ensure-metaclass}
-(@pxref{Class Definition Internals,, ensure-metaclass}).
+(@pxref{Class Definition Protocol,, ensure-metaclass}).
 @end deffn
 
 @deffn {class option} #:name name
