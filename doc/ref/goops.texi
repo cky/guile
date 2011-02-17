@@ -2029,6 +2029,88 @@ what the caller expects to get as the applied method's return value.
 @node Class Definition Protocol
 @subsection Class Definition Protocol
 
+Here is a summary diagram of the syntax, procedures and generic
+functions that may be involved in class definition.
+
+@noindent
+@code{define-class} (syntax)
+
+@itemize @bullet
+@item
+@code{class} (syntax)
+
+@itemize @bullet
+@item
+@code{make-class} (procedure)
+
+@itemize @bullet
+@item
+@code{ensure-metaclass} (procedure)
+
+@itemize @bullet
+@item
+@code{ensure-metaclass-with-supers} (procedure)
+@end itemize
+
+@item
+@code{make @var{metaclass} @dots{}} (generic)
+
+@itemize @bullet
+@item
+@code{allocate-instance} (generic)
+
+@item
+@code{initialize} (generic)
+
+@itemize @bullet
+@item
+@code{compute-cpl} (generic)
+
+@itemize @bullet
+@item
+@code{compute-std-cpl} (procedure)
+@end itemize
+
+@item
+@code{compute-slots} (generic)
+
+@item
+@code{compute-get-n-set} (generic)
+
+@item
+@code{compute-getter-method} (generic)
+
+@item
+@code{compute-setter-method} (generic)
+@end itemize
+@end itemize
+@end itemize
+@end itemize
+
+@item
+@code{class-redefinition} (generic)
+
+@itemize @bullet
+@item
+@code{remove-class-accessors} (generic)
+
+@item
+@code{update-direct-method!} (generic)
+
+@item
+@code{update-direct-subclass!} (generic)
+@end itemize
+@end itemize
+
+Wherever a step above is marked as ``generic'', it can be customized,
+and the detail shown below it is only ``correct'' insofar as it
+describes what the default method of that generic function does.  For
+example, if you write an @code{initialize} method, for some metaclass,
+that does not call @code{next-method} and does not call
+@code{compute-cpl}, then @code{compute-cpl} will not be called when a
+class is defined with that metaclass. 
+
+
 @code{define-class} (syntax)
 
 @itemize @bullet
