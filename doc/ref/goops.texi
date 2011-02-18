@@ -2522,7 +2522,9 @@ and/or after calling @code{(next-method)} for the standard behaviour.
 @itemize @bullet
 @item
 @code{add-method! @var{target} @var{method}} (generic)
+@end itemize
 
+@noindent
 @code{define-method} invokes the @code{add-method!} generic function to
 handle adding the new method to a variety of possible targets.  GOOPS
 includes methods to handle @var{target} as
@@ -2540,12 +2542,12 @@ a primitive generic (@pxref{Extending Primitives})
 
 By defining further methods for @code{add-method!}, you can
 theoretically handle adding methods to further types of target.
-@end itemize
+
 
 @node Method Definition Internals
 @subsection Method Definition Internals
 
-@code{define-method}
+@code{define-method}:
 
 @itemize @bullet
 @item
@@ -2575,7 +2577,8 @@ The @var{parameter} and @var{body} parameters should be as for
 define-method}).
 @end deffn
 
-@code{method}
+@noindent
+@code{method}:
 
 @itemize @bullet
 @item
@@ -2601,6 +2604,7 @@ parameter combinations to which this method will be applicable.
 function parameters when this method is invoked.
 @end deffn
 
+@noindent
 @code{make-method} is a simple wrapper around @code{make} with metaclass
 @code{<method>}.
 
@@ -2701,47 +2705,47 @@ accessor, passing the setter generic function as the value of the
 @node Generic Function Invocation
 @subsection Generic Function Invocation
 
-[ *fixme* Description required here. ]
+There is a detailed and customizable protocol involved in the process of
+invoking a generic function --- i.e., in the process of deciding which
+of the generic function's methods are applicable to the current
+arguments, and which one of those to apply.  Here is a summary diagram
+of the generic functions involved.
 
-@code{apply-generic}
+@noindent
+@code{apply-generic} (generic)
 
 @itemize @bullet
 @item
-@code{no-method}
+@code{no-method} (generic)
 
 @item
-@code{compute-applicable-methods}
+@code{compute-applicable-methods} (generic)
 
 @item
-@code{sort-applicable-methods}
+@code{sort-applicable-methods} (generic)
+
+@itemize @bullet
+@item
+@code{method-more-specific?} (generic)
+@end itemize
 
 @item
-@code{apply-methods}
+@code{apply-methods} (generic)
+
+@itemize @bullet
+@item
+@code{apply-method} (generic)
+
+@item
+@code{no-next-method} (generic)
+@end itemize
 
 @item
 @code{no-applicable-method}
 @end itemize
 
-@code{sort-applicable-methods}
-
-@itemize @bullet
-@item
-@code{method-more-specific?}
-@end itemize
-
-@code{apply-methods}
-
-@itemize @bullet
-@item
-@code{apply-method}
-@end itemize
-
-@code{next-method}
-
-@itemize @bullet
-@item
-@code{no-next-method}
-@end itemize
+We do not yet have full documentation for these.  Please refer to the
+code (@file{oop/goops.scm}) for details.
 
 
 @node Redefining a Class
