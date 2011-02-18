@@ -98,7 +98,8 @@
           make-i/o-decoding-error
           &i/o-encoding-error i/o-encoding-error?
           make-i/o-encoding-error i/o-encoding-error-char)
-  (import (only (rnrs base) assertion-violation)
+  (import (ice-9 binary-ports)
+          (only (rnrs base) assertion-violation)
           (rnrs enums)
           (rnrs records syntactic)
           (rnrs exceptions)
@@ -107,9 +108,6 @@
           (srfi srfi-8)
           (ice-9 rdelim)
           (except (guile) raise))
-
-(load-extension (string-append "libguile-" (effective-version))
-                "scm_init_r6rs_ports")
 
 
 
@@ -205,7 +203,8 @@
   "Return a new textual port based on @var{port}, using
 @var{transcoder} to encode and decode data written to or
 read from its underlying binary port @var{port}."
-  (let ((result (%make-transcoded-port port)))
+  ;; Hackily get at %make-transcoded-port.
+  (let ((result ((@@ (ice-9 binary-ports) %make-transcoded-port) port)))
     (set-port-encoding! result (transcoder-codec transcoder))
     (case (transcoder-error-handling-mode transcoder)
       ((raise)
