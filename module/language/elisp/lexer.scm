@@ -394,7 +394,7 @@
         (paren-level 0))
     (lambda ()
       (if finished
-          (cons 'eof ((@ (rnrs io ports) eof-object)))
+          (cons 'eof ((@ (ice-9 binary-ports) eof-object)))
           (let ((next (lex))
                 (quotation #f))
             (case (car next)

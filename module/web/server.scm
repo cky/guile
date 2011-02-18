@@ -75,7 +75,7 @@
 (define-module (web server)
   #:use-module (srfi srfi-9)
   #:use-module (rnrs bytevectors)
-  #:use-module (rnrs io ports)
+  #:use-module (ice-9 binary-ports)
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (system repl error-handling)

@@ -24,10 +24,14 @@
   #:use-module (system vm instruction)
   #:use-module (srfi srfi-4)
   #:use-module (rnrs bytevectors)
-  #:use-module (rnrs io ports)
+  #:use-module (ice-9 binary-ports)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module ((srfi srfi-26) #:select (cut))
   #:export (compile-bytecode))
+
+;; Gross.
+(define (port-position port)
+  (seek port 0 SEEK_CUR))
 
 (define (compile-bytecode assembly env . opts)
   (pmatch assembly

@@ -30,7 +30,7 @@
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 control)
   #:use-module (rnrs bytevectors)
-  #:use-module (rnrs io ports)
+  #:use-module (ice-9 binary-ports)
   #:export (uri?
             uri-scheme uri-userinfo uri-host uri-port
             uri-path uri-query uri-fragment

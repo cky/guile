@@ -21,7 +21,7 @@
 
 (define-module (web response)
   #:use-module (rnrs bytevectors)
-  #:use-module (rnrs io ports)
+  #:use-module (ice-9 binary-ports)
   #:use-module (ice-9 rdelim)
   #:use-module (srfi srfi-9)
   #:use-module (web http)
