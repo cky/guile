@@ -1777,7 +1777,7 @@ as the Guile primitive @code{write} and @code{display} functions.
 
 In addition to the cases mentioned, you can of course define
 @code{write} and @code{display} methods for your own classes, to
-customize how they are printed.
+customize how instances of those classes are printed.
 
 
 @node The Metaobject Protocol
