@@ -661,6 +661,19 @@ scm_i_remove_port (SCM port)
   scm_port_non_buffer (p);
   p->putback_buf = NULL;
   p->putback_buf_size = 0;
+
+  if (p->input_cd != (iconv_t) -1)
+    {
+      iconv_close (p->input_cd);
+      p->input_cd = (iconv_t) -1;
+    }
+  
+  if (p->output_cd != (iconv_t) -1)
+    {
+      iconv_close (p->output_cd);
+      p->output_cd = (iconv_t) -1;
+    }
+
   SCM_SETPTAB_ENTRY (port, 0);
 
   scm_hashq_remove_x (scm_i_port_weak_hash, port);
@@ -2099,6 +2112,7 @@ SCM_DEFINE (scm_set_port_encoding_x, "set-port-encoding!", 2, 0, 0,
 
   enc_str = scm_to_locale_string (enc);
   scm_i_set_port_encoding_x (port, enc_str);
+  free (enc_str);
 
   return SCM_UNSPECIFIED;
 }
