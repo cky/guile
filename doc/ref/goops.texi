@@ -2387,15 +2387,14 @@ calls@dots{}
 @item
 @code{compute-getter-method @var{class} @var{gns}} (generic)
 
-@code{initialize} calls @code{compute-getter-method} for each of the class's
-slots (as determined by @code{compute-slots}) that includes a
+@code{initialize} calls @code{compute-getter-method} for each of the
+class's slots (as determined by @code{compute-slots}) that includes a
 @code{#:getter} or @code{#:accessor} slot option.  @var{gns} is the
-element of the @var{class} metaobject's @code{getters-n-setters} slot that
-specifies how the slot in question is referenced and set, as described
-above under @code{compute-get-n-set}.  The applied method should create
-and return a method that is specialized for instances of type @var{class}
-and uses the get closure to retrieve the slot's value.  [ *fixme  Need
-to insert something here about checking that the value is not unbound. ]
+element of the @var{class} metaobject's @code{getters-n-setters} slot
+that specifies how the slot in question is referenced and set, as
+described above under @code{compute-get-n-set}.  The applied method
+should create and return a method that is specialized for instances of
+type @var{class} and uses the get closure to retrieve the slot's value.
 @code{initialize} uses @code{add-method!} to add the returned method to
 the generic function named by the slot definition's @code{#:getter} or
 @code{#:accessor} option.
