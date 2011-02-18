@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -64,7 +64,7 @@ Consider the following file @file{bessel.c}.
 SCM
 j0_wrapper (SCM x)
 @{
-  return scm_make_real (j0 (scm_num2dbl (x, "j0")));
+  return scm_from_double (j0 (scm_to_double (x)));
 @}
 
 void
