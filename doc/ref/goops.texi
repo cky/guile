@@ -48,7 +48,6 @@ module.  You can do this at the Guile REPL by evaluating:
 * GOOPS Error Handling::
 * GOOPS Object Miscellany::
 * The Metaobject Protocol::
-* Class Options::
 * Redefining a Class::
 * Changing the Class of an Instance::
 @end menu
@@ -94,8 +93,8 @@ that class --- like ``fields'' or ``member variables'' in other object
 oriented systems.  Each @var{slot-description} gives the name of a slot
 and optionally some ``properties'' of this slot; for example its initial
 value, the name of a function which will access its value, and so on.
-Slot descriptions and inheritance are discussed more below.  For class
-options, see @ref{Class Options}.
+Class options, slot descriptions and inheritance are discussed more
+below.
 @cindex slot
 
 @deffn syntax define-class name (super @dots{}) slot-definition @dots{} . options
@@ -140,8 +139,28 @@ the predefined class @code{<complex>}; @code{<complex>} is the
 superclass of @code{<real>}, and @code{<real>} is the superclass of
 @code{<integer>}.}
 
-The possible slot and class options are described in the following
-sections.
+Slot options are described in the next section.  The possible class
+options are as follows.
+
+@deffn {class option} #:metaclass metaclass
+The @code{#:metaclass} class option specifies the metaclass of the class
+being defined.  @var{metaclass} must be a class that inherits from
+@code{<class>}.  For the use of metaclasses, see @ref{Metaobjects and
+the Metaobject Protocol} and @ref{Metaclasses}.
+
+If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
+metaclass for the new class by calling @code{ensure-metaclass}
+(@pxref{Class Definition Protocol,, ensure-metaclass}).
+@end deffn
+
+@deffn {class option} #:name name
+The @code{#:name} class option specifies the new class's name.  This
+name is used to identify the class whenever related objects - the class
+itself, its instances and its subclasses - are printed.
+
+If the @code{#:name} option is absent, GOOPS uses the first argument to
+@code{define-class} as the class name.
+@end deffn
 
 
 @node Instance Creation
@@ -2800,30 +2819,6 @@ accessor, passing the setter generic function as the value of the
 @item
 @code{no-next-method}
 @end itemize
-
-
-@node Class Options
-@section Class Options
-
-@deffn {class option} #:metaclass metaclass
-The @code{#:metaclass} class option specifies the metaclass of the class
-being defined.  @var{metaclass} must be a class that inherits from
-@code{<class>}.  For the use of metaclasses, see @ref{Metaobjects and
-the Metaobject Protocol} and @ref{Metaclasses}.
-
-If the @code{#:metaclass} option is absent, GOOPS reuses or constructs a
-metaclass for the new class by calling @code{ensure-metaclass}
-(@pxref{Class Definition Protocol,, ensure-metaclass}).
-@end deffn
-
-@deffn {class option} #:name name
-The @code{#:name} class option specifies the new class's name.  This
-name is used to identify the class whenever related objects - the class
-itself, its instances and its subclasses - are printed.
-
-If the @code{#:name} option is absent, GOOPS uses the first argument to
-@code{define-class} as the class name.
-@end deffn
 
 
 @node Redefining a Class
