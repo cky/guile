@@ -1789,9 +1789,9 @@ customizing the behaviour of GOOPS itself.
 * Metaobjects and the Metaobject Protocol::
 * Metaclasses::
 * MOP Specification::
+* Instance Creation Protocol::
 * Class Definition Protocol::
 * Customizing Class Definition::
-* Customizing Instance Creation::
 * Class Redefinition::
 * Method Definition::
 * Method Definition Internals::
@@ -2026,6 +2026,93 @@ effects
 what the caller expects to get as the applied method's return value.
 @end itemize
 
+
+@node Instance Creation Protocol
+@subsection Instance Creation Protocol
+
+@code{make <class> . @var{initargs}} (method)
+
+@itemize @bullet
+@item
+@code{allocate-instance @var{class} @var{initargs}} (generic)
+
+The applied @code{allocate-instance} method should allocate storage for
+a new instance of class @var{class} and return the uninitialized instance.
+
+@item
+@code{initialize @var{instance} @var{initargs}} (generic)
+
+@var{instance} is the uninitialized instance returned by
+@code{allocate-instance}.  The applied method should initialize the new
+instance in whatever sense is appropriate for its class.  The method's
+return value is ignored.
+@end itemize
+
+@code{make} itself is a generic function.  Hence the @code{make}
+invocation itself can be customized in the case where the new instance's
+metaclass is more specialized than the default @code{<class>}, by
+defining a @code{make} method that is specialized to that metaclass.
+
+Normally, however, the method for classes with metaclass @code{<class>}
+will be applied.  This method calls two generic functions:
+
+@itemize @bullet
+@item
+(allocate-instance @var{class} . @var{initargs})
+
+@item
+(initialize @var{instance} . @var{initargs})
+@end itemize
+
+@code{allocate-instance} allocates storage for and returns the new
+instance, uninitialized.  You might customize @code{allocate-instance},
+for example, if you wanted to provide a GOOPS wrapper around some other
+object programming system.
+
+To do this, you would create a specialized metaclass, which would act as
+the metaclass for all classes and instances from the other system.  Then
+define an @code{allocate-instance} method, specialized to that
+metaclass, which calls a Guile primitive C function (or FFI code), which
+in turn allocates the new instance using the interface of the other
+object system.
+
+In this case, for a complete system, you would also need to customize a
+number of other generic functions like @code{make} and
+@code{initialize}, so that GOOPS knows how to make classes from the
+other system, access instance slots, and so on.
+
+@code{initialize} initializes the instance that is returned by
+@code{allocate-instance}.  The standard GOOPS methods perform
+initializations appropriate to the instance class.
+
+@itemize @bullet
+@item
+At the least specialized level, the method for instances of type
+@code{<object>} performs internal GOOPS instance initialization, and
+initializes the instance's slots according to the slot definitions and
+any slot initialization keywords that appear in @var{initargs}.
+
+@item
+The method for instances of type @code{<class>} calls
+@code{(next-method)}, then performs the class initializations described
+in @ref{Class Definition Protocol}.
+
+@item
+and so on for generic functions, methods, operator classes @dots{}
+@end itemize
+
+Similarly, you can customize the initialization of instances of any
+application-defined class by defining an @code{initialize} method
+specialized to that class.
+
+Imagine a class whose instances' slots need to be initialized at
+instance creation time by querying a database.  Although it might be
+possible to achieve this a combination of @code{#:init-thunk} keywords
+and closures in the slot definitions, it may be neater to write an
+@code{initialize} method for the class that queries the database once
+and initializes all the dependent slot values according to the results.
+
+
 @node Class Definition Protocol
 @subsection Class Definition Protocol
 
@@ -2046,11 +2133,6 @@ functions that may be involved in class definition.
 @itemize @bullet
 @item
 @code{ensure-metaclass} (procedure)
-
-@itemize @bullet
-@item
-@code{ensure-metaclass-with-supers} (procedure)
-@end itemize
 
 @item
 @code{make @var{metaclass} @dots{}} (generic)
@@ -2110,47 +2192,119 @@ that does not call @code{next-method} and does not call
 @code{compute-cpl}, then @code{compute-cpl} will not be called when a
 class is defined with that metaclass. 
 
-
-@code{define-class} (syntax)
-
-@itemize @bullet
-@item
-@code{class} (syntax)
+A @code{(define-class ...)} form (@pxref{Class Definition}) expands to
+an expression which
 
 @itemize @bullet
 @item
-@code{make-class} (procedure)
+checks that it is being evaluated only at top level
+
+@item
+defines any accessors that are implied by the @var{slot-definition}s
+
+@item
+uses @code{class} to create the new class
+
+@item
+checks for a previous class definition for @var{name} and, if found,
+handles the redefinition by invoking @code{class-redefinition}
+(@pxref{Redefining a Class}).
+@end itemize
+
+@deffn syntax class name (super @dots{}) slot-definition @dots{} . options
+Return a newly created class that inherits from @var{super}s, with
+direct slots defined by @var{slot-definition}s and class options
+@var{options}.  For the format of @var{slot-definition}s and
+@var{options}, see @ref{Class Definition,, define-class}.
+@end deffn
+
+@noindent @code{class} expands to an expression which
 
 @itemize @bullet
 @item
-@code{make @var{metaclass} @dots{}} (generic)
+processes the class and slot definition options to check that they are
+well-formed, to convert the @code{#:init-form} option to an
+@code{#:init-thunk} option, to supply a default environment parameter
+(the current top-level environment) and to evaluate all the bits that
+need to be evaluated
 
+@item
+calls @code{make-class} to create the class with the processed and
+evaluated parameters.
+@end itemize
+
+@deffn procedure make-class supers slots . options
+Return a newly created class that inherits from @var{supers}, with
+direct slots defined by @var{slots} and class options @var{options}.
+For the format of @var{slots} and @var{options}, see @ref{Class
+Definition,, define-class}, except note that for @code{make-class},
+@var{slots} and @var{options} are separate list parameters: @var{slots}
+here is a list of slot definitions.
+@end deffn
+
+@noindent @code{make-class}
+
+@itemize @bullet
+@item
+adds @code{<object>} to the @var{supers} list if @var{supers} is empty
+or if none of the classes in @var{supers} have @code{<object>} in their
+class precedence list
+
+@item
+defaults the @code{#:environment}, @code{#:name} and @code{#:metaclass}
+options, if they are not specified by @var{options}, to the current
+top-level environment, the unbound value, and @code{(ensure-metaclass
+@var{supers})} respectively
+
+@item
+checks for duplicate classes in @var{supers} and duplicate slot names in
+@var{slots}, and signals an error if there are any duplicates
+
+@item
+calls @code{make}, passing the metaclass as the first parameter and all
+other parameters as option keywords with values.
+@end itemize
+
+@deffn procedure ensure-metaclass supers env
+Return a metaclass suitable for a class that inherits from the list of
+classes in @var{supers}.  The returned metaclass is the union by
+inheritance of the metaclasses of the classes in @var{supers}.
+
+In the simplest case, where all the @var{supers} are straightforward
+classes with metaclass @code{<class>}, the returned metaclass is just
+@code{<class>}.
+
+For a more complex example, suppose that @var{supers} contained one
+class with metaclass @code{<operator-class>} and one with metaclass
+@code{<foreign-object-class>}.  Then the returned metaclass would be a
+class that inherits from both @code{<operator-class>} and
+@code{<foreign-object-class>}.
+
+If @var{supers} is the empty list, @code{ensure-metaclass} returns the
+default GOOPS metaclass @code{<class>}.
+
+GOOPS keeps a list of the metaclasses created by
+@code{ensure-metaclass}, so that each required type of metaclass only
+has to be created once.
+
+The @code{env} parameter is ignored.
+@end deffn
+
+@deffn generic make metaclass @dots{}
 @var{metaclass} is the metaclass of the class being defined, either
 taken from the @code{#:metaclass} class option or computed by
 @code{ensure-metaclass}.  The applied method must create and return the
 fully initialized class metaobject for the new class definition.
-@end itemize
+@end deffn
 
-@end itemize
+The @code{(make @var{metaclass} @dots{})} invocation is a particular
+case of the instance creation protocol covered in the previous section.
+It will create an class metaobject with metaclass @var{metaclass}.  By
+default, this metaobject will be initialized by the @code{initialize}
+method that is specialized for instances of type @code{<class>}.
 
-@item
-@code{class-redefinition @var{old-class} @var{new-class}} (generic)
-
-@code{define-class} calls @code{class-redefinition} if the variable
-specified by its first argument already held a GOOPS class definition.
-@var{old-class} and @var{new-class} are the old and new class metaobjects.
-The applied method should perform whatever is necessary to handle the
-redefinition, and should return the class metaobject that is to be bound
-to @code{define-class}'s variable.  The default class redefinition
-protocol is described in @ref{Class Redefinition}.
-@end itemize
-
-The @code{(make @var{metaclass} @dots{})} invocation above will create
-an class metaobject with metaclass @var{metaclass}.  By default, this
-metaobject will be initialized by the @code{initialize} method that is
-specialized for instances of type @code{<class>}.
-
-@code{initialize <class> @var{initargs}} (method)
+The @code{initialize} method for classes (signature @code{(initialize
+<class> initargs)}) calls the following generic functions.
 
 @itemize @bullet
 @item
@@ -2241,153 +2395,8 @@ to the generic function named by the slot definition's @code{#:setter}
 or @code{#:accessor} option.
 @end itemize
 
-@code{define-class} expands to an expression which
-
-@itemize @bullet
-@item
-checks that it is being evaluated only at top level
-
-@item
-defines any accessors that are implied by the @var{slot-definition}s
-
-@item
-uses @code{class} to create the new class (@pxref{Class Definition
-Protocol,, class})
-
-@item
-checks for a previous class definition for @var{name} and, if found,
-handles the redefinition by invoking @code{class-redefinition}
-(@pxref{Redefining a Class}).
-@end itemize
-
-@deffn syntax class name (super @dots{}) slot-definition @dots{} . options
-Return a newly created class that inherits from @var{super}s, with
-direct slots defined by @var{slot-definition}s and class options
-@var{options}.  For the format of @var{slot-definition}s and
-@var{options}, see @ref{Class Definition,, define-class}.
-@end deffn
-
-@noindent @code{class} expands to an expression which
-
-@itemize @bullet
-@item
-processes the class and slot definition options to check that they are
-well-formed, to convert the @code{#:init-form} option to an
-@code{#:init-thunk} option, to supply a default environment parameter
-(the current top-level environment) and to evaluate all the bits that
-need to be evaluated
-
-@item
-calls @code{make-class} to create the class with the processed and
-evaluated parameters.
-@end itemize
-
-@deffn procedure make-class supers slots . options
-Return a newly created class that inherits from @var{supers}, with
-direct slots defined by @var{slots} and class options @var{options}.
-For the format of @var{slots} and @var{options}, see @ref{Class
-Definition,, define-class}, except note that for @code{make-class},
-@var{slots} and @var{options} are separate list parameters: @var{slots}
-here is a list of slot definitions.
-@end deffn
-
-@noindent @code{make-class}
-
-@itemize @bullet
-@item
-adds @code{<object>} to the @var{supers} list if @var{supers} is empty
-or if none of the classes in @var{supers} have @code{<object>} in their
-class precedence list
-
-@item
-defaults the @code{#:environment}, @code{#:name} and @code{#:metaclass}
-options, if they are not specified by @var{options}, to the current
-top-level environment, the unbound value, and @code{(ensure-metaclass
-@var{supers})} respectively (@pxref{Class Definition Protocol,,
-ensure-metaclass})
-
-@item
-checks for duplicate classes in @var{supers} and duplicate slot names in
-@var{slots}, and signals an error if there are any duplicates
-
-@item
-calls @code{make}, passing the metaclass as the first parameter and all
-other parameters as option keywords with values.
-@end itemize
-
-@deffn procedure ensure-metaclass supers env
-Return a metaclass suitable for a class that inherits from the list of
-classes in @var{supers}.  The returned metaclass is the union by
-inheritance of the metaclasses of the classes in @var{supers}.
-
-In the simplest case, where all the @var{supers} are straightforward
-classes with metaclass @code{<class>}, the returned metaclass is just
-@code{<class>}.
-
-For a more complex example, suppose that @var{supers} contained one
-class with metaclass @code{<operator-class>} and one with metaclass
-@code{<foreign-object-class>}.  Then the returned metaclass would be a
-class that inherits from both @code{<operator-class>} and
-@code{<foreign-object-class>}.
-
-If @var{supers} is the empty list, @code{ensure-metaclass} returns the
-default GOOPS metaclass @code{<class>}.
-
-GOOPS keeps a list of the metaclasses created by
-@code{ensure-metaclass}, so that each required type of metaclass only
-has to be created once.
-
-The @code{env} parameter is ignored.
-@end deffn
-
-@deffn procedure ensure-metaclass-with-supers meta-supers
-@code{ensure-metaclass-with-supers} is an internal procedure used by
-@code{ensure-metaclass} (@pxref{Class Definition Protocol,,
-ensure-metaclass}).  It returns a metaclass that is the union by
-inheritance of the metaclasses in @var{meta-supers}.
-@end deffn
-
-The internals of @code{make}, which is ultimately used to create the new
-class object, are described in @ref{Customizing Instance Creation},
-which covers the creation and initialization of instances in general.
-
 @node Customizing Class Definition
 @subsection Customizing Class Definition
-
-During the initialization of a new class, GOOPS calls a number of generic
-functions with the newly allocated class instance as the first
-argument.  Specifically, GOOPS calls the generic function
-
-@itemize @bullet
-@item
-(initialize @var{class} @dots{})
-@end itemize
-
-where @var{class} is the newly allocated class instance, and the default
-@code{initialize} method for arguments of type @code{<class>} calls the
-generic functions
-
-@itemize @bullet
-@item
-(compute-cpl @var{class})
-
-@item
-(compute-slots @var{class})
-
-@item
-(compute-get-n-set @var{class} @var{slot-def}), for each of the slot
-definitions returned by @code{compute-slots}
-
-@item
-(compute-getter-method @var{class} @var{slot-def}), for each of the
-slot definitions returned by @code{compute-slots} that includes a
-@code{#:getter} or @code{#:accessor} slot option
-
-@item
-(compute-setter-method @var{class} @var{slot-def}), for each of the
-slot definitions returned by @code{compute-slots} that includes a
-@code{#:setter} or @code{#:accessor} slot option.
-@end itemize
 
 If the metaclass of the new class is something more specialized than the
 default @code{<class>}, then the type of @var{class} in the calls above
@@ -2406,8 +2415,7 @@ customized in order to modify the CPL ordering algorithm for all classes
 with a special metaclass.
 
 The default CPL algorithm is encapsulated by the @code{compute-std-cpl}
-procedure, which is in turn called by the default @code{compute-cpl}
-method.
+procedure, which is called by the default @code{compute-cpl} method.
 
 @deffn procedure compute-std-cpl class
 Compute and return the class precedence list for @var{class} according
@@ -2476,7 +2484,7 @@ allocation to do this.
 @end example
 
 The usage of @code{compute-getter-method} and @code{compute-setter-method}
-is described in @ref{MOP Specification}.
+is described in @ref{Class Definition Protocol}.
 
 @code{compute-cpl} and @code{compute-get-n-set} are called by the
 standard @code{initialize} method for classes whose metaclass is
@@ -2487,93 +2495,23 @@ behaviour, by not calling @code{(next-method)} at all, but more
 typically it would perform additional class initialization steps before
 and/or after calling @code{(next-method)} for the standard behaviour.
 
-@node Customizing Instance Creation
-@subsection Customizing Instance Creation
-
-@code{make <class> . @var{initargs}} (method)
-
-@itemize @bullet
-@item
-@code{allocate-instance @var{class} @var{initargs}} (generic)
-
-The applied @code{allocate-instance} method should allocate storage for
-a new instance of class @var{class} and return the uninitialized instance.
-
-@item
-@code{initialize @var{instance} @var{initargs}} (generic)
-
-@var{instance} is the uninitialized instance returned by
-@code{allocate-instance}.  The applied method should initialize the new
-instance in whatever sense is appropriate for its class.  The method's
-return value is ignored.
-@end itemize
-
-@code{make} itself is a generic function.  Hence the @code{make}
-invocation itself can be customized in the case where the new instance's
-metaclass is more specialized than the default @code{<class>}, by
-defining a @code{make} method that is specialized to that metaclass.
-
-Normally, however, the method for classes with metaclass @code{<class>}
-will be applied.  This method calls two generic functions:
-
-@itemize @bullet
-@item
-(allocate-instance @var{class} . @var{initargs})
-
-@item
-(initialize @var{instance} . @var{initargs})
-@end itemize
-
-@code{allocate-instance} allocates storage for and returns the new
-instance, uninitialized.  You might customize @code{allocate-instance},
-for example, if you wanted to provide a GOOPS wrapper around some other
-object programming system.
-
-To do this, you would create a specialized metaclass, which would act as
-the metaclass for all classes and instances from the other system.  Then
-define an @code{allocate-instance} method, specialized to that
-metaclass, which calls a Guile primitive C function, which in turn
-allocates the new instance using the interface of the other object
-system.
-
-In this case, for a complete system, you would also need to customize a
-number of other generic functions like @code{make} and
-@code{initialize}, so that GOOPS knows how to make classes from the
-other system, access instance slots, and so on.
-
-@code{initialize} initializes the instance that is returned by
-@code{allocate-instance}.  The standard GOOPS methods perform
-initializations appropriate to the instance class.
-
-@itemize @bullet
-@item
-At the least specialized level, the method for instances of type
-@code{<object>} performs internal GOOPS instance initialization, and
-initializes the instance's slots according to the slot definitions and
-any slot initialization keywords that appear in @var{initargs}.
-
-@item
-The method for instances of type @code{<class>} calls
-@code{(next-method)}, then performs the class initializations described
-in @ref{Customizing Class Definition}.
-
-@item
-and so on for generic functions, method, operator classes @dots{}
-@end itemize
-
-Similarly, you can customize the initialization of instances of any
-application-defined class by defining an @code{initialize} method
-specialized to that class.
-
-Imagine a class whose instances' slots need to be initialized at
-instance creation time by querying a database.  Although it might be
-possible to achieve this a combination of @code{#:init-thunk} keywords
-and closures in the slot definitions, it is neater to write an
-@code{initialize} method for the class that queries the database once
-and initializes all the dependent slot values according to the results.
 
 @node Class Redefinition
 @subsection Class Redefinition
+
+@itemize @bullet
+
+@item
+@code{class-redefinition @var{old-class} @var{new-class}} (generic)
+
+@code{define-class} calls @code{class-redefinition} if the variable
+specified by its first argument already held a GOOPS class definition.
+@var{old-class} and @var{new-class} are the old and new class metaobjects.
+The applied method should perform whatever is necessary to handle the
+redefinition, and should return the class metaobject that is to be bound
+to @code{define-class}'s variable.  The default class redefinition
+protocol is described in @ref{Class Redefinition}.
+@end itemize
 
 The default @code{class-redefinition} method, specialized for classes
 with the default metaclass @code{<class>}, has the following internal
