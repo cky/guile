@@ -163,7 +163,8 @@ This C source file needs to be compiled into a shared library.  Here is
 how to do it on GNU/Linux:
 
 @smallexample
-gcc -shared -o libguile-bessel.so -fPIC bessel.c
+gcc `pkg-config --cflags guile-@value{EFFECTIVE-VERSION}` \
+  -shared -o libguile-bessel.so -fPIC bessel.c
 @end smallexample
 
 For creating shared libraries portably, we recommend the use of GNU
