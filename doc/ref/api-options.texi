@@ -171,13 +171,14 @@ guileversion, libguileinterface, buildstamp
 @end table
 
 Values are all strings.  The value for @code{LIBS} is typically found
-also as a part of "guile-config link" output.  The value for
+also as a part of @code{pkg-config --libs
+guile-@value{EFFECTIVE-VERSION}} output.  The value for
 @code{guileversion} has form X.Y.Z, and should be the same as returned
-by @code{(version)}.  The value for @code{libguileinterface} is
-libtool compatible and has form CURRENT:REVISION:AGE
-(@pxref{Versioning,, Library interface versions, libtool, GNU
-Libtool}).  The value for @code{buildstamp} is the output of the
-command @samp{date -u +'%Y-%m-%d %T'} (UTC).
+by @code{(version)}.  The value for @code{libguileinterface} is libtool
+compatible and has form CURRENT:REVISION:AGE (@pxref{Versioning,,
+Library interface versions, libtool, GNU Libtool}).  The value for
+@code{buildstamp} is the output of the command @samp{date -u +'%Y-%m-%d
+%T'} (UTC).
 
 In the source, @code{%guile-build-info} is initialized from
 libguile/libpath.h, which is completely generated, so deleting this file

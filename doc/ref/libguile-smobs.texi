@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -686,9 +686,9 @@ Here is a sample build and interaction with the code from the
 
 @example
 zwingli:example-smob$ make CC=gcc
-gcc `guile-config compile`   -c image-type.c -o image-type.o
-gcc `guile-config compile`   -c myguile.c -o myguile.o
-gcc image-type.o myguile.o `guile-config link` -o myguile
+gcc `pkg-config --cflags guile-@value{EFFECTIVE-VERSION}` -c image-type.c -o image-type.o
+gcc `pkg-config --cflags guile-@value{EFFECTIVE-VERSION}` -c myguile.c -o myguile.o
+gcc image-type.o myguile.o `pkg-config --libs guile-@value{EFFECTIVE-VERSION}` -o myguile
 zwingli:example-smob$ ./myguile
 guile> make-image
 #<primitive-procedure make-image>

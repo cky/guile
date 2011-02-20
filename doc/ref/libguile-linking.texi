@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -16,15 +16,23 @@ head of any C source file that uses identifiers described in this
 manual.  Once you've compiled your source files, you need to link them
 against the Guile object code library, @code{libguile}.
 
-On most systems, you should not need to tell the compiler and linker
-explicitly where they can find @file{libguile.h} and @file{libguile}.
-When Guile has been installed in a peculiar way, or when you are on a
-peculiar system, things might not be so easy and you might need to pass
-additional @code{-I} or @code{-L} options to the compiler.  Guile
-provides the utility program @code{guile-config} to help you find the
-right values for these options.  You would typically run
-@code{guile-config} during the configuration phase of your program and
+@code{<libguile.h>} is not in the default search path for headers,
+because Guile supports parallel installation of multiple versions of
+Guile, with each version's headers under their own directories.  This is
+to allow development against, say, both Guile 2.0 and 2.2.
+
+To compile code that includes @code{<libguile.h>}, or links to
+@code{libguile}, you need to select the effective version you are
+interested in, and then ask @code{pkg-config} for the compilation flags
+or linking instructions.  For effective version
+@value{EFFECTIVE-VERSION}, for example, you would invoke
+@code{pkg-config --cflags --libs guile-@value{EFFECTIVE-VERSION}} to get
+the compilation and linking flags necessary to link to version
+@value{EFFECTIVE-VERSION} of Guile.  You would typically run
+@code{pkg-config} during the configuration phase of your program and
 use the obtained information in the Makefile.
+
+See the @code{pkg-config} man page, for more information.
 
 @menu
 * Guile Initialization Functions::  What to call first.
@@ -98,17 +106,17 @@ ready, it invokes @code{inner_main}, which calls @code{scm_shell} to
 process the command-line arguments in the usual way.
 
 Here is a Makefile which you can use to compile the above program.  It
-uses @code{guile-config} to learn about the necessary compiler and
+uses @code{pkg-config} to learn about the necessary compiler and
 linker flags.
 @example
 # Use GCC, if you have it installed.
 CC=gcc
 
 # Tell the C compiler where to find <libguile.h>
-CFLAGS=`guile-config compile`
+CFLAGS=`pkg-config --cflags guile-@value{EFFECTIVE-VERSION}`
 
 # Tell the linker what libraries to use and where to find them.
-LIBS=`guile-config link`
+LIBS=`pkg-config --libs guile-@value{EFFECTIVE-VERSION}`
 
 simple-guile: simple-guile.o
         $@{CC@} simple-guile.o $@{LIBS@} -o simple-guile
