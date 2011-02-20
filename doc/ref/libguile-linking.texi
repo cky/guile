@@ -128,13 +128,11 @@ simple-guile.o: simple-guile.c
 If you are using the GNU Autoconf package to make your application more
 portable, Autoconf will settle many of the details in the Makefile above
 automatically, making it much simpler and more portable; we recommend
-using Autoconf with Guile.  Guile also provides the @code{GUILE_FLAGS}
-macro for autoconf that performs all necessary checks.  Here is a
-@file{configure.in} file for @code{simple-guile} that uses this macro.
-Autoconf can use this file as a template to generate a @code{configure}
-script.  In order for Autoconf to find the @code{GUILE_FLAGS} macro, you
-will need to run @code{aclocal} first (@pxref{Invoking aclocal,,,
-automake, GNU Automake}).
+using Autoconf with Guile.  Here is a @file{configure.ac} file for
+@code{simple-guile} that uses the standard @code{PKG_CHECK_MODULES}
+macro to check for Guile.  Autoconf will process this file into a
+@code{configure} script.  We recommend invoking Autoconf via the
+@code{autoreconf} utility.
 
 @example
 AC_INIT(simple-guile.c)
@@ -143,11 +141,13 @@ AC_INIT(simple-guile.c)
 AC_PROG_CC
 
 # Check for Guile
-GUILE_FLAGS
+PKG_CHECK_MODULES([GUILE], [guile-@value{EFFECTIVE-VERSION}])
 
 # Generate a Makefile, based on the results.
 AC_OUTPUT(Makefile)
 @end example
+
+Run @code{autoreconf -vif} to generate @code{configure}.
 
 Here is a @code{Makefile.in} template, from which the @code{configure}
 script produces a Makefile customized for the host system:
@@ -155,7 +155,7 @@ script produces a Makefile customized for the host system:
 # The configure script fills in these values.
 CC=@@CC@@
 CFLAGS=@@GUILE_CFLAGS@@
-LIBS=@@GUILE_LDFLAGS@@
+LIBS=@@GUILE_LIBS@@
 
 simple-guile: simple-guile.o
         $@{CC@} simple-guile.o $@{LIBS@} -o simple-guile
@@ -164,23 +164,28 @@ simple-guile.o: simple-guile.c
 @end example
 
 The developer should use Autoconf to generate the @file{configure}
-script from the @file{configure.in} template, and distribute
+script from the @file{configure.ac} template, and distribute
 @file{configure} with the application.  Here's how a user might go about
 building the application:
 
 @example
 $ ls
-Makefile.in     configure*      configure.in    simple-guile.c
+Makefile.in     configure*      configure.ac    simple-guile.c
 $ ./configure
-creating cache ./config.cache
-checking for gcc... (cached) gcc
-checking whether the C compiler (gcc  ) works... yes
-checking whether the C compiler (gcc  ) is a cross-compiler... no
-checking whether we are using GNU C... (cached) yes
-checking whether gcc accepts -g... (cached) yes
-checking for Guile... yes
-creating ./config.status
-creating Makefile
+checking for gcc... ccache gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether ccache gcc accepts -g... yes
+checking for ccache gcc option to accept ISO C89... none needed
+checking for pkg-config... /usr/bin/pkg-config
+checking pkg-config is at least version 0.9.0... yes
+checking for GUILE... yes
+configure: creating ./config.status
+config.status: creating Makefile
 $ make
 [...]
 $ ./simple-guile

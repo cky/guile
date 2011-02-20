@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -97,25 +97,25 @@ to instantiate macros at top-level.
 
 We now include two examples, one simple and one complicated.
 
-The first example is for a package that uses libguile, and thus needs to know
-how to compile and link against it.  So we use @code{GUILE_FLAGS} to set the
-vars @code{GUILE_CFLAGS} and @code{GUILE_LDFLAGS}, which are automatically
-substituted in the Makefile.
+The first example is for a package that uses libguile, and thus needs to
+know how to compile and link against it.  So we use
+@code{PKG_CHECK_MODULES} to set the vars @code{GUILE_CFLAGS} and
+@code{GUILE_LIBS}, which are automatically substituted in the Makefile.
 
 @example
 In configure.ac:
 
-  GUILE_FLAGS
+  PKG_CHECK_MODULES([GUILE], [guile-@value{EFFECTIVE-VERSION}])
 
 In Makefile.in:
 
   GUILE_CFLAGS  = @@GUILE_CFLAGS@@
-  GUILE_LDFLAGS = @@GUILE_LDFLAGS@@
+  GUILE_LIBS = @@GUILE_LIBS@@
 
   myprog.o: myprog.c
           $(CC) -o $@ $(GUILE_CFLAGS) $<
   myprog: myprog.o
-          $(CC) -o $@ $< $(GUILE_LDFLAGS)
+          $(CC) -o $@ $< $(GUILE_LIBS)
 @end example
 
 The second example is for a package of Guile Scheme modules that uses an
