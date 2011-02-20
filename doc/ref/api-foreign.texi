@@ -360,8 +360,8 @@ When loaded with @code{(use-modules (foo bar))}, the
 @code{load-extension} call looks for the @file{foobar-c-code.so} (etc)
 object file in Guile's @code{extensiondir}, which is usually a
 subdirectory of the @code{libdir}. For example, if your libdir is
-@file{/usr/lib}, the @code{extensiondir} for the Guile 2.0.@var{x}
-series will be @file{/usr/lib/guile/2.0/}.
+@file{/usr/lib}, the @code{extensiondir} for the Guile @value{EFFECTIVE-VERSION}.@var{x}
+series will be @file{/usr/lib/guile/@value{EFFECTIVE-VERSION}/}.
 
 The extension path includes the major and minor version of Guile (the
 ``effective version''), because Guile guarantees compatibility within a
@@ -399,7 +399,7 @@ with the following in a @file{Makefile}, using @command{sed}
 
 @example
 foo.scm: foo.scm.in
-        sed 's|XXextensiondirXX|$(libdir)/guile/2.0|' <foo.scm.in >foo.scm
+        sed 's|XXextensiondirXX|$(libdir)/guile/@value{EFFECTIVE-VERSION}|' <foo.scm.in >foo.scm
 @end example
 
 The actual pattern @code{XXextensiondirXX} is arbitrary, it's only something
