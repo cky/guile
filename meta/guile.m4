@@ -70,29 +70,56 @@ AC_DEFUN([GUILE_PROGS],
 #
 # This macro runs the @code{guile-config} script, installed with Guile, to
 # find out where Guile's header files and libraries are installed.  It sets
-# two variables, @var{GUILE_CFLAGS} and @var{GUILE_LDFLAGS}.
+# four variables, @var{GUILE_CFLAGS}, @var{GUILE_LDFLAGS}, @var{GUILE_LIBS},
+# and @var{GUILE_LTLIBS}.
 #
 # @var{GUILE_CFLAGS}: flags to pass to a C or C++ compiler to build code that
-# uses Guile header files.  This is almost always just a @code{-I} flag.
+# uses Guile header files.  This is almost always just one or more @code{-I}
+# flags.
 #
-# @var{GUILE_LDFLAGS}: flags to pass to the linker to link a program against
+# @var{GUILE_LDFLAGS}: flags to pass to the compiler to link a program against
 # Guile.  This includes @code{-lguile} for the Guile library itself, any
 # libraries that Guile itself requires (like -lqthreads), and so on.  It may
-# also include a @code{-L} flag to tell the compiler where to find the
-# libraries.
+# also include one or more @code{-L} flag to tell the compiler where to find
+# the libraries.  But it does not include flags that influence the program's
+# runtime search path for libraries, and will therefore lead to a program
+# that fails to start, unless all necessary libraries are installed in a
+# standard location such as @file{/usr/lib}.
+#
+# @var{GUILE_LIBS} and @var{GUILE_LTLIBS}: flags to pass to the compiler or to
+# libtool, respectively, to link a program against Guile.  It includes flags
+# that augment the program's runtime search path for libraries, so that shared
+# libraries will be found at the location where they were during linking, even
+# in non-standard locations.  @var{GUILE_LIBS} is to be used when linking the
+# program directly with the compiler, whereas @var{GUILE_LTLIBS} is to be used
+# when linking the program is done through libtool.
 #
 # The variables are marked for substitution, as by @code{AC_SUBST}.
 #
 AC_DEFUN([GUILE_FLAGS],
- [AC_REQUIRE([GUILE_PROGS])dnl
+ [dnl Find guile-config.
+  AC_REQUIRE([GUILE_PROGS])dnl
+
   AC_MSG_CHECKING([libguile compile flags])
   GUILE_CFLAGS="`$GUILE_CONFIG compile`"
   AC_MSG_RESULT([$GUILE_CFLAGS])
+
   AC_MSG_CHECKING([libguile link flags])
   GUILE_LDFLAGS="`$GUILE_CONFIG link`"
   AC_MSG_RESULT([$GUILE_LDFLAGS])
-  AC_SUBST(GUILE_CFLAGS)
-  AC_SUBST(GUILE_LDFLAGS)
+
+  dnl Determine the platform dependent parameters needed to use rpath.
+  dnl AC_LIB_LINKFLAGS_FROM_LIBS is defined in gnulib/m4/lib-link.m4 and needs
+  dnl the file gnulib/build-aux/config.rpath.
+  AC_LIB_LINKFLAGS_FROM_LIBS([GUILE_LIBS], [$GUILE_LDFLAGS], [])
+  GUILE_LIBS="$GUILE_LDFLAGS $GUILE_LIBS"
+  AC_LIB_LINKFLAGS_FROM_LIBS([GUILE_LTLIBS], [$GUILE_LDFLAGS], [yes])
+  GUILE_LTLIBS="$GUILE_LDFLAGS $GUILE_LTLIBS"
+
+  AC_SUBST([GUILE_CFLAGS])
+  AC_SUBST([GUILE_LDFLAGS])
+  AC_SUBST([GUILE_LIBS])
+  AC_SUBST([GUILE_LTLIBS])
  ])
 
 # GUILE_SITE_DIR -- find path to Guile "site" directory
