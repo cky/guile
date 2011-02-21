@@ -530,14 +530,16 @@ value of @var{result} for the first call to @var{proc}."
 (define* (vhash-delete key vhash #:optional (equal? equal?) (hash hash))
   "Remove all associations from @var{vhash} with @var{key}, comparing keys
 with @var{equal?}."
-  (vlist-fold (lambda (k+v result)
-                (let ((k (car k+v))
-                      (v (cdr k+v)))
-                  (if (equal? k key)
-                      result
-                      (vhash-cons k v result))))
-              vlist-null
-              vhash))
+  (if (vhash-assoc key vhash equal? hash)
+      (vlist-fold (lambda (k+v result)
+                    (let ((k (car k+v))
+                          (v (cdr k+v)))
+                      (if (equal? k key)
+                          result
+                          (vhash-cons k v result))))
+                  vlist-null
+                  vhash)
+      vhash))
 
 (define vhash-delq (cut vhash-delete <> <> eq? hashq))
 (define vhash-delv (cut vhash-delete <> <> eqv? hashv))
