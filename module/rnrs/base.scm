@@ -123,24 +123,33 @@
  (define (vector-map proc . vecs)
    (list->vector (apply map (cons proc (map vector->list vecs)))))
 
- (define-syntax raise
-   ;; Resolve the real `raise' lazily to avoid a circular dependency
-   ;; between `(rnrs base)' and `(rnrs exceptions)'.
-   (syntax-rules ()
-     ((_ c)
-      ((@ (rnrs exceptions) raise) c))))
+ (define-syntax define-proxy
+   (syntax-rules (@)
+     ;; Define BINDING to point to (@ MODULE ORIGINAL).  This hack is to
+     ;; make sure MODULE is loaded lazily, at run-time, when BINDING is
+     ;; encountered, rather than being loaded while compiling and
+     ;; loading (rnrs base).
+     ;; This avoids circular dependencies among modules and makes
+     ;; (rnrs base) more lightweight.
+     ((_ binding (@ module original))
+      (define-syntax binding
+        (identifier-syntax
+         (module-ref (resolve-interface 'module) 'original))))))
 
- (define condition
+ (define-proxy raise
+   (@ (rnrs exceptions) raise))
+
+ (define-proxy condition
    (@ (rnrs conditions) condition))
- (define make-error
+ (define-proxy make-error
    (@ (rnrs conditions) make-error))
- (define make-assertion-violation
+ (define-proxy make-assertion-violation
    (@ (rnrs conditions) make-assertion-violation))
- (define make-who-condition
+ (define-proxy make-who-condition
    (@ (rnrs conditions) make-who-condition))
- (define make-message-condition
+ (define-proxy make-message-condition
    (@ (rnrs conditions) make-message-condition))
- (define make-irritants-condition
+ (define-proxy make-irritants-condition
    (@ (rnrs conditions) make-irritants-condition))
 
  (define (error who message . irritants)
