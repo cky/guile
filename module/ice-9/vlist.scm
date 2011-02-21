@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -32,7 +32,8 @@
 
             vhash? vhash-cons vhash-consq vhash-consv
             vhash-assoc vhash-assq vhash-assv
-            vhash-delete vhash-fold
+            vhash-delete vhash-delq vhash-delv
+            vhash-fold
             vhash-fold* vhash-foldq* vhash-foldv*
             alist->vhash))
 
