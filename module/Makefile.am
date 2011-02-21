@@ -269,7 +269,6 @@ SRFI_SOURCES = \
   srfi/srfi-98.scm
 
 RNRS_SOURCES =					\
-  rnrs.scm					\
   rnrs/base.scm					\
   rnrs/conditions.scm				\
   rnrs/control.scm				\
@@ -294,7 +293,8 @@ RNRS_SOURCES =					\
   rnrs/io/ports.scm				\
   rnrs/records/inspection.scm			\
   rnrs/records/procedural.scm			\
-  rnrs/records/syntactic.scm
+  rnrs/records/syntactic.scm			\
+  rnrs.scm
 
 EXTRA_DIST += scripts/ChangeLog-2008
 EXTRA_DIST += scripts/README
