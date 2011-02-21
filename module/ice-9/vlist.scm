@@ -536,7 +536,7 @@ with @var{equal?}."
                           (v (cdr k+v)))
                       (if (equal? k key)
                           result
-                          (vhash-cons k v result))))
+                          (vhash-cons k v result hash))))
                   vlist-null
                   vhash)
       vhash))

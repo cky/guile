@@ -2,7 +2,7 @@
 ;;;;
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -281,6 +281,18 @@
                                   (vhash-assoc k vh eq?))))
                    #t
                    keys)))))
+
+  (pass-if "vhash-delete honors HASH"
+    ;; In 2.0.0, `vhash-delete' would construct a new vhash without
+    ;; using the supplied hash procedure, which could lead to
+    ;; inconsistencies.
+    (let* ((s  "hello")
+           (vh (fold vhash-consq
+                     (vhash-consq s "world" vlist-null)
+                     (iota 300)
+                     (iota 300))))
+      (and (vhash-assq s vh)
+           (pair? (vhash-assq s (vhash-delete 123 vh eq? hashq))))))
 
   (pass-if "vhash-fold"
     (let* ((keys   '(a b c d e f g d h i))
