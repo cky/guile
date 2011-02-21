@@ -71,6 +71,8 @@
 (define *show-table*
   '((show (warranty w) (copying c) (version v))))
 
+(define *width* 72)
+
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
 
@@ -546,7 +548,7 @@ Trace execution."
                  (format #t "Nothing to debug.~%"))))))))
 
 (define-stack-command (backtrace repl #:optional count
-                                 #:key (width 72) full?)
+                                 #:key (width *width*) full?)
   "backtrace [COUNT] [#:width W] [#:full? F]
 Print a backtrace.
 
@@ -626,12 +628,12 @@ With an argument, select a frame by index, then show it."
 Print the procedure for the selected frame."
   (repl-print repl (frame-procedure cur)))
 
-(define-stack-command (locals repl)
+(define-stack-command (locals repl #:key (width *width*))
   "locals
 Show local variables.
 
 Show locally-bound variables in the selected frame."
-  (print-locals cur))
+  (print-locals cur #:width width))
 
 (define-stack-command (error-message repl)
   "error-message
@@ -811,6 +813,19 @@ Print registers.
 Print the registers of the current frame."
   (print-registers cur))
 
+(define-meta-command (width repl #:optional x)
+  "width [X]
+Set debug output width.
+
+Set the number of screen columns in the output from `backtrace' and
+`locals'."
+  (if (and x (not (integer? x)))
+      (error "expected a column number (a non-negative integer)" x)
+      (let ((w (or x
+                   (false-if-exception (string->number (getenv "COLUMNS")))
+                   72)))
+        (format #t "Setting screen width to ~a columns~%" w)
+        (set! *width* w))))
 
 
 ;;;

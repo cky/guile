@@ -337,6 +337,12 @@ Show the VM registers associated with the current frame.
 @xref{Stack Layout}, for more information on VM stack frames.
 @end deffn
 
+@deffn {REPL Command} width [cols]
+Sets the number of display columns in the output of @code{,backtrace}
+and @code{,locals} to @var{cols}.  If @var{cols} is not given, the width
+of the terminal is used.
+@end deffn
+
 The next 3 commands work at any REPL.
 
 @deffn {REPL Command} break proc
