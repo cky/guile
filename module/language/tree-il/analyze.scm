@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -926,7 +926,7 @@ accurate information is missing from a given `tree-il' element."
                 (make-toplevel-info (vhash-consq name src refs)
                                     defs))))
          ((<toplevel-define> name)
-          (make-toplevel-info (vhash-delete name refs eq?)
+          (make-toplevel-info (vhash-delq name refs)
                               (vhash-consq name #t defs)))
 
          ((<application> proc args)
@@ -935,8 +935,7 @@ accurate information is missing from a given `tree-il' element."
           (let ((name (goops-toplevel-definition proc args
                                                  env)))
             (if (symbol? name)
-                (make-toplevel-info (vhash-delete name refs
-                                                  eq?)
+                (make-toplevel-info (vhash-delq name refs)
                                     (vhash-consq name #t defs))
                 (make-toplevel-info refs defs))))
          (else
