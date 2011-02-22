@@ -15,6 +15,6 @@ snarf_test ()
 
 snarf_test "^^a^:^" "a;"
 snarf_test "  ^  ^  b  ^  :  ^  " "b;"
-#snarf_test "c\n^^d^:^\ne" "d;"
-#snarf_test "f^^g^:^h" "g;"
-#snarf_test "^^i^:^j^^k^:^" "i;k;"
+snarf_test "c\n^^d^:^\ne" "d;"
+snarf_test "f^^g^:^h" "g;"
+snarf_test "^^i^:^j^^k^:^" "i;k;"
