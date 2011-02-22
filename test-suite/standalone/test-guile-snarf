@@ -1,0 +1,20 @@
+#!/bin/sh
+snarf ()
+{
+    echo "$1" | guile-snarf - | tail -n +2 | tr -d ' \t\n'
+}
+
+snarf_test ()
+{
+    x=`snarf "$1"`
+    if [ x"$x" != x"$2" ]; then
+        echo "Incorrect output: expected \"$2\", but got \"$x\""
+        exit 1
+    fi
+}
+
+snarf_test "^^a^:^" "a;"
+snarf_test "  ^  ^  b  ^  :  ^  " "b;"
+#snarf_test "c\n^^d^:^\ne" "d;"
+#snarf_test "f^^g^:^h" "g;"
+#snarf_test "^^i^:^j^^k^:^" "i;k;"

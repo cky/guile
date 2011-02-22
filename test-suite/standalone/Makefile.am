@@ -72,6 +72,9 @@ TESTS += test-bad-identifiers
 check_SCRIPTS += test-require-extension
 TESTS += test-require-extension
 
+check_SCRIPTS += test-guile-snarf
+TESTS += test-guile-snarf
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}
