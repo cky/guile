@@ -134,9 +134,9 @@ static double acosh (double x) { return log (x + sqrt (x * x - 1)); }
 static double atanh (double x) { return 0.5 * log ((1 + x) / (1 - x)); }
 #endif
 
-/* mpz_cmp_d in gmp 4.1.3 doesn't recognise infinities, so xmpz_cmp_d uses
-   an explicit check.  In some future gmp (don't know what version number),
-   mpz_cmp_d is supposed to do this itself.  */
+/* mpz_cmp_d in GMP before 4.2 didn't recognise infinities, so
+   xmpz_cmp_d uses an explicit check.  Starting with GMP 4.2 (released
+   in March 2006), mpz_cmp_d now handles infinities properly.  */
 #if 1
 #define xmpz_cmp_d(z, d)                                \
   (isinf (d) ? (d < 0.0 ? 1 : -1) : mpz_cmp_d (z, d))
@@ -316,16 +316,15 @@ scm_i_dbl2num (double u)
    we need to use mpz_getlimbn.  mpz_tstbit is not right, it treats
    negatives as twos complement.
 
-   In current gmp 4.1.3, mpz_get_d rounding is unspecified.  It ends up
-   following the hardware rounding mode, but applied to the absolute value
-   of the mpz_t operand.  This is not what we want so we put the high
-   DBL_MANT_DIG bits into a temporary.  In some future gmp, don't know when,
-   mpz_get_d is supposed to always truncate towards zero.
+   In GMP before 4.2, mpz_get_d rounding was unspecified.  It ended up
+   following the hardware rounding mode, but applied to the absolute
+   value of the mpz_t operand.  This is not what we want so we put the
+   high DBL_MANT_DIG bits into a temporary.  Starting with GMP 4.2
+   (released in March 2006) mpz_get_d now always truncates towards zero.
 
-   ENHANCE-ME: The temporary init+clear to force the rounding in gmp 4.1.3
-   is a slowdown.  It'd be faster to pick out the relevant high bits with
-   mpz_getlimbn if we could be bothered coding that, and if the new
-   truncating gmp doesn't come out.  */
+   ENHANCE-ME: The temporary init+clear to force the rounding in GMP
+   before 4.2 is a slowdown.  It'd be faster to pick out the relevant
+   high bits with mpz_getlimbn.  */
 
 double
 scm_i_big2dbl (SCM b)
@@ -337,7 +336,12 @@ scm_i_big2dbl (SCM b)
 
 #if 1
   {
-    /* Current GMP, eg. 4.1.3, force truncation towards zero */
+    /* For GMP earlier than 4.2, force truncation towards zero */
+
+    /* FIXME: DBL_MANT_DIG is the number of base-`FLT_RADIX' digits,
+       _not_ the number of bits, so this code will break badly on a
+       system with non-binary doubles.  */
+
     mpz_t  tmp;
     if (bits > DBL_MANT_DIG)
       {
@@ -353,7 +357,7 @@ scm_i_big2dbl (SCM b)
       }
   }
 #else
-  /* Future GMP */
+  /* GMP 4.2 or later */
   result = mpz_get_d (SCM_I_BIG_MPZ (b));
 #endif
 
