@@ -120,6 +120,26 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
   return result;
 }
 
+static void
+vacuum_weak_hash_table (SCM table)
+{
+  SCM buckets = SCM_HASHTABLE_VECTOR (table);
+  unsigned long k = SCM_SIMPLE_VECTOR_LENGTH (buckets);
+  size_t len = SCM_HASHTABLE_N_ITEMS (table);
+
+  while (k--)
+    {
+      size_t removed;
+      SCM alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
+      alist = scm_fixup_weak_alist (alist, &removed);
+      assert (removed <= len);
+      len -= removed;
+      SCM_SIMPLE_VECTOR_SET (buckets, k, alist);
+    }
+
+  SCM_SET_HASHTABLE_N_ITEMS (table, len);
+}
+
 
 /* Packed arguments for `do_weak_bucket_fixup'.  */
 struct t_fixup_args
@@ -651,12 +671,16 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
 	}
       SCM_SETCDR (new_bucket, SCM_SIMPLE_VECTOR_REF (buckets, k));
       SCM_SIMPLE_VECTOR_SET (buckets, k, new_bucket);
-      /* Update element count and maybe rehash the table.  The
-         table might have too few entries here since weak hash
-         tables used with the hashx_* functions can not be
-         rehashed after GC.
-      */
       SCM_HASHTABLE_INCREMENT (table);
+
+      /* Maybe rehash the table.  If it's a weak table, pump all of the
+         buckets first to remove stale links.  If the weak table is of
+         the kind that gets lots of insertions of short-lived values, we
+         might never need to actually rehash.  */
+      if (SCM_HASHTABLE_WEAK_P (table)
+          && SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
+        vacuum_weak_hash_table (table);
+          
       if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table)
           || SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
         scm_i_rehash (table, hash_fn, closure, FUNC_NAME);
