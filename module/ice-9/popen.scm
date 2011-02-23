@@ -1,6 +1,6 @@
 ;; popen emulation, for non-stdio based ports.
 
-;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -139,6 +139,10 @@ A port to the process (based on pipes) is created and returned.
 @var{modes} specifies whether an input, an output or an input-output
 port to the process is created: it should be the value of
 @code{OPEN_READ}, @code{OPEN_WRITE} or @code{OPEN_BOTH}."
+
+  ;; Until we get GC hooks working again, pump the guardian here.
+  (reap-pipes)
+
   (let* ((port/pid (apply open-process mode command args))
 	 (port (car port/pid)))
     (pipe-guardian port)
