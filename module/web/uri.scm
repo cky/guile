@@ -1,6 +1,6 @@
 ;;;; (web uri) --- URI manipulation tools
 ;;;;
-;;;; Copyright (C) 1997,2001,2002,2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1997,2001,2002,2010,2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -227,16 +227,31 @@ printed."
          ""))))
 
 
+;; like call-with-output-string, but actually closes the port (doh)
+(define (call-with-output-string* proc)
+  (let ((port (open-output-string)))
+    (proc port)
+    (let ((str (get-output-string port)))
+      (close-port port)
+      str)))
+
+(define (call-with-output-bytevector* proc)
+  (call-with-values
+      (lambda ()
+        (open-bytevector-output-port))
+    (lambda (port get-bytevector)
+      (proc port)
+      (let ((bv (get-bytevector)))
+        (close-port port)
+        bv))))
+
 (define (call-with-encoded-output-string encoding proc)
   (if (string-ci=? encoding "utf-8")
-      (string->utf8 (call-with-output-string proc))
-      (call-with-values
-          (lambda ()
-            (open-bytevector-output-port))
-        (lambda (port get-bytevector)
-          (set-port-encoding! port encoding)
-          (proc port)
-          (get-bytevector)))))
+      (string->utf8 (call-with-output-string* proc))
+      (call-with-output-bytevector*
+       (lambda (port)
+         (set-port-encoding! port encoding)
+         (proc port)))))
 
 (define (encode-string str encoding)
   (if (string-ci=? encoding "utf-8")
@@ -250,7 +265,9 @@ printed."
       (utf8->string bv)
       (let ((p (open-bytevector-input-port bv)))
         (set-port-encoding! p encoding)
-        (read-delimited "" p))))
+        (let ((res (read-delimited "" p)))
+          (close-port p)
+          res))))
 
 
 ;; A note on characters and bytes: URIs are defined to be sequences of
@@ -279,35 +296,37 @@ There is no guarantee that a given byte sequence is a valid string
 encoding. Therefore this routine may signal an error if the decoded
 bytes are not valid for the given encoding. Pass @code{#f} for
 @var{encoding} if you want decoded bytes as a bytevector directly."
-  (let ((len (string-length str)))
-    (call-with-values open-bytevector-output-port
-      (lambda (port get-bytevector)
-        (let lp ((i 0))
-          (if (= i len)
-              (if encoding
-                  (decode-string (get-bytevector) encoding)
-                  (get-bytevector)) ; raw bytevector
-              (let ((ch (string-ref str i)))
-                (cond
-                 ((eqv? ch #\+)
-                  (put-u8 port (char->integer #\space))
-                  (lp (1+ i)))
-                 ((and (< (+ i 2) len) (eqv? ch #\%)
-                       (let ((a (string-ref str (+ i 1)))
-                             (b (string-ref str (+ i 2))))
-                         (and (char-set-contains? hex-chars a)
-                              (char-set-contains? hex-chars b)
-                              (string->number (string a b) 16))))
-                  => (lambda (u8)
-                       (put-u8 port u8)
-                       (lp (+ i 3))))
-                 ((< (char->integer ch) 128)
-                  (put-u8 port (char->integer ch))
-                  (lp (1+ i)))
-                 (else
-                  (uri-error "Invalid character in encoded URI ~a: ~s"
-                             str ch))))))))))
-  
+  (let* ((len (string-length str))
+         (bv
+          (call-with-output-bytevector*
+           (lambda (port)
+             (let lp ((i 0))
+               (if (< i len)
+                   (let ((ch (string-ref str i)))
+                     (cond
+                      ((eqv? ch #\+)
+                       (put-u8 port (char->integer #\space))
+                       (lp (1+ i)))
+                      ((and (< (+ i 2) len) (eqv? ch #\%)
+                            (let ((a (string-ref str (+ i 1)))
+                                  (b (string-ref str (+ i 2))))
+                              (and (char-set-contains? hex-chars a)
+                                   (char-set-contains? hex-chars b)
+                                   (string->number (string a b) 16))))
+                       => (lambda (u8)
+                            (put-u8 port u8)
+                            (lp (+ i 3))))
+                      ((< (char->integer ch) 128)
+                       (put-u8 port (char->integer ch))
+                       (lp (1+ i)))
+                      (else
+                       (uri-error "Invalid character in encoded URI ~a: ~s"
+                                  str ch))))))))))
+    (if encoding
+        (decode-string bv encoding)
+        ;; Otherwise return raw bytevector
+        bv)))
+
 (define ascii-alnum-chars
   (string->char-set
    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
@@ -337,7 +356,7 @@ within the given @var{encoding}, then encodes each byte as
 @code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
 the byte."
   (if (string-index str unescaped-chars)
-      (call-with-output-string
+      (call-with-output-string*
        (lambda (port)
          (string-for-each
           (lambda (ch)
