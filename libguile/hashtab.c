@@ -33,6 +33,7 @@
 #include "libguile/root.h"
 #include "libguile/vectors.h"
 #include "libguile/ports.h"
+#include "libguile/bdw-gc.h"
 
 #include "libguile/validate.h"
 #include "libguile/hashtab.h"
@@ -417,6 +418,34 @@ SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
 }
 #undef FUNC_NAME
 
+static void
+weak_gc_callback (void *ptr, void *data)
+{
+  void **weak = ptr;
+  void *val = *weak;
+  
+  if (val)
+    {
+      void (*callback) (SCM) = data;
+
+      GC_REGISTER_FINALIZER_NO_ORDER (ptr, weak_gc_callback, data, NULL, NULL);
+      
+      callback (PTR2SCM (val));
+    }
+}
+
+static void
+scm_c_register_weak_gc_callback (SCM obj, void (*callback) (SCM))
+{
+  void **weak = GC_MALLOC_ATOMIC (sizeof (void**));
+
+  *weak = SCM2PTR (obj);
+  GC_GENERAL_REGISTER_DISAPPEARING_LINK (weak, SCM2PTR (obj));
+
+  GC_REGISTER_FINALIZER_NO_ORDER (weak, weak_gc_callback, (void*)callback,
+                                  NULL, NULL);
+}
+
 SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0, 
 	    (SCM n),
 	    "@deffnx {Scheme Procedure} make-weak-value-hash-table size\n"
@@ -442,13 +471,17 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 
 	    "(@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_value_hash_table
 {
+  SCM ret;
+
   if (SCM_UNBNDP (n))
-    return make_hash_table (SCM_HASHTABLEF_WEAK_CDR, 0, FUNC_NAME);
+    ret = make_hash_table (SCM_HASHTABLEF_WEAK_CDR, 0, FUNC_NAME);
   else
-    {
-      return make_hash_table (SCM_HASHTABLEF_WEAK_CDR,
-			      scm_to_ulong (n), FUNC_NAME);
-    }
+    ret = make_hash_table (SCM_HASHTABLEF_WEAK_CDR,
+                           scm_to_ulong (n), FUNC_NAME);
+
+  scm_c_register_weak_gc_callback (ret, vacuum_weak_hash_table);
+
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -459,16 +492,18 @@ SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0
 	    "buckets.  (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_doubly_weak_hash_table
 {
+  SCM ret;
+
   if (SCM_UNBNDP (n))
-    return make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
-			    0,
-			    FUNC_NAME);
+    ret = make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
+                           0, FUNC_NAME);
   else
-    {
-      return make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
-			      scm_to_ulong (n),
-			      FUNC_NAME);
-    }
+    ret = make_hash_table (SCM_HASHTABLEF_WEAK_CAR | SCM_HASHTABLEF_WEAK_CDR,
+                           scm_to_ulong (n), FUNC_NAME);
+
+  scm_c_register_weak_gc_callback (ret, vacuum_weak_hash_table);
+
+  return ret;
 }
 #undef FUNC_NAME
 
@@ -673,14 +708,7 @@ scm_hash_fn_create_handle_x (SCM table, SCM obj, SCM init,
       SCM_SIMPLE_VECTOR_SET (buckets, k, new_bucket);
       SCM_HASHTABLE_INCREMENT (table);
 
-      /* Maybe rehash the table.  If it's a weak table, pump all of the
-         buckets first to remove stale links.  If the weak table is of
-         the kind that gets lots of insertions of short-lived values, we
-         might never need to actually rehash.  */
-      if (SCM_HASHTABLE_WEAK_P (table)
-          && SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
-        vacuum_weak_hash_table (table);
-          
+      /* Maybe rehash the table.  */
       if (SCM_HASHTABLE_N_ITEMS (table) < SCM_HASHTABLE_LOWER (table)
           || SCM_HASHTABLE_N_ITEMS (table) > SCM_HASHTABLE_UPPER (table))
         scm_i_rehash (table, hash_fn, closure, FUNC_NAME);
