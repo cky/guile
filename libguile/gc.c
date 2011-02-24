@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -68,10 +68,6 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-/* Lock this mutex before doing lazy sweeping.
- */
-scm_i_pthread_mutex_t scm_i_sweep_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* Set this to != 0 if every cell that is accessed shall be checked:
  */
@@ -377,17 +373,7 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 	    "no longer accessible.")
 #define FUNC_NAME s_scm_gc
 {
-  scm_i_scm_pthread_mutex_lock (&scm_i_sweep_mutex);
   scm_i_gc ("call");
-  /* njrev: It looks as though other places, e.g. scm_realloc,
-     can call scm_i_gc without acquiring the sweep mutex.  Does this
-     matter?  Also scm_i_gc (or its descendants) touch the
-     scm_sys_protects, which are protected in some cases
-     (e.g. scm_permobjs above in scm_gc_stats) by a critical section,
-     not by the sweep mutex.  Shouldn't all the GC-relevant objects be
-     protected in the same way? */
-  scm_i_pthread_mutex_unlock (&scm_i_sweep_mutex);
-  scm_c_hook_run (&scm_after_gc_c_hook, 0);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -587,6 +573,23 @@ scm_gc_unregister_roots (SCM *b, unsigned long n)
     scm_gc_unregister_root (p);
 }
 
+static void
+scm_c_register_gc_callback (void *key, void (*func) (void *, void *),
+                            void *data)
+{
+  if (!key)
+    key = GC_MALLOC_ATOMIC (sizeof (void*));
+  
+  GC_REGISTER_FINALIZER_NO_ORDER (key, func, data, NULL, NULL);
+}
+
+static void
+system_gc_callback (void *key, void *data)
+{
+  scm_c_register_gc_callback (key, system_gc_callback, data);
+  scm_c_hook_run (&scm_after_gc_c_hook, NULL);
+}
+
 
 
 
@@ -642,6 +645,8 @@ scm_storage_prehistory ()
   scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_after_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
+
+  scm_c_register_gc_callback (NULL, system_gc_callback, NULL);
 }
 
 scm_i_pthread_mutex_t scm_i_gc_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
