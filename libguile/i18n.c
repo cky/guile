@@ -1564,11 +1564,14 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	  {
 	    char *p;
 
-	    /* In this cases, the result is to be interpreted as a list of
-	       numbers.  If the last item is `CHARS_MAX', it has the special
-	       meaning "no more grouping".  */
+	    /* In this cases, the result is to be interpreted as a list
+	       of numbers.  If the last item is `CHAR_MAX' or a negative
+	       number, it has the special meaning "no more grouping"
+	       (negative numbers aren't specified in POSIX but can be
+	       used by glibc; see
+	       <http://lists.gnu.org/archive/html/bug-guile/2011-02/msg00159.html>).  */
 	    result = SCM_EOL;
-	    for (p = c_result; (*p != '\0') && (*p != CHAR_MAX); p++)
+	    for (p = c_result; (*p > 0) && (*p != CHAR_MAX); p++)
 	      result = scm_cons (SCM_I_MAKINUM ((int) *p), result);
 
 	    {
@@ -1576,7 +1579,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 
 	      result = scm_reverse_x (result, SCM_EOL);
 
-	      if (*p != CHAR_MAX)
+	      if (*p == 0)
 		{
 		  /* Cyclic grouping information.  */
 		  if (last_pair != SCM_EOL)
