@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -314,7 +314,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   /* Create a copy of STR in the encoding of Z.  */
   buf = scm_to_stringn (str, &str_len, pt->encoding,
 			SCM_FAILED_CONVERSION_ERROR);
-  c_str = scm_gc_malloc (str_len, "strport");
+  c_str = scm_gc_malloc_pointerless (str_len, "strport");
   memcpy (c_str, buf, str_len);
   free (buf);
 
