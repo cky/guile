@@ -862,6 +862,8 @@ display_string (const void *str, int narrow_p,
 
       if (SCM_UNLIKELY (done == (size_t) -1))
 	{
+          int errno_save = errno;
+
 	  /* Reset the `iconv' state.  */
 	  iconv (pt->output_cd, NULL, NULL, NULL, NULL);
 
@@ -873,7 +875,7 @@ display_string (const void *str, int narrow_p,
 	  codepoints_read = offsets[input - utf8_buf] - printed;
 	  printed += codepoints_read;
 
-	  if (errno == EILSEQ &&
+	  if (errno_save == EILSEQ &&
 	      strategy != SCM_FAILED_CONVERSION_ERROR)
 	    {
 	      /* Conversion failed somewhere in INPUT and we want to
