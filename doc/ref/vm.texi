@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008, 2009, 2010, 2011
+@c Copyright (C)  2008,2009,2010
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1063,7 +1063,7 @@ embedded in the stream as a string.
 @end deffn
 @deffn Instruction load-string length
 Load a string from the instruction stream. The string is assumed to be
-Latin-1-encoded.
+encoded in the ``latin1'' locale.
 @end deffn
 @deffn Instruction load-wide-string length
 Load a UTF-32 string from the instruction stream. @var{length} is the
@@ -1071,7 +1071,7 @@ length in bytes, not in codepoints.
 @end deffn
 @deffn Instruction load-symbol length
 Load a symbol from the instruction stream. The symbol is assumed to be
-Latin-1-encoded. Symbols backed by wide strings may
+encoded in the ``latin1'' locale. Symbols backed by wide strings may
 be loaded via @code{load-wide-string} then @code{make-symbol}.
 @end deffn
 @deffn Instruction load-array length
