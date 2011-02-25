@@ -3,7 +3,7 @@
 exec ${GUILE-guile} --no-debug -q -l "$0" \
                     -c '(apply main (cdr (command-line)))' "$@"
 !#
-;;; Copyright (C) 2008 Free Software Foundation, Inc.
+;;; Copyright (C) 2008, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -38,8 +38,10 @@ memory mapping of process @var{pid}.  This information is obtained by reading
 @file{/proc/PID/smaps} on Linux.  See `procs(5)' for details."
 
   (define mapping-line-rx
+    ;; As of Linux 2.6.32.28, an `smaps' line looks like this:
+    ;; "00400000-00401000 r-xp 00000000 fe:00 108264 /home/ludo/soft/bin/guile"
     (make-regexp
-     "^([[:xdigit:]]+)-([[:xdigit:]]+) ([rwx-]{3}[ps]) ([[:xdigit:]]+) [0-9]{2}:[0-9]{2} [0-9]+[[:blank:]]+(.*)$"))
+     "^([[:xdigit:]]+)-([[:xdigit:]]+) ([rwx-]{3}[ps]) ([[:xdigit:]]+) [[:xdigit:]]{2}:[[:xdigit:]]{2} [0-9]+[[:blank:]]+(.*)$"))
 
   (define rss-line-rx
     (make-regexp
@@ -83,7 +85,7 @@ memory mapping of process @var{pid}.  This information is obtained by reading
                    (loop (read-line) result))))))))
 
 (define (total-heap-size pid)
-  "Return the total heap size of process @var{pid}."
+  "Return a pair representing the total and RSS heap size of PID."
 
   (define heap-or-anon-rx
     (make-regexp "\\[(heap|anon)\\]"))
