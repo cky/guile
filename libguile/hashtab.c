@@ -456,11 +456,17 @@ SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0,
 	    "would modify regular hash tables. (@pxref{Hash Tables})")
 #define FUNC_NAME s_scm_make_weak_key_hash_table
 {
+  SCM ret;
+
   if (SCM_UNBNDP (n))
-    return make_hash_table (SCM_HASHTABLEF_WEAK_CAR, 0, FUNC_NAME);
+    ret = make_hash_table (SCM_HASHTABLEF_WEAK_CAR, 0, FUNC_NAME);
   else
-    return make_hash_table (SCM_HASHTABLEF_WEAK_CAR,
-			    scm_to_ulong (n), FUNC_NAME);
+    ret = make_hash_table (SCM_HASHTABLEF_WEAK_CAR,
+                           scm_to_ulong (n), FUNC_NAME);
+
+  scm_c_register_weak_gc_callback (ret, vacuum_weak_hash_table);
+
+  return ret;
 }
 #undef FUNC_NAME
 
