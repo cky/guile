@@ -1566,9 +1566,27 @@ AC_SUBST(LIBGUILE_I18N_INTERFACE)
 
 #######################################################################
 
-dnl Tell guile-config what flags guile users should compile and link with.
+dnl Tell guile-config what flags guile users should compile and link
+dnl with, keeping only `-I' flags from $CPPFLAGS.
+GUILE_CFLAGS=""
+next_is_includedir=false
+for flag in $CPPFLAGS
+do
+  if $next_is_includedir; then
+    GUILE_CFLAGS="$GUILE_CFLAGS -I $flag"
+    next_is_includedir=false
+  else
+    case "$flag" in
+      -I)  next_is_includedir=true;;
+      -I*) GUILE_CFLAGS="$GUILE_CFLAGS $flag";;
+      *)   ;;
+    esac
+  fi
+done
+
+GUILE_CFLAGS="$GUILE_CFLAGS $PTHREAD_CFLAGS"
 GUILE_LIBS="$LDFLAGS $LIBS"
-GUILE_CFLAGS="$CPPFLAGS $PTHREAD_CFLAGS"
+
 AC_SUBST(GUILE_LIBS)
 AC_SUBST(GUILE_CFLAGS)
 
