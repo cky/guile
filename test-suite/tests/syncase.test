@@ -1,6 +1,6 @@
 ;;;; syncase.test --- test suite for (ice-9 syncase)            -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -220,3 +220,15 @@
         (set! baz 50)
         (equal? (+ baz qux)
                 100)))))
+
+(with-test-prefix "top-level expansions"
+  (pass-if "syntax definitions expanded before other expressions"
+    (eval '(begin
+             (define even?
+               (lambda (x)
+                 (or (= x 0) (odd? (- x 1)))))
+             (define-syntax odd?
+               (syntax-rules ()
+                 ((odd? x) (not (even? x)))))
+             (even? 10))
+          (current-module))))
