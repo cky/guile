@@ -897,15 +897,23 @@
                               (let ((first (chi (car body) r w mod)))
                                 (cons first (dobody (cdr body) r w mod))))))))
 
+    ;; At top-level, we allow mixed definitions and expressions.  Like
+    ;; chi-body we expand in two passes.
+    ;;
+    ;; First, from left to right, we expand just enough to know what
+    ;; expressions are definitions, syntax definitions, and splicing
+    ;; statements (`begin').  If we anything needs evaluating at
+    ;; expansion-time, it is expanded directly.
+    ;;
+    ;; Otherwise we collect expressions to expand, in thunks, and then
+    ;; expand them all at the end.  This allows all syntax expanders
+    ;; visible in a toplevel sequence to be visible during the
+    ;; expansions of all normal definitions and expressions in the
+    ;; sequence.
+    ;;
     (define chi-top-sequence
       (lambda (body r w s m esew mod)
         (define (scan body r w s m esew mod exps)
-          (define-syntax eval-if-c&e
-            (syntax-rules ()
-              ((_ m e mod)
-               (let ((x e))
-                 (if (eq? m 'c&e) (top-level-eval-hook x mod))
-                 x))))
           (cond
            ((null? body)
             ;; in reversed order
@@ -1005,9 +1013,12 @@
                                         (module-add! (current-module) n (make-undefined-variable)))))
                               (values
                                (cons
-                                (eval-if-c&e m
-                                             (build-global-definition s n (chi e r w mod))
-                                             mod)
+                                (if (eq? m 'c&e)
+                                    (let ((x (build-global-definition s n (chi e r w mod))))
+                                      (top-level-eval-hook x mod)
+                                      x)
+                                    (lambda ()
+                                      (build-global-definition s n (chi e r w mod))))
                                 exps)))
                              ((displaced-lexical)
                               (syntax-violation #f "identifier out of context"
@@ -1017,7 +1028,12 @@
                                                 e (wrap value w mod))))))
                         (else
                          (values (cons
-                                  (eval-if-c&e m (chi-expr type value e r w s mod) mod)
+                                  (if (eq? m 'c&e)
+                                      (let ((x (chi-expr type value e r w s mod)))
+                                        (top-level-eval-hook x mod)
+                                        x)
+                                      (lambda ()
+                                        (chi-expr type value e r w s mod)))
                                   exps)))))))
               (lambda (exps)
                 (scan (cdr body) r w s m esew mod exps))))))
@@ -1027,7 +1043,13 @@
           (lambda (exps)
             (if (null? exps)
                 (build-void s)
-                (build-sequence s (reverse exps)))))))
+                (build-sequence
+                 s
+                 (let lp ((in exps) (out '()))
+                   (if (null? in) out
+                       (let ((e (car in)))
+                         (lp (cdr in)
+                             (cons (if (procedure? e) (e) e) out)))))))))))
     
     (define chi-install-global
       (lambda (name e)
