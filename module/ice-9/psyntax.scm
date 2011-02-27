@@ -521,7 +521,7 @@
     ;;               (define-syntax)                 define-syntax
     ;;               (local-syntax . rec?)           let-syntax/letrec-syntax
     ;;               (eval-when)                     eval-when
-    ;;               #'. (<var> . <level>)    pattern variables
+    ;;               (syntax . (<var> . <level>))    pattern variables
     ;;               (global)                        assumed global variable
     ;;               (lexical . <var>)               lexical variables
     ;;               (displaced-lexical)             displaced lexicals
@@ -899,14 +899,136 @@
 
     (define chi-top-sequence
       (lambda (body r w s m esew mod)
-        (build-sequence s
-                        (let dobody ((body body) (r r) (w w) (m m) (esew esew)
-                                     (mod mod) (out '()))
-                          (if (null? body)
-                              (reverse out)
-                              (dobody (cdr body) r w m esew mod
-                                      (cons (chi-top (car body) r w m esew mod) out)))))))
+        (define (scan body r w s m esew mod exps)
+          (define-syntax eval-if-c&e
+            (syntax-rules ()
+              ((_ m e mod)
+               (let ((x e))
+                 (if (eq? m 'c&e) (top-level-eval-hook x mod))
+                 x))))
+          (cond
+           ((null? body)
+            ;; in reversed order
+            exps)
+           (else
+            (call-with-values
+                (lambda ()
+                  (call-with-values
+                      (lambda ()
+                        (let ((e (car body)))
+                          (syntax-type e r w (or (source-annotation e) s) #f mod #f)))
+                    (lambda (type value e w s mod)
+                      (case type
+                        ((begin-form)
+                         (syntax-case e ()
+                           ((_) exps)
+                           ((_ e1 e2 ...)
+                            (scan #'(e1 e2 ...) r w s m esew mod exps))))
+                        ((local-syntax-form)
+                         (chi-local-syntax value e r w s mod
+                                           (lambda (body r w s mod)
+                                             (scan body r w s m esew mod exps))))
+                        ((eval-when-form)
+                         (syntax-case e ()
+                           ((_ (x ...) e1 e2 ...)
+                            (let ((when-list (chi-when-list e #'(x ...) w))
+                                  (body #'(e1 e2 ...)))
+                              (cond
+                               ((eq? m 'e)
+                                (if (memq 'eval when-list)
+                                    (scan body r w s
+                                          (if (memq 'expand when-list) 'c&e 'e)
+                                          '(eval)
+                                          mod exps)
+                                    (begin
+                                      (if (memq 'expand when-list)
+                                          (top-level-eval-hook
+                                           (chi-top-sequence body r w s 'e '(eval) mod)
+                                           mod))
+                                      (values exps))))
+                               ((memq 'load when-list)
+                                (if (or (memq 'compile when-list)
+                                        (memq 'expand when-list)
+                                        (and (eq? m 'c&e) (memq 'eval when-list)))
+                                    (scan body r w s 'c&e '(compile load) mod exps)
+                                    (if (memq m '(c c&e))
+                                        (scan body r w s 'c '(load) mod exps)
+                                        (values exps))))
+                               ((or (memq 'compile when-list)
+                                    (memq 'expand when-list)
+                                    (and (eq? m 'c&e) (memq 'eval when-list)))
+                                (top-level-eval-hook
+                                 (chi-top-sequence body r w s 'e '(eval) mod)
+                                 mod)
+                                (values exps))
+                               (else
+                                (values exps)))))))
+                        ((define-syntax-form)
+                         (let ((n (id-var-name value w)) (r (macros-only-env r)))
+                           (case m
+                             ((c)
+                              (if (memq 'compile esew)
+                                  (let ((e (chi-install-global n (chi e r w mod))))
+                                    (top-level-eval-hook e mod)
+                                    (if (memq 'load esew)
+                                        (values (cons e exps))
+                                        (values exps)))
+                                  (if (memq 'load esew)
+                                      (values (cons (chi-install-global n (chi e r w mod))
+                                                    exps))
+                                      (values exps))))
+                             ((c&e)
+                              (let ((e (chi-install-global n (chi e r w mod))))
+                                (top-level-eval-hook e mod)
+                                (values (cons e exps))))
+                             (else
+                              (if (memq 'eval esew)
+                                  (top-level-eval-hook
+                                   (chi-install-global n (chi e r w mod))
+                                   mod))
+                              (values exps)))))
+                        ((define-form)
+                         (let* ((n (id-var-name value w))
+                                ;; Lookup the name in the module of the define form.
+                                (type (binding-type (lookup n r mod))))
+                           (case type
+                             ((global core macro module-ref)
+                              ;; affect compile-time environment (once we have booted)
+                              (if (and (memq m '(c c&e))
+                                       (not (module-local-variable (current-module) n))
+                                       (current-module))
+                                  (let ((old (module-variable (current-module) n)))
+                                    ;; use value of the same-named imported variable, if
+                                    ;; any
+                                    (if (and (variable? old) (variable-bound? old))
+                                        (module-define! (current-module) n (variable-ref old))
+                                        (module-add! (current-module) n (make-undefined-variable)))))
+                              (values
+                               (cons
+                                (eval-if-c&e m
+                                             (build-global-definition s n (chi e r w mod))
+                                             mod)
+                                exps)))
+                             ((displaced-lexical)
+                              (syntax-violation #f "identifier out of context"
+                                                e (wrap value w mod)))
+                             (else
+                              (syntax-violation #f "cannot define keyword at top level"
+                                                e (wrap value w mod))))))
+                        (else
+                         (values (cons
+                                  (eval-if-c&e m (chi-expr type value e r w s mod) mod)
+                                  exps)))))))
+              (lambda (exps)
+                (scan (cdr body) r w s m esew mod exps))))))
 
+        (call-with-values (lambda ()
+                            (scan body r w s m esew mod '()))
+          (lambda (exps)
+            (if (null? exps)
+                (build-void s)
+                (build-sequence s (reverse exps)))))))
+    
     (define chi-install-global
       (lambda (name e)
         (build-global-definition
@@ -1053,109 +1175,6 @@
                        (or (syntax-object-module e) mod) for-car?))
          ((self-evaluating? e) (values 'constant #f e w s mod))
          (else (values 'other #f e w s mod)))))
-
-    (define chi-top
-      (lambda (e r w m esew mod)
-        (define-syntax eval-if-c&e
-          (syntax-rules ()
-            ((_ m e mod)
-             (let ((x e))
-               (if (eq? m 'c&e) (top-level-eval-hook x mod))
-               x))))
-        (call-with-values
-            (lambda () (syntax-type e r w (source-annotation e) #f mod #f))
-          (lambda (type value e w s mod)
-            (case type
-              ((begin-form)
-               (syntax-case e ()
-                 ((_) (chi-void))
-                 ((_ e1 e2 ...)
-                  (chi-top-sequence #'(e1 e2 ...) r w s m esew mod))))
-              ((local-syntax-form)
-               (chi-local-syntax value e r w s mod
-                                 (lambda (body r w s mod)
-                                   (chi-top-sequence body r w s m esew mod))))
-              ((eval-when-form)
-               (syntax-case e ()
-                 ((_ (x ...) e1 e2 ...)
-                  (let ((when-list (chi-when-list e #'(x ...) w))
-                        (body #'(e1 e2 ...)))
-                    (cond
-                     ((eq? m 'e)
-                      (if (memq 'eval when-list)
-                          (chi-top-sequence body r w s
-                                            (if (memq 'expand when-list) 'c&e 'e)
-                                            '(eval)
-                                            mod)
-                          (begin
-                            (if (memq 'expand when-list)
-                                (top-level-eval-hook
-                                 (chi-top-sequence body r w s 'e '(eval) mod)
-                                 mod))
-                            (chi-void))))
-                     ((memq 'load when-list)
-                      (if (or (memq 'compile when-list)
-                              (memq 'expand when-list)
-                              (and (eq? m 'c&e) (memq 'eval when-list)))
-                          (chi-top-sequence body r w s 'c&e '(compile load) mod)
-                          (if (memq m '(c c&e))
-                              (chi-top-sequence body r w s 'c '(load) mod)
-                              (chi-void))))
-                     ((or (memq 'compile when-list)
-                          (memq 'expand when-list)
-                          (and (eq? m 'c&e) (memq 'eval when-list)))
-                      (top-level-eval-hook
-                       (chi-top-sequence body r w s 'e '(eval) mod)
-                       mod)
-                      (chi-void))
-                     (else (chi-void)))))))
-              ((define-syntax-form)
-               (let ((n (id-var-name value w)) (r (macros-only-env r)))
-                 (case m
-                   ((c)
-                    (if (memq 'compile esew)
-                        (let ((e (chi-install-global n (chi e r w mod))))
-                          (top-level-eval-hook e mod)
-                          (if (memq 'load esew) e (chi-void)))
-                        (if (memq 'load esew)
-                            (chi-install-global n (chi e r w mod))
-                            (chi-void))))
-                   ((c&e)
-                    (let ((e (chi-install-global n (chi e r w mod))))
-                      (top-level-eval-hook e mod)
-                      e))
-                   (else
-                    (if (memq 'eval esew)
-                        (top-level-eval-hook
-                         (chi-install-global n (chi e r w mod))
-                         mod))
-                    (chi-void)))))
-              ((define-form)
-               (let* ((n (id-var-name value w))
-                      ;; Lookup the name in the module of the define form.
-                      (type (binding-type (lookup n r mod))))
-                 (case type
-                   ((global core macro module-ref)
-                    ;; affect compile-time environment (once we have booted)
-                    (if (and (memq m '(c c&e))
-                             (not (module-local-variable (current-module) n))
-                             (current-module))
-                        (let ((old (module-variable (current-module) n)))
-                          ;; use value of the same-named imported variable, if
-                          ;; any
-                          (if (and (variable? old) (variable-bound? old))
-                              (module-define! (current-module) n (variable-ref old))
-                              (module-add! (current-module) n (make-undefined-variable)))))
-                    (eval-if-c&e m
-                                 (build-global-definition s n (chi e r w mod))
-                                 mod))
-                   ((displaced-lexical)
-                    (syntax-violation #f "identifier out of context"
-                                      e (wrap value w mod)))
-                   (else
-                    (syntax-violation #f "cannot define keyword at top level"
-                                      e (wrap value w mod))))))
-              (else (eval-if-c&e m (chi-expr type value e r w s mod) mod)))))))
 
     (define chi
       (lambda (e r w mod)
@@ -2375,8 +2394,8 @@
     ;; the object file if we are compiling a file.
     (set! macroexpand
           (lambda* (x #:optional (m 'e) (esew '(eval)))
-            (chi-top x null-env top-wrap m esew
-                     (cons 'hygiene (module-name (current-module))))))
+            (chi-top-sequence (list x) null-env top-wrap #f m esew
+                              (cons 'hygiene (module-name (current-module))))))
 
     (set! identifier?
           (lambda (x)
