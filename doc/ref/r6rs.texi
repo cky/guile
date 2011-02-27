@@ -38,9 +38,11 @@ does not restore it.  This is a bug.
 
 @item
 R6RS unicode escapes within strings are disabled by default, because
-they conflict with Guile's already-existing escapes. R6RS behavior can
-be turned on via a reader option. @xref{String Syntax}, for more
-information.
+they conflict with Guile's already-existing escapes. The same is the
+case for R6RS treatment of escaped newlines in strings.
+
+R6RS behavior can be turned on via a reader option. @xref{String
+Syntax}, for more information.
 
 @item
 A @code{set!} to a variable transformer may only expand to an 
@@ -51,23 +53,8 @@ expression was in definition context.
 Instead of using the algorithm detailed in chapter 10 of the R6RS,
 expansion of toplevel forms happens sequentially.
 
-For example, while the expansion of the following set of recursive
-nested definitions does do the correct thing:
-
-@example
-(let ()
-  (define even?
-    (lambda (x)
-      (or (= x 0) (odd? (- x 1)))))
-  (define-syntax odd?
-    (syntax-rules ()
-      ((odd? x) (not (even? x)))))
-  (even? 10))
-@result{} #t
-@end example
-
-@noindent
-The same definitions at the toplevel do not:
+For example, while the expansion of the following set of toplevel
+definitions does the correct thing:
 
 @example
 (begin
@@ -78,6 +65,20 @@ The same definitions at the toplevel do not:
    (syntax-rules ()
      ((odd? x) (not (even? x)))))
  (even? 10))
+@result{} #t
+@end example
+
+@noindent
+The same definitions outside of the @code{begin} wrapper do not:
+
+@example
+(define even?
+  (lambda (x)
+    (or (= x 0) (odd? (- x 1)))))
+(define-syntax odd?
+  (syntax-rules ()
+    ((odd? x) (not (even? x)))))
+(even? 10)
 <unnamed port>:4:18: In procedure even?:
 <unnamed port>:4:18: Wrong type to apply: #<syntax-transformer odd?>
 @end example
@@ -86,10 +87,10 @@ This is because when expanding the right-hand-side of @code{even?}, the
 reference to @code{odd?} is not yet marked as a syntax transformer, so
 it is assumed to be a function.
 
-While it is likely that we can fix the case of toplevel forms nested in
-a @code{begin} or a @code{library} form, a fix for toplevel programs
-seems trickier to implement in a backward-compatible way. Suggestions
-and/or patches would be appreciated.
+This bug will only affect top-level programs, not code in @code{library}
+forms.  Fixing it for toplevel forms seems doable, but tricky to
+implement in a backward-compatible way. Suggestions and/or patches would
+be appreciated.
 
 @item
 The @code{(rnrs io ports)} module is mostly unimplemented. Work is
