@@ -538,7 +538,7 @@ If there is no handler at all, Guile prints an error and then exits."
              ((subr msg args . rest)
               (if subr
                   (format port "In procedure ~a: " subr))
-              (apply format port msg args))
+              (apply format port msg (or args '())))
              (_ (default-printer)))
            args))
 
