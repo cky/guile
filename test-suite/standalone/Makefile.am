@@ -45,6 +45,12 @@ test_cflags =					\
 
 AM_LDFLAGS = $(GUILE_CFLAGS)
 
+# How to link with libguile (same as `Libs' in `guile-2.0.pc'.)
+LIBGUILE_LDADD =							\
+  ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la	\
+  $(BDW_GC_LIBS)
+
+
 snarfcppopts =								      \
   -I$(top_srcdir) -I$(top_srcdir)/lib -I$(top_builddir)/lib -I$(top_builddir) \
   -I. $(DEFS) $(DEFAULT_INCLUDES) $(CPPFLAGS) $(CFLAGS)
@@ -69,13 +75,13 @@ TESTS += test-require-extension
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}
-test_num2integral_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_num2integral_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-num2integral
 TESTS += test-num2integral
 
 # test-round
 test_round_CFLAGS = ${test_cflags}
-test_round_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_round_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-round
 TESTS += test-round
 
@@ -86,7 +92,7 @@ noinst_LTLIBRARIES += libtest-asmobs.la
 libtest_asmobs_la_SOURCES = test-asmobs-lib.c
 libtest_asmobs_la_CFLAGS = ${test_cflags}
 libtest_asmobs_la_LDFLAGS = -module -no-undefined -rpath `pwd` # so libtool will really build an .so
-libtest_asmobs_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+libtest_asmobs_la_LIBADD = $(LIBGUILE_LDADD)
 BUILT_SOURCES += test-asmobs-lib.x
 check_SCRIPTS += test-asmobs
 TESTS += test-asmobs
@@ -96,7 +102,7 @@ noinst_LTLIBRARIES += libtest-ffi.la
 libtest_ffi_la_SOURCES = test-ffi-lib.c
 libtest_ffi_la_CFLAGS = ${test_cflags}
 libtest_ffi_la_LDFLAGS = -module -no-undefined -rpath `pwd` # so libtool will really build an .so
-libtest_ffi_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+libtest_ffi_la_LIBADD = $(LIBGUILE_LDADD)
 check_SCRIPTS += test-ffi
 TESTS += test-ffi
 
@@ -105,28 +111,28 @@ endif HAVE_SHARED_LIBRARIES
 # test-list
 test_list_SOURCES = test-list.c
 test_list_CFLAGS = ${test_cflags}
-test_list_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_list_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-list
 TESTS += test-list
 
 # test-unwind
 test_unwind_SOURCES = test-unwind.c
 test_unwind_CFLAGS = ${test_cflags}
-test_unwind_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_unwind_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-unwind
 TESTS += test-unwind
 
 # test-conversion
 test_conversion_SOURCES = test-conversion.c
 test_conversion_CFLAGS = ${test_cflags}
-test_conversion_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_conversion_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-conversion
 TESTS += test-conversion
 
 # test-loose-ends
 test_loose_ends_SOURCES = test-loose-ends.c
 test_loose_ends_CFLAGS = ${test_cflags}
-test_loose_ends_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_loose_ends_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-loose-ends
 TESTS += test-loose-ends
 
@@ -141,21 +147,21 @@ TESTS += test-use-srfi
 # test-scm-c-read
 test_scm_c_read_SOURCES = test-scm-c-read.c
 test_scm_c_read_CFLAGS = ${test_cflags}
-test_scm_c_read_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_scm_c_read_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-c-read
 TESTS += test-scm-c-read
 
 # test-scm-take-locale-symbol
 test_scm_take_locale_symbol_SOURCES = test-scm-take-locale-symbol.c
 test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
-test_scm_take_locale_symbol_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_scm_take_locale_symbol_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-take-locale-symbol
 TESTS += test-scm-take-locale-symbol
 
 # test-scm-take-u8vector
 test_scm_take_u8vector_SOURCES = test-scm-take-u8vector.c
 test_scm_take_u8vector_CFLAGS = ${test_cflags}
-test_scm_take_u8vector_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_scm_take_u8vector_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-take-u8vector
 TESTS += test-scm-take-u8vector
 
@@ -166,7 +172,7 @@ noinst_LTLIBRARIES += libtest-extensions.la
 libtest_extensions_la_SOURCES = test-extensions-lib.c
 libtest_extensions_la_CFLAGS = ${test_cflags}
 libtest_extensions_la_LDFLAGS = -module -no-undefined -rpath `pwd` # so libtool will really build an .so
-libtest_extensions_la_LIBADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+libtest_extensions_la_LIBADD = $(LIBGUILE_LDADD)
 check_SCRIPTS += test-extensions
 TESTS += test-extensions
 
@@ -176,12 +182,12 @@ if BUILD_PTHREAD_SUPPORT
 
 # test-with-guile-module
 test_with_guile_module_CFLAGS = ${test_cflags}
-test_with_guile_module_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_with_guile_module_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-with-guile-module
 TESTS += test-with-guile-module
 
 test_scm_with_guile_CFLAGS = ${test_cflags}
-test_scm_with_guile_LDADD = ${top_builddir}/libguile/libguile-@GUILE_EFFECTIVE_VERSION@.la
+test_scm_with_guile_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-with-guile
 TESTS += test-scm-with-guile
 
