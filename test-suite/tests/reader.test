@@ -253,6 +253,14 @@
                     (read-string "'abcde")))))
       (and (equal? (source-property sexp 'line) 0)
            (equal? (source-property sexp 'column) 0))))
+  (pass-if "position of SCSH block comment"
+    ;; In Guile 2.0.0 the reader would not update the port's position
+    ;; when reading an SCSH block comment.
+    (let ((sexp (with-read-options '(positions)
+                  (lambda ()
+                    (read-string "#!foo\nbar\nbaz\n!#\n(hello world)\n")))))
+      (= 4 (source-property sexp 'line))))
+
   (with-test-prefix "r6rs-hex-escapes"
       (pass-if-exception "non-hex char in two-digit hex-escape"
       exception:illegal-escape
@@ -417,3 +425,6 @@
      ("#,@foo" . (unsyntax-splicing foo)))))
 
 
+;;; Local Variables:
+;;; eval: (put 'with-read-options 'scheme-indent-function 1)
+;;; End:

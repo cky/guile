@@ -1116,13 +1116,9 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 {
   int bang_seen = 0;
 
-  /* We can use the get_byte here because there is no need to get the
-     locale correct when reading comments. This presumes that 
-     hash and exclamation points always represent themselves no
-     matter what the source encoding is.*/
   for (;;)
     {
-      int c = scm_get_byte_or_eof (port);
+      int c = scm_getc (port);
 
       if (c == EOF)
 	scm_i_input_error ("skip_block_comment", port,
