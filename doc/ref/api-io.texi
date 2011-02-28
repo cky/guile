@@ -949,9 +949,8 @@ used only during port creation are not retained.
 
 @deffn {Scheme Procedure} port-filename port
 @deffnx {C Function} scm_port_filename (port)
-Return the filename associated with @var{port}.  This function returns
-the strings "standard input", "standard output" and "standard error"
-when called on the current input, output and error ports respectively.
+Return the filename associated with @var{port}, or @code{#f} if no
+filename is associated with the port.
 
 @var{port} must be open, @code{port-filename} cannot be used once the
 port is closed.
