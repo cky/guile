@@ -356,7 +356,6 @@ grouped below by the existing manual sections to which they correspond.
 
 @deffn {Scheme Procedure} real? x
 @deffnx {Scheme Procedure} rational? x
-@deffnx {Scheme Procedure} nan? x
 @deffnx {Scheme Procedure} numerator x
 @deffnx {Scheme Procedure} denominator x
 @deffnx {Scheme Procedure} rationalize x eps
@@ -542,11 +541,15 @@ loss of numerical precision.
 imaginary parts are zero.
 @end deffn
 
-@deffn {Scheme Procedure} finite? x 
+@deffn {Scheme Procedure} nan? x
 @deffnx {Scheme Procedure} infinite? x
-@code{infinite?} returns @code{#t} if @var{x} is an infinite value,
-@code{#f} otherwise.  @code{finite?} returns the negation of 
-@code{infinite?}.
+@deffnx {Scheme Procedure} finite? x
+@code{nan?} returns @code{#t} if @var{x} is a NaN value, @code{#f}
+otherwise.  @code{infinite?} returns @code{#t} if @var{x} is an infinite
+value, @code{#f} otherwise.  @code{finite?} returns @code{#t} if @var{x}
+is neither infinite nor a NaN value, otherwise it returns @code{#f}.
+Every real number satisfies exactly one of these predicates.  An
+exception is raised if @var{x} is not real.
 @end deffn
 
 @deffn {Scheme Syntax} assert expr 
