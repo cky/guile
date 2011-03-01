@@ -1104,9 +1104,7 @@ Those class definitions define a hierarchy which is shown in
 @ref{fig:hier}.  In this figure, the class @code{<top>} is also shown;
 this class is the superclass of all Scheme objects.  In particular,
 @code{<top>} is the superclass of all standard Scheme
-types.@footnote{@code{<complex>}, which is the direct subclass of
-@code{<number>} and the direct superclass of @code{<real>}, has been
-omitted in this figure.}
+types.
 
 @float Figure,fig:hier
 @iftex
