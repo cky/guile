@@ -1667,7 +1667,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
 /* FIXME: SCM_VALIDATE_REAL rejects integers, etc. grrr */
 #define VALIDATE_REAL(pos, v) \
   do { \
-    SCM_ASSERT_TYPE (scm_is_true (scm_rational_p (v)), v, pos, FUNC_NAME, "real"); \
+    SCM_ASSERT_TYPE (scm_is_real (v), v, pos, FUNC_NAME, "real"); \
   } while (0)
 
 /* Templace getters and setters.  */

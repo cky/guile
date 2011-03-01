@@ -352,7 +352,10 @@
 
   (pass-if "make-f32vector"
     (equal? (list->f32vector '(7 7 7 7))
-            (make-f32vector 4 7))))
+            (make-f32vector 4 7)))
+
+  (pass-if "+inf.0, -inf.0, +nan.0 in f32vector"
+    (f32vector? #f32(+inf.0 -inf.0 +nan.0))))
 
 (with-test-prefix "f64 vectors"
 
@@ -389,4 +392,7 @@
 
   (pass-if "make-f64vector"
     (equal? (list->f64vector '(7 7 7 7))
-            (make-f64vector 4 7))))
+            (make-f64vector 4 7)))
+
+  (pass-if "+inf.0, -inf.0, +nan.0 in f64vector"
+    (f64vector? #f64(+inf.0 -inf.0 +nan.0))))
