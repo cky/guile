@@ -79,6 +79,12 @@ Normally, @var{library} is just the name of some shared library file
 that will be searched for in the places where shared libraries usually
 reside, such as in @file{/usr/lib} and @file{/usr/local/lib}.
 
+@var{library} should not contain an extension such as @code{.so}.  The
+correct file name extension for the host operating system is provided
+automatically, according to libltdl's rules (@pxref{Libltdl interface,
+lt_dlopenext, @code{lt_dlopenext}, libtool, Shared Library Support for
+GNU}).
+
 When @var{library} is omitted, a @dfn{global symbol handle} is returned.  This
 handle provides access to the symbols available to the program at run-time,
 including those exported by the program itself and the shared libraries already
@@ -196,12 +202,13 @@ In that case, you would statically link your program with the desired
 library, and register its init function right after Guile has been
 initialized.
 
-LIB should be a string denoting a shared library without any file type
-suffix such as ".so".  The suffix is provided automatically.  It
+As for @code{dynamic-link}, @var{lib} should not contain any suffix such
+as @code{.so} (@pxref{Foreign Libraries, dynamic-link}).  It
 should also not contain any directory components.  Libraries that
 implement Guile Extensions should be put into the normal locations for
 shared libraries.  We recommend to use the naming convention
-libguile-bla-blum for a extension related to a module `(bla blum)'.
+@file{libguile-bla-blum} for a extension related to a module @code{(bla
+blum)}.
 
 The normal way for a extension to be used is to write a small Scheme
 file that defines a module, and to load the extension into this
