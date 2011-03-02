@@ -104,7 +104,7 @@
 		     (with-input-from-port (car p2c)
 		       (lambda ()
 			 (open-input-pipe
-			  "exec 1>/dev/null; echo closed 1>&2; exec 2>/dev/null; read")))))))
+			  "exec 1>/dev/null; echo closed 1>&2; exec 2>/dev/null; read REPLY")))))))
       (close-port (cdr c2p))   ;; write side
       (let ((result (eof-object? (read-char port))))
 	(display "hello!\n" (cdr p2c))
@@ -168,7 +168,7 @@
 	   (port (with-error-to-port (cdr c2p)
 		   (lambda ()
 		     (open-output-pipe
-                      (string-append "guile --no-auto-compile -s \""
+                      (string-append "exec guile --no-auto-compile -s \""
                                      (getenv "TEST_SUITE_DIR")
                                      "/tests/popen-child.scm\""))))))
       (close-port (cdr c2p))   ;; write side
