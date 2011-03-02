@@ -3,7 +3,8 @@
 #ifndef SCM_ARRAY_HANDLE_H
 #define SCM_ARRAY_HANDLE_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1999, 2000, 2001, 2004, 2006,
+ *   2008, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -64,25 +65,26 @@ typedef struct scm_t_array_dim
   ssize_t inc;
 } scm_t_array_dim;
 
-typedef enum {    
-  SCM_ARRAY_ELEMENT_TYPE_SCM = 0, /* SCM values */
-  SCM_ARRAY_ELEMENT_TYPE_CHAR = 1, /* characters */
-  SCM_ARRAY_ELEMENT_TYPE_BIT = 2, /* packed numeric values */
-  SCM_ARRAY_ELEMENT_TYPE_VU8 = 3,
-  SCM_ARRAY_ELEMENT_TYPE_U8 = 4,
-  SCM_ARRAY_ELEMENT_TYPE_S8 = 5,
-  SCM_ARRAY_ELEMENT_TYPE_U16 = 6,
-  SCM_ARRAY_ELEMENT_TYPE_S16 = 7,
-  SCM_ARRAY_ELEMENT_TYPE_U32 = 8,
-  SCM_ARRAY_ELEMENT_TYPE_S32 = 9,
-  SCM_ARRAY_ELEMENT_TYPE_U64 = 10,
-  SCM_ARRAY_ELEMENT_TYPE_S64 = 11,
-  SCM_ARRAY_ELEMENT_TYPE_F32 = 12,
-  SCM_ARRAY_ELEMENT_TYPE_F64 = 13,
-  SCM_ARRAY_ELEMENT_TYPE_C32 = 14,
-  SCM_ARRAY_ELEMENT_TYPE_C64 = 15,
-  SCM_ARRAY_ELEMENT_TYPE_LAST = 15,
-} scm_t_array_element_type;
+typedef enum
+  {
+    SCM_ARRAY_ELEMENT_TYPE_SCM = 0,   /* SCM values */
+    SCM_ARRAY_ELEMENT_TYPE_CHAR = 1,  /* characters */
+    SCM_ARRAY_ELEMENT_TYPE_BIT = 2,   /* packed numeric values */
+    SCM_ARRAY_ELEMENT_TYPE_VU8 = 3,
+    SCM_ARRAY_ELEMENT_TYPE_U8 = 4,
+    SCM_ARRAY_ELEMENT_TYPE_S8 = 5,
+    SCM_ARRAY_ELEMENT_TYPE_U16 = 6,
+    SCM_ARRAY_ELEMENT_TYPE_S16 = 7,
+    SCM_ARRAY_ELEMENT_TYPE_U32 = 8,
+    SCM_ARRAY_ELEMENT_TYPE_S32 = 9,
+    SCM_ARRAY_ELEMENT_TYPE_U64 = 10,
+    SCM_ARRAY_ELEMENT_TYPE_S64 = 11,
+    SCM_ARRAY_ELEMENT_TYPE_F32 = 12,
+    SCM_ARRAY_ELEMENT_TYPE_F64 = 13,
+    SCM_ARRAY_ELEMENT_TYPE_C32 = 14,
+    SCM_ARRAY_ELEMENT_TYPE_C64 = 15,
+    SCM_ARRAY_ELEMENT_TYPE_LAST = 15
+  } scm_t_array_element_type;
 
 SCM_INTERNAL SCM scm_i_array_element_types[];
 
