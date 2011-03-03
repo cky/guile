@@ -32,6 +32,48 @@
   #:export (start-repl run-repl))
 
 
+;;;
+;;; Comments
+;;;
+;;; (You don't want a comment to force a continuation line.)
+;;;
+
+(define (read-scheme-line-comment port)
+  (let lp ()
+    (let ((ch (read-char port)))
+      (or (eof-object? ch)
+          (eqv? ch #\newline)
+          (lp)))))
+
+(define (read-scheme-datum-comment port)
+  (read port))
+
+;; ch is a peeked char
+(define (read-comment lang port ch)
+  (and (eq? (language-name lang) 'scheme)
+       (case ch
+         ((#\;)
+          (read-char port)
+          (read-scheme-line-comment port)
+          #t)
+         ((#\#)
+          (read-char port)
+          (case (peek-char port)
+            ((#\;)
+             (read-char port)
+             (read-scheme-datum-comment port)
+             #t)
+            ;; Not doing R6RS block comments because of the possibility
+            ;; of read-hash extensions.  Lame excuse.  Not doing scsh
+            ;; block comments either, because I don't feel like handling
+            ;; #!r6rs.
+            (else
+             (unread-char #\# port)
+             #f)))
+         (else
+          #f))))
+
+
 
 ;;;
 ;;; Meta commands
@@ -39,7 +81,7 @@
 
 (define meta-command-token (cons 'meta 'command))
 
-(define (meta-reader read env)
+(define (meta-reader lang env)
   (lambda* (#:optional (port (current-input-port)))
     (with-input-from-port port
       (lambda ()
@@ -52,7 +94,9 @@
                 ((eqv? ch #\,)
                  (read-char port)
                  meta-command-token)
-                (else (read port env))))))))
+                ((read-comment lang port ch)
+                 *unspecified*)
+                (else ((language-reader lang) port env))))))))
         
 (define (flush-all-input)
   (if (and (char-ready?)
@@ -70,8 +114,7 @@
   (catch #t
     (lambda ()
       (repl-reader (lambda () (repl-prompt repl))
-                   (meta-reader (language-reader (repl-language repl))
-                                (current-module))))
+                   (meta-reader (repl-language repl) (current-module))))
     (lambda (key . args)
       (case key
         ((quit)
@@ -116,7 +159,7 @@
        (let prompt-loop ()
          (let ((exp (prompting-meta-read repl)))
            (cond
-            ((eqv? exp *unspecified*))  ; read error, pass
+            ((eqv? exp *unspecified*))  ; read error or comment, pass
             ((eq? exp meta-command-token)
              (catch #t
                (lambda ()
