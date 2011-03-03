@@ -1987,13 +1987,8 @@ VALUE."
         ;; Newly used modules must be appended rather than consed, so that
         ;; `module-variable' traverses the use list starting from the first
         ;; used module.
-        (set-module-uses! module
-                          (append (filter (lambda (m)
-                                            (not
-                                             (equal? (module-name m)
-                                                     (module-name interface))))
-                                          (module-uses module))
-                                  (list interface)))
+        (set-module-uses! module (append (module-uses module)
+                                         (list interface)))
         (hash-clear! (module-import-obarray module))
         (module-modified module))))
 
@@ -2004,8 +1999,7 @@ VALUE."
 (define (module-use-interfaces! module interfaces)
   (let ((prev (filter (lambda (used)
                         (and-map (lambda (iface)
-                                   (not (equal? (module-name used)
-                                                (module-name iface))))
+                                   (not (eq? used iface)))
                                  interfaces))
                       (module-uses module))))
     (set-module-uses! module
