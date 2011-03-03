@@ -1994,16 +1994,20 @@ VALUE."
 
 ;; MODULE-USE-INTERFACES! module interfaces
 ;;
-;; Same as MODULE-USE! but add multiple interfaces and check for duplicates
+;; Same as MODULE-USE!, but only notifies module observers after all
+;; interfaces are added to the inports list.
 ;;
 (define (module-use-interfaces! module interfaces)
-  (let ((prev (filter (lambda (used)
-                        (and-map (lambda (iface)
-                                   (not (eq? used iface)))
-                                 interfaces))
-                      (module-uses module))))
-    (set-module-uses! module
-                      (append prev interfaces))
+  (let* ((cur (module-uses module))
+         (new (let lp ((in interfaces) (out '()))
+                (if (null? in)
+                    (reverse out)
+                    (lp (cdr in)
+                        (let ((iface (car in)))
+                          (if (or (memq iface cur) (memq iface out))
+                              out
+                              (cons iface out))))))))
+    (set-module-uses! module (append cur new))
     (hash-clear! (module-import-obarray module))
     (module-modified module)))
 

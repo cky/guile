@@ -146,6 +146,51 @@
 
 
 ;;;
+;;; module-use! / module-use-interfaces!
+;;;
+(with-test-prefix "module-use"
+  (let ((m (make-module)))
+    (pass-if "no uses initially"
+      (null? (module-uses m)))
+
+    (pass-if "using ice-9 q"
+      (begin
+        (module-use! m (resolve-interface '(ice-9 q)))
+        (equal? (module-uses m)
+                (list (resolve-interface '(ice-9 q))))))
+
+    (pass-if "using ice-9 q again"
+      (begin
+        (module-use! m (resolve-interface '(ice-9 q)))
+        (equal? (module-uses m)
+                (list (resolve-interface '(ice-9 q))))))
+
+    (pass-if "using ice-9 ftw"
+      (begin
+        (module-use-interfaces! m (list (resolve-interface '(ice-9 ftw))))
+        (equal? (module-uses m)
+                (list (resolve-interface '(ice-9 q))
+                      (resolve-interface '(ice-9 ftw))))))
+
+    (pass-if "using ice-9 ftw again"
+      (begin
+        (module-use-interfaces! m (list (resolve-interface '(ice-9 ftw))))
+        (equal? (module-uses m)
+                (list (resolve-interface '(ice-9 q))
+                      (resolve-interface '(ice-9 ftw))))))
+
+    (pass-if "using ice-9 control twice"
+      (begin
+        (module-use-interfaces! m (list (resolve-interface '(ice-9 control))
+                                        (resolve-interface '(ice-9 control))))
+        (equal? (module-uses m)
+                (list (resolve-interface '(ice-9 q))
+                      (resolve-interface '(ice-9 ftw))
+                      (resolve-interface '(ice-9 control))))))))
+
+
+
+;;;
 ;;; Resolve-module.
 ;;;
 
