@@ -1650,6 +1650,7 @@ scm_get_hash_procedure (int c)
 char *
 scm_i_scan_for_encoding (SCM port)
 {
+  scm_t_port *pt;
   char header[SCM_ENCODING_SEARCH_SIZE+1];
   size_t bytes_read, encoding_length, i;
   char *encoding = NULL;
@@ -1657,15 +1658,46 @@ scm_i_scan_for_encoding (SCM port)
   char *pos, *encoding_start;
   int in_comment;
 
-  if (SCM_FPORTP (port) && !SCM_FDES_RANDOM_P (SCM_FPORT_FDES (port)))
-    /* PORT is a non-seekable file port (e.g., as created by Bash when using
-       "guile <(echo '(display "hello")')") so bail out.  */
-    return NULL;
+  pt = SCM_PTAB_ENTRY (port);
 
-  bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);
-  header[bytes_read] = '\0';
+  if (pt->rw_active == SCM_PORT_WRITE)
+    scm_flush (port);
 
-  scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos == pt->read_end)
+    {
+      /* We can use the read buffer, and thus avoid a seek. */
+      if (scm_fill_input (port) == EOF)
+        return NULL;
+
+      bytes_read = pt->read_end - pt->read_pos;
+      if (bytes_read > SCM_ENCODING_SEARCH_SIZE)
+        bytes_read = SCM_ENCODING_SEARCH_SIZE;
+
+      if (bytes_read <= 1)
+        /* An unbuffered port -- don't scan.  */
+        return NULL;
+
+      memcpy (header, pt->read_pos, bytes_read);
+      header[bytes_read] = '\0';
+    }
+  else
+    {
+      /* Try to read some bytes and then seek back.  Not all ports
+         support seeking back; and indeed some file ports (like
+         /dev/urandom) will succeed on an lseek (fd, 0, SEEK_CUR)---the
+         check performed by SCM_FPORT_FDES---but fail to seek
+         backwards.  Hence this block comes second.  We prefer to use
+         the read buffer in-place.  */
+      if (SCM_FPORTP (port) && !SCM_FDES_RANDOM_P (SCM_FPORT_FDES (port)))
+        return NULL;
+
+      bytes_read = scm_c_read (port, header, SCM_ENCODING_SEARCH_SIZE);
+      header[bytes_read] = '\0';
+      scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
+    }
 
   if (bytes_read > 3 
       && header[0] == '\xef' && header[1] == '\xbb' && header[2] == '\xbf')
@@ -1756,6 +1788,8 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
 {
   char *enc;
   SCM s_enc;
+
+  SCM_VALIDATE_OPINPORT (SCM_ARG1, port);
 
   enc = scm_i_scan_for_encoding (port);
   if (enc == NULL)
