@@ -43,7 +43,7 @@
   (lambda* (#:optional (port (current-input-port)))
     (with-input-from-port port
       (lambda ()
-        (let ((ch (next-char #t)))
+        (let ((ch (flush-leading-whitespace)))
           (cond ((eof-object? ch)
                  ;; EOF objects are not buffered. It's quite possible
                  ;; to peek an EOF then read something else. It's
@@ -157,18 +157,17 @@
                   (lambda (k . args)
                     (abort args))))
               #:trap-handler 'disabled)))
-           (next-char #f) ;; consume trailing whitespace
+           (flush-to-newline) ;; consume trailing whitespace
            (prompt-loop))))
      (lambda (k status)
        status)))
 
-(define (next-char wait)
-  (if (or wait (char-ready?))
-      (let ((ch (peek-char)))
-	(cond ((eof-object? ch) ch)
-	      ((char-whitespace? ch) (read-char) (next-char wait))
-	      (else ch)))
-      #f))
+;; Returns first non-whitespace char.
+(define (flush-leading-whitespace)
+  (let ((ch (peek-char)))
+    (cond ((eof-object? ch) ch)
+          ((char-whitespace? ch) (read-char) (flush-leading-whitespace))
+          (else ch))))
 
 (define (flush-to-newline) 
   (if (char-ready?)
