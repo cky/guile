@@ -2803,8 +2803,8 @@ module '(ice-9 q) '(make-q q-length))}."
                          ((_ . args)
                           (syntax-violation 'continue "too many arguments" x))
                          (_
-                          #'(lambda args 
-                              (apply abort-to-prompt continue-tag args))))))
+                          #'(lambda ()
+                              (abort-to-prompt continue-tag))))))
                    (do () ((not cond)) body ...))
                  (lambda (k) (lp)))))
             (lambda (k)
