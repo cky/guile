@@ -30,7 +30,7 @@
 #include <unistd.h>
 #endif
 
-#include "libguile/arrays.h"
+#include "libguile/bytevectors.h"
 #include "libguile/eval.h"
 #include "libguile/ports.h"
 #include "libguile/read.h"
@@ -55,15 +55,8 @@
 
 /* NOTES:
 
-   We break the rules set forth by strings.h about accessing the
-   internals of strings here.  We can do this since we can guarantee
-   that the string used as pt->stream is not in use by anyone else.
-   Thus, it's representation will not change asynchronously.
-
-   (Ports aren't thread-safe yet anyway...)
-
-   write_buf/write_end point to the ends of the allocated string.
-   read_buf/read_end in principle point to the part of the string which
+   write_buf/write_end point to the ends of the allocated bytevector.
+   read_buf/read_end in principle point to the part of the bytevector which
    has been written to, but this is only updated after a flush.
    read_pos and write_pos in principle should be equal, but this is only true
    when rw_active is SCM_PORT_NEITHER.
@@ -106,25 +99,23 @@ stfill_buffer (SCM port)
     return scm_return_first_int (*pt->read_pos, port);
 }
 
-/* change the size of a port's string to new_size.  this doesn't
-   change read_buf_size.  */
-static void 
+/* Change the size of a port's bytevector to NEW_SIZE.  This doesn't
+   change `read_buf_size'.  */
+static void
 st_resize_port (scm_t_port *pt, scm_t_off new_size)
 {
   SCM old_stream = SCM_PACK (pt->stream);
-  const char *src = scm_i_string_chars (old_stream);
-  char *dst;
-  SCM new_stream = scm_i_make_string (new_size, &dst);
-  unsigned long int old_size = scm_i_string_length (old_stream);
+  const signed char *src = SCM_BYTEVECTOR_CONTENTS (old_stream);
+  SCM new_stream = scm_c_make_bytevector (new_size);
+  signed char *dst = SCM_BYTEVECTOR_CONTENTS (new_stream);
+  unsigned long int old_size = SCM_BYTEVECTOR_LENGTH (old_stream);
   unsigned long int min_size = min (old_size, new_size);
-  unsigned long int i;
 
   scm_t_off index = pt->write_pos - pt->write_buf;
 
   pt->write_buf_size = new_size;
 
-  for (i = 0; i != min_size; ++i)
-    dst[i] = src[i];
+  memcpy (dst, src, min_size);
 
   scm_remember_upto_here_1 (old_stream);
 
@@ -292,13 +283,10 @@ st_truncate (SCM port, scm_t_off length)
 SCM
 scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 {
-  SCM z;
+  SCM z, buf;
   scm_t_port *pt;
   size_t str_len, c_pos;
-  char *buf, *c_str;
-
-  SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
-  c_pos = scm_to_unsigned_integer (pos, 0, scm_i_string_length (str));
+  char *c_buf;
 
   if (!((modes & SCM_WRTNG) || (modes & SCM_RDNG)))
     scm_misc_error ("scm_mkstrport", "port must read or write", SCM_EOL);
@@ -308,19 +296,31 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 
   z = scm_new_port_table_entry (scm_tc16_strport);
   pt = SCM_PTAB_ENTRY(z);
-  SCM_SETSTREAM (z, SCM_UNPACK (str));
+
+  {
+    /* STR is a string.  */
+    char *copy;
+
+    SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
+
+    /* Create a copy of STR in the encoding of PT.  */
+    copy = scm_to_stringn (str, &str_len, pt->encoding,
+			   SCM_FAILED_CONVERSION_ERROR);
+    buf = scm_c_make_bytevector (str_len);
+    c_buf = (char *) SCM_BYTEVECTOR_CONTENTS (buf);
+    memcpy (c_buf, copy, str_len);
+    free (copy);
+
+    c_pos = scm_to_unsigned_integer (pos, 0, str_len);
+    pt->read_buf_size = str_len;
+  }
+
+  SCM_SETSTREAM (z, SCM_UNPACK (buf));
   SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
 
-  /* Create a copy of STR in the encoding of Z.  */
-  buf = scm_to_stringn (str, &str_len, pt->encoding,
-			SCM_FAILED_CONVERSION_ERROR);
-  c_str = scm_gc_malloc_pointerless (str_len, "strport");
-  memcpy (c_str, buf, str_len);
-  free (buf);
-
-  pt->write_buf = pt->read_buf = (unsigned char *) c_str;
+  pt->write_buf = pt->read_buf = (unsigned char *) c_buf;
   pt->read_pos = pt->write_pos = pt->read_buf + c_pos;
-  pt->write_buf_size = pt->read_buf_size = str_len;
+  pt->write_buf_size = str_len;
   pt->write_end = pt->read_end = pt->read_buf + pt->read_buf_size;
 
   pt->rw_random = 1;
