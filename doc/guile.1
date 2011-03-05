@@ -3,113 +3,210 @@
 .\" Process this file with
 .\" groff -man -Tascii foo.1
 .\"
-.TH GUILE 1
+.\" title section date source manual
+.TH GUILE 1 "2011-03-04" GNU "GNU Guile 2.0"
+.
 .SH NAME
-guile \- the GNU extension language
+guile \- The GNU Project Extension Language
+.
 .SH SYNOPSIS
-.B guile [-L DIRECTORY] [-l FILE] [-e FUNCTION] [\\\\]
-.B [-c EXPR] [-s SCRIPT] [--] [SCRIPT] [ARG...]
+.B guile
+.RB [\| \-L
+.IR DIRECTORY \|]
+.RB [\| \-l
+.IR FILE \|]
+.RB [\| \-e
+.IR FUNCTION \|]
+.\".RI [\| \\\\ \|]
+.RB [\| \e \|]
+.RB [\| \-c
+.IR EXPR \|]
+.RB [\| \-s
+.IR SCRIPT \|]
+.RB [\| \-\- \|]
+.RI [\| SCRIPT
+.RI [\| ARGs\ for\ SCRIPT \|]\c
+.RI ]
 
-Only the most useful options are listed here; see below for the
-remainder.
+Only the most useful options are listed here;
+see below for the remainder.
+.
 .SH DESCRIPTION
-GNU Guile is an implemention of the Scheme programming language.  It
-extends the R5RS and R6RS language standards, providing additional
-features necessary for real-world use.  Guile works well for interactive
-use, basic scripting, and extension of larger applications, as well as
-for stand-alone Scheme application development.
+GNU Guile is an implementation of the Scheme programming language.
+It extends the R5RS and R6RS language standards,
+providing additional features necessary for real-world use.
+
+Guile works well for interactive use,
+basic scripting,
+and extension of larger applications,
+as well as for stand-alone Scheme application development.
 
 The
 .B guile
 executable itself provides a stand-alone interactive compiler and
-run-time for Scheme programs, both for interactive use and for executing
-Scheme scripts or programs.
+run-time for Scheme programs,
+both for interactive use and for executing Scheme scripts or programs.
 
 This manual page provides only brief instruction in invoking
 .B guile
-from the command line.  Please consult the guile info documentation
-(type 
-.B info "guile(Invoking Guile)"
-at a command prompt) for more information.
-
+from the command line.
+Please consult the Guile info documentation for more information,
+(type \fB info "(guile)Invoking Guile"\fR at a command prompt).
+.
 .SH OPTIONS
-.IP -L DIRECTORY
-Add DIRECTORY to the front of Guile's module load path.
-.IP -l FILE
-Load scheme source code from file.
-.IP -e FUNCTION
-After reading script, apply FUNCTION to command-line arguments.  Note
-that FUNCTION is evaluated, so e.g.
+.TP
+.BI -L \ DIRECTORY
+Add \fIDIRECTORY\fR to the front of Guile's module load path.
+.
+.TP
+.BI -l \ FILE
+Load Scheme source code from \fIFILE\fR.
+.
+.TP
+.BI -e \ FUNCTION
+After reading \fISCRIPT\fR, apply \fIFUNCTION\fR to command-line arguments.
+Note that \fIFUNCTION\fR is evaluated,
+so, for example,
 .B (@ (my-module) my-proc)
 is valid here.
-.IP \\\\
+.
+.TP
+.B \e
 The "meta switch", used to work around limitations in #! scripts.
-See "The Meta Switch" in the texinfo documentation, for more details.
-.IP --
-Stop argument processing, start guile in interactive mode.
-.IP -c EXPR
-Stop argument processing, evaluate EXPR as a scheme expression.
-.IP -s SCRIPT-FILE
-Load Scheme source from SCRIPT-FILE and execute as a script.  Note that
-the in many cases it is not necessary to use -s; one may invoke Guile
-just as
-.B guile SCRIPT-FILE ARG...
-.IP -ds
-Do -s SCRIPT at this point.  Note that this argument must be used in
-conjuction with -s.
-.IP --debug
-Start guile with the debugging VM.  By default, on when invoked
-interactively, off otherwise.
-.IP --auto-compile
+See "The Meta Switch" in the texinfo documentation for more details.
+.
+.TP
+.B --
+Stop argument processing, and start
+.B guile
+in interactive mode.
+.
+.TP
+.BI -c \ EXPR
+Stop argument processing,
+and evaluate \fIEXPR\fR as a Scheme expression.
+.
+.TP
+.BI -s \ SCRIPT-FILE
+Load Scheme source from \fISCRIPT-FILE\fR and execute as a script.
+Note that in many cases it is not necessary to use \fB-s\fR;
+one may invoke
+.B guile
+simply as
+.B guile
+.I SCRIPT-FILE ARG...
+.
+.TP
+.B -ds
+Carry out \fB\-s \fISCRIPT\fR at this point in the option sequence.
+Note that this argument must be used in conjunction with \fB\-s\fR.
+.
+.TP
+.B --debug
+Start
+.B guile
+with the debugging VM.
+By default, debugging is on when
+.B guile
+is invoked interactively;
+it is off otherwise.
+.
+.TP
+.B --no-debug
+Start
+.B guile
+without the debugging VM,
+even if
+.B guile
+is being run interactively.
+.
+.TP
+.B --auto-compile
 Compile source files automatically (default behavior).
-.IP --no-auto-compile
+.
+.TP
+.B --no-autocompile
 Disable automatic source file compilation.
-.IP --listen[=P]
-Listen on a port or socket for remote REPL connections.  See the manual
-for more details.
-.IP --use-srfi=N,M...
-Load SRFI extensions N, M, etc. For example, "--use-srfi=8,13".
-.IP -x EXTENSION
-Add EXTENSION to the Guile's load extension list.
-.IP --help 
-Describe command line options and exit
-.IP --version
+.
+.TP
+\fB\-\-listen\fR[=\fIP\fR]
+Listen on a port or socket for remote REPL connections.
+See the manual for more details.
+.
+.TP
+\fB\-\-use\-srfi\fR=\fIN,M\fR...
+Load SRFI extensions \fIN\fR, \fIM\fR, etc.
+For example,
+\fB \-\-use\-srfi\fR=\fI8,13\fR.
+.
+.TP
+.BI -x \ EXTENSION
+Add \fIEXTENSION\fR to the
+.B guile
+load extension list.
+.
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Describe command-line options and exit.
+.
+.TP
+\fB\-v\fR, \fB\-\-version\fR
 Display guile version and exit.
-.IP -q
-In interactive mode, suppress loading the user's ~/.guile file.
-
+.
+.TP
+.B -q
+In interactive mode,
+suppress loading the user's initialization file,
+.I ~/.guile.
+.
 .SH ENVIRONMENT
 .\".TP \w'MANROFFSEQ\ \ 'u
 .TP
 .B GUILE_LOAD_PATH
 If
 .RB $ GUILE_LOAD_PATH
-is set, its value is used to agument the path to search for scheme
-files when loading.  It should be a colon separated list of
-directories which will be prepended to the default %load-path.
-
+is set before
+.B guile
+is started,
+its value is used to augment the path to search for Scheme files when
+loading.
+It should be a colon-separated list of directories,
+which will be prefixed to the default
+.B %load-path.
+.TP
 .B GUILE_LOAD_COMPILED_PATH
 If
 .RB $ GUILE_LOAD_COMPILED_PATH
-is set, its value is used to agument the path to search for compiled
-Scheme files (.go files) when loading.  It should be a colon separated
-list of directories which will be prepended to the default %load-path.
-
+is set before
+.B guile
+is started,
+its value is used to augment the path to search for compiled
+Scheme files (.go files) when loading.
+It should be a colon-separated list of directories,
+which will be prefixed to the default
+.B %load-compiled-path.
+.
 .SH FILES
+.TP
 .I ~/.guile
-is a guile script that is executed before any other processing occurs.
-For example, the following .guile activates guile's readline
-interface:
+A Guile script that is executed before any other processing occurs.
+For example, the following
+.I .guile
+activates guile's readline interface:
 
-.RS 4
-(use-modules (ice-9 readline))
+.RS 9
+.B (use-modules (ice-9 readline))
 .RS 0
-(activate-readline)
-
+.B (activate-readline)
+.
 .SH "SEE ALSO"
-The full documentation for guile is maintained as a Texinfo manual.  If
-the info and guile programs are properly installed at your site, the
-command
+The full documentation for Guile is maintained as a Texinfo manual.
+If the
+.B info
+and
+.B guile
+programs are properly installed at your site,
+the command
 .IP
 .B info guile
 .PP
@@ -117,39 +214,45 @@ should give you access to the complete manual.
 
 http://www.schemers.org provides a general introduction to the
 Scheme language.
-
+.
 .SH "REPORTING BUGS"
-There is a mailing list, bug-guile@gnu.org, for reporting Guile bugs and
-fixes.  But before reporting something as a bug, please try to be sure
-that it really is a bug, not a misunderstanding or a deliberate feature.
+There is a mailing list,
+bug-guile@gnu.org,
+for reporting Guile bugs and fixes.
+But before reporting something as a bug,
+please try to be sure that it really is a bug,
+not a misunderstanding or a deliberate feature.
 We ask you to read the section ``Reporting Bugs'' in the Guile reference
-manual (or Info system) for hints on how and when to report bugs.  Also,
-include the version number of the Guile you are running in every bug
-report that you send in.  Bugs tend actually to be fixed if they can be
-isolated, so it is in your interest to report them in such a way that
-they can be easily reproduced.
-
+manual (or Info system) for hints on how and when to report bugs.
+Also, include the version number of the Guile you are running in every bug
+report that you send in.
+Bugs tend actually to get fixed if they can be isolated,
+so it is in your interest to report them in such a way that they can be
+easily reproduced.
+.
 .SH COPYING
-Copyright (C) 2010 Free Software Foundation, Inc.
+Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of this
 document provided the copyright notice and this permission notice are
 preserved on all copies.
 
 Permission is granted to copy and distribute modified versions of this
-document under the conditions for verbatim copying, provided that the
-entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
+document under the conditions for verbatim copying,
+provided that the entire resulting derived work is distributed under the
+terms of a permission notice identical to this one.
 
 Permission is granted to copy and distribute translations of this
-document into another language, under the above conditions for modified
-versions, except that this permission notice may be stated in a
+document into another language,
+under the above conditions for modified versions,
+except that this permission notice may be stated in a
 translation approved by the Free Software Foundation.
-
+.
 .SH AUTHORS
-Robert Merkel <rgmerk@mira.net> wrote this manpage.  
+Robert Merkel <rgmerk@mira.net> wrote this manpage.
 Rob Browning <rlb@cs.utexas.edu> has added to it.
 
-.B guile 
-is GNU software.  Guile is originally based on Aubrey Jaffer's
-SCM interpreter, and is the work of many individuals.
+.B guile
+is GNU software.
+Guile is originally based on Aubrey Jaffer's SCM interpreter,
+and is the work of many individuals.
