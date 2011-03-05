@@ -187,6 +187,7 @@ ICE_9_SOURCES = \
   ice-9/curried-definitions.scm \
   ice-9/debug.scm \
   ice-9/documentation.scm \
+  ice-9/eval-string.scm \
   ice-9/expect.scm \
   ice-9/format.scm \
   ice-9/futures.scm \
