@@ -475,7 +475,6 @@ scm_c_read_string (const char *expr)
 			    "scm_c_read_string");
   SCM form;
 
-  /* Read expressions from that port; ignore the values.  */
   form = scm_read (port);
 
   scm_close_port (port);

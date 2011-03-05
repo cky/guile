@@ -543,11 +543,7 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
   SCM *lloc;
   SCM_VALIDATE_NONEMPTYLIST (1, lst);
   lloc = &lst;
-  while (!scm_is_null (SCM_CDR (*lloc))) /* Perhaps should be
-                                          SCM_NULL_OR_NIL_P, but not
-                                          needed in 99.99% of cases,
-                                          and it could seriously hurt
-                                          performance. - Neil */
+  while (!scm_is_null (SCM_CDR (*lloc)))
     lloc = SCM_CDRLOC (*lloc);
   SCM_ASSERT (scm_ilength (SCM_CAR (*lloc)) >= 0, lst, SCM_ARG1, FUNC_NAME);
   *lloc = SCM_CAR (*lloc);
