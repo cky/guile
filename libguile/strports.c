@@ -129,27 +129,17 @@ st_resize_port (scm_t_port *pt, scm_t_off new_size)
   }
 }
 
-/* amount by which write_buf is expanded.  */
-#define SCM_WRITE_BLOCK 80
-
-/* ensure that write_pos < write_end by enlarging the buffer when
-   necessary.  update read_buf to account for written chars.
-
-   The buffer is enlarged by 1.5 times, plus SCM_WRITE_BLOCK.  Adding just a
-   fixed amount is no good, because there's a block copy for each increment,
-   and that copying would take quadratic time.  In the past it was found to
-   be very slow just adding 80 bytes each time (eg. about 10 seconds for
-   writing a 100kbyte string).  */
-
+/* Ensure that `write_pos' < `write_end' by enlarging the buffer when
+   necessary.  Update `read_buf' to account for written chars.  The
+   buffer is enlarged geometrically.  */
 static void
 st_flush (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
   if (pt->write_pos == pt->write_end)
-    {
-      st_resize_port (pt, pt->write_buf_size * 3 / 2 + SCM_WRITE_BLOCK);
-    }
+    st_resize_port (pt, pt->write_buf_size * 2);
+
   pt->read_pos = pt->write_pos;
   if (pt->read_pos > pt->read_end)
     {
@@ -246,12 +236,8 @@ st_seek (SCM port, scm_t_off offset, int whence)
 				  SCM_EOL);
 		}
 	    }
-	  else
-	    {
-	      st_resize_port (pt, target + (target == pt->write_buf_size
-					    ? SCM_WRITE_BLOCK
-					    : 0));
-	    }
+	  else if (target == pt->write_buf_size)
+	    st_resize_port (pt, target * 2);
 	}
       pt->read_pos = pt->write_pos = pt->read_buf + target;
       if (pt->read_pos > pt->read_end)
