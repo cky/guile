@@ -363,7 +363,18 @@
             (lexical #t #t set 1)
             (lexical #t #t ref 0)
             (lexical #t #t ref 1)
-            (call add 2) (call return 1) (unbind))))
+            (call add 2) (call return 1) (unbind)))
+
+  ;; simple bindings in letrec* -> equivalent to letrec
+  (assert-tree-il->glil
+   (letrec* (x y) (xx yy) ((const 1) (const 2))
+            (lexical y yy))
+   (program () (std-prelude 0 1 #f) (label _)
+            (const 2)
+            (bind (y #f 0)) ;; X is removed, and Y is unboxed
+            (lexical #t #f set 0)
+            (lexical #t #f ref 0)
+            (call return 1) (unbind))))
 
 (with-test-prefix "lambda"
   (assert-tree-il->glil
