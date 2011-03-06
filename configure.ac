@@ -1618,6 +1618,7 @@ AC_CONFIG_FILES([
   am/Makefile
   lib/Makefile
   benchmark-suite/Makefile
+  gc-benchmarks/Makefile
   doc/Makefile
   doc/r5rs/Makefile
   doc/ref/Makefile
