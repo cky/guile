@@ -47,6 +47,9 @@ memory mapping of process @var{pid}.  This information is obtained by reading
     (make-regexp
      "^Rss:[[:blank:]]+([[:digit:]]+) kB$"))
 
+  (if (not (string-contains %host-type "-linux-"))
+      (error "this procedure only works on Linux-based systems" %host-type))
+
   (with-input-from-port (open-input-file (format #f "/proc/~a/smaps" pid))
     (lambda ()
       (let loop ((line   (read-line))
