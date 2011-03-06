@@ -280,6 +280,12 @@ st_truncate (SCM port, scm_t_off length)
     pt->write_pos = pt->read_end;
 }
 
+/* The initial size in bytes of a string port's buffer.  */
+#define INITIAL_BUFFER_SIZE 128
+
+/* Return a new string port with MODES.  If STR is #f, a new backing
+   buffer is allocated; otherwise STR must be a string and a copy of it
+   serves as the buffer for the new port.  */
 SCM
 scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 {
@@ -297,23 +303,36 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   z = scm_new_port_table_entry (scm_tc16_strport);
   pt = SCM_PTAB_ENTRY(z);
 
-  {
-    /* STR is a string.  */
-    char *copy;
+  if (scm_is_false (str))
+    {
+      /* Allocate a new buffer to write to.  */
+      str_len = INITIAL_BUFFER_SIZE;
+      buf = scm_c_make_bytevector (str_len);
+      c_buf = (char *) SCM_BYTEVECTOR_CONTENTS (buf);
 
-    SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
+      /* Reset `read_buf_size'.  It will contain the actual number of
+	 bytes written to PT.  */
+      pt->read_buf_size = 0;
+      c_pos = 0;
+    }
+  else
+    {
+      /* STR is a string.  */
+      char *copy;
 
-    /* Create a copy of STR in the encoding of PT.  */
-    copy = scm_to_stringn (str, &str_len, pt->encoding,
-			   SCM_FAILED_CONVERSION_ERROR);
-    buf = scm_c_make_bytevector (str_len);
-    c_buf = (char *) SCM_BYTEVECTOR_CONTENTS (buf);
-    memcpy (c_buf, copy, str_len);
-    free (copy);
+      SCM_ASSERT (scm_is_string (str), str, SCM_ARG1, caller);
 
-    c_pos = scm_to_unsigned_integer (pos, 0, str_len);
-    pt->read_buf_size = str_len;
-  }
+      /* Create a copy of STR in the encoding of PT.  */
+      copy = scm_to_stringn (str, &str_len, pt->encoding,
+			     SCM_FAILED_CONVERSION_ERROR);
+      buf = scm_c_make_bytevector (str_len);
+      c_buf = (char *) SCM_BYTEVECTOR_CONTENTS (buf);
+      memcpy (c_buf, copy, str_len);
+      free (copy);
+
+      c_pos = scm_to_unsigned_integer (pos, 0, str_len);
+      pt->read_buf_size = str_len;
+    }
 
   SCM_SETSTREAM (z, SCM_UNPACK (buf));
   SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
@@ -369,13 +388,13 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
 	    "argument @var{printer} (default: @code{write}).")
 #define FUNC_NAME s_scm_object_to_string
 {
-  SCM str, port;
+  SCM port;
 
   if (!SCM_UNBNDP (printer))
     SCM_VALIDATE_PROC (2, printer);
 
-  str = scm_c_make_string (0, SCM_UNDEFINED);
-  port = scm_mkstrport (SCM_INUM0, str, SCM_OPN | SCM_WRTNG, FUNC_NAME);
+  port = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
+			SCM_OPN | SCM_WRTNG, FUNC_NAME);
 
   if (SCM_UNBNDP (printer))
     scm_write (obj, port);
@@ -395,8 +414,7 @@ SCM_DEFINE (scm_call_with_output_string, "call-with-output-string", 1, 0, 0,
 {
   SCM p;
 
-  p = scm_mkstrport (SCM_INUM0, 
-		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+  p = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
 		     SCM_OPN | SCM_WRTNG,
                      FUNC_NAME);
   scm_call_1 (proc, p);
@@ -441,8 +459,7 @@ SCM_DEFINE (scm_open_output_string, "open-output-string", 0, 0, 0,
 {
   SCM p;
 
-  p = scm_mkstrport (SCM_INUM0, 
-		     scm_make_string (SCM_INUM0, SCM_UNDEFINED),
+  p = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
 		     SCM_OPN | SCM_WRTNG,
                      FUNC_NAME);
   return p;
@@ -467,8 +484,6 @@ SCM_DEFINE (scm_get_output_string, "get-output-string", 1, 0, 0,
 SCM
 scm_c_read_string (const char *expr)
 {
-  /* FIXME: the c string gets packed into a string, only to get
-     immediately unpacked in scm_mkstrport.  */
   SCM port = scm_mkstrport (SCM_INUM0,
 			    scm_from_locale_string (expr),
 			    SCM_OPN | SCM_RDNG,

@@ -278,9 +278,7 @@ SCM_DEFINE (scm_display_application, "display-application", 1, 2, 0,
     scm_print_state *pstate;
       
     /* Create a string port used for adaptation of printing parameters. */
-    sport = scm_mkstrport (SCM_INUM0,
-                           scm_make_string (scm_from_int (240),
-                                            SCM_UNDEFINED),
+    sport = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
                            SCM_OPN | SCM_WRTNG,
                            FUNC_NAME);
 
@@ -473,8 +471,7 @@ display_backtrace_body (struct display_backtrace_args *a)
   SCM_ASSERT (n > 0, a->depth, SCM_ARG4, s_display_backtrace);
 
   /* Create a string port used for adaptation of printing parameters. */
-  sport = scm_mkstrport (SCM_INUM0,
-			 scm_make_string (scm_from_int (240), SCM_UNDEFINED),
+  sport = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
 			 SCM_OPN | SCM_WRTNG,
 			 FUNC_NAME);
 

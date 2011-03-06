@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009
+ * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009,2011
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -248,15 +248,13 @@ scm_init_gdbint ()
   SCM port;
 
   scm_print_carefully_p = 0;
-  
-  port = scm_mkstrport (SCM_INUM0,
-			scm_c_make_string (0, SCM_UNDEFINED),
+
+  port = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
 			SCM_OPN | SCM_WRTNG,
 			s);
   gdb_output_port = scm_permanent_object (port);
-  
-  port = scm_mkstrport (SCM_INUM0,
-			scm_c_make_string (0, SCM_UNDEFINED),
+
+  port = scm_mkstrport (SCM_INUM0, SCM_BOOL_F,
 			SCM_OPN | SCM_RDNG | SCM_WRTNG,
 			s);
   gdb_input_port = scm_permanent_object (port);
