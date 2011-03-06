@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2006, 2009 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2003, 2004,
+ *   2006, 2009, 2011 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -341,6 +342,9 @@ SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+/* The default prefix for `gensym'd symbols.  */
+static SCM default_gensym_prefix;
+
 #define MAX_PREFIX_LENGTH 30
 
 SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
@@ -359,15 +363,15 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
   char buf[SCM_INTBUFLEN];
 
   if (SCM_UNBNDP (prefix))
-    prefix = scm_from_locale_string (" g");
-  
+    prefix = default_gensym_prefix;
+
   /* mutex in case another thread looks and incs at the exact same moment */
   scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
   n = gensym_counter++;
   scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
 
   n_digits = scm_iint2str (n, 10, buf);
-  suffix = scm_from_locale_stringn (buf, n_digits);
+  suffix = scm_from_latin1_stringn (buf, n_digits);
   name = scm_string_append (scm_list_2 (prefix, suffix));
   return scm_string_to_symbol (name);
 }
@@ -506,6 +510,8 @@ void
 scm_init_symbols ()
 {
 #include "libguile/symbols.x"
+
+  default_gensym_prefix = scm_from_latin1_string (" g");
 }
 
 /*
