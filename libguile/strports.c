@@ -374,7 +374,7 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
 	    "argument @var{printer} (default: @code{write}).")
 #define FUNC_NAME s_scm_object_to_string
 {
-  SCM port;
+  SCM port, result;
 
   if (!SCM_UNBNDP (printer))
     SCM_VALIDATE_PROC (2, printer);
@@ -387,7 +387,17 @@ SCM_DEFINE (scm_object_to_string, "object->string", 1, 1, 0,
   else
     scm_call_2 (printer, obj, port);
 
-  return scm_strport_to_string (port);
+  result = scm_strport_to_string (port);
+
+  /* Explicitly close PORT so that the iconv CDs associated with it are
+     deallocated right away.  This is important because CDs use a lot of
+     memory that's not visible to the GC, so not freeing them can lead
+     to almost large heap usage.  See
+     <http://wingolog.org/archives/2011/02/25/ports-weaks-gc-and-dark-matter>
+     for details.  */
+  scm_close_port (port);
+
+  return result;
 }
 #undef FUNC_NAME
 
