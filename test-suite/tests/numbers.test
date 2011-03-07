@@ -633,6 +633,12 @@
     (pass-if "n = fixnum-min - 1"
       (eqv? 1 (quotient (- fixnum-min 1) (- fixnum-min 1)))))
   
+  ;; Inexact integers
+
+  (pass-if (eqv? 5.0 (quotient 35.0 7.0)))
+  (pass-if (eqv? 5.0 (quotient 35   7.0)))
+  (pass-if (eqv? 5.0 (quotient 35.0 7  )))
+
   ;; Positive dividend and divisor
 
   (pass-if "35 / 7"
@@ -826,6 +832,12 @@
     (pass-if "n = fixnum-min - 1"
       (eqv? 0 (remainder (- fixnum-min 1) (- fixnum-min 1)))))
 
+  ;; Inexact integers
+
+  (pass-if (eqv? 2.0 (remainder 37.0 7.0)))
+  (pass-if (eqv? 2.0 (remainder 37   7.0)))
+  (pass-if (eqv? 2.0 (remainder 37.0 7  )))
+
   ;; Positive dividend and divisor
 
   (pass-if "35 / 7"
@@ -1008,6 +1020,12 @@
 
     (pass-if "n = fixnum-min - 1"
       (eqv? 0 (modulo (- fixnum-min 1) (- fixnum-min 1)))))
+
+  ;; Inexact integers
+
+  (pass-if (eqv? 1.0 (modulo 13.0 4.0)))
+  (pass-if (eqv? 1.0 (modulo 13   4.0)))
+  (pass-if (eqv? 1.0 (modulo 13.0 4  )))
 
   ;; Positive dividend and divisor
 

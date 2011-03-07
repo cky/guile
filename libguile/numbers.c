@@ -796,9 +796,9 @@ SCM_PRIMITIVE_GENERIC (scm_quotient, "quotient", 2, 0, 0,
 	"Return the quotient of the numbers @var{x} and @var{y}.")
 #define FUNC_NAME s_scm_quotient
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)) || SCM_LIKELY (SCM_BIGP (x)))
+  if (SCM_LIKELY (scm_is_integer (x)))
     {
-      if (SCM_LIKELY (SCM_I_INUMP (y)) || SCM_LIKELY (SCM_BIGP (y)))
+      if (SCM_LIKELY (scm_is_integer (y)))
 	return scm_truncate_quotient (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_quotient, x, y, SCM_ARG2, s_scm_quotient);
@@ -817,9 +817,9 @@ SCM_PRIMITIVE_GENERIC (scm_remainder, "remainder", 2, 0, 0,
 	"@end lisp")
 #define FUNC_NAME s_scm_remainder
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)) || SCM_LIKELY (SCM_BIGP (x)))
+  if (SCM_LIKELY (scm_is_integer (x)))
     {
-      if (SCM_LIKELY (SCM_I_INUMP (y)) || SCM_LIKELY (SCM_BIGP (y)))
+      if (SCM_LIKELY (scm_is_integer (y)))
 	return scm_truncate_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_remainder, x, y, SCM_ARG2, s_scm_remainder);
@@ -839,9 +839,9 @@ SCM_PRIMITIVE_GENERIC (scm_modulo, "modulo", 2, 0, 0,
 	"@end lisp")
 #define FUNC_NAME s_scm_modulo
 {
-  if (SCM_LIKELY (SCM_I_INUMP (x)) || SCM_LIKELY (SCM_BIGP (x)))
+  if (SCM_LIKELY (scm_is_integer (x)))
     {
-      if (SCM_LIKELY (SCM_I_INUMP (y)) || SCM_LIKELY (SCM_BIGP (y)))
+      if (SCM_LIKELY (scm_is_integer (y)))
 	return scm_floor_remainder (x, y);
       else
 	SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG2, s_scm_modulo);
