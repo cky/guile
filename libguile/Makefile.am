@@ -460,7 +460,9 @@ version_info = @LIBGUILE_INTERFACE_CURRENT@:@LIBGUILE_INTERFACE_REVISION@:@LIBGU
 
 libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =	\
   $(BDW_GC_LIBS) $(LIBFFI_LIBS)			\
+  $(CEIL_LIBM)					\
   $(FLOOR_LIBM)					\
+  $(FREXP_LIBM)					\
   $(GETADDRINFO_LIB)				\
   $(HOSTENT_LIB)				\
   $(INET_NTOP_LIB)				\
@@ -468,12 +470,12 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =	\
   $(ISNAND_LIBM)				\
   $(ISNANF_LIBM)				\
   $(ISNANL_LIBM)				\
+  $(LDEXP_LIBM)					\
   $(LIBSOCKET)					\
   $(LOG1P_LIBM)					\
   $(LTLIBICONV)					\
   $(LTLIBINTL)					\
   $(LTLIBUNISTRING)				\
-  $(ROUND_LIBM)					\
   $(SERVENT_LIB)				\
   $(TRUNC_LIBM)					\
   -version-info $(version_info)			\

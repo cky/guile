@@ -15,7 +15,7 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files accept alignof alloca-opt announce-gen autobuild bind byteswap canonicalize-lgpl close connect duplocale environ extensions flock fpieee full-read full-write func gendocs getaddrinfo getpeername getsockname getsockopt git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan lib-symbol-versions lib-symbol-visibility libunistring listen locale log1p maintainer-makefile malloc-gnu malloca nproc putenv recv recvfrom round send sendto setsockopt shutdown socket stat-time stdlib strcase strftime striconveh string sys_stat trunc verify version-etc-fsf vsnprintf warnings
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files accept alignof alloca-opt announce-gen autobuild bind byteswap canonicalize-lgpl ceil close connect duplocale environ extensions flock floor fpieee frexp full-read full-write func gendocs getaddrinfo getpeername getsockname getsockopt git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan ldexp lib-symbol-versions lib-symbol-visibility libunistring listen locale log1p maintainer-makefile malloc-gnu malloca nproc putenv recv recvfrom send sendto setsockopt shutdown socket stat-time stdlib strcase strftime striconveh string sys_stat trunc verify version-etc-fsf vsnprintf warnings wchar
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
@@ -28,13 +28,16 @@ gl_MODULES([
   bind
   byteswap
   canonicalize-lgpl
+  ceil
   close
   connect
   duplocale
   environ
   extensions
   flock
+  floor
   fpieee
+  frexp
   full-read
   full-write
   func
@@ -53,6 +56,7 @@ gl_MODULES([
   inet_pton
   isinf
   isnan
+  ldexp
   lib-symbol-versions
   lib-symbol-visibility
   libunistring
@@ -66,7 +70,6 @@ gl_MODULES([
   putenv
   recv
   recvfrom
-  round
   send
   sendto
   setsockopt
@@ -84,6 +87,7 @@ gl_MODULES([
   version-etc-fsf
   vsnprintf
   warnings
+  wchar
 ])
 gl_AVOID([])
 gl_SOURCE_BASE([lib])

@@ -42,9 +42,11 @@ AC_DEFUN([gl_EARLY],
   # Code from module c-strcase:
   # Code from module c-strcaseeq:
   # Code from module canonicalize-lgpl:
+  # Code from module ceil:
   # Code from module close:
   # Code from module close-hook:
   # Code from module connect:
+  # Code from module dosname:
   # Code from module duplocale:
   # Code from module environ:
   # Code from module errno:
@@ -56,6 +58,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module floor:
   # Code from module fpieee:
   AC_REQUIRE([gl_FP_IEEE])
+  # Code from module frexp:
   # Code from module full-read:
   # Code from module full-write:
   # Code from module func:
@@ -84,8 +87,10 @@ AC_DEFUN([gl_EARLY],
   # Code from module isinf:
   # Code from module isnan:
   # Code from module isnand:
+  # Code from module isnand-nolibm:
   # Code from module isnanf:
   # Code from module isnanl:
+  # Code from module ldexp:
   # Code from module lib-symbol-versions:
   # Code from module lib-symbol-visibility:
   # Code from module libunistring:
@@ -108,7 +113,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module readlink:
   # Code from module recv:
   # Code from module recvfrom:
-  # Code from module round:
   # Code from module safe-read:
   # Code from module safe-write:
   # Code from module send:
@@ -217,6 +221,9 @@ AC_DEFUN([gl_INIT],
   gl_MODULE_INDICATOR([canonicalize-lgpl])
   gl_STDLIB_MODULE_INDICATOR([canonicalize_file_name])
   gl_STDLIB_MODULE_INDICATOR([realpath])
+  # Code from module ceil:
+  gl_FUNC_CEIL
+  gl_MATH_MODULE_INDICATOR([ceil])
   # Code from module close:
   gl_FUNC_CLOSE
   gl_UNISTD_MODULE_INDICATOR([close])
@@ -227,6 +234,7 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([connect])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([connect])
+  # Code from module dosname:
   # Code from module duplocale:
   gl_FUNC_DUPLOCALE
   gl_LOCALE_MODULE_INDICATOR([duplocale])
@@ -248,6 +256,9 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_FLOOR
   gl_MATH_MODULE_INDICATOR([floor])
   # Code from module fpieee:
+  # Code from module frexp:
+  gl_FUNC_FREXP
+  gl_MATH_MODULE_INDICATOR([frexp])
   # Code from module full-read:
   # Code from module full-write:
   # Code from module func:
@@ -324,12 +335,16 @@ AC_DEFUN([gl_INIT],
   # Code from module isnand:
   gl_FUNC_ISNAND
   gl_MATH_MODULE_INDICATOR([isnand])
+  # Code from module isnand-nolibm:
+  gl_FUNC_ISNAND_NO_LIBM
   # Code from module isnanf:
   gl_FUNC_ISNANF
   gl_MATH_MODULE_INDICATOR([isnanf])
   # Code from module isnanl:
   gl_FUNC_ISNANL
   gl_MATH_MODULE_INDICATOR([isnanl])
+  # Code from module ldexp:
+  gl_FUNC_LDEXP
   # Code from module lib-symbol-versions:
   gl_LD_VERSION_SCRIPT
   # Code from module lib-symbol-visibility:
@@ -394,9 +409,6 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([recvfrom])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([recvfrom])
-  # Code from module round:
-  gl_FUNC_ROUND
-  gl_MATH_MODULE_INDICATOR([round])
   # Code from module safe-read:
   gl_SAFE_READ
   # Code from module safe-write:
@@ -713,10 +725,12 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strcaseeq.h
   lib/c-strncasecmp.c
   lib/canonicalize-lgpl.c
+  lib/ceil.c
   lib/close-hook.c
   lib/close-hook.h
   lib/close.c
   lib/connect.c
+  lib/dosname.h
   lib/duplocale.c
   lib/errno.in.h
   lib/fclose.c
@@ -724,6 +738,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/float.in.h
   lib/flock.c
   lib/floor.c
+  lib/frexp.c
   lib/full-read.c
   lib/full-read.h
   lib/full-write.c
@@ -748,6 +763,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/inet_pton.c
   lib/isinf.c
   lib/isnan.c
+  lib/isnand-nolibm.h
   lib/isnand.c
   lib/isnanf.c
   lib/isnanl.c
@@ -775,7 +791,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/recv.c
   lib/recvfrom.c
-  lib/round.c
   lib/safe-read.c
   lib/safe-read.h
   lib/safe-write.c
@@ -795,7 +810,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
-  lib/stdio-write.c
   lib/stdio.in.h
   lib/stdlib.in.h
   lib/strcasecmp.c
@@ -839,14 +853,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/absolute-header.m4
   m4/alloca.m4
   m4/arpa_inet_h.m4
-  m4/asm-underscore.m4
   m4/autobuild.m4
   m4/byteswap.m4
   m4/canonicalize.m4
   m4/ceil.m4
   m4/check-math-lib.m4
   m4/close.m4
-  m4/dos.m4
   m4/double-slash-root.m4
   m4/duplocale.m4
   m4/eealloc.m4
@@ -861,6 +873,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/flock.m4
   m4/floor.m4
   m4/fpieee.m4
+  m4/frexp.m4
   m4/func.m4
   m4/getaddrinfo.m4
   m4/gnulib-common.m4
@@ -880,6 +893,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/isnanf.m4
   m4/isnanl.m4
   m4/ld-version-script.m4
+  m4/ldexp.m4
   m4/lib-ld.m4
   m4/lib-link.m4
   m4/lib-prefix.m4
@@ -902,7 +916,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/printf.m4
   m4/putenv.m4
   m4/readlink.m4
-  m4/round.m4
   m4/safe-read.m4
   m4/safe-write.m4
   m4/servent.m4
