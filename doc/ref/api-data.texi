@@ -4182,6 +4182,12 @@ If @var{len} is @code{(size_t)-1}, then @var{str} does need to be
 null-terminated and the real length will be found with @code{strlen}.
 
 If the C string is ill-formed, an error will be raised.
+
+Note that these functions should @emph{not} be used to convert C string
+constants, because there is no guarantee that the current locale will
+match that of the source code.  To convert C string constants, use
+@code{scm_from_latin1_string}, @code{scm_from_utf8_string} or
+@code{scm_from_utf32_string}.
 @end deftypefn
 
 @deftypefn  {C Function} SCM scm_take_locale_string (char *str)
@@ -4281,10 +4287,16 @@ The @var{handler} parameters suggests a strategy for dealing with
 unconvertable characters.
 @end deftypefn
 
-ISO-8859-1 is the most common 8-bit character encoding.  This encoding
-is also referred to as the Latin-1 encoding.  The following two
-conversion functions are provided to convert between Latin-1 C strings
-and Guile strings.
+The following conversion functions are provided as a convenience for the
+most commonly used encodings.
+
+@deftypefn {C Function} SCM scm_from_latin1_string (const char *str)
+@deftypefnx {C Function} SCM scm_from_utf8_string (const char *str)
+@deftypefnx {C Function} SCM scm_from_utf32_string (const scm_t_wchar *str)
+Return a scheme string from the null-terminated C string @var{str},
+which is ISO-8859-1-, UTF-8-, or UTF-32-encoded.  These functions should
+be used to convert hard-coded C string constants into Scheme strings.
+@end deftypefn
 
 @deftypefn {C Function} SCM scm_from_latin1_stringn (const char *str, size_t len)
 @deftypefnx {C Function} SCM scm_from_utf8_stringn (const char *str, size_t len)
@@ -5218,12 +5230,24 @@ When you want to do more from C, you should convert between symbols
 and strings using @code{scm_symbol_to_string} and
 @code{scm_string_to_symbol} and work with the strings.
 
+@deffn {C Function} scm_from_latin1_symbol (const char *name)
+@deffnx {C Function} scm_from_utf8_symbol (const char *name)
+Construct and return a Scheme symbol whose name is specified by the
+null-terminated C string @var{name}.  These are appropriate when
+the C string is hard-coded in the source code.
+@end deffn
+
 @deffn {C Function} scm_from_locale_symbol (const char *name)
 @deffnx {C Function} scm_from_locale_symboln (const char *name, size_t len)
 Construct and return a Scheme symbol whose name is specified by
 @var{name}.  For @code{scm_from_locale_symbol}, @var{name} must be null
 terminated; for @code{scm_from_locale_symboln} the length of @var{name} is
 specified explicitly by @var{len}.
+
+Note that these functions should @emph{not} be used when @var{name} is a
+C string constant, because there is no guarantee that the current locale
+will match that of the source code.  In such cases, use
+@code{scm_from_latin1_symbol} or @code{scm_from_utf8_symbol}.
 @end deffn
 
 @deftypefn  {C Function} SCM scm_take_locale_symbol (char *str)
