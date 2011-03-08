@@ -56,6 +56,9 @@ static SCM module_public_interface_var;
 static SCM module_export_x_var;
 static SCM default_duplicate_binding_procedures_var;
 
+/* The #:ensure keyword.  */
+static SCM k_ensure;
+
 
 static SCM unbound_variable (const char *func, SCM sym)
 {
@@ -752,6 +755,124 @@ scm_lookup (SCM sym)
 }
 
 SCM
+scm_public_variable (SCM module_name, SCM name)
+{
+  SCM mod, iface;
+  
+  mod = scm_call_3 (scm_variable_ref (resolve_module_var), module_name,
+                    k_ensure, SCM_BOOL_F);
+
+  if (scm_is_false (mod))
+    scm_misc_error ("public-lookup", "Module named ~s does not exist",
+                    scm_list_1 (module_name));
+  
+  iface = scm_module_public_interface (mod);
+
+  if (scm_is_false (iface))
+    scm_misc_error ("public-lookup", "Module ~s has no public interface",
+                    scm_list_1 (mod));
+  
+  return scm_module_variable (iface, name);
+}
+
+SCM
+scm_private_variable (SCM module_name, SCM name)
+{
+  SCM mod;
+  
+  mod = scm_call_3 (scm_variable_ref (resolve_module_var), module_name,
+                    k_ensure, SCM_BOOL_F);
+
+  if (scm_is_false (mod))
+    scm_misc_error ("private-lookup", "Module named ~s does not exist",
+                    scm_list_1 (module_name));
+  
+  return scm_module_variable (mod, name);
+}
+
+SCM
+scm_c_public_variable (const char *module_name, const char *name)
+{
+  return scm_public_variable (convert_module_name (module_name),
+                              scm_from_locale_symbol (name));
+}
+
+SCM
+scm_c_private_variable (const char *module_name, const char *name)
+{
+  return scm_private_variable (convert_module_name (module_name),
+                               scm_from_locale_symbol (name));
+}
+
+SCM
+scm_public_lookup (SCM module_name, SCM name)
+{
+  SCM var;
+  
+  var = scm_public_variable (module_name, name);
+
+  if (scm_is_false (var))
+    scm_misc_error ("public-lookup", "No variable bound to ~s in module ~s",
+                    scm_list_2 (name, module_name));
+  
+  return var;
+}
+
+SCM
+scm_private_lookup (SCM module_name, SCM name)
+{
+  SCM var;
+  
+  var = scm_private_variable (module_name, name);
+
+  if (scm_is_false (var))
+    scm_misc_error ("private-lookup", "No variable bound to ~s in module ~s",
+                    scm_list_2 (name, module_name));
+  
+  return var;
+}
+
+SCM
+scm_c_public_lookup (const char *module_name, const char *name)
+{
+  return scm_public_lookup (convert_module_name (module_name),
+                            scm_from_locale_symbol (name));
+}
+
+SCM
+scm_c_private_lookup (const char *module_name, const char *name)
+{
+  return scm_private_lookup (convert_module_name (module_name),
+                             scm_from_locale_symbol (name));
+}
+
+SCM
+scm_public_ref (SCM module_name, SCM name)
+{
+  return scm_variable_ref (scm_public_lookup (module_name, name));
+}
+
+SCM
+scm_private_ref (SCM module_name, SCM name)
+{
+  return scm_variable_ref (scm_private_lookup (module_name, name));
+}
+
+SCM
+scm_c_public_ref (const char *module_name, const char *name)
+{
+  return scm_public_ref (convert_module_name (module_name),
+                         scm_from_locale_symbol (name));
+}
+
+SCM
+scm_c_private_ref (const char *module_name, const char *name)
+{
+  return scm_private_ref (convert_module_name (module_name),
+                          scm_from_locale_symbol (name));
+}
+
+SCM
 scm_c_module_define (SCM module, const char *name, SCM value)
 {
   return scm_module_define (module, scm_from_locale_symbol (name), value);
@@ -903,6 +1024,7 @@ scm_post_boot_init_modules ()
   default_duplicate_binding_procedures_var = 
     scm_c_lookup ("default-duplicate-binding-procedures");
   module_public_interface_var = scm_c_lookup ("module-public-interface");
+  k_ensure = scm_from_locale_keyword ("ensure");
 
   scm_module_system_booted_p = 1;
 }

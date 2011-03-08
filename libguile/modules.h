@@ -3,7 +3,7 @@
 #ifndef SCM_MODULES_H
 #define SCM_MODULES_H
 
-/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2000, 2001, 2002, 2003, 2006, 2007, 2008, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -92,6 +92,21 @@ SCM_API SCM scm_module_lookup (SCM module, SCM symbol);
 SCM_API SCM scm_module_define (SCM module, SCM symbol, SCM val);
 SCM_API SCM scm_module_export (SCM module, SCM symbol_list);
 SCM_API SCM scm_module_reverse_lookup (SCM module, SCM variable);
+
+SCM_API SCM scm_public_variable (SCM module_name, SCM name);
+SCM_API SCM scm_private_variable (SCM module_name, SCM name);
+SCM_API SCM scm_c_public_variable (const char *module_name, const char *name);
+SCM_API SCM scm_c_private_variable (const char *module_name, const char *name);
+
+SCM_API SCM scm_public_lookup (SCM module_name, SCM name);
+SCM_API SCM scm_private_lookup (SCM module_name, SCM name);
+SCM_API SCM scm_c_public_lookup (const char *module_name, const char *name);
+SCM_API SCM scm_c_private_lookup (const char *module_name, const char *name);
+
+SCM_API SCM scm_public_ref (SCM module_name, SCM name);
+SCM_API SCM scm_private_ref (SCM module_name, SCM name);
+SCM_API SCM scm_c_public_ref (const char *module_name, const char *name);
+SCM_API SCM scm_c_private_ref (const char *module_name, const char *name);
 
 SCM_API SCM scm_c_resolve_module (const char *name);
 SCM_API SCM scm_resolve_module (SCM name);
