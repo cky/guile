@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -234,7 +234,11 @@
       (eval '(define-generic foo) (current-module))
       (eval '(and (is-a? foo <generic>)
 		  (null? (generic-function-methods foo)))
-	    (current-module)))))
+	    (current-module)))
+
+    (pass-if-exception "getters do not have setters"
+                       exception:wrong-type-arg
+                       (eval '(setter foo) (current-module)))))
 
 (with-test-prefix "defining methods"
 
@@ -293,6 +297,9 @@
       (eval '(and (is-a? foo-1 <generic-with-setter>)
 		  (null? (generic-function-methods foo-1)))
 	    (current-module)))
+
+    (pass-if "accessors have setters"
+      (procedure? (eval '(setter foo-1) (current-module))))
 
     (pass-if "overwriting a top-level binding to a non-accessor"
       (eval '(define (foo) #f) (current-module))
