@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -935,6 +935,62 @@ value of @code{scm_c_call_with_current_module} is the return value of
 @var{func}.
 @end deftypefn
 
+@deftypefn SCM scm_public_variable (SCM @var{module_name}, SCM @var{name})
+@deftypefnx SCM scm_c_public_variable (const char * @var{module_name}, const char * @var{name})
+Find a the variable bound to the symbol @var{name} in the public
+interface of the module named @var{module_name}.
+
+ @var{module_name} should be a list of symbols, when represented as a
+Scheme object, or a space-separated string, in the @code{const char *}
+case.  See @code{scm_c_define_module} below, for more examples.
+
+Signals an error if no module was found with the given name.  If
+@var{name} is not bound in the module, just returns @code{#f}.
+@end deftypefn
+
+@deftypefn SCM scm_private_variable (SCM @var{module_name}, SCM @var{name})
+@deftypefnx SCM scm_c_private_variable (const char * @var{module_name}, const char * @var{name})
+Like @code{scm_public_variable}, but looks in the internals of the
+module named @var{module_name} instead of the public interface.
+Logically, these procedures should only be called on modules you write.
+@end deftypefn
+
+@deftypefn SCM scm_public_lookup (SCM @var{module_name}, SCM @var{name})
+@deftypefnx SCM scm_c_public_lookup (const char * @var{module_name}, const char * @var{name})
+@deftypefnx SCM scm_private_lookup (SCM @var{module_name}, SCM @var{name})
+@deftypefnx SCM scm_c_private_lookup (const char * @var{module_name}, const char * @var{name})
+Like @code{scm_public_variable} or @code{scm_private_variable}, but if
+the @var{name} is not bound in the module, signals an error.  Returns a
+variable, always.
+
+@example
+SCM my_eval_string (SCM str)
+@{
+  static SCM eval_string_var = SCM_BOOL_F;
+
+  if (scm_is_false (eval_string_var))
+    eval_string_var =
+      scm_c_public_lookup ("ice-9 eval-string", "eval-string");
+
+  return scm_call_1 (scm_variable_ref (eval_string_var), str);
+@}
+@end example
+@end deftypefn
+
+@deftypefn SCM scm_public_ref (SCM @var{module_name}, SCM @var{name})
+@deftypefnx SCM scm_c_public_ref (const char * @var{module_name}, const char * @var{name})
+@deftypefnx SCM scm_private_ref (SCM @var{module_name}, SCM @var{name})
+@deftypefnx SCM scm_c_private_ref (const char * @var{module_name}, const char * @var{name})
+Like @code{scm_public_lookup} or @code{scm_private_lookup}, but
+additionally dereferences the variable.  If the variable object is
+unbound, signals an error.  Returns the value bound to @var{name} in
+@var{module}.
+@end deftypefn
+
+In addition, there are a number of other lookup-related procedures.  We
+suggest that you use the @code{scm_public_} and @code{scm_private_}
+family of procedures instead, if possible.
+
 @deftypefn {C Procedure} SCM scm_c_lookup (const char *@var{name})
 Return the variable bound to the symbol indicated by @var{name} in the
 current module.  If there is no such binding or the symbol is not
@@ -950,6 +1006,13 @@ Like @code{scm_c_lookup}, but the symbol is specified directly.
 Like @code{scm_c_lookup} and @code{scm_lookup}, but the specified
 module is used instead of the current one.
 @end deftypefn
+
+@deftypefn {C Procedure} SCM scm_module_variable (SCM @var{module}, SCM @var{name})
+Like @code{scm_module_lookup}, but if the binding does not exist, just
+returns @code{#f} instead of raising an error.
+@end deftypefn
+
+To define a value, use @code{scm_define}:
 
 @deftypefn {C Procedure} SCM scm_c_define (const char *@var{name}, SCM @var{val})
 Bind the symbol indicated by @var{name} to a variable in the current
