@@ -507,25 +507,6 @@ scm_c_eval_string_in_module (const char *expr, SCM module)
 }
 
 
-static SCM
-inner_eval_string (void *data)
-{
-  SCM port = (SCM)data;
-  SCM form;
-  SCM ans = SCM_UNSPECIFIED;
-
-  /* Read expressions from that port; ignore the values.  */
-  while (!SCM_EOF_OBJECT_P (form = scm_read (port)))
-    ans = scm_primitive_eval_x (form);
-
-  /* Don't close the port here; if we re-enter this function via a
-     continuation, then the next time we enter it, we'll get an error.
-     It's a string port anyway, so there's no advantage to closing it
-     early.  */
-
-  return ans;
-}
-
 SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0, 
             (SCM string, SCM module),
 	    "Evaluate @var{string} as the text representation of a Scheme\n"
@@ -537,14 +518,20 @@ SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0,
             "procedure returns.")
 #define FUNC_NAME s_scm_eval_string_in_module
 {
-  SCM port = scm_mkstrport (SCM_INUM0, string, SCM_OPN | SCM_RDNG,
-			    FUNC_NAME);
+  static SCM eval_string = SCM_BOOL_F, k_module = SCM_BOOL_F;
+
+  if (scm_is_false (eval_string))
+    {
+      eval_string = scm_c_public_lookup ("ice-9 eval-string", "eval-string");
+      k_module = scm_from_locale_keyword ("module");
+    }
+  
   if (SCM_UNBNDP (module))
     module = scm_current_module ();
   else
     SCM_VALIDATE_MODULE (2, module);
-  return scm_c_call_with_current_module (module,
-					 inner_eval_string, (void *)port);
+
+  return scm_call_3 (scm_variable_ref (eval_string), string, k_module, module);
 }
 #undef FUNC_NAME
 
