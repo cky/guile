@@ -477,6 +477,21 @@ scm_call_4 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4)
 }
 
 SCM
+scm_call_5 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4, SCM arg5)
+{
+  SCM args[] = { arg1, arg2, arg3, arg4, arg5 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 5);
+}
+
+SCM
+scm_call_6 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4, SCM arg5,
+            SCM arg6)
+{
+  SCM args[] = { arg1, arg2, arg3, arg4, arg5, arg6 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 6);
+}
+
+SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
   return scm_c_vm_run (scm_the_vm (), proc, argv, nargs);
