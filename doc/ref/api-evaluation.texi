@@ -426,7 +426,9 @@ Modify the print options.
 @node Fly Evaluation
 @subsection Procedures for On the Fly Evaluation
 
-@xref{Environments}.
+Scheme has the lovely property that its expressions may be represented
+as data.  The @code{eval} procedure takes a Scheme datum and evaluates
+it as code.
 
 @rnindex eval
 @c ARGFIXME environment/environment specifier
@@ -451,19 +453,46 @@ return the environment in which the implementation would
 evaluate expressions dynamically typed by the user.
 @end deffn
 
-@deffn {Scheme Procedure} eval-string string [module]
-@deffnx {C Function} scm_eval_string (string)
+@xref{Environments}, for other environments.
+
+One does not always receive code as Scheme data, of course, and this is
+especially the case for Guile's other language implementations
+(@pxref{Other Languages}).  For the case in which all you have is a
+string, we have @code{eval-string}.  There is a legacy version of this
+procedure in the default environment, but you really want the one from
+@code{(ice-9 eval-string)}, so load it up:
+
+@example
+(use-modules (ice-9 eval-string))
+@end example
+
+@deffn {Scheme Procedure} eval-string string [module=#f] [file=#f] [line=#f] [column=#f] [lang=(current-language)] [compile?=#f]
+Parse @var{string} according to the current language, normally Scheme.
+Evaluate or compile the expressions it contains, in order, returning the
+last expression.
+
+If the @var{module} keyword argument is set, save a module excursion
+(@pxref{Module System Reflection}) and set the current module to
+@var{module} before evaluation.
+
+The @var{file}, @var{line}, and @var{column} keyword arguments can be
+used to indicate that the source string begins at a particular source
+location.
+
+Finally, @var{lang} is a language, defaulting to the current language,
+and the expression is compiled if @var{compile?} is true or there is no
+evaluator for the given language.
+@end deffn
+
+@deffn {C Function} scm_eval_string (string)
 @deffnx {C Function} scm_eval_string_in_module (string, module)
-Evaluate @var{string} as the text representation of a Scheme form or
-forms, and return whatever value they produce.  Evaluation takes place
-in the given module, or in the current module when no module is given.
-While the code is evaluated, the given module is made the current one.
-The current module is restored when this procedure returns.
+These C bindings call @code{eval-string} from @code{(ice-9
+eval-string)}, evaluating within @var{module} or the current module.
 @end deffn
 
 @deftypefn {C Function} SCM scm_c_eval_string (const char *string)
-@code{scm_eval_string}, but taking a C string instead of an
-@code{SCM}.
+@code{scm_eval_string}, but taking a C string in locale encoding instead
+of an @code{SCM}.
 @end deftypefn
 
 @deffn {Scheme Procedure} apply proc arg1 @dots{} argN arglst
