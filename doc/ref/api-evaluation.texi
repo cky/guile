@@ -493,7 +493,15 @@ then there's no @var{arg1}@dots{}@var{argN} and @var{arg} is the
 @deffnx {C Function} scm_call_2 (proc, arg1, arg2)
 @deffnx {C Function} scm_call_3 (proc, arg1, arg2, arg3)
 @deffnx {C Function} scm_call_4 (proc, arg1, arg2, arg3, arg4)
+@deffnx {C Function} scm_call_5 (proc, arg1, arg2, arg3, arg4, arg5)
+@deffnx {C Function} scm_call_6 (proc, arg1, arg2, arg3, arg4, arg5, arg6)
 Call @var{proc} with the given arguments.
+@end deffn
+
+@deffn {C Function} scm_call_n (proc, argv, nargs)
+Call @var{proc} with the array of arguments @var{argv}, as a
+@code{SCM*}.  The length of the arguments should be passed in
+@var{nargs}, as a @code{size_t}.
 @end deffn
 
 @deffn {Scheme Procedure} apply:nconc2last lst
