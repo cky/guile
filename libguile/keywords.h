@@ -36,8 +36,10 @@ SCM_API SCM scm_symbol_to_keyword (SCM symbol);
 SCM_API SCM scm_keyword_to_symbol (SCM keyword);
 
 SCM_API int scm_is_keyword (SCM val);
-SCM_API SCM scm_from_locale_keyword (const char *str);
-SCM_API SCM scm_from_locale_keywordn (const char *str, size_t len);
+SCM_API SCM scm_from_locale_keyword (const char *name);
+SCM_API SCM scm_from_locale_keywordn (const char *name, size_t len);
+SCM_API SCM scm_from_latin1_keyword (const char *name);
+SCM_API SCM scm_from_utf8_keyword (const char *name);
 
 SCM_INTERNAL void scm_init_keywords (void);
 

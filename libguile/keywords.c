@@ -101,15 +101,27 @@ scm_is_keyword (SCM val)
 }
 
 SCM
-scm_from_locale_keyword (const char *str)
+scm_from_locale_keyword (const char *name)
 {
-  return scm_symbol_to_keyword (scm_from_locale_symbol (str));
+  return scm_symbol_to_keyword (scm_from_locale_symbol (name));
 }
 
 SCM
-scm_from_locale_keywordn (const char *str, size_t len)
+scm_from_locale_keywordn (const char *name, size_t len)
 {
-  return scm_symbol_to_keyword (scm_from_locale_symboln (str, len));
+  return scm_symbol_to_keyword (scm_from_locale_symboln (name, len));
+}
+
+SCM
+scm_from_latin1_keyword (const char *name)
+{
+  return scm_symbol_to_keyword (scm_from_latin1_symbol (name));
+}
+
+SCM
+scm_from_utf8_keyword (const char *name)
+{
+  return scm_symbol_to_keyword (scm_from_utf8_symbol (name));
 }
 
 /* njrev: critical sections reviewed so far up to here */
