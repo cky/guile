@@ -96,9 +96,10 @@
                                 (s '()) (l '()) (c '()))
                          (cond
                           ((null? gensyms)
-                           ;; Unreferenced vars are still complex for letrec*.
-                           ;; We need to update our algorithm to "Fixing letrec
-                           ;; reloaded" to fix this.
+                           ;; Unreferenced complex vars are still
+                           ;; complex for letrec*.  We need to update
+                           ;; our algorithm to "Fixing letrec reloaded"
+                           ;; to fix this.
                            (values (if in-order?
                                        (lset-difference eq? unref c)
                                        unref)
@@ -109,7 +110,11 @@
                                    (append c complex)))
                           ((memq (car gensyms) unref)
                            ;; See above note about unref and letrec*.
-                           (if in-order?
+                           (if (and in-order?
+                                    (not (lambda? (car vals)))
+                                    (not (simple-expression?
+                                          (car vals) orig-gensyms
+                                          effect+exception-free-primitive?)))
                                (lp (cdr gensyms) (cdr vals)
                                    s l (cons (car gensyms) c))
                                (lp (cdr gensyms) (cdr vals)
@@ -190,83 +195,65 @@
               x))
 
          ((<letrec> src in-order? names gensyms vals body)
-          (if (and in-order?
-                   (every (lambda (x)
-                            (or (lambda? x)
-                                (simple-expression?
-                                 x gensyms
-                                 effect+exception-free-primitive?)))
-                          vals))
-              ;; If it is a `letrec*', return an equivalent `letrec' when
-              ;; it's possible.  This is a hack until we implement the
-              ;; algorithm described in "Fixing Letrec (Reloaded)"
-              ;; (Ghuloum and Dybvig) to allow cases such as
-              ;;   (letrec* ((f (lambda () ...))(g (lambda () ...))) ...)
-              ;; or
-              ;;   (letrec* ((x 2)(y 3)) y)
-              ;; to be optimized.  These can be common when using
-              ;; internal defines.
-              (fix-letrec!
-               (make-letrec src #f names gensyms vals body))
-              (let ((binds (map list gensyms names vals)))
-                ;; The bindings returned by this function need to appear in the same
-                ;; order that they appear in the letrec.
-                (define (lookup set)
-                  (let lp ((binds binds))
-                    (cond
-                     ((null? binds) '())
-                     ((memq (caar binds) set)
-                      (cons (car binds) (lp (cdr binds))))
-                     (else (lp (cdr binds))))))
-                (let ((u (lookup unref))
-                      (s (lookup simple))
-                      (l (lookup lambda*))
-                      (c (lookup complex)))
-                  ;; Bind "simple" bindings, and locations for complex
-                  ;; bindings.
-                  (make-let
-                   src
-                   (append (map cadr s) (map cadr c))
-                   (append (map car s) (map car c))
-                   (append (map caddr s) (map (lambda (x) (make-void #f)) c))
-                   ;; Bind lambdas using the fixpoint operator.
-                   (make-fix
-                    src (map cadr l) (map car l) (map caddr l)
-                    (make-sequence
-                     src
-                     (append
-                      ;; The right-hand-sides of the unreferenced
-                      ;; bindings, for effect.
-                      (map caddr u)
-                      (cond
-                       ((null? c)
-                        ;; No complex bindings, just emit the body.
-                        (list body))
-                       (in-order?
-                        ;; For letrec*, assign complex bindings in order, then the
-                        ;; body.
-                        (append
-                         (map (lambda (c)
-                                (make-lexical-set #f (cadr c) (car c)
-                                                  (caddr c)))
-                              c)
-                         (list body)))
-                       (else
-                        ;; Otherwise for plain letrec, evaluate the the "complex"
-                        ;; bindings, in a `let' to indicate that order doesn't
-                        ;; matter, and bind to their variables.
-                        (list
-                         (let ((tmps (map (lambda (x) (gensym)) c)))
-                           (make-let
-                            #f (map cadr c) tmps (map caddr c)
-                            (make-sequence
-                             #f
-                             (map (lambda (x tmp)
-                                    (make-lexical-set
-                                     #f (cadr x) (car x)
-                                     (make-lexical-ref #f (cadr x) tmp)))
-                                  c tmps))))
-                         body)))))))))))
+          (let ((binds (map list gensyms names vals)))
+            ;; The bindings returned by this function need to appear in the same
+            ;; order that they appear in the letrec.
+            (define (lookup set)
+              (let lp ((binds binds))
+                (cond
+                 ((null? binds) '())
+                 ((memq (caar binds) set)
+                  (cons (car binds) (lp (cdr binds))))
+                 (else (lp (cdr binds))))))
+            (let ((u (lookup unref))
+                  (s (lookup simple))
+                  (l (lookup lambda*))
+                  (c (lookup complex)))
+              ;; Bind "simple" bindings, and locations for complex
+              ;; bindings.
+              (make-let
+               src
+               (append (map cadr s) (map cadr c))
+               (append (map car s) (map car c))
+               (append (map caddr s) (map (lambda (x) (make-void #f)) c))
+               ;; Bind lambdas using the fixpoint operator.
+               (make-fix
+                src (map cadr l) (map car l) (map caddr l)
+                (make-sequence
+                 src
+                 (append
+                  ;; The right-hand-sides of the unreferenced
+                  ;; bindings, for effect.
+                  (map caddr u)
+                  (cond
+                   ((null? c)
+                    ;; No complex bindings, just emit the body.
+                    (list body))
+                   (in-order?
+                    ;; For letrec*, assign complex bindings in order, then the
+                    ;; body.
+                    (append
+                     (map (lambda (c)
+                            (make-lexical-set #f (cadr c) (car c)
+                                              (caddr c)))
+                          c)
+                     (list body)))
+                   (else
+                    ;; Otherwise for plain letrec, evaluate the the "complex"
+                    ;; bindings, in a `let' to indicate that order doesn't
+                    ;; matter, and bind to their variables.
+                    (list
+                     (let ((tmps (map (lambda (x) (gensym)) c)))
+                       (make-let
+                        #f (map cadr c) tmps (map caddr c)
+                        (make-sequence
+                         #f
+                         (map (lambda (x tmp)
+                                (make-lexical-set
+                                 #f (cadr x) (car x)
+                                 (make-lexical-ref #f (cadr x) tmp)))
+                              c tmps))))
+                     body))))))))))
 
          ((<let> src names gensyms vals body)
           (let ((binds (map list gensyms names vals)))
