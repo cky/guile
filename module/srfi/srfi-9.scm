@@ -1,6 +1,6 @@
 ;;; srfi-9.scm --- define-record-type
 
-;; 	Copyright (C) 2001, 2002, 2006, 2009, 2010 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -69,9 +69,12 @@
   ;; the macro expansion, whereas references in non-call contexts refer to
   ;; the procedure.  Inspired by the `define-integrable' macro by Dybvig et al.
   (lambda (x)
+    ;; Use a space in the prefix to avoid potential -Wunused-toplevel
+    ;; warning
+    (define prefix (string->symbol "% "))
     (define (make-procedure-name name)
       (datum->syntax name
-                     (symbol-append '% (syntax->datum name)
+                     (symbol-append prefix (syntax->datum name)
                                     '-procedure)))
 
     (syntax-case x ()
@@ -81,7 +84,6 @@
          #`(begin
              (define (proc-name formals ...)
                body ...)
-             proc-name ;; unused
              (define-syntax name
                (lambda (x)
                  (syntax-case x ()

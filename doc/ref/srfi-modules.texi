@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1926,6 +1926,13 @@ employee-type @result{} #<record-type employee-type>
 The functions created by @code{define-record-type} are ordinary
 top-level @code{define}s.  They can be redefined or @code{set!} as
 desired, exported from a module, etc.
+
+@unnumberedsubsubsec Non-toplevel Record Definitions
+
+The SRFI-9 specification explicitly disallows record definitions in a
+non-toplevel context, such as inside @code{lambda} body or inside a
+@var{let} block.  However, Guile's implementation does not enforce that
+restriction.
 
 @unnumberedsubsubsec Custom Printers
 

@@ -1,7 +1,7 @@
 ;;;; srfi-9.test --- Test suite for Guile's SRFI-9 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-10
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2007, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2007, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -93,3 +93,13 @@
   ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
   (pass-if-exception "set-y! on bar" exception:wrong-type-arg
      (set-y! b 99)))
+
+(with-test-prefix "non-toplevel"
+    
+  (define-record-type :frotz (make-frotz a b) frotz?
+    (a frotz-a) (b frotz-b set-frotz-b!))
+
+  (pass-if "construction"
+    (let ((frotz (make-frotz 1 2)))
+      (and (= (frotz-a frotz) 1)
+           (= (frotz-b frotz) 2)))))
