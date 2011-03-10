@@ -1181,7 +1181,9 @@ SCM_DEFINE (scm_string_eq, "string=", 2, 4, 0,
       len1 = scm_i_string_length (s1);
       len2 = scm_i_string_length (s2);
 
-      if (SCM_LIKELY (len1 == len2))
+      if (len1 != len2)
+	return SCM_BOOL_F;
+      else
 	{
 	  if (!scm_i_is_narrow_string (s1))
 	    len1 *= 4;
