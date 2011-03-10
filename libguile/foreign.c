@@ -402,8 +402,24 @@ SCM_DEFINE (scm_alignof, "alignof", 1, 0, 0, (SCM type),
     /* a pointer */
     return scm_from_size_t (alignof (void*));
   else if (scm_is_pair (type))
-    /* a struct, yo */
-    return scm_alignof (scm_car (type));
+    {
+      /* TYPE is a structure.  Section 3-3 of the i386, x86_64, PowerPC,
+	 and SPARC P.S. of the System V ABI all say: "Aggregates
+	 (structures and arrays) and unions assume the alignment of
+	 their most strictly aligned component."  */
+      size_t max;
+
+      for (max = 0; scm_is_pair (type); type = SCM_CDR (type))
+	{
+	  size_t align;
+
+	  align = scm_to_size_t (scm_alignof (SCM_CAR (type)));
+	  if (align  > max)
+	    max = align;
+	}
+
+      return scm_from_size_t (max);
+    }
   else
     scm_wrong_type_arg (FUNC_NAME, 1, type);
 }

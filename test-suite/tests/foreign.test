@@ -228,6 +228,11 @@
       (>= (sizeof layout)
           (reduce + 0.0 (map sizeof layout)))))
 
+  (pass-if "alignof { int8, double, int8 }"
+    ;; alignment of the most strictly aligned component
+    (let ((layout (list int8 double int8)))
+      (= (alignof layout) (alignof double))))
+
   (pass-if "parse-c-struct"
     (let ((layout (list int64 uint8))
           (data   (list -300 43)))
@@ -266,6 +271,13 @@
   (pass-if "int8, pointer, short, double"
     (let ((layout (list int8 '* short double))
           (data   (list 77 %null-pointer -42 3.14)))
+      (equal? (parse-c-struct (make-c-struct layout data)
+                              layout)
+              data)))
+
+  (pass-if "int8, { int8, double, int8 }, int16"
+    (let ((layout (list int8 (list int8 double int8) int16))
+          (data   (list 77 (list 42 4.2 55) 88)))
       (equal? (parse-c-struct (make-c-struct layout data)
                               layout)
               data))))
