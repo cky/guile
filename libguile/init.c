@@ -157,7 +157,6 @@ typedef struct
 {
   int fdes;
   char *mode;
-  char *name;
 } stream_body_data;
 
 /* proc to be called in scope of exception handler stream_handler. */
@@ -165,8 +164,7 @@ static SCM
 stream_body (void *data)
 {
   stream_body_data *body_data = (stream_body_data *) data;
-  SCM port = scm_fdes_to_port (body_data->fdes, body_data->mode,
-			       scm_from_locale_string (body_data->name));
+  SCM port = scm_fdes_to_port (body_data->fdes, body_data->mode, SCM_BOOL_F);
 
   SCM_REVEALED (port) = 1;
   return port;
@@ -182,21 +180,19 @@ stream_handler (void *data SCM_UNUSED,
 }
 
 /* Convert a file descriptor to a port, using scm_fdes_to_port.
-   - NAME is a C string, not a Guile string
    - set the revealed count for FILE's file descriptor to 1, so
    that fdes won't be closed when the port object is GC'd.
    - catch exceptions: allow Guile to be able to start up even
    if it has been handed bogus stdin/stdout/stderr.  replace the
    bad ports with void ports.  */
 static SCM
-scm_standard_stream_to_port (int fdes, char *mode, char *name)
+scm_standard_stream_to_port (int fdes, char *mode)
 {
   SCM port;
   stream_body_data body_data;
 
   body_data.fdes = fdes;
   body_data.mode = mode;
-  body_data.name = name;
   port = scm_internal_catch (SCM_BOOL_T, stream_body, &body_data, 
 			     stream_handler, NULL);
   if (scm_is_false (port))
@@ -223,17 +219,11 @@ scm_init_standard_ports ()
      block buffering for higher performance.  */
 
   scm_set_current_input_port 
-    (scm_standard_stream_to_port (0, 
-				  isatty (0) ? "r0" : "r",
-				  "standard input"));
+    (scm_standard_stream_to_port (0, isatty (0) ? "r0" : "r"));
   scm_set_current_output_port
-    (scm_standard_stream_to_port (1,
-				  isatty (1) ? "w0" : "w",
-				  "standard output"));
+    (scm_standard_stream_to_port (1, isatty (1) ? "w0" : "w"));
   scm_set_current_error_port
-    (scm_standard_stream_to_port (2,
-				  isatty (2) ? "w0" : "w",
-				  "standard error"));
+    (scm_standard_stream_to_port (2, isatty (2) ? "w0" : "w"));
 }
 
 
