@@ -35,6 +35,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-17::                     Generalized set!
 * SRFI-18::                     Multithreading support
 * SRFI-19::                     Time/Date library.
+* SRFI-23::                     Error reporting
 * SRFI-26::                     Specializing parameters
 * SRFI-27::                     Sources of Random Bits
 * SRFI-30::                     Nested multi-line block comments
@@ -3135,6 +3136,11 @@ Conversion is locale-dependent on systems that support it
 locale.
 @end defun
 
+@node SRFI-23
+@subsection SRFI-23 - Error Reporting
+@cindex SRFI-23
+
+The SRFI-23 @code{error} procedure is always available.
 
 @node SRFI-26
 @subsection SRFI-26 - specializing parameters

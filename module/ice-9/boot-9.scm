@@ -3404,6 +3404,7 @@ module '(ice-9 q) '(make-q q-length))}."
     srfi-4   ;; homogenous numeric vectors
     srfi-6   ;; open-input-string etc, in the guile core
     srfi-13  ;; string library
+    srfi-23  ;; `error` procedure
     srfi-14  ;; character sets
     srfi-55  ;; require-extension
     srfi-61  ;; general cond clause
