@@ -94,8 +94,15 @@
   (pass-if-exception "set-y! on bar" exception:wrong-type-arg
      (set-y! b 99)))
 
+(with-test-prefix "side-effecting arguments"
+
+  (pass-if "predicate"
+    (let ((x 0))
+      (and (foo? (begin (set! x (+ x 1)) f))
+           (= x 1)))))
+
 (with-test-prefix "non-toplevel"
-    
+
   (define-record-type :frotz (make-frotz a b) frotz?
     (a frotz-a) (b frotz-b set-frotz-b!))
 

@@ -80,15 +80,18 @@
     (syntax-case x ()
       ((_ (name formals ...) body ...)
        (identifier? #'name)
-       (with-syntax ((proc-name (make-procedure-name #'name)))
+       (with-syntax ((proc-name  (make-procedure-name #'name))
+                     ((args ...) (generate-temporaries #'(formals ...))))
          #`(begin
              (define (proc-name formals ...)
                body ...)
              (define-syntax name
                (lambda (x)
                  (syntax-case x ()
-                   ((_ formals ...)
-                    #'(begin body ...))
+                   ((_ args ...)
+                    #'((lambda (formals ...)
+                         body ...)
+                       args ...))
                    (_
                     (identifier? x)
                     #'proc-name))))))))))
