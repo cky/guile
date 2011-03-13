@@ -1155,8 +1155,7 @@ string I/O, that complement or refine Guile's historical port API
 presented above (@pxref{Input and Output}).
 
 @c FIXME: Update description when implemented.
-@emph{Note}: The implementation of this R6RS API is currently far from
-complete, notably due to the lack of support for Unicode I/O and strings.
+@emph{Note}: The implementation of this R6RS API is not complete yet.
 
 @menu
 * R6RS End-of-File::            The end-of-file object.
