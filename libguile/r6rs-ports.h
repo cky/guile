@@ -1,7 +1,7 @@
 #ifndef SCM_R6RS_PORTS_H
 #define SCM_R6RS_PORTS_H
 
-/* Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -38,6 +38,7 @@ SCM_API SCM scm_put_u8 (SCM, SCM);
 SCM_API SCM scm_put_bytevector (SCM, SCM, SCM, SCM);
 SCM_API SCM scm_open_bytevector_output_port (SCM);
 SCM_API SCM scm_make_custom_binary_output_port (SCM, SCM, SCM, SCM, SCM);
+SCM_API SCM scm_get_string_n_x (SCM, SCM, SCM, SCM);
 
 SCM_API void scm_init_r6rs_ports (void);
 SCM_INTERNAL void scm_register_r6rs_ports (void);

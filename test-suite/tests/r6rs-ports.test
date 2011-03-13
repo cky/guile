@@ -567,6 +567,24 @@
           (put-string tp "The letter λ cannot be represented in Latin-1.")
           #f)))))
 
+(with-test-prefix "8.2.9  Textual input"
+  
+  (pass-if "get-string-n [short]"
+    (let ((port (open-input-string "GNU Guile")))
+      (string=? "GNU " (get-string-n port 4))))
+  (pass-if "get-string-n [long]"
+    (let ((port (open-input-string "GNU Guile")))
+      (string=? "GNU Guile" (get-string-n port 256))))
+  (pass-if "get-string-n [eof]"
+    (let ((port (open-input-string "")))
+      (eof-object? (get-string-n port 4))))
+
+  (pass-if "get-string-n! [short]"
+    (let ((port (open-input-string "GNU Guile"))
+          (s (string-copy "Isn't XXX great?")))
+      (and (= 3 (get-string-n! port s 6 3))
+           (string=? s "Isn't GNU great?")))))
+
 ;;; Local Variables:
 ;;; mode: scheme
 ;;; eval: (put 'guard 'scheme-indent-function 1)

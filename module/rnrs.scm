@@ -182,7 +182,8 @@
           make-custom-textual-output-port
           call-with-string-output-port
 	  flush-output-port put-string
-          get-char get-datum get-line get-string-all lookahead-char
+          get-char get-datum get-line get-string-all get-string-n get-string-n!
+          lookahead-char
           put-char put-datum put-string
           standard-input-port standard-output-port standard-error-port
           

@@ -68,8 +68,9 @@
           put-u8 put-bytevector
 
           ;; textual input
-          get-char get-datum get-line get-string-all lookahead-char
-           
+          get-char get-datum get-line get-string-all get-string-n get-string-n!
+          lookahead-char
+
           ;; textual output
           put-char put-datum put-string
 
@@ -385,6 +386,17 @@ return the characters accumulated in that port."
 
 (define (get-string-all port)
   (with-i/o-decoding-error (read-delimited "" port 'concat)))
+
+(define (get-string-n port count)
+  "Read up to @var{count} characters from @var{port}.
+If no characters could be read before encountering the end of file,
+return the end-of-file object, otherwise return a string containing
+the characters read."
+  (let* ((s (make-string count))
+         (rv (get-string-n! port s 0 count)))
+    (cond ((eof-object? rv) rv)
+          ((= rv count)     s)
+          (else             (substring/shared s 0 rv)))))
 
 (define (lookahead-char port)
   (with-i/o-decoding-error (peek-char port)))

@@ -37,6 +37,7 @@
             get-bytevector-n!
             get-bytevector-some
             get-bytevector-all
+            get-string-n!
             put-u8
             put-bytevector
             open-bytevector-output-port

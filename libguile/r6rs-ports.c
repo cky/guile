@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1218,6 +1218,46 @@ SCM_DEFINE (scm_i_make_transcoded_port,
      just leave it open. */
   
   return result;
+}
+#undef FUNC_NAME
+
+
+/* Textual I/O */
+
+SCM_DEFINE (scm_get_string_n_x,
+            "get-string-n!", 4, 0, 0,
+            (SCM port, SCM str, SCM start, SCM count),
+            "Read up to @var{count} characters from @var{port} into "
+            "@var{str}, starting at @var{start}.  If no characters "
+            "can be read before the end of file is encountered, the end "
+            "of file object is returned.  Otherwise, the number of "
+            "characters read is returned.")
+#define FUNC_NAME s_scm_get_string_n_x
+{
+  size_t c_start, c_count, c_len, c_end, j;
+  scm_t_wchar c;
+
+  SCM_VALIDATE_OPINPORT (1, port);
+  SCM_VALIDATE_STRING (2, str);
+  c_len = scm_c_string_length (str);
+  c_start = scm_to_size_t (start);
+  c_count = scm_to_size_t (count);
+  c_end = c_start + c_count;
+
+  if (SCM_UNLIKELY (c_end > c_len))
+    scm_out_of_range (FUNC_NAME, count);
+
+  for (j = c_start; j < c_end; j++)
+    {
+      c = scm_getc (port);
+      if (c == EOF)
+        {
+          size_t chars_read = j - c_start;
+          return chars_read == 0 ? SCM_EOF_VAL : scm_from_size_t (chars_read);
+        }
+      scm_c_string_set_x (str, j, SCM_MAKE_CHAR (c));
+    }
+  return count;
 }
 #undef FUNC_NAME
 
