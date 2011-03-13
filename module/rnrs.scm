@@ -162,12 +162,14 @@
 
 	  file-options buffer-mode buffer-mode?
 	  eol-style native-eol-style error-handling-mode
-	  make-transcoder transcoder-codec native-transcoder
+	  make-transcoder transcoder-codec transcoder-eol-style
+          transcoder-error-handling-mode native-transcoder
 	  latin-1-codec utf-8-codec utf-16-codec
 	  
 	  eof-object? port? input-port? output-port? eof-object port-eof?
 	  port-transcoder
-	  binary-port? transcoded-port port-position set-port-position!
+	  binary-port? textual-port? transcoded-port
+	  port-position set-port-position!
 	  port-has-port-position? port-has-set-port-position!?
           close-port call-with-port
 	  open-bytevector-input-port make-custom-binary-input-port get-u8 

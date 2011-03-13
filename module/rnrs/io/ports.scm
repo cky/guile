@@ -32,13 +32,14 @@
           ;; auxiliary types
           file-options buffer-mode buffer-mode?
           eol-style native-eol-style error-handling-mode
-          make-transcoder transcoder-codec native-transcoder
+          make-transcoder transcoder-codec transcoder-eol-style
+          transcoder-error-handling-mode native-transcoder
           latin-1-codec utf-8-codec utf-16-codec
            
           ;; input & output ports
           port? input-port? output-port?
           port-eof?
-          port-transcoder binary-port? transcoded-port
+          port-transcoder binary-port? textual-port? transcoded-port
           port-position set-port-position!
           port-has-port-position? port-has-set-port-position!?
           call-with-port close-port
@@ -129,11 +130,11 @@
   (enum-set-member? symbol (enum-set-universe (buffer-modes))))
 
 (define-enumeration eol-style
-  (lf cr crlf nel crnel ls)
+  (lf cr crlf nel crnel ls none)
   eol-styles)
 
 (define (native-eol-style)
-  (eol-style lf))
+  (eol-style none))
 
 (define-enumeration error-handling-mode
   (ignore raise replace)
@@ -190,10 +191,30 @@
 ;;;
 
 (define (port-transcoder port)
-  (error "port transcoders are not supported" port))
+  "Return the transcoder object associated with @var{port}, or @code{#f}
+if the port has no transcoder."
+  (cond ((port-encoding port)
+         => (lambda (encoding)
+              (make-transcoder
+               encoding
+               (native-eol-style)
+               (case (port-conversion-strategy port)
+                 ((error) 'raise)
+                 ((substitute) 'replace)
+                 (else
+                  (assertion-violation 'port-transcoder
+                                       "unsupported error handling mode"))))))
+        (else
+         #f)))
 
 (define (binary-port? port)
-  ;; So far, we don't support transcoders other than the binary transcoder.
+  "Returns @code{#t} if @var{port} does not have an associated encoding,
+@code{#f} otherwise."
+  (not (port-encoding port)))
+
+(define (textual-port? port)
+  "Always returns @var{#t}, as all ports can be used for textual I/O in
+Guile."
   #t)
 
 (define (port-eof? port)
@@ -408,13 +429,16 @@ the characters read."
 ;;;
 
 (define (standard-input-port)
-  (dup->inport 0))
+  (with-fluids ((%default-port-encoding #f))
+    (dup->inport 0)))
 
 (define (standard-output-port)
-  (dup->outport 1))
+  (with-fluids ((%default-port-encoding #f))
+    (dup->outport 1)))
 
 (define (standard-error-port)
-  (dup->outport 2))
+  (with-fluids ((%default-port-encoding #f))
+    (dup->outport 2)))
 
 )
 

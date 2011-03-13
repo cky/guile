@@ -397,7 +397,11 @@
 
       (close-port port)
       (gc) ; Test for marking a closed port.
-      closed?)))
+      closed?))
+
+  (pass-if "standard-input-port is binary"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (binary-port? (standard-input-port)))))
 
 
 (with-test-prefix "8.2.10 Output ports"
@@ -509,7 +513,15 @@
       (put-bytevector port source)
       (and (= sink-pos (bytevector-length source))
            (not eof?)
-           (bytevector=? sink source)))))
+           (bytevector=? sink source))))
+
+  (pass-if "standard-output-port is binary"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (binary-port? (standard-output-port))))
+
+  (pass-if "standard-error-port is binary"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (binary-port? (standard-error-port)))))
 
 
 (with-test-prefix "8.2.6  Input and output ports"
@@ -565,7 +577,21 @@
                         (char=? (i/o-encoding-error-char c) #\λ)
                         (bytevector=? (get) (string->utf8 "The letter ")))))
           (put-string tp "The letter λ cannot be represented in Latin-1.")
-          #f)))))
+          #f))))
+
+  (pass-if "port-transcoder [binary port]"
+    (not (port-transcoder (open-bytevector-input-port #vu8()))))
+
+  (pass-if "port-transcoder [transcoded port]"
+    (let* ((p (transcoded-port (open-bytevector-input-port (string->utf8 "foo"))
+                               (make-transcoder (utf-8-codec))))
+           (t (port-transcoder p)))
+      (and t
+           (transcoder-codec t)
+           (eq? (native-eol-style)
+                (transcoder-eol-style t))
+           (eq? (error-handling-mode replace)
+                (transcoder-error-handling-mode t))))))
 
 (with-test-prefix "8.2.9  Textual input"
   
