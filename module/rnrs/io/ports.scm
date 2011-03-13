@@ -76,6 +76,7 @@
 
           ;; standard ports
           standard-input-port standard-output-port standard-error-port
+          current-input-port current-output-port current-error-port
 
           ;; condition types
           &i/o i/o-error? make-i/o-error
