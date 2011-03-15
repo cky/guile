@@ -1,7 +1,7 @@
 ;;;;                                                          -*- scheme -*-
 ;;;; control.test --- test suite for delimited continuations
 ;;;;
-;;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@
 ;; For these, the compiler should be able to prove that "k" is not referenced,
 ;; so it avoids reifying the continuation. Since that's a slightly different
 ;; codepath, we test them both.
-(with-test-prefix "escape-only continuations"
+(with-test-prefix/c&e "escape-only continuations"
   (pass-if "no values, normal exit"
     (equal? '()
             (call-with-values
@@ -80,7 +80,7 @@
                  args)))))
 
 ;;; And the case in which the compiler has to reify the continuation.
-(with-test-prefix "reified continuations"
+(with-test-prefix/c&e "reified continuations"
   (pass-if "no values, normal exit"
     (equal? '()
             (call-with-values
@@ -133,10 +133,20 @@
                   (abort 'foo 'bar 'baz)
                   (error "unexpected exit"))
                 (lambda args
-                  args))))))
+                  args)))))
+
+  (pass-if "reified pending call frames, instantiated elsewhere on the stack"
+    (equal? 'foo
+            ((call-with-prompt
+              'p0
+              (lambda ()
+                (identity ((abort-to-prompt 'p0) 'foo)))
+              (lambda (c) c))
+             (lambda (x) x)))))
+
 
 ;; The variants check different cases in the compiler.
-(with-test-prefix "restarting partial continuations"
+(with-test-prefix/c&e "restarting partial continuations"
   (pass-if "in side-effect position"
     (let ((k (% (begin (abort) 'foo)
                 (lambda (k) k))))
@@ -171,6 +181,8 @@
 (define fl (make-fluid))
 (fluid-set! fl 0)
 
+;; Not c&e as it assumes this block executes once.
+;;
 (with-test-prefix "suspend/resume with fluids"
   (pass-if "normal"
     (zero? (% (fluid-ref fl)
@@ -212,7 +224,7 @@
     (pass-if "post"
       (equal? (fluid-ref fl) 0))))
 
-(with-test-prefix "rewinding prompts"
+(with-test-prefix/c&e "rewinding prompts"
   (pass-if "nested prompts"
     (let ((k (% 'a
                 (% 'b
@@ -223,11 +235,11 @@
                 (lambda (k) k))))
       (k))))
 
-(with-test-prefix "abort to unknown prompt"
+(with-test-prefix/c&e "abort to unknown prompt"
   (pass-if-exception "foo" '(misc-error . "^Abort to unknown prompt")
                      (abort-to-prompt 'does-not-exist)))
 
-(with-test-prefix "the-vm"
+(with-test-prefix/c&e "the-vm"
 
   (pass-if "unwind changes VMs"
     (let ((new-vm  (make-vm))
