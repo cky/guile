@@ -93,7 +93,7 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
     fp = sp + 1;
     ip = SCM_C_OBJCODE_BASE (bp);
     /* MV-call frame, function & arguments */
-    PUSH ((SCM)fp); /* dynamic link */
+    PUSH (0); /* dynamic link */
     PUSH (0); /* mvra */
     PUSH (0); /* ra */
     PUSH (prog);

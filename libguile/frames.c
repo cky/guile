@@ -124,7 +124,7 @@ SCM_DEFINE (scm_frame_num_locals, "frame-num-locals", 1, 0, 0,
   p = SCM_FRAME_STACK_ADDRESS (SCM_VM_FRAME_FP (frame));
   while (p <= sp)
     {
-      if (p + 1 < sp && p[1] == (SCM)0)
+      if (p[0] == (SCM)0)
         /* skip over not-yet-active frame */
         p += 3;
       else
@@ -154,7 +154,7 @@ SCM_DEFINE (scm_frame_local_ref, "frame-local-ref", 2, 0, 0,
   p = SCM_FRAME_STACK_ADDRESS (SCM_VM_FRAME_FP (frame));
   while (p <= sp)
     {
-      if (p + 1 < sp && p[1] == (SCM)0)
+      if (p[0] == (SCM)0)
         /* skip over not-yet-active frame */
         p += 3;
       else if (n == i)
@@ -186,7 +186,7 @@ SCM_DEFINE (scm_frame_local_set_x, "frame-local-set!", 3, 0, 0,
   p = SCM_FRAME_STACK_ADDRESS (SCM_VM_FRAME_FP (frame));
   while (p <= sp)
     {
-      if (p + 1 < sp && p[1] == (SCM)0)
+      if (p[0] == (SCM)0)
         /* skip over not-yet-active frame */
         p += 3;
       else if (n == i)

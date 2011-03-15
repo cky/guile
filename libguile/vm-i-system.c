@@ -756,9 +756,14 @@ VM_DEFINE_INSTRUCTION (52, new_frame, "new-frame", 0, 0, 3)
 {
   /* NB: if you change this, see frames.c:vm-frame-num-locals */
   /* and frames.h, vm-engine.c, etc of course */
-  PUSH ((SCM)fp); /* dynamic link */
-  PUSH (0);  /* mvra */
-  PUSH (0);  /* ra */
+
+  /* We don't initialize the dynamic link here because we don't actually
+     know that this frame will point to the current fp: it could be
+     placed elsewhere on the stack if captured in a partial
+     continuation, and invoked from some other context.  */
+  PUSH (0); /* dynamic link */
+  PUSH (0); /* mvra */
+  PUSH (0); /* ra */
   NEXT;
 }
 
@@ -790,11 +795,20 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
     }
 
   CACHE_PROGRAM ();
-  fp = sp - nargs + 1;
-  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
+
+  {
+    SCM *old_fp = fp;
+
+    fp = sp - nargs + 1;
+  
+    ASSERT (SCM_FRAME_DYNAMIC_LINK (fp) == 0);
+    ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+    ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+    SCM_FRAME_SET_DYNAMIC_LINK (fp, old_fp);
+    SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+    SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
+  }
+  
   ip = SCM_C_OBJCODE_BASE (bp);
   PUSH_CONTINUATION_HOOK ();
   APPLY_HOOK ();
@@ -1091,11 +1105,20 @@ VM_DEFINE_INSTRUCTION (62, mv_call, "mv-call", 4, -1, 1)
     }
 
   CACHE_PROGRAM ();
-  fp = sp - nargs + 1;
-  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
+
+  {
+    SCM *old_fp = fp;
+
+    fp = sp - nargs + 1;
+  
+    ASSERT (SCM_FRAME_DYNAMIC_LINK (fp) == 0);
+    ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+    ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+    SCM_FRAME_SET_DYNAMIC_LINK (fp, old_fp);
+    SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+    SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
+  }
+  
   ip = SCM_C_OBJCODE_BASE (bp);
   PUSH_CONTINUATION_HOOK ();
   APPLY_HOOK ();
