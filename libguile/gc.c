@@ -202,23 +202,13 @@ unsigned long scm_gc_ports_collected = 0;
 static unsigned long protected_obj_count = 0;
 
 
-SCM_SYMBOL (sym_cells_allocated, "cells-allocated");
+SCM_SYMBOL (sym_gc_time_taken, "gc-time-taken");
 SCM_SYMBOL (sym_heap_size, "heap-size");
 SCM_SYMBOL (sym_heap_free_size, "heap-free-size");
 SCM_SYMBOL (sym_heap_total_allocated, "heap-total-allocated");
-SCM_SYMBOL (sym_mallocated, "bytes-malloced");
-SCM_SYMBOL (sym_mtrigger, "gc-malloc-threshold");
-SCM_SYMBOL (sym_heap_segments, "cell-heap-segments");
-SCM_SYMBOL (sym_gc_time_taken, "gc-time-taken");
-SCM_SYMBOL (sym_gc_mark_time_taken, "gc-mark-time-taken");
-SCM_SYMBOL (sym_times, "gc-times");
-SCM_SYMBOL (sym_cells_marked, "cells-marked");
-SCM_SYMBOL (sym_cells_marked_conservatively, "cells-marked-conservatively");
-SCM_SYMBOL (sym_cells_swept, "cells-swept");
-SCM_SYMBOL (sym_malloc_yield, "malloc-yield");
-SCM_SYMBOL (sym_cell_yield, "cell-yield");
+SCM_SYMBOL (sym_heap_allocated_since_gc, "heap-allocated-since-gc");
 SCM_SYMBOL (sym_protected_objects, "protected-objects");
-SCM_SYMBOL (sym_total_cells_allocated, "total-cells-allocated");
+SCM_SYMBOL (sym_times, "gc-times");
 
 
 /* Number of calls to SCM_NEWCELL since startup.  */
@@ -283,33 +273,14 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   total_bytes    = GC_get_total_bytes ();
   gc_times       = GC_gc_no;
 
-  /* njrev: can any of these scm_cons's or scm_list_n signal a memory
-     error?  If so we need a frame here. */
   answer =
     scm_list_n (scm_cons (sym_gc_time_taken, SCM_INUM0),
-#if 0
-		scm_cons (sym_cells_allocated,
-			  scm_from_ulong (local_scm_cells_allocated)),
-		scm_cons (sym_mallocated,
-			  scm_from_ulong (local_scm_mallocated)),
-		scm_cons (sym_mtrigger,
-			  scm_from_ulong (local_scm_mtrigger)),
-		scm_cons (sym_gc_mark_time_taken,
-			  scm_from_ulong (local_scm_gc_mark_time_taken)),
-		scm_cons (sym_cells_marked,
-			  scm_from_double (local_scm_gc_cells_marked)),
-		scm_cons (sym_cells_swept,
-			  scm_from_double (local_scm_gc_cells_swept)),
-		scm_cons (sym_malloc_yield,
-			  scm_from_long (local_scm_gc_malloc_yield_percentage)),
-		scm_cons (sym_cell_yield,
-			  scm_from_long (local_scm_gc_cell_yield_percentage)),
-		scm_cons (sym_heap_segments, heap_segs),
-#endif
 		scm_cons (sym_heap_size, scm_from_size_t (heap_size)),
 		scm_cons (sym_heap_free_size, scm_from_size_t (free_bytes)),
 		scm_cons (sym_heap_total_allocated,
 			  scm_from_size_t (total_bytes)),
+                scm_cons (sym_heap_allocated_since_gc,
+			  scm_from_size_t (bytes_since_gc)),
 		scm_cons (sym_protected_objects,
 			  scm_from_ulong (protected_obj_count)),
 		scm_cons (sym_times, scm_from_size_t (gc_times)),
