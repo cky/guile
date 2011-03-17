@@ -1,6 +1,6 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
-;;;; Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -88,6 +88,12 @@
 (define %turkish-utf8-locale-name
   "tr_TR.UTF-8")
 
+(define %german-utf8-locale-name
+  "de_DE.UTF-8")
+
+(define %greek-utf8-locale-name
+  "el_GR.UTF-8")
+
 (define %french-locale
   (false-if-exception
    (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
@@ -123,6 +129,12 @@
 
 (define (under-turkish-utf8-locale-or-unresolved thunk)
   (under-locale-or-unresolved %turkish-utf8-locale thunk))
+
+(define (under-german-utf8-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %german-utf8-locale-name thunk))
+
+(define (under-greek-utf8-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %greek-utf8-locale-name thunk))
 
 (with-test-prefix "text collation (French)"
 
@@ -192,6 +204,24 @@
               (char-locale-ci>? #\Œ #\e %french-utf8-locale))))))
 
 
+(with-test-prefix "text collation (German)"
+
+  (pass-if "string-locale-ci=?"
+    (under-german-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((de (make-locale LC_ALL %german-utf8-locale-name)))
+         (string-locale-ci=? "Straße" "STRASSE"))))))
+
+
+(with-test-prefix "text collation (Greek)"
+
+  (pass-if "string-locale-ci=?"
+    (under-greek-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((gr (make-locale LC_ALL %greek-utf8-locale-name)))
+         (string-locale-ci=? "ΧΑΟΣ" "χαος" gr))))))
+
+
 (with-test-prefix "character mapping"
 
   (pass-if "char-locale-downcase"
@@ -235,6 +265,41 @@
     (and (string=? "Hello, World" (string-locale-titlecase "hello, world"))
 	 (string=? "Hello, World" (string-locale-titlecase 
 				   "hello, world" (make-locale LC_ALL "C")))))
+
+  (pass-if "string-locale-upcase German"
+    (under-german-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((de (make-locale LC_ALL %german-utf8-locale-name)))
+         (string=? "STRASSE"
+                   (string-locale-upcase "Straße" de))))))
+
+  (pass-if "string-locale-upcase Greek"
+    (under-greek-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((el (make-locale LC_ALL %greek-utf8-locale-name)))
+         (string=? "ΧΑΟΣ"
+                   (string-locale-upcase "χαος" el))))))
+
+  (pass-if "string-locale-upcase Greek (two sigmas)"
+    (under-greek-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((el (make-locale LC_ALL %greek-utf8-locale-name)))
+         (string=? "ΓΕΙΆ ΣΑΣ"
+                   (string-locale-upcase "Γειά σας" el))))))
+
+  (pass-if "string-locale-downcase Greek"
+    (under-greek-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((el (make-locale LC_ALL %greek-utf8-locale-name)))
+         (string=? "χαος"
+                   (string-locale-downcase "ΧΑΟΣ" el))))))
+
+  (pass-if "string-locale-downcase Greek (two sigmas)"
+    (under-greek-utf8-locale-or-unresolved
+     (lambda ()
+       (let ((el (make-locale LC_ALL %greek-utf8-locale-name)))
+         (string=? "γειά σας"
+                   (string-locale-downcase "ΓΕΙΆ ΣΑΣ" el))))))
 
   (pass-if "string-locale-upcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
