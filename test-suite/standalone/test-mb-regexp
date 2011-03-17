@@ -1,0 +1,39 @@
+#!/bin/sh
+exec guile -q -s "$0" "$@"
+!#
+;;; test-mb-regexp --- A multibyte regexp test
+;;;
+;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
+;;;
+;;; This library is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;; This test depends on not setting the locale -- that multibyte strings
+;; don't trigger the abort in regexp.c:fixup_multibyte_match.
+
+(use-modules (ice-9 regex))
+
+(exit (if (equal?
+           (match:substring
+            (regexp-exec
+             (make-regexp "(.)(.)(.)")
+             (string (integer->char 200) #\x (integer->char 202)))
+            2)
+           "x")
+          0
+          1))
+
+;; Local Variables:
+;; mode: scheme
+;; End:

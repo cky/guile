@@ -143,6 +143,10 @@ TESTS += test-loose-ends
 check_SCRIPTS += test-fast-slot-ref
 TESTS += test-fast-slot-ref
 
+# test-mb-regexp
+check_SCRIPTS += test-mb-regexp
+TESTS += test-mb-regexp
+
 # test-use-srfi
 check_SCRIPTS += test-use-srfi
 TESTS += test-use-srfi
