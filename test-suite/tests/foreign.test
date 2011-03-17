@@ -67,6 +67,17 @@
     (not (equal? (make-pointer 123) (make-pointer 456)))))
 
 
+(with-test-prefix "pointer<->scm"
+
+  (pass-if "immediates"
+    (equal? (pointer->scm (scm->pointer #\newline))
+            #\newline))
+
+  (pass-if "non-immediates"
+    (equal? (pointer->scm (scm->pointer "Hello, world!"))
+            "Hello, world!")))
+
+
 (define-wrapped-pointer-type foo
   foo?
   wrap-foo unwrap-foo

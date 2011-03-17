@@ -177,6 +177,34 @@ SCM_DEFINE (scm_pointer_address, "pointer-address", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_pointer_to_scm, "pointer->scm", 1, 0, 0,
+	    (SCM pointer),
+	    "Unsafely cast @var{pointer} to a Scheme object.\n"
+	    "Cross your fingers!")
+#define FUNC_NAME s_scm_pointer_to_scm
+{
+  SCM_VALIDATE_POINTER (1, pointer);
+  
+  return SCM_PACK ((scm_t_bits) SCM_POINTER_VALUE (pointer));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_scm_to_pointer, "scm->pointer", 1, 0, 0,
+	    (SCM scm),
+	    "Return a foreign pointer object with the @code{object-address}\n"
+            "of @var{scm}.")
+#define FUNC_NAME s_scm_scm_to_pointer
+{
+  SCM ret;
+
+  ret = scm_from_pointer ((void*) SCM_UNPACK (scm), NULL);
+  if (SCM_NIMP (ret))
+    register_weak_reference (ret, scm);
+
+  return ret;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
 	    (SCM pointer, SCM len, SCM offset, SCM uvec_type),
 	    "Return a bytevector aliasing the @var{len} bytes pointed\n"

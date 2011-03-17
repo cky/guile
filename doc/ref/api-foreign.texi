@@ -568,6 +568,20 @@ A foreign pointer whose value is 0.
 Return @code{#t} if @var{pointer} is the null pointer, @code{#f} otherwise.
 @end deffn
 
+For the purpose of passing SCM values directly to foreign functions, and
+allowing them to return SCM values, Guile also supports some unsafe
+casting operators.
+
+@deffn {Scheme Procedure} scm->pointer scm
+Return a foreign pointer object with the @code{object-address}
+of @var{scm}.
+@end deffn
+
+@deffn {Scheme Procedure} pointer->scm pointer
+Unsafely cast @var{pointer} to a Scheme object.
+Cross your fingers!
+@end deffn
+
 
 @node Void Pointers and Byte Access
 @subsubsection Void Pointers and Byte Access

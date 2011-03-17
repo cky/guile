@@ -37,6 +37,8 @@
             null-pointer?
             pointer?
             make-pointer
+            pointer->scm
+            scm->pointer
             pointer-address
 
             pointer->bytevector
