@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -845,7 +845,6 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
   {
     struct dirent_or_dirent64 de; /* just for sizeof */
     DIR    *ds = (DIR *) SCM_SMOB_DATA_1 (port);
-    size_t namlen;
 #ifdef NAME_MAX
     char   buf [SCM_MAX (sizeof (de),
                          sizeof (de) - sizeof (de.d_name) + NAME_MAX + 1)];
@@ -864,8 +863,6 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
       SCM_SYSERROR;
     if (! rdent)
       return SCM_EOF_VAL;
-
-    namlen = NAMLEN (rdent);
 
     return (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
             : SCM_EOF_VAL);

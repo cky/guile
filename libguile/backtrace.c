@@ -429,7 +429,7 @@ display_backtrace_body (struct display_backtrace_args *a)
 #define FUNC_NAME "display_backtrace_body"
 {
   int n_frames, beg, end, n, i, j;
-  int nfield, indent_p, indentation;
+  int nfield, indentation;
   SCM frame, sport, print_state;
   SCM last_file;
   scm_print_state *pstate;
@@ -482,9 +482,6 @@ display_backtrace_body (struct display_backtrace_args *a)
   pstate->fancyp = 1;
   pstate->highlight_objects = a->highlight_objects;
 
-  /* First find out if it's reasonable to do indentation. */
-  indent_p = 0;
-  
   /* Determine size of frame number field. */
   j = end;
   for (i = 0; j > 0; ++i) j /= 10;

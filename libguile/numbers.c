@@ -146,7 +146,7 @@ static double atanh (double x) { return 0.5 * log ((1 + x) / (1 - x)); }
 
 
 #if defined (GUILE_I)
-#if HAVE_COMPLEX_DOUBLE
+#if defined HAVE_COMPLEX_DOUBLE
 
 /* For an SCM object Z which is a complex number (ie. satisfies
    SCM_COMPLEXP), return its value as a C level "complex double". */
@@ -9449,7 +9449,8 @@ SCM_PRIMITIVE_GENERIC (scm_log, "log", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_CLOG && defined (SCM_COMPLEX_VALUE)
+#if defined HAVE_COMPLEX_DOUBLE && defined HAVE_CLOG \
+  && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (clog (SCM_COMPLEX_VALUE (z)));
 #else
       double re = SCM_COMPLEX_REAL (z);
@@ -9534,7 +9535,8 @@ SCM_PRIMITIVE_GENERIC (scm_exp, "exp", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-#if HAVE_COMPLEX_DOUBLE && HAVE_CEXP && defined (SCM_COMPLEX_VALUE)
+#if defined HAVE_COMPLEX_DOUBLE && defined HAVE_CEXP \
+  && defined (SCM_COMPLEX_VALUE)
       return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
 #else
       return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),

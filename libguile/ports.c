@@ -522,11 +522,8 @@ static void finalize_port (GC_PTR, GC_PTR);
 static SCM_C_INLINE_KEYWORD void
 register_finalizer_for_port (SCM port)
 {
-  long port_type;
   GC_finalization_proc prev_finalizer;
   GC_PTR prev_finalization_data;
-
-  port_type = SCM_TC2PTOBNUM (SCM_CELL_TYPE (port));
 
   /* Register a finalizer for PORT so that its iconv CDs get freed and
      optionally its type's `free' function gets called.  */

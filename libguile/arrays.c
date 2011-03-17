@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -860,7 +860,6 @@ SCM
 scm_i_read_array (SCM port, int c)
 {
   ssize_t rank;
-  int got_rank;
   char tag[80];
   int tag_len;
 
@@ -888,7 +887,6 @@ scm_i_read_array (SCM port, int c)
 	  return SCM_BOOL_F;
 	}
       rank = 1;
-      got_rank = 1;
       tag[0] = 'f';
       tag_len = 1;
       goto continue_reading_tag;

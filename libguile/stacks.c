@@ -247,7 +247,6 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 #define FUNC_NAME s_scm_make_stack
 {
   long n;
-  int maxp;
   SCM frame;
   SCM stack;
   SCM inner_cut, outer_cut;
@@ -289,7 +288,6 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
   /* Count number of frames.  Also get stack id tag and check whether
      there are more stackframes than we want to record
      (SCM_BACKTRACE_MAXDEPTH). */
-  maxp = 0;
   n = stack_depth (frame);
 
   /* Make the stack object. */

@@ -1113,23 +1113,19 @@ chr_to_case (SCM chr, scm_t_locale c_locale,
 #define FUNC_NAME func_name
 {
   int ret;
-  scm_t_wchar *buf;
+  scm_t_uint32 c;
   scm_t_uint32 *convbuf;
   size_t convlen;
-  SCM str, convchar;
+  SCM convchar;
 
-  str = scm_i_make_wide_string (1, &buf);
-  buf[0] = SCM_CHAR (chr);
+  c = SCM_CHAR (chr);
 
   if (c_locale != NULL)
     RUN_IN_LOCALE_SECTION (c_locale, ret =
-                           u32_locale_tocase ((scm_t_uint32 *) buf, 1,
-                                              &convbuf,
-                                              &convlen, func));
+                           u32_locale_tocase (&c, 1, &convbuf, &convlen, func));
   else
     ret =
-      u32_locale_tocase ((scm_t_uint32 *) buf, 1, &convbuf,
-                         &convlen, func);
+      u32_locale_tocase (&c, 1, &convbuf, &convlen, func);
 
   if (SCM_UNLIKELY (ret != 0))
     {
