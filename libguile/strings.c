@@ -1528,25 +1528,8 @@ scm_from_locale_string (const char *str)
 SCM
 scm_from_locale_stringn (const char *str, size_t len)
 {
-  const char *enc;
-  scm_t_string_failed_conversion_handler hndl;
-  SCM inport;
-  scm_t_port *pt;
-
-  inport = scm_current_input_port ();
-  if (!SCM_UNBNDP (inport) && SCM_OPINPORTP (inport))
-    {
-      pt = SCM_PTAB_ENTRY (inport);
-      enc = pt->encoding;
-      hndl = pt->ilseq_handler;
-    }
-  else
-    {
-      enc = NULL;
-      hndl = SCM_FAILED_CONVERSION_ERROR;
-    }
-
-  return scm_from_stringn (str, len, enc, hndl);
+  return scm_from_stringn (str, len, locale_charset (),
+                           scm_i_get_conversion_strategy (SCM_BOOL_F));
 }
 
 SCM
@@ -1771,21 +1754,8 @@ scm_to_locale_string (SCM str)
 char *
 scm_to_locale_stringn (SCM str, size_t *lenp)
 {
-  SCM outport;
-  scm_t_port *pt;
-  const char *enc;
-
-  outport = scm_current_output_port ();
-  if (!SCM_UNBNDP (outport) && SCM_OPOUTPORTP (outport))
-    {
-      pt = SCM_PTAB_ENTRY (outport);
-      enc = pt->encoding;
-    }
-  else
-    enc = NULL;
-
   return scm_to_stringn (str, lenp, 
-                         enc,
+                         locale_charset (),
                          scm_i_get_conversion_strategy (SCM_BOOL_F));
 }
 

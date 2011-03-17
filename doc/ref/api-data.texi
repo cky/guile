@@ -4171,8 +4171,7 @@ using @code{scm_dynwind_free} inside an appropriate dynwind context,
 @deftypefn  {C Function} SCM scm_from_locale_string (const char *str)
 @deftypefnx {C Function} SCM scm_from_locale_stringn (const char *str, size_t len)
 Creates a new Scheme string that has the same contents as @var{str} when
-interpreted in the locale character encoding of the
-@code{current-input-port}.
+interpreted in the character encoding of the current locale.
 
 For @code{scm_from_locale_string}, @var{str} must be null-terminated.
 
@@ -4201,9 +4200,9 @@ can then use @var{str} directly as its internal representation.
 
 @deftypefn  {C Function} {char *} scm_to_locale_string (SCM str)
 @deftypefnx {C Function} {char *} scm_to_locale_stringn (SCM str, size_t *lenp)
-Returns a C string with the same contents as @var{str} in the locale
-encoding of the @code{current-output-port}.  The C string must be freed
-with @code{free} eventually, maybe by using @code{scm_dynwind_free},
+Returns a C string with the same contents as @var{str} in the character
+encoding of the current locale.  The C string must be freed with
+@code{free} eventually, maybe by using @code{scm_dynwind_free},
 @xref{Dynamic Wind}.
 
 For @code{scm_to_locale_string}, the returned string is
@@ -4217,13 +4216,14 @@ returned string will not be null-terminated in this case.  If
 @var{lenp} is @code{NULL}, @code{scm_to_locale_stringn} behaves like
 @code{scm_to_locale_string}.
 
-If a character in @var{str} cannot be represented in the locale encoding
-of the current output port, the port conversion strategy of the current
-output port will determine the result, @xref{Ports}.  If output port's
-conversion strategy is @code{error}, an error will be raised.  If it is
-@code{substitute}, a replacement character, such as a question mark, will
-be inserted in its place.  If it is @code{escape}, a hex escape will be
-inserted in its place.
+If a character in @var{str} cannot be represented in the character
+encoding of the current locale, the default port conversion strategy is
+used.  @xref{Ports}, for more on conversion strategies.
+
+If the conversion strategy is @code{error}, an error will be raised.  If
+it is @code{substitute}, a replacement character, such as a question
+mark, will be inserted in its place.  If it is @code{escape}, a hex
+escape will be inserted in its place.
 @end deftypefn
 
 @deftypefn {C Function} size_t scm_to_locale_stringbuf (SCM str, char *buf, size_t max_len)
