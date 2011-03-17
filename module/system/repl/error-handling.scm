@@ -143,6 +143,34 @@
                 (format #t "Entering a new prompt.  ")
                 (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
                 ((@ (system repl repl) start-repl) #:debug debug))))))
+        ((report)
+         (lambda (key . args)
+           (if (not (memq key pass-keys))
+               (begin
+                 (with-saved-ports
+                  (lambda ()
+                    (run-hook before-error-hook)
+                    (print-exception err #f key args)
+                    (run-hook after-error-hook)
+                    (force-output err)))
+                 (if #f #f)))))
+        ((backtrace)
+         (lambda (key . args)
+           (if (not (memq key pass-keys))
+               (let* ((tag (and (pair? (fluid-ref %stacks))
+                                (cdar (fluid-ref %stacks))))
+                      (frames (narrow-stack->vector
+                               (make-stack #t)
+                               ;; Narrow as above, for the debugging case.
+                               3 tag 0 (and tag 1))))
+                 (with-saved-ports
+                  (lambda ()
+                    (print-frames frames)
+                    (run-hook before-error-hook)
+                    (print-exception err #f key args)
+                    (run-hook after-error-hook)
+                    (force-output err)))
+                 (if #f #f)))))
         ((pass)
          (lambda (key . args)
            ;; fall through to rethrow

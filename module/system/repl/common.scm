@@ -121,7 +121,14 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
       ,(value-history-enabled?)
       ,(lambda (x)
          (if x (enable-value-history!) (disable-value-history!))
-         (->bool x))))))
+         (->bool x)))
+     (on-error
+      debug
+      ,(let ((vals '(debug backtrace report pass)))
+         (lambda (x)
+           (if (memq x vals)
+               x
+               (error "Bad on-error value ~a; expected one of ~a" x vals))))))))
 
 (define %make-repl make-repl)
 (define* (make-repl lang #:optional debug)

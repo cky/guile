@@ -71,20 +71,6 @@
 (define *show-table*
   '((show (warranty w) (copying c) (version v))))
 
-(define terminal-width
-  (let ((set-width #f))
-    (case-lambda
-      (()
-       (or set-width
-           (let ((w (false-if-exception (string->number (getenv "COLUMNS")))))
-             (and (integer? w) (exact? w) (> w 0) w))
-           72))
-      ((w)
-       (if (or (not w) (and (integer? w) (exact? w) (> w 0)))
-           (set! set-width w)
-           (error "Expected a column number (a positive integer)" w))))))
-
-
 (define (group-name g) (car g))
 (define (group-commands g) (cdr g))
 

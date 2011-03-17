@@ -1,6 +1,6 @@
 ;;; Guile VM debugging facilities
 
-;;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
   #:export (<debug>
             make-debug debug?
             debug-frames debug-index debug-error-message debug-for-trap?
+            terminal-width
             print-registers print-locals print-frame print-frames frame->module
             stack->vector narrow-stack->vector
             frame->stack-vector))
@@ -58,6 +59,25 @@
 
 
 
+;; A fluid, because terminals are usually implicitly associated with
+;; threads.
+;;
+(define terminal-width
+  (let ((set-width (make-fluid)))
+    (case-lambda
+      (()
+       (or (fluid-ref set-width)
+           (let ((w (false-if-exception (string->number (getenv "COLUMNS")))))
+             (and (integer? w) (exact? w) (> w 0) w))
+           72))
+      ((w)
+       (if (or (not w) (and (integer? w) (exact? w) (> w 0)))
+           (fluid-set! set-width w)
+           (error "Expected a column number (a positive integer)" w))))))
+
+
+
+
 (define (reverse-hashq h)
   (let ((ret (make-hash-table)))
     (hash-for-each
@@ -79,7 +99,7 @@
   (print "fp = #x~x\n" (frame-address frame)))
 
 (define* (print-locals frame #:optional (port (current-output-port))
-                       #:key (width 72) (per-line-prefix "  "))
+                       #:key (width (terminal-width)) (per-line-prefix "  "))
   (let ((bindings (frame-bindings frame)))
     (cond
      ((null? bindings)
@@ -99,8 +119,8 @@
        (frame-bindings frame))))))
 
 (define* (print-frame frame #:optional (port (current-output-port))
-                      #:key index (width 72) (full? #f) (last-source #f)
-                      next-source?)
+                      #:key index (width (terminal-width)) (full? #f)
+                      (last-source #f) next-source?)
   (define (source:pretty-file source)
     (if source
         (or (source:file source) "current input")
@@ -120,8 +140,8 @@
 
 (define* (print-frames frames
                        #:optional (port (current-output-port))
-                       #:key (width 72) (full? #f) (forward? #f) count
-                       for-trap?)
+                       #:key (width (terminal-width)) (full? #f)
+                       (forward? #f) count for-trap?)
   (let* ((len (vector-length frames))
          (lower-idx (if (or (not count) (positive? count))
                         0

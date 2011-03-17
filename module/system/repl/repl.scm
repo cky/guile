@@ -190,8 +190,10 @@
                                        (abort-on-error "parsing expression"
                                          (repl-parse repl exp))))))
                                (run-hook before-eval-hook exp)
-                               (with-error-handling
-                                 (with-stack-and-prompt thunk)))
+                               (call-with-error-handling
+                                (lambda ()
+                                  (with-stack-and-prompt thunk))
+                                #:on-error (repl-option-ref repl 'on-error)))
                              (lambda (k) (values))))
                       (lambda l
                         (for-each (lambda (v)
@@ -199,6 +201,7 @@
                                   l))))
                   (lambda (k . args)
                     (abort args))))
+              #:on-error (repl-option-ref repl 'on-error)
               #:trap-handler 'disabled)))
            (flush-to-newline) ;; consume trailing whitespace
            (prompt-loop))))
