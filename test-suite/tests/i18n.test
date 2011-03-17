@@ -213,17 +213,11 @@
   (pass-if "char-locale-upcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
-       ;; This test is disabled for now, because char-locale-upcase is
-       ;; incomplete.
-       (throw 'untested)
        (eq? #\İ (char-locale-upcase #\i %turkish-utf8-locale)))))
 
   (pass-if "char-locale-downcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
-       ;; This test is disabled for now, because char-locale-downcase
-       ;; is incomplete.
-       (throw 'untested)
        (eq? #\i (char-locale-downcase #\İ %turkish-utf8-locale))))))
 
 
@@ -245,17 +239,11 @@
   (pass-if "string-locale-upcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
-       ;; This test is disabled for now, because string-locale-upcase
-       ;; is incomplete.
-       (throw 'untested)
        (string=? "İI" (string-locale-upcase "iı" %turkish-utf8-locale)))))
 
   (pass-if "string-locale-downcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
-       ;; This test is disabled for now, because
-       ;; string-locale-downcase is incomplete.
-       (throw 'untested)
        (string=? "iı" (string-locale-downcase "İI" %turkish-utf8-locale))))))
 
 
