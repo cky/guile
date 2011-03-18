@@ -104,6 +104,16 @@
    (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
                 %french-utf8-locale-name)))
 
+(define %german-utf8-locale
+  (false-if-exception
+   (make-locale LC_ALL
+                %german-utf8-locale-name)))
+
+(define %greek-utf8-locale
+  (false-if-exception
+   (make-locale LC_ALL
+                %greek-utf8-locale-name)))
+
 (define %turkish-utf8-locale
   (false-if-exception
    (make-locale LC_ALL
@@ -131,10 +141,10 @@
   (under-locale-or-unresolved %turkish-utf8-locale thunk))
 
 (define (under-german-utf8-locale-or-unresolved thunk)
-  (under-locale-or-unresolved %german-utf8-locale-name thunk))
+  (under-locale-or-unresolved %german-utf8-locale thunk))
 
 (define (under-greek-utf8-locale-or-unresolved thunk)
-  (under-locale-or-unresolved %greek-utf8-locale-name thunk))
+  (under-locale-or-unresolved %greek-utf8-locale thunk))
 
 (with-test-prefix "text collation (French)"
 
