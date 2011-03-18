@@ -343,6 +343,12 @@ unblock_from_queue (SCM queue)
 /* Getting into and out of guile mode.
  */
 
+/* Key used to attach a cleanup handler to a given thread.  Also, if
+   thread-local storage is unavailable, this key is used to retrieve the
+   current thread with `pthread_getspecific ()'.  */
+scm_i_pthread_key_t scm_i_thread_key;
+
+
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS
 
 /* When thread-local storage (TLS) is available, a pointer to the
@@ -352,17 +358,7 @@ unblock_from_queue (SCM queue)
    represent.  */
 SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread = NULL;
 
-# define SET_CURRENT_THREAD(_t)  scm_i_current_thread = (_t)
-
-#else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
-
-/* Key used to retrieve the current thread with `pthread_getspecific ()'.  */
-scm_i_pthread_key_t scm_i_thread_key;
-
-# define SET_CURRENT_THREAD(_t)				\
-  scm_i_pthread_setspecific (scm_i_thread_key, (_t))
-
-#endif /* !SCM_HAVE_THREAD_STORAGE_CLASS */
+#endif /* SCM_HAVE_THREAD_STORAGE_CLASS */
 
 
 static scm_i_pthread_mutex_t thread_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
@@ -428,7 +424,12 @@ guilify_self_1 (SCM_STACKITEM *base)
   t->exited = 0;
   t->guile_mode = 0;
 
-  SET_CURRENT_THREAD (t);
+  scm_i_pthread_setspecific (scm_i_thread_key, t);
+
+#ifdef SCM_HAVE_THREAD_STORAGE_CLASS
+  /* Cache the current thread in TLS for faster lookup.  */
+  scm_i_current_thread = t;
+#endif
 
   scm_i_pthread_mutex_lock (&thread_admin_mutex);
   t->next_thread = all_threads;
@@ -537,6 +538,22 @@ do_thread_exit (void *v)
   return NULL;
 }
 
+static void *
+do_thread_exit_trampoline (struct GC_stack_base *sb, void *v)
+{
+  void *ret;
+  int registered;
+
+  registered = GC_register_my_thread (sb);
+
+  ret = scm_with_guile (do_thread_exit, v);
+
+  if (registered == GC_SUCCESS)
+    GC_unregister_my_thread ();
+
+  return ret;
+}
+
 static void
 on_thread_exit (void *v)
 {
@@ -551,19 +568,20 @@ on_thread_exit (void *v)
       t->held_mutex = NULL;
     }
 
-  SET_CURRENT_THREAD (v);
+  /* Reinstate the current thread for purposes of scm_with_guile
+     guile-mode cleanup handlers.  Only really needed in the non-TLS
+     case but it doesn't hurt to be consistent.  */
+  scm_i_pthread_setspecific (scm_i_thread_key, t);
 
   /* Ensure the signal handling thread has been launched, because we might be
      shutting it down.  */
   scm_i_ensure_signal_delivery_thread ();
 
   /* Unblocking the joining threads needs to happen in guile mode
-     since the queue is a SCM data structure.  */
-
-  /* Note: Since `do_thread_exit ()' uses allocates memory via `libgc', we
-     assume the GC is usable at this point, and notably that thread-local
-     storage (TLS) hasn't been deallocated yet.  */
-  do_thread_exit (v);
+     since the queue is a SCM data structure.   Trampoline through
+     GC_call_with_stack_base so that the GC works even if it already
+     cleaned up for this thread.  */
+  GC_call_with_stack_base (do_thread_exit_trampoline, v);
 
   /* Removing ourself from the list of all threads needs to happen in
      non-guile mode since all SCM values on our stack become
@@ -590,20 +608,16 @@ on_thread_exit (void *v)
 
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 
-  SET_CURRENT_THREAD (NULL);
+  scm_i_pthread_setspecific (scm_i_thread_key, NULL);
 }
-
-#ifndef SCM_HAVE_THREAD_STORAGE_CLASS
 
 static scm_i_pthread_once_t init_thread_key_once = SCM_I_PTHREAD_ONCE_INIT;
 
 static void
 init_thread_key (void)
 {
-  scm_i_pthread_key_create (&scm_i_thread_key, NULL);
+  scm_i_pthread_key_create (&scm_i_thread_key, on_thread_exit);
 }
-
-#endif
 
 /* Perform any initializations necessary to make the current thread
    known to Guile (via SCM_I_CURRENT_THREAD), initializing Guile itself,
@@ -625,9 +639,7 @@ init_thread_key (void)
 static int
 scm_i_init_thread_for_guile (SCM_STACKITEM *base, SCM parent)
 {
-#ifndef SCM_HAVE_THREAD_STORAGE_CLASS
   scm_i_pthread_once (&init_thread_key_once, init_thread_key);
-#endif
 
   if (SCM_I_CURRENT_THREAD)
     {
@@ -790,9 +802,7 @@ scm_i_with_guile_and_parent (void *(*func)(void *), void *data, SCM parent)
       /* We are in Guile mode.  */
       assert (t->guile_mode);
 
-      scm_i_pthread_cleanup_push (scm_leave_guile_cleanup, NULL);
       res = scm_c_with_continuation_barrier (func, data);
-      scm_i_pthread_cleanup_pop (0);
 
       /* Leave Guile mode.  */
       t->guile_mode = 0;
@@ -879,9 +889,6 @@ really_launch (void *d)
     t->result = scm_call_0 (thunk);
   else
     t->result = scm_catch (SCM_BOOL_T, thunk, handler);
-
-  /* Trigger a call to `on_thread_exit ()'.  */
-  pthread_exit (NULL);
 
   return 0;
 }

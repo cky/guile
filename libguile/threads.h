@@ -192,6 +192,10 @@ SCM_API void scm_dynwind_critical_section (SCM mutex);
 
 #ifdef BUILDING_LIBGUILE
 
+/* Though we don't need the key for SCM_I_CURRENT_THREAD if we have TLS,
+   we do use it for cleanup purposes.  */
+SCM_INTERNAL scm_i_pthread_key_t scm_i_thread_key;
+
 # ifdef SCM_HAVE_THREAD_STORAGE_CLASS
 
 SCM_INTERNAL SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread;
@@ -199,7 +203,6 @@ SCM_INTERNAL SCM_THREAD_LOCAL scm_i_thread *scm_i_current_thread;
 
 # else /* !SCM_HAVE_THREAD_STORAGE_CLASS */
 
-SCM_INTERNAL scm_i_pthread_key_t scm_i_thread_key;
 #  define SCM_I_CURRENT_THREAD						\
     ((scm_i_thread *) scm_i_pthread_getspecific (scm_i_thread_key))
 
