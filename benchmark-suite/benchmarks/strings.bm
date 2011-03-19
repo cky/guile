@@ -1,0 +1,537 @@
+;;; -*- Mode: scheme; coding: utf-8; -*-
+;;; strings.bm
+;;;
+;;; Copyright (C) 2011  Free Software Foundation, Inc.
+;;;
+;;;
+;;; This program is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public License
+;;; as published by the Free Software Foundation; either version 3, or
+;;; (at your option) any later version.
+;;;
+;;; This program is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;; GNU Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this software; see the file COPYING.LESSER.  If
+;;; not, write to the Free Software Foundation, Inc., 51 Franklin
+;;; Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (benchmarks strings)
+  #:use-module (benchmark-suite lib)
+  #:use-module (ice-9 i18n))
+
+(use-modules (ice-9 i18n))
+
+(seed->random-state 1)
+
+;; Start from a known locale state
+(setlocale LC_ALL "C")
+
+(define char-set:cased (char-set-union char-set:lower-case
+                                       char-set:upper-case
+                                       char-set:title-case))
+(define *latin1*
+  (char-set->list (char-set-xor
+                   (char-set-intersection (ucs-range->char-set 0 255)
+                                          char-set:cased)
+                   (->char-set #\µ))))  ; Can't do a case-insensitive comparison of a string
+                                        ; with mu in fr_FR.iso88591 since it case-folds into a
+                                        ; non-Latin-1 character.
+
+(define *cased*
+  (char-set->list char-set:cased))
+
+(define (random-string c-list n)
+  (let ((len (length c-list)))
+    (apply string
+           (map
+            (lambda (x)
+              (list-ref c-list (random len)))
+            (iota n)))))
+
+(define (diff-at-start str)
+  (string-append "!" (substring str 1)))
+(define (diff-in-middle str)
+  (let ((x (floor (/ (string-length str) 2))))
+    (string-append (substring str 0 x)
+                   "!"
+                   (substring str (1+ x)))))
+(define (diff-at-end str)
+  (string-append (substring str 0 (1- (string-length str)))
+                 "!"))
+
+(define short-latin1-string  (random-string *latin1* 10))
+(define medium-latin1-string (random-string *latin1* 100))
+(define long-latin1-string   (random-string *latin1* 1000))
+
+(define short-latin1-string-diff-at-start   (diff-at-start short-latin1-string))
+(define medium-latin1-string-diff-at-start  (diff-at-start medium-latin1-string))
+(define long-latin1-string-diff-at-start    (diff-at-start long-latin1-string))
+
+(define short-latin1-string-diff-in-middle  (diff-in-middle short-latin1-string))
+(define medium-latin1-string-diff-in-middle (diff-in-middle medium-latin1-string))
+(define long-latin1-string-diff-in-middle   (diff-in-middle long-latin1-string))
+
+(define short-latin1-string-diff-at-end     (diff-at-end short-latin1-string))
+(define medium-latin1-string-diff-at-end    (diff-at-end medium-latin1-string))
+(define long-latin1-string-diff-at-end      (diff-at-end long-latin1-string))
+
+(define short-cased-string  (random-string *cased* 10))
+(define medium-cased-string (random-string *cased* 100))
+(define long-cased-string   (random-string *cased* 1000))
+
+(define short-cased-string-diff-at-start    (diff-at-start short-cased-string))
+(define medium-cased-string-diff-at-start   (diff-at-start medium-cased-string))
+(define long-cased-string-diff-at-start     (diff-at-start long-cased-string))
+
+(define short-cased-string-diff-in-middle   (diff-in-middle short-cased-string))
+(define medium-cased-string-diff-in-middle  (diff-in-middle medium-cased-string))
+(define long-cased-string-diff-in-middle    (diff-in-middle long-cased-string))
+
+(define short-cased-string-diff-at-end      (diff-at-end short-cased-string))
+(define medium-cased-string-diff-at-end     (diff-at-end medium-cased-string))
+(define long-cased-string-diff-at-end       (diff-at-end long-cased-string))
+
+(define %french-locale-name      "fr_FR.ISO-8859-1")
+
+(define %french-utf8-locale-name "fr_FR.UTF-8")
+
+(define %french-locale
+  (false-if-exception
+   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
+                %french-locale-name)))
+
+(define %french-utf8-locale
+  (false-if-exception
+   (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
+                %french-utf8-locale-name)))
+
+(define (under-locale-or-unresolved locale thunk)
+  ;; On non-GNU systems, an exception may be raised only when the locale is
+  ;; actually used rather than at `make-locale'-time.  Thus, we must guard
+  ;; against both.
+  (if locale
+      (if (string-contains %host-type "-gnu")
+          (thunk)
+          (catch 'system-error thunk
+                 (lambda (key . args)
+                   (throw 'unresolved))))
+      (throw 'unresolved)))
+
+(define (under-french-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %french-locale thunk))
+
+(define (under-french-utf8-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %french-utf8-locale thunk))
+
+(define (string-op str1 str2)
+  (string<? str1 str2)
+  (string>? str1 str2))
+
+(define (string-ci-op str1 str2)
+  (string-ci<? str1 str2)
+  (string-ci>? str1 str2))
+
+(define (string-fr-op str1 str2)
+  (under-french-locale-or-unresolved
+   (lambda ()
+     (string-locale<? str1 str2 %french-locale)
+     (string-locale>? str1 str2 %french-locale))))
+
+(define (string-fr-utf8-op str1 str2)
+  (under-french-utf8-locale-or-unresolved
+   (lambda ()
+     (string-locale<? str1 str2 %french-utf8-locale)
+     (string-locale>? str1 str2 %french-utf8-locale))))
+
+(define (string-fr-ci-op str1 str2)
+  (under-french-locale-or-unresolved
+   (lambda ()
+     (string-locale-ci<? str1 str2 %french-locale)
+     (string-locale-ci>? str1 str2 %french-locale))))
+
+(define (string-fr-utf8-ci-op str1 str2)
+  (under-french-utf8-locale-or-unresolved
+   (lambda ()
+     (string-locale-ci<? str1 str2 %french-utf8-locale)
+     (string-locale-ci>? str1 str2 %french-utf8-locale))))
+
+
+(with-benchmark-prefix "string ops"
+
+  (with-benchmark-prefix "short Latin1"
+
+    (benchmark "compare initially differing strings" 100000
+      (string-op short-latin1-string short-latin1-string-diff-at-start))
+
+    (benchmark "compare medially differing strings" 100000
+      (string-op short-latin1-string short-latin1-string-diff-in-middle))
+
+    (benchmark "compare terminally differing strings" 100000
+      (string-op short-latin1-string short-latin1-string-diff-at-end))
+
+    (benchmark "compare identical strings" 100000
+      (string-op short-latin1-string short-latin1-string))
+
+    (benchmark "case compare initially differing strings" 100000
+      (string-ci-op short-latin1-string short-latin1-string-diff-at-start))
+
+    (benchmark "case compare medially differing strings" 100000
+      (string-ci-op short-latin1-string short-latin1-string-diff-in-middle))
+
+    (benchmark "case compare terminally differing strings" 100000
+      (string-ci-op short-latin1-string short-latin1-string-diff-at-end))
+
+    (benchmark "case compare identical strings" 100000
+      (string-ci-op short-latin1-string short-latin1-string))
+
+    (benchmark "French Latin-1 locale compare initially differing strings" 100000
+      (string-fr-op short-latin1-string short-latin1-string-diff-at-start))
+
+    (benchmark "French Latin-1 locale compare medially differing strings" 100000
+      (string-fr-op short-latin1-string short-latin1-string-diff-in-middle))
+
+    (benchmark "French Latin-1 locale compare terminally differing strings" 100000
+      (string-fr-op short-latin1-string short-latin1-string-diff-at-end))
+
+    (benchmark "French Latin-1 locale compare identical strings" 100000
+      (string-fr-op short-latin1-string short-latin1-string))
+
+    (benchmark "French Latin-1 locale case compare initially differing strings" 100000
+      (string-fr-ci-op short-latin1-string short-latin1-string-diff-at-start))
+
+    (benchmark "French Latin-1 locale case compare medially differing strings" 100000
+      (string-fr-ci-op short-latin1-string short-latin1-string-diff-in-middle))
+
+    (benchmark "French Latin-1 locale case compare terminally differing strings" 100000
+      (string-fr-ci-op short-latin1-string short-latin1-string-diff-at-end))
+
+    (benchmark "French Latin-1 locale case compare identical strings" 100000
+      (string-fr-ci-op short-latin1-string short-latin1-string))
+
+    (benchmark "French UTF-8 locale compare initially differing strings" 100000
+      (string-fr-utf8-op short-latin1-string short-latin1-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale compare medially differing strings" 100000
+      (string-fr-utf8-op short-latin1-string short-latin1-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale compare terminally differing strings" 100000
+      (string-fr-utf8-op short-latin1-string short-latin1-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale compare identical strings" 100000
+      (string-fr-utf8-op short-latin1-string short-latin1-string))
+
+    (benchmark "French UTF-8 locale case compare initially differing strings" 100000
+      (string-fr-utf8-ci-op short-latin1-string short-latin1-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale case compare medially differing strings" 100000
+      (string-fr-utf8-ci-op short-latin1-string short-latin1-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale case compare terminally differing strings" 100000
+      (string-fr-utf8-ci-op short-latin1-string short-latin1-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale case compare identical strings" 100000
+      (string-fr-utf8-ci-op short-latin1-string short-latin1-string)))
+
+  (with-benchmark-prefix "medium Latin1"
+
+    (benchmark "compare initially differing strings" 10000
+      (string-op medium-latin1-string medium-latin1-string-diff-at-start))
+
+    (benchmark "compare medially differing strings" 10000
+      (string-op medium-latin1-string medium-latin1-string-diff-in-middle))
+
+    (benchmark "compare terminally differing strings" 10000
+      (string-op medium-latin1-string medium-latin1-string-diff-at-end))
+
+    (benchmark "compare identical strings" 10000
+      (string-op medium-latin1-string medium-latin1-string))
+
+    (benchmark "case compare initially differing strings" 10000
+      (string-ci-op medium-latin1-string medium-latin1-string-diff-at-start))
+
+    (benchmark "case compare medially differing strings" 10000
+      (string-ci-op medium-latin1-string medium-latin1-string-diff-in-middle))
+
+    (benchmark "case compare terminally differing strings" 10000
+      (string-ci-op medium-latin1-string medium-latin1-string-diff-at-end))
+
+    (benchmark "case compare identical strings" 10000
+      (string-ci-op medium-latin1-string medium-latin1-string))
+
+    (benchmark "French Latin-1 locale compare initially differing strings" 10000
+      (string-fr-op medium-latin1-string medium-latin1-string-diff-at-start))
+
+    (benchmark "French Latin-1 locale compare medially differing strings" 10000
+      (string-fr-op medium-latin1-string medium-latin1-string-diff-in-middle))
+
+    (benchmark "French Latin-1 locale compare terminally differing strings" 10000
+      (string-fr-op medium-latin1-string medium-latin1-string-diff-at-end))
+
+    (benchmark "French Latin-1 locale compare identical strings" 10000
+      (string-fr-op medium-latin1-string medium-latin1-string))
+
+    (benchmark "French Latin-1 locale case compare initially differing strings" 10000
+      (string-fr-ci-op medium-latin1-string medium-latin1-string-diff-at-start))
+
+    (benchmark "French Latin-1 locale case compare medially differing strings" 10000
+      (string-fr-ci-op medium-latin1-string medium-latin1-string-diff-in-middle))
+
+    (benchmark "French Latin-1 locale case compare terminally differing strings" 10000
+      (string-fr-ci-op medium-latin1-string medium-latin1-string-diff-at-end))
+
+    (benchmark "French Latin-1 locale case compare identical strings" 10000
+      (string-fr-ci-op medium-latin1-string medium-latin1-string))
+
+   (benchmark "French UTF-8 locale compare initially differing strings" 10000
+      (string-fr-utf8-op medium-latin1-string medium-latin1-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale compare medially differing strings" 10000
+      (string-fr-utf8-op medium-latin1-string medium-latin1-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale compare terminally differing strings" 10000
+      (string-fr-utf8-op medium-latin1-string medium-latin1-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale compare identical strings" 10000
+      (string-fr-utf8-op medium-latin1-string medium-latin1-string))
+
+    (benchmark "French UTF-8 locale case compare initially differing strings" 10000
+      (string-fr-utf8-ci-op medium-latin1-string medium-latin1-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale case compare medially differing strings" 10000
+      (string-fr-utf8-ci-op medium-latin1-string medium-latin1-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale case compare terminally differing strings" 10000
+      (string-fr-utf8-ci-op medium-latin1-string medium-latin1-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale case compare identical strings" 10000
+      (string-fr-utf8-ci-op medium-latin1-string medium-latin1-string)))
+
+  (with-benchmark-prefix "long Latin1"
+
+    (benchmark "compare initially differing strings" 1000
+      (string-op long-latin1-string long-latin1-string-diff-at-start))
+
+    (benchmark "compare medially differing strings" 1000
+      (string-op long-latin1-string long-latin1-string-diff-in-middle))
+
+    (benchmark "compare terminally differing strings" 1000
+      (string-op long-latin1-string long-latin1-string-diff-at-end))
+
+    (benchmark "compare identical strings" 1000
+      (string-op long-latin1-string long-latin1-string))
+
+    (benchmark "case compare initially differing strings" 1000
+      (string-ci-op long-latin1-string long-latin1-string-diff-at-start))
+
+    (benchmark "case compare medially differing strings" 1000
+      (string-ci-op long-latin1-string long-latin1-string-diff-in-middle))
+
+    (benchmark "case compare terminally differing strings" 1000
+      (string-ci-op long-latin1-string long-latin1-string-diff-at-end))
+
+    (benchmark "case compare identical strings" 1000
+      (string-ci-op long-latin1-string long-latin1-string))
+
+    (benchmark "French Latin-1 locale compare initially differing strings" 1000
+      (string-fr-op long-latin1-string long-latin1-string-diff-at-start))
+
+    (benchmark "French Latin-1 locale compare medially differing strings" 1000
+      (string-fr-op long-latin1-string long-latin1-string-diff-in-middle))
+
+    (benchmark "French Latin-1 locale compare terminally differing strings" 1000
+      (string-fr-op long-latin1-string long-latin1-string-diff-at-end))
+
+    (benchmark "French Latin-1 locale compare identical strings" 1000
+      (string-fr-op long-latin1-string long-latin1-string))
+
+    (benchmark "French Latin-1 locale case compare initially differing strings" 1000
+      (string-fr-ci-op long-latin1-string long-latin1-string-diff-at-start))
+
+    (benchmark "French Latin-1 locale case compare medially differing strings" 1000
+      (string-fr-ci-op long-latin1-string long-latin1-string-diff-in-middle))
+
+    (benchmark "French Latin-1 locale case compare terminally differing strings" 1000
+      (string-fr-ci-op long-latin1-string long-latin1-string-diff-at-end))
+
+    (benchmark "French Latin-1 locale case compare identical strings" 1000
+      (string-fr-ci-op long-latin1-string long-latin1-string))
+
+    (benchmark "French UTF-8 locale compare initially differing strings" 1000
+      (string-fr-utf8-op long-latin1-string long-latin1-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale compare medially differing strings" 1000
+      (string-fr-utf8-op long-latin1-string long-latin1-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale compare terminally differing strings" 1000
+      (string-fr-utf8-op long-latin1-string long-latin1-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale compare identical strings" 1000
+      (string-fr-utf8-op long-latin1-string long-latin1-string))
+
+    (benchmark "French UTF-8 locale case compare initially differing strings" 1000
+      (string-fr-utf8-ci-op long-latin1-string long-latin1-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale case compare medially differing strings" 1000
+      (string-fr-utf8-ci-op long-latin1-string long-latin1-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale case compare terminally differing strings" 1000
+      (string-fr-utf8-ci-op long-latin1-string long-latin1-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale case compare identical strings" 1000
+      (string-fr-utf8-ci-op long-latin1-string long-latin1-string)))
+
+  (with-benchmark-prefix "short Unicode"
+
+    (benchmark "compare initially differing strings" 100000
+      (string-op short-cased-string short-cased-string-diff-at-start))
+
+    (benchmark "compare medially differing strings" 100000
+      (string-op short-cased-string short-cased-string-diff-in-middle))
+
+    (benchmark "compare terminally differing strings" 100000
+      (string-op short-cased-string short-cased-string-diff-at-end))
+
+    (benchmark "compare identical strings" 100000
+      (string-op short-cased-string short-cased-string))
+
+    (benchmark "case compare initially differing strings" 100000
+      (string-ci-op short-cased-string short-cased-string-diff-at-start))
+
+    (benchmark "case compare medially differing strings" 100000
+      (string-ci-op short-cased-string short-cased-string-diff-in-middle))
+
+    (benchmark "case compare terminally differing strings" 100000
+      (string-ci-op short-cased-string short-cased-string-diff-at-end))
+
+    (benchmark "case compare identical strings" 100000
+      (string-ci-op short-cased-string short-cased-string))
+
+    (benchmark "French UTF-8 locale compare initially differing strings" 100000
+      (string-fr-utf8-op short-cased-string short-cased-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale compare medially differing strings" 100000
+      (string-fr-utf8-op short-cased-string short-cased-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale compare terminally differing strings" 100000
+      (string-fr-utf8-op short-cased-string short-cased-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale compare identical strings" 100000
+      (string-fr-utf8-op short-cased-string short-cased-string))
+
+    (benchmark "French UTF-8 locale case compare initially differing strings" 100000
+      (string-fr-utf8-ci-op short-cased-string short-cased-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale case compare medially differing strings" 100000
+      (string-fr-utf8-ci-op short-cased-string short-cased-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale case compare terminally differing strings" 100000
+      (string-fr-utf8-ci-op short-cased-string short-cased-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale case compare identical strings" 100000
+      (string-fr-utf8-ci-op short-cased-string short-cased-string)))
+
+  (with-benchmark-prefix "medium Unicode"
+
+    (benchmark "compare initially differing strings" 10000
+      (string-op medium-cased-string medium-cased-string-diff-at-start))
+
+    (benchmark "compare medially differing strings" 10000
+      (string-op medium-cased-string medium-cased-string-diff-in-middle))
+
+    (benchmark "compare terminally differing strings" 10000
+      (string-op medium-cased-string medium-cased-string-diff-at-end))
+
+    (benchmark "compare identical strings" 10000
+      (string-op medium-cased-string medium-cased-string))
+
+    (benchmark "case compare initially differing strings" 10000
+      (string-ci-op medium-cased-string medium-cased-string-diff-at-start))
+
+    (benchmark "case compare medially differing strings" 10000
+      (string-ci-op medium-cased-string medium-cased-string-diff-in-middle))
+
+    (benchmark "case compare terminally differing strings" 10000
+      (string-ci-op medium-cased-string medium-cased-string-diff-at-end))
+
+    (benchmark "case compare identical strings" 10000
+      (string-ci-op medium-cased-string medium-cased-string))
+
+    (benchmark "French UTF-8 locale compare initially differing strings" 10000
+      (string-fr-utf8-op medium-cased-string medium-cased-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale compare medially differing strings" 10000
+      (string-fr-utf8-op medium-cased-string medium-cased-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale compare terminally differing strings" 10000
+      (string-fr-utf8-op medium-cased-string medium-cased-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale compare identical strings" 10000
+      (string-fr-utf8-op medium-cased-string medium-cased-string))
+
+    (benchmark "French UTF-8 locale case compare initially differing strings" 10000
+      (string-fr-utf8-ci-op medium-cased-string medium-cased-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale case compare medially differing strings" 10000
+      (string-fr-utf8-ci-op medium-cased-string medium-cased-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale case compare terminally differing strings" 10000
+      (string-fr-utf8-ci-op medium-cased-string medium-cased-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale case compare identical strings" 10000
+      (string-fr-utf8-ci-op medium-cased-string medium-cased-string)))
+
+  (with-benchmark-prefix "long Unicode"
+
+    (benchmark "compare initially differing strings" 1000
+      (string-op long-cased-string long-cased-string-diff-at-start))
+
+    (benchmark "compare medially differing strings" 1000
+      (string-op long-cased-string long-cased-string-diff-in-middle))
+
+    (benchmark "compare terminally differing strings" 1000
+      (string-op long-cased-string long-cased-string-diff-at-end))
+
+    (benchmark "compare identical strings" 1000
+      (string-op long-cased-string long-cased-string))
+
+    (benchmark "case compare initially differing strings" 1000
+      (string-ci-op long-cased-string long-cased-string-diff-at-start))
+
+    (benchmark "case compare medially differing strings" 1000
+      (string-ci-op long-cased-string long-cased-string-diff-in-middle))
+
+    (benchmark "case compare terminally differing strings" 1000
+      (string-ci-op long-cased-string long-cased-string-diff-at-end))
+
+    (benchmark "case compare identical strings" 1000
+      (string-ci-op long-cased-string long-cased-string))
+
+    (benchmark "French UTF-8 locale compare initially differing strings" 1000
+      (string-fr-utf8-op long-cased-string long-cased-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale compare medially differing strings" 1000
+      (string-fr-utf8-op long-cased-string long-cased-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale compare terminally differing strings" 1000
+      (string-fr-utf8-op long-cased-string long-cased-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale compare identical strings" 1000
+      (string-fr-utf8-op long-cased-string long-cased-string))
+
+    (benchmark "French UTF-8 locale case compare initially differing strings" 1000
+      (string-fr-utf8-ci-op long-cased-string long-cased-string-diff-at-start))
+
+    (benchmark "French UTF-8 locale case compare medially differing strings" 1000
+      (string-fr-utf8-ci-op long-cased-string long-cased-string-diff-in-middle))
+
+    (benchmark "French UTF-8 locale case compare terminally differing strings" 1000
+      (string-fr-utf8-ci-op long-cased-string long-cased-string-diff-at-end))
+
+    (benchmark "French UTF-8 locale case compare identical strings" 1000
+      (string-fr-utf8-ci-op long-cased-string long-cased-string))))
+
+
