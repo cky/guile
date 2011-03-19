@@ -1179,7 +1179,7 @@ VM_DEFINE_INSTRUCTION (65, call_cc, "call/cc", 0, 1, 1)
   cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
-      PUSH ((SCM)fp); /* dynamic link */
+      PUSH (0); /* dynamic link */
       PUSH (0);  /* mvra */
       PUSH (0);  /* ra */
       PUSH (proc);
