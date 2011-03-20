@@ -1503,7 +1503,7 @@ if test "$cross_compiling" = "yes"; then
    AC_MSG_RESULT($GUILE_FOR_BUILD)
 fi
 AC_ARG_VAR(GUILE_FOR_BUILD,[guile for build system])
-AC_SUBST(GUILE_FOR_BUILD)
+AM_SUBST_NOTMAKE(GUILE_FOR_BUILD)
   			
 ## If we're using GCC, ask for aggressive warnings.
 GCC_CFLAGS=""
