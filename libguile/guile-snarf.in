@@ -51,7 +51,20 @@ modern_snarf ()                         # writes stdout
     ## empty file.
     echo "/* cpp arguments: $@ */" ;
     ${cpp} -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > ${temp} && cpp_ok_p=true
-    sed -ne "s/ *\^ *: *\^/\n/;s/[^\n]*\^ *\^ *\([^\n]*\)/\1;/;tx;d;:x;P;D" ${temp}
+    sed -ne 's/ *\^ *: *\^/\
+/
+h
+s/\n.*//
+t x
+d
+: x
+s/.*\^ *\^ *\(.*\)/\1;/
+t y
+d
+: y
+p
+x
+D' ${temp}
 }
 
 ## main

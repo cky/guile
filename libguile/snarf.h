@@ -53,11 +53,17 @@
  * The SCM_SNARF_INIT text goes into the corresponding .x file
  * up through the first occurrence of SCM_SNARF_DOC_START on that
  * line, if any.
+ *
+ * Some debugging options can cause the preprocessor to echo #define
+ * directives to its output. Keeping the snarfing markers on separate
+ * lines prevents guile-snarf from inadvertently snarfing the definition
+ * of SCM_SNARF_INIT if those options are in effect.
  */
 
 #ifdef SCM_MAGIC_SNARF_INITS
 # define SCM_SNARF_HERE(X)
-# define SCM_SNARF_INIT(X) ^^ X ^:^
+# define SCM_SNARF_INIT_PREFIX ^^
+# define SCM_SNARF_INIT(X) SCM_SNARF_INIT_PREFIX X ^:^
 # define SCM_SNARF_DOCS(TYPE, CNAME, FNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 #else
 # ifdef SCM_MAGIC_SNARF_DOCS
