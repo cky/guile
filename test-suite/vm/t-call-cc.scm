@@ -14,3 +14,17 @@
             (else
              (set-counter2 (1+ counter2))))))
   (loop 0))
+
+(let* ((next #f)
+       (counter 0)
+       (result (call/cc
+                 (lambda (k)
+                   (set! next k)
+                   1))))
+  (set! counter (+ 1 counter))
+  (cond ((not (= counter result))
+         (error "bad call/cc behaviour" counter result))
+        ((> counter 10)
+         #t)
+        (else
+         (next (+ 1 counter)))))
