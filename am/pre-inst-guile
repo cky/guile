@@ -1,6 +1,6 @@
-## am/pre-inst-guile --- define preinstguile and preinstguiletool vars
+## am/pre-inst-guile --- define preinstguile
 
-##	Copyright (C) 2002, 2006 Free Software Foundation
+##	Copyright (C) 2002, 2006, 2011 Free Software Foundation
 ##
 ##   This file is part of GUILE.
 ##
@@ -21,7 +21,7 @@
 
 ## Commentary:
 
-## This fragment defines two variables: preinstguile, preinstguiletool.
+## This fragment defines the preinstguile variable
 ## It can be included in any Makefile.am by adding the line:
 ##   include $(top_srcdir)/am/pre-inst-guile
 ## See devel/build/pre-inst-guile.text (CVS only) for more info.
@@ -29,6 +29,5 @@
 ## Code:
 
 preinstguile     = $(top_builddir_absolute)/meta/guile
-preinstguiletool = GUILE="$(preinstguile)" $(top_srcdir)/scripts
 
 ## am/pre-inst-guile ends here
