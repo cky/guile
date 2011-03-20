@@ -1494,7 +1494,7 @@ if test "$cross_compiling" = "yes"; then
   AC_MSG_CHECKING(guile for build)
   GUILE_FOR_BUILD="${GUILE_FOR_BUILD-guile}"
 else
-  GUILE_FOR_BUILD='$(preinstguile)'
+  GUILE_FOR_BUILD='this-value-will-never-be-used'
 fi   
 
 ## AC_MSG_CHECKING("if we are cross compiling")
