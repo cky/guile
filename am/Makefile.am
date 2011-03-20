@@ -21,7 +21,7 @@
 
 AUTOMAKE_OPTIONS = gnu
 
-am_frags = pre-inst-guile maintainer-dirs guilec
+am_frags = maintainer-dirs guilec
 
 EXTRA_DIST = $(am_frags) ChangeLog-2008
 

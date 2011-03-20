@@ -111,8 +111,6 @@ noinst_DATA = $(PICTURES)
 
 EXTRA_DIST = ChangeLog-2008 $(PICTURES)
 
-include $(top_srcdir)/am/pre-inst-guile
-
 # Automated snarfing
 
 autoconf.texi: autoconf-macros.texi
@@ -129,7 +127,8 @@ snarf_doc = standard-library
 $(snarf_doc).am: $(snarf_doc).scm
 	GUILE_AUTO_COMPILE=0 ;							\
 	variable="`echo $(snarf_doc) | tr - _`_scm_files" ;			\
-	"$(preinstguile)" -l "$(srcdir)/$(snarf_doc).scm" -c "			\
+	"$(top_builddir_absolute)/meta/guile" -l "$(srcdir)/$(snarf_doc).scm"   \
+	 -c "			 						\
 	 (format #t \"# Automatically generated, do not edit.~%\")		\
 	 (format #t \"$$variable = \")						\
 	 (for-each (lambda (m)							\
@@ -143,7 +142,7 @@ include standard-library.am
 
 $(snarf_doc).texi: $(standard_library_scm_files)
 	GUILE_AUTO_COMPILE=0				\
-	"$(preinstguile)" "$(srcdir)/make-texinfo.scm"	\
+	"$(top_builddir_absolute)/meta/guile" "$(srcdir)/make-texinfo.scm"	\
 	  "$(abs_srcdir)/$(snarf_doc).scm" > "$@.tmp"
 	mv "$@.tmp" "$@"
 

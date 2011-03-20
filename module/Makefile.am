@@ -73,9 +73,8 @@ ETAGS_ARGS +=					\
   ice-9/compile-psyntax.scm			\
   ice-9/ChangeLog-2008
 
-include $(top_srcdir)/am/pre-inst-guile
 ice-9/psyntax-pp.scm.gen:
-	$(preinstguile) --no-auto-compile -s $(srcdir)/ice-9/compile-psyntax.scm \
+	$(top_builddir_absolute)/meta/guile --no-auto-compile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 .PHONY: ice-9/psyntax-pp.scm.gen
