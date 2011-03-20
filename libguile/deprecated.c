@@ -2281,7 +2281,7 @@ scm_allocate_string (size_t len)
 {
   scm_c_issue_deprecation_warning
     ("`scm_allocate_string' is deprecated. Use scm_c_make_string instead.");
-  return scm_i_make_string (len, NULL);
+  return scm_i_make_string (len, NULL, 0);
 }
 
 SCM_DEFINE (scm_make_keyword_from_dash_symbol, "make-keyword-from-dash-symbol", 1, 0, 0, 

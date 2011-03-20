@@ -516,7 +516,7 @@ scm_read_string (int chr, SCM port)
   unsigned c_str_len = 0;
   scm_t_wchar c;
 
-  str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
+  str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL, 0);
   while ('"' != (c = scm_getc (port)))
     {
       if (c == EOF)
@@ -528,7 +528,7 @@ scm_read_string (int chr, SCM port)
 
       if (c_str_len + 1 >= scm_i_string_length (str))
         {
-          SCM addy = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL);
+          SCM addy = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL, 0);
 
           str = scm_string_append (scm_list_2 (str, addy));
         }
@@ -1232,7 +1232,7 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
      So here, CHR is expected to be `{'.  */
   int saw_brace = 0, finished = 0;
   size_t len = 0;
-  SCM buf = scm_i_make_string (1024, NULL);
+  SCM buf = scm_i_make_string (1024, NULL, 0);
 
   buf = scm_i_string_start_writing (buf);
 
@@ -1262,7 +1262,7 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 	  SCM addy;
 
 	  scm_i_string_stop_writing ();
-	  addy = scm_i_make_string (1024, NULL);
+	  addy = scm_i_make_string (1024, NULL, 0);
 	  buf = scm_string_append (scm_list_2 (buf, addy));
 	  len = 0;
 	  buf = scm_i_string_start_writing (buf);

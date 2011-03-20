@@ -1,23 +1,25 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
-;;;; 
+;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2008, 2009, 2010,
+;;;;   2011 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-strings)
+  #:use-module ((system base compile) #:select (compile))
   #:use-module (test-suite lib))
 
 (define exception:read-only-string
@@ -239,6 +241,24 @@
 
   (pass-if "symbol"
     (not (string? 'abc))))
+
+;;
+;; literals
+;;
+
+(with-test-prefix "literals"
+
+  ;; The "Storage Model" section of R5RS reads: "In such systems literal
+  ;; constants and the strings returned by `symbol->string' are
+  ;; immutable objects".  `eval' doesn't support it yet, but it doesn't
+  ;; really matter because `eval' doesn't coalesce repeated constants,
+  ;; unlike the bytecode compiler.
+
+  (pass-if-exception "literals are constant"
+    exception:read-only-string
+    (compile '(string-set! "literal string" 0 #\x)
+             #:from 'scheme
+             #:to 'value)))
 
 ;;
 ;; string-null?

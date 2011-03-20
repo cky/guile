@@ -1515,9 +1515,9 @@ SCM_DEFINE (scm_char_set_to_string, "char-set->string", 1, 0, 0,
 
   count = scm_to_int (scm_char_set_size (cs));
   if (wide)
-    result = scm_i_make_wide_string (count, &wbuf);
+    result = scm_i_make_wide_string (count, &wbuf, 0);
   else
-    result = scm_i_make_string (count, &buf);
+    result = scm_i_make_string (count, &buf, 0);
 
   for (k = 0; k < cs_data->len; k++)
     for (n = cs_data->ranges[k].lo; n <= cs_data->ranges[k].hi; n++)

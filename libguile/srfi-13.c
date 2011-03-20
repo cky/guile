@@ -251,14 +251,14 @@ SCM_DEFINE (scm_string_tabulate, "string-tabulate", 2, 0, 0,
     if (wide)
       {
         scm_t_wchar *wbuf = NULL;
-        res = scm_i_make_wide_string (clen, &wbuf);
+        res = scm_i_make_wide_string (clen, &wbuf, 0);
         memcpy (wbuf, buf, clen * sizeof (scm_t_wchar));
         free (buf);
       }
     else
       {
         char *nbuf = NULL;
-        res = scm_i_make_string (clen, &nbuf);
+        res = scm_i_make_string (clen, &nbuf, 0);
         for (i = 0; i < clen; i ++)
           nbuf[i] = (unsigned char) buf[i];
         free (buf);
@@ -336,7 +336,7 @@ SCM_DEFINE (scm_reverse_list_to_string, "reverse-list->string", 1, 0, 0,
 
   if (i < 0)
     SCM_WRONG_TYPE_ARG (1, chrs);
-  result = scm_i_make_string (i, &data);
+  result = scm_i_make_string (i, &data, 0);
 
   {
     SCM rest;
@@ -439,7 +439,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
     SCM_MISC_ERROR ("strict-infix grammar requires non-empty list",
 		    SCM_EOL);
 
-  result = scm_i_make_string (0, NULL);
+  result = scm_i_make_string (0, NULL, 0);
 
   tmp = ls;
   switch (gram)
@@ -2486,7 +2486,7 @@ SCM_DEFINE (scm_string_map, "string-map", 2, 2, 0,
   MY_VALIDATE_SUBSTRING_SPEC (2, s,
 			      3, start, cstart,
 			      4, end, cend);
-  result = scm_i_make_string (cend - cstart, NULL);
+  result = scm_i_make_string (cend - cstart, NULL, 0);
   p = 0;
   while (cstart < cend)
     {
@@ -2624,7 +2624,7 @@ SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
       ans = base;
     }
   else
-    ans = scm_i_make_string (0, NULL);
+    ans = scm_i_make_string (0, NULL, 0);
   if (!SCM_UNBNDP (make_final))
     SCM_VALIDATE_PROC (6, make_final);
 
@@ -2636,7 +2636,7 @@ SCM_DEFINE (scm_string_unfold, "string-unfold", 4, 2, 0,
       SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
-      str = scm_i_make_string (1, NULL);
+      str = scm_i_make_string (1, NULL, 0);
       str = scm_i_string_start_writing (str);
       scm_i_string_set_x (str, i, SCM_CHAR (ch));
       scm_i_string_stop_writing ();
@@ -2690,7 +2690,7 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
       ans = base;
     }
   else
-    ans = scm_i_make_string (0, NULL);
+    ans = scm_i_make_string (0, NULL, 0);
   if (!SCM_UNBNDP (make_final))
     SCM_VALIDATE_PROC (6, make_final);
 
@@ -2702,7 +2702,7 @@ SCM_DEFINE (scm_string_unfold_right, "string-unfold-right", 4, 2, 0,
       SCM ch = scm_call_1 (f, seed);
       if (!SCM_CHARP (ch))
 	SCM_MISC_ERROR ("procedure ~S returned non-char", scm_list_1 (f));
-      str = scm_i_make_string (1, NULL);
+      str = scm_i_make_string (1, NULL, 0);
       str = scm_i_string_start_writing (str);
       scm_i_string_set_x (str, i, SCM_CHAR (ch));
       scm_i_string_stop_writing ();
@@ -2817,7 +2817,7 @@ SCM_DEFINE (scm_xsubstring, "xsubstring", 2, 3, 0,
   if (cstart == cend && cfrom != cto)
     SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
 
-  result = scm_i_make_string (cto - cfrom, NULL);
+  result = scm_i_make_string (cto - cfrom, NULL, 0);
   result = scm_i_string_start_writing (result);
 
   p = 0;
@@ -3129,7 +3129,7 @@ SCM_DEFINE (scm_string_filter, "string-filter", 2, 2, 0,
       else
         {
           size_t dst = 0;
-          result = scm_i_make_string (count, NULL);
+          result = scm_i_make_string (count, NULL, 0);
 	  result = scm_i_string_start_writing (result);
 
           /* decrement "count" in this loop as well as using idx, so that if
@@ -3239,7 +3239,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
         {
 	  int i = 0;
           /* new string for retained portion */
-          result = scm_i_make_string (count, NULL); 
+          result = scm_i_make_string (count, NULL, 0); 
           result = scm_i_string_start_writing (result);
           /* decrement "count" in this loop as well as using idx, so that if
              another thread is simultaneously changing "s" there's no chance
@@ -3281,7 +3281,7 @@ SCM_DEFINE (scm_string_delete, "string-delete", 2, 2, 0,
         {
 	  size_t i = 0;
           /* new string for retained portion */
-          result = scm_i_make_string (count, NULL);
+          result = scm_i_make_string (count, NULL, 0);
 	  result = scm_i_string_start_writing (result);
 
           /* decrement "count" in this loop as well as using idx, so that if

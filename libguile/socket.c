@@ -1426,7 +1426,7 @@ SCM_DEFINE (scm_recv, "recv!", 2, 1, 0,
 	 "use a bytevector instead.");
 
       len = scm_i_string_length (buf);
-      msg = scm_i_make_string (len, &dest);
+      msg = scm_i_make_string (len, &dest, 0);
       SCM_SYSCALL (rv = recv (fd, dest, len, flg));
       scm_string_copy_x (buf, scm_from_int (0),
 			 msg, scm_from_int (0), scm_from_size_t (len));

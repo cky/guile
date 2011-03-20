@@ -40,7 +40,7 @@ VM_DEFINE_LOADER (102, load_string, "load-string")
 
   FETCH_LENGTH (len);
   SYNC_REGISTER ();
-  PUSH (scm_i_make_string (len, &buf));
+  PUSH (scm_i_make_string (len, &buf, 1));
   memcpy (buf, (char *) ip, len);
   ip += len;
   NEXT;
@@ -113,7 +113,7 @@ VM_DEFINE_LOADER (107, load_wide_string, "load-wide-string")
     }
 
   SYNC_REGISTER ();
-  PUSH (scm_i_make_wide_string (len / 4, &wbuf));
+  PUSH (scm_i_make_wide_string (len / 4, &wbuf, 1));
   memcpy ((char *) wbuf, (char *) ip, len);
   ip += len;
   NEXT;

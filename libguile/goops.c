@@ -670,7 +670,7 @@ SCM_DEFINE (scm_sys_prep_layout_x, "%prep-layout!", 1, 0, 0,
     SCM_MISC_ERROR ("class object doesn't have enough fields: ~S",
 		    scm_list_1 (nfields));
 
-  layout = scm_i_make_string (n, &s);
+  layout = scm_i_make_string (n, &s, 0);
   i = 0;
   while (scm_is_pair (getters_n_setters))
     {

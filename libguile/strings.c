@@ -262,30 +262,34 @@ SCM scm_nullstr;
 
 /* Create a scheme string with space for LEN 8-bit Latin-1-encoded
    characters.  CHARSP, if not NULL, will be set to location of the
-   char array.  */
+   char array.  If READ_ONLY_P, the returned string is read-only;
+   otherwise it is writable.  */
 SCM
-scm_i_make_string (size_t len, char **charsp)
+scm_i_make_string (size_t len, char **charsp, int read_only_p)
 {
   SCM buf = make_stringbuf (len);
   SCM res;
   if (charsp)
     *charsp = (char *) STRINGBUF_CHARS (buf);
-  res = scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
-			 (scm_t_bits)0, (scm_t_bits) len);
+  res = scm_double_cell (read_only_p ? RO_STRING_TAG : STRING_TAG,
+			 SCM_UNPACK (buf),
+			 (scm_t_bits) 0, (scm_t_bits) len);
   return res;
 }
 
 /* Create a scheme string with space for LEN 32-bit UCS-4-encoded
    characters.  CHARSP, if not NULL, will be set to location of the
-   character array.  */
+   character array.  If READ_ONLY_P, the returned string is read-only;
+   otherwise it is writable.  */
 SCM
-scm_i_make_wide_string (size_t len, scm_t_wchar **charsp)
+scm_i_make_wide_string (size_t len, scm_t_wchar **charsp, int read_only_p)
 {
   SCM buf = make_wide_stringbuf (len);
   SCM res;
   if (charsp)
     *charsp = STRINGBUF_WIDE_CHARS (buf);
-  res = scm_double_cell (STRING_TAG, SCM_UNPACK (buf),
+  res = scm_double_cell (read_only_p ? RO_STRING_TAG : STRING_TAG,
+			 SCM_UNPACK (buf),
                          (scm_t_bits) 0, (scm_t_bits) len);
   return res;
 }
@@ -889,7 +893,7 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
     {
       size_t len = STRINGBUF_LENGTH (buf);
       char *cbuf;
-      SCM sbc = scm_i_make_string (len, &cbuf);
+      SCM sbc = scm_i_make_string (len, &cbuf, 0);
       memcpy (cbuf, STRINGBUF_CHARS (buf), len);
       e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
@@ -898,7 +902,7 @@ SCM_DEFINE (scm_sys_string_dump, "%string-dump", 1, 0, 0, (SCM str),
     {
       size_t len = STRINGBUF_LENGTH (buf);
       scm_t_wchar *cbuf;
-      SCM sbc = scm_i_make_wide_string (len, &cbuf);
+      SCM sbc = scm_i_make_wide_string (len, &cbuf, 0);
       u32_cpy ((scm_t_uint32 *) cbuf, 
                (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
       e6 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
@@ -962,7 +966,7 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
     {
       size_t len = STRINGBUF_LENGTH (buf);
       char *cbuf;
-      SCM sbc = scm_i_make_string (len, &cbuf);
+      SCM sbc = scm_i_make_string (len, &cbuf, 0);
       memcpy (cbuf, STRINGBUF_CHARS (buf), len);
       e4 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
                      sbc);
@@ -971,7 +975,7 @@ SCM_DEFINE (scm_sys_symbol_dump, "%symbol-dump", 1, 0, 0, (SCM sym),
     {
       size_t len = STRINGBUF_LENGTH (buf);
       scm_t_wchar *cbuf;
-      SCM sbc = scm_i_make_wide_string (len, &cbuf);
+      SCM sbc = scm_i_make_wide_string (len, &cbuf, 0);
       u32_cpy ((scm_t_uint32 *) cbuf, 
                (scm_t_uint32 *) STRINGBUF_WIDE_CHARS (buf), len);
       e4 = scm_cons (scm_from_latin1_symbol ("stringbuf-chars"),
@@ -1066,7 +1070,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     {
       char *buf;
 
-      result = scm_i_make_string (len, NULL);
+      result = scm_i_make_string (len, NULL, 0);
       result = scm_i_string_start_writing (result);
       buf = scm_i_string_writable_chars (result);
       while (len > 0 && scm_is_pair (rest))
@@ -1083,7 +1087,7 @@ SCM_DEFINE (scm_string, "string", 0, 0, 1,
     {
       scm_t_wchar *buf;
 
-      result = scm_i_make_wide_string (len, NULL);
+      result = scm_i_make_wide_string (len, NULL, 0);
       result = scm_i_string_start_writing (result);
       buf = scm_i_string_writable_wide_chars (result);
       while (len > 0 && scm_is_pair (rest))
@@ -1125,7 +1129,7 @@ scm_c_make_string (size_t len, SCM chr)
 {
   size_t p;
   char *contents = NULL;
-  SCM res = scm_i_make_string (len, &contents);
+  SCM res = scm_i_make_string (len, &contents, 0);
 
   /* If no char is given, initialize string contents to NULL.  */
   if (SCM_UNBNDP (chr))
@@ -1372,9 +1376,9 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
     }
   data.narrow = NULL;
   if (!wide)
-    res = scm_i_make_string (len, &data.narrow);
+    res = scm_i_make_string (len, &data.narrow, 0);
   else
-    res = scm_i_make_wide_string (len, &data.wide);
+    res = scm_i_make_wide_string (len, &data.wide, 0);
 
   for (l = args; !scm_is_null (l); l = SCM_CDR (l))
     {
@@ -1463,7 +1467,7 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
     {
       /* If encoding is null, use Latin-1.  */
       char *buf;
-      res = scm_i_make_string (len, &buf);
+      res = scm_i_make_string (len, &buf, 0);
       memcpy (buf, str, len);
       return res;
     }
@@ -1502,7 +1506,7 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   if (!wide)
     {
       char *dst;
-      res = scm_i_make_string (u32len, &dst);
+      res = scm_i_make_string (u32len, &dst, 0);
       for (i = 0; i < u32len; i ++)
         dst[i] = (unsigned char) u32[i];
       dst[u32len] = '\0';
@@ -1510,7 +1514,7 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   else
     {
       scm_t_wchar *wdst;
-      res = scm_i_make_wide_string (u32len, &wdst);
+      res = scm_i_make_wide_string (u32len, &wdst, 0);
       u32_cpy ((scm_t_uint32 *) wdst, (scm_t_uint32 *) u32, u32len);
       wdst[u32len] = 0;
     }
@@ -1548,7 +1552,7 @@ scm_from_latin1_stringn (const char *str, size_t len)
     len = strlen (str);
 
   /* Make a narrow string and copy STR as is.  */
-  result = scm_i_make_string (len, &buf);
+  result = scm_i_make_string (len, &buf, 0);
   memcpy (buf, str, len);
 
   return result;
@@ -1581,7 +1585,7 @@ scm_from_utf32_stringn (const scm_t_wchar *str, size_t len)
   if (len == (size_t) -1)
     len = u32_strlen ((uint32_t *) str);
 
-  result = scm_i_make_wide_string (len, &buf);
+  result = scm_i_make_wide_string (len, &buf, 0);
   memcpy (buf, str, len * sizeof (scm_t_wchar));
   scm_i_try_narrow_string (result);
 
@@ -1999,7 +2003,7 @@ normalize_str (SCM string, uninorm_t form)
 
   w_str = u32_normalize (form, w_str, len, NULL, &rlen);  
   
-  ret = scm_i_make_wide_string (rlen, &cbuf);
+  ret = scm_i_make_wide_string (rlen, &cbuf, 0);
   u32_cpy ((scm_t_uint32 *) cbuf, w_str, rlen);
   free (w_str);
 
@@ -2211,7 +2215,7 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_CHAR, scm_make_string)
 void
 scm_init_strings ()
 {
-  scm_nullstr = scm_i_make_string (0, NULL);
+  scm_nullstr = scm_i_make_string (0, NULL, 1);
 
 #include "libguile/strings.x"
 }

@@ -352,7 +352,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 
   if (count)
     {
-      result = scm_i_make_string (count, &data);
+      result = scm_i_make_string (count, &data, 0);
       scm_take_from_input_buffers (port, data, count);
     }
   else

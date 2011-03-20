@@ -357,7 +357,7 @@ scm_strport_to_string (SCM port)
   if (pt->encoding == NULL)
     {
       char *buf;
-      str = scm_i_make_string (pt->read_buf_size, &buf);
+      str = scm_i_make_string (pt->read_buf_size, &buf, 0);
       memcpy (buf, pt->read_buf, pt->read_buf_size);
     }
   else

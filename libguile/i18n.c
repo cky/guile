@@ -1252,7 +1252,7 @@ str_to_case (SCM str, scm_t_locale c_locale,
       return NULL;
     }
 
-  convstr = scm_i_make_wide_string (convlen, &c_buf);
+  convstr = scm_i_make_wide_string (convlen, &c_buf, 0);
   memcpy (c_buf, c_convstr, convlen * sizeof (scm_t_wchar));
   free (c_convstr);
 
