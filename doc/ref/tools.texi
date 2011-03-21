@@ -303,14 +303,11 @@ is rather byzantine, so for now @emph{NO} doc snarfing programs are installed.
 @cindex executable modules
 @cindex scripts
 
-When Guile is installed, in addition to the @code{(ice-9 FOO)} modules,
-a set of @dfn{executable modules} @code{(scripts BAR)} is also installed.
-Each is a regular Scheme module that has some additional packaging so
-that it can be called as a program in its own right, from the shell.  For this
-reason, we sometimes use the term @dfn{script} in this context to mean the
-same thing.
-
-@c wow look at this hole^!  variable-width font users eat your heart out.
+When Guile is installed, in addition to the @code{(ice-9 FOO)} modules, a set
+of @dfn{guile-tools modules} @code{(scripts BAR)} is also installed.  Each is
+a regular Scheme module that has some additional packaging so that it can be
+used by guile-tools, from the shell.  For this reason, we sometimes use the
+term @dfn{script} in this context to mean the same thing.
 
 As a convenience, the @code{guile-tools} wrapper program is installed along w/
 @code{guile}; it knows where a particular module is installed and calls it
@@ -346,15 +343,9 @@ executable module.  Feel free to skip to the next chapter.
 
 See template file @code{PROGRAM} for a quick start.
 
-Programs must follow the @dfn{executable module} convention, documented here:
+Programs must follow the @dfn{guile-tools} convention, documented here:
 
 @itemize
-
-@item
-The file name must not end in ".scm".
-
-@item
-The file must be executable (chmod +x).
 
 @item
 The module name must be "(scripts PROGRAM)".  A procedure named PROGRAM w/
@@ -377,20 +368,10 @@ There must be the alias:
 
 However, `main' must NOT be exported.
 
-@item
-The beginning of the file must use the following invocation sequence:
-
-@example
-#!/bin/sh
-main='(module-ref (resolve-module '\''(scripts PROGRAM)) '\'main')'
-exec $@{GUILE-guile@} -l $0 -c "(apply $main (cdr (command-line)))" "$@@"
-!#
-@end example
-
 @end itemize
 
 Following these conventions allows the program file to be used as module
-@code{(scripts PROGRAM)} in addition to as a standalone executable.  Please
+@code{(scripts PROGRAM)} in addition to being invoked by guile-tools.  Please
 also include a helpful Commentary section w/ some usage info.
 
 @c tools.texi ends here

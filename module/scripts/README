@@ -4,9 +4,9 @@ Overview and Usage
 This directory contains Scheme programs, some useful in maintaining Guile.
 On "make install", these programs are copied to PKGDATADIR/VERSION/scripts.
 
-You can invoke a program from the shell, or alternatively, load its file
-as a Guile Scheme module, and use its exported procedure(s) from Scheme code.
-Typically for any PROGRAM:
+You can use guile-tools to invoke a program from the shell, or alternatively,
+load its file as a Guile Scheme module, and use its exported procedure(s)
+from Scheme code.  Typically for any PROGRAM:
 
   (use-modules (scripts PROGRAM))
   (PROGRAM ARG1 ARG2 ...)
@@ -21,8 +21,6 @@ Note that all args must be strings.
 To see PROGRAM's commentary, which may or may not be helpful:
 
   (help (scripts PROGRAM))
-
-To see all commentaries and module dependencies, try: "make overview".
 
 If you want to try the programs before installing Guile, you will probably
 need to set environment variable GUILE_LOAD_PATH to be the parent directory.
@@ -40,11 +38,7 @@ How to Contribute
 
 See template file PROGRAM for a quick start.
 
-Programs must follow the "executable module" convention, documented here:
-
-- The file name must not end in ".scm".
-
-- The file must be executable (chmod +x).
+Programs must follow the "guile-tools" convention, documented here:
 
 - The module name must be "(scripts PROGRAM)".  A procedure named PROGRAM w/
   signature "(PROGRAM . args)" must be exported.  Basically, use some variant
@@ -61,15 +55,8 @@ Programs must follow the "executable module" convention, documented here:
 
   However, `main' must NOT be exported.
 
-- The beginning of the file must use the following invocation sequence:
-
-  #!/bin/sh
-  main='(module-ref (resolve-module '\''(scripts PROGRAM)) '\'main')'
-  exec ${GUILE-guile} -l $0 -c "(apply $main (cdr (command-line)))" "$@"
-  !#
-
 Following these conventions allows the program file to be used as module
-(scripts PROGRAM) in addition to as a standalone executable.  Please also
+(scripts PROGRAM) in addition to being invoked by guile-tools.  Please also
 include a helpful Commentary section w/ some usage info.
 
 
