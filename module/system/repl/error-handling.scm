@@ -122,27 +122,28 @@
       (case on-error
         ((debug)
          (lambda (key . args)
-           (let* ((tag (and (pair? (fluid-ref %stacks))
-                            (cdar (fluid-ref %stacks))))
-                  (stack (narrow-stack->vector
-                          (make-stack #t)
-                          ;; Cut three frames from the top of the stack:
-                          ;; make-stack, this one, and the throw handler.
-                          3
-                          ;; Narrow the end of the stack to the most recent
-                          ;; start-stack.
-                          tag
-                          ;; And one more frame, because %start-stack invoking
-                          ;; the start-stack thunk has its own frame too.
-                          0 (and tag 1)))
-                  (error-msg (error-string stack key args))
-                  (debug (make-debug stack 0 error-msg #f)))
-             (with-saved-ports
-              (lambda ()
-                (format #t "~a~%" error-msg)
-                (format #t "Entering a new prompt.  ")
-                (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
-                ((@ (system repl repl) start-repl) #:debug debug))))))
+           (if (not (memq key pass-keys))
+               (let* ((tag (and (pair? (fluid-ref %stacks))
+                                (cdar (fluid-ref %stacks))))
+                      (stack (narrow-stack->vector
+                              (make-stack #t)
+                              ;; Cut three frames from the top of the stack:
+                              ;; make-stack, this one, and the throw handler.
+                              3
+                              ;; Narrow the end of the stack to the most recent
+                              ;; start-stack.
+                              tag
+                              ;; And one more frame, because %start-stack invoking
+                              ;; the start-stack thunk has its own frame too.
+                              0 (and tag 1)))
+                      (error-msg (error-string stack key args))
+                      (debug (make-debug stack 0 error-msg #f)))
+                 (with-saved-ports
+                  (lambda ()
+                    (format #t "~a~%" error-msg)
+                    (format #t "Entering a new prompt.  ")
+                    (format #t "Type `,bt' for a backtrace or `,q' to continue.\n")
+                    ((@ (system repl repl) start-repl) #:debug debug)))))))
         ((report)
          (lambda (key . args)
            (if (not (memq key pass-keys))
