@@ -821,6 +821,7 @@ BV_FLOAT_REF (f64, ieee_double, double, 8)
     goto VM_LABEL (bv_##stem##_native_set);                             \
   {                                                                     \
     SCM bv, idx, val; POP (val); POP (idx); POP (bv);                   \
+    SYNC_REGISTER ();                                                   \
     scm_bytevector_##fn_stem##_set_x (bv, idx, val, endianness);        \
     NEXT;                                                               \
   }                                                                     \
@@ -865,7 +866,10 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
                   && (j <= max)))					\
     *int_ptr = (scm_t_ ## type) j;					\
   else									\
-    scm_bytevector_ ## fn_stem ## _set_x (bv, idx, val);		\
+    {                                                                   \
+      SYNC_REGISTER ();                                                 \
+      scm_bytevector_ ## fn_stem ## _set_x (bv, idx, val);		\
+    }                                                                   \
   NEXT;									\
 }
 
@@ -886,29 +890,35 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
                   && (ALIGNED_P (int_ptr, scm_t_ ## type))))		\
     *int_ptr = scm_to_ ## type (val);					\
   else									\
-    scm_bytevector_ ## stem ## _native_set_x (bv, idx, val);		\
-  NEXT;									\
+    {                                                                   \
+      SYNC_REGISTER ();                                                 \
+      scm_bytevector_ ## stem ## _native_set_x (bv, idx, val);		\
+    }                                                                   \
+  NEXT;                                                                 \
 }
 
-#define BV_FLOAT_SET(stem, fn_stem, type, size)			\
-{								\
-  scm_t_signed_bits i = 0;					\
-  SCM bv, idx, val;						\
-  type *float_ptr;						\
-								\
-  POP (val); POP (idx); POP (bv);				\
-  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");              \
-  i = SCM_I_INUM (idx);						\
-  float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
-								\
-  if (SCM_LIKELY (SCM_I_INUMP (idx)				\
-                  && (i >= 0)					\
-                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))	\
-                  && (ALIGNED_P (float_ptr, type))))		\
-    *float_ptr = scm_to_double (val);				\
-  else								\
-    scm_bytevector_ ## fn_stem ## _native_set_x (bv, idx, val);	\
-  NEXT;								\
+#define BV_FLOAT_SET(stem, fn_stem, type, size)                         \
+{                                                                       \
+  scm_t_signed_bits i = 0;                                              \
+  SCM bv, idx, val;                                                     \
+  type *float_ptr;                                                      \
+                                                                        \
+  POP (val); POP (idx); POP (bv);                                       \
+  VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");                      \
+  i = SCM_I_INUM (idx);                                                 \
+  float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);              \
+                                                                        \
+  if (SCM_LIKELY (SCM_I_INUMP (idx)                                     \
+                  && (i >= 0)                                           \
+                  && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))           \
+                  && (ALIGNED_P (float_ptr, type))))                    \
+    *float_ptr = scm_to_double (val);                                   \
+  else                                                                  \
+    {                                                                   \
+      SYNC_REGISTER ();                                                 \
+      scm_bytevector_ ## fn_stem ## _native_set_x (bv, idx, val);       \
+    }                                                                   \
+  NEXT;                                                                 \
 }
 
 VM_DEFINE_INSTRUCTION (200, bv_u8_set, "bv-u8-set", 0, 3, 0)
