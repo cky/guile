@@ -1256,6 +1256,13 @@ AC_CHECK_TYPE([GC_fn_type],
   [],
   [#include <gc/gc.h>])
 
+# `GC_stack_base' is not available in GC 7.1 and earlier.
+AC_CHECK_TYPE([struct GC_stack_base],
+  [AC_DEFINE([HAVE_GC_STACK_BASE], [1],
+    [Define this if the `GC_stack_base' type is available.])],
+  [],
+  [#include <gc/gc.h>])
+
 LIBS="$save_LIBS"
 
 

@@ -79,6 +79,37 @@ typedef void * (* GC_fn_type) (void *);
 #endif
 
 
+#ifndef GC_SUCCESS
+#define GC_SUCCESS 0
+#endif
+
+#ifndef GC_UNIMPLEMENTED
+#define GC_UNIMPLEMENTED 3
+#endif
+
+/* Likewise struct GC_stack_base is missing before 7.1.  */
+#ifndef HAVE_GC_STACK_BASE
+struct GC_stack_base;
+
+static int
+GC_register_my_thread (struct GC_stack_base *)
+{
+  return GC_UNIMPLEMENTED;
+}
+
+static void
+GC_unregister_my_thread ()
+{
+}
+
+static void *
+GC_call_with_stack_base(void * (*fn) (struct GC_stack_base*, void*), void *arg)
+{
+  return fn (NULL, arg);
+}
+#endif
+
+
 /* Now define with_gc_active and with_gc_inactive.  */
 
 #if (defined(HAVE_GC_DO_BLOCKING) && defined (HAVE_DECL_GC_DO_BLOCKING) && defined (HAVE_GC_CALL_WITH_GC_ACTIVE))
