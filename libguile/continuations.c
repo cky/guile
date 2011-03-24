@@ -460,6 +460,45 @@ scm_i_with_continuation_barrier (scm_t_catch_body body,
   return result;
 }
 
+
+
+static int
+should_print_backtrace (SCM tag, SCM stack)
+{
+  return SCM_BACKTRACE_P
+    && scm_is_true (stack)
+    && scm_initialized_p
+    /* It's generally not useful to print backtraces for errors reading
+       or expanding code in these fallback catch statements. */
+    && !scm_is_eq (tag, scm_from_latin1_symbol ("read-error"))
+    && !scm_is_eq (tag, scm_from_latin1_symbol ("syntax-error"));
+}
+
+static void
+print_exception_and_backtrace (SCM port, SCM tag, SCM args)
+{
+  SCM stack, frame;
+
+  /* We get here via a throw to a catch-all.  In that case there is the
+     throw frame active, and this catch closure, so narrow by two
+     frames.  */
+  stack = scm_make_stack (SCM_BOOL_T, scm_list_1 (scm_from_int (2)));
+  frame = scm_is_true (stack) ? scm_stack_ref (stack, SCM_INUM0) : SCM_BOOL_F;
+
+  if (should_print_backtrace (tag, stack))
+    {
+      scm_puts ("Backtrace:\n", port);
+      scm_display_backtrace_with_highlights (stack, port,
+                                             SCM_BOOL_F, SCM_BOOL_F,
+                                             SCM_EOL);
+      scm_newline (port);
+    }
+
+  scm_print_exception (port, frame, tag, args);
+}
+
+
+
 struct c_data {
   void *(*func) (void *);
   void *data;
@@ -477,8 +516,24 @@ c_body (void *d)
 static SCM
 c_handler (void *d, SCM tag, SCM args)
 {
-  struct c_data *data = (struct c_data *)d;
+  struct c_data *data;
+
+  /* If TAG is `quit', exit() the process.  */
+  if (scm_is_eq (tag, scm_from_latin1_symbol ("quit")))
+    exit (scm_exit_status (args));
+
+  data = (struct c_data *)d;
   data->result = NULL;
+  return SCM_UNSPECIFIED;
+}
+
+static SCM
+pre_unwind_handler (void *error_port, SCM tag, SCM args)
+{
+  /* Print the exception unless TAG is  `quit'.  */
+  if (!scm_is_eq (tag, scm_from_latin1_symbol ("quit")))
+    print_exception_and_backtrace (PTR2SCM (error_port), tag, args);
+
   return SCM_UNSPECIFIED;
 }
 
@@ -490,7 +545,8 @@ scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
   c_data.data = data;
   scm_i_with_continuation_barrier (c_body, &c_data,
 				   c_handler, &c_data,
-				   scm_handle_by_message_noexit, NULL);
+				   pre_unwind_handler,
+                                   SCM2PTR (scm_current_error_port ()));
   return c_data.result;
 }
 
@@ -508,6 +564,10 @@ scm_body (void *d)
 static SCM
 scm_handler (void *d, SCM tag, SCM args)
 {
+  /* Print a message.  Note that if TAG is `quit', this will exit() the
+     process.  */
+  scm_handle_by_message_noexit (NULL, tag, args);
+
   return SCM_BOOL_F;
 }
 
@@ -529,7 +589,8 @@ SCM_DEFINE (scm_with_continuation_barrier, "with-continuation-barrier", 1,0,0,
   scm_data.proc = proc;
   return scm_i_with_continuation_barrier (scm_body, &scm_data,
 					  scm_handler, &scm_data,
-					  scm_handle_by_message_noexit, NULL);
+					  pre_unwind_handler,
+                                          SCM2PTR (scm_current_error_port ()));
 }
 #undef FUNC_NAME
 
