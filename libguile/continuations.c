@@ -477,13 +477,7 @@ c_body (void *d)
 static SCM
 c_handler (void *d, SCM tag, SCM args)
 {
-  struct c_data *data;
-
-  /* Print a message.  Note that if TAG is `quit', this will exit() the
-     process.  */
-  scm_handle_by_message_noexit (NULL, tag, args);
-
-  data = (struct c_data *)d;
+  struct c_data *data = (struct c_data *)d;
   data->result = NULL;
   return SCM_UNSPECIFIED;
 }
@@ -496,7 +490,7 @@ scm_c_with_continuation_barrier (void *(*func) (void *), void *data)
   c_data.data = data;
   scm_i_with_continuation_barrier (c_body, &c_data,
 				   c_handler, &c_data,
-				   NULL, NULL);
+				   scm_handle_by_message_noexit, NULL);
   return c_data.result;
 }
 
@@ -514,10 +508,6 @@ scm_body (void *d)
 static SCM
 scm_handler (void *d, SCM tag, SCM args)
 {
-  /* Print a message.  Note that if TAG is `quit', this will exit() the
-     process.  */
-  scm_handle_by_message_noexit (NULL, tag, args);
-
   return SCM_BOOL_F;
 }
 
@@ -539,7 +529,7 @@ SCM_DEFINE (scm_with_continuation_barrier, "with-continuation-barrier", 1,0,0,
   scm_data.proc = proc;
   return scm_i_with_continuation_barrier (scm_body, &scm_data,
 					  scm_handler, &scm_data,
-					  NULL, NULL);
+					  scm_handle_by_message_noexit, NULL);
 }
 #undef FUNC_NAME
 
