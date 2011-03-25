@@ -1,7 +1,7 @@
 #ifndef SCM_BDW_GC_H
 #define SCM_BDW_GC_H
 
-/* Copyright (C) 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,11 @@
 
 # define GC_THREADS 1
 # define GC_REDIRECT_TO_LOCAL 1
+
+/* Don't #define pthread routines to their GC_pthread counterparts.
+   Instead we will be careful inside Guile to use the GC_pthread
+   routines.  */
+# define GC_NO_THREAD_REDIRECTS 1
 
 #endif
 

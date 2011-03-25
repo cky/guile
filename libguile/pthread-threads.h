@@ -3,7 +3,7 @@
 #ifndef SCM_PTHREADS_THREADS_H
 #define SCM_PTHREADS_THREADS_H
 
-/* Copyright (C) 2002, 2005, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2002, 2005, 2006, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,24 +29,24 @@
 #include <pthread.h>
 #include <sched.h>
 
-/* `libgc' intercepts pthread calls by defining wrapping macros.  */
+/* `libgc' defines wrapper procedures for pthread calls.  */
 #include "libguile/bdw-gc.h"
 
 /* Threads 
 */
 #define scm_i_pthread_t                     pthread_t
 #define scm_i_pthread_self                  pthread_self
-#define scm_i_pthread_create                pthread_create
-#define scm_i_pthread_detach                pthread_detach
-#define scm_i_pthread_exit                  pthread_exit
-#define scm_i_pthread_cancel                pthread_cancel
+#define scm_i_pthread_create                GC_pthread_create
+#define scm_i_pthread_detach                GC_pthread_detach
+#define scm_i_pthread_exit                  GC_pthread_exit
+#define scm_i_pthread_cancel                GC_pthread_cancel
 #define scm_i_pthread_cleanup_push          pthread_cleanup_push
 #define scm_i_pthread_cleanup_pop           pthread_cleanup_pop
 #define scm_i_sched_yield                   sched_yield
 
 /* Signals
  */
-#define scm_i_pthread_sigmask               pthread_sigmask
+#define scm_i_pthread_sigmask               GC_pthread_sigmask
 
 /* Mutexes
  */

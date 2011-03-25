@@ -376,16 +376,10 @@ cleanup_for_exit ()
 }
 
 void
-scm_i_init_guile (SCM_STACKITEM *base)
+scm_i_init_guile (void *base)
 {
   if (scm_initialized_p)
     return;
-
-  if (base == NULL)
-    {
-      fprintf (stderr, "cannot determine stack base!\n");
-      abort ();
-    }
 
   if (sizeof (mpz_t) > (3 * sizeof (scm_t_bits)))
     {
