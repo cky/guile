@@ -488,57 +488,73 @@ static SCM scm_i_default_dynamic_state;
 static void
 guilify_self_1 (struct GC_stack_base *base)
 {
-  scm_i_thread *t = scm_gc_malloc (sizeof (scm_i_thread), "thread");
+  scm_i_thread t;
 
-  t->pthread = scm_i_pthread_self ();
-  t->handle = SCM_BOOL_F;
-  t->result = SCM_BOOL_F;
-  t->cleanup_handler = SCM_BOOL_F;
-  t->mutexes = SCM_EOL;
-  t->held_mutex = NULL;
-  t->join_queue = SCM_EOL;
-  t->dynamic_state = SCM_BOOL_F;
-  t->dynwinds = SCM_EOL;
-  t->active_asyncs = SCM_EOL;
-  t->block_asyncs = 1;
-  t->pending_asyncs = 1;
-  t->critical_section_level = 0;
-  t->base = base->mem_base;
+  /* We must arrange for SCM_I_CURRENT_THREAD to point to a valid value
+     before allocating anything in this thread, because allocation could
+     cause GC to run, and GC could cause finalizers, which could invoke
+     Scheme functions, which need the current thread to be set.  */
+
+  t.pthread = scm_i_pthread_self ();
+  t.handle = SCM_BOOL_F;
+  t.result = SCM_BOOL_F;
+  t.cleanup_handler = SCM_BOOL_F;
+  t.mutexes = SCM_EOL;
+  t.held_mutex = NULL;
+  t.join_queue = SCM_EOL;
+  t.dynamic_state = SCM_BOOL_F;
+  t.dynwinds = SCM_EOL;
+  t.active_asyncs = SCM_EOL;
+  t.block_asyncs = 1;
+  t.pending_asyncs = 1;
+  t.critical_section_level = 0;
+  t.base = base->mem_base;
 #ifdef __ia64__
-  t->register_backing_store_base = base->reg-base;
+  t.register_backing_store_base = base->reg-base;
 #endif
-  t->continuation_root = SCM_EOL;
-  t->continuation_base = t->base;
-  scm_i_pthread_cond_init (&t->sleep_cond, NULL);
-  t->sleep_mutex = NULL;
-  t->sleep_object = SCM_BOOL_F;
-  t->sleep_fd = -1;
+  t.continuation_root = SCM_EOL;
+  t.continuation_base = t.base;
+  scm_i_pthread_cond_init (&t.sleep_cond, NULL);
+  t.sleep_mutex = NULL;
+  t.sleep_object = SCM_BOOL_F;
+  t.sleep_fd = -1;
 
-  if (pipe (t->sleep_pipe) != 0)
+  if (pipe (t.sleep_pipe) != 0)
     /* FIXME: Error conditions during the initialization phase are handled
        gracelessly since public functions such as `scm_init_guile ()'
        currently have type `void'.  */
     abort ();
 
-  scm_i_pthread_mutex_init (&t->admin_mutex, NULL);
-  t->current_mark_stack_ptr = NULL;
-  t->current_mark_stack_limit = NULL;
-  t->canceled = 0;
-  t->exited = 0;
-  t->guile_mode = 0;
+  scm_i_pthread_mutex_init (&t.admin_mutex, NULL);
+  t.current_mark_stack_ptr = NULL;
+  t.current_mark_stack_limit = NULL;
+  t.canceled = 0;
+  t.exited = 0;
+  t.guile_mode = 0;
 
-  scm_i_pthread_setspecific (scm_i_thread_key, t);
+  /* The switcheroo.  */
+  {
+    scm_i_thread *t_ptr = &t;
+    
+    GC_disable ();
+    t_ptr = GC_malloc (sizeof (scm_i_thread));
+    memcpy (t_ptr, &t, sizeof t);
+
+    scm_i_pthread_setspecific (scm_i_thread_key, t_ptr);
 
 #ifdef SCM_HAVE_THREAD_STORAGE_CLASS
-  /* Cache the current thread in TLS for faster lookup.  */
-  scm_i_current_thread = t;
+    /* Cache the current thread in TLS for faster lookup.  */
+    scm_i_current_thread = t_ptr;
 #endif
 
-  scm_i_pthread_mutex_lock (&thread_admin_mutex);
-  t->next_thread = all_threads;
-  all_threads = t;
-  thread_count++;
-  scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+    scm_i_pthread_mutex_lock (&thread_admin_mutex);
+    t_ptr->next_thread = all_threads;
+    all_threads = t_ptr;
+    thread_count++;
+    scm_i_pthread_mutex_unlock (&thread_admin_mutex);
+
+    GC_enable ();
+  }
 }
 
 /* Perform second stage of thread initialisation, in guile mode.
@@ -644,17 +660,10 @@ do_thread_exit (void *v)
 static void *
 do_thread_exit_trampoline (struct GC_stack_base *sb, void *v)
 {
-  void *ret;
-  int registered;
+  /* Won't hurt if we are already registered.  */
+  GC_register_my_thread (sb);
 
-  registered = GC_register_my_thread (sb);
-
-  ret = scm_with_guile (do_thread_exit, v);
-
-  if (registered == GC_SUCCESS)
-    GC_unregister_my_thread ();
-
-  return ret;
+  return scm_with_guile (do_thread_exit, v);
 }
 
 static void
@@ -680,11 +689,9 @@ on_thread_exit (void *v)
      shutting it down.  */
   scm_i_ensure_signal_delivery_thread ();
 
-  /* Unblocking the joining threads needs to happen in guile mode
-     since the queue is a SCM data structure.   Trampoline through
-     GC_call_with_stack_base so that the GC works even if it already
-     cleaned up for this thread.  */
-  GC_call_with_stack_base (do_thread_exit_trampoline, v);
+  /* Scheme-level thread finalizers and other cleanup needs to happen in
+     guile mode.  */
+  GC_call_with_stack_base (do_thread_exit_trampoline, t);
 
   /* Removing ourself from the list of all threads needs to happen in
      non-guile mode since all SCM values on our stack become
@@ -712,6 +719,8 @@ on_thread_exit (void *v)
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 
   scm_i_pthread_setspecific (scm_i_thread_key, NULL);
+
+  GC_unregister_my_thread ();
 }
 
 static scm_i_pthread_once_t init_thread_key_once = SCM_I_PTHREAD_ONCE_INIT;
