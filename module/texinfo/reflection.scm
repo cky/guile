@@ -1,6 +1,6 @@
 ;;;; (texinfo reflection) -- documenting Scheme as stexinfo
 ;;;;
-;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -86,7 +86,7 @@
                                  (cons* (car in) infix out)))))))
 
 (define (process-args args)
-  (map (lambda (x) (if (symbol? x) (symbol->string x) x))
+  (map (lambda (x) (if (string? x) x (object->string x)))
        (list*-join (or args '())
                    " " " . ")))
 
