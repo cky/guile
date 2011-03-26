@@ -766,16 +766,10 @@ compare_u32_strings (SCM s1, SCM s2, SCM locale, const char *func_name)
 static const char *
 locale_language ()
 {
-  /* FIXME: If the locale has been set with 'uselocale',
-     libunistring's uc_locale_language will return the incorrect
-     language: it will return the language appropriate for the global
-     (non-thread-specific) locale.
-
-     There appears to be no portable way to extract the language from
-     the thread-specific locale_t.  There is no LANGUAGE capability in
-     nl_langinfo or nl_langinfo_l.
-
-     Thus, uc_locale_language needs to be fixed upstream.  */
+  /* Note: If the locale has been set with 'uselocale', uc_locale_language
+     from libunistring versions 0.9.1 and older will return the incorrect
+     (non-thread-specific) locale.  This is fixed in versions 0.9.2 and
+     newer.  */
   return uc_locale_language ();
 }
 
