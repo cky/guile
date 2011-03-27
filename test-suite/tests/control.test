@@ -178,6 +178,101 @@
       (eq? (k 'xyzzy)
            'xyzzy))))
 
+;; Here we test different cases for the `prompt'.
+(with-test-prefix/c&e "prompt in different contexts"
+  (pass-if "push, normal exit"
+    (car (call-with-prompt
+          'foo
+          (lambda () '(#t))
+          (lambda (k) '(#f)))))
+
+  (pass-if "push, nonlocal exit"
+    (car (call-with-prompt
+          'foo
+          (lambda () (abort-to-prompt 'foo) '(#f))
+          (lambda (k) '(#t)))))
+
+  (pass-if "push with RA, normal exit"
+    (car (letrec ((test (lambda ()
+                          (call-with-prompt
+                           'foo
+                           (lambda () '(#t))
+                           (lambda (k) '(#f))))))
+           (test))))
+
+  (pass-if "push with RA, nonlocal exit"
+    (car (letrec ((test (lambda ()
+                          (call-with-prompt
+                           'foo
+                           (lambda () (abort-to-prompt 'foo) '(#f))
+                           (lambda (k) '(#t))))))
+           (test))))
+
+  (pass-if "tail, normal exit"
+    (call-with-prompt
+     'foo
+     (lambda () #t)
+     (lambda (k) #f)))
+
+  (pass-if "tail, nonlocal exit"
+    (call-with-prompt
+     'foo
+     (lambda () (abort-to-prompt 'foo) #f)
+     (lambda (k) #t)))
+
+  (pass-if "tail with RA, normal exit"
+    (letrec ((test (lambda ()
+                     (call-with-prompt
+                      'foo
+                      (lambda () #t)
+                      (lambda (k) #f)))))
+      (test)))
+
+  (pass-if "tail with RA, nonlocal exit"
+    (letrec ((test (lambda ()
+                     (call-with-prompt
+                      'foo
+                      (lambda () (abort-to-prompt 'foo) #f)
+                      (lambda (k) #t)))))
+      (test)))
+
+  (pass-if "drop, normal exit"
+    (begin
+      (call-with-prompt
+       'foo
+       (lambda () #f)
+       (lambda (k) #f))
+      #t))
+
+  (pass-if "drop, nonlocal exit"
+    (begin
+      (call-with-prompt
+       'foo
+       (lambda () (abort-to-prompt 'foo))
+       (lambda (k) #f))
+      #t))
+
+  (pass-if "drop with RA, normal exit"
+    (begin
+      (letrec ((test (lambda ()
+                       (call-with-prompt
+                        'foo
+                        (lambda () #f)
+                        (lambda (k) #f)))))
+        (test))
+      #t))
+
+  (pass-if "drop with RA, nonlocal exit"
+    (begin
+      (letrec ((test (lambda ()
+                       (call-with-prompt
+                        'foo
+                        (lambda () (abort-to-prompt 'foo) #f)
+                        (lambda (k) #f)))))
+        (test))
+      #t)))
+
+
 (define fl (make-fluid))
 (fluid-set! fl 0)
 

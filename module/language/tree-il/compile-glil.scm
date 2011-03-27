@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009,2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1095,7 +1095,7 @@
             ;; post
             (comp-push body)
             (emit-code #f (make-glil-call 'unwind 0))
-            (emit-branch #f 'br POST))
+            (emit-branch #f 'br (or RA POST)))
            
            ((vals)
             (let ((MV (make-label)))
@@ -1138,8 +1138,8 @@
             (comp-tail body)
             (emit-code #f (make-glil-unbind))))
 
-         (if (or (eq? context 'push)
-                 (and (eq? context 'drop) (not RA)))
+         (if (and (not RA)
+                  (or (eq? context 'push) (eq? context 'drop)))
              (emit-label POST))))
 
       ((<abort> src tag args tail)
