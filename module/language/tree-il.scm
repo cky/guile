@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -471,8 +471,9 @@
      `(fluid-set! ,(tree-il->scheme fluid) ,(tree-il->scheme exp)))
 
     ((<prompt> tag body handler)
-     `((@ (ice-9 control) prompt)
-       ,(tree-il->scheme tag) (lambda () ,(tree-il->scheme body))
+     `(call-with-prompt
+       ,(tree-il->scheme tag)
+       (lambda () ,(tree-il->scheme body))
        ,(tree-il->scheme handler)))
 
 
