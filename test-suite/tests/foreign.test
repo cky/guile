@@ -225,6 +225,16 @@
                (arg3  (map (cut / <> 4.0) (iota 123 100 4))))
           (equal? (map proc arg1 arg2 arg3)
                   (map proc* arg1 arg2 arg3)))
+        (throw 'unresolved)))
+
+  (pass-if "procedures returning void"
+    (if (defined? 'procedure->pointer)
+        (let* ((called? #f)
+               (proc    (lambda () (set! called? #t)))
+               (pointer (procedure->pointer void proc '()))
+               (proc*   (pointer->procedure void pointer '())))
+          (proc*)
+          called?)
         (throw 'unresolved))))
 
 

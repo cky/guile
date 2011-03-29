@@ -905,6 +905,9 @@ unpack (const ffi_type *type, void *loc, SCM x)
       SCM_VALIDATE_POINTER (1, x);
       *(void **) loc = SCM_POINTER_VALUE (x);
       break;
+    case FFI_TYPE_VOID:
+      /* Do nothing.  */
+      break;
     default:
       abort ();
     }
