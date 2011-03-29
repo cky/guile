@@ -318,6 +318,18 @@ main (int argc, char *argv[])
   pf ("#define SCM_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER %d /* 0 or 1 */\n",
       SCM_I_GSC_NEED_BRACES_ON_PTHREAD_MUTEX_INITIALIZER);
 
+#ifdef HAVE_GC_PTHREAD_CANCEL
+  pf ("#define SCM_HAVE_GC_PTHREAD_CANCEL 1 /* 0 or 1 */\n");
+#else
+  pf ("#define SCM_HAVE_GC_PTHREAD_CANCEL 0 /* 0 or 1 */\n");
+#endif
+
+#ifdef HAVE_GC_PTHREAD_EXIT
+  pf ("#define SCM_HAVE_GC_PTHREAD_EXIT 1 /* 0 or 1 */\n");
+#else
+  pf ("#define SCM_HAVE_GC_PTHREAD_EXIT 0 /* 0 or 1 */\n");
+#endif
+
   pf ("\n\n/*** File system access ***/\n");
 
   pf ("/* Define to 1 if `struct dirent64' is available.  */\n");
