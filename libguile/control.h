@@ -1,4 +1,4 @@
-/* Copyright (C) 2010  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -46,7 +46,7 @@ SCM_INTERNAL SCM scm_c_make_prompt (SCM k, SCM *fp, SCM *sp,
                                     scm_t_uint8 escape_only_p,
                                     scm_t_int64 vm_cookie,
                                     SCM winds);
-SCM_INTERNAL SCM scm_i_prompt_pop_abort_args_x (SCM prompt);
+SCM_INTERNAL SCM scm_i_prompt_pop_abort_args_x (SCM vm);
 
 SCM_INTERNAL void scm_c_abort (SCM vm, SCM tag, size_t n, SCM *argv,
                                scm_t_int64 cookie) SCM_NORETURN;

@@ -424,7 +424,7 @@ eval (SCM x, SCM env)
           {
             /* The prompt exited nonlocally. */
             proc = handler;
-            args = scm_i_prompt_pop_abort_args_x (prompt);
+            args = scm_i_prompt_pop_abort_args_x (scm_the_vm ());
             goto apply_proc;
           }
         

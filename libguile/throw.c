@@ -467,7 +467,7 @@ pre_init_catch (SCM tag, SCM thunk, SCM handler, SCM pre_unwind_handler)
   if (SCM_PROMPT_SETJMP (prompt))
     {
       /* nonlocal exit */
-      SCM args = scm_i_prompt_pop_abort_args_x (prompt);
+      SCM args = scm_i_prompt_pop_abort_args_x (vm);
       /* cdr past the continuation */
       return scm_apply_0 (handler, scm_cdr (args));
     }

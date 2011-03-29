@@ -55,18 +55,18 @@ scm_c_make_prompt (SCM k, SCM *fp, SCM *sp, scm_t_uint8 *abort_ip,
 
 /* Only to be called if the SCM_PROMPT_SETJMP returns 1 */
 SCM
-scm_i_prompt_pop_abort_args_x (SCM prompt)
+scm_i_prompt_pop_abort_args_x (SCM vm)
 {
   size_t i, n;
   SCM vals = SCM_EOL;
 
-  n = scm_to_size_t (SCM_PROMPT_REGISTERS (prompt)->sp[0]);
+  n = scm_to_size_t (SCM_VM_DATA (vm)->sp[0]);
   for (i = 0; i < n; i++)
-    vals = scm_cons (SCM_PROMPT_REGISTERS (prompt)->sp[-(i + 1)], vals);
+    vals = scm_cons (SCM_VM_DATA (vm)->sp[-(i + 1)], vals);
 
   /* The abort did reset the VM's registers, but then these values
      were pushed on; so we need to pop them ourselves. */
-  SCM_VM_DATA (scm_the_vm ())->sp -= n + 1;
+  SCM_VM_DATA (vm)->sp -= n + 1;
   /* FIXME NULLSTACK */
 
   return vals;
