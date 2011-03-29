@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2006, 2010
+@c Copyright (C) 2006, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -35,12 +35,29 @@ current language is @code{scheme}, and the current module is
 support for languages other than Scheme.
 
 @menu
+* Init File::
 * Readline::                    
 * Value History::              
 * REPL Commands::               
 * Error Handling::              
 * Interactive Debugging::       
 @end menu
+
+
+@node Init File
+@subsection The Init File, @file{~/.guile}
+
+@cindex .guile
+When run interactively, Guile will load a local initialization file from
+@file{~/.guile}.  This file should contain Scheme expressions for
+evaluation.
+
+This facility lets the user customize their interactive Guile
+environment, pulling in extra modules or parameterizing the REPL
+implementation.
+
+To run Guile without loading the init file, use the @code{-q}
+command-line option.
 
 
 @node Readline
@@ -58,10 +75,8 @@ scheme@@(guile-user)> (activate-readline)
 @end lisp
 
 It's a good idea to put these two lines (without the
-@code{scheme@@(guile-user)>} prompts) in your @file{.guile} file.  Guile
-reads this file when it starts up interactively, so anything in this
-file has the same effect as if you type it in by hand at the
-@code{scheme@@(guile-user)>} prompt.
+@code{scheme@@(guile-user)>} prompts) in your @file{.guile} file.
+@xref{Init File}, for more on @file{.guile}.
 
 
 @node Value History
@@ -408,6 +423,35 @@ List/show/set options.
 
 @deffn {REPL Command} quit
 Quit this session.
+@end deffn
+
+Current REPL options include:
+
+@table @code
+@item compile-options
+The options used when compiling expressions entered at the REPL.
+@xref{Compilation}, for more on compilation options.
+@item interp
+Whether to interpret or compile expressions given at the REPL, if such a
+choice is available.  Off by default (indicating compilation).
+@item prompt
+A customized REPL prompt.  @code{#f} by default, indicating the default
+prompt.
+@item value-history
+Whether value history is on or not.  @xref{Value History}.
+@item on-error
+What to do when an error happens.  By default, @code{debug}, meaning to
+enter the debugger.  Other values include @code{backtrace}, to show a
+backtrace without entering the debugger, or @code{report}, to simply
+show a short error printout.
+@end table
+
+Default values for REPL options may be set using
+@code{repl-default-option-set!} from @code{(system repl common)}:
+
+@deffn {Scheme Procedure} repl-set-default-option! key value
+Set the default value of a REPL option.  This function is particularly
+useful in a user's init file.  @xref{Init File}.
 @end deffn
 
 

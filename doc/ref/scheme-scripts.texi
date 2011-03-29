@@ -196,6 +196,11 @@ interactive session.  When executing a script with @code{-s} or
 Do not use the debugging VM engine, even when entering an interactive
 session.
 
+@item -q
+Do not the local initialization file, @code{.guile}.  This option only
+has an effect when running interactively; running scripts does not load
+the @code{.guile} file.  @xref{Init File}.
+
 @item --listen[=@var{p}]
 While this program runs, listen on a local port or a path for REPL
 clients.  If @var{p} starts with a number, it is assumed to be a local
