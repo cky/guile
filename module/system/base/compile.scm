@@ -68,16 +68,27 @@
       x
       (lookup-language x)))
 
-;; Throws an exception if `dir' is not writable. The double-stat is OK,
-;; as this is only used during compilation.
+;; Throws an exception if `dir' is not writable.  The mkdir occurs
+;; before the check, so that we avoid races (possibly due to parallel
+;; compilation).
+;;
 (define (ensure-writable-dir dir)
-  (if (file-exists? dir)
-      (if (access? dir W_OK)
-          #t
-          (error "directory not writable" dir))
-      (begin
-        (ensure-writable-dir (dirname dir))
-        (mkdir dir))))
+  (catch 'system-error
+    (lambda ()
+      (mkdir dir))
+    (lambda (k subr fmt args rest)
+      (let ((errno (and (pair? rest) (car rest))))
+        (cond
+         ((eqv? errno EEXIST)
+          (let ((st (stat dir)))
+            (if (or (not (eq? (stat:type st) 'directory))
+                    (not (access? dir W_OK)))
+                (error "directory not writable" dir))))
+         ((eqv? errno ENOENT)
+          (ensure-writable-dir (dirname dir))
+          (ensure-writable-dir dir))
+         (else
+          (throw k subr fmt args rest)))))))
 
 ;;; This function is among the trickiest I've ever written. I tried many
 ;;; variants. In the end, simple is best, of course.
