@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -71,7 +71,7 @@
    ((objcode? x)
     (values x #f))
    (else
-    (error "can't decompile ~A: not a program or objcode" x))))
+    (error "Object for disassembly not a program or objcode" x))))
 
 (define-language objcode
   #:title	"Guile Object Code"

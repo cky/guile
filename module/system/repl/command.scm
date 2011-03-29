@@ -465,7 +465,11 @@ Compile a file."
 (define-meta-command (disassemble repl (form))
   "disassemble EXP
 Disassemble a compiled procedure."
-  (guile:disassemble (repl-eval repl (repl-parse repl form))))
+  (let ((obj (repl-eval repl (repl-parse repl form))))
+    (if (or (program? obj) (objcode? obj))
+        (guile:disassemble obj)
+        (format #t "Argument to ,disassemble not a procedure or objcode: ~a~%"
+                obj))))
 
 (define-meta-command (disassemble-file repl file)
   "disassemble-file FILE
