@@ -720,7 +720,9 @@ on_thread_exit (void *v)
 
   scm_i_pthread_setspecific (scm_i_thread_key, NULL);
 
+#if !SCM_USE_NULL_THREADS
   GC_unregister_my_thread ();
+#endif
 }
 
 static scm_i_pthread_once_t init_thread_key_once = SCM_I_PTHREAD_ONCE_INIT;
