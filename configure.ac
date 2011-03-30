@@ -1238,7 +1238,7 @@ save_LIBS="$LIBS"
 LIBS="$BDW_GC_LIBS $LIBS"
 CFLAGS="$BDW_GC_CFLAGS $CFLAGS"
 
-AC_CHECK_FUNCS([GC_do_blocking GC_call_with_gc_active GC_pthread_exit GC_pthread_cancel])
+AC_CHECK_FUNCS([GC_do_blocking GC_call_with_gc_active GC_pthread_exit GC_pthread_cancel GC_allow_register_threads])
 
 # Though the `GC_do_blocking ()' symbol is present in GC 7.1, it is not
 # declared, and has a different type (returning void instead of

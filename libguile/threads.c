@@ -772,8 +772,10 @@ scm_i_init_thread_for_guile (struct GC_stack_base *base, SCM parent)
 	  */
 	  scm_i_init_guile (base);
 
+#ifdef HAVE_GC_ALLOW_REGISTER_THREADS
           /* Allow other threads to come in later.  */
           GC_allow_register_threads ();
+#endif
 
 	  scm_i_pthread_mutex_unlock (&scm_i_init_mutex);
 	}
