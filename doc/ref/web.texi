@@ -1325,13 +1325,20 @@ If the read failed, the @code{read} hook may return #f for the client
 socket, request, and body.
 
 @item
-A user-provided handler procedure is called, with the request
-and body as its arguments.  The handler should return two
-values: the response, as a @code{<response>} record from @code{(web
-response)}, and the response body as a string, bytevector, or
-@code{#f} if not present.  We also allow the response to be simply an
-alist of headers, in which case a default response object is
-constructed with those headers.
+A user-provided handler procedure is called, with the request and body
+as its arguments.  The handler should return two values: the response,
+as a @code{<response>} record from @code{(web response)}, and the
+response body as bytevector, or @code{#f} if not present.
+
+The respose and response body are run through @code{sanitize-response},
+documented below.  This allows the handler writer to take some
+convenient shortcuts: for example, instead of a @code{<response>}, the
+handler can simply return an alist of headers, in which case a default
+response object is constructed with those headers.  Instead of a
+bytevector for the body, the handler can return a string, which will be
+serialized into an appropriate encoding; or it can return a procedure,
+which will be called on a port to write out the data.  See the
+@code{sanitize-response} documentation, for more.
 
 @item
 The @code{write} hook is called with three arguments: the client
