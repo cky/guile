@@ -1746,22 +1746,26 @@ scm_i_scan_for_encoding (SCM port)
   pos = encoding_start;
   while (pos >= header)
     {
-      if (*pos == '\n')
-	{
-	  /* This wasn't in a semicolon comment. Check for a
-	   hash-bang comment. */
-	  char *beg = strstr (header, "#!");
-	  char *end = strstr (header, "!#");
-	  if (beg < encoding_start && encoding_start + encoding_length < end)
-	    in_comment = 1;
-	  break;
-	}
       if (*pos == ';')
 	{
 	  in_comment = 1;
 	  break;
 	}
-      pos --;
+      else if (*pos == '\n' || pos == header)
+	{
+	  /* This wasn't in a semicolon comment. Check for a
+	   hash-bang comment. */
+	  char *beg = strstr (header, "#!");
+	  char *end = strstr (header, "!#");
+	  if (beg < encoding_start && encoding_start + encoding_length <= end)
+	    in_comment = 1;
+	  break;
+	}
+      else
+        {
+          pos --;
+          continue;
+        }
     }
   if (!in_comment)
     /* This wasn't in a comment */

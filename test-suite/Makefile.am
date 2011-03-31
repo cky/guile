@@ -34,6 +34,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/bytevectors.test		\
 	    tests/c-api.test			\
 	    tests/chars.test			\
+	    tests/coding.test			\
 	    tests/common-list.test		\
 	    tests/control.test			\
 	    tests/continuations.test		\

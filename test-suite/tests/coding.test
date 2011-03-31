@@ -1,0 +1,104 @@
+;;;; coding.test --- test suite for coding declarations. -*- mode: scheme -*-
+;;;;
+;;;; Copyright (C) 2011 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-coding)
+  #:use-module (test-suite lib))
+
+(define (with-temp-file proc)
+  (let* ((name (string-copy "/tmp/coding-test.XXXXXX"))
+         (port (mkstemp! name)))
+    (let ((res (with-throw-handler
+                #t
+                (lambda ()
+                  (proc name port))
+                (lambda _
+                  (delete-file name)))))
+      (delete-file name)
+      res)))
+
+(define (scan-coding str)
+  (with-temp-file
+   (lambda (name port)
+     (display str port)
+     (close port)
+     ;; We don't simply seek back and rescan, because the encoding scan
+     ;; relies on the opportunistic filling of the input buffer, which
+     ;; doesn't happen after a seek.
+     (let* ((port (open-input-file name))
+            (res (port-encoding port)))
+       (close-port port)
+       res))))
+
+(with-test-prefix "block comments"
+
+  (pass-if "first line"
+    (equal? (scan-coding "#! coding: iso-8859-1 !#")
+            "ISO-8859-1"))
+  
+  (pass-if "first line no whitespace"
+    (equal? (scan-coding "#!coding:iso-8859-1!#")
+            "ISO-8859-1"))
+  
+  (pass-if "second line"
+    (equal? (scan-coding "#!  \n  coding: iso-8859-1  !#")
+            "ISO-8859-1"))
+  
+  (pass-if "second line no whitespace"
+    (equal? (scan-coding "#!\ncoding:iso-8859-1!#")
+            "ISO-8859-1"))
+  
+  (pass-if "third line"
+    (equal? (scan-coding "#! \n  coding: iso-8859-1  \n  !#")
+            "ISO-8859-1"))
+  
+  (pass-if "third line no whitespace"
+    (equal? (scan-coding "#!\ncoding:iso-8859-1\n!#")
+            "ISO-8859-1")))
+
+(with-test-prefix "line comments"
+  (pass-if "first line, no whitespace, no nl"
+    (equal? (scan-coding ";coding:iso-8859-1")
+            "ISO-8859-1"))
+  
+  (pass-if "first line, whitespace, no nl"
+    (equal? (scan-coding "; coding: iso-8859-1 ")
+            "ISO-8859-1"))
+  
+  (pass-if "first line, no whitespace, nl"
+    (equal? (scan-coding ";coding:iso-8859-1\n")
+            "ISO-8859-1"))
+  
+  (pass-if "first line, whitespace, nl"
+    (equal? (scan-coding "; coding: iso-8859-1 \n")
+            "ISO-8859-1"))
+  
+  (pass-if "second line, no whitespace, no nl"
+    (equal? (scan-coding "\n;coding:iso-8859-1")
+            "ISO-8859-1"))
+  
+  (pass-if "second line, whitespace, no nl"
+    (equal? (scan-coding "\n; coding: iso-8859-1 ")
+            "ISO-8859-1"))
+  
+  (pass-if "second line, no whitespace, nl"
+    (equal? (scan-coding "\n;coding:iso-8859-1\n")
+            "ISO-8859-1"))
+  
+  (pass-if "second line, whitespace, nl"
+    (equal? (scan-coding "\n; coding: iso-8859-1 \n")
+            "ISO-8859-1")))
