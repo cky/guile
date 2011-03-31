@@ -278,10 +278,10 @@
 
     ;; hooks to nonportable run-time helpers
     (begin
-      (define fx+ +)
-      (define fx- -)
-      (define fx= =)
-      (define fx< <)
+      (define-syntax fx+ (identifier-syntax +))
+      (define-syntax fx- (identifier-syntax -))
+      (define-syntax fx= (identifier-syntax =))
+      (define-syntax fx< (identifier-syntax <))
 
       (define top-level-eval-hook
         (lambda (x mod)
