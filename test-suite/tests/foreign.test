@@ -28,6 +28,14 @@
   #:use-module (test-suite lib))
 
 
+(with-test-prefix "dynamic-pointer"
+
+  (pass-if-exception
+   "error message"
+   '(misc-error . "^Symbol not found")
+   (dynamic-func "does_not_exist___" (dynamic-link))))
+
+
 (with-test-prefix "null pointer"
 
   (pass-if "pointer?"

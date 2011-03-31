@@ -115,9 +115,8 @@ sysdep_dynl_value (const char *symb, void *handle, const char *subr)
 
   fptr = lt_dlsym ((lt_dlhandle) handle, symb);
   if (!fptr)
-    {
-      scm_misc_error (subr, (char *) lt_dlerror (), SCM_EOL);
-    }
+    scm_misc_error (subr, "Symbol not found: ~a",
+                    scm_list_1 (scm_from_locale_string (symb)));
   return fptr;
 }
 
