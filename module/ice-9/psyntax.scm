@@ -2632,12 +2632,13 @@
    (lambda (x)
       (syntax-case x ()
          ((_ () e1 e2 ...)
-          #'(begin e1 e2 ...))
+          #'(let () e1 e2 ...))
          ((_ ((out in)) e1 e2 ...)
-          #'(syntax-case in () (out (begin e1 e2 ...))))
+          #'(syntax-case in ()
+              (out (let () e1 e2 ...))))
          ((_ ((out in) ...) e1 e2 ...)
           #'(syntax-case (list in ...) ()
-              ((out ...) (begin e1 e2 ...)))))))
+              ((out ...) (let () e1 e2 ...)))))))
 
 (define-syntax syntax-rules
   (lambda (x)

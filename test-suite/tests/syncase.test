@@ -68,6 +68,13 @@
     ((alist ((key val) ...))
      (list '(key . val) ...))))
 
+(with-test-prefix "with-syntax"
+  (pass-if "definitions allowed in body"
+    (equal? (with-syntax ((a 23))
+              (define b #'a)
+              (syntax->datum b))
+            23)))
+
 (with-test-prefix "tail patterns"
   (with-test-prefix "at the outermost level"
     (pass-if "non-tail invocation"

@@ -37,16 +37,10 @@
                  (begin
                    (#{andmap\ 225}# #{first\ 203}# #{rest\ 204}#))))))))))
   (begin
-    (let ((#{make-primitive-ref\ 244}# (if #f #f))
-          (#{fx+\ 283}# (if #f #f))
+    (let ((#{fx+\ 283}# (if #f #f))
           (#{fx-\ 285}# (if #f #f))
           (#{fx=\ 287}# (if #f #f))
-          (#{fx<\ 289}# (if #f #f))
-          (#{set-syntax-object-expression!\ 354}#
-            (if #f #f))
-          (#{set-syntax-object-wrap!\ 356}# (if #f #f))
-          (#{set-syntax-object-module!\ 358}# (if #f #f))
-          (#{ribcage?\ 400}# (if #f #f)))
+          (#{fx<\ 289}# (if #f #f)))
       (letrec*
         ((#{make-void\ 240}#
            (lambda (#{src\ 750}#)
@@ -7719,6 +7713,10 @@
                                                               #f
                                                               ((top)
                                                                #(ribcage
+                                                                 ()
+                                                                 ()
+                                                                 ())
+                                                               #(ribcage
                                                                  #(k)
                                                                  #((top))
                                                                  #("i2403"))
@@ -8927,32 +8925,27 @@
                             (cons #{vars\ 2791}# #{ls\ 2792}#))))))))
                (begin (#{lvl\ 2790}# #{vars\ 2784}# '() '(())))))))
         (begin
-          (set! #{make-primitive-ref\ 244}#
-            (lambda (#{src\ 756}# #{name\ 757}#)
-              (make-struct/no-tail
-                (vector-ref %expanded-vtables 2)
-                #{src\ 756}#
-                #{name\ 757}#)))
+          (lambda (#{src\ 756}# #{name\ 757}#)
+            (make-struct/no-tail
+              (vector-ref %expanded-vtables 2)
+              #{src\ 756}#
+              #{name\ 757}#))
+          (lambda (#{x\ 1134}# #{update\ 1135}#)
+            (vector-set! #{x\ 1134}# 1 #{update\ 1135}#))
+          (lambda (#{x\ 1138}# #{update\ 1139}#)
+            (vector-set! #{x\ 1138}# 2 #{update\ 1139}#))
+          (lambda (#{x\ 1142}# #{update\ 1143}#)
+            (vector-set! #{x\ 1142}# 3 #{update\ 1143}#))
+          (lambda (#{x\ 1223}#)
+            (if (vector? #{x\ 1223}#)
+              (if (= (vector-length #{x\ 1223}#) 4)
+                (eq? (vector-ref #{x\ 1223}# 0) 'ribcage)
+                #f)
+              #f))
           (set! #{fx+\ 283}# +)
           (set! #{fx-\ 285}# -)
           (set! #{fx=\ 287}# =)
           (set! #{fx<\ 289}# <)
-          (set! #{set-syntax-object-expression!\ 354}#
-            (lambda (#{x\ 1134}# #{update\ 1135}#)
-              (vector-set! #{x\ 1134}# 1 #{update\ 1135}#)))
-          (set! #{set-syntax-object-wrap!\ 356}#
-            (lambda (#{x\ 1138}# #{update\ 1139}#)
-              (vector-set! #{x\ 1138}# 2 #{update\ 1139}#)))
-          (set! #{set-syntax-object-module!\ 358}#
-            (lambda (#{x\ 1142}# #{update\ 1143}#)
-              (vector-set! #{x\ 1142}# 3 #{update\ 1143}#)))
-          (set! #{ribcage?\ 400}#
-            (lambda (#{x\ 1223}#)
-              (if (vector? #{x\ 1223}#)
-                (if (= (vector-length #{x\ 1223}#) 4)
-                  (eq? (vector-ref #{x\ 1223}# 0) 'ribcage)
-                  #f)
-                #f)))
           (begin
             (#{global-extend\ 376}#
               'local-syntax
@@ -14515,7 +14508,7 @@
             (@apply
               (lambda (#{e1\ 4203}# #{e2\ 4204}#)
                 (cons '#(syntax-object
-                         begin
+                         let
                          ((top)
                           #(ribcage
                             #(e1 e2)
@@ -14524,7 +14517,7 @@
                           #(ribcage () () ())
                           #(ribcage #(x) #((top)) #("i4198")))
                          (hygiene guile))
-                      (cons #{e1\ 4203}# #{e2\ 4204}#)))
+                      (cons '() (cons #{e1\ 4203}# #{e2\ 4204}#))))
               #{tmp\ 4200}#)
             (let ((#{tmp\ 4206}#
                     ($sc-dispatch
@@ -14550,7 +14543,7 @@
                           '()
                           (list #{out\ 4211}#
                                 (cons '#(syntax-object
-                                         begin
+                                         let
                                          ((top)
                                           #(ribcage
                                             #(out in e1 e2)
@@ -14559,7 +14552,9 @@
                                           #(ribcage () () ())
                                           #(ribcage #(x) #((top)) #("i4198")))
                                          (hygiene guile))
-                                      (cons #{e1\ 4213}# #{e2\ 4214}#)))))
+                                      (cons '()
+                                            (cons #{e1\ 4213}#
+                                                  #{e2\ 4214}#))))))
                   #{tmp\ 4206}#)
                 (let ((#{tmp\ 4216}#
                         ($sc-dispatch
@@ -14595,7 +14590,7 @@
                               '()
                               (list #{out\ 4221}#
                                     (cons '#(syntax-object
-                                             begin
+                                             let
                                              ((top)
                                               #(ribcage
                                                 #(out in e1 e2)
@@ -14610,7 +14605,9 @@
                                                 #((top))
                                                 #("i4198")))
                                              (hygiene guile))
-                                          (cons #{e1\ 4223}# #{e2\ 4224}#)))))
+                                          (cons '()
+                                                (cons #{e1\ 4223}#
+                                                      #{e2\ 4224}#))))))
                       #{tmp\ 4216}#)
                     (syntax-violation
                       #f
@@ -15006,6 +15003,7 @@
                                    (list '#(syntax-object
                                             let
                                             ((top)
+                                             #(ribcage () () ())
                                              #(ribcage
                                                #(body binding)
                                                #((top) (top))
@@ -15104,6 +15102,7 @@
                                     (list '#(syntax-object
                                              let
                                              ((top)
+                                              #(ribcage () () ())
                                               #(ribcage
                                                 #(step)
                                                 #((top))
@@ -15131,6 +15130,7 @@
                                           '#(syntax-object
                                              doloop
                                              ((top)
+                                              #(ribcage () () ())
                                               #(ribcage
                                                 #(step)
                                                 #((top))
@@ -15161,6 +15161,7 @@
                                           (list '#(syntax-object
                                                    if
                                                    ((top)
+                                                    #(ribcage () () ())
                                                     #(ribcage
                                                       #(step)
                                                       #((top))
@@ -15188,6 +15189,7 @@
                                                 (list '#(syntax-object
                                                          not
                                                          ((top)
+                                                          #(ribcage () () ())
                                                           #(ribcage
                                                             #(step)
                                                             #((top))
@@ -15221,6 +15223,7 @@
                                                 (cons '#(syntax-object
                                                          begin
                                                          ((top)
+                                                          #(ribcage () () ())
                                                           #(ribcage
                                                             #(step)
                                                             #((top))
@@ -15255,6 +15258,10 @@
                                                         (list (cons '#(syntax-object
                                                                        doloop
                                                                        ((top)
+                                                                        #(ribcage
+                                                                          ()
+                                                                          ()
+                                                                          ())
                                                                         #(ribcage
                                                                           #(step)
                                                                           #((top))
@@ -15304,6 +15311,7 @@
                                                     #(e1 e2)
                                                     #((top) (top))
                                                     #("i4336" "i4337"))
+                                                  #(ribcage () () ())
                                                   #(ribcage
                                                     #(step)
                                                     #((top))
@@ -15335,6 +15343,7 @@
                                                     #(e1 e2)
                                                     #((top) (top))
                                                     #("i4336" "i4337"))
+                                                  #(ribcage () () ())
                                                   #(ribcage
                                                     #(step)
                                                     #((top))
@@ -15369,6 +15378,7 @@
                                                           #(e1 e2)
                                                           #((top) (top))
                                                           #("i4336" "i4337"))
+                                                        #(ribcage () () ())
                                                         #(ribcage
                                                           #(step)
                                                           #((top))
@@ -15407,6 +15417,10 @@
                                                                 #((top) (top))
                                                                 #("i4336"
                                                                   "i4337"))
+                                                              #(ribcage
+                                                                ()
+                                                                ()
+                                                                ())
                                                               #(ribcage
                                                                 #(step)
                                                                 #((top))
@@ -15449,6 +15463,10 @@
                                                                 #((top) (top))
                                                                 #("i4336"
                                                                   "i4337"))
+                                                              #(ribcage
+                                                                ()
+                                                                ()
+                                                                ())
                                                               #(ribcage
                                                                 #(step)
                                                                 #((top))
@@ -15493,6 +15511,10 @@
                                                                                 (top))
                                                                               #("i4336"
                                                                                 "i4337"))
+                                                                            #(ribcage
+                                                                              ()
+                                                                              ()
+                                                                              ())
                                                                             #(ribcage
                                                                               #(step)
                                                                               #((top))
@@ -16596,6 +16618,7 @@
                                                      #(dy)
                                                      #((top))
                                                      #("i4445"))
+                                                   #(ribcage () () ())
                                                    #(ribcage
                                                      #(x y)
                                                      #((top) (top))
@@ -16644,6 +16667,7 @@
                                                      #(dy)
                                                      #((top))
                                                      #("i4445"))
+                                                   #(ribcage () () ())
                                                    #(ribcage
                                                      #(x y)
                                                      #((top) (top))
@@ -16688,6 +16712,7 @@
                                                      #(dy)
                                                      #((top))
                                                      #("i4445"))
+                                                   #(ribcage () () ())
                                                    #(ribcage
                                                      #(x y)
                                                      #((top) (top))
@@ -16737,6 +16762,7 @@
                                                #(stuff)
                                                #((top))
                                                #("i4454"))
+                                             #(ribcage () () ())
                                              #(ribcage
                                                #(x y)
                                                #((top) (top))
@@ -16785,6 +16811,7 @@
                                                    #(stuff)
                                                    #((top))
                                                    #("i4457"))
+                                                 #(ribcage () () ())
                                                  #(ribcage
                                                    #(x y)
                                                    #((top) (top))
@@ -16828,6 +16855,7 @@
                                                  #(_)
                                                  #((top))
                                                  #("i4459"))
+                                               #(ribcage () () ())
                                                #(ribcage
                                                  #(x y)
                                                  #((top) (top))
@@ -16914,6 +16942,7 @@
                                    (cons '#(syntax-object
                                             "append"
                                             ((top)
+                                             #(ribcage () () ())
                                              #(ribcage
                                                #(p)
                                                #((top))
@@ -16964,6 +16993,7 @@
                                (cons '#(syntax-object
                                         "append"
                                         ((top)
+                                         #(ribcage () () ())
                                          #(ribcage
                                            #(p y)
                                            #((top) (top))
@@ -17142,6 +17172,7 @@
                                               (list '#(syntax-object
                                                        "list->vector"
                                                        ((top)
+                                                        #(ribcage () () ())
                                                         #(ribcage
                                                           #(#{\ g4543}#)
                                                           #((m4544 top))
@@ -17202,6 +17233,7 @@
                                      (cons '#(syntax-object
                                               "vector"
                                               ((top)
+                                               #(ribcage () () ())
                                                #(ribcage
                                                  #(#{\ g4516}#)
                                                  #((m4517 top))
@@ -17301,6 +17333,7 @@
                                    (cons '#(syntax-object
                                             list
                                             ((top)
+                                             #(ribcage () () ())
                                              #(ribcage
                                                #(#{\ g4558}#)
                                                #((m4559 top))
@@ -17371,6 +17404,7 @@
                                                 (list '#(syntax-object
                                                          cons
                                                          ((top)
+                                                          #(ribcage () () ())
                                                           #(ribcage
                                                             #(#{\ g4578}#
                                                               #{\ g4577}#)
@@ -17441,6 +17475,7 @@
                                            (cons '#(syntax-object
                                                     append
                                                     ((top)
+                                                     #(ribcage () () ())
                                                      #(ribcage
                                                        #(#{\ g4590}#)
                                                        #((m4591 top))
@@ -17502,6 +17537,7 @@
                                                (cons '#(syntax-object
                                                         vector
                                                         ((top)
+                                                         #(ribcage () () ())
                                                          #(ribcage
                                                            #(#{\ g4602}#)
                                                            #((m4603 top))
@@ -17558,6 +17594,7 @@
                                              (list '#(syntax-object
                                                       list->vector
                                                       ((top)
+                                                       #(ribcage () () ())
                                                        #(ribcage
                                                          #(#{\ g4614}#)
                                                          #((m4615 top))
@@ -17665,6 +17702,7 @@
                                   (cons '#(syntax-object
                                            begin
                                            ((top)
+                                            #(ribcage () () ())
                                             #(ribcage
                                               #(exp)
                                               #((top))
@@ -17730,6 +17768,7 @@
                         (list '#(syntax-object
                                  include
                                  ((top)
+                                  #(ribcage () () ())
                                   #(ribcage #(fn) #((top)) #("i4671"))
                                   #(ribcage () () ())
                                   #(ribcage () () ())
@@ -18092,6 +18131,7 @@
                                                            #("i4726"
                                                              "i4727"
                                                              "i4728"))
+                                                         #(ribcage () () ())
                                                          #(ribcage
                                                            #(rest)
                                                            #((top))
@@ -18126,6 +18166,10 @@
                                                                  #("i4726"
                                                                    "i4727"
                                                                    "i4728"))
+                                                               #(ribcage
+                                                                 ()
+                                                                 ()
+                                                                 ())
                                                                #(ribcage
                                                                  #(rest)
                                                                  #((top))
@@ -18172,6 +18216,10 @@
                                                                  #("i4726"
                                                                    "i4727"
                                                                    "i4728"))
+                                                               #(ribcage
+                                                                 ()
+                                                                 ()
+                                                                 ())
                                                                #(ribcage
                                                                  #(rest)
                                                                  #((top))
@@ -18220,6 +18268,10 @@
                                                                        #("i4726"
                                                                          "i4727"
                                                                          "i4728"))
+                                                                     #(ribcage
+                                                                       ()
+                                                                       ()
+                                                                       ())
                                                                      #(ribcage
                                                                        #(rest)
                                                                        #((top))
@@ -18271,6 +18323,10 @@
                                                                    "i4727"
                                                                    "i4728"))
                                                                #(ribcage
+                                                                 ()
+                                                                 ()
+                                                                 ())
+                                                               #(ribcage
                                                                  #(rest)
                                                                  #((top))
                                                                  #("i4722"))
@@ -18320,6 +18376,7 @@
                     (list '#(syntax-object
                              let
                              ((top)
+                              #(ribcage () () ())
                               #(ribcage #(body) #((top)) #("i4693"))
                               #(ribcage
                                 #(e m1 m2)
@@ -18331,6 +18388,7 @@
                           (list (list '#(syntax-object
                                          t
                                          ((top)
+                                          #(ribcage () () ())
                                           #(ribcage
                                             #(body)
                                             #((top))
