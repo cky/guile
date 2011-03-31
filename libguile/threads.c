@@ -97,7 +97,7 @@ struct GC_stack_base {
 };
 
 static int
-GC_register_my_thread (struct GC_stack_base *)
+GC_register_my_thread (struct GC_stack_base *stack_base)
 {
   return GC_UNIMPLEMENTED;
 }
@@ -153,7 +153,7 @@ get_thread_stack_base ()
 #endif
 
 static int
-GC_get_stack_base (struct GC_stack_base *)
+GC_get_stack_base (struct GC_stack_base *stack_base)
 {
   stack_base->mem_base = get_thread_stack_base ();
 #ifdef __ia64__
