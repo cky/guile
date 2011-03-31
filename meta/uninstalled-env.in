@@ -59,10 +59,12 @@ else
     # The ":" prevents prefix aliasing.
     case x"$GUILE_LOAD_PATH" in
       x*${top_srcdir}${d}:*) ;;
+      x*${top_srcdir}${d}) ;;
       *) GUILE_LOAD_PATH="${top_srcdir}${d}:$GUILE_LOAD_PATH" ;;
     esac
     case x"$GUILE_LOAD_PATH" in
       x*${top_builddir}${d}:*) ;;
+      x*${top_builddir}${d}) ;;
       *) GUILE_LOAD_PATH="${top_builddir}${d}:$GUILE_LOAD_PATH" ;;
     esac
   done
@@ -79,6 +81,7 @@ else
     # The ":" prevents prefix aliasing.
     case x"$GUILE_LOAD_COMPILED_PATH" in
       x*${top_builddir}${d}:*) ;;
+      x*${top_builddir}${d}) ;;
       *) GUILE_LOAD_COMPILED_PATH="${top_builddir}${d}:$GUILE_LOAD_COMPILED_PATH" ;;
     esac
   done
