@@ -1575,7 +1575,7 @@ probably know, we'll want to return a 404 response.
 (define (not-found request)
   (values (build-response #:code 404)
           (string-append "Resource not found: "
-                         (unparse-uri (request-uri request)))))
+                         (uri->string (request-uri request)))))
 
 ;; Now paste this to let the web server keep going:
 ,continue
