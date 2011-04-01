@@ -1423,8 +1423,8 @@ scm_encoding_error (const char *subr, int err, const char *message,
 		    SCM port, SCM chr)
 {
   scm_throw (scm_encoding_error_key,
-	     scm_list_n (scm_from_locale_string (subr),
-			 scm_from_locale_string (message),
+	     scm_list_n (scm_from_latin1_string (subr),
+			 scm_from_latin1_string (message),
 			 scm_from_int (err),
 			 port, chr,
 			 SCM_UNDEFINED));
@@ -1436,8 +1436,8 @@ void
 scm_decoding_error (const char *subr, int err, const char *message, SCM port)
 {
   scm_throw (scm_decoding_error_key,
-	     scm_list_n (scm_from_locale_string (subr),
-			 scm_from_locale_string (message),
+	     scm_list_n (scm_from_latin1_string (subr),
+			 scm_from_latin1_string (message),
 			 scm_from_int (err),
 			 port,
 			 SCM_UNDEFINED));
