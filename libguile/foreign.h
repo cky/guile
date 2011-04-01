@@ -72,8 +72,8 @@ SCM_INTERNAL void scm_i_pointer_print (SCM pointer, SCM port,
                                        scm_print_state *pstate);
 
 SCM_INTERNAL SCM scm_dereference_pointer (SCM pointer);
-SCM_INTERNAL SCM scm_string_to_pointer (SCM string);
-SCM_INTERNAL SCM scm_pointer_to_string (SCM pointer);
+SCM_INTERNAL SCM scm_string_to_pointer (SCM string, SCM encoding);
+SCM_INTERNAL SCM scm_pointer_to_string (SCM pointer, SCM length, SCM encoding);
 
 
 

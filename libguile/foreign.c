@@ -355,13 +355,13 @@ SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_string_to_pointer, "string->pointer", 1, 0, 0,
-	    (SCM string),
+SCM_DEFINE (scm_string_to_pointer, "string->pointer", 1, 1, 0,
+	    (SCM string, SCM encoding),
 	    "Return a foreign pointer to a nul-terminated copy of\n"
-	    "@var{string} in the current locale encoding.  The C\n"
-	    "string is freed when the returned foreign pointer\n"
-	    "becomes unreachable.\n\n"
-            "This is the Scheme equivalent of @code{scm_to_locale_string}.")
+	    "@var{string} in the given @var{encoding}, defaulting to\n"
+            "the current locale encoding.  The C string is freed when\n"
+            "the returned foreign pointer becomes unreachable.\n\n"
+            "This is the Scheme equivalent of @code{scm_to_stringn}.")
 #define FUNC_NAME s_scm_string_to_pointer
 {
   SCM_VALIDATE_STRING (1, string);
@@ -369,21 +369,72 @@ SCM_DEFINE (scm_string_to_pointer, "string->pointer", 1, 0, 0,
   /* XXX: Finalizers slow down libgc; they could be avoided if
      `scm_to_string' & co. were able to use libgc-allocated memory.  */
 
-  return scm_from_pointer (scm_to_locale_string (string), free);
+  if (SCM_UNBNDP (encoding))
+    return scm_from_pointer (scm_to_locale_string (string), free);
+  else
+    {
+      char *enc;
+      SCM ret;
+      
+      SCM_VALIDATE_STRING (2, encoding);
+
+      enc = scm_to_locale_string (encoding);
+      scm_dynwind_begin (0);
+      scm_dynwind_free (enc);
+
+      ret = scm_from_pointer
+        (scm_to_stringn (string, NULL, enc,
+                         scm_i_get_conversion_strategy (SCM_BOOL_F)),
+         free);
+
+      scm_dynwind_end ();
+
+      return ret;
+    }
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_pointer_to_string, "pointer->string", 1, 0, 0,
-	    (SCM pointer),
-	    "Return the string representing the C nul-terminated string\n"
-	    "pointed to by @var{pointer}.  The C string is assumed to be\n"
-	    "in the current locale encoding.\n\n"
-	    "This is the Scheme equivalent of @code{scm_from_locale_string}.")
+SCM_DEFINE (scm_pointer_to_string, "pointer->string", 1, 2, 0,
+	    (SCM pointer, SCM length, SCM encoding),
+	    "Return the string representing the C string pointed to by\n"
+            "@var{pointer}.  If @var{length} is omitted or @code{-1}, the\n"
+            "string is assumed to be nul-terminated.  Otherwise\n"
+            "@var{length} is the number of bytes in memory pointed to by\n"
+            "@var{pointer}.  The C string is assumed to be in the given\n"
+            "@var{encoding}, defaulting to the current locale encoding.\n\n"
+	    "This is the Scheme equivalent of @code{scm_from_stringn}.")
 #define FUNC_NAME s_scm_pointer_to_string
 {
+  size_t len;
+
   SCM_VALIDATE_POINTER (1, pointer);
 
-  return scm_from_locale_string (SCM_POINTER_VALUE (pointer));
+  if (SCM_UNBNDP (length)
+      || scm_is_true (scm_eqv_p (length, scm_from_int (-1))))
+    len = (size_t)-1;
+  else
+    len = scm_to_size_t (length);
+    
+  if (SCM_UNBNDP (encoding))
+    return scm_from_locale_stringn (SCM_POINTER_VALUE (pointer), len);
+  else
+    {
+      char *enc;
+      SCM ret;
+      
+      SCM_VALIDATE_STRING (3, encoding);
+
+      enc = scm_to_locale_string (encoding);
+      scm_dynwind_begin (0);
+      scm_dynwind_free (enc);
+
+      ret = scm_from_stringn (SCM_POINTER_VALUE (pointer), len, enc,
+                              scm_i_get_conversion_strategy (SCM_BOOL_F));
+
+      scm_dynwind_end ();
+
+      return ret;
+    }
 }
 #undef FUNC_NAME
 

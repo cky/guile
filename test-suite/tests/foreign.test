@@ -153,7 +153,18 @@
   (pass-if "bijection [latin1]"
     (with-latin1-locale
       (let ((s "Szép jó napot!"))
-        (string=? s (pointer->string (string->pointer s)))))))
+        (string=? s (pointer->string (string->pointer s))))))
+
+  (pass-if "bijection, utf-8"
+    (let ((s "hello, world"))
+      (string=? s (pointer->string (string->pointer s "utf-8")
+                                   -1 "utf-8"))))
+
+  (pass-if "bijection, utf-8 [latin1]"
+    (let ((s "Szép jó napot!"))
+      (string=? s (pointer->string (string->pointer s "utf-8")
+                                   -1 "utf-8")))))
+
 
 
 (with-test-prefix "pointer->procedure"
