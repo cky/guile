@@ -773,7 +773,7 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime
 #   cuserid - on Tru64 5.1b the declaration is documented to be available
 #       only with `_XOPEN_SOURCE' or some such.
 #
-AC_CHECK_HEADERS([crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h])
+AC_CHECK_HEADERS([crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h sys/mman.h])
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
 AC_CHECK_DECLS([sethostname, hstrerror, cuserid])
 
