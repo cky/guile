@@ -70,7 +70,7 @@ make_objcode_by_mmap (int fd)
     scm_misc_error (FUNC_NAME, "object file too small (~a bytes)",
 		    scm_list_1 (SCM_I_MAKINUM (st.st_size)));
 
-  addr = mmap (0, st.st_size, PROT_READ, MAP_SHARED, fd, 0);
+  addr = mmap (0, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
   if (addr == MAP_FAILED)
     {
       (void) close (fd);
