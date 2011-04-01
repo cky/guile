@@ -1,6 +1,6 @@
 ;;; Extensions to SRFI-4
 
-;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -83,14 +83,14 @@
   (make-rectangular (bytevector-ieee-single-native-ref v i)
                     (bytevector-ieee-single-native-ref v (+ i 4))))
 (define (bytevector-c32-native-set! v i x)
-  (bytevector-ieee-single-native-set! v i x)
-  (bytevector-ieee-single-native-set! v (+ i 4) x))
+  (bytevector-ieee-single-native-set! v i (real-part x))
+  (bytevector-ieee-single-native-set! v (+ i 4) (imag-part x)))
 (define (bytevector-c64-native-ref v i)
   (make-rectangular (bytevector-ieee-double-native-ref v i)
                     (bytevector-ieee-double-native-ref v (+ i 8))))
 (define (bytevector-c64-native-set! v i x)
-  (bytevector-ieee-double-native-set! v i x)
-  (bytevector-ieee-double-native-set! v (+ i 8) x))
+  (bytevector-ieee-double-native-set! v i (real-part x))
+  (bytevector-ieee-double-native-set! v (+ i 8) (imag-part x)))
 (define-bytevector-type c32 c32-native 8)
 (define-bytevector-type c64 c64-native 16)
 

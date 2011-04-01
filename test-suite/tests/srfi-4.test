@@ -1,7 +1,7 @@
 ;;;; srfi-4.test --- Test suite for Guile's SRFI-4 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-06-26
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (use-modules (srfi srfi-4)
+             (srfi srfi-4 gnu)
 	     (test-suite lib))
 
 (with-test-prefix "u8 vectors"
@@ -396,3 +397,84 @@
 
   (pass-if "+inf.0, -inf.0, +nan.0 in f64vector"
     (f64vector? #f64(+inf.0 -inf.0 +nan.0))))
+
+(with-test-prefix "c32 vectors"
+
+  (pass-if "c32vector? success"
+    (c32vector? (c32vector)))
+
+  (pass-if "c32vector? failure"
+    (not (c32vector? (s8vector))))
+
+  (pass-if "c32vector-length success 1"
+    (= (c32vector-length (c32vector)) 0))
+
+  (pass-if "c32vector-length success 2"
+    (= (c32vector-length (c32vector -3-2i)) 1))
+
+  (pass-if "c32vector-length failure"
+    (not (= (c32vector-length (c32vector 3)) 3)))
+
+  (pass-if "c32vector-ref"
+    (= (c32vector-ref (c32vector 1 2+13i 3) 1) 2+13i))
+  
+  (pass-if "c32vector-set!/ref"
+    (= (let ((s (make-c32vector 10 0)))
+	 (c32vector-set! s 4 33-1i)
+	 (c32vector-ref s 4)) 33-1i))
+
+  (pass-if "c32vector->list/list->c32vector"
+    (equal? (c32vector->list (c32vector 1 2 3 4))
+	    (c32vector->list (list->c32vector '(1 2 3 4)))))
+
+  (pass-if "c32vector->list/uniform-vector->list"
+    (equal? (c32vector->list (c32vector 1 2 3 4))
+	    (uniform-vector->list (c32vector 1 2 3 4))))
+
+  (pass-if "make-c32vector"
+    (equal? (list->c32vector '(7 7 7 7))
+            (make-c32vector 4 7)))
+
+  (pass-if "+inf.0, -inf.0, +nan.0 in c32vector"
+    (c32vector? #c32(+inf.0 -inf.0 +nan.0))))
+
+(with-test-prefix "c64 vectors"
+
+  (pass-if "c64vector? success"
+    (c64vector? (c64vector)))
+
+  (pass-if "c64vector? failure"
+    (not (c64vector? (s8vector))))
+
+  (pass-if "c64vector-length success 1"
+    (= (c64vector-length (c64vector)) 0))
+
+  (pass-if "c64vector-length success 2"
+    (= (c64vector-length (c64vector -3-2i)) 1))
+
+  (pass-if "c64vector-length failure"
+    (not (= (c64vector-length (c64vector 3)) 3)))
+
+  (pass-if "c64vector-ref"
+    (= (c64vector-ref (c64vector 1+2i 2+3i 3) 1) 2+3i))
+  
+  (pass-if "c64vector-set!/ref"
+    (= (let ((s (make-c64vector 10 0)))
+	 (c64vector-set! s 4 33+1i)
+	 (c64vector-ref s 4)) 33+1i))
+
+  (pass-if "c64vector->list/list->c64vector"
+    (equal? (c64vector->list (c64vector 1 2 3 4))
+	    (c64vector->list (list->c64vector '(1 2 3 4)))))
+
+  (pass-if "c64vector->list/uniform-vector->list"
+    (equal? (c64vector->list (c64vector 1 2 3 4))
+	    (uniform-vector->list (c64vector 1 2 3 4))))
+
+  (pass-if "make-c64vector"
+    (equal? (list->c64vector '(7 7 7 7))
+            (make-c64vector 4 7)))
+
+  (pass-if "+inf.0, -inf.0, +nan.0 in c64vector"
+    (c64vector? #c64(+inf.0 -inf.0 +nan.0))))
+
