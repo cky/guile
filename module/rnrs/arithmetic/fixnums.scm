@@ -87,6 +87,7 @@
 			most-negative-fixnum)
 	  (ice-9 optargs)
 	  (rnrs base (6))
+	  (rnrs control (6))
 	  (rnrs arithmetic bitwise (6))
 	  (rnrs conditions (6))
 	  (rnrs exceptions (6))
@@ -105,50 +106,45 @@
 	 (>= obj most-negative-fixnum) 
 	 (<= obj most-positive-fixnum)))
 
-  (define (assert-fixnum . args)
+  (define-syntax assert-fixnum
+    (syntax-rules ()
+      ((_ arg ...)
+       (or (and (fixnum? arg) ...)
+	   (raise (make-assertion-violation))))))
+
+  (define (assert-fixnums args)
     (or (for-all fixnum? args) (raise (make-assertion-violation))))
 
-  (define (fx=? fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst)))
-      (apply assert-fixnum args) 
-      (apply = args)))
+  (define-syntax define-fxop*
+    (syntax-rules ()
+      ((_ name op)
+       (define name
+	(case-lambda
+	  ((x y)
+	   (assert-fixnum x y)
+	   (op x y))
+	  (args
+	   (assert-fixnums args)
+           (apply op args)))))))
 
-  (define (fx>? fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst))) 
-      (apply assert-fixnum args) 
-      (apply > args)))
+  ;; All these predicates don't check their arguments for fixnum-ness,
+  ;; as this doesn't seem to be strictly required by R6RS.
 
-  (define (fx<? fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst)))
-      (apply assert-fixnum rst)
-      (apply < args)))
+  (define fx=? =)
+  (define fx>? >)
+  (define fx<? <)
+  (define fx>=? >=)
+  (define fx<=? <=)
 
-  (define (fx>=? fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst)))
-      (apply assert-fixnum rst)
-      (apply >= args)))
+  (define fxzero? zero?)
+  (define fxpositive? positive?)
+  (define fxnegative? negative?)
+  (define fxodd? odd?)
+  (define fxeven? even?)
 
-  (define (fx<=? fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst)))
-      (apply assert-fixnum rst)
-      (apply <= args)))
-  
-  (define (fxzero? fx) (assert-fixnum fx) (zero? fx))
-  (define (fxpositive? fx) (assert-fixnum fx) (positive? fx))
-  (define (fxnegative? fx) (assert-fixnum fx) (negative? fx))
-  (define (fxodd? fx) (assert-fixnum fx) (odd? fx))
-  (define (fxeven? fx) (assert-fixnum fx) (even? fx))
+  (define-fxop* fxmax max)
+  (define-fxop* fxmin min)
 
-  (define (fxmax fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst)))
-      (apply assert-fixnum args)
-      (apply max args)))
-
-  (define (fxmin fx1 fx2 . rst)
-    (let ((args (cons* fx1 fx2 rst)))
-      (apply assert-fixnum args)
-      (apply min args)))
- 
   (define (fx+ fx1 fx2)
     (assert-fixnum fx1 fx2) 
     (let ((r (+ fx1 fx2))) 
@@ -219,9 +215,9 @@
       (values s0 s1)))
 
   (define (fxnot fx) (assert-fixnum fx) (lognot fx))
-  (define (fxand . args) (apply assert-fixnum args) (apply logand args))
-  (define (fxior . args) (apply assert-fixnum args) (apply logior args))
-  (define (fxxor . args) (apply assert-fixnum args) (apply logxor args))
+  (define-fxop* fxand logand)
+  (define-fxop* fxior logior)
+  (define-fxop* fxxor logxor)
 
   (define (fxif fx1 fx2 fx3) 
     (assert-fixnum fx1 fx2 fx3) 
