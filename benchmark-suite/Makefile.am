@@ -6,6 +6,7 @@ SCM_BENCHMARKS = benchmarks/0-reference.bm		\
                  benchmarks/if.bm			\
                  benchmarks/logand.bm			\
 		 benchmarks/ports.bm			\
+		 benchmarks/r6rs-arithmetic.bm		\
 		 benchmarks/read.bm			\
 		 benchmarks/srfi-1.bm			\
 		 benchmarks/srfi-13.bm			\
