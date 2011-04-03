@@ -57,7 +57,11 @@
 
 /* Signals
  */
+#if SCM_HAVE_GC_PTHREAD_SIGMASK
 #define scm_i_pthread_sigmask               GC_pthread_sigmask
+#else
+#define scm_i_pthread_sigmask               pthread_sigmask
+#endif
 
 /* Mutexes
  */

@@ -330,6 +330,12 @@ main (int argc, char *argv[])
   pf ("#define SCM_HAVE_GC_PTHREAD_EXIT 0 /* 0 or 1 */\n");
 #endif
 
+#ifdef HAVE_GC_PTHREAD_SIGMASK
+  pf ("#define SCM_HAVE_GC_PTHREAD_SIGMASK 1 /* 0 or 1 */\n");
+#else
+  pf ("#define SCM_HAVE_GC_PTHREAD_SIGMASK 0 /* 0 or 1 */\n");
+#endif
+
   pf ("\n\n/*** File system access ***/\n");
 
   pf ("/* Define to 1 if `struct dirent64' is available.  */\n");
