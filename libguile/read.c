@@ -1329,6 +1329,7 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     case 's':
     case 'u':
     case 'f':
+    case 'c':
       /* This one may return either a boolean or an SRFI-4 vector.  */
       return (scm_read_srfi4_vector (chr, port));
     case 'v':
@@ -1348,7 +1349,6 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
 #if SCM_ENABLE_DEPRECATED
       /* See below for 'i' and 'e'. */
     case 'a':
-    case 'c':
     case 'y':
     case 'h':
     case 'l':
