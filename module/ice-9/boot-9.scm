@@ -3497,6 +3497,42 @@ module '(ice-9 q) '(make-q q-length))}."
                          x)))))
 
 
+;;; Defining transparently inlinable procedures
+;;;
+
+(define-syntax define-inlinable
+  ;; Define a macro and a procedure such that direct calls are inlined, via
+  ;; the macro expansion, whereas references in non-call contexts refer to
+  ;; the procedure.  Inspired by the `define-integrable' macro by Dybvig et al.
+  (lambda (x)
+    ;; Use a space in the prefix to avoid potential -Wunused-toplevel
+    ;; warning
+    (define prefix (string->symbol "% "))
+    (define (make-procedure-name name)
+      (datum->syntax name
+                     (symbol-append prefix (syntax->datum name)
+                                    '-procedure)))
+
+    (syntax-case x ()
+      ((_ (name formals ...) body ...)
+       (identifier? #'name)
+       (with-syntax ((proc-name  (make-procedure-name #'name))
+                     ((args ...) (generate-temporaries #'(formals ...))))
+         #`(begin
+             (define (proc-name formals ...)
+               body ...)
+             (define-syntax name
+               (lambda (x)
+                 (syntax-case x ()
+                   ((_ args ...)
+                    #'((lambda (formals ...)
+                         body ...)
+                       args ...))
+                   (_
+                    (identifier? x)
+                    #'proc-name))))))))))
+
+
 
 (define using-readline?
   (let ((using-readline? (make-fluid)))

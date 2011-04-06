@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -16,6 +16,7 @@
 * Higher-Order Functions::      Function that take or return functions.
 * Procedure Properties::        Procedure properties and meta-information.
 * Procedures with Setters::     Procedures with setters.
+* Inlinable Procedures::        Procedures that can be inlined.
 @end menu
 
 
@@ -797,6 +798,32 @@ Return the setter of @var{proc}, which must be either a procedure with
 setter or an operator struct.
 @end deffn
 
+@node Inlinable Procedures
+@subsection Inlinable Procedures
+
+You can define an @dfn{inlinable procedure} by using
+@code{define-inlinable} instead of @code{define}.  An inlinable
+procedure behaves the same as a regular procedure, but direct calls will
+result in the procedure body being inlined into the caller.
+
+Procedures defined with @code{define-inlinable} are @emph{always}
+inlined, at all direct call sites.  This eliminates function call
+overhead at the expense of an increase in code size.  Additionally, the
+caller will not transparently use the new definition if the inline
+procedure is redefined.  It is not possible to trace an inlined
+procedures or install a breakpoint in it (@pxref{Traps}).  For these
+reasons, you should not make a procedure inlinable unless it
+demonstrably improves performance in a crucial way.
+
+In general, only small procedures should be considered for inlining, as
+making large procedures inlinable will probably result in an increase in
+code size.  Additionally, the elimination of the call overhead rarely
+matters for for large procedures.
+
+@deffn {Scheme Syntax} define-inlinable (name parameter ...) body ...
+Define @var{name} as a procedure with parameters @var{parameter}s and
+body @var{body}.
+@end deffn
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
