@@ -5668,7 +5668,7 @@ mem2decimal_from_point (SCM result, SCM mem,
 	  if (sign == 1)
 	    result = scm_product (result, e);
 	  else
-	    result = scm_divide2real (result, e);
+	    result = scm_divide (result, e);
 
 	  /* We've seen an exponent, thus the value is implicitly inexact. */
 	  x = INEXACT;

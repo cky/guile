@@ -1456,6 +1456,11 @@
     (pass-if (string=? (number->string 35 36) "z"))
     (pass-if (= (num->str->num 35 36) 35))
 
+    ;; Before Guile 2.0.1, even in the presence of a #e forced exactness
+    ;; specifier, negative exponents were applied inexactly and then
+    ;; later coerced to exact, yielding an incorrect fraction.
+    (pass-if (eqv? (string->number "#e1e-10") 1/10000000000))
+
     ;; Numeric conversion from decimal is not precise, in its current
     ;; implementation, so 11.333... and 1.324... can't be expected to
     ;; reliably come out to precise values.  These tests did actually work
