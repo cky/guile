@@ -19,6 +19,8 @@
 
 (define-module (test-suite test-r6rs-base)
   :use-module ((rnrs base) :version (6))
+  :use-module ((rnrs conditions) :version (6))
+  :use-module ((rnrs exceptions) :version (6))
   :use-module (test-suite lib))
 
 
@@ -188,3 +190,9 @@
   (pass-if (not (integer-valued? +0.01i)))
   (pass-if (not (integer-valued? -inf.0i))))
 
+(with-test-prefix "assert"
+  (pass-if "assert returns value" (= 1 (assert 1)))
+  (pass-if "assertion-violation"
+    (guard (condition ((assertion-violation? condition) #t))
+      (assert #f)
+      #f)))

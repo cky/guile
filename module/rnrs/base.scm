@@ -175,7 +175,7 @@
  (define-syntax assert
    (syntax-rules ()
      ((_ expression)
-      (if (not expression)
+      (or expression
           (raise (condition
                   (make-assertion-violation)
                   (make-message-condition
