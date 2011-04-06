@@ -103,9 +103,6 @@
        (let ((sym (car syms)))
          (and (symbol? sym) (symbol=?-internal (cdr syms) sym)))))
 
- (define (exact-integer-sqrt x)
-   (let* ((s (exact (floor (sqrt x)))) (e (- x (* s s)))) (values s e)))
-
  (define (real-valued? x)
    (and (complex? x)
         (zero? (imag-part x))))

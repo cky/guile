@@ -5,6 +5,21 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.1 (since 2.0.0):
+
+* New procedures (see the manual for details)
+
+** exact-integer-sqrt, imported into core from (rnrs base)
+
+* Bugs fixed
+
+** exact-integer-sqrt now handles large integers correctly
+
+exact-integer-sqrt now works correctly when applied to very large
+integers (too large to be precisely represented by a C double).
+It has also been imported into core from (rnrs base).
+
+
 Changes in 2.0.0 (changes since the 1.8.x series):
 
 * New modules (see the manual for details)

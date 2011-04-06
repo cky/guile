@@ -379,6 +379,7 @@ grouped below by the existing manual sections to which they correspond.
 @deffnx {Scheme Procedure} even? n
 @deffnx {Scheme Procedure} gcd x ...
 @deffnx {Scheme Procedure} lcm x ...
+@deffnx {Scheme Procedure} exact-integer-sqrt k
 @xref{Integer Operations}, for documentation.
 @end deffn
 
@@ -523,11 +524,6 @@ This is a consequence of the requirement that
 (div0-and-mod0 -123.2 -63.5) @result{} 2.0 and 3.8
 (div0-and-mod0 16/3 -10/7) @result{} -4 and -8/21
 @end lisp
-@end deffn
-
-@deffn {Scheme Procedure} exact-integer-sqrt k
-This procedure returns two nonnegative integer objects @code{s} and 
-@code{r} such that k = s^2 + r and k < (s + 1)^2.
 @end deffn
 
 @deffn {Scheme Procedure} real-valued? obj

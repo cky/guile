@@ -959,6 +959,18 @@ Return @var{n} raised to the integer exponent
 @end lisp
 @end deffn
 
+@deftypefn {Scheme Procedure} {} exact-integer-sqrt @var{k}
+@deftypefnx {C Function} void scm_exact_integer_sqrt (SCM @var{k}, SCM *@var{s}, SCM *@var{r})
+Return two exact non-negative integers @var{s} and @var{r}
+such that @math{@var{k} = @var{s}^2 + @var{r}} and
+@math{@var{s}^2 <= @var{k} < (@var{s} + 1)^2}.
+An error is raised if @var{k} is not an exact non-negative integer.
+
+@lisp
+(exact-integer-sqrt 10) @result{} 3 and 1
+@end lisp
+@end deftypefn
+
 @node Comparison
 @subsubsection Comparison Predicates
 @rnindex zero?

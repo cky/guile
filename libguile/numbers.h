@@ -289,6 +289,7 @@ SCM_API SCM scm_log (SCM z);
 SCM_API SCM scm_log10 (SCM z);
 SCM_API SCM scm_exp (SCM z);
 SCM_API SCM scm_sqrt (SCM z);
+SCM_API void scm_exact_integer_sqrt (SCM k, SCM *s, SCM *r);
 
 SCM_INTERNAL SCM scm_i_min (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_max (SCM x, SCM y, SCM rest);
@@ -296,6 +297,7 @@ SCM_INTERNAL SCM scm_i_sum (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_difference (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_product (SCM x, SCM y, SCM rest);
 SCM_INTERNAL SCM scm_i_divide (SCM x, SCM y, SCM rest);
+SCM_INTERNAL SCM scm_i_exact_integer_sqrt (SCM k);
 
 /* bignum internal functions */
 SCM_INTERNAL SCM scm_i_mkbig (void);
