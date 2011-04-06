@@ -74,6 +74,7 @@
 
 	  syntax-rules identifier-syntax)
   (import (rename (except (guile) error raise)
+                  (log log-internal)
                   (euclidean-quotient div)
                   (euclidean-remainder mod)
                   (euclidean/ div-and-mod)
@@ -84,6 +85,14 @@
                   (exact->inexact inexact)
                   (inexact->exact exact))
           (srfi srfi-11))
+
+ (define log
+   (case-lambda
+     ((n)
+      (log-internal n))
+     ((n base)
+      (/ (log n)
+         (log base)))))
 
  (define (boolean=? . bools)
    (define (boolean=?-internal lst last)

@@ -21,6 +21,22 @@
   :use-module ((rnrs base) :version (6))
   :use-module (test-suite lib))
 
+
+;; numbers are considered =? if their difference is less than a set
+;; tolerance
+(define (=? alpha beta)
+  (< (abs (- alpha beta)) 1e-10))
+
+(with-test-prefix "log (2nd arg)"
+  (pass-if "log positive-base" (=? (log 8 2) 3))
+  (pass-if "log negative-base" (=? (real-part (log 256 -4))
+                                   0.6519359443))
+  (pass-if "log base-one" (= (log 10 1) +inf.0))
+  (pass-if "log base-zero"
+    (catch #t
+      (lambda () (log 10 0) #f)
+      (lambda args #t))))
+
 (with-test-prefix "boolean=?"
   (pass-if "boolean=? null" (boolean=?))
   (pass-if "boolean=? unary" (boolean=? #f))
