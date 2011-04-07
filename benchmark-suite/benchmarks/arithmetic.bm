@@ -58,7 +58,7 @@
     (repeat (+ 2 <>) 7 100))
 
   (benchmark "-" 1e7
-    (repeat (+ 2 <>) 7 100))
+    (repeat (- 2 <>) 7 100))
 
   (benchmark "*" 1e7
     (repeat (* 1 <>) 1 100))
