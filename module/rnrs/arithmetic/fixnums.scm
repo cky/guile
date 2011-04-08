@@ -76,6 +76,7 @@
 	  fxreverse-bit-field)
   (import (only (guile) ash
 		        cons*
+			define-inlinable
 			inexact->exact
 			logand
 			logbit?
@@ -84,7 +85,8 @@
 			lognot
 			logxor
 			most-positive-fixnum 
-			most-negative-fixnum)
+			most-negative-fixnum
+			object-address)
 	  (ice-9 optargs)
 	  (rnrs base (6))
 	  (rnrs control (6))
@@ -99,12 +101,9 @@
 
   (define (greatest-fixnum) most-positive-fixnum)
   (define (least-fixnum) most-negative-fixnum)
-  
-  (define (fixnum? obj) 
-    (and (integer? obj) 
-	 (exact? obj) 
-	 (>= obj most-negative-fixnum) 
-	 (<= obj most-positive-fixnum)))
+
+  (define-inlinable (fixnum? obj)
+    (not (= 0 (logand 2 (object-address obj)))))
 
   (define-syntax assert-fixnum
     (syntax-rules ()
