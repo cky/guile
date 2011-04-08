@@ -136,7 +136,7 @@ bip_seek (SCM port, scm_t_off offset, int whence)
       /* Fall through.  */
 
     case SEEK_SET:
-      if (c_port->read_buf + offset < c_port->read_end)
+      if (c_port->read_buf + offset <= c_port->read_end)
 	{
 	  c_port->read_pos = c_port->read_buf + offset;
 	  c_result = offset;

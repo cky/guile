@@ -320,6 +320,15 @@
                          (u8-list->bytevector
                           (map char->integer (string->list "Port!")))))))
 
+  (pass-if "bytevector input port can seek to very end"
+    (let ((empty (open-bytevector-input-port '#vu8()))
+          (not-empty (open-bytevector-input-port '#vu8(1 2 3))))
+      (and (begin (set-port-position! empty (port-position empty))
+                  (= 0 (port-position empty)))
+           (begin (get-bytevector-n not-empty 3)
+                  (set-port-position! not-empty (port-position not-empty))
+                  (= 3 (port-position not-empty))))))
+
   (pass-if-exception "make-custom-binary-input-port [wrong-num-args]"
     exception:wrong-num-args
 
