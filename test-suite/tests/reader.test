@@ -430,12 +430,13 @@
   (pass-if (equal? (read-string "#{}#") '#{}#))
   (pass-if (equal? (read-string "#{a}#") 'a))
   (pass-if (equal? (read-string "#{a b}#") '#{a b}#))
-  (begin-deprecated
-   (pass-if (equal? (read-string "#{a\\ b}#") '#{a b}#)))
   (pass-if-exception "#{" exception:eof-in-symbol
                      (read-string "#{"))
   (pass-if (equal? (read-string "#{a\\x20;b}#") '#{a b}#)))
 
+(begin-deprecated
+ (with-test-prefix "deprecated #{}# escapes"
+   (pass-if (equal? (read-string "#{a\\ b}#") '#{a b}#))))
 
 ;;; Local Variables:
 ;;; eval: (put 'with-read-options 'scheme-indent-function 1)
