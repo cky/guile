@@ -1,6 +1,6 @@
 ;;;; symbols.test --- test suite for Guile's symbols    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -151,3 +151,8 @@
   (pass-if "accepts embedded NULs"
     (> (string-length (symbol->string (gensym "foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0foo\0bar\0braz\0"))) 6)))
 
+(with-test-prefix "extended read syntax"
+  (pass-if (equal? "#{}#" (object->string (string->symbol ""))))
+  (pass-if (equal? "a" (object->string (string->symbol "a"))))
+  (pass-if (equal? "#{a b}#" (object->string (string->symbol "a b"))))
+  (pass-if (equal? "#{\\x7d;}#" (object->string (string->symbol "}")))))

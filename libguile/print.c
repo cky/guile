@@ -320,6 +320,18 @@ quote_keywordish_symbols (void)
   return 1;
 }
 
+#define INITIAL_IDENTIFIER_MASK                                      \
+  (UC_CATEGORY_MASK_Lu | UC_CATEGORY_MASK_Ll | UC_CATEGORY_MASK_Lt   \
+   | UC_CATEGORY_MASK_Lm | UC_CATEGORY_MASK_Lo | UC_CATEGORY_MASK_Mn \
+   | UC_CATEGORY_MASK_Nl | UC_CATEGORY_MASK_No | UC_CATEGORY_MASK_Pd \
+   | UC_CATEGORY_MASK_Pc | UC_CATEGORY_MASK_Po | UC_CATEGORY_MASK_Sc \
+   | UC_CATEGORY_MASK_Sm | UC_CATEGORY_MASK_Sk | UC_CATEGORY_MASK_So \
+   | UC_CATEGORY_MASK_Co)
+
+#define SUBSEQUENT_IDENTIFIER_MASK                                      \
+  (INITIAL_IDENTIFIER_MASK                                              \
+   | UC_CATEGORY_MASK_Nd | UC_CATEGORY_MASK_Mc | UC_CATEGORY_MASK_Me)
+
 static int
 symbol_has_extended_read_syntax (SCM sym)
 {
@@ -337,7 +349,7 @@ symbol_has_extended_read_syntax (SCM sym)
     return 1;
 
   /* Other initial-character constraints.  */
-  if (c == '\'' || c == '`' || c == ',')
+  if (c == '\'' || c == '`' || c == ',' || c == '"' || c == ';' || c == '#')
     return 1;
   
   /* Keywords can be identified by trailing colons too.  */
@@ -348,28 +360,20 @@ symbol_has_extended_read_syntax (SCM sym)
   if (scm_is_true (scm_i_string_to_number (scm_symbol_to_string (sym), 10)))
     return 1;
   
-  /* Otherwise assume everything is fine, unless one of these chars is
-     present.  This is incorrect, but it's the way Guile has done it for
-     quite some time.  */
-  for (pos = 0; pos < len; pos++)
+  /* Other disallowed first characters.  */
+  if (!uc_is_general_category_withtable (c, INITIAL_IDENTIFIER_MASK))
+    return 1;
+
+  /* Otherwise, any character that's in the identifier category mask is
+     fine to pass through as-is, provided it's not one of the ASCII
+     delimiters like `;'.  */
+  for (pos = 1; pos < len; pos++)
     {
-      switch (scm_i_symbol_ref (sym, pos))
-        {
-#ifdef BRACKETS_AS_PARENS
-        case '[':
-        case ']':
-#endif
-        case '(':
-        case ')':
-        case '"':
-        case ';':
-        case '#':
-        case SCM_WHITE_SPACES:
-        case SCM_LINE_INCREMENTORS:
-          return 1;
-        default:
-          break;
-        }
+      c = scm_i_symbol_ref (sym, pos);
+      if (!uc_is_general_category_withtable (c, SUBSEQUENT_IDENTIFIER_MASK))
+        return 1;
+      else if (c == '"' || c == ';' || c == '#')
+        return 1;
     }
 
   return 0;
@@ -381,9 +385,6 @@ print_normal_symbol (SCM sym, SCM port)
   scm_display (scm_symbol_to_string (sym), port);
 }
 
-/* This is not the right logic, because it doesn't do anything special
-   for }# within a symbol, and there is no read logic to handle
-   escapes.  We'll fix that in a future patch.  */
 static void
 print_extended_symbol (SCM sym, SCM port)
 {
@@ -399,27 +400,20 @@ print_extended_symbol (SCM sym, SCM port)
     {
       scm_t_wchar c = scm_i_symbol_ref (sym, pos);
       
-      switch (c)
+      if (uc_is_general_category_withtable (c,
+                                            SUBSEQUENT_IDENTIFIER_MASK
+                                            | UC_CATEGORY_MASK_Zs))
         {
-#ifdef BRACKETS_AS_PARENS
-        case '[':
-        case ']':
-#endif
-        case '(':
-        case ')':
-        case '"':
-        case ';':
-        case '#':
-        case SCM_WHITE_SPACES:
-        case SCM_LINE_INCREMENTORS:
-          display_character ('\\', port, iconveh_question_mark);
-          /* fall through */
-        default:
           if (!display_character (c, port, strategy))
             scm_encoding_error ("print_extended_symbol", errno,
                                 "cannot convert to output locale",
                                 port, SCM_MAKE_CHAR (c));
-          break;
+        }
+      else
+        {
+          display_string ("\\x", 1, 2, port, iconveh_question_mark);
+          scm_intprint (c, 16, port);
+          display_character (';', port, iconveh_question_mark);
         }
     }
 
