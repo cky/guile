@@ -1230,7 +1230,7 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
        #{This is all a symbol name}#
 
      So here, CHR is expected to be `{'.  */
-  int saw_brace = 0, finished = 0;
+  int saw_brace = 0;
   size_t len = 0;
   SCM buf = scm_i_make_string (1024, NULL, 0);
 
@@ -1242,20 +1242,57 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 	{
 	  if (chr == '#')
 	    {
-	      finished = 1;
 	      break;
 	    }
 	  else
 	    {
 	      saw_brace = 0;
 	      scm_i_string_set_x (buf, len++, '}');
-	      scm_i_string_set_x (buf, len++, chr);
 	    }
 	}
-      else if (chr == '}')
+
+      if (chr == '}')
 	saw_brace = 1;
+      else if (chr == '\\')
+        {
+          /* It used to be that print.c would print extended-read-syntax
+             symbols with backslashes before "non-standard" chars, but
+             this routine wouldn't do anything with those escapes.
+             Bummer.  What we've done is to change print.c to output
+             R6RS hex escapes for those characters, relying on the fact
+             that the extended read syntax would never put a `\' before
+             an `x'.  For now, we just ignore other instances of
+             backslash in the string.  */
+          switch ((chr = scm_getc (port)))
+            {
+            case EOF:
+              goto done;
+            case 'x':
+              {
+                scm_t_wchar c;
+                
+                SCM_READ_HEX_ESCAPE (10, ';');
+                scm_i_string_set_x (buf, len++, c);
+                break;
+
+              str_eof:
+                chr = EOF;
+                goto done;
+
+              bad_escaped:
+                scm_i_string_stop_writing ();
+                scm_i_input_error ("scm_read_extended_symbol", port,
+                                   "illegal character in escape sequence: ~S",
+                                   scm_list_1 (SCM_MAKE_CHAR (c)));
+                break;
+              }
+            default:
+	      scm_i_string_set_x (buf, len++, chr);
+              break;
+            }
+        }
       else
-	scm_i_string_set_x (buf, len++, chr);
+        scm_i_string_set_x (buf, len++, chr);
 
       if (len >= scm_i_string_length (buf) - 2)
 	{
@@ -1267,11 +1304,13 @@ scm_read_extended_symbol (scm_t_wchar chr, SCM port)
 	  len = 0;
 	  buf = scm_i_string_start_writing (buf);
 	}
-
-      if (finished)
-	break;
     }
+
+ done:
   scm_i_string_stop_writing ();
+  if (chr == EOF)
+    scm_i_input_error ("scm_read_extended_symbol", port,
+                       "end of file while reading symbol", SCM_EOL);
 
   return (scm_string_to_symbol (scm_c_substring (buf, 0, len)));
 }

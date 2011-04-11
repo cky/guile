@@ -36,6 +36,8 @@
   (cons 'read-error "Unknown # object: .*$"))
 (define exception:eof-in-string
   (cons 'read-error "end of file in string constant$"))
+(define exception:eof-in-symbol
+  (cons 'read-error "end of file while reading symbol$"))
 (define exception:illegal-escape
   (cons 'read-error "illegal character in escape sequence: .*$"))
 (define exception:missing-expression
@@ -423,6 +425,16 @@
      ("#`foo" . (quasisyntax foo))
      ("#,foo" . (unsyntax foo))
      ("#,@foo" . (unsyntax-splicing foo)))))
+
+(with-test-prefix "#{}#"
+  (pass-if (equal? (read-string "#{}#") '#{}#))
+  (pass-if (equal? (read-string "#{a}#") 'a))
+  (pass-if (equal? (read-string "#{a b}#") '#{a b}#))
+  (begin-deprecated
+   (pass-if (equal? (read-string "#{a\\ b}#") '#{a b}#)))
+  (pass-if-exception "#{" exception:eof-in-symbol
+                     (read-string "#{"))
+  (pass-if (equal? (read-string "#{a\\x20;b}#") '#{a b}#)))
 
 
 ;;; Local Variables:
