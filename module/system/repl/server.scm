@@ -1,6 +1,6 @@
 ;;; Repl server
 
-;; Copyright (C)  2003, 2010 Free Software Foundation, Inc.
+;; Copyright (C)  2003, 2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -103,6 +103,7 @@
           (sleep 1)
           (accept-new-client))))))
   
+  (sigaction SIGPIPE SIG_IGN)
   (add-open-socket! server-socket)
   (listen server-socket 5)
   (let lp ((client (accept-new-client)))
