@@ -1193,6 +1193,70 @@ GUILE_STRUCT_UTIMBUF
 
 #--------------------------------------------------------------------
 #
+# What values do the iconv error handlers have?
+#
+# The only place that we need iconv in our public interfaces is for
+# the error handlers, which are just ints.  So we weaken our
+# dependency by looking up those values at configure-time.
+#--------------------------------------------------------------------
+SCM_I_GSC_ICONVEH_ERROR=0
+SCM_I_GSC_ICONVEH_QUESTION_MARK=1
+SCM_I_GSC_ICONVEH_ESCAPE_SEQUENCE=2
+AC_MSG_CHECKING([for iconveh_error])
+AC_RUN_IFELSE([AC_LANG_SOURCE(
+[AC_INCLUDES_DEFAULT
+#include <uniconv.h>
+int
+main (int argc, char *argv[])
+{
+  if (argc > 1)
+    printf ("%d\n", (int)iconveh_error);
+  return 0;
+}])],
+	       [SCM_I_GSC_ICONVEH_ERROR=`./conftest$EXEEXT pretty-please`
+                AC_MSG_RESULT([$SCM_I_GSC_ICONVEH_ERROR])],
+	       [AC_MSG_FAILURE([failed to get iconveh_error])],
+	       [AC_MSG_WARN([assuming $SCM_I_GSC_ICONVEH_ERROR for cross-compilation])])
+
+AC_MSG_CHECKING([for iconveh_question_mark])
+AC_RUN_IFELSE([AC_LANG_SOURCE(
+[AC_INCLUDES_DEFAULT
+#include <uniconv.h>
+int
+main (int argc, char *argv[])
+{
+  if (argc > 1)
+    printf ("%d\n", (int)iconveh_question_mark);
+  return 0;
+}])],
+	       [SCM_I_GSC_ICONVEH_QUESTION_MARK=`./conftest$EXEEXT pretty-please`
+                AC_MSG_RESULT([$SCM_I_GSC_ICONVEH_QUESTION_MARK])],
+	       [AC_MSG_FAILURE([failed to get iconveh_question_mark])],
+	       [AC_MSG_WARN([assuming $SCM_I_GSC_ICONVEH_QUESTION_MARK for cross-compilation])])
+
+AC_MSG_CHECKING([for iconveh_escape_sequence])
+AC_RUN_IFELSE([AC_LANG_SOURCE(
+[AC_INCLUDES_DEFAULT
+#include <uniconv.h>
+int
+main (int argc, char *argv[])
+{
+  if (argc > 1)
+    printf ("%d\n", (int)iconveh_escape_sequence);
+  return 0;
+}])],
+	       [SCM_I_GSC_ICONVEH_ESCAPE_SEQUENCE=`./conftest$EXEEXT pretty-please`
+                AC_MSG_RESULT([$SCM_I_GSC_ICONVEH_ESCAPE_SEQUENCE])],
+	       [AC_MSG_FAILURE([failed to get iconveh_escape_sequence])],
+	       [AC_MSG_WARN([assuming $SCM_I_GSC_ICONVEH_ESCAPE_SEQUENCE for cross-compilation])])
+
+AC_SUBST([SCM_I_GSC_ICONVEH_ERROR])
+AC_SUBST([SCM_I_GSC_ICONVEH_QUESTION_MARK])
+AC_SUBST([SCM_I_GSC_ICONVEH_ESCAPE_SEQUENCE])
+
+
+#--------------------------------------------------------------------
+#
 # Which way does the stack grow?
 #
 # Following code comes from Autoconf 2.61's internal _AC_LIBOBJ_ALLOCA
