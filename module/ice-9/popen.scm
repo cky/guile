@@ -139,10 +139,6 @@ A port to the process (based on pipes) is created and returned.
 @var{modes} specifies whether an input, an output or an input-output
 port to the process is created: it should be the value of
 @code{OPEN_READ}, @code{OPEN_WRITE} or @code{OPEN_BOTH}."
-
-  ;; Until we get GC hooks working again, pump the guardian here.
-  (reap-pipes)
-
   (let* ((port/pid (apply open-process mode command args))
 	 (port (car port/pid)))
     (pipe-guardian port)
