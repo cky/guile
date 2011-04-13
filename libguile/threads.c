@@ -661,7 +661,9 @@ static void *
 do_thread_exit_trampoline (struct GC_stack_base *sb, void *v)
 {
   /* Won't hurt if we are already registered.  */
+#if SCM_USE_PTHREAD_THREADS
   GC_register_my_thread (sb);
+#endif
 
   return scm_with_guile (do_thread_exit, v);
 }
@@ -720,7 +722,7 @@ on_thread_exit (void *v)
 
   scm_i_pthread_setspecific (scm_i_thread_key, NULL);
 
-#if !SCM_USE_NULL_THREADS
+#if SCM_USE_PTHREAD_THREADS
   GC_unregister_my_thread ();
 #endif
 }
@@ -774,7 +776,7 @@ scm_i_init_thread_for_guile (struct GC_stack_base *base, SCM parent)
 	  */
 	  scm_i_init_guile (base);
 
-#ifdef HAVE_GC_ALLOW_REGISTER_THREADS
+#if defined (HAVE_GC_ALLOW_REGISTER_THREADS) && SCM_USE_PTHREAD_THREADS
           /* Allow other threads to come in later.  */
           GC_allow_register_threads ();
 #endif
@@ -789,7 +791,9 @@ scm_i_init_thread_for_guile (struct GC_stack_base *base, SCM parent)
 	  scm_i_pthread_mutex_unlock (&scm_i_init_mutex);
 
           /* Register this thread with libgc.  */
+#if SCM_USE_PTHREAD_THREADS
           GC_register_my_thread (base);
+#endif
 
 	  guilify_self_1 (base);
 	  guilify_self_2 (parent);
