@@ -7,6 +7,332 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.0.1 (since 2.0.0):
 
+
+
+* New modules (see the manual for details)
+
+** `(ice-9 binary-ports)', XXX
+    
+* Memory leak fixes
+
+close-port leaking iconv_t    
+
+weak hash table pumping
+
+* doc work
+
+goops mop
+
+* guile.m4 supports linking with rpath
+    
+    * guile.m4 (GUILE_FLAGS): Also set GUILE_LIBS and GUILE_LTLIBS. Fix
+      documentation.
+
+* Add omitted exports from `(ice-9 vlist)'.
+    
+    * module/ice-9/vlist.scm: Export `vhash-delq' and `vhash-delv'.
+
+*    re-enable the after-gc-hook
+    
+*    chi-top-sequence defines macros before expanding other exps
+    
+(begin
+  (define even?
+    (lambda (x)
+      (or (= x 0) (odd? (- x 1)))))
+  (define-syntax odd?
+    (syntax-rules ()
+      ((odd? x) (not (even? x)))))
+  (even? 10))
+
+*    flush all input on a read error
+    
+    * module/system/repl/repl.scm (flush-all-input): New helper.
+      (prompting-meta-read): Flush all input on a read error, as we could be
+      within some expression or a string or something.
+
+*    repl.scm understands comments
+    
+    * module/system/repl/repl.scm (read-comment, read-scheme-line-comment)
+      (read-scheme-datum-comment): New helpers.
+      (meta-reader): Take a language instead of a reader.  If we have a
+      nonwhitespace char, first check to see that it's a comment, and if so,
+      read it off and loop.
+      (prompting-meta-read): Call meta-reader with the lang.
+
+*    Add ,width meta-command to set screen width in debug output
+    
+terminal-width by default
+
+* man page updates
+
+Mark Harig
+
+* add ice-9 eval-string
+    
+Fly Evaluation in the manual
+
+* add scm_c_public_ref et al
+    
+    * libguile/modules.h:
+    * libguile/modules.c (scm_public_lookup, scm_private_lookup)
+      (scm_c_public_lookup, scm_c_private_lookup, scm_public_ref)
+      (scm_private_ref, scm_c_public_ref, scm_c_private_ref)
+      (scm_public_variable, scm_private_variable, scm_c_public_variable)
+      (scm_c_private_variable): New helpers to get at variables and values
+      in modules.
+
+"Accessing Modules from C" in the manual
+
+*    add scm_call_{5,6}
+    
+    * doc/ref/api-evaluation.texi (Fly Evaluation): Document
+      scm_call_{5,6,n}.
+
+*    Add scm_from_latin1_keyword and scm_from_utf8_keyword
+    
+    * doc/ref/api-data.texi: Document new functions.  Remind users that
+      scm_from_locale_keyword should not be used when the name is a C string
+      constant.  Change formal parameter from `str' to `name'.
+
+* srfi-9 define-record-type in nested contexts
+
+* Add `get-string-n' and `get-string-n!' for binary and R6RS ports
+
+* rnrs io ports work
+
+Export `current-input-port', `current-output-port' and
+`current-error-port'.
+    
+    Enhance transcoder-related functionality of `(rnrs io ports)'
+    
+    * module/rnrs/io/ports.scm (transcoder-eol-style)
+      (transcoder-error-handling-mode): Export these.
+      (textual-port?): Implement this procedure and export it.
+    * module/rnrs.scm: Export these here as well.
+    
+    * module/rnrs/io/ports.scm (port-transcoder): Implement this procedure.
+      (binary-port?): Treat only ports without an encoding as binary ports,
+      add docstring.
+      (standard-input-port, standard-output-port, standard-error-port):
+      Ensure these are created without an encoding.
+      (eol-style): Add `none' as enumeration member.
+      (native-eol-style): Switch to `none' from `lf'.
+    
+    * test-suite/tests/r6rs-ports.test (7.2.7 Input ports)
+      (8.2.10 Output ports): Test binary-ness of `standard-input-port',
+      `standard-output-port' and `standard-error-port'.
+      (8.2.6 Input and output ports): Add test for `port-transcoder'.
+    
+    doc: Remove "lack of support for Unicode I/O and strings".
+    
+    * doc/ref/api-io.texi (R6RS I/O Ports): Remove 1.8ish comment.
+
+*    add pointer->scm, scm->pointer
+    
+    * libguile/foreign.c (scm_pointer_to_scm, scm_scm_to_pointer): New
+      functions, useful to pass and receive SCM values to and from foreign
+      functions.
+    
+    * module/system/foreign.scm: Export the new functions.
+    
+    * doc/ref/api-foreign.texi (Foreign Variables): Add docs.
+
+* gc-stats update
+
+add heap-allocated-since-gc; fix ,stat.
+    
+* allow ,option on-error report instead of debug
+    
+"System Commands" in the manual.
+
+* Make VM string literals immutable.
+    
+* don't redirect pthread_create et al
+
+    * libguile/bdw-gc.h: Don't do pthread redirects, because we don't want
+      to affect applications' pthread_* bindings.
+    
+    * libguile/pthread-threads.h (scm_i_pthread_create)
+      (scm_i_pthread_detach, scm_i_pthread_exit, scm_i_pthread_cancel)
+      (scm_i_pthread_sigmask): Do pthread redirects here, in this internal
+      header.
+
+*    Document SRFI-23
+    
+     * doc/ref/srfi-modules.texi: mention that we support SRFI 23
+     * module/ice-9/boot-9.scm (%cond-expand-features): add srfi-23
+
+*    with-continuation-barrier calls exit(3) _after_ unwinding
+    
+    * libguile/continuations.c (scm_handler, c_handler)
+      (scm_c_with_continuation_barrier, scm_with_continuation_barrier):
+      Instead of calling scm_handle_by_message_noexit in the pre-unwind
+      handler, roll our own exception printing in the pre-unwind, and do to
+      exit()-on-quit in the post-unwind handler.  This lets the stack unwind
+      at exit-time so that pending dynwinds run.
+    
+    * test-suite/tests/continuations.test ("continuations"): Add a test.
+
+*    string->pointer and pointer->string have optional encoding arg
+    
+"Void Pointers and Byte Access" in the manual.
+
+* Several optimizations for R6RS fixnum arithmetic
+    
+*    Move `define-inlinable' into the default namespace
+    
+    * module/ice-9/boot-9.scm (define-inlineable): Moved here from SRFI-9.
+    * module/srfi/srfi-9 (define-inlinable): Removed here.
+    
+    * doc/ref/api-procedures.texi (Inlinable Procedures): Add subsection
+      about `define-inlinable'.
+
+*    Implement R6RS' `fixnum?' in a smarter way
+    
+    * module/rnrs/arithmetic/fixnums.scm (fixnum?): Implemented using
+      bit-twiddling, and using `define-inlinable'.
+
+commit 882c89636a2a4afa26cff17c7cdbc1d8c1cb2745
+Author: Mark H Weaver <mhw@netris.org>
+Date:   Wed Apr 6 15:09:42 2011 -0400
+
+    Fix the R6RS exact-integer-sqrt and import into core guile
+    
+    * libguile/numbers.c (scm_exact_integer_sqrt): New C procedure to
+      compute exact integer square root and remainder.
+      (scm_i_exact_integer_sqrt): New Scheme procedure `exact-integer-sqrt'
+      from the R6RS, imported into core guile.
+    
+    * libguile/numbers.h: Add prototypes.
+    
+    * module/rnrs/base.scm: Remove broken stub implementation, which would
+      fail badly when applied to large integers.
+    
+    * doc/ref/api-data.texi: Add documentation.
+    
+    * doc/ref/r6rs.texi: Change documentation for `exact-integer-sqrt' to a
+      stub that xrefs the core docs, as is done for other operations
+      available in core.
+    
+    * test-suite/tests/numbers.test: Add tests.
+    
+    * NEWS: Add news entries.
+
+commit adf43b3f081878860ed1d4d5091b9a432b44da90
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Mon Apr 11 10:13:48 2011 +0200
+
+    ignore SIGPIPE in (system repl server)
+    
+    * module/system/repl/server.scm (run-server): Ignore SIGPIPE when we run
+      a server, as otherwise a rudely disconnected client could cause the
+      server to quit.  Thanks to John Proctor for the report, and Detlev
+      Zundel for the debugging.
+
+commit 15671c6e7fd86160b415b5373b2c1539e23556f3
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Mon Apr 11 11:52:35 2011 +0200
+
+    refactor scm_i_print_symbol_name
+    
+    * libguile/print.c (symbol_has_extended_read_syntax)
+      (print_normal_symbol, print_extended_symbol, scm_i_print_symbol_name):
+      Factor scm_i_print_symbol_name into separate routines.  Add comments.
+      There are a number of bugs here.
+
+commit d9527cfafdad1046770437a7a59d3745e7243c67
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Mon Apr 11 12:48:06 2011 +0200
+
+    read-extended-symbol handles backslash better, including r6rs hex escapes
+    
+    * libguile/read.c (scm_read_extended_symbol): Interpret '\' as an escape
+      character.  Due to some historical oddities we have to support '\'
+      before any character, but since we never emitted '\' in front of
+      "normal" characters like 'x' we can interpret "\x..;" to be an R6RS
+      hex escape.
+    
+    * test-suite/tests/reader.test ("#{}#"): Add tests.
+
+commit 2e9fc9fc73a8157152e6b2e122ec545d96478c2a
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Mon Apr 11 13:38:27 2011 +0200
+
+    symbols with odd characters print better in #{}#
+    
+    * libguile/print.c (symbol_has_extended_read_syntax): Use a more
+      general, unicode-appropriate algorithm.  Hopefully doesn't cause
+      any current #{}# cases to be unescaped.
+      (print_extended_symbol): Use more appropriate unicode algorithm, and
+      emit unicode hex escapes instead of our own lame escapes.
+    
+    * test-suite/tests/symbols.test: Add tests.
+
+commit b9e22602bb9c7d82500e4e5612bf80e478e28b8c
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Mon Apr 11 13:49:29 2011 +0200
+
+    regen psyntax-pp.scm
+    
+    * module/ice-9/psyntax-pp.scm: Regenerate, to take advantage of better
+      #{}# serialization.
+
+commit 62ef23cbb828accf1f5b9622ff17775aa539d354
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Mon Apr 11 17:21:20 2011 +0200
+
+    fix reader.test for --disable-deprecated
+    
+    * test-suite/tests/reader.test: Fix deprecated tests; begin-deprecated
+      was splicing in expression context before, which is a no-no.
+
+commit cf9d4a82146556ff45d40d6eec8579082287900e
+Author: Ian Price <ianprice90@googlemail.com>
+Date:   Wed Apr 6 01:53:38 2011 +0100
+
+    Added optional second arg to R6RS log function
+    
+    * module/rnrs/base.scm (log): now takes a base argument, using the
+      change of base formula for logs.
+    * test-suite/tests/r6rs-base.test ("log (2nd arg)"): Add test cases.
+
+commit 15993bce1cd0a2e69f11a6ac1725fa7a219c5b7c
+Author: Ian Price <ianprice90@googlemail.com>
+Date:   Wed Apr 6 13:51:44 2011 +0100
+
+    fix assert to return true value.
+    
+    * module/rnrs/base.scm (assert): returns value instead of void.
+    
+    * test-suite/tests/r6rs-base.test ("assert"): add test cases.
+
+commit c89b45299329d034875429804f18768c1ea96713
+Author: Ian Price <ianprice90@googlemail.com>
+Date:   Fri Apr 8 02:49:20 2011 +0100
+
+    Fix fencepost error in bip_seek
+    
+    * libguile/r6rs-ports.c (bip_seek): Fix to allow seeking to end of port.
+    
+    * test-suite/tests/r6rs-ports.test ("bytevector input port can seek to
+      very end"): Add tests.
+
+commit dcb1e3b0f8c79d1373f334909fa5d653ec7674eb
+Author: Andy Wingo <wingo@pobox.com>
+Date:   Wed Apr 13 12:03:50 2011 +0200
+
+    --disable-threads fix
+    
+    * libguile/threads.c (do_thread_exit_trampoline, on_thread_exit):
+      (scm_i_init_thread_for_guile): Only register and unregister threads
+      with bdw-gc when we are building with threads support.  Thanks to
+      Marijn for the report.
+
+
+
+
+
 * New procedures (see the manual for details)
 
 ** exact-integer-sqrt, imported into core from (rnrs base)

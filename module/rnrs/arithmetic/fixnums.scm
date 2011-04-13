@@ -102,17 +102,20 @@
   (define (greatest-fixnum) most-positive-fixnum)
   (define (least-fixnum) most-negative-fixnum)
 
-  (define-inlinable (fixnum? obj)
+  (define (fixnum? obj)
+    (not (= 0 (logand 2 (object-address obj)))))
+
+  (define-inlinable (inline-fixnum? obj)
     (not (= 0 (logand 2 (object-address obj)))))
 
   (define-syntax assert-fixnum
     (syntax-rules ()
       ((_ arg ...)
-       (or (and (fixnum? arg) ...)
+       (or (and (inline-fixnum? arg) ...)
 	   (raise (make-assertion-violation))))))
 
   (define (assert-fixnums args)
-    (or (for-all fixnum? args) (raise (make-assertion-violation))))
+    (or (for-all inline-fixnum? args) (raise (make-assertion-violation))))
 
   (define-syntax define-fxop*
     (syntax-rules ()
@@ -147,13 +150,15 @@
   (define (fx+ fx1 fx2)
     (assert-fixnum fx1 fx2) 
     (let ((r (+ fx1 fx2))) 
-      (or (fixnum? r) (raise (make-implementation-restriction-violation)))
+      (or (inline-fixnum? r)
+          (raise (make-implementation-restriction-violation)))
       r))
 
   (define (fx* fx1 fx2)
     (assert-fixnum fx1 fx2) 
     (let ((r (* fx1 fx2))) 
-      (or (fixnum? r) (raise (make-implementation-restriction-violation)))
+      (or (inline-fixnum? r)
+          (raise (make-implementation-restriction-violation)))
       r))
 
   (define* (fx- fx1 #:optional fx2)
@@ -162,10 +167,10 @@
 	(begin 
 	  (assert-fixnum fx2) 
 	  (let ((r (- fx1 fx2))) 
-	    (or (fixnum? r) (raise (make-assertion-violation)))
+	    (or (inline-fixnum? r) (raise (make-assertion-violation)))
 	    r))
 	(let ((r (- fx1))) 
-	  (or (fixnum? r) (raise (make-assertion-violation)))
+	  (or (inline-fixnum? r) (raise (make-assertion-violation)))
 	  r)))
 
   (define (fxdiv fx1 fx2)
