@@ -933,6 +933,21 @@ init_build_info ()
       SCM val = scm_from_locale_string (info[i].value);
       *loc = scm_acons (key, val, *loc);
     }
+#ifdef PACKAGE_PACKAGER
+  *loc = scm_acons (scm_from_latin1_symbol ("packager"),
+                    scm_from_latin1_string (PACKAGE_PACKAGER),
+                    *loc);
+#endif
+#ifdef PACKAGE_PACKAGER_VERSION
+  *loc = scm_acons (scm_from_latin1_symbol ("packager-version"),
+                    scm_from_latin1_string (PACKAGE_PACKAGER_VERSION),
+                    *loc);
+#endif
+#ifdef PACKAGE_PACKAGER_BUG_REPORTS
+  *loc = scm_acons (scm_from_latin1_symbol ("packager-bug-reports"),
+                    scm_from_latin1_string (PACKAGE_PACKAGER_BUG_REPORTS),
+                    *loc);
+#endif
 }
 
 
