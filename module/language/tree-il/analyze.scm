@@ -1347,10 +1347,9 @@ accurate information is missing from a given `tree-il' element."
 (define (const-fmt x)
   (record-case x
     ((<const> exp)
-     ;; String literals.
-     (and (string? exp) exp))
+     exp)
     ((<application> proc args)
-     ;; Gettexted string literals, like `(_ "foo")'.
+     ;; Gettexted literals, like `(_ "foo")'.
      (and (record-case proc
             ((<toplevel-ref> name) (eq? name '_))
             ((<module-ref> name) (eq? name '_))
@@ -1358,8 +1357,7 @@ accurate information is missing from a given `tree-il' element."
           (pmatch args
             ((,fmt)
              (record-case fmt
-               ((<const> exp)
-                (and (string? exp) exp))
+               ((<const> exp) exp)
                (else #f)))
             (else #f))))
     (else #f)))
