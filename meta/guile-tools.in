@@ -174,7 +174,9 @@ There is NO WARRANTY, to the extent permitted by law.
        (else (values (reverse options) args))))))
 
 (define (main args)
-  (setlocale LC_ALL "")
+  (if (defined? 'setlocale)
+      (setlocale LC_ALL ""))
+
   (call-with-values (lambda () (getopt args *option-grammar*))
     (lambda (options args)
       (cond

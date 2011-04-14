@@ -127,7 +127,7 @@ AC_ARG_ENABLE(guile-debug,
   fi)
 
 AC_ARG_ENABLE(posix,
-  [  --disable-posix         omit posix interfaces],,
+  [  --disable-posix         omit non-essential POSIX interfaces],,
   enable_posix=yes)
 
 AC_ARG_ENABLE(networking,
@@ -230,10 +230,9 @@ if test "$use_modules" != no; then
 fi
 
 if test "$enable_posix" = yes; then
-   AC_LIBOBJ([filesys])
    AC_LIBOBJ([posix])
    AC_DEFINE([HAVE_POSIX], 1,
-     [Define this if you want support for POSIX system calls in Guile.])
+     [Define this if you want support for non-essential POSIX system calls in Guile.])
 fi
 
 if test "$enable_networking" = yes; then

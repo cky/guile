@@ -957,8 +957,9 @@ VALUE."
 
 
 
-(if (provided? 'posix)
-    (primitive-load-path "ice-9/posix"))
+;; Load `posix.scm' even when not (provided? 'posix) so that we get the
+;; `stat' accessors.
+(primitive-load-path "ice-9/posix")
 
 (if (provided? 'socket)
     (primitive-load-path "ice-9/networking"))

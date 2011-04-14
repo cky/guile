@@ -82,6 +82,25 @@ setlocale (int category, const char *name)
 /* Helper stringification macro.  */
 #define SCM_I18N_STRINGIFY(_name)   # _name
 
+/* Acquiring and releasing the locale lock.  */
+
+static inline void
+lock_locale_mutex (void)
+{
+#ifdef HAVE_POSIX
+  scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
+#else
+#endif
+}
+
+static inline void
+unlock_locale_mutex (void)
+{
+#ifdef HAVE_POSIX
+  scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+#else
+#endif
+}
 
 
 /* Locale objects, string and character collation, and other locale-dependent
@@ -421,7 +440,7 @@ leave_locale_section (const scm_t_locale_settings *settings)
   /* Restore the previous locale settings.  */
   (void)restore_locale_settings (settings);
 
-  scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+  unlock_locale_mutex ();
 }
 
 /* Enter a locked locale section.  */
@@ -431,12 +450,12 @@ enter_locale_section (scm_t_locale locale,
 {
   int err;
 
-  scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
+  lock_locale_mutex ();
 
   err = get_current_locale_settings (prev_locale);
   if (err)
     {
-      scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+      unlock_locale_mutex ();
       return err;
     }
 
@@ -483,7 +502,7 @@ get_current_locale (SCM *result)
   c_locale = scm_gc_malloc (sizeof (* c_locale), "locale");
 
 
-  scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
+  lock_locale_mutex ();
 
   c_locale->category_mask = LC_ALL_MASK;
   c_locale->base_locale = SCM_UNDEFINED;
@@ -498,7 +517,7 @@ get_current_locale (SCM *result)
   else
     err = EINVAL;
 
-  scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+  unlock_locale_mutex ();
 
   if (err)
     scm_gc_free (c_locale, sizeof (* c_locale), "locale");
@@ -1490,7 +1509,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
      http://opengroup.org/onlinepubs/007908799/xsh/nl_langinfo.html for
      details.  */
 
-  scm_i_pthread_mutex_lock (&scm_i_locale_mutex);
+  lock_locale_mutex ();
   if (c_locale != NULL)
     {
 #ifdef USE_GNU_LOCALE_API
@@ -1506,7 +1525,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 
       lsec_err = get_current_locale_settings (&lsec_prev_locale);
       if (lsec_err)
-	scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+	unlock_locale_mutex ();
       else
 	{
 	  lsec_err = install_locale (c_locale);
@@ -1540,7 +1559,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
     }
 
   c_result = strdup (c_result);
-  scm_i_pthread_mutex_unlock (&scm_i_locale_mutex);
+  unlock_locale_mutex ();
 
   if (c_result == NULL)
     result = SCM_BOOL_F;

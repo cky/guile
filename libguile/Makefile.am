@@ -138,6 +138,7 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	expand.c				\
 	extensions.c				\
 	feature.c				\
+	filesys.c				\
 	fluids.c				\
 	foreign.c				\
 	fports.c				\
@@ -342,6 +343,7 @@ DOT_DOC_FILES = 				\
 	expand.doc				\
 	extensions.doc				\
 	feature.doc				\
+	filesys.doc 				\
 	fluids.doc				\
 	foreign.doc				\
 	fports.doc				\
@@ -425,7 +427,7 @@ BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h \
 EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     memmove.c strerror.c			\
     dynl.c regex-posix.c			\
-    filesys.c posix.c net_db.c socket.c		\
+    posix.c net_db.c socket.c			\
     debug-malloc.c mkstemp.c			\
     win32-uname.c win32-dirent.c win32-socket.c	\
     locale-categories.h

@@ -455,8 +455,8 @@ scm_i_init_guile (void *base)
   scm_init_numbers ();
   scm_init_options ();
   scm_init_pairs ();
-#ifdef HAVE_POSIX
   scm_init_filesys ();     /* Requires smob_prehistory */
+#ifdef HAVE_POSIX
   scm_init_posix ();
 #endif
 #ifdef HAVE_REGCOMP

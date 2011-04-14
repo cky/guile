@@ -18,6 +18,10 @@
 
 
 
+/* This file contains POSIX file system access procedures.  Procedures
+   essential to the compiler and run-time (`stat', `canonicalize-path',
+   etc.) are compiled even with `--disable-posix'.  */
+
 
 /* See stime.c for comments on why _POSIX_C_SOURCE is not always defined. */
 #define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
@@ -158,6 +162,8 @@
 
 
 
+#ifdef HAVE_POSIX
+
 /* {Permissions}
  */
 
@@ -202,64 +208,6 @@ SCM_DEFINE (scm_chown, "chown", 3, 0, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_CHOWN */
-
-
-SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
-            (SCM object, SCM mode),
-	    "Changes the permissions of the file referred to by @var{obj}.\n"
-	    "@var{obj} can be a string containing a file name or a port or integer file\n"
-	    "descriptor which is open on a file (in which case @code{fchmod} is used\n"
-	    "as the underlying system call).\n"
-	    "@var{mode} specifies\n"
-	    "the new permissions as a decimal number, e.g., @code{(chmod \"foo\" #o755)}.\n"
-	    "The return value is unspecified.")
-#define FUNC_NAME s_scm_chmod
-{
-  int rv;
-  int fdes;
-
-  object = SCM_COERCE_OUTPORT (object);
-
-  if (scm_is_integer (object) || SCM_OPFPORTP (object))
-    {
-      if (scm_is_integer (object))
-	fdes = scm_to_int (object);
-      else
-	fdes = SCM_FPORT_FDES (object);
-      SCM_SYSCALL (rv = fchmod (fdes, scm_to_int (mode)));
-    }
-  else
-    {
-      STRING_SYSCALL (object, c_object,
-		      rv = chmod (c_object, scm_to_int (mode)));
-    }
-  if (rv == -1)
-    SCM_SYSERROR;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_umask, "umask", 0, 1, 0, 
-            (SCM mode),
-	    "If @var{mode} is omitted, returns a decimal number representing the current\n"
-	    "file creation mask.  Otherwise the file creation mask is set to\n"
-	    "@var{mode} and the previous value is returned.\n\n"
-	    "E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
-#define FUNC_NAME s_scm_umask
-{
-  mode_t mask;
-  if (SCM_UNBNDP (mode))
-    {
-      mask = umask (0);
-      umask (mask);
-    }
-  else
-    {
-      mask = umask (scm_to_uint (mode));
-    }
-  return scm_from_uint (mask);
-}
-#undef FUNC_NAME
 
 
 
@@ -385,6 +333,8 @@ SCM_DEFINE (scm_close_fdes, "close-fdes", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+#endif /* HAVE_POSIX */
 
 
 /* {Files}
@@ -653,6 +603,8 @@ SCM_DEFINE (scm_stat, "stat", 1, 1, 0,
 #undef FUNC_NAME
 
 
+#ifdef HAVE_POSIX
+
 /* {Modifying Directories}
  */
 
@@ -676,103 +628,6 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_LINK */
-
-#ifdef HAVE_RENAME
-#define my_rename rename
-#else
-static int
-my_rename (const char *oldname, const char *newname)
-{
-  int rv;
-
-  SCM_SYSCALL (rv = link (oldname, newname));
-  if (rv == 0)
-    {
-      SCM_SYSCALL (rv = unlink (oldname));
-      if (rv != 0)
-	/* unlink failed.  remove new name */
-	SCM_SYSCALL (unlink (newname)); 
-    }
-  return rv;
-}
-#endif
-
-SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
-            (SCM oldname, SCM newname),
-	    "Renames the file specified by @var{oldname} to @var{newname}.\n"
-	    "The return value is unspecified.")
-#define FUNC_NAME s_scm_rename
-{
-  int rv;
-
-  STRING2_SYSCALL (oldname, c_oldname,
-		   newname, c_newname,
-		   rv = my_rename (c_oldname, c_newname));
-  if (rv != 0)
-    SCM_SYSERROR;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0, 
-           (SCM str),
-	    "Deletes (or \"unlinks\") the file specified by @var{path}.")
-#define FUNC_NAME s_scm_delete_file
-{
-  int ans;
-  STRING_SYSCALL (str, c_str, ans = unlink (c_str));
-  if (ans != 0)
-    SCM_SYSERROR;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-#ifdef HAVE_MKDIR
-SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
-            (SCM path, SCM mode),
-	    "Create a new directory named by @var{path}.  If @var{mode} is omitted\n"
-	    "then the permissions of the directory file are set using the current\n"
-	    "umask.  Otherwise they are set to the decimal value specified with\n"
-	    "@var{mode}.  The return value is unspecified.")
-#define FUNC_NAME s_scm_mkdir
-{
-  int rv;
-  mode_t mask;
-
-  if (SCM_UNBNDP (mode))
-    {
-      mask = umask (0);
-      umask (mask);
-      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, 0777 ^ mask));
-    }
-  else
-    {
-      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, scm_to_uint (mode)));
-    }
-  if (rv != 0)
-    SCM_SYSERROR;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-#endif /* HAVE_MKDIR */
-
-#ifdef HAVE_RMDIR
-SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0, 
-            (SCM path),
-	    "Remove the existing directory named by @var{path}.  The directory must\n"
-	    "be empty for this to succeed.  The return value is unspecified.")
-#define FUNC_NAME s_scm_rmdir
-{
-  int val;
-
-  STRING_SYSCALL (path, c_path, val = rmdir (c_path));
-  if (val != 0)
-    SCM_SYSERROR;
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-#endif
 
 
 
@@ -970,38 +825,6 @@ SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
-#ifdef HAVE_GETCWD
-SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
-            (),
-	    "Return the name of the current working directory.")
-#define FUNC_NAME s_scm_getcwd
-{
-  char *rv;
-  size_t size = 100;
-  char *wd;
-  SCM result;
-
-  wd = scm_malloc (size);
-  while ((rv = getcwd (wd, size)) == 0 && errno == ERANGE)
-    {
-      free (wd);
-      size *= 2;
-      wd = scm_malloc (size);
-    }
-  if (rv == 0)
-    {
-      int save_errno = errno;
-      free (wd);
-      errno = save_errno;
-      SCM_SYSERROR;
-    }
-  result = scm_from_locale_stringn (wd, strlen (wd));
-  free (wd);
-  return result;
-}
-#undef FUNC_NAME
-#endif /* HAVE_GETCWD */
 
 
 
@@ -1509,6 +1332,300 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+#endif /* HAVE_POSIX */
+
+
+/* Essential procedures used in (system base compile).  */
+
+#ifdef HAVE_GETCWD
+SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
+            (),
+	    "Return the name of the current working directory.")
+#define FUNC_NAME s_scm_getcwd
+{
+  char *rv;
+  size_t size = 100;
+  char *wd;
+  SCM result;
+
+  wd = scm_malloc (size);
+  while ((rv = getcwd (wd, size)) == 0 && errno == ERANGE)
+    {
+      free (wd);
+      size *= 2;
+      wd = scm_malloc (size);
+    }
+  if (rv == 0)
+    {
+      int save_errno = errno;
+      free (wd);
+      errno = save_errno;
+      SCM_SYSERROR;
+    }
+  result = scm_from_locale_stringn (wd, strlen (wd));
+  free (wd);
+  return result;
+}
+#undef FUNC_NAME
+#endif /* HAVE_GETCWD */
+
+#ifdef HAVE_MKDIR
+SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
+            (SCM path, SCM mode),
+	    "Create a new directory named by @var{path}.  If @var{mode} is omitted\n"
+	    "then the permissions of the directory file are set using the current\n"
+	    "umask.  Otherwise they are set to the decimal value specified with\n"
+	    "@var{mode}.  The return value is unspecified.")
+#define FUNC_NAME s_scm_mkdir
+{
+  int rv;
+  mode_t mask;
+
+  if (SCM_UNBNDP (mode))
+    {
+      mask = umask (0);
+      umask (mask);
+      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, 0777 ^ mask));
+    }
+  else
+    {
+      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, scm_to_uint (mode)));
+    }
+  if (rv != 0)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif /* HAVE_MKDIR */
+
+#ifdef HAVE_RMDIR
+SCM_DEFINE (scm_rmdir, "rmdir", 1, 0, 0, 
+            (SCM path),
+	    "Remove the existing directory named by @var{path}.  The directory must\n"
+	    "be empty for this to succeed.  The return value is unspecified.")
+#define FUNC_NAME s_scm_rmdir
+{
+  int val;
+
+  STRING_SYSCALL (path, c_path, val = rmdir (c_path));
+  if (val != 0)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+#endif
+
+#ifdef HAVE_RENAME
+#define my_rename rename
+#else
+static int
+my_rename (const char *oldname, const char *newname)
+{
+  int rv;
+
+  SCM_SYSCALL (rv = link (oldname, newname));
+  if (rv == 0)
+    {
+      SCM_SYSCALL (rv = unlink (oldname));
+      if (rv != 0)
+	/* unlink failed.  remove new name */
+	SCM_SYSCALL (unlink (newname)); 
+    }
+  return rv;
+}
+#endif
+
+SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
+            (SCM oldname, SCM newname),
+	    "Renames the file specified by @var{oldname} to @var{newname}.\n"
+	    "The return value is unspecified.")
+#define FUNC_NAME s_scm_rename
+{
+  int rv;
+
+  STRING2_SYSCALL (oldname, c_oldname,
+		   newname, c_newname,
+		   rv = my_rename (c_oldname, c_newname));
+  if (rv != 0)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0, 
+           (SCM str),
+	    "Deletes (or \"unlinks\") the file specified by @var{path}.")
+#define FUNC_NAME s_scm_delete_file
+{
+  int ans;
+  STRING_SYSCALL (str, c_str, ans = unlink (c_str));
+  if (ans != 0)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_access, "access?", 2, 0, 0,
+            (SCM path, SCM how),
+	    "Test accessibility of a file under the real UID and GID of the\n"
+	    "calling process.  The return is @code{#t} if @var{path} exists\n"
+	    "and the permissions requested by @var{how} are all allowed, or\n"
+	    "@code{#f} if not.\n"
+	    "\n"
+	    "@var{how} is an integer which is one of the following values,\n"
+	    "or a bitwise-OR (@code{logior}) of multiple values.\n"
+	    "\n"
+	    "@defvar R_OK\n"
+	    "Test for read permission.\n"
+	    "@end defvar\n"
+	    "@defvar W_OK\n"
+	    "Test for write permission.\n"
+	    "@end defvar\n"
+	    "@defvar X_OK\n"
+	    "Test for execute permission.\n"
+	    "@end defvar\n"
+	    "@defvar F_OK\n"
+	    "Test for existence of the file.  This is implied by each of the\n"
+	    "other tests, so there's no need to combine it with them.\n"
+	    "@end defvar\n"
+	    "\n"
+	    "It's important to note that @code{access?} does not simply\n"
+	    "indicate what will happen on attempting to read or write a\n"
+	    "file.  In normal circumstances it does, but in a set-UID or\n"
+	    "set-GID program it doesn't because @code{access?} tests the\n"
+	    "real ID, whereas an open or execute attempt uses the effective\n"
+	    "ID.\n"
+	    "\n"
+	    "A program which will never run set-UID/GID can ignore the\n"
+	    "difference between real and effective IDs, but for maximum\n"
+	    "generality, especially in library functions, it's best not to\n"
+	    "use @code{access?} to predict the result of an open or execute,\n"
+	    "instead simply attempt that and catch any exception.\n"
+	    "\n"
+	    "The main use for @code{access?} is to let a set-UID/GID program\n"
+	    "determine what the invoking user would have been allowed to do,\n"
+	    "without the greater (or perhaps lesser) privileges afforded by\n"
+	    "the effective ID.  For more on this, see ``Testing File\n"
+	    "Access'' in The GNU C Library Reference Manual.")
+#define FUNC_NAME s_scm_access
+{
+  int rv;
+  char *c_path;
+
+  c_path = scm_to_locale_string (path);
+  rv = access (c_path, scm_to_int (how));
+  free (c_path);
+
+  return scm_from_bool (!rv);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
+            (SCM object, SCM mode),
+	    "Changes the permissions of the file referred to by @var{obj}.\n"
+	    "@var{obj} can be a string containing a file name or a port or integer file\n"
+	    "descriptor which is open on a file (in which case @code{fchmod} is used\n"
+	    "as the underlying system call).\n"
+	    "@var{mode} specifies\n"
+	    "the new permissions as a decimal number, e.g., @code{(chmod \"foo\" #o755)}.\n"
+	    "The return value is unspecified.")
+#define FUNC_NAME s_scm_chmod
+{
+  int rv;
+  int fdes;
+
+  object = SCM_COERCE_OUTPORT (object);
+
+  if (scm_is_integer (object) || SCM_OPFPORTP (object))
+    {
+      if (scm_is_integer (object))
+	fdes = scm_to_int (object);
+      else
+	fdes = SCM_FPORT_FDES (object);
+      SCM_SYSCALL (rv = fchmod (fdes, scm_to_int (mode)));
+    }
+  else
+    {
+      STRING_SYSCALL (object, c_object,
+		      rv = chmod (c_object, scm_to_int (mode)));
+    }
+  if (rv == -1)
+    SCM_SYSERROR;
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_umask, "umask", 0, 1, 0, 
+            (SCM mode),
+	    "If @var{mode} is omitted, returns a decimal number representing the current\n"
+	    "file creation mask.  Otherwise the file creation mask is set to\n"
+	    "@var{mode} and the previous value is returned.\n\n"
+	    "E.g., @code{(umask #o022)} sets the mask to octal 22, decimal 18.")
+#define FUNC_NAME s_scm_umask
+{
+  mode_t mask;
+  if (SCM_UNBNDP (mode))
+    {
+      mask = umask (0);
+      umask (mask);
+    }
+  else
+    {
+      mask = umask (scm_to_uint (mode));
+    }
+  return scm_from_uint (mask);
+}
+#undef FUNC_NAME
+
+#ifndef HAVE_MKSTEMP
+extern int mkstemp (char *);
+#endif
+
+SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
+	    (SCM tmpl),
+	    "Create a new unique file in the file system and return a new\n"
+	    "buffered port open for reading and writing to the file.\n"
+	    "\n"
+	    "@var{tmpl} is a string specifying where the file should be\n"
+	    "created: it must end with @samp{XXXXXX} and those @samp{X}s\n"
+	    "will be changed in the string to return the name of the file.\n"
+	    "(@code{port-filename} on the port also gives the name.)\n"
+	    "\n"
+	    "POSIX doesn't specify the permissions mode of the file, on GNU\n"
+	    "and most systems it's @code{#o600}.  An application can use\n"
+	    "@code{chmod} to relax that if desired.  For example\n"
+	    "@code{#o666} less @code{umask}, which is usual for ordinary\n"
+	    "file creation,\n"
+	    "\n"
+	    "@example\n"
+	    "(let ((port (mkstemp! (string-copy \"/tmp/myfile-XXXXXX\"))))\n"
+	    "  (chmod port (logand #o666 (lognot (umask))))\n"
+	    "  ...)\n"
+	    "@end example")
+#define FUNC_NAME s_scm_mkstemp
+{
+  char *c_tmpl;
+  int rv;
+
+  scm_dynwind_begin (0);
+
+  c_tmpl = scm_to_locale_string (tmpl);
+  scm_dynwind_free (c_tmpl);
+
+  SCM_SYSCALL (rv = mkstemp (c_tmpl));
+  if (rv == -1)
+    SCM_SYSERROR;
+
+  scm_substring_move_x (scm_from_locale_string (c_tmpl),
+			SCM_INUM0, scm_string_length (tmpl),
+			tmpl, SCM_INUM0);
+
+  scm_dynwind_end ();
+  return scm_fdes_to_port (rv, "w+", tmpl);
+}
+#undef FUNC_NAME
+
 
 /* Filename manipulation */
 
@@ -1703,12 +1820,11 @@ scm_i_relativize_path (SCM path, SCM in_path)
 void
 scm_init_filesys ()
 {
+#ifdef HAVE_POSIX
   scm_tc16_dir = scm_make_smob_type ("directory", 0);
   scm_set_smob_free (scm_tc16_dir, scm_dir_free);
   scm_set_smob_print (scm_tc16_dir, scm_dir_print);
 
-  scm_dot_string = scm_from_locale_string (".");
-  
 #ifdef O_RDONLY
   scm_c_define ("O_RDONLY", scm_from_int (O_RDONLY));
 #endif 	       
@@ -1770,6 +1886,15 @@ scm_init_filesys ()
 #ifdef FD_CLOEXEC  
   scm_c_define ("FD_CLOEXEC", scm_from_int (FD_CLOEXEC));
 #endif
+#endif /* HAVE_POSIX */
+
+  /* `access' symbols.  */
+  scm_c_define ("R_OK", scm_from_int (R_OK));
+  scm_c_define ("W_OK", scm_from_int (W_OK));
+  scm_c_define ("X_OK", scm_from_int (X_OK));
+  scm_c_define ("F_OK", scm_from_int (F_OK));
+
+  scm_dot_string = scm_from_locale_string (".");
 
 #include "libguile/filesys.x"
 }
