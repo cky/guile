@@ -1153,6 +1153,13 @@
               (number? (string-contains (car w)
                                         "non-literal format string")))))
 
+     (pass-if "non-literal format string using gettext"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t (_ "~A ~A!") "hello" "world")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
      (pass-if "wrong format string"
        (let ((w (call-with-warnings
                  (lambda ()
@@ -1184,6 +1191,16 @@
        (let ((w (call-with-warnings
                  (lambda ()
                    (compile '(format some-port "foo ~A~%")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 0")))))
+
+     (pass-if "one missing argument, gettext"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(format some-port (_ "foo ~A~%"))
                             #:opts %opts-w-format
                             #:to 'assembly)))))
          (and (= (length w) 1)
