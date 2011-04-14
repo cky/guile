@@ -644,12 +644,13 @@ AC_SUBST([SCM_I_GSC_HAVE_STRUCT_DIRENT64])
 #     this file instead of <fenv.h>
 #   process.h - mingw specific
 #   langinfo.h, nl_types.h - SuS v2
+#   sched.h - missing on MinGW
 #
 AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h malloc.h memory.h process.h string.h \
 regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
-direct.h langinfo.h nl_types.h machine/fpu.h poll.h])
+direct.h langinfo.h nl_types.h machine/fpu.h poll.h sched.h])
 
 # Reasons for testing:
 #   nl_item - lacking on Cygwin

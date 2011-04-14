@@ -27,6 +27,10 @@
 #include <errno.h>
 #include <uniconv.h>
 
+#ifdef HAVE_SCHED_H
+# include <sched.h>
+#endif
+
 #include "libguile/_scm.h"
 #include "libguile/dynwind.h"
 #include "libguile/fports.h"
