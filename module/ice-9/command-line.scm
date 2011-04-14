@@ -343,6 +343,7 @@ If FILE begins with `-' the -s switch is mandatory.
 
            ((or (string=? arg "-v") (string=? arg "--version"))
             (version-etc "GNU Guile" (version)
+                         #:license *LGPLv3+*
                          #:command-name "guile"
                          #:packager (assq-ref %guile-build-info 'packager)
                          #:packager-version
