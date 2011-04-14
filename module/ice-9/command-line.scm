@@ -292,13 +292,16 @@ If FILE begins with `-' the -s switch is mandatory.
            ;; Do auto-compile on/off now, because the form itself might
            ;; need this decision.
            ((string=? arg "--auto-compile")
-            (set! %load-should-auto-compile #t))
+            (set! %load-should-auto-compile #t)
+            (parse args out))
 
            ((string=? arg "--no-auto-compile")
-            (set! %load-should-auto-compile #f))
+            (set! %load-should-auto-compile #f)
+            (parse args out))
 
            ((string=? arg "-q")         ; don't load user init
-            (set! inhibit-user-init? #t))
+            (set! inhibit-user-init? #t)
+            (parse args out))
 
            ((string-prefix? "--use-srfi=" arg)
             (let ((srfis (map (lambda (x)
