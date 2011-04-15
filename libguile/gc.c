@@ -198,6 +198,13 @@ scm_t_c_hook scm_after_sweep_c_hook;
 scm_t_c_hook scm_after_gc_c_hook;
 
 
+static void
+run_before_gc_c_hook (void)
+{
+  scm_c_hook_run (&scm_before_gc_c_hook, NULL);
+}
+
+
 /* GC Statistics Keeping
  */
 unsigned long scm_gc_ports_collected = 0;
@@ -548,12 +555,6 @@ scm_gc_unregister_roots (SCM *b, unsigned long n)
   SCM *p = b;
   for (; p < b + n; ++p)
     scm_gc_unregister_root (p);
-}
-
-static void
-run_before_gc_c_hook (void)
-{
-  scm_c_hook_run (&scm_before_gc_c_hook, NULL);
 }
 
 
