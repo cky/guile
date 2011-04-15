@@ -586,6 +586,15 @@ computation are fulfilled by macros and closures. Of course one good
 counterexample is the REPL itself, or any code that reads expressions
 from a port.)
 
+Automatic compilation generally works transparently, without any need
+for user intervention.  However Guile does not yet do proper dependency
+tracking, so that if file @file{@var{a}.scm} uses macros from
+@file{@var{b}.scm}, and @var{@var{b}.scm} changes, @code{@var{a}.scm}
+would not be automatically recompiled.  To forcibly invalidate the
+auto-compilation cache, pass the @code{--fresh-auto-compile} option to
+Guile, or set the @code{GUILE_AUTO_COMPILE} environment variable to
+@code{fresh} (instead of to @code{0} or @code{1}).
+
 For more information on the compiler itself, see @ref{Compiling to the
 Virtual Machine}. For information on the virtual machine, see @ref{A
 Virtual Machine for Guile}.

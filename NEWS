@@ -128,6 +128,11 @@ interpreted as starting an R6RS hex escape.  This is backward compatible
 because the symbol printer would never produce a "\x" before.  The
 printer also works better too.
 
+** Added --force-auto-compile option
+
+This allows a user to invalidate the auto-compilation cache.  It's
+usually not needed.  See "Compilation" in the manual, for a discussion.
+
 * Manual updates
 
 ** GOOPS documentation updates

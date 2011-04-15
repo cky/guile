@@ -210,6 +210,9 @@ static SCM *scm_loc_load_compiled_extensions;
 /* Whether we should try to auto-compile. */
 static SCM *scm_loc_load_should_auto_compile;
 
+/* Whether to treat all auto-compiled files as stale. */
+static SCM *scm_loc_fresh_auto_compile;
+
 /* The fallback path for auto-compilation */
 static SCM *scm_loc_compile_fallback_path;
 
@@ -824,6 +827,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
   if (scm_is_false (compiled_filename)
       && scm_is_true (full_filename)
       && scm_is_true (*scm_loc_compile_fallback_path)
+      && scm_is_false (*scm_loc_fresh_auto_compile)
       && scm_is_pair (*scm_loc_load_compiled_extensions)
       && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
     {
@@ -857,6 +861,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
 
   if (!compiled_is_fallback
       && scm_is_true (*scm_loc_compile_fallback_path)
+      && scm_is_false (*scm_loc_fresh_auto_compile)
       && scm_is_pair (*scm_loc_load_compiled_extensions)
       && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
     {
@@ -971,6 +976,8 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%compile-fallback-path", SCM_BOOL_F));
   scm_loc_load_should_auto_compile
     = SCM_VARIABLE_LOC (scm_c_define ("%load-should-auto-compile", SCM_BOOL_F));
+  scm_loc_fresh_auto_compile
+    = SCM_VARIABLE_LOC (scm_c_define ("%fresh-auto-compile", SCM_BOOL_F));
 
   the_reader = scm_make_fluid ();
   scm_fluid_set_x (the_reader, SCM_BOOL_F);
@@ -988,8 +995,24 @@ scm_init_load ()
 void
 scm_init_load_should_auto_compile ()
 {
-  *scm_loc_load_should_auto_compile =
-    scm_from_bool (scm_getenv_int ("GUILE_AUTO_COMPILE", 1));
+  char *auto_compile = getenv ("GUILE_AUTO_COMPILE");
+
+  if (auto_compile && strcmp (auto_compile, "0") == 0)
+    {
+      *scm_loc_load_should_auto_compile = SCM_BOOL_F;
+      *scm_loc_fresh_auto_compile = SCM_BOOL_F;
+    }
+  /* Allow "freshen" also.  */
+  else if (auto_compile && strncmp (auto_compile, "fresh", 5) == 0)
+    {
+      *scm_loc_load_should_auto_compile = SCM_BOOL_T;
+      *scm_loc_fresh_auto_compile = SCM_BOOL_T;
+    }
+  else
+    {
+      *scm_loc_load_should_auto_compile = SCM_BOOL_T;
+      *scm_loc_fresh_auto_compile = SCM_BOOL_F;
+    }
 }
   
   

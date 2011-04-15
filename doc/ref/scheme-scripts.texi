@@ -227,6 +227,11 @@ development.
 @item --auto-compile
 Compile source files automatically (default behavior).
 
+@vnew{2.0.1}
+
+@item --fresh-auto-compile
+Treat the auto-compilation cache as invalid, forcing recompilation.
+
 @vnew{2.0}
 
 @item --no-auto-compile

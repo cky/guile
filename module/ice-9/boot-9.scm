@@ -3290,7 +3290,8 @@ module '(ice-9 q) '(make-q q-length))}."
     (catch #t
       (lambda ()
         (let* ((scmstat (stat name))
-               (gostat  (stat go-path #f)))
+               (gostat  (and (not %fresh-auto-compile)
+                             (stat go-path #f))))
           (if (and gostat
                    (or (> (stat:mtime gostat) (stat:mtime scmstat))
                        (and (= (stat:mtime gostat) (stat:mtime scmstat))

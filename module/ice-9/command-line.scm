@@ -127,7 +127,8 @@ If FILE begins with `-' the -s switch is mandatory.
                  Default is to enable debugging for interactive
                  use, but not for `-s' and `-c'.
   --auto-compile compile source files automatically
-  --no-auto-compile disable automatic source file compilation
+  --fresh-auto-compile  invalidate auto-compilation cache
+  --no-auto-compile  disable automatic source file compilation
                  Default is to enable auto-compilation of source
                  files.
   --listen[=P]   Listen on a local port or a path for REPL clients.
@@ -293,6 +294,11 @@ If FILE begins with `-' the -s switch is mandatory.
            ;; need this decision.
            ((string=? arg "--auto-compile")
             (set! %load-should-auto-compile #t)
+            (parse args out))
+
+           ((string=? arg "--fresh-auto-compile")
+            (set! %load-should-auto-compile #t)
+            (set! %fresh-auto-compile #t)
             (parse args out))
 
            ((string=? arg "--no-auto-compile")
