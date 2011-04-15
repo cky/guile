@@ -355,6 +355,9 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 void
 scm_i_gc (const char *what)
 {
+#ifndef HAVE_GC_SET_START_CALLBACK
+  run_before_gc_c_hook ();
+#endif
   GC_gcollect ();
 }
 
@@ -799,7 +802,10 @@ scm_init_gc ()
                                   SCM_BOOL_F);
 
   scm_c_hook_add (&scm_before_gc_c_hook, queue_after_gc_hook, NULL, 0);
+
+#ifdef HAVE_GC_SET_START_CALLBACK
   GC_set_start_callback (run_before_gc_c_hook);
+#endif
 
 #include "libguile/gc.x"
 }

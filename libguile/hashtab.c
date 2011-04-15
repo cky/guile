@@ -418,20 +418,39 @@ SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-static void*
-weak_gc_callback (void *hook_data, void *fn_data, void *data)
+/* The before-gc C hook only runs if GC_set_start_callback is available,
+   so if not, fall back on a finalizer-based implementation.  */
+static int
+weak_gc_callback (void **weak)
 {
-  void **weak = fn_data;
   void *val = weak[0];
   void (*callback) (SCM) = weak[1];
   
-  if (val)
-    callback (PTR2SCM (val));
-  else
-    scm_c_hook_remove (&scm_before_gc_c_hook, weak_gc_callback, weak);
+  if (!val)
+    return 0;
+  
+  callback (PTR2SCM (val));
+
+  return 1;
+}
+
+#ifdef HAVE_GC_SET_START_CALLBACK
+static void*
+weak_gc_hook (void *hook_data, void *fn_data, void *data)
+{
+  if (!weak_gc_callback (fn_data))
+    scm_c_hook_remove (&scm_before_gc_c_hook, weak_gc_hook, fn_data);
 
   return NULL;
 }
+#else
+static void
+weak_gc_finalizer (void *ptr, void *data)
+{
+  if (weak_gc_callback (ptr))
+    GC_REGISTER_FINALIZER_NO_ORDER (ptr, weak_gc_finalizer, data, NULL, NULL);
+}
+#endif
 
 static void
 scm_c_register_weak_gc_callback (SCM obj, void (*callback) (SCM))
@@ -442,7 +461,11 @@ scm_c_register_weak_gc_callback (SCM obj, void (*callback) (SCM))
   weak[1] = (void*)callback;
   GC_GENERAL_REGISTER_DISAPPEARING_LINK (weak, SCM2PTR (obj));
 
-  scm_c_hook_add (&scm_before_gc_c_hook, weak_gc_callback, weak, 0);
+#ifdef HAVE_GC_SET_START_CALLBACK
+  scm_c_hook_add (&scm_before_gc_c_hook, weak_gc_hook, weak, 0);
+#else
+  GC_REGISTER_FINALIZER_NO_ORDER (weak, weak_gc_finalizer, NULL, NULL, NULL);
+#endif
 }
 
 SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0, 
