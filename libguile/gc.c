@@ -57,6 +57,9 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 
 #include "libguile/bdw-gc.h"
 
+/* For GC_set_start_callback.  */
+#include <gc/gc_mark.h>
+
 #ifdef GUILE_DEBUG_MALLOC
 #include "libguile/debug-malloc.h"
 #endif
@@ -545,20 +548,9 @@ scm_gc_unregister_roots (SCM *b, unsigned long n)
 }
 
 static void
-scm_c_register_gc_callback (void *key, void (*func) (void *, void *),
-                            void *data)
+run_before_gc_c_hook (void)
 {
-  if (!key)
-    key = GC_MALLOC_ATOMIC (sizeof (void*));
-  
-  GC_REGISTER_FINALIZER_NO_ORDER (key, func, data, NULL, NULL);
-}
-
-static void
-system_gc_callback (void *key, void *data)
-{
-  scm_c_register_gc_callback (key, system_gc_callback, data);
-  scm_c_hook_run (&scm_after_gc_c_hook, NULL);
+  scm_c_hook_run (&scm_before_gc_c_hook, NULL);
 }
 
 
@@ -616,8 +608,6 @@ scm_storage_prehistory ()
   scm_c_hook_init (&scm_before_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_after_sweep_c_hook, 0, SCM_C_HOOK_NORMAL);
   scm_c_hook_init (&scm_after_gc_c_hook, 0, SCM_C_HOOK_NORMAL);
-
-  scm_c_register_gc_callback (NULL, system_gc_callback, NULL);
 }
 
 scm_i_pthread_mutex_t scm_i_gc_admin_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
@@ -646,29 +636,31 @@ scm_init_gc_protect_object ()
 
 SCM scm_after_gc_hook;
 
-static SCM gc_async;
+static SCM after_gc_async_cell;
 
-/* The function gc_async_thunk causes the execution of the after-gc-hook.  It
- * is run after the gc, as soon as the asynchronous events are handled by the
- * evaluator.
+/* The function after_gc_async_thunk causes the execution of the
+ * after-gc-hook.  It is run after the gc, as soon as the asynchronous
+ * events are handled by the evaluator.
  */
 static SCM
-gc_async_thunk (void)
+after_gc_async_thunk (void)
 {
+  /* Fun, no? Hook-run *and* run-hook?  */
+  scm_c_hook_run (&scm_after_gc_c_hook, NULL);
   scm_c_run_hook (scm_after_gc_hook, SCM_EOL);
   return SCM_UNSPECIFIED;
 }
 
 
-/* The function mark_gc_async is run by the scm_after_gc_c_hook at the end of
- * the garbage collection.  The only purpose of this function is to mark the
- * gc_async (which will eventually lead to the execution of the
- * gc_async_thunk).
+/* The function queue_after_gc_hook is run by the scm_before_gc_c_hook
+ * at the end of the garbage collection.  The only purpose of this
+ * function is to mark the after_gc_async (which will eventually lead to
+ * the execution of the after_gc_async_thunk).
  */
 static void *
-mark_gc_async (void * hook_data SCM_UNUSED,
-	       void *fn_data SCM_UNUSED,
-	       void *data SCM_UNUSED)
+queue_after_gc_hook (void * hook_data SCM_UNUSED,
+                      void *fn_data SCM_UNUSED,
+                      void *data SCM_UNUSED)
 {
   /* If cell access debugging is enabled, the user may choose to perform
    * additional garbage collections after an arbitrary number of cell
@@ -697,10 +689,17 @@ mark_gc_async (void * hook_data SCM_UNUSED,
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
   if (scm_debug_cells_gc_interval == 0)
-    scm_system_async_mark (gc_async);
-#else
-  scm_system_async_mark (gc_async);
 #endif
+    {
+      scm_i_thread *t = SCM_I_CURRENT_THREAD;
+
+      if (scm_is_false (SCM_CDR (after_gc_async_cell)))
+        {
+          SCM_SETCDR (after_gc_async_cell, t->active_asyncs);
+          t->active_asyncs = after_gc_async_cell;
+          t->pending_asyncs = 1;
+        }
+    }
 
   return NULL;
 }
@@ -793,9 +792,14 @@ scm_init_gc ()
   scm_after_gc_hook = scm_make_hook (SCM_INUM0);
   scm_c_define ("after-gc-hook", scm_after_gc_hook);
 
-  gc_async = scm_c_make_gsubr ("%gc-thunk", 0, 0, 0, gc_async_thunk);
+  /* When the async is to run, the cdr of the gc_async pair gets set to
+     the asyncs queue of the current thread.  */
+  after_gc_async_cell = scm_cons (scm_c_make_gsubr ("%after-gc-thunk", 0, 0, 0,
+                                                    after_gc_async_thunk),
+                                  SCM_BOOL_F);
 
-  scm_c_hook_add (&scm_after_gc_c_hook, mark_gc_async, NULL, 0);
+  scm_c_hook_add (&scm_before_gc_c_hook, queue_after_gc_hook, NULL, 0);
+  GC_set_start_callback (run_before_gc_c_hook);
 
 #include "libguile/gc.x"
 }
