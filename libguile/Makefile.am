@@ -243,6 +243,7 @@ DOT_X_FILES =					\
 	expand.x				\
 	extensions.x				\
 	feature.x				\
+	filesys.x				\
 	fluids.x				\
 	foreign.x				\
 	fports.x				\
