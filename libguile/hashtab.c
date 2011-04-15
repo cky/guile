@@ -418,32 +418,31 @@ SCM_DEFINE (scm_make_hash_table, "make-hash-table", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-static void
-weak_gc_callback (void *ptr, void *data)
+static void*
+weak_gc_callback (void *hook_data, void *fn_data, void *data)
 {
-  void **weak = ptr;
-  void *val = *weak;
+  void **weak = fn_data;
+  void *val = weak[0];
+  void (*callback) (SCM) = weak[1];
   
   if (val)
-    {
-      void (*callback) (SCM) = data;
+    callback (PTR2SCM (val));
+  else
+    scm_c_hook_remove (&scm_before_gc_c_hook, weak_gc_callback, weak);
 
-      GC_REGISTER_FINALIZER_NO_ORDER (ptr, weak_gc_callback, data, NULL, NULL);
-      
-      callback (PTR2SCM (val));
-    }
+  return NULL;
 }
 
 static void
 scm_c_register_weak_gc_callback (SCM obj, void (*callback) (SCM))
 {
-  void **weak = GC_MALLOC_ATOMIC (sizeof (void**));
+  void **weak = GC_MALLOC_ATOMIC (sizeof (void*) * 2);
 
-  *weak = SCM2PTR (obj);
+  weak[0] = SCM2PTR (obj);
+  weak[1] = (void*)callback;
   GC_GENERAL_REGISTER_DISAPPEARING_LINK (weak, SCM2PTR (obj));
 
-  GC_REGISTER_FINALIZER_NO_ORDER (weak, weak_gc_callback, (void*)callback,
-                                  NULL, NULL);
+  scm_c_hook_add (&scm_before_gc_c_hook, weak_gc_callback, weak, 0);
 }
 
 SCM_DEFINE (scm_make_weak_key_hash_table, "make-weak-key-hash-table", 0, 1, 0, 
