@@ -4280,13 +4280,13 @@ strings to Scheme.
 
 @deftypefn {C Function} char *scm_to_stringn (SCM str, size_t *lenp, const char *encoding, scm_t_string_failed_conversion_handler handler)
 This function returns a newly allocated C string from the Guile string
-@var{str}.  The length of the string will be returned in @var{lenp}.
-The character encoding of the C string is passed as the ASCII,
+@var{str}.  The length of the returned string in bytes will be returned in
+@var{lenp}.  The character encoding of the C string is passed as the ASCII,
 null-terminated C string @var{encoding}.  The @var{handler} parameter
 gives a strategy for dealing with characters that cannot be converted
 into @var{encoding}.
 
-If @var{lenp} is NULL, this function will return a null-terminated C
+If @var{lenp} is @code{NULL}, this function will return a null-terminated C
 string.  It will throw an error if the string contains a null
 character.
 @end deftypefn
@@ -4325,11 +4325,14 @@ in @var{str} in the case of @code{scm_from_utf32_stringn}.
 @deftypefnx {C function} scm_t_wchar *scm_to_utf32_stringn (SCM str, size_t *lenp)
 Return a newly allocated, ISO-8859-1-, UTF-8-, or UTF-32-encoded C string
 from Scheme string @var{str}.  An error is thrown when @var{str}
-string cannot be converted to the specified encoding.  If @var{lenp} is
+cannot be converted to the specified encoding.  If @var{lenp} is
 @code{NULL}, the returned C string will be null terminated, and an error
 will be thrown if the C string would otherwise contain null
-characters. If @var{lenp} is not NULL, the length of the string is
-returned in @var{lenp}, and the string is not null terminated.
+characters.  If @var{lenp} is not @code{NULL}, the string is not null terminated,
+and the length of the returned string is returned in @var{lenp}.  The length
+returned is the number of bytes for @code{scm_to_latin1_stringn} and
+@code{scm_to_utf8_stringn}; it is the number of elements (code points)
+for @code{scm_to_utf32_stringn}.
 @end deftypefn
 
 @node String Internals
