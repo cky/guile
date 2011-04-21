@@ -4293,7 +4293,7 @@ character.
 
 @deftypefn {C Function} SCM scm_from_stringn (const char *str, size_t len, const char *encoding, scm_t_string_failed_conversion_handler handler)
 This function returns a scheme string from the C string @var{str}.  The
-length of the C string is input as @var{len}.  The encoding of the C
+length in bytes of the C string is input as @var{len}.  The encoding of the C
 string is passed as the ASCII, null-terminated C string @code{encoding}.
 The @var{handler} parameters suggests a strategy for dealing with
 unconvertable characters.
