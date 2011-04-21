@@ -874,6 +874,27 @@ if test "x$LTLIBUNISTRING" = "x"; then
   AC_MSG_ERROR([GNU libunistring is required, please install it.])
 fi
 
+AC_MSG_CHECKING([that libunistring was built with iconv support])
+save_LIBS=$LIBS
+LIBS="$LIBS $LIBUNISTRING"
+AC_RUN_IFELSE([AC_LANG_SOURCE([[
+#include <uniconv.h>
+#include <unistring/iconveh.h>
+int
+main (int argc, char *argv[])
+{
+  size_t result_size;
+  return (NULL == u32_conv_from_encoding ("ASCII", iconveh_question_mark,
+					  "a", 1,
+					  NULL, NULL, &result_size));
+}
+]])],
+    [AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])
+     AC_MSG_ERROR([No iconv support.  Please recompile libunistring with iconv enabled.])]
+    [AC_MSG_RESULT([yes, hopefully (cross-compiling)])])
+LIBS=$save_LIBS
+
 dnl Libffi is needed to compile Guile's foreign function interface, but its
 dnl interface isn't exposed in Guile's API.
 PKG_CHECK_MODULES(LIBFFI, libffi)
