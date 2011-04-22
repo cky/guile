@@ -1,6 +1,6 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -213,7 +213,7 @@
 					  (signal-condition-variable c)
 					  (unlock-mutex cm)
 					  (lock-mutex m
-						      (+ (current-time) 2))))))
+						      (+ (current-time) 5))))))
 	      (lock-mutex m)
 	      (wait-condition-variable c cm)
 	      (unlock-mutex cm)
@@ -257,7 +257,7 @@
 					  (unlock-mutex m2
 							c2
 							(+ (current-time)
-							   2))))))
+							   5))))))
 	      (wait-condition-variable c1 m1)
 	      (unlock-mutex m1)
 	      (lock-mutex m2)
@@ -292,7 +292,7 @@
 
 	(pass-if "timed joining succeeds if thread exits within timeout"
           (let ((t (begin-thread (begin (sleep 1) #t))))
-	    (join-thread t (+ (current-time) 2))))
+	    (join-thread t (+ (current-time) 5))))
 
 	(pass-if "asyncs are still working 1"
 	  (asyncs-still-working?))
