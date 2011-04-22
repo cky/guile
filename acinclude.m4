@@ -470,6 +470,35 @@ AC_DEFUN([GUILE_READLINE], [
   AC_SUBST(LIBGUILEREADLINE_INTERFACE)
 ])
 
+dnl GUILE_LIBUNISTRING_WITH_ICONV_SUPPORT
+dnl
+dnl Check whether libunistring has iconv support.  When it lacks iconv
+dnl support, `mem_iconveh' returns -1 (ENOSYS) and conversions from one
+dnl codeset to another do not work.
+AC_DEFUN([GUILE_LIBUNISTRING_WITH_ICONV_SUPPORT], [
+  AC_CACHE_CHECK([whether libunistring was built with iconv support],
+    [ac_cv_libunistring_with_iconv_support], [
+     save_LIBS=$LIBS
+     LIBS="$LIBS $LIBUNISTRING"
+     AC_RUN_IFELSE([AC_LANG_SOURCE([[
+       #include <uniconv.h>
+       #include <unistring/iconveh.h>
+       int
+       main (int argc, char *argv[])
+       {
+	 size_t result_size;
+	 return (NULL == u32_conv_from_encoding ("ASCII", iconveh_question_mark,
+						 "a", 1,
+						 NULL, NULL, &result_size));
+       }
+     ]])],
+	 [ac_cv_libunistring_with_iconv_support=yes],
+	 [ac_cv_libunistring_with_iconv_support=no],
+	 [ac_cv_libunistring_with_iconv_support=yes])
+     LIBS=$save_LIBS
+   ])
+])
+
 dnl Declare file $1 to be a script that needs configuring,
 dnl and arrange to make it executable in the process.
 AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
