@@ -139,3 +139,6 @@ INSTALL
 /.sc-start-*
 /lib/math.h
 /lib/sys/time.h
+/test-suite/standalone/test-scm-spawn-thread
+/test-suite/standalone/test-pthread-create
+/test-suite/standalone/test-pthread-create-secondary

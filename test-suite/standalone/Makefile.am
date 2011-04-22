@@ -198,6 +198,21 @@ test_scm_with_guile_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-with-guile
 TESTS += test-scm-with-guile
 
+test_scm_spawn_thread_CFLAGS = ${test_cflags}
+test_scm_spawn_thread_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-scm-spawn-thread
+TESTS += test-scm-spawn-thread
+
+test_pthread_create_CFLAGS = ${test_cflags}
+test_pthread_create_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-pthread-create
+TESTS += test-pthread-create
+
+test_pthread_create_secondary_CFLAGS = ${test_cflags} $(BDW_GC_CFLAGS)
+test_pthread_create_secondary_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-pthread-create-secondary
+TESTS += test-pthread-create-secondary
+
 else
 
 EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
