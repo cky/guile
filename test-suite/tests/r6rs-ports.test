@@ -294,6 +294,10 @@
 
       (equal? (read-to-string port) str)))
 
+  (pass-if "bytevector-input-port is binary"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (binary-port? (open-bytevector-input-port #vu8(1 2 3)))))
+
   (pass-if-exception "bytevector-input-port is read-only"
     exception:wrong-type-arg
 
@@ -350,7 +354,9 @@
            (port (make-custom-binary-input-port "the port" read!
                                                 #f #f #f)))
 
-      (bytevector=? (get-bytevector-all port) source)))
+      (and (binary-port? port)
+           (input-port? port)
+           (bytevector=? (get-bytevector-all port) source))))
 
   (pass-if "custom binary input port does not support `port-position'"
     (let* ((str "Hello Port!")
@@ -422,7 +428,10 @@
         (put-bytevector port source)
         (and (bytevector=? (get-content) source)
              (bytevector=? (get-content) (make-bytevector 0))))))
-    
+
+  (pass-if "bytevector-output-port is binary"
+    (binary-port? (open-bytevector-output-port)))
+
   (pass-if "open-bytevector-output-port [extract after close]"
     (let-values (((port get-content)
                   (open-bytevector-output-port)))
@@ -468,7 +477,7 @@
              (bytevector=? (get-content) source)
              (bytevector=? (get-content) (make-bytevector 0))))))
 
-  (pass-if "make-custom-binary-output"
+  (pass-if "make-custom-binary-output-port"
     (let ((port (make-custom-binary-output-port "cbop"
                                                 (lambda (x y z) 0)
                                                 #f #f #f)))

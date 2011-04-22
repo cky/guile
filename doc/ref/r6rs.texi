@@ -93,8 +93,13 @@ implement in a backward-compatible way. Suggestions and/or patches would
 be appreciated.
 
 @item
-The @code{(rnrs io ports)} module is mostly unimplemented. Work is
+The @code{(rnrs io ports)} module is incomplete.  Work is
 ongoing to fix this.
+
+@item
+Guile does not prevent use of textual I/O procedures on binary ports.
+More generally, it does not make a sharp distinction between binary and
+textual ports (@pxref{R6RS Port Manipulation, binary-port?}).
 @end itemize
 
 @node R6RS Standard Libraries

@@ -72,8 +72,8 @@
              (eof-object? (read-line p)))))
 
     (pass-if "decoding error"
-      (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
-                 (open-bytevector-input-port #vu8(65 255 66 67 68)))))
+      (let ((p (open-bytevector-input-port #vu8(65 255 66 67 68))))
+        (set-port-encoding! p "UTF-8")
         (set-port-conversion-strategy! p 'error)
         (catch 'decoding-error
           (lambda ()
@@ -87,8 +87,8 @@
                  (eof-object? (read-line p)))))))
 
     (pass-if "decoding error, substitute"
-      (let ((p (with-fluids ((%default-port-encoding "UTF-8"))
-                 (open-bytevector-input-port #vu8(65 255 66 67 68)))))
+      (let ((p (open-bytevector-input-port #vu8(65 255 66 67 68))))
+        (set-port-encoding! p "UTF-8")
         (set-port-conversion-strategy! p 'substitute)
         (and (string=? (read-line p) "A?BCD")
              (eof-object? (read-line p))))))

@@ -87,6 +87,10 @@ make_bip (SCM bv)
   scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   port = scm_new_port_table_entry (bytevector_input_port_type);
+  c_port = SCM_PTAB_ENTRY (port);
+
+  /* Match the expectation of `binary-port?'.  */
+  c_port->encoding = NULL;
 
   /* Prevent BV from being GC'd.  */
   SCM_SETSTREAM (port, SCM_UNPACK (bv));
@@ -95,7 +99,6 @@ make_bip (SCM bv)
   c_bv = (char *) SCM_BYTEVECTOR_CONTENTS (bv);
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
 
-  c_port = SCM_PTAB_ENTRY (port);
   c_port->read_pos = c_port->read_buf = (unsigned char *) c_bv;
   c_port->read_end = (unsigned char *) c_bv + c_len;
   c_port->read_buf_size = c_len;
@@ -312,12 +315,15 @@ make_cbip (SCM read_proc, SCM get_position_proc,
   scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   port = scm_new_port_table_entry (custom_binary_input_port_type);
+  c_port = SCM_PTAB_ENTRY (port);
+
+  /* Match the expectation of `binary-port?'.  */
+  c_port->encoding = NULL;
 
   /* Attach it the method vector.  */
   SCM_SETSTREAM (port, SCM_UNPACK (method_vector));
 
   /* Have the port directly access the buffer (bytevector).  */
-  c_port = SCM_PTAB_ENTRY (port);
   c_port->read_pos = c_port->read_buf = (unsigned char *) c_bv;
   c_port->read_end = (unsigned char *) c_bv;
   c_port->read_buf_size = c_len;
@@ -827,11 +833,14 @@ make_bop (void)
   scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   port = scm_new_port_table_entry (bytevector_output_port_type);
+  c_port = SCM_PTAB_ENTRY (port);
+
+  /* Match the expectation of `binary-port?'.  */
+  c_port->encoding = NULL;
 
   buf = (scm_t_bop_buffer *) scm_gc_malloc (sizeof (* buf), SCM_GC_BOP);
   bop_buffer_init (buf);
 
-  c_port = SCM_PTAB_ENTRY (port);
   c_port->write_buf = c_port->write_pos = c_port->write_end = NULL;
   c_port->write_buf_size = 0;
 
@@ -983,12 +992,15 @@ make_cbop (SCM write_proc, SCM get_position_proc,
   scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   port = scm_new_port_table_entry (custom_binary_output_port_type);
+  c_port = SCM_PTAB_ENTRY (port);
+
+  /* Match the expectation of `binary-port?'.  */
+  c_port->encoding = NULL;
 
   /* Attach it the method vector.  */
   SCM_SETSTREAM (port, SCM_UNPACK (method_vector));
 
   /* Have the port directly access the buffer (bytevector).  */
-  c_port = SCM_PTAB_ENTRY (port);
   c_port->write_buf = c_port->write_pos = c_port->write_end = NULL;
   c_port->write_buf_size = c_port->read_buf_size = 0;
 
