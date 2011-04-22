@@ -891,7 +891,7 @@ main (int argc, char *argv[])
 ]])],
     [AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])
-     AC_MSG_ERROR([No iconv support.  Please recompile libunistring with iconv enabled.])]
+     AC_MSG_ERROR([No iconv support.  Please recompile libunistring with iconv enabled.])],
     [AC_MSG_RESULT([yes, hopefully (cross-compiling)])])
 LIBS=$save_LIBS
 
