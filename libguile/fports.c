@@ -20,6 +20,7 @@
 
 
 #define _LARGEFILE64_SOURCE      /* ask for stat64 etc */
+#define _GNU_SOURCE              /* ask for LONG_LONG_MAX/LONG_LONG_MIN */
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
