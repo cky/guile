@@ -70,7 +70,7 @@ SCM_DEFINE (scm_srfi60_log2_binary_factors, "log2-binary-factors", 1, 0, 0,
 
 
 SCM_DEFINE (scm_srfi60_copy_bit, "copy-bit", 3, 0, 0,
-            (SCM index, SCM n, SCM bit),
+            (SCM index, SCM n, SCM newbit),
 	    "Return @var{n} with the bit at @var{index} set according to\n"
 	    "@var{newbit}.  @var{newbit} should be @code{#t} to set the bit\n"
 	    "to 1, or @code{#f} to set it to 0.  Bits other than at\n"
@@ -86,7 +86,7 @@ SCM_DEFINE (scm_srfi60_copy_bit, "copy-bit", 3, 0, 0,
   int bb;
 
   ii = scm_to_ulong (index);
-  bb = scm_to_bool (bit);
+  bb = scm_to_bool (newbit);
 
   if (SCM_I_INUMP (n))
     {
