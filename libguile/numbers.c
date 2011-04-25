@@ -70,9 +70,6 @@
 
 #include "libguile/eq.h"
 
-/* GMP's `mpz_t' must fit into a double cell.  */
-verify (sizeof (mpz_t) <= (2 * sizeof (scm_t_bits)));
-
 /* values per glibc, if not already defined */
 #ifndef M_LOG10E
 #define M_LOG10E   0.43429448190325182765
