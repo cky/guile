@@ -42,14 +42,11 @@ thread (void *arg)
   return NULL;
 }
 
-
-int
-main (int argc, char *argv[])
+static void *
+inner_main (void *data)
 {
   int i;
   pthread_t thr;
-
-  scm_init_guile ();
 
   do_something (NULL);
 
@@ -58,6 +55,15 @@ main (int argc, char *argv[])
       pthread_create (&thr, NULL, thread, NULL);
       pthread_join (thr, NULL);
     }
+
+  return NULL;
+}
+
+
+int
+main (int argc, char *argv[])
+{
+  scm_with_guile (inner_main, NULL);
 
   return EXIT_SUCCESS;
 }
