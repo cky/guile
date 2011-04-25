@@ -381,13 +381,6 @@ scm_i_init_guile (void *base)
   if (scm_initialized_p)
     return;
 
-  if (sizeof (mpz_t) > (3 * sizeof (scm_t_bits)))
-    {
-      fprintf (stderr,
-               "GMP's mpz_t must fit into a double_cell,"
-               "but doesn't seem to here.\n");
-    }
-
   scm_storage_prehistory ();
   scm_threads_prehistory (base);  /* requires storage_prehistory */
   scm_weaks_prehistory ();        /* requires storage_prehistory */

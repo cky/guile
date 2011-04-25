@@ -45,6 +45,8 @@
 #  include <config.h>
 #endif
 
+#include <verify.h>
+
 #include <math.h>
 #include <string.h>
 #include <unicase.h>
@@ -67,6 +69,9 @@
 #include "libguile/deprecation.h"
 
 #include "libguile/eq.h"
+
+/* GMP's `mpz_t' must fit into a double cell.  */
+verify (sizeof (mpz_t) <= (2 * sizeof (scm_t_bits)));
 
 /* values per glibc, if not already defined */
 #ifndef M_LOG10E
