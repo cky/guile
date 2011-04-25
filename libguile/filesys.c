@@ -602,6 +602,31 @@ SCM_DEFINE (scm_stat, "stat", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+#ifdef HAVE_LSTAT
+SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
+            (SCM str),
+	    "Similar to @code{stat}, but does not follow symbolic links, i.e.,\n"
+	    "it will return information about a symbolic link itself, not the\n"
+	    "file it points to.  @var{path} must be a string.")
+#define FUNC_NAME s_scm_lstat
+{
+  int rv;
+  struct stat_or_stat64 stat_temp;
+
+  STRING_SYSCALL (str, c_str, rv = lstat_or_lstat64 (c_str, &stat_temp));
+  if (rv != 0)
+    {
+      int en = errno;
+
+      SCM_SYSERROR_MSG ("~A: ~S",
+			scm_list_2 (scm_strerror (scm_from_int (en)), str),
+			en);
+    }
+  return scm_stat2scm (&stat_temp);
+}
+#undef FUNC_NAME
+#endif /* HAVE_LSTAT */
+
 
 #ifdef HAVE_POSIX
 
@@ -628,183 +653,6 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_LINK */
-
-
-
-/* {Examining Directories}
- */
-
-scm_t_bits scm_tc16_dir;
-
-
-SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0, 
-            (SCM obj),
-	    "Return a boolean indicating whether @var{object} is a directory\n"
-	    "stream as returned by @code{opendir}.")
-#define FUNC_NAME s_scm_directory_stream_p
-{
-  return scm_from_bool (SCM_DIRP (obj));
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0, 
-            (SCM dirname),
-	    "Open the directory specified by @var{path} and return a directory\n"
-	    "stream.")
-#define FUNC_NAME s_scm_opendir
-{
-  DIR *ds;
-  STRING_SYSCALL (dirname, c_dirname, ds = opendir (c_dirname));
-  if (ds == NULL)
-    SCM_SYSERROR;
-  SCM_RETURN_NEWSMOB (scm_tc16_dir | (SCM_DIR_FLAG_OPEN<<16), ds);
-}
-#undef FUNC_NAME
-
-
-/* FIXME: The glibc manual has a portability note that readdir_r may not
-   null-terminate its return string.  The circumstances outlined for this
-   are not clear, nor is it clear what should be done about it.  Lets use
-   NAMLEN and worry about what else should be done if/when someone can
-   figure it out.  */
-
-SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0, 
-            (SCM port),
-	    "Return (as a string) the next directory entry from the directory stream\n"
-	    "@var{stream}.  If there is no remaining entry to be read then the\n"
-	    "end of file object is returned.")
-#define FUNC_NAME s_scm_readdir
-{
-  struct dirent_or_dirent64 *rdent;
-
-  SCM_VALIDATE_DIR (1, port);
-  if (!SCM_DIR_OPEN_P (port))
-    SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
-
-#if HAVE_READDIR_R
-  /* As noted in the glibc manual, on various systems (such as Solaris) the
-     d_name[] field is only 1 char and you're expected to size the dirent
-     buffer for readdir_r based on NAME_MAX.  The SCM_MAX expressions below
-     effectively give either sizeof(d_name) or NAME_MAX+1, whichever is
-     bigger.
-
-     On solaris 10 there's no NAME_MAX constant, it's necessary to use
-     pathconf().  We prefer NAME_MAX though, since it should be a constant
-     and will therefore save a system call.  We also prefer it since dirfd()
-     is not available everywhere.
-
-     An alternative to dirfd() would be to open() the directory and then use
-     fdopendir(), if the latter is available.  That'd let us hold the fd
-     somewhere in the smob, or just the dirent size calculated once.  */
-  {
-    struct dirent_or_dirent64 de; /* just for sizeof */
-    DIR    *ds = (DIR *) SCM_SMOB_DATA_1 (port);
-#ifdef NAME_MAX
-    char   buf [SCM_MAX (sizeof (de),
-                         sizeof (de) - sizeof (de.d_name) + NAME_MAX + 1)];
-#else
-    char   *buf;
-    long   name_max = fpathconf (dirfd (ds), _PC_NAME_MAX);
-    if (name_max == -1)
-      SCM_SYSERROR;
-    buf = alloca (SCM_MAX (sizeof (de),
-                           sizeof (de) - sizeof (de.d_name) + name_max + 1));
-#endif
-
-    errno = 0;
-    SCM_SYSCALL (readdir_r_or_readdir64_r (ds, (struct dirent_or_dirent64 *) buf, &rdent));
-    if (errno != 0)
-      SCM_SYSERROR;
-    if (! rdent)
-      return SCM_EOF_VAL;
-
-    return (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
-            : SCM_EOF_VAL);
-  }
-#else
-  {
-    SCM ret;
-    scm_dynwind_begin (0);
-    scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
-
-    errno = 0;
-    SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_SMOB_DATA_1 (port)));
-    if (errno != 0)
-      SCM_SYSERROR;
-
-    ret = (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
-           : SCM_EOF_VAL);
-
-    scm_dynwind_end ();
-    return ret;
-  }
-#endif
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0, 
-            (SCM port),
-	    "Reset the directory port @var{stream} so that the next call to\n"
-	    "@code{readdir} will return the first directory entry.")
-#define FUNC_NAME s_scm_rewinddir
-{
-  SCM_VALIDATE_DIR (1, port);
-  if (!SCM_DIR_OPEN_P (port))
-    SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
-
-  rewinddir ((DIR *) SCM_SMOB_DATA_1 (port));
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-
-SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0, 
-            (SCM port),
-	    "Close the directory stream @var{stream}.\n"
-	    "The return value is unspecified.")
-#define FUNC_NAME s_scm_closedir
-{
-  SCM_VALIDATE_DIR (1, port);
-
-  if (SCM_DIR_OPEN_P (port))
-    {
-      int sts;
-
-      SCM_SYSCALL (sts = closedir ((DIR *) SCM_SMOB_DATA_1 (port)));
-      if (sts != 0)
-	SCM_SYSERROR;
-
-      SCM_SET_SMOB_DATA_0 (port, scm_tc16_dir);
-    }
-
-  return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-
-static int 
-scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
-{
-  scm_puts ("#<", port);
-  if (!SCM_DIR_OPEN_P (exp))
-    scm_puts ("closed: ", port);
-  scm_puts ("directory stream ", port);
-  scm_uintprint (SCM_SMOB_DATA_1 (exp), 16, port);
-  scm_putc ('>', port);
-  return 1;
-}
-
-
-static size_t 
-scm_dir_free (SCM p)
-{
-  if (SCM_DIR_OPEN_P (p))
-    closedir ((DIR *) SCM_SMOB_DATA_1 (p));
-  return 0;
-}
 
 
 /* {Navigating Directories}
@@ -1249,31 +1097,6 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_READLINK */
-
-#ifdef HAVE_LSTAT
-SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
-            (SCM str),
-	    "Similar to @code{stat}, but does not follow symbolic links, i.e.,\n"
-	    "it will return information about a symbolic link itself, not the\n"
-	    "file it points to.  @var{path} must be a string.")
-#define FUNC_NAME s_scm_lstat
-{
-  int rv;
-  struct stat_or_stat64 stat_temp;
-
-  STRING_SYSCALL (str, c_str, rv = lstat_or_lstat64 (c_str, &stat_temp));
-  if (rv != 0)
-    {
-      int en = errno;
-
-      SCM_SYSERROR_MSG ("~A: ~S",
-			scm_list_2 (scm_strerror (scm_from_int (en)), str),
-			en);
-    }
-  return scm_stat2scm (&stat_temp);
-}
-#undef FUNC_NAME
-#endif /* HAVE_LSTAT */
 
 SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
             (SCM oldfile, SCM newfile),
@@ -1814,6 +1637,181 @@ scm_i_relativize_path (SCM path, SCM in_path)
   return SCM_BOOL_F;
 }
 
+
+/* Examining directories.  These procedures are used by `check-guile'
+   and thus compiled unconditionally.  */
+
+scm_t_bits scm_tc16_dir;
+
+
+SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
+	    (SCM obj),
+	    "Return a boolean indicating whether @var{object} is a directory\n"
+	    "stream as returned by @code{opendir}.")
+#define FUNC_NAME s_scm_directory_stream_p
+{
+  return scm_from_bool (SCM_DIRP (obj));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
+	    (SCM dirname),
+	    "Open the directory specified by @var{path} and return a directory\n"
+	    "stream.")
+#define FUNC_NAME s_scm_opendir
+{
+  DIR *ds;
+  STRING_SYSCALL (dirname, c_dirname, ds = opendir (c_dirname));
+  if (ds == NULL)
+    SCM_SYSERROR;
+  SCM_RETURN_NEWSMOB (scm_tc16_dir | (SCM_DIR_FLAG_OPEN<<16), ds);
+}
+#undef FUNC_NAME
+
+
+/* FIXME: The glibc manual has a portability note that readdir_r may not
+   null-terminate its return string.  The circumstances outlined for this
+   are not clear, nor is it clear what should be done about it.  Lets use
+   NAMLEN and worry about what else should be done if/when someone can
+   figure it out.  */
+
+SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
+	    (SCM port),
+	    "Return (as a string) the next directory entry from the directory stream\n"
+	    "@var{stream}.  If there is no remaining entry to be read then the\n"
+	    "end of file object is returned.")
+#define FUNC_NAME s_scm_readdir
+{
+  struct dirent_or_dirent64 *rdent;
+
+  SCM_VALIDATE_DIR (1, port);
+  if (!SCM_DIR_OPEN_P (port))
+    SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
+
+#if HAVE_READDIR_R
+  /* As noted in the glibc manual, on various systems (such as Solaris) the
+     d_name[] field is only 1 char and you're expected to size the dirent
+     buffer for readdir_r based on NAME_MAX.  The SCM_MAX expressions below
+     effectively give either sizeof(d_name) or NAME_MAX+1, whichever is
+     bigger.
+
+     On solaris 10 there's no NAME_MAX constant, it's necessary to use
+     pathconf().  We prefer NAME_MAX though, since it should be a constant
+     and will therefore save a system call.  We also prefer it since dirfd()
+     is not available everywhere.
+
+     An alternative to dirfd() would be to open() the directory and then use
+     fdopendir(), if the latter is available.  That'd let us hold the fd
+     somewhere in the smob, or just the dirent size calculated once.  */
+  {
+    struct dirent_or_dirent64 de; /* just for sizeof */
+    DIR    *ds = (DIR *) SCM_SMOB_DATA_1 (port);
+#ifdef NAME_MAX
+    char   buf [SCM_MAX (sizeof (de),
+			 sizeof (de) - sizeof (de.d_name) + NAME_MAX + 1)];
+#else
+    char   *buf;
+    long   name_max = fpathconf (dirfd (ds), _PC_NAME_MAX);
+    if (name_max == -1)
+      SCM_SYSERROR;
+    buf = alloca (SCM_MAX (sizeof (de),
+			   sizeof (de) - sizeof (de.d_name) + name_max + 1));
+#endif
+
+    errno = 0;
+    SCM_SYSCALL (readdir_r_or_readdir64_r (ds, (struct dirent_or_dirent64 *) buf, &rdent));
+    if (errno != 0)
+      SCM_SYSERROR;
+    if (! rdent)
+      return SCM_EOF_VAL;
+
+    return (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
+	    : SCM_EOF_VAL);
+  }
+#else
+  {
+    SCM ret;
+    scm_dynwind_begin (0);
+    scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
+
+    errno = 0;
+    SCM_SYSCALL (rdent = readdir_or_readdir64 ((DIR *) SCM_SMOB_DATA_1 (port)));
+    if (errno != 0)
+      SCM_SYSERROR;
+
+    ret = (rdent ? scm_from_locale_stringn (rdent->d_name, NAMLEN (rdent))
+	   : SCM_EOF_VAL);
+
+    scm_dynwind_end ();
+    return ret;
+  }
+#endif
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
+	    (SCM port),
+	    "Reset the directory port @var{stream} so that the next call to\n"
+	    "@code{readdir} will return the first directory entry.")
+#define FUNC_NAME s_scm_rewinddir
+{
+  SCM_VALIDATE_DIR (1, port);
+  if (!SCM_DIR_OPEN_P (port))
+    SCM_MISC_ERROR ("Directory ~S is not open.", scm_list_1 (port));
+
+  rewinddir ((DIR *) SCM_SMOB_DATA_1 (port));
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
+	    (SCM port),
+	    "Close the directory stream @var{stream}.\n"
+	    "The return value is unspecified.")
+#define FUNC_NAME s_scm_closedir
+{
+  SCM_VALIDATE_DIR (1, port);
+
+  if (SCM_DIR_OPEN_P (port))
+    {
+      int sts;
+
+      SCM_SYSCALL (sts = closedir ((DIR *) SCM_SMOB_DATA_1 (port)));
+      if (sts != 0)
+	SCM_SYSERROR;
+
+      SCM_SET_SMOB_DATA_0 (port, scm_tc16_dir);
+    }
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+static int
+scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
+{
+  scm_puts ("#<", port);
+  if (!SCM_DIR_OPEN_P (exp))
+    scm_puts ("closed: ", port);
+  scm_puts ("directory stream ", port);
+  scm_uintprint (SCM_SMOB_DATA_1 (exp), 16, port);
+  scm_putc ('>', port);
+  return 1;
+}
+
+
+static size_t
+scm_dir_free (SCM p)
+{
+  if (SCM_DIR_OPEN_P (p))
+    closedir ((DIR *) SCM_SMOB_DATA_1 (p));
+  return 0;
+}
 
 
 
