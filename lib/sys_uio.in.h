@@ -1,5 +1,5 @@
-/* Substitute for and wrapper around <stdarg.h>.
-   Copyright (C) 2008-2011 Free Software Foundation, Inc.
+/* Substitute for <sys/uio.h>.
+   Copyright (C) 2011 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -15,22 +15,35 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef _GL_STDARG_H
-
-#if __GNUC__ >= 3
+# if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
-#endif
+# endif
 @PRAGMA_COLUMNS@
 
+#ifndef _GL_SYS_UIO_H
+
+#if @HAVE_SYS_UIO_H@
+
 /* The include_next requires a split double-inclusion guard.  */
-#@INCLUDE_NEXT@ @NEXT_STDARG_H@
+# @INCLUDE_NEXT@ @NEXT_SYS_UIO_H@
 
-#ifndef _GL_STDARG_H
-#define _GL_STDARG_H
-
-#ifndef va_copy
-# define va_copy(a,b) ((a) = (b))
 #endif
 
-#endif /* _GL_STDARG_H */
-#endif /* _GL_STDARG_H */
+#ifndef _GL_SYS_UIO_H
+#define _GL_SYS_UIO_H
+
+#if !@HAVE_SYS_UIO_H@
+/* A platform that lacks <sys/uio.h>.  */
+/* Get 'ssize_t'.  */
+# include <sys/types.h>
+
+/* All known platforms that lack <sys/uio.h> also lack any declaration
+   of struct iovec in any other header.  */
+struct iovec {
+  void *iov_base;
+  size_t iov_len;
+};
+#endif
+
+#endif /* _GL_SYS_UIO_H */
+#endif /* _GL_SYS_UIO_H */

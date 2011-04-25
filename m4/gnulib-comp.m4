@@ -44,7 +44,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module canonicalize-lgpl:
   # Code from module ceil:
   # Code from module close:
-  # Code from module close-hook:
   # Code from module connect:
   # Code from module dosname:
   # Code from module duplocale:
@@ -53,6 +52,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module extensions:
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   # Code from module fclose:
+  # Code from module fd-hook:
   # Code from module float:
   # Code from module flock:
   # Code from module floor:
@@ -110,6 +110,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module nproc:
   # Code from module pathmax:
   # Code from module putenv:
+  # Code from module read:
   # Code from module readlink:
   # Code from module recv:
   # Code from module recvfrom:
@@ -129,26 +130,19 @@ AC_DEFUN([gl_EARLY],
   # Code from module ssize_t:
   # Code from module stat:
   # Code from module stat-time:
-  # Code from module stdarg:
-  dnl Some compilers (e.g., AIX 5.3 cc) need to be in c99 mode
-  dnl for the builtin va_copy to work.  With Autoconf 2.60 or later,
-  dnl AC_PROG_CC_STDC arranges for this.  With older Autoconf AC_PROG_CC_STDC
-  dnl shouldn't hurt, though installers are on their own to set c99 mode.
-  AC_REQUIRE([AC_PROG_CC_STDC])
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
   # Code from module stdio:
   # Code from module stdlib:
-  # Code from module strcase:
   # Code from module strftime:
   # Code from module striconveh:
   # Code from module string:
-  # Code from module strings:
   # Code from module sys_file:
   # Code from module sys_socket:
   # Code from module sys_stat:
   # Code from module sys_time:
+  # Code from module sys_uio:
   # Code from module time:
   # Code from module time_r:
   # Code from module trunc:
@@ -165,8 +159,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module vasnprintf:
   # Code from module vc-list-files:
   # Code from module verify:
-  # Code from module version-etc:
-  # Code from module version-etc-fsf:
   # Code from module vsnprintf:
   # Code from module warn-on-use:
   # Code from module warnings:
@@ -227,7 +219,6 @@ AC_DEFUN([gl_INIT],
   # Code from module close:
   gl_FUNC_CLOSE
   gl_UNISTD_MODULE_INDICATOR([close])
-  # Code from module close-hook:
   # Code from module connect:
   AC_REQUIRE([gl_HEADER_SYS_SOCKET])
   if test "$ac_cv_header_winsock2_h" = yes; then
@@ -247,6 +238,7 @@ AC_DEFUN([gl_INIT],
   # Code from module fclose:
   gl_FUNC_FCLOSE
   gl_STDIO_MODULE_INDICATOR([fclose])
+  # Code from module fd-hook:
   # Code from module float:
   gl_FLOAT_H
   # Code from module flock:
@@ -299,9 +291,9 @@ AC_DEFUN([gl_INIT],
   # builds, so use a shell variable to bypass this.
   GNUmakefile=GNUmakefile
   m4_if(m4_version_compare([2.61a.100],
-  	m4_defn([m4_PACKAGE_VERSION])), [1], [],
+          m4_defn([m4_PACKAGE_VERSION])), [1], [],
         [AC_CONFIG_LINKS([$GNUmakefile:$GNUmakefile], [],
-  	[GNUmakefile=$GNUmakefile])])
+          [GNUmakefile=$GNUmakefile])])
   # Code from module gnupload:
   # Code from module gperf:
   # Code from module havelib:
@@ -394,6 +386,9 @@ AC_DEFUN([gl_INIT],
   # Code from module putenv:
   gl_FUNC_PUTENV
   gl_STDLIB_MODULE_INDICATOR([putenv])
+  # Code from module read:
+  gl_FUNC_READ
+  gl_UNISTD_MODULE_INDICATOR([read])
   # Code from module readlink:
   gl_FUNC_READLINK
   gl_UNISTD_MODULE_INDICATOR([readlink])
@@ -474,8 +469,6 @@ AC_DEFUN([gl_INIT],
   # Code from module stat-time:
   gl_STAT_TIME
   gl_STAT_BIRTHTIME
-  # Code from module stdarg:
-  gl_STDARG_H
   # Code from module stdbool:
   AM_STDBOOL_H
   # Code from module stddef:
@@ -486,8 +479,6 @@ AC_DEFUN([gl_INIT],
   gl_STDIO_H
   # Code from module stdlib:
   gl_STDLIB_H
-  # Code from module strcase:
-  gl_STRCASE
   # Code from module strftime:
   gl_FUNC_GNU_STRFTIME
   # Code from module striconveh:
@@ -497,8 +488,6 @@ AC_DEFUN([gl_INIT],
   fi
   # Code from module string:
   gl_HEADER_STRING_H
-  # Code from module strings:
-  gl_HEADER_STRINGS_H
   # Code from module sys_file:
   gl_HEADER_SYS_FILE_H
   AC_PROG_MKDIR_P
@@ -510,6 +499,9 @@ AC_DEFUN([gl_INIT],
   AC_PROG_MKDIR_P
   # Code from module sys_time:
   gl_HEADER_SYS_TIME_H
+  AC_PROG_MKDIR_P
+  # Code from module sys_uio:
+  gl_HEADER_SYS_UIO
   AC_PROG_MKDIR_P
   # Code from module time:
   gl_HEADER_TIME_H
@@ -545,9 +537,6 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_VASNPRINTF
   # Code from module vc-list-files:
   # Code from module verify:
-  # Code from module version-etc:
-  gl_VERSION_ETC
-  # Code from module version-etc-fsf:
   # Code from module vsnprintf:
   gl_FUNC_VSNPRINTF
   gl_STDIO_MODULE_INDICATOR([vsnprintf])
@@ -726,14 +715,14 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/c-strncasecmp.c
   lib/canonicalize-lgpl.c
   lib/ceil.c
-  lib/close-hook.c
-  lib/close-hook.h
   lib/close.c
   lib/connect.c
   lib/dosname.h
   lib/duplocale.c
   lib/errno.in.h
   lib/fclose.c
+  lib/fd-hook.c
+  lib/fd-hook.h
   lib/float+.h
   lib/float.in.h
   lib/flock.c
@@ -788,6 +777,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/printf-parse.c
   lib/printf-parse.h
   lib/putenv.c
+  lib/read.c
   lib/readlink.c
   lib/recv.c
   lib/recvfrom.c
@@ -806,24 +796,21 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sockets.h
   lib/stat-time.h
   lib/stat.c
-  lib/stdarg.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
   lib/stdio.in.h
   lib/stdlib.in.h
-  lib/strcasecmp.c
   lib/strftime.c
   lib/strftime.h
   lib/striconveh.c
   lib/striconveh.h
   lib/string.in.h
-  lib/strings.in.h
-  lib/strncasecmp.c
   lib/sys_file.in.h
   lib/sys_socket.in.h
   lib/sys_stat.in.h
   lib/sys_time.in.h
+  lib/sys_uio.in.h
   lib/time.in.h
   lib/time_r.c
   lib/trunc.c
@@ -841,9 +828,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/vasnprintf.c
   lib/vasnprintf.h
   lib/verify.h
-  lib/version-etc-fsf.c
-  lib/version-etc.c
-  lib/version-etc.h
   lib/vsnprintf.c
   lib/w32sock.h
   lib/wchar.in.h
@@ -915,6 +899,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pathmax.m4
   m4/printf.m4
   m4/putenv.m4
+  m4/read.m4
   m4/readlink.m4
   m4/safe-read.m4
   m4/safe-write.m4
@@ -928,28 +913,25 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ssize_t.m4
   m4/stat-time.m4
   m4/stat.m4
-  m4/stdarg.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4
   m4/stdint_h.m4
   m4/stdio_h.m4
   m4/stdlib_h.m4
-  m4/strcase.m4
   m4/strftime.m4
   m4/string_h.m4
-  m4/strings_h.m4
   m4/sys_file_h.m4
   m4/sys_socket_h.m4
   m4/sys_stat_h.m4
   m4/sys_time_h.m4
+  m4/sys_uio_h.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/tm_gmtoff.m4
   m4/trunc.m4
   m4/unistd_h.m4
   m4/vasnprintf.m4
-  m4/version-etc.m4
   m4/visibility.m4
   m4/vsnprintf.m4
   m4/warn-on-use.m4

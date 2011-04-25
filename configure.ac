@@ -1519,8 +1519,10 @@ case "$GCC" in
     ## less than exasperating.
     ## -Wpointer-arith was here too, but something changed in gcc/glibc
     ## and it became equally exasperating (gcc 2.95 and/or glibc 2.1.2).
+    ## -Wundef was removed because Gnulib prevented it (see
+    ## <http://thread.gmane.org/gmane.lisp.guile.bugs/5329>.)
     POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
-      -Wdeclaration-after-statement -Wundef \
+      -Wdeclaration-after-statement \
       -Wswitch-enum"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"

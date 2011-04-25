@@ -27,8 +27,6 @@
 #include <errno.h>
 #include <ctype.h>
 
-#include <version-etc.h>
-
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
 #include "libguile/feature.h"

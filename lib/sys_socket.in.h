@@ -50,6 +50,10 @@
    <sys/types.h>.  */
 # include <sys/types.h>
 
+/* On FreeBSD 6.4, <sys/socket.h> defines some macros that assume that NULL
+   is defined.  */
+# include <stddef.h>
+
 /* The include_next requires a split double-inclusion guard.  */
 # @INCLUDE_NEXT@ @NEXT_SYS_SOCKET_H@
 
@@ -142,7 +146,6 @@ struct sockaddr_storage
    suggests that getaddrinfo should be available on all Windows
    releases. */
 
-
 # if @HAVE_WINSOCK2_H@
 #  include <winsock2.h>
 # endif
@@ -172,6 +175,19 @@ typedef int socklen_t;
 #  endif
 
 # endif
+
+/* For struct iovec */
+# include <sys/uio.h>
+
+/* Rudimentary 'struct msghdr'; this works as long as you don't try to
+   access msg_control or msg_controllen.  */
+struct msghdr {
+  void *msg_name;
+  socklen_t msg_namelen;
+  struct iovec *msg_iov;
+  int msg_iovlen;
+  int msg_flags;
+};
 
 #endif
 
