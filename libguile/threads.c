@@ -613,6 +613,10 @@ do_thread_exit (void *v)
 {
   scm_i_thread *t = (scm_i_thread *) v;
 
+  /* Ensure the signal handling thread has been launched, because we might be
+     shutting it down.  This needs to be done in Guile mode.  */
+  scm_i_ensure_signal_delivery_thread ();
+
   if (!scm_is_false (t->cleanup_handler))
     {
       SCM ptr = t->cleanup_handler;
@@ -686,10 +690,6 @@ on_thread_exit (void *v)
      guile-mode cleanup handlers.  Only really needed in the non-TLS
      case but it doesn't hurt to be consistent.  */
   scm_i_pthread_setspecific (scm_i_thread_key, t);
-
-  /* Ensure the signal handling thread has been launched, because we might be
-     shutting it down.  */
-  scm_i_ensure_signal_delivery_thread ();
 
   /* Scheme-level thread finalizers and other cleanup needs to happen in
      guile mode.  */
