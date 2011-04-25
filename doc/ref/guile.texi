@@ -217,14 +217,15 @@ Guile's core language is Scheme, and a lot can be achieved simply by using Guile
 to write and run Scheme programs --- as opposed to having to dive into C code.
 In this part of the manual, we explain how to use Guile in this mode, and
 describe the tools that Guile provides to help you with script writing,
-debugging and packaging your programs for distribution.
+debugging, and packaging your programs for distribution.
 
-For detailed reference information on the variables, functions
-etc. that make up Guile's application programming interface (API),
-@xref{API Reference}.
+For detailed reference information on the variables, functions, and so
+on that make up Guile's application programming interface (API), see
+@ref{API Reference}.
 
 @menu
 * Guile Scheme::                Guile's implementation of Scheme.
+* Invoking Guile::              Selecting optional features when starting Guile.
 * Guile Scripting::             How to write Guile scripts.
 * Using Guile Interactively::   Guile's REPL features.
 * Using Guile in Emacs::        Guile and Emacs.
@@ -232,6 +233,7 @@ etc. that make up Guile's application programming interface (API),
 @end menu
 
 @include scheme-intro.texi
+@include guile-invoke.texi
 @include scheme-scripts.texi
 @include scheme-using.texi
 

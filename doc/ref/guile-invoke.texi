@@ -1,0 +1,355 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Invoking Guile
+@section Invoking Guile
+@cindex invocation
+
+Many features of Guile depend on and can be changed by information that
+the user provides either before or when Guile is started.  Below is a
+description of what information to provide and how to provide it.
+
+@menu
+* Command-line Options::        Command-line options understood by Guile.
+* Environment Variables::       Variables that affect Guile's behavior.
+@end menu
+
+@node Command-line Options
+@subsection Command-line Options
+@cindex Command-line Options
+@cindex command-line arguments
+@cindex arguments (command line)
+@cindex options (command line)
+@cindex switches (command line)
+@cindex startup (command-line arguments)
+@cindex invocation (command-line arguments)
+
+Here we describe Guile's command-line processing in detail.  Guile
+processes its arguments from left to right, recognizing the switches
+described below.  For examples, see @ref{Scripting Examples}.
+
+@table @code
+
+@item @var{script} @var{arg...}
+@itemx -s @var{script} @var{arg...}
+@cindex script mode
+By default, Guile will read a file named on the command line as a
+script.  Any command-line arguments @var{arg...} following @var{script}
+become the script's arguments; the @code{command-line} function returns
+a list of strings of the form @code{(@var{script} @var{arg...})}.
+
+It is possible to name a file using a leading hyphen, for example,
+@file{-myfile.scm}.  In this case, the file name must be preceded by
+@option{-s} to tell Guile that a (script) file is being named.
+
+Scripts are read and evaluated as Scheme source code just as the
+@code{load} function would.  After loading @var{script}, Guile exits.
+
+@item -c @var{expr} @var{arg...}
+@cindex evaluate expression, command-line argument
+Evaluate @var{expr} as Scheme code, and then exit.  Any command-line
+arguments @var{arg...} following @var{expr} become command-line
+arguments; the @code{command-line} function returns a list of strings of
+the form @code{(@var{guile} @var{arg...})}, where @var{guile} is the
+path of the Guile executable.
+
+@item -- @var{arg...}
+Run interactively, prompting the user for expressions and evaluating
+them.  Any command-line arguments @var{arg...} following the @option{--}
+become command-line arguments for the interactive session; the
+@code{command-line} function returns a list of strings of the form
+@code{(@var{guile} @var{arg...})}, where @var{guile} is the path of the
+Guile executable.
+
+@item -L @var{directory}
+Add @var{directory} to the front of Guile's module load path.  The given
+directories are searched in the order given on the command line and
+before any directories in the @env{GUILE_LOAD_PATH} environment
+variable.  Paths added here are @emph{not} in effect during execution of
+the user's @file{.guile} file.
+
+@item -x @var{extension}
+Add @var{extension} to the front of Guile's load extension list
+(@pxref{Loading, @code{%load-extensions}}).  The specified extensions
+are tried in the order given on the command line, and before the default
+load extensions.  Extensions added here are @emph{not} in effect during
+execution of the user's @file{.guile} file.
+
+@item -l @var{file}
+Load Scheme source code from @var{file}, and continue processing the
+command line.
+
+@item -e @var{function}
+Make @var{function} the @dfn{entry point} of the script.  After loading
+the script file (with @option{-s}) or evaluating the expression (with
+@option{-c}), apply @var{function} to a list containing the program name
+and the command-line arguments---the list provided by the
+@code{command-line} function.
+
+A @option{-e} switch can appear anywhere in the argument list, but Guile
+always invokes the @var{function} as the @emph{last} action it performs.
+This is weird, but because of the way script invocation works under
+POSIX, the @option{-s} option must always come last in the list.
+
+The @var{function} is most often a simple symbol that names a function
+that is defined in the script.  It can also be of the form @code{(@@
+@var{module-name} @var{symbol})}, and in that case, the symbol is
+looked up in the module named @var{module-name}.
+
+For compatibility with some versions of Guile 1.4, you can also use the
+form @code{(symbol ...)} (that is, a list of only symbols that doesn't
+start with @code{@@}), which is equivalent to @code{(@@ (symbol ...)
+main)}, or @code{(symbol ...)  symbol} (that is, a list of only symbols
+followed by a symbol), which is equivalent to @code{(@@ (symbol ...)
+symbol)}.  We recommend to use the equivalent forms directly since they
+correspond to the @code{(@@ ...)}  read syntax that can be used in
+normal code.  See @ref{Using Guile Modules} and @ref{Scripting
+Examples}.
+
+@item -ds
+Treat a final @option{-s} option as if it occurred at this point in the
+command line; load the script here.
+
+This switch is necessary because, although the POSIX script invocation
+mechanism effectively requires the @option{-s} option to appear last, the
+programmer may well want to run the script before other actions
+requested on the command line.  For examples, see @ref{Scripting
+Examples}.
+
+@item \
+Read more command-line arguments, starting from the second line of the
+script file.  @xref{The Meta Switch}.
+
+@item --use-srfi=@var{list}
+@cindex loading srfi modules (command line)
+The option @option{--use-srfi} expects a comma-separated list of numbers,
+each representing a SRFI module to be loaded into the interpreter
+before evaluating a script file or starting the REPL.  Additionally,
+the feature identifier for the loaded SRFIs is recognized by
+the procedure @code{cond-expand} when this option is used.
+
+Here is an example that loads the modules SRFI-8 ('receive') and SRFI-13
+('string library') before the GUILE interpreter is started:
+
+@example
+guile --use-srfi=8,13
+@end example
+
+@item --debug
+@cindex debugging virtual machine (command line)
+Start with the debugging virtual machine (VM) engine.  Using the
+debugging VM will enable support for VM hooks, which are needed for
+tracing, breakpoints, and accurate call counts when profiling.  The
+debugging VM is slower than the regular VM, though, by about ten
+percent.  @xref{VM Hooks}, for more information.
+
+By default, the debugging VM engine is only used when entering an
+interactive session.  When executing a script with @option{-s} or
+@option{-c}, the normal, faster VM is used by default.
+
+@vnew{1.8}
+@item --no-debug
+@cindex debugging virtual machine (command line)
+Do not use the debugging VM engine, even when entering an interactive
+session.
+
+@item -q
+@cindex init file, not loading
+@cindex @file{.guile} file, not loading
+Do not load the initialization file, @file{.guile}.  This option only
+has an effect when running interactively; running scripts does not load
+the @file{.guile} file.  @xref{Init File}.
+
+@item --listen[=@var{p}]
+While this program runs, listen on a local port or a path for REPL
+clients.  If @var{p} starts with a number, it is assumed to be a local
+port on which to listen.  If it starts with a forward slash, it is
+assumed to be a path to a UNIX domain socket on which to listen.
+
+If @var{p} is not given, the default is local port 37146.  If you look
+at it upside down, it almost spells ``Guile''.  If you have netcat
+installed, you should be able to @kbd{nc localhost 37146} and get a
+Guile prompt.  Alternately you can fire up Emacs and connect to the
+process; see @ref{Using Guile in Emacs} for more details.
+
+Note that opening a port allows anyone who can connect to that port---in
+the TCP case, any local user---to do anything Guile can do, as the user
+that the Guile process is running as.  Do not use @option{--listen} on
+multi-user machines.  Of course, if you do not pass @option{--listen} to
+Guile, no port will be opened.
+
+That said, @option{--listen} is great for interactive debugging and
+development.
+
+@vnew{2.0}
+
+@item --auto-compile
+Compile source files automatically (default behavior).
+
+@vnew{2.0.1}
+
+@item --fresh-auto-compile
+Treat the auto-compilation cache as invalid, forcing recompilation.
+
+@vnew{2.0}
+
+@item --no-auto-compile
+Disable automatic source file compilation.
+
+@vnew{2.0}
+
+@item -h@r{, }--help
+Display help on invoking Guile, and then exit.
+
+@item -v@r{, }--version
+Display the current version of Guile, and then exit.
+
+@end table
+
+@node Environment Variables
+@subsection Environment Variables
+@cindex environment variables
+@cindex shell
+@cindex initialization
+The @dfn{environment} is a feature of the operating system; it consists
+of a collection of variables with names and values.  Each variable is
+called an @dfn{environment variable} (or, sometimes, a ``shell
+variable''); environment variable names are case-sensitive, and it is
+conventional to use upper-case letters only.  The values are all text
+strings, even those that are written as numerals.  (Note that here we
+are referring to names and values that are defined in the operating
+system shell from which Guile is invoked.  This is not the same as a
+Scheme environment that is defined within a running instance of Guile.
+For a description of Scheme environments, @pxref{About Environments}.)
+   
+How to set environment variables before starting Guile depends on the
+operating system and, especially, the shell that you are using.  For
+example, here is how to tell Guile to provide detailed warning messages
+about deprecated features by setting @env{GUILE_WARN_DEPRECATED} using
+Bash:
+
+@example
+$ export GUILE_WARN_DEPRECATED="detailed"
+$ guile
+@end example
+
+@noindent
+Or, detailed warnings can be turned on for a single invocation using:
+
+@example
+$ env GUILE_WARN_DEPRECATED="detailed" guile
+@end example
+
+If you wish to retrieve or change the value of the shell environment
+variables that affect the run-time behavior of Guile from within a
+running instance of Guile, see @ref{Runtime Environment}.
+
+Here are the environment variables that affect the run-time behavior of
+Guile:
+
+@table @env
+@item GUILE_AUTO_COMPILE
+@vindex GUILE_AUTO_COMPILE
+This is a flag that can be used to tell Guile whether or not to compile
+Scheme source files automatically.  Starting with Guile 2.0, Scheme
+source files will be compiled automatically, by default.
+
+If a compiled (@file{.go}) file corresponding to a @file{.scm} file is
+not found or is not newer than the @file{.scm} file, the @file{.scm}
+file will be compiled on the fly, and the resulting @file{.go} file
+stored away.  An advisory note will be printed on the console.
+
+Compiled files will be stored in the directory
+@file{$XDG_CACHE_HOME/@/guile/@/ccache}, where @env{XDG_CACHE_HOME}
+defaults to the directory @file{$HOME/.cache}.  This directory will be
+created if it does not already exist.
+
+Note that this mechanism depends on the timestamp of the @file{.go} file
+being newer than that of the @file{.scm} file; if the @file{.scm} or
+@file{.go} files are moved after installation, care should be taken to
+preserve their original timestamps.
+
+Set @env{GUILE_AUTO_COMPILE} to zero (0), to prevent Scheme files from
+being compiled automatically.  Set this variable to ``fresh'' to tell
+Guile to compile Scheme files whether they are newer than the compiled
+files or not.
+
+@xref{Compilation}.
+
+@item GUILE_HISTORY
+@vindex GUILE_HISTORY
+This variable names the file that holds the Guile REPL command history.
+You can specify a different history file by setting this environment
+variable.  By default, the history file is @file{$HOME/.guile_history}.
+
+@item GUILE_LOAD_COMPILED_PATH
+@vindex GUILE_LOAD_COMPILED_PATH
+This variable may be used to augment the path that is searched for
+compiled Scheme files (@file{.go} files) when loading.  Its value should
+be a colon-separated list of directories, which will be prefixed to the
+value of the default search path stored in @code{%load-compiled-path}.
+
+Here is an example using the Bash shell that adds the current directory,
+@file{.}, and the relative directory @file{../my-library} to
+@code{%load-compiled-path}:
+
+@example
+$ export GUILE_LOAD_COMPILED_PATH=".:../my-library"
+$ guile -c '(display %load-compiled-path) (newline)'
+(. ../my-library /usr/local/lib/guile/2.0/ccache)
+@end example
+
+@item GUILE_LOAD_PATH
+@vindex GUILE_LOAD_PATH
+This variable may be used to augment the path that is searched for
+Scheme files when loading.  Its value should be a colon-separated list
+of directories, which will be prefixed to the value of the default
+search path stored in @code{%load-path}.
+
+Here is an example using the Bash shell that adds the current directory
+and the parent of the current directory to @code{%load-path}:
+
+@example
+$ env GUILE_LOAD_PATH=".:.." \
+guile -c '(display %load-path) (newline)'
+(. .. /usr/local/share/guile/2.0 \
+/usr/local/share/guile/site/2.0 \
+/usr/local/share/guile/site /usr/local/share/guile)
+@end example
+
+(Note: The line breaks, above, are for documentation purposes only, and
+not required in the actual example.)
+
+@item GUILE_WARN_DEPRECATED
+@vindex GUILE_WARN_DEPRECATED
+As Guile evolves, some features will be eliminated or replaced by newer
+features.  To help users migrate their code as this evolution occurs,
+Guile will issue warning messages about code that uses features that
+have been marked for eventual elimination.  @env{GUILE_WARN_DEPRECATED}
+can be set to ``no'' to tell Guile not to display these warning
+messages, or set to ``detailed'' to tell Guile to display more lengthy
+messages describing the warning.  @xref{Deprecation}.
+
+@item HOME
+@vindex HOME
+Guile uses the environment variable @env{HOME}, the name of your home
+directory, to locate various files, such as @file{.guile} or
+@file{.guile_history}.
+
+@item LTDL_LIBRARY_PATH
+@vindex LTDL_LIBRARY_PATH
+Guile now adds its install prefix to the @env{LTDL_LIBRARY_PATH}.
+
+Users may now install Guile in non-standard directories and run
+`/path/to/bin/guile', without having also to set @env{LTDL_LIBRARY_PATH}
+to include `/path/to/lib'.
+
+@end table
+
+@c Local Variables: 
+@c mode: texinfo
+@c TeX-master: "guile"
+@c End: 
