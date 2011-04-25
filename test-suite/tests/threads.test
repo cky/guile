@@ -463,3 +463,17 @@
 		   (lambda () (lock-mutex m))
 		   (lambda key (set! success #t)))
 	    success)))))
+
+
+;;
+;; nproc
+;;
+
+(with-test-prefix "nproc"
+
+  (pass-if "total-processor-count"
+    (>= (total-processor-count) 1))
+
+  (pass-if "current-processor-count"
+    (and (>= (current-processor-count) 1)
+         (>= (total-processor-count) (current-processor-count)))))

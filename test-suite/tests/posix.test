@@ -198,16 +198,3 @@
           (setaffinity (getpid) mask)
           (equal? mask (getaffinity (getpid))))
         (throw 'unresolved))))
-
-;;
-;; nproc
-;;
-
-(with-test-prefix "nproc"
-
-  (pass-if "total-processor-count"
-    (>= (total-processor-count) 1))
-
-  (pass-if "current-processor-count"
-    (and (>= (current-processor-count) 1)
-         (>= (total-processor-count) (current-processor-count)))))

@@ -3,7 +3,8 @@
 #ifndef SCM_POSIX_H
 #define SCM_POSIX_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2003, 2006, 2008,
+ *   2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -91,8 +92,6 @@ SCM_API SCM scm_sethostname (SCM name);
 SCM_API SCM scm_gethostname (void);
 SCM_API SCM scm_getaffinity (SCM pid);
 SCM_API SCM scm_setaffinity (SCM pid, SCM cpu_set);
-SCM_API SCM scm_total_processor_count (void);
-SCM_API SCM scm_current_processor_count (void);
 SCM_INTERNAL void scm_init_posix (void);
 
 SCM_INTERNAL scm_i_pthread_mutex_t scm_i_locale_mutex;
