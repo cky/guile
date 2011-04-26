@@ -65,7 +65,14 @@
     (call-with-sigint
      (lambda ()
        (and (defined? 'setlocale)
-            (setlocale LC_ALL ""))
+            (catch 'system-error
+              (lambda ()
+                (setlocale LC_ALL ""))
+              (lambda (key subr fmt args errno)
+                (format (current-error-port)
+                        "warning: failed to install locale: ~a~%"
+                        (strerror (car errno))))))
+
        (let ((status (start-repl 'scheme)))
          (run-hook exit-hook)
          status)))))
