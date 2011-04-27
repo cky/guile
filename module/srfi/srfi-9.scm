@@ -64,6 +64,37 @@
 
 (cond-expand-provide (current-module) '(srfi-9))
 
+;; Roll our own instead of using the public `define-inlinable'.  This is
+;; because the public one has a different `make-procedure-name', so
+;; using it would require users to recompile code that uses SRFI-9.  See
+;; <http://lists.gnu.org/archive/html/guile-devel/2011-04/msg00111.html>.
+
+(define-syntax define-inlinable
+  (lambda (x)
+    (define (make-procedure-name name)
+      (datum->syntax name
+                     (symbol-append '% (syntax->datum name)
+                                    '-procedure)))
+
+    (syntax-case x ()
+      ((_ (name formals ...) body ...)
+       (identifier? #'name)
+       (with-syntax ((proc-name  (make-procedure-name #'name))
+                     ((args ...) (generate-temporaries #'(formals ...))))
+         #`(begin
+             (define (proc-name formals ...)
+               body ...)
+             (define-syntax name
+               (lambda (x)
+                 (syntax-case x ()
+                   ((_ args ...)
+                    #'((lambda (formals ...)
+                         body ...)
+                       args ...))
+                   (_
+                    (identifier? x)
+                    #'proc-name))))))))))
+
 (define-syntax define-record-type
   (lambda (x)
     (define (field-identifiers field-specs)
