@@ -1164,6 +1164,10 @@ presented above (@pxref{Input and Output}).
 * R6RS Binary Output::          Binary output.
 @end menu
 
+A subset of the @code{(rnrs io ports)} module is provided by the
+@code{(ice-9 binary-ports)} module.  It contains binary input/output
+procedures and does not rely on R6RS support.
+
 @node R6RS End-of-File
 @subsubsection The End-of-File Object
 

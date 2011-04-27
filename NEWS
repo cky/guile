@@ -148,6 +148,7 @@ The humble `error' SRFI now has an entry in the manual.
 * New modules
 
 ** `(ice-9 binary-ports)': XXX, in the manual
+** `(ice-9 binary-ports)': "R6RS I/O Ports", in the manual
 ** `(ice-9 eval-string)': "Fly Evaluation", in the manual
     
 * Bugs fixed
