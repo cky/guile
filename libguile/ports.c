@@ -1174,6 +1174,10 @@ get_codepoint (SCM port, scm_t_wchar *codepoint,
 	output_size = sizeof (utf8_buf) - output_left;
     }
 
+  if (SCM_UNLIKELY (output_size == 0))
+    /* An unterminated sequence.  */
+    err = EILSEQ;
+
   if (SCM_UNLIKELY (err != 0))
     {
       /* Reset the `iconv' state.  */
@@ -1190,11 +1194,11 @@ get_codepoint (SCM port, scm_t_wchar *codepoint,
 	 input encoding errors.)  */
     }
   else
-    /* Convert the UTF8_BUF sequence to a Unicode code point.  */
-    *codepoint = utf8_to_codepoint (utf8_buf, output_size);
-
-  if (SCM_LIKELY (err == 0))
-    update_port_lf (*codepoint, port);
+    {
+      /* Convert the UTF8_BUF sequence to a Unicode code point.  */
+      *codepoint = utf8_to_codepoint (utf8_buf, output_size);
+      update_port_lf (*codepoint, port);
+    }
 
   *len = bytes_consumed;
 

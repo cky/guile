@@ -531,6 +531,20 @@
        (read-char -> #\μ)
        (read-char -> eof)))
 
+    (test-decoding-error (206 187 206) "UTF-8" 'error
+      ;; Unterminated sequence.
+      (tests
+       (read-char -> #\λ)
+       (read-char -> error)
+       (read-char -> eof)))
+
+    (test-decoding-error (206 187 206) "UTF-8" 'substitute
+      ;; Unterminated sequence.
+      (tests
+       (read-char -> #\λ)
+       (read-char -> #\?)
+       (read-char -> eof)))
+
     (test-decoding-error (255 65 66 67) "UTF-8" 'error
       (tests
        ;; `peek-char' should repeatedly raise an error.
