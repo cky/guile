@@ -90,7 +90,7 @@ Guile 2.0.0 shipped with headers that, if configured with pthread
 support, would re-define `pthread_create', `pthread_join', and other API
 to redirect to the BDW-GC wrappers, `GC_pthread_create', etc.  This was
 unintended, and not necessary: because threads must enter Guile with
-scm_with_guile, Guile can handle thread registration itself, without
+`scm_with_guile', Guile can handle thread registration itself, without
 needing to make the GC aware of all threads.  This oversight has been
 fixed.
 
@@ -147,13 +147,13 @@ The humble `error' SRFI now has an entry in the manual.
 
 * New modules
 
-** `(ice-9 binary-ports)': XXX, in the manual
 ** `(ice-9 binary-ports)': "R6RS I/O Ports", in the manual
 ** `(ice-9 eval-string)': "Fly Evaluation", in the manual
+** `(ice-9 command-line)', not documented yet
     
 * Bugs fixed
 
-** Fixed iconv_t memory leak on close-port
+** Fixed `iconv_t' memory leak on close-port
 ** Fixed some leaks with weak hash tables
 ** Export `vhash-delq' and `vhash-delv' from `(ice-9 vlist)'
 ** `after-gc-hook' works again
@@ -199,6 +199,10 @@ The humble `error' SRFI now has an entry in the manual.
 ** Fix optional second arg to R6RS log function
 ** Fix R6RS `assert' to return true value.
 ** Fix fencepost error when seeking in bytevector input ports
+** Gracefully handle `setlocale' errors when starting the REPL
+** Improve support of the `--disable-posix' configure option
+** Make sure R6RS binary ports pass `binary-port?' regardless of the locale
+** Gracefully handle unterminated UTF-8 sequences instead of hitting an `assert'
 
 
 
