@@ -558,6 +558,33 @@
        (read-char -> #\A)
        (read-char -> #\B)
        (read-char -> #\C)
+       (read-char -> eof)))
+
+    ;; Check how ill-formed UTF-8 sequences are handled (see Table 3-7
+    ;; of the "Conformance" chapter of Unicode 6.0.0.)
+
+    (test-decoding-error (#xc0 #x80 #x41) "UTF-8" 'error
+      (tests
+       (read-char -> error) ;; C0: should be in the C2..DF range
+       (read-char -> error) ;; 80: invalid
+       (read-char -> #\A)
+       (read-char -> eof)))
+
+    (test-decoding-error (#xc0 #x80 #x41) "UTF-8" 'error
+      (tests
+       (read-char -> error) ;; C0: should be in the C2..DF range
+       (read-char -> error) ;; 80: invalid
+       (read-char -> #\A)
+       (read-char -> eof)))
+
+    (test-decoding-error (#xe0 #x88 #x88) "UTF-8" 'error
+      (tests
+       (read-char -> error) ;; 2nd byte should be in the A0..BF range
+       (read-char -> eof)))
+
+    (test-decoding-error (#xf0 #x88 #x88 #x88) "UTF-8" 'error
+      (tests
+       (read-char -> error) ;; 2nd byte should be in the 90..BF range
        (read-char -> eof)))))
 
 (with-test-prefix "call-with-output-string"
