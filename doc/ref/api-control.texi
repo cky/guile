@@ -290,7 +290,7 @@ expression, as multiple values.  Otherwise if it terminates by a call to
 @example
 (while #f (error "not reached")) @result{} #f
 (while #t (break)) @result{} #t
-(while #f (break 1 2 3)) @result{} 1 2 3
+(while #t (break 1 2 3)) @result{} 1 2 3
 @end example
 
 Each @code{while} form gets its own @code{break} and @code{continue}
