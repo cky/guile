@@ -247,7 +247,7 @@ If FILE begins with `-' the -s switch is mandatory.
 
            ((string=? arg "-x")         ; add to %load-extensions
             (if (null? args)
-                (error "missing argument to `-L' switch"))
+                (error "missing argument to `-x' switch"))
             (set! user-extensions (cons (car args) user-extensions))
             (parse (cdr args)
                    out))
