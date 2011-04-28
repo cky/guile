@@ -1,6 +1,6 @@
 ;;; Beyond call/cc
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,7 @@
 (define-module (ice-9 control)
   #:re-export (call-with-prompt abort-to-prompt
                default-prompt-tag make-prompt-tag)
-  #:export (% abort))
+  #:export (% abort shift reset shift* reset*))
 
 (define (abort . args)
   (apply abort-to-prompt (default-prompt-tag) args))
@@ -54,3 +54,29 @@
   (% (default-prompt-tag)
      (proc k)
      default-prompt-handler))
+
+;; Kindly provided by Wolfgang J Moeller <wjm@heenes.com>, modelled
+;; after the ones by Oleg Kiselyov in
+;; http://okmij.org/ftp/Scheme/delim-control-n.scm, which are in the
+;; public domain, as noted at the top of http://okmij.org/ftp/.
+;; 
+(define-syntax reset
+  (syntax-rules ()
+    ((_ . body)
+     (call-with-prompt (default-prompt-tag)
+                       (lambda () . body)
+                       (lambda (cont f) (f cont))))))
+
+(define-syntax shift
+  (syntax-rules ()
+    ((_ var . body)
+     (abort-to-prompt (default-prompt-tag)
+                      (lambda (cont)
+                        ((lambda (var) (reset . body))
+                         (lambda vals (reset (apply cont vals)))))))))
+
+(define (reset* thunk)
+  (reset (thunk)))
+
+(define (shift* fc)
+  (shift c (fc c)))

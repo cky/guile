@@ -350,3 +350,41 @@
           (and (eq? key 'foo)
                (eq? vm new-vm)
                (eq? (the-vm) prev-vm)))))))
+
+;; These tests from Oleg Kiselyov's delim-control-n.scm, available at
+;; http://okmij.org/ftp/Scheme/delim-control-n.scm.  Public domain.
+;;
+(with-test-prefix "shift and reset"
+  (pass-if (equal?
+            117
+            (+ 10 (reset (+ 2 (shift k (+ 100 (k (k 3)))))))))
+
+  (pass-if (equal?
+            60
+            (* 10 (reset (* 2 (shift g (* 5 (shift f (+ (f 1) 1)))))))))
+
+  (pass-if (equal?
+            121
+            (let ((f (lambda (x) (shift k (k (k x))))))
+              (+ 1 (reset (+ 10 (f 100)))))))
+
+  (pass-if (equal?
+            'a
+            (car (reset
+                  (let ((x (shift f
+                                  (shift f1 (f1 (cons 'a (f '())))))))
+                    (shift g x))))))
+  
+  ;; Example by Olivier Danvy
+  (pass-if (equal?
+            '(1 2 3 4 5)
+            (let ()
+              (define (traverse xs)
+                (define (visit xs)
+                  (if (null? xs)
+                      '()
+                      (visit (shift*
+                              (lambda (k)
+                                (cons (car xs) (k (cdr xs))))))))
+                (reset* (lambda () (visit xs))))
+              (traverse '(1 2 3 4 5))))))
