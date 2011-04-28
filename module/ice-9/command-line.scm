@@ -197,26 +197,28 @@ If FILE begins with `-' the -s switch is mandatory.
               (args (cdr args)))
           (cond
            ((not (string-prefix? "-" arg)) ; foo
-            ;; If we specified the -ds option, do_script points to the
-            ;; cdr of an expression like (load #f) we replace the car
-            ;; (i.e., the #f) with the script name.
-            (if (pair? do-script)
-                (set-car! do-script arg))
+            ;; If we specified the -ds option, do-script is the cdr of
+            ;; an expression like (load #f).  We replace the car (i.e.,
+            ;; the #f) with the script name.
             (set! arg0 arg)
             (set! interactive? #f)
-            (finish args
-                    (cons `(load ,arg) out)))
+            (if (pair? do-script)
+                (begin
+                  (set-car! do-script arg0)
+                  (finish args out))
+                (finish args (cons `(load ,arg0) out))))
 
            ((string=? arg "-s")         ; foo
             (if (null? args)
                 (error "missing argument to `-s' switch"))
             (set! arg0 (car args))
-            (if (pair? do-script)
-                (set-car! do-script arg0))
             (set! interactive? #f)
-            (finish (cdr args)
-                    (cons `(load ,arg0) out)))
-
+            (if (pair? do-script)
+                (begin
+                  (set-car! do-script arg0)
+                  (finish (cdr args) out))
+                (finish (cdr args) (cons `(load ,arg0) out))))
+           
            ((string=? arg "-c")         ; evaluate expr
             (if (null? args)
                 (error "missing argument to `-c' switch"))
