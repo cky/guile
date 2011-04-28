@@ -983,11 +983,18 @@
   
   (with-test-prefix "break"
     
-    (pass-if-syntax-error "too many args" exception:too-many-args
-      (eval '(while #t
-               (break 1))
-            (interaction-environment)))
-    
+    (pass-if "normal return"
+      (not (while #f (error "not reached"))))
+
+    (pass-if "no args"
+      (while #t (break)))
+
+    (pass-if "multiple values"
+      (equal? '(1 2 3)
+              (call-with-values
+                  (lambda () (while #t (break 1 2 3)))
+                list)))
+
     (with-test-prefix "from cond"
       (pass-if "first"
 	(while (begin

@@ -2785,13 +2785,11 @@ module '(ice-9 q) '(make-q q-length))}."
               (define-syntax #,(datum->syntax #'while 'break)
                 (lambda (x)
                   (syntax-case x ()
-                    ((_)
-                     #'(abort-to-prompt break-tag))
-                    ((_ . args)
-                     (syntax-violation 'break "too many arguments" x))
+                    ((_ arg (... ...))
+                     #'(abort-to-prompt break-tag arg (... ...)))
                     (_
-                     #'(lambda ()
-                         (abort-to-prompt break-tag))))))
+                     #'(lambda args
+                         (apply abort-to-prompt break-tag args))))))
               (let lp ()
                 (call-with-prompt
                  continue-tag
@@ -2806,10 +2804,12 @@ module '(ice-9 q) '(make-q q-length))}."
                          (_
                           #'(lambda ()
                               (abort-to-prompt continue-tag))))))
-                   (do () ((not cond)) body ...))
+                   (do () ((not cond) #f) body ...))
                  (lambda (k) (lp)))))
-            (lambda (k)
-              #t)))))))
+            (lambda (k . args)
+              (if (null? args)
+                  #t
+                  (apply values args)))))))))
 
 
 

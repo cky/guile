@@ -266,13 +266,12 @@ Concept of Closure}).
 @deffn syntax while cond body @dots{}
 Run a loop executing the @var{body} forms while @var{cond} is true.
 @var{cond} is tested at the start of each iteration, so if it's
-@code{#f} the first time then @var{body} is not executed at all.  The
-return value is unspecified.
+@code{#f} the first time then @var{body} is not executed at all.
 
 Within @code{while}, two extra bindings are provided, they can be used
 from both @var{cond} and @var{body}.
 
-@deffn {Scheme Procedure} break
+@deffn {Scheme Procedure} break break-arg...
 Break out of the @code{while} form.
 @end deffn
 
@@ -280,6 +279,19 @@ Break out of the @code{while} form.
 Abandon the current iteration, go back to the start and test
 @var{cond} again, etc.
 @end deffn
+
+If the loop terminates normally, by the @var{cond} evaluating to
+@code{#f}, then the @code{while} expression as a whole evaluates to
+@code{#f}.  If it terminates by a call to @code{break} with some number
+of arguments, those arguments are returned from the @code{while}
+expression, as multiple values.  Otherwise if it terminates by a call to
+@code{break} with no arguments, then return value is @code{#t}.
+
+@example
+(while #f (error "not reached")) @result{} #f
+(while #t (break)) @result{} #t
+(while #f (break 1 2 3)) @result{} 1 2 3
+@end example
 
 Each @code{while} form gets its own @code{break} and @code{continue}
 procedures, operating on that @code{while}.  This means when loops are
