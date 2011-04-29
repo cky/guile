@@ -175,6 +175,32 @@ static void error_unrecognized_keyword (SCM proc)
 }
 
 
+/* Multiple values truncation.  */
+static SCM
+truncate_values (SCM x)
+{
+  if (SCM_LIKELY (!SCM_VALUESP (x)))
+    return x;
+  else
+    {
+      SCM l = scm_struct_ref (x, SCM_INUM0);
+      if (SCM_LIKELY (scm_is_pair (l)))
+        return scm_car (l);
+      else
+        {
+          scm_ithrow (scm_from_latin1_symbol ("vm-run"),
+                      scm_list_3 (scm_from_latin1_symbol ("vm-run"),
+                                  scm_from_locale_string
+                                  ("Too few values returned to continuation"),
+                                  SCM_EOL),
+                      1);
+          /* Not reached.  */
+          return SCM_BOOL_F;
+        }
+    }
+}
+#define EVAL1(x, env) (truncate_values (eval ((x), (env))))
+
 /* the environment:
    (VAL ... . MOD)
    If MOD is #f, it means the environment was captured before modules were
@@ -209,7 +235,7 @@ eval (SCM x, SCM env)
       goto loop;
 
     case SCM_M_IF:
-      if (scm_is_true (eval (CAR (mx), env)))
+      if (scm_is_true (EVAL1 (CAR (mx), env)))
         x = CADR (mx);
       else
         x = CDDR (mx);
@@ -220,7 +246,8 @@ eval (SCM x, SCM env)
         SCM inits = CAR (mx);
         SCM new_env = CAPTURE_ENV (env);
         for (; scm_is_pair (inits); inits = CDR (inits))
-          new_env = scm_cons (eval (CAR (inits), env), new_env);
+          new_env = scm_cons (EVAL1 (CAR (inits), env),
+                              new_env);
         env = new_env;
         x = CDR (mx);
         goto loop;
@@ -233,14 +260,14 @@ eval (SCM x, SCM env)
       return mx;
 
     case SCM_M_DEFINE:
-      scm_define (CAR (mx), eval (CDR (mx), env));
+      scm_define (CAR (mx), EVAL1 (CDR (mx), env));
       return SCM_UNSPECIFIED;
 
     case SCM_M_DYNWIND:
       {
         SCM in, out, res, old_winds;
-        in = eval (CAR (mx), env);
-        out = eval (CDDR (mx), env);
+        in = EVAL1 (CAR (mx), env);
+        out = EVAL1 (CDDR (mx), env);
         scm_call_0 (in);
         old_winds = scm_i_dynwinds ();
         scm_i_set_dynwinds (scm_acons (in, out, old_winds));
@@ -257,10 +284,10 @@ eval (SCM x, SCM env)
         len = scm_ilength (CAR (mx));
         fluidv = alloca (sizeof (SCM)*len);
         for (i = 0, walk = CAR (mx); i < len; i++, walk = CDR (walk))
-          fluidv[i] = eval (CAR (walk), env);
+          fluidv[i] = EVAL1 (CAR (walk), env);
         valuesv = alloca (sizeof (SCM)*len);
         for (i = 0, walk = CADR (mx); i < len; i++, walk = CDR (walk))
-          valuesv[i] = eval (CAR (walk), env);
+          valuesv[i] = EVAL1 (CAR (walk), env);
         
         wf = scm_i_make_with_fluids (len, fluidv, valuesv);
         scm_i_swap_with_fluids (wf, SCM_I_CURRENT_THREAD->dynamic_state);
@@ -274,9 +301,9 @@ eval (SCM x, SCM env)
 
     case SCM_M_APPLY:
       /* Evaluate the procedure to be applied.  */
-      proc = eval (CAR (mx), env);
+      proc = EVAL1 (CAR (mx), env);
       /* Evaluate the argument holding the list of arguments */
-      args = eval (CADR (mx), env);
+      args = EVAL1 (CADR (mx), env);
           
     apply_proc:
       /* Go here to tail-apply a procedure.  PROC is the procedure and
@@ -291,7 +318,7 @@ eval (SCM x, SCM env)
 
     case SCM_M_CALL:
       /* Evaluate the procedure to be applied.  */
-      proc = eval (CAR (mx), env);
+      proc = EVAL1 (CAR (mx), env);
       argc = SCM_I_INUM (CADR (mx));
       mx = CDDR (mx);
 
@@ -307,21 +334,22 @@ eval (SCM x, SCM env)
 
 	  argv = alloca (argc * sizeof (SCM));
 	  for (i = 0; i < argc; i++, mx = CDR (mx))
-	    argv[i] = eval (CAR (mx), env);
+	    argv[i] = EVAL1 (CAR (mx), env);
 
 	  return scm_c_vm_run (scm_the_vm (), proc, argv, argc);
         }
 
     case SCM_M_CONT:
-      return scm_i_call_with_current_continuation (eval (mx, env));
+      return scm_i_call_with_current_continuation (EVAL1 (mx, env));
 
     case SCM_M_CALL_WITH_VALUES:
       {
         SCM producer;
         SCM v;
 
-        producer = eval (CAR (mx), env);
-        proc = eval (CDR (mx), env);  /* proc is the consumer. */
+        producer = EVAL1 (CAR (mx), env);
+        /* `proc' is the consumer.  */
+        proc = EVAL1 (CDR (mx), env);
         v = scm_call_with_vm (scm_the_vm (), producer, SCM_EOL);
         if (SCM_VALUESP (v))
           args = scm_struct_ref (v, SCM_INUM0);
@@ -347,7 +375,7 @@ eval (SCM x, SCM env)
     case SCM_M_LEXICAL_SET:
       {
         int n;
-        SCM val = eval (CDR (mx), env);
+        SCM val = EVAL1 (CDR (mx), env);
         for (n = SCM_I_INUM (CAR (mx)); n; n--)
           env = CDR (env);
         SCM_SETCAR (env, val);
@@ -368,7 +396,7 @@ eval (SCM x, SCM env)
     case SCM_M_TOPLEVEL_SET:
       {
         SCM var = CAR (mx);
-        SCM val = eval (CDR (mx), env);
+        SCM val = EVAL1 (CDR (mx), env);
         if (SCM_VARIABLEP (var))
           {
             SCM_VARIABLE_SET (var, val);
@@ -395,14 +423,14 @@ eval (SCM x, SCM env)
     case SCM_M_MODULE_SET:
       if (SCM_VARIABLEP (CDR (mx)))
         {
-          SCM_VARIABLE_SET (CDR (mx), eval (CAR (mx), env));
+          SCM_VARIABLE_SET (CDR (mx), EVAL1 (CAR (mx), env));
           return SCM_UNSPECIFIED;
         }
       else
         {
           SCM_VARIABLE_SET
             (scm_memoize_variable_access_x (x, SCM_BOOL_F),
-             eval (CAR (mx), env));
+             EVAL1 (CAR (mx), env));
           return SCM_UNSPECIFIED;
         }
 
@@ -414,10 +442,11 @@ eval (SCM x, SCM env)
         volatile SCM handler, prompt;
 
         vm = scm_the_vm ();
-        prompt = scm_c_make_prompt (eval (CAR (mx), env), SCM_VM_DATA (vm)->fp,
+        prompt = scm_c_make_prompt (EVAL1 (CAR (mx), env),
+                                    SCM_VM_DATA (vm)->fp,
                                     SCM_VM_DATA (vm)->sp, SCM_VM_DATA (vm)->ip,
                                     0, -1, scm_i_dynwinds ());
-        handler = eval (CDDR (mx), env);
+        handler = EVAL1 (CDDR (mx), env);
         scm_i_set_dynwinds (scm_cons (prompt, scm_i_dynwinds ()));
 
         if (SCM_PROMPT_SETJMP (prompt))
@@ -885,7 +914,7 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
             }
               
           for (; i < nreq + nopt; i++, inits = CDR (inits))
-            env = scm_cons (eval (CAR (inits), env), env);
+            env = scm_cons (EVAL1 (CAR (inits), env), env);
 
           if (scm_is_true (rest))
             env = scm_cons (args, env);
@@ -903,7 +932,7 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
             env = scm_cons (CAR (args), env);
               
           for (; i < nreq + nopt; i++, inits = CDR (inits))
-            env = scm_cons (eval (CAR (inits), env), env);
+            env = scm_cons (EVAL1 (CAR (inits), env), env);
 
           if (scm_is_true (rest))
             {
@@ -957,7 +986,7 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
               {
                 SCM tail = scm_list_tail (env, SCM_I_MAKINUM (i));
                 if (SCM_UNBNDP (CAR (tail)))
-                  SCM_SETCAR (tail, eval (CAR (inits), CDR (tail)));
+                  SCM_SETCAR (tail, EVAL1 (CAR (inits), CDR (tail)));
               }
           }
         }
@@ -978,7 +1007,8 @@ prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
           && !BOOT_CLOSURE_HAS_REST_ARGS (proc)))
     {
       for (; scm_is_pair (exps); exps = CDR (exps), nreq--)
-        new_env = scm_cons (eval (CAR (exps), *inout_env), new_env);
+        new_env = scm_cons (EVAL1 (CAR (exps), *inout_env),
+                            new_env);
       if (SCM_UNLIKELY (nreq != 0))
         scm_wrong_num_args (proc);
       *out_body = BOOT_CLOSURE_BODY (proc);
@@ -989,11 +1019,12 @@ prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
       if (SCM_UNLIKELY (argc < nreq))
         scm_wrong_num_args (proc);
       for (; nreq; nreq--, exps = CDR (exps))
-        new_env = scm_cons (eval (CAR (exps), *inout_env), new_env);
+        new_env = scm_cons (EVAL1 (CAR (exps), *inout_env),
+                            new_env);
       {
         SCM rest = SCM_EOL;
         for (; scm_is_pair (exps); exps = CDR (exps))
-          rest = scm_cons (eval (CAR (exps), *inout_env), rest);
+          rest = scm_cons (EVAL1 (CAR (exps), *inout_env), rest);
         new_env = scm_cons (scm_reverse (rest),
                             new_env);
       }
@@ -1004,7 +1035,7 @@ prepare_boot_closure_env_for_eval (SCM proc, unsigned int argc,
     {
       SCM args = SCM_EOL;
       for (; scm_is_pair (exps); exps = CDR (exps))
-        args = scm_cons (eval (CAR (exps), *inout_env), args);
+        args = scm_cons (EVAL1 (CAR (exps), *inout_env), args);
       args = scm_reverse_x (args, SCM_UNDEFINED);
       prepare_boot_closure_env_for_apply (proc, args, out_body, inout_env);
     }
