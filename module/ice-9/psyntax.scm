@@ -770,7 +770,8 @@
       (lambda (id w)
         (define-syntax first
           (syntax-rules ()
-            ((_ e) (call-with-values (lambda () e) (lambda (x . ignore) x)))))
+            ;; Rely on Guile's multiple-values truncation.
+            ((_ e) e)))
         (define search
           (lambda (sym subst marks)
             (if (null? subst)
