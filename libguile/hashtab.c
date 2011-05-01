@@ -878,6 +878,9 @@ SCM_DEFINE (scm_hashq_get_handle, "hashq-get-handle", 2, 0, 0,
 	    "Uses @code{eq?} for equality testing.")
 #define FUNC_NAME s_scm_hashq_get_handle
 {
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_get_handle (table, key,
 				 (scm_t_hash_fn) scm_ihashq,
 				 (scm_t_assoc_fn) scm_sloppy_assq,
@@ -893,6 +896,9 @@ SCM_DEFINE (scm_hashq_create_handle_x, "hashq-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashq_create_handle_x
 {
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_create_handle_x (table, key, init,
 				      (scm_t_hash_fn) scm_ihashq,
 				      (scm_t_assoc_fn) scm_sloppy_assq,
@@ -959,6 +965,9 @@ SCM_DEFINE (scm_hashv_get_handle, "hashv-get-handle", 2, 0, 0,
 	    "Uses @code{eqv?} for equality testing.")
 #define FUNC_NAME s_scm_hashv_get_handle
 {
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_get_handle (table, key,
 				 (scm_t_hash_fn) scm_ihashv,
 				 (scm_t_assoc_fn) scm_sloppy_assv,
@@ -974,6 +983,9 @@ SCM_DEFINE (scm_hashv_create_handle_x, "hashv-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hashv_create_handle_x
 {
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_create_handle_x (table, key, init,
 				      (scm_t_hash_fn) scm_ihashv,
 				      (scm_t_assoc_fn) scm_sloppy_assv,
@@ -1038,6 +1050,9 @@ SCM_DEFINE (scm_hash_get_handle, "hash-get-handle", 2, 0, 0,
 	    "Uses @code{equal?} for equality testing.")
 #define FUNC_NAME s_scm_hash_get_handle
 {
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_get_handle (table, key,
 				 (scm_t_hash_fn) scm_ihash,
 				 (scm_t_assoc_fn) scm_sloppy_assoc,
@@ -1053,6 +1068,9 @@ SCM_DEFINE (scm_hash_create_handle_x, "hash-create-handle!", 3, 0, 0,
 	    "associates @var{key} with @var{init}.")
 #define FUNC_NAME s_scm_hash_create_handle_x
 {
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_create_handle_x (table, key, init,
 				      (scm_t_hash_fn) scm_ihash,
 				      (scm_t_assoc_fn) scm_sloppy_assoc,
@@ -1152,6 +1170,10 @@ SCM_DEFINE (scm_hashx_get_handle, "hashx-get-handle", 4, 0, 0,
   scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
+
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_get_handle (table, key, scm_ihashx, scm_sloppy_assx,
 				 (void *) &closure);
 }
@@ -1171,6 +1193,10 @@ SCM_DEFINE (scm_hashx_create_handle_x, "hashx-create-handle!", 5, 0, 0,
   scm_t_ihashx_closure closure;
   closure.hash = hash;
   closure.assoc = assoc;
+
+  if (SCM_UNLIKELY (SCM_HASHTABLE_P (table) && SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   return scm_hash_fn_create_handle_x (table, key, init, scm_ihashx,
 				      scm_sloppy_assx, (void *)&closure);
 }
@@ -1300,6 +1326,9 @@ SCM_DEFINE (scm_hash_for_each_handle, "hash-for-each-handle", 2, 0, 0,
   SCM_ASSERT (scm_is_true (scm_procedure_p (proc)), proc, 1, FUNC_NAME);
   SCM_VALIDATE_HASHTABLE (2, table);
   
+  if (SCM_UNLIKELY (SCM_HASHTABLE_WEAK_P (table)))
+    SCM_MISC_ERROR ("Handle access not permitted on weak table", SCM_EOL);
+
   scm_internal_hash_for_each_handle ((scm_t_hash_handle_fn) scm_call_1,
 				     (void *) SCM_UNPACK (proc),
 				     table);
