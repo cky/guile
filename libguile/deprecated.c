@@ -2425,17 +2425,17 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
 	    "property value.")
 #define FUNC_NAME s_scm_primitive_property_ref
 {
-  SCM h;
+  SCM alist;
 
   scm_c_issue_deprecation_warning
     ("`primitive-property-ref' is deprecated.  Use object properties.");
 
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
 
-  h = scm_hashq_get_handle (properties_whash, obj);
-  if (scm_is_true (h))
+  alist = scm_hashq_ref (properties_whash, obj, SCM_EOL);
+  if (scm_is_pair (alist))
     {
-      SCM assoc = scm_assq (prop, SCM_CDR (h));
+      SCM assoc = scm_assq (prop, alist);
       if (scm_is_true (assoc))
 	return SCM_CDR (assoc);
     }
@@ -2445,9 +2445,8 @@ SCM_DEFINE (scm_primitive_property_ref, "primitive-property-ref", 2, 0, 0,
   else
     {
       SCM val = scm_call_2 (SCM_CAR (prop), prop, obj);
-      if (scm_is_false (h))
-	h = scm_hashq_create_handle_x (properties_whash, obj, SCM_EOL);
-      SCM_SETCDR (h, scm_acons (prop, val, SCM_CDR (h)));
+      scm_hashq_set_x (properties_whash, obj,
+                       scm_acons (prop, val, alist));
       return val;
     }
 }
@@ -2459,21 +2458,19 @@ SCM_DEFINE (scm_primitive_property_set_x, "primitive-property-set!", 3, 0, 0,
 	    "Set the property @var{prop} of @var{obj} to @var{val}.")
 #define FUNC_NAME s_scm_primitive_property_set_x
 {
-  SCM h, assoc;
+  SCM alist, assoc;
 
   scm_c_issue_deprecation_warning
     ("`primitive-property-set!' is deprecated.  Use object properties.");
 
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
-  h = scm_hashq_create_handle_x (properties_whash, obj, SCM_EOL);
-  assoc = scm_assq (prop, SCM_CDR (h));
-  if (SCM_NIMP (assoc))
+  alist = scm_hashq_ref (properties_whash, obj, SCM_EOL);
+  assoc = scm_assq (prop, alist);
+  if (scm_is_pair (assoc))
     SCM_SETCDR (assoc, val);
   else
-    {
-      assoc = scm_acons (prop, val, SCM_CDR (h));
-      SCM_SETCDR (h, assoc);
-    }
+    scm_hashq_set_x (properties_whash, obj,
+                     scm_acons (prop, val, alist));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -2484,15 +2481,15 @@ SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
 	    "Remove any value associated with @var{prop} and @var{obj}.")
 #define FUNC_NAME s_scm_primitive_property_del_x
 {
-  SCM h;
+  SCM alist;
 
   scm_c_issue_deprecation_warning
     ("`primitive-property-del!' is deprecated.  Use object properties.");
 
   SCM_VALIDATE_CONS (SCM_ARG1, prop);
-  h = scm_hashq_get_handle (properties_whash, obj);
-  if (scm_is_true (h))
-    SCM_SETCDR (h, scm_assq_remove_x (SCM_CDR (h), prop));
+  alist = scm_hashq_ref (properties_whash, obj, SCM_EOL);
+  if (scm_is_pair (alist))
+    scm_hashq_set_x (properties_whash, obj, scm_assq_remove_x (alist, prop));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
