@@ -770,6 +770,19 @@ SCM_DEPRECATED void scm_whash_insert (SCM whash, SCM key, SCM obj);
 
 
 
+/* No need for a table for names, and the struct->class mapping is
+   maintained by GOOPS now.  */
+#define SCM_STRUCT_TABLE_NAME(X) SCM_CAR (X)
+#define SCM_SET_STRUCT_TABLE_NAME(X, NAME) SCM_SETCAR (X, NAME)
+#define SCM_STRUCT_TABLE_CLASS(X) SCM_CDR (X)
+#define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
+
+SCM_DEPRECATED SCM scm_struct_table;
+SCM_DEPRECATED SCM scm_struct_create_handle (SCM obj);
+
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

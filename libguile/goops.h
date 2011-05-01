@@ -3,7 +3,7 @@
 #ifndef SCM_GOOPS_H
 #define SCM_GOOPS_H
 
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -306,6 +306,8 @@ SCM_API SCM scm_call_generic_2 (SCM gf, SCM a1, SCM a2);
 SCM_API SCM scm_apply_generic (SCM gf, SCM args);
 */
 SCM_API SCM scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3);
+
+SCM_INTERNAL SCM scm_i_define_class_for_vtable (SCM vtable);
 
 
 SCM_INTERNAL SCM scm_init_goops_builtins (void);

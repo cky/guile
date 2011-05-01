@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -165,12 +165,6 @@ typedef void (*scm_t_struct_finalize) (SCM obj);
 #define SCM_STRUCT_SETTER(X)            (SCM_STRUCT_SLOT_REF (X, scm_applicable_struct_index_setter))
 #define SCM_SET_STRUCT_SETTER(X,P) 	(SCM_STRUCT_SLOT_SET (X, scm_applicable_struct_index_setter, P))
 
-#define SCM_STRUCT_TABLE_NAME(X) SCM_CAR (X)
-#define SCM_SET_STRUCT_TABLE_NAME(X, NAME) SCM_SETCAR (X, NAME)
-#define SCM_STRUCT_TABLE_CLASS(X) SCM_CDR (X)
-#define SCM_SET_STRUCT_TABLE_CLASS(X, CLASS) SCM_SETCDR (X, CLASS)
-SCM_API SCM scm_struct_table;
-
 SCM_API SCM scm_standard_vtable_vtable;
 SCM_API SCM scm_applicable_struct_vtable_vtable;
 SCM_API SCM scm_applicable_struct_with_setter_vtable_vtable;
@@ -191,7 +185,6 @@ SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);
 SCM_API SCM scm_struct_vtable_tag (SCM handle);
-SCM_API SCM scm_struct_create_handle (SCM obj);
 SCM_API SCM scm_struct_vtable_name (SCM vtable);
 SCM_API SCM scm_set_struct_vtable_name_x (SCM vtable, SCM name);
 SCM_API void scm_print_struct (SCM exp, SCM port, scm_print_state *);

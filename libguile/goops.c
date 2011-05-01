@@ -169,6 +169,8 @@ static SCM class_vm_cont;
 static SCM class_bytevector;
 static SCM class_uvec;
 
+static SCM vtable_class_map = SCM_BOOL_F;
+
 /* Port classes.  Allocate 3 times the maximum number of port types so that
    input ports, output ports, and in/out ports can be stored at different
    offsets.  See `SCM_IN_PCLASS_INDEX' et al.  */
@@ -188,6 +190,41 @@ static SCM scm_at_assert_bound_ref (SCM obj, SCM index);
 static SCM scm_sys_goops_loaded (void);
 static SCM scm_make_extended_class_from_symbol (SCM type_name_sym, 
 						int applicablep);
+
+
+SCM
+scm_i_define_class_for_vtable (SCM vtable)
+{
+  SCM class;
+
+  if (scm_is_false (vtable_class_map))
+    vtable_class_map = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  
+  if (scm_is_false (scm_struct_vtable_p (vtable)))
+    abort ();
+
+  class = scm_hashq_ref (vtable_class_map, vtable, SCM_BOOL_F);
+  
+  if (scm_is_false (class))
+    {
+      if (SCM_UNPACK (scm_class_class))
+        {
+          SCM name = SCM_VTABLE_NAME (vtable);
+          if (!scm_is_symbol (name))
+            name = scm_string_to_symbol (scm_nullstr);
+
+          class = scm_make_extended_class_from_symbol
+            (name, SCM_VTABLE_FLAG_IS_SET (vtable, SCM_VTABLE_FLAG_APPLICABLE));
+        }
+      else
+        /* `create_struct_classes' will fill this in later.  */
+        class = SCM_BOOL_F;
+        
+      scm_hashq_set_x (vtable_class_map, vtable, class);
+    }
+
+  return class;
+}
 
 /* This function is used for efficient type dispatch.  */
 SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
@@ -288,26 +325,7 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	      return SCM_CLASS_OF (x);
 	    }
 	  else
-	    {
-	      /* ordinary struct */
-	      SCM handle = scm_struct_create_handle (SCM_STRUCT_VTABLE (x));
-	      if (scm_is_true (SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle))))
-		return SCM_STRUCT_TABLE_CLASS (SCM_CDR (handle));
-	      else
-		{
-		  SCM class, name;
-
-		  name = SCM_STRUCT_TABLE_NAME (SCM_CDR (handle));
-		  if (!scm_is_symbol (name))
-		    name = scm_string_to_symbol (scm_nullstr);
-
-		  class =
-		    scm_make_extended_class_from_symbol (name,
-							 SCM_STRUCT_APPLICABLE_P (x));
-		  SCM_SET_STRUCT_TABLE_CLASS (SCM_CDR (handle), class);
-		  return class;
-		}
-	    }
+            return scm_i_define_class_for_vtable (SCM_CLASS_OF (x));
 	default:
 	  if (scm_is_pair (x))
 	    return scm_class_pair;
@@ -2628,23 +2646,16 @@ static SCM
 make_struct_class (void *closure SCM_UNUSED,
 		   SCM vtable, SCM data, SCM prev SCM_UNUSED)
 {
-  SCM sym = SCM_STRUCT_TABLE_NAME (data);
-  if (scm_is_true (sym))
-    {
-      int applicablep = SCM_CLASS_FLAGS (vtable) & SCM_VTABLE_FLAG_APPLICABLE;
-
-      SCM_SET_STRUCT_TABLE_CLASS (data, 
-				  scm_make_extended_class_from_symbol (sym, applicablep));
-    }
-
-  scm_remember_upto_here_2 (data, vtable);
+  if (scm_is_false (data))
+    scm_i_define_class_for_vtable (vtable);
   return SCM_UNSPECIFIED;
 }
 
 static void
 create_struct_classes (void)
 {
-  scm_internal_hash_fold (make_struct_class, 0, SCM_BOOL_F, scm_struct_table);
+  scm_internal_hash_fold (make_struct_class, 0, SCM_BOOL_F,
+                          vtable_class_map);
 }
 
 /**********************************************************************

@@ -2561,10 +2561,24 @@ scm_whash_insert (SCM whash, SCM key, SCM obj)
 
 
 
+SCM scm_struct_table = SCM_BOOL_F;
+
+SCM
+scm_struct_create_handle (SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("`scm_struct_create_handle' is deprecated, and has no effect.");
+  
+  return scm_cons (obj, scm_cons (SCM_BOOL_F, SCM_BOOL_F));
+}
+
+
+
 void
 scm_i_init_deprecated ()
 {
   properties_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  scm_struct_table = scm_make_hash_table (SCM_UNDEFINED);
 #include "libguile/deprecated.x"
 }
 

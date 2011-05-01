@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -54,7 +54,6 @@
 static SCM required_vtable_fields = SCM_BOOL_F;
 static SCM required_applicable_fields = SCM_BOOL_F;
 static SCM required_applicable_with_setter_fields = SCM_BOOL_F;
-SCM scm_struct_table = SCM_BOOL_F;
 SCM scm_applicable_struct_vtable_vtable;
 SCM scm_applicable_struct_with_setter_vtable_vtable;
 SCM scm_standard_vtable_vtable;
@@ -946,27 +945,13 @@ scm_struct_ihashq (SCM obj, unsigned long n, void *closure)
   return SCM_UNPACK (obj) % n;
 }
 
-SCM
-scm_struct_create_handle (SCM obj)
-{
-  SCM handle = scm_hash_fn_create_handle_x (scm_struct_table,
-					    obj,
-					    SCM_BOOL_F,
-					    scm_struct_ihashq,
-					    (scm_t_assoc_fn) scm_sloppy_assq,
-					    0);
-  if (scm_is_false (SCM_CDR (handle)))
-    SCM_SETCDR (handle, scm_cons (SCM_BOOL_F, SCM_BOOL_F));
-  return handle;
-}
-
 SCM_DEFINE (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
             (SCM vtable),
 	    "Return the name of the vtable @var{vtable}.")
 #define FUNC_NAME s_scm_struct_vtable_name
 {
   SCM_VALIDATE_VTABLE (1, vtable);
-  return SCM_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)));
+  return SCM_VTABLE_NAME (vtable);
 }
 #undef FUNC_NAME
 
@@ -977,8 +962,10 @@ SCM_DEFINE (scm_set_struct_vtable_name_x, "set-struct-vtable-name!", 2, 0, 0,
 {
   SCM_VALIDATE_VTABLE (1, vtable);
   SCM_VALIDATE_SYMBOL (2, name);
-  SCM_SET_STRUCT_TABLE_NAME (SCM_CDR (scm_struct_create_handle (vtable)),
-			     name);
+  SCM_SET_VTABLE_NAME (vtable, name);
+  /* FIXME: remove this, and implement proper struct classes instead.
+     (Vtables *are* classes.)  */
+  scm_i_define_class_for_vtable (vtable);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -1047,7 +1034,6 @@ scm_init_struct ()
      OBJ once OBJ has undergone class redefinition.  */
   GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits));
 
-  scm_struct_table = scm_make_weak_key_hash_table (scm_from_int (31));
   required_vtable_fields = scm_from_locale_string (SCM_VTABLE_BASE_LAYOUT);
   required_applicable_fields = scm_from_locale_string (SCM_APPLICABLE_BASE_LAYOUT);
   required_applicable_with_setter_fields = scm_from_locale_string (SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT);
