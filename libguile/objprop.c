@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995,1996, 2000, 2001, 2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/*	Copyright (C) 1995,1996, 2000, 2001, 2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -59,11 +59,8 @@ SCM_DEFINE (scm_set_object_properties_x, "set-object-properties!", 2, 0, 0,
 	    "Set @var{obj}'s property list to @var{alist}.")
 #define FUNC_NAME s_scm_set_object_properties_x
 {
-  SCM handle;
-
   scm_i_pthread_mutex_lock (&whash_mutex);
-  handle = scm_hashq_create_handle_x (object_whash, obj, alist);
-  SCM_SETCDR (handle, alist);
+  scm_hashq_set_x (object_whash, obj, alist);
   scm_i_pthread_mutex_unlock (&whash_mutex);
 
   return alist;
@@ -87,19 +84,16 @@ SCM_DEFINE (scm_set_object_property_x, "set-object-property!", 3, 0, 0,
 	    "to @var{value}.")
 #define FUNC_NAME s_scm_set_object_property_x
 {
-  SCM h;
+  SCM alist;
   SCM assoc;
 
   scm_i_pthread_mutex_lock (&whash_mutex);
-  h = scm_hashq_create_handle_x (object_whash, obj, SCM_EOL);
-  assoc = scm_assq (key, SCM_CDR (h));
+  alist = scm_hashq_ref (object_whash, obj, SCM_EOL);
+  assoc = scm_assq (key, alist);
   if (SCM_NIMP (assoc))
     SCM_SETCDR (assoc, value);
   else
-    {
-      assoc = scm_acons (key, value, SCM_CDR (h));
-      SCM_SETCDR (h, assoc);
-    }
+    scm_hashq_set_x (object_whash, obj, scm_acons (key, value, alist));
   scm_i_pthread_mutex_unlock (&whash_mutex);
 
   return value;
