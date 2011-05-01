@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1996, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -74,17 +74,19 @@
 	  (funcq-assoc arg-list (cdr alist)))))
 
 
+(define not-found (list 'not-found))
+
 
 (define (pure-funcq base-func)
   (lambda args
-    (let ((cached (hashx-get-handle funcq-hash funcq-assoc funcq-memo (cons base-func args))))
-      (if cached
+    (let* ((key (cons base-func args))
+           (cached (hashx-ref funcq-hash funcq-assoc funcq-memo key not-found)))
+      (if (not (eq? cached not-found))
 	  (begin
-	    (funcq-buffer (car cached))
-	    (cdr cached))
+	    (funcq-buffer key)
+	    cached)
 	    
-	  (let ((val (apply base-func args))
-		(key (cons base-func args)))
+	  (let ((val (apply base-func args)))
 	    (funcq-buffer key)
 	    (hashx-set! funcq-hash funcq-assoc funcq-memo key val)
 	    val)))))
@@ -101,22 +103,14 @@
   (define funcq-memo (make-hash-table size))
 
   (lambda args
-    (let ((cached (hashx-get-handle funcq-hash funcq-assoc funcq-memo (cons base-func args))))
-      (if cached
+    (let* ((key (cons base-func args))
+           (cached (hashx-ref funcq-hash funcq-assoc funcq-memo key not-found)))
+      (if (not (eq? cached not-found))
 	  (begin
-	    (funcq-buffer (car cached))
-	    (cdr cached))
+	    (funcq-buffer key)
+	    cached)
 	    
-	  (let ((val (apply base-func args))
-		(key (cons base-func args)))
+	  (let ((val (apply base-func args)))
 	    (funcq-buffer key)
 	    (hashx-set! funcq-hash funcq-assoc funcq-memo key val)
 	    val)))))
-
-
-
-
-
-
-
-
