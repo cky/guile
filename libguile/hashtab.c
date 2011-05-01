@@ -761,21 +761,56 @@ scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
 
 
 
+struct set_weak_cdr_data
+{
+  SCM pair;
+  SCM new_val;
+};
+
+static void*
+set_weak_cdr (void *data)
+{
+  struct set_weak_cdr_data *d = data;
+
+  if (SCM_NIMP (SCM_WEAK_PAIR_CDR (d->pair)) && !SCM_NIMP (d->new_val))
+    {
+      GC_unregister_disappearing_link ((void *) SCM_CDRLOC (d->pair));
+      SCM_SETCDR (d->pair, d->new_val);
+    }
+  else
+    {
+      SCM_SETCDR (d->pair, d->new_val);
+      SCM_I_REGISTER_DISAPPEARING_LINK ((void *) SCM_CDRLOC (d->pair),
+                                        SCM2PTR (d->new_val));
+    }
+  return NULL;
+}
+
 SCM
 scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
 		   scm_t_hash_fn hash_fn, scm_t_assoc_fn assoc_fn,
                    void *closure)
 {
-  SCM it;
+  SCM pair;
 
-  it = scm_hash_fn_create_handle_x (table, obj, SCM_BOOL_F, hash_fn, assoc_fn, closure);
-  SCM_SETCDR (it, val);
+  pair = scm_hash_fn_create_handle_x (table, obj, val,
+                                      hash_fn, assoc_fn, closure);
 
-  if (SCM_HASHTABLE_WEAK_VALUE_P (table) && SCM_NIMP (val))
-    /* IT is a weak-cdr pair.  Register a disappearing link from IT's
-       cdr to VAL like `scm_weak_cdr_pair' does.  */
-    SCM_I_REGISTER_DISAPPEARING_LINK ((void *) SCM_CDRLOC (it), SCM2PTR (val));
+  if (SCM_UNLIKELY (!scm_is_eq (SCM_CDR (pair), val)))
+    {
+      if (SCM_UNLIKELY (SCM_HASHTABLE_WEAK_VALUE_P (table)))
+        {
+          struct set_weak_cdr_data data;
 
+          data.pair = pair;
+          data.new_val = val;
+          
+          GC_call_with_alloc_lock (set_weak_cdr, &data);
+        }
+      else
+        SCM_SETCDR (pair, val);
+    }
+  
   return val;
 }
 
