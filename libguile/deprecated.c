@@ -2499,6 +2499,70 @@ SCM_DEFINE (scm_primitive_property_del_x, "primitive-property-del!", 2, 0, 0,
 
 
 
+SCM
+scm_whash_get_handle (SCM whash, SCM key)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  return scm_hashq_get_handle (whash, key);
+}
+
+int
+SCM_WHASHFOUNDP (SCM h)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  return scm_is_true (h);
+}
+
+SCM
+SCM_WHASHREF (SCM whash, SCM handle)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  return SCM_CDR (handle);
+}
+
+void
+SCM_WHASHSET (SCM whash, SCM handle, SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  SCM_SETCDR (handle, obj);
+}
+
+SCM
+scm_whash_create_handle (SCM whash, SCM key)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  return scm_hashq_create_handle_x (whash, key, SCM_UNSPECIFIED);
+}
+
+SCM
+scm_whash_lookup (SCM whash, SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  return scm_hashq_ref (whash, obj, SCM_BOOL_F);
+}
+
+void
+scm_whash_insert (SCM whash, SCM key, SCM obj)
+{
+  scm_c_issue_deprecation_warning
+    ("The `scm_whash' API is deprecated.  Use the `scm_hashq' API instead.");
+
+  scm_hashq_set_x (whash, key, obj);
+}
+
+
 
 void
 scm_i_init_deprecated ()

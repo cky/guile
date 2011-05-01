@@ -3,7 +3,7 @@
 #ifndef SCM_SRCPROP_H
 #define SCM_SRCPROP_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,30 +26,6 @@
 #include "libguile/__scm.h"
 
 
-
-/* {The old whash table interface}
- * *fixme* This is a temporary solution until weak hash table access
- * has been optimized for speed (which is quite necessary, if they are
- * used for recording of source code positions...)
- */
-
-#define scm_whash_handle SCM
-
-#define scm_whash_get_handle(whash, key)	\
-  scm_hashq_get_handle ((whash), (key))
-#define SCM_WHASHFOUNDP(h) (scm_is_true (h))
-#define SCM_WHASHREF(whash, handle) SCM_CDR (handle)
-#define SCM_WHASHSET(whash, handle, obj) SCM_SETCDR (handle, obj)
-#define scm_whash_create_handle(whash, key)			\
-  scm_hashq_create_handle_x ((whash), (key), SCM_UNSPECIFIED)
-#define scm_whash_lookup(whash, obj)		\
-  scm_hashq_ref ((whash), (obj), SCM_BOOL_F)
-#define scm_whash_insert(whash, key, obj) \
-do { \
-  register SCM w = (whash); \
-  SCM_WHASHSET (w, scm_whash_create_handle (w, key), obj); \
-} while (0)
-
 
 /* {Source properties}
  */

@@ -752,6 +752,24 @@ SCM_DEPRECATED SCM scm_primitive_property_del_x (SCM prop, SCM obj);
 
 
 
+/* {The old whash table interface}
+ * Deprecated, as the hash table interface is sufficient, and accessing
+ * handles of weak hash tables is no longer supported.
+ */
+
+#define scm_whash_handle SCM
+
+SCM_DEPRECATED SCM scm_whash_get_handle (SCM whash, SCM key);
+SCM_DEPRECATED int SCM_WHASHFOUNDP (SCM h);
+SCM_DEPRECATED SCM SCM_WHASHREF (SCM whash, SCM handle);
+SCM_DEPRECATED void SCM_WHASHSET (SCM whash, SCM handle, SCM obj);
+SCM_DEPRECATED SCM scm_whash_create_handle (SCM whash, SCM key);
+SCM_DEPRECATED SCM scm_whash_lookup (SCM whash, SCM obj);
+SCM_DEPRECATED void scm_whash_insert (SCM whash, SCM key, SCM obj);
+
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

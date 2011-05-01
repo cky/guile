@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008, 2009, 2010 Free Software Foundation
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008, 2009, 2010, 2011 Free Software Foundation
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -180,10 +180,8 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 	    "list for @var{obj}.")
 #define FUNC_NAME s_scm_set_source_properties_x
 {
-  SCM handle;
   SCM_VALIDATE_NIM (1, obj);
-  handle = scm_hashq_create_handle_x (scm_source_whash, obj, alist);
-  SCM_SETCDR (handle, alist);
+  scm_hashq_set_x (scm_source_whash, obj, alist);
   return alist;
 }
 #undef FUNC_NAME
@@ -222,49 +220,43 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 	    "@var{key} to @var{datum}.  Normally, the key will be a symbol.")
 #define FUNC_NAME s_scm_set_source_property_x
 {
-  scm_whash_handle h;
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  h = scm_whash_get_handle (scm_source_whash, obj);
-  if (SCM_WHASHFOUNDP (h))
-    p = SCM_WHASHREF (scm_source_whash, h);
-  else
-    {
-      h = scm_whash_create_handle (scm_source_whash, obj);
-      p = SCM_EOL;
-    }
+  p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
 
   if (scm_is_eq (scm_sym_line, key))
     {
       if (SRCPROPSP (p))
 	SETSRCPROPLINE (p, scm_to_int (datum));
       else
-	SCM_WHASHSET (scm_source_whash, h,
-		      scm_make_srcprops (scm_to_int (datum), 0,
-					 SCM_UNDEFINED, SCM_UNDEFINED, p));
+	scm_hashq_set_x (scm_source_whash, obj,
+                         scm_make_srcprops (scm_to_int (datum), 0,
+                                            SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (scm_is_eq (scm_sym_column, key))
     {
       if (SRCPROPSP (p))
 	SETSRCPROPCOL (p, scm_to_int (datum));
       else
-	SCM_WHASHSET (scm_source_whash, h,
-		      scm_make_srcprops (0, scm_to_int (datum),
-					 SCM_UNDEFINED, SCM_UNDEFINED, p));
+	scm_hashq_set_x (scm_source_whash, obj,
+                         scm_make_srcprops (0, scm_to_int (datum),
+                                            SCM_UNDEFINED, SCM_UNDEFINED, p));
     }
   else if (scm_is_eq (scm_sym_copy, key))
     {
       if (SRCPROPSP (p))
 	SETSRCPROPCOPY (p, datum);
       else
-	SCM_WHASHSET (scm_source_whash, h, scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));
+	scm_hashq_set_x (scm_source_whash, obj,
+                         scm_make_srcprops (0, 0, SCM_UNDEFINED, datum, p));
     }
   else
     {
       if (SRCPROPSP (p))
 	SETSRCPROPALIST (p, scm_acons (key, datum, SRCPROPALIST (p)));
       else
-	SCM_WHASHSET (scm_source_whash, h, scm_acons (key, datum, p));
+	scm_hashq_set_x (scm_source_whash, obj,
+                         scm_acons (key, datum, p));
     }
   return SCM_UNSPECIFIED;
 }
@@ -281,9 +273,9 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
   SCM p, z;
   z = scm_cons (x, y);
   /* Copy source properties possibly associated with xorig. */
-  p = scm_whash_lookup (scm_source_whash, xorig);
+  p = scm_hashq_ref (scm_source_whash, xorig, SCM_BOOL_F);
   if (scm_is_true (p))
-    scm_whash_insert (scm_source_whash, z, p);
+    scm_hashq_set_x (scm_source_whash, z, p);
   return z;
 }
 #undef FUNC_NAME

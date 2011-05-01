@@ -442,14 +442,14 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
 
  exit:
   if (SCM_RECORD_POSITIONS_P)
-    scm_whash_insert (scm_source_whash,
-		      ans,
-		      scm_make_srcprops (line, column,
-					 SCM_FILENAME (port),
-					 SCM_COPY_SOURCE_P
-					 ? ans2
-					 : SCM_UNDEFINED,
-					 SCM_EOL));
+    scm_hashq_set_x (scm_source_whash,
+                     ans,
+                     scm_make_srcprops (line, column,
+                                        SCM_FILENAME (port),
+                                        SCM_COPY_SOURCE_P
+                                        ? ans2
+                                        : SCM_UNDEFINED,
+                                        SCM_EOL));
   return ans;
 }
 #undef FUNC_NAME
@@ -805,15 +805,15 @@ scm_read_quote (int chr, SCM port)
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
   if (SCM_RECORD_POSITIONS_P)
-    scm_whash_insert (scm_source_whash, p,
-		      scm_make_srcprops (line, column,
-					 SCM_FILENAME (port),
-					 SCM_COPY_SOURCE_P
-					 ? (scm_cons2 (SCM_CAR (p),
-						       SCM_CAR (SCM_CDR (p)),
-						       SCM_EOL))
-					 : SCM_UNDEFINED,
-					 SCM_EOL));
+    scm_hashq_set_x (scm_source_whash, p,
+                     scm_make_srcprops (line, column,
+                                        SCM_FILENAME (port),
+                                        SCM_COPY_SOURCE_P
+                                        ? (scm_cons2 (SCM_CAR (p),
+                                                      SCM_CAR (SCM_CDR (p)),
+                                                      SCM_EOL))
+                                        : SCM_UNDEFINED,
+                                        SCM_EOL));
 
 
   return p;
@@ -864,15 +864,15 @@ scm_read_syntax (int chr, SCM port)
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
   if (SCM_RECORD_POSITIONS_P)
-    scm_whash_insert (scm_source_whash, p,
-		      scm_make_srcprops (line, column,
-					 SCM_FILENAME (port),
-					 SCM_COPY_SOURCE_P
-					 ? (scm_cons2 (SCM_CAR (p),
-						       SCM_CAR (SCM_CDR (p)),
-						       SCM_EOL))
-					 : SCM_UNDEFINED,
-					 SCM_EOL));
+    scm_hashq_set_x (scm_source_whash, p,
+                     scm_make_srcprops (line, column,
+                                        SCM_FILENAME (port),
+                                        SCM_COPY_SOURCE_P
+                                        ? (scm_cons2 (SCM_CAR (p),
+                                                      SCM_CAR (SCM_CDR (p)),
+                                                      SCM_EOL))
+                                        : SCM_UNDEFINED,
+                                        SCM_EOL));
 
 
   return p;
@@ -1561,7 +1561,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
     /* If this sexpr is visible in the read:sharp source, we want to
        keep that information, so only record non-constant cons cells
        which haven't previously been read by the reader. */
-    if (scm_is_false (scm_whash_lookup (scm_source_whash, obj)))
+    if (scm_is_false (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F)))
       {
 	if (SCM_COPY_SOURCE_P)
 	  {
@@ -1585,13 +1585,13 @@ recsexpr (SCM obj, long line, int column, SCM filename)
 	      recsexpr (SCM_CAR (tmp), line, column, filename);
 	    copy = SCM_UNDEFINED;
 	  }
-	scm_whash_insert (scm_source_whash,
-			  obj,
-			  scm_make_srcprops (line,
-					     column,
-					     filename,
-					     copy,
-					     SCM_EOL));
+	scm_hashq_set_x (scm_source_whash,
+                         obj,
+                         scm_make_srcprops (line,
+                                            column,
+                                            filename,
+                                            copy,
+                                            SCM_EOL));
       }
     return obj;
   }
