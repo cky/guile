@@ -3048,6 +3048,8 @@ module '(ice-9 q) '(make-q q-length))}."
                 (let* ((internal-name (if (pair? name) (car name) name))
                        (external-name (if (pair? name) (cdr name) name))
                        (var (module-ensure-local-variable! m internal-name)))
+                  ;; FIXME: use a bit on variables instead of object
+                  ;; properties.
                   (set-object-property! var 'replace #t)
                   (module-add! public-i external-name var)))
               names)))
