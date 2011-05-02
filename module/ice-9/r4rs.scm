@@ -1,7 +1,7 @@
 ;;;; r4rs.scm --- definitions needed for libguile to be R4RS compliant
 ;;;; Jim Blandy <jimb@cyclic.com> --- October 1996
 
-;;;; 	Copyright (C) 1996, 1997, 1998, 2000, 2001, 2006, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1997, 1998, 2000, 2001, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -140,14 +140,16 @@ already exist. These procedures call PROC
 with one argument: the port obtained by opening the named file for
 input or output.  If the file cannot be opened, an error is
 signalled.  If the procedure returns, then the port is closed
-automatically and the value yielded by the procedure is returned.
+automatically and the values yielded by the procedure are returned.
 If the procedure does not return, then the port will not be closed
 automatically unless it is possible to prove that the port will
 never again be used for a read or write operation."
-  (let* ((file (open-input-file str))
-	 (ans (proc file)))
-    (close-input-port file)
-    ans))
+  (let ((p (open-input-file str)))
+    (call-with-values
+      (lambda () (proc p))
+      (lambda vals
+        (close-input-port p)
+        (apply values vals)))))
 
 (define (call-with-output-file str proc)
   "PROC should be a procedure of one argument, and STR should be a
@@ -156,14 +158,16 @@ already exists. These procedures call PROC
 with one argument: the port obtained by opening the named file for
 input or output.  If the file cannot be opened, an error is
 signalled.  If the procedure returns, then the port is closed
-automatically and the value yielded by the procedure is returned.
+automatically and the values yielded by the procedure are returned.
 If the procedure does not return, then the port will not be closed
 automatically unless it is possible to prove that the port will
 never again be used for a read or write operation."
-  (let* ((file (open-output-file str))
-	 (ans (proc file)))
-    (close-output-port file)
-    ans))
+  (let ((p (open-output-file str)))
+    (call-with-values
+      (lambda () (proc p))
+      (lambda vals
+        (close-output-port p)
+        (apply values vals)))))
 
 (define (with-input-from-port port thunk)
   (let* ((swaports (lambda () (set! port (set-current-input-port port)))))
@@ -184,13 +188,11 @@ input, an input port connected to it is made
 the default value returned by `current-input-port', 
 and the THUNK is called with no arguments.
 When the THUNK returns, the port is closed and the previous
-default is restored.  Returns the value yielded by THUNK.  If an
+default is restored.  Returns the values yielded by THUNK.  If an
 escape procedure is used to escape from the continuation of these
 procedures, their behavior is implementation dependent."
-  (let* ((nport (open-input-file file))
-	 (ans (with-input-from-port nport thunk)))
-    (close-port nport)
-    ans))
+  (call-with-input-file file
+   (lambda (p) (with-input-from-port p thunk))))
 
 (define (with-output-to-file file thunk)
   "THUNK must be a procedure of no arguments, and FILE must be a
@@ -199,13 +201,11 @@ The file is opened for output, an output port connected to it is made
 the default value returned by `current-output-port', 
 and the THUNK is called with no arguments.
 When the THUNK returns, the port is closed and the previous
-default is restored.  Returns the value yielded by THUNK.  If an
+default is restored.  Returns the values yielded by THUNK.  If an
 escape procedure is used to escape from the continuation of these
 procedures, their behavior is implementation dependent."
-  (let* ((nport (open-output-file file))
-	 (ans (with-output-to-port nport thunk)))
-    (close-port nport)
-    ans))
+  (call-with-output-file file
+   (lambda (p) (with-output-to-port p thunk))))
 
 (define (with-error-to-file file thunk)
   "THUNK must be a procedure of no arguments, and FILE must be a
@@ -214,13 +214,11 @@ The file is opened for output, an output port connected to it is made
 the default value returned by `current-error-port', 
 and the THUNK is called with no arguments.
 When the THUNK returns, the port is closed and the previous
-default is restored.  Returns the value yielded by THUNK.  If an
+default is restored.  Returns the values yielded by THUNK.  If an
 escape procedure is used to escape from the continuation of these
 procedures, their behavior is implementation dependent."
-  (let* ((nport (open-output-file file))
-	 (ans (with-error-to-port nport thunk)))
-    (close-port nport)
-    ans))
+  (call-with-output-file file
+   (lambda (p) (with-error-to-port p thunk))))
 
 (define (with-input-from-string string thunk)
   "THUNK must be a procedure of no arguments.
@@ -228,7 +226,7 @@ The test of STRING  is opened for
 input, an input port connected to it is made, 
 and the THUNK is called with no arguments.
 When the THUNK returns, the port is closed.
-Returns the value yielded by THUNK.  If an
+Returns the values yielded by THUNK.  If an
 escape procedure is used to escape from the continuation of these
 procedures, their behavior is implementation dependent."
   (call-with-input-string string
