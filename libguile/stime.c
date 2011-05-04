@@ -64,9 +64,13 @@
 #endif
 
 
-# ifdef HAVE_SYS_TYPES_H
-#  include <sys/types.h>
-# endif
+#ifdef HAVE_CLOCK_GETTIME
+# include <time.h>
+#endif
+
+#ifdef HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -98,27 +102,98 @@ extern char *strptime ();
 #endif
 
 
-#ifdef HAVE_TIMES
-static
-timet mytime()
+#if SCM_SIZEOF_LONG >= 8 && defined HAVE_CLOCK_GETTIME
+/* Nanoseconds on 64-bit systems with POSIX timers.  */
+#define TIME_UNITS_PER_SECOND 1000000000
+#else
+/* Milliseconds for everyone else.  */
+#define TIME_UNITS_PER_SECOND 1000
+#endif
+
+long scm_c_time_units_per_second = TIME_UNITS_PER_SECOND;
+
+static long
+time_from_seconds_and_nanoseconds (long s, long ns)
+{
+  return s * TIME_UNITS_PER_SECOND
+    + ns / (1000000000 / TIME_UNITS_PER_SECOND);
+}
+
+
+/* A runtime-selectable mechanism to choose a timing mechanism.  Really
+   we want to use POSIX timers, but that's not always possible.  Notably,
+   the user may have everything she needs at compile-time, but if she's
+   running on an SMP machine without a common clock source, she can't
+   use POSIX CPUTIME clocks.  */
+static long (*get_internal_real_time) (void);
+static long (*get_internal_run_time) (void);
+
+
+#ifdef HAVE_CLOCK_GETTIME
+struct timespec posix_real_time_base;
+
+static long
+get_internal_real_time_posix_timer (void)
+{
+  struct timespec ts;
+  clock_gettime (CLOCK_REALTIME, &ts);
+  return time_from_seconds_and_nanoseconds
+    (ts.tv_sec - posix_real_time_base.tv_sec,
+     ts.tv_nsec - posix_real_time_base.tv_nsec);
+}
+
+#ifdef _POSIX_CPUTIME
+struct timespec posix_run_time_base;
+
+static long
+get_internal_run_time_posix_timer (void)
+{
+  struct timespec ts;
+  clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &ts);
+  return time_from_seconds_and_nanoseconds
+    (ts.tv_sec - posix_run_time_base.tv_sec,
+     ts.tv_nsec - posix_run_time_base.tv_nsec);
+}
+#endif /* _POSIX_CPUTIME */
+#endif /* HAVE_CLOCKTIME */
+  
+  
+#ifdef HAVE_GETTIMEOFDAY
+struct timeval gettimeofday_real_time_base;
+
+static long
+get_internal_real_time_gettimeofday (void)
+{
+  struct timeval tv;
+  gettimeofday (&tv, NULL);
+  return time_from_seconds_and_nanoseconds
+    (tv.tv_sec - gettimeofday_real_time_base.tv_sec,
+     (tv.tv_usec - gettimeofday_real_time_base.tv_usec) * 1000);
+}
+#endif
+
+
+#if defined HAVE_TIMES
+static long ticks_per_second;
+
+static long
+get_internal_run_time_times (void)
 {
   struct tms time_buffer;
   times(&time_buffer);
-  return time_buffer.tms_utime + time_buffer.tms_stime;
+  return (time_buffer.tms_utime + time_buffer.tms_stime)
+    * TIME_UNITS_PER_SECOND / ticks_per_second;
 }
-#else
-# ifdef LACK_CLOCK
-#    define mytime() ((time((timet*)0) - scm_your_base) * SCM_TIME_UNITS_PER_SECOND)
-# else
-#  define mytime clock
-# endif
 #endif
 
-#ifdef HAVE_FTIME
-struct timeb scm_your_base = {0};
-#else
-timet scm_your_base = 0;
-#endif
+static timet fallback_real_time_base;
+static long
+get_internal_real_time_fallback (void)
+{
+  return time_from_seconds_and_nanoseconds
+    ((long) time (NULL) - fallback_real_time_base, 0);
+}
+
 
 SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
            (),
@@ -126,23 +201,7 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 	    "started.")
 #define FUNC_NAME s_scm_get_internal_real_time
 {
-#ifdef HAVE_FTIME
-  struct timeb time_buffer;
-
-  SCM tmp;
-  ftime (&time_buffer);
-  time_buffer.time -= scm_your_base.time;
-  tmp = scm_from_long (time_buffer.millitm - scm_your_base.millitm);
-  tmp = scm_sum (tmp,
-		 scm_product (scm_from_int (1000),
-			      scm_from_int (time_buffer.time)));
-  return scm_quotient (scm_product (tmp,
-				    scm_from_int (SCM_TIME_UNITS_PER_SECOND)),
-		       scm_from_int (1000));
-#else
-  return scm_from_long ((time((timet*)0) - scm_your_base)
-			* (int)SCM_TIME_UNITS_PER_SECOND);
-#endif /* HAVE_FTIME */
+  return scm_from_long (get_internal_real_time ());
 }
 #undef FUNC_NAME
 
@@ -175,27 +234,35 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
 {
   struct tms t;
   clock_t rv;
+  SCM factor;
 
   SCM result = scm_c_make_vector (5, SCM_UNDEFINED);
   rv = times (&t);
   if (rv == -1)
     SCM_SYSERROR;
-  SCM_SIMPLE_VECTOR_SET (result, 0, scm_from_long (rv));
-  SCM_SIMPLE_VECTOR_SET (result, 1, scm_from_long (t.tms_utime));
-  SCM_SIMPLE_VECTOR_SET (result, 2, scm_from_long (t.tms_stime));
-  SCM_SIMPLE_VECTOR_SET (result ,3, scm_from_long (t.tms_cutime));
-  SCM_SIMPLE_VECTOR_SET (result, 4, scm_from_long (t.tms_cstime));
+
+  factor = scm_quotient (scm_from_long (TIME_UNITS_PER_SECOND),
+                         scm_from_long (ticks_per_second));
+
+  SCM_SIMPLE_VECTOR_SET (result, 0,
+                         scm_product (scm_from_long (rv), factor));
+  SCM_SIMPLE_VECTOR_SET (result, 1,
+                         scm_product (scm_from_long (t.tms_utime), factor));
+  SCM_SIMPLE_VECTOR_SET (result, 2,
+                         scm_product (scm_from_long (t.tms_stime), factor));
+  SCM_SIMPLE_VECTOR_SET (result ,3,
+                         scm_product (scm_from_long (t.tms_cutime), factor));
+  SCM_SIMPLE_VECTOR_SET (result, 4,
+                         scm_product (scm_from_long (t.tms_cstime), factor));
   return result;
 }
 #undef FUNC_NAME
 #endif /* HAVE_TIMES */
 
-static long scm_my_base = 0;
-
 long
-scm_c_get_internal_run_time ()
+scm_c_get_internal_run_time (void)
 {
-  return mytime () - scm_my_base;
+  return get_internal_run_time ();
 }
 
 SCM_DEFINE (scm_get_internal_run_time, "get-internal-run-time", 0, 0, 0,
@@ -243,41 +310,18 @@ SCM_DEFINE (scm_gettimeofday, "gettimeofday", 0, 0, 0,
 {
 #ifdef HAVE_GETTIMEOFDAY
   struct timeval time;
-  int ret, err;
 
-  SCM_CRITICAL_SECTION_START;
-  ret = gettimeofday (&time, NULL);
-  err = errno;
-  SCM_CRITICAL_SECTION_END;
-  if (ret == -1)
-    {
-      errno = err;
-      SCM_SYSERROR;
-    }
+  if (gettimeofday (&time, NULL))
+    SCM_SYSERROR;
+  
   return scm_cons (scm_from_long (time.tv_sec),
 		   scm_from_long (time.tv_usec));
 #else
-# ifdef HAVE_FTIME
-  struct timeb time;
-
-  ftime(&time);
-  return scm_cons (scm_from_long (time.time),
-		   scm_from_int (time.millitm * 1000));
-# else
-  timet timv;
-  int err;
-
-  SCM_CRITICAL_SECTION_START;
-  timv = time (NULL);
-  err = errno;
-  SCM_CRITICAL_SECTION_END;
-  if (timv == -1)
-    {
-      errno = err;
-      SCM_SYSERROR;
-    }
-  return scm_cons (scm_from_long (timv), scm_from_int (0));
-# endif
+  timet t = time (NULL);
+  if (errno)
+    SCM_SYSERROR;
+  else
+    return scm_cons (scm_from_long ((long)t), SCM_INUM0);
 #endif
 }
 #undef FUNC_NAME
@@ -798,13 +842,55 @@ scm_init_stime()
   scm_c_define ("internal-time-units-per-second",
 		scm_from_long (SCM_TIME_UNITS_PER_SECOND));
 
-#ifdef HAVE_FTIME
-  if (!scm_your_base.time) ftime(&scm_your_base);
-#else
-  if (!scm_your_base) time(&scm_your_base);
+  /* Init POSIX timers, and see if we can use them. */
+#ifdef HAVE_CLOCK_GETTIME
+  if (clock_gettime (CLOCK_REALTIME, &posix_real_time_base) == 0)
+    get_internal_real_time = get_internal_real_time_posix_timer;
+
+#ifdef _POSIX_CPUTIME
+  {
+    clockid_t dummy;
+    
+    /* Only use the _POSIX_CPUTIME clock if it's going to work across
+       CPUs. */
+    if (clock_getcpuclockid (0, &dummy) == 0 &&
+        clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &posix_run_time_base) == 0)
+      get_internal_run_time = get_internal_run_time_posix_timer;
+    else
+      errno = 0;
+  }
+#endif /* _POSIX_CPUTIME */
+#endif /* HAVE_CLOCKTIME */
+
+  /* If needed, init and use gettimeofday timer. */
+#ifdef HAVE_GETTIMEOFDAY
+  if (!get_internal_real_time
+      && gettimeofday (&gettimeofday_real_time_base, NULL) == 0)
+    get_internal_real_time = get_internal_real_time_gettimeofday;
 #endif
 
-  if (!scm_my_base) scm_my_base = mytime();
+  /* Init ticks_per_second for scm_times, and use times(2)-based
+     run-time timer if needed. */
+#ifdef HAVE_TIMES
+#ifdef _SC_CLK_TCK
+  ticks_per_second = sysconf (_SC_CLK_TCK);
+#else
+  ticks_per_second = CLK_TCK;
+#endif
+  if (!get_internal_run_time)
+    get_internal_run_time = get_internal_run_time_times;
+#endif
+
+  if (!get_internal_real_time)
+    /* No POSIX timers, gettimeofday doesn't work... badness!  */
+    {
+      fallback_real_time_base = time (NULL);
+      get_internal_real_time = get_internal_real_time_fallback;
+    }
+
+  /* If we don't have a run-time timer, use real-time.  */
+  if (!get_internal_run_time)
+    get_internal_run_time = get_internal_real_time;
 
   scm_add_feature ("current-time");
 #include "libguile/stime.x"

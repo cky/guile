@@ -3,7 +3,7 @@
 #ifndef SCM_STIME_H
 #define SCM_STIME_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000, 2003, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000, 2003, 2006, 2008, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,32 +25,10 @@
 
 #include "libguile/__scm.h"
 
-#include <unistd.h>  /* for sysconf */
-
 
 
-/* This should be figured out by autoconf.
-
-   sysconf(_SC_CLK_TCK) is best, since it's the actual running kernel, not
-   some compile-time CLK_TCK.  On glibc 2.3.2 CLK_TCK (when defined) is in
-   fact sysconf(_SC_CLK_TCK) anyway.
-
-   CLK_TCK is obsolete in POSIX.  In glibc 2.3.2 it's defined by default,
-   but if you define _GNU_SOURCE or _POSIX_C_SOURCE to get other features
-   then it goes away.  */
-
-#if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(_SC_CLK_TCK)
-#  define SCM_TIME_UNITS_PER_SECOND ((int) sysconf (_SC_CLK_TCK))
-#endif
-#if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(CLK_TCK)
-#  define SCM_TIME_UNITS_PER_SECOND ((int) CLK_TCK)
-#endif
-#if ! defined(SCM_TIME_UNITS_PER_SECOND) && defined(CLOCKS_PER_SEC)
-#  define SCM_TIME_UNITS_PER_SECOND ((int) CLOCKS_PER_SEC)
-#endif
-#if ! defined(SCM_TIME_UNITS_PER_SECOND)
-#  define SCM_TIME_UNITS_PER_SECOND 60
-#endif
+SCM_API long scm_c_time_units_per_second;
+#define SCM_TIME_UNITS_PER_SECOND scm_c_time_units_per_second
 
 
 SCM_API long scm_c_get_internal_run_time (void);
