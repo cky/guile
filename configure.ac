@@ -65,6 +65,9 @@ AC_PROG_AWK
 
 dnl Gnulib.
 gl_INIT
+dnl FIXME: remove me and the acinclude.m4 code when clock-gettime is
+dnl LGPL-compatible and can be imported normally.
+gl_CLOCK_TIME
 
 AC_PROG_CC_C89
 
