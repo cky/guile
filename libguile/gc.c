@@ -208,6 +208,9 @@ run_before_gc_c_hook (void)
 /* GC Statistics Keeping
  */
 unsigned long scm_gc_ports_collected = 0;
+static long gc_time_taken = 0;
+static long gc_start_time = 0;
+
 
 static unsigned long protected_obj_count = 0;
 
@@ -284,7 +287,7 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
   gc_times       = GC_gc_no;
 
   answer =
-    scm_list_n (scm_cons (sym_gc_time_taken, SCM_INUM0),
+    scm_list_n (scm_cons (sym_gc_time_taken, scm_from_long (gc_time_taken)),
 		scm_cons (sym_heap_size, scm_from_size_t (heap_size)),
 		scm_cons (sym_heap_free_size, scm_from_size_t (free_bytes)),
 		scm_cons (sym_heap_total_allocated,
@@ -708,6 +711,36 @@ queue_after_gc_hook (void * hook_data SCM_UNUSED,
   return NULL;
 }
 
+
+
+static void *
+start_gc_timer (void * hook_data SCM_UNUSED,
+                void *fn_data SCM_UNUSED,
+                void *data SCM_UNUSED)
+{
+  if (!gc_start_time)
+    gc_start_time = scm_c_get_internal_run_time ();
+
+  return NULL;
+}
+
+static void *
+accumulate_gc_timer (void * hook_data SCM_UNUSED,
+                void *fn_data SCM_UNUSED,
+                void *data SCM_UNUSED)
+{
+  if (gc_start_time)
+    { long now = scm_c_get_internal_run_time ();
+      gc_time_taken += now - gc_start_time;
+      gc_start_time = 0;
+    }
+
+  return NULL;
+}
+
+
+
+
 char const *
 scm_i_tag_name (scm_t_bits tag)
 {
@@ -803,6 +836,8 @@ scm_init_gc ()
                                   SCM_BOOL_F);
 
   scm_c_hook_add (&scm_before_gc_c_hook, queue_after_gc_hook, NULL, 0);
+  scm_c_hook_add (&scm_before_gc_c_hook, start_gc_timer, NULL, 0);
+  scm_c_hook_add (&scm_after_gc_c_hook, accumulate_gc_timer, NULL, 0);
 
 #ifdef HAVE_GC_SET_START_CALLBACK
   GC_set_start_callback (run_before_gc_c_hook);
