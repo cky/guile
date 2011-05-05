@@ -1,6 +1,6 @@
 ;;; Guile Virtual Machine Assembly
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,8 +37,8 @@
 
 (define (byte-length assembly)
   (pmatch assembly
-    (,label (guard (not (pair? label)))
-     0)
+    ((,inst . _) (guard (>= (instruction-length inst) 0))
+     (+ 1 (instruction-length inst)))
     ((load-number ,str)
      (+ 1 *len-len* (string-length str)))
     ((load-string ,str)
@@ -51,8 +51,8 @@
      (+ 1 *len-len* (bytevector-length bv)))
     ((load-program ,labels ,len ,meta . ,code)
      (+ 1 *program-header-len* len (if meta (1- (byte-length meta)) 0)))
-    ((,inst . _) (guard (>= (instruction-length inst) 0))
-     (+ 1 (instruction-length inst)))
+    (,label (guard (not (pair? label)))
+     0)
     (else (error "unknown instruction" assembly))))
 
 
