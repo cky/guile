@@ -1,7 +1,7 @@
 ;;;; (statprof) -- a statistical profiler for Guile
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001 Rob Browning <rlb at defaultvalue dot org>
 ;;;; 
@@ -159,7 +159,9 @@
             statprof-fetch-call-tree
 
             statprof
-            with-statprof))
+            with-statprof
+
+            gcprof))
 
 
 ;; This profiler tracks two numbers for every function called while
@@ -701,3 +703,82 @@ default: @code{#f}
     #:count-calls? ,(kw-arg-ref #:count-calls? args #f)
     #:full-stacks? ,(kw-arg-ref #:full-stacks? args #f)))
 
+(define* (gcprof thunk #:key (loop 1) (full-stacks? #f))
+  "Do an allocation profile of the execution of @var{thunk}.
+
+The stack will be sampled soon after every garbage collection, yielding
+an approximate idea of what is causing allocation in your program.
+
+Since GC does not occur very frequently, you may need to use the
+@var{loop} parameter, to cause @var{thunk} to be called @var{loop}
+times.
+
+If @var{full-stacks?} is true, at each sample, statprof will store away the
+whole call tree, for later analysis. Use @code{statprof-fetch-stacks} or
+@code{statprof-fetch-call-tree} to retrieve the last-stored stacks."
+  
+  (define (reset)
+    (if (positive? profile-level)
+        (error "Can't reset profiler while profiler is running."))
+    (set! accumulated-time 0)
+    (set! last-start-time #f)
+    (set! sample-count 0)
+    (set! %count-calls? #f)
+    (set! procedure-data (make-hash-table 131))
+    (set! record-full-stacks? full-stacks?)
+    (set! stacks '()))
+
+  (define (gc-callback)
+    (cond
+     (inside-profiler?)
+     (else
+      (set! inside-profiler? #t)
+
+      ;; FIXME: should be able to set an outer frame for the stack cut
+      (let ((stop-time (get-internal-run-time))
+            ;; Cut down to gc-callback, and then one before (the
+            ;; after-gc async).  See the note in profile-signal-handler
+            ;; also.
+            (stack (or (make-stack #t gc-callback 0 1)
+                       (pk 'what! (make-stack #t)))))
+        (sample-stack-procs stack)
+        (accumulate-time stop-time)
+        (set! last-start-time (get-internal-run-time)))
+      
+      (set! inside-profiler? #f))))
+
+  (define (start)
+    (set! profile-level (+ profile-level 1))
+    (if (= profile-level 1)
+        (begin
+          (set! remaining-prof-time #f)
+          (set! last-start-time (get-internal-run-time))
+          (set! gc-time-taken (cdr (assq 'gc-time-taken (gc-stats))))
+          (add-hook! after-gc-hook gc-callback)
+          (set-vm-trace-level! (the-vm) (1+ (vm-trace-level (the-vm))))
+          #t)))
+
+  (define (stop)
+    (set! profile-level (- profile-level 1))
+    (if (zero? profile-level)
+        (begin
+          (set! gc-time-taken
+                (- (cdr (assq 'gc-time-taken (gc-stats))) gc-time-taken))
+          (remove-hook! after-gc-hook gc-callback)
+          (accumulate-time (get-internal-run-time))
+          (set! last-start-time #f))))
+
+  (dynamic-wind
+    (lambda ()
+      (reset)
+      (start))
+    (lambda ()
+      (let lp ((i loop))
+        (if (not (zero? i))
+            (begin
+              (thunk)
+              (lp (1- i))))))
+    (lambda ()
+      (stop)
+      (statprof-display)
+      (set! procedure-data #f))))
