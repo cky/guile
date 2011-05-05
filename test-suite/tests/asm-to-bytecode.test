@@ -19,10 +19,8 @@
   #:use-module ((rnrs io ports) #:select (open-bytevector-output-port))
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)
+  #:use-module (language assembly)
   #:use-module (language assembly compile-bytecode))
-
-(define write-bytecode
-  (@@ (language assembly compile-bytecode) write-bytecode))
 
 (define (->u8-list sym val)
   (let ((entry (assq-ref `((uint16 2 ,bytevector-u16-native-set!)
@@ -54,11 +52,11 @@
 
     (run-test `(length ,x) #t
               (lambda ()
-                (call-with-values open-bytevector-output-port
-                  (lambda (port get-bytevector)
-                    (write-bytecode x port '() 0 #t)
-                    (set! v (get-bytevector))
-                    (= (bytevector-length v) len)))))
+                (let* ((wrapped `(load-program () ,(byte-length x) #f ,x))
+                       (bv (compile-bytecode wrapped '())))
+                  (set! v (make-bytevector (- (bytevector-length bv) 8)))
+                  (bytevector-copy! bv 8 v 0 (bytevector-length v))
+                  (= (bytevector-length v) len))))
     (run-test `(compile-equal? ,x ,y) #t
               (lambda ()
                 (equal? v y)))))
