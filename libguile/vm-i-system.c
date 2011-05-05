@@ -1635,7 +1635,7 @@ VM_DEFINE_INSTRUCTION (89, wind_fluids, "wind-fluids", 1, -1, 0)
   wf = scm_i_make_with_fluids (n, sp + 1, sp + 1 + n);
   NULLSTACK (2 * n);
 
-  scm_i_swap_with_fluids (wf, dynstate);
+  scm_i_swap_with_fluids (wf, current_thread->dynamic_state);
   scm_i_set_dynwinds (scm_cons (wf, scm_i_dynwinds ()));
   NEXT;
 }
@@ -1645,7 +1645,7 @@ VM_DEFINE_INSTRUCTION (90, unwind_fluids, "unwind-fluids", 0, 0, 0)
   SCM wf;
   wf = scm_car (scm_i_dynwinds ());
   scm_i_set_dynwinds (scm_cdr (scm_i_dynwinds ()));
-  scm_i_swap_with_fluids (wf, dynstate);
+  scm_i_swap_with_fluids (wf, current_thread->dynamic_state);
   NEXT;
 }
 
@@ -1655,7 +1655,7 @@ VM_DEFINE_INSTRUCTION (91, fluid_ref, "fluid-ref", 0, 1, 1)
   SCM fluids;
   
   CHECK_UNDERFLOW ();
-  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
+  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (current_thread->dynamic_state);
   if (SCM_UNLIKELY (!SCM_FLUID_P (*sp))
       || ((num = SCM_I_FLUID_NUM (*sp)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {
@@ -1683,7 +1683,7 @@ VM_DEFINE_INSTRUCTION (92, fluid_set, "fluid-set", 0, 2, 0)
   SCM val, fluid, fluids;
   
   POP2 (val, fluid);
-  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
+  fluids = SCM_I_DYNAMIC_STATE_FLUIDS (current_thread->dynamic_state);
   if (SCM_UNLIKELY (!SCM_FLUID_P (fluid))
       || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
     {

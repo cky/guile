@@ -52,7 +52,7 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 #endif
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
-  SCM dynstate = SCM_I_CURRENT_THREAD->dynamic_state;
+  scm_i_thread *current_thread = SCM_I_CURRENT_THREAD;
   scm_t_int64 vm_cookie = vp->cookie++;
 
   /* Internal variables */

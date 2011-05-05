@@ -536,10 +536,10 @@ SCM_API void scm_async_tick (void);
     while (0)
 
 /* SCM_ASYNC_TICK_WITH_CODE is only available to Guile itself */
-# define SCM_ASYNC_TICK_WITH_CODE(stmt)                                 \
+# define SCM_ASYNC_TICK_WITH_CODE(thr, stmt)                            \
     do                                                                  \
       {                                                                 \
-	if (SCM_UNLIKELY (SCM_I_CURRENT_THREAD->pending_asyncs))	\
+	if (SCM_UNLIKELY (thr->pending_asyncs))                         \
 	  {                                                             \
             stmt;                                                       \
             scm_async_click ();                                         \
