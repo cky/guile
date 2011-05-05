@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -144,6 +144,12 @@
 #define ASSERT_BOUND(x)
 #endif
 
+#if VM_CHECK_OBJECT
+#define SET_OBJECT_COUNT(n) object_count = n
+#else
+#define SET_OBJECT_COUNT(n) /* nop */
+#endif
+
 /* Cache the object table and free variables.  */
 #define CACHE_PROGRAM()							\
 {									\
@@ -152,10 +158,10 @@
     ASSERT_ALIGNED_PROCEDURE ();                                        \
     if (SCM_I_IS_VECTOR (SCM_PROGRAM_OBJTABLE (program))) {             \
       objects = SCM_I_VECTOR_WELTS (SCM_PROGRAM_OBJTABLE (program));    \
-      object_count = SCM_I_VECTOR_LENGTH (SCM_PROGRAM_OBJTABLE (program)); \
+      SET_OBJECT_COUNT (SCM_I_VECTOR_LENGTH (SCM_PROGRAM_OBJTABLE (program))); \
     } else {                                                            \
       objects = NULL;                                                   \
-      object_count = 0;                                                 \
+      SET_OBJECT_COUNT (0);                                             \
     }                                                                   \
   }                                                                     \
 }
@@ -266,18 +272,26 @@
   if (SCM_UNLIKELY (sp >= stack_limit))         \
     goto vm_error_stack_overflow
 
+
+#ifdef VM_CHECK_UNDERFLOW
 #define CHECK_UNDERFLOW()                       \
   if (SCM_UNLIKELY (sp <= SCM_FRAME_UPPER_ADDRESS (fp)))        \
-    goto vm_error_stack_underflow;
-
+    goto vm_error_stack_underflow
 #define PRE_CHECK_UNDERFLOW(N)                  \
   if (SCM_UNLIKELY (sp - N <= SCM_FRAME_UPPER_ADDRESS (fp)))    \
-    goto vm_error_stack_underflow;
+    goto vm_error_stack_underflow
+#else
+#define CHECK_UNDERFLOW() /* nop */
+#define PRE_CHECK_UNDERFLOW(N) /* nop */
+#endif
+
 
 #define PUSH(x)	do { sp++; CHECK_OVERFLOW (); *sp = x; } while (0)
 #define DROP()	do { sp--; CHECK_UNDERFLOW (); NULLSTACK (1); } while (0)
 #define DROPN(_n) do { sp -= (_n); CHECK_UNDERFLOW (); NULLSTACK (_n); } while (0)
 #define POP(x)	do { PRE_CHECK_UNDERFLOW (1); x = *sp--; NULLSTACK (1); } while (0)
+#define POP2(x,y) do { PRE_CHECK_UNDERFLOW (2); x = *sp--; y = *sp--; NULLSTACK (2); } while (0)
+#define POP3(x,y,z) do { PRE_CHECK_UNDERFLOW (3); x = *sp--; y = *sp--; z = *sp--; NULLSTACK (3); } while (0)
 
 /* A fast CONS.  This has to be fast since its used, for instance, by
    POP_LIST when fetching a function's argument list.  Note: `scm_cell' is an

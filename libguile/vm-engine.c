@@ -20,12 +20,14 @@
 
 #if (VM_ENGINE == SCM_VM_REGULAR_ENGINE)
 #define VM_USE_HOOKS		0	/* Various hooks */
-#define VM_CHECK_OBJECT         1       /* Check object table */
-#define VM_CHECK_FREE_VARIABLES 1       /* Check free variable access */
+#define VM_CHECK_OBJECT         0       /* Check object table */
+#define VM_CHECK_FREE_VARIABLES 0       /* Check free variable access */
+#define VM_CHECK_UNDERFLOW      0       /* Check underflow when popping values */
 #elif (VM_ENGINE == SCM_VM_DEBUG_ENGINE)
 #define VM_USE_HOOKS		1
-#define VM_CHECK_OBJECT         1
-#define VM_CHECK_FREE_VARIABLES 1
+#define VM_CHECK_OBJECT         0
+#define VM_CHECK_FREE_VARIABLES 0
+#define VM_CHECK_UNDERFLOW      0       /* Check underflow when popping values */
 #else
 #error unknown debug engine VM_ENGINE
 #endif
@@ -45,7 +47,9 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
   /* Cache variables */
   struct scm_objcode *bp = NULL;	/* program base pointer */
   SCM *objects = NULL;			/* constant objects */
+#if VM_CHECK_OBJECT
   size_t object_count = 0;              /* length of OBJECTS */
+#endif
   SCM *stack_limit = vp->stack_limit;	/* stack limit address */
 
   SCM dynstate = SCM_I_CURRENT_THREAD->dynamic_state;
@@ -298,6 +302,7 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 #undef VM_USE_HOOKS
 #undef VM_CHECK_OBJECT
 #undef VM_CHECK_FREE_VARIABLE
+#undef VM_CHECK_UNDERFLOW
 
 /*
   Local Variables:

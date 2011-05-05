@@ -397,18 +397,20 @@ VM_DEFINE_INSTRUCTION (28, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
 
 VM_DEFINE_INSTRUCTION (29, local_set, "local-set", 1, 1, 0)
 {
-  LOCAL_SET (FETCH (), *sp);
-  DROP ();
+  SCM x;
+  POP (x);
+  LOCAL_SET (FETCH (), x);
   NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (30, long_local_set, "long-local-set", 2, 1, 0)
 {
+  SCM x;
   unsigned int i = FETCH ();
   i <<= 8;
   i += FETCH ();
-  LOCAL_SET (i, *sp);
-  DROP ();
+  POP (x);
+  LOCAL_SET (i, x);
   NEXT;
 }
 
@@ -479,7 +481,7 @@ VM_DEFINE_INSTRUCTION (33, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
   offset -= (offset & (1<<23)) << 1;            \
 }
 
-#define BR(p)					\
+#define BR(p)                                   \
 {						\
   scm_t_int32 offset;                           \
   FETCH_OFFSET (offset);                        \
@@ -487,8 +489,6 @@ VM_DEFINE_INSTRUCTION (33, long_toplevel_set, "long-toplevel-set", 2, 1, 0)
     ip += offset;                               \
   if (offset < 0)                               \
     VM_HANDLE_INTERRUPTS;                       \
-  NULLSTACK (1);				\
-  DROP ();					\
   NEXT;						\
 }
 
@@ -504,34 +504,44 @@ VM_DEFINE_INSTRUCTION (34, br, "br", 3, 0, 0)
 
 VM_DEFINE_INSTRUCTION (35, br_if, "br-if", 3, 0, 0)
 {
-  BR (scm_is_true (*sp));
+  SCM x;
+  POP (x);
+  BR (scm_is_true (x));
 }
 
 VM_DEFINE_INSTRUCTION (36, br_if_not, "br-if-not", 3, 0, 0)
 {
-  BR (scm_is_false (*sp));
+  SCM x;
+  POP (x);
+  BR (scm_is_false (x));
 }
 
 VM_DEFINE_INSTRUCTION (37, br_if_eq, "br-if-eq", 3, 0, 0)
 {
-  sp--; /* underflow? */
-  BR (scm_is_eq (sp[0], sp[1]));
+  SCM x, y;
+  POP2 (y, x);
+  BR (scm_is_eq (x, y));
 }
 
 VM_DEFINE_INSTRUCTION (38, br_if_not_eq, "br-if-not-eq", 3, 0, 0)
 {
-  sp--; /* underflow? */
-  BR (!scm_is_eq (sp[0], sp[1]));
+  SCM x, y;
+  POP2 (y, x);
+  BR (!scm_is_eq (x, y));
 }
 
 VM_DEFINE_INSTRUCTION (39, br_if_null, "br-if-null", 3, 0, 0)
 {
-  BR (scm_is_null (*sp));
+  SCM x;
+  POP (x);
+  BR (scm_is_null (x));
 }
 
 VM_DEFINE_INSTRUCTION (40, br_if_not_null, "br-if-not-null", 3, 0, 0)
 {
-  BR (!scm_is_null (*sp));
+  SCM x;
+  POP (x);
+  BR (!scm_is_null (x));
 }
 
 
@@ -1029,8 +1039,7 @@ VM_DEFINE_INSTRUCTION (58, continuation_call, "continuation-call", 0, -1, 0)
 VM_DEFINE_INSTRUCTION (59, partial_cont_call, "partial-cont-call", 0, -1, 0)
 {
   SCM vmcont, intwinds, prevwinds;
-  POP (intwinds);
-  POP (vmcont);
+  POP2 (intwinds, vmcont);
   SYNC_REGISTER ();
   if (SCM_UNLIKELY (!SCM_VM_CONT_REWINDABLE_P (vmcont)))
     { finish_args = vmcont;
@@ -1512,8 +1521,7 @@ VM_DEFINE_INSTRUCTION (81, fix_closure, "fix-closure", 2, -1, 0)
 VM_DEFINE_INSTRUCTION (82, define, "define", 0, 0, 2)
 {
   SCM sym, val;
-  POP (sym);
-  POP (val);
+  POP2 (sym, val);
   SYNC_REGISTER ();
   VARIABLE_SET (scm_sym2var (sym, scm_current_module_lookup_closure (),
                              SCM_BOOL_T),
@@ -1578,8 +1586,7 @@ VM_DEFINE_INSTRUCTION (85, prompt, "prompt", 4, 2, 0)
 VM_DEFINE_INSTRUCTION (86, wind, "wind", 0, 2, 0)
 {
   SCM wind, unwind;
-  POP (unwind);
-  POP (wind);
+  POP2 (unwind, wind);
   SYNC_REGISTER ();
   /* Push wind and unwind procedures onto the dynamic stack. Note that neither
      are actually called; the compiler should emit calls to wind and unwind for
@@ -1675,8 +1682,7 @@ VM_DEFINE_INSTRUCTION (92, fluid_set, "fluid-set", 0, 2, 0)
   size_t num;
   SCM val, fluid, fluids;
   
-  POP (val);
-  POP (fluid);
+  POP2 (val, fluid);
   fluids = SCM_I_DYNAMIC_STATE_FLUIDS (dynstate);
   if (SCM_UNLIKELY (!SCM_FLUID_P (fluid))
       || ((num = SCM_I_FLUID_NUM (fluid)) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))

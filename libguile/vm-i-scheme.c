@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -147,8 +147,7 @@ VM_DEFINE_FUNCTION (142, cdr, "cdr", 1)
 VM_DEFINE_INSTRUCTION (143, set_car, "set-car!", 0, 2, 0)
 {
   SCM x, y;
-  POP (y);
-  POP (x);
+  POP2 (y, x);
   VM_VALIDATE_CONS (x, "set-car!");
   SCM_SETCAR (x, y);
   NEXT;
@@ -157,8 +156,7 @@ VM_DEFINE_INSTRUCTION (143, set_car, "set-car!", 0, 2, 0)
 VM_DEFINE_INSTRUCTION (144, set_cdr, "set-cdr!", 0, 2, 0)
 {
   SCM x, y;
-  POP (y);
-  POP (x);
+  POP2 (y, x);
   VM_VALIDATE_CONS (x, "set-cdr!");
   SCM_SETCDR (x, y);
   NEXT;
@@ -469,7 +467,7 @@ VM_DEFINE_INSTRUCTION (164, vector_set, "vector-set", 0, 3, 0)
 {
   scm_t_signed_bits i = 0;
   SCM vect, idx, val;
-  POP (val); POP (idx); POP (vect);
+  POP3 (val, idx, vect);
   if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
                   && SCM_I_INUMP (idx)
                   && ((i = SCM_I_INUM (idx)) >= 0)
@@ -645,9 +643,7 @@ VM_DEFINE_INSTRUCTION (173, slot_set, "slot-set", 0, 3, 0)
 {
   SCM instance, idx, val;
   size_t slot;
-  POP (val);
-  POP (idx);
-  POP (instance);
+  POP3 (val, idx, instance);
   slot = SCM_I_INUM (idx);
   SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (val);
   NEXT;
@@ -820,7 +816,7 @@ BV_FLOAT_REF (f64, ieee_double, double, 8)
   if (scm_is_eq (endianness, scm_i_native_endianness))                  \
     goto VM_LABEL (bv_##stem##_native_set);                             \
   {                                                                     \
-    SCM bv, idx, val; POP (val); POP (idx); POP (bv);                   \
+    SCM bv, idx, val; POP3 (val, idx, bv);                              \
     SYNC_REGISTER ();                                                   \
     scm_bytevector_##fn_stem##_set_x (bv, idx, val, endianness);        \
     NEXT;                                                               \
@@ -852,7 +848,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   SCM bv, idx, val;							\
   scm_t_ ## type *int_ptr;						\
 									\
-  POP (val); POP (idx); POP (bv);					\
+  POP3 (val, idx, bv);                                                  \
   VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");                      \
   i = SCM_I_INUM (idx);							\
   int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
@@ -879,7 +875,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   SCM bv, idx, val;							\
   scm_t_ ## type *int_ptr;						\
 									\
-  POP (val); POP (idx); POP (bv);					\
+  POP3 (val, idx, bv);                                                  \
   VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");                      \
   i = SCM_I_INUM (idx);							\
   int_ptr = (scm_t_ ## type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);	\
@@ -903,7 +899,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
   SCM bv, idx, val;                                                     \
   type *float_ptr;                                                      \
                                                                         \
-  POP (val); POP (idx); POP (bv);                                       \
+  POP3 (val, idx, bv);                                                  \
   VM_VALIDATE_BYTEVECTOR (bv, "bv-" #stem "-set");                      \
   i = SCM_I_INUM (idx);                                                 \
   float_ptr = (type *) (SCM_BYTEVECTOR_CONTENTS (bv) + i);              \

@@ -92,8 +92,7 @@ VM_DEFINE_LOADER (106, load_array, "load-array")
   SCM type, shape;
   size_t len;
   FETCH_LENGTH (len);
-  POP (shape);
-  POP (type);
+  POP2 (shape, type);
   SYNC_REGISTER ();
   PUSH (scm_from_contiguous_typed_array (type, shape, ip, len));
   ip += len;
