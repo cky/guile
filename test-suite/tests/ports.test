@@ -486,7 +486,10 @@
                   (make-check
                    (syntax-rules (-> error eof)
                      ((_ port (proc -> error))
-                      (decoding-error? port (proc port)))
+                      (if (eq? 'substitute
+                               (port-conversion-strategy port))
+                          (eq? (proc port) #\?)
+                          (decoding-error? port (proc port))))
                      ((_ port (proc -> eof))
                       (eof-object? (proc port)))
                      ((_ port (proc -> char))
@@ -510,7 +513,8 @@
                                              ((peek-char -> e1)
                                               (read-char -> e1))
                                              expected ...))))
-                  (test-decoding-error
+
+                  (test-decoding-error*
                       (syntax-rules ()
                         ((_ sequence encoding strategy (expected ...))
                          (begin
@@ -532,56 +536,56 @@
                                       (u8-list->bytevector 'sequence))))
                               (set-port-encoding! p encoding)
                               (set-port-conversion-strategy! p strategy)
-                              (make-peek+read-checks p #f expected ...))))))))
+                              (make-peek+read-checks p #f expected
+                                                     ...)))))))
+                  (test-decoding-error
+                      (syntax-rules ()
+                        ((_ sequence encoding (expected ...))
+                         (begin
+                           (test-decoding-error* sequence encoding 'error
+                             (expected ...))
 
-    (test-decoding-error (255 65 66 67) "UTF-8" 'error
+                           ;; `escape' should behave exactly like `error'.
+                           (test-decoding-error* sequence encoding 'escape
+                             (expected ...))
+
+                           (test-decoding-error* sequence encoding 'substitute
+                             (expected ...)))))))
+
+    (test-decoding-error (255 65 66 67) "UTF-8"
       (error #\A #\B #\C eof))
 
-    (test-decoding-error (255 65 66 67) "UTF-8" 'escape
-      ;; `escape' should behave exactly like `error'.
-      (error #\A #\B #\C eof))
+    (test-decoding-error (255 206 187 206 188) "UTF-8"
+      (error #\λ #\μ eof))
 
-    (test-decoding-error (255 206 187 206 188) "UTF-8" 'substitute
-      (#\? #\λ #\μ eof))
-
-    (test-decoding-error (206 187 206) "UTF-8" 'error
+    (test-decoding-error (206 187 206) "UTF-8"
       ;; Unterminated sequence.
       (#\λ error eof))
-
-    (test-decoding-error (206 187 206) "UTF-8" 'substitute
-      ;; Unterminated sequence.
-      (#\λ #\? eof))
 
     ;; Check how ill-formed UTF-8 sequences are handled (see Table 3-7
     ;; of the "Conformance" chapter of Unicode 6.0.0.)
 
-    (test-decoding-error (#xc0 #x80 #x41) "UTF-8" 'error
+    (test-decoding-error (#xc0 #x80 #x41) "UTF-8"
       (error                ;; C0: should be in the C2..DF range
        error                ;; 80: invalid
        #\A
        eof))
 
-    (test-decoding-error (#xc0 #x80 #x41) "UTF-8" 'substitute
-      (#\?                  ;; C0: should be in the C2..DF range
-       #\?                  ;; 80: invalid
-       #\A
-       eof))
-
-    (test-decoding-error (#xc2 #x41 #x42) "UTF-8" 'error
+    (test-decoding-error (#xc2 #x41 #x42) "UTF-8"
       (error                ;; 41: should be in the 80..BF range
        #\B
        eof))
 
-    (test-decoding-error (#xe0 #x88 #x88) "UTF-8" 'error
+    (test-decoding-error (#xe0 #x88 #x88) "UTF-8"
       (error                ;; 2nd byte should be in the A0..BF range
        eof))
 
-    (test-decoding-error (#xe0 #xa0 #x41 #x42) "UTF-8" 'error
+    (test-decoding-error (#xe0 #xa0 #x41 #x42) "UTF-8"
       (error                ;; 3rd byte should be in the 80..BF range
        #\B
        eof))
 
-    (test-decoding-error (#xf0 #x88 #x88 #x88) "UTF-8" 'error
+    (test-decoding-error (#xf0 #x88 #x88 #x88) "UTF-8"
       (error                ;; 2nd byte should be in the 90..BF range
        eof))))
 
