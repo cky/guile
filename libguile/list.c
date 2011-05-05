@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008,2009,2010
+/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008,2009,2010,2011
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -617,8 +617,32 @@ SCM_DEFINE (scm_memq, "memq", 2, 0, 0,
 	    "returned.")
 #define FUNC_NAME s_scm_memq
 {
-  SCM_VALIDATE_LIST (2, lst);
-  return scm_c_memq (x, lst);
+  SCM hare = lst, tortoise = lst;
+  
+  while (scm_is_pair (hare))
+    {
+      if (scm_is_eq (SCM_CAR (hare), x))
+	return hare;
+      else
+        hare = SCM_CDR (hare);
+
+      if (!scm_is_pair (hare))
+        break;
+
+      if (scm_is_eq (SCM_CAR (hare), x))
+	return hare;
+      else
+        hare = SCM_CDR (hare);
+
+      tortoise = SCM_CDR (tortoise);
+      if (SCM_UNLIKELY (scm_is_eq (hare, tortoise)))
+        break;
+    }
+
+  if (SCM_LIKELY (scm_is_null (hare)))
+    return SCM_BOOL_F;
+  else
+    scm_wrong_type_arg_msg (FUNC_NAME, 2, lst, "list");
 }
 #undef FUNC_NAME
 
@@ -633,13 +657,32 @@ SCM_DEFINE (scm_memv, "memv", 2, 0, 0,
 	    "returned.")
 #define FUNC_NAME s_scm_memv
 {
-  SCM_VALIDATE_LIST (2, lst);
-  for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
+  SCM hare = lst, tortoise = lst;
+  
+  while (scm_is_pair (hare))
     {
-      if (! scm_is_false (scm_eqv_p (SCM_CAR (lst), x)))
-	return lst;
+      if (scm_is_true (scm_eqv_p (SCM_CAR (hare), x)))
+	return hare;
+      else
+        hare = SCM_CDR (hare);
+
+      if (!scm_is_pair (hare))
+        break;
+
+      if (scm_is_true (scm_eqv_p (SCM_CAR (hare), x)))
+	return hare;
+      else
+        hare = SCM_CDR (hare);
+
+      tortoise = SCM_CDR (tortoise);
+      if (SCM_UNLIKELY (scm_is_eq (hare, tortoise)))
+        break;
     }
-  return SCM_BOOL_F;
+
+  if (SCM_LIKELY (scm_is_null (hare)))
+    return SCM_BOOL_F;
+  else
+    scm_wrong_type_arg_msg (FUNC_NAME, 2, lst, "list");
 }
 #undef FUNC_NAME
 
