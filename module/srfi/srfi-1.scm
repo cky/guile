@@ -418,20 +418,20 @@ a list of those after."
   (let lp ((l (cons clist1 rest)) (acc '()))
     (if (any null? l)
       (reverse! acc)
-      (lp (map1 cdr l) (cons (map1 car l) acc)))))
+      (lp (map cdr l) (cons (map car l) acc)))))
 
 
 (define (unzip1 l)
-  (map1 first l))
+  (map first l))
 (define (unzip2 l)
-  (values (map1 first l) (map1 second l)))
+  (values (map first l) (map second l)))
 (define (unzip3 l)
-  (values (map1 first l) (map1 second l) (map1 third l)))
+  (values (map first l) (map second l) (map third l)))
 (define (unzip4 l)
-  (values (map1 first l) (map1 second l) (map1 third l) (map1 fourth l)))
+  (values (map first l) (map second l) (map third l) (map fourth l)))
 (define (unzip5 l)
-  (values (map1 first l) (map1 second l) (map1 third l) (map1 fourth l)
-	  (map1 fifth l)))
+  (values (map first l) (map second l) (map third l) (map fourth l)
+	  (map fifth l)))
 
 ;;; Fold, unfold & map
 
@@ -446,8 +446,8 @@ that result.  See the manual for details."
       (let f ((knil knil) (lists (cons list1 rest)))
 	(if (any null? lists)
 	    knil
-	    (let ((cars (map1 car lists))
-		  (cdrs (map1 cdr lists)))
+	    (let ((cars (map car lists))
+		  (cdrs (map cdr lists)))
 	      (f (apply kons (append! cars (list knil))) cdrs))))))
 
 (define (fold-right kons knil clist1 . rest)
@@ -458,12 +458,12 @@ that result.  See the manual for details."
             result
             (loop (cdr lst)
                   (kons (car lst) result))))
-      (let loop ((lists  (map1 reverse (cons clist1 rest)))
+      (let loop ((lists  (map reverse (cons clist1 rest)))
                  (result knil))
         (if (any1 null? lists)
             result
-            (loop (map1 cdr lists)
-                  (apply kons (append! (map1 car lists) (list result))))))))
+            (loop (map cdr lists)
+                  (apply kons (append! (map car lists) (list result))))))))
 
 (define (pair-fold kons knil clist1 . rest)
   (if (null? rest)
@@ -475,7 +475,7 @@ that result.  See the manual for details."
       (let f ((knil knil) (lists (cons clist1 rest)))
 	(if (any null? lists)
 	    knil
-	    (let ((tails (map1 cdr lists)))
+	    (let ((tails (map cdr lists)))
 	      (f (apply kons (append! lists (list knil))) tails))))))
 
 
@@ -488,7 +488,7 @@ that result.  See the manual for details."
     (let f ((lists (cons clist1 rest)))
       (if (any null? lists)
 	knil
-	(apply kons (append! lists (list (f (map1 cdr lists)))))))))
+	(apply kons (append! lists (list (f (map cdr lists)))))))))
 
 (define* (unfold p f g seed #:optional (tail-gen (lambda (x) '())))
   (define (reverse+tail lst seed)
@@ -530,10 +530,79 @@ has just one element then that's the return value."
       ridentity
       (fold-right f (last lst) (drop-right lst 1))))
 
+(define map
+  (case-lambda
+    ((f l)
+     (let map1 ((hare l) (tortoise l) (move? #f) (out '()))
+       (if (pair? hare)
+           (if move?
+               (if (eq? tortoise hare)
+                   (scm-error 'wrong-type-arg "map" "Circular list: ~S"
+                              (list l) #f)
+                   (map1 (cdr hare) (cdr tortoise) #f
+                       (cons (f (car hare)) out)))
+               (map1 (cdr hare) tortoise #t
+                     (cons (f (car hare)) out)))
+           (if (null? hare)
+               (reverse! out)
+               (scm-error 'wrong-type-arg "map" "Not a list: ~S"
+                          (list l) #f)))))
+    
+    ((f l1 . rest)
+     (let ((len (fold (lambda (ls len)
+                        (let ((ls-len (length+ ls)))
+                          (if len
+                              (if ls-len (min ls-len len) len)
+                              ls-len)))
+                      (length+ l1)
+                      rest)))
+       (if (not len)
+           (scm-error 'wrong-type-arg "map"
+                      "Args do not contain a proper (finite) list: ~S"
+                      (list (cons l1 rest)) #f))
+       (let mapn ((l1 l1) (rest rest) (len len) (out '()))
+         (if (zero? len)
+             (reverse! out)
+             (mapn (cdr l1) (map cdr rest) (1- len)
+                   (cons (apply f (car l1) (map car rest)) out))))))))
 
-;; Internal helper procedure.  Map `f' over the single list `ls'.
-;;
-(define map1 map)
+(define for-each
+  (case-lambda
+    ((f l)
+     (let for-each1 ((hare l) (tortoise l) (move? #f))
+       (if (pair? hare)
+           (if move?
+               (if (eq? tortoise hare)
+                   (scm-error 'wrong-type-arg "for-each" "Circular list: ~S"
+                              (list l) #f)
+                   (begin
+                     (f (car hare))
+                     (for-each1 (cdr hare) (cdr tortoise) #f)))
+               (begin
+                 (f (car hare))
+                 (for-each1 (cdr hare) tortoise #t)))
+           
+           (if (not (null? hare))
+               (scm-error 'wrong-type-arg "for-each" "Not a list: ~S"
+                          (list l) #f)))))
+    
+    ((f l1 . rest)
+     (let ((len (fold (lambda (ls len)
+                        (let ((ls-len (length+ ls)))
+                          (if len
+                              (if ls-len (min ls-len len) len)
+                              ls-len)))
+                      (length+ l1)
+                      rest)))
+       (if (not len)
+           (scm-error 'wrong-type-arg "for-each"
+                      "Args do not contain a proper (finite) list: ~S"
+                      (list (cons l1 rest)) #f))
+       (let for-eachn ((l1 l1) (rest rest) (len len))
+         (if (> len 0)
+             (begin
+               (apply f (car l1) (map car rest))
+               (for-eachn (cdr l1) (map cdr rest) (1- len)))))))))
 
 (define (append-map f clist1 . rest)
   (concatenate (apply map f clist1 rest)))
@@ -561,10 +630,10 @@ the list returned."
                (rl '()))
         (if (any1 null? l)
             (reverse! rl)
-            (let ((res (apply proc (map1 car l))))
+            (let ((res (apply proc (map car l))))
               (if res
-                  (lp (map1 cdr l) (cons res rl))
-                  (lp (map1 cdr l) rl)))))))
+                  (lp (map cdr l) (cons res rl))
+                  (lp (map cdr l) rl)))))))
 
 (define (pair-for-each f clist1 . rest)
   (if (null? rest)
@@ -579,7 +648,7 @@ the list returned."
 	(if #f #f)
 	(begin
 	  (apply f l)
-	  (lp (map1 cdr l)))))))
+	  (lp (map cdr l)))))))
 
 
 ;;; Searching
@@ -677,10 +746,10 @@ all fail the predicate PRED, and the remainder of LST."
       (let lp ((lists (cons ls lists)))
 	(cond ((any1 null? lists)
 	       #f)
-	      ((any1 null? (map1 cdr lists))
-	       (apply pred (map1 car lists)))
+	      ((any1 null? (map cdr lists))
+	       (apply pred (map car lists)))
 	      (else
-	       (or (apply pred (map1 car lists)) (lp (map1 cdr lists))))))))
+	       (or (apply pred (map car lists)) (lp (map cdr lists))))))))
 
 (define (any1 pred ls)
   (let lp ((ls ls))
@@ -697,10 +766,10 @@ all fail the predicate PRED, and the remainder of LST."
       (let lp ((lists (cons ls lists)))
 	(cond ((any1 null? lists)
 	       #t)
-	      ((any1 null? (map1 cdr lists))
-	       (apply pred (map1 car lists)))
+	      ((any1 null? (map cdr lists))
+	       (apply pred (map car lists)))
 	      (else
-	       (and (apply pred (map1 car lists)) (lp (map1 cdr lists))))))))
+	       (and (apply pred (map car lists)) (lp (map cdr lists))))))))
 
 (define (every1 pred ls)
   (let lp ((ls ls))
@@ -724,9 +793,9 @@ CLIST1 ... CLISTN, that satisfies PRED."
     (let lp ((lists (cons clist1 rest)) (i 0))
       (cond ((any1 null? lists)
 	     #f)
-	    ((apply pred (map1 car lists)) i)
+	    ((apply pred (map car lists)) i)
 	    (else
-	     (lp (map1 cdr lists) (+ i 1)))))))
+	     (lp (map cdr lists) (+ i 1)))))))
 
 ;;; Association lists
 

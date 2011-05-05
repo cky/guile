@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001,2002,2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -53,9 +53,6 @@ SCM_DEFINE (scm_defined_p, "defined?", 1, 1, 0,
 	  : SCM_BOOL_T);
 }
 #undef FUNC_NAME
-
-
-SCM_REGISTER_PROC (s_map_in_order, "map-in-order", 2, 0, 1, scm_map);
 
 
 SCM_DEFINE (scm_self_evaluating_p, "self-evaluating?", 1, 0, 0,

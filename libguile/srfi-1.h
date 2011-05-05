@@ -39,8 +39,6 @@ SCM_INTERNAL SCM scm_srfi1_find_tail (SCM pred, SCM lst);
 SCM_INTERNAL SCM scm_srfi1_length_plus (SCM lst);
 SCM_INTERNAL SCM scm_srfi1_lset_difference_x (SCM equal, SCM lst, SCM rest);
 SCM_INTERNAL SCM scm_srfi1_list_copy (SCM lst);
-SCM_INTERNAL SCM scm_srfi1_map (SCM proc, SCM arg1, SCM args);
-SCM_INTERNAL SCM scm_srfi1_for_each (SCM proc, SCM arg1, SCM args);
 SCM_INTERNAL SCM scm_srfi1_assoc (SCM key, SCM alist, SCM pred);
 SCM_INTERNAL SCM scm_srfi1_partition (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_partition_x (SCM pred, SCM list);

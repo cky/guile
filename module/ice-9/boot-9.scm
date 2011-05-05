@@ -263,6 +263,50 @@ If there is no handler at all, Guile prints an error and then exits."
 
 
 
+;;; Boot versions of `map' and `for-each', enough to get the expander
+;;; running.
+;;;
+(define map
+  (case-lambda
+    ((f l)
+     (let map1 ((l l))
+       (if (null? l)
+           '()
+           (cons (f (car l)) (map1 (cdr l))))))
+    ((f l1 l2)
+     (let map2 ((l1 l1) (l2 l2))
+       (if (null? l1)
+           '()
+           (cons (f (car l1) (car l2))
+                 (map2 (cdr l1) (cdr l2))))))
+    ((f l1 . rest)
+     (let lp ((l1 l1) (rest rest))
+       (if (null? l1)
+           '()
+           (cons (apply f (car l1) (map car rest))
+                 (lp (cdr l1) (map cdr rest))))))))
+
+(define for-each
+  (case-lambda
+    ((f l)
+     (let for-each1 ((l l))
+       (if (pair? l)
+           (begin
+             (f (car l))
+             (for-each1 (cdr l))))))
+    ((f l1 l2)
+     (let for-each2 ((l1 l1) (l2 l2))
+       (if (pair? l1)
+           (begin
+             (f (car l1) (car l2))
+             (for-each2 (cdr l1) (cdr l2))))))
+    ((f l1 . rest)
+     (let lp ((l1 l1) (rest rest))
+       (if (pair? l1)
+           (begin
+             (apply f (car l1) (map car rest))
+             (lp (cdr l1) (map cdr rest))))))))
+
 ;;; {and-map and or-map}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
@@ -478,6 +522,147 @@ If there is no handler at all, Guile prints an error and then exits."
     ((_ sym val)
      (define sym
        (if (module-locally-bound? (current-module) 'sym) sym val)))))
+
+;;; The real versions of `map' and `for-each', with cycle detection, and
+;;; that use reverse! instead of recursion in the case of `map'.
+;;;
+(define map
+  (case-lambda
+    ((f l)
+     (let map1 ((hare l) (tortoise l) (move? #f) (out '()))
+       (if (pair? hare)
+           (if move?
+               (if (eq? tortoise hare)
+                   (scm-error 'wrong-type-arg "map" "Circular list: ~S"
+                              (list l) #f)
+                   (map1 (cdr hare) (cdr tortoise) #f
+                       (cons (f (car hare)) out)))
+               (map1 (cdr hare) tortoise #t
+                     (cons (f (car hare)) out)))
+           (if (null? hare)
+               (reverse! out)
+               (scm-error 'wrong-type-arg "map" "Not a list: ~S"
+                          (list l) #f)))))
+    
+    ((f l1 l2)
+     (let map2 ((h1 l1) (h2 l2) (t1 l1) (t2 l2) (move? #f) (out '()))
+       (cond
+        ((pair? h1)
+         (cond
+          ((not (pair? h2))
+           (scm-error 'wrong-type-arg "map"
+                      (if (list? h2)
+                          "List of wrong length: ~S"
+                          "Not a list: ~S")
+                      (list l2) #f))
+          ((not move?)
+           (map2 (cdr h1) (cdr h2) t1 t2 #t
+                 (cons (f (car h1) (car h2)) out)))
+          ((eq? t1 h1)
+           (scm-error 'wrong-type-arg "map" "Circular list: ~S"
+                      (list l1) #f))
+          ((eq? t2 h2)
+           (scm-error 'wrong-type-arg "map" "Circular list: ~S"
+                      (list l2) #f))
+          (else
+           (map2 (cdr h1) (cdr h2) (cdr t1) (cdr t2) #f
+                 (cons (f (car h1) (car h2)) out)))))
+
+        ((and (null? h1) (null? h2))
+         (reverse! out))
+        
+        ((null? h1)
+         (scm-error 'wrong-type-arg "map"
+                    (if (list? h2)
+                        "List of wrong length: ~S"
+                        "Not a list: ~S")
+                    (list l2) #f))
+        (else
+         (scm-error 'wrong-type-arg "map"
+                    "Not a list: ~S"
+                    (list l1) #f)))))
+
+    ((f l1 . rest)
+     (let ((len (length l1)))
+       (let mapn ((rest rest))
+         (or (null? rest)
+             (if (= (length (car rest)) len)
+                 (mapn (cdr rest))
+                 (scm-error 'wrong-type-arg "map" "List of wrong length: ~S"
+                            (list (car rest)) #f)))))
+     (let mapn ((l1 l1) (rest rest) (out '()))
+       (if (null? l1)
+           (reverse! out)
+           (mapn (cdr l1) (map cdr rest)
+                 (cons (apply f (car l1) (map car rest)) out)))))))
+
+(define map-in-order map)
+
+(define for-each
+  (case-lambda
+    ((f l)
+     (let for-each1 ((hare l) (tortoise l) (move? #f))
+       (if (pair? hare)
+           (if move?
+               (if (eq? tortoise hare)
+                   (scm-error 'wrong-type-arg "for-each" "Circular list: ~S"
+                              (list l) #f)
+                   (begin
+                     (f (car hare))
+                     (for-each1 (cdr hare) (cdr tortoise) #f)))
+               (begin
+                 (f (car hare))
+                 (for-each1 (cdr hare) tortoise #t)))
+           
+           (if (not (null? hare))
+               (scm-error 'wrong-type-arg "for-each" "Not a list: ~S"
+                          (list l) #f)))))
+    
+    ((f l1 l2)
+     (let for-each2 ((h1 l1) (h2 l2) (t1 l1) (t2 l2) (move? #f))
+       (cond
+        ((and (pair? h1) (pair? h2))
+         (cond
+          ((not move?)
+           (f (car h1) (car h2))
+           (for-each2 (cdr h1) (cdr h2) t1 t2 #t))
+          ((eq? t1 h1)
+           (scm-error 'wrong-type-arg "for-each" "Circular list: ~S"
+                      (list l1) #f))
+          ((eq? t2 h2)
+           (scm-error 'wrong-type-arg "for-each" "Circular list: ~S"
+                      (list l2) #f))
+          (else
+           (f (car h1) (car h2))
+           (for-each2 (cdr h1) (cdr h2) (cdr t1) (cdr t2) #f))))
+
+        ((if (null? h1)
+             (or (null? h2) (pair? h2))
+             (and (pair? h1) (null? h2)))
+         (if #f #f))
+        
+        ((list? h1)
+         (scm-error 'wrong-type-arg "for-each" "Unexpected tail: ~S"
+                    (list h2) #f))
+        (else
+         (scm-error 'wrong-type-arg "for-each" "Unexpected tail: ~S"
+                    (list h1) #f)))))
+
+    ((f l1 . rest)
+     (let ((len (length l1)))
+       (let for-eachn ((rest rest))
+         (or (null? rest)
+             (if (= (length (car rest)) len)
+                 (for-eachn (cdr rest))
+                 (scm-error 'wrong-type-arg "for-each" "List of wrong length: ~S"
+                            (list (car rest)) #f)))))
+     
+     (let for-eachn ((l1 l1) (rest rest))
+       (if (pair? l1)
+           (begin
+             (apply f (car l1) (map car rest))
+             (for-eachn (cdr l1) (map cdr rest))))))))
+
 
 
 

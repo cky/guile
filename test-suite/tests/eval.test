@@ -1,5 +1,5 @@
 ;;;; eval.test --- tests guile's evaluator     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,11 @@
 (define exception:failed-match
   (cons 'syntax-error "failed to match any pattern"))
 
+(define exception:not-a-list
+  (cons 'wrong-type-arg "Not a list"))
+
+(define exception:wrong-length
+  (cons 'wrong-type-arg "wrong length"))
 
 ;;;
 ;;; miscellaneous
@@ -192,19 +197,19 @@
     (with-test-prefix "different length lists"
 
       (pass-if-exception "first list empty"
-	exception:out-of-range
+        exception:wrong-length
 	(map + '() '(1)))
 
       (pass-if-exception "second list empty"
-	exception:out-of-range
+        exception:wrong-length
 	(map + '(1) '()))
 
       (pass-if-exception "first list shorter"
-	exception:out-of-range
+	exception:wrong-length
 	(map + '(1) '(2 3)))
 
       (pass-if-exception "second list shorter"
-	exception:out-of-range
+	exception:wrong-length
 	(map + '(1 2) '(3)))
     )))
 
