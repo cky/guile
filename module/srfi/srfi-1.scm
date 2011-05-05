@@ -1,6 +1,6 @@
 ;;; srfi-1.scm --- List Library
 
-;; 	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -15,6 +15,11 @@
 ;; You should have received a copy of the GNU Lesser General Public
 ;; License along with this library; if not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;; Some parts from the reference implementation, which is
+;;; Copyright (c) 1998, 1999 by Olin Shivers. You may do as you please with
+;;; this code as long as you do not remove this copyright notice or
+;;; hold me liable for its use.
 
 ;;; Author: Martin Grabmueller <mgrabmue@cs.tu-berlin.de>
 ;;; Date: 2001-06-06
@@ -747,15 +752,23 @@ and those making the associations."
 (define* (alist-delete! key alist #:optional (k= equal?))
   (alist-delete key alist k=))	; XXX:optimize
 
+;;; Delete / assoc / member
+
+(define* (member x ls #:optional (= equal?))
+  (cond
+   ((eq? = eq?)  (memq x ls))
+   ((eq? = eqv?) (memv x ls))
+   (else         (find-tail (lambda (y) (= x y)) ls))))
+
 ;;; Set operations on lists
 
 (define (lset<= = . rest)
   (if (null? rest)
-    #t
-    (let lp ((f (car rest)) (r (cdr rest)))
-      (or (null? r)
-	  (and (every (lambda (el) (member el (car r) =)) f)
-	       (lp (car r) (cdr r)))))))
+      #t
+      (let lp ((f (car rest)) (r (cdr rest)))
+        (or (null? r)
+            (and (every (lambda (el) (member el (car r) =)) f)
+                 (lp (car r) (cdr r)))))))
 
 (define (lset= = . rest)
   (if (null? rest)
@@ -780,25 +793,41 @@ a common tail with LIST), but the order they're added is unspecified.
 The given `=' procedure is used for comparing elements, called
 as `(@var{=} listelem elem)', i.e., the second argument is one of the
 given REST parameters."
-  (let lp ((l rest) (acc list))
-    (if (null? l)
-        acc
-        (if (member (car l) acc (lambda (x y) (= y x)))
-            (lp (cdr l) acc)
-            (lp (cdr l) (cons (car l) acc))))))
+  ;; If `=' is `eq?' or `eqv?', users won't be able to tell which arg is
+  ;; first, so we can pass the raw procedure through to `member',
+  ;; allowing `memq' / `memv' to be selected.
+  (define pred
+    (if (or (eq? = eq?) (eq? = eqv?))
+        =
+        (lambda (x y) (= y x))))
+  
+  (let lp ((ans list) (rest rest))
+    (if (null? rest)
+        ans
+        (lp (if (member (car rest) ans pred)
+                ans
+                (cons (car rest) ans))
+            (cdr rest)))))
 
 (define (lset-union = . rest)
-  (let ((acc '()))
-    (for-each (lambda (lst)
-		(if (null? acc)
-		    (set! acc lst)
-		    (for-each (lambda (elem)
-				(if (not (member elem acc
-						 (lambda (x y) (= y x))))
-				    (set! acc (cons elem acc))))
-			      lst)))
-	      rest)
-    acc))
+  ;; Likewise, allow memq / memv to be used if possible.
+  (define pred
+    (if (or (eq? = eq?) (eq? = eqv?))
+        =
+        (lambda (x y) (= y x))))
+  
+  (fold (lambda (lis ans)		; Compute ANS + LIS.
+          (cond ((null? lis) ans)	; Don't copy any lists
+                ((null? ans) lis) 	; if we don't have to.
+                ((eq? lis ans) ans)
+                (else
+                 (fold (lambda (elt ans)
+                         (if (member elt ans pred)
+                             ans
+                             (cons elt ans)))
+                       ans lis))))
+        '()
+        rest))
 
 (define (lset-intersection = list1 . rest)
   (let lp ((l list1) (acc '()))

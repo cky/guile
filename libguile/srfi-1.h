@@ -1,6 +1,6 @@
 /* srfi-1.h --- SRFI-1 procedures for Guile
  *
- * 	Copyright (C) 2002, 2003, 2005, 2006, 2010 Free Software Foundation, Inc.
+ * 	Copyright (C) 2002, 2003, 2005, 2006, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,7 +41,6 @@ SCM_INTERNAL SCM scm_srfi1_lset_difference_x (SCM equal, SCM lst, SCM rest);
 SCM_INTERNAL SCM scm_srfi1_list_copy (SCM lst);
 SCM_INTERNAL SCM scm_srfi1_map (SCM proc, SCM arg1, SCM args);
 SCM_INTERNAL SCM scm_srfi1_for_each (SCM proc, SCM arg1, SCM args);
-SCM_INTERNAL SCM scm_srfi1_member (SCM obj, SCM ls, SCM pred);
 SCM_INTERNAL SCM scm_srfi1_assoc (SCM key, SCM alist, SCM pred);
 SCM_INTERNAL SCM scm_srfi1_partition (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_partition_x (SCM pred, SCM list);

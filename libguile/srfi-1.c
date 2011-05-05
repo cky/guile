@@ -956,43 +956,6 @@ scm_srfi1_for_each (SCM proc, SCM arg1, SCM args)
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_member, "member", 2, 1, 0,
-           (SCM x, SCM lst, SCM pred),
-	    "Return the first sublist of @var{lst} whose @sc{car} is equal\n"
-	    "to @var{x}.  If @var{x} does not appear in @var{lst}, return\n"
-	    "@code{#f}.\n"
-	    "\n"
-	    "Equality is determined by @code{equal?}, or by the equality\n"
-	    "predicate @var{=} if given.  @var{=} is called @code{(= @var{x}\n"
-	    "elem)}, ie.@: with the given @var{x} first, so for example to\n"
-	    "find the first element greater than 5,\n"
-	    "\n"
-	    "@example\n"
-	    "(member 5 '(3 5 1 7 2 9) <) @result{} (7 2 9)\n"
-	    "@end example\n"
-	    "\n"
-	    "This version of @code{member} extends the core @code{member} by\n"
-	    "accepting an equality predicate.")
-#define FUNC_NAME s_scm_srfi1_member
-{
-  scm_t_trampoline_2 equal_p;
-  SCM_VALIDATE_LIST (2, lst);
-  if (SCM_UNBNDP (pred))
-    equal_p = equal_trampoline;
-  else
-    {
-      SCM_VALIDATE_PROC (SCM_ARG3, pred);
-      equal_p = scm_call_2;
-    }
-  for (; !SCM_NULL_OR_NIL_P (lst); lst = SCM_CDR (lst))
-    {
-      if (scm_is_true (equal_p (pred, x, SCM_CAR (lst))))
-	return lst;
-    }
-  return SCM_BOOL_F;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 	    (SCM key, SCM alist, SCM pred),
 	    "Behaves like @code{assq} but uses third argument @var{pred?}\n"
