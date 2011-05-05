@@ -379,8 +379,8 @@ than @code{statprof-stop}, @code{#f} otherwise."
         (accumulate-time (get-internal-run-time))
         (set! last-start-time #f))))
 
-(define (statprof-reset sample-seconds sample-microseconds count-calls?
-                        . full-stacks?)
+(define* (statprof-reset sample-seconds sample-microseconds count-calls?
+                         #:optional full-stacks?)
   "Reset the statprof sampler interval to @var{sample-seconds} and
 @var{sample-microseconds}. If @var{count-calls?} is true, arrange to
 instrument procedure calls as well as collecting statistical profiling
@@ -397,7 +397,7 @@ Enables traps and debugging as necessary."
   (set! sampling-frequency (cons sample-seconds sample-microseconds))
   (set! remaining-prof-time #f)
   (set! procedure-data (make-hash-table 131))
-  (set! record-full-stacks? (and (pair? full-stacks?) (car full-stacks?)))
+  (set! record-full-stacks? full-stacks?)
   (set! stacks '())
   (sigaction SIGPROF profile-signal-handler)
   #t)
@@ -531,7 +531,7 @@ optional @var{port} argument is passed, uses the current output port."
       (simple-format #t "Sample count: ~A\n" (statprof-sample-count))
       (simple-format #t "Total time: ~A seconds (~A seconds in GC)\n"
                      (statprof-accumulated-time)
-                     (/ gc-time-taken internal-time-units-per-second))))))
+                     (/ gc-time-taken 1.0 internal-time-units-per-second))))))
 
 (define (statprof-display-anomolies)
   "A sanity check that attempts to detect anomolies in statprof's
