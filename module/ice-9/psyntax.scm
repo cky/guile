@@ -156,25 +156,6 @@
   (set-current-module (resolve-module '(guile))))
 
 (let ()
-  ;; Private version of and-map that handles multiple lists.
-  (define and-map*
-    (lambda (f first . rest)
-      (or (null? first)
-          (if (null? rest)
-              (let andmap ((first first))
-                (let ((x (car first)) (first (cdr first)))
-                  (if (null? first)
-                      (f x)
-                      (and (f x) (andmap first)))))
-              (let andmap ((first first) (rest rest))
-                (let ((x (car first))
-                      (xr (map car rest))
-                      (first (cdr first))
-                      (rest (map cdr rest)))
-                  (if (null? first)
-                      (apply f x xr)
-                      (and (apply f x xr) (andmap first rest)))))))))
-
   (define-syntax define-expansion-constructors
     (lambda (x)
       (syntax-case x ()
@@ -1747,7 +1728,13 @@
                ((vector? x)
                 (let ((old (vector->list x)))
                   (let ((new (map f old)))
-                    (if (and-map* eq? old new) x (list->vector new)))))
+                    ;; inlined and-map with two args
+                    (let lp ((l1 old) (l2 new))
+                      (if (null? l1)
+                          x
+                          (if (eq? (car l1) (car l2))
+                              (lp (cdr l1) (cdr l2))
+                              (list->vector new)))))))
                (else x))))))
 
     ;; lexical variables
