@@ -572,6 +572,14 @@
        eof))
 
     (test-decoding-error (#xc2 #x41 #x42) "UTF-8"
+      ;; FIXME: This is the behavior of glibc/libiconv but it does not
+      ;; conform to the Unicode 6.0.0 recommendation: according to it,
+      ;; the #\A should not be swallowed (Section 3.9 reads:
+      ;; "If the converter encounters an ill-formed UTF-8 code unit
+      ;; sequence which starts with a valid first byte, but which does
+      ;; not continue with valid successor bytes (see Table 3-7), it
+      ;; must not consume the successor bytes".)
+
       (error                ;; 41: should be in the 80..BF range
        #\B
        eof))

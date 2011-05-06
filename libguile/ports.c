@@ -1057,6 +1057,7 @@ update_port_lf (scm_t_wchar c, SCM port)
   switch (c)
     {
     case '\a':
+    case EOF:
       break;
     case '\b':
       SCM_DECCOL (port);
@@ -1115,23 +1116,162 @@ utf8_to_codepoint (const scm_t_uint8 *utf8_buf, size_t size)
   return codepoint;
 }
 
-/* Read a codepoint from PORT and return it in *CODEPOINT.  Fill BUF
-   with the byte representation of the codepoint in PORT's encoding, and
-   set *LEN to the length in bytes of that representation.  Return 0 on
-   success and an errno value on error.  */
+/* Read a UTF-8 sequence from PORT.  On success, return 0 and set
+   *CODEPOINT to the codepoint that was read, fill BUF with its UTF-8
+   representation, and set *LEN to the length in bytes.  Return
+   `EILSEQ' on error.  */
 static int
-get_codepoint (SCM port, scm_t_wchar *codepoint,
-	       char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
+get_utf8_codepoint (SCM port, scm_t_wchar *codepoint,
+		    scm_t_uint8 buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 {
+#define ASSERT_NOT_EOF(b)			\
+  if (SCM_UNLIKELY ((b) == EOF))		\
+    goto invalid_seq
+
+  int byte;
+
+  *len = 0;
+
+  byte = scm_get_byte_or_eof (port);
+  if (byte == EOF)
+    {
+      *codepoint = EOF;
+      return 0;
+    }
+
+  buf[0] = (scm_t_uint8) byte;
+  *len = 1;
+
+  if (buf[0] <= 0x7f)
+    /* 1-byte form.  */
+    *codepoint = buf[0];
+  else if (buf[0] >= 0xc2 && buf[0] <= 0xdf)
+    {
+      /* 2-byte form.  */
+      byte = scm_get_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
+
+      buf[1] = (scm_t_uint8) byte;
+      *len = 2;
+
+      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
+	goto invalid_seq;
+
+      *codepoint = ((scm_t_wchar) buf[0] & 0x1f) << 6UL
+	| (buf[1] & 0x3f);
+    }
+  else if ((buf[0] & 0xf0) == 0xe0)
+    {
+      /* 3-byte form.  */
+      byte = scm_get_byte_or_eof (port);
+      if (SCM_UNLIKELY (byte == EOF))
+	goto invalid_seq;
+
+      buf[1] = (scm_t_uint8) byte;
+      *len = 2;
+
+      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80
+			|| (buf[0] == 0xe0 && byte < 0xa0)
+			|| (buf[0] == 0xed && byte > 0x9f)))
+	{
+	  /* Swallow the 3rd byte.  */
+	  byte = scm_get_byte_or_eof (port);
+	  ASSERT_NOT_EOF (byte);
+	  *len = 3, buf[2] = byte;
+	  goto invalid_seq;
+	}
+
+
+      byte = scm_get_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
+
+      buf[2] = (scm_t_uint8) byte;
+      *len = 3;
+
+      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
+	goto invalid_seq;
+
+      *codepoint = ((scm_t_wchar) buf[0] & 0x0f) << 12UL
+	| ((scm_t_wchar) buf[1] & 0x3f) << 6UL
+	| (buf[2] & 0x3f);
+    }
+  else if (buf[0] >= 0xf0 && buf[0] <= 0xf4)
+    {
+      /* 4-byte form.  */
+      byte = scm_get_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
+
+      buf[1] = (scm_t_uint8) byte;
+      *len = 2;
+
+      if (SCM_UNLIKELY (((byte & 0xc0) != 0x80)
+			|| (buf[0] == 0xf0 && byte < 0x90)
+			|| (buf[0] == 0xf4 && byte > 0x8f)))
+	{
+	  /* Swallow the 3rd and 4th bytes.  */
+	  byte = scm_get_byte_or_eof (port);
+	  ASSERT_NOT_EOF (byte);
+	  *len = 3, buf[2] = byte;
+
+	  byte = scm_get_byte_or_eof (port);
+	  ASSERT_NOT_EOF (byte);
+	  *len = 4, buf[3] = byte;
+	  goto invalid_seq;
+	}
+
+      byte = scm_get_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
+
+      buf[2] = (scm_t_uint8) byte;
+      *len = 3;
+
+      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
+	{
+	  /* Swallow the 4th byte.  */
+	  byte = scm_get_byte_or_eof (port);
+	  ASSERT_NOT_EOF (byte);
+	  *len = 4, buf[3] = byte;
+	  goto invalid_seq;
+	}
+
+      byte = scm_get_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
+
+      buf[3] = (scm_t_uint8) byte;
+      *len = 4;
+
+      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
+	goto invalid_seq;
+
+      *codepoint = ((scm_t_wchar) buf[0] & 0x07) << 18UL
+	| ((scm_t_wchar) buf[1] & 0x3f) << 12UL
+	| ((scm_t_wchar) buf[2] & 0x3f) << 6UL
+	| (buf[3] & 0x3f);
+    }
+  else
+    goto invalid_seq;
+
+  return 0;
+
+ invalid_seq:
+  return EILSEQ;
+
+#undef ASSERT_NOT_EOF
+}
+
+/* Likewise, read a byte sequence from PORT, passing it through its
+   input conversion descriptor.  */
+static int
+get_iconv_codepoint (SCM port, scm_t_wchar *codepoint,
+		     char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
+{
+  scm_t_port *pt;
   int err, byte_read;
   size_t bytes_consumed, output_size;
   char *output;
   scm_t_uint8 utf8_buf[SCM_MBCHAR_BUF_SIZE];
-  scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
-  if (SCM_UNLIKELY (pt->input_cd == (iconv_t) -1))
-    /* Initialize the conversion descriptors.  */
-    scm_i_set_port_encoding_x (port, pt->encoding);
+  pt = SCM_PTAB_ENTRY (port);
 
   for (output_size = 0, output = (char *) utf8_buf,
 	 bytes_consumed = 0, err = 0;
@@ -1177,30 +1317,45 @@ get_codepoint (SCM port, scm_t_wchar *codepoint,
   if (SCM_UNLIKELY (output_size == 0))
     /* An unterminated sequence.  */
     err = EILSEQ;
-
-  if (SCM_UNLIKELY (err != 0))
-    {
-      /* Reset the `iconv' state.  */
-      iconv (pt->input_cd, NULL, NULL, NULL, NULL);
-
-      if (pt->ilseq_handler == SCM_ICONVEH_QUESTION_MARK)
-	{
-	  *codepoint = '?';
-	  err = 0;
-	}
-
-      /* Fail when the strategy is SCM_ICONVEH_ERROR or
-	 SCM_ICONVEH_ESCAPE_SEQUENCE (the latter doesn't make sense for
-	 input encoding errors.)  */
-    }
-  else
+  else if (SCM_LIKELY (err == 0))
     {
       /* Convert the UTF8_BUF sequence to a Unicode code point.  */
       *codepoint = utf8_to_codepoint (utf8_buf, output_size);
-      update_port_lf (*codepoint, port);
+      *len = bytes_consumed;
     }
 
-  *len = bytes_consumed;
+  return err;
+}
+
+/* Read a codepoint from PORT and return it in *CODEPOINT.  Fill BUF
+   with the byte representation of the codepoint in PORT's encoding, and
+   set *LEN to the length in bytes of that representation.  Return 0 on
+   success and an errno value on error.  */
+static int
+get_codepoint (SCM port, scm_t_wchar *codepoint,
+	       char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
+{
+  int err;
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->input_cd == (iconv_t) -1)
+    /* Initialize the conversion descriptors, if needed.  */
+    scm_i_set_port_encoding_x (port, pt->encoding);
+
+  /* FIXME: In 2.1, add a flag to determine whether a port is UTF-8.  */
+  if (pt->input_cd == (iconv_t) -1)
+    err = get_utf8_codepoint (port, codepoint, (scm_t_uint8 *) buf, len);
+  else
+    err = get_iconv_codepoint (port, codepoint, buf, len);
+
+  if (SCM_LIKELY (err == 0))
+    update_port_lf (*codepoint, port);
+  else if (pt->ilseq_handler == SCM_ICONVEH_QUESTION_MARK)
+    {
+      *codepoint = '?';
+      err = 0;
+      update_port_lf (*codepoint, port);
+    }
 
   return err;
 }
@@ -2031,28 +2186,35 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
   if (encoding == NULL)
     encoding = "ISO-8859-1";
 
-  pt->encoding = scm_gc_strdup (encoding, "port");
+  if (pt->encoding != encoding)
+    pt->encoding = scm_gc_strdup (encoding, "port");
 
-  if (SCM_CELL_WORD_0 (port) & SCM_RDNG)
+  /* If ENCODING is UTF-8, then no conversion descriptor is opened
+     because we do I/O ourselves.  This saves 100+ KiB for each
+     descriptor.  */
+  if (strcmp (encoding, "UTF-8"))
     {
-      /* Open an input iconv conversion descriptor, from ENCODING
-	 to UTF-8.  We choose UTF-8, not UTF-32, because iconv
-	 implementations can typically convert from anything to
-	 UTF-8, but not to UTF-32 (see
-	 <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00007.html>).  */
-      new_input_cd = iconv_open ("UTF-8", encoding);
-      if (new_input_cd == (iconv_t) -1)
-	goto invalid_encoding;
-    }
-
-  if (SCM_CELL_WORD_0 (port) & SCM_WRTNG)
-    {
-      new_output_cd = iconv_open (encoding, "UTF-8");
-      if (new_output_cd == (iconv_t) -1)
+      if (SCM_CELL_WORD_0 (port) & SCM_RDNG)
 	{
-	  if (new_input_cd != (iconv_t) -1)
-	    iconv_close (new_input_cd);
-	  goto invalid_encoding;
+	  /* Open an input iconv conversion descriptor, from ENCODING
+	     to UTF-8.  We choose UTF-8, not UTF-32, because iconv
+	     implementations can typically convert from anything to
+	     UTF-8, but not to UTF-32 (see
+	     <http://lists.gnu.org/archive/html/bug-libunistring/2010-09/msg00007.html>).  */
+	  new_input_cd = iconv_open ("UTF-8", encoding);
+	  if (new_input_cd == (iconv_t) -1)
+	    goto invalid_encoding;
+	}
+
+      if (SCM_CELL_WORD_0 (port) & SCM_WRTNG)
+	{
+	  new_output_cd = iconv_open (encoding, "UTF-8");
+	  if (new_output_cd == (iconv_t) -1)
+	    {
+	      if (new_input_cd != (iconv_t) -1)
+		iconv_close (new_input_cd);
+	      goto invalid_encoding;
+	    }
 	}
     }
 

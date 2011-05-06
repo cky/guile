@@ -821,30 +821,56 @@ codepoint_to_utf8 (scm_t_wchar ch, scm_t_uint8 utf8[4])
   return len;
 }
 
-/* Display the LEN codepoints in STR to PORT according to STRATEGY;
-   return the number of codepoints successfully displayed.  If NARROW_P,
-   then STR is interpreted as a sequence of `char', denoting a Latin-1
-   string; otherwise it's interpreted as a sequence of
-   `scm_t_wchar'.  */
-static size_t
-display_string (const void *str, int narrow_p,
-		size_t len, SCM port,
-		scm_t_string_failed_conversion_handler strategy)
-
-{
 #define STR_REF(s, x)				\
   (narrow_p					\
    ? (scm_t_wchar) ((unsigned char *) (s))[x]	\
    : ((scm_t_wchar *) (s))[x])
 
+/* Write STR to PORT as UTF-8.  STR is a LEN-codepoint string; it is
+   narrow if NARROW_P is true, wide otherwise.  Return LEN.  */
+static size_t
+display_string_as_utf8 (const void *str, int narrow_p, size_t len,
+			SCM port)
+{
+  size_t printed = 0;
+
+  while (len > printed)
+    {
+      size_t utf8_len, i;
+      char *input, utf8_buf[256];
+
+      /* Convert STR to UTF-8.  */
+      for (i = printed, utf8_len = 0, input = utf8_buf;
+	   i < len && utf8_len + 4 < sizeof (utf8_buf);
+	   i++)
+	{
+	  utf8_len += codepoint_to_utf8 (STR_REF (str, i),
+					 (scm_t_uint8 *) input);
+	  input = utf8_buf + utf8_len;
+	}
+
+      /* INPUT was successfully converted, entirely; print the
+	 result.  */
+      scm_lfwrite (utf8_buf, utf8_len, port);
+      printed += i - printed;
+    }
+
+  assert (printed == len);
+
+  return len;
+}
+
+/* Convert STR through PORT's output conversion descriptor and write the
+   output to PORT.  Return the number of codepoints written.  */
+static size_t
+display_string_using_iconv (const void *str, int narrow_p, size_t len,
+			    SCM port,
+			    scm_t_string_failed_conversion_handler strategy)
+{
   size_t printed;
   scm_t_port *pt;
 
   pt = SCM_PTAB_ENTRY (port);
-
-  if (SCM_UNLIKELY (pt->output_cd == (iconv_t) -1))
-    /* Initialize the conversion descriptors.  */
-    scm_i_set_port_encoding_x (port, pt->encoding);
 
   printed = 0;
 
@@ -928,7 +954,35 @@ display_string (const void *str, int narrow_p,
     }
 
   return printed;
+}
+
 #undef STR_REF
+
+/* Display the LEN codepoints in STR to PORT according to STRATEGY;
+   return the number of codepoints successfully displayed.  If NARROW_P,
+   then STR is interpreted as a sequence of `char', denoting a Latin-1
+   string; otherwise it's interpreted as a sequence of
+   `scm_t_wchar'.  */
+static size_t
+display_string (const void *str, int narrow_p,
+		size_t len, SCM port,
+		scm_t_string_failed_conversion_handler strategy)
+
+{
+  scm_t_port *pt;
+
+  pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->output_cd == (iconv_t) -1)
+    /* Initialize the conversion descriptors, if needed.  */
+    scm_i_set_port_encoding_x (port, pt->encoding);
+
+  /* FIXME: In 2.1, add a flag to determine whether a port is UTF-8.  */
+  if (pt->output_cd == (iconv_t) -1)
+    return display_string_as_utf8 (str, narrow_p, len, port);
+  else
+    return display_string_using_iconv (str, narrow_p, len,
+				       port, strategy);
 }
 
 /* Attempt to display CH to PORT according to STRATEGY.  Return non-zero
