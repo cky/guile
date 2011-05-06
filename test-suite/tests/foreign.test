@@ -124,24 +124,32 @@
 
   (pass-if "pointer from bits"
     (let* ((bytes (iota (sizeof '*)))
-           (bv    (u8-list->bytevector bytes)))
+           (bv    (u8-list->bytevector bytes))
+           (fold  (case (native-endianness)
+                    ((little) fold-right)
+                    ((big)    fold)
+                    (else     (error "unsupported endianness")))))
       (= (pointer-address
           (make-pointer (bytevector-uint-ref bv 0 (native-endianness)
                                              (sizeof '*))))
-         (fold-right (lambda (byte address)
-                       (+ byte (* 256 address)))
-                     0
-                     bytes))))
+         (fold (lambda (byte address)
+                 (+ byte (* 256 address)))
+               0
+               bytes))))
 
   (pass-if "dereference-pointer"
     (let* ((bytes (iota (sizeof '*)))
-           (bv    (u8-list->bytevector bytes)))
+           (bv    (u8-list->bytevector bytes))
+           (fold  (case (native-endianness)
+                    ((little) fold-right)
+                    ((big)    fold)
+                    (else     (error "unsupported endianness")))))
       (= (pointer-address
           (dereference-pointer (bytevector->pointer bv)))
-         (fold-right (lambda (byte address)
-                       (+ byte (* 256 address)))
-                     0
-                     bytes)))))
+         (fold (lambda (byte address)
+                 (+ byte (* 256 address)))
+               0
+               bytes)))))
 
 
 (with-test-prefix "pointer<->string"
