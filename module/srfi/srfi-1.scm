@@ -566,6 +566,8 @@ has just one element then that's the return value."
              (mapn (cdr l1) (map cdr rest) (1- len)
                    (cons (apply f (car l1) (map car rest)) out))))))))
 
+(define map-in-order map)
+
 (define for-each
   (case-lambda
     ((f l)
