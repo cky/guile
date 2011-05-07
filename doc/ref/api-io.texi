@@ -1152,21 +1152,363 @@ The I/O port API of the @uref{http://www.r6rs.org/, Revised Report^6 on
 the Algorithmic Language Scheme (R6RS)} is provided by the @code{(rnrs
 io ports)} module.  It provides features, such as binary I/O and Unicode
 string I/O, that complement or refine Guile's historical port API
-presented above (@pxref{Input and Output}).
+presented above (@pxref{Input and Output}). Note that R6RS ports are not
+disjoint from Guile's native ports, so Guile-specific procedures will
+work on ports created using the R6RS API, and vice versa.
+
+The text in this section is taken from the R6RS standard libraries
+document, with only minor adaptions for inclusion in this manual.  The
+Guile developers offer their thanks to the R6RS editors for having
+provided the report's text under permissive conditions making this
+possible.
 
 @c FIXME: Update description when implemented.
 @emph{Note}: The implementation of this R6RS API is not complete yet.
 
 @menu
+* R6RS File Names::             File names.
+* R6RS File Options::           Options for opening files.
+* R6RS Buffer Modes::           Influencing buffering behavior.
+* R6RS Transcoders::            Influencing port encoding.
 * R6RS End-of-File::            The end-of-file object.
 * R6RS Port Manipulation::      Manipulating R6RS ports.
+* R6RS Input Ports::            Input Ports.
 * R6RS Binary Input::           Binary input.
+* R6RS Textual Input::          Textual input.
+* R6RS Output Ports::           Output Ports.
 * R6RS Binary Output::          Binary output.
+* R6RS Textual Output::         Textual output.
 @end menu
 
 A subset of the @code{(rnrs io ports)} module is provided by the
 @code{(ice-9 binary-ports)} module.  It contains binary input/output
 procedures and does not rely on R6RS support.
+
+@node R6RS File Names
+@subsubsection File Names
+
+Some of the procedures described in this chapter accept a file name as an
+argument. Valid values for such a file name include strings that name a file
+using the native notation of filesystem paths on an implementation's
+underlying operating system, and may include implementation-dependent
+values as well.
+
+A @var{filename} parameter name means that the
+corresponding argument must be a file name.
+
+@node R6RS File Options
+@subsubsection File Options
+@cindex file options
+
+When opening a file, the various procedures in this library accept a
+@code{file-options} object that encapsulates flags to specify how the
+file is to be opened. A @code{file-options} object is an enum-set
+(@pxref{rnrs enums}) over the symbols constituting valid file options.
+
+A @var{file-options} parameter name means that the corresponding
+argument must be a file-options object.
+
+@deffn {Scheme Syntax} file-options @var{file-options-symbol} ...
+
+Each @var{file-options-symbol} must be a symbol.
+
+The @code{file-options} syntax returns a file-options object that
+encapsulates the specified options.
+
+When supplied to an operation that opens a file for output, the
+file-options object returned by @code{(file-options)} specifies that the
+file is created if it does not exist and an exception with condition
+type @code{&i/o-file-already-exists} is raised if it does exist.  The
+following standard options can be included to modify the default
+behavior.
+
+@table @code
+@item no-create
+      If the file does not already exist, it is not created;
+      instead, an exception with condition type @code{&i/o-file-does-not-exist}
+      is raised.
+      If the file already exists, the exception with condition type
+      @code{&i/o-file-already-exists} is not raised
+      and the file is truncated to zero length.
+@item no-fail
+      If the file already exists, the exception with condition type
+      @code{&i/o-file-already-exists} is not raised,
+      even if @code{no-create} is not included,
+      and the file is truncated to zero length.
+@item no-truncate
+      If the file already exists and the exception with condition type
+      @code{&i/o-file-already-exists} has been inhibited by inclusion of
+      @code{no-create} or @code{no-fail}, the file is not truncated, but
+      the port's current position is still set to the beginning of the
+      file.
+@end table
+
+These options have no effect when a file is opened only for input.
+Symbols other than those listed above may be used as
+@var{file-options-symbol}s; they have implementation-specific meaning,
+if any.
+
+@quotation Note
+  Only the name of @var{file-options-symbol} is significant.
+@end quotation
+@end deffn
+
+@node R6RS Buffer Modes
+@subsubsection Buffer Modes
+
+Each port has an associated buffer mode.  For an output port, the
+buffer mode defines when an output operation flushes the buffer
+associated with the output port.  For an input port, the buffer mode
+defines how much data will be read to satisfy read operations.  The
+possible buffer modes are the symbols @code{none} for no buffering,
+@code{line} for flushing upon line endings and reading up to line
+endings, or other implementation-dependent behavior,
+and @code{block} for arbitrary buffering.  This section uses
+the parameter name @var{buffer-mode} for arguments that must be
+buffer-mode symbols.
+
+If two ports are connected to the same mutable source, both ports
+are unbuffered, and reading a byte or character from that shared
+source via one of the two ports would change the bytes or characters
+seen via the other port, a lookahead operation on one port will
+render the peeked byte or character inaccessible via the other port,
+while a subsequent read operation on the peeked port will see the
+peeked byte or character even though the port is otherwise unbuffered.
+
+In other words, the semantics of buffering is defined in terms of side
+effects on shared mutable sources, and a lookahead operation has the
+same side effect on the shared source as a read operation.
+
+@deffn {Scheme Syntax} buffer-mode @var{buffer-mode-symbol}
+
+@var{buffer-mode-symbol} must be a symbol whose name is one of
+@code{none}, @code{line}, and @code{block}. The result is the
+corresponding symbol, and specifies the associated buffer mode.
+
+@quotation Note
+  Only the name of @var{buffer-mode-symbol} is significant.
+@end quotation
+@end deffn
+
+@deffn {Scheme Procedure} buffer-mode?  obj
+Returns @code{#t} if the argument is a valid buffer-mode symbol, and
+returns @code{#f} otherwise.
+@end deffn
+
+@node R6RS Transcoders
+@subsubsection Transcoders
+@cindex codec
+@cindex end-of-line style
+@cindex transcoder
+@cindex binary port
+@cindex textual port
+
+Several different Unicode encoding schemes describe standard ways to
+encode characters and strings as byte sequences and to decode those
+sequences. Within this document, a @dfn{codec} is an immutable Scheme
+object that represents a Unicode or similar encoding scheme.
+
+An @dfn{end-of-line style} is a symbol that, if it is not @code{none},
+describes how a textual port transcodes representations of line endings.
+
+A @dfn{transcoder} is an immutable Scheme object that combines a codec
+with an end-of-line style and a method for handling decoding errors.
+Each transcoder represents some specific bidirectional (but not
+necessarily lossless), possibly stateful translation between byte
+sequences and Unicode characters and strings.  Every transcoder can
+operate in the input direction (bytes to characters) or in the output
+direction (characters to bytes).  A @var{transcoder} parameter name
+means that the corresponding argument must be a transcoder.
+
+A @dfn{binary port} is a port that supports binary I/O, does not have an
+associated transcoder and does not support textual I/O.  A @dfn{textual
+port} is a port that supports textual I/O, and does not support binary
+I/O.  A textual port may or may not have an associated transcoder.
+
+@deffn {Scheme Procedure} latin-1-codec
+@deffnx {Scheme Procedure} utf-8-codec
+@deffnx {Scheme Procedure} utf-16-codec
+
+These are predefined codecs for the ISO 8859-1, UTF-8, and UTF-16
+encoding schemes.
+
+A call to any of these procedures returns a value that is equal in the
+sense of @code{eqv?} to the result of any other call to the same
+procedure.
+@end deffn
+
+@deffn {Scheme Syntax} eol-style @var{eol-style-symbol}
+
+@var{eol-style-symbol} should be a symbol whose name is one of
+@code{lf}, @code{cr}, @code{crlf}, @code{nel}, @code{crnel}, @code{ls},
+and @code{none}.
+
+The form evaluates to the corresponding symbol.  If the name of
+@var{eol-style-symbol} is not one of these symbols, the effect and
+result are implementation-dependent; in particular, the result may be an
+eol-style symbol acceptable as an @var{eol-style} argument to
+@code{make-transcoder}.  Otherwise, an exception is raised.
+
+All eol-style symbols except @code{none} describe a specific
+line-ending encoding:
+
+@table @code
+@item lf
+linefeed
+@item cr
+carriage return
+@item crlf
+carriage return, linefeed
+@item nel
+next line
+@item crnel
+carriage return, next line
+@item ls
+line separator
+@end table
+
+For a textual port with a transcoder, and whose transcoder has an
+eol-style symbol @code{none}, no conversion occurs.  For a textual input
+port, any eol-style symbol other than @code{none} means that all of the
+above line-ending encodings are recognized and are translated into a
+single linefeed.  For a textual output port, @code{none} and @code{lf}
+are equivalent.  Linefeed characters are encoded according to the
+specified eol-style symbol, and all other characters that participate in
+possible line endings are encoded as is.
+
+@quotation Note
+  Only the name of @var{eol-style-symbol} is significant.
+@end quotation
+@end deffn
+
+@deffn {Scheme Procedure} native-eol-style
+Returns the default end-of-line style of the underlying platform, e.g.,
+@code{lf} on Unix and @code{crlf} on Windows.
+@end deffn
+
+@deffn {Condition Type} &i/o-decoding
+@deffnx {Scheme Procedure} make-i/o-decoding-error  port
+@deffnx {Scheme Procedure} i/o-decoding-error?  obj
+
+This condition type could be defined by
+
+@lisp
+(define-condition-type &i/o-decoding &i/o-port
+  make-i/o-decoding-error i/o-decoding-error?)
+@end lisp
+
+An exception with this type is raised when one of the operations for
+textual input from a port encounters a sequence of bytes that cannot be
+translated into a character or string by the input direction of the
+port's transcoder.
+
+When such an exception is raised, the port's position is past the
+invalid encoding.
+@end deffn
+
+@deffn {Condition Type} &i/o-encoding
+@deffnx {Scheme Procedure} make-i/o-encoding-error  port char
+@deffnx {Scheme Procedure} i/o-encoding-error?  obj
+@deffnx {Scheme Procedure} i/o-encoding-error-char  condition
+
+This condition type could be defined by
+
+@lisp
+(define-condition-type &i/o-encoding &i/o-port
+  make-i/o-encoding-error i/o-encoding-error?
+  (char i/o-encoding-error-char))
+@end lisp
+
+An exception with this type is raised when one of the operations for
+textual output to a port encounters a character that cannot be
+translated into bytes by the output direction of the port's transcoder.
+@var{Char} is the character that could not be encoded.
+@end deffn
+
+@deffn {Scheme Syntax} error-handling-mode @var{error-handling-mode-symbol}
+
+@var{error-handling-mode-symbol} should be a symbol whose name is one of
+@code{ignore}, @code{raise}, and @code{replace}. The form evaluates to
+the corresponding symbol.  If @var{error-handling-mode-symbol} is not
+one of these identifiers, effect and result are
+implementation-dependent: The result may be an error-handling-mode
+symbol acceptable as a @var{handling-mode} argument to
+@code{make-transcoder}.  If it is not acceptable as a
+@var{handling-mode} argument to @code{make-transcoder}, an exception is
+raised.
+
+@quotation Note
+  Only the name of @var{error-handling-style-symbol} is significant.
+@end quotation
+
+The error-handling mode of a transcoder specifies the behavior
+of textual I/O operations in the presence of encoding or decoding
+errors.
+
+If a textual input operation encounters an invalid or incomplete
+character encoding, and the error-handling mode is @code{ignore}, an
+appropriate number of bytes of the invalid encoding are ignored and
+decoding continues with the following bytes.
+
+If the error-handling mode is @code{replace}, the replacement
+character U+FFFD is injected into the data stream, an appropriate
+number of bytes are ignored, and decoding
+continues with the following bytes.
+
+If the error-handling mode is @code{raise}, an exception with condition
+type @code{&i/o-decoding} is raised.
+
+If a textual output operation encounters a character it cannot encode,
+and the error-handling mode is @code{ignore}, the character is ignored
+and encoding continues with the next character.  If the error-handling
+mode is @code{replace}, a codec-specific replacement character is
+emitted by the transcoder, and encoding continues with the next
+character.  The replacement character is U+FFFD for transcoders whose
+codec is one of the Unicode encodings, but is the @code{?}  character
+for the Latin-1 encoding.  If the error-handling mode is @code{raise},
+an exception with condition type @code{&i/o-encoding} is raised.
+@end deffn
+
+@deffn {Scheme Procedure} make-transcoder  codec
+@deffnx {Scheme Procedure} make-transcoder codec eol-style
+@deffnx {Scheme Procedure} make-transcoder codec eol-style handling-mode
+
+@var{codec} must be a codec; @var{eol-style}, if present, an eol-style
+symbol; and @var{handling-mode}, if present, an error-handling-mode
+symbol.
+
+@var{eol-style} may be omitted, in which case it defaults to the native
+end-of-line style of the underlying platform.  @var{Handling-mode} may
+be omitted, in which case it defaults to @code{replace}.  The result is
+a transcoder with the behavior specified by its arguments.
+@end deffn
+
+@deffn {Scheme procedure} native-transcoder
+Returns an implementation-dependent transcoder that represents a
+possibly locale-dependent ``native'' transcoding.
+@end deffn
+
+@deffn {Scheme Procedure} transcoder-codec  transcoder
+@deffnx {Scheme Procedure} transcoder-eol-style  transcoder
+@deffnx {Scheme Procedure} transcoder-error-handling-mode  transcoder
+
+These are accessors for transcoder objects; when applied to a
+transcoder returned by @code{make-transcoder}, they return the
+@var{codec}, @var{eol-style}, and @var{handling-mode} arguments,
+respectively.
+@end deffn
+
+@deffn {Scheme Procedure} bytevector->string  bytevector transcoder
+
+Returns the string that results from transcoding the
+@var{bytevector} according to the input direction of the transcoder.
+@end deffn
+
+@deffn {Scheme Procedure} string->bytevector  string transcoder
+
+Returns the bytevector that results from transcoding the
+@var{string} according to the output direction of the transcoder.
+@end deffn
 
 @node R6RS End-of-File
 @subsubsection The End-of-File Object
@@ -1199,6 +1541,65 @@ Return the end-of-file (EOF) object.
 @subsubsection Port Manipulation
 
 The procedures listed below operate on any kind of R6RS I/O port.
+
+@deffn {Scheme Procedure} port? obj
+Returns @code{#t} if the argument is a port, and returns @code{#f}
+otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} port-transcoder port
+Returns the transcoder associated with @var{port} if @var{port} is
+textual and has an associated transcoder, and returns @code{#f} if
+@var{port} is binary or does not have an associated transcoder.
+@end deffn
+
+@deffn {Scheme Procedure} binary-port? port
+Return @code{#t} if @var{port} is a @dfn{binary port}, suitable for
+binary data input/output.
+
+Note that internally Guile does not differentiate between binary and
+textual ports, unlike the R6RS.  Thus, this procedure returns true when
+@var{port} does not have an associated encoding---i.e., when
+@code{(port-encoding @var{port})} is @code{#f} (@pxref{Ports,
+port-encoding}).  This is the case for ports returned by R6RS procedures
+such as @code{open-bytevector-input-port} and
+@code{make-custom-binary-output-port}.
+
+However, Guile currently does not prevent use of textual I/O procedures
+such as @code{display} or @code{read-char} with binary ports.  Doing so
+``upgrades'' the port from binary to textual, under the ISO-8859-1
+encoding.  Likewise, Guile does not prevent use of
+@code{set-port-encoding!} on a binary port, which also turns it into a
+``textual'' port.
+@end deffn
+
+@deffn {Scheme Procedure} textual-port? port
+Always return @var{#t}, as all ports can be used for textual I/O in
+Guile.
+@end deffn
+
+@deffn {Scheme Procedure} transcoded-port obj
+The @code{transcoded-port} procedure
+returns a new textual port with the specified @var{transcoder}.
+Otherwise the new textual port's state is largely the same as
+that of @var{binary-port}.
+If @var{binary-port} is an input port, the new textual
+port will be an input port and
+will transcode the bytes that have not yet been read from
+@var{binary-port}.
+If @var{binary-port} is an output port, the new textual
+port will be an output port and
+will transcode output characters into bytes that are
+written to the byte sink represented by @var{binary-port}.
+
+As a side effect, however, @code{transcoded-port}
+closes @var{binary-port} in
+a special way that allows the new textual port to continue to
+use the byte source or sink represented by @var{binary-port},
+even though @var{binary-port} itself is closed and cannot
+be used by the input and output operations described in this
+chapter.
+@end deffn
 
 @deffn {Scheme Procedure} port-position port
 If @var{port} supports it (see below), return the offset (an integer)
@@ -1233,31 +1634,67 @@ Call @var{proc}, passing it @var{port} and closing @var{port} upon exit
 of @var{proc}.  Return the return values of @var{proc}.
 @end deffn
 
-@deffn {Scheme Procedure} binary-port? port
-Return @code{#t} if @var{port} is a @dfn{binary port}, suitable for
-binary data input/output.
+@node R6RS Input Ports
+@subsubsection Input Ports
 
-Note that internally Guile does not differentiate between binary and
-textual ports, unlike the R6RS.  Thus, this procedure returns true when
-@var{port} does not have an associated encoding---i.e., when
-@code{(port-encoding @var{port})} is @code{#f} (@pxref{Ports,
-port-encoding}).  This is the case for ports returned by R6RS procedures
-such as @code{open-bytevector-input-port} and
-@code{make-custom-binary-output-port}.
-
-However, Guile currently does not prevent use of textual I/O procedures
-such as @code{display} or @code{read-char} with binary ports.  Doing so
-``upgrades'' the port from binary to textual, under the ISO-8859-1
-encoding.  Likewise, Guile does not prevent use of
-@code{set-port-encoding!} on a binary port, which also turns it into a
-``textual'' port.
+@deffn {Scheme Procedure} input-port? obj@
+Returns @code{#t} if the argument is an input port (or a combined input
+and output port), and returns @code{#f} otherwise.
 @end deffn
 
-@deffn {Scheme Procedure} textual-port? port
-Always return @var{#t}, as all ports can be used for textual I/O in
-Guile.
+@deffn {Scheme Procedure} port-eof? port
+Returns @code{#t}
+if the @code{lookahead-u8} procedure (if @var{input-port} is a binary port)
+or the @code{lookahead-char} procedure (if @var{input-port} is a textual port)
+would return
+the end-of-file object, and @code{#f} otherwise.
+The operation may block indefinitely if no data is available
+but the port cannot be determined to be at end of file.
 @end deffn
 
+@deffn {Scheme Procedure} open-file-input-port filename
+@deffnx {Scheme Procedure} open-file-input-port filename file-options
+@deffnx {Scheme Procedure} open-file-input-port filename file-options buffer-mode
+@deffnx {Scheme Procedure} open-file-input-port filename file-options buffer-mode maybe-transcoder
+@var{Maybe-transcoder} must be either a transcoder or @code{#f}.
+
+The @code{open-file-input-port} procedure returns an
+input port for the named file. The @var{file-options} and
+@var{maybe-transcoder} arguments are optional.
+
+The @var{file-options} argument, which may determine
+various aspects of the returned port (@pxref{R6RS File Options}),
+defaults to the value of @code{(file-options)}.
+
+The @var{buffer-mode} argument, if supplied,
+must be one of the symbols that name a buffer mode.
+The @var{buffer-mode} argument defaults to @code{block}.
+
+If @var{maybe-transcoder} is a transcoder, it becomes the transcoder associated
+with the returned port.
+
+If @var{maybe-transcoder} is @code{#f} or absent,
+the port will be a binary port and will support the
+@code{port-position} and @code{set-port-position!}  operations.
+Otherwise the port will be a textual port, and whether it supports
+the @code{port-position} and @code{set-port-position!} operations
+is implementation-dependent (and possibly transcoder-dependent).
+@end deffn
+
+@deffn {Scheme Procedure} standard-input-port
+Returns a fresh binary input port connected to standard input.  Whether
+the port supports the @code{port-position} and @code{set-port-position!}
+operations is implementation-dependent.
+@end deffn
+
+@deffn {Scheme Procedure} current-input-port
+This returns a default textual port for input.  Normally, this default
+port is associated with standard input, but can be dynamically
+re-assigned using the @code{with-input-from-file} procedure from the
+@code{io simple (6)} library (@pxref{rnrs io simple}).  The port may or
+may not have an associated transcoder; if it does, the transcoder is
+implementation-dependent.
+@end deffn
 
 @node R6RS Binary Input
 @subsubsection Binary Input
@@ -1374,6 +1811,173 @@ reached.  Return either a new bytevector containing the data read or the
 end-of-file object (if no data were available).
 @end deffn
 
+@node R6RS Textual Input
+@subsubsection Textual Input
+
+@deffn {Scheme Procedure} get-char port
+Reads from @var{textual-input-port}, blocking as necessary, until a
+complete character is available from @var{textual-input-port},
+or until an end of file is reached.
+
+If a complete character is available before the next end of file,
+@code{get-char} returns that character and updates the input port to
+point past the character. If an end of file is reached before any
+character is read, @code{get-char} returns the end-of-file object.
+@end deffn
+
+@deffn {Scheme Procedure} lookahead-char port
+The @code{lookahead-char} procedure is like @code{get-char}, but it does
+not update @var{textual-input-port} to point past the character.
+@end deffn
+
+@deffn {Scheme Procedure} get-string-n port count
+
+@var{Count} must be an exact, non-negative integer object, representing
+the number of characters to be read.
+
+The @code{get-string-n} procedure reads from @var{textual-input-port},
+blocking as necessary, until @var{count} characters are available, or
+until an end of file is reached.
+
+If @var{count} characters are available before end of file,
+@code{get-string-n} returns a string consisting of those @var{count}
+characters. If fewer characters are available before an end of file, but
+one or more characters can be read, @code{get-string-n} returns a string
+containing those characters. In either case, the input port is updated
+to point just past the characters read. If no characters can be read
+before an end of file, the end-of-file object is returned.
+@end deffn
+
+@deffn {Scheme Procedure} get-string-n! port string start count
+
+@var{Start} and @var{count} must be exact, non-negative integer objects,
+with @var{count} representing the number of characters to be read.
+@var{String} must be a string with at least $@var{start} + @var{count}$
+characters.
+
+The @code{get-string-n!} procedure reads from @var{textual-input-port}
+in the same manner as @code{get-string-n}.  If @var{count} characters
+are available before an end of file, they are written into @var{string}
+starting at index @var{start}, and @var{count} is returned. If fewer
+characters are available before an end of file, but one or more can be
+read, those characters are written into @var{string} starting at index
+@var{start} and the number of characters actually read is returned as an
+exact integer object. If no characters can be read before an end of
+file, the end-of-file object is returned.
+@end deffn
+
+@deffn {Scheme Procedure} get-string-all port count
+Reads from @var{textual-input-port} until an end of file, decoding
+characters in the same manner as @code{get-string-n} and
+@code{get-string-n!}.
+
+If characters are available before the end of file, a string containing
+all the characters decoded from that data are returned. If no character
+precedes the end of file, the end-of-file object is returned.
+@end deffn
+
+@deffn {Scheme Procedure} get-line port
+Reads from @var{textual-input-port} up to and including the linefeed
+character or end of file, decoding characters in the same manner as
+@code{get-string-n} and @code{get-string-n!}.
+
+If a linefeed character is read, a string containing all of the text up
+to (but not including) the linefeed character is returned, and the port
+is updated to point just past the linefeed character. If an end of file
+is encountered before any linefeed character is read, but some
+characters have been read and decoded as characters, a string containing
+those characters is returned. If an end of file is encountered before
+any characters are read, the end-of-file object is returned.
+
+@quotation Note
+  The end-of-line style, if not @code{none}, will cause all line endings
+  to be read as linefeed characters.  @xref{R6RS Transcoders}.
+@end quotation
+@end deffn
+
+@deffn {Scheme Procedure} get-datum port count
+Reads an external representation from @var{textual-input-port} and returns the
+datum it represents.  The @code{get-datum} procedure returns the next
+datum that can be parsed from the given @var{textual-input-port}, updating
+@var{textual-input-port} to point exactly past the end of the external
+representation of the object.
+
+Any @emph{interlexeme space} (comment or whitespace, @pxref{Scheme
+Syntax}) in the input is first skipped.  If an end of file occurs after
+the interlexeme space, the end-of-file object (@pxref{R6RS End-of-File})
+is returned.
+
+If a character inconsistent with an external representation is
+encountered in the input, an exception with condition types
+@code{&lexical} and @code{&i/o-read} is raised.  Also, if the end of
+file is encountered after the beginning of an external representation,
+but the external representation is incomplete and therefore cannot be
+parsed, an exception with condition types @code{&lexical} and
+@code{&i/o-read} is raised.
+@end deffn
+
+@node R6RS Output Ports
+@subsubsection Output Ports
+
+@deffn {Scheme Procedure} output-port? obj
+Returns @code{#t} if the argument is an output port (or a
+combined input and output port), @code{#f} otherwise.
+@end deffn
+
+@deffn {Scheme Procedure} flush-output-port port
+Flushes any buffered output from the buffer of @var{output-port} to the
+underlying file, device, or object. The @code{flush-output-port}
+procedure returns an unspecified values.
+@end deffn
+
+@deffn {Scheme Procedure} open-file-output-port filename
+@deffnx {Scheme Procedure} open-file-output-port filename file-options
+@deffnx {Scheme Procedure} open-file-output-port filename file-options buffer-mode
+@deffnx {Scheme Procedure} open-file-output-port filename file-options buffer-mode maybe-transcoder
+
+@var{maybe-transcoder} must be either a transcoder or @code{#f}.
+
+The @code{open-file-output-port} procedure returns an output port for the named file.
+
+The @var{file-options} argument, which may determine various aspects of
+the returned port (@pxref{R6RS File Options}), defaults to the value of
+@code{(file-options)}.
+
+The @var{buffer-mode} argument, if supplied,
+must be one of the symbols that name a buffer mode.
+The @var{buffer-mode} argument defaults to @code{block}.
+
+If @var{maybe-transcoder} is a transcoder, it becomes the transcoder
+associated with the port.
+
+If @var{maybe-transcoder} is @code{#f} or absent,
+the port will be a binary port and will support the
+@code{port-position} and @code{set-port-position!}  operations.
+Otherwise the port will be a textual port, and whether it supports
+the @code{port-position} and @code{set-port-position!} operations
+is implementation-dependent (and possibly transcoder-dependent).
+@end deffn
+
+@deffn {Scheme Procedure} standard-output-port
+@deffnx {Scheme Procedure} standard-error-port
+Returns a fresh binary output port connected to the standard output or
+standard error respectively.  Whether the port supports the
+@code{port-position} and @code{set-port-position!} operations is
+implementation-dependent.
+@end deffn
+
+@deffn {Scheme Procedure} current-output-port
+@deffnx {Scheme Procedure} current-error-port
+These return default textual ports for regular output and error output.
+Normally, these default ports are associated with standard output, and
+standard error, respectively.  The return value of
+@code{current-output-port} can be dynamically re-assigned using the
+@code{with-output-to-file} procedure from the @code{io simple (6)}
+library (@pxref{rnrs io simple}).  A port returned by one of these
+procedures may or may not have an associated transcoder; if it does, the
+transcoder is implementation-dependent.
+@end deffn
+
 @node R6RS Binary Output
 @subsubsection Binary Output
 
@@ -1432,6 +2036,50 @@ Write the contents of @var{bv} to @var{port}, optionally starting at
 index @var{start} and limiting to @var{count} octets.
 @end deffn
 
+@node R6RS Textual Output
+@subsubsection Textual Output
+
+@deffn {Scheme Procedure} put-char port char
+Writes @var{char} to the port. The @code{put-char} procedure returns
+@end deffn
+
+@deffn {Scheme Procedure} put-string port string
+@deffnx {Scheme Procedure} put-string port string start
+@deffnx {Scheme Procedure} put-string port string start count
+
+@var{start} and @var{count} must be non-negative exact integer objects.
+@var{string} must have a length of at least @math{@var{start} +
+@var{count}}.  @var{start} defaults to 0.  @var{count} defaults to
+@math{@code{(string-length @var{string})} - @var{start}}$. The
+@code{put-string} procedure writes the @var{count} characters of
+@var{string} starting at index @var{start} to the port.  The
+@code{put-string} procedure returns an unspecified value.
+@end deffn
+
+@deffn {Scheme Procedure} put-datum port datum
+@var{datum} should be a datum value.  The @code{put-datum} procedure
+writes an external representation of @var{datum} to
+@var{textual-output-port}.  The specific external representation is
+implementation-dependent.  However, whenever possible, an implementation
+should produce a representation for which @code{get-datum}, when reading
+the representation, will return an object equal (in the sense of
+@code{equal?}) to @var{datum}.
+
+@quotation Note
+  Not all datums may allow producing an external representation for which
+  @code{get-datum} will produce an object that is equal to the
+  original.  Specifically, NaNs contained in @var{datum} may make
+  this impossible.
+@end quotation
+
+@quotation Note
+  The @code{put-datum} procedure merely writes the external
+  representation, but no trailing delimiter.  If @code{put-datum} is
+  used to write several subsequent external representations to an
+  output port, care should be taken to delimit them properly so they can
+  be read back in by subsequent calls to @code{get-datum}.
+@end quotation
+@end deffn
 
 @node I/O Extensions
 @subsection Using and Extending Ports in C
@@ -1689,7 +2337,6 @@ Set using
 @end deftypefun
 
 @end table
-
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
