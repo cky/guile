@@ -460,14 +460,11 @@ SCM_DEFINE (scm_lookahead_u8, "lookahead-u8", 1, 0, 0,
 
   SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
 
-  u8 = scm_get_byte_or_eof (port);
+  u8 = scm_peek_byte_or_eof (port);
   if (u8 == EOF)
     result = SCM_EOF_VAL;
   else
-    {
-      scm_unget_byte (u8, port);
-      result = SCM_I_MAKINUM ((scm_t_uint8) u8);
-    }
+    result = SCM_I_MAKINUM ((scm_t_uint8) u8);
 
   return result;
 }

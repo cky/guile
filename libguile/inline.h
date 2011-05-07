@@ -3,7 +3,8 @@
 #ifndef SCM_INLINE_H
 #define SCM_INLINE_H
 
-/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010,
+ *   2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -98,6 +99,7 @@ SCM_API int scm_is_pair (SCM x);
 SCM_API int scm_is_string (SCM x);
 
 SCM_API int scm_get_byte_or_eof (SCM port);
+SCM_API int scm_peek_byte_or_eof (SCM port);
 SCM_API void scm_putc (char c, SCM port);
 SCM_API void scm_puts (const char *str_data, SCM port);
 
@@ -362,11 +364,39 @@ scm_get_byte_or_eof (SCM port)
 
   if (pt->read_pos >= pt->read_end)
     {
-      if (scm_fill_input (port) == EOF)
+      if (SCM_UNLIKELY (scm_fill_input (port) == EOF))
 	return EOF;
     }
 
   c = *(pt->read_pos++);
+
+  return c;
+}
+
+/* Like `scm_get_byte_or_eof' but does not change PORT's `read_pos'.  */
+#ifndef SCM_INLINE_C_INCLUDING_INLINE_H
+SCM_C_EXTERN_INLINE
+#endif
+int
+scm_peek_byte_or_eof (SCM port)
+{
+  int c;
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    /* may be marginally faster than calling scm_flush.  */
+    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (SCM_UNLIKELY (scm_fill_input (port) == EOF))
+	return EOF;
+    }
+
+  c = *pt->read_pos;
 
   return c;
 }
