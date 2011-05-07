@@ -572,29 +572,40 @@
        eof))
 
     (test-decoding-error (#xc2 #x41 #x42) "UTF-8"
-      ;; FIXME: This is the behavior of glibc/libiconv but it does not
-      ;; conform to the Unicode 6.0.0 recommendation: according to it,
-      ;; the #\A should not be swallowed (Section 3.9 reads:
-      ;; "If the converter encounters an ill-formed UTF-8 code unit
-      ;; sequence which starts with a valid first byte, but which does
-      ;; not continue with valid successor bytes (see Table 3-7), it
-      ;; must not consume the successor bytes".)
-
-      (error                ;; 41: should be in the 80..BF range
+      ;; Section 3.9 of Unicode 6.0.0 reads:
+      ;;   "If the converter encounters an ill-formed UTF-8 code unit
+      ;;   sequence which starts with a valid first byte, but which does
+      ;;   not continue with valid successor bytes (see Table 3-7), it
+      ;;   must not consume the successor bytes".
+      ;; Glibc/libiconv do not conform to it and instead swallow the
+      ;; #x41.  This example appears literally in Section 3.9.
+      (error                ;; 41: invalid successor
+       #\A                  ;; 41: valid starting byte
        #\B
        eof))
 
-    (test-decoding-error (#xe0 #x88 #x88) "UTF-8"
+    (test-decoding-error (#xf0 #x80 #x80 #x41) "UTF-8"
+      ;; According to Unicode 6.0.0, Section 3.9, "the only formal
+      ;; requirement mandated by Unicode conformance for a converter is
+      ;; that the <41> be processed and correctly interpreted as
+      ;; <U+0041>".
       (error                ;; 2nd byte should be in the A0..BF range
+       error                ;; 80: not a valid starting byte
+       error                ;; 80: not a valid starting byte
+       #\A
        eof))
 
     (test-decoding-error (#xe0 #xa0 #x41 #x42) "UTF-8"
       (error                ;; 3rd byte should be in the 80..BF range
+       #\A
        #\B
        eof))
 
     (test-decoding-error (#xf0 #x88 #x88 #x88) "UTF-8"
       (error                ;; 2nd byte should be in the 90..BF range
+       error                ;; 88: not a valid starting byte
+       error                ;; 88: not a valid starting byte
+       error                ;; 88: not a valid starting byte
        eof))))
 
 (with-test-prefix "call-with-output-string"

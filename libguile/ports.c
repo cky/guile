@@ -1127,10 +1127,14 @@ get_utf8_codepoint (SCM port, scm_t_wchar *codepoint,
 #define ASSERT_NOT_EOF(b)			\
   if (SCM_UNLIKELY ((b) == EOF))		\
     goto invalid_seq
+#define CONSUME_PEEKED_BYTE()				\
+  pt->read_pos++
 
   int byte;
+  scm_t_port *pt;
 
   *len = 0;
+  pt = SCM_PTAB_ENTRY (port);
 
   byte = scm_get_byte_or_eof (port);
   if (byte == EOF)
@@ -1148,14 +1152,15 @@ get_utf8_codepoint (SCM port, scm_t_wchar *codepoint,
   else if (buf[0] >= 0xc2 && buf[0] <= 0xdf)
     {
       /* 2-byte form.  */
-      byte = scm_get_byte_or_eof (port);
+      byte = scm_peek_byte_or_eof (port);
       ASSERT_NOT_EOF (byte);
-
-      buf[1] = (scm_t_uint8) byte;
-      *len = 2;
 
       if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
 	goto invalid_seq;
+
+      CONSUME_PEEKED_BYTE ();
+      buf[1] = (scm_t_uint8) byte;
+      *len = 2;
 
       *codepoint = ((scm_t_wchar) buf[0] & 0x1f) << 6UL
 	| (buf[1] & 0x3f);
@@ -1163,33 +1168,27 @@ get_utf8_codepoint (SCM port, scm_t_wchar *codepoint,
   else if ((buf[0] & 0xf0) == 0xe0)
     {
       /* 3-byte form.  */
-      byte = scm_get_byte_or_eof (port);
-      if (SCM_UNLIKELY (byte == EOF))
-	goto invalid_seq;
-
-      buf[1] = (scm_t_uint8) byte;
-      *len = 2;
+      byte = scm_peek_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
 
       if (SCM_UNLIKELY ((byte & 0xc0) != 0x80
 			|| (buf[0] == 0xe0 && byte < 0xa0)
 			|| (buf[0] == 0xed && byte > 0x9f)))
-	{
-	  /* Swallow the 3rd byte.  */
-	  byte = scm_get_byte_or_eof (port);
-	  ASSERT_NOT_EOF (byte);
-	  *len = 3, buf[2] = byte;
-	  goto invalid_seq;
-	}
+	goto invalid_seq;
 
+      CONSUME_PEEKED_BYTE ();
+      buf[1] = (scm_t_uint8) byte;
+      *len = 2;
 
-      byte = scm_get_byte_or_eof (port);
+      byte = scm_peek_byte_or_eof (port);
       ASSERT_NOT_EOF (byte);
-
-      buf[2] = (scm_t_uint8) byte;
-      *len = 3;
 
       if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
 	goto invalid_seq;
+
+      CONSUME_PEEKED_BYTE ();
+      buf[2] = (scm_t_uint8) byte;
+      *len = 3;
 
       *codepoint = ((scm_t_wchar) buf[0] & 0x0f) << 12UL
 	| ((scm_t_wchar) buf[1] & 0x3f) << 6UL
@@ -1198,50 +1197,37 @@ get_utf8_codepoint (SCM port, scm_t_wchar *codepoint,
   else if (buf[0] >= 0xf0 && buf[0] <= 0xf4)
     {
       /* 4-byte form.  */
-      byte = scm_get_byte_or_eof (port);
+      byte = scm_peek_byte_or_eof (port);
       ASSERT_NOT_EOF (byte);
-
-      buf[1] = (scm_t_uint8) byte;
-      *len = 2;
 
       if (SCM_UNLIKELY (((byte & 0xc0) != 0x80)
 			|| (buf[0] == 0xf0 && byte < 0x90)
 			|| (buf[0] == 0xf4 && byte > 0x8f)))
-	{
-	  /* Swallow the 3rd and 4th bytes.  */
-	  byte = scm_get_byte_or_eof (port);
-	  ASSERT_NOT_EOF (byte);
-	  *len = 3, buf[2] = byte;
+	goto invalid_seq;
 
-	  byte = scm_get_byte_or_eof (port);
-	  ASSERT_NOT_EOF (byte);
-	  *len = 4, buf[3] = byte;
-	  goto invalid_seq;
-	}
+      CONSUME_PEEKED_BYTE ();
+      buf[1] = (scm_t_uint8) byte;
+      *len = 2;
 
-      byte = scm_get_byte_or_eof (port);
+      byte = scm_peek_byte_or_eof (port);
       ASSERT_NOT_EOF (byte);
-
-      buf[2] = (scm_t_uint8) byte;
-      *len = 3;
-
-      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
-	{
-	  /* Swallow the 4th byte.  */
-	  byte = scm_get_byte_or_eof (port);
-	  ASSERT_NOT_EOF (byte);
-	  *len = 4, buf[3] = byte;
-	  goto invalid_seq;
-	}
-
-      byte = scm_get_byte_or_eof (port);
-      ASSERT_NOT_EOF (byte);
-
-      buf[3] = (scm_t_uint8) byte;
-      *len = 4;
 
       if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
 	goto invalid_seq;
+
+      CONSUME_PEEKED_BYTE ();
+      buf[2] = (scm_t_uint8) byte;
+      *len = 3;
+
+      byte = scm_peek_byte_or_eof (port);
+      ASSERT_NOT_EOF (byte);
+
+      if (SCM_UNLIKELY ((byte & 0xc0) != 0x80))
+	goto invalid_seq;
+
+      CONSUME_PEEKED_BYTE ();
+      buf[3] = (scm_t_uint8) byte;
+      *len = 4;
 
       *codepoint = ((scm_t_wchar) buf[0] & 0x07) << 18UL
 	| ((scm_t_wchar) buf[1] & 0x3f) << 12UL
@@ -1254,8 +1240,14 @@ get_utf8_codepoint (SCM port, scm_t_wchar *codepoint,
   return 0;
 
  invalid_seq:
+  /* Here we could choose the consume the faulty byte when it's not a
+     valid starting byte, but it's not a requirement.  What Section 3.9
+     of Unicode 6.0.0 mandates, though, is to not consume a byte that
+     would otherwise be a valid starting byte.  */
+
   return EILSEQ;
 
+#undef CONSUME_PEEKED_BYTE
 #undef ASSERT_NOT_EOF
 }
 
