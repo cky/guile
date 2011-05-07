@@ -1,6 +1,6 @@
 ;;; simple.scm --- The R6RS simple I/O library
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -85,42 +85,76 @@
 
   (import (only (rnrs io ports)
                 call-with-port
+                close-port
                 open-file-input-port
                 open-file-output-port
                 eof-object 
-                eof-object? 
-                
+                eof-object?
+                file-options
+                native-transcoder
+                get-char
+                lookahead-char
+                get-datum
+                put-char
+                put-datum
+
                 input-port? 
                 output-port?)
-          (only (guile) @@
-			current-input-port
-			current-output-port
-			current-error-port
+          (only (guile)
+                @@
+                current-input-port
+                current-output-port
+                current-error-port
 
-			with-input-from-file
-			with-output-to-file
+                define*
 
-			open-input-file
-			open-output-file
-			
-			close-input-port
-			close-output-port
-
-			read-char
-			peek-char
-			read
-			write-char
-			newline
-			display
-			write)
+                with-input-from-port
+                with-output-to-port)
 	  (rnrs base (6))
           (rnrs files (6)) ;for the condition types
           )
+
+  (define display (@@ (rnrs io ports) display))
 
   (define (call-with-input-file filename proc)
     (call-with-port (open-file-input-port filename) proc))
 
   (define (call-with-output-file filename proc)
     (call-with-port (open-file-output-port filename) proc))
-  
-)
+
+  (define (with-input-from-file filename thunk)
+    (call-with-input-file filename
+      (lambda (port) (with-input-from-port port thunk))))
+
+  (define (with-output-to-file filename thunk)
+    (call-with-output-file filename
+      (lambda (port) (with-output-to-port port thunk))))
+
+  (define (open-input-file filename)
+    (open-file-input-port filename (file-options) (native-transcoder)))
+
+  (define (open-output-file filename)
+    (open-file-output-port filename (file-options) (native-transcoder)))
+
+  (define close-input-port close-port)
+  (define close-output-port close-port)
+
+  (define* (read-char #:optional (port (current-input-port)))
+    (get-char port))
+
+  (define* (peek-char #:optional (port (current-input-port)))
+    (lookahead-char port))
+
+  (define* (read #:optional (port (current-input-port)))
+    (get-datum port))
+
+  (define* (write-char char #:optional (port (current-output-port)))
+    (put-char port char))
+
+  (define* (newline #:optional (port (current-output-port)))
+    (put-char port #\newline))
+
+  (define* (write object #:optional (port (current-output-port)))
+    (put-datum port object))
+
+  )

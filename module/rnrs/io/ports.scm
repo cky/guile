@@ -110,7 +110,9 @@
           (rnrs files) ;for the condition types
           (srfi srfi-8)
           (ice-9 rdelim)
-          (except (guile) raise))
+          (except (guile) raise display)
+          (prefix (only (guile) display)
+                  guile:))
 
 
 
@@ -376,6 +378,12 @@ return the characters accumulated in that port."
           (display (substring/shared s start (string-length s)) port))
          (else
           (display s port)))))
+
+;; Defined here to be able to make use of `with-i/o-encoding-error', but
+;; not exported from here, but from `(rnrs io simple)'.
+(define* (display object #:optional (port (current-output-port)))
+  (with-i/o-encoding-error
+    (guile:display object port)))
 
 
 ;;;

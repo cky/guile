@@ -1428,8 +1428,21 @@ functionality is documented in its own section of the manual;
 
 The @code{(rnrs io simple (6))} library provides convenience functions
 for performing textual I/O on ports.  This library also exports all of
-the condition types and associated procedures described in
-(@pxref{I/O Conditions}).
+the condition types and associated procedures described in (@pxref{I/O
+Conditions}).  In the context of this section, when stating that a
+procedure behaves ``identically'' to the corresponding procedure in
+Guile's core library, this is modulo the behavior wrt. conditions: such
+procedures raise the appropriate R6RS conditions in case of error, but
+otherwise behave identically.
+
+@c FIXME: remove the following note when proper condition behavior has
+@c been verified.
+
+@quotation Note
+There are still known issues regarding condition-correctness; some
+errors may still be thrown as native Guile exceptions instead of the
+appropriate R6RS conditions.
+@end quotation
 
 @deffn {Scheme Procedure} eof-object
 @deffnx {Scheme Procedure} eof-object? obj
