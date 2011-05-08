@@ -252,7 +252,7 @@
 
   )
 
-(with-test-prefix "multiple occurrances"
+(with-test-prefix "multiple occurrences"
 
   (define (test9 . args)
     (equal? (getopt-long (cons "foo" args)

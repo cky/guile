@@ -271,7 +271,7 @@
         (define (val!loop val n-ls n-found n-etc)
           (set-option-spec-value!
            spec
-           ;; handle multiple occurrances
+           ;; handle multiple occurrences
            (cond ((option-spec->value spec)
                   => (lambda (cur)
                        ((if (list? cur) cons list)
@@ -384,7 +384,7 @@ to add a `single-char' clause to the option description."
               (map (lambda (spec)
                      (let ((name (string->symbol (option-spec->name spec))))
                        (cons name
-                             ;; handle multiple occurrances
+                             ;; handle multiple occurrences
                              (let ((maybe-ls (option-spec->value spec)))
                                (if (list? maybe-ls)
                                    (let* ((look (assq name multi-count))
