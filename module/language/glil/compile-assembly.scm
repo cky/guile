@@ -748,5 +748,153 @@
                                 ,(logand #xff len)))
                   codes)))))
    (else
-    (error "assemble: unrecognized object" x))))
+    (error "dump-object: unrecognized object" x))))
 
+(define (dump-constants constants)
+  (define (ref-or-dump x i addr)
+    (let ((pair (vhash-assoc x constants)))
+      (if (and pair (< (cdr pair) i))
+          (let ((idx (cdr pair)))
+            (if (< idx 256)
+                (values `((object-ref ,idx))
+                        (+ addr 2))
+                (values `((long-object-ref ,(quotient idx 256)
+                                           ,(modulo idx 256)))
+                        (+ addr 3))))
+          (dump1 x i addr))))
+  (define (dump1 x i addr)
+    (cond
+     ((object->assembly x)
+      => (lambda (code)
+           (values (list code)
+                   (+ (byte-length code) addr))))
+     ((or (number? x)
+          (string? x)
+          (symbol? x)
+          (keyword? x))
+      ;; Atoms.
+      (let ((code (dump-object x addr)))
+        (values code (addr+ addr code))))
+     ((variable-cache-cell? x)
+      (dump1 (variable-cache-cell-key x) i addr))
+     ((list? x)
+      (receive (codes addr)
+          (fold2 (lambda (x codes addr)
+                   (receive (subcode addr) (ref-or-dump x i addr)
+                     (values (cons subcode codes) addr)))
+                 x '() addr)
+        (values (fold append
+                      (let ((len (length x)))
+                        `((list ,(quotient len 256) ,(modulo len 256))))
+                      codes)
+                (+ addr 3))))
+     ((pair? x)
+      (receive (car-code addr) (ref-or-dump (car x) i addr)
+        (receive (cdr-code addr) (ref-or-dump (cdr x) i addr)
+          (values `(,@car-code ,@cdr-code (cons))
+                  (1+ addr)))))
+     ((and (vector? x)
+           (equal? (array-shape x) (list (list 0 (1- (vector-length x))))))
+      (receive (codes addr)
+          (vector-fold2 (lambda (x codes addr)
+                          (receive (subcode addr) (ref-or-dump x i addr)
+                            (values (cons subcode codes) addr)))
+                        x '() addr)
+        (values (fold append
+                      (let ((len (vector-length x)))
+                        `((vector ,(quotient len 256) ,(modulo len 256))))
+                      codes)
+                (+ addr 3))))
+     ((and (array? x) (symbol? (array-type x)))
+      (receive (type addr) (ref-or-dump (array-type x) i addr)
+        (receive (shape addr) (ref-or-dump (array-shape x) i addr)
+          (let ((bv (align-code `(load-array ,(uniform-array->bytevector x))
+                                addr 8 4)))
+            (values `(,@type ,@shape ,@bv)
+                    (addr+ addr bv))))))
+     ((array? x)
+      (let ((contents (array-contents x)))
+        (receive (codes addr)
+            (vector-fold2 (lambda (x codes addr)
+                            (receive (subcode addr) (ref-or-dump x i addr)
+                              (values (cons subcode codes) addr)))
+                          x '() addr)
+          (receive (shape addr) (ref-or-dump (array-shape x) i addr)
+            (values (fold append
+                          (let ((len (vector-length contents)))
+                            `(,@shape
+                              (make-array ,(quotient (ash len -16) 256)
+                                          ,(logand #xff (ash len -8))
+                                          ,(logand #xff len))))
+                          codes)
+                    (+ addr 4))))))
+     (else
+      (error "write-table: unrecognized object" x))))
+
+  (receive (codes addr)
+      (vhash-fold-right2 (lambda (obj idx code addr)
+                           ;; The vector is on the stack.  Dup it, push
+                           ;; the index, push the val, then vector-set.
+                           (let ((pre `((dup)
+                                        ,(object->assembly idx))))
+                             (receive (valcode addr) (dump1 obj idx
+                                                            (addr+ addr pre))
+                               (values (cons* '((vector-set))
+                                              valcode
+                                              pre
+                                              code)
+                                       (1+ addr)))))
+                         constants
+                         '(((assert-nargs-ee/locals 1)
+                            ;; Push the vector.
+                            (local-ref 0)))
+                         4)
+    (let* ((len (1+ (vlist-length constants)))
+           (pre-prog-addr (+ 2          ; reserve-locals
+                             len 3      ; empty vector
+                             2          ; local-set
+                             1          ; new-frame
+                             2          ; local-ref
+                             ))
+           (prog (align-program
+                  `(load-program ()
+                                 ,(+ addr 1)
+                                 #f
+                                 ;; The `return' will be at the tail of the
+                                 ;; program.  The vector is already pushed
+                                 ;; on the stack.
+                                 . ,(fold append '((return)) codes))
+                  pre-prog-addr)))
+      (values `(;; Reserve storage for the vector.
+                (assert-nargs-ee/locals ,(logior 0 (ash 1 3)))
+                ;; Push the vector, and store it in slot 0.
+                ,@(make-list len '(make-false))
+                (vector ,(quotient len 256) ,(modulo len 256))
+                (local-set 0)
+                ;; Now we open the call frame.
+                ;;
+                (new-frame)
+                ;; Now build a thunk to init the constants.  It will
+                ;; have the unfinished constant table both as its
+                ;; argument and as its objtable.  The former allows it
+                ;; to update the objtable, with vector-set!, and the
+                ;; latter allows init code to refer to previously set
+                ;; values.
+                ;;
+                ;; Grab the vector, to be the objtable.
+                (local-ref 0)
+                ;; Now the load-program, properly aligned.  Pops the vector.
+                ,@prog
+                ;; Grab the vector, as an argument this time.
+                (local-ref 0)
+                ;; Call the init thunk with the vector as an arg.
+                (call 1)
+                ;; The thunk also returns the vector.  Leave it on the
+                ;; stack for compile-assembly to use.
+                )
+              ;; The byte length of the init code, which we can
+              ;; determine without folding over the code again.
+              (+ (addr+ pre-prog-addr prog) ; aligned program
+                 2 ; local-ref
+                 2 ; call
+                 )))))
