@@ -292,82 +292,151 @@
   (open-arity start nreq nopt rest kw (close-arity end arities)))
 
 (define (compile-assembly glil)
-  (receive (code . _)
-      (glil->assembly glil #t '(()) '() '() #f '() -1)
-    (car code)))
+  (let* ((all-constants (build-constant-store glil))
+         (prog (compile-program glil all-constants))
+         (len (byte-length prog)))
+    ;; The top objcode thunk.  We're going to wrap this thunk in
+    ;; a thunk -- yo dawgs -- with the goal being to lift all
+    ;; constants up to the top level.  The store forms a DAG, so
+    ;; we can actually build up later elements in terms of
+    ;; earlier ones.
+    ;;
+    (cond
+     ((vlist-null? all-constants)
+      ;; No constants: just emit the inner thunk.
+      prog)
+     (else
+      ;; We have an object store, so write it out, attach it
+      ;; to the inner thunk, and tail call.
+      (receive (tablecode addr) (dump-constants all-constants)
+        (let ((prog (align-program prog addr)))
+          ;; Outer thunk.
+          `(load-program ()
+                         ,(+ (addr+ addr prog)
+                             2          ; for (tail-call 0)
+                             )
+                         #f
+                         ;; Load the table, build the inner
+                         ;; thunk, then tail call.
+                         ,@tablecode
+                         ,@prog
+                         (tail-call 0))))))))
 
-(define (glil->assembly glil toplevel? bindings
-                        source-alist label-alist object-alist arities addr)
+(define (compile-program glil constants)
+  (record-case glil
+    ((<glil-program> meta body)
+     (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
+              (label-alist '()) (arities '()) (addr 0))
+       (cond
+        ((null? body)
+         (let ((code (fold append '() code))
+               (bindings (close-all-bindings bindings addr))
+               (sources (limn-sources (reverse! source-alist)))
+               (labels (reverse label-alist))
+               (arities (reverse (close-arity addr arities)))
+               (len addr))
+           (let* ((meta (make-meta bindings sources arities meta))
+                  (meta-pad (if meta (modulo (- 8 (modulo len 8)) 8) 0)))
+             `(load-program ,labels
+                            ,(+ len meta-pad)
+                            ,meta
+                            ,@code
+                            ,@(if meta
+                                  (make-list meta-pad '(nop))
+                                  '())))))
+        (else
+         (receive (subcode bindings source-alist label-alist arities)
+             (glil->assembly (car body) bindings
+                             source-alist label-alist
+                             constants arities addr)
+           (lp (cdr body) (cons subcode code)
+               bindings source-alist label-alist arities
+               (addr+ addr subcode)))))))))
+
+(define (compile-objtable constants table addr)
+  (define (load-constant idx)
+    (if (< idx 256)
+        (values `((object-ref ,idx))
+                2)
+        (values `((long-object-ref
+                   ,(quotient idx 256) ,(modulo idx 256)))
+                3)))
+  (cond
+   ((vlist-null? table)
+    ;; Empty table; just return #f.
+    (values '((make-false))
+            (1+ addr)))
+   (else
+    (call-with-values
+        (lambda ()
+          (vhash-fold-right2
+           (lambda (obj idx codes addr)
+             (cond
+              ((vhash-assoc obj constants)
+               => (lambda (pair)
+                    (receive (load len) (load-constant (cdr pair))
+                      (values (cons load codes)
+                              (+ addr len)))))
+              ((variable-cache-cell? obj)
+               (cond
+                ((vhash-assoc (variable-cache-cell-key obj) constants)
+                 => (lambda (pair)
+                      (receive (load len) (load-constant (cdr pair))
+                        (values (cons load codes)
+                                (+ addr len)))))
+                (else (error "vcache cell key not in table" obj))))
+              ((glil-program? obj)
+               ;; Programs are not cached in the global constants
+               ;; table because when a program is loaded, its module
+               ;; is bound, and we want to do that only after any
+               ;; preceding effectful statements.
+               (let* ((table (build-object-table obj))
+                      (prog (compile-program obj table)))
+                 (receive (tablecode addr)
+                     (compile-objtable constants table addr)
+                   (let ((prog (align-program prog addr)))
+                     (values (cons `(,@tablecode ,@prog)
+                                   codes)
+                             (addr+ addr prog))))))
+              (else
+               (error "unrecognized constant" obj))))
+           table
+           '(((make-false))) (1+ addr)))
+      (lambda (elts addr)
+        (let ((len (1+ (vlist-length table))))
+          (values
+           (fold append
+                 `((vector ,(quotient len 256) ,(modulo len 256)))
+                 elts)
+           (+ addr 3))))))))
+
+(define (glil->assembly glil bindings source-alist label-alist
+                        constants arities addr)
   (define (emit-code x)
-    (values x bindings source-alist label-alist object-alist arities))
-  (define (emit-code/object x object-alist)
-    (values x bindings source-alist label-alist object-alist arities))
+    (values x bindings source-alist label-alist arities))
+  (define (emit-object-ref i)
+    (values (if (< i 256)
+                `((object-ref ,i))
+                `((long-object-ref ,(quotient i 256) ,(modulo i 256))))
+            bindings source-alist label-alist arities))
   (define (emit-code/arity x nreq nopt rest kw)
-    (values x bindings source-alist label-alist object-alist
+    (values x bindings source-alist label-alist
             (begin-arity addr (addr+ addr x) nreq nopt rest kw arities)))
   
   (record-case glil
     ((<glil-program> meta body)
-     (define (process-body)
-       (let lp ((body body) (code '()) (bindings '(())) (source-alist '())
-                (label-alist '()) (object-alist (if toplevel? #f '()))
-                (arities '()) (addr 0))
-         (cond
-          ((null? body)
-           (values (reverse code)
-                   (close-all-bindings bindings addr)
-                   (limn-sources (reverse! source-alist))
-                   (reverse label-alist)
-                   (and object-alist (map car (reverse object-alist)))
-                   (reverse (close-arity addr arities))
-                   addr))
-          (else
-           (receive (subcode bindings source-alist label-alist object-alist
-                     arities)
-               (glil->assembly (car body) #f bindings
-                               source-alist label-alist object-alist
-                               arities addr)
-             (lp (cdr body) (append (reverse subcode) code)
-                 bindings source-alist label-alist object-alist arities
-                 (addr+ addr subcode)))))))
-
-     (receive (code bindings sources labels objects arities len)
-         (process-body)
-       (let* ((meta (make-meta bindings sources arities meta))
-              (meta-pad (if meta (modulo (- 8 (modulo len 8)) 8) 0))
-              (prog `(load-program ,labels
-                                  ,(+ len meta-pad)
-                                  ,meta
-                                  ,@code
-                                  ,@(if meta
-                                        (make-list meta-pad '(nop))
-                                        '()))))
-         (cond
-          (toplevel?
-           ;; toplevel bytecode isn't loaded by the vm, no way to do
-           ;; object table or closure capture (not in the bytecode,
-           ;; anyway)
-           (emit-code (align-program prog addr)))
-          (else
-           (let ((table (make-object-table objects)))
-             (cond
-              (object-alist
-               ;; if we are being compiled from something with an object
-               ;; table, cache the program there
-               (receive (i object-alist)
-                   (object-index-and-alist (make-subprogram table prog)
-                                           object-alist)
-                 (emit-code/object `(,(if (< i 256)
-                                          `(object-ref ,i)
-                                          `(long-object-ref ,(quotient i 256)
-                                                            ,(modulo i 256))))
-                                   object-alist)))
-              (else
-               ;; otherwise emit a load directly
-               (let ((table-code (dump-object table addr)))
-                 (emit-code
-                  `(,@table-code
-                    ,@(align-program prog (addr+ addr table-code)))))))))))))
+     (cond
+      ((vhash-assoc glil constants)
+       ;; We are cached in someone's objtable; just emit a load.
+       => (lambda (pair)
+            (emit-object-ref (cdr pair))))
+      (else
+       ;; Otherwise, build an objtable for the program, compile it, and
+       ;; emit a load-program.
+       (let* ((table (build-object-table glil))
+              (prog (compile-program glil table)))
+         (receive (tablecode addr) (compile-objtable constants table addr)
+           (emit-code `(,@tablecode ,@(align-program prog addr))))))))
     
     ((<glil-std-prelude> nreq nlocs else-label)
      (emit-code/arity
@@ -417,61 +486,60 @@
         nreq nopt rest #f)))
     
     ((<glil-kw-prelude> nreq nopt rest kw allow-other-keys? nlocs else-label)
-     (receive (kw-idx object-alist)
-         (object-index-and-alist kw object-alist)
-       (let* ((bind-required
-               (if else-label
-                   `((br-if-nargs-lt ,(quotient nreq 256)
-                                     ,(modulo nreq 256)
-                                     ,else-label))
-                   `((assert-nargs-ge ,(quotient nreq 256)
-                                      ,(modulo nreq 256)))))
-              (ntotal (apply max (+ nreq nopt) (map 1+ (map cdr kw))))
-              (bind-optionals-and-shuffle
-               `((bind-optionals/shuffle
-                  ,(quotient nreq 256)
-                  ,(modulo nreq 256)
-                  ,(quotient (+ nreq nopt) 256)
-                  ,(modulo (+ nreq nopt) 256)
-                  ,(quotient ntotal 256)
-                  ,(modulo ntotal 256))))
-              (bind-kw
-               ;; when this code gets called, all optionals are filled
-               ;; in, space has been made for kwargs, and the kwargs
-               ;; themselves have been shuffled above the slots for all
-               ;; req/opt/kwargs locals.
-               `((bind-kwargs
-                  ,(quotient kw-idx 256)
-                  ,(modulo kw-idx 256)
-                  ,(quotient ntotal 256)
-                  ,(modulo ntotal 256)
-                  ,(logior (if rest 2 0)
-                           (if allow-other-keys? 1 0)))))
-              (bind-rest
-               (if rest
-                   `((bind-rest ,(quotient ntotal 256)
-                                ,(modulo ntotal 256)
-                                ,(quotient rest 256)
-                                ,(modulo rest 256)))
-                   '())))
+     (let* ((kw-idx (or (and=> (vhash-assoc kw constants) cdr)
+                        (error "kw not in objtable")))
+            (bind-required
+             (if else-label
+                 `((br-if-nargs-lt ,(quotient nreq 256)
+                                   ,(modulo nreq 256)
+                                   ,else-label))
+                 `((assert-nargs-ge ,(quotient nreq 256)
+                                    ,(modulo nreq 256)))))
+            (ntotal (apply max (+ nreq nopt) (map 1+ (map cdr kw))))
+            (bind-optionals-and-shuffle
+             `((bind-optionals/shuffle
+                ,(quotient nreq 256)
+                ,(modulo nreq 256)
+                ,(quotient (+ nreq nopt) 256)
+                ,(modulo (+ nreq nopt) 256)
+                ,(quotient ntotal 256)
+                ,(modulo ntotal 256))))
+            (bind-kw
+             ;; when this code gets called, all optionals are filled
+             ;; in, space has been made for kwargs, and the kwargs
+             ;; themselves have been shuffled above the slots for all
+             ;; req/opt/kwargs locals.
+             `((bind-kwargs
+                ,(quotient kw-idx 256)
+                ,(modulo kw-idx 256)
+                ,(quotient ntotal 256)
+                ,(modulo ntotal 256)
+                ,(logior (if rest 2 0)
+                         (if allow-other-keys? 1 0)))))
+            (bind-rest
+             (if rest
+                 `((bind-rest ,(quotient ntotal 256)
+                              ,(modulo ntotal 256)
+                              ,(quotient rest 256)
+                              ,(modulo rest 256)))
+                 '())))
          
-         (let ((code `(,@bind-required
-                       ,@bind-optionals-and-shuffle
-                       ,@bind-kw
-                       ,@bind-rest
-                       (reserve-locals ,(quotient nlocs 256)
-                                       ,(modulo nlocs 256)))))
-           (values code bindings source-alist label-alist object-alist
-                   (begin-arity addr (addr+ addr code) nreq nopt rest
-                                (and kw (cons allow-other-keys? kw))
-                                arities))))))
+       (let ((code `(,@bind-required
+                     ,@bind-optionals-and-shuffle
+                     ,@bind-kw
+                     ,@bind-rest
+                     (reserve-locals ,(quotient nlocs 256)
+                                     ,(modulo nlocs 256)))))
+         (values code bindings source-alist label-alist
+                 (begin-arity addr (addr+ addr code) nreq nopt rest
+                              (and kw (cons allow-other-keys? kw))
+                              arities)))))
     
     ((<glil-bind> vars)
      (values '()
              (open-binding bindings vars addr)
              source-alist
              label-alist
-             object-alist
              arities))
 
     ((<glil-mv-bind> vars rest)
@@ -480,13 +548,11 @@
                  bindings
                  source-alist
                  label-alist
-                 object-alist
                  arities)
          (values `((truncate-values ,(length vars) ,(if rest 1 0)))
                  (open-binding bindings vars addr)
                  source-alist
                  label-alist
-                 object-alist
                  arities)))
     
     ((<glil-unbind>)
@@ -494,7 +560,6 @@
              (close-binding bindings addr)
              source-alist
              label-alist
-             object-alist
              arities))
              
     ((<glil-source> props)
@@ -502,7 +567,6 @@
              bindings
              (acons addr props source-alist)
              label-alist
-             object-alist
              arities))
 
     ((<glil-void>)
@@ -513,16 +577,10 @@
       ((object->assembly obj)
        => (lambda (code)
             (emit-code (list code))))
-      ((not object-alist)
-       (emit-code (dump-object obj addr)))
-      (else
-       (receive (i object-alist)
-           (object-index-and-alist obj object-alist)
-         (emit-code/object (if (< i 256)
-                               `((object-ref ,i))
-                               `((long-object-ref ,(quotient i 256)
-                                                  ,(modulo i 256))))
-                           object-alist)))))
+      ((vhash-assoc obj constants)
+       => (lambda (pair)
+            (emit-object-ref (cdr pair))))
+      (else (error "const not in table" obj))))
 
     ((<glil-lexical> local? boxed? op index)
      (emit-code
@@ -582,30 +640,38 @@
      (case op
        ((ref set)
         (cond
-         ((not object-alist)
-          (emit-code `(,@(dump-object name addr)
-                       (link-now)
-                       ,(case op 
-                          ((ref) '(variable-ref))
-                          ((set) '(variable-set))))))
+         ((and=> (vhash-assoc (make-variable-cache-cell name) constants)
+                 cdr)
+          => (lambda (i)
+               (emit-code (if (< i 256)
+                              `((,(case op
+                                    ((ref) 'toplevel-ref)
+                                    ((set) 'toplevel-set))
+                                 ,i))
+                              `((,(case op
+                                    ((ref) 'long-toplevel-ref)
+                                    ((set) 'long-toplevel-set))
+                                 ,(quotient i 256)
+                                 ,(modulo i 256)))))))
          (else
-          (receive (i object-alist)
-              (object-index-and-alist (make-variable-cache-cell name)
-                                      object-alist)
-            (emit-code/object (if (< i 256)
-                                  `((,(case op
-                                        ((ref) 'toplevel-ref)
-                                        ((set) 'toplevel-set))
-                                     ,i))
-                                  `((,(case op
-                                        ((ref) 'long-toplevel-ref)
-                                        ((set) 'long-toplevel-set))
-                                     ,(quotient i 256)
-                                     ,(modulo i 256))))
-                              object-alist)))))
+          (let ((i (or (and=> (vhash-assoc name constants) cdr)
+                       (error "toplevel name not in objtable" name))))
+            (emit-code `(,(if (< i 256)
+                              `(object-ref ,i)
+                              `(long-object-ref ,(quotient i 256)
+                                                ,(modulo i 256)))
+                         (link-now)
+                         ,(case op
+                            ((ref) '(variable-ref))
+                            ((set) '(variable-set)))))))))
        ((define)
-        (emit-code `(,@(dump-object name addr)
-                     (define))))
+        (let ((i (or (and=> (vhash-assoc name constants) cdr)
+                     (error "toplevel name not in objtable" name))))
+          (emit-code `(,(if (< i 256)
+                            `(object-ref ,i)
+                            `(long-object-ref ,(quotient i 256)
+                                              ,(modulo i 256)))
+                       (define)))))
        (else
         (error "unknown toplevel var kind" op name))))
 
@@ -613,21 +679,19 @@
      (let ((key (list mod name public?)))
        (case op
          ((ref set)
-          (cond
-           ((not object-alist)
-            (emit-code `(,@(dump-object key addr)
-                         (link-now)
-                         ,(case op 
-                            ((ref) '(variable-ref))
-                            ((set) '(variable-set))))))
-           (else
-            (receive (i object-alist)
-                (object-index-and-alist (make-variable-cache-cell key)
-                                        object-alist)
-              (emit-code/object (case op
-                                  ((ref) `((toplevel-ref ,i)))
-                                  ((set) `((toplevel-set ,i))))
-                                object-alist)))))
+          (let ((i (or (and=> (vhash-assoc (make-variable-cache-cell key)
+                                           constants) cdr)
+                       (error "module vcache not in objtable" key))))
+            (emit-code (if (< i 256)
+                           `((,(case op
+                                 ((ref) 'toplevel-ref)
+                                 ((set) 'toplevel-set))
+                              ,i))
+                           `((,(case op
+                                 ((ref) 'long-toplevel-ref)
+                                 ((set) 'long-toplevel-set))
+                              ,(quotient i 256)
+                              ,(modulo i 256)))))))
          (else
           (error "unknown module var kind" op key)))))
 
@@ -637,7 +701,6 @@
                bindings
                source-alist
                (acons label (addr+ addr code) label-alist)
-               object-alist
                arities)))
 
     ((<glil-branch> inst label)
