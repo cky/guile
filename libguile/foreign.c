@@ -965,9 +965,12 @@ unpack (const ffi_type *type, void *loc, SCM x)
 }
 #undef FUNC_NAME
 
-/* Return a Scheme representation of the foreign value at LOC of type TYPE.  */
+/* Return a Scheme representation of the foreign value at LOC of type
+   TYPE.  When RETURN_VALUE_P is true, LOC is assumed to point to a
+   return value buffer; otherwise LOC is assumed to point to an
+   argument buffer.  */
 static SCM
-pack (const ffi_type * type, const void *loc)
+pack (const ffi_type * type, const void *loc, int return_value_p)
 {
   switch (type->type)
     {
@@ -977,22 +980,48 @@ pack (const ffi_type * type, const void *loc)
       return scm_from_double (*(float *) loc);
     case FFI_TYPE_DOUBLE:
       return scm_from_double (*(double *) loc);
+
+      /* For integer return values smaller than `int', libffi stores the
+	 result in an `ffi_arg'-long buffer, of which only the
+	 significant bits must be kept---hence the pair of casts below.
+	 See <http://thread.gmane.org/gmane.comp.lib.ffi.general/406>
+	 for details.  */
+
     case FFI_TYPE_UINT8:
-      return scm_from_uint8 (*(scm_t_uint8 *) loc);
+      if (return_value_p)
+	return scm_from_uint8 ((scm_t_uint8) *(ffi_arg *) loc);
+      else
+	return scm_from_uint8 (* (scm_t_uint8 *) loc);
     case FFI_TYPE_SINT8:
-      return scm_from_int8 (*(scm_t_int8 *) loc);
+      if (return_value_p)
+	return scm_from_int8 ((scm_t_int8) *(ffi_arg *) loc);
+      else
+	return scm_from_int8 (* (scm_t_int8 *) loc);
     case FFI_TYPE_UINT16:
-      return scm_from_uint16 (*(scm_t_uint16 *) loc);
+      if (return_value_p)
+	return scm_from_uint16 ((scm_t_uint16) *(ffi_arg *) loc);
+      else
+	return scm_from_uint16 (* (scm_t_uint16 *) loc);
     case FFI_TYPE_SINT16:
-      return scm_from_int16 (*(scm_t_int16 *) loc);
+      if (return_value_p)
+	return scm_from_int16 ((scm_t_int16) *(ffi_arg *) loc);
+      else
+	return scm_from_int16 (* (scm_t_int16 *) loc);
     case FFI_TYPE_UINT32:
-      return scm_from_uint32 (*(scm_t_uint32 *) loc);
+      if (return_value_p)
+	return scm_from_uint32 ((scm_t_uint32) *(ffi_arg *) loc);
+      else
+	return scm_from_uint32 (* (scm_t_uint32 *) loc);
     case FFI_TYPE_SINT32:
-      return scm_from_int32 (*(scm_t_int32 *) loc);
+      if (return_value_p)
+	return scm_from_int32 ((scm_t_int32) *(ffi_arg *) loc);
+      else
+	return scm_from_int32 (* (scm_t_int32 *) loc);
     case FFI_TYPE_UINT64:
       return scm_from_uint64 (*(scm_t_uint64 *) loc);
     case FFI_TYPE_SINT64:
       return scm_from_int64 (*(scm_t_int64 *) loc);
+
     case FFI_TYPE_STRUCT:
       {
 	void *mem = scm_gc_malloc_pointerless (type->size, "foreign");
@@ -1060,7 +1089,7 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
   /* off we go! */
   ffi_call (cif, func, rvalue, args);
 
-  return pack (cif->rtype, rvalue);
+  return pack (cif->rtype, rvalue, 1);
 }
 
 
@@ -1082,7 +1111,7 @@ invoke_closure (ffi_cif *cif, void *ret, void **args, void *data)
 
   /* Pack ARGS to SCM values, setting ARGV pointers.  */
   for (i = 0; i < cif->nargs; i++)
-    argv[i] = pack (cif->arg_types[i], args[i]);
+    argv[i] = pack (cif->arg_types[i], args[i], 0);
 
   result = scm_call_n (proc, argv, cif->nargs);
 
