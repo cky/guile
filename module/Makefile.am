@@ -155,6 +155,7 @@ SCRIPTS_SOURCES =				\
   scripts/frisk.scm				\
   scripts/generate-autoload.scm			\
   scripts/lint.scm				\
+  scripts/list.scm				\
   scripts/punify.scm				\
   scripts/read-scheme-source.scm		\
   scripts/read-text-outline.scm			\

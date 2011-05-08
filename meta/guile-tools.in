@@ -24,7 +24,7 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 ;;;; Boston, MA 02110-1301 USA
 
 (define-module (guile-tools)
-  #:use-module ((srfi srfi-1) #:select (fold append-map))
+  #:use-module (ice-9 getopt-long)
   #:autoload (ice-9 format) (format))
 
 ;; Hack to provide scripts with the bug-report address.
@@ -55,146 +55,34 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 " (version) (effective-version)))
 
-(define (directory-files dir)
-  (if (and (file-exists? dir) (file-is-directory? dir))
-      (let ((dir-stream (opendir dir)))
-        (let loop ((new (readdir dir-stream))
-                   (acc '()))
-          (if (eof-object? new)
-              (begin
-                (closedir dir-stream)
-                acc)
-              (loop (readdir dir-stream)
-                    (if (or (string=? "."  new)             ; ignore
-                            (string=? ".." new))            ; ignore
-                        acc
-                        (cons new acc))))))
-      '()))
-
-(define (strip-extensions path)
-  (or-map (lambda (ext)
-            (and
-             (string-suffix? ext path)
-             (substring path 0
-                        (- (string-length path) (string-length ext)))))
-          (append %load-compiled-extensions %load-extensions)))
-
-(define (unique l)
-  (cond ((null? l) l)
-        ((null? (cdr l)) l)
-        ((equal? (car l) (cadr l)) (unique (cdr l)))
-        (else (cons (car l) (unique (cdr l))))))
-
-(define (find-submodules head)
-  (let ((shead (map symbol->string head)))
-    (unique
-     (sort
-      (append-map (lambda (path)
-                    (fold (lambda (x rest)
-                            (let ((stripped (strip-extensions x)))
-                              (if stripped (cons stripped rest) rest)))
-                          '()
-                          (directory-files
-                           (fold (lambda (x y) (in-vicinity y x)) path shead))))
-                  %load-path)
-      string<?))))
-
-(define (list-scripts)
-  (for-each (lambda (x)
-              ;; would be nice to show a summary.
-              (format #t "~A\n" x))
-            (find-submodules '(scripts))))
-
 (define (find-script s)
   (resolve-module (list 'scripts (string->symbol s)) #:ensure #f))
-
-(define (getopt args grammar)
-  (define (fail)
-    (format (current-error-port)
-            "Try `guile-tools --help' for more information.~%")
-    (exit 1))
-
-  (define (unrecognized-arg arg)
-    (format (current-error-port)
-            "guile-tools: unrecognized option: `~a'~%" arg)
-    (fail))
-
-  (define (unexpected-value sym val)
-    (format (current-error-port)
-            "guile-tools: option `--~a' does not take an argument (given ~s)~%"
-            sym val)
-    (fail))
-
-  (define (single-char-table grammar)
-    (cond
-     ((null? grammar) '())
-     ((assq 'single-char (cdar grammar))
-      => (lambda (form)
-           (acons (cadr form) (car grammar)
-                  (single-char-table (cdr grammar)))))
-     (else
-      (single-char-table (cdr grammar)))))
-  
-  (let ((single (single-char-table grammar)))
-    (let lp ((args (cdr args)) (options '()))
-      (cond
-       ((or (null? args) (equal? (car args) "-"))
-        (values (reverse options) args))
-       ((equal? (car args) "--")
-        (values (reverse options) (cdr args)))
-       ((string-prefix? "--" (car args))
-        (let* ((str (car args))
-               (eq (string-index str #\= 2))
-               (sym (string->symbol
-                     (substring str 2 (or eq (string-length str)))))
-               (val (and eq (substring str (1+ eq))))
-               (spec (assq sym grammar)))
-          (cond
-           ((not spec)
-            (unrecognized-arg (substring str 0 (or eq (string-length str)))))
-           (val
-            ;; no values for now
-            (unexpected-value sym val))
-           ((assq-ref (cdr spec) 'value)
-            (error "options with values not supported right now"))
-           (else
-            (lp (cdr args) (acons sym #f options))))))
-       ((string-prefix? "-" (car args))
-        (let lp* ((chars (cdr (string->list (car args)))) (options options))
-          (if (null? chars)
-              (lp (cdr args) options)
-              (let ((spec (assv-ref single (car chars))))
-                (cond
-                 ((not spec)
-                  (unrecognized-arg (string #\- (car chars))))
-                 ((assq-ref (cdr spec) 'value)
-                  (error "options with values not supported right now"))
-                 (else
-                  (lp* (cdr chars) (acons (car spec) #f options))))))))
-       (else (values (reverse options) args))))))
 
 (define (main args)
   (if (defined? 'setlocale)
       (setlocale LC_ALL ""))
 
-  (call-with-values (lambda () (getopt args *option-grammar*))
-    (lambda (options args)
-      (cond
-       ((assq 'help options)
-        (display-help)
-        (exit 0))
-       ((assq 'version options)
-        (display-version)
-        (exit 0))
-       ((or (equal? args '())
-            (equal? args '("list")))
-        (list-scripts))
-       ((find-script (car args))
-        => (lambda (mod)
-             (exit (apply (module-ref mod 'main) (cdr args)))))
-       (else
-        (format (current-error-port)
-                "guile-tools: unknown script ~s~%" (car args))
-        (format (current-error-port)
-                "Try `guile-tools --help' for more information.~%")
-        (exit 1))))))
+  (let ((options (getopt-long args *option-grammar*
+                              #:stop-at-first-non-option #t)))
+    (cond
+     ((option-ref options 'help #f)
+      (display-help)
+      (exit 0))
+     ((option-ref options 'version #f)
+      (display-version)
+      (exit 0))
+     (else
+      (let ((args (option-ref options '() '())))
+        (cond ((find-script (if (null? args)
+                                "list"
+                                (car args)))
+               => (lambda (mod)
+                    (exit (apply (module-ref mod 'main) (if (null? args)
+                                                            '()
+                                                            (cdr args))))))
+              (else
+               (format (current-error-port)
+                       "guile-tools: unknown script ~s~%" (car args))
+               (format (current-error-port)
+                       "Try `guile-tools --help' for more information.~%")
+               (exit 1))))))))
