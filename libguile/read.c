@@ -1135,7 +1135,7 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
   return SCM_UNSPECIFIED;
 }
 
-static inline SCM
+static SCM
 scm_read_shebang (scm_t_wchar chr, SCM port)
 {
   int c = 0;
