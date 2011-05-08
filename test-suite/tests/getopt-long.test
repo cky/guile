@@ -288,4 +288,15 @@
 
   )
 
+(with-test-prefix "stop-at-first-non-option"
+
+  (pass-if "guile-tools compile example"
+    (equal? (getopt-long '("guile-tools" "compile" "-Wformat" "eval.scm" "-o" "eval.go")
+                         '((help (single-char #\h))
+                           (version (single-char #\v)))
+                         #:stop-at-first-non-option #t)
+            '((() "compile" "-Wformat" "eval.scm" "-o" "eval.go"))))
+
+  )
+
 ;;; getopt-long.test ends here

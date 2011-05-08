@@ -161,6 +161,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
+  #:use-module (ice-9 optargs)
   #:export (getopt-long option-ref))
 
 (define %program-name (make-fluid))
@@ -231,7 +232,7 @@
       (regexp-exec long-opt-with-value-rx string)
       (regexp-exec long-opt-no-value-rx string)))
 
-(define (process-options specs argument-ls)
+(define (process-options specs argument-ls stop-at-first-non-option)
   ;; Use SPECS to scan ARGUMENT-LS; return (FOUND . ETC).
   ;; FOUND is an unordered list of option specs for found options, while ETC
   ;; is an order-maintained list of elements in ARGUMENT-LS that are neither
@@ -300,10 +301,14 @@
                       (eat! spec (cons (match:substring match 2) rest))
                       (fatal-error "option does not support argument: --~a"
                                    opt)))))
+          ((and stop-at-first-non-option
+                (<= unclumped 0))
+           (cons found (append (reverse etc) argument-ls)))
           (else
            (loop (- unclumped 1) rest found (cons opt etc)))))))))
 
-(define (getopt-long program-arguments option-desc-list)
+(define* (getopt-long program-arguments option-desc-list
+                      #:key stop-at-first-non-option)
   "Process options, handling both long and short options, similar to
 the glibc function 'getopt_long'.  PROGRAM-ARGUMENTS should be a value
 similar to what (program-arguments) returns.  OPTION-DESC-LIST is a
@@ -339,7 +344,8 @@ to add a `single-char' clause to the option description."
            (pair (split-arg-list (cdr program-arguments)))
            (split-ls (car pair))
            (non-split-ls (cdr pair))
-           (found/etc (process-options specifications split-ls))
+           (found/etc (process-options specifications split-ls
+                                       stop-at-first-non-option))
            (found (car found/etc))
            (rest-ls (append (cdr found/etc) non-split-ls)))
       (for-each (lambda (spec)
