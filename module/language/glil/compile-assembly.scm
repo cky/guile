@@ -94,16 +94,16 @@
            (else
             (lp (cdr in) out filename)))))))
 
+
+;; Avoid going through the compiler so as to avoid adding to the
+;; constant store.
 (define (make-meta bindings sources arities tail)
-  ;; sounds silly, but the only case in which we have no arities is when
-  ;; compiling a meta procedure.
-  (if (and (null? bindings) (null? sources) (null? arities) (null? tail))
-      #f
-      (compile-assembly
-       (make-glil-program '()
-                          (list
-                           (make-glil-const `(,bindings ,sources ,arities ,@tail))
-                           (make-glil-call 'return 1))))))
+  (let ((body `(,@(dump-object `(,bindings ,sources ,arities ,@tail) 0)
+                (return))))
+    `(load-program ()
+                   ,(addr+ 0 body)
+                   #f
+                   ,@body)))
 
 ;; A functional stack of names of live variables.
 (define (make-open-binding name boxed? index)
