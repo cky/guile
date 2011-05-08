@@ -245,7 +245,14 @@ tail."
 (define (vlist-fold-right proc init vlist)
   "Fold over @var{vlist}, calling @var{proc} for each element, starting from
 the last element."
-  (vlist-fold proc init (vlist-reverse vlist)))
+  (define len (vlist-length vlist))
+
+  (let loop ((index  (1- len))
+             (result init))
+    (if (< index 0)
+        result
+        (loop (1- index)
+              (proc (vlist-ref vlist index) result)))))
 
 (define (vlist-reverse vlist)
   "Return a new @var{vlist} whose content are those of @var{vlist} in reverse
