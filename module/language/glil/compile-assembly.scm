@@ -105,6 +105,120 @@
                    #f
                    ,@body)))
 
+;; If this is true, the object doesn't need to go in a constant table.
+;;
+(define (immediate? x)
+  (object->assembly x))
+
+;; Note: in all of these procedures that build up constant tables, the
+;; first (zeroth) index is reserved.  At runtime it is replaced with the
+;; procedure's module.  Hence all of this 1+ length business.
+
+;; Build up a vhash of constant -> index, allowing us to build up a
+;; constant table for a whole compilation unit.
+;;
+(define (build-constant-store x)
+  (define (add-to-store store x)
+    (define (add-to-end store x)
+      (vhash-cons x (1+ (vlist-length store)) store))
+    (cond
+     ((vhash-assoc x store)
+      ;; Already in the store.
+      store)
+     ((immediate? x)
+      ;; Immediates don't need to go in the constant table.
+      store)
+     ((or (number? x)
+          (string? x)
+          (symbol? x)
+          (keyword? x))
+      ;; Atoms.
+      (add-to-end store x))
+     ((variable-cache-cell? x)
+      ;; Variable cache cells (see below).
+      (add-to-end (add-to-store store (variable-cache-cell-key x))
+                  x))
+     ((list? x)
+      ;; Add the elements to the store, then the list itself.  We could
+      ;; try hashing the cdrs as well, but that seems a bit overkill, and
+      ;; this way we do compress the bytecode a bit by allowing the use of
+      ;; the `list' opcode.
+      (let ((store (fold (lambda (x store)
+                           (add-to-store store x))
+                         store
+                         x)))
+        (add-to-end store x)))
+     ((pair? x)
+      ;; Non-lists get caching on both fields.
+      (let ((store (add-to-store (add-to-store store (car x))
+                                 (cdr x))))
+        (add-to-end store x)))
+     ((and (vector? x)
+           (equal? (array-shape x) (list (list 0 (1- (vector-length x))))))
+      ;; Likewise, add the elements to the store, then the vector itself.
+      ;; Important for the vectors produced by the psyntax expansion
+      ;; process.
+      (let ((store (fold (lambda (x store)
+                           (add-to-store store x))
+                         store
+                         (vector->list x))))
+        (add-to-end store x)))
+     ((array? x)
+      ;; Naive assumption that if folks are using arrays, that perhaps
+      ;; there's not much more duplication.
+      (add-to-end store x))
+     (else
+      (error "build-constant-store: unrecognized object" x))))
+
+  (let walk ((x x) (store vlist-null))
+    (record-case x
+      ((<glil-program> meta body)
+       (fold walk store body))
+      ((<glil-const> obj)
+       (add-to-store store obj))
+      ((<glil-kw-prelude> kw)
+       (add-to-store store kw))
+      ((<glil-toplevel> op name)
+       ;; We don't add toplevel variable cache cells to the global
+       ;; constant table, because they are sensitive to changes in
+       ;; modules as the toplevel expressions are evaluated.  So we just
+       ;; add the name.
+       (add-to-store store name))
+      ((<glil-module> op mod name public?)
+       ;; However, it is fine add module variable cache cells to the
+       ;; global table, as their bindings are not dependent on the
+       ;; current module.
+       (add-to-store store
+                     (make-variable-cache-cell (list mod name public?))))
+      (else store))))
+
+;; Analyze one <glil-program> to determine its object table.  Produces a
+;; vhash of constant to index.
+;;
+(define (build-object-table x)
+  (define (add store x)
+    (vhash-cons x (1+ (vlist-length store)) store))
+  (record-case x
+    ((<glil-program> meta body)
+     (fold (lambda (x table)
+             (record-case x
+               ((<glil-program> meta body)
+                ;; Add the GLIL itself to the table.
+                (add table x))
+               ((<glil-const> obj)
+                (if (immediate? obj)
+                    table
+                    (add table obj)))
+               ((<glil-kw-prelude> kw)
+                (add table kw))
+               ((<glil-toplevel> op name)
+                (add table (make-variable-cache-cell name)))
+               ((<glil-module> op mod name public?)
+                (add table (make-variable-cache-cell (list mod name public?))))
+               (else table)))
+           vlist-null
+           body))))
+
 ;; A functional stack of names of live variables.
 (define (make-open-binding name boxed? index)
   (list name boxed? index))
