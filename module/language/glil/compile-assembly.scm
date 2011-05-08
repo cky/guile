@@ -64,13 +64,6 @@
 
 (define-record <variable-cache-cell> key)
 
-;; Subprograms can be loaded into an object table as well. We need a
-;; disjoint type here too. (Subprograms have their own object tables --
-;; though probably we should just make one table per compilation unit.)
-
-(define-record <subprogram> table prog)
-
-
 (define (limn-sources sources)
   (let lp ((in sources) (out '()) (filename #f))
     (if (null? in)
@@ -255,21 +248,6 @@
                         (lambda (x y) (< (car x) (car y)))))
       (close-all-bindings (close-binding bindings end) end)))
 
-;; A functional object table.
-(define *module* 1)
-(define (assoc-ref-or-acons alist x make-y)
-  (cond ((assoc-ref alist x)
-         => (lambda (y) (values y alist)))
-        (else
-         (let ((y (make-y x alist)))
-           (values y (acons x y alist))))))
-(define (object-index-and-alist x alist)
-  (assoc-ref-or-acons alist x
-                      (lambda (x alist)
-                        (+ (length alist) *module*))))
-(define (make-object-table objects)
-  (and (not (null? objects))
-       (list->vector (cons #f objects))))
 
 ;; A functional arities thingamajiggy.
 ;; arities := ((ip nreq [[nopt] [[rest] [kw]]]]) ...)
@@ -736,11 +714,6 @@
   (cond
    ((object->assembly x) => list)
    ((variable-cache-cell? x) (dump-object (variable-cache-cell-key x) addr))
-   ((subprogram? x)
-    (let ((table-code (dump-object (subprogram-table x) addr)))
-      `(,@table-code
-        ,@(align-program (subprogram-prog x)
-                         (addr+ addr table-code)))))
    ((number? x)
     `((load-number ,(number->string x))))
    ((string? x)
