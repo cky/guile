@@ -301,6 +301,13 @@
            (alist  (fold alist-cons '() keys values)))
       (equal? alist (reverse (vhash-fold alist-cons '() vh)))))
 
+  (pass-if "vhash-fold-right"
+    (let* ((keys   '(a b c d e f g d h i))
+           (values '(1 2 3 4 5 6 7 0 8 9))
+           (vh     (fold vhash-cons vlist-null keys values))
+           (alist  (fold alist-cons '() keys values)))
+      (equal? alist (vhash-fold-right alist-cons '() vh))))
+
   (pass-if "alist->vhash"
     (let* ((keys   '(a b c d e f g d h i))
            (values '(1 2 3 4 5 6 7 0 8 9))
