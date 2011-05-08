@@ -190,7 +190,9 @@
 ;;
 (define (build-object-table x)
   (define (add store x)
-    (vhash-cons x (1+ (vlist-length store)) store))
+    (if (vhash-assoc x store)
+        store
+        (vhash-cons x (1+ (vlist-length store)) store)))
   (record-case x
     ((<glil-program> meta body)
      (fold (lambda (x table)
