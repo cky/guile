@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -26,9 +26,35 @@
   #:use-module (system vm instruction)
   #:use-module ((system vm program) #:select (make-binding))
   #:use-module (ice-9 receive)
+  #:use-module (ice-9 vlist)
   #:use-module ((srfi srfi-1) #:select (fold))
   #:use-module (rnrs bytevectors)
   #:export (compile-assembly))
+
+;; Traversal helpers
+;;
+(define (vhash-fold-right2 proc vhash s0 s1)
+  (let lp ((i (vlist-length vhash)) (s0 s0) (s1 s1))
+    (if (zero? i)
+        (values s0 s1)
+        (receive (s0 s1) (let ((pair (vlist-ref vhash (1- i))))
+                           (proc (car pair) (cdr pair) s0 s1))
+          (lp (1- i) s0 s1)))))
+
+(define (fold2 proc ls s0 s1)
+  (let lp ((ls ls) (s0 s0) (s1 s1))
+    (if (null? ls)
+        (values s0 s1)
+        (receive (s0 s1) (proc (car ls) s0 s1)
+          (lp (cdr ls) s0 s1)))))
+
+(define (vector-fold2 proc vect s0 s1)
+  (let ((len (vector-length vect)))
+    (let lp ((i 0) (s0 s0) (s1 s1))
+      (if (< i len)
+          (receive (s0 s1) (proc (vector-ref vect i) s0 s1)
+            (lp (1+ i) s0 s1))
+          (values s0 s1)))))
 
 ;; Variable cache cells go in the object table, and serialize as their
 ;; keys. The reason we wrap the keys in these records is so they don't
