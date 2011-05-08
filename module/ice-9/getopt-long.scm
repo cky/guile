@@ -179,8 +179,6 @@
   option-spec?
   (name
    option-spec->name set-option-spec-name!)
-  (value 
-   option-spec->value set-option-spec-value!)
   (required?
    option-spec->required? set-option-spec-required?!)
   (option-spec->single-char
@@ -268,30 +266,20 @@
                      (remove-if-not option-spec->single-char specs))))
     (let loop ((argument-ls argument-ls) (found '()) (etc '()))
       (define (eat! spec ls)
-        (define (val!loop val n-ls n-found n-etc)
-          (set-option-spec-value!
-           spec
-           ;; handle multiple occurrences
-           (cond ((option-spec->value spec)
-                  => (lambda (cur)
-                       ((if (list? cur) cons list)
-                        val cur)))
-                 (else val)))
-          (loop n-ls n-found n-etc))
         (cond
          ((eq? 'optional (option-spec->value-policy spec))
           (if (or (null? ls)
                   (looks-like-an-option (car ls)))
-              (val!loop #t ls (cons spec found) etc)
-              (val!loop (car ls) (cdr ls) (cons spec found) etc)))
+              (loop ls (acons spec #t found) etc)
+              (loop (cdr ls) (acons spec (car ls) found) etc)))
          ((eq? #t (option-spec->value-policy spec))
           (if (or (null? ls)
                   (looks-like-an-option (car ls)))
               (fatal-error "option must be specified with argument: --~a"
                            (option-spec->name spec))
-              (val!loop (car ls) (cdr ls) (cons spec found) etc)))
+              (loop (cdr ls) (acons spec (car ls) found) etc)))
          (else
-          (val!loop #t ls (cons spec found) etc))))
+          (loop ls (acons spec #t found) etc))))
       
       (match argument-ls
         (()
@@ -363,37 +351,19 @@ to add a `single-char' clause to the option description."
            (rest-ls (append (cdr found/etc) non-split-ls)))
       (for-each (lambda (spec)
                   (let ((name (option-spec->name spec))
-                        (val (option-spec->value spec)))
+                        (val (assq-ref found spec)))
                     (and (option-spec->required? spec)
-                         (or (memq spec found)
+                         (or val
                              (fatal-error "option must be specified: --~a"
                                           name)))
-                    (and (memq spec found)
-                         (eq? #t (option-spec->value-policy spec))
-                         (or val
-                             (fatal-error
-                              "option must be specified with argument: --~a"
-                              name)))
                     (let ((pred (option-spec->predicate spec)))
                       (and pred (pred name val)))))
                 specifications)
-      (cons (cons '() rest-ls)
-            (let ((multi-count (map (lambda (desc)
-                                      (cons (car desc) 0))
-                                    option-desc-list)))
-              (map (lambda (spec)
-                     (let ((name (string->symbol (option-spec->name spec))))
-                       (cons name
-                             ;; handle multiple occurrences
-                             (let ((maybe-ls (option-spec->value spec)))
-                               (if (list? maybe-ls)
-                                   (let* ((look (assq name multi-count))
-                                          (idx (cdr look))
-                                          (val (list-ref maybe-ls idx)))
-                                     (set-cdr! look (1+ idx)) ; ugh!
-                                     val)
-                                   maybe-ls)))))
-                   found))))))
+      (for-each (lambda (spec+val)
+                  (set-car! spec+val
+                            (string->symbol (option-spec->name (car spec+val)))))
+                found)
+      (cons (cons '() rest-ls) found))))
 
 (define (option-ref options key default)
   "Return value in alist OPTIONS using KEY, a symbol; or DEFAULT if not found.
