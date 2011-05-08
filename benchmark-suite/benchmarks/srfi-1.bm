@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;; SRFI-1.
 ;;;
-;;; Copyright 2010 Free Software Foundation, Inc.
+;;; Copyright 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -45,3 +45,20 @@
 
   (benchmark "small" 2000000
     (drop-while (lambda (n) #t) %small-list)))
+
+(with-benchmark-prefix "map"
+
+  (benchmark "big" 30
+    (map (lambda (x) x) %big-list))
+
+  (benchmark "small" 2000000
+    (map (lambda (x) x) %small-list)))
+
+(with-benchmark-prefix "for-each"
+
+  (benchmark "big" 30
+    (for-each (lambda (x) #f) %big-list))
+
+  (benchmark "small" 2000000
+    (for-each (lambda (x) #f) %small-list)))
+
