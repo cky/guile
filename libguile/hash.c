@@ -26,6 +26,7 @@
 #include <wchar.h>
 #endif
 
+#include <math.h>
 #include <unistr.h>
 
 #include "libguile/_scm.h"
@@ -192,7 +193,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       case scm_tc16_real:
 	{
 	  double r = SCM_REAL_VALUE (obj);
-	  if (floor (r) == r) 
+	  if (floor (r) == r && !isinf (r) && !isnan (r))
 	    {
 	      obj = scm_inexact_to_exact (obj);
 	      return scm_to_ulong (scm_modulo (obj, scm_from_ulong (n)));
