@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -72,8 +72,17 @@
 
 ;;;; Deprecated definitions.
 
-(define substring-move-left! substring-move!)
-(define substring-move-right! substring-move!)
+(define substring-move-left!
+  (lambda args
+    (issue-deprecation-warning
+     "`substring-move-left!' is deprecated.  Use `substring-move!' instead.")
+    (apply substring-move! args)))
+(define substring-move-right!
+  (lambda args
+    (issue-deprecation-warning
+     "`substring-move-right!' is deprecated.  Use `substring-move!' instead.")
+    (apply substring-move! args)))
+
 
 
 ;; This method of dynamically linking Guile Extensions is deprecated.
@@ -136,18 +145,17 @@
 	  registered-modules))
 
 (define (dynamic-maybe-call name dynobj)
-  (catch #t				; could use false-if-exception here
-	 (lambda ()
-	   (dynamic-call name dynobj))
-	 (lambda args
-	   #f)))
+  (issue-deprecation-warning
+   "`dynamic-maybe-call' is deprecated.  "
+   "Wrap `dynamic-call' in a `false-if-exception' yourself.")
+  (false-if-exception (dynamic-call name dynobj)))
+
 
 (define (dynamic-maybe-link filename)
-  (catch #t				; could use false-if-exception here
-	 (lambda ()
-	   (dynamic-link filename))
-	 (lambda args
-	   #f)))
+  (issue-deprecation-warning
+   "`dynamic-maybe-link' is deprecated.  "
+   "Wrap `dynamic-link' in a `false-if-exception' yourself.")
+  (false-if-exception (dynamic-link filename)))
 
 (define (find-and-link-dynamic-module module-name)
   (define (make-init-name mod-name)
@@ -212,9 +220,15 @@
     (register-modules dynobj)))
 
 (define (try-module-linked module-name)
+  (issue-deprecation-warning
+   "`try-module-linked' is deprecated."
+   "See the manual for how more on C extensions.")
   (init-dynamic-module module-name))
 
 (define (try-module-dynamic-link module-name)
+  (issue-deprecation-warning
+   "`try-module-dynamic-link' is deprecated."
+   "See the manual for how more on C extensions.")
   (and (find-and-link-dynamic-module module-name)
        (init-dynamic-module module-name)))
 
@@ -262,22 +276,70 @@
    "`unmemoize-expr' is deprecated. Use `unmemoize-expression' instead.")
   (apply unmemoize-expression args))
 
-(define ($asinh z) (asinh z))
-(define ($acosh z) (acosh z))
-(define ($atanh z) (atanh z))
-(define ($sqrt z) (sqrt z))
-(define ($abs z) (abs z))
-(define ($exp z) (exp z))
-(define ($log z) (log z))
-(define ($sin z) (sin z))
-(define ($cos z) (cos z))
-(define ($tan z) (tan z))
-(define ($asin z) (asin z))
-(define ($acos z) (acos z))
-(define ($atan z) (atan z))
-(define ($sinh z) (sinh z))
-(define ($cosh z) (cosh z))
-(define ($tanh z) (tanh z))
+(define ($asinh z)
+  (issue-deprecation-warning
+   "`$asinh' is deprecated.  Use `asinh' instead.")
+  (asinh z))
+(define ($acosh z)
+  (issue-deprecation-warning
+   "`$acosh' is deprecated.  Use `acosh' instead.")
+  (acosh z))
+(define ($atanh z)
+  (issue-deprecation-warning
+   "`$atanh' is deprecated.  Use `atanh' instead.")
+  (atanh z))
+(define ($sqrt z)
+  (issue-deprecation-warning
+   "`$sqrt' is deprecated.  Use `sqrt' instead.")
+  (sqrt z))
+(define ($abs z)
+  (issue-deprecation-warning
+   "`$abs' is deprecated.  Use `abs' instead.")
+  (abs z))
+(define ($exp z)
+  (issue-deprecation-warning
+   "`$exp' is deprecated.  Use `exp' instead.")
+  (exp z))
+(define ($log z)
+  (issue-deprecation-warning
+   "`$log' is deprecated.  Use `log' instead.")
+  (log z))
+(define ($sin z)
+  (issue-deprecation-warning
+   "`$sin' is deprecated.  Use `sin' instead.")
+  (sin z))
+(define ($cos z)
+  (issue-deprecation-warning
+   "`$cos' is deprecated.  Use `cos' instead.")
+  (cos z))
+(define ($tan z)
+  (issue-deprecation-warning
+   "`$tan' is deprecated.  Use `tan' instead.")
+  (tan z))
+(define ($asin z)
+  (issue-deprecation-warning
+   "`$asin' is deprecated.  Use `asin' instead.")
+  (asin z))
+(define ($acos z)
+  (issue-deprecation-warning
+   "`$acos' is deprecated.  Use `acos' instead.")
+  (acos z))
+(define ($atan z)
+  (issue-deprecation-warning
+   "`$atan' is deprecated.  Use `atan' instead.")
+  (atan z))
+(define ($sinh z)
+  (issue-deprecation-warning
+   "`$sinh' is deprecated.  Use `sinh' instead.")
+  (sinh z))
+(define ($cosh z)
+  (issue-deprecation-warning
+   "`$cosh' is deprecated.  Use `cosh' instead.")
+  (cosh z))
+(define ($tanh z)
+  (issue-deprecation-warning
+   "`$tanh' is deprecated.  Use `tanh' instead.")
+  (tanh z))
 
 (define (closure? x)
   (issue-deprecation-warning
@@ -704,6 +766,9 @@ it.")
     (error "missing argument to define-module keyword" kw))
   (define (unrecognized arg)
     (error "unrecognized define-module argument" arg))
+
+  (issue-deprecation-warning
+   "`process-define-module' is deprecated.  Use `define-module*' instead.")
 
   (let ((name (car args))
         (filename #f)
