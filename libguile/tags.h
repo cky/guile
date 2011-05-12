@@ -74,10 +74,9 @@ typedef scm_t_uintptr scm_t_bits;
  * desired level of type checking, be defined in several ways:
  */
 #if (SCM_DEBUG_TYPING_STRICTNESS == 2)
-    typedef union { struct { scm_t_bits n; } n; } SCM;
-    static SCM scm_pack(scm_t_bits b) { SCM s; s.n.n = b; return s; }
+typedef union SCM { struct { scm_t_bits n; } n; } SCM;
 #   define SCM_UNPACK(x) ((x).n.n)
-#   define SCM_PACK(x) (scm_pack ((scm_t_bits) (x)))
+#   define SCM_PACK(x) ((SCM) { { (scm_t_bits) (x) } })
 #elif (SCM_DEBUG_TYPING_STRICTNESS == 1)
 /* This is the default, which provides an intermediate level of compile time
  * type checking while still resulting in very efficient code.

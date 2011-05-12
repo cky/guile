@@ -30,7 +30,7 @@
 #define SCM_FUNC_CAST_ARBITRARY_ARGS  scm_t_subr
 
 
-#if (defined SCM_ALIGNED) && (SCM_DEBUG_TYPING_STRICTNESS <= 1)
+#ifdef SCM_ALIGNED
 /* We support static allocation of some `SCM' objects.  */
 # define SCM_SUPPORT_STATIC_ALLOCATION
 #endif
@@ -359,7 +359,7 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
 			     (scm_t_bits) &scm_i_paste (c_name,		\
 							_stringbuf),	\
 			     (scm_t_bits) 0,				\
-			     (scm_t_bits) sizeof (contents) - 1)
+                             (scm_t_bits) (sizeof (contents) - 1))
 
 #define SCM_IMMUTABLE_POINTER(c_name, ptr)		\
   SCM_IMMUTABLE_CELL (c_name, scm_tc7_pointer, ptr)
@@ -375,11 +375,16 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
   };									\
 
 #define SCM_STATIC_PROGRAM(c_name, objcode, objtable, freevars)         \
-  SCM_STATIC_DOUBLE_CELL (c_name,                                       \
-                          scm_tc7_program | SCM_F_PROGRAM_IS_PRIMITIVE,	\
-                          (scm_t_bits) objcode,                         \
-                          (scm_t_bits) objtable,                        \
-                          (scm_t_bits) freevars)
+  static SCM_ALIGNED (8) SCM_UNUSED SCM                                 \
+       scm_i_paste (c_name, _raw_cell)[] =                              \
+  {                                                                     \
+    SCM_PACK (scm_tc7_program | SCM_F_PROGRAM_IS_PRIMITIVE),            \
+    objcode,                                                            \
+    objtable,                                                           \
+    freevars                                                            \
+  };                                                                    \
+  static SCM_UNUSED const SCM c_name =                                  \
+    SCM_PACK (& scm_i_paste (c_name, _raw_cell))
 
 #endif /* SCM_SUPPORT_STATIC_ALLOCATION */
 
