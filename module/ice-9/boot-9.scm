@@ -682,7 +682,7 @@ If there is no handler at all, Guile prints an error and then exits."
           (let ((filename (or (cadr source) "<unnamed port>"))
                 (line (caddr source))
                 (col (cdddr source)))
-            (format port "~a:~a:~a: " filename line col))
+            (format port "~a:~a:~a: " filename (1+ line) col))
           (format port "ERROR: "))))
 
   (set! set-exception-printer!
