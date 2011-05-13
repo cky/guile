@@ -140,8 +140,8 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM alist)
   
   SCM_RETURN_NEWSMOB3 (scm_tc16_srcprops,
 		       SRCPROPMAKPOS (line, col),
-		       copy,
-		       alist);
+		       SCM_UNPACK (copy),
+		       SCM_UNPACK (alist));
 }
 
 

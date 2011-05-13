@@ -102,7 +102,8 @@
  */
 
 static scm_t_bits scm_tc16_boot_closure;
-#define RETURN_BOOT_CLOSURE(code, env) SCM_RETURN_NEWSMOB2 (scm_tc16_boot_closure, (code), (env))
+#define RETURN_BOOT_CLOSURE(code, env) \
+  SCM_RETURN_NEWSMOB2 (scm_tc16_boot_closure, SCM_UNPACK (code), SCM_UNPACK (env))
 #define BOOT_CLOSURE_P(obj) SCM_TYP16_PREDICATE (scm_tc16_boot_closure, (obj))
 #define BOOT_CLOSURE_CODE(x) SCM_SMOB_OBJECT (x)
 #define BOOT_CLOSURE_ENV(x) SCM_SMOB_OBJECT_2 (x)

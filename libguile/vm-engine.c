@@ -89,17 +89,17 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
 
     /* Initial frame */
     CACHE_REGISTER ();
-    PUSH ((SCM)fp); /* dynamic link */
-    PUSH (0); /* mvra */
-    PUSH ((SCM)ip); /* ra */
+    PUSH (SCM_PACK (fp)); /* dynamic link */
+    PUSH (SCM_PACK (0)); /* mvra */
+    PUSH (SCM_PACK (ip)); /* ra */
     CACHE_PROGRAM ();
     PUSH (program);
     fp = sp + 1;
     ip = SCM_C_OBJCODE_BASE (bp);
     /* MV-call frame, function & arguments */
-    PUSH (0); /* dynamic link */
-    PUSH (0); /* mvra */
-    PUSH (0); /* ra */
+    PUSH (SCM_PACK (0)); /* dynamic link */
+    PUSH (SCM_PACK (0)); /* mvra */
+    PUSH (SCM_PACK (0)); /* ra */
     PUSH (prog);
     if (SCM_UNLIKELY (sp + nargs >= stack_limit))
       goto vm_error_too_many_args;

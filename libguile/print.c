@@ -525,7 +525,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    if (SCM_OBJ_CLASS_FLAGS (exp) & SCM_CLASSF_GOOPS)
 	      {
 		SCM pwps, print = pstate->writingp ? g_write : g_display;
-		if (!print)
+		if (SCM_UNPACK (print) == 0)
 		  goto print_struct;
 		pwps = scm_i_port_with_print_state (port, pstate->handle);
 		pstate->revealed = 1;

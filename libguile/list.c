@@ -35,10 +35,10 @@
 
 /* creating lists */
 
-#define SCM_I_CONS(cell, x, y)			\
-do {						\
-  cell = scm_cell ((scm_t_bits)x, (scm_t_bits)y);			\
-} while (0)
+#define SCM_I_CONS(cell, x, y)                          \
+  do {                                                  \
+    cell = scm_cell (SCM_UNPACK (x), SCM_UNPACK (y));   \
+  } while (0)
 
 SCM
 scm_list_1 (SCM e1)

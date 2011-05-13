@@ -947,7 +947,7 @@ SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
 	{
 	  handle = SCM_CAR (ls);
 
-	  if (SCM_CAR (handle) == SCM_PACK (NULL))
+	  if (SCM_UNPACK (SCM_CAR (handle)) == 0)
 	    {
 	      /* FIXME: We hit a weak pair whose car has become unreachable.
 		 We should remove the pair in question or something.  */

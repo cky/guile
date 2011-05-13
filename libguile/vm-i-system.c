@@ -765,9 +765,9 @@ VM_DEFINE_INSTRUCTION (52, new_frame, "new-frame", 0, 0, 3)
      know that this frame will point to the current fp: it could be
      placed elsewhere on the stack if captured in a partial
      continuation, and invoked from some other context.  */
-  PUSH (0); /* dynamic link */
-  PUSH (0); /* mvra */
-  PUSH (0); /* ra */
+  PUSH (SCM_PACK (0)); /* dynamic link */
+  PUSH (SCM_PACK (0)); /* mvra */
+  PUSH (SCM_PACK (0)); /* ra */
   NEXT;
 }
 
@@ -1182,9 +1182,9 @@ VM_DEFINE_INSTRUCTION (65, call_cc, "call/cc", 0, 1, 1)
   cont = scm_i_make_continuation (&first, vm, vm_cont);
   if (first) 
     {
-      PUSH (0); /* dynamic link */
-      PUSH (0);  /* mvra */
-      PUSH (0);  /* ra */
+      PUSH (SCM_PACK (0)); /* dynamic link */
+      PUSH (SCM_PACK (0));  /* mvra */
+      PUSH (SCM_PACK (0));  /* ra */
       PUSH (proc);
       PUSH (cont);
       nargs = 1;

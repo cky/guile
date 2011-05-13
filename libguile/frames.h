@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -70,15 +70,15 @@
 #define SCM_FRAME_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
 #define SCM_FRAME_SET_RETURN_ADDRESS(fp, ra)			\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[2])) = (SCM)(ra);
+  ((SCM_FRAME_DATA_ADDRESS (fp)[2])) = SCM_PACK (ra)
 #define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
   (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[1]))
 #define SCM_FRAME_SET_MV_RETURN_ADDRESS(fp, mvra)		\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = (SCM)(mvra);
+  ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = SCM_PACK (mvra)
 #define SCM_FRAME_DYNAMIC_LINK(fp)				\
   (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[0]))
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)			\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[0])) = (SCM)(dl);
+  ((SCM_FRAME_DATA_ADDRESS (fp)[0])) = SCM_PACK (dl)
 #define SCM_FRAME_VARIABLE(fp,i)	SCM_FRAME_STACK_ADDRESS (fp)[i]
 #define SCM_FRAME_PROGRAM(fp)		SCM_FRAME_STACK_ADDRESS (fp)[-1]
 

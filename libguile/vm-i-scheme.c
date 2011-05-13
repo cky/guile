@@ -168,15 +168,15 @@ VM_DEFINE_INSTRUCTION (144, set_cdr, "set-cdr!", 0, 2, 0)
  */
 
 #undef REL
-#define REL(crel,srel)						\
-{								\
-  ARGS2 (x, y);							\
-  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))			\
-    RETURN (scm_from_bool ((scm_t_signed_bits) (x)		\
-			   crel (scm_t_signed_bits) (y)));	\
-  SYNC_REGISTER ();						\
-  RETURN (srel (x, y));						\
-}
+#define REL(crel,srel)                                                  \
+  {                                                                     \
+    ARGS2 (x, y);                                                       \
+    if (SCM_I_INUMP (x) && SCM_I_INUMP (y))                             \
+      RETURN (scm_from_bool (((scm_t_signed_bits) SCM_UNPACK (x))       \
+                             crel ((scm_t_signed_bits) SCM_UNPACK (y)))); \
+    SYNC_REGISTER ();                                                   \
+    RETURN (srel (x, y));						\
+  }
 
 VM_DEFINE_FUNCTION (145, ee, "ee?", 2)
 {
@@ -297,13 +297,13 @@ VM_DEFINE_FUNCTION (151, add1, "add1", 1)
   ARGS1 (x);
 
   /* Check for overflow.  */
-  if (SCM_LIKELY ((scm_t_intptr) x < INUM_MAX))
+  if (SCM_LIKELY ((scm_t_intptr) SCM_UNPACK (x) < INUM_MAX))
     {
       SCM result;
 
       /* Add the integers without untagging.  */
-      result = SCM_PACK ((scm_t_intptr) x
-			 + (scm_t_intptr) SCM_I_MAKINUM (1)
+      result = SCM_PACK ((scm_t_intptr) SCM_UNPACK (x)
+			 + (scm_t_intptr) SCM_UNPACK (SCM_I_MAKINUM (1))
 			 - scm_tc2_int);
 
       if (SCM_LIKELY (SCM_I_INUMP (result)))
@@ -331,13 +331,13 @@ VM_DEFINE_FUNCTION (153, sub1, "sub1", 1)
   ARGS1 (x);
 
   /* Check for underflow.  */
-  if (SCM_LIKELY ((scm_t_intptr) x > INUM_MIN))
+  if (SCM_LIKELY ((scm_t_intptr) SCM_UNPACK (x) > INUM_MIN))
     {
       SCM result;
 
       /* Substract the integers without untagging.  */
-      result = SCM_PACK ((scm_t_intptr) x
-			 - (scm_t_intptr) SCM_I_MAKINUM (1)
+      result = SCM_PACK ((scm_t_intptr) SCM_UNPACK (x)
+			 - (scm_t_intptr) SCM_UNPACK (SCM_I_MAKINUM (1))
 			 + scm_tc2_int);
 
       if (SCM_LIKELY (SCM_I_INUMP (result)))

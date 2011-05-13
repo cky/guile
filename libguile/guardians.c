@@ -151,7 +151,7 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
       cell_pool = SCM_CDR (cell_pool);
 
       /* Compute and update G's zombie list.  */
-      SCM_SETCAR (zombies, SCM_PACK (obj));
+      SCM_SETCAR (zombies, obj);
       SCM_SETCDR (zombies, g->zombies);
       g->zombies = zombies;
 

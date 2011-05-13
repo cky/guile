@@ -3,7 +3,7 @@
 #ifndef SCM_WEAKS_H
 #define SCM_WEAKS_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2003, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2003, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,7 +50,7 @@ SCM_INTERNAL SCM scm_doubly_weak_pair (SCM car, SCM cdr);
 
 /* Testing the weak component(s) of a cell for reachability.  */
 #define SCM_WEAK_PAIR_WORD_DELETED_P(_cell, _word)		\
-  (SCM_CELL_OBJECT ((_cell), (_word)) == SCM_PACK (NULL))
+  (SCM_UNPACK (SCM_CELL_OBJECT ((_cell), (_word))) == 0)
 #define SCM_WEAK_PAIR_CAR_DELETED_P(_cell)	\
   (SCM_WEAK_PAIR_WORD_DELETED_P ((_cell), 0))
 #define SCM_WEAK_PAIR_CDR_DELETED_P(_cell)	\

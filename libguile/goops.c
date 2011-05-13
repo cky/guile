@@ -293,7 +293,8 @@ SCM_DEFINE (scm_class_of, "class-of", 1, 0, 0,
 	    return scm_class_fraction;
           }
 	case scm_tc7_program:
-	  if (SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x) && *SCM_SUBR_GENERIC (x))
+	  if (SCM_PROGRAM_IS_PRIMITIVE_GENERIC (x)
+              && SCM_UNPACK (*SCM_SUBR_GENERIC (x)))
 	    return scm_class_primitive_generic;
 	  else
 	    return scm_class_procedure;
@@ -494,8 +495,8 @@ compute_getters_n_setters (SCM slots)
       SCM options = SCM_CDAR (slots);
       if (!scm_is_null (options))
 	{
-	  init = scm_get_keyword (k_init_value, options, 0);
-	  if (init)
+	  init = scm_get_keyword (k_init_value, options, SCM_PACK (0));
+	  if (SCM_UNPACK (init))
             {
               init = scm_primitive_eval (scm_list_3 (scm_sym_lambda,
                                                      SCM_EOL,
@@ -592,7 +593,7 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
        get_n_set = SCM_CDR (get_n_set), slots = SCM_CDR (slots))
     {
       SCM slot_name  = SCM_CAR (slots);
-      SCM slot_value = 0;
+      SCM slot_value = SCM_PACK (0);
 
       if (!scm_is_null (SCM_CDR (slot_name)))
 	{
@@ -604,10 +605,10 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	  tmp 	= scm_i_get_keyword (k_init_keyword,
 				     SCM_CDR (slot_name),
 				     n,
-				     0,
+				     SCM_PACK (0),
 				     FUNC_NAME);
 	  slot_name = SCM_CAR (slot_name);
-	  if (tmp)
+	  if (SCM_UNPACK (tmp))
 	    {
 	      /* an initarg was provided for this slot */
 	      if (!scm_is_keyword (tmp))
@@ -616,12 +617,12 @@ SCM_DEFINE (scm_sys_initialize_object, "%initialize-object", 2, 0, 0,
 	      slot_value = scm_i_get_keyword (tmp,
 					      initargs,
 					      n_initargs,
-					      0,
+					      SCM_PACK (0),
 					      FUNC_NAME);
 	    }
 	}
 
-      if (slot_value)
+      if (SCM_UNPACK (slot_value))
 	/* set slot to provided value */
 	set_slot_value (class, obj, SCM_CAR (get_n_set), slot_value);
       else
@@ -1775,7 +1776,7 @@ SCM_DEFINE (scm_primitive_generic_generic, "primitive-generic-generic", 1, 0, 0,
 {
   if (SCM_PRIMITIVE_GENERIC_P (subr))
     {
-      if (!*SCM_SUBR_GENERIC (subr))
+      if (!SCM_UNPACK (*SCM_SUBR_GENERIC (subr)))
 	scm_enable_primitive_generic_x (scm_list_1 (subr));
       return *SCM_SUBR_GENERIC (subr);
     }
@@ -1802,7 +1803,7 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
   if (goops_loaded_p)
     {
       SCM gf, gext;
-      if (!*SCM_SUBR_GENERIC (extended))
+      if (!SCM_UNPACK (*SCM_SUBR_GENERIC (extended)))
 	scm_enable_primitive_generic_x (scm_list_1 (extended));
       gf = *SCM_SUBR_GENERIC (extended);
       gext = scm_call_2 (SCM_VARIABLE_REF (scm_var_make_extended_generic),

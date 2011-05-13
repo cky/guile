@@ -64,7 +64,8 @@ SCM_SYMBOL (sym_case_lambda_star, "case-lambda*");
 
 scm_t_bits scm_tc16_memoized;
 
-#define MAKMEMO(n, args) 	(scm_cell (scm_tc16_memoized | ((n) << 16), (scm_t_bits)(args)))
+#define MAKMEMO(n, args)                                                \
+  (scm_cell (scm_tc16_memoized | ((n) << 16), SCM_UNPACK (args)))
 
 #define MAKMEMO_BEGIN(exps) \
   MAKMEMO (SCM_M_BEGIN, exps)
@@ -448,13 +449,13 @@ SCM_DEFINE (scm_memoize_expression, "memoize-expression", 1, 0, 0,
 
 #define SCM_MAKE_MEMOIZER(STR, MEMOIZER, N)                             \
   (scm_cell (scm_tc16_memoizer,                                         \
-             (scm_t_bits)(scm_c_make_gsubr (STR, N, 0, 0, MEMOIZER))))
+             SCM_UNPACK (scm_c_make_gsubr (STR, N, 0, 0, MEMOIZER))))
 #define SCM_DEFINE_MEMOIZER(STR, MEMOIZER, N)                           \
 SCM_SNARF_INIT(scm_c_define (STR, SCM_MAKE_MEMOIZER (STR, MEMOIZER, N)))
 
 #define SCM_MAKE_REST_MEMOIZER(STR, MEMOIZER, N)                        \
   (scm_cell (scm_tc16_memoizer,                                         \
-             (scm_t_bits)(scm_c_make_gsubr (STR, N, 0, 1, MEMOIZER))))
+             SCM_UNPACK ((scm_c_make_gsubr (STR, N, 0, 1, MEMOIZER)))))
 #define SCM_DEFINE_REST_MEMOIZER(STR, MEMOIZER, N)                      \
 SCM_SNARF_INIT(scm_c_define (STR, SCM_MAKE_REST_MEMOIZER (STR, MEMOIZER, N)))
 

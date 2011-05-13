@@ -163,7 +163,7 @@ reify_partial_continuation (SCM vm, SCM prompt, SCM extwinds,
   /* Since non-escape continuations should begin with a thunk application, the
      first bit of the stack should be a frame, with the saved fp equal to the fp
      that was current when the prompt was made. */
-  if ((SCM*)(SCM_PROMPT_REGISTERS (prompt)->sp[1])
+  if ((SCM*)SCM_UNPACK (SCM_PROMPT_REGISTERS (prompt)->sp[1])
       != SCM_PROMPT_REGISTERS (prompt)->fp)
     abort ();
 

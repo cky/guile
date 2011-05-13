@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -213,7 +213,7 @@ scm_c_vector_ref (SCM v, size_t k)
 	scm_out_of_range (NULL, scm_from_size_t (k));
       elt = (SCM_I_VECTOR_ELTS(v))[k];
 
-      if ((elt == SCM_PACK (NULL)) && SCM_I_WVECTP (v))
+      if (SCM_UNPACK (elt) == 0 && SCM_I_WVECTP (v))
 	/* ELT was a weak pointer and got nullified by the GC.  */
 	return SCM_BOOL_F;
 
@@ -232,7 +232,7 @@ scm_c_vector_ref (SCM v, size_t k)
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
 	  elt = (SCM_I_VECTOR_ELTS (vv))[k];
 
-	  if ((elt == SCM_PACK (NULL)) && (SCM_I_WVECTP (vv)))
+	  if (SCM_UNPACK (elt) == 0 && (SCM_I_WVECTP (vv)))
 	    /* ELT was a weak pointer and got nullified by the GC.  */
 	    return SCM_BOOL_F;
 

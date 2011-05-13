@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -64,9 +64,9 @@ scm_i_make_primitive_macro (const char *name, scm_t_macro_primitive fn)
 {
   SCM z = scm_words (scm_tc16_macro, 5);
   SCM_SET_SMOB_DATA_N (z, 1, (scm_t_bits)fn);
-  SCM_SET_SMOB_DATA_N (z, 2, scm_from_locale_symbol (name));
-  SCM_SET_SMOB_DATA_N (z, 3, SCM_BOOL_F);
-  SCM_SET_SMOB_DATA_N (z, 4, SCM_BOOL_F);
+  SCM_SET_SMOB_OBJECT_N (z, 2, scm_from_locale_symbol (name));
+  SCM_SET_SMOB_OBJECT_N (z, 3, SCM_BOOL_F);
+  SCM_SET_SMOB_OBJECT_N (z, 4, SCM_BOOL_F);
   return z;
 }
 
@@ -104,9 +104,9 @@ SCM_DEFINE (scm_make_syntax_transformer, "make-syntax-transformer", 3, 0, 0,
 
   z = scm_words (scm_tc16_macro, 5);
   SCM_SET_SMOB_DATA_N (z, 1, prim);
-  SCM_SET_SMOB_DATA_N (z, 2, name);
-  SCM_SET_SMOB_DATA_N (z, 3, type);
-  SCM_SET_SMOB_DATA_N (z, 4, binding);
+  SCM_SET_SMOB_OBJECT_N (z, 2, name);
+  SCM_SET_SMOB_OBJECT_N (z, 3, type);
+  SCM_SET_SMOB_OBJECT_N (z, 4, binding);
   return z;
 }
 #undef FUNC_NAME
