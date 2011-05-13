@@ -365,10 +365,10 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 
 /* Standard ports --- current input, output, error, and more(!).  */
 
-static SCM cur_inport_fluid = 0;
-static SCM cur_outport_fluid = 0;
-static SCM cur_errport_fluid = 0;
-static SCM cur_loadport_fluid = 0;
+static SCM cur_inport_fluid = SCM_BOOL_F;
+static SCM cur_outport_fluid = SCM_BOOL_F;
+static SCM cur_errport_fluid = SCM_BOOL_F;
+static SCM cur_loadport_fluid = SCM_BOOL_F;
 
 SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 	    (),
@@ -377,7 +377,7 @@ SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
 	    "returns the @dfn{standard input} in Unix and C terminology.")
 #define FUNC_NAME s_scm_current_input_port
 {
-  if (cur_inport_fluid)
+  if (scm_is_true (cur_inport_fluid))
     return scm_fluid_ref (cur_inport_fluid);
   else
     return SCM_BOOL_F;
@@ -392,7 +392,7 @@ SCM_DEFINE (scm_current_output_port, "current-output-port", 0, 0, 0,
 	    "Unix and C terminology.")
 #define FUNC_NAME s_scm_current_output_port
 {
-  if (cur_outport_fluid)
+  if (scm_is_true (cur_outport_fluid))
     return scm_fluid_ref (cur_outport_fluid);
   else
     return SCM_BOOL_F;
@@ -405,7 +405,7 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 	    "@dfn{standard error} in Unix and C terminology).")
 #define FUNC_NAME s_scm_current_error_port
 {
-  if (cur_errport_fluid)
+  if (scm_is_true (cur_errport_fluid))
     return scm_fluid_ref (cur_errport_fluid);
   else
     return SCM_BOOL_F;
