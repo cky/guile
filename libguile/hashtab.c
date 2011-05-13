@@ -211,8 +211,10 @@ weak_bucket_assoc (SCM table, SCM buckets, size_t bucket_index,
   SCM_SIMPLE_VECTOR_SET (buckets, bucket_index, bucket);
 
   result = assoc (object, bucket, closure);
-  assert (!scm_is_pair (result) ||
-	  !SCM_WEAK_PAIR_DELETED_P (GC_is_visible (result)));
+
+  /* If we got a result, it should not have NULL fields.  */
+  if (scm_is_pair (result) && SCM_WEAK_PAIR_DELETED_P (result))
+    abort ();
 
   scm_remember_upto_here_1 (strong_refs);
 
