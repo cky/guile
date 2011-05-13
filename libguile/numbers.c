@@ -4112,7 +4112,7 @@ SCM scm_logand (SCM n1, SCM n2)
       else if SCM_BIGP (n2)
 	{
 	intbig: 
-	  if (n1 == 0)
+	  if (nn1 == 0)
 	    return SCM_INUM0;
 	  {
 	    SCM result_z = scm_i_mkbig ();

@@ -1557,7 +1557,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
   if (!scm_is_pair(obj)) {
     return obj;
   } else {
-    SCM tmp = obj, copy;
+    SCM tmp, copy;
     /* If this sexpr is visible in the read:sharp source, we want to
        keep that information, so only record non-constant cons cells
        which haven't previously been read by the reader. */
@@ -1567,7 +1567,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
 	  {
 	    copy = scm_cons (recsexpr (SCM_CAR (obj), line, column, filename),
 			     SCM_UNDEFINED);
-	    while ((tmp = SCM_CDR (tmp)) && scm_is_pair (tmp))
+	    for (tmp = obj; scm_is_pair (tmp); tmp = SCM_CDR (tmp))
 	      {
 		SCM_SETCDR (copy, scm_cons (recsexpr (SCM_CAR (tmp),
 						      line,
@@ -1581,7 +1581,7 @@ recsexpr (SCM obj, long line, int column, SCM filename)
 	else
 	  {
 	    recsexpr (SCM_CAR (obj), line, column, filename);
-	    while ((tmp = SCM_CDR (tmp)) && scm_is_pair (tmp))
+	    for (tmp = obj; scm_is_pair (tmp); tmp = SCM_CDR (tmp))
 	      recsexpr (SCM_CAR (tmp), line, column, filename);
 	    copy = SCM_UNDEFINED;
 	  }

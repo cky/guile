@@ -2317,7 +2317,7 @@ scm_i_set_conversion_strategy_x (SCM port,
   if (scm_is_false (port))
     {
       /* Set the default encoding for future ports.  */
-      if (!scm_conversion_strategy
+      if (!scm_conversion_strategy_init
 	  || !scm_is_fluid (SCM_VARIABLE_REF (scm_conversion_strategy)))
 	scm_misc_error (NULL, "tried to set conversion strategy fluid before it is initialized",
                        SCM_EOL);
