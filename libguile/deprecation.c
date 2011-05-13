@@ -128,7 +128,7 @@ SCM_DEFINE(scm_issue_deprecation_warning,
       char *c_msgs;
       while (scm_is_pair (msgs))
 	{
-	  if (msgs_nl != SCM_EOL)
+	  if (!scm_is_null (msgs_nl))
 	    msgs_nl = scm_cons (nl, msgs_nl);
 	  msgs_nl = scm_cons (SCM_CAR (msgs), msgs_nl);
 	  msgs = SCM_CDR (msgs);

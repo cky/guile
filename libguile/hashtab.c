@@ -105,7 +105,7 @@ scm_fixup_weak_alist (SCM alist, size_t *removed_items)
 	{
 	  /* Remove from ALIST weak pair PAIR whose car/cdr has been
 	     nullified by the GC.  */
-	  if (prev == SCM_EOL)
+	  if (scm_is_null (prev))
 	    result = SCM_CDR (alist);
 	  else
 	    SCM_SETCDR (prev, SCM_CDR (alist));
@@ -1396,7 +1396,7 @@ scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
 		{
 		  /* We hit a weak pair whose car/cdr has become
 		     unreachable: unlink it from the bucket.  */
-		  if (prev != SCM_BOOL_F)
+		  if (scm_is_true (prev))
 		    SCM_SETCDR (prev, SCM_CDR (ls));
 		  else
 		    SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_CDR (ls));

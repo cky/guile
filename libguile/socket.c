@@ -1196,14 +1196,14 @@ scm_to_sockaddr (SCM address, size_t *address_size)
 	    size_t path_len = 0;
 
 	    path = SCM_SIMPLE_VECTOR_REF (address, 1);
-	    if ((!scm_is_string (path)) && (path != SCM_BOOL_F))
+	    if (!scm_is_string (path) && !scm_is_false (path))
 	      scm_misc_error (FUNC_NAME, "invalid unix address "
 			      "path: ~A", scm_list_1 (path));
 	    else
 	      {
 		struct sockaddr_un c_unix;
 
-		if (path == SCM_BOOL_F)
+		if (scm_is_false (path))
 		  path_len = 0;
 		else
 		  path_len = scm_c_string_length (path);

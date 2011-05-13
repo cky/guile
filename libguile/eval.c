@@ -211,8 +211,8 @@ truncate_values (SCM x)
    case, because further lexical contours should capture the current module.
 */
 #define CAPTURE_ENV(env)                                        \
-  ((env == SCM_EOL) ? scm_current_module () :                   \
-   ((env == SCM_BOOL_F) ? scm_the_root_module () : env))
+  (scm_is_null (env) ? scm_current_module () :                  \
+   (scm_is_false (env) ? scm_the_root_module () : env))
 
 static SCM
 eval (SCM x, SCM env)

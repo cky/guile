@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -127,7 +127,7 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
   /* Tell each guardian interested in OBJ that OBJ is no longer
      reachable.  */
   for (;
-       guardian_list != SCM_EOL;
+       !scm_is_null (guardian_list);
        guardian_list = SCM_CDR (guardian_list))
     {
       SCM zombies;
@@ -159,7 +159,7 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
       g->zombies = zombies;
     }
 
-  if (proxied_finalizer != SCM_BOOL_F)
+  if (scm_is_true (proxied_finalizer))
     {
       /* Re-register the finalizer that was in place before we installed this
 	 one.  */
@@ -257,7 +257,7 @@ scm_i_get_one_zombie (SCM guardian)
   t_guardian *g = GUARDIAN_DATA (guardian);
   SCM res = SCM_BOOL_F;
 
-  if (g->zombies != SCM_EOL)
+  if (!scm_is_null (g->zombies))
     {
       /* Note: We return zombies in reverse order.  */
       res = SCM_CAR (g->zombies);

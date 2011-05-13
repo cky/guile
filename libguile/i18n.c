@@ -1591,7 +1591,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	      if (*p == 0)
 		{
 		  /* Cyclic grouping information.  */
-		  if (last_pair != SCM_EOL)
+		  if (!scm_is_null (last_pair))
 		    SCM_SETCDR (last_pair, result);
 		}
 	    }

@@ -1702,7 +1702,7 @@ static SCM
 make_dispatch_procedure (SCM gf)
 {
   static SCM var = SCM_BOOL_F;
-  if (var == SCM_BOOL_F)
+  if (scm_is_false (var))
     var = scm_module_variable (scm_c_resolve_module ("oop goops dispatch"),
                                sym_delayed_compile);
   return scm_call_1 (SCM_VARIABLE_REF (var), gf);
@@ -2519,7 +2519,7 @@ static SCM
 make_class_from_symbol (SCM type_name_sym, SCM supers, int applicablep)
 {
   SCM class, name;
-  if (type_name_sym != SCM_BOOL_F)
+  if (scm_is_true (type_name_sym))
     {
       name = scm_string_append (scm_list_3 (scm_from_locale_string ("<"),
 					    scm_symbol_to_string (type_name_sym),
@@ -2601,12 +2601,12 @@ create_smob_classes (void)
   long i;
 
   for (i = 0; i < SCM_I_MAX_SMOB_TYPE_COUNT; ++i)
-    scm_smob_class[i] = 0;
+    scm_smob_class[i] = SCM_BOOL_F;
 
   scm_smob_class[SCM_TC2SMOBNUM (scm_tc16_keyword)] = scm_class_keyword;
 
   for (i = 0; i < scm_numsmob; ++i)
-    if (!scm_smob_class[i])
+    if (scm_is_false (scm_smob_class[i]))
       scm_smob_class[i] = scm_make_extended_class (SCM_SMOBNAME (i),
 						   scm_smobs[i].apply != 0);
 }

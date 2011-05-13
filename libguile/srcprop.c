@@ -125,15 +125,15 @@ scm_make_srcprops (long line, int col, SCM filename, SCM copy, SCM alist)
 	thread safety.
        */
       SCM last_acons = SCM_CDR (scm_last_alist_filename);
-      if (old_alist == SCM_EOL
-	  && SCM_CDAR (last_acons) == filename)
+      if (scm_is_null (old_alist)
+	  && scm_is_eq (SCM_CDAR (last_acons), filename))
 	{
 	  alist = last_acons;
 	}
       else
 	{
 	  alist = scm_acons (scm_sym_filename, filename, alist);
-	  if (old_alist == SCM_EOL)
+	  if (scm_is_null (old_alist))
 	    SCM_SETCDR (scm_last_alist_filename, alist);
 	}
     }

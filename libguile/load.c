@@ -116,7 +116,7 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 	/* Lookup and use the current reader to read the next
 	   expression. */
 	reader = scm_fluid_ref (the_reader);
-	if (reader == SCM_BOOL_F)
+	if (scm_is_false (reader))
 	  form = scm_read (port);
 	else
 	  form = scm_call_1 (reader, port);

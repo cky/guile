@@ -615,8 +615,8 @@ SCM_DEFINE (scm_setrlimit, "setrlimit", 3, 0, 0,
   
   iresource = scm_to_resource (resource, FUNC_NAME, 1);
   
-  lim.rlim_cur = (soft == SCM_BOOL_F) ? RLIM_INFINITY : scm_to_long (soft);
-  lim.rlim_max = (hard == SCM_BOOL_F) ? RLIM_INFINITY : scm_to_long (hard);
+  lim.rlim_cur = scm_is_false (soft) ? RLIM_INFINITY : scm_to_long (soft);
+  lim.rlim_max = scm_is_false (hard) ? RLIM_INFINITY : scm_to_long (hard);
 
   if (setrlimit (iresource, &lim) != 0)
     scm_syserror (FUNC_NAME);
