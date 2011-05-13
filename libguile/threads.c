@@ -607,6 +607,13 @@ typedef struct {
 #define SCM_MUTEXP(x)         SCM_SMOB_PREDICATE (scm_tc16_mutex, x)
 #define SCM_MUTEX_DATA(x)     ((fat_mutex *) SCM_SMOB_DATA (x))
 
+static SCM
+call_cleanup (void *data)
+{
+  SCM *proc_p = data;
+  return scm_call_0 (*proc_p);
+}
+  
 /* Perform thread tear-down, in guile mode.
  */
 static void *
@@ -624,7 +631,7 @@ do_thread_exit (void *v)
 
       t->cleanup_handler = SCM_BOOL_F;
       t->result = scm_internal_catch (SCM_BOOL_T,
-				      (scm_t_catch_body) scm_call_0, ptr,
+				      call_cleanup, &ptr,
 				      scm_handle_by_message_noexit, NULL);
     }
 
