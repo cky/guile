@@ -70,7 +70,7 @@ scm_t_option scm_read_opts[] = {
     "Record positions of source code expressions." },
   { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
     "Convert symbols to lower case."},
-  { SCM_OPTION_SCM, "keywords", (scm_t_bits) SCM_BOOL_F,
+  { SCM_OPTION_SCM, "keywords", (scm_t_bits) SCM_BOOL_F_BITS,
     "Style of keyword recognition: #f, 'prefix or 'postfix."},
   { SCM_OPTION_BOOLEAN, "r6rs-hex-escapes", 0,
     "Use R6RS variable-length character and string hex escapes."},

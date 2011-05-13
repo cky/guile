@@ -1,4 +1,4 @@
-/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/*	Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -40,18 +40,18 @@
  * See the comments preceeding the definitions of SCM_BOOL_F and
  * SCM_MATCHES_BITS_IN_COMMON in tags.h for more information.
  */
-verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
-		(SCM_BOOL_F, SCM_BOOL_T));
-verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
-		(SCM_ELISP_NIL, SCM_BOOL_F));
-verify (SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
-		(SCM_ELISP_NIL, SCM_EOL));
-verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
-		(SCM_ELISP_NIL, SCM_BOOL_F, SCM_BOOL_T,		\
-		 SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0));
-verify (SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
-		(SCM_ELISP_NIL, SCM_BOOL_F, SCM_EOL,		\
-		 SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE));
+verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION		\
+        (SCM_BOOL_F_BITS, SCM_BOOL_T_BITS));
+verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION     \
+        (SCM_ELISP_NIL_BITS, SCM_BOOL_F_BITS));
+verify (SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION     \
+        (SCM_ELISP_NIL_BITS, SCM_EOL_BITS));
+verify (SCM_BITS_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
+        (SCM_ELISP_NIL_BITS, SCM_BOOL_F_BITS, SCM_BOOL_T_BITS,  \
+         SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0));
+verify (SCM_BITS_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS		\
+        (SCM_ELISP_NIL_BITS, SCM_BOOL_F_BITS, SCM_EOL_BITS,     \
+         SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE));
 
 SCM_DEFINE (scm_not, "not", 1, 0, 0, 
             (SCM x),

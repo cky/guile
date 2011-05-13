@@ -464,7 +464,8 @@ enum scm_tc8_tags
 };
 
 #define SCM_ITAG8(X)		(SCM_UNPACK (X) & 0xff)
-#define SCM_MAKE_ITAG8(X, TAG)	SCM_PACK (((X) << 8) + TAG)
+#define SCM_MAKE_ITAG8_BITS(X, TAG) (((X) << 8) + TAG)
+#define SCM_MAKE_ITAG8(X, TAG)	(SCM_PACK (SCM_MAKE_ITAG8_BITS (X, TAG)))
 #define SCM_ITAG8_DATA(X)	(SCM_UNPACK (X) >> 8)
 
 
@@ -473,7 +474,7 @@ enum scm_tc8_tags
  * declarations in print.c: iflagnames.  */
 
 #define SCM_IFLAGP(n)    (SCM_ITAG8 (n) == scm_tc8_flag)
-#define SCM_MAKIFLAG(n)  SCM_MAKE_ITAG8 ((n), scm_tc8_flag)
+#define SCM_MAKIFLAG_BITS(n)  (SCM_MAKE_ITAG8_BITS ((n), scm_tc8_flag))
 #define SCM_IFLAGNUM(n)  (SCM_ITAG8_DATA (n))
 
 /*
@@ -507,25 +508,35 @@ enum scm_tc8_tags
  * defined below.  The properties are checked at compile-time using
  * `verify' macros near the top of boolean.c and pairs.c.
  */
-#define SCM_BOOL_F		SCM_MAKIFLAG (0)
-#define SCM_ELISP_NIL		SCM_MAKIFLAG (1)
+#define SCM_BOOL_F_BITS		SCM_MAKIFLAG_BITS (0)
+#define SCM_ELISP_NIL_BITS	SCM_MAKIFLAG_BITS (1)
+
+#define SCM_BOOL_F		SCM_PACK (SCM_BOOL_F_BITS)
+#define SCM_ELISP_NIL		SCM_PACK (SCM_ELISP_NIL_BITS)
 
 #ifdef BUILDING_LIBGUILE
-#define SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE	SCM_MAKIFLAG (2)
+#define SCM_XXX_ANOTHER_LISP_FALSE_DONT_USE	SCM_MAKIFLAG_BITS (2)
 #endif
 
-#define SCM_EOL			SCM_MAKIFLAG (3)
-#define SCM_BOOL_T 		SCM_MAKIFLAG (4)
+#define SCM_EOL_BITS		SCM_MAKIFLAG_BITS (3)
+#define SCM_BOOL_T_BITS 	SCM_MAKIFLAG_BITS (4)
+
+#define SCM_EOL			SCM_PACK (SCM_EOL_BITS)
+#define SCM_BOOL_T 		SCM_PACK (SCM_BOOL_T_BITS)
 
 #ifdef BUILDING_LIBGUILE
-#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0	SCM_MAKIFLAG (5)
-#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_1	SCM_MAKIFLAG (6)
-#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_2	SCM_MAKIFLAG (7)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_0	SCM_MAKIFLAG_BITS (5)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_1	SCM_MAKIFLAG_BITS (6)
+#define SCM_XXX_ANOTHER_BOOLEAN_DONT_USE_2	SCM_MAKIFLAG_BITS (7)
 #endif
 
-#define SCM_UNSPECIFIED		SCM_MAKIFLAG (8)
-#define SCM_UNDEFINED	 	SCM_MAKIFLAG (9)
-#define SCM_EOF_VAL 		SCM_MAKIFLAG (10)
+#define SCM_UNSPECIFIED_BITS	SCM_MAKIFLAG_BITS (8)
+#define SCM_UNDEFINED_BITS	SCM_MAKIFLAG_BITS (9)
+#define SCM_EOF_VAL_BITS 	SCM_MAKIFLAG_BITS (10)
+
+#define SCM_UNSPECIFIED		SCM_PACK (SCM_UNSPECIFIED_BITS)
+#define SCM_UNDEFINED	 	SCM_PACK (SCM_UNDEFINED_BITS)
+#define SCM_EOF_VAL 		SCM_PACK (SCM_EOF_VAL_BITS)
 
 /* When a variable is unbound this is marked by the SCM_UNDEFINED
  * value.  The following is an unbound value which can be handled on
@@ -535,7 +546,8 @@ enum scm_tc8_tags
  * the code which handles this value in C so that SCM_UNDEFINED can be
  * used instead.  It is not ideal to let this kind of unique and
  * strange values loose on the Scheme level.  */
-#define SCM_UNBOUND		SCM_MAKIFLAG (11)
+#define SCM_UNBOUND_BITS	SCM_MAKIFLAG_BITS (11)
+#define SCM_UNBOUND		SCM_PACK (SCM_UNBOUND_BITS)
 
 #define SCM_UNBNDP(x)		(scm_is_eq ((x), SCM_UNDEFINED))
 
@@ -574,12 +586,12 @@ enum scm_tc8_tags
 #define SCM_HAS_EXACTLY_TWO_BITS_SET(x)					\
   (SCM_HAS_EXACTLY_ONE_BIT_SET (SCM_WITH_LEAST_SIGNIFICANT_1_BIT_CLEARED (x)))
 
-#define SCM_VALUES_DIFFER_IN_EXACTLY_ONE_BIT_POSITION(a,b)		\
-  (SCM_HAS_EXACTLY_ONE_BIT_SET (SCM_UNPACK(a) ^ SCM_UNPACK(b)))
-#define SCM_VALUES_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS(a,b,c,d)		\
-  (SCM_HAS_EXACTLY_TWO_BITS_SET ((SCM_UNPACK(a) ^ SCM_UNPACK(b)) |	\
-                                 (SCM_UNPACK(b) ^ SCM_UNPACK(c)) |	\
-                                 (SCM_UNPACK(c) ^ SCM_UNPACK(d))))
+#define SCM_BITS_DIFFER_IN_EXACTLY_ONE_BIT_POSITION(a,b)		\
+  (SCM_HAS_EXACTLY_ONE_BIT_SET ((a) ^ (b)))
+#define SCM_BITS_DIFFER_IN_EXACTLY_TWO_BIT_POSITIONS(a,b,c,d)		\
+  (SCM_HAS_EXACTLY_TWO_BITS_SET (((a) ^ (b)) |                          \
+                                 ((b) ^ (c)) |                          \
+                                 ((c) ^ (d))))
 #endif /* BUILDING_LIBGUILE */
 
 
