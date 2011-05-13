@@ -1143,7 +1143,7 @@ chr_to_case (SCM chr, scm_t_locale c_locale,
   if (SCM_UNLIKELY (ret != 0))
     {
       *err = ret;
-      return NULL;
+      return SCM_BOOL_F;
     }
 
   if (convlen == 1)
@@ -1262,7 +1262,7 @@ str_to_case (SCM str, scm_t_locale c_locale,
   if (SCM_UNLIKELY (ret != 0))
     {
       *err = ret;
-      return NULL;
+      return SCM_BOOL_F;
     }
 
   convstr = scm_i_make_wide_string (convlen, &c_buf, 0);
