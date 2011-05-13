@@ -921,9 +921,21 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 	    "have no effect as far as @var{port-for-each} is concerned.") 
 #define FUNC_NAME s_scm_port_for_each
 {
+  SCM ports;
+
   SCM_VALIDATE_PROC (1, proc);
 
-  scm_c_port_for_each ((void (*)(void*,SCM))scm_call_1, proc);
+  /* Copy out the port table as a list so that we get strong references
+     to all the values.  */
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
+  ports = scm_internal_hash_fold (collect_keys, NULL,
+				  SCM_EOL, scm_i_port_weak_hash);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+
+  for (; scm_is_pair (ports); ports = scm_cdr (ports))
+    if (SCM_PORTP (SCM_CAR (ports)))
+      scm_call_1 (proc, SCM_CAR (ports));
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
