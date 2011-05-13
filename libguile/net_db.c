@@ -457,7 +457,7 @@ SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0,
 SCM_SYMBOL (sym_getaddrinfo_error, "getaddrinfo-error");
 
 /* Make sure the `AI_*' flags can be stored as INUMs.  */
-verify (SCM_I_INUM (SCM_I_MAKINUM (AI_ALL)) == AI_ALL);
+verify (AI_ALL < SCM_MOST_POSITIVE_FIXNUM);
 
 /* Valid values for the `ai_flags' to `struct addrinfo'.  */
 SCM_VARIABLE_INIT (sym_ai_passive, "AI_PASSIVE",
@@ -677,7 +677,7 @@ SCM_DEFINE (scm_getaddrinfo, "getaddrinfo", 1, 5, 0,
 #undef FUNC_NAME
 
 /* Make sure the `EAI_*' flags can be stored as INUMs.  */
-verify (SCM_I_INUM (SCM_I_MAKINUM (EAI_BADFLAGS)) == EAI_BADFLAGS);
+verify (EAI_BADFLAGS < SCM_MOST_POSITIVE_FIXNUM);
 
 /* Error codes returned by `getaddrinfo'.  */
 SCM_VARIABLE_INIT (sym_eai_badflags, "EAI_BADFLAGS",
