@@ -1599,7 +1599,7 @@ burnin (SCM o)
 static void
 go_to_hell (void *o)
 {
-  SCM obj = SCM_PACK ((scm_t_bits) o);
+  SCM obj = *(SCM*)o;
   scm_lock_mutex (hell_mutex);
   if (n_hell >= hell_size)
     {
@@ -1613,8 +1613,9 @@ go_to_hell (void *o)
 static void
 go_to_heaven (void *o)
 {
+  SCM obj = *(SCM*)o;
   scm_lock_mutex (hell_mutex);
-  hell[burnin (SCM_PACK ((scm_t_bits) o))] = hell[--n_hell];
+  hell[burnin (obj)] = hell[--n_hell];
   scm_unlock_mutex (hell_mutex);
 }
 
@@ -1622,10 +1623,9 @@ go_to_heaven (void *o)
 SCM_SYMBOL (scm_sym_change_class, "change-class");
 
 static SCM
-purgatory (void *args)
+purgatory (SCM obj, SCM new_class)
 {
-  return scm_apply_0 (SCM_VARIABLE_REF (var_change_class),
-		      SCM_PACK ((scm_t_bits) args));
+  return scm_call_2 (SCM_VARIABLE_REF (var_change_class), obj, new_class);
 }
 
 /* This function calls the generic function change-class for all
@@ -1636,9 +1636,13 @@ void
 scm_change_object_class (SCM obj, SCM old_class SCM_UNUSED, SCM new_class)
 {
   if (!burnin (obj))
-    scm_internal_dynamic_wind (go_to_hell, purgatory, go_to_heaven,
-			       (void *) SCM_UNPACK (scm_list_2 (obj, new_class)),
-			       (void *) SCM_UNPACK (obj));
+    {
+      scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+      scm_dynwind_rewind_handler (go_to_hell, &obj, SCM_F_WIND_EXPLICITLY);
+      scm_dynwind_unwind_handler (go_to_heaven, &obj, SCM_F_WIND_EXPLICITLY);
+      purgatory (obj, new_class);
+      scm_dynwind_end ();
+    }
 }
 
 /******************************************************************************
