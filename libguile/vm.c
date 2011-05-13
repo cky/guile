@@ -401,9 +401,9 @@ really_make_boot_program (long nargs)
 static SCM
 vm_make_boot_program (long nargs)
 {
-  static SCM programs[NUM_BOOT_PROGS] = { 0, };
+  static SCM programs[NUM_BOOT_PROGS] = { SCM_BOOL_F, };
 
-  if (SCM_UNLIKELY (!programs[0])) 
+  if (SCM_UNLIKELY (scm_is_false (programs[0])))
     {
       int i;
       for (i = 0; i < NUM_BOOT_PROGS; i++)
