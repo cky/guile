@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2006, 2008, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -92,7 +92,7 @@ SCM_DEFINE (scm_variable_ref, "variable-ref", 1, 0, 0,
   SCM val;
   SCM_VALIDATE_VARIABLE (1, var);
   val = SCM_VARIABLE_REF (var);
-  if (val == SCM_UNDEFINED)
+  if (scm_is_eq (val, SCM_UNDEFINED))
     SCM_MISC_ERROR ("variable is unbound: ~S", scm_list_1 (var));
   return val;
 }
@@ -130,7 +130,7 @@ SCM_DEFINE (scm_variable_bound_p, "variable-bound?", 1, 0, 0,
 #define FUNC_NAME s_scm_variable_bound_p
 {
   SCM_VALIDATE_VARIABLE (1, var);
-  return scm_from_bool (SCM_VARIABLE_REF (var) != SCM_UNDEFINED);
+  return scm_from_bool (!scm_is_eq (SCM_VARIABLE_REF (var), SCM_UNDEFINED));
 }
 #undef FUNC_NAME
 

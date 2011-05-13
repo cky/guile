@@ -410,7 +410,7 @@ scm_i_check_continuation (SCM cont)
   scm_i_thread *thread = SCM_I_CURRENT_THREAD;
   scm_t_contregs *continuation = SCM_CONTREGS (cont);
 
-  if (continuation->root != thread->continuation_root)
+  if (!scm_is_eq (continuation->root, thread->continuation_root))
     scm_misc_error
       ("%continuation-call", 
        "invoking continuation would cross continuation barrier: ~A",

@@ -462,7 +462,7 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
   signed char c_fill = '\0';
 
   SCM_VALIDATE_UINT_COPY (1, len, c_len);
-  if (fill != SCM_UNDEFINED)
+  if (!scm_is_eq (fill, SCM_UNDEFINED))
     {
       int value;
 
@@ -473,7 +473,7 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
     }
 
   bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
-  if (fill != SCM_UNDEFINED)
+  if (!scm_is_eq (fill, SCM_UNDEFINED))
     {
       unsigned i;
       signed char *contents;
@@ -1907,7 +1907,7 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
   size_t c_strlen, c_utf_len = 0;                                       \
                                                                         \
   SCM_VALIDATE_STRING (1, str);                                         \
-  if (endianness == SCM_UNDEFINED)                                      \
+  if (scm_is_eq (endianness, SCM_UNDEFINED))                            \
     endianness = scm_sym_big;                                           \
   else                                                                  \
     SCM_VALIDATE_SYMBOL (2, endianness);                                \
@@ -2020,7 +2020,7 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
   size_t c_strlen = 0, c_utf_len = 0;					\
 									\
   SCM_VALIDATE_BYTEVECTOR (1, utf);					\
-  if (endianness == SCM_UNDEFINED)					\
+  if (scm_is_eq (endianness, SCM_UNDEFINED))                            \
     endianness = scm_sym_big;						\
   else									\
     SCM_VALIDATE_SYMBOL (2, endianness);				\

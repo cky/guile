@@ -304,8 +304,8 @@ resolve_duplicate_binding (SCM module, SCM sym,
       val1 = SCM_VARIABLE_REF (var1);
       val2 = SCM_VARIABLE_REF (var2);
 
-      val1 = (val1 == SCM_UNSPECIFIED) ? SCM_BOOL_F : val1;
-      val2 = (val2 == SCM_UNSPECIFIED) ? SCM_BOOL_F : val2;
+      val1 = scm_is_eq (val1, SCM_UNSPECIFIED) ? SCM_BOOL_F : val1;
+      val2 = scm_is_eq (val2, SCM_UNSPECIFIED) ? SCM_BOOL_F : val2;
 
       handlers = SCM_MODULE_DUPLICATE_HANDLERS (module);
       if (scm_is_false (handlers))
@@ -954,7 +954,7 @@ SCM_DEFINE (scm_module_reverse_lookup, "module-reverse-lookup", 2, 0, 0,
 	    }
 	  else
 	    {
-	      if (SCM_CDR (handle) == variable)
+	      if (scm_is_eq (SCM_CDR (handle), variable))
 		return SCM_CAR (handle);
 	    }
 

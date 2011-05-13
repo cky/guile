@@ -914,7 +914,7 @@ SCM_DEFINE (scm_connect, "connect", 2, 1, 1,
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
 
-  if (address == SCM_UNDEFINED)
+  if (scm_is_eq (address, SCM_UNDEFINED))
     /* No third argument was passed to FAM_OR_SOCKADDR must actually be a
        `socket address' object.  */
     soka = scm_to_sockaddr (fam_or_sockaddr, &size);
@@ -983,7 +983,7 @@ SCM_DEFINE (scm_bind, "bind", 2, 1, 1,
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
 
-  if (address == SCM_UNDEFINED)
+  if (scm_is_eq (address, SCM_UNDEFINED))
     /* No third argument was passed to FAM_OR_SOCKADDR must actually be a
        `socket address' object.  */
     soka = scm_to_sockaddr (fam_or_sockaddr, &size);
@@ -1666,7 +1666,7 @@ SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
 	 means that the following arguments, i.e. ADDRESS and those listed in
 	 ARGS_AND_FLAGS, are the `MSG_' flags.  */
       soka = scm_to_sockaddr (fam_or_sockaddr, &size);
-      if (address != SCM_UNDEFINED)
+      if (!scm_is_eq (address, SCM_UNDEFINED))
 	args_and_flags = scm_cons (address, args_and_flags);
     }
   else

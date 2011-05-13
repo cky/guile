@@ -124,7 +124,7 @@ SCM_VARIABLE (scm_var_make_extended_generic, "make-extended-generic");
 #define NXT_MTHD_ARGS(m)	(SCM_VELTS (m)[2])
 
 #define SCM_GOOPS_UNBOUND SCM_UNBOUND
-#define SCM_GOOPS_UNBOUNDP(x) ((x) == SCM_GOOPS_UNBOUND)
+#define SCM_GOOPS_UNBOUNDP(x) (scm_is_eq (x, SCM_GOOPS_UNBOUND))
 
 static int goops_loaded_p = 0;
 static scm_t_rstate *goops_rstate;
@@ -1231,7 +1231,7 @@ slot_definition_using_name (SCM class, SCM slot_name)
 {
   register SCM slots = SCM_SLOT (class, scm_si_getters_n_setters);
   for (; !scm_is_null (slots); slots = SCM_CDR (slots))
-    if (SCM_CAAR (slots) == slot_name)
+    if (scm_is_eq (SCM_CAAR (slots), slot_name))
       return SCM_CAR (slots);
   return SCM_BOOL_F;
 }
@@ -1819,7 +1819,7 @@ scm_c_extend_primitive_generic (SCM extended, SCM extension)
        * extensions in the extensions list.  O(N^2) algorithm, but
        * extensions of primitive generics are rare.
        */
-      while (*loc && extension != (*loc)->extended)
+      while (*loc && !scm_is_eq (extension, (*loc)->extended))
 	loc = &(*loc)->next;
       e->next = *loc;
       e->extended = extended;
@@ -1887,13 +1887,13 @@ more_specificp (SCM m1, SCM m2, SCM const *targs)
   for (i=0, s1=SPEC_OF(m1), s2=SPEC_OF(m2); ; i++, s1=SCM_CDR(s1), s2=SCM_CDR(s2)) {
     if (scm_is_null(s1)) return 1;
     if (scm_is_null(s2)) return 0;
-    if (SCM_CAR(s1) != SCM_CAR(s2)) {
+    if (!scm_is_eq (SCM_CAR(s1), SCM_CAR(s2))) {
       register SCM l, cs1 = SCM_CAR(s1), cs2 = SCM_CAR(s2);
 
       for (l = SCM_SLOT (targs[i], scm_si_cpl);   ; l = SCM_CDR(l)) {
-	if (cs1 == SCM_CAR(l))
+	if (scm_is_eq (cs1, SCM_CAR (l)))
 	  return 1;
-	if (cs2 == SCM_CAR(l))
+	if (scm_is_eq (cs2, SCM_CAR (l)))
 	  return 0;
       }
       return 0;/* should not occur! */
@@ -2110,7 +2110,8 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
   class = SCM_CAR(args);
   args  = SCM_CDR(args);
 
-  if (class == scm_class_generic || class == scm_class_accessor)
+  if (scm_is_eq (class, scm_class_generic)
+      || scm_is_eq (class, scm_class_accessor))
     {
       z = scm_make_struct (class, SCM_INUM0,
                            scm_list_4 (SCM_BOOL_F,
@@ -2122,7 +2123,7 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
 						     args,
 						     SCM_BOOL_F));
       clear_method_cache (z);
-      if (class == scm_class_accessor)
+      if (scm_is_eq (class, scm_class_accessor))
 	{
 	  SCM setter = scm_get_keyword (k_setter, args, SCM_BOOL_F);
 	  if (scm_is_true (setter))
@@ -2133,8 +2134,8 @@ SCM_DEFINE (scm_make, "make",  0, 0, 1,
     {
       z = scm_sys_allocate_instance (class, args);
 
-      if (class == scm_class_method
-	  || class == scm_class_accessor_method)
+      if (scm_is_eq (class, scm_class_method)
+	  || scm_is_eq (class, scm_class_accessor_method))
 	{
 	  SCM_SET_SLOT (z, scm_si_generic_function,
 	    scm_i_get_keyword (k_gf,

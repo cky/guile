@@ -724,11 +724,11 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
   c_bv = (char *) SCM_BYTEVECTOR_CONTENTS (bv);
 
-  if (start != SCM_UNDEFINED)
+  if (!scm_is_eq (start, SCM_UNDEFINED))
     {
       c_start = scm_to_uint (start);
 
-      if (count != SCM_UNDEFINED)
+      if (!scm_is_eq (count, SCM_UNDEFINED))
 	{
 	  c_count = scm_to_uint (count);
 	  if (SCM_UNLIKELY (c_start + c_count > c_len))

@@ -233,7 +233,7 @@ VM_DEFINE_INSTRUCTION (18, vector, "vector", 2, -1, 1)
    nothing more than the corresponding macros.  */
 #define VARIABLE_REF(v)		SCM_VARIABLE_REF (v)
 #define VARIABLE_SET(v,o)	SCM_VARIABLE_SET (v, o)
-#define VARIABLE_BOUNDP(v)      (VARIABLE_REF (v) != SCM_UNDEFINED)
+#define VARIABLE_BOUNDP(v)      (!scm_is_eq (VARIABLE_REF (v), SCM_UNDEFINED))
 
 #define FREE_VARIABLE_REF(i)	SCM_PROGRAM_FREE_VARIABLE_REF (program, i)
 
@@ -277,10 +277,7 @@ VM_DEFINE_INSTRUCTION (22, long_local_ref, "long-local-ref", 2, 0, 1)
 
 VM_DEFINE_INSTRUCTION (23, local_bound, "local-bound?", 1, 0, 1)
 {
-  if (LOCAL_REF (FETCH ()) == SCM_UNDEFINED)
-    PUSH (SCM_BOOL_F);
-  else
-    PUSH (SCM_BOOL_T);
+  PUSH (scm_from_bool (!scm_is_eq (LOCAL_REF (FETCH ()), SCM_UNDEFINED)));
   NEXT;
 }
 
@@ -289,10 +286,7 @@ VM_DEFINE_INSTRUCTION (24, long_local_bound, "long-local-bound?", 2, 0, 1)
   unsigned int i = FETCH ();
   i <<= 8;
   i += FETCH ();
-  if (LOCAL_REF (i) == SCM_UNDEFINED)
-    PUSH (SCM_BOOL_F);
-  else
-    PUSH (SCM_BOOL_T);
+  PUSH (scm_from_bool (!scm_is_eq (LOCAL_REF (i), SCM_UNDEFINED)));
   NEXT;
 }
 
@@ -1666,7 +1660,7 @@ VM_DEFINE_INSTRUCTION (91, fluid_ref, "fluid-ref", 0, 1, 1)
   else
     {
       SCM val = SCM_SIMPLE_VECTOR_REF (fluids, num);
-      if (SCM_UNLIKELY (val == SCM_UNDEFINED))
+      if (SCM_UNLIKELY (scm_is_eq (val, SCM_UNDEFINED)))
         {
           finish_args = *sp;
           goto vm_error_unbound_fluid;

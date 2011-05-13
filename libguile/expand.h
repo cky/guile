@@ -3,7 +3,7 @@
 #ifndef SCM_EXPAND_H
 #define SCM_EXPAND_H
 
-/* Copyright (C) 2010
+/* Copyright (C) 2010, 2011
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -73,8 +73,9 @@ enum
     SCM_EXPANDED_TYPE_FIELDS,
   };
 
-#define SCM_EXPANDED_P(x) \
-  (SCM_STRUCTP (x) && (SCM_STRUCT_VTABLE (SCM_STRUCT_VTABLE (x)) == scm_exp_vtable_vtable))
+#define SCM_EXPANDED_P(x)                                               \
+  (SCM_STRUCTP (x)                                                      \
+   && (scm_is_eq (SCM_STRUCT_VTABLE (SCM_STRUCT_VTABLE (x)), scm_exp_vtable_vtable)))
 #define SCM_EXPANDED_REF(x,type,field) \
   (scm_struct_ref (x, SCM_I_MAKINUM (SCM_EXPANDED_##type##_##field)))
 #define SCM_EXPANDED_TYPE(x) \

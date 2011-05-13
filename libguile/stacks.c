@@ -102,7 +102,7 @@ find_prompt (SCM key)
   for (winds = scm_i_dynwinds (); scm_is_pair (winds); winds = scm_cdr (winds))
     {
       SCM elt = scm_car (winds);
-      if (SCM_PROMPT_P (elt) && SCM_PROMPT_TAG (elt) == key)
+      if (SCM_PROMPT_P (elt) && scm_is_eq (SCM_PROMPT_TAG (elt), key))
         return elt;
     }
   scm_misc_error ("make-stack", "Prompt tag not found while narrowing stack",

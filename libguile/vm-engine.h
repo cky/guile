@@ -126,7 +126,7 @@
   } while (0)
 #define ASSERT_BOUND_VARIABLE(x)                                        \
   do { ASSERT_VARIABLE (x);                                             \
-    if (SCM_VARIABLE_REF (x) == SCM_UNDEFINED)                          \
+    if (scm_is_eq (SCM_VARIABLE_REF (x), SCM_UNDEFINED))                \
       { SYNC_REGISTER (); abort(); }                                    \
   } while (0)
 
@@ -136,7 +136,7 @@
 #define ASSERT_ALIGNED_PROCEDURE() \
   do { if ((scm_t_bits)bp % 8) abort (); } while (0)
 #define ASSERT_BOUND(x) \
-  do { if ((x) == SCM_UNDEFINED) { SYNC_REGISTER (); abort(); } \
+  do { if (scm_is_eq ((x), SCM_UNDEFINED)) { SYNC_REGISTER (); abort(); } \
   } while (0)
 #else
 #define CHECK_IP()

@@ -511,63 +511,63 @@ scm_to_resource (SCM s, const char *func, int pos)
   SCM_ASSERT_TYPE (scm_is_symbol (s), s, pos, func, "symbol");
 
 #ifdef RLIMIT_AS
-  if (s == sym_as)
+  if (scm_is_eq (s, sym_as))
     return RLIMIT_AS;
 #endif
 #ifdef RLIMIT_CORE
-  if (s == sym_core)
+  if (scm_is_eq (s, sym_core))
     return RLIMIT_CORE;
 #endif
 #ifdef RLIMIT_CPU
-  if (s == sym_cpu)
+  if (scm_is_eq (s, sym_cpu))
     return RLIMIT_CPU;
 #endif
 #ifdef RLIMIT_DATA
-  if (s == sym_data)
+  if (scm_is_eq (s, sym_data))
     return RLIMIT_DATA;
 #endif
 #ifdef RLIMIT_FSIZE
-  if (s == sym_fsize)
+  if (scm_is_eq (s, sym_fsize))
     return RLIMIT_FSIZE;
 #endif
 #ifdef RLIMIT_MEMLOCK
-  if (s == sym_memlock)
+  if (scm_is_eq (s, sym_memlock))
     return RLIMIT_MEMLOCK;
 #endif
 #ifdef RLIMIT_MSGQUEUE
-  if (s == sym_msgqueue)
+  if (scm_is_eq (s, sym_msgqueue))
     return RLIMIT_MSGQUEUE;
 #endif
 #ifdef RLIMIT_NICE
-  if (s == sym_nice)
+  if (scm_is_eq (s, sym_nice))
     return RLIMIT_NICE;
 #endif
 #ifdef RLIMIT_NOFILE
-  if (s == sym_nofile)
+  if (scm_is_eq (s, sym_nofile))
     return RLIMIT_NOFILE;
 #endif
 #ifdef RLIMIT_NPROC
-  if (s == sym_nproc)
+  if (scm_is_eq (s, sym_nproc))
     return RLIMIT_NPROC;
 #endif
 #ifdef RLIMIT_RSS
-  if (s == sym_rss)
+  if (scm_is_eq (s, sym_rss))
     return RLIMIT_RSS;
 #endif
 #ifdef RLIMIT_RTPRIO
-  if (s == sym_rtprio)
+  if (scm_is_eq (s, sym_rtprio))
     return RLIMIT_RTPRIO;
 #endif
 #ifdef RLIMIT_RTPRIO
-  if (s == sym_rttime)
+  if (scm_is_eq (s, sym_rttime))
     return RLIMIT_RTPRIO;
 #endif
 #ifdef RLIMIT_SIGPENDING
-  if (s == sym_sigpending)
+  if (scm_is_eq (s, sym_sigpending))
     return RLIMIT_SIGPENDING;
 #endif
 #ifdef RLIMIT_STACK
-  if (s == sym_stack)
+  if (scm_is_eq (s, sym_stack))
     return RLIMIT_STACK;
 #endif
 

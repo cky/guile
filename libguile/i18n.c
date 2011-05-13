@@ -234,7 +234,7 @@ SCM_GLOBAL_VARIABLE (scm_global_locale, "%global-locale");
 #define SCM_VALIDATE_OPTIONAL_LOCALE_COPY(_pos, _arg, _c_locale)	\
   do									\
     {									\
-      if ((_arg) != SCM_UNDEFINED)					\
+      if (!scm_is_eq ((_arg), SCM_UNDEFINED))                           \
 	SCM_VALIDATE_LOCALE_COPY (_pos, _arg, _c_locale);		\
       else								\
 	(_c_locale) = NULL;						\
@@ -1378,7 +1378,7 @@ SCM_DEFINE (scm_locale_string_to_integer, "locale-string->integer",
   SCM_VALIDATE_STRING (1, str);
   c_str = scm_i_string_chars (str);
 
-  if (base != SCM_UNDEFINED)
+  if (!scm_is_eq (base, SCM_UNDEFINED))
     SCM_VALIDATE_INT_COPY (2, base, c_base);
   else
     c_base = 10;

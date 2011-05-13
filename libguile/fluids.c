@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -304,7 +304,7 @@ scm_i_make_with_fluids (size_t n, SCM *fluids, SCM *vals)
 
     while (j--)
       for (i = 0; i < j; i++)
-        if (fluids[i] == fluids[j])
+        if (scm_is_eq (fluids[i], fluids[j]))
           {
             vals[i] = vals[j]; /* later bindings win */
             n--;

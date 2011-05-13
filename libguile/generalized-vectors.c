@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -62,7 +62,7 @@ SCM_DEFINE (scm_make_generalized_vector, "make-generalized-vector", 2, 1, 0,
 {
   int i;
   for (i = 0; i < num_vector_ctors_registered; i++)
-    if (vector_ctors[i].tag == type)
+    if (scm_is_eq (vector_ctors[i].tag, type))
       return vector_ctors[i].ctor(len, fill);
   scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, type, "array type");
 }
