@@ -278,7 +278,8 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	{
 	  /* Make it a weak pointer.  */
 	  GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (v))[k]);
-	  SCM_I_REGISTER_DISAPPEARING_LINK (link, obj);
+	  SCM_I_REGISTER_DISAPPEARING_LINK (link,
+                                            (GC_PTR) SCM2PTR (obj));
 	}
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
@@ -296,7 +297,8 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	    {
 	      /* Make it a weak pointer.  */
 	      GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (vv))[k]);
-	      SCM_I_REGISTER_DISAPPEARING_LINK (link, obj);
+	      SCM_I_REGISTER_DISAPPEARING_LINK (link,
+                                                (GC_PTR) SCM2PTR (obj));
 	    }
 	}
       else

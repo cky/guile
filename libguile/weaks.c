@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -62,11 +62,9 @@ scm_weak_car_pair (SCM car, SCM cdr)
   cell->word_1 = cdr;
 
   if (SCM_NIMP (car))
-    {
-      /* Weak car cells make sense iff the car is non-immediate.  */
-      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
-					(GC_PTR) SCM_UNPACK (car));
-    }
+    /* Weak car cells make sense iff the car is non-immediate.  */
+    SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
+                                      (GC_PTR) SCM2PTR (car));
 
   return (SCM_PACK (cell));
 }
@@ -83,11 +81,9 @@ scm_weak_cdr_pair (SCM car, SCM cdr)
   cell->word_1 = cdr;
 
   if (SCM_NIMP (cdr))
-    {
-      /* Weak cdr cells make sense iff the cdr is non-immediate.  */
-      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
-					(GC_PTR) SCM_UNPACK (cdr));
-    }
+    /* Weak cdr cells make sense iff the cdr is non-immediate.  */
+    SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
+                                      (GC_PTR) SCM2PTR (cdr));
 
   return (SCM_PACK (cell));
 }
@@ -103,15 +99,11 @@ scm_doubly_weak_pair (SCM car, SCM cdr)
   cell->word_1 = cdr;
 
   if (SCM_NIMP (car))
-    {
-      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
-					(GC_PTR) SCM_UNPACK (car));
-    }
+    SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_0,
+                                      (GC_PTR) SCM2PTR (car));
   if (SCM_NIMP (cdr))
-    {
-      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
-					(GC_PTR) SCM_UNPACK (cdr));
-    }
+    SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) &cell->word_1,
+                                      (GC_PTR) SCM2PTR (cdr));
 
   return (SCM_PACK (cell));
 }

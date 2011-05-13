@@ -774,14 +774,14 @@ set_weak_cdr (void *data)
 
   if (SCM_NIMP (SCM_WEAK_PAIR_CDR (d->pair)) && !SCM_NIMP (d->new_val))
     {
-      GC_unregister_disappearing_link ((void *) SCM_CDRLOC (d->pair));
+      GC_unregister_disappearing_link ((GC_PTR) SCM_CDRLOC (d->pair));
       SCM_SETCDR (d->pair, d->new_val);
     }
   else
     {
       SCM_SETCDR (d->pair, d->new_val);
-      SCM_I_REGISTER_DISAPPEARING_LINK ((void *) SCM_CDRLOC (d->pair),
-                                        SCM2PTR (d->new_val));
+      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) SCM_CDRLOC (d->pair),
+                                        (GC_PTR) SCM2PTR (d->new_val));
     }
   return NULL;
 }
