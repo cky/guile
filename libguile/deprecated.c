@@ -2574,6 +2574,29 @@ scm_struct_create_handle (SCM obj)
 
 
 
+SCM
+scm_internal_dynamic_wind (scm_t_guard before,
+			   scm_t_inner inner,
+			   scm_t_guard after,
+			   void *inner_data,
+			   void *guard_data)
+{
+  SCM ans;
+
+  scm_c_issue_deprecation_warning
+    ("`scm_internal_dynamic_wind' is deprecated.  "
+     "Use the `scm_dynwind_begin' / `scm_dynwind_end' API instead.");
+
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_rewind_handler (before, guard_data, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (after, guard_data, SCM_F_WIND_EXPLICITLY);
+  ans = inner (inner_data);
+  scm_dynwind_end ();
+  return ans;
+}
+
+
+
 void
 scm_i_init_deprecated ()
 {
