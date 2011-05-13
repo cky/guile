@@ -385,14 +385,35 @@ SCM_DEFINE (scm_mask_signals, "mask-signals", 0, 0, 0,
 static void
 increase_block (void *data)
 {
-  ((scm_i_thread *)data)->block_asyncs++;
+  scm_i_thread *t = data;
+  t->block_asyncs++;
 }
 
 static void
 decrease_block (void *data)
 {
-  if (--((scm_i_thread *)data)->block_asyncs == 0)
+  scm_i_thread *t = data;
+  if (--t->block_asyncs == 0)
     scm_async_click ();
+}
+
+void
+scm_dynwind_block_asyncs (void)
+{
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  scm_dynwind_rewind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
+}
+
+void
+scm_dynwind_unblock_asyncs (void)
+{
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  if (t->block_asyncs == 0)
+    scm_misc_error ("scm_with_unblocked_asyncs", 
+		    "asyncs already unblocked", SCM_EOL);
+  scm_dynwind_rewind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
+  scm_dynwind_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
 }
 
 SCM_DEFINE (scm_call_with_blocked_asyncs, "call-with-blocked-asyncs", 1, 0, 0,
@@ -402,22 +423,28 @@ SCM_DEFINE (scm_call_with_blocked_asyncs, "call-with-blocked-asyncs", 1, 0, 0,
 	    "it is running.  Return the value returned by @var{proc}.\n")
 #define FUNC_NAME s_scm_call_with_blocked_asyncs
 {
-  return scm_internal_dynamic_wind (increase_block,
-				    (scm_t_inner) scm_call_0,
-				    decrease_block,
-				    (void *)proc,
-				    SCM_I_CURRENT_THREAD);
+  SCM ans;
+
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_block_asyncs ();
+  ans = scm_call_0 (proc);
+  scm_dynwind_end ();
+
+  return ans;
 }
 #undef FUNC_NAME
 
 void *
 scm_c_call_with_blocked_asyncs (void *(*proc) (void *data), void *data)
 {
-  return (void *)scm_internal_dynamic_wind (increase_block,
-					    (scm_t_inner) proc,
-					    decrease_block,
-					    data,
-					    SCM_I_CURRENT_THREAD);
+  void* ans;
+
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_block_asyncs ();
+  ans = proc (data);
+  scm_dynwind_end ();
+
+  return ans;
 }
 
 
@@ -428,46 +455,35 @@ SCM_DEFINE (scm_call_with_unblocked_asyncs, "call-with-unblocked-asyncs", 1, 0, 
 	    "it is running.  Return the value returned by @var{proc}.\n")
 #define FUNC_NAME s_scm_call_with_unblocked_asyncs
 {
+  SCM ans;
+
   if (SCM_I_CURRENT_THREAD->block_asyncs == 0)
     SCM_MISC_ERROR ("asyncs already unblocked", SCM_EOL);
-  return scm_internal_dynamic_wind (decrease_block,
-				    (scm_t_inner) scm_call_0,
-				    increase_block,
-				    (void *)proc,
-				    SCM_I_CURRENT_THREAD);
+
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_unblock_asyncs ();
+  ans = scm_call_0 (proc);
+  scm_dynwind_end ();
+
+  return ans;
 }
 #undef FUNC_NAME
 
 void *
 scm_c_call_with_unblocked_asyncs (void *(*proc) (void *data), void *data)
 {
+  void* ans;
+
   if (SCM_I_CURRENT_THREAD->block_asyncs == 0)
     scm_misc_error ("scm_c_call_with_unblocked_asyncs",
 		    "asyncs already unblocked", SCM_EOL);
-  return (void *)scm_internal_dynamic_wind (decrease_block,
-					    (scm_t_inner) proc,
-					    increase_block,
-					    data,
-					    SCM_I_CURRENT_THREAD);
-}
 
-void
-scm_dynwind_block_asyncs ()
-{
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  scm_dynwind_rewind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
-  scm_dynwind_unwind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
-}
+  scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
+  scm_dynwind_unblock_asyncs ();
+  ans = proc (data);
+  scm_dynwind_end ();
 
-void
-scm_dynwind_unblock_asyncs ()
-{
-  scm_i_thread *t = SCM_I_CURRENT_THREAD;
-  if (t->block_asyncs == 0)
-    scm_misc_error ("scm_with_unblocked_asyncs", 
-		    "asyncs already unblocked", SCM_EOL);
-  scm_dynwind_rewind_handler (decrease_block, t, SCM_F_WIND_EXPLICITLY);
-  scm_dynwind_unwind_handler (increase_block, t, SCM_F_WIND_EXPLICITLY);
+  return ans;
 }
 
 
