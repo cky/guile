@@ -123,7 +123,7 @@ SCM_C_EXTERN_INLINE
 SCM
 scm_cell (scm_t_bits car, scm_t_bits cdr)
 {
-  SCM cell = SCM_PACK ((scm_t_bits) (GC_MALLOC (sizeof (scm_t_cell))));
+  SCM cell = PTR2SCM (GC_MALLOC (sizeof (scm_t_cell)));
 
   /* Initialize the type slot last so that the cell is ignored by the GC
      until it is completely initialized.  This is only relevant when the GC
@@ -141,7 +141,7 @@ SCM_C_EXTERN_INLINE
 SCM
 scm_immutable_cell (scm_t_bits car, scm_t_bits cdr)
 {
-  SCM cell = SCM_PACK ((scm_t_bits) (GC_MALLOC_STUBBORN (sizeof (scm_t_cell))));
+  SCM cell = PTR2SCM (GC_MALLOC_STUBBORN (sizeof (scm_t_cell)));
 
   /* Initialize the type slot last so that the cell is ignored by the GC
      until it is completely initialized.  This is only relevant when the GC
@@ -150,7 +150,7 @@ scm_immutable_cell (scm_t_bits car, scm_t_bits cdr)
   SCM_GC_SET_CELL_WORD (cell, 1, cdr);
   SCM_GC_SET_CELL_WORD (cell, 0, car);
 
-  GC_END_STUBBORN_CHANGE ((void *) cell);
+  GC_END_STUBBORN_CHANGE (SCM2PTR (cell));
 
   return cell;
 }
@@ -164,7 +164,7 @@ scm_double_cell (scm_t_bits car, scm_t_bits cbr,
 {
   SCM z;
 
-  z = SCM_PACK ((scm_t_bits) (GC_MALLOC (2 * sizeof (scm_t_cell))));
+  z = PTR2SCM (GC_MALLOC (2 * sizeof (scm_t_cell)));
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
      when the GC can actually run during this code, which it can't
@@ -207,7 +207,7 @@ scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
 {
   SCM z;
 
-  z = SCM_PACK ((scm_t_bits) (GC_MALLOC_STUBBORN (2 * sizeof (scm_t_cell))));
+  z = PTR2SCM (GC_MALLOC_STUBBORN (2 * sizeof (scm_t_cell)));
   /* Initialize the type slot last so that the cell is ignored by the
      GC until it is completely initialized.  This is only relevant
      when the GC can actually run during this code, which it can't
@@ -218,7 +218,7 @@ scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
   SCM_GC_SET_CELL_WORD (z, 3, cdr);
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
-  GC_END_STUBBORN_CHANGE ((void *) z);
+  GC_END_STUBBORN_CHANGE (SCM2PTR (z));
 
   /* When this function is inlined, it's possible that the last
      SCM_GC_SET_CELL_WORD above will be adjacent to a following
@@ -251,7 +251,7 @@ scm_words (scm_t_bits car, scm_t_uint16 n_words)
 {
   SCM z;
 
-  z = SCM_PACK ((scm_t_bits) (GC_MALLOC (sizeof (scm_t_bits) * n_words)));
+  z = PTR2SCM (GC_MALLOC (sizeof (scm_t_bits) * n_words));
   SCM_GC_SET_CELL_WORD (z, 0, car);
 
   /* FIXME: is the following concern even relevant with BDW-GC? */
