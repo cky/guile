@@ -170,22 +170,44 @@
 ;;;
 
 (define (with-i/o-filename-conditions filename thunk)
-  (catch 'system-error
-         thunk
-         (lambda args
-           (let ((errno (system-error-errno args)))
-             (let ((construct-condition
-                    (cond ((= errno EACCES)
-                           make-i/o-file-protection-error)
-                          ((= errno EEXIST)
-                           make-i/o-file-already-exists-error)
-                          ((= errno ENOENT)
-                           make-i/o-file-does-not-exist-error)
-                          ((= errno EROFS)
-                           make-i/o-file-is-read-only-error)
-                          (else
-                           make-i/o-filename-error))))
-               (raise (construct-condition filename)))))))
+  (with-throw-handler 'system-error
+      thunk
+    (lambda args
+      (let ((errno (system-error-errno args)))
+        (let ((construct-condition
+               (cond ((= errno EACCES)
+                      make-i/o-file-protection-error)
+                     ((= errno EEXIST)
+                      make-i/o-file-already-exists-error)
+                     ((= errno ENOENT)
+                      make-i/o-file-does-not-exist-error)
+                     ((= errno EROFS)
+                      make-i/o-file-is-read-only-error)
+                     (else
+                      make-i/o-filename-error))))
+          (raise (construct-condition filename)))))))
+
+(define (with-i/o-port-error port make-primary-condition thunk)
+  (with-throw-handler 'system-error
+      thunk
+    (lambda args
+      (let ((errno (system-error-errno args)))
+        (if (memv errno (list EIO EFBIG ENOSPC EPIPE))
+            (raise (condition (make-primary-condition)
+                              (make-i/o-port-error port)))
+            (apply throw args))))))
+
+(define-syntax with-textual-output-conditions
+  (syntax-rules ()
+    ((_ port body0 body ...)
+     (with-i/o-port-error port make-i/o-write-error
+       (lambda () (with-i/o-encoding-error body0 body ...))))))
+
+(define-syntax with-textual-input-conditions
+  (syntax-rules ()
+    ((_ port body0 body ...)
+     (with-i/o-port-error port make-i/o-read-error
+       (lambda () (with-i/o-decoding-error body0 body ...))))))
 
 
 ;;;
@@ -313,7 +335,10 @@ as a string, and a thunk to retrieve the characters associated with that port."
                             O_CREAT)
                         (if (enum-set-member? 'no-truncate file-options)
                             0
-                            O_TRUNC)))
+                            O_TRUNC)
+                        (if (enum-set-member? 'no-fail file-options)
+                            0
+                            O_EXCL)))
          (port (with-i/o-filename-conditions filename
                  (lambda () (open filename flags)))))
     (cond (maybe-transcoder
@@ -363,13 +388,13 @@ return the characters accumulated in that port."
          (raise (make-i/o-encoding-error port chr)))))))
 
 (define (put-char port char)
-  (with-i/o-encoding-error (write-char char port)))
+  (with-textual-output-conditions port (write-char char port)))
 
 (define (put-datum port datum)
-  (with-i/o-encoding-error (write datum port)))
+  (with-textual-output-conditions port (write datum port)))
 
 (define* (put-string port s #:optional start count)
-  (with-i/o-encoding-error
+  (with-textual-output-conditions port
    (cond ((not (string? s))
           (assertion-violation 'put-string "expected string" s))
          ((and start count)
@@ -382,8 +407,7 @@ return the characters accumulated in that port."
 ;; Defined here to be able to make use of `with-i/o-encoding-error', but
 ;; not exported from here, but from `(rnrs io simple)'.
 (define* (display object #:optional (port (current-output-port)))
-  (with-i/o-encoding-error
-    (guile:display object port)))
+  (with-textual-output-conditions port (guile:display object port)))
 
 
 ;;;
@@ -406,16 +430,16 @@ return the characters accumulated in that port."
          (raise (make-i/o-decoding-error port)))))))
 
 (define (get-char port)
-  (with-i/o-decoding-error (read-char port)))
+  (with-textual-input-conditions port (read-char port)))
 
 (define (get-datum port)
-  (with-i/o-decoding-error (read port)))
+  (with-textual-input-conditions port (read port)))
 
 (define (get-line port)
-  (with-i/o-decoding-error (read-line port 'trim)))
+  (with-textual-input-conditions port (read-line port 'trim)))
 
 (define (get-string-all port)
-  (with-i/o-decoding-error (read-delimited "" port 'concat)))
+  (with-textual-input-conditions port (read-delimited "" port 'concat)))
 
 (define (get-string-n port count)
   "Read up to @var{count} characters from @var{port}.
@@ -429,7 +453,7 @@ the characters read."
           (else             (substring/shared s 0 rv)))))
 
 (define (lookahead-char port)
-  (with-i/o-decoding-error (peek-char port)))
+  (with-textual-input-conditions port (peek-char port)))
 
 
 ;;;

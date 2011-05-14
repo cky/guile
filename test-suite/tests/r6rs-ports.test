@@ -19,9 +19,11 @@
 
 (define-module (test-io-ports)
   #:use-module (test-suite lib)
+  #:use-module (test-suite guile-test)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-11)
   #:use-module (rnrs io ports)
+  #:use-module (rnrs io simple)
   #:use-module (rnrs exceptions)
   #:use-module (rnrs bytevectors))
 
@@ -30,6 +32,45 @@
 
 ;; Set the default encoding of future ports to be Latin-1.
 (fluid-set! %default-port-encoding #f)
+
+(define-syntax pass-if-condition
+  (syntax-rules ()
+    ((_ name predicate body0 body ...)
+     (let ((cookie (list 'cookie)))
+       (pass-if name
+         (eq? cookie (guard (c ((predicate c) cookie))
+                       body0 body ...)))))))
+
+(define (test-file)
+  (data-file-name "ports-test.tmp"))
+
+;; A input/output port that swallows all output, and produces just
+;; spaces on input.  Reading and writing beyond `failure-position'
+;; produces `system-error' exceptions.  Used for testing exception
+;; behavior.
+(define* (make-failing-port #:optional (failure-position 0))
+  (define (maybe-fail index errno)
+    (if (> index failure-position)
+        (scm-error 'system-error
+                   'failing-port
+                   "I/O beyond failure position" '()
+                   (list errno))))
+  (let ((read-index  0)
+        (write-index 0))
+    (define (write-char chr)
+      (set! write-index (+ 1 write-index))
+      (maybe-fail write-index ENOSPC))
+    (make-soft-port
+     (vector write-char
+             (lambda (str)   ;; write-string
+               (for-each write-char (string->list str)))
+             (lambda () #t)  ;; flush-output
+             (lambda ()      ;; read-char
+               (set! read-index (+ read-index 1))
+               (maybe-fail read-index EIO)
+               #\space)
+             (lambda () #t)) ;; close-port
+     "rw")))
 
 
 (with-test-prefix "7.2.5 End-of-File Object"
@@ -421,6 +462,37 @@
 
 (with-test-prefix "8.2.10 Output ports"
 
+  (let ((filename (test-file)))
+    (pass-if "open-file-output-port [opens binary port]"
+      (call-with-port (open-file-output-port filename)
+        (lambda (port)
+          (put-bytevector port '#vu8(1 2 3))
+          (binary-port? port))))
+    
+    (pass-if-condition "open-file-output-port [exception: already-exists]"
+        i/o-file-already-exists-error?
+      (open-file-output-port filename))
+    
+    (pass-if "open-file-output-port [no-fail no-truncate]"
+      (and
+        (call-with-port (open-file-output-port filename
+                                               (file-options no-fail no-truncate))
+          (lambda (port)
+            (= 0 (port-position port))))
+        (= 3 (stat:size (stat filename)))))
+
+    (pass-if "open-file-output-port [no-fail]"
+      (and
+        (call-with-port (open-file-output-port filename (file-options no-fail))
+          binary-port?)
+        (= 0 (stat:size (stat filename)))))
+    
+    (delete-file filename)
+    
+    (pass-if-condition "open-file-output-port [exception: does-not-exist]"
+        i/o-file-does-not-exist-error?
+      (open-file-output-port filename (file-options no-create))))
+  
   (pass-if "open-bytevector-output-port"
     (let-values (((port get-content)
                   (open-bytevector-output-port #f)))
@@ -627,7 +699,69 @@
     (let ((port (open-input-string "GNU Guile"))
           (s (string-copy "Isn't XXX great?")))
       (and (= 3 (get-string-n! port s 6 3))
-           (string=? s "Isn't GNU great?")))))
+           (string=? s "Isn't GNU great?"))))
+
+  (with-test-prefix "read error"
+    (pass-if-condition "get-char" i/o-read-error?
+      (get-char (make-failing-port)))
+    (pass-if-condition "lookahead-char" i/o-read-error?
+      (lookahead-char (make-failing-port)))
+    ;; FIXME: these are not yet exception-correct
+    #|
+    (pass-if-condition "get-string-n" i/o-read-error?
+      (get-string-n (make-failing-port) 5))
+    (pass-if-condition "get-string-n!" i/o-read-error?
+      (get-string-n! (make-failing-port) (make-string 5) 0 5))
+    |#
+    (pass-if-condition "get-string-all" i/o-read-error?
+      (get-string-all (make-failing-port 100)))
+    (pass-if-condition "get-line" i/o-read-error?
+      (get-line (make-failing-port)))
+    (pass-if-condition "get-datum" i/o-read-error?
+      (get-datum (make-failing-port)))))
+
+(with-test-prefix "8.2.12 Textual Output"
+  
+  (with-test-prefix "write error"
+    (pass-if-condition "put-char" i/o-write-error?
+      (put-char (make-failing-port) #\G))
+    (pass-if-condition "put-string" i/o-write-error?
+      (put-string (make-failing-port) "Hello World!"))
+    (pass-if-condition "put-datum" i/o-write-error?
+      (put-datum (make-failing-port) '(hello world!)))))
+
+(with-test-prefix "8.3 Simple I/O"
+  (with-test-prefix "read error"
+    (pass-if-condition "read-char" i/o-read-error?
+      (read-char (make-failing-port)))
+    (pass-if-condition "peek-char" i/o-read-error?
+      (peek-char (make-failing-port)))
+    (pass-if-condition "read" i/o-read-error?
+      (read (make-failing-port))))
+  (with-test-prefix "write error"
+    (pass-if-condition "display" i/o-write-error?
+      (display "Hi there!" (make-failing-port)))
+    (pass-if-condition "write" i/o-write-error?
+      (write '(hi there!) (make-failing-port)))
+    (pass-if-condition "write-char" i/o-write-error?
+      (write-char #\G (make-failing-port)))
+    (pass-if-condition "newline" i/o-write-error?
+      (newline (make-failing-port))))
+  (let ((filename (test-file)))
+    ;; ensure the test file exists
+    (call-with-output-file filename
+      (lambda (port) (write "foo" port)))
+    (pass-if "call-with-input-file [port is textual]"
+      (call-with-input-file filename textual-port?))
+    (pass-if-condition "call-with-input-file [exception: not-found]"
+        i/o-file-does-not-exist-error?
+      (call-with-input-file ",this-is-highly-unlikely-to-exist!"
+        values))
+    (pass-if-condition "call-with-output-file [exception: already-exists]"
+        i/o-file-already-exists-error?
+      (call-with-output-file filename
+        values))
+    (delete-file filename)))
 
 ;;; Local Variables:
 ;;; mode: scheme
