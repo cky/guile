@@ -473,7 +473,7 @@ static int fstat_Win32 (int fdes, struct stat *buf)
   /* Is this a socket ? */
   if (getsockopt (fdes, SOL_SOCKET, SO_ERROR, (void *) &error, &optlen) >= 0)
     {
-      buf->st_mode = _S_IFSOCK | _S_IREAD | _S_IWRITE | _S_IEXEC;
+      buf->st_mode = _S_IREAD | _S_IWRITE | _S_IEXEC;
       buf->st_nlink = 1;
       buf->st_atime = buf->st_ctime = buf->st_mtime = time (NULL);
       return 0;
