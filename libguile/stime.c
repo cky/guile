@@ -142,7 +142,11 @@ get_internal_real_time_posix_timer (void)
      ts.tv_nsec - posix_real_time_base.tv_nsec);
 }
 
-#ifdef _POSIX_CPUTIME
+#if defined _POSIX_CPUTIME && defined CLOCK_PROCESS_CPUTIME_ID
+/* You see, FreeBSD defines _POSIX_CPUTIME but not
+   CLOCK_PROCESS_CPUTIME_ID.  */
+#define HAVE_POSIX_CPUTIME 1
+
 struct timespec posix_run_time_base;
 
 static long
@@ -847,7 +851,7 @@ scm_init_stime()
   if (clock_gettime (CLOCK_REALTIME, &posix_real_time_base) == 0)
     get_internal_real_time = get_internal_real_time_posix_timer;
 
-#ifdef _POSIX_CPUTIME
+#ifdef HAVE_POSIX_CPUTIME
   {
     clockid_t dummy;
     
@@ -859,7 +863,7 @@ scm_init_stime()
     else
       errno = 0;
   }
-#endif /* _POSIX_CPUTIME */
+#endif /* HAVE_POSIX_CPUTIME */
 #endif /* HAVE_CLOCKTIME */
 
   /* If needed, init and use gettimeofday timer. */
