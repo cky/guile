@@ -336,14 +336,6 @@ If @var{pstate} isn't supplied and @var{port} already has
 a print state, the old print state is reused.
 @end deffn
 
-@deffn {Scheme Procedure} print-options-interface [setting]
-@deffnx {C Function} scm_print_options (setting)
-Option interface for the print options. Instead of using
-this procedure directly, use the procedures
-@code{print-enable}, @code{print-disable}, @code{print-set!}
-and @code{print-options}.
-@end deffn
-
 @deffn {Scheme Procedure} simple-format destination message . args
 @deffnx {C Function} scm_simple_format (destination, message, args)
 Write @var{message} to @var{destination}, defaulting to

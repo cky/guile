@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -645,10 +645,13 @@ using @code{debug-set!}.
 
 @deffn {Scheme Procedure} debug-enable option-name
 @deffnx {Scheme Procedure} debug-disable option-name
-@deffnx {Scheme Procedure} debug-set! option-name value
+@deffnx {Scheme Syntax} debug-set! option-name value
 Modify the debug options.  @code{debug-enable} should be used with boolean
 options and switches them on, @code{debug-disable} switches them off.
-@code{debug-set!} can be used to set an option to a specific value.
+
+@code{debug-set!} can be used to set an option to a specific value.  Due
+to historical oddities, it is a macro that expects an unquoted option
+name.
 @end deffn
 
 @subsubheading Stack overflow

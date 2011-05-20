@@ -341,10 +341,13 @@ using @code{read-set!}.
 
 @deffn {Scheme Procedure} read-enable option-name
 @deffnx {Scheme Procedure} read-disable option-name
-@deffnx {Scheme Procedure} read-set! option-name value
+@deffnx {Scheme Syntax} read-set! option-name value
 Modify the read options.  @code{read-enable} should be used with boolean
 options and switches them on, @code{read-disable} switches them off.
-@code{read-set!} can be used to set an option to a specific value.
+
+@code{read-set!} can be used to set an option to a specific value.  Due
+to historical oddities, it is a macro that expects an unquoted option
+name.
 @end deffn
 
 For example, to make @code{read} fold all symbols to their lower case
@@ -416,10 +419,11 @@ quote-keywordish-symbols  reader  How to print symbols that have a colon
                                   not '#f'.
 @end smalllisp
 
-These options may be modified with the print-set! procedure.
+These options may be modified with the print-set! syntax.
 
-@deffn {Scheme Procedure} print-set! option-name value
-Modify the print options.
+@deffn {Scheme Syntax} print-set! option-name value
+Modify the print options.  Due to historical oddities, @code{print-set!}
+is a macro that expects an unquoted option name.
 @end deffn
 
 
