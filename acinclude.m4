@@ -529,8 +529,14 @@ AC_DEFUN([gl_CLOCK_TIME],
   AC_SUBST([LIB_CLOCK_GETTIME])
   gl_saved_libs=$LIBS
     AC_SEARCH_LIBS([clock_gettime], [rt posix4],
-                   [test "$ac_cv_search_clock_gettime" = "none required" ||
-                    LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
-    AC_CHECK_FUNCS([clock_gettime clock_settime])
+                   [if test "$ac_cv_search_clock_gettime" = "none required"; then
+                      AC_SEARCH_LIBS([clock_getcpuclockid], [rt posix4],
+                                     [test "$ac_cv_search_clock_getcpuclockid" = "none required" \
+                                      || LIB_CLOCK_GETTIME=$ac_cv_search_clock_getcpuclockid],
+                                     [LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
+                    else
+                      LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime
+                    fi])
+    AC_CHECK_FUNCS([clock_gettime clock_settime clock_getcpuclockid])
   LIBS=$gl_saved_libs
 ])
