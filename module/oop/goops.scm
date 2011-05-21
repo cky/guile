@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -245,31 +245,28 @@
   (lambda (x)
     (syntax-case x ()
       ((_ (k arg rest ...) out ...)
-       (keyword? (syntax->datum (syntax k)))
-       (case (syntax->datum (syntax k))
+       (keyword? (syntax->datum #'k))
+       (case (syntax->datum #'k)
          ((#:getter #:setter)
-          (syntax
-           (define-class-pre-definition (rest ...)
-             out ...
-             (if (or (not (defined? 'arg))
-                     (not (is-a? arg <generic>)))
-                 (toplevel-define!
-                  'arg
-                  (ensure-generic (if (defined? 'arg) arg #f) 'arg))))))
+          #'(define-class-pre-definition (rest ...)
+              out ...
+              (if (or (not (defined? 'arg))
+                      (not (is-a? arg <generic>)))
+                  (toplevel-define!
+                   'arg
+                   (ensure-generic (if (defined? 'arg) arg #f) 'arg)))))
          ((#:accessor)
-          (syntax
-           (define-class-pre-definition (rest ...)
-             out ...
-             (if (or (not (defined? 'arg))
-                     (not (is-a? arg <accessor>)))
-                 (toplevel-define!
-                  'arg
-                  (ensure-accessor (if (defined? 'arg) arg #f) 'arg))))))
+          #'(define-class-pre-definition (rest ...)
+              out ...
+              (if (or (not (defined? 'arg))
+                      (not (is-a? arg <accessor>)))
+                  (toplevel-define!
+                   'arg
+                   (ensure-accessor (if (defined? 'arg) arg #f) 'arg)))))
          (else
-          (syntax
-           (define-class-pre-definition (rest ...) out ...)))))
+          #'(define-class-pre-definition (rest ...) out ...))))
       ((_ () out ...)
-       (syntax (begin out ...))))))
+       #'(begin out ...)))))
        
 ;; Some slot options require extra definitions to be made. In
 ;; particular, we want to make sure that the generic function objects
@@ -279,17 +276,17 @@
   (lambda (x)
     (syntax-case x ()
       ((_ () out ...)
-       (syntax (begin out ...)))
+       #'(begin out ...))
       ((_ (slot rest ...) out ...)
-       (keyword? (syntax->datum (syntax slot)))
-       (syntax (begin out ...)))
+       (keyword? (syntax->datum #'slot))
+       #'(begin out ...))
       ((_ (slot rest ...) out ...)
-       (identifier? (syntax slot))
-       (syntax (define-class-pre-definitions (rest ...)
-                 out ...)))
+       (identifier? #'slot)
+       #'(define-class-pre-definitions (rest ...)
+         out ...))
       ((_ ((slotname slotopt ...) rest ...) out ...)
-       (syntax (define-class-pre-definitions (rest ...) 
-                 out ... (define-class-pre-definition (slotopt ...))))))))
+       #'(define-class-pre-definitions (rest ...) 
+         out ... (define-class-pre-definition (slotopt ...)))))))
 
 (define-syntax define-class
   (syntax-rules ()
@@ -491,46 +488,46 @@
       (let lp ((ls args) (formals '()) (specializers '()))
         (syntax-case ls ()
           (((f s) . rest)
-           (and (identifier? (syntax f)) (identifier? (syntax s)))
-           (lp (syntax rest)
-               (cons (syntax f) formals)
-               (cons (syntax s) specializers)))
+           (and (identifier? #'f) (identifier? #'s))
+           (lp #'rest
+               (cons #'f formals)
+               (cons #'s specializers)))
           ((f . rest)
-           (identifier? (syntax f))
-           (lp (syntax rest)
-               (cons (syntax f) formals)
-               (cons (syntax <top>) specializers)))
+           (identifier? #'f)
+           (lp #'rest
+               (cons #'f formals)
+               (cons #'<top> specializers)))
           (()
            (list (reverse formals)
-                 (reverse (cons (syntax '()) specializers))))
+                 (reverse (cons #''() specializers))))
           (tail
-           (identifier? (syntax tail))
-           (list (append (reverse formals) (syntax tail))
-                 (reverse (cons (syntax <top>) specializers)))))))
+           (identifier? #'tail)
+           (list (append (reverse formals) #'tail)
+                 (reverse (cons #'<top> specializers)))))))
 
     (define (find-free-id exp referent)
       (syntax-case exp ()
         ((x . y)
-         (or (find-free-id (syntax x) referent)
-             (find-free-id (syntax y) referent)))
+         (or (find-free-id #'x referent)
+             (find-free-id #'y referent)))
         (x
-         (identifier? (syntax x))
-         (let ((id (datum->syntax (syntax x) referent)))
-           (and (free-identifier=? (syntax x) id) id)))
+         (identifier? #'x)
+         (let ((id (datum->syntax #'x referent)))
+           (and (free-identifier=? #'x id) id)))
         (_ #f)))
 
     (define (compute-procedure formals body)
       (syntax-case body ()
         ((body0 ...)
          (with-syntax ((formals formals))
-           (syntax (lambda formals body0 ...))))))
+           #'(lambda formals body0 ...)))))
 
     (define (->proper args)
       (let lp ((ls args) (out '()))
         (syntax-case ls ()
-          ((x . xs)        (lp (syntax xs) (cons (syntax x) out)))
+          ((x . xs)        (lp #'xs (cons #'x out)))
           (()              (reverse out))
-          (tail            (reverse (cons (syntax tail) out))))))
+          (tail            (reverse (cons #'tail out))))))
 
     (define (compute-make-procedure formals body next-method)
       (syntax-case body ()
@@ -538,24 +535,22 @@
          (with-syntax ((next-method next-method))
            (syntax-case formals ()
              ((formal ...)
-              (syntax
-               (lambda (real-next-method)
-                 (lambda (formal ...)
-                   (let ((next-method (lambda args
-                                        (if (null? args)
-                                            (real-next-method formal ...)
-                                            (apply real-next-method args)))))
-                     body ...)))))
+              #'(lambda (real-next-method)
+                  (lambda (formal ...)
+                    (let ((next-method (lambda args
+                                         (if (null? args)
+                                             (real-next-method formal ...)
+                                             (apply real-next-method args)))))
+                      body ...))))
              (formals
-              (with-syntax (((formal ...) (->proper (syntax formals))))
-                (syntax
-                 (lambda (real-next-method)
-                   (lambda formals
-                     (let ((next-method (lambda args
-                                          (if (null? args)
-                                              (apply real-next-method formal ...)
-                                              (apply real-next-method args)))))
-                       body ...)))))))))))
+              (with-syntax (((formal ...) (->proper #'formals)))
+                #'(lambda (real-next-method)
+                    (lambda formals
+                      (let ((next-method (lambda args
+                                           (if (null? args)
+                                               (apply real-next-method formal ...)
+                                               (apply real-next-method args)))))
+                        body ...))))))))))
 
     (define (compute-procedures formals body)
       ;; So, our use of this is broken, because it operates on the
@@ -564,28 +559,27 @@
       (let ((id (find-free-id body 'next-method)))
         (if id
             ;; return a make-procedure
-            (values (syntax #f)
+            (values #'#f
                     (compute-make-procedure formals body id))
             (values (compute-procedure formals body)
-                    (syntax #f)))))
+                    #'#f))))
 
     (syntax-case x ()
-      ((_ args) (syntax (method args (if #f #f))))
+      ((_ args) #'(method args (if #f #f)))
       ((_ args body0 body1 ...)
-       (with-syntax (((formals (specializer ...)) (parse-args (syntax args))))
+       (with-syntax (((formals (specializer ...)) (parse-args #'args)))
          (call-with-values
              (lambda ()
-               (compute-procedures (syntax formals) (syntax (body0 body1 ...))))
+               (compute-procedures #'formals #'(body0 body1 ...)))
            (lambda (procedure make-procedure)
              (with-syntax ((procedure procedure)
                            (make-procedure make-procedure))
-               (syntax
-                (make <method>
-                  #:specializers (cons* specializer ...)
-                  #:formals 'formals
-                  #:body '(body0 body1 ...)
-                  #:make-procedure make-procedure
-                  #:procedure procedure))))))))))
+               #'(make <method>
+                   #:specializers (cons* specializer ...)
+                   #:formals 'formals
+                   #:body '(body0 body1 ...)
+                   #:make-procedure make-procedure
+                   #:procedure procedure)))))))))
 
 ;;;
 ;;; {add-method!}
