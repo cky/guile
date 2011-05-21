@@ -75,6 +75,11 @@ TESTS += test-require-extension
 check_SCRIPTS += test-guile-snarf
 TESTS += test-guile-snarf
 
+check_SCRIPTS += test-import-order
+TESTS += test-import-order
+EXTRA_DIST += test-import-order-a.scm test-import-order-b.scm \
+  test-import-order-c.scm test-import-order-d.scm
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}

@@ -1,0 +1,31 @@
+#!/bin/sh
+exec guile -q -L "$builddir" -s "$0" "$@"
+!#
+
+(define-module (base)
+  #:export (push! order))
+
+(define order '())
+(define (push!)
+  (set! order `(,@order ,(module-name (current-module)))))
+
+(define-module (test-1)
+  #:use-module (base)
+  #:use-module (test-import-order-a)
+  #:use-module (test-import-order-b))
+
+(use-modules (test-import-order-c) (test-import-order-d))
+
+(if (not (equal? order
+                 '((test-import-order-a)
+                   (test-import-order-b)
+                   (test-import-order-c)
+                   (test-import-order-d))))
+    (begin
+      (format (current-error-port) "Unexpected import order: ~a" order)
+      (exit 1))
+    (exit 0))
+
+;; Local Variables:
+;; mode: scheme
+;; End:
