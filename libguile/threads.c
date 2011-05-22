@@ -1456,12 +1456,24 @@ SCM_DEFINE (scm_lock_mutex_timed, "lock-mutex", 1, 2, 0,
 }
 #undef FUNC_NAME
 
+static void
+lock_mutex_return_void (SCM mx)
+{
+  (void) scm_lock_mutex (mx);
+}
+
+static void
+unlock_mutex_return_void (SCM mx)
+{
+  (void) scm_unlock_mutex (mx);
+}
+
 void
 scm_dynwind_lock_mutex (SCM mutex)
 {
-  scm_dynwind_unwind_handler_with_scm ((void(*)(SCM))scm_unlock_mutex, mutex,
+  scm_dynwind_unwind_handler_with_scm (unlock_mutex_return_void, mutex,
 				       SCM_F_WIND_EXPLICITLY);
-  scm_dynwind_rewind_handler_with_scm ((void(*)(SCM))scm_lock_mutex, mutex,
+  scm_dynwind_rewind_handler_with_scm (lock_mutex_return_void, mutex,
 				       SCM_F_WIND_EXPLICITLY);
 }
 
