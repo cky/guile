@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -184,14 +184,15 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
     SCM_MISC_ERROR ("arity is a deprecated read-only property", SCM_EOL);
 #endif
 
-  props = scm_procedure_properties (proc);
-
-#if (SCM_ENABLE_DEPRECATED == 1)
-  /* cdr past the consed-on arity. */
-  props = scm_cdr (props);
-#endif
-
   scm_i_pthread_mutex_lock (&overrides_lock);
+  props = scm_hashq_ref (overrides, proc, SCM_BOOL_F);
+  if (scm_is_false (props))
+    {
+      if (SCM_PROGRAM_P (proc))
+        props = scm_i_program_properties (proc);
+      else
+        props = SCM_EOL;
+    }
   scm_hashq_set_x (overrides, proc, scm_assq_set_x (props, key, val));
   scm_i_pthread_mutex_unlock (&overrides_lock);
 
