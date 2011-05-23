@@ -52,6 +52,7 @@
 
 
 static SCM symbols;
+static scm_i_pthread_mutex_t symbols_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 #ifdef GUILE_DEBUG
 SCM_DEFINE (scm_sys_symbols, "%symbols", 0, 0, 0,
@@ -108,13 +109,11 @@ lookup_interned_symbol (SCM name, unsigned long raw_hash)
   data.string = name;
   data.string_hash = raw_hash;
   
-  /* Strictly speaking, we should take a lock here.  But instead we rely
-     on the fact that if this fails, we do take the lock on the
-     intern_symbol path; and since nothing deletes from the hash table
-     except GC, we should be OK.  */
+  scm_i_pthread_mutex_lock (&symbols_lock);
   handle = scm_hash_fn_get_handle_by_hash (symbols, raw_hash,
                                            string_lookup_predicate_fn,
                                            &data);  
+  scm_i_pthread_mutex_unlock (&symbols_lock);
 
   if (scm_is_true (handle))
     return SCM_CAR (handle);
@@ -151,13 +150,11 @@ lookup_interned_latin1_symbol (const char *str, size_t len,
   data.len = len;
   data.string_hash = raw_hash;
   
-  /* Strictly speaking, we should take a lock here.  But instead we rely
-     on the fact that if this fails, we do take the lock on the
-     intern_symbol path; and since nothing deletes from the hash table
-     except GC, we should be OK.  */
+  scm_i_pthread_mutex_lock (&symbols_lock);
   handle = scm_hash_fn_get_handle_by_hash (symbols, raw_hash,
                                            latin1_lookup_predicate_fn,
                                            &data);  
+  scm_i_pthread_mutex_unlock (&symbols_lock);
 
   if (scm_is_true (handle))
     return SCM_CAR (handle);
@@ -187,8 +184,6 @@ symbol_lookup_assoc_fn (SCM obj, SCM alist, void *closure)
   return SCM_BOOL_F;
 }
 
-static scm_i_pthread_mutex_t intern_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-
 /* Intern SYMBOL, an uninterned symbol.  Might return a different
    symbol, if another one was interned at the same time.  */
 static SCM
@@ -196,12 +191,12 @@ intern_symbol (SCM symbol)
 {
   SCM handle;
 
-  scm_i_pthread_mutex_lock (&intern_lock);
+  scm_i_pthread_mutex_lock (&symbols_lock);
   handle = scm_hash_fn_create_handle_x (symbols, symbol, SCM_UNDEFINED,
                                         symbol_lookup_hash_fn,
                                         symbol_lookup_assoc_fn,
                                         NULL);
-  scm_i_pthread_mutex_unlock (&intern_lock);
+  scm_i_pthread_mutex_unlock (&symbols_lock);
 
   return SCM_CAR (handle);
 }
