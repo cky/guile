@@ -33,7 +33,6 @@
 #define SCM_SOURCE_PROPERTY_FLAG_BREAK 1
 
 SCM_API scm_t_bits scm_tc16_srcprops;
-SCM_INTERNAL SCM scm_source_whash;
 
 SCM_API SCM scm_sym_filename;
 SCM_API SCM scm_sym_copy;
@@ -47,6 +46,9 @@ SCM_API SCM scm_source_property (SCM obj, SCM key);
 SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
 SCM_API SCM scm_source_properties (SCM obj);
 SCM_API SCM scm_set_source_properties_x (SCM obj, SCM props);
+SCM_INTERNAL int scm_i_has_source_properties (SCM obj);
+SCM_INTERNAL void scm_i_set_source_properties_x (SCM obj, long line, int col,
+                                                 SCM fname);
 SCM_API SCM scm_cons_source (SCM xorig, SCM x, SCM y);
 SCM_INTERNAL void scm_init_srcprop (void);
 

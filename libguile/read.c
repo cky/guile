@@ -357,23 +357,19 @@ flush_ws (SCM port, const char *eoferr)
 
 static SCM scm_read_expression (SCM port);
 static SCM scm_read_sharp (int chr, SCM port);
-static SCM recsexpr (SCM obj, long line, int column, SCM filename);
 
 
 static SCM
 scm_read_sexp (scm_t_wchar chr, SCM port)
 #define FUNC_NAME "scm_i_lreadparen"
 {
-  register int c;
-  register SCM tmp;
-  register SCM tl, ans = SCM_EOL;
-  SCM tl2 = SCM_EOL, ans2 = SCM_EOL, copy = SCM_BOOL_F;
+  int c;
+  SCM tmp, tl, ans = SCM_EOL;
   const int terminating_char = ((chr == '[') ? ']' : ')');
 
   /* Need to capture line and column numbers here. */
   long line = SCM_LINUM (port);
   int column = SCM_COL (port) - 1;
-
 
   c = flush_ws (port, FUNC_NAME);
   if (terminating_char == c)
@@ -393,12 +389,6 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
   /* Build the head of the list structure. */
   ans = tl = scm_cons (tmp, SCM_EOL);
 
-  if (SCM_COPY_SOURCE_P)
-    ans2 = tl2 = scm_cons (scm_is_pair (tmp)
-			   ? copy
-			   : tmp,
-			   SCM_EOL);
-
   while (terminating_char != (c = flush_ws (port, FUNC_NAME)))
     {
       SCM new_tail;
@@ -415,10 +405,6 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
 	{
 	  SCM_SETCDR (tl, tmp = scm_read_expression (port));
 
-	  if (SCM_COPY_SOURCE_P)
-	    SCM_SETCDR (tl2, scm_cons (scm_is_pair (tmp) ? copy : tmp,
-				       SCM_EOL));
-
 	  c = flush_ws (port, FUNC_NAME);
 	  if (terminating_char != c)
 	    scm_i_input_error (FUNC_NAME, port,
@@ -429,27 +415,12 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
       new_tail = scm_cons (tmp, SCM_EOL);
       SCM_SETCDR (tl, new_tail);
       tl = new_tail;
-
-      if (SCM_COPY_SOURCE_P)
-	{
-	  SCM new_tail2 = scm_cons (scm_is_pair (tmp)
-				    ? copy
-				    : tmp, SCM_EOL);
-	  SCM_SETCDR (tl2, new_tail2);
-	  tl2 = new_tail2;
-	}
     }
 
  exit:
   if (SCM_RECORD_POSITIONS_P)
-    scm_hashq_set_x (scm_source_whash,
-                     ans,
-                     scm_make_srcprops (line, column,
-                                        SCM_FILENAME (port),
-                                        SCM_COPY_SOURCE_P
-                                        ? ans2
-                                        : SCM_UNDEFINED,
-                                        SCM_EOL));
+    scm_i_set_source_properties_x (ans, line, column, SCM_FILENAME (port));
+
   return ans;
 }
 #undef FUNC_NAME
@@ -805,16 +776,7 @@ scm_read_quote (int chr, SCM port)
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
   if (SCM_RECORD_POSITIONS_P)
-    scm_hashq_set_x (scm_source_whash, p,
-                     scm_make_srcprops (line, column,
-                                        SCM_FILENAME (port),
-                                        SCM_COPY_SOURCE_P
-                                        ? (scm_cons2 (SCM_CAR (p),
-                                                      SCM_CAR (SCM_CDR (p)),
-                                                      SCM_EOL))
-                                        : SCM_UNDEFINED,
-                                        SCM_EOL));
-
+    scm_i_set_source_properties_x (p, line, column, SCM_FILENAME (port));
 
   return p;
 }
@@ -864,16 +826,7 @@ scm_read_syntax (int chr, SCM port)
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
   if (SCM_RECORD_POSITIONS_P)
-    scm_hashq_set_x (scm_source_whash, p,
-                     scm_make_srcprops (line, column,
-                                        SCM_FILENAME (port),
-                                        SCM_COPY_SOURCE_P
-                                        ? (scm_cons2 (SCM_CAR (p),
-                                                      SCM_CAR (SCM_CDR (p)),
-                                                      SCM_EOL))
-                                        : SCM_UNDEFINED,
-                                        SCM_EOL));
-
+    scm_i_set_source_properties_x (p, line, column, SCM_FILENAME (port));
 
   return p;
 }
@@ -1332,14 +1285,11 @@ scm_read_sharp_extension (int chr, SCM port)
       SCM got;
 
       got = scm_call_2 (proc, SCM_MAKE_CHAR (chr), port);
-      if (!scm_is_eq (got, SCM_UNSPECIFIED))
-	{
-	  if (SCM_RECORD_POSITIONS_P)
-	    return (recsexpr (got, line, column,
-			      SCM_FILENAME (port)));
-	  else
-	    return got;
-	}
+
+      if (scm_is_pair (got) && !scm_i_has_source_properties (got))
+        scm_i_set_source_properties_x (got, line, column, SCM_FILENAME (port));
+      
+      return got;
     }
 
   return SCM_UNSPECIFIED;
@@ -1549,53 +1499,6 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
 
 
 
-
-/* Used when recording expressions constructed by `scm_read_sharp ()'.  */
-static SCM
-recsexpr (SCM obj, long line, int column, SCM filename)
-{
-  if (!scm_is_pair(obj)) {
-    return obj;
-  } else {
-    SCM tmp, copy;
-    /* If this sexpr is visible in the read:sharp source, we want to
-       keep that information, so only record non-constant cons cells
-       which haven't previously been read by the reader. */
-    if (scm_is_false (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F)))
-      {
-	if (SCM_COPY_SOURCE_P)
-	  {
-	    copy = scm_cons (recsexpr (SCM_CAR (obj), line, column, filename),
-			     SCM_UNDEFINED);
-	    for (tmp = obj; scm_is_pair (tmp); tmp = SCM_CDR (tmp))
-	      {
-		SCM_SETCDR (copy, scm_cons (recsexpr (SCM_CAR (tmp),
-						      line,
-						      column,
-						      filename),
-					    SCM_UNDEFINED));
-		copy = SCM_CDR (copy);
-	      }
-	    SCM_SETCDR (copy, tmp);
-	  }
-	else
-	  {
-	    recsexpr (SCM_CAR (obj), line, column, filename);
-	    for (tmp = obj; scm_is_pair (tmp); tmp = SCM_CDR (tmp))
-	      recsexpr (SCM_CAR (tmp), line, column, filename);
-	    copy = SCM_UNDEFINED;
-	  }
-	scm_hashq_set_x (scm_source_whash,
-                         obj,
-                         scm_make_srcprops (line,
-                                            column,
-                                            filename,
-                                            copy,
-                                            SCM_EOL));
-      }
-    return obj;
-  }
-}
 
 /* Manipulate the read-hash-procedures alist.  This could be written in
    Scheme, but maybe it will also be used by C code during initialisation.  */

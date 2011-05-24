@@ -38,6 +38,8 @@
 
 #include "libguile/validate.h"
 #include "libguile/srcprop.h"
+#include "libguile/private-options.h"
+
 
 /* {Source Properties}
  *
@@ -57,7 +59,7 @@ SCM_GLOBAL_SYMBOL (scm_sym_filename, "filename");
 SCM_GLOBAL_SYMBOL (scm_sym_copy, "copy");
 SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
-SCM scm_source_whash;
+static SCM scm_source_whash;
 
 
 
@@ -183,6 +185,32 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
   SCM_VALIDATE_NIM (1, obj);
   scm_hashq_set_x (scm_source_whash, obj, alist);
   return alist;
+}
+#undef FUNC_NAME
+
+int
+scm_i_has_source_properties (SCM obj)
+#define FUNC_NAME "%set-source-properties"
+{
+  SCM_VALIDATE_NIM (1, obj);
+
+  return scm_is_true (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F));
+}
+#undef FUNC_NAME
+  
+
+void
+scm_i_set_source_properties_x (SCM obj, long line, int col, SCM fname)
+#define FUNC_NAME "%set-source-properties"
+{
+  SCM_VALIDATE_NIM (1, obj);
+
+  scm_hashq_set_x (scm_source_whash, obj,
+                   scm_make_srcprops (line, col, fname,
+                                      SCM_COPY_SOURCE_P
+                                      ? scm_copy_tree (obj)
+                                      : SCM_UNDEFINED,
+                                      SCM_EOL));
 }
 #undef FUNC_NAME
 
