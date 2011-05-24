@@ -170,6 +170,7 @@ static SCM class_bytevector;
 static SCM class_uvec;
 
 static SCM vtable_class_map = SCM_BOOL_F;
+static scm_i_pthread_mutex_t vtable_class_map_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 /* Port classes.  Allocate 3 times the maximum number of port types so that
    input ports, output ports, and in/out ports can be stored at different
@@ -197,6 +198,8 @@ scm_i_define_class_for_vtable (SCM vtable)
 {
   SCM class;
 
+  scm_i_pthread_mutex_lock (&vtable_class_map_lock);
+
   if (scm_is_false (vtable_class_map))
     vtable_class_map = scm_make_weak_key_hash_table (SCM_UNDEFINED);
   
@@ -205,6 +208,8 @@ scm_i_define_class_for_vtable (SCM vtable)
 
   class = scm_hashq_ref (vtable_class_map, vtable, SCM_BOOL_F);
   
+  scm_i_pthread_mutex_unlock (&vtable_class_map_lock);
+
   if (scm_is_false (class))
     {
       if (SCM_UNPACK (scm_class_class))
@@ -219,8 +224,12 @@ scm_i_define_class_for_vtable (SCM vtable)
       else
         /* `create_struct_classes' will fill this in later.  */
         class = SCM_BOOL_F;
-        
+
+      /* Don't worry about races.  This only happens when creating a
+         vtable, which happens by definition in one thread.  */
+      scm_i_pthread_mutex_lock (&vtable_class_map_lock);
       scm_hashq_set_x (vtable_class_map, vtable, class);
+      scm_i_pthread_mutex_unlock (&vtable_class_map_lock);
     }
 
   return class;
@@ -2660,6 +2669,7 @@ make_struct_class (void *closure SCM_UNUSED,
 static void
 create_struct_classes (void)
 {
+  /* FIXME: take the vtable_class_map while initializing goops?  */
   scm_internal_hash_fold (make_struct_class, 0, SCM_BOOL_F,
                           vtable_class_map);
 }
