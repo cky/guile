@@ -59,8 +59,9 @@ SCM_GLOBAL_SYMBOL (scm_sym_filename, "filename");
 SCM_GLOBAL_SYMBOL (scm_sym_copy, "copy");
 SCM_GLOBAL_SYMBOL (scm_sym_line, "line");
 SCM_GLOBAL_SYMBOL (scm_sym_column, "column");
-static SCM scm_source_whash;
 
+static SCM scm_source_whash;
+static scm_i_pthread_mutex_t source_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 
 /*
@@ -165,7 +166,11 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
-  p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
+
+  scm_i_pthread_mutex_lock (&source_lock);
+  p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL); 
+  scm_i_pthread_mutex_unlock (&source_lock);
+
   if (SRCPROPSP (p))
     return scm_srcprops_to_alist (p);
   else
@@ -183,7 +188,11 @@ SCM_DEFINE (scm_set_source_properties_x, "set-source-properties!", 2, 0, 0,
 #define FUNC_NAME s_scm_set_source_properties_x
 {
   SCM_VALIDATE_NIM (1, obj);
+
+  scm_i_pthread_mutex_lock (&source_lock);
   scm_hashq_set_x (scm_source_whash, obj, alist);
+  scm_i_pthread_mutex_unlock (&source_lock);
+
   return alist;
 }
 #undef FUNC_NAME
@@ -192,9 +201,15 @@ int
 scm_i_has_source_properties (SCM obj)
 #define FUNC_NAME "%set-source-properties"
 {
+  int ret;
+  
   SCM_VALIDATE_NIM (1, obj);
 
-  return scm_is_true (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F));
+  scm_i_pthread_mutex_lock (&source_lock);
+  ret = scm_is_true (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F));
+  scm_i_pthread_mutex_unlock (&source_lock);
+
+  return ret;
 }
 #undef FUNC_NAME
   
@@ -205,12 +220,14 @@ scm_i_set_source_properties_x (SCM obj, long line, int col, SCM fname)
 {
   SCM_VALIDATE_NIM (1, obj);
 
+  scm_i_pthread_mutex_lock (&source_lock);
   scm_hashq_set_x (scm_source_whash, obj,
                    scm_make_srcprops (line, col, fname,
                                       SCM_COPY_SOURCE_P
                                       ? scm_copy_tree (obj)
                                       : SCM_UNDEFINED,
                                       SCM_EOL));
+  scm_i_pthread_mutex_unlock (&source_lock);
 }
 #undef FUNC_NAME
 
@@ -222,7 +239,11 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
+
+  scm_i_pthread_mutex_lock (&source_lock);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
+  scm_i_pthread_mutex_unlock (&source_lock);
+
   if (!SRCPROPSP (p))
     goto alist;
   if (scm_is_eq (scm_sym_line, key))
@@ -250,6 +271,8 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 {
   SCM p;
   SCM_VALIDATE_NIM (1, obj);
+
+  scm_i_pthread_mutex_lock (&source_lock);
   p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
 
   if (scm_is_eq (scm_sym_line, key))
@@ -286,6 +309,8 @@ SCM_DEFINE (scm_set_source_property_x, "set-source-property!", 3, 0, 0,
 	scm_hashq_set_x (scm_source_whash, obj,
                          scm_acons (key, datum, p));
     }
+  scm_i_pthread_mutex_unlock (&source_lock);
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -300,10 +325,12 @@ SCM_DEFINE (scm_cons_source, "cons-source", 3, 0, 0,
 {
   SCM p, z;
   z = scm_cons (x, y);
+  scm_i_pthread_mutex_lock (&source_lock);
   /* Copy source properties possibly associated with xorig. */
   p = scm_hashq_ref (scm_source_whash, xorig, SCM_BOOL_F);
   if (scm_is_true (p))
     scm_hashq_set_x (scm_source_whash, z, p);
+  scm_i_pthread_mutex_unlock (&source_lock);
   return z;
 }
 #undef FUNC_NAME
