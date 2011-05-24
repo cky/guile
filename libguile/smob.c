@@ -418,12 +418,16 @@ scm_set_smob_apply (scm_t_bits tc, SCM (*apply) (),
 }
 
 static SCM tramp_weak_map = SCM_BOOL_F;
+static scm_i_pthread_mutex_t tramp_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 SCM
 scm_i_smob_apply_trampoline (SCM smob)
 {
-  /* could use hashq-create-handle!, but i don't know what to do if it returns a
-     weak pair */
-  SCM tramp = scm_hashq_ref (tramp_weak_map, smob, SCM_BOOL_F);
+  SCM tramp;
+
+  scm_i_pthread_mutex_lock (&tramp_lock);
+  tramp = scm_hashq_ref (tramp_weak_map, smob, SCM_BOOL_F);
+  scm_i_pthread_mutex_unlock (&tramp_lock);
 
   if (scm_is_true (tramp))
     return tramp;
@@ -440,7 +444,12 @@ scm_i_smob_apply_trampoline (SCM smob)
       SCM_SIMPLE_VECTOR_SET (objtable, 1, scm_from_locale_symbol (name));
       tramp = scm_make_program (SCM_SMOB_DESCRIPTOR (smob).apply_trampoline_objcode,
                                 objtable, SCM_BOOL_F);
+
+      /* Race conditions (between the ref and this set!) cannot cause
+         any harm here.  */
+      scm_i_pthread_mutex_lock (&tramp_lock);
       scm_hashq_set_x (tramp_weak_map, smob, tramp);
+      scm_i_pthread_mutex_unlock (&tramp_lock);
       return tramp;
     }
 }
