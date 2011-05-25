@@ -443,8 +443,8 @@ representation, for obvious reasons.
 @end deftypefn
 
 @deftypefn Macro SCM SCM_UNSPECIFIED
-The value returned by expressions which the Scheme standard says return
-an ``unspecified'' value.
+The value returned by some (but not all) expressions that the Scheme
+standard says return an ``unspecified'' value.
 
 This is sort of a weirdly literal way to take things, but the standard
 read-eval-print loop prints nothing when the expression returns this
