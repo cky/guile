@@ -31,6 +31,7 @@ BUILT_SOURCES =
 EXTRA_DIST =
 
 TESTS_ENVIRONMENT =						\
+  srcdir="$(srcdir)"						\
   builddir="$(builddir)"					\
   GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
 

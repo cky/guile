@@ -1,5 +1,5 @@
 #!/bin/sh
-exec guile -q -L "$builddir" -s "$0" "$@"
+exec guile -q -L "$srcdir" -s "$0" "$@"
 !#
 
 (define-module (base)
