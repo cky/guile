@@ -226,27 +226,6 @@
 (define long-opt-no-value-rx   (make-regexp "^--([^=]+)$"))
 (define long-opt-with-value-rx (make-regexp "^--([^=]+)=(.*)"))
 
-(define (expand-clumped-singles opt-ls)
-  ;; example: ("--xyz" "-abc5d") => ("--xyz" "-a" "-b" "-c" "5d")
-  (let loop ((opt-ls opt-ls) (ret-ls '()))
-    (cond ((null? opt-ls)
-           (reverse ret-ls))                                    ;;; retval
-          ((regexp-exec short-opt-rx (car opt-ls))
-           => (lambda (match)
-                (let ((singles (reverse
-                                (map (lambda (c)
-                                       (string-append "-" (make-string 1 c)))
-                                     (string->list
-                                      (match:substring match 1)))))
-                      (extra (match:substring match 2)))
-                  (loop (cdr opt-ls)
-                        (append (if (string=? "" extra)
-                                    singles
-                                    (cons extra singles))
-                                ret-ls)))))
-          (else (loop (cdr opt-ls)
-                      (cons (car opt-ls) ret-ls))))))
-
 (define (looks-like-an-option string)
   (or (regexp-exec short-opt-rx string)
       (regexp-exec long-opt-with-value-rx string)
@@ -264,22 +243,22 @@
                        (cons (make-string 1 (option-spec->single-char spec))
                              spec))
                      (remove-if-not option-spec->single-char specs))))
-    (let loop ((argument-ls argument-ls) (found '()) (etc '()))
+    (let loop ((unclumped 0) (argument-ls argument-ls) (found '()) (etc '()))
       (define (eat! spec ls)
         (cond
          ((eq? 'optional (option-spec->value-policy spec))
           (if (or (null? ls)
                   (looks-like-an-option (car ls)))
-              (loop ls (acons spec #t found) etc)
-              (loop (cdr ls) (acons spec (car ls) found) etc)))
+              (loop (- unclumped 1) ls (acons spec #t found) etc)
+              (loop (- unclumped 2) (cdr ls) (acons spec (car ls) found) etc)))
          ((eq? #t (option-spec->value-policy spec))
           (if (or (null? ls)
                   (looks-like-an-option (car ls)))
               (fatal-error "option must be specified with argument: --~a"
                            (option-spec->name spec))
-              (loop (cdr ls) (acons spec (car ls) found) etc)))
+              (loop (- unclumped 2) (cdr ls) (acons spec (car ls) found) etc)))
          (else
-          (loop ls (acons spec #t found) etc))))
+          (loop (- unclumped 1) ls (acons spec #t found) etc))))
       
       (match argument-ls
         (()
@@ -288,10 +267,24 @@
          (cond
           ((regexp-exec short-opt-rx opt)
            => (lambda (match)
-                (let* ((c (match:substring match 1))
-                       (spec (or (assoc-ref sc-idx c)
-                                 (fatal-error "no such option: -~a" c))))
-                  (eat! spec rest))))
+                (if (> unclumped 0)
+                    ;; Next option is known not to be clumped.
+                    (let* ((c (match:substring match 1))
+                           (spec (or (assoc-ref sc-idx c)
+                                     (fatal-error "no such option: -~a" c))))
+                      (eat! spec rest))
+                    ;; Expand a clumped group of short options.
+                    (let* ((extra (match:substring match 2))
+                           (unclumped-opts
+                            (append (map (lambda (c)
+                                           (string-append "-" (make-string 1 c)))
+                                         (string->list
+                                          (match:substring match 1)))
+                                    (if (string=? "" extra) '() (list extra)))))
+                      (loop (length unclumped-opts)
+                            (append unclumped-opts rest)
+                            found
+                            etc)))))
           ((regexp-exec long-opt-no-value-rx opt)
            => (lambda (match)
                 (let* ((opt (match:substring match 1))
@@ -308,7 +301,7 @@
                       (fatal-error "option does not support argument: --~a"
                                    opt)))))
           (else
-           (loop rest found (cons opt etc)))))))))
+           (loop (- unclumped 1) rest found (cons opt etc)))))))))
 
 (define (getopt-long program-arguments option-desc-list)
   "Process options, handling both long and short options, similar to
@@ -344,7 +337,7 @@ to add a `single-char' clause to the option description."
   (with-fluids ((%program-name (car program-arguments)))
     (let* ((specifications (map parse-option-spec option-desc-list))
            (pair (split-arg-list (cdr program-arguments)))
-           (split-ls (expand-clumped-singles (car pair)))
+           (split-ls (car pair))
            (non-split-ls (cdr pair))
            (found/etc (process-options specifications split-ls))
            (found (car found/etc))
