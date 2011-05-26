@@ -224,11 +224,6 @@ SCM_SYMBOL (sym_protected_objects, "protected-objects");
 SCM_SYMBOL (sym_times, "gc-times");
 
 
-/* Number of calls to SCM_NEWCELL since startup.  */
-unsigned scm_newcell_count;
-unsigned scm_newcell2_count;
-
-
 /* {Scheme Interface to GC}
  */
 static SCM

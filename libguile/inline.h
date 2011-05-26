@@ -107,10 +107,6 @@ SCM_API void scm_puts (const char *str_data, SCM port);
    introduce any extraneous symbols into the public namespace.  We
    only need SCM_C_INLINE to be seen publically . */
 
-extern unsigned scm_newcell2_count;
-extern unsigned scm_newcell_count;
-
-
 #ifndef SCM_INLINE_C_INCLUDING_INLINE_H
 SCM_C_EXTERN_INLINE
 #endif
