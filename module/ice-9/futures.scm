@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -54,6 +54,7 @@
   "Return a new future for THUNK.  Execution may start at any point
 concurrently, or it can start at the time when the returned future is
 touched."
+  (create-workers!)
   (let ((future (%make-future thunk #f (make-mutex))))
     (register-future! future)
     future))
@@ -145,19 +146,27 @@ touched."
       (- (current-processor-count) 1)
       0))
 
-(define %workers
-  ;; A dock of workers that stay here forever.
+;; A dock of workers that stay here forever.
 
-  ;; TODO
-  ;; 1. Allocate lazily.
-  ;; 2. Allow the pool to be shrunk, as in libgomp (though that we'd
-  ;;    need semaphores, which aren't yet in libguile!).
-  ;; 3. Provide a `worker-count' fluid.
-  (unfold (lambda (i) (>= i %worker-count))
-          (lambda (i)
-            (call-with-new-thread process-futures))
-          1+
-          0))
+;; TODO
+;; 1. Allow the pool to be shrunk, as in libgomp (though that we'd
+;;    need semaphores, which aren't yet in libguile!).
+;; 2. Provide a `worker-count' fluid.
+(define %workers '())
+
+(define (%create-workers!)
+  (lock-mutex %futures-mutex)
+  (set! %workers
+        (unfold (lambda (i) (>= i %worker-count))
+                (lambda (i)
+                  (call-with-new-thread process-futures))
+                1+
+                0))
+  (set! create-workers! (lambda () #t))
+  (unlock-mutex %futures-mutex))
+
+(define create-workers!
+  (lambda () (%create-workers!)))
 
 
 ;;;
