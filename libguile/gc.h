@@ -207,6 +207,17 @@ SCM_API char *scm_gc_strdup (const char *str, const char *what)
 SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what)
   SCM_MALLOC;
 
+
+#ifdef BUILDING_LIBGUILE
+#include "libguile/bdw-gc.h"
+#define SCM_GC_MALLOC(size) GC_MALLOC (size)
+#define SCM_GC_MALLOC_POINTERLESS(size) GC_MALLOC_ATOMIC (size)
+#else
+#define SCM_GC_MALLOC(size) scm_gc_malloc (size, NULL)
+#define SCM_GC_MALLOC_POINTERLESS(size) scm_gc_malloc_pointerless (size, NULL)
+#endif
+
+
 SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
 SCM_API void scm_remember_upto_here (SCM obj1, ...);

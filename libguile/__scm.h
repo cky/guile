@@ -192,6 +192,64 @@
 
 
 
+/* We would like gnu89 extern inline semantics, not C99 extern inline
+   semantics, so that we can be sure to avoid reifying definitions of
+   inline functions in all compilation units, which is a possibility at
+   low optimization levels, or if a user takes the address of an inline
+   function.
+
+   Hence the `__gnu_inline__' attribute, in accordance with:
+   http://gcc.gnu.org/gcc-4.3/porting_to.html .
+
+   With GCC 4.2, `__GNUC_STDC_INLINE__' is never defined (because C99 inline
+   semantics are not supported), but a warning is issued in C99 mode if
+   `__gnu_inline__' is not used.
+
+   Apple's GCC build >5400 (since Xcode 3.0) doesn't support GNU inline in
+   C99 mode and doesn't define `__GNUC_STDC_INLINE__'.  Fall back to "static
+   inline" in that case.  */
+
+# if (defined __GNUC__) && (!(((defined __APPLE_CC__) && (__APPLE_CC__ > 5400)) && __STDC_VERSION__ >= 199901L))
+#  if (defined __GNUC_STDC_INLINE__) || (__GNUC__ == 4 && __GNUC_MINOR__ == 2)
+#   define SCM_C_EXTERN_INLINE					\
+           extern __inline__ __attribute__ ((__gnu_inline__))
+#  else
+#   define SCM_C_EXTERN_INLINE extern __inline__
+#  endif
+# endif
+
+/* SCM_INLINE is a macro prepended to all public inline function
+   declarations.  Implementations of those functions should also be in
+   the header file, prefixed by SCM_INLINE_IMPLEMENTATION, and protected
+   by SCM_CAN_INLINE and a CPP define for the C file in question, like
+   SCM_INLINE_C_INCLUDING_INLINE_H.  See inline.h for an example
+   usage.  */
+
+#if defined SCM_IMPLEMENT_INLINES
+/* Reifying functions to a file, whether or not inlining is available.  */
+# define SCM_CAN_INLINE 0
+# define SCM_INLINE SCM_API
+# define SCM_INLINE_IMPLEMENTATION
+#elif defined SCM_C_INLINE
+/* Declarations when inlining is available.  */
+# define SCM_CAN_INLINE 1
+# ifdef SCM_C_EXTERN_INLINE
+#  define SCM_INLINE SCM_C_EXTERN_INLINE
+# else
+/* Fall back to static inline if GNU "extern inline" is unavailable.  */
+#  define SCM_INLINE static SCM_C_INLINE
+# endif
+# define SCM_INLINE_IMPLEMENTATION SCM_INLINE
+#else
+/* Declarations when inlining is not available.  */
+# define SCM_CAN_INLINE 0
+# define SCM_INLINE SCM_API
+/* Don't define SCM_INLINE_IMPLEMENTATION; it should never be seen in
+   this case.  */
+#endif
+
+
+
 /* {Debugging Options}
  *
  * These compile time options determine whether to include code that is only
