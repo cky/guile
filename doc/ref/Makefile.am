@@ -67,7 +67,6 @@ guile_TEXINFOS = preface.texi			\
 		 api-deprecated.texi		\
 		 scheme-using.texi		\
 		 indices.texi			\
-		 script-getopt.texi		\
 		 data-rep.texi			\
 		 repl-modules.texi		\
 		 srfi-modules.texi		\
