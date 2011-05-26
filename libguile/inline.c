@@ -23,3 +23,4 @@
 #define SCM_IMPLEMENT_INLINES 1
 #define SCM_INLINE_C_IMPLEMENTING_INLINES 1
 #include "libguile/inline.h"
+#include "libguile/gc.h"

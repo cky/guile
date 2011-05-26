@@ -218,6 +218,103 @@ SCM_API char *scm_gc_strndup (const char *str, size_t n, const char *what)
 #endif
 
 
+SCM_INLINE SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_INLINE SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
+			     scm_t_bits ccr, scm_t_bits cdr);
+SCM_INLINE SCM scm_words (scm_t_bits car, scm_t_uint16 n_words);
+
+#if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
+
+SCM_INLINE_IMPLEMENTATION SCM
+scm_cell (scm_t_bits car, scm_t_bits cdr)
+{
+  SCM cell = PTR2SCM (SCM_GC_MALLOC (sizeof (scm_t_cell)));
+
+  /* Initialize the type slot last so that the cell is ignored by the GC
+     until it is completely initialized.  This is only relevant when the GC
+     can actually run during this code, which it can't since the GC only runs
+     when all other threads are stopped.  */
+  SCM_GC_SET_CELL_WORD (cell, 1, cdr);
+  SCM_GC_SET_CELL_WORD (cell, 0, car);
+
+  return cell;
+}
+
+SCM_INLINE_IMPLEMENTATION SCM
+scm_double_cell (scm_t_bits car, scm_t_bits cbr,
+		 scm_t_bits ccr, scm_t_bits cdr)
+{
+  SCM z;
+
+  z = PTR2SCM (SCM_GC_MALLOC (2 * sizeof (scm_t_cell)));
+  /* Initialize the type slot last so that the cell is ignored by the
+     GC until it is completely initialized.  This is only relevant
+     when the GC can actually run during this code, which it can't
+     since the GC only runs when all other threads are stopped.
+  */
+  SCM_GC_SET_CELL_WORD (z, 1, cbr);
+  SCM_GC_SET_CELL_WORD (z, 2, ccr);
+  SCM_GC_SET_CELL_WORD (z, 3, cdr);
+  SCM_GC_SET_CELL_WORD (z, 0, car);
+
+  /* When this function is inlined, it's possible that the last
+     SCM_GC_SET_CELL_WORD above will be adjacent to a following
+     initialization of z.  E.g., it occurred in scm_make_real.  GCC
+     from around version 3 (e.g., certainly 3.2) began taking
+     advantage of strict C aliasing rules which say that it's OK to
+     interchange the initialization above and the one below when the
+     pointer types appear to differ sufficiently.  We don't want that,
+     of course.  GCC allows this behaviour to be disabled with the
+     -fno-strict-aliasing option, but would also need to be supplied
+     by Guile users.  Instead, the following statements prevent the
+     reordering.
+   */
+#ifdef __GNUC__
+  __asm__ volatile ("" : : : "memory");
+#else
+  /* portable version, just in case any other compiler does the same
+     thing.  */
+  scm_remember_upto_here_1 (z);
+#endif
+
+  return z;
+}
+
+SCM_INLINE_IMPLEMENTATION SCM
+scm_words (scm_t_bits car, scm_t_uint16 n_words)
+{
+  SCM z;
+
+  z = PTR2SCM (SCM_GC_MALLOC (sizeof (scm_t_bits) * n_words));
+  SCM_GC_SET_CELL_WORD (z, 0, car);
+
+  /* FIXME: is the following concern even relevant with BDW-GC? */
+
+  /* When this function is inlined, it's possible that the last
+     SCM_GC_SET_CELL_WORD above will be adjacent to a following
+     initialization of z.  E.g., it occurred in scm_make_real.  GCC
+     from around version 3 (e.g., certainly 3.2) began taking
+     advantage of strict C aliasing rules which say that it's OK to
+     interchange the initialization above and the one below when the
+     pointer types appear to differ sufficiently.  We don't want that,
+     of course.  GCC allows this behaviour to be disabled with the
+     -fno-strict-aliasing option, but would also need to be supplied
+     by Guile users.  Instead, the following statements prevent the
+     reordering.
+   */
+#ifdef __GNUC__
+  __asm__ volatile ("" : : : "memory");
+#else
+  /* portable version, just in case any other compiler does the same
+     thing.  */
+  scm_remember_upto_here_1 (z);
+#endif
+
+  return z;
+}
+
+#endif /* SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES */
+
 SCM_API void scm_remember_upto_here_1 (SCM obj);
 SCM_API void scm_remember_upto_here_2 (SCM obj1, SCM obj2);
 SCM_API void scm_remember_upto_here (SCM obj1, ...);

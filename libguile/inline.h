@@ -41,11 +41,6 @@
 #include "libguile/error.h"
 
 
-SCM_INLINE SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
-SCM_INLINE SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
-			     scm_t_bits ccr, scm_t_bits cdr);
-SCM_INLINE SCM scm_words (scm_t_bits car, scm_t_uint16 n_words);
-
 SCM_INLINE SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
 SCM_INLINE void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
 
@@ -58,99 +53,13 @@ SCM_INLINE void scm_putc (char c, SCM port);
 SCM_INLINE void scm_puts (const char *str_data, SCM port);
 
 
-#if SCM_CAN_INLINE || defined SCM_INLINE_C_INCLUDING_INLINE_H
-/* either inlining, or being included from inline.c.  We use (and
-   repeat) this long #if test here and below so that we don't have to
-   introduce any extraneous symbols into the public namespace.  We
-   only need SCM_C_INLINE to be seen publically . */
+SCM_INLINE SCM scm_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_INLINE SCM scm_double_cell (scm_t_bits car, scm_t_bits cbr,
+			     scm_t_bits ccr, scm_t_bits cdr);
+SCM_INLINE SCM scm_words (scm_t_bits car, scm_t_uint16 n_words);
 
-SCM_INLINE_IMPLEMENTATION SCM
-scm_cell (scm_t_bits car, scm_t_bits cdr)
-{
-  SCM cell = PTR2SCM (SCM_GC_MALLOC (sizeof (scm_t_cell)));
-
-  /* Initialize the type slot last so that the cell is ignored by the GC
-     until it is completely initialized.  This is only relevant when the GC
-     can actually run during this code, which it can't since the GC only runs
-     when all other threads are stopped.  */
-  SCM_GC_SET_CELL_WORD (cell, 1, cdr);
-  SCM_GC_SET_CELL_WORD (cell, 0, car);
-
-  return cell;
-}
-
-SCM_INLINE_IMPLEMENTATION SCM
-scm_double_cell (scm_t_bits car, scm_t_bits cbr,
-		 scm_t_bits ccr, scm_t_bits cdr)
-{
-  SCM z;
-
-  z = PTR2SCM (SCM_GC_MALLOC (2 * sizeof (scm_t_cell)));
-  /* Initialize the type slot last so that the cell is ignored by the
-     GC until it is completely initialized.  This is only relevant
-     when the GC can actually run during this code, which it can't
-     since the GC only runs when all other threads are stopped.
-  */
-  SCM_GC_SET_CELL_WORD (z, 1, cbr);
-  SCM_GC_SET_CELL_WORD (z, 2, ccr);
-  SCM_GC_SET_CELL_WORD (z, 3, cdr);
-  SCM_GC_SET_CELL_WORD (z, 0, car);
-
-  /* When this function is inlined, it's possible that the last
-     SCM_GC_SET_CELL_WORD above will be adjacent to a following
-     initialization of z.  E.g., it occurred in scm_make_real.  GCC
-     from around version 3 (e.g., certainly 3.2) began taking
-     advantage of strict C aliasing rules which say that it's OK to
-     interchange the initialization above and the one below when the
-     pointer types appear to differ sufficiently.  We don't want that,
-     of course.  GCC allows this behaviour to be disabled with the
-     -fno-strict-aliasing option, but would also need to be supplied
-     by Guile users.  Instead, the following statements prevent the
-     reordering.
-   */
-#ifdef __GNUC__
-  __asm__ volatile ("" : : : "memory");
-#else
-  /* portable version, just in case any other compiler does the same
-     thing.  */
-  scm_remember_upto_here_1 (z);
-#endif
-
-  return z;
-}
-
-SCM_INLINE_IMPLEMENTATION SCM
-scm_words (scm_t_bits car, scm_t_uint16 n_words)
-{
-  SCM z;
-
-  z = PTR2SCM (SCM_GC_MALLOC (sizeof (scm_t_bits) * n_words));
-  SCM_GC_SET_CELL_WORD (z, 0, car);
-
-  /* FIXME: is the following concern even relevant with BDW-GC? */
-
-  /* When this function is inlined, it's possible that the last
-     SCM_GC_SET_CELL_WORD above will be adjacent to a following
-     initialization of z.  E.g., it occurred in scm_make_real.  GCC
-     from around version 3 (e.g., certainly 3.2) began taking
-     advantage of strict C aliasing rules which say that it's OK to
-     interchange the initialization above and the one below when the
-     pointer types appear to differ sufficiently.  We don't want that,
-     of course.  GCC allows this behaviour to be disabled with the
-     -fno-strict-aliasing option, but would also need to be supplied
-     by Guile users.  Instead, the following statements prevent the
-     reordering.
-   */
-#ifdef __GNUC__
-  __asm__ volatile ("" : : : "memory");
-#else
-  /* portable version, just in case any other compiler does the same
-     thing.  */
-  scm_remember_upto_here_1 (z);
-#endif
-
-  return z;
-}
+#if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
+/* Either inlining, or being included from inline.c.  */
 
 SCM_INLINE_IMPLEMENTATION SCM
 scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
