@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008, 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -148,11 +148,28 @@ take_signal (int signum)
 #endif
 }
 
+struct signal_pipe_data
+{
+  char sigbyte;
+  ssize_t n;
+  int err;
+};
+
+static void*
+read_signal_pipe_data (void * data)
+{
+  struct signal_pipe_data *sdata = data;
+  
+  sdata->n = read (signal_pipe[0], &sdata->sigbyte, 1);
+  sdata->err = errno;
+
+  return NULL;
+}
+  
 static SCM
 signal_delivery_thread (void *data)
 {
-  int n, sig;
-  char sigbyte;
+  int sig;
 #if HAVE_PTHREAD_SIGMASK  /* not on mingw, see notes above */
   sigset_t all_sigs;
   sigfillset (&all_sigs);
@@ -161,9 +178,12 @@ signal_delivery_thread (void *data)
 
   while (1)
     {
-      n = read (signal_pipe[0], &sigbyte, 1);
-      sig = sigbyte;
-      if (n == 1 && sig >= 0 && sig < NSIG)
+      struct signal_pipe_data sigdata;
+
+      scm_without_guile (read_signal_pipe_data, &sigdata);
+      
+      sig = sigdata.sigbyte;
+      if (sigdata.n == 1 && sig >= 0 && sig < NSIG)
 	{
 	  SCM h, t;
 
@@ -172,9 +192,9 @@ signal_delivery_thread (void *data)
 	  if (scm_is_true (h))
 	    scm_system_async_mark_for_thread (h, t);
 	}
-      else if (n == 0)
+      else if (sigdata.n == 0)
 	break; /* the signal pipe was closed. */
-      else if (n < 0 && errno != EINTR)
+      else if (sigdata.n < 0 && sigdata.err != EINTR)
 	perror ("error in signal delivery thread");
     }
 
