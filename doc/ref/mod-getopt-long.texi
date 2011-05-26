@@ -13,8 +13,9 @@ The @code{(ice-9 getopt-long)} module exports two procedures:
 @itemize @bullet
 @item
 @code{getopt-long} takes a list of strings --- the command line
-arguments --- and an @dfn{option specification}.  It parses the command
-line arguments according to the option specification and returns a data
+arguments --- an @dfn{option specification}, and some optional keyword
+parameters.  It parses the command line arguments according to the
+option specification and keyword parameters, and returns a data
 structure that encapsulates the results of the parsing.
 
 @item
@@ -254,7 +255,7 @@ as ordinary argument strings.
 @node getopt-long Reference
 @subsection Reference Documentation for @code{getopt-long}
 
-@deffn {Scheme Procedure} getopt-long args grammar
+@deffn {Scheme Procedure} getopt-long args grammar [#:stop-at-first-non-option #t]
 Parse the command line given in @var{args} (which must be a list of
 strings) according to the option specification @var{grammar}.
 
@@ -290,6 +291,13 @@ value, and throw an exception if it returns @code{#f}.  @var{func}
 should be a procedure which accepts a string and returns a boolean
 value; you may need to use quasiquotes to get it into @var{grammar}.
 @end table
+
+The @code{#:stop-at-first-non-option} keyword, if specified with any
+true value, tells @code{getopt-long} to stop when it gets to the first
+non-option in the command line.  That is, at the first word which is
+neither an option itself, nor the value of an option.  Everything in the
+command line from that word onwards will be returned as non-option
+arguments.
 @end deffn
 
 @code{getopt-long}'s @var{args} parameter is expected to be a list of
@@ -322,6 +330,18 @@ happen using the long option @code{--opt=@var{value}} syntax).
 @item
 An option predicate fails.
 @end itemize
+
+@code{#:stop-at-first-non-option} is useful for command line invocations
+like @code{guile-tools [--help | --version] [script [script-options]]}
+and @code{cvs [general-options] command [command-options]}, where there
+are options at two levels: some generic and understood by the outer
+command, and some that are specific to the particular script or command
+being invoked.  To use @code{getopt-long} in such cases, you would call
+it twice: firstly with @code{#:stop-at-first-non-option #t}, so as to
+parse any generic options and identify the wanted script or sub-command;
+secondly, and after trimming off the initial generic command words, with
+a script- or sub-command-specific option grammar, so as to process those
+specific options.
 
 
 @node option-ref Reference
