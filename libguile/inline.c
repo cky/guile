@@ -24,3 +24,4 @@
 #define SCM_INLINE_C_IMPLEMENTING_INLINES 1
 #include "libguile/inline.h"
 #include "libguile/gc.h"
+#include "libguile/smob.h"

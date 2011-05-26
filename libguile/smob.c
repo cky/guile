@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -472,8 +472,8 @@ scm_make_smob (scm_t_bits tc)
 static int smob_gc_kind;
 
 
-/* The generic SMOB mark procedure that gets called for SMOBs allocated with
-   `scm_i_new_smob_with_mark_proc ()'.  */
+/* The generic SMOB mark procedure that gets called for SMOBs allocated
+   with smob_gc_kind.  */
 static struct GC_ms_entry *
 smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
 	   struct GC_ms_entry *mark_stack_limit, GC_word env)
@@ -562,28 +562,10 @@ scm_gc_mark (SCM o)
 #undef CURRENT_MARK_LIMIT
 }
 
-/* Return a SMOB with typecode TC.  The SMOB type corresponding to TC may
-   provide a custom mark procedure and it will be honored.  */
-SCM
-scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits data1,
-			       scm_t_bits data2, scm_t_bits data3)
-{
-  /* Return a double cell.  */
-  SCM cell = SCM_PACK (GC_generic_malloc (2 * sizeof (scm_t_cell),
-					  smob_gc_kind));
-
-  SCM_SET_CELL_WORD_3 (cell, data3);
-  SCM_SET_CELL_WORD_2 (cell, data2);
-  SCM_SET_CELL_WORD_1 (cell, data1);
-  SCM_SET_CELL_WORD_0 (cell, tc);
-
-  return cell;
-}
-
 
 /* Finalize SMOB by calling its SMOB type's free function, if any.  */
-void
-scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
+static void
+finalize_smob (GC_PTR ptr, GC_PTR data)
 {
   SCM smob;
   size_t (* free_smob) (SCM);
@@ -598,6 +580,93 @@ scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
   if (free_smob)
     free_smob (smob);
 }
+
+/* Return a SMOB with typecode TC.  The SMOB type corresponding to TC may
+   provide a custom mark procedure and it will be honored.  */
+SCM
+scm_i_new_smob (scm_t_bits tc, scm_t_bits data)
+{
+  scm_t_bits smobnum = SCM_TC2SMOBNUM (tc);
+  SCM ret;
+
+  /* Use the smob_gc_kind if needed to allow the mark procedure to
+     run.  Since the marker only deals with double cells, that case
+     allocates a double cell.  We leave words 2 and 3 to there initial
+     values, which is 0.  */
+  if (scm_smobs [smobnum].mark)
+    ret = PTR2SCM (GC_generic_malloc (2 * sizeof (scm_t_cell), smob_gc_kind));
+  else
+    ret = PTR2SCM (GC_MALLOC (sizeof (scm_t_cell)));
+  
+  SCM_SET_CELL_WORD_1 (ret, data);
+  SCM_SET_CELL_WORD_0 (ret, tc);
+
+  if (scm_smobs[smobnum].free)
+    {
+      GC_finalization_proc prev_finalizer;
+      GC_PTR prev_finalizer_data;
+
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
+                                      finalize_smob, NULL,
+                                      &prev_finalizer, &prev_finalizer_data);
+    }
+
+  return ret;
+}
+
+/* Return a SMOB with typecode TC.  The SMOB type corresponding to TC may
+   provide a custom mark procedure and it will be honored.  */
+SCM
+scm_i_new_double_smob (scm_t_bits tc, scm_t_bits data1,
+                       scm_t_bits data2, scm_t_bits data3)
+{
+  scm_t_bits smobnum = SCM_TC2SMOBNUM (tc);
+  SCM ret;
+
+  /* Use the smob_gc_kind if needed to allow the mark procedure to
+     run.  */
+  if (scm_smobs [smobnum].mark)
+    ret = PTR2SCM (GC_generic_malloc (2 * sizeof (scm_t_cell), smob_gc_kind));
+  else
+    ret = PTR2SCM (GC_MALLOC (2 * sizeof (scm_t_cell)));
+  
+  SCM_SET_CELL_WORD_3 (ret, data3);
+  SCM_SET_CELL_WORD_2 (ret, data2);
+  SCM_SET_CELL_WORD_1 (ret, data1);
+  SCM_SET_CELL_WORD_0 (ret, tc);
+
+  if (scm_smobs[smobnum].free)
+    {
+      GC_finalization_proc prev_finalizer;
+      GC_PTR prev_finalizer_data;
+
+      GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
+                                      finalize_smob, NULL,
+                                      &prev_finalizer, &prev_finalizer_data);
+    }
+
+  return ret;
+}
+
+
+
+
+/* These two are internal details of the previous implementation of
+   SCM_NEWSMOB and are no longer used.  They are still here to preserve
+   ABI stability in the 2.0 series.  */
+void
+scm_i_finalize_smob (GC_PTR ptr, GC_PTR data)
+{
+  finalize_smob (ptr, data);
+}
+
+SCM
+scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits word1,
+                               scm_t_bits word2, scm_t_bits word3)
+{
+  return scm_new_double_smob (tc, word1, word2, word3);
+}
+
 
 
 void
