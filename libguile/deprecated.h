@@ -794,6 +794,14 @@ SCM_DEPRECATED SCM scm_struct_create_handle (SCM obj);
 
 
 
+/* Deprecated 26-05-2011, as the GC_STUBBORN API doesn't do anything any
+   more.  */
+SCM_API SCM scm_immutable_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_API SCM scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
+				       scm_t_bits ccr, scm_t_bits cdr);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

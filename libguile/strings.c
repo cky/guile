@@ -741,8 +741,8 @@ scm_i_c_make_symbol (const char *name, size_t len,
   SCM buf = make_stringbuf (len);
   memcpy (STRINGBUF_CHARS (buf), name, len);
 
-  return scm_immutable_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
-				    (scm_t_bits) hash, SCM_UNPACK (props));
+  return scm_double_cell (scm_tc7_symbol | flags, SCM_UNPACK (buf),
+                          (scm_t_bits) hash, SCM_UNPACK (props));
 }
 
 /* Returns the number of characters in SYM.  This may be different

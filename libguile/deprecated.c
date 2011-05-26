@@ -2597,6 +2597,28 @@ scm_internal_dynamic_wind (scm_t_guard before,
 
 
 
+SCM
+scm_immutable_cell (scm_t_bits car, scm_t_bits cdr)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_immutable_cell is deprecated.  Use scm_cell instead.");
+
+  return scm_cell (car, cdr);
+}
+
+SCM
+scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
+			   scm_t_bits ccr, scm_t_bits cdr)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_immutable_double_cell is deprecated.  Use scm_double_cell instead.");
+
+  return scm_double_cell (car, cbr, ccr, cdr);
+}
+
+
+
+
 void
 scm_i_init_deprecated ()
 {
