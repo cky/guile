@@ -1177,12 +1177,21 @@ tp_flush (SCM port)
   scm_t_port *c_port = SCM_PTAB_ENTRY (port);
   size_t count = c_port->write_pos - c_port->write_buf;
 
-  scm_c_write (binary_port, c_port->write_buf, count);
+  /* As the runtime will try to flush all ports upon exit, we test for
+     the underlying port still being open here. Otherwise, when you
+     would explicitly close the underlying port and the transcoded port
+     still had data outstanding, you'd get an exception on Guile exit.
+     
+     We just throw away the data when the underlying port is closed.  */
+  
+  if (SCM_OPOUTPORTP (binary_port))
+      scm_c_write (binary_port, c_port->write_buf, count);
 
   c_port->write_pos = c_port->write_buf;
   c_port->rw_active = SCM_PORT_NEITHER;
 
-  scm_force_output (binary_port);
+  if (SCM_OPOUTPORTP (binary_port))
+    scm_force_output (binary_port);
 }
 
 static int
