@@ -311,7 +311,9 @@ read from/written to in @var{port}."
                                (buffer-mode (buffer-mode block))
                                maybe-transcoder)
   (let ((port (with-i/o-filename-conditions filename
-                (lambda () (open filename O_RDONLY)))))
+                (lambda ()
+                  (with-fluids ((%default-port-encoding #f))
+                    (open filename O_RDONLY))))))
     (cond (maybe-transcoder
            (set-port-encoding! port (transcoder-codec maybe-transcoder))))
     port))
@@ -340,7 +342,9 @@ as a string, and a thunk to retrieve the characters associated with that port."
                             0
                             O_EXCL)))
          (port (with-i/o-filename-conditions filename
-                 (lambda () (open filename flags)))))
+                 (lambda ()
+                   (with-fluids ((%default-port-encoding #f))
+                     (open filename flags))))))
     (cond (maybe-transcoder
            (set-port-encoding! port (transcoder-codec maybe-transcoder))))
     port))
