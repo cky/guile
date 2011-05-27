@@ -72,6 +72,12 @@
              (lambda () #t)) ;; close-port
      "rw")))
 
+(define (call-with-bytevector-output-port/transcoded transcoder receiver)
+  (call-with-bytevector-output-port
+    (lambda (bv-port)
+      (call-with-port (transcoded-port bv-port transcoder)
+        receiver))))
+
 
 (with-test-prefix "7.2.5 End-of-File Object"
 
@@ -620,11 +626,9 @@
     (let ((s "Hello\nÄÖÜ"))
       (bytevector=?
        (string->utf8 s)
-       (call-with-bytevector-output-port
-         (lambda (bv-port)
-           (call-with-port (transcoded-port bv-port (make-transcoder (utf-8-codec)))
-             (lambda (utf8-port)
-               (put-string utf8-port s))))))))
+       (call-with-bytevector-output-port/transcoded (make-transcoder (utf-8-codec))
+         (lambda (utf8-port)
+           (put-string utf8-port s))))))
 
   (pass-if "transcoded-port [input]"
     (let ((s "Hello\nÄÖÜ"))
@@ -720,6 +724,11 @@
     (pass-if-condition "get-datum" i/o-read-error?
       (get-datum (make-failing-port)))))
 
+(define (encoding-error-predicate char)
+  (lambda (c)
+    (and (i/o-encoding-error? c)
+         (char=? char (i/o-encoding-error-char c)))))
+
 (with-test-prefix "8.2.12 Textual Output"
   
   (with-test-prefix "write error"
@@ -728,7 +737,22 @@
     (pass-if-condition "put-string" i/o-write-error?
       (put-string (make-failing-port) "Hello World!"))
     (pass-if-condition "put-datum" i/o-write-error?
-      (put-datum (make-failing-port) '(hello world!)))))
+      (put-datum (make-failing-port) '(hello world!))))
+  (with-test-prefix "encoding error"
+    (pass-if-condition "put-char" (encoding-error-predicate #\λ)
+      (call-with-bytevector-output-port/transcoded
+          (make-transcoder (latin-1-codec)
+                           (native-eol-style)
+                           (error-handling-mode raise))
+        (lambda (port)
+          (put-char port #\λ))))
+    (pass-if-condition "put-string" (encoding-error-predicate #\λ)
+      (call-with-bytevector-output-port/transcoded
+          (make-transcoder (latin-1-codec)
+                           (native-eol-style)
+                           (error-handling-mode raise))
+        (lambda (port)
+          (put-string port "FooλBar"))))))
 
 (with-test-prefix "8.3 Simple I/O"
   (with-test-prefix "read error"
