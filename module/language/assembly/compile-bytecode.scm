@@ -20,6 +20,7 @@
 
 (define-module (language assembly compile-bytecode)
   #:use-module (system base pmatch)
+  #:use-module (system base target)
   #:use-module (language assembly)
   #:use-module (system vm instruction)
   #:use-module (rnrs bytevectors)
@@ -38,7 +39,7 @@
            ((_ arg)
             (begin body body* ...)))))))
        
-  (define (fill-bytecode bv)
+  (define (fill-bytecode bv target-endianness)
     (let ((pos 0))
       (define-inline1 (write-byte b)
         (bytevector-u8-set! bv pos b)
@@ -54,7 +55,7 @@
         (bytevector-u32-set! bv pos x (endianness big))
         (set! pos (+ pos 4)))
       (define-inline1 (write-uint32 x)
-        (bytevector-u32-native-set! bv pos x)
+        (bytevector-u32-set! bv pos x target-endianness)
         (set! pos (+ pos 4)))
       (define-inline1 (write-loader-len len)
         (bytevector-u8-set! bv pos (ash len -16))
@@ -77,7 +78,7 @@
           (bytevector-copy! bv* 0 bv pos len)
           (set! pos (+ pos len))))
       (define-inline1 (write-wide-string s)
-        (write-bytevector (string->utf32 s (native-endianness))))
+        (write-bytevector (string->utf32 s target-endianness)))
       (define-inline1 (write-break label)
         (let ((offset (- (assq-ref labels label) (+ (get-addr) 3))))
           (cond ((>= offset (ash 1 23)) (error "jump too far forward" offset))
@@ -160,6 +161,7 @@
      (fill-bytecode (make-bytevector (+ 4 4 length
                                         (if meta
                                             (1- (byte-length meta))
-                                            0)))))
-
+                                            0)))
+                    (target-endianness)))
+    
     (else (error "bad assembly" assembly))))
