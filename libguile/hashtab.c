@@ -1377,40 +1377,20 @@ scm_internal_hash_fold (scm_t_hash_fold_fn fn, void *closure,
   n = SCM_SIMPLE_VECTOR_LENGTH (buckets);
   for (i = 0; i < n; ++i)
     {
-      SCM prev, ls;
+      SCM ls, handle;
 
-      for (prev = SCM_BOOL_F, ls = SCM_SIMPLE_VECTOR_REF (buckets, i);
-	   !scm_is_null (ls);
-	   prev = ls, ls = SCM_CDR (ls))
+      for (ls = SCM_SIMPLE_VECTOR_REF (buckets, i); !scm_is_null (ls);
+	   ls = SCM_CDR (ls))
 	{
-	  SCM handle;
-
-	  if (!scm_is_pair (ls))
-	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
-
 	  handle = SCM_CAR (ls);
-	  if (!scm_is_pair (handle))
-	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
 
-	  if (SCM_HASHTABLE_WEAK_P (table))
-	    {
-	      if (SCM_WEAK_PAIR_DELETED_P (handle))
-		{
-		  /* We hit a weak pair whose car/cdr has become
-		     unreachable: unlink it from the bucket.  */
-		  if (scm_is_true (prev))
-		    SCM_SETCDR (prev, SCM_CDR (ls));
-		  else
-		    SCM_SIMPLE_VECTOR_SET (buckets, i, SCM_CDR (ls));
-
-                  /* Update the item count.  */
-                  SCM_HASHTABLE_DECREMENT (table);
-
-		  continue;
-		}
-	    }
-
-	  result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
+	  if (SCM_HASHTABLE_WEAK_P (table) && SCM_WEAK_PAIR_DELETED_P (handle))
+            /* Don't try to unlink this weak pair, as we're not within
+               the allocation lock.  Instead rely on
+               vacuum_weak_hash_table to do its job.  */
+            continue;
+          else
+            result = fn (closure, SCM_CAR (handle), SCM_CDR (handle), result);
 	}
     }
 
