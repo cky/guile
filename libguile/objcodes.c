@@ -327,10 +327,38 @@ SCM_DEFINE (scm_write_objcode, "write-objcode", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_write_objcode
 {
+  static SCM target_endianness_var = SCM_BOOL_F;
+  static SCM target_word_size_var = SCM_BOOL_F;
+
+  char cookie[sizeof (SCM_OBJCODE_COOKIE) - 1];
+  char endianness;
+  char word_size;
+
   SCM_VALIDATE_OBJCODE (1, objcode);
   SCM_VALIDATE_OUTPUT_PORT (2, port);
   
-  scm_c_write (port, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE));
+  if (scm_is_false (target_endianness_var))
+    target_endianness_var =
+      scm_c_public_variable ("system base target", "target-endianness");
+  if (scm_is_false (target_word_size_var))
+    target_word_size_var =
+      scm_c_public_variable ("system base target", "target-word-size");
+
+  endianness = 
+    scm_is_eq (scm_call_0 (scm_variable_ref (target_endianness_var)),
+               scm_endianness_big) ? 'B' : 'L';
+  switch (scm_to_int (scm_call_0 (scm_variable_ref (target_word_size_var))))
+    {
+    case 4: word_size = '4'; break;
+    case 8: word_size = '8'; break;
+    default: abort ();
+    }
+
+  memcpy (cookie, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE));
+  cookie[SCM_OBJCODE_ENDIANNESS_OFFSET] = endianness;
+  cookie[SCM_OBJCODE_WORD_SIZE_OFFSET] = word_size;
+
+  scm_c_write (port, cookie, strlen (SCM_OBJCODE_COOKIE));
   scm_c_write (port, SCM_OBJCODE_DATA (objcode),
                sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode));
 
