@@ -173,7 +173,8 @@ SYSTEM_BASE_SOURCES =				\
   system/base/compile.scm			\
   system/base/language.scm			\
   system/base/lalr.scm				\
-  system/base/message.scm
+  system/base/message.scm			\
+  system/base/target.scm
 
 ICE_9_SOURCES = \
   ice-9/r4rs.scm \
