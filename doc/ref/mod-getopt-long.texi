@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -332,7 +332,7 @@ An option predicate fails.
 @end itemize
 
 @code{#:stop-at-first-non-option} is useful for command line invocations
-like @code{guile-tools [--help | --version] [script [script-options]]}
+like @code{guild [--help | --version] [script [script-options]]}
 and @code{cvs [general-options] command [command-options]}, where there
 are options at two levels: some generic and understood by the outer
 command, and some that are specific to the particular script or command

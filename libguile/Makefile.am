@@ -698,7 +698,7 @@ posix.x: cpp-SIG.c
 load.x: libpath.h
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
-snarf2checkedtexi = GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guile-tools snarf-check-and-output-texi
+snarf2checkedtexi = GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guild snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
 guile.texi: $(alldotdocfiles) guile$(EXEEXT)

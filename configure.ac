@@ -62,6 +62,7 @@ gl_EARLY
 AC_PROG_CPP
 AC_PROG_SED
 AC_PROG_AWK
+AC_PROG_LN_S
 
 dnl Gnulib.
 gl_INIT
@@ -1724,7 +1725,7 @@ GUILE_CONFIG_SCRIPT([benchmark-guile])
 GUILE_CONFIG_SCRIPT([meta/guile])
 GUILE_CONFIG_SCRIPT([meta/uninstalled-env])
 GUILE_CONFIG_SCRIPT([meta/gdb-uninstalled-guile])
-GUILE_CONFIG_SCRIPT([meta/guile-tools])
+GUILE_CONFIG_SCRIPT([meta/guild])
 GUILE_CONFIG_SCRIPT([libguile/guile-snarf])
 GUILE_CONFIG_SCRIPT([libguile/guile-snarf-docs])
 GUILE_CONFIG_SCRIPT([test-suite/standalone/test-use-srfi])

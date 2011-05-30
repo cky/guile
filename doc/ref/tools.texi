@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -9,13 +9,13 @@
 @chapter Miscellaneous Tools
 
 Programming is more fun with a good tools.  This chapter describes snarfing
-tools, and the @code{guile-tools} program which can be used to invoke the rest
+tools, and the @code{guild} program which can be used to invoke the rest
 of the tools (which are self-documenting).  Some of these are used in Guile
 development, too.  Imagine that!
 
 @menu
 * Snarfing::                    Grepping the source in various ways.
-* Executable Modules::          Modules callable via guile-tools.
+* Executable Modules::          Modules callable via guild.
 @end menu
 
 @c ---------------------------------------------------------------------------
@@ -298,26 +298,27 @@ is rather byzantine, so for now @emph{NO} doc snarfing programs are installed.
 @c ---------------------------------------------------------------------------
 @node Executable Modules
 @section Executable Modules
+@cindex guild
 @cindex guile-tools
 @cindex modules, executable
 @cindex executable modules
 @cindex scripts
 
 When Guile is installed, in addition to the @code{(ice-9 FOO)} modules, a set
-of @dfn{guile-tools modules} @code{(scripts BAR)} is also installed.  Each is
+of @dfn{guild modules} @code{(scripts BAR)} is also installed.  Each is
 a regular Scheme module that has some additional packaging so that it can be
-used by guile-tools, from the shell.  For this reason, we sometimes use the
+used by guild, from the shell.  For this reason, we sometimes use the
 term @dfn{script} in this context to mean the same thing.
 
-As a convenience, the @code{guile-tools} wrapper program is installed along w/
+As a convenience, the @code{guild} wrapper program is installed along w/
 @code{guile}; it knows where a particular module is installed and calls it
 passing its args to the program.  The result is that you need not augment your
 PATH.  Usage is straightforward:
 
 @example
-guile-tools --help
-guile-tools --version
-guile-tools [OPTION] PROGRAM [ARGS ...]
+guild --help
+guild --version
+guild [OPTION] PROGRAM [ARGS ...]
 
 If PROGRAM is "list" or omitted, display contents of scripts dir, otherwise
 PROGRAM is run w/ ARGS.  Options (only one of which may be used at a time):
@@ -330,8 +331,8 @@ The modules are self-documenting.  For example, to see the documentation for
 @code{lint}, use one (or both) of the shell commands:
 
 @example
-guile-tools display-commentary '(scripts lint)'
-guile-tools --source lint
+guild display-commentary '(scripts lint)'
+guild --source lint
 @end example
 
 The rest of this section describes the packaging that goes into creating an
@@ -343,7 +344,7 @@ executable module.  Feel free to skip to the next chapter.
 
 See template file @code{PROGRAM} for a quick start.
 
-Programs must follow the @dfn{guile-tools} convention, documented here:
+Programs must follow the @dfn{guild} convention, documented here:
 
 @itemize
 
@@ -371,7 +372,7 @@ However, `main' must NOT be exported.
 @end itemize
 
 Following these conventions allows the program file to be used as module
-@code{(scripts PROGRAM)} in addition to being invoked by guile-tools.  Please
+@code{(scripts PROGRAM)} in addition to being invoked by guild.  Please
 also include a helpful Commentary section w/ some usage info.
 
 @c tools.texi ends here

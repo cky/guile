@@ -165,10 +165,11 @@ In Makefile.in:
 @node Autofrisk
 @section Autofrisk
 
-The @dfn{guile-tools autofrisk} command looks for the file @file{modules.af}
+The @dfn{guild autofrisk} command looks for the file @file{modules.af}
 in the current directory and writes out @file{modules.af.m4} containing
-autoconf definitions for @code{AUTOFRISK_CHECKS} and @code{AUTOFRISK_SUMMARY}.
-@xref{Autoconf Background}, and @xref{Using Autoconf Macros}, for more info.
+autoconf definitions for @code{AUTOFRISK_CHECKS} and
+@code{AUTOFRISK_SUMMARY}.  @xref{Autoconf Background}, and @xref{Using
+Autoconf Macros}, for more info.
 
 The modules.af file consists of a series of configuration forms (Scheme
 lists), which have one of the following formats:
@@ -238,10 +239,10 @@ Macros}) that does basically the same thing.
 @end example
 
 If the SRFI modules (@pxref{SRFI Support}) were a separate package, we could
-use @code{guile-tools frisk} to find out its dependencies:
+use @code{guild frisk} to find out its dependencies:
 
 @example
-$ guile-tools frisk srfi/*.scm
+$ guild frisk srfi/*.scm
 13 files, 18 modules (13 internal, 5 external), 9 edges
 
 x (ice-9 and-let-star)

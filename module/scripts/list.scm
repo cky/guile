@@ -1,4 +1,4 @@
-;;; List --- List scripts that can be invoked by guile-tools  -*- coding: iso-8859-1 -*-
+;;; List --- List scripts that can be invoked by guild  -*- coding: iso-8859-1 -*-
 
 ;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
@@ -21,7 +21,7 @@
 
 ;; Usage: list
 ;;
-;; List scripts that can be invoked by guile-tools.
+;; List scripts that can be invoked by guild.
 
 ;;; Code:
 

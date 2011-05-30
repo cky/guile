@@ -1,9 +1,9 @@
 #!/bin/sh
 # -*- scheme -*-
-exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
+exec guile $GUILE_FLAGS -e '(@@ (guild) main)' -s "$0" "$@"
 !#
 
-;;;; guile-tools --- running scripts bundled with Guile
+;;;; guild --- running scripts bundled with Guile
 ;;;; Andy Wingo <wingo@pobox.com> --- April 2009
 ;;;; 
 ;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
@@ -23,7 +23,7 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 ;;;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;;;; Boston, MA 02110-1301 USA
 
-(define-module (guile-tools)
+(define-module (guild)
   #:use-module (ice-9 getopt-long)
   #:autoload (ice-9 format) (format))
 
@@ -39,16 +39,16 @@ exec guile $GUILE_FLAGS -e '(@@ (guile-tools) main)' -s "$0" "$@"
 
 (define (display-help)
   (display "\
-Usage: guile-tools --version
-       guile-tools --help
-       guile-tools PROGRAM [ARGS]
+Usage: guild --version
+       guild --help
+       guild PROGRAM [ARGS]
 
 If PROGRAM is \"list\" or omitted, display available scripts, otherwise
 PROGRAM is run with ARGS.
 "))
 
 (define (display-version)
-  (format #t "guile-tools (GNU Guile ~A) ~A
+  (format #t "guild (GNU Guile ~A) ~A
 Copyright (C) 2010 Free Software Foundation, Inc.
 License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>
 This is free software: you are free to change and redistribute it.
@@ -82,7 +82,7 @@ There is NO WARRANTY, to the extent permitted by law.
                                                             (cdr args))))))
               (else
                (format (current-error-port)
-                       "guile-tools: unknown script ~s~%" (car args))
+                       "guild: unknown script ~s~%" (car args))
                (format (current-error-port)
-                       "Try `guile-tools --help' for more information.~%")
+                       "Try `guild --help' for more information.~%")
                (exit 1))))))))

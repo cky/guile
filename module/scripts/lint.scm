@@ -1,6 +1,6 @@
 ;;; lint --- Preemptive checks for coding errors in Guile Scheme code
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -64,7 +64,7 @@
 ;; Note: most of the unresolved variables found in this example are
 ;; false positives, as you would hope.  => scope for improvement.
 ;;
-;; $ guile-tools lint `guile-tools`
+;; $ guild lint `guild`
 ;; No unresolved free variables in PROGRAM
 ;; No unresolved free variables in autofrisk
 ;; No unresolved free variables in display-commentary

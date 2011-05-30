@@ -28,4 +28,4 @@ SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GUILEC)GUILE_AUTO_COMPILE=0				\
 	$(top_builddir)/meta/uninstalled-env			\
-	guile-tools compile $(GUILE_WARNINGS) -o "$@" "$<"
+	guild compile $(GUILE_WARNINGS) -o "$@" "$<"

@@ -120,7 +120,7 @@ INSTALL
 /GRTAGS
 /GSYMS
 /GTAGS
-/meta/guile-tools
+/meta/guild
 /meta/guile-config
 /lib/locale.h
 /module/ice-9/eval.go.stamp

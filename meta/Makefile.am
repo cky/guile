@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ## Jim Blandy <jimb@red-bean.com> --- September 1997
 ##
-##  	Copyright (C) 1998, 1999, 2001, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 1999, 2001, 2006, 2007, 2008, 2009, 2011 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -20,11 +20,16 @@
 ##   write to the Free Software Foundation, Inc., 51 Franklin Street,
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
-bin_SCRIPTS = guile-config guile-tools
+bin_SCRIPTS = guile-config guild
 EXTRA_DIST= \
   guile.m4 ChangeLog-2008			\
   guile-2.0.pc.in guile-2.0-uninstalled.pc.in	\
-  guile-tools.in guile-config.in
+  guild.in guile-config.in
+
+# What we now call `guild' used to be known as `guile-tools'.
+install-data-hook:
+	cd $(DESTDIR)$(bindir) && rm -f guile-tools$(EXEEXT) && \
+	$(LN_S) guild$(EXEEXT) guile-tools$(EXEEXT)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = guile-2.0.pc

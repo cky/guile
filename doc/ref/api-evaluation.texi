@@ -581,7 +581,7 @@ procedures in this section, for the same reason that it is often bad
 taste to use @code{eval}.  By default, Guile automatically compiles any
 files it encounters that have not been compiled yet (@pxref{Invoking
 Guile, @code{--auto-compile}}).  The compiler can also be invoked
-explicitly from the shell as @code{guile-tools compile foo.scm}.
+explicitly from the shell as @code{guild compile foo.scm}.
 
 (Why are calls to @code{eval} and @code{compile} usually in bad taste?
 Because they are limited, in that they can only really make sense for
@@ -603,10 +603,10 @@ For more information on the compiler itself, see @ref{Compiling to the
 Virtual Machine}. For information on the virtual machine, see @ref{A
 Virtual Machine for Guile}.
 
-The command-line interface to Guile's compiler is the @command{guile-tools
+The command-line interface to Guile's compiler is the @command{guild
 compile} command:
 
-@deffn {Command} {guile-tools compile} [@option{option}...] @var{file}...
+@deffn {Command} {guild compile} [@option{option}...] @var{file}...
 Compile @var{file}, a source file, and store bytecode in the compilation cache
 or in the file specified by the @option{-o} option.  The following options are
 available:
@@ -673,7 +673,7 @@ computed by @code{(compiled-file-name @var{file})}.
 @xref{Compiling to the Virtual Machine}, for more information on these
 options, and on @var{env} and @var{opts}.
 
-As with @command{guile-tools compile}, @var{file} is assumed to be
+As with @command{guild compile}, @var{file} is assumed to be
 UTF-8-encoded unless it contains a coding declaration.
 @end deffn
 

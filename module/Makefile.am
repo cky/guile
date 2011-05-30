@@ -82,7 +82,7 @@ ice-9/psyntax-pp.scm.gen:
 ice-9/psyntax-pp.go: ice-9/psyntax.scm ice-9/psyntax-pp.scm
 	$(AM_V_GUILEC) GUILE_AUTO_COMPILE=0			\
 	$(top_builddir)/meta/uninstalled-env			\
-	guile-tools compile $(GUILE_WARNINGS) -o "ice-9/psyntax-pp.go" "$(srcdir)/ice-9/psyntax.scm"
+	guild compile $(GUILE_WARNINGS) -o "ice-9/psyntax-pp.go" "$(srcdir)/ice-9/psyntax.scm"
 
 SCHEME_LANG_SOURCES =						\
   language/scheme/spec.scm					\
