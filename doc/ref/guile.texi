@@ -228,6 +228,7 @@ etc. that make up Guile's application programming interface (API),
 * Guile Scripting::             How to write Guile scripts.
 * Using Guile Interactively::   Guile's REPL features.
 * Using Guile in Emacs::        Guile and Emacs.
+* Using Guile Tools::           A guild of scheming wizards.
 @end menu
 
 @include scheme-intro.texi

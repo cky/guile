@@ -695,6 +695,34 @@ See Geiser's web page at @uref{http://www.nongnu.org/geiser/}, for more
 information.
 
 
+@node Using Guile Tools
+@section Using Guile Tools
+
+@cindex guild
+@cindex guile-tools
+@cindex wizards
+Guile also comes with a growing number of command-line utilities: a
+compiler, a disassembler, some module inspectors, and in the future, a
+system to install Guile packages from the internet.  These tools may be
+invoked using the @code{guild} program.
+
+@example
+$ guild compile -o foo.go foo.scm
+wrote `foo.go'
+@end example
+
+This program used to be called @code{guile-tools}, and for backward
+compatibility it still may be called as such.  However we changed the
+name to @code{guild}, not only because it is pleasantly shorter and
+easier to read, but also because this tool will serve to bind Guile
+wizards together, by allowing hackers to share code with each other
+using a CPAN-like system.
+
+@xref{Compilation}, for more on @code{guild compile}.
+
+A complete list of guild scripts can be had by invoking @code{guild
+list}, or simply @code{guild}.
+
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
