@@ -704,7 +704,10 @@ information.
 Guile also comes with a growing number of command-line utilities: a
 compiler, a disassembler, some module inspectors, and in the future, a
 system to install Guile packages from the internet.  These tools may be
-invoked using the @code{guild} program.
+invoked using the @code{guild} program@footnote{Until Guile version
+2.0.1, this program was known as @code{guile-tools}.  The
+@code{guile-tools} executable is still installed as of 2.0.x but may be
+removed in a future stable series.}.
 
 @example
 $ guild compile -o foo.go foo.scm

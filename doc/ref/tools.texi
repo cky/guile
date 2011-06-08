@@ -310,10 +310,10 @@ a regular Scheme module that has some additional packaging so that it can be
 used by guild, from the shell.  For this reason, we sometimes use the
 term @dfn{script} in this context to mean the same thing.
 
-As a convenience, the @code{guild} wrapper program is installed along w/
+As a convenience, the @code{guild} wrapper program is installed along with
 @code{guile}; it knows where a particular module is installed and calls it
 passing its args to the program.  The result is that you need not augment your
-PATH.  Usage is straightforward:
+@code{PATH}.  Usage is straightforward:
 
 @example
 guild --help
