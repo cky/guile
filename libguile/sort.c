@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001,2002, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001,2002, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -495,6 +495,11 @@ SCM_DEFINE (scm_stable_sort_x, "stable-sort!", 2, 0, 0,
       
       vec_elts = scm_vector_writable_elements (items, &vec_handle,
 					       &len, &inc);
+      if (len == 0) {
+        scm_array_handle_release (&vec_handle);
+        return items;
+      }
+      
       temp = scm_c_make_vector (len, SCM_UNDEFINED);
       temp_elts = scm_vector_writable_elements (temp, &temp_handle,
 						NULL, NULL);
