@@ -21,7 +21,7 @@
   (export define-record-type 
 	  record-type-descriptor 
 	  record-constructor-descriptor)
-  (import (only (guile) *unspecified* and=> gensym unspecified?)
+  (import (only (guile) and=> gensym)
           (rnrs base (6))
 	  (rnrs conditions (6))
 	  (rnrs exceptions (6))
@@ -75,172 +75,162 @@
     (number-fields-inner fields 0))
   
   (define (process-fields record-name fields)
-    (define record-name-str (symbol->string record-name))
+    (define (wrap x) (datum->syntax record-name x))
+    (define (id->string x)
+      (symbol->string (syntax->datum x)))
+    (define record-name-str (id->string record-name))
     (define (guess-accessor-name field-name)
-      (string->symbol (string-append 
-		       record-name-str "-" (symbol->string field-name))))
+      (wrap
+       (string->symbol (string-append
+                        record-name-str "-" (id->string field-name)))))
     (define (guess-mutator-name field-name)
-      (string->symbol 
-       (string-append 
-	record-name-str "-" (symbol->string field-name) "-set!")))
-    
+      (wrap
+       (string->symbol
+        (string-append
+         record-name-str "-" (id->string field-name) "-set!"))))
     (define (f x)
-      (define (lose)
-        (syntax-violation 'define-record-type "invalid field specifier" x))
-      (cond ((symbol? x) (list 'immutable x (guess-accessor-name x) #f))
-	    ((not (list? x)) (lose))
-	    ((eq? (car x) 'immutable)
-	     (cons 'immutable
-		   (case (length x)
-		     ((2) (list (cadr x) (guess-accessor-name (cadr x)) #f))
-		     ((3) (list (cadr x) (caddr x) #f))
-		     (else (lose)))))
-	    ((eq? (car x) 'mutable)
-	     (cons 'mutable
-		   (case (length x)
-		     ((2) (list (cadr x) 
-				(guess-accessor-name (cadr x))
-				(guess-mutator-name (cadr x))))
-		     ((4) (cdr x))
-		     (else (lose)))))
-	    (else (lose))))
+      (syntax-case x (immutable mutable)
+        [(immutable name)
+         (list (wrap `(immutable ,(syntax->datum #'name)))
+               (guess-accessor-name #'name)
+               #f)]
+        [(immutable name accessor)
+         (list (wrap `(immutable ,(syntax->datum #'name))) #'accessor #f)]
+        [(mutable name)
+         (list (wrap `(mutable ,(syntax->datum #'name)))
+               (guess-accessor-name #'name)
+               (guess-mutator-name #'name))]
+        [(mutable name accessor mutator)
+         (list (wrap `(mutable ,(syntax->datum #'name))) #'accessor #'mutator)]
+        [name
+         (identifier? #'name)
+         (list (wrap `(immutable ,(syntax->datum #'name)))
+               (guess-accessor-name #'name)
+               #f)]
+        [else
+         (syntax-violation 'define-record-type "invalid field specifier" x)]))
     (map f fields))
   
   (define-syntax define-record-type0
     (lambda (stx)	  
+      (define *unspecified* (cons #f #f))
+      (define (unspecified? obj)
+        (eq? *unspecified* obj))
       (syntax-case stx ()
-	((_ (record-name constructor-name predicate-name) record-clause ...)
-	 (let loop ((fields *unspecified*)
-		    (parent *unspecified*)
-		    (protocol *unspecified*)
-		    (sealed *unspecified*)
-		    (opaque *unspecified*)
-		    (nongenerative *unspecified*)
-		    (constructor *unspecified*)
-		    (parent-rtd *unspecified*)
-		    (record-clauses (syntax->datum #'(record-clause ...))))
-	   (if (null? record-clauses)
-	       (let*
-		((fields (if (unspecified? fields) '() fields))
-		 (field-names
-		  (datum->syntax 
-		   #'record-name
-		   (list->vector (map (lambda (x) (take x 2)) fields))))
-		 (field-accessors
-		  (fold-left (lambda (x c lst) 
-			       (cons #`(define #,(datum->syntax 
-						  #'record-name (caddr x))
-					 (record-accessor record-name #,c))
-				     lst))
-			     '() fields (sequence (length fields))))
-		 (field-mutators
-		  (fold-left (lambda (x c lst) 
-			       (if (cadddr x)
-				   (cons #`(define #,(datum->syntax 
-						      #'record-name (cadddr x))
-					     (record-mutator record-name #,c))
-					 lst)
-				   lst))
-			     '() fields (sequence (length fields))))
-
-		 (parent-cd 
-		  (datum->syntax
-		   stx (cond ((not (unspecified? parent))
-			      `(record-constructor-descriptor ,parent))
-			     ((not (unspecified? parent-rtd)) (cadr parent-rtd))
-			     (else #f))))
-		 (parent-rtd
-		  (datum->syntax 
-		   stx (cond ((not (unspecified? parent))
-			      `(record-type-descriptor ,parent))
-			     ((not (unspecified? parent-rtd)) (car parent-rtd))
-			     (else #f))))
-
-		 (protocol (datum->syntax
-			    #'record-name (if (unspecified? protocol) 
-					      #f protocol)))
-		 (uid (datum->syntax 
-		       #'record-name (if (unspecified? nongenerative) 
-					 #f nongenerative)))
-		 (sealed? (if (unspecified? sealed) #f sealed))
-		 (opaque? (if (unspecified? opaque) #f opaque))
-
-		 (record-name-sym (datum->syntax 
-				   stx (list 'quote 
-					     (syntax->datum #'record-name)))))
-		  
-		#`(begin 
-		    (define record-name 
-		      (make-record-type-descriptor 
-		       #,record-name-sym
-		       #,parent-rtd #,uid #,sealed? #,opaque? 
-		       #,field-names))
-		    (define constructor-name 
-		      (record-constructor
-		       (make-record-constructor-descriptor 
-			record-name #,parent-cd #,protocol)))
+        ((_ (record-name constructor-name predicate-name) record-clause ...)
+         (let loop ((_fields *unspecified*)
+                    (_parent *unspecified*)
+                    (_protocol *unspecified*)
+                    (_sealed *unspecified*)
+                    (_opaque *unspecified*)
+                    (_nongenerative *unspecified*)
+                    (_constructor *unspecified*)
+                    (_parent-rtd *unspecified*)
+                    (record-clauses #'(record-clause ...)))
+           (syntax-case record-clauses
+               (fields parent protocol sealed opaque nongenerative
+                       constructor parent-rtd)
+             [()
+              (let* ((fields (if (unspecified? _fields) '() _fields))
+                     (field-names (list->vector (map car fields)))
+                     (field-accessors
+                      (fold-left (lambda (x c lst)
+                                   (cons #`(define #,(cadr x)
+                                             (record-accessor record-name #,c))
+                                         lst))
+                                 '() fields (sequence (length fields))))
+                     (field-mutators
+                      (fold-left (lambda (x c lst)
+                                   (if (caddr x)
+                                       (cons #`(define #,(caddr x)
+                                                 (record-mutator record-name
+                                                                 #,c))
+                                             lst)
+                                       lst))
+                                 '() fields (sequence (length fields))))
+                     (parent-cd (cond ((not (unspecified? _parent))
+                                       #`(record-constructor-descriptor
+                                          #,_parent))
+                                      ((not (unspecified? _parent-rtd))
+                                       (cadr _parent-rtd))
+                                      (else #f)))
+                     (parent-rtd (cond ((not (unspecified? _parent))
+                                        #`(record-type-descriptor #,_parent))
+                                       ((not (unspecified? _parent-rtd))
+                                        (car _parent-rtd))
+                                       (else #f)))
+                     (protocol (if (unspecified? _protocol) #f _protocol))
+                     (uid (if (unspecified? _nongenerative) #f _nongenerative))
+                     (sealed? (if (unspecified? _sealed) #f _sealed))
+                     (opaque? (if (unspecified? _opaque) #f _opaque)))
+                #`(begin
+                    (define record-name
+                      (make-record-type-descriptor
+                       (quote record-name)
+                       #,parent-rtd #,uid #,sealed? #,opaque?
+                       #,field-names))
+                    (define constructor-name
+                      (record-constructor
+                       (make-record-constructor-descriptor
+                        record-name #,parent-cd #,protocol)))
                     (define dummy
                       (let ()
                         (register-record-type 
-                         #,record-name-sym 
+                         (quote record-name)
                          record-name (make-record-constructor-descriptor 
                                       record-name #,parent-cd #,protocol))
                         'dummy))
-		    (define predicate-name (record-predicate record-name))
-		    #,@field-accessors
-		    #,@field-mutators))
-	       (let ((cr (car record-clauses)))
-		 (case (car cr)
-		   ((fields) 
-		    (if (unspecified? fields)
-			(loop (process-fields (syntax->datum #'record-name) 
-					      (cdr cr))
-			      parent protocol sealed opaque nongenerative 
-			      constructor parent-rtd (cdr record-clauses))
-			(raise (make-assertion-violation))))
-		   ((parent)
-		    (if (not (unspecified? parent-rtd))
-			(raise (make-assertion-violation)))
-		    (if (unspecified? parent)
-			(loop fields (cadr cr) protocol sealed opaque
-			      nongenerative constructor parent-rtd
-			      (cdr record-clauses))
-			(raise (make-assertion-violation))))
-		   ((protocol) 
-		    (if (unspecified? protocol)
-			(loop fields parent (cadr cr) sealed opaque
-			      nongenerative constructor parent-rtd
-			      (cdr record-clauses))
-			(raise (make-assertion-violation))))
-		   ((sealed) 
-		    (if (unspecified? sealed)
-			(loop fields parent protocol (cadr cr) opaque
-			      nongenerative constructor parent-rtd
-			      (cdr record-clauses))
-			(raise (make-assertion-violation))))
-		   ((opaque) (if (unspecified? opaque)
-				 (loop fields parent protocol sealed (cadr cr)
-				       nongenerative constructor parent-rtd
-				       (cdr record-clauses))
-				 (raise (make-assertion-violation))))
-		   ((nongenerative) 
-		    (if (unspecified? nongenerative)
-			(let ((uid (list 'quote
-					 (or (and (> (length cr) 1) (cadr cr))
-					     (gensym)))))
-			  (loop fields parent protocol sealed
-				opaque uid constructor
-				parent-rtd (cdr record-clauses)))
-			(raise (make-assertion-violation))))
-		   ((parent-rtd) 
-		    (if (not (unspecified? parent))
-			(raise (make-assertion-violation)))
-		    (if (unspecified? parent-rtd)
-			(loop fields parent protocol sealed opaque
-			      nongenerative constructor (cdr cr)
-			      (cdr record-clauses))
-			(raise (make-assertion-violation))))
-		   (else (raise (make-assertion-violation)))))))))))
+                    (define predicate-name (record-predicate record-name))
+                    #,@field-accessors
+                    #,@field-mutators))]
+             [((fields record-fields ...) . rest)
+              (if (unspecified? _fields)
+                  (loop (process-fields #'record-name #'(record-fields ...))
+                        _parent _protocol _sealed _opaque _nongenerative
+                        _constructor _parent-rtd #'rest)
+                  (raise (make-assertion-violation)))]
+             [((parent parent-name) . rest)
+              (if (not (unspecified? _parent-rtd))
+                  (raise (make-assertion-violation))
+                  (if (unspecified? _parent)
+                      (loop _fields #'parent-name _protocol _sealed _opaque
+                            _nongenerative _constructor _parent-rtd #'rest)
+                      (raise (make-assertion-violation))))]
+             [((protocol expression) . rest)
+              (if (unspecified? _protocol)
+                  (loop _fields _parent #'expression _sealed _opaque
+                        _nongenerative _constructor _parent-rtd #'rest)
+                  (raise (make-assertion-violation)))]
+             [((sealed sealed?) . rest)
+              (if (unspecified? _sealed)
+                  (loop _fields _parent _protocol #'sealed? _opaque
+                        _nongenerative _constructor _parent-rtd #'rest)
+                  (raise (make-assertion-violation)))]
+             [((opaque opaque?) . rest)
+              (if (unspecified? _opaque)
+                  (loop _fields _parent _protocol _sealed #'opaque?
+                        _nongenerative _constructor _parent-rtd #'rest)
+                  (raise (make-assertion-violation)))]
+             [((nongenerative) . rest)
+              (if (unspecified? _nongenerative)
+                  (loop _fields _parent _protocol _sealed _opaque
+                        #`(quote #,(datum->syntax #'record-name (gensym)))
+                        _constructor _parent-rtd #'rest)
+                  (raise (make-assertion-violation)))]
+             [((nongenerative uid) . rest)
+              (if (unspecified? _nongenerative)
+                  (loop _fields _parent _protocol _sealed
+                        _opaque #''uid _constructor
+                        _parent-rtd #'rest)
+                  (raise (make-assertion-violation)))]
+             [((parent-rtd rtd cd) . rest)
+              (if (not (unspecified? _parent))
+                  (raise (make-assertion-violation))
+                  (if (unspecified? _parent-rtd)
+                      (loop _fields _parent _protocol _sealed _opaque
+                            _nongenerative _constructor #'(rtd cd)
+                            #'rest)
+                      (raise (make-assertion-violation))))]))))))
 
   (define-syntax record-type-descriptor
     (lambda (stx)

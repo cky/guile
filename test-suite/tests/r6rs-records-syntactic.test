@@ -19,10 +19,13 @@
 
 
 (define-module (test-suite test-rnrs-records-syntactic)
-  :use-module ((rnrs records syntactic) :version (6))
-  :use-module ((rnrs records procedural) :version (6))
-  :use-module ((rnrs records inspection) :version (6))
-  :use-module (test-suite lib))
+  #:use-module ((rnrs records syntactic) #:version (6))
+  #:use-module ((rnrs records procedural) #:version (6))
+  #:use-module ((rnrs records inspection) #:version (6))
+  #:use-module ((rnrs conditions) #:version (6))
+  #:use-module ((rnrs exceptions) #:version (6))
+  #:use-module ((system base compile) #:select (compile))
+  #:use-module (test-suite lib))
 
 (define-record-type simple-rtd)
 (define-record-type 
@@ -115,3 +118,34 @@
 
 (pass-if "record-constructor-descriptor returns rcd"
   (procedure? (record-constructor (record-constructor-descriptor simple-rtd))))
+
+(with-test-prefix "record hygiene"
+  (pass-if-exception "using shadowed record keywords fails" exception:syntax-pattern-unmatched
+     (compile '(let ((fields #f))
+                 (define-record-type foo (fields bar))
+                 #t)
+              #:env (current-module)))
+  (pass-if "using shadowed record keywords fails 2"
+    (guard (condition ((syntax-violation? condition) #t))
+      (compile '(let ((immutable #f))
+                  (define-record-type foo (fields (immutable bar)))
+                  #t)
+               #:env (current-module))
+      #f))
+  (pass-if "hygiene preserved when using macros"
+    (compile '(begin
+                (define pass #t)
+                (define-syntax define-record
+                  (syntax-rules ()
+                    ((define-record name field)
+                     (define-record-type name
+                       (protocol
+                        (lambda (x)
+                          (lambda ()
+                            ;; pass refers to pass in scope of macro not use
+                            (x pass))))
+                       (fields field)))))
+                (let ((pass #f))
+                  (define-record foo bar)
+                  (foo-bar (make-foo))))
+             #:env (current-module))))
