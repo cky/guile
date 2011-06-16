@@ -16,7 +16,7 @@
    along with this program; if not, write to the Free Software Foundation,
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#ifndef _GL_STRING_H
+#ifndef _@GUARD_PREFIX@_STRING_H
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -26,8 +26,8 @@
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_STRING_H@
 
-#ifndef _GL_STRING_H
-#define _GL_STRING_H
+#ifndef _@GUARD_PREFIX@_STRING_H
+#define _@GUARD_PREFIX@_STRING_H
 
 /* NetBSD 5.0 mis-defines NULL.  */
 #include <stddef.h>
@@ -736,9 +736,9 @@ _GL_CXXALIASWARN (mbschr);
    and return a pointer to it.  Return NULL if C is not found in STRING.
    Unlike strrchr(), this function works correctly in multibyte locales with
    encodings such as GB18030.  */
-# if defined __hpux
+# if defined __hpux || defined __INTERIX
 #  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
-#   define mbsrchr rpl_mbsrchr /* avoid collision with HP-UX function */
+#   define mbsrchr rpl_mbsrchr /* avoid collision with system function */
 #  endif
 _GL_FUNCDECL_RPL (mbsrchr, char *, (const char *string, int c)
                                    _GL_ARG_NONNULL ((1)));
@@ -977,5 +977,5 @@ _GL_WARN_ON_USE (strverscmp, "strverscmp is unportable - "
 #endif
 
 
-#endif /* _GL_STRING_H */
-#endif /* _GL_STRING_H */
+#endif /* _@GUARD_PREFIX@_STRING_H */
+#endif /* _@GUARD_PREFIX@_STRING_H */

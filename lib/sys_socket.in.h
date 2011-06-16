@@ -40,7 +40,7 @@
 #else
 /* Normal invocation convention.  */
 
-#ifndef _GL_SYS_SOCKET_H
+#ifndef _@GUARD_PREFIX@_SYS_SOCKET_H
 
 #if @HAVE_SYS_SOCKET_H@
 
@@ -61,8 +61,8 @@
 
 #endif
 
-#ifndef _GL_SYS_SOCKET_H
-#define _GL_SYS_SOCKET_H
+#ifndef _@GUARD_PREFIX@_SYS_SOCKET_H
+#define _@GUARD_PREFIX@_SYS_SOCKET_H
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 
@@ -106,6 +106,12 @@ struct sockaddr_storage
 #  define GNULIB_defined_struct_sockaddr_storage 1
 # endif
 
+#endif
+
+/* Get struct iovec.  */
+/* But avoid namespace pollution on glibc systems.  */
+#if ! defined __GLIBC__
+# include <sys/uio.h>
 #endif
 
 #if @HAVE_SYS_SOCKET_H@
@@ -176,9 +182,6 @@ typedef int socklen_t;
 
 # endif
 
-/* For struct iovec */
-# include <sys/uio.h>
-
 /* Rudimentary 'struct msghdr'; this works as long as you don't try to
    access msg_control or msg_controllen.  */
 struct msghdr {
@@ -221,7 +224,7 @@ rpl_fd_isset (SOCKET fd, fd_set * set)
 
 /* Wrap everything else to use libc file descriptors for sockets.  */
 
-#if @HAVE_WINSOCK2_H@ && !defined _GL_UNISTD_H
+#if @HAVE_WINSOCK2_H@ && !defined _@GUARD_PREFIX@_UNISTD_H
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef close
 #  define close close_used_without_including_unistd_h
@@ -231,7 +234,7 @@ rpl_fd_isset (SOCKET fd, fd_set * set)
 # endif
 #endif
 
-#if @HAVE_WINSOCK2_H@ && !defined _GL_UNISTD_H
+#if @HAVE_WINSOCK2_H@ && !defined _@GUARD_PREFIX@_UNISTD_H
 # if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #  undef gethostname
 #  define gethostname gethostname_used_without_including_unistd_h
@@ -673,6 +676,6 @@ _GL_WARN_ON_USE (accept4, "accept4 is unportable - "
 # endif
 #endif
 
-#endif /* _GL_SYS_SOCKET_H */
-#endif /* _GL_SYS_SOCKET_H */
+#endif /* _@GUARD_PREFIX@_SYS_SOCKET_H */
+#endif /* _@GUARD_PREFIX@_SYS_SOCKET_H */
 #endif

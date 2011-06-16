@@ -1,4 +1,4 @@
-# isnanf.m4 serial 12
+# isnanf.m4 serial 14
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -17,6 +17,7 @@ AC_DEFUN([gl_FUNC_ISNANF],
       ISNANF_LIBM=-lm
     fi
   fi
+  dnl The variable gl_func_isnanf set here is used by isnan.m4.
   if test $gl_cv_func_isnanf_no_libm = yes \
      || test $gl_cv_func_isnanf_in_libm = yes; then
     save_LIBS="$LIBS"
@@ -32,7 +33,6 @@ AC_DEFUN([gl_FUNC_ISNANF],
   fi
   if test $gl_func_isnanf != yes; then
     HAVE_ISNANF=0
-    gl_BUILD_ISNANF
   fi
   AC_SUBST([ISNANF_LIBM])
 ])
@@ -51,17 +51,17 @@ AC_DEFUN([gl_FUNC_ISNANF_NO_LIBM],
             *) false;;
           esac
         }; then
+    gl_func_isnanf_no_libm=yes
     AC_DEFINE([HAVE_ISNANF_IN_LIBC], [1],
       [Define if the isnan(float) function is available in libc.])
   else
-    gl_BUILD_ISNANF
+    gl_func_isnanf_no_libm=no
   fi
 ])
 
-dnl Pull in replacement isnanf definition. It does not need -lm.
-AC_DEFUN([gl_BUILD_ISNANF],
+dnl Prerequisites of replacement isnanf definition. It does not need -lm.
+AC_DEFUN([gl_PREREQ_ISNANF],
 [
-  AC_LIBOBJ([isnanf])
   gl_FLOAT_EXPONENT_LOCATION
 ])
 

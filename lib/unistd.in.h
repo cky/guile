@@ -36,7 +36,7 @@
 # define _GL_WINSOCK2_H_WITNESS
 
 /* Normal invocation.  */
-#elif !defined _GL_UNISTD_H
+#elif !defined _@GUARD_PREFIX@_UNISTD_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #if @HAVE_UNISTD_H@
@@ -51,8 +51,8 @@
 # undef _GL_INCLUDING_WINSOCK2_H
 #endif
 
-#if !defined _GL_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
-#define _GL_UNISTD_H
+#if !defined _@GUARD_PREFIX@_UNISTD_H && !defined _GL_INCLUDING_WINSOCK2_H
+#define _@GUARD_PREFIX@_UNISTD_H
 
 /* NetBSD 5.0 mis-defines NULL.  Also get size_t.  */
 #include <stddef.h>
@@ -120,7 +120,7 @@
 #if @GNULIB_GETHOSTNAME@
 /* Get all possible declarations of gethostname().  */
 # if @UNISTD_H_HAVE_WINSOCK2_H@
-#  if !defined _GL_SYS_SOCKET_H
+#  if !defined _@GUARD_PREFIX@_SYS_SOCKET_H
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef socket
 #    define socket              socket_used_without_including_sys_socket_h
@@ -181,7 +181,7 @@
                       "shutdown() used without including <sys/socket.h>");
 #   endif
 #  endif
-#  if !defined _GL_SYS_SELECT_H
+#  if !defined _@GUARD_PREFIX@_SYS_SELECT_H
 #   if !(defined __cplusplus && defined GNULIB_NAMESPACE)
 #    undef select
 #    define select              select_used_without_including_sys_select_h
@@ -871,6 +871,22 @@ _GL_WARN_ON_USE (endusershell, "endusershell is unportable - "
 #endif
 
 
+#if @GNULIB_GROUP_MEMBER@
+/* Determine whether group id is in calling user's group list.  */
+# if !@HAVE_GROUP_MEMBER@
+_GL_FUNCDECL_SYS (group_member, int, (gid_t gid));
+# endif
+_GL_CXXALIAS_SYS (group_member, int, (gid_t gid));
+_GL_CXXALIASWARN (group_member);
+#elif defined GNULIB_POSIXCHECK
+# undef group_member
+# if HAVE_RAW_DECL_GROUP_MEMBER
+_GL_WARN_ON_USE (group_member, "group_member is unportable - "
+                 "use gnulib module group-member for portability");
+# endif
+#endif
+
+
 #if @GNULIB_LCHOWN@
 /* Change the owner of FILE to UID (if UID is not -1) and the group of FILE
    to GID (if GID is not -1).  Do not follow symbolic links.
@@ -1400,5 +1416,5 @@ _GL_CXXALIASWARN (write);
 #endif
 
 
-#endif /* _GL_UNISTD_H */
-#endif /* _GL_UNISTD_H */
+#endif /* _@GUARD_PREFIX@_UNISTD_H */
+#endif /* _@GUARD_PREFIX@_UNISTD_H */

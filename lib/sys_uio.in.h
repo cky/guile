@@ -20,30 +20,45 @@
 # endif
 @PRAGMA_COLUMNS@
 
-#ifndef _GL_SYS_UIO_H
+#ifndef _@GUARD_PREFIX@_SYS_UIO_H
 
 #if @HAVE_SYS_UIO_H@
+
+/* On OpenBSD 4.4, <sys/uio.h> assumes prior inclusion of <sys/types.h>.  */
+# include <sys/types.h>
 
 /* The include_next requires a split double-inclusion guard.  */
 # @INCLUDE_NEXT@ @NEXT_SYS_UIO_H@
 
 #endif
 
-#ifndef _GL_SYS_UIO_H
-#define _GL_SYS_UIO_H
+#ifndef _@GUARD_PREFIX@_SYS_UIO_H
+#define _@GUARD_PREFIX@_SYS_UIO_H
 
 #if !@HAVE_SYS_UIO_H@
 /* A platform that lacks <sys/uio.h>.  */
 /* Get 'ssize_t'.  */
 # include <sys/types.h>
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
+# if !GNULIB_defined_struct_iovec
 /* All known platforms that lack <sys/uio.h> also lack any declaration
    of struct iovec in any other header.  */
 struct iovec {
   void *iov_base;
   size_t iov_len;
 };
+#  define GNULIB_defined_struct_iovec 1
+# endif
+
+# ifdef __cplusplus
+}
+# endif
+
 #endif
 
-#endif /* _GL_SYS_UIO_H */
-#endif /* _GL_SYS_UIO_H */
+#endif /* _@GUARD_PREFIX@_SYS_UIO_H */
+#endif /* _@GUARD_PREFIX@_SYS_UIO_H */

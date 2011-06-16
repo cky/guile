@@ -105,7 +105,7 @@ guile_filter_doc_snarfage$(EXEEXT): $(guile_filter_doc_snarfage_OBJECTS) $(guile
 	if [ "$(cross_compiling)" = "yes" ]; then \
 		$(CCLD_FOR_BUILD) -o $@ $(guile_filter_doc_snarfage_OBJECTS); \
 	else \
-		$(LINK) $(guile_filter_doc_snarfage_OBJECTS) $(LDADD) $(LIBS); \
+		$(LINK) $(guile_filter_doc_snarfage_OBJECTS) $(LDADD) $(gnulib_library) $(LIBS); \
 	fi
 
 

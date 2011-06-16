@@ -15,7 +15,7 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --libtool --macro-prefix=gl --no-vc-files accept alignof alloca-opt announce-gen autobuild bind byteswap canonicalize-lgpl ceil close connect duplocale environ extensions flock floor fpieee frexp full-read full-write func gendocs getaddrinfo getpeername getsockname getsockopt git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan ldexp lib-symbol-versions lib-symbol-visibility libunistring listen locale log1p maintainer-makefile malloc-gnu malloca nproc putenv recv recvfrom send sendto setsockopt shutdown socket stat-time stdlib strftime striconveh string sys_stat trunc verify vsnprintf warnings wchar
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=build-aux --lgpl=3 --no-conditional-dependencies --libtool --macro-prefix=gl --no-vc-files accept alignof alloca-opt announce-gen autobuild bind byteswap canonicalize-lgpl ceil close connect duplocale environ extensions flock floor fpieee frexp full-read full-write func gendocs getaddrinfo getpeername getsockname getsockopt git-version-gen gitlog-to-changelog gnu-web-doc-update gnupload havelib iconv_open-utf inet_ntop inet_pton isinf isnan ldexp lib-symbol-versions lib-symbol-visibility libunistring listen locale log1p maintainer-makefile malloc-gnu malloca nproc open pipe2 putenv recv recvfrom send sendto setsockopt shutdown socket stat-time stdlib strftime striconveh string sys_stat trunc verify vsnprintf warnings wchar
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
@@ -67,6 +67,8 @@ gl_MODULES([
   malloc-gnu
   malloca
   nproc
+  open
+  pipe2
   putenv
   recv
   recvfrom
@@ -99,4 +101,5 @@ gl_MAKEFILE_NAME([])
 gl_LIBTOOL
 gl_MACRO_PREFIX([gl])
 gl_PO_DOMAIN([])
+gl_WITNESS_C_DOMAIN([])
 gl_VC_FILES([false])

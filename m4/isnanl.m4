@@ -1,4 +1,4 @@
-# isnanl.m4 serial 14
+# isnanl.m4 serial 16
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -15,6 +15,7 @@ AC_DEFUN([gl_FUNC_ISNANL],
       ISNANL_LIBM=-lm
     fi
   fi
+  dnl The variable gl_func_isnanl set here is used by isnan.m4.
   if test $gl_cv_func_isnanl_no_libm = yes \
      || test $gl_cv_func_isnanl_in_libm = yes; then
     save_LIBS="$LIBS"
@@ -30,7 +31,6 @@ AC_DEFUN([gl_FUNC_ISNANL],
   fi
   if test $gl_func_isnanl != yes; then
     HAVE_ISNANL=0
-    gl_BUILD_ISNANL
   fi
   AC_SUBST([ISNANL_LIBM])
 ])
@@ -49,15 +49,12 @@ AC_DEFUN([gl_FUNC_ISNANL_NO_LIBM],
   if test $gl_func_isnanl_no_libm = yes; then
     AC_DEFINE([HAVE_ISNANL_IN_LIBC], [1],
       [Define if the isnan(long double) function is available in libc.])
-  else
-    gl_BUILD_ISNANL
   fi
 ])
 
-dnl Pull in replacement isnanl definition. It does not need -lm.
-AC_DEFUN([gl_BUILD_ISNANL],
+dnl Prerequisites of replacement isnanl definition. It does not need -lm.
+AC_DEFUN([gl_PREREQ_ISNANL],
 [
-  AC_LIBOBJ([isnanl])
   gl_LONG_DOUBLE_EXPONENT_LOCATION
 ])
 

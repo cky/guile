@@ -33,7 +33,6 @@ GZIP_ENV = '--no-name --best $(gzip_rsyncable)'
 
 GIT = git
 VC = $(GIT)
-VC-tag = git tag -s -m '$(VERSION)' 'v$(VERSION)' -u '$(gpg_key_ID)'
 
 VC_LIST = $(build_aux)/vc-list-files -C $(srcdir)
 
@@ -496,6 +495,16 @@ sc_prohibit_hash_without_use:
 	re='$(_hash_fn)|$(_hash_struct)'\
 	  $(_sc_header_without_use)
 
+sc_prohibit_cloexec_without_use:
+	@h='"cloexec.h"' re='\<(set_cloexec_flag|dup_cloexec) *\(' \
+	  $(_sc_header_without_use)
+
+sc_prohibit_posixver_without_use:
+	@h='"posixver.h"' re='\<posix2_version *\(' $(_sc_header_without_use)
+
+sc_prohibit_same_without_use:
+	@h='"same.h"' re='\<same_name *\(' $(_sc_header_without_use)
+
 sc_prohibit_hash_pjw_without_use:
 	@h='"hash-pjw.h"' \
 	re='\<hash_pjw *\(' \
@@ -569,6 +578,16 @@ sc_prohibit_signal_without_use:
 	re='\<($(_sig_function_re)) *\(|\<($(_sig_syms_re))\>'		\
 	  $(_sc_header_without_use)
 
+# Don't include stdio--.h unless you use one of its functions.
+sc_prohibit_stdio--_without_use:
+	@h='"stdio--.h"' re='\<((f(re)?|p)open|tmpfile) *\('	\
+	  $(_sc_header_without_use)
+
+# Don't include stdio-safer.h unless you use one of its functions.
+sc_prohibit_stdio-safer_without_use:
+	@h='"stdio-safer.h"' re='\<((f(re)?|p)open|tmpfile)_safer *\('	\
+	  $(_sc_header_without_use)
+
 # Prohibit the inclusion of strings.h without a sensible use.
 # Using the likes of bcmp, bcopy, bzero, index or rindex is not sensible.
 sc_prohibit_strings_without_use:
@@ -595,6 +614,10 @@ sc_prohibit_stddef_without_use:
 	@h='<stddef.h>'							\
 	re='\<($(_stddef_syms_re)) *\('					\
 	  $(_sc_header_without_use)
+
+# Don't include xfreopen.h unless you use one of its functions.
+sc_prohibit_xfreopen_without_use:
+	@h='"xfreopen.h"' re='\<xfreopen *\(' $(_sc_header_without_use)
 
 sc_obsolete_symbols:
 	@prohibit='\<(HAVE''_FCNTL_H|O''_NDELAY)\>'			\
@@ -647,12 +670,6 @@ sc_require_test_exit_idiom:
 	      exit 1; } || :;						\
 	fi
 
-sc_the_the:
-	@prohibit='\<the ''the\>'					\
-	ignore_case=1							\
-	halt='found use of "the ''the";'				\
-	  $(_sc_search_regexp)
-
 sc_trailing_blank:
 	@prohibit='[	 ]$$'						\
 	halt='found trailing blank(s)'					\
@@ -667,11 +684,16 @@ sc_two_space_separator_in_usage:
 	halt='help2man requires at least two spaces between an option and its description'\
 	  $(_sc_search_regexp)
 
+# A regexp matching function names like "error" that may be used
+# to emit translatable messages.
+_gl_translatable_diag_func_re ?= error
+
 # Look for diagnostics that aren't marked for translation.
 # This won't find any for which error's format string is on a separate line.
 sc_unmarked_diagnostics:
 	@grep -nE							\
-	    '\<error *\([^"]*"[^"]*[a-z]{3}' $$($(VC_LIST_EXCEPT))	\
+	    '\<$(_gl_translatable_diag_func_re) *\([^"]*"[^"]*[a-z]{3}' \
+		$$($(VC_LIST_EXCEPT))					\
 	  | grep -Ev '(_|ngettext ?)\(' &&				\
 	  { echo '$(ME): found unmarked diagnostic(s)' 1>&2;		\
 	    exit 1; } || :
@@ -841,15 +863,20 @@ sc_prohibit_S_IS_definition:
 	halt='do not define S_IS* macros; include <sys/stat.h>'		\
 	  $(_sc_search_regexp)
 
-prohibit_doubled_word_RE_ ?= \
-  /\b(then?|[iao]n|i[fst]|but|f?or|at|and|[dt]o)\s+\1\b/gims
-prohibit_doubled_word_ =						\
-    -e 'while ($(prohibit_doubled_word_RE_))'				\
+# Perl block to convert a match to FILE_NAME:LINENO:TEST,
+# that is shared by two definitions below.
+perl_filename_lineno_text_ =						\
     -e '  {'								\
     -e '    $$n = ($$` =~ tr/\n/\n/ + 1);'				\
     -e '    ($$v = $$&) =~ s/\n/\\n/g;'					\
     -e '    print "$$ARGV:$$n:$$v\n";'					\
     -e '  }'
+
+prohibit_doubled_word_RE_ ?= \
+  /\b(then?|[iao]n|i[fst]|but|f?or|at|and|[dt]o)\s+\1\b/gims
+prohibit_doubled_word_ =						\
+    -e 'while ($(prohibit_doubled_word_RE_))'				\
+    $(perl_filename_lineno_text_)
 
 # Define this to a regular expression that matches
 # any filename:dd:match lines you want to ignore.
@@ -861,10 +888,24 @@ sc_prohibit_doubled_word:
 	  | grep -vE '$(ignore_doubled_word_match_RE_)'			\
 	  | grep . && { echo '$(ME): doubled words' 1>&2; exit 1; } || :
 
-sc_prohibit_can_not:
-	@prohibit='\<can[ ]not\>'					\
-	halt='use "cannot", not "can'' not"'				\
-	  $(_sc_search_regexp)
+# A regular expression matching undesirable combinations of words like
+# "can not"; this matches them even when the two words appear on different
+# lines, but not when there is an intervening delimiter like "#" or "*".
+prohibit_undesirable_word_seq_RE_ ?=					\
+  /\bcan\s+not\b/gims
+prohibit_undesirable_word_seq_ =					\
+    -e 'while ($(prohibit_undesirable_word_seq_RE_))'			\
+    $(perl_filename_lineno_text_)
+# Define this to a regular expression that matches
+# any filename:dd:match lines you want to ignore.
+# The default is to ignore no matches.
+ignore_undesirable_word_sequence_RE_ ?= ^$$
+
+sc_prohibit_undesirable_word_seq:
+	@perl -n -0777 $(prohibit_undesirable_word_seq_)		\
+	     $$($(VC_LIST_EXCEPT))					\
+	  | grep -vE '$(ignore_undesirable_word_sequence_RE_)' | grep .	\
+	  && { echo '$(ME): undesirable word sequence' >&2; exit 1; } || :
 
 _ptm1 = use "test C1 && test C2", not "test C1 -''a C2"
 _ptm2 = use "test C1 || test C2", not "test C1 -''o C2"
@@ -988,12 +1029,13 @@ apply the above patch\n'
 
 # Verify that all source files using _() are listed in po/POTFILES.in.
 po_file ?= $(srcdir)/po/POTFILES.in
+generated_files ?= $(srcdir)/lib/*.[ch]
 sc_po_check:
 	@if test -f $(po_file); then					\
 	  grep -E -v '^(#|$$)' $(po_file)				\
 	    | grep -v '^src/false\.c$$' | sort > $@-1;			\
 	  files=;							\
-	  for file in $$($(VC_LIST_EXCEPT)) $(srcdir)/lib/*.[ch]; do	\
+	  for file in $$($(VC_LIST_EXCEPT)) $(generated_files); do	\
 	    test -r $$file || continue;					\
 	    case $$file in						\
 	      *.m4|*.mk) continue ;;					\
@@ -1124,11 +1166,20 @@ gpg_key_ID ?= \
 	  | sed -n '/.*key ID \([0-9A-F]*\)/s//\1/p'; rm -f .ann-sig)
 
 translation_project_ ?= coordinator@translationproject.org
-announcement_Cc_ ?= $(translation_project_), $(PACKAGE_BUGREPORT)
-announcement_mail_headers_ ?=						\
-To: info-gnu@gnu.org							\
-Cc: $(announcement_Cc_)							\
-Mail-Followup-To: $(PACKAGE_BUGREPORT)
+
+# Make info-gnu the default only for a stable release.
+ifeq ($(RELEASE_TYPE),stable)
+  announcement_Cc_ ?= $(translation_project_), $(PACKAGE_BUGREPORT)
+  announcement_mail_headers_ ?=						\
+    To: info-gnu@gnu.org						\
+    Cc: $(announcement_Cc_)						\
+    Mail-Followup-To: $(PACKAGE_BUGREPORT)
+else
+  announcement_Cc_ ?= $(translation_project_)
+  announcement_mail_headers_ ?=						\
+    To: $(PACKAGE_BUGREPORT)						\
+    Cc: $(announcement_Cc_)
+endif
 
 announcement: NEWS ChangeLog $(rel-files)
 	@$(build_aux)/announce-gen					\
@@ -1229,7 +1280,7 @@ gl_noteworthy_news_ = * Noteworthy changes in release ?.? (????-??-??) [?]
 release-prep:
 	case $$RELEASE_TYPE in alpha|beta|stable) ;; \
 	  *) echo "invalid RELEASE_TYPE: $$RELEASE_TYPE" 1>&2; exit 1;; esac
-	$(MAKE) -s announcement > ~/announce-$(my_distdir)
+	$(MAKE) --no-print-directory -s announcement > ~/announce-$(my_distdir)
 	if test -d $(release_archive_dir); then			\
 	  ln $(rel-files) $(release_archive_dir);		\
 	  chmod a-w $(rel-files);				\
@@ -1316,3 +1367,101 @@ update-copyright:
 	grep -l -w Copyright                                             \
 	  $$(export VC_LIST_EXCEPT_DEFAULT=COPYING && $(VC_LIST_EXCEPT)) \
 	  | $(update-copyright-env) xargs $(build_aux)/$@
+
+# This tight_scope test is skipped with a warning if $(_gl_TS_headers) is not
+# overridden and $(_gl_TS_dir)/Makefile.am does not mention noinst_HEADERS.
+
+# NOTE: to override any _gl_TS_* default value, you must
+# define the variable(s) using "export" in cfg.mk.
+_gl_TS_dir ?= src
+
+ALL_RECURSIVE_TARGETS += sc_tight_scope
+sc_tight_scope: tight-scope.mk
+	@if ! grep '^ *export _gl_TS_headers *=' $(srcdir)/cfg.mk	\
+		> /dev/null						\
+	   && ! grep -w noinst_HEADERS $(srcdir)/$(_gl_TS_dir)/Makefile.am \
+		> /dev/null 2>&1; then					\
+	    echo '$(ME): skipping $@';					\
+	else								\
+	    $(MAKE) -s -C $(_gl_TS_dir)					\
+		-f Makefile						\
+		-f $(abs_top_srcdir)/cfg.mk				\
+		-f $(abs_top_builddir)/$<				\
+	      _gl_tight_scope						\
+		|| fail=1;						\
+	fi
+	@rm -f $<
+
+tight-scope.mk: $(ME)
+	@rm -f $@ $@-t
+	@perl -ne '/^# TS-start/.../^# TS-end/ and print' $(ME) > $@-t
+	@chmod a=r $@-t && mv $@-t $@
+
+ifeq (a,b)
+# TS-start
+
+# Most functions should have static scope.
+# Any that don't must be marked with `extern', but `main'
+# and `usage' are exceptions: they're always extern, but
+# do not need to be marked.  Symbols matching `__.*' are
+# reserved by the compiler, so are automatically excluded below.
+_gl_TS_unmarked_extern_functions ?= main usage
+_gl_TS_function_match ?= /^(?:$(_gl_TS_extern)) +.*?(\S+) +\(/
+
+# If your project uses a macro like "XTERN", then put
+# the following in cfg.mk to override this default:
+# export _gl_TS_extern = extern|XTERN
+_gl_TS_extern ?= extern
+
+# The second nm|grep checks for file-scope variables with `extern' scope.
+# Without gnulib's progname module, you might put program_name here.
+# Symbols matching `__.*' are reserved by the compiler,
+# so are automatically excluded below.
+_gl_TS_unmarked_extern_vars ?=
+
+# NOTE: the _match variables are perl expressions -- not mere regular
+# expressions -- so that you can extend them to match other patterns
+# and easily extract matched variable names.
+# For example, if your project declares some global variables via
+# a macro like this: GLOBAL(type, var_name, initializer), then you
+# can override this definition to automatically extract those names:
+# export _gl_TS_var_match = \
+#   /^(?:$(_gl_TS_extern)) .*?\**(\w+)(\[.*?\])?;/ || /\bGLOBAL\(.*?,\s*(.*?),/
+_gl_TS_var_match ?= /^(?:$(_gl_TS_extern)) .*?(\w+)(\[.*?\])?;/
+
+# The names of object files in (or relative to) $(_gl_TS_dir).
+_gl_TS_obj_files ?= *.$(OBJEXT)
+
+# Files in which to search for the one-line style extern declarations.
+# $(_gl_TS_dir)-relative.
+_gl_TS_headers ?= $(noinst_HEADERS)
+
+.PHONY: _gl_tight_scope
+_gl_tight_scope: $(bin_PROGRAMS)
+	t=exceptions-$$$$;						\
+	trap 's=$$?; rm -f $$t; exit $$s' 0;				\
+	for sig in 1 2 3 13 15; do					\
+	  eval "trap 'v=`expr $$sig + 128`; (exit $$v); exit $$v' $$sig"; \
+	done;								\
+	src=`for f in $(SOURCES); do					\
+	       test -f $$f && d= || d=$(srcdir)/; echo $$d$$f; done`;	\
+	hdr=`for f in $(_gl_TS_headers); do				\
+	       test -f $$f && d= || d=$(srcdir)/; echo $$d$$f; done`;	\
+	( printf '^%s$$\n' '__.*' $(_gl_TS_unmarked_extern_functions);	\
+	  grep -h -A1 '^extern .*[^;]$$' $$src				\
+	    | grep -vE '^(extern |--)' | sed 's/ .*//';			\
+	  perl -lne							\
+	     '$(_gl_TS_function_match) and print "^$$1\$$"' $$hdr;	\
+	) | sort -u > $$t;						\
+	nm -e $(_gl_TS_obj_files) | sed -n 's/.* T //p'|grep -Ev -f $$t	\
+	  && { echo the above functions should have static scope >&2;	\
+	       exit 1; } || : ;						\
+	( printf '^%s$$\n' '__.*' $(_gl_TS_unmarked_extern_vars);	\
+	  perl -lne '$(_gl_TS_var_match) and print "^$$1\$$"' $$hdr *.h	\
+	) | sort -u > $$t;						\
+	nm -e $(_gl_TS_obj_files) | sed -n 's/.* [BCDGRS] //p'		\
+            | sort -u | grep -Ev -f $$t					\
+	  && { echo the above variables should have static scope >&2;	\
+	       exit 1; } || :
+# TS-end
+endif

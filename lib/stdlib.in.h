@@ -28,13 +28,13 @@
 #else
 /* Normal invocation convention.  */
 
-#ifndef _GL_STDLIB_H
+#ifndef _@GUARD_PREFIX@_STDLIB_H
 
 /* The include_next requires a split double-inclusion guard.  */
 #@INCLUDE_NEXT@ @NEXT_STDLIB_H@
 
-#ifndef _GL_STDLIB_H
-#define _GL_STDLIB_H
+#ifndef _@GUARD_PREFIX@_STDLIB_H
+#define _@GUARD_PREFIX@_STDLIB_H
 
 /* NetBSD 5.0 mis-defines NULL.  */
 #include <stddef.h>
@@ -81,8 +81,9 @@ struct random_data
 # endif
 #endif
 
-#if (@GNULIB_MKSTEMP@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+#if (@GNULIB_MKSTEMP@ || @GNULIB_MKSTEMPS@ || @GNULIB_GETSUBOPT@ || defined GNULIB_POSIXCHECK) && ! defined __GLIBC__ && !((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
 /* On MacOS X 10.3, only <unistd.h> declares mkstemp.  */
+/* On MacOS X 10.5, only <unistd.h> declares mkstemps.  */
 /* On Cygwin 1.7.1, only <unistd.h> declares getsubopt.  */
 /* But avoid namespace pollution on glibc systems and native Windows.  */
 # include <unistd.h>
@@ -760,6 +761,6 @@ _GL_CXXALIASWARN (wctomb);
 #endif
 
 
-#endif /* _GL_STDLIB_H */
-#endif /* _GL_STDLIB_H */
+#endif /* _@GUARD_PREFIX@_STDLIB_H */
+#endif /* _@GUARD_PREFIX@_STDLIB_H */
 #endif

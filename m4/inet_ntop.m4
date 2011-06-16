@@ -1,4 +1,4 @@
-# inet_ntop.m4 serial 13
+# inet_ntop.m4 serial 15
 dnl Copyright (C) 2005-2006, 2008-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -9,14 +9,18 @@ AC_DEFUN([gl_FUNC_INET_NTOP],
   dnl Persuade Solaris <arpa/inet.h> to declare inet_ntop.
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 
-  gl_REPLACE_ARPA_INET_H
-
   dnl Most platforms that provide inet_ntop define it in libc.
   dnl Solaris 8..10 provide inet_ntop in libnsl instead.
+  HAVE_INET_NTOP=1
   gl_save_LIBS=$LIBS
   AC_SEARCH_LIBS([inet_ntop], [nsl], [],
-    [AC_REPLACE_FUNCS([inet_ntop])])
+    [AC_CHECK_FUNCS([inet_ntop])
+     if test $ac_cv_func_inet_ntop = no; then
+       HAVE_INET_NTOP=0
+     fi
+    ])
   LIBS=$gl_save_LIBS
+
   INET_NTOP_LIB=
   if test "$ac_cv_search_inet_ntop" != "no" &&
      test "$ac_cv_search_inet_ntop" != "none required"; then
@@ -24,11 +28,6 @@ AC_DEFUN([gl_FUNC_INET_NTOP],
   fi
   AC_SUBST([INET_NTOP_LIB])
 
-  gl_PREREQ_INET_NTOP
-])
-
-# Prerequisites of lib/inet_ntop.c.
-AC_DEFUN([gl_PREREQ_INET_NTOP], [
   AC_CHECK_HEADERS_ONCE([netdb.h])
   AC_CHECK_DECLS([inet_ntop],,,
     [#include <arpa/inet.h>
@@ -38,7 +37,11 @@ AC_DEFUN([gl_PREREQ_INET_NTOP], [
     ])
   if test $ac_cv_have_decl_inet_ntop = no; then
     HAVE_DECL_INET_NTOP=0
+    AC_REQUIRE([AC_C_RESTRICT])
   fi
+])
+
+# Prerequisites of lib/inet_ntop.c.
+AC_DEFUN([gl_PREREQ_INET_NTOP], [
   AC_REQUIRE([gl_SOCKET_FAMILIES])
-  AC_REQUIRE([AC_C_RESTRICT])
 ])
