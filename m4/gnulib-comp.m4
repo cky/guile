@@ -46,7 +46,9 @@ AC_DEFUN([gl_EARLY],
   # Code from module ceil:
   # Code from module close:
   # Code from module connect:
+  # Code from module dirname-lgpl:
   # Code from module dosname:
+  # Code from module double-slash-root:
   # Code from module duplocale:
   # Code from module environ:
   # Code from module errno:
@@ -130,8 +132,11 @@ AC_DEFUN([gl_EARLY],
   # Code from module readlink:
   # Code from module recv:
   # Code from module recvfrom:
+  # Code from module rename:
+  # Code from module rmdir:
   # Code from module safe-read:
   # Code from module safe-write:
+  # Code from module same-inode:
   # Code from module send:
   # Code from module sendto:
   # Code from module servent:
@@ -230,6 +235,8 @@ if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([connect])
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([connect])
+gl_DIRNAME_LGPL
+gl_DOUBLE_SLASH_ROOT
 gl_FUNC_DUPLOCALE
 if test $REPLACE_DUPLOCALE = 1; then
   AC_LIBOBJ([duplocale])
@@ -472,6 +479,16 @@ if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([recvfrom])
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([recvfrom])
+gl_FUNC_RENAME
+if test $REPLACE_RENAME = 1; then
+  AC_LIBOBJ([rename])
+fi
+gl_STDIO_MODULE_INDICATOR([rename])
+gl_FUNC_RMDIR
+if test $REPLACE_RMDIR = 1; then
+  AC_LIBOBJ([rmdir])
+fi
+gl_UNISTD_MODULE_INDICATOR([rmdir])
 gl_PREREQ_SAFE_READ
 gl_PREREQ_SAFE_WRITE
 AC_REQUIRE([gl_HEADER_SYS_SOCKET])
@@ -736,6 +753,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/alloca.in.h
   lib/arpa_inet.in.h
   lib/asnprintf.c
+  lib/basename-lgpl.c
   lib/binary-io.h
   lib/bind.c
   lib/byteswap.in.h
@@ -749,6 +767,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/ceil.c
   lib/close.c
   lib/connect.c
+  lib/dirname-lgpl.c
+  lib/dirname.h
   lib/dosname.h
   lib/duplocale.c
   lib/errno.in.h
@@ -825,10 +845,13 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/recv.c
   lib/recvfrom.c
+  lib/rename.c
+  lib/rmdir.c
   lib/safe-read.c
   lib/safe-read.h
   lib/safe-write.c
   lib/safe-write.h
+  lib/same-inode.h
   lib/send.c
   lib/sendto.c
   lib/setsockopt.c
@@ -851,6 +874,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/striconveh.c
   lib/striconveh.h
   lib/string.in.h
+  lib/stripslash.c
   lib/sys_file.in.h
   lib/sys_socket.in.h
   lib/sys_stat.in.h
@@ -888,6 +912,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ceil.m4
   m4/check-math-lib.m4
   m4/close.m4
+  m4/dirname.m4
   m4/double-slash-root.m4
   m4/duplocale.m4
   m4/eealloc.m4
@@ -961,6 +986,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/putenv.m4
   m4/read.m4
   m4/readlink.m4
+  m4/rename.m4
+  m4/rmdir.m4
   m4/safe-read.m4
   m4/safe-write.m4
   m4/servent.m4
