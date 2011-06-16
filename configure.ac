@@ -716,7 +716,6 @@ case $host in
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
     AC_LIBOBJ([win32-uname])
-    AC_LIBOBJ([win32-dirent])
     if test "$enable_networking" = yes ; then
       AC_LIBOBJ([win32-socket])
     fi

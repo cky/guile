@@ -433,7 +433,7 @@ EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     dynl.c regex-posix.c			\
     posix.c net_db.c socket.c			\
     debug-malloc.c mkstemp.c			\
-    win32-uname.c win32-dirent.c win32-socket.c	\
+    win32-uname.c win32-socket.c		\
     locale-categories.h
 
 ## delete guile-snarf.awk from the installation bindir, in case it's
@@ -450,7 +450,7 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  ieee-754.h					\
                  srfi-14.i.c					\
                  quicksort.i.c                                  \
-                 win32-uname.h win32-dirent.h win32-socket.h	\
+                 win32-uname.h win32-socket.h			\
 		 private-gc.h private-options.h
 
 # vm instructions

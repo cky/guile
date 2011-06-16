@@ -97,11 +97,7 @@
 #endif
 
 
-#if defined (__MINGW32__) || defined (_MSC_VER) || defined (__BORLANDC__)
-# include "win32-dirent.h"
-# define NAMLEN(dirent) strlen((dirent)->d_name)
-/* The following bits are per AC_HEADER_DIRENT doco in the autoconf manual */
-#elif HAVE_DIRENT_H
+#if HAVE_DIRENT_H
 # include <dirent.h>
 # define NAMLEN(dirent) strlen((dirent)->d_name)
 #else
