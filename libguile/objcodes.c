@@ -295,7 +295,7 @@ SCM_DEFINE (scm_load_objcode, "load-objcode", 1, 0, 0,
   SCM_VALIDATE_STRING (1, file);
 
   c_file = scm_to_locale_string (file);
-  fd = open (c_file, O_RDONLY);
+  fd = open (c_file, O_RDONLY | O_CLOEXEC);
   free (c_file);
   if (fd < 0) SCM_SYSERROR;
 

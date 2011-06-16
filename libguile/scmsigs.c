@@ -39,10 +39,6 @@
 #include "libguile/validate.h"
 #include "libguile/scmsigs.h"
 
-#ifdef HAVE_IO_H
-#include <io.h>  /* for mingw _pipe() */
-#endif
-
 #ifdef HAVE_PROCESS_H
 #include <process.h>    /* for mingw */
 #endif
@@ -61,7 +57,6 @@
 /* This weird comma expression is because Sleep is void under Windows. */
 #define sleep(sec) (Sleep ((sec) * 1000), 0)
 #define usleep(usec) (Sleep ((usec) / 1000), 0)
-#define pipe(fd) _pipe (fd, 256, O_BINARY)
 #endif
 
 #include <full-write.h>
@@ -208,7 +203,7 @@ start_signal_delivery_thread (void)
 
   scm_i_pthread_mutex_lock (&signal_delivery_thread_mutex);
 
-  if (pipe (signal_pipe) != 0)
+  if (pipe2 (signal_pipe, O_CLOEXEC) != 0)
     scm_syserror (NULL);
   signal_thread = scm_spawn_thread (signal_delivery_thread, NULL,
 				    scm_handle_by_message,

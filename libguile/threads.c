@@ -39,6 +39,7 @@
 #endif
 
 #include <assert.h>
+#include <fcntl.h>
 #include <nproc.h>
 
 #include "libguile/validate.h"
@@ -56,15 +57,6 @@
 #include "libguile/scmsigs.h"
 #include "libguile/strings.h"
 #include "libguile/weaks.h"
-
-#ifdef __MINGW32__
-#ifndef ETIMEDOUT
-# define ETIMEDOUT       WSAETIMEDOUT
-#endif
-# include <fcntl.h>
-# include <process.h>
-# define pipe(fd) _pipe (fd, 256, O_BINARY)
-#endif /* __MINGW32__ */
 
 #include <full-read.h>
 
@@ -538,7 +530,7 @@ guilify_self_1 (struct GC_stack_base *base)
   t.sleep_object = SCM_BOOL_F;
   t.sleep_fd = -1;
 
-  if (pipe (t.sleep_pipe) != 0)
+  if (pipe2 (t.sleep_pipe, O_CLOEXEC) != 0)
     /* FIXME: Error conditions during the initialization phase are handled
        gracelessly since public functions such as `scm_init_guile ()'
        currently have type `void'.  */
