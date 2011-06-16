@@ -374,6 +374,17 @@ programming junkie, you probably haven't heard the term, ``delimited, composable
 continuation''. That's OK; it's a relatively recent topic, but a very useful
 one to know about.
 
+@menu
+* Prompt Primitives::           Call-with-prompt and abort-to-prompt.
+* Shift and Reset::             The zoo of delimited control operators.
+@end menu
+
+@node Prompt Primitives
+@subsubsection Prompt Primitives
+
+Guile's primitive delimited control operators are
+@code{call-with-prompt} and @code{abort-to-prompt}.
+
 @deffn {Scheme Procedure} call-with-prompt tag thunk handler
 Set up a prompt, and call @var{thunk} within that prompt.
 
@@ -386,6 +397,17 @@ prompt, and the @var{handler} is run.
 the state of the computation begun when @var{thunk} was called, and ending with
 the call to @code{abort-to-prompt}. The remaining arguments to @var{handler} are
 those passed to @code{abort-to-prompt}.
+@end deffn
+
+@deffn {Scheme Procedure} make-prompt-tag [stem]
+Make a new prompt tag.  Currently prompt tags are generated symbols.
+This may change in some future Guile version.
+@end deffn
+
+@deffn {Scheme Procedure} default-prompt-tag
+Return the default prompt tag.  Having a distinguished default prompt
+tag allows some useful prompt and abort idioms, discussed in the next
+section.
 @end deffn
 
 @deffn {Scheme Procedure} abort-to-prompt tag val ...
@@ -460,6 +482,92 @@ Before moving on, we should mention that if the handler of a prompt is a
 @code{lambda} expression, and the first argument isn't referenced, an abort to
 that prompt will not cause a continuation to be reified. This can be an
 important efficiency consideration to keep in mind.
+
+@node Shift and Reset
+@subsubsection Shift, Reset, and All That
+
+There is a whole zoo of delimited control operators, and as it does not
+seem to be a bounded set, Guile implements support for them in a
+separate module:
+
+@example
+(use-modules (ice-9 control))
+@end example
+
+Firstly, we have a helpful abbreviation for the @code{call-with-prompt}
+operator.
+
+@deffn {Scheme Syntax} % expr
+@deffnx {Scheme Syntax} % expr handler
+@deffnx {Scheme Syntax} % tag expr handler
+Evaluate @var{expr} in a prompt, optionally specifying a tag and a
+handler.  If no tag is given, the default prompt tag is used.
+
+If no handler is given, a default handler is installed.  The default
+handler accepts a procedure of one argument, which will called on the
+captured continuation, within a prompt.
+
+Sometimes it's easier just to show code, as in this case:
+
+@example
+(define (default-prompt-handler k proc)
+  (% (default-prompt-tag)
+     (proc k)
+     default-prompt-handler))
+@end example
+
+The @code{%} symbol is chosen because it looks like a prompt.
+@end deffn
+
+Likewise there is an abbreviation for @code{abort-to-prompt}, which
+assumes the default prompt tag:
+
+@deffn {Scheme Procedure} abort val...
+Abort to the default prompt tag, passing @var{val...} to the handler.
+@end deffn
+
+As mentioned before, @code{(ice-9 control)} also provides other
+delimited control operators.  This section is a bit technical, and
+first-time users of delimited continuations should probably come back to
+it after some practice with @code{%}.
+
+Still here?  So, when one implements a delimited control operator like
+@code{call-with-prompt}, one needs to make two decisions.  Firstly, does
+the handler run within or outside the prompt?  Having the handler run
+within the prompt allows an abort inside the handler to return to the
+same prompt handler, which is often useful.  However it prevents tail
+calls from the handler, so it is less general.
+
+Similarly, does invoking a captured continuation reinstate a prompt?
+Again we have the tradeoff of convenience versus proper tail calls.
+
+These decisions are captured in the Felleisen @dfn{F} operator.  If
+neither the continuations nor the handlers implicitly add a prompt, the
+operator is known as @dfn{--F--}.  This is the case for Guile's
+@code{call-with-prompt} and @code{abort-to-prompt}.
+
+If both continuation and handler implicitly add prompts, then the
+operator is @dfn{+F+}.  @code{shift} and @code{reset} are such
+operators.
+
+@deffn {Scheme Syntax} reset body...
+Establish a prompt, and evaluate @var{body...} within that prompt.
+
+The prompt handler is designed to work with @code{shift}, described
+below.
+@end deffn
+
+@deffn {Scheme Syntax} shift cont body...
+Abort to the nearest @code{reset}, and evaluate @var{body...} in a
+context in which the captured continuation is bound to @var{cont}.
+
+As mentioned above, both the @var{body...} expression and invocations of
+@var{cont} implicitly establish a prompt.
+@end deffn
+
+Interested readers are invited to explore Oleg Kiselyov's wonderful web
+site at @uref{http://okmij.org/ftp/}, for more information on these
+operators.
 
 
 @node Continuations
