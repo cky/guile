@@ -1,5 +1,5 @@
 ;;;; weaks.test --- tests guile's weaks     -*- scheme -*-
-;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -207,6 +207,30 @@
                      (any not values)
                      (hash-ref z test-key)
                      #t))))
+
+   (pass-if "hash-set!, weak val, im -> im"
+     (let ((t (make-weak-value-hash-table)))
+       (hash-set! t "foo" 1)
+       (hash-set! t "foo" 2)
+       (equal? (hash-ref t "foo") 2)))
+
+   (pass-if "hash-set!, weak val, im -> nim"
+     (let ((t (make-weak-value-hash-table)))
+       (hash-set! t "foo" 1)
+       (hash-set! t "foo" "baz")
+       (equal? (hash-ref t "foo") "baz")))
+
+   (pass-if "hash-set!, weak val, nim -> nim"
+     (let ((t (make-weak-value-hash-table)))
+       (hash-set! t "foo" "bar")
+       (hash-set! t "foo" "baz")
+       (equal? (hash-ref t "foo") "baz")))
+
+   (pass-if "hash-set!, weak val, nim -> im"
+     (let ((t (make-weak-value-hash-table)))
+       (hash-set! t "foo" "bar")
+       (hash-set! t "foo" 1)
+       (equal? (hash-ref t "foo") 1)))
 
    (pass-if "assoc can do anything"
             ;; Until 1.9.12, as hash table's custom ASSOC procedure was

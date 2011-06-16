@@ -760,32 +760,34 @@ scm_hash_fn_ref (SCM table, SCM obj, SCM dflt,
     return dflt;
 }
 
-
-
-
-struct set_weak_cdr_data
+struct weak_cdr_data
 {
   SCM pair;
-  SCM new_val;
+  SCM cdr;
 };
 
 static void*
-set_weak_cdr (void *data)
+get_weak_cdr (void *data)
 {
-  struct set_weak_cdr_data *d = data;
+  struct weak_cdr_data *d = data;
 
-  if (SCM_NIMP (SCM_WEAK_PAIR_CDR (d->pair)) && !SCM_NIMP (d->new_val))
-    {
-      GC_unregister_disappearing_link ((GC_PTR) SCM_CDRLOC (d->pair));
-      SCM_SETCDR (d->pair, d->new_val);
-    }
+  if (SCM_WEAK_PAIR_CDR_DELETED_P (d->pair))
+    d->cdr = SCM_BOOL_F;
   else
-    {
-      SCM_SETCDR (d->pair, d->new_val);
-      SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) SCM_CDRLOC (d->pair),
-                                        (GC_PTR) SCM2PTR (d->new_val));
-    }
+    d->cdr = SCM_CDR (d->pair);
+
   return NULL;
+}
+
+static SCM
+weak_pair_cdr (SCM x)
+{
+  struct weak_cdr_data data;
+
+  data.pair = x;
+  GC_call_with_alloc_lock (get_weak_cdr, &data);
+
+  return data.cdr;
 }
 
 SCM
@@ -798,16 +800,21 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
   pair = scm_hash_fn_create_handle_x (table, obj, val,
                                       hash_fn, assoc_fn, closure);
 
-  if (SCM_UNLIKELY (!scm_is_eq (SCM_CDR (pair), val)))
+  if (!scm_is_eq (SCM_CDR (pair), val))
     {
       if (SCM_UNLIKELY (SCM_HASHTABLE_WEAK_VALUE_P (table)))
         {
-          struct set_weak_cdr_data data;
-
-          data.pair = pair;
-          data.new_val = val;
+          /* If the former value was on the heap, we need to unregister
+             the weak link.  */
+          SCM prev = weak_pair_cdr (pair);
           
-          GC_call_with_alloc_lock (set_weak_cdr, &data);
+          SCM_SETCDR (pair, val);
+
+          if (SCM_NIMP (prev) && !SCM_NIMP (val))
+            GC_unregister_disappearing_link ((GC_PTR) SCM_CDRLOC (pair));
+          else
+            SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) SCM_CDRLOC (pair),
+                                              (GC_PTR) SCM2PTR (val));
         }
       else
         SCM_SETCDR (pair, val);
