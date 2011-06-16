@@ -9,6 +9,13 @@ Changes in 2.0.2 (since 2.0.1):
 
 * Notable changes
 
+** `guile-tools' renamed to `guild'
+    
+The new name is shorter.  Its intended future use is for a CPAN-like
+system for Guile wizards and journeyfolk to band together to share code;
+hence the name.  `guile-tools' is provided as a backward-compatible
+symbolic link.  See "Using Guile Tools" in the manual, for more.
+
 ** New control operators: `shift' and `reset'
     
 See "Shift and Reset" in the manual, for more information.
