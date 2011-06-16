@@ -2052,8 +2052,9 @@ SCM_DEFINE (scm_string_normalize_nfkd, "string-normalize-nfkd", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-/* converts C scm_array of strings to SCM scm_list of strings. */
-/* If argc < 0, a null terminated scm_array is assumed. */
+/* converts C scm_array of strings to SCM scm_list of strings.
+   If argc < 0, a null terminated scm_array is assumed.
+   The current locale encoding is assumed */
 SCM
 scm_makfromstrs (int argc, char **argv)
 {
@@ -2067,37 +2068,43 @@ scm_makfromstrs (int argc, char **argv)
 }
 
 /* Return a newly allocated array of char pointers to each of the strings
-   in args, with a terminating NULL pointer.  */
+   in args, with a terminating NULL pointer.  The strings are encoded using
+   the current locale. */
 
 char **
 scm_i_allocate_string_pointers (SCM list)
 #define FUNC_NAME "scm_i_allocate_string_pointers"
 {
   char **result;
-  int len = scm_ilength (list);
+  int list_len = scm_ilength (list);
   int i;
 
-  if (len < 0)
+  if (list_len < 0)
     scm_wrong_type_arg_msg (NULL, 0, list, "proper list");
 
-  result = scm_gc_malloc ((len + 1) * sizeof (char *),
+  result = scm_gc_malloc ((list_len + 1) * sizeof (char *),
 			  "string pointers");
-  result[len] = NULL;
+  result[list_len] = NULL;
 
-  /* The list might be have been modified in another thread, so
+  /* The list might have been modified in another thread, so
      we check LIST before each access.
    */
-  for (i = 0; i < len && scm_is_pair (list); i++)
+  for (i = 0; i < list_len && scm_is_pair (list); i++)
     {
-      SCM str;
-      size_t len;
+      SCM str = SCM_CAR (list);
+      size_t len;  /* String length in bytes */
+      char *c_str = scm_to_locale_stringn (str, &len);
 
-      str = SCM_CAR (list);
-      len = scm_c_string_length (str);
+      /* OPTIMIZE-ME: Right now, scm_to_locale_stringn always uses
+	 scm_malloc to allocate the returned string, which must be
+	 explicitly deallocated.  This forces us to copy the string a
+	 second time into a new buffer.  Ideally there would be variants
+	 of scm_to_*_stringn that can return garbage-collected buffers. */
 
-      result[i] = scm_gc_malloc_pointerless (len + 1, "string pointers");
-      memcpy (result[i], scm_i_string_chars (str), len);
+      result[i] = scm_gc_malloc_pointerless (len + 1, "string");
+      memcpy (result[i], c_str, len);
       result[i][len] = '\0';
+      free (c_str);
 
       list = SCM_CDR (list);
     }

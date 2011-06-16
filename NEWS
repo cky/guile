@@ -166,6 +166,7 @@ ports)' documentation from the R6RS documentation.  Thanks Andreas!
 ** Fix multithreaded access to internal hash tables
 ** Emit a 1-based line number in error messages
 ** Fix define-module ordering
+** Fix several POSIX functions to use the locale encoding
     
 
 Changes in 2.0.1 (since 2.0.0):
