@@ -5,6 +5,162 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.2 (since 2.0.1):
+
+* Notable changes
+
+** New control operators: `shift' and `reset'
+    
+See "Shift and Reset" in the manual, for more information.
+
+** `while' as an expression
+    
+Previously the return value of `while' was unspecified.  Now its
+values are specified both in the case of normal termination, and via
+termination by invoking `break', possibly with arguments.  See "while
+do" in the manual for more.
+
+** Disallow access to handles of weak hash tables
+    
+`hash-get-handle' and `hash-create-handle!' are no longer permitted to
+be called on weak hash tables, because the fields in a weak handle could
+be nulled out by the garbage collector at any time, but yet they are
+otherwise indistinguishable from pairs.  Use `hash-ref' and `hash-set!'
+instead.
+
+** More precision for `get-internal-run-time', `get-internal-real-time'
+    
+On 64-bit systems which support POSIX clocks, Guile's internal timing
+procedures offer nanosecond resolution instead of the 10-millisecond
+resolution previously available.  32-bit systems now use 1-millisecond
+timers.
+
+** Guile now measures time spent in GC
+    
+`gc-stats' now returns a meaningful value for `gc-time-taken'.
+
+** Add `gcprof'
+    
+The statprof profiler now exports a `gcprof' procedure, driven by the
+`after-gc-hook', to see which parts of your program are causing GC.  Let
+us know if you find it useful.
+
+** `map', `for-each' and some others now implemented in Scheme
+
+We would not mention this in NEWS, as it is not a user-visible change,
+if it were not for one thing: `map' and `for-each' are no longer
+primitive generics.  Instead they are normal bindings, which can be
+wrapped by normal generics.  This fixes some modularity issues between
+core `map', SRFI-1 `map', and GOOPS.
+
+Also it's pretty cool that we can do this without a performance impact.
+
+** Add `scm_peek_byte_or_eof'.
+    
+This helper is like `scm_peek_char_or_eof', but for bytes instead of
+full characters.
+
+** Implement #:stop-at-first-non-option option for getopt-long
+    
+See "getopt-long Reference" in the manual, for more information.
+
+** Improve R6RS conformance for conditions in the I/O libraries
+    
+The `(rnrs io simple)' module now raises the correct R6RS conditions in
+error cases.  `(rnrs io ports)' is also more correct now, though it is
+still a work in progress.
+
+** All deprecated routines emit warnings
+    
+A few deprecated routines were lacking deprecation warnings.  This has
+been fixed now.
+
+* Speed improvements
+
+** Constants in compiled code now share state better
+
+Constants with shared state, like `("foo")' and `"foo"', now share state
+as much as possible, in the entire compilation unit.  This cuts compiled
+`.go' file sizes in half, generally, and speeds startup.
+
+** VLists: optimize `vlist-fold-right', and add `vhash-fold-right'
+
+These procedures are now twice as fast as they were.
+
+** UTF-8 ports to bypass `iconv' entirely
+    
+This reduces memory usage in a very common case.
+
+** Compiler speedups
+
+The compiler is now about 40% faster.  (Note that this is only the case
+once the compiler is itself compiled, so the build still takes as long
+as it did before.)
+
+** VM speed tuning
+    
+Some assertions that were mostly useful for sanity-checks on the
+bytecode compiler are now off for both "regular" and "debug" engines.
+This together with a fix to cache a TLS access and some other tweaks
+improve the VM's performance by about 20%.
+
+** SRFI-1 list-set optimizations
+
+lset-adjoin and lset-union now have fast paths for eq? sets.
+
+** `memq', `memv' optimizations
+
+These procedures are now at least twice as fast than in 2.0.1.
+
+* Deprecations
+
+** Deprecate scm_whash API
+    
+`scm_whash_get_handle', `SCM_WHASHFOUNDP', `SCM_WHASHREF',
+`SCM_WHASHSET', `scm_whash_create_handle', `scm_whash_lookup', and
+`scm_whash_insert' are now deprecated.  Use the normal hash table API
+instead.
+
+** Deprecate scm_struct_table
+    
+`SCM_STRUCT_TABLE_NAME', `SCM_SET_STRUCT_TABLE_NAME',
+`SCM_STRUCT_TABLE_CLASS', `SCM_SET_STRUCT_TABLE_CLASS',
+`scm_struct_table', and `scm_struct_create_handle' are now deprecated.
+These routines formed part of the internals of the map between structs
+and classes.
+
+** Deprecate scm_internal_dynamic_wind
+    
+The `scm_t_inner' type and `scm_internal_dynamic_wind' are deprecated,
+as the `scm_dynwind' API is better, and this API encourages users to
+stuff SCM values into pointers.
+
+** Deprecate scm_immutable_cell, scm_immutable_double_cell
+    
+These routines are deprecated, as the GC_STUBBORN API doesn't do
+anything any more.
+
+* Manual updates
+
+Andreas Rottman kindly transcribed the missing parts of the `(rnrs io
+ports)' documentation from the R6RS documentation.  Thanks Andreas!
+
+* Bugs fixed
+
+** Fix double-loading of script in -ds case
+** -x error message fix
+** iconveh-related cross-compilation fixes
+** Fix small integer return value packing on big endian machines.
+** Fix hash-set! in weak-value table from non-immediate to immediate
+** Fix call-with-input-file & relatives for multiple values
+** Fix `hash' for inf and nan
+** Fix libguile internal type errors caught by typing-strictness==2
+** Fix compile error in mingw fstat socket detection
+** Fix multithreaded access to internal hash tables
+** Emit a 1-based line number in error messages
+** Fix define-module ordering
+    
+
 Changes in 2.0.1 (since 2.0.0):
 
 * Notable changes
