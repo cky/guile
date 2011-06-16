@@ -163,6 +163,11 @@ new_fluid ()
 					 SCM2PTR (fluid));
 
   scm_dynwind_end ();
+
+  /* Now null out values.  We could (and probably should) do this when
+     the fluid is collected instead of now.  */
+  scm_i_reset_fluid (n, SCM_BOOL_F);
+
   return fluid;
 }
 

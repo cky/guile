@@ -136,6 +136,7 @@ SCM_API SCM scm_spawn_thread (scm_t_catch_body body, void *body_data,
 SCM_API void *scm_without_guile (void *(*func)(void *), void *data);
 SCM_API void *scm_with_guile (void *(*func)(void *), void *data);
 
+SCM_INTERNAL void scm_i_reset_fluid (size_t, SCM);
 SCM_INTERNAL void scm_threads_prehistory (void *);
 SCM_INTERNAL void scm_init_threads (void);
 SCM_INTERNAL void scm_init_thread_procs (void);
