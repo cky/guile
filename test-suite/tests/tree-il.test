@@ -474,6 +474,26 @@
    (program () (std-prelude 0 0 #f) (label _)
             (const 2) (call null? 1) (call return 1))))
 
+(with-test-prefix "values"
+  (assert-tree-il->glil
+   (apply (primitive values)
+          (apply (primitive values) (const 1) (const 2)))
+   (program () (std-prelude 0 0 #f) (label _)
+            (const 1) (call return 1)))
+
+  (assert-tree-il->glil
+   (apply (primitive values)
+          (apply (primitive values) (const 1) (const 2))
+          (const 3))
+   (program () (std-prelude 0 0 #f) (label _)
+            (const 1) (const 3) (call return/values 2)))
+
+  (assert-tree-il->glil
+   (apply (primitive +)
+          (apply (primitive values) (const 1) (const 2)))
+   (program () (std-prelude 0 0 #f) (label _)
+            (const 1) (call return 1))))
+
 ;; FIXME: binding info for or-hacked locals might bork the disassembler,
 ;; and could be tightened in any case
 (with-test-prefix "the or hack"

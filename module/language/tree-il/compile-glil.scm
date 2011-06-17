@@ -305,21 +305,39 @@
                                    (cons proc args)))
                 (maybe-emit-return)))))))
         
-        ((and (primitive-ref? proc) (eq? (primitive-ref-name proc) 'values)
-              (not (eq? context 'push)))
+        ((and (primitive-ref? proc) (eq? (primitive-ref-name proc) 'values))
          ;; tail: (lambda () (values '(1 2)))
          ;; drop: (lambda () (values '(1 2)) 3)
          ;; push: (lambda () (list (values '(10 12)) 1))
          ;; vals: (let-values (((a b ...) (values 1 2 ...))) ...)
          (case context
            ((drop) (for-each comp-drop args) (maybe-emit-return))
+           ((push)
+            (case (length args)
+              ((0)
+               ;; FIXME: This is surely an error.  We need to add a
+               ;; values-mismatch warning pass.
+               (emit-code src (make-glil-call 'new-frame 0))
+               (comp-push proc)
+               (emit-code src (make-glil-call 'call 0))
+               (maybe-emit-return))
+              ((1)
+               (comp-push (car args)))
+              (else
+               ;; Taking advantage of unspecified order of evaluation of
+               ;; arguments.
+               (for-each comp-drop (cdr args))
+               (comp-push (car args)))))
            ((vals)
             (for-each comp-push args)
             (emit-code #f (make-glil-const (length args)))
             (emit-branch src 'br MVRA))
            ((tail)
             (for-each comp-push args)
-            (emit-code src (make-glil-call 'return/values (length args))))))
+            (emit-code src (let ((len (length args)))
+                             (if (= len 1)
+                                 (make-glil-call 'return 1)
+                                 (make-glil-call 'return/values len)))))))
         
         ((and (primitive-ref? proc)
               (eq? (primitive-ref-name proc) '@call-with-values)
