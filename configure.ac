@@ -1145,19 +1145,19 @@ AC_CHECK_FUNCS(asinh acosh atanh copysign finite sincos trunc)
 # use <math.h> so doesn't detect on macro-only systems like HP-UX.
 #
 AC_MSG_CHECKING([for isinf])
-AC_LINK_IFELSE(AC_LANG_SOURCE(
+AC_LINK_IFELSE([AC_LANG_SOURCE(
 [[#include <math.h>
 volatile double x = 0.0;
-int main () { return (isinf(x) != 0); }]]),
+int main () { return (isinf(x) != 0); }]])],
   [AC_MSG_RESULT([yes])
    AC_DEFINE([HAVE_ISINF], 1,
              [Define to 1 if you have the `isinf' macro or function.])],
   [AC_MSG_RESULT([no])])
 AC_MSG_CHECKING([for isnan])
-AC_LINK_IFELSE(AC_LANG_SOURCE(
-[[#include <math.h>
+AC_LINK_IFELSE([AC_LANG_SOURCE([[
+#include <math.h>
 volatile double x = 0.0;
-int main () { return (isnan(x) != 0); }]]),
+int main () { return (isnan(x) != 0); }]])],
   [AC_MSG_RESULT([yes])
    AC_DEFINE([HAVE_ISNAN], 1,
              [Define to 1 if you have the `isnan' macro or function.])],
@@ -1438,8 +1438,8 @@ case "$with_threads" in
 
     AC_CACHE_CHECK([whether PTHREAD_ONCE_INIT needs braces],
       guile_cv_need_braces_on_pthread_once_init,
-      [AC_COMPILE_IFELSE([#include <pthread.h>
-         pthread_once_t foo = PTHREAD_ONCE_INIT;],
+      [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>
+         pthread_once_t foo = PTHREAD_ONCE_INIT;]])],
         [guile_cv_need_braces_on_pthread_once_init=no],
         [guile_cv_need_braces_on_pthread_once_init=yes])])
     if test "$guile_cv_need_braces_on_pthread_once_init" = yes; then
@@ -1450,8 +1450,8 @@ case "$with_threads" in
     # 6.5.30m with GCC 3.3.
     AC_CACHE_CHECK([whether PTHREAD_MUTEX_INITIALIZER needs braces],
       guile_cv_need_braces_on_pthread_mutex_initializer,
-      [AC_COMPILE_IFELSE([#include <pthread.h>
-         pthread_mutex_t foo = PTHREAD_MUTEX_INITIALIZER;],
+      [AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[#include <pthread.h>
+         pthread_mutex_t foo = PTHREAD_MUTEX_INITIALIZER;]])],
         [guile_cv_need_braces_on_pthread_mutex_initializer=no],
         [guile_cv_need_braces_on_pthread_mutex_initializer=yes])])
     if test "$guile_cv_need_braces_on_pthread_mutex_initializer" = yes; then
