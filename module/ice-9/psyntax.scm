@@ -2428,7 +2428,8 @@
     (set! generate-temporaries
           (lambda (ls)
             (arg-check list? ls 'generate-temporaries)
-            (map (lambda (x) (wrap (gensym-hook) top-wrap #f)) ls)))
+            (let ((mod (cons 'hygiene (module-name (current-module)))))
+              (map (lambda (x) (wrap (gensym-hook) top-wrap mod)) ls))))
 
     (set! free-identifier=?
           (lambda (x y)
