@@ -736,14 +736,27 @@ static SCM
 auto_compile_catch_handler (void *data, SCM tag, SCM throw_args)
 {
   SCM source = PTR2SCM (data);
+  SCM oport, lines;
+
+  oport = scm_open_output_string ();
+  scm_print_exception (oport, SCM_BOOL_F, tag, throw_args);
+
   scm_puts (";;; WARNING: compilation of ", scm_current_error_port ());
   scm_display (source, scm_current_error_port ());
   scm_puts (" failed:\n", scm_current_error_port ());
-  scm_puts (";;; key ", scm_current_error_port ());
-  scm_write (tag, scm_current_error_port ());
-  scm_puts (", throw args ", scm_current_error_port ());
-  scm_write (throw_args, scm_current_error_port ());
-  scm_newline (scm_current_error_port ());
+
+  lines = scm_string_split (scm_get_output_string (oport),
+                            SCM_MAKE_CHAR ('\n'));
+  for (; scm_is_pair (lines); lines = scm_cdr (lines))
+    if (scm_c_string_length (scm_car (lines)))
+      {
+        scm_puts (";;; ", scm_current_error_port ());
+        scm_display (scm_car (lines), scm_current_error_port ());
+        scm_newline (scm_current_error_port ());
+      }
+
+  scm_close_port (oport);
+
   return SCM_BOOL_F;
 }
 
