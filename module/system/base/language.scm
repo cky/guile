@@ -1,6 +1,6 @@
 ;;; Multi-language support
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -112,7 +112,6 @@
 ;;;
 
 (define *current-language* (make-fluid))
-(fluid-set! *current-language* 'scheme)
 
 (define (current-language)
-  (fluid-ref *current-language*))
+  (or (fluid-ref *current-language*) 'scheme))
