@@ -2232,8 +2232,8 @@
                        (lambda (pattern keys)
                          (define cvt*
                            (lambda (p* n ids)
-                             (if (null? p*)
-                                 (values '() ids)
+                             (if (not (pair? p*)) 
+                                 (cvt p* n ids)
                                  (call-with-values
                                      (lambda () (cvt* (cdr p*) n ids))
                                    (lambda (y ids)
@@ -2241,6 +2241,13 @@
                                          (lambda () (cvt (car p*) n ids))
                                        (lambda (x ids)
                                          (values (cons x y) ids))))))))
+                         
+                         (define (v-reverse x)
+                           (let loop ((r '()) (x x))
+                             (if (not (pair? x))
+                                 (values r x)
+                                 (loop (cons (car x) r) (cdr x)))))
+
                          (define cvt
                            (lambda (p n ids)
                              (if (id? p)
@@ -2259,15 +2266,19 @@
                                       (lambda (p ids)
                                         (values (if (eq? p 'any) 'each-any (vector 'each p))
                                                 ids))))
-                                   ((x dots ys ...)
+                                   ((x dots . ys)
                                     (ellipsis? (syntax dots))
                                     (call-with-values
-                                        (lambda () (cvt* (syntax (ys ...)) n ids))
+                                        (lambda () (cvt* (syntax ys) n ids))
                                       (lambda (ys ids)
                                         (call-with-values
                                             (lambda () (cvt (syntax x) (+ n 1) ids))
                                           (lambda (x ids)
-                                            (values `#(each+ ,x ,(reverse ys) ()) ids))))))
+                                            (call-with-values
+                                                (lambda () (v-reverse ys))
+                                              (lambda (ys e)
+                                                (values `#(each+ ,x ,ys ,e) 
+                                                        ids))))))))
                                    ((x . y)
                                     (call-with-values
                                         (lambda () (cvt (syntax y) n ids))
