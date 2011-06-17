@@ -3447,7 +3447,7 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define %auto-compilation-options
   ;; Default `compile-file' option when auto-compiling.
-  '(#:warnings (unbound-variable arity-mismatch)))
+  '(#:warnings (unbound-variable arity-mismatch format)))
 
 (define* (load-in-vicinity dir path #:optional reader)
   ;; Returns the .go file corresponding to `name'. Does not search load
