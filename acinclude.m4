@@ -499,6 +499,36 @@ AC_DEFUN([GUILE_LIBUNISTRING_WITH_ICONV_SUPPORT], [
    ])
 ])
 
+dnl GUILE_UNISTRING_CONSTANT NAME
+dnl
+dnl Determine the compile-time value of NAME and define/substitute
+dnl `SCM_I_GSC_NAME'.
+AC_DEFUN([GUILE_UNISTRING_CONSTANT], [
+  m4_pushdef([UPPER_CASE_NAME],
+    [m4_translit([$1],[abcdefghijklmnopqrstuvwxyz],
+                  [ABCDEFGHIJKLMNOPQRSTUVWXYZ])])
+
+  AC_CACHE_CHECK([the value of `$1'], [ac_cv_]$1, [
+    AC_COMPUTE_INT([ac_cv_]$1, [$1],
+      [AC_INCLUDES_DEFAULT
+#include <uniconv.h>
+],
+      [AC_MSG_ERROR([failed to determine the value of `$1'])])
+  ])
+
+  [SCM_I_GSC_]UPPER_CASE_NAME="$ac_cv_[]$1"
+  AC_SUBST([SCM_I_GSC_]UPPER_CASE_NAME)
+  m4_popdef([UPPER_CASE_NAME])])
+
+dnl GUILE_UNISTRING_ICONVEH_VALUES
+dnl
+dnl Determine the values of the `iconveh_' libunistring constants.
+AC_DEFUN([GUILE_UNISTRING_ICONVEH_VALUES], [
+  GUILE_UNISTRING_CONSTANT([iconveh_error])
+  GUILE_UNISTRING_CONSTANT([iconveh_question_mark])
+  GUILE_UNISTRING_CONSTANT([iconveh_escape_sequence])
+])
+
 dnl Declare file $1 to be a script that needs configuring,
 dnl and arrange to make it executable in the process.
 AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
