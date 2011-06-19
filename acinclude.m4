@@ -533,7 +533,7 @@ dnl Declare file $1 to be a script that needs configuring,
 dnl and arrange to make it executable in the process.
 AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])
 
-# clock_time.m4 serial 10
+
 dnl Copyright (C) 2002-2006, 2009-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
