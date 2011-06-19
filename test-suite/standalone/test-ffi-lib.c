@@ -1,4 +1,4 @@
-/* Copyright (C) 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -132,19 +132,19 @@ scm_t_int32 test_ffi_s32_s64 (scm_t_int64 a)
 scm_t_uint32 test_ffi_u32_ (void);
 scm_t_uint32 test_ffi_u32_ (void)
 {
-  return 4000000000;
+  return 4000000000U;
 }
 
 scm_t_uint32 test_ffi_u32_u8 (scm_t_uint8 a);
 scm_t_uint32 test_ffi_u32_u8 (scm_t_uint8 a)
 {
-  return 4000000000 + a;
+  return 4000000000U + a;
 }
 
 scm_t_uint32 test_ffi_u32_s64 (scm_t_int64 a);
 scm_t_uint32 test_ffi_u32_s64 (scm_t_int64 a)
 {
-  return 4000000000 + a;
+  return 4000000000U + a;
 }
 
 /* FIXME: use 64-bit literals */
@@ -169,19 +169,19 @@ scm_t_int64 test_ffi_s64_s64 (scm_t_int64 a)
 scm_t_uint64 test_ffi_u64_ (void);
 scm_t_uint64 test_ffi_u64_ (void)
 {
-  return 4000000000;
+  return 4000000000UL;
 }
 
 scm_t_uint64 test_ffi_u64_u8 (scm_t_uint8 a);
 scm_t_uint64 test_ffi_u64_u8 (scm_t_uint8 a)
 {
-  return 4000000000 + a;
+  return 4000000000UL + a;
 }
 
 scm_t_uint64 test_ffi_u64_s64 (scm_t_int64 a);
 scm_t_uint64 test_ffi_u64_s64 (scm_t_int64 a)
 {
-  return 4000000000 + a;
+  return 4000000000UL + a;
 }
 
 
