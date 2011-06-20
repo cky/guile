@@ -1211,7 +1211,7 @@ GUILE_UNISTRING_ICONVEH_VALUES
 #
 # Which way does the stack grow?
 #
-# Following code comes from Autoconf 2.61's internal _AC_LIBOBJ_ALLOCA
+# Following code comes from Autoconf 2.69's internal _AC_LIBOBJ_ALLOCA
 # macro (/usr/share/autoconf/autoconf/functions.m4).  Gnulib has
 # very similar code, so in future we could look at using that.
 #
@@ -1226,23 +1226,20 @@ SCM_I_GSC_STACK_GROWS_UP=0
 AC_RUN_IFELSE([AC_LANG_SOURCE(
 [AC_INCLUDES_DEFAULT
 int
-find_stack_direction ()
+find_stack_direction (int *addr, int depth)
 {
-  static char *addr = 0;
-  auto char dummy;
-  if (addr == 0)
-    {
-      addr = &dummy;
-      return find_stack_direction ();
-    }
-  else
-    return (&dummy > addr) ? 1 : -1;
+  int dir, dummy = 0;
+  if (! addr)
+    addr = &dummy;
+  *addr = addr < &dummy ? 1 : addr == &dummy ? 0 : -1;
+  dir = depth ? find_stack_direction (addr, depth - 1) : 0;
+  return dir + dummy;
 }
 
 int
-main ()
+main (int argc, char **argv)
 {
-  return find_stack_direction () < 0;
+  return find_stack_direction (0, argc + !argv + 20) < 0;
 }])],
 	       [SCM_I_GSC_STACK_GROWS_UP=1],
 	       [],
