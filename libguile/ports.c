@@ -412,6 +412,17 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_current_warning_port (void)
+{
+  static SCM cwp_var = SCM_BOOL_F;
+
+  if (scm_is_false (cwp_var))
+    cwp_var = scm_c_private_lookup ("guile", "current-warning-port");
+  
+  return scm_call_0 (scm_variable_ref (cwp_var));
+}
+
 SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
 	    (),
 	    "Return the current-load-port.\n"
@@ -465,6 +476,19 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
   return oerrp;
 }
 #undef FUNC_NAME
+
+
+SCM
+scm_set_current_warning_port (SCM port)
+{
+  static SCM cwp_var = SCM_BOOL_F;
+
+  if (scm_is_false (cwp_var))
+    cwp_var = scm_c_private_lookup ("guile", "current-warning-port");
+  
+  return scm_call_1 (scm_variable_ref (cwp_var), port);
+}
+
 
 void
 scm_dynwind_current_input_port (SCM port)

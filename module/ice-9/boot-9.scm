@@ -213,6 +213,8 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define pk peek)
 
+;; Temporary definition; replaced later.
+(define current-warning-port current-error-port)
 
 (define (warn . stuff)
   (with-output-to-port (current-error-port)
@@ -2905,6 +2907,19 @@ module '(ice-9 q) '(make-q q-length))}."
              (with-fluids (((struct-ref p 1) ((struct-ref p 2) value))
                            ...)
                body body* ...)))))))
+
+
+;;;
+;;; Warnings.
+;;;
+
+(define current-warning-port
+  (make-parameter (current-error-port)
+                  (lambda (x)
+                    (if (output-port? x)
+                        x
+                        (error "expected an output port" x)))))
+
 
 
 
