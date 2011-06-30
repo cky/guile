@@ -806,6 +806,11 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
   SCM filename, exception_on_not_found;
   SCM full_filename, compiled_filename;
   int compiled_is_fallback = 0;
+  SCM hook = *scm_loc_load_hook;
+
+  if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
+    SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
+		    SCM_EOL);
 
   if (scm_is_string (args))
     {
@@ -869,6 +874,10 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
       else
         return SCM_BOOL_F;
     }
+
+  if (!scm_is_false (hook))
+    scm_call_1 (hook, (scm_is_true (full_filename)
+                       ? full_filename : compiled_filename));
 
   if (scm_is_false (full_filename)
       || (scm_is_true (compiled_filename)

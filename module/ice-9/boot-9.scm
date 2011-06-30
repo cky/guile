@@ -3526,7 +3526,10 @@ module '(ice-9 q) '(make-q q-length))}."
                         (and go-path
                              (fresh-compiled-file-name abs-path go-path)))))))
       (if cfn
-          (load-compiled cfn)
+          (begin
+            (if %load-hook
+                (%load-hook abs-path))
+            (load-compiled cfn))
           (start-stack 'load-stack
                        (primitive-load abs-path)))))
   
