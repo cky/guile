@@ -1788,6 +1788,7 @@ SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
 #undef FUNC_NAME
 
 
+#ifdef HAVE_POSIX
 static int
 scm_dir_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
@@ -1808,6 +1809,7 @@ scm_dir_free (SCM p)
     closedir ((DIR *) SCM_SMOB_DATA_1 (p));
   return 0;
 }
+#endif
 
 
 
