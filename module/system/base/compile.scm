@@ -103,6 +103,16 @@
 ;;;
 ;;; See also boot-9.scm:load.
 (define (compiled-file-name file)
+  ;; FIXME: would probably be better just to append SHA1(canon-path)
+  ;; to the %compile-fallback-path, to avoid deep directory stats.
+  (define (canonical->suffix canon)
+    (cond
+     ((string-prefix? "/" canon) canon)
+     ((and (> (string-length canon) 2)
+           (eqv? (string-ref canon 1) #\:))
+      ;; Paths like C:... transform to /C...
+      (string-append "/" (substring canon 0 1) (substring canon 2)))
+     (else canon)))
   (define (compiled-extension)
     (cond ((or (null? %load-compiled-extensions)
                (string-null? (car %load-compiled-extensions)))
@@ -113,9 +123,7 @@
   (and %compile-fallback-path
        (let ((f (string-append
                  %compile-fallback-path
-                 ;; no need for '/' separator here, canonicalize-path
-                 ;; will give us an absolute path
-                 (canonicalize-path file)
+                 (canonical->suffix (canonicalize-path file))
                  (compiled-extension))))
          (and (false-if-exception (ensure-writable-dir (dirname f)))
               f))))

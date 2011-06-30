@@ -793,6 +793,22 @@ scm_try_auto_compile (SCM source)
                       NULL, NULL);
 }
 
+/* See also (system base compile):compiled-file-name. */
+static SCM
+canonical_to_suffix (SCM canon)
+{
+  size_t len = scm_c_string_length (canon);
+  
+  if (len > 1 && scm_is_eq (scm_c_string_ref (canon, 0), SCM_MAKE_CHAR ('/')))
+    return canon;
+  else if (len > 2 && scm_is_eq (scm_c_string_ref (canon, 1), SCM_MAKE_CHAR (':')))
+    return scm_string_append (scm_list_3 (scm_from_latin1_string ("/"),
+                                          scm_c_substring (canon, 0, 1),
+                                          scm_c_substring (canon, 2, len)));
+  else
+    return canon;
+}
+
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
 	    (SCM args),
 	    "Search @var{%load-path} for the file named @var{filename} and\n"
@@ -857,7 +873,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
     {
       SCM fallback = scm_string_append
         (scm_list_3 (*scm_loc_compile_fallback_path,
-                     full_filename,
+                     canonical_to_suffix (full_filename),
                      scm_car (*scm_loc_load_compiled_extensions)));
       if (scm_is_true (scm_stat (fallback, SCM_BOOL_F)))
         {
@@ -895,7 +911,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
     {
       SCM fallback = scm_string_append
         (scm_list_3 (*scm_loc_compile_fallback_path,
-                     full_filename,
+                     canonical_to_suffix (full_filename),
                      scm_car (*scm_loc_load_compiled_extensions)));
       if (scm_is_true (scm_stat (fallback, SCM_BOOL_F))
           && compiled_is_fresh (full_filename, fallback))

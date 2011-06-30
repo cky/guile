@@ -3450,6 +3450,15 @@ module '(ice-9 q) '(make-q q-length))}."
   '(#:warnings (unbound-variable arity-mismatch format)))
 
 (define* (load-in-vicinity dir path #:optional reader)
+  (define (canonical->suffix canon)
+    (cond
+     ((string-prefix? "/" canon) canon)
+     ((and (> (string-length canon) 2)
+           (eqv? (string-ref canon 1) #\:))
+      ;; Paths like C:... transform to /C...
+      (string-append "/" (substring canon 0 1) (substring canon 2)))
+     (else canon)))
+
   ;; Returns the .go file corresponding to `name'. Does not search load
   ;; paths, only the fallback path. If the .go file is missing or out of
   ;; date, and auto-compilation is enabled, will try auto-compilation, just
@@ -3461,11 +3470,12 @@ module '(ice-9 q) '(make-q q-length))}."
   ;; partially duplicates functionality from (system base compile).
   ;;
   (define (compiled-file-name canon-path)
+    ;; FIXME: would probably be better just to append SHA1(canon-path)
+    ;; to the %compile-fallback-path, to avoid deep directory stats.
     (and %compile-fallback-path
          (string-append
           %compile-fallback-path
-          ;; no need for '/' separator here, canon-path is absolute
-          canon-path
+          (canonical->suffix canon-path)
           (cond ((or (null? %load-compiled-extensions)
                      (string-null? (car %load-compiled-extensions)))
                  (warn "invalid %load-compiled-extensions"
