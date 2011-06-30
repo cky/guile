@@ -1898,7 +1898,15 @@ SCM_DEFINE (scm_dynamic_args_call, "dynamic-args-call", 3, 0, 0,
   char **argv;
 
   if (scm_is_string (func))
-    func = scm_dynamic_func (func, dobj);
+    {
+#if HAVE_MODULES
+      func = scm_dynamic_func (func, dobj);
+#else
+      scm_misc_error ("dynamic-args-call",
+                      "dynamic-func not available to resolve ~S",
+                      scm_list_1 (func));
+#endif
+    }
   SCM_VALIDATE_POINTER (SCM_ARG1, func);
 
   fptr = SCM_POINTER_VALUE (func);

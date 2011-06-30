@@ -1,6 +1,6 @@
 /* extensions.c - registering and loading extensions.
  *
- * Copyright (C) 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -111,7 +111,13 @@ load_extension (SCM lib, SCM init)
     }
 
   /* Dynamically link the library. */
+#if HAVE_MODULES
   scm_dynamic_call (init, scm_dynamic_link (lib));
+#else
+  scm_misc_error ("load-extension",
+                  "extension ~S:~S not registered and dynamic-link disabled",
+                  scm_list_2 (init, lib));
+#endif
 }
 
 void

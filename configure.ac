@@ -234,6 +234,8 @@ dnl files which are destined for separate modules.
 
 if test "$use_modules" != no; then
    AC_LIBOBJ([dynl])
+   AC_DEFINE([HAVE_MODULES], 1,
+     [Define this if you want support for dynamically loaded modules in Guile.])
 fi
 
 if test "$enable_posix" = yes; then

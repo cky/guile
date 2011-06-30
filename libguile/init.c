@@ -501,7 +501,9 @@ scm_i_init_guile (void *base)
   scm_init_debug ();	/* Requires macro smobs */
   scm_init_random ();   /* Requires smob_prehistory */
   scm_init_simpos ();
+#if HAVE_MODULES
   scm_init_dynamic_linking (); /* Requires smob_prehistory */
+#endif
   scm_bootstrap_i18n ();
   scm_init_script ();
 
