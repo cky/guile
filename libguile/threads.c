@@ -696,6 +696,10 @@ on_thread_exit (void *v)
   /* This handler is executed in non-guile mode.  */
   scm_i_thread *t = (scm_i_thread *) v, **tp;
 
+  /* If we were canceled, we were unable to clear `t->guile_mode', so do
+     it here.  */
+  t->guile_mode = 0;
+
   /* If this thread was cancelled while doing a cond wait, it will
      still have a mutex locked, so we unlock it here. */
   if (t->held_mutex)
@@ -833,12 +837,6 @@ scm_init_guile ()
       fprintf (stderr, "Failed to get stack base for current thread.\n");
       exit (1);
     }
-}
-
-SCM_UNUSED static void
-scm_leave_guile_cleanup (void *x)
-{
-  on_thread_exit (SCM_I_CURRENT_THREAD);
 }
 
 struct with_guile_args
