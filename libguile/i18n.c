@@ -400,7 +400,7 @@ install_locale (scm_t_locale locale)
 	 account.  */
       category_mask |= locale->category_mask;
 
-      if (locale->base_locale != SCM_UNDEFINED)
+      if (!SCM_UNBNDP (locale->base_locale))
 	locale = (scm_t_locale) SCM_SMOB_DATA (locale->base_locale);
       else
 	locale = NULL;
