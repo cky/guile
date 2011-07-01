@@ -162,11 +162,16 @@ ports)' documentation from the R6RS documentation.  Thanks Andreas!
 ** Fix call-with-input-file & relatives for multiple values
 ** Fix `hash' for inf and nan
 ** Fix libguile internal type errors caught by typing-strictness==2
-** Fix compile error in mingw fstat socket detection
+** Fix compile error in MinGW fstat socket detection
+** Fix generation of auto-compiled file names on MinGW
 ** Fix multithreaded access to internal hash tables
 ** Emit a 1-based line number in error messages
 ** Fix define-module ordering
 ** Fix several POSIX functions to use the locale encoding
+** Add type and range checks to the complex generalized vector accessors
+** Fix unaligned accesses for bytevectors of complex numbers
+** Fix '(a #{.} b)
+** Fix erroneous VM stack overflow for canceled threads
     
 
 Changes in 2.0.1 (since 2.0.0):
