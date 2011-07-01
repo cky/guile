@@ -1370,7 +1370,9 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 	    {
 	      scm_i_thread *t = SCM_I_THREAD_DATA (new_owner);
 
-	      scm_i_pthread_mutex_unlock (&m->lock);
+	      /* FIXME: The order in which `t->admin_mutex' and
+		 `m->lock' are taken differs from that in
+		 `on_thread_exit', potentially leading to deadlocks.  */
 	      scm_i_pthread_mutex_lock (&t->admin_mutex);
 
 	      /* Only keep a weak reference to MUTEX so that it's not
@@ -1381,7 +1383,6 @@ fat_mutex_lock (SCM mutex, scm_t_timespec *timeout, SCM owner, int *ret)
 	      t->mutexes = scm_weak_car_pair (mutex, t->mutexes);
 
 	      scm_i_pthread_mutex_unlock (&t->admin_mutex);
-	      scm_i_pthread_mutex_lock (&m->lock);
 	    }
 	  *ret = 1;
 	  break;
