@@ -142,3 +142,4 @@ INSTALL
 /test-suite/standalone/test-scm-spawn-thread
 /test-suite/standalone/test-pthread-create
 /test-suite/standalone/test-pthread-create-secondary
+/lib/fcntl.h

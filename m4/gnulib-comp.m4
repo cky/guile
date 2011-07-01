@@ -257,6 +257,9 @@ fi
 gl_MODULE_INDICATOR([fflush])
 gl_STDIO_MODULE_INDICATOR([fflush])
 gl_FLOAT_H
+if test $REPLACE_FLOAT_LDBL = 1; then
+  AC_LIBOBJ([float])
+fi
 gl_FUNC_FLOCK
 if test $HAVE_FLOCK = 0; then
   AC_LIBOBJ([flock])
@@ -778,6 +781,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/fd-hook.h
   lib/fflush.c
   lib/float+.h
+  lib/float.c
   lib/float.in.h
   lib/flock.c
   lib/floor.c

@@ -420,7 +420,9 @@ float.h: $(top_builddir)/config.status
 endif
 MOSTLYCLEANFILES += float.h float.h-t
 
-EXTRA_DIST += float.in.h
+EXTRA_DIST += float.c float.in.h
+
+EXTRA_libgnu_la_SOURCES += float.c
 
 ## end   gnulib module float
 
