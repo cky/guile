@@ -1460,6 +1460,9 @@ SCM_DEFINE (scm_lock_mutex_timed, "lock-mutex", 1, 2, 0,
       waittime = &cwaittime;
     }
 
+  if (!SCM_UNBNDP (owner) && !scm_is_false (owner))
+    SCM_VALIDATE_THREAD (3, owner);
+
   exception = fat_mutex_lock (m, waittime, owner, &ret);
   if (!scm_is_false (exception))
     scm_ithrow (SCM_CAR (exception), scm_list_1 (SCM_CDR (exception)), 1);
