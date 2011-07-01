@@ -2096,17 +2096,27 @@ SCM_DEFINE (scm_utf32_to_string, "utf32->string",
 static SCM
 bytevector_ref_c32 (SCM bv, SCM idx)
 { /* FIXME add some checks */
-  const float *contents = (const float*)SCM_BYTEVECTOR_CONTENTS (bv);
+  float real, imag;
+  const char *contents = (char *) SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  return scm_c_make_rectangular (contents[i/4], contents[i/4 + 1]);
+
+  memcpy (&real, &contents[i], sizeof (float));
+  memcpy (&imag, &contents[i + sizeof (float)], sizeof (float));
+
+  return scm_c_make_rectangular (real, imag);
 }
 
 static SCM
 bytevector_ref_c64 (SCM bv, SCM idx)
 { /* FIXME add some checks */
-  const double *contents = (const double*)SCM_BYTEVECTOR_CONTENTS (bv);
+  double real, imag;
+  const char *contents = (char *) SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  return scm_c_make_rectangular (contents[i/8], contents[i/8 + 1]);
+
+  memcpy (&real, &contents[i], sizeof (double));
+  memcpy (&imag, &contents[i + sizeof (double)], sizeof (double));
+
+  return scm_c_make_rectangular (real, imag);
 }
 
 typedef SCM (*scm_t_bytevector_ref_fn)(SCM, SCM);
@@ -2146,19 +2156,33 @@ bv_handle_ref (scm_t_array_handle *h, size_t index)
 /* FIXME add checks!!! */
 static SCM
 bytevector_set_c32 (SCM bv, SCM idx, SCM val)
-{ float *contents = (float*)SCM_BYTEVECTOR_CONTENTS (bv);
+{
+  float imag, real;
+  char *contents = (char *) SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  contents[i/4] = scm_c_real_part (val);
-  contents[i/4 + 1] = scm_c_imag_part (val);
+
+  real = scm_c_real_part (val);
+  imag = scm_c_imag_part (val);
+
+  memcpy (&contents[i], &real, sizeof (float));
+  memcpy (&contents[i + sizeof (float)], &imag, sizeof (float));
+
   return SCM_UNSPECIFIED;
 }
 
 static SCM
 bytevector_set_c64 (SCM bv, SCM idx, SCM val)
-{ double *contents = (double*)SCM_BYTEVECTOR_CONTENTS (bv);
+{
+  double imag, real;
+  char *contents = (char *) SCM_BYTEVECTOR_CONTENTS (bv);
   size_t i = scm_to_size_t (idx);
-  contents[i/8] = scm_c_real_part (val);
-  contents[i/8 + 1] = scm_c_imag_part (val);
+
+  real = scm_c_real_part (val);
+  imag = scm_c_imag_part (val);
+
+  memcpy (&contents[i], &real, sizeof (double));
+  memcpy (&contents[i + sizeof (double)], &imag, sizeof (double));
+
   return SCM_UNSPECIFIED;
 }
 
