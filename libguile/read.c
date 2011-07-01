@@ -376,8 +376,12 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
     return SCM_EOL;
 
   scm_ungetc (c, port);
-  if (scm_is_eq (scm_sym_dot,
-		 (tmp = scm_read_expression (port))))
+  tmp = scm_read_expression (port);
+
+  /* Note that it is possible for scm_read_expression to return
+     scm_sym_dot, but not as part of a dotted pair: as in #{.}#.  So
+     check that it's a real dot by checking `c'.  */
+  if (c == '.' && scm_is_eq (scm_sym_dot, tmp))
     {
       ans = scm_read_expression (port);
       if (terminating_char != (c = flush_ws (port, FUNC_NAME)))
@@ -401,7 +405,8 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
       scm_ungetc (c, port);
       tmp = scm_read_expression (port);
 
-      if (scm_is_eq (scm_sym_dot, tmp))
+      /* See above note about scm_sym_dot.  */
+      if (c == '.' && scm_is_eq (scm_sym_dot, tmp))
 	{
 	  SCM_SETCDR (tl, tmp = scm_read_expression (port));
 

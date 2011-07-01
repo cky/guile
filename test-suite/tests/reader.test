@@ -428,6 +428,7 @@
 
 (with-test-prefix "#{}#"
   (pass-if (equal? (read-string "#{}#") '#{}#))
+  (pass-if (not (equal? (read-string "(a #{.}# b)") '(a . b))))
   (pass-if (equal? (read-string "#{a}#") 'a))
   (pass-if (equal? (read-string "#{a b}#") '#{a b}#))
   (pass-if-exception "#{" exception:eof-in-symbol
