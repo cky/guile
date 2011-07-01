@@ -436,7 +436,26 @@
             (make-c32vector 4 7)))
 
   (pass-if "+inf.0, -inf.0, +nan.0 in c32vector"
-    (c32vector? #c32(+inf.0 -inf.0 +nan.0))))
+    (c32vector? #c32(+inf.0 -inf.0 +nan.0)))
+
+  (pass-if "generalized-vector-ref"
+    (let ((v (c32vector 1+1i)))
+      (= (c32vector-ref v 0)
+         (generalized-vector-ref v 0))))
+
+  (pass-if "generalized-vector-set!"
+    (let ((x 1+1i)
+          (v (c32vector 0)))
+      (generalized-vector-set! v 0 x)
+      (= x (generalized-vector-ref v 0))))
+
+  (pass-if-exception "generalized-vector-ref, out-of-range"
+    exception:out-of-range
+    (generalized-vector-ref (c32vector 1.0) 1))
+
+  (pass-if-exception "generalized-vector-set!, out-of-range"
+    exception:out-of-range
+    (generalized-vector-set! (c32vector 1.0) 1 2.0)))
 
 (with-test-prefix "c64 vectors"
 
@@ -476,5 +495,23 @@
             (make-c64vector 4 7)))
 
   (pass-if "+inf.0, -inf.0, +nan.0 in c64vector"
-    (c64vector? #c64(+inf.0 -inf.0 +nan.0))))
+    (c64vector? #c64(+inf.0 -inf.0 +nan.0)))
 
+  (pass-if "generalized-vector-ref"
+    (let ((v (c64vector 1+1i)))
+      (= (c64vector-ref v 0)
+         (generalized-vector-ref v 0))))
+
+  (pass-if "generalized-vector-set!"
+    (let ((x 1+1i)
+          (v (c64vector 0)))
+      (generalized-vector-set! v 0 x)
+      (= x (generalized-vector-ref v 0))))
+
+  (pass-if-exception "generalized-vector-ref, out-of-range"
+    exception:out-of-range
+    (generalized-vector-ref (c64vector 1.0) 1))
+
+  (pass-if-exception "generalized-vector-set!, out-of-range"
+    exception:out-of-range
+    (generalized-vector-set! (c64vector 1.0) 1 2.0)))
