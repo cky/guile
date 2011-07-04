@@ -61,23 +61,31 @@ VM_NAME (SCM vm, SCM program, SCM *argv, int nargs)
   SCM finish_args;                      /* used both for returns: both in error
                                            and normal situations */
 #ifdef HAVE_LABELS_AS_VALUES
-  static void **jump_table = NULL;
+  static const void **jump_table_pointer = NULL;
 #endif
-  
+
 #ifdef HAVE_LABELS_AS_VALUES
-  if (SCM_UNLIKELY (!jump_table))
+  register const void **jump_table JT_REG;
+
+  if (SCM_UNLIKELY (!jump_table_pointer))
     {
       int i;
-      jump_table = malloc (SCM_VM_NUM_INSTRUCTIONS * sizeof(void*));
+      jump_table_pointer = malloc (SCM_VM_NUM_INSTRUCTIONS * sizeof (void*));
       for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
-        jump_table[i] = &&vm_error_bad_instruction;
+        jump_table_pointer[i] = &&vm_error_bad_instruction;
 #define VM_INSTRUCTION_TO_LABEL 1
+#define jump_table jump_table_pointer
 #include <libguile/vm-expand.h>
 #include <libguile/vm-i-system.i>
 #include <libguile/vm-i-scheme.i>
 #include <libguile/vm-i-loader.i>
+#undef jump_table
 #undef VM_INSTRUCTION_TO_LABEL
     }
+
+  /* Attempt to keep JUMP_TABLE_POINTER in a register.  This saves one
+     load instruction at each instruction dispatch.  */
+  jump_table = jump_table_pointer;
 #endif
 
   /* Initialization */

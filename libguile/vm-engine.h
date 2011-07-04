@@ -57,6 +57,11 @@
 /* too few registers! because of register allocation errors with various gcs,
    just punt on explicit assignments on i386, hoping that the "register"
    declaration will be sufficient. */
+#elif defined __x86_64__
+/* GCC 4.6 chooses %rbp for IP_REG and %rbx for SP_REG, which works
+   well.  Tell it to keep the jump table in a r12, which is
+   callee-saved.  */
+#define JT_REG asm ("r12")
 #endif
 #if defined(PPC) || defined(_POWER) || defined(_IBMR2)
 #define IP_REG asm("26")
@@ -88,6 +93,9 @@
 #endif
 #ifndef FP_REG
 #define FP_REG
+#endif
+#ifndef JT_REG
+#define JT_REG
 #endif
 
 
