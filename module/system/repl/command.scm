@@ -485,21 +485,19 @@ Disassemble a file."
   "time EXP
 Time execution."
   (let* ((gc-start (gc-run-time))
-	 (tms-start (times))
+	 (real-start (get-internal-real-time))
+	 (run-start (get-internal-run-time))
 	 (result (repl-eval repl (repl-parse repl form)))
-	 (tms-end (times))
+	 (run-end (get-internal-run-time))
+	 (real-end (get-internal-real-time))
 	 (gc-end (gc-run-time)))
-    (define (get proc start end)
-      (exact->inexact (/ (- (proc end) (proc start)) internal-time-units-per-second)))
+    (define (diff start end)
+      (/ (- end start) 1.0 internal-time-units-per-second))
     (repl-print repl result)
-    (display "clock utime stime cutime cstime gctime\n")
-    (format #t "~5,2F ~5,2F ~5,2F ~6,2F ~6,2F ~6,2F\n"
-	    (get tms:clock tms-start tms-end)
-	    (get tms:utime tms-start tms-end)
-	    (get tms:stime tms-start tms-end)
-	    (get tms:cutime tms-start tms-end)
-	    (get tms:cstime tms-start tms-end)
-	    (get identity gc-start gc-end))
+    (format #t ";; ~,6Fs real time, ~,6Fs run time.  ~,6Fs spent in GC.\n"
+            (diff real-start real-end)
+            (diff run-start run-end)
+            (diff gc-start gc-end))
     result))
 
 (define-meta-command (profile repl (form) . opts)
