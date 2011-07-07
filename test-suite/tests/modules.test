@@ -290,6 +290,10 @@
            (import2 (make-module))
            (handler-invoked? #f)
            (handler (lambda (module name int1 val1 int2 val2 var val)
+                      ;; We expect both VAR and VAL to be #f, as there
+                      ;; is no previous binding for 'imported in M.
+                      (if var (error "unexpected var" var))
+                      (if val (error "unexpected val" val))
                       (set! handler-invoked? #t)
                       ;; Keep the first binding.
                       (or var (module-local-variable int1 name)))))

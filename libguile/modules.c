@@ -294,39 +294,46 @@ resolve_duplicate_binding (SCM module, SCM sym,
 			   SCM iface1, SCM var1,
 			   SCM iface2, SCM var2)
 {
+  SCM args[8];
+  SCM handlers;
   SCM result = SCM_BOOL_F;
 
-  if (!scm_is_eq (var1, var2))
+  if (scm_is_eq (var1, var2))
+    return var1;
+  
+  args[0] = module;
+  args[1] = sym;
+  args[2] = iface1;
+  args[3] = SCM_VARIABLE_REF (var1);
+  if (SCM_UNBNDP (args[3]))
+    args[3] = SCM_BOOL_F;
+  args[4] = iface2;
+  args[5] = SCM_VARIABLE_REF (var2);
+  if (SCM_UNBNDP (args[5]))
+    args[5] = SCM_BOOL_F;
+  args[6] = scm_hashq_ref (SCM_MODULE_IMPORT_OBARRAY (module), sym, SCM_BOOL_F);
+  args[7] = SCM_BOOL_F;
+      
+  handlers = SCM_MODULE_DUPLICATE_HANDLERS (module);
+  if (scm_is_false (handlers))
+    handlers = default_duplicate_binding_handlers ();
+
+  for (; scm_is_pair (handlers); handlers = SCM_CDR (handlers))
     {
-      SCM val1, val2;
-      SCM handlers, h, handler_args;
+      if (scm_is_true (args[6])) 
+        {
+          args[7] = SCM_VARIABLE_REF (args[6]);
+          if (SCM_UNBNDP (args[7]))
+            args[7] = SCM_BOOL_F;
+        }
+      
+      result = scm_call_n (SCM_CAR (handlers), args, 8);
 
-      val1 = SCM_VARIABLE_REF (var1);
-      val2 = SCM_VARIABLE_REF (var2);
-
-      val1 = scm_is_eq (val1, SCM_UNSPECIFIED) ? SCM_BOOL_F : val1;
-      val2 = scm_is_eq (val2, SCM_UNSPECIFIED) ? SCM_BOOL_F : val2;
-
-      handlers = SCM_MODULE_DUPLICATE_HANDLERS (module);
-      if (scm_is_false (handlers))
-	handlers = default_duplicate_binding_handlers ();
-
-      handler_args = scm_list_n (module, sym,
-				 iface1, val1, iface2, val2,
-				 var1, val1,
-				 SCM_UNDEFINED);
-
-      for (h = handlers;
-	   scm_is_pair (h) && scm_is_false (result);
-	   h = SCM_CDR (h))
-	{
-	  result = scm_apply (SCM_CAR (h), handler_args, SCM_EOL);
-	}
+      if (scm_is_true (result))
+        return result;
     }
-  else
-    result = var1;
 
-  return result;
+  return SCM_BOOL_F;
 }
 
 /* No lock is needed for access to this variable, as there are no
@@ -368,9 +375,15 @@ module_imported_variable (SCM module, SCM sym)
 	      {
 		/* SYM is a duplicate binding (imported more than once) so we
 		   need to resolve it.  */
-		found_var = resolve_duplicate_binding (module, sym,
-						       found_iface, found_var,
-						       iface, var);
+                found_var = resolve_duplicate_binding (module, sym,
+                                                       found_iface, found_var,
+                                                       iface, var);
+
+                /* Note that it could be that FOUND_VAR doesn't belong
+                   either to FOUND_IFACE or to IFACE, if it was created
+                   by merge-generics.  The right thing to do there would
+                   be to treat the import obarray as the iface, but the
+                   import obarray isn't actually a module.  Oh well.  */
 		if (scm_is_eq (found_var, var))
 		  found_iface = iface;
 	      }
