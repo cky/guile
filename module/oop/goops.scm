@@ -336,13 +336,11 @@
                   names))
         (goops-error "no prefixes supplied"))))
 
-(define (make-generic . name)
-  (let ((name (and (pair? name) (car name))))
-    (make <generic> #:name name)))
+(define* (make-generic #:optional name)
+  (make <generic> #:name name))
 
-(define (make-extended-generic gfs . name)
-  (let* ((name (and (pair? name) (car name)))
-	 (gfs (if (pair? gfs) gfs (list gfs)))
+(define* (make-extended-generic gfs #:optional name)
+  (let* ((gfs (if (list? gfs) gfs (list gfs)))
 	 (gws? (any (lambda (gf) (is-a? gf <generic-with-setter>)) gfs)))
     (let ((ans (if gws?
 		   (let* ((sname (and name (make-setter-name name)))
@@ -379,18 +377,17 @@
 			 (delq! eg (slot-ref gf 'extended-by))))
 	    gfs))
 
-(define (ensure-generic old-definition . name)
-  (let ((name (and (pair? name) (car name))))
-    (cond ((is-a? old-definition <generic>) old-definition)
-	  ((procedure-with-setter? old-definition)
-	   (make <generic-with-setter>
-		 #:name name
-		 #:default (procedure old-definition)
-		 #:setter (setter old-definition)))
-	  ((procedure? old-definition)
-           (if (generic-capability? old-definition) old-definition
-               (make <generic> #:name name #:default old-definition)))
-	  (else (make <generic> #:name name)))))
+(define* (ensure-generic old-definition #:optional name)
+  (cond ((is-a? old-definition <generic>) old-definition)
+        ((procedure-with-setter? old-definition)
+         (make <generic-with-setter>
+           #:name name
+           #:default (procedure old-definition)
+           #:setter (setter old-definition)))
+        ((procedure? old-definition)
+         (if (generic-capability? old-definition) old-definition
+             (make <generic> #:name name #:default old-definition)))
+        (else (make <generic> #:name name))))
 
 ;; same semantics as <generic>
 (define-syntax define-accessor
@@ -404,34 +401,32 @@
 (define (make-setter-name name)
   (string->symbol (string-append "setter:" (symbol->string name))))
 
-(define (make-accessor . name)
-  (let ((name (and (pair? name) (car name))))
-    (make <accessor>
-	  #:name name
-	  #:setter (make <generic>
-		         #:name (and name (make-setter-name name))))))
+(define* (make-accessor #:optional name)
+  (make <accessor>
+    #:name name
+    #:setter (make <generic>
+               #:name (and name (make-setter-name name)))))
 
-(define (ensure-accessor proc . name)
-  (let ((name (and (pair? name) (car name))))
-    (cond ((and (is-a? proc <accessor>)
-		(is-a? (setter proc) <generic>))
-	   proc)
-	  ((is-a? proc <generic-with-setter>)
-	   (upgrade-accessor proc (setter proc)))
-	  ((is-a? proc <generic>)
-	   (upgrade-accessor proc (make-generic name)))
-	  ((procedure-with-setter? proc)
-	   (make <accessor>
-		 #:name name
-		 #:default (procedure proc)
-		 #:setter (ensure-generic (setter proc) name)))
-	  ((procedure? proc)
-           (ensure-accessor (if (generic-capability? proc)
-                                (make <generic> #:name name #:default proc)
-                                (ensure-generic proc name))
-                            name))
-	  (else
-	   (make-accessor name)))))
+(define* (ensure-accessor proc #:optional name)
+  (cond ((and (is-a? proc <accessor>)
+              (is-a? (setter proc) <generic>))
+         proc)
+        ((is-a? proc <generic-with-setter>)
+         (upgrade-accessor proc (setter proc)))
+        ((is-a? proc <generic>)
+         (upgrade-accessor proc (make-generic name)))
+        ((procedure-with-setter? proc)
+         (make <accessor>
+           #:name name
+           #:default (procedure proc)
+           #:setter (ensure-generic (setter proc) name)))
+        ((procedure? proc)
+         (ensure-accessor (if (generic-capability? proc)
+                              (make <generic> #:name name #:default proc)
+                              (ensure-generic proc name))
+                          name))
+        (else
+         (make-accessor name))))
 
 (define (upgrade-accessor generic setter)
   (let ((methods (slot-ref generic 'methods))
