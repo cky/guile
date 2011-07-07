@@ -2280,15 +2280,21 @@ SCM_DEFINE (scm_sys_method_more_specific_p, "%method-more-specific?", 3, 0, 0,
  *
  ******************************************************************************/
 
+/* Munge the CPL of C in place such that BEFORE appears before AFTER,
+   assuming that currently the reverse is true.  Recalculate slots and
+   associated getters-n-setters.  */
 static void
 fix_cpl (SCM c, SCM before, SCM after)
 {
   SCM cpl = SCM_SLOT (c, scm_si_cpl);
   SCM ls = scm_c_memq (after, cpl);
-  SCM tail = scm_delq1_x (before, SCM_CDR (ls));
+  SCM tail;
+
   if (scm_is_false (ls))
     /* if this condition occurs, fix_cpl should not be applied this way */
     abort ();
+
+  tail = scm_delq1_x (before, SCM_CDR (ls));
   SCM_SETCAR (ls, before);
   SCM_SETCDR (ls, scm_cons (after, tail));
   {
@@ -2414,8 +2420,8 @@ create_standard_classes (void)
   make_stdcls (&scm_class_extended_generic_with_setter,
 	       "<extended-generic-with-setter>",
 	       scm_class_applicable_struct_class,
-	       scm_list_2 (scm_class_generic_with_setter,
-			   scm_class_extended_generic),
+	       scm_list_2 (scm_class_extended_generic,
+                           scm_class_generic_with_setter),
 	       SCM_EOL);
   SCM_SET_CLASS_FLAGS (scm_class_extended_generic_with_setter,
 		       SCM_CLASSF_PURE_GENERIC);
@@ -2424,8 +2430,9 @@ create_standard_classes (void)
 	       scm_list_2 (scm_class_accessor,
 			   scm_class_extended_generic_with_setter),
 	       SCM_EOL);
+  /* <extended-generic> is misplaced.  */
   fix_cpl (scm_class_extended_accessor,
-	   scm_class_extended_generic, scm_class_generic);
+	   scm_class_extended_generic, scm_class_generic_with_setter);
   SCM_SET_CLASS_FLAGS (scm_class_extended_accessor, SCM_CLASSF_PURE_GENERIC);
 
   /* Primitive types classes */
