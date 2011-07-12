@@ -374,13 +374,14 @@ AC_DEFUN([GUILE_THREAD_LOCAL_STORAGE], [
      dnl
      dnl Known broken systems includes:
      dnl   - x86_64-unknown-netbsd5.0.
+     dnl   - x86_64-unknown-netbsd5.1
      dnl   - sparc-sun-solaris2.8
      dnl
      dnl On `x86_64-unknown-freebsd8.0', thread-local storage appears to
      dnl be reclaimed at the wrong time, leading to a segfault when
      dnl running `threads.test'.  So disable it.
      case "$enable_shared--$host_os" in
-       [yes--netbsd[0-5].[0-9].|yes--solaris2.8|yes--freebsd[0-8]*])
+       [yes--netbsd[0-5].[0-9]*|yes--solaris2.8|yes--freebsd[0-8]*])
          ac_cv_have_thread_storage_class="no"
          ;;
        *)
