@@ -1856,7 +1856,10 @@ scm_init_filesys ()
 #endif 
 #ifdef O_LARGEFILE  
   scm_c_define ("O_LARGEFILE", scm_from_int (O_LARGEFILE));
-#endif 
+#endif
+#ifdef O_NOTRANS
+  scm_c_define ("O_NOTRANS", scm_from_int (O_NOTRANS));
+#endif
 
 #ifdef F_DUPFD  
   scm_c_define ("F_DUPFD", scm_from_int (F_DUPFD));
