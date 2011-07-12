@@ -1,0 +1,164 @@
+#+TITLE: Release Process for GNU Guile 2.0
+#+AUTHOR: Ludovic Courtès
+#+EMAIL: ludo@gnu.org
+
+This document describes the typical release process for Guile 2.0.
+
+* Preparing & uploading the tarball
+
+** Update Gnulib
+
+The commit log's first line should be "Update Gnulib to X", where X is
+the output of `git describe' in the Gnulib repo.
+
+This allows us to keep track of the source code we use, in case a bug or
+security vulnerability gets fixed in Gnulib sometime later.
+
+Ideally update Gnulib several days prior to the release, so that
+portability or build issues can be uncovered in time.
+
+** Make sure it works, portably, and with different configurations
+
+*** Check [[http://hydra.nixos.org/jobset/gnu/guile-2-0][Hydra]]
+
+This contains builds and cross-builds on different platforms, with
+different `configure' switches, different CPPFLAGS, and different
+versions of the compiler.
+
+As of this writing, there are unfixed failures.  For instance Darwin's
+compiler randomly crashes, preventing build completion; the FreeBSD 7.x
+box experiences Guile crashes while running the test suite, which were
+not fixed because not reproduced elsewhere.  Even for these platforms,
+make sure "things don't get worse", at least.
+
+*** Check [[http://autobuild.josefsson.org/guile/][Autobuild]]
+
+This contains build reports from other people, typically on lesser used
+platforms, so it's worth checking.
+
+*** Use the [[http://gcc.gnu.org/wiki/CompileFarm][GCC Compile Farm]]
+
+Use the GCC Compile Farm to check on lesser used architectures or
+operating systems.  In particular, the Farm has ARM, SPARC64, PowerPC,
+and MIPS GNU/Linux boxes (remember that this is not superfluous: Debian
+builds on 11 architectures).  It also has FreeBSD and NetBSD boxes.
+
+*** Use porter boxes
+
+If you're still in a good mood, you may also want to check on porter
+boxes for other OSes.  The GNU/Hurd people have [[http://www.gnu.org/software/hurd/public_hurd_boxen.html][porter boxes]], so does
+the [[http://www.opencsw.org/standards/build_farm][OpenCSW Solaris Team]].
+
+** Update `GUILE-VERSION'
+
+For stable releases, make sure to update the SONAME appropriately.  To
+that end, review the commit logs for libguile in search of any C ABI
+changes (new functions added, existing functions deprecated, etc.)
+Change `LIBGUILE_INTERFACE_*' accordingly.  Re-read the Libtool manual
+if in doubt.
+
+`libguile/libguile.map' should also be updated as new public symbols are
+added.  Ideally, new symbols should get under a new version
+symbol---e.g., `GUILE_2.0.3' for symbols introduced in Guile 2.0.3.
+However, this has not been done for Guile <= 2.0.2.
+
+** Tag v2.0.x
+
+Create a signed Git tag, like this:
+
+  $ git tag -s u MY-KEY -m "GNU Guile 2.0.X." v2.0.X
+
+The tag *must* be `v2.0.X'.  For the sake of consistency, always use
+"GNU Guile 2.0.X." as the tag comment.
+
+** Push the tag and changes
+
+  $ git push && git push --tags
+
+Normally nobody committed in the meantime.  ;-)
+
+** Run "make dist"
+
+This should trigger an `autoreconf', as `build-aux/git-version-gen'
+notices the new tag.  After "make dist", double-check that `./configure
+--version' reports the new version number.
+
+The reason for running "make dist" instead of "make distcheck" is that
+it's much faster and any distribution issues should have been caught by
+Hydra already.
+
+** Upload
+
+  $ ./build-aux/gnupload --to ftp.gnu.org:guile guile-2.0.X.tar.gz
+
+You'll get an email soon after when the upload is complete.
+
+Your GPG public key must be registered for this to work (info
+"(maintain) Automated Upload Registration").
+
+Make sure to publish your public key on public OpenPGP servers
+(keys.gnupg.net, pgp.mit.edu, etc.), so that people can actually use it
+to check the authenticity and integrity of the tarball.
+
+** Download
+
+Make sure the file was uploaded and is available for download as
+expected:
+
+  $ mkdir t && cd t && wget ftp.gnu.org/gnu/guile/guile-2.0.X.tar.gz
+  $ diff guile-2.0.X.tar.gz ../guile-2.0.X.tar.gz
+
+You're almost done!
+
+* Announcements
+
+First, re-read the GNU Maintainers Guide on this topic (info "(maintain)
+Announcements").
+
+** Update web pages
+
+  - Replace any references to the previous version number and replace it
+    with the new one.
+  - Update news.html.
+
+** Update the on-line copy of the manual
+
+  - Use `build-aux/gendocs', add to the manual/ directory of the web
+    site.
+
+** Prepare the email announcement
+
+  $ build-aux/announce-gen --release-type=stable --package-name=guile \
+      --previous-version=2.0.1 --current-version=2.0.2 \
+      --gpg-key-id=MY-KEY --url-directory=ftp://ftp.gnu.org/gnu/guile \
+      --bootstrap-tools=autoconf,automake,libtool,gnulib \
+      --gnulib-version=$( cd ~/src/gnulib ; git describe )
+
+The subject must be "GNU Guile 2.0.X released".  The text should remain
+formal and impersonal (it is sent on behalf of the Guile and GNU
+projects.)  It must include a description of what Guile is (not everyone
+reading info-gnu may know about it.)  Use the text of previous
+announcements as a template.
+
+Below the initial boilerplate that describes Guile should come the
+output of `announce-gen', and then the `NEWS' file excerpt in its
+entirety (don't call it a change log since that's not what it is.)
+
+** Send the email announcement
+
+  - guile-user@gnu.org, guile-devel@gnu.org, guile-sources@gnu.org
+  - info-gnu@gnu.org (for stable releases only!)
+  - comp.lang.scheme
+
+** Post a news on [[http://sv.gnu.org/p/guile/][Savannah]]
+
+The news will end up on planet.gnu.org.  The text can be shorter and
+more informal, with a link to the email announcement for details.
+
+
+
+Copyright © 2011 Free Software Foundation, Inc.
+
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
