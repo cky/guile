@@ -261,8 +261,10 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
 
   fd = scm_to_int (scm_open_fdes (path, flags, mode));
   iflags = SCM_NUM2INT (2, flags);
-  if (iflags & O_RDWR)
+
+  if ((iflags & O_RDWR) == O_RDWR)
     {
+      /* Opened read-write.  */
       if (iflags & O_APPEND)
 	port_mode = "a+";
       else if (iflags & O_CREAT)
@@ -270,14 +272,17 @@ SCM_DEFINE (scm_open, "open", 2, 1, 0,
       else
 	port_mode = "r+";
     }
-  else {
-    if (iflags & O_APPEND)
-      port_mode = "a";
-    else if (iflags & O_WRONLY)
-      port_mode = "w";
-    else
-      port_mode = "r";
-  }
+  else
+    {
+      /* Opened read-only or write-only.  */
+      if (iflags & O_APPEND)
+	port_mode = "a";
+      else if (iflags & O_WRONLY)
+	port_mode = "w";
+      else
+	port_mode = "r";
+    }
+
   newpt = scm_fdes_to_port (fd, port_mode, path);
   return newpt;
 }
