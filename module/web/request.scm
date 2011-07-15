@@ -151,21 +151,31 @@
                         (validate-headers? #t))
   "Construct an HTTP request object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators."
-  (cond
-   ((not (and (pair? version)
-              (non-negative-integer? (car version))
-              (non-negative-integer? (cdr version))))
-    (bad-request "Bad version: ~a" version))
-   ((not (uri? uri))
-    (bad-request "Bad uri: ~a" uri))
-   ((and (not port) (memq method '(POST PUT)))
-    (bad-request "Missing port for message ~a" method))
-   ((not (list? meta))
-    (bad-request "Bad metadata alist" meta))
-   (else
-    (if validate-headers?
-        (validate-headers headers))))
-  (make-request method uri version headers meta port))
+  (let ((needs-host? (and (equal? version '(1 . 1))
+                          (not (assq-ref headers 'host)))))
+    (cond
+     ((not (and (pair? version)
+                (non-negative-integer? (car version))
+                (non-negative-integer? (cdr version))))
+      (bad-request "Bad version: ~a" version))
+     ((not (uri? uri))
+      (bad-request "Bad uri: ~a" uri))
+     ((and (not port) (memq method '(POST PUT)))
+      (bad-request "Missing port for message ~a" method))
+     ((not (list? meta))
+      (bad-request "Bad metadata alist" meta))
+     ((and needs-host? (not (uri-host uri)))
+      (bad-request "HTTP/1.1 request without Host header and no host in URI: ~a"
+                   uri))
+     (else
+      (if validate-headers?
+          (validate-headers headers))))
+    (make-request method uri version
+                  (if needs-host?
+                      (acons 'host (cons (uri-host uri) (uri-port uri))
+                             headers)
+                      headers)
+                  meta port)))
 
 (define* (read-request port #:optional (meta '()))
   "Read an HTTP request from @var{port}, optionally attaching the given

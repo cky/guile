@@ -47,6 +47,10 @@ Accept-Language: en-gb, en;q=0.9\r
         (set! r (read-request (open-input-string example-1)))
         (request? r)))
     
+    (pass-if (equal?
+              (request-host (build-request (string->uri "http://www.gnu.org/")))
+              "www.gnu.org"))
+    
     (pass-if (equal? (request-method r) 'GET))
     
     (pass-if (equal? (request-uri r) (build-uri 'http #:path "/qux")))
