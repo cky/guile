@@ -356,6 +356,7 @@ LIB_SOURCES =					\
   texinfo/serialize.scm
 
 WEB_SOURCES =					\
+  web/client.scm				\
   web/http.scm					\
   web/request.scm				\
   web/response.scm				\
