@@ -49,7 +49,7 @@ Accept-Language: en-gb, en;q=0.9\r
     
     (pass-if (equal?
               (request-host (build-request (string->uri "http://www.gnu.org/")))
-              "www.gnu.org"))
+              '("www.gnu.org" . #f)))
     
     (pass-if (equal? (request-method r) 'GET))
     
