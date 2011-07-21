@@ -48,6 +48,7 @@
                                 (else (symbol->string (uri-scheme uri)))))))
          (s  (socket (addrinfo:fam ai) (addrinfo:socktype ai)
                      (addrinfo:protocol ai))))
+    (set-port-encoding! s "ISO-8859-1")
     (connect s (addrinfo:addr ai))
     ;; Buffer input and output on this port.
     (setvbuf s _IOFBF)
