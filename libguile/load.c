@@ -270,7 +270,10 @@ scm_init_load_path ()
   else if (env)
     cpath = scm_parse_path (scm_from_locale_string (env), cpath);
   else
-    cpath = scm_cons (scm_from_locale_string (SCM_CCACHE_DIR), cpath);
+    {
+      cpath = scm_list_2 (scm_from_locale_string (SCM_CCACHE_DIR),
+                          scm_from_locale_string (SCM_SITE_CCACHE_DIR));
+    }
 
 #endif /* SCM_LIBRARY_DIR */
 
