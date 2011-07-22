@@ -529,7 +529,7 @@ Trace execution."
   ;; FIXME: doc options, or somehow deal with them better
   (apply call-with-trace
          (repl-prepare-eval-thunk repl (repl-parse repl form))
-         opts))
+         (cons* #:width (terminal-width) opts)))
 
 
 ;;;
