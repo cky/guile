@@ -28,7 +28,8 @@
 (define-module (scripts help)
   #:use-module (ice-9 format)
   #:use-module (ice-9 documentation)
-  #:use-module ((srfi srfi-1) #:select (fold append-map)))
+  #:use-module ((srfi srfi-1) #:select (fold append-map))
+  #:export (main))
 
 (define %summary "Show a brief help message.")
 
