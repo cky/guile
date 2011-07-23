@@ -25,6 +25,7 @@ exec guile $GUILE_FLAGS -e '(@@ (guild) main)' -s "$0" "$@"
 
 (define-module (guild)
   #:use-module (ice-9 getopt-long)
+  #:use-module (ice-9 command-line)
   #:autoload (ice-9 format) (format))
 
 ;; Hack to provide scripts with the bug-report address.
@@ -37,23 +38,11 @@ exec guile $GUILE_FLAGS -e '(@@ (guild) main)' -s "$0" "$@"
   '((help (single-char #\h))
     (version (single-char #\v))))
 
-(define (display-help)
-  (display "\
-Usage: guild --version
-       guild --help
-       guild PROGRAM [ARGS]
-
-If PROGRAM is \"list\" or omitted, display available scripts, otherwise
-PROGRAM is run with ARGS.
-"))
-
 (define (display-version)
-  (format #t "guild (GNU Guile ~A) ~A
-Copyright (C) 2010 Free Software Foundation, Inc.
-License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-" (version) (effective-version)))
+  (version-etc "GNU Guile"
+               (effective-version)
+               #:command-name "guild"
+               #:license *LGPLv3+*))
 
 (define (find-script s)
   (resolve-module (list 'scripts (string->symbol s)) #:ensure #f))
@@ -62,27 +51,24 @@ There is NO WARRANTY, to the extent permitted by law.
   (if (defined? 'setlocale)
       (setlocale LC_ALL ""))
 
-  (let ((options (getopt-long args *option-grammar*
-                              #:stop-at-first-non-option #t)))
+  (let* ((options (getopt-long args *option-grammar*
+                               #:stop-at-first-non-option #t))
+         (args (option-ref options '() '())))
     (cond
      ((option-ref options 'help #f)
-      (display-help)
+      (apply (module-ref (resolve-module '(scripts help)) 'main) args)
       (exit 0))
      ((option-ref options 'version #f)
       (display-version)
       (exit 0))
+     ((find-script (if (null? args) "help" (car args)))
+      => (lambda (mod)
+           (exit (apply (module-ref mod 'main) (if (null? args)
+                                                   '()
+                                                   (cdr args))))))
      (else
-      (let ((args (option-ref options '() '())))
-        (cond ((find-script (if (null? args)
-                                "list"
-                                (car args)))
-               => (lambda (mod)
-                    (exit (apply (module-ref mod 'main) (if (null? args)
-                                                            '()
-                                                            (cdr args))))))
-              (else
-               (format (current-error-port)
-                       "guild: unknown script ~s~%" (car args))
-               (format (current-error-port)
-                       "Try `guild --help' for more information.~%")
-               (exit 1))))))))
+      (format (current-error-port)
+              "guild: unknown script ~s~%" (car args))
+      (format (current-error-port)
+              "Try `guild help' for more information.~%")
+      (exit 1)))))

@@ -1,4 +1,4 @@
-;;; List --- List scripts that can be invoked by guild  -*- coding: iso-8859-1 -*-
+;;; Help --- Show help on guild commands
 
 ;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
@@ -19,17 +19,17 @@
 
 ;;; Commentary:
 
-;; Usage: list
+;; Usage: help
 ;;
-;; List scripts that can be invoked by guild.
+;; Show help for Guild scripts.
 
 ;;; Code:
 
-(define-module (scripts list)
-  #:export (list-scripts))
+(define-module (scripts help)
+  #:use-module (ice-9 format)
+  #:use-module ((srfi srfi-1) #:select (fold append-map)))
 
-(define %include-in-guild-list #f)
-(define %summary "An alias for \"help\".")
+(define %summary "Show a brief help message.")
 
 
 (define (directory-files dir)
@@ -80,11 +80,30 @@
                   %load-path)
       string<?))))
 
-(define (list-scripts . args)
-  (for-each (lambda (x)
-              ;; would be nice to show a summary.
-              (format #t "~A\n" x))
-            (find-submodules '(scripts))))
-
 (define (main . args)
-  (apply (@@ (scripts help) main) args))
+  (display "\
+Usage: guild COMMAND [ARGS]
+
+  guild runs command-line scripts provided by GNU Guile and related
+  programs.  See \"Using Guile Tools\" in the Guile manual, for more
+  information.
+
+Commands:
+")
+
+  (let ((all? (or (equal? args '("--all"))
+                  (equal? args '("-a")))))
+    (for-each
+     (lambda (name)
+       (let* ((modname `(scripts ,(string->symbol name)))
+              (mod (resolve-module modname #:ensure #f))
+              (summary (and mod (and=> (module-variable mod '%summary)
+                                       variable-ref))))
+         (if (and mod
+                  (or all?
+                      (let ((v (module-variable mod '%include-in-guild-list)))
+                        (if v (variable-ref v) #t))))
+             (if summary
+                 (format #t "  ~A ~23t~a\n" name summary)
+                 (format #t "  ~A\n" name)))))
+     (find-submodules '(scripts)))))

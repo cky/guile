@@ -153,6 +153,7 @@ SCRIPTS_SOURCES =				\
   scripts/doc-snarf.scm				\
   scripts/frisk.scm				\
   scripts/generate-autoload.scm			\
+  scripts/help.scm				\
   scripts/lint.scm				\
   scripts/list.scm				\
   scripts/punify.scm				\
