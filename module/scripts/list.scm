@@ -26,6 +26,7 @@
 ;;; Code:
 
 (define-module (scripts list)
+  #:use-module (ice-9 format)
   #:use-module ((srfi srfi-1) #:select (fold append-map))
   #:export (list-scripts))
 
@@ -50,6 +51,10 @@
   (or-map (lambda (ext)
             (and
              (string-suffix? ext path)
+             ;; We really can't be adding e.g. ChangeLog-2008 to the set
+             ;; of runnable scripts, just because "" is a valid
+             ;; extension, by default.  So hack around that here.
+             (not (string-null? ext))
              (substring path 0
                         (- (string-length path) (string-length ext)))))
           (append %load-compiled-extensions %load-extensions)))
@@ -74,10 +79,30 @@
                   %load-path)
       string<?))))
 
-(define (list-scripts . args)
-  (for-each (lambda (x)
-              ;; would be nice to show a summary.
-              (format #t "~A\n" x))
-            (find-submodules '(scripts))))
+(define (main . args)
+  (display "\
+Usage: guild COMMAND [ARGS]
 
-(define main list-scripts)
+  guild runs command-line scripts provided by GNU Guile and related
+  programs.  See \"Using Guile Tools\" in the Guile manual, for more
+  information.
+
+Commands:
+")
+
+  (for-each
+   (lambda (name)
+     (let* ((modname `(scripts ,(string->symbol name)))
+            (mod (resolve-module modname #:ensure #f))
+            (summary (and mod (and=> (module-variable mod '%summary)
+                                     variable-ref))))
+       (if summary
+           (format #t "  ~A ~32t~a\n" name summary)
+           (format #t "  ~A\n" name))))
+   (find-submodules '(scripts)))
+
+  (display "\
+
+If COMMAND is \"list\" or omitted, display available scripts, otherwise
+COMMAND is run with ARGS.
+"))
