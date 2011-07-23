@@ -146,7 +146,6 @@ BRAINFUCK_LANG_SOURCES =			\
   language/brainfuck/spec.scm
 
 SCRIPTS_SOURCES =				\
-  scripts/PROGRAM.scm				\
   scripts/autofrisk.scm				\
   scripts/compile.scm				\
   scripts/disassemble.scm			\
