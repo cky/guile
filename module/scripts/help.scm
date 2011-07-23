@@ -85,10 +85,7 @@
 (define (list-commands all?)
   (display "\
 Usage: guild COMMAND [ARGS]
-
-  guild runs command-line scripts provided by GNU Guile and related
-  programs.  See \"Using Guile Tools\" in the Guile manual, for more
-  information.
+Run command-line scripts provided by GNU Guile and related programs.
 
 Commands:
 ")
@@ -107,9 +104,14 @@ Commands:
                (format #t "  ~A ~23t~a\n" name summary)
                (format #t "  ~A\n" name)))))
    (find-submodules '(scripts)))
-  (display "
+  (format #t "
 For help on a specific command, try \"guild help COMMAND\".
-"))
+
+Report guild bugs to ~a
+GNU Guile home page: <http://www.gnu.org/software/guile/>
+General help using GNU software: <http://www.gnu.org/gethelp/>
+For complete documentation, run: info guile 'Using Guile Tools'
+" %guile-bug-report-address))
 
 (define (module-commentary mod)
   (file-commentary

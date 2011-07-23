@@ -39,8 +39,8 @@ exec guile $GUILE_FLAGS -e '(@@ (guild) main)' -s "$0" "$@"
     (version (single-char #\v))))
 
 (define (display-version)
-  (version-etc "GNU Guile"
-               (effective-version)
+  (version-etc "@PACKAGE_NAME@"
+               (version)
                #:command-name "guild"
                #:license *LGPLv3+*))
 
