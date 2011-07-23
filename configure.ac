@@ -1636,6 +1636,10 @@ pkgdatadir="$datadir/$PACKAGE_TARNAME"
 sitedir="$pkgdatadir/site/$GUILE_EFFECTIVE_VERSION"
 AC_SUBST([sitedir])
 
+dnl Name of the `guile' program.
+guile_program_name="`echo guile | "$SED" "$program_transform_name"`"
+AC_SUBST([guile_program_name])
+
 # Additional SCM_I_GSC definitions are above.
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])

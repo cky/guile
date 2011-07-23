@@ -136,4 +136,8 @@ if test "x${top_srcdir}" != "x${top_builddir}"; then
 fi
 export PATH
 
+# Define $GUILE, used by `guild'.
+GUILE="${top_builddir}/meta/guile"
+export GUILE
+
 exec "$@"
