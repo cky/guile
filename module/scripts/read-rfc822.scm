@@ -1,6 +1,6 @@
 ;;; read-rfc822 --- Validate RFC822 file by displaying it to stdout
 
-;; 	Copyright (C) 2002, 2004, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2004, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -48,6 +48,9 @@
   :use-module (ice-9 rdelim)
   :autoload (srfi srfi-13) (string-join)
   :export (read-rfc822 read-rfc822-silently))
+
+(define %include-in-guild-list #f)
+(define %summary "Validate an RFC822-style file.")
 
 (define from-line-rx   (make-regexp "^From "))
 (define header-name-rx (make-regexp "^([^:]+):[ \t]*"))

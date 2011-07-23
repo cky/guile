@@ -1,6 +1,6 @@
 ;;; frisk --- Grok the module interfaces of a body of files
 
-;; 	Copyright (C) 2002, 2006, 2010 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -102,6 +102,9 @@
            make-frisker
            mod-up-ls mod-down-ls mod-int?
            edge-type edge-up edge-down))
+
+(define %include-in-guild-list #f)
+(define %summary "Show dependency information for a module.")
 
 (define *default-module* '(guile-user))
 

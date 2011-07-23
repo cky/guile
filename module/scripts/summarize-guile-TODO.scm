@@ -1,6 +1,6 @@
 ;;; summarize-guile-TODO --- Display Guile TODO list in various ways
 
-;; 	Copyright (C) 2002, 2006, 2010 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -72,6 +72,9 @@
   :autoload (srfi srfi-14) (char-set) ; string library
   :autoload (ice-9 common-list) (remove-if-not)
   :export (summarize-guile-TODO))
+
+(define %include-in-guild-list #f)
+(define %summary "A quaint relic of the past.")
 
 (define put set-object-property!)
 (define get object-property)

@@ -1,6 +1,6 @@
 ;;; use2dot --- Display module dependencies as a DOT specification
 
-;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -52,6 +52,8 @@
   :use-module ((scripts frisk)
                :select (make-frisker edge-type edge-up edge-down))
   :export (use2dot))
+
+(define %summary "Print a module's dependencies in graphviz format.")
 
 (define *default-module* '(guile-user))
 

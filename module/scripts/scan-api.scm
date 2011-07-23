@@ -1,6 +1,6 @@
 ;;; scan-api --- Scan and group interpreter and libguile interface elements
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -64,6 +64,9 @@
   :use-module (ice-9 rdelim)
   :use-module (ice-9 regex)
   :export (scan-api))
+
+(define %include-in-guild-list #f)
+(define %summary "Generate an API description for a Guile extension.")
 
 (define put set-object-property!)
 (define get object-property)

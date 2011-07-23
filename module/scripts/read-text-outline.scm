@@ -1,6 +1,6 @@
 ;;; read-text-outline --- Read a text outline and display it as a sexp
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -117,6 +117,9 @@
   :use-module (ice-9 regex)
   :autoload (ice-9 rdelim) (read-line)
   :autoload (ice-9 getopt-long) (getopt-long))
+
+(define %include-in-guild-list #f)
+(define %summary "Convert textual outlines to s-expressions.")
 
 (define (?? symbol)
   (let ((name (symbol->string symbol)))

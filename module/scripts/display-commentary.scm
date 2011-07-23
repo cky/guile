@@ -1,6 +1,6 @@
 ;;; display-commentary --- As advertized
 
-;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -32,6 +32,8 @@
 (define-module (scripts display-commentary)
   :use-module (ice-9 documentation)
   :export (display-commentary))
+
+(define %summary "Display the Commentary section from a file or module.")
 
 (define (display-commentary-one file)
   (format #t "~A commentary:\n~A" file (file-commentary file)))

@@ -1,6 +1,6 @@
 ;;; autofrisk --- Generate module checks for use with auto* tools
 
-;; 	Copyright (C) 2002, 2006, 2009 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2009, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -61,6 +61,9 @@
   :use-module (scripts read-scheme-source)
   :use-module (scripts frisk)
   :export (autofrisk))
+
+(define %include-in-guild-list #f)
+(define %summary "Generate snippets for use in configure.ac files.")
 
 (define *recognized-keys* '(files-glob
                             non-critical-external

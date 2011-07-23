@@ -1,6 +1,6 @@
 ;;; Disassemble --- Disassemble .go files into something human-readable
 
-;; Copyright 2005, 2008, 2009 Free Software Foundation, Inc.
+;; Copyright 2005, 2008, 2009, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,8 @@
   #:use-module ((language assembly disassemble)
                 #:renamer (symbol-prefix-proc 'asm:))
   #:export (disassemble))
+
+(define %summary "Disassemble a compiled .go file.")
 
 (define (disassemble . files)
   (for-each (lambda (file)

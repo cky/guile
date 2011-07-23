@@ -1,6 +1,6 @@
 ;;; snarf-check-and-output-texi --- called by the doc snarfer.
 
-;; 	Copyright (C) 2001, 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,9 @@
     :use-module (ice-9 streams)
     :use-module (ice-9 match)
     :export (snarf-check-and-output-texi))
+
+(define %include-in-guild-list #f)
+(define %summary "Transform snarfed .doc files into texinfo documentation.")
 
 ;;; why aren't these in some module?
 

@@ -37,6 +37,8 @@
   #:use-module (ice-9 format)
   #:export (compile))
 
+(define %summary "Compile a file.")
+
 
 (define (fail . messages)
   (format (current-error-port) "error: ~{~a~}~%" messages)

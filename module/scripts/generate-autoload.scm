@@ -1,6 +1,6 @@
 ;;; generate-autoload --- Display define-module form with autoload info
 
-;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -58,6 +58,9 @@
 
 (define-module (scripts generate-autoload)
   :export (generate-autoload))
+
+(define %include-in-guild-list #f)
+(define %summary "Generate #:autoload clauses for a module.")
 
 (define (autoload-info file)
   (let ((p (open-input-file file)))

@@ -1,6 +1,6 @@
 ;;; doc-snarf --- Extract documentation from source files
 
-;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -82,6 +82,8 @@ This procedure foos, or bars, depending on the argument @var{braz}.
   :use-module (ice-9 string-fun)
   :use-module (ice-9 rdelim)
   :export (doc-snarf))
+
+(define %summary "Snarf out documentation from a file.")
 
 (define command-synopsis
   '((version (single-char #\v) (value #f))

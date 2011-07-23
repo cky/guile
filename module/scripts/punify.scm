@@ -41,6 +41,9 @@
 (define-module (scripts punify)
   :export (punify))
 
+(define %include-in-guild-list #f)
+(define %summary "Strip comments and whitespace from a Scheme file.")
+
 (define (write-punily form)
   (cond ((and (list? form) (not (null? form)))
          (let ((first (car form)))

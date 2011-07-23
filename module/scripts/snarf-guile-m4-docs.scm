@@ -1,6 +1,6 @@
 ;;; snarf-guile-m4-docs --- Parse guile.m4 comments for texi documentation
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -34,6 +34,9 @@
 (define-module (scripts snarf-guile-m4-docs)
   :use-module (ice-9 rdelim)
   :export (snarf-guile-m4-docs))
+
+(define %include-in-guild-list #f)
+(define %summary "Snarf out texinfo documentation from .m4 files.")
 
 (define (display-texi lines)
   (display "@deffn {Autoconf Macro}")

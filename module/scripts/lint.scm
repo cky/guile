@@ -105,6 +105,9 @@
   #:use-module (ice-9 format)
   #:export (lint))
 
+(define %include-in-guild-list #f)
+(define %summary "Check for bugs and style errors in a Scheme file.")
+
 (define (lint filename)
   (let ((module-name (scan-file-for-module-name filename))
 	(free-vars (uniq (scan-file-for-free-variables filename))))

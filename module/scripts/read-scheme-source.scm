@@ -1,6 +1,6 @@
 ;;; read-scheme-source --- Read a file, recognizing scheme forms and comments
 
-;; 	Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -90,6 +90,9 @@
            read-scheme-source-silently
            quoted?
            clump))
+
+(define %include-in-guild-list #f)
+(define %summary "Print a parsed representation of a Scheme file.")
 
 ;; Try to figure out what FORM is and its various attributes.
 ;; Call proc NOTE! with key (a symbol) and value.

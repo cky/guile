@@ -30,6 +30,9 @@
   #:use-module ((srfi srfi-1) #:select (fold append-map))
   #:export (list-scripts))
 
+(define %include-in-guild-list #f)
+(define %summary "List available guild commands.")
+
 
 (define (directory-files dir)
   (if (and (file-exists? dir) (file-is-directory? dir))
@@ -90,16 +93,22 @@ Usage: guild COMMAND [ARGS]
 Commands:
 ")
 
-  (for-each
-   (lambda (name)
-     (let* ((modname `(scripts ,(string->symbol name)))
-            (mod (resolve-module modname #:ensure #f))
-            (summary (and mod (and=> (module-variable mod '%summary)
-                                     variable-ref))))
-       (if summary
-           (format #t "  ~A ~32t~a\n" name summary)
-           (format #t "  ~A\n" name))))
-   (find-submodules '(scripts)))
+  (let ((all? (or (equal? args '("--all"))
+                  (equal? args '("-a")))))
+    (for-each
+     (lambda (name)
+       (let* ((modname `(scripts ,(string->symbol name)))
+              (mod (resolve-module modname #:ensure #f))
+              (summary (and mod (and=> (module-variable mod '%summary)
+                                       variable-ref))))
+         (if (and mod
+                  (or all?
+                      (let ((v (module-variable mod '%include-in-guild-list)))
+                        (if v (variable-ref v) #t))))
+             (if summary
+                 (format #t "  ~A ~23t~a\n" name summary)
+                 (format #t "  ~A\n" name)))))
+     (find-submodules '(scripts))))
 
   (display "\
 

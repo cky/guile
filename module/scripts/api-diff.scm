@@ -1,6 +1,6 @@
 ;;; api-diff --- diff guile-api.alist files
 
-;; 	Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -45,6 +45,9 @@
   :use-module (ice-9 getopt-long)
   :autoload (srfi srfi-13) (string-tokenize)
   :export (api-diff))
+
+(define %include-in-guild-list #f)
+(define %summary "Show differences between two scan-api files.")
 
 (define (read-alist-file file)
   (with-input-from-file file
