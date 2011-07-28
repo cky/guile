@@ -274,7 +274,7 @@ make_hash_table (int flags, unsigned long k, const char *func_name)
   SCM vector;
   scm_t_hashtable *t;
   int i = 0, n = k ? k : 31;
-  while (i < HASHTABLE_SIZE_N && n > hashtable_size[i])
+  while (i + 1 < HASHTABLE_SIZE_N && n > hashtable_size[i])
     ++i;
   n = hashtable_size[i];
 
