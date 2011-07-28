@@ -248,7 +248,8 @@ SCM_DEFINE (scm_at_abort, "@abort", 2, 0, 0, (SCM tag, SCM args),
 #define FUNC_NAME s_scm_at_abort
 {
   SCM *argv;
-  size_t i, n;
+  size_t i;
+  long n;
 
   SCM_VALIDATE_LIST_COPYLEN (SCM_ARG2, args, n);
   argv = alloca (sizeof (SCM)*n);
