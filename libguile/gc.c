@@ -739,13 +739,7 @@ accumulate_gc_timer (void * hook_data SCM_UNUSED,
 char const *
 scm_i_tag_name (scm_t_bits tag)
 {
-  if (tag >= 255)
-    {
-      int k = 0xff & (tag >> 8);
-      return (scm_smobs[k].name);
-    }
-
-  switch (tag) /* 7 bits */
+  switch (tag & 0x7f) /* 7 bits */
     {
     case scm_tcs_struct:
       return "struct";
@@ -806,7 +800,10 @@ scm_i_tag_name (scm_t_bits tag)
       return "port";
       break;
     case scm_tc7_smob:
-      return "smob";		/* should not occur. */
+      {
+        int k = 0xff & (tag >> 8);
+        return (scm_smobs[k].name);
+      }
       break; 
     }
 
