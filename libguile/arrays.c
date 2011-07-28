@@ -822,15 +822,6 @@ scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
    C is the first character read after the '#'.
 */
 
-static SCM
-tag_to_type (const char *tag, SCM port)
-{
-  if (*tag == '\0')
-    return SCM_BOOL_T;
-  else
-    return scm_from_locale_symbol (tag);
-}
-
 static int
 read_decimal_integer (SCM port, int c, ssize_t *resp)
 {
@@ -860,10 +851,10 @@ SCM
 scm_i_read_array (SCM port, int c)
 {
   ssize_t rank;
-  char tag[80];
+  scm_t_wchar tag_buf[8];
   int tag_len;
 
-  SCM shape = SCM_BOOL_F, elements;
+  SCM tag, shape = SCM_BOOL_F, elements;
 
   /* XXX - shortcut for ordinary vectors.  Shouldn't be necessary but
      the array code can not deal with zero-length dimensions yet, and
@@ -887,7 +878,7 @@ scm_i_read_array (SCM port, int c)
 	  return SCM_BOOL_F;
 	}
       rank = 1;
-      tag[0] = 'f';
+      tag_buf[0] = 'f';
       tag_len = 1;
       goto continue_reading_tag;
     }
@@ -904,13 +895,22 @@ scm_i_read_array (SCM port, int c)
    */
   tag_len = 0;
  continue_reading_tag:
-  while (c != EOF && c != '(' && c != '@' && c != ':' && tag_len < 80)
+  while (c != EOF && c != '(' && c != '@' && c != ':'
+         && tag_len < sizeof tag_buf / sizeof tag_buf[0])
     {
-      tag[tag_len++] = c;
+      tag_buf[tag_len++] = c;
       c = scm_getc (port);
     }
-  tag[tag_len] = '\0';
-  
+  if (tag_len == 0)
+    tag = SCM_BOOL_T;
+  else
+    {
+      tag = scm_string_to_symbol (scm_from_utf32_stringn (tag_buf, tag_len));
+      if (tag_len == sizeof tag_buf / sizeof tag_buf[0])
+        scm_i_input_error (NULL, port, "invalid array tag, starting with: ~a",
+                           scm_list_1 (tag));
+    }
+    
   /* Read shape. 
    */
   if (c == '@' || c == ':')
@@ -983,7 +983,7 @@ scm_i_read_array (SCM port, int c)
 
   /* Construct array. 
    */
-  return scm_list_to_typed_array (tag_to_type (tag, port), shape, elements);
+  return scm_list_to_typed_array (tag, shape, elements);
 }
 
 
