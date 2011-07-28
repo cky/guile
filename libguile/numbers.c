@@ -1500,8 +1500,6 @@ SCM_PRIMITIVE_GENERIC (scm_ceiling_quotient, "ceiling-quotient", 2, 0, 0,
 		  if (SCM_LIKELY (xx >= 0))
 		    xx1 = xx + yy - 1;
 		}
-	      else if (SCM_UNLIKELY (yy == 0))
-		scm_num_overflow (s_scm_ceiling_quotient);
 	      else if (xx < 0)
 		xx1 = xx + yy + 1;
 	      qq = xx1 / yy;
