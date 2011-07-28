@@ -317,6 +317,7 @@ scm_get_meta_args (int argc, char **argv)
 	    switch (getc (f))
 	      {
 	      case EOF:
+                free (nargv);
 		return 0L;
 	      default:
 		continue;
@@ -324,6 +325,7 @@ scm_get_meta_args (int argc, char **argv)
 		goto found_args;
 	      }
 	found_args:
+          /* FIXME: we leak the result of calling script_read_arg.  */
 	  while ((narg = script_read_arg (f)))
 	    if (!(nargv = (char **) realloc (nargv,
 					     (1 + ++nargc) * sizeof (char *))))
