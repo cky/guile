@@ -408,7 +408,7 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
       /* See above note about scm_sym_dot.  */
       if (c == '.' && scm_is_eq (scm_sym_dot, tmp))
 	{
-	  SCM_SETCDR (tl, tmp = scm_read_expression (port));
+	  SCM_SETCDR (tl, scm_read_expression (port));
 
 	  c = flush_ws (port, FUNC_NAME);
 	  if (terminating_char != c)
