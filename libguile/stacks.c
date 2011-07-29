@@ -184,11 +184,10 @@ narrow_stack (SCM stack, long inner, SCM inner_key, long outer, SCM outer_key)
   else
     {
       /* Cut specified number of frames. */
-      for (; outer && len ; --outer)
-        {
-          frame = scm_stack_ref (stack, scm_from_long (len - 1));
-          len--;
-        }
+      if (outer < len)
+        len -= outer;
+      else
+        len = 0;
     }
 
   SCM_SET_STACK_LENGTH (stack, len);
