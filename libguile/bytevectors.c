@@ -178,7 +178,7 @@
 /* Bytevector type.  */
 
 #define SCM_BYTEVECTOR_HEADER_BYTES		\
-  (SCM_BYTEVECTOR_HEADER_SIZE * sizeof (SCM))
+  (SCM_BYTEVECTOR_HEADER_SIZE * sizeof (scm_t_bits))
 
 #define SCM_BYTEVECTOR_SET_LENGTH(_bv, _len)            \
   SCM_SET_CELL_WORD_1 ((_bv), (scm_t_bits) (_len))
