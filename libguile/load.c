@@ -419,63 +419,21 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
    If FILENAME is absolute, return it unchanged.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
-SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
-            (SCM path, SCM filename, SCM rest),
-	    "Search @var{path} for a directory containing a file named\n"
-	    "@var{filename}. The file must be readable, and not a directory.\n"
-	    "If we find one, return its full filename; otherwise, return\n"
-	    "@code{#f}.  If @var{filename} is absolute, return it unchanged.\n"
-	    "If given, @var{extensions} is a list of strings; for each\n"
-	    "directory in @var{path}, we search for @var{filename}\n"
-	    "concatenated with each @var{extension}.")
-#define FUNC_NAME s_scm_search_path
+static SCM
+search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
+             struct stat *stat_buf)
 {
   struct stringbuf buf;
   char *filename_chars;
   size_t filename_len;
-  SCM extensions, require_exts;
   SCM result = SCM_BOOL_F;
 
-  if (SCM_UNBNDP (rest) || scm_is_null (rest))
-    {
-      /* Called either by Scheme code that didn't provide the optional
-         arguments, or C code that used the Guile 1.8 signature (2 required,
-         1 optional arg) and passed '() or nothing as the EXTENSIONS
-	 argument.  */
-      extensions = SCM_EOL;
-      require_exts = SCM_UNDEFINED;
-    }
-  else
-    {
-      if (scm_is_null (SCM_CAR (rest)) || scm_is_pair (SCM_CAR (rest)))
-	{
-	  /* Called by Scheme code written for 1.9.  */
-	  extensions = SCM_CAR (rest);
-	  if (scm_is_null (SCM_CDR (rest)))
-	    require_exts = SCM_UNDEFINED;
-	  else
-	    {
-	      require_exts = SCM_CADR (rest);
-	      if (SCM_UNLIKELY (!scm_is_null (SCM_CDDR (rest))))
-		scm_wrong_num_args (scm_from_locale_string (FUNC_NAME));
-	    }
-	}
-      else
-	{
-	  /* Called by C code that uses the 1.8 signature, i.e., which
-	     expects the 3rd argument to be EXTENSIONS.  */
-	  extensions = rest;
-	  require_exts = SCM_UNDEFINED;
-	}
-    }
-
-  if (SCM_UNBNDP (extensions))
-    extensions = SCM_EOL;
-
-  SCM_VALIDATE_LIST (3, extensions);
-
-  if (SCM_UNBNDP (require_exts))
-    require_exts = SCM_BOOL_F;
+  if (scm_ilength (path) < 0)
+    scm_misc_error ("%search-path", "path is not a proper list: ~a",
+                    scm_list_1 (path));
+  if (scm_ilength (extensions) < 0)
+    scm_misc_error ("%search-path", "bad extensions list: ~a",
+                    scm_list_1 (extensions));
 
   scm_dynwind_begin (0);
 
@@ -576,7 +534,6 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
       for (exts = extensions; scm_is_pair (exts); exts = SCM_CDR (exts))
 	{
 	  SCM ext = SCM_CAR (exts);
-	  struct stat mode;
 	  
 	  buf.ptr = buf.buf + sans_ext_len;
 	  stringbuf_cat_locale_string (&buf, ext);
@@ -584,8 +541,8 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
 	  /* If the file exists at all, we should return it.  If the
 	     file is inaccessible, then that's an error.  */
 
-	  if (stat (buf.buf, &mode) == 0
-	      && ! (mode.st_mode & S_IFDIR))
+	  if (stat (buf.buf, stat_buf) == 0
+	      && ! (stat_buf->st_mode & S_IFDIR))
 	    {
 	      result = scm_from_locale_string (buf.buf);
 	      goto end;
@@ -602,6 +559,62 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
  end:
   scm_dynwind_end ();
   return result;
+}
+
+SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
+            (SCM path, SCM filename, SCM rest),
+	    "Search @var{path} for a directory containing a file named\n"
+	    "@var{filename}. The file must be readable, and not a directory.\n"
+	    "If we find one, return its full filename; otherwise, return\n"
+	    "@code{#f}.  If @var{filename} is absolute, return it unchanged.\n"
+	    "If given, @var{extensions} is a list of strings; for each\n"
+	    "directory in @var{path}, we search for @var{filename}\n"
+	    "concatenated with each @var{extension}.")
+#define FUNC_NAME s_scm_search_path
+{
+  SCM extensions, require_exts;
+  struct stat stat_buf;
+
+  if (SCM_UNBNDP (rest) || scm_is_null (rest))
+    {
+      /* Called either by Scheme code that didn't provide the optional
+         arguments, or C code that used the Guile 1.8 signature (2 required,
+         1 optional arg) and passed '() or nothing as the EXTENSIONS
+	 argument.  */
+      extensions = SCM_EOL;
+      require_exts = SCM_UNDEFINED;
+    }
+  else
+    {
+      if (scm_is_null (SCM_CAR (rest)) || scm_is_pair (SCM_CAR (rest)))
+	{
+	  /* Called by Scheme code written for 1.9.  */
+	  extensions = SCM_CAR (rest);
+	  if (scm_is_null (SCM_CDR (rest)))
+	    require_exts = SCM_UNDEFINED;
+	  else
+	    {
+	      require_exts = SCM_CADR (rest);
+	      if (SCM_UNLIKELY (!scm_is_null (SCM_CDDR (rest))))
+		scm_wrong_num_args (scm_from_locale_string (FUNC_NAME));
+	    }
+	}
+      else
+	{
+	  /* Called by C code that uses the 1.8 signature, i.e., which
+	     expects the 3rd argument to be EXTENSIONS.  */
+	  extensions = rest;
+	  require_exts = SCM_UNDEFINED;
+	}
+    }
+
+  if (SCM_UNBNDP (extensions))
+    extensions = SCM_EOL;
+
+  if (SCM_UNBNDP (require_exts))
+    require_exts = SCM_BOOL_F;
+
+  return search_path (path, filename, extensions, require_exts, &stat_buf);
 }
 #undef FUNC_NAME
 
@@ -621,60 +634,41 @@ SCM_DEFINE (scm_sys_search_load_path, "%search-load-path", 1, 0, 0,
 	    "will try each extension automatically.")
 #define FUNC_NAME s_scm_sys_search_load_path
 {
-  SCM path = *scm_loc_load_path;
-  SCM exts = *scm_loc_load_extensions;
+  struct stat stat_buf;
+  
   SCM_VALIDATE_STRING (1, filename);
 
-  if (scm_ilength (path) < 0)
-    SCM_MISC_ERROR ("%load-path is not a proper list", SCM_EOL);
-  if (scm_ilength (exts) < 0)
-    SCM_MISC_ERROR ("%load-extension list is not a proper list", SCM_EOL);
-  return scm_search_path (path, filename, exts);
+  return search_path (*scm_loc_load_path, filename, *scm_loc_load_extensions,
+                      SCM_BOOL_F, &stat_buf);
 }
 #undef FUNC_NAME
 
 
 /* Return true if COMPILED_FILENAME is newer than source file
-   FULL_FILENAME, false otherwise.  Also return false if one of the
-   files cannot be stat'd.  */
+   FULL_FILENAME, false otherwise.  */
 static int
-compiled_is_fresh (SCM full_filename, SCM compiled_filename)
+compiled_is_fresh (SCM full_filename, SCM compiled_filename,
+                   struct stat *stat_source, struct stat *stat_compiled)
 {
-  char *source, *compiled;
-  struct stat stat_source, stat_compiled;
   int compiled_is_newer;
+  struct timespec source_mtime, compiled_mtime;
 
-  source = scm_to_locale_string (full_filename);
-  compiled = scm_to_locale_string (compiled_filename);
+  source_mtime = get_stat_mtime (stat_source);
+  compiled_mtime = get_stat_mtime (stat_compiled);
 
-  if (stat (source, &stat_source) == 0
-      && stat (compiled, &stat_compiled) == 0)
-    {
-      struct timespec source_mtime, compiled_mtime;
-
-      source_mtime = get_stat_mtime (&stat_source);
-      compiled_mtime = get_stat_mtime (&stat_compiled);
-
-      if (source_mtime.tv_sec < compiled_mtime.tv_sec
-	  || (source_mtime.tv_sec == compiled_mtime.tv_sec
-	      && source_mtime.tv_nsec <= compiled_mtime.tv_nsec))
-	compiled_is_newer = 1;
-      else
-	{
-	  compiled_is_newer = 0;
-	  scm_puts (";;; note: source file ", scm_current_error_port ());
-	  scm_puts (source, scm_current_error_port ());
-	  scm_puts ("\n;;;       newer than compiled ", scm_current_error_port ());
-	  scm_puts (compiled, scm_current_error_port ());
-	  scm_puts ("\n", scm_current_error_port ());
-	}
-    }
+  if (source_mtime.tv_sec < compiled_mtime.tv_sec
+      || (source_mtime.tv_sec == compiled_mtime.tv_sec
+          && source_mtime.tv_nsec <= compiled_mtime.tv_nsec))
+    compiled_is_newer = 1;
   else
-    /* At least one of the files isn't accessible.  */
-    compiled_is_newer = 0;
-
-  free (source);
-  free (compiled);
+    {
+      compiled_is_newer = 0;
+      scm_puts (";;; note: source file ", scm_current_error_port ());
+      scm_display (full_filename, scm_current_error_port ());
+      scm_puts ("\n;;;       newer than compiled ", scm_current_error_port ());
+      scm_display (compiled_filename, scm_current_error_port ());
+      scm_puts ("\n", scm_current_error_port ());
+    }
 
   return compiled_is_newer;
 }
@@ -830,6 +824,7 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
   SCM full_filename, compiled_filename;
   int compiled_is_fallback = 0;
   SCM hook = *scm_loc_load_hook;
+  struct stat stat_source, stat_compiled;
 
   if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
     SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
@@ -861,13 +856,14 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
   if (SCM_UNBNDP (exception_on_not_found))
     exception_on_not_found = SCM_BOOL_T;
 
-  full_filename = scm_sys_search_load_path (filename);
+  full_filename = search_path (*scm_loc_load_path, filename,
+                               *scm_loc_load_extensions, SCM_BOOL_F,
+                               &stat_source);
 
   compiled_filename =
-    scm_search_path (*scm_loc_load_compiled_path,
-		     filename,
-		     scm_list_2 (*scm_loc_load_compiled_extensions,
-				 SCM_BOOL_T));
+    search_path (*scm_loc_load_compiled_path, filename,
+                 *scm_loc_load_compiled_extensions, SCM_BOOL_T,
+                 &stat_compiled);
 
   if (scm_is_false (compiled_filename)
       && scm_is_true (full_filename)
@@ -876,15 +872,21 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
       && scm_is_pair (*scm_loc_load_compiled_extensions)
       && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
     {
-      SCM fallback = scm_string_append
+      SCM fallback;
+      char *fallback_chars;
+
+      fallback = scm_string_append
         (scm_list_3 (*scm_loc_compile_fallback_path,
                      canonical_suffix (full_filename),
                      scm_car (*scm_loc_load_compiled_extensions)));
-      if (scm_is_true (scm_stat (fallback, SCM_BOOL_F)))
+
+      fallback_chars = scm_to_locale_string (fallback);
+      if (stat (fallback_chars, &stat_compiled) == 0)
         {
           compiled_filename = fallback;
           compiled_is_fallback = 1;
         }
+      free (fallback_chars);
     }
   
   if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
@@ -902,7 +904,8 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
 
   if (scm_is_false (full_filename)
       || (scm_is_true (compiled_filename)
-          && compiled_is_fresh (full_filename, compiled_filename)))
+          && compiled_is_fresh (full_filename, compiled_filename,
+                                &stat_source, &stat_compiled)))
     return scm_load_compiled_with_vm (compiled_filename);
 
   /* Perhaps there was the installed .go that was stale, but our fallback is
@@ -914,12 +917,21 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
       && scm_is_pair (*scm_loc_load_compiled_extensions)
       && scm_is_string (scm_car (*scm_loc_load_compiled_extensions)))
     {
-      SCM fallback = scm_string_append
+      SCM fallback;
+      char *fallback_chars;
+      int stat_ret;
+      
+      fallback = scm_string_append
         (scm_list_3 (*scm_loc_compile_fallback_path,
                      canonical_suffix (full_filename),
                      scm_car (*scm_loc_load_compiled_extensions)));
-      if (scm_is_true (scm_stat (fallback, SCM_BOOL_F))
-          && compiled_is_fresh (full_filename, fallback))
+
+      fallback_chars = scm_to_locale_string (fallback);
+      stat_ret = stat (fallback_chars, &stat_compiled);
+      free (fallback_chars);
+
+      if (stat_ret == 0 && compiled_is_fresh (full_filename, fallback,
+                                              &stat_source, &stat_compiled))
         {
           scm_puts (";;; found fresh local cache at ", scm_current_error_port ());
           scm_display (fallback, scm_current_error_port ());
@@ -950,15 +962,18 @@ void
 scm_init_eval_in_scheme (void)
 {
   SCM eval_scm, eval_go;
-  eval_scm = scm_search_path (*scm_loc_load_path,
-                              scm_from_locale_string ("ice-9/eval.scm"),
-                              SCM_EOL);
-  eval_go = scm_search_path (*scm_loc_load_compiled_path,
-                             scm_from_locale_string ("ice-9/eval.go"),
-                             SCM_EOL);
+  struct stat stat_source, stat_compiled;
+
+  eval_scm = search_path (*scm_loc_load_path,
+                          scm_from_locale_string ("ice-9/eval.scm"),
+                          SCM_EOL, SCM_BOOL_F, &stat_source);
+  eval_go = search_path (*scm_loc_load_compiled_path,
+                         scm_from_locale_string ("ice-9/eval.go"),
+                         SCM_EOL, SCM_BOOL_F, &stat_compiled);
   
   if (scm_is_true (eval_scm) && scm_is_true (eval_go)
-      && compiled_is_fresh (eval_scm, eval_go))
+      && compiled_is_fresh (eval_scm, eval_go,
+                            &stat_source, &stat_compiled))
     scm_load_compiled_with_vm (eval_go);
   else
     /* if we have no eval.go, we shouldn't load any compiled code at all */
