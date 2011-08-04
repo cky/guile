@@ -33,7 +33,6 @@
   #:use-module ((srfi srfi-1) #:select (append-map! map!))
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-19)
-  #:use-module (ice-9 regex)
   #:use-module (ice-9 rdelim)
   #:use-module (web uri)
   #:export (string->header
@@ -622,19 +621,179 @@ ordered alist."
      (write-key-value-list item port val-writer ";"))
    ","))
 
+(define-syntax string-match?
+  (lambda (x)
+    (syntax-case x ()
+      ((_ str pat) (string? (syntax->datum #'pat))
+       (let ((p (syntax->datum #'pat)))
+         #`(let ((s str))
+             (and
+              (= (string-length s) #,(string-length p))
+              #,@(let lp ((i 0) (tests '()))
+                   (if (< i (string-length p))
+                       (let ((c (string-ref p i)))
+                         (lp (1+ i)
+                             (case c
+                               ((#\.)   ; Whatever.
+                                tests)
+                               ((#\d)   ; Digit.
+                                (cons #`(char-numeric? (string-ref s #,i))
+                                      tests))
+                               ((#\a)   ; Alphabetic.
+                                (cons #`(char-alphabetic? (string-ref s #,i))
+                                      tests))
+                               (else    ; Literal.
+                                (cons #`(eqv? (string-ref s #,i) #,c)
+                                      tests)))))
+                       tests)))))))))
+
+;; "Jan" | "Feb" | "Mar" | "Apr" | "May" | "Jun"
+;; "Jul" | "Aug" | "Sep" | "Oct" | "Nov" | "Dec"
+
+(define (parse-month str start end)
+  (define (bad)
+    (bad-header-component 'month (substring str start end)))
+  (if (not (= (- end start) 3))
+      (bad)
+      (let ((a (string-ref str (+ start 0)))
+            (b (string-ref str (+ start 1)))
+            (c (string-ref str (+ start 2))))
+        (case a
+          ((#\J)
+           (case b
+             ((#\a) (case c ((#\n) 1) (else (bad))))
+             ((#\u) (case c ((#\n) 6) ((#\l) 7) (else (bad))))
+             (else (bad))))
+          ((#\F)
+           (case b
+             ((#\e) (case c ((#\b) 2) (else (bad))))
+             (else (bad))))
+          ((#\M)
+           (case b
+             ((#\a) (case c ((#\r) 3) ((#\y) 5) (else (bad))))
+             (else (bad))))
+          ((#\A)
+           (case b
+             ((#\p) (case c ((#\r) 4) (else (bad))))
+             ((#\u) (case c ((#\g) 8) (else (bad))))
+             (else (bad))))
+          ((#\S)
+           (case b
+             ((#\e) (case c ((#\p) 9) (else (bad))))
+             (else (bad))))
+          ((#\O)
+           (case b
+             ((#\c) (case c ((#\t) 10) (else (bad))))
+             (else (bad))))
+          ((#\N)
+           (case b
+             ((#\o) (case c ((#\v) 11) (else (bad))))
+             (else (bad))))
+          ((#\D)
+           (case b
+             ((#\e) (case c ((#\c) 12) (else (bad))))
+             (else (bad))))
+          (else (bad))))))
+
+;; RFC 822, updated by RFC 1123
+;; 
+;; Sun, 06 Nov 1994 08:49:37 GMT
+;; 01234567890123456789012345678
+;; 0         1         2
+(define (parse-rfc-822-date str)
+  ;; We could verify the day of the week but we don't.
+  (if (not (string-match? str "aaa, dd aaa dddd dd:dd:dd GMT"))
+      (bad-header 'date str))
+  (let ((date (parse-non-negative-integer str 5 7))
+        (month (parse-month str 8 11))
+        (year (parse-non-negative-integer str 12 16))
+        (hour (parse-non-negative-integer str 17 19))
+        (minute (parse-non-negative-integer str 20 22))
+        (second (parse-non-negative-integer str 23 25)))
+    (make-date 0 second minute hour date month year 0)))
+
+;; RFC 850, updated by RFC 1036
+;; Sunday, 06-Nov-94 08:49:37 GMT
+;;        0123456789012345678901
+;;        0         1         2
+(define (parse-rfc-850-date str comma)
+  ;; We could verify the day of the week but we don't.
+  (let ((tail (substring str (1+ comma))))
+    (if (not (string-match? tail " dd-aaa-dd dd:dd:dd GMT"))
+        (bad-header 'date str))
+    (let ((date (parse-non-negative-integer tail 1 3))
+          (month (parse-month tail 4 7))
+          (year (parse-non-negative-integer tail 8 10))
+          (hour (parse-non-negative-integer tail 11 13))
+          (minute (parse-non-negative-integer tail 14 16))
+          (second (parse-non-negative-integer tail 17 19)))
+      (make-date 0 second minute hour date month
+                 (let* ((now (date-year (current-date)))
+                        (then (+ now year (- (modulo now 100)))))
+                   (cond ((< (+ then 50) now) (+ then 100))
+                         ((< (+ now 50) then) (- then 100))
+                         (else then)))
+                 0))))
+
+;; ANSI C's asctime() format
+;; Sun Nov  6 08:49:37 1994
+;; 012345678901234567890123
+;; 0         1         2
+(define (parse-asctime-date str)
+  (if (not (string-match? str "aaa aaa .d dd:dd:dd dddd"))
+      (bad-header 'date str))
+  (let ((date (parse-non-negative-integer
+               str
+               (if (eqv? (string-ref str 8) #\space) 9 8)
+               10))
+        (month (parse-month str 4 7))
+        (year (parse-non-negative-integer str 20 24))
+        (hour (parse-non-negative-integer str 11 13))
+        (minute (parse-non-negative-integer str 14 16))
+        (second (parse-non-negative-integer str 17 19)))
+    (make-date 0 second minute hour date month year 0)))
+
 (define (parse-date str)
-  ;; Unfortunately, there is no way to make string->date parse out the
-  ;; "GMT" bit, so we play string games to append a format it will
-  ;; understand (the +0000 bit).
-  (string->date
-   (if (string-suffix? " GMT" str)
-       (string-append (substring str 0 (- (string-length str) 4))
-                      " +0000")
-       (bad-header-component 'date str))
-   "~a, ~d ~b ~Y ~H:~M:~S ~z"))
+  (if (string-suffix? " GMT" str)
+      (let ((comma (string-index str #\,)))
+        (cond ((not comma) (bad-header 'date str))
+              ((= comma 3) (parse-rfc-822-date str))
+              (else (parse-rfc-850-date str comma))))
+      (parse-asctime-date str)))
 
 (define (write-date date port)
-  (display (date->string date "~a, ~d ~b ~Y ~H:~M:~S GMT") port))
+  (define (display-digits n digits port)
+    (define zero (char->integer #\0))
+    (let lp ((tens (expt 10 (1- digits))))
+      (if (> tens 0)
+          (begin
+            (display (integer->char (+ zero (modulo (truncate/ n tens) 10)))
+                    port)
+            (lp (floor/ tens 10))))))
+  (let ((date (if (zero? (date-zone-offset date))
+                  date
+                  (time-tai->date (date->time-tai date) 0))))
+    (display (case (date-week-day date)
+               ((0) "Sun, ") ((2) "Mon, ") ((2) "Tue, ")
+               ((3) "Wed, ") ((4) "Thu, ") ((5) "Fri, ")
+               ((6) "Sat, ") (else (error "bad date" date)))
+             port)
+    (display-digits (date-day date) 2 port)
+    (display (case (date-month date)
+               ((1)  " Jan ") ((2)  " Feb ") ((3)  " Ma ")
+               ((4)  " Apr ") ((5)  " May ") ((6)  " Jun ")
+               ((7)  " Jul ") ((8)  " Aug ") ((9)  " Sep ")
+               ((10) " Oct ") ((11) " Nov ") ((12) " Dec ")
+               (else (error "bad date" date)))
+             port)
+    (display-digits (date-year date) 4 port)
+    (display #\space port)
+    (display-digits (date-hour date) 2 port)
+    (display #\: port)
+    (display-digits (date-minute date) 2 port)
+    (display #\: port)
+    (display-digits (date-second date) 2 port)
+    (display " GMT" port)))
 
 (define (write-uri uri port)
   (display (uri->string uri) port))
