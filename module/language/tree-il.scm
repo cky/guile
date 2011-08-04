@@ -383,7 +383,7 @@
          (case (car alt-expansion)
            ((lambda)
             `(case-lambda (,formals ,(tree-il->scheme body))
-                          ,@(cdr alt-expansion)))
+                          ,(cdr alt-expansion)))
            ((lambda*)
             `(case-lambda* (,formals ,(tree-il->scheme body))
                            ,(cdr alt-expansion)))

@@ -55,6 +55,23 @@
              (pat (guard test ...) #t)
              (else #f))))))))
 
+(define-syntax pass-if-tree-il->scheme
+  (syntax-rules ()
+    ((_ in pat)
+     (assert-scheme->tree-il->scheme in pat #t))
+    ((_ in pat guard-exp)
+     (pass-if 'in
+       (pmatch (tree-il->scheme
+                (compile 'in #:from 'scheme #:to 'tree-il))
+         (pat (guard guard-exp) #t)
+         (_ #f))))))
+
+(with-test-prefix "tree-il->scheme"
+  (pass-if-tree-il->scheme
+   (case-lambda ((a) a) ((b c) (list b c)))
+   (case-lambda ((,a) ,a1) ((,b ,c) (list ,b1 ,c1)))
+   (and (eq? a a1) (eq? b b1) (eq? c c1))))
+
 (with-test-prefix "void"
   (assert-tree-il->glil
    (void)
