@@ -33,7 +33,6 @@ SCM_INTERNAL SCM scm_srfi1_delete (SCM x, SCM lst, SCM pred);
 SCM_INTERNAL SCM scm_srfi1_delete_x (SCM x, SCM lst, SCM pred);
 SCM_INTERNAL SCM scm_srfi1_delete_duplicates (SCM lst, SCM pred);
 SCM_INTERNAL SCM scm_srfi1_delete_duplicates_x (SCM lst, SCM pred);
-SCM_INTERNAL SCM scm_srfi1_drop_right (SCM lst, SCM n);
 SCM_INTERNAL SCM scm_srfi1_find (SCM pred, SCM lst);
 SCM_INTERNAL SCM scm_srfi1_find_tail (SCM pred, SCM lst);
 SCM_INTERNAL SCM scm_srfi1_length_plus (SCM lst);
@@ -44,7 +43,6 @@ SCM_INTERNAL SCM scm_srfi1_partition (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_partition_x (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_remove (SCM pred, SCM list);
 SCM_INTERNAL SCM scm_srfi1_remove_x (SCM pred, SCM list);
-SCM_INTERNAL SCM scm_srfi1_take_right (SCM lst, SCM n);
 
 SCM_INTERNAL void scm_register_srfi_1 (void);
 SCM_INTERNAL void scm_init_srfi_1 (void);

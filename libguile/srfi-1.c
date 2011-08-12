@@ -568,28 +568,6 @@ SCM_DEFINE (scm_srfi1_delete_duplicates_x, "delete-duplicates!", 1, 1, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_srfi1_drop_right, "drop-right", 2, 0, 0,
-            (SCM lst, SCM n),
-	    "Return a new list containing all except the last @var{n}\n"
-	    "elements of @var{lst}.")
-#define FUNC_NAME s_scm_srfi1_drop_right
-{
-  SCM tail = scm_list_tail (lst, n);
-  SCM ret = SCM_EOL;
-  SCM *rend = &ret;
-  while (scm_is_pair (tail))
-    {
-      *rend = scm_cons (SCM_CAR (lst), SCM_EOL);
-      rend = SCM_CDRLOC (*rend);
-      
-      lst = SCM_CDR (lst);
-      tail = SCM_CDR (tail);
-    }
-  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(tail), tail, SCM_ARG1, FUNC_NAME, "list");
-  return ret;
-}
-#undef FUNC_NAME
-
 SCM_DEFINE (scm_srfi1_find, "find", 2, 0, 0,
             (SCM pred, SCM lst),
 	    "Return the first element of @var{lst} which satisfies the\n"
@@ -921,23 +899,6 @@ SCM_DEFINE (scm_srfi1_remove_x, "remove!", 2, 0, 0,
     }
 
   return list;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_srfi1_take_right, "take-right", 2, 0, 0,
-            (SCM lst, SCM n),
-	    "Return a list containing the @var{n} last elements of\n"
-	    "@var{lst}.")
-#define FUNC_NAME s_scm_srfi1_take_right
-{
-  SCM tail = scm_list_tail (lst, n);
-  while (scm_is_pair (tail))
-    {
-      lst = SCM_CDR (lst);
-      tail = SCM_CDR (tail);
-    }
-  SCM_ASSERT_TYPE (SCM_NULL_OR_NIL_P(tail), tail, SCM_ARG1, FUNC_NAME, "list");
-  return lst;
 }
 #undef FUNC_NAME
 

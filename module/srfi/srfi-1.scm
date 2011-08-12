@@ -360,6 +360,22 @@ end-of-list checking in contexts where dotted lists are allowed."
 (define take list-head)
 (define drop list-tail)
 
+;;; TAKE-RIGHT and DROP-RIGHT work by getting two pointers into the list, 
+;;; off by K, then chasing down the list until the lead pointer falls off
+;;; the end.  Note that they diverge for circular lists.
+
+(define (take-right lis k)
+  (let lp ((lag lis)  (lead (drop lis k)))
+    (if (pair? lead)
+	(lp (cdr lag) (cdr lead))
+	lag)))
+
+(define (drop-right lis k)
+  (let recur ((lag lis) (lead (drop lis k)))
+    (if (pair? lead)
+	(cons (car lag) (recur (cdr lag) (cdr lead)))
+	'())))
+
 (define (take! lst i)
   "Linear-update variant of `take'."
   (if (= i 0)

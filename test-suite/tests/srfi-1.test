@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -902,7 +902,12 @@
   (pass-if (equal? '(4) (drop-right '(4 5 6) 2)))
   (pass-if (equal? '() (drop-right '(4 5 6) 3)))
   (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
-    (drop-right '(4 5 6) 4)))
+    (drop-right '(4 5 6) 4))
+
+  (pass-if "(a b . c) 0"
+    (equal? (drop-right '(a b . c) 0) '(a b)))
+  (pass-if "(a b . c) 1"
+    (equal? (drop-right '(a b . c) 1) '(a))))
 
 ;;
 ;; drop-right!
@@ -2621,7 +2626,12 @@
   (pass-if (equal? '(5 6) (take-right '(4 5 6) 2)))
   (pass-if (equal? '(4 5 6) (take-right '(4 5 6) 3)))
   (pass-if-exception "(4 5 6) 4" exception:wrong-type-arg
-    (take-right '(4 5 6) 4)))
+    (take-right '(4 5 6) 4))
+
+  (pass-if "(a b . c) 0"
+    (equal? (take-right '(a b . c) 0) 'c))
+  (pass-if "(a b . c) 1"
+    (equal? (take-right '(a b . c) 1) '(b . c))))
 
 ;;
 ;; tenth
