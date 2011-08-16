@@ -501,7 +501,6 @@ get_current_locale (SCM *result)
 
   c_locale = scm_gc_malloc (sizeof (* c_locale), "locale");
 
-
   lock_locale_mutex ();
 
   c_locale->category_mask = LC_ALL_MASK;
@@ -509,20 +508,16 @@ get_current_locale (SCM *result)
 
   current_locale = setlocale (LC_ALL, NULL);
   if (current_locale != NULL)
-    {
-      c_locale->locale_name = strdup (current_locale);
-      if (c_locale->locale_name == NULL)
-	err = ENOMEM;
-    }
+    c_locale->locale_name = scm_gc_strdup (current_locale);
   else
     err = EINVAL;
 
   unlock_locale_mutex ();
 
-  if (err)
-    scm_gc_free (c_locale, sizeof (* c_locale), "locale");
-  else
+  if (err == 0)
     SCM_NEWSMOB (*result, scm_tc16_locale_smob_type, c_locale);
+  else
+    *result = SCM_BOOL_F;
 
   return err;
 }
