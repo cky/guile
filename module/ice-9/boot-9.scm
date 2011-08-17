@@ -3728,13 +3728,15 @@ module '(ice-9 q) '(make-q q-length))}."
                      ((args ...) (generate-temporaries #'(formals ...))))
          #`(begin
              (define (proc-name formals ...)
-               body ...)
+               (fluid-let-syntax ((name (identifier-syntax proc-name)))
+                 body ...))
              (define-syntax name
                (lambda (x)
                  (syntax-case x ()
                    ((_ args ...)
-                    #'((lambda (formals ...)
-                         body ...)
+                    #'((fluid-let-syntax ((name (identifier-syntax proc-name)))
+                         (lambda (formals ...)
+                           body ...))
                        args ...))
                    (_
                     (identifier? x)
