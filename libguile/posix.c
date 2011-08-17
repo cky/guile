@@ -1338,10 +1338,20 @@ SCM_DEFINE (scm_tmpfile, "tmpfile", 0, 0, 0,
 #define FUNC_NAME s_scm_tmpfile
 {
   FILE *rv;
+  int fd;
 
   if (! (rv = tmpfile ()))
     SCM_SYSERROR;
-  return scm_fdes_to_port (fileno (rv), "w+", SCM_BOOL_F);
+
+#ifndef __MINGW32__
+  fd = dup (fileno (rv));
+  fclose (rv);
+#else
+  fd = fileno (rv);
+  /* FIXME: leaking the file, it will never be closed! */
+#endif
+
+  return scm_fdes_to_port (fd, "w+", SCM_BOOL_F);
 }
 #undef FUNC_NAME
 
