@@ -236,12 +236,15 @@
 higher-order procedures."
   (cons a d))
 
-;; internal helper, similar to (scsh utilities) check-arg.
-(define (check-arg-type pred arg caller)
-  (if (pred arg)
-      arg
-      (scm-error 'wrong-type-arg caller
-		 "Wrong type argument: ~S" (list arg) '())))
+(define (wrong-type-arg caller arg)
+  (scm-error 'wrong-type-arg (symbol->string caller)
+             "Wrong type argument: ~S" (list arg) '()))
+
+(define-syntax check-arg
+  (syntax-rules ()
+    ((_ pred arg caller)
+     (if (not (pred arg))
+         (wrong-type-arg 'caller arg)))))
 
 (define (out-of-range proc arg)
   (scm-error 'out-of-range proc
@@ -254,7 +257,7 @@ higher-order procedures."
   "Return an N-element list, where each list element is produced by applying the
 procedure INIT-PROC to the corresponding list index.  The order in which
 INIT-PROC is applied to the indices is not specified."
-  (check-arg-type non-negative-integer? n "list-tabulate")
+  (check-arg non-negative-integer? n list-tabulate)
   (let lp ((n n) (acc '()))
     (if (<= n 0)
         acc
@@ -266,7 +269,7 @@ INIT-PROC is applied to the indices is not specified."
   elts)
 
 (define* (iota count #:optional (start 0) (step 1))
-  (check-arg-type non-negative-integer? count "iota")
+  (check-arg non-negative-integer? count iota)
   (let lp ((n 0) (acc '()))
     (if (= n count)
 	(reverse! acc)
@@ -334,6 +337,8 @@ end-of-list checking in contexts where dotted lists are allowed."
 	    (else
 	     (and (elt= (car a) (car b))
 		  (lp (cdr a) (cdr b)))))))
+
+  (check-arg procedure? elt= list=)
   (or (null? rest)
       (let lp ((lists rest))
 	(or (null? (cdr lists))
@@ -454,6 +459,7 @@ a list of those after."
 (define (fold kons knil list1 . rest)
   "Apply PROC to the elements of LIST1 ... LISTN to build a result, and return
 that result.  See the manual for details."
+  (check-arg procedure? kons fold)
   (if (null? rest)
       (let f ((knil knil) (list1 list1))
 	(if (null? list1)
@@ -467,6 +473,7 @@ that result.  See the manual for details."
 	      (f (apply kons (append! cars (list knil))) cdrs))))))
 
 (define (fold-right kons knil clist1 . rest)
+  (check-arg procedure? kons fold-right)
   (if (null? rest)
       (let loop ((lst    (reverse clist1))
                  (result knil))
@@ -482,6 +489,7 @@ that result.  See the manual for details."
                   (apply kons (append! (map car lists) (list result))))))))
 
 (define (pair-fold kons knil clist1 . rest)
+  (check-arg procedure? kons pair-fold)
   (if (null? rest)
       (let f ((knil knil) (list1 clist1))
 	(if (null? list1)
@@ -496,6 +504,7 @@ that result.  See the manual for details."
 
 
 (define (pair-fold-right kons knil clist1 . rest)
+  (check-arg procedure? kons pair-fold-right)
   (if (null? rest)
     (let f ((list1 clist1))
       (if (null? list1)
@@ -515,6 +524,10 @@ that result.  See the manual for details."
           (loop (cdr lst)
                 (cons (car lst) result)))))
 
+  (check-arg procedure? p unfold)
+  (check-arg procedure? f unfold)
+  (check-arg procedure? g unfold)
+  (check-arg procedure? tail-gen unfold)
   (let loop ((seed   seed)
              (result '()))
     (if (p seed)
@@ -523,6 +536,9 @@ that result.  See the manual for details."
               (cons (f seed) result)))))
 
 (define* (unfold-right p f g seed #:optional (tail '()))
+  (check-arg procedure? p unfold-right)
+  (check-arg procedure? f unfold-right)
+  (check-arg procedure? g unfold-right)
   (let uf ((seed seed) (lis tail))
     (if (p seed)
         lis
@@ -533,6 +549,7 @@ that result.  See the manual for details."
 elements from LST, rather than one element and a given initial value.
 If LST is empty, RIDENTITY is returned.  If LST has just one element
 then that's the return value."
+  (check-arg procedure? f reduce)
   (if (null? lst)
       ridentity
       (fold f (car lst) (cdr lst))))
@@ -542,6 +559,7 @@ then that's the return value."
 F is on two elements from LST, rather than one element and a given
 initial value.  If LST is empty, RIDENTITY is returned.  If LST
 has just one element then that's the return value."
+  (check-arg procedure? f reduce)
   (if (null? lst)
       ridentity
       (fold-right f (last lst) (drop-right lst 1))))
@@ -549,6 +567,7 @@ has just one element then that's the return value."
 (define map
   (case-lambda
     ((f l)
+     (check-arg procedure? f map)
      (let map1 ((hare l) (tortoise l) (move? #f) (out '()))
        (if (pair? hare)
            (if move?
@@ -565,6 +584,7 @@ has just one element then that's the return value."
                           (list l) #f)))))
     
     ((f l1 . rest)
+     (check-arg procedure? f map)
      (let ((len (fold (lambda (ls len)
                         (let ((ls-len (length+ ls)))
                           (if len
@@ -587,6 +607,7 @@ has just one element then that's the return value."
 (define for-each
   (case-lambda
     ((f l)
+     (check-arg procedure? f for-each)
      (let for-each1 ((hare l) (tortoise l) (move? #f))
        (if (pair? hare)
            (if move?
@@ -605,6 +626,7 @@ has just one element then that's the return value."
                           (list l) #f)))))
     
     ((f l1 . rest)
+     (check-arg procedure? f for-each)
      (let ((len (fold (lambda (ls len)
                         (let ((ls-len (length+ ls)))
                           (if len
@@ -635,6 +657,7 @@ has just one element then that's the return value."
   "Apply PROC to to the elements of LIST1... and return a list of the
 results as per SRFI-1 `map', except that any #f results are omitted from
 the list returned."
+  (check-arg procedure? proc filter-map)
   (if (null? rest)
       (let lp ((l list1)
                (rl '()))
@@ -654,6 +677,7 @@ the list returned."
                   (lp (map cdr l) rl)))))))
 
 (define (pair-for-each f clist1 . rest)
+  (check-arg procedure? f pair-for-each)
   (if (null? rest)
     (let lp ((l clist1))
       (if (null? l)
@@ -674,6 +698,7 @@ the list returned."
 (define (take-while pred ls)
   "Return a new list which is the longest initial prefix of LS whose
 elements all satisfy the predicate PRED."
+  (check-arg procedure? pred take-while)
   (cond ((null? ls) '())
         ((not (pred (car ls))) '())
         (else
@@ -687,6 +712,7 @@ elements all satisfy the predicate PRED."
 
 (define (take-while! pred lst)
   "Linear-update variant of `take-while'."
+  (check-arg procedure? pred take-while!)
   (let loop ((prev #f)
              (rest lst))
     (cond ((null? rest)
@@ -703,6 +729,7 @@ elements all satisfy the predicate PRED."
 (define (drop-while pred lst)
   "Drop the longest initial prefix of LST whose elements all satisfy the
 predicate PRED."
+  (check-arg procedure? pred drop-while)
   (let loop ((lst lst))
     (cond ((null? lst)
            '())
@@ -713,6 +740,7 @@ predicate PRED."
 (define (span pred lst)
   "Return two values, the longest initial prefix of LST whose elements
 all satisfy the predicate PRED, and the remainder of LST."
+  (check-arg procedure? pred span)
   (let lp ((lst lst) (rl '()))
     (if (and (not (null? lst))
              (pred (car lst)))
@@ -721,6 +749,7 @@ all satisfy the predicate PRED, and the remainder of LST."
 
 (define (span! pred list)
   "Linear-update variant of `span'."
+  (check-arg procedure? pred span!)
   (let loop ((prev #f)
              (rest list))
     (cond ((null? rest)
@@ -737,6 +766,7 @@ all satisfy the predicate PRED, and the remainder of LST."
 (define (break pred clist)
   "Return two values, the longest initial prefix of LST whose elements
 all fail the predicate PRED, and the remainder of LST."
+  (check-arg procedure? pred break)
   (let lp ((clist clist) (rl '()))
     (if (or (null? clist)
 	    (pred (car clist)))
@@ -745,6 +775,7 @@ all fail the predicate PRED, and the remainder of LST."
 
 (define (break! pred list)
   "Linear-update variant of `break'."
+  (check-arg procedure? pred break!)
   (let loop ((l    list)
              (prev #f))
     (cond ((null? l)
@@ -759,6 +790,7 @@ all fail the predicate PRED, and the remainder of LST."
            (loop (cdr l) l)))))
 
 (define (any pred ls . lists)
+  (check-arg procedure? pred any)
   (if (null? lists)
       (any1 pred ls)
       (let lp ((lists (cons ls lists)))
@@ -779,6 +811,7 @@ all fail the predicate PRED, and the remainder of LST."
 	   (or (pred (car ls)) (lp (cdr ls)))))))
 
 (define (every pred ls . lists)
+  (check-arg procedure? pred every)
   (if (null? lists)
       (every1 pred ls)
       (let lp ((lists (cons ls lists)))
@@ -801,6 +834,7 @@ all fail the predicate PRED, and the remainder of LST."
 (define (list-index pred clist1 . rest)
   "Return the index of the first set of elements, one from each of
 CLIST1 ... CLISTN, that satisfies PRED."
+  (check-arg procedure? pred list-index)
   (if (null? rest)
     (let lp ((l clist1) (i 0))
       (if (null? l)
@@ -829,6 +863,7 @@ and those making the associations."
         (lp (cdr a) (alist-cons (caar a) (cdar a) rl)))))
 
 (define* (alist-delete key alist #:optional (k= equal?))
+  (check-arg procedure? k= alist-delete)
   (let lp ((a alist) (rl '()))
     (if (null? a)
 	(reverse! rl)
@@ -843,13 +878,18 @@ and those making the associations."
 
 (define* (member x ls #:optional (= equal?))
   (cond
-   ((eq? = eq?)  (memq x ls))
+   ;; This might be performance-sensitive, so punt on the check here,
+   ;; relying on memq/memv to check that = is a procedure.
+   ((eq? = eq?) (memq x ls))
    ((eq? = eqv?) (memv x ls))
-   (else         (find-tail (lambda (y) (= x y)) ls))))
+   (else 
+    (check-arg procedure? = member)
+    (find-tail (lambda (y) (= x y)) ls))))
 
 ;;; Set operations on lists
 
 (define (lset<= = . rest)
+  (check-arg procedure? = lset<=)
   (if (null? rest)
       #t
       (let lp ((f (car rest)) (r (cdr rest)))
@@ -858,6 +898,7 @@ and those making the associations."
                  (lp (car r) (cdr r)))))))
 
 (define (lset= = . rest)
+  (check-arg procedure? = lset<=)
   (if (null? rest)
     #t
     (let lp ((f (car rest)) (r (cdr rest)))
@@ -886,7 +927,9 @@ given REST parameters."
   (define pred
     (if (or (eq? = eq?) (eq? = eqv?))
         =
-        (lambda (x y) (= y x))))
+        (begin
+          (check-arg procedure? = lset-adjoin)
+          (lambda (x y) (= y x)))))
   
   (let lp ((ans list) (rest rest))
     (if (null? rest)
@@ -901,7 +944,9 @@ given REST parameters."
   (define pred
     (if (or (eq? = eq?) (eq? = eqv?))
         =
-        (lambda (x y) (= y x))))
+        (begin
+          (check-arg procedure? = lset-union)
+          (lambda (x y) (= y x)))))
   
   (fold (lambda (lis ans)		; Compute ANS + LIS.
           (cond ((null? lis) ans)	; Don't copy any lists
@@ -917,6 +962,7 @@ given REST parameters."
         rest))
 
 (define (lset-intersection = list1 . rest)
+  (check-arg procedure? = lset-intersection)
   (let lp ((l list1) (acc '()))
     (if (null? l)
       (reverse! acc)
@@ -925,6 +971,7 @@ given REST parameters."
 	(lp (cdr l) acc)))))
 
 (define (lset-difference = list1 . rest)
+  (check-arg procedure? = lset-difference)
   (if (null? rest)
     list1
     (let lp ((l list1) (acc '()))
@@ -937,6 +984,7 @@ given REST parameters."
 ;(define (fold kons knil list1 . rest)
 
 (define (lset-xor = . rest)
+  (check-arg procedure? = lset-xor)
   (fold (lambda (lst res)
 	  (let lp ((l lst) (acc '()))
 	    (if (null? l)
@@ -953,6 +1001,7 @@ given REST parameters."
 	rest))
 
 (define (lset-diff+intersection = list1 . rest)
+  (check-arg procedure? = lset-diff+intersection)
   (let lp ((l list1) (accd '()) (acci '()))
     (if (null? l)
       (values (reverse! accd) (reverse! acci))
@@ -963,15 +1012,19 @@ given REST parameters."
 
 
 (define (lset-union! = . rest)
+  (check-arg procedure? = lset-union!)
   (apply lset-union = rest))		; XXX:optimize
 
 (define (lset-intersection! = list1 . rest)
+  (check-arg procedure? = lset-intersection!)
   (apply lset-intersection = list1 rest)) ; XXX:optimize
 
 (define (lset-xor! = . rest)
+  (check-arg procedure? = lset-xor!)
   (apply lset-xor = rest))		; XXX:optimize
 
 (define (lset-diff+intersection! = list1 . rest)
+  (check-arg procedure? = lset-diff+intersection!)
   (apply lset-diff+intersection = list1 rest)) ; XXX:optimize
 
 ;;; srfi-1.scm ends here
