@@ -95,6 +95,20 @@
                     (identifier? x)
                     #'proc-name))))))))))
 
+(define (default-record-printer s p)
+  (display "#<" p)
+  (display (record-type-name (record-type-descriptor s)) p)
+  (let loop ((fields (record-type-fields (record-type-descriptor s)))
+             (off 0))
+    (cond
+     ((not (null? fields))
+      (display " " p)
+      (display (car fields) p)
+      (display ": " p)
+      (write (struct-ref s off) p)
+      (loop (cdr fields) (+ 1 off)))))
+  (display ">" p))
+
 (define-syntax define-record-type
   (lambda (x)
     (define (field-identifiers field-specs)
@@ -177,16 +191,14 @@
               (indices     (field-indices (map syntax->datum fields))))
          #`(begin
              (define type-name
-               (make-vtable #,layout
-                            (lambda (obj port)
-                              (format port "#<~A" 'type-name)
-                              #,@(map (lambda (field)
-                                        (let* ((f (syntax->datum field))
-                                               (i (assoc-ref indices f)))
-                                          #`(format port " ~A: ~S" '#,field
-                                                    (struct-ref obj #,i))))
-                                      fields)
-                              (format port ">"))))
+               (let ((rtd (make-struct/no-tail
+                           record-type-vtable
+                           '#,(datum->syntax #'here (make-struct-layout layout))
+                           default-record-printer
+                           'type-name
+                           '#,fields)))
+                 (set-struct-vtable-name! rtd 'type-name)
+                 rtd))
              (define-inlinable (predicate-name obj)
                (and (struct? obj)
                     (eq? (struct-vtable obj) type-name)))
