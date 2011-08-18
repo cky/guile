@@ -2656,10 +2656,6 @@ VALUE."
               (error "expected list of integers for version"))
           (set-module-version! module version)
           (set-module-version! (module-public-interface module) version)))
-    (if (pair? duplicates)
-        (let ((handlers (lookup-duplicates-handlers duplicates)))
-          (set-module-duplicates-handlers! module handlers)))
-
     (let ((imports (resolve-imports imports)))
       (call-with-deferred-observers
        (lambda ()
@@ -2679,7 +2675,12 @@ VALUE."
              (error "expected re-exports to be a list of symbols or symbol pairs"))
          ;; FIXME
          (if (not (null? autoloads))
-             (apply module-autoload! module autoloads)))))
+             (apply module-autoload! module autoloads))
+         ;; Wait until modules have been loaded to resolve duplicates
+         ;; handlers.
+         (if (pair? duplicates)
+             (let ((handlers (lookup-duplicates-handlers duplicates)))
+               (set-module-duplicates-handlers! module handlers))))))
 
     (if transformer
         (if (and (pair? transformer) (list-of symbol? transformer))
