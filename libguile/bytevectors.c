@@ -285,7 +285,7 @@ scm_i_make_typed_bytevector (size_t len, scm_t_array_element_type element_type)
 /* Return a bytevector of size LEN made up of CONTENTS.  The area pointed to
    by CONTENTS must have been allocated using `scm_gc_malloc ()'.  */
 SCM
-scm_c_take_bytevector (signed char *contents, size_t len)
+scm_c_take_gc_bytevector (signed char *contents, size_t len)
 {
   return make_bytevector_from_buffer (len, contents, SCM_ARRAY_ELEMENT_TYPE_VU8);
 }

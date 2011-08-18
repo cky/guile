@@ -315,10 +315,10 @@ SCM_DEFINE (scm_objcode_to_bytecode, "objcode->bytecode", 1, 0, 0,
 
   len = sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode);
 
-  s8vector = scm_malloc (len);
+  s8vector = scm_gc_malloc_pointerless (len, FUNC_NAME);
   memcpy (s8vector, SCM_OBJCODE_DATA (objcode), len);
 
-  return scm_c_take_bytevector (s8vector, len);
+  return scm_c_take_gc_bytevector (s8vector, len);
 }
 #undef FUNC_NAME
 

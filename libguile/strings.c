@@ -1489,7 +1489,7 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
 
       buf = scm_gc_malloc_pointerless (len, "bytevector");
       memcpy (buf, str, len);
-      bv = scm_c_take_bytevector (buf, len);
+      bv = scm_c_take_gc_bytevector (buf, len);
 
       scm_decoding_error (__func__, errno,
 			  "input locale conversion error", bv);

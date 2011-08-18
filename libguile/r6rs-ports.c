@@ -618,7 +618,7 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
 	  c_len = (unsigned) c_total;
 	}
 
-      result = scm_c_take_bytevector ((signed char *) c_bv, c_len);
+      result = scm_c_take_gc_bytevector ((signed char *) c_bv, c_len);
     }
 
   return result;
@@ -677,7 +677,7 @@ SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
 	  c_len = (unsigned) c_total;
 	}
 
-      result = scm_c_take_bytevector ((signed char *) c_bv, c_len);
+      result = scm_c_take_gc_bytevector ((signed char *) c_bv, c_len);
     }
 
   return result;
@@ -919,7 +919,7 @@ SCM_SMOB_APPLY (bytevector_output_port_procedure,
   bop_buffer_init (buf);
 
   if (result_buf.len == 0)
-    bv = scm_c_take_bytevector (NULL, 0);
+    bv = scm_c_take_gc_bytevector (NULL, 0);
   else
     {
       if (result_buf.total_len > result_buf.len)
@@ -929,8 +929,8 @@ SCM_SMOB_APPLY (bytevector_output_port_procedure,
 					    result_buf.len,
 					    SCM_GC_BOP);
 
-      bv = scm_c_take_bytevector ((signed char *) result_buf.buffer,
-				       result_buf.len);
+      bv = scm_c_take_gc_bytevector ((signed char *) result_buf.buffer,
+                                     result_buf.len);
     }
 
   return bv;

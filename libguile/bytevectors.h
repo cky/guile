@@ -1,7 +1,7 @@
 #ifndef SCM_BYTEVECTORS_H
 #define SCM_BYTEVECTORS_H
 
-/* Copyright (C) 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -138,7 +138,7 @@ SCM_INTERNAL void scm_bootstrap_bytevectors (void);
 SCM_INTERNAL void scm_init_bytevectors (void);
 
 SCM_INTERNAL SCM scm_i_native_endianness;
-SCM_INTERNAL SCM scm_c_take_bytevector (signed char *, size_t);
+SCM_INTERNAL SCM scm_c_take_gc_bytevector (signed char *, size_t);
 
 SCM_INTERNAL int scm_i_print_bytevector (SCM, SCM, scm_print_state *);
 

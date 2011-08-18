@@ -384,13 +384,14 @@ really_make_boot_program (long nargs)
 
   text[1] = (scm_t_uint8)nargs;
 
-  bp = scm_malloc (sizeof (struct scm_objcode) + sizeof (text));
+  bp = scm_gc_malloc_pointerless (sizeof (struct scm_objcode) + sizeof (text),
+                                  "boot-program");
   memcpy (SCM_C_OBJCODE_BASE (bp), text, sizeof (text));
   bp->len = sizeof(text);
   bp->metalen = 0;
 
-  u8vec = scm_c_take_bytevector ((scm_t_int8*)bp,
-                                 sizeof (struct scm_objcode) + sizeof (text));
+  u8vec = scm_c_take_gc_bytevector ((scm_t_int8*)bp,
+                                    sizeof (struct scm_objcode) + sizeof (text));
   ret = scm_make_program (scm_bytecode_to_objcode (u8vec),
                           SCM_BOOL_F, SCM_BOOL_F);
   SCM_SET_CELL_WORD_0 (ret, SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_BOOT);
