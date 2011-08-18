@@ -838,34 +838,34 @@ setvbuf}
 Add line-buffering to the port.  The port output buffer will be
 automatically flushed whenever a newline character is written.
 @item b
-Use binary mode.  On DOS systems the default text mode converts CR+LF
-in the file to newline for the program, whereas binary mode reads and
-writes all bytes unchanged.  On Unix-like systems there is no such
-distinction, text files already contain just newlines and no
-conversion is ever made.  The @code{b} flag is accepted on all
-systems, but has no effect on Unix-like systems.
+Use binary mode, ensuring that each byte in the file will be read as one
+Scheme character.
 
-(For reference, Guile leaves text versus binary up to the C library,
-@code{b} here just adds @code{O_BINARY} to the underlying @code{open}
-call, when that flag is available.)
+To provide this property, the file will be opened with the 8-bit
+character encoding "ISO-8859-1", ignoring any coding declaration or port
+encoding.  @xref{Ports}, for more information on port encodings.
 
-Also, open the file using the 8-bit character encoding "ISO-8859-1",
-ignoring any coding declaration or port encoding.
+Note that while it is possible to read and write binary data as
+characters or strings, it is usually better to treat bytes as octets,
+and byte sequences as bytevectors.  @xref{R6RS Binary Input}, and
+@ref{R6RS Binary Output}, for more.
 
-Note that, when reading or writing binary data with ports, the
-bytevector ports in the @code{(rnrs io ports)} module are preferred,
-as they return vectors, and not strings (@pxref{R6RS I/O Ports}).
+This option had another historical meaning, for DOS compatibility: in
+the default (textual) mode, DOS reads a CR-LF sequence as one LF byte.
+The @code{b} flag prevents this from happening, adding @code{O_BINARY}
+to the underlying @code{open} call.  Still, the flag is generally useful
+because of its port encoding ramifications.
 @end table
 
 If a file cannot be opened with the access
 requested, @code{open-file} throws an exception.
 
 When the file is opened, this procedure will scan for a coding
-declaration (@pxref{Character Encoding of Source Files}). If present
-will use that encoding for interpreting the file.  Otherwise, the
-port's encoding will be used.  To suppress this behavior, open
-the file in binary mode and then set the port encoding explicitly
-using @code{set-port-encoding!}.
+declaration (@pxref{Character Encoding of Source Files}). If a coding
+declaration is found, it will be used to interpret the file.  Otherwise,
+the port's encoding will be used.  To suppress this behavior, open the
+file in binary mode and then set the port encoding explicitly using
+@code{set-port-encoding!}.
 
 In theory we could create read/write ports which were buffered
 in one direction only.  However this isn't included in the
