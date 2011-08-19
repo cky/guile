@@ -29,9 +29,14 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 documentation)
   #:use-module ((srfi srfi-1) #:select (fold append-map))
-  #:export (main))
+  #:export (show-help show-summary show-usage main))
 
 (define %summary "Show a brief help message.")
+(define %synopsis "help\nhelp --all\nhelp COMMAND")
+(define %help "
+Show help on guild commands.  With --all, show arcane incantations as
+well.  With COMMAND, show more detailed help for a particular command.
+")
 
 
 (define (directory-files dir)
@@ -117,32 +122,67 @@ For complete documentation, run: info guile 'Using Guile Tools'
   (file-commentary
    (%search-load-path (module-filename mod))))
 
+(define (module-command-name mod)
+  (symbol->string (car (last-pair (module-name mod)))))
+
+(define* (show-usage mod #:optional (port (current-output-port)))
+  (let ((usages (string-split
+                 (let ((var (module-variable mod '%synopsis)))
+                   (if var
+                       (variable-ref var)
+                       (string-append (module-command-name mod)
+                                      " OPTION...")))
+                 #\newline)))
+    (display "Usage: guild " port)
+    (display (car usages))
+    (newline port)
+    (for-each (lambda (u)
+                (display "       guild " port)
+                (display u port)
+                (newline port))
+              (cdr usages))))
+
+(define* (show-summary mod #:optional (port (current-output-port)))
+  (let ((var (module-variable mod '%summary)))
+    (if var
+        (begin
+          (display (variable-ref var) port)
+          (newline port)))))
+
+(define* (show-help mod #:optional (port (current-output-port)))
+  (show-usage mod port)
+  (show-summary mod port)
+  (cond
+   ((module-variable mod '%help)
+    => (lambda (var)
+         (display (variable-ref var) port)
+         (newline port)))
+   ((module-commentary mod)
+    => (lambda (commentary)
+         (newline port)
+         (display commentary port)))
+   (else
+    (format #t "No documentation found for command \"~a\".\n"
+            (module-command-name mod)))))
+
+(define %mod (current-module))
 (define (main . args)
   (cond
    ((null? args)
     (list-commands #f))
    ((or (equal? args '("--all")) (equal? args '("-a")))
     (list-commands #t))
-   ((not (string-prefix? "-" (car args)))
+   ((and (null? (cdr args)) (not (string-prefix? "-" (car args))))
     ;; help for particular command
-    (let* ((name (car args))
-           (mod (resolve-module `(scripts ,(string->symbol name))
-                                #:ensure #f)))
-      (if mod
-          (let ((commentary (module-commentary mod)))
-            (if commentary
-                (display commentary)
-                (format #t "No documentation found for command \"~a\".\n"
-                        name)))
-          (begin
-            (format #t "No command named \"~a\".\n" name)
-            (exit 1)))))
+    (let ((name (car args)))
+      (cond
+       ((resolve-module `(scripts ,(string->symbol name)) #:ensure #f)
+        => (lambda (mod)
+             (show-help mod)
+             (exit 0)))
+       (else
+        (format #t "No command named \"~a\".\n" name)
+        (exit 1)))))
    (else
-    (display "Usage: guild help
-       guild help --all
-       guild help COMMAND
-
-Show a help on guild commands.  With --all, show arcane incantations as
-well.  With COMMAND, show more detailed help for a particular command.
-")
+    (show-help %mod (current-error-port))
     (exit 1))))
