@@ -1,6 +1,6 @@
 ;;;; (texinfo) -- parsing of texinfo into SXML
 ;;;;
-;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
@@ -168,6 +168,9 @@ line, received through their attribute list, and parsed text until the
 @code{EOF-TEXT-ARGS} receives its arguments in its attribute list, as in
 @code{ENVIRON}.
 
+In addition, @code{ALIAS} can alias one command to another.  The alias
+will never be seen in parsed stexinfo.
+
 There are four @@-commands that are treated specially. @code{@@include}
 is a low-level token that will not be seen by higher-level parsers, so
 it has no content-model. @code{@@para} is the paragraph command, which
@@ -210,7 +213,6 @@ lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
     (dfn                INLINE-TEXT)
     (cite               INLINE-TEXT)
     (acro               INLINE-TEXT)
-    (url                INLINE-TEXT)
     (email              INLINE-TEXT)
     (emph               INLINE-TEXT)
     (strong             INLINE-TEXT)
@@ -230,6 +232,7 @@ lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
     (ref                INLINE-ARGS . (node #:opt name section info-file manual))
     (xref               INLINE-ARGS . (node #:opt name section info-file manual))
     (pxref              INLINE-ARGS . (node #:opt name section info-file manual))
+    (url                ALIAS       . uref)
     (uref               INLINE-ARGS . (url #:opt title replacement))
     (anchor             INLINE-ARGS . (name))
     (dots               INLINE-ARGS . ())
@@ -654,6 +657,8 @@ Examples:
          (type (cadr spec))
          (arg-names (cddr spec)))
     (case type
+      ((ALIAS)
+       (complete-start-command arg-names port))
       ((INLINE-TEXT)
        (assert-curr-char '(#\{) "Inline element lacks {" port)
        (values command '() type))

@@ -1,6 +1,6 @@
 ;;;; texinfo.test                 -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2011  Free Software Foundation, Inc.
 ;;;; Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -207,6 +207,9 @@
 
   (test-body "@code{arg}"
              '((para (code "arg"))))
+  ;; FIXME: Why no enclosing para here?  Probably a bug.
+  (test-body "@url{arg}"
+             '((uref (% (url "arg")))))
   (test-body "@code{     }"
              '((para (code))))
   (test-body "@code{ @code{}    }"
