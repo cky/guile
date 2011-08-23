@@ -288,11 +288,16 @@
           (else (lp (cdr forms))))))
 
 (define* (module-stexi-documentation sym-name
-                                     #:optional (docs-resolver
-                                                 (lambda (name def) def)))
+                                     #:optional %docs-resolver
+                                     #:key (docs-resolver
+                                            (or %docs-resolver
+                                                (lambda (name def) def))))
   "Return documentation for the module named @var{sym-name}. The
 documentation will be formatted as @code{stexi}
  (@pxref{texinfo,texinfo})."
+  (if %docs-resolver
+      (issue-deprecation-warning
+       "module-stexi-documentation: use #:docs-resolver instead of a positional argument."))
   (let* ((commentary (and=> (module-commentary sym-name)
                             (lambda (x) (string-trim-both x #\newline))))
          (stexi (string->stexi commentary))
