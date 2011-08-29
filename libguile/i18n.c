@@ -508,7 +508,7 @@ get_current_locale (SCM *result)
 
   current_locale = setlocale (LC_ALL, NULL);
   if (current_locale != NULL)
-    c_locale->locale_name = scm_gc_strdup (current_locale);
+    c_locale->locale_name = scm_gc_strdup (current_locale, "locale");
   else
     err = EINVAL;
 
