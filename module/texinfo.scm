@@ -258,6 +258,7 @@ lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
     (dircategory        EOL-ARGS . (category))
     (top		EOL-ARGS . (title))
     (printindex		EOL-ARGS . (type))
+    (paragraphindent    EOL-ARGS . (indent))
 
     ;; EOL text commands
     (*ENVIRON-ARGS*     EOL-TEXT)
