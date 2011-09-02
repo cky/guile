@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -335,6 +335,23 @@ that is maintained by the syntax expander, when expanding hygienic macros.
 This discussion is mostly relevant in the context of traditional Lisp macros
 (@pxref{Defmacros}), which do not preserve referential transparency. Hygiene
 adds to the expressive power of Scheme.
+
+@subsubsection Shorthands
+
+One often ends up writing simple one-clause @code{syntax-rules} macros.
+There is a convenient shorthand for this idiom, in the form of
+@code{define-syntax-rule}.
+
+@deffn {Syntax} define-syntax-rule (keyword . pattern) [docstring] template
+Define @var{keyword} as a new @code{syntax-rules} macro with one clause.
+@end deffn
+
+Cast into this form, our @code{when} example is significantly shorter:
+
+@example
+(define-syntax-rule (when c e ...)
+  (if c (begin e ...)))
+@end example
 
 @subsubsection Further Information
 
