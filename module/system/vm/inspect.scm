@@ -1,6 +1,6 @@
 ;;; Guile VM debugging facilities
 
-;;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -81,16 +81,15 @@
 ;;;
 
 (define (inspect x)
-  (define-syntax define-command
-    (syntax-rules ()
-      ((_ ((mod cname alias ...) . args) body ...)
-       (define cname
-         (let ((c (lambda* args body ...)))
-           (set-procedure-property! c 'name 'cname)
-           (module-define! mod 'cname c)
-           (module-add! mod 'alias (module-local-variable mod 'cname))
-           ...
-           c)))))
+  (define-syntax-rule (define-command ((mod cname alias ...) . args)
+                        body ...)
+    (define cname
+      (let ((c (lambda* args body ...)))
+        (set-procedure-property! c 'name 'cname)
+        (module-define! mod 'cname c)
+        (module-add! mod 'alias (module-local-variable mod 'cname))
+        ...
+        c)))
 
   (let ((commands (make-module)))
     (define (prompt)

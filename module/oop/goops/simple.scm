@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 2005, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2005, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -23,10 +23,8 @@
   :export (define-class)
   :no-backtrace)
 
-(define-syntax define-class
-  (syntax-rules ()
-    ((_ arg ...)
-     (define-class-with-accessors-keywords arg ...))))
+(define-syntax-rule (define-class arg ...)
+  (define-class-with-accessors-keywords arg ...))
 
 (module-use! (module-public-interface (current-module))
              (resolve-interface '(oop goops)))

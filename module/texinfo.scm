@@ -77,6 +77,7 @@
   #:use-module (sxml transform)
   #:use-module (sxml ssax input-parse)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-11)
   #:use-module (srfi srfi-13)
   #:export (call-with-file-and-dir
             texi-command-specs
@@ -102,25 +103,6 @@ files by relative path name."
         (lambda ()
           (call-with-input-file (basename filename) proc))
         (lambda () (chdir current-dir)))))
-
-;; Define this version here, because (srfi srfi-11)'s definition uses
-;; syntax-rules, which is really damn slow
-(define-macro (let*-values bindings . body)
-  (if (null? bindings) (cons 'begin body)
-      (apply
-       (lambda (vars initializer)
-	 (let ((cont 
-		(cons 'let*-values
-		      (cons (cdr bindings) body))))
-	   (cond
-	    ((not (pair? vars))		; regular let case, a single var
-	     `(let ((,vars ,initializer)) ,cont))
-	    ((null? (cdr vars))		; single var, see the prev case
-	     `(let ((,(car vars) ,initializer)) ,cont))
-	   (else			; the most generic case
-	    `(call-with-values (lambda () ,initializer)
-	      (lambda ,vars ,cont))))))
-       (car bindings))))
 
 ;;========================================================================
 ;;            Reflection on the XML vocabulary

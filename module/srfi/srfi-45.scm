@@ -1,6 +1,6 @@
 ;;; srfi-45.scm -- Primitives for Expressing Iterative Lazy Algorithms
 
-;; Copyright (C) 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;; Copyright (C) 2003 André van Tonder. All Rights Reserved.
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -47,17 +47,14 @@
   (tag value-tag value-tag-set!)
   (proc value-proc value-proc-set!))
 
-(define-syntax lazy
-  (syntax-rules ()
-    ((lazy exp)
-     (make-promise (make-value 'lazy (lambda () exp))))))
+(define-syntax-rule (lazy exp)
+  (make-promise (make-value 'lazy (lambda () exp))))
 
 (define (eager x)
   (make-promise (make-value 'eager x)))
 
-(define-syntax delay
-  (syntax-rules ()
-    ((delay exp) (lazy (eager exp)))))
+(define-syntax-rule (delay exp)
+  (lazy (eager exp)))
 
 (define (force promise)
   (let ((content (promise-val promise)))

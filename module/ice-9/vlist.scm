@@ -70,14 +70,12 @@
     (fluid-set! f 2)
     f))
 
-(define-syntax define-inline
+(define-syntax-rule (define-inline (name formals ...) body ...)
   ;; Work around the lack of an inliner.
-  (syntax-rules ()
-    ((_ (name formals ...) body ...)
-     (define-syntax name
-       (syntax-rules ()
-         ((_ formals ...)
-          (begin body ...)))))))
+  (define-syntax name
+    (syntax-rules ()
+      ((_ formals ...)
+       (begin body ...)))))
 
 (define-inline (make-block base offset size hash-tab?)
   ;; Return a block (and block descriptor) of SIZE elements pointing to BASE
@@ -90,11 +88,9 @@
           base offset size 0
           (and hash-tab? (make-vector size #f))))
 
-(define-syntax define-block-accessor
-  (syntax-rules ()
-    ((_ name index)
-     (define-inline (name block)
-       (vector-ref block index)))))
+(define-syntax-rule (define-block-accessor name index)
+  (define-inline (name block)
+    (vector-ref block index)))
 
 (define-block-accessor block-content 0)
 (define-block-accessor block-base 1)

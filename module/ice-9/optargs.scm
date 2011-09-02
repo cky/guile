@@ -1,6 +1,6 @@
 ;;;; optargs.scm -- support for optional arguments
 ;;;;
-;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1997, 1998, 1999, 2001, 2002, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -278,12 +278,10 @@
        #'(define-macro id doc (lambda* args b0 b1 ...)))
       ((_ id args b0 b1 ...) 
        #'(define-macro id #f (lambda* args b0 b1 ...))))))
-(define-syntax defmacro*-public
-  (syntax-rules ()
-    ((_ id args b0 b1 ...)
-     (begin
-       (defmacro* id args b0 b1 ...)
-       (export-syntax id)))))
+(define-syntax-rule (defmacro*-public id args b0 b1 ...)
+  (begin
+    (defmacro* id args b0 b1 ...)
+    (export-syntax id)))
 
 ;;; Support for optional & keyword args with the interpreter.
 (define *uninitialized* (list 'uninitialized))

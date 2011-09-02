@@ -60,20 +60,16 @@
 ;; http://okmij.org/ftp/Scheme/delim-control-n.scm, which are in the
 ;; public domain, as noted at the top of http://okmij.org/ftp/.
 ;; 
-(define-syntax reset
-  (syntax-rules ()
-    ((_ . body)
-     (call-with-prompt (default-prompt-tag)
-                       (lambda () . body)
-                       (lambda (cont f) (f cont))))))
+(define-syntax-rule (reset . body)
+  (call-with-prompt (default-prompt-tag)
+                    (lambda () . body)
+                    (lambda (cont f) (f cont))))
 
-(define-syntax shift
-  (syntax-rules ()
-    ((_ var . body)
-     (abort-to-prompt (default-prompt-tag)
-                      (lambda (cont)
-                        ((lambda (var) (reset . body))
-                         (lambda vals (reset (apply cont vals)))))))))
+(define-syntax-rule (shift var . body)
+  (abort-to-prompt (default-prompt-tag)
+                   (lambda (cont)
+                     ((lambda (var) (reset . body))
+                      (lambda vals (reset (apply cont vals)))))))
 
 (define (reset* thunk)
   (reset (thunk)))

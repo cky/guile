@@ -118,11 +118,9 @@
   (write server-impl-write)
   (close server-impl-close))
 
-(define-syntax define-server-impl
-  (syntax-rules ()
-    ((_ name open read write close)
-     (define name
-       (make-server-impl 'name open read write close)))))
+(define-syntax-rule (define-server-impl name open read write close)
+  (define name
+    (make-server-impl 'name open read write close)))
 
 (define (lookup-server-impl impl)
   "Look up a server implementation.  If @var{impl} is a server

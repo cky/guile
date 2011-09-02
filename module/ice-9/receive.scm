@@ -1,6 +1,6 @@
 ;;;; SRFI-8
 
-;;; Copyright (C) 2000, 2001, 2004, 2006, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2000, 2001, 2004, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,14 +17,10 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (ice-9 receive)
-  :export (receive)
-  :no-backtrace
-  )
+  #:export (receive))
 
-(define-syntax receive
-  (syntax-rules ()
-    ((receive vars vals . body)
-     (call-with-values (lambda () vals)
-       (lambda vars . body)))))
+(define-syntax-rule (receive vars vals . body)
+  (call-with-values (lambda () vals)
+    (lambda vars . body)))
 
 (cond-expand-provide (current-module) '(srfi-8))

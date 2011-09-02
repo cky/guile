@@ -173,8 +173,6 @@ touched."
 ;;; Syntax.
 ;;;
 
-(define-syntax future
-  (syntax-rules ()
-    "Return a new future for BODY."
-    ((_ body)
-     (make-future (lambda () body)))))
+(define-syntax-rule (future body)
+  "Return a new future for BODY."
+  (make-future (lambda () body)))

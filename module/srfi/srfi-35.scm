@@ -1,6 +1,6 @@
 ;;; srfi-35.scm --- Conditions                 -*- coding: utf-8 -*-
 
-;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -295,24 +295,20 @@ by C."
 ;;; Syntax.
 ;;;
 
-(define-syntax define-condition-type
-  (syntax-rules ()
-    ((_ name parent pred (field-name field-accessor) ...)
-     (begin
-       (define name
-         (make-condition-type 'name parent '(field-name ...)))
-       (define (pred c)
-         (condition-has-type? c name))
-       (define (field-accessor c)
-         (condition-ref c 'field-name))
-       ...))))
+(define-syntax-rule (define-condition-type name parent pred (field-name field-accessor) ...)
+  (begin
+    (define name
+      (make-condition-type 'name parent '(field-name ...)))
+    (define (pred c)
+      (condition-has-type? c name))
+    (define (field-accessor c)
+      (condition-ref c 'field-name))
+    ...))
 
-(define-syntax compound-condition
+(define-syntax-rule (compound-condition (type ...) (field ...))
   ;; Create a compound condition using `make-compound-condition-type'.
-  (syntax-rules ()
-    ((_ (type ...) (field ...))
-     (condition ((make-compound-condition-type '%compound `(,type ...))
-                 field ...)))))
+  (condition ((make-compound-condition-type '%compound `(,type ...))
+              field ...)))
 
 (define-syntax condition-instantiation
   ;; Build the `(make-condition type ...)' call.

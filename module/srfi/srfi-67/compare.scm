@@ -1,3 +1,4 @@
+; Copyright (c) 2011 Free Software Foundation, Inc.
 ; Copyright (c) 2005 Sebastian Egner and Jens Axel S{\o}gaard.
 ; 
 ; Permission is hereby granted, free of charge, to any person obtaining
@@ -88,14 +89,12 @@
 
 ; 3-sided conditional
 
-(define-syntax if3
-  (syntax-rules ()
-    ((if3 c less equal greater)
-     (case c
-       ((-1) less)
-       (( 0) equal)
-       (( 1) greater)
-       (else (error "comparison value not in {-1,0,1}"))))))
+(define-syntax-rule (if3 c less equal greater)
+  (case c
+    ((-1) less)
+    (( 0) equal)
+    (( 1) greater)
+    (else (error "comparison value not in {-1,0,1}"))))
 
 
 ; 2-sided conditionals for comparisons
@@ -110,51 +109,37 @@
        (a-cases alternate)
        (else    (error "comparison value not in {-1,0,1}"))))))
 
-(define-syntax if=?
-  (syntax-rules ()
-    ((if=? arg ...)
-     (compare:if-rel? (0) (-1 1) arg ...))))
+(define-syntax-rule (if=? arg ...)
+  (compare:if-rel? (0) (-1 1) arg ...))
 
-(define-syntax if<?
-  (syntax-rules ()
-    ((if<? arg ...)
-     (compare:if-rel? (-1) (0 1) arg ...))))
+(define-syntax-rule (if<? arg ...)
+  (compare:if-rel? (-1) (0 1) arg ...))
 
-(define-syntax if>?
-  (syntax-rules ()
-    ((if>? arg ...)
-     (compare:if-rel? (1) (-1 0) arg ...))))
+(define-syntax-rule (if>? arg ...)
+  (compare:if-rel? (1) (-1 0) arg ...))
 
-(define-syntax if<=?
-  (syntax-rules ()
-    ((if<=? arg ...)
-     (compare:if-rel? (-1 0) (1) arg ...))))
+(define-syntax-rule (if<=? arg ...)
+  (compare:if-rel? (-1 0) (1) arg ...))
 
-(define-syntax if>=?
-  (syntax-rules ()
-    ((if>=? arg ...)
-     (compare:if-rel? (0 1) (-1) arg ...))))
+(define-syntax-rule (if>=? arg ...)
+  (compare:if-rel? (0 1) (-1) arg ...))
 
-(define-syntax if-not=?
-  (syntax-rules ()
-    ((if-not=? arg ...)
-     (compare:if-rel? (-1 1) (0) arg ...))))
+(define-syntax-rule if- (not=? arg ...)
+  (compare:if-rel? (-1 1) (0) arg ...))
 
 
 ; predicates from compare procedures
 
-(define-syntax compare:define-rel?
-  (syntax-rules ()
-    ((compare:define-rel? rel? if-rel?)
-     (define rel?
-       (case-lambda
-	(()        (lambda (x y) (if-rel? (default-compare x y) #t #f)))
-	((compare) (lambda (x y) (if-rel? (compare         x y) #t #f)))
-	((x y)                   (if-rel? (default-compare x y) #t #f))
-	((compare x y)
-	 (if (procedure? compare)
-	     (if-rel? (compare x y) #t #f)
-	     (error "not a procedure (Did you mean rel/rel??): " compare))))))))
+(define-syntax-rule compare:define- (rel? rel? if-rel?)
+  (define rel?
+    (case-lambda
+      (()        (lambda (x y) (if-rel? (default-compare x y) #t #f)))
+      ((compare) (lambda (x y) (if-rel? (compare         x y) #t #f)))
+      ((x y)                   (if-rel? (default-compare x y) #t #f))
+      ((compare x y)
+       (if (procedure? compare)
+           (if-rel? (compare x y) #t #f)
+           (error "not a procedure (Did you mean rel/rel??): " compare))))))
 
 (compare:define-rel? =?    if=?)
 (compare:define-rel? <?    if<?)
@@ -166,29 +151,27 @@
 
 ; chains of length 3
 
-(define-syntax compare:define-rel1/rel2?
-  (syntax-rules ()
-    ((compare:define-rel1/rel2? rel1/rel2? if-rel1? if-rel2?)
-     (define rel1/rel2?
-       (case-lambda
-	(()
-	 (lambda (x y z)
-	   (if-rel1? (default-compare x y)
-		     (if-rel2? (default-compare y z) #t #f)
-		     (compare:checked #f default-compare z))))
-	((compare)
-	 (lambda (x y z)
-	   (if-rel1? (compare x y)
-		(if-rel2? (compare y z) #t #f)
-		(compare:checked #f compare z))))
-	((x y z)
-	 (if-rel1? (default-compare x y)
-	       (if-rel2? (default-compare y z) #t #f)
-	       (compare:checked #f default-compare z)))
-	((compare x y z)
-	 (if-rel1? (compare x y)
-	       (if-rel2? (compare y z) #t #f)
-	       (compare:checked #f compare z))))))))
+(define-syntax-rule compare:define-rel1/ (rel2? rel1/rel2? if-rel1? if-rel2?)
+  (define rel1/rel2?
+    (case-lambda
+      (()
+       (lambda (x y z)
+         (if-rel1? (default-compare x y)
+                   (if-rel2? (default-compare y z) #t #f)
+                   (compare:checked #f default-compare z))))
+      ((compare)
+       (lambda (x y z)
+         (if-rel1? (compare x y)
+                   (if-rel2? (compare y z) #t #f)
+                   (compare:checked #f compare z))))
+      ((x y z)
+       (if-rel1? (default-compare x y)
+                 (if-rel2? (default-compare y z) #t #f)
+                 (compare:checked #f default-compare z)))
+      ((compare x y z)
+       (if-rel1? (compare x y)
+                 (if-rel2? (compare y z) #t #f)
+                 (compare:checked #f compare z))))))
 
 (compare:define-rel1/rel2? </<?   if<?  if<?)
 (compare:define-rel1/rel2? </<=?  if<?  if<=?)
@@ -202,31 +185,29 @@
 
 ; chains of arbitrary length
 
-(define-syntax compare:define-chain-rel?
-  (syntax-rules ()
-    ((compare:define-chain-rel? chain-rel? if-rel?)
-     (define chain-rel?
-       (case-lambda
-	((compare)
-	 #t)
-	((compare x1)
-	 (compare:checked #t compare x1))
-	((compare x1 x2)
-	 (if-rel? (compare x1 x2) #t #f))
-	((compare x1 x2 x3)
-	 (if-rel? (compare x1 x2)
-		  (if-rel? (compare x2 x3) #t #f)
-		  (compare:checked #f compare x3)))
-	((compare x1 x2 . x3+)
-	 (if-rel? (compare x1 x2)
-		  (let chain? ((head x2) (tail x3+))
-		    (if (null? tail)
-			#t
-			(if-rel? (compare head (car tail))
-				 (chain? (car tail) (cdr tail))
-				 (apply compare:checked #f 
-					compare (cdr tail)))))
-		  (apply compare:checked #f compare x3+))))))))
+(define-syntax-rule compare:define-chain- (rel? chain-rel? if-rel?)
+  (define chain-rel?
+    (case-lambda
+      ((compare)
+       #t)
+      ((compare x1)
+       (compare:checked #t compare x1))
+      ((compare x1 x2)
+       (if-rel? (compare x1 x2) #t #f))
+      ((compare x1 x2 x3)
+       (if-rel? (compare x1 x2)
+                (if-rel? (compare x2 x3) #t #f)
+                (compare:checked #f compare x3)))
+      ((compare x1 x2 . x3+)
+       (if-rel? (compare x1 x2)
+                (let chain? ((head x2) (tail x3+))
+                  (if (null? tail)
+                      #t
+                      (if-rel? (compare head (car tail))
+                               (chain? (car tail) (cdr tail))
+                               (apply compare:checked #f 
+                                      compare (cdr tail)))))
+                (apply compare:checked #f compare x3+))))))
 
 (compare:define-chain-rel? chain=?  if=?)
 (compare:define-chain-rel? chain<?  if<?)
@@ -468,19 +449,17 @@
      (begin (compare:type-check type? type-name x)
             (compare:type-check type? type-name y)))))
 
-(define-syntax compare:define-by=/<
-  (syntax-rules ()
-    ((compare:define-by=/< compare = < type? type-name)
-     (define compare
-       (let ((= =) (< <))
-	 (lambda (x y)
-	   (if (type? x)
-	       (if (eq? x y)
-		   0
-		   (if (type? y)
-		       (if (= x y) 0 (if (< x y) -1 1))
-		       (error (string-append "not " type-name ":") y)))
-	       (error (string-append "not " type-name ":") x))))))))
+(define-syntax-rule compare:define- (by=/< compare = < type? type-name)
+  (define compare
+    (let ((= =) (< <))
+      (lambda (x y)
+        (if (type? x)
+            (if (eq? x y)
+                0
+                (if (type? y)
+                    (if (= x y) 0 (if (< x y) -1 1))
+                    (error (string-append "not " type-name ":") y)))
+            (error (string-append "not " type-name ":") x))))))
 
 (define (boolean-compare x y)
   (compare:type-check boolean? "boolean" x y)

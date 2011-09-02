@@ -288,21 +288,18 @@
        #'(define-class-pre-definitions (rest ...) 
          out ... (define-class-pre-definition (slotopt ...)))))))
 
-(define-syntax define-class
-  (syntax-rules ()
-    ((_ name supers slot ...)
-     (begin
-       (define-class-pre-definitions (slot ...))
-       (if (and (defined? 'name)
-                (is-a? name <class>)
-                (memq <object> (class-precedence-list name)))
-           (class-redefinition name
-                               (class supers slot ... #:name 'name))
-           (toplevel-define! 'name (class supers slot ... #:name 'name)))))))
+(define-syntax-rule (define-class name supers slot ...)
+  (begin
+    (define-class-pre-definitions (slot ...))
+    (if (and (defined? 'name)
+             (is-a? name <class>)
+             (memq <object> (class-precedence-list name)))
+        (class-redefinition name
+                            (class supers slot ... #:name 'name))
+        (toplevel-define! 'name (class supers slot ... #:name 'name)))))
        
-(define-syntax standard-define-class
-  (syntax-rules ()
-    ((_ arg ...) (define-class arg ...))))
+(define-syntax-rule (standard-define-class arg ...)
+  (define-class arg ...))
 
 ;;;
 ;;; {Generic functions and accessors}
@@ -390,13 +387,11 @@
         (else (make <generic> #:name name))))
 
 ;; same semantics as <generic>
-(define-syntax define-accessor
-  (syntax-rules ()
-    ((_ name)
-     (define name
-       (cond ((not (defined? 'name))  (ensure-accessor #f 'name))
-             ((is-a? name <accessor>) (make <accessor> #:name 'name))
-             (else                    (ensure-accessor name 'name)))))))
+(define-syntax-rule (define-accessor name)
+  (define name
+    (cond ((not (defined? 'name))  (ensure-accessor #f 'name))
+          ((is-a? name <accessor>) (make <accessor> #:name 'name))
+          (else                    (ensure-accessor name 'name)))))
 
 (define (make-setter-name name)
   (string->symbol (string-append "setter:" (symbol->string name))))

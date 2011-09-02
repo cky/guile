@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU Lesser General Public License as published by
@@ -40,34 +40,27 @@
 ;;; PLT compatibility layer.
 ;;;
 
-(define-syntax syntax-object->datum
-  (syntax-rules ()
-    ((_ stx)
-     (syntax->datum stx))))
+(define-syntax-rule (syntax-object->datum stx)
+  (syntax->datum stx))
 
-(define-syntax void
-  (syntax-rules ()
-    ((_) *unspecified*)))
+(define-syntax-rule (void)
+  *unspecified*)
 
 (define %call/ec-prompt
   (make-prompt-tag))
 
-(define-syntax call/ec
+(define-syntax-rule (call/ec proc)
   ;; aka. `call-with-escape-continuation'
-  (syntax-rules ()
-    ((_ proc)
-     (call-with-prompt %call/ec-prompt
-                       (lambda ()
-                         (proc (lambda args
-                                 (apply abort-to-prompt
-                                        %call/ec-prompt args))))
-                       (lambda (_ . args)
-                         (apply values args))))))
+  (call-with-prompt %call/ec-prompt
+                    (lambda ()
+                      (proc (lambda args
+                              (apply abort-to-prompt
+                                     %call/ec-prompt args))))
+                    (lambda (_ . args)
+                      (apply values args))))
 
-(define-syntax let/ec
-  (syntax-rules ()
-    ((_ cont body ...)
-     (call/ec (lambda (cont) body ...)))))
+(define-syntax-rule (let/ec cont body ...)
+  (call/ec (lambda (cont) body ...)))
 
 (define (raise-syntax-error x msg obj sub)
   (throw 'sxml-match-error x msg obj sub))

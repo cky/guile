@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1996, 1998, 2001, 2002, 2003, 2006, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 2001, 2002, 2003, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -51,12 +51,10 @@
 
 ;;; Macros first, so that the procedures expand correctly.
 
-(define-syntax begin-thread
-  (syntax-rules ()
-    ((_ e0 e1 ...)
-     (call-with-new-thread
-      (lambda () e0 e1 ...)
-      %thread-handler))))
+(define-syntax-rule (begin-thread e0 e1 ...)
+  (call-with-new-thread
+   (lambda () e0 e1 ...)
+   %thread-handler))
 
 (define-syntax parallel
   (lambda (x)
@@ -67,35 +65,27 @@
                  ...)
              (values (touch tmp0) ...)))))))
 
-(define-syntax letpar
-  (syntax-rules ()
-    ((_ ((v e) ...) b0 b1 ...)
-     (call-with-values
-         (lambda () (parallel e ...))
-       (lambda (v ...)
-         b0 b1 ...)))))
+(define-syntax-rule (letpar ((v e) ...) b0 b1 ...)
+  (call-with-values
+      (lambda () (parallel e ...))
+    (lambda (v ...)
+      b0 b1 ...)))
 
-(define-syntax make-thread
-  (syntax-rules ()
-    ((_ proc arg ...)
-     (call-with-new-thread
-      (lambda () (proc arg ...))
-      %thread-handler))))
+(define-syntax-rule (make-thread proc arg ...)
+  (call-with-new-thread
+   (lambda () (proc arg ...))
+   %thread-handler))
 
-(define-syntax with-mutex
-  (syntax-rules ()
-    ((_ m e0 e1 ...)
-     (let ((x m))
-       (dynamic-wind
-         (lambda () (lock-mutex x))
-         (lambda () (begin e0 e1 ...))
-         (lambda () (unlock-mutex x)))))))
+(define-syntax-rule (with-mutex m e0 e1 ...)
+  (let ((x m))
+    (dynamic-wind
+      (lambda () (lock-mutex x))
+      (lambda () (begin e0 e1 ...))
+      (lambda () (unlock-mutex x)))))
 
-(define-syntax monitor
-  (syntax-rules ()
-    ((_ first rest ...)
-     (with-mutex (make-mutex)
-       first rest ...))))
+(define-syntax-rule (monitor first rest ...)
+  (with-mutex (make-mutex)
+    first rest ...))
 
 (define (par-mapper mapper)
   (lambda (proc . arglists)

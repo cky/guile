@@ -504,9 +504,8 @@ If there is no handler at all, Guile prints an error and then exits."
     ((do "step" x y)
      y)))
 
-(define-syntax delay
-  (syntax-rules ()
-    ((_ exp) (make-promise (lambda () exp)))))
+(define-syntax-rule (delay exp)
+  (make-promise (lambda () exp)))
 
 (include-from-path "ice-9/quasisyntax")
 
@@ -517,11 +516,9 @@ If there is no handler at all, Guile prints an error and then exits."
        (with-syntax ((s (datum->syntax x (syntax-source x))))
          #''s)))))
 
-(define-syntax define-once
-  (syntax-rules ()
-    ((_ sym val)
-     (define sym
-       (if (module-locally-bound? (current-module) 'sym) sym val)))))
+(define-syntax-rule (define-once sym val)
+  (define sym
+    (if (module-locally-bound? (current-module) 'sym) sym val)))
 
 ;;; The real versions of `map' and `for-each', with cycle detection, and
 ;;; that use reverse! instead of recursion in the case of `map'.
@@ -853,12 +850,10 @@ VALUE."
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 
-(define-syntax false-if-exception
-  (syntax-rules ()
-    ((_ expr)
-     (catch #t
-       (lambda () expr)
-       (lambda (k . args) #f)))))
+(define-syntax-rule (false-if-exception expr)
+  (catch #t
+    (lambda () expr)
+    (lambda (k . args) #f)))
 
 
 
@@ -877,12 +872,10 @@ VALUE."
 ;; properties within the object itself.
 
 (define (make-object-property)
-  (define-syntax with-mutex
-    (syntax-rules ()
-      ((_ lock exp)
-       (dynamic-wind (lambda () (lock-mutex lock))
-                     (lambda () exp)
-                     (lambda () (unlock-mutex lock))))))
+  (define-syntax-rule (with-mutex lock exp)
+    (dynamic-wind (lambda () (lock-mutex lock))
+                  (lambda () exp)
+                  (lambda () (unlock-mutex lock))))
   (let ((prop (make-weak-key-hash-table))
         (lock (make-mutex)))
     (make-procedure-with-setter
@@ -1380,10 +1373,9 @@ VALUE."
          (thunk)))
      (lambda (k . args)
        (%start-stack tag (lambda () (apply k args)))))))
-(define-syntax start-stack
-  (syntax-rules ()
-    ((_ tag exp)
-     (%start-stack tag (lambda () exp)))))
+
+(define-syntax-rule (start-stack tag exp)
+  (%start-stack tag (lambda () exp)))
 
 
 
@@ -2846,11 +2838,9 @@ module '(ice-9 q) '(make-q q-length))}."
                      flags)
            (interface options)
            (interface)))
-       (define-syntax option-set!
-         (syntax-rules ()
-           ((_ opt val)
-            (eval-when (eval load compile expand)
-              (options (append (options) (list 'opt val)))))))))))
+       (define-syntax-rule (option-set! opt val)
+         (eval-when (eval load compile expand)
+           (options (append (options) (list 'opt val)))))))))
 
 (define-option-interface
   (debug-options-interface
@@ -3175,21 +3165,17 @@ module '(ice-9 q) '(make-q q-length))}."
              (process-use-modules (list quoted-args ...))
              *unspecified*))))))
 
-(define-syntax use-syntax
-  (syntax-rules ()
-    ((_ spec ...)
-     (begin
-       (eval-when (eval load compile expand)
-         (issue-deprecation-warning
-          "`use-syntax' is deprecated. Please contact guile-devel for more info."))
-       (use-modules spec ...)))))
+(define-syntax-rule (use-syntax spec ...)
+  (begin
+    (eval-when (eval load compile expand)
+      (issue-deprecation-warning
+       "`use-syntax' is deprecated. Please contact guile-devel for more info."))
+    (use-modules spec ...)))
 
 (include-from-path "ice-9/r6rs-libraries")
 
-(define-syntax define-private
-  (syntax-rules ()
-    ((_ foo bar)
-     (define foo bar))))
+(define-syntax-rule (define-private foo bar)
+  (define foo bar))
 
 (define-syntax define-public
   (syntax-rules ()
@@ -3200,18 +3186,14 @@ module '(ice-9 q) '(make-q q-length))}."
        (define name val)
        (export name)))))
 
-(define-syntax defmacro-public
-  (syntax-rules ()
-    ((_ name args . body)
-     (begin
-       (defmacro name args . body)
-       (export-syntax name)))))
+(define-syntax-rule (defmacro-public name args body ...)
+  (begin
+    (defmacro name args body ...)
+    (export-syntax name)))
 
 ;; And now for the most important macro.
-(define-syntax λ
-  (syntax-rules ()
-    ((_ formals body ...)
-     (lambda formals body ...))))
+(define-syntax-rule (λ formals body ...)
+  (lambda formals body ...))
 
 
 ;; Export a local variable
@@ -3270,39 +3252,29 @@ module '(ice-9 q) '(make-q q-length))}."
                          (module-add! public-i external-name var)))))
               names)))
 
-(define-syntax export
-  (syntax-rules ()
-    ((_ name ...)
-     (eval-when (eval load compile expand)
-       (call-with-deferred-observers
-        (lambda ()
-          (module-export! (current-module) '(name ...))))))))
+(define-syntax-rule (export name ...)
+  (eval-when (eval load compile expand)
+    (call-with-deferred-observers
+     (lambda ()
+       (module-export! (current-module) '(name ...))))))
 
-(define-syntax re-export
-  (syntax-rules ()
-    ((_ name ...)
-     (eval-when (eval load compile expand)
-       (call-with-deferred-observers
-        (lambda ()
-          (module-re-export! (current-module) '(name ...))))))))
+(define-syntax-rule (re-export name ...)
+  (eval-when (eval load compile expand)
+    (call-with-deferred-observers
+     (lambda ()
+       (module-re-export! (current-module) '(name ...))))))
 
-(define-syntax export!
-  (syntax-rules ()
-    ((_ name ...)
-     (eval-when (eval load compile expand)
-       (call-with-deferred-observers
-        (lambda ()
-          (module-replace! (current-module) '(name ...))))))))
+(define-syntax-rule (export! name ...)
+  (eval-when (eval load compile expand)
+    (call-with-deferred-observers
+     (lambda ()
+       (module-replace! (current-module) '(name ...))))))
 
-(define-syntax export-syntax
-  (syntax-rules ()
-    ((_ name ...)
-     (export name ...))))
+(define-syntax-rule (export-syntax name ...)
+  (export name ...))
 
-(define-syntax re-export-syntax
-  (syntax-rules ()
-    ((_ name ...)
-     (re-export name ...))))
+(define-syntax-rule (re-export-syntax name ...)
+  (re-export name ...))
 
 
 

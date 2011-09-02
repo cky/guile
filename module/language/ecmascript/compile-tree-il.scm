@@ -25,20 +25,14 @@
   #:use-module (srfi srfi-1)
   #:export (compile-tree-il))
 
-(define-syntax ->
-  (syntax-rules ()
-    ((_ (type arg ...))
-     `(type ,arg ...))))
+(define-syntax-rule (-> (type arg ...))
+  `(type ,arg ...))
 
-(define-syntax @implv
-  (syntax-rules ()
-    ((_ sym)
-     (-> (@ '(language ecmascript impl) 'sym)))))
+(define-syntax-rule (@implv sym)
+  (-> (@ '(language ecmascript impl) 'sym)))
 
-(define-syntax @impl
-  (syntax-rules ()
-    ((_ sym arg ...)
-     (-> (apply (@implv sym) arg ...)))))
+(define-syntax-rule (@impl sym arg ...)
+  (-> (apply (@implv sym) arg ...)))
 
 (define (empty-lexical-environment)
   '())
@@ -67,16 +61,14 @@
 ;; for emacs:
 ;; (put 'pmatch/source 'scheme-indent-function 1)
 
-(define-syntax pmatch/source
-  (syntax-rules ()
-    ((_ x clause ...)
-     (let ((x x))
-       (let ((res (pmatch x
-                    clause ...)))
-         (let ((loc (location x)))
-           (if loc
-               (set-source-properties! res (location x))))
-         res)))))
+(define-syntax-rule (pmatch/source x clause ...)
+  (let ((x x))
+    (let ((res (pmatch x
+                 clause ...)))
+      (let ((loc (location x)))
+        (if loc
+            (set-source-properties! res (location x))))
+      res)))
 
 (define (comp x e)
   (let ((l (location x)))

@@ -1,6 +1,6 @@
 ;; poll
 
-;;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -68,9 +68,8 @@
   (ports pset-ports set-pset-ports!)
   )
 
-(define-syntax pollfd-offset
-  (syntax-rules ()
-    ((_ n) (* n 8))))
+(define-syntax-rule (pollfd-offset n)
+  (* n 8))
 
 (define* (make-empty-poll-set #:optional (pre-allocated 4))
   (make-poll-set (make-bytevector (pollfd-offset pre-allocated) 0)

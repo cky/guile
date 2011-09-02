@@ -182,7 +182,5 @@
                (apply (if (memq k pass-keys) throw on-error) k args))
              (error "Unknown on-error strategy" on-error)))))))
 
-(define-syntax with-error-handling
-  (syntax-rules ()
-    ((_ form)
-     (call-with-error-handling (lambda () form)))))
+(define-syntax-rule (with-error-handling form)
+  (call-with-error-handling (lambda () form)))

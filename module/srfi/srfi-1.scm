@@ -240,11 +240,9 @@ higher-order procedures."
   (scm-error 'wrong-type-arg (symbol->string caller)
              "Wrong type argument: ~S" (list arg) '()))
 
-(define-syntax check-arg
-  (syntax-rules ()
-    ((_ pred arg caller)
-     (if (not (pred arg))
-         (wrong-type-arg 'caller arg)))))
+(define-syntax-rule (check-arg pred arg caller)
+  (if (not (pred arg))
+      (wrong-type-arg 'caller arg)))
 
 (define (out-of-range proc arg)
   (scm-error 'out-of-range proc

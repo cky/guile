@@ -1,6 +1,6 @@
 ;;; srfi-39.scm --- Parameter objects
 
-;; 	Copyright (C) 2004, 2005, 2006, 2008 Free Software Foundation, Inc.
+;; 	Copyright (C) 2004, 2005, 2006, 2008, 2011 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -69,12 +69,10 @@
          ((null? (cdr new-value)) (fluid-set! value (conv (car new-value))))
          (else (error "make-parameter expects 0 or 1 arguments" new-value)))))))
 
-(define-syntax parameterize
-  (syntax-rules ()
-    ((_ ((?param ?value) ...) ?body ...)
-     (with-parameters* (list ?param ...)
-                       (list ?value ...)
-                       (lambda () ?body ...)))))
+(define-syntax-rule (parameterize ((?param ?value) ...) ?body ...)
+  (with-parameters* (list ?param ...)
+                    (list ?value ...)
+                    (lambda () ?body ...)))
 
 (define (current-input-port . new-value)
   (if (null? new-value)

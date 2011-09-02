@@ -1,4 +1,4 @@
-;;;; Copyright (C) 1999,2002, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999,2002, 2006, 2010, 2011 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -47,10 +47,8 @@
 ;;; Enable keyword support (*fixme*---currently this has global effect)
 (read-set! keywords 'prefix)
 
-(define-syntax define-class
-  (syntax-rules ()
-    ((_ name supers (slot ...) rest ...)
-     (standard-define-class name supers slot ... rest ...))))
+(define-syntax-rule (define-class name supers (slot ...) rest ...)
+  (standard-define-class name supers slot ... rest ...))
 
 (define (toplevel-define! name val)
   (module-define! (current-module) name val))

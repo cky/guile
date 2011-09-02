@@ -28,16 +28,14 @@
   #:export (compile-bytecode))
 
 (define (compile-bytecode assembly env . opts)
-  (define-syntax define-inline1
-    (syntax-rules ()
-      ((_ (proc arg) body body* ...)
-       (define-syntax proc
-         (syntax-rules ()
-           ((_ (arg-expr (... ...)))
-            (let ((x (arg-expr (... ...))))
-              (proc x)))
-           ((_ arg)
-            (begin body body* ...)))))))
+  (define-syntax-rule (define-inline1 (proc arg) body body* ...)
+    (define-syntax proc
+      (syntax-rules ()
+        ((_ (arg-expr (... ...)))
+         (let ((x (arg-expr (... ...))))
+           (proc x)))
+        ((_ arg)
+         (begin body body* ...)))))
        
   (define (fill-bytecode bv target-endianness)
     (let ((pos 0))

@@ -135,15 +135,13 @@
   (run-repl (make-repl lang debug)))
 
 ;; (put 'abort-on-error 'scheme-indent-function 1)
-(define-syntax abort-on-error
-  (syntax-rules ()
-    ((_ string exp)
-     (catch #t
-       (lambda () exp)
-       (lambda (key . args)
-         (format #t "While ~A:~%" string)
-         (print-exception (current-output-port) #f key args)
-         (abort))))))
+(define-syntax-rule (abort-on-error string exp)
+  (catch #t
+    (lambda () exp)
+    (lambda (key . args)
+      (format #t "While ~A:~%" string)
+      (print-exception (current-output-port) #f key args)
+      (abort))))
 
 (define (run-repl repl)
   (define (with-stack-and-prompt thunk)
