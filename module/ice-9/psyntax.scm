@@ -2662,6 +2662,20 @@
              ((dummy . pattern) #'template)
              ...))))))
 
+(define-syntax define-syntax-rule
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (name . pattern) template)
+       #'(define-syntax name
+           (syntax-rules ()
+             ((_ . pattern) template))))
+      ((_ (name . pattern) docstring template)
+       (string? (syntax->datum #'docstring))
+       #'(define-syntax name
+           (syntax-rules ()
+             docstring
+             ((_ . pattern) template)))))))
+
 (define-syntax let*
   (lambda (x)
     (syntax-case x ()
