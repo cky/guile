@@ -124,13 +124,13 @@
 (define-syntax-rule (if>=? arg ...)
   (compare:if-rel? (0 1) (-1) arg ...))
 
-(define-syntax-rule if- (not=? arg ...)
+(define-syntax-rule (if-not=? arg ...)
   (compare:if-rel? (-1 1) (0) arg ...))
 
 
 ; predicates from compare procedures
 
-(define-syntax-rule compare:define- (rel? rel? if-rel?)
+(define-syntax-rule (compare:define-rel? rel? if-rel?)
   (define rel?
     (case-lambda
       (()        (lambda (x y) (if-rel? (default-compare x y) #t #f)))
@@ -151,7 +151,7 @@
 
 ; chains of length 3
 
-(define-syntax-rule compare:define-rel1/ (rel2? rel1/rel2? if-rel1? if-rel2?)
+(define-syntax-rule (compare:define-rel1/rel2? rel1/rel2? if-rel1? if-rel2?)
   (define rel1/rel2?
     (case-lambda
       (()
@@ -185,7 +185,7 @@
 
 ; chains of arbitrary length
 
-(define-syntax-rule compare:define-chain- (rel? chain-rel? if-rel?)
+(define-syntax-rule (compare:define-chain-rel? chain-rel? if-rel?)
   (define chain-rel?
     (case-lambda
       ((compare)
@@ -449,7 +449,7 @@
      (begin (compare:type-check type? type-name x)
             (compare:type-check type? type-name y)))))
 
-(define-syntax-rule compare:define- (by=/< compare = < type? type-name)
+(define-syntax-rule (compare:define-by=/< compare = < type? type-name)
   (define compare
     (let ((= =) (< <))
       (lambda (x y)
