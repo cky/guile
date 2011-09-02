@@ -272,9 +272,8 @@
         (lambda (x mod)
           (primitive-eval x)))
     
-      (define-syntax gensym-hook
-        (syntax-rules ()
-          ((_) (gensym))))
+      (define-syntax-rule (gensym-hook)
+        (gensym))
 
       (define put-global-definition-hook
         (lambda (symbol type val)
@@ -449,9 +448,8 @@
 
 
     ;; FIXME: use a faster gensym
-    (define-syntax build-lexical-var
-      (syntax-rules ()
-        ((_ src id) (gensym (string-append (symbol->string id) " ")))))
+    (define-syntax-rule (build-lexical-var src id)
+      (gensym (string-append (symbol->string id) " ")))
 
     (define-structure (syntax-object expression wrap module))
 
@@ -468,11 +466,9 @@
                           #f)))
          (else #f))))
 
-    (define-syntax arg-check
-      (syntax-rules ()
-        ((_ pred? e who)
-         (let ((x e))
-           (if (not (pred? x)) (syntax-violation who "invalid argument" x))))))
+    (define-syntax-rule (arg-check pred? e who)
+      (let ((x e))
+        (if (not (pred? x)) (syntax-violation who "invalid argument" x))))
 
     ;; compile-time environments
 
@@ -535,12 +531,10 @@
         ((_ type value) (cons type value))
         ((_ 'type) '(type))
         ((_ type) (cons type '()))))
-    (define-syntax binding-type
-      (syntax-rules ()
-        ((_ x) (car x))))
-    (define-syntax binding-value
-      (syntax-rules ()
-        ((_ x) (cdr x))))
+    (define-syntax-rule (binding-type x)
+      (car x))
+    (define-syntax-rule (binding-value x)
+      (cdr x))
 
     (define-syntax null-env (identifier-syntax '()))
 
@@ -605,13 +599,11 @@
          ((syntax-object? x) (symbol? (syntax-object-expression x)))
          (else #f))))
 
-    (define-syntax id-sym-name
-      (syntax-rules ()
-        ((_ e)
-         (let ((x e))
-           (if (syntax-object? x)
-               (syntax-object-expression x)
-               x)))))
+    (define-syntax-rule (id-sym-name e)
+      (let ((x e))
+        (if (syntax-object? x)
+            (syntax-object-expression x)
+            x)))
 
     (define id-sym-name&marks
       (lambda (x w)
@@ -633,12 +625,11 @@
     (define-syntax wrap-subst (identifier-syntax cdr))
 
     (define-syntax subst-rename? (identifier-syntax vector?))
-    (define-syntax rename-old (syntax-rules () ((_ x) (vector-ref x 0))))
-    (define-syntax rename-new (syntax-rules () ((_ x) (vector-ref x 1))))
-    (define-syntax rename-marks (syntax-rules () ((_ x) (vector-ref x 2))))
-    (define-syntax make-rename
-      (syntax-rules ()
-        ((_ old new marks) (vector old new marks))))
+    (define-syntax-rule (rename-old x) (vector-ref x 0))
+    (define-syntax-rule (rename-new x) (vector-ref x 1))
+    (define-syntax-rule (rename-marks x) (vector-ref x 2))
+    (define-syntax-rule (make-rename old new marks)
+      (vector old new marks))
 
     ;; labels must be comparable with "eq?", have read-write invariance,
     ;; and distinct from symbols.
@@ -657,9 +648,8 @@
 
     (define-syntax top-wrap (identifier-syntax '((top))))
 
-    (define-syntax top-marked?
-      (syntax-rules ()
-        ((_ w) (memq 'top (wrap-marks w)))))
+    (define-syntax-rule (top-marked? w)
+      (memq 'top (wrap-marks w)))
 
     ;; Marks must be comparable with "eq?" and distinct from pairs and
     ;; the symbol top.  We do not use integers so that marks will remain
@@ -672,15 +662,13 @@
         (make-wrap (cons the-anti-mark (wrap-marks w))
                    (cons 'shift (wrap-subst w)))))
 
-    (define-syntax new-mark
-      (syntax-rules ()
-        ((_) (gensym "m"))))
+    (define-syntax-rule (new-mark)
+      (gensym "m"))
 
     ;; make-empty-ribcage and extend-ribcage maintain list-based ribcages for
     ;; internal definitions, in which the ribcages are built incrementally
-    (define-syntax make-empty-ribcage
-      (syntax-rules ()
-        ((_) (make-ribcage '() '() '()))))
+    (define-syntax-rule (make-empty-ribcage)
+      (make-ribcage '() '() '()))
 
     (define extend-ribcage!
       ;; must receive ids with complete wraps
@@ -749,10 +737,9 @@
 
     (define id-var-name
       (lambda (id w)
-        (define-syntax first
-          (syntax-rules ()
-            ;; Rely on Guile's multiple-values truncation.
-            ((_ e) e)))
+        (define-syntax-rule (first e)
+          ;; Rely on Guile's multiple-values truncation.
+          e)
         (define search
           (lambda (sym subst marks)
             (if (null? subst)
