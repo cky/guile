@@ -5445,6 +5445,9 @@ char_decimal_value (scm_t_uint32 c)
   return d;
 }
 
+/* Parse the substring of MEM starting at *P_IDX for an unsigned integer
+   in base RADIX.  Upon success, return the unsigned integer and update
+   *P_IDX and *P_EXACTNESS accordingly.  Return #f on failure.  */
 static SCM
 mem2uinteger (SCM mem, unsigned int *p_idx,
 	      unsigned int radix, enum t_exactness *p_exactness)
@@ -5716,7 +5719,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
       /* Cobble up the fractional part.  We might want to set the
 	 NaN's mantissa from it. */
       idx += 4;
-      if (mem2uinteger (mem, &idx, 10, &implicit_x) != 0)
+      if (!scm_is_eq (mem2uinteger (mem, &idx, 10, &implicit_x), SCM_INUM0))
         {
 #if SCM_ENABLE_DEPRECATED == 1
           scm_c_issue_deprecation_warning
