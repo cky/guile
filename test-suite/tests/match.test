@@ -1,6 +1,6 @@
 ;;;; match.test --- (ice-9 match)  -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,10 +18,24 @@
 
 (define-module (test-match)
   #:use-module (ice-9 match)
+  #:use-module (srfi srfi-9)
   #:use-module (test-suite lib))
 
 (define exception:match-error
   (cons 'match-error "^.*$"))
+
+(define-record-type rtd-2-slots
+  (make-2-slot-record a b)
+  two-slot-record?
+  (a slot-first)
+  (b slot-second))
+
+(define-record-type rtd-3-slots
+  (make-3-slot-record a b c)
+  three-slot-record?
+  (a slot-one)
+  (b slot-two)
+  (c slot-three))
 
 
 (with-test-prefix "matches"
@@ -86,7 +100,49 @@
     (let ((tree '(one (two 2) (three 3 (and 4 (and 5))))))
       (match tree
         (('one ('two x) ('three y ('and z '(and 5))))
-         (equal? (list x y z) '(2 3 4)))))))
+         (equal? (list x y z) '(2 3 4))))))
+
+  (with-test-prefix "records"
+
+    (pass-if "all slots, bind"
+      (let ((r (make-3-slot-record 1 2 3)))
+        (match r
+          (($ rtd-3-slots a b c)
+           (equal? (list a b c) '(1 2 3))))))
+
+    (pass-if "all slots, literals"
+      (let ((r (make-3-slot-record 1 2 3)))
+        (match r
+          (($ rtd-3-slots 1 2 3)
+           #t))))
+
+    (pass-if "2 slots"
+      (let ((r (make-3-slot-record 1 2 3)))
+        (match r
+          (($ rtd-3-slots x y)
+           (equal? (list x y) '(1 2))))))
+
+    (pass-if "RTD correctly checked"
+      (let ((r (make-2-slot-record 1 2)))
+        (match r
+          (($ rtd-3-slots a b)
+           #f)
+          (($ rtd-2-slots a b)
+           (equal? (list a b) '(1 2))))))
+
+    (pass-if "getter"
+      (match (make-2-slot-record 1 2)
+        (($ rtd-2-slots (get! first) (get! second))
+         (equal? (list (first) (second)) '(1 2)))))
+
+    (pass-if "setter"
+      (let ((r (make-2-slot-record 1 2)))
+        (match r
+          (($ rtd-2-slots (set! set-first!) (set! set-second!))
+           (set-first! 'one)
+           (set-second! 'two)
+           (equal? (list (slot-first r) (slot-second r))
+                   '(one two))))))))
 
 
 (with-test-prefix "doesn't match"
@@ -105,4 +161,36 @@
     exception:match-error
     (match '(a 0)
       (((and x (? symbol?)) ..1)
-       (equal? x '(a b c))))))
+       (equal? x '(a b c)))))
+
+  (with-test-prefix "records"
+
+    (pass-if "not a record"
+      (match "hello"
+        (($ rtd-2-slots) #f)
+        (_               #t)))
+
+    (pass-if-exception "too many slots"
+      exception:out-of-range
+      (let ((r (make-3-slot-record 1 2 3)))
+        (match r
+          (($ rtd-3-slots a b c d)
+           #f))))))
+
+
+;;;
+;;; Upstream tests, from Chibi-Scheme (3-clause BSD license).
+;;;
+
+(let-syntax ((load       (syntax-rules ()
+                           ((_ file) #t)))
+             (test       (syntax-rules ()
+                           ((_ name expected expr)
+                            (pass-if name
+                                     (equal? expected expr)))))
+             (test-begin (syntax-rules ()
+                           ((_ name) #t)))
+             (test-end   (syntax-rules ()
+                           ((_) #t))))
+  (with-test-prefix "upstream tests"
+    (include-from-path "test-suite/tests/match.test.upstream")))

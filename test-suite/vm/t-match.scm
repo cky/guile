@@ -12,7 +12,7 @@
 (define (matches? obj)
 ;  (format #t "matches? ~a~%" obj)
   (match obj
-	 (($ stuff) #t)
+	 (($ <stuff>) #t)
 ;	 (blurps    #t)
 	 ("hello"   #t)
 	 (else #f)))

@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -28,11 +28,32 @@
   ;; Error procedure for run-time "no matching pattern" errors.
   (throw 'match-error "match" msg))
 
+;; Support for record matching.
+
+(define-syntax slot-ref
+  (syntax-rules ()
+    ((_ rtd rec n)
+     (struct-ref rec n))))
+
+(define-syntax slot-set!
+  (syntax-rules ()
+    ((_ rtd rec n value)
+     (struct-set! rec n value))))
+
+(define-syntax is-a?
+  (syntax-rules ()
+    ((_ rec rtd)
+     (and (struct? rec)
+          (eq? (struct-vtable rec) rtd)))))
+
 ;; Compared to Andrew K. Wright's `match', this one lacks `match-define',
 ;; `match:error-control', `match:set-error-control', `match:error',
 ;; `match:set-error', and all structure-related procedures.  Also,
 ;; `match' doesn't support clauses of the form `(pat => exp)'.
 
 ;; Unmodified public domain code by Alex Shinn retrieved from
-;; <http://synthcode.com/scheme/match.scm>.
+;; the Chibi-Scheme repository, commit 833:6daa2971f3fe.
+;;
+;; Note: Make sure to update `match.test.upstream' when updating this
+;; file.
 (include-from-path "ice-9/match.upstream.scm")
