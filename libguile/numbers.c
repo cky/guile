@@ -5716,7 +5716,16 @@ mem2ureal (SCM mem, unsigned int *p_idx,
       /* Cobble up the fractional part.  We might want to set the
 	 NaN's mantissa from it. */
       idx += 4;
-      mem2uinteger (mem, &idx, 10, &implicit_x);
+      if (mem2uinteger (mem, &idx, 10, &implicit_x) != 0)
+        {
+#if SCM_ENABLE_DEPRECATED == 1
+          scm_c_issue_deprecation_warning
+            ("Non-zero suffixes to `+nan.' are deprecated.  Use `+nan.0'.");
+#else
+          return SCM_BOOL_F;
+#endif
+        }
+          
       *p_idx = idx;
       return scm_nan ();
     }
