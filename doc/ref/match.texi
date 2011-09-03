@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2010  Free Software Foundation, Inc.
+@c Copyright (C) 2010, 2011  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 @c
 
@@ -26,7 +26,7 @@ matcher found in many Scheme implementations.
 @cindex pattern variable
 A pattern matcher can match an object against several patterns and
 extract the elements that make it up.  Patterns can represent any Scheme
-object: lists, strings, symbols, etc.  They can optionally contain
+object: lists, strings, symbols, records, etc.  They can optionally contain
 @dfn{pattern variables}.  When a matching pattern is found, an
 expression associated with the pattern is evaluated, optionally with all
 pattern variables bound to the corresponding elements of the object:
@@ -43,8 +43,8 @@ In this example, list @var{l} matches the pattern @code{('hello (who))},
 because it is a two-element list whose first element is the symbol
 @code{hello} and whose second element is a one-element list.  Here
 @var{who} is a pattern variable.  @code{match}, the pattern matcher,
-locally binds @var{who} to the value contained in this one-element list,
-i.e., the symbol @code{world}.
+locally binds @var{who} to the value contained in this one-element
+list---i.e., the symbol @code{world}.
 
 The same object can be matched against a simpler pattern:
 
@@ -112,8 +112,8 @@ pat ::= identifier                      anything, and binds identifier
       | #(pat_1 ... pat_n pat_n+1 ooo)  vector of n or more, each element
                                           of remainder must match pat_n+1
       | #&pat                           box
-      | ($ struct-name pat_1 ... pat_n) a structure
-      | (= field pat)                   a field of a structure
+      | ($ record-name pat_1 ... pat_n) a record
+      | (= field pat)                   a ``field'' of an object
       | (and pat_1 ... pat_n)           if all of pat_1 thru pat_n match
       | (or pat_1 ... pat_n)            if any of pat_1 thru pat_n match
       | (not pat_1 ... pat_n)           if all pat_1 thru pat_n don't match
@@ -154,6 +154,40 @@ The names @code{quote}, @code{quasiquote}, @code{unquote},
 @code{or}, @code{not}, @code{set!}, @code{get!}, @code{...}, and
 @code{___} cannot be used as pattern variables.
 
+Here is a more complex example:
+
+@example
+(use-modules (srfi srfi-9))
+
+(let ()
+  (define-record-type person
+    (make-person name friends)
+    person?
+    (name    person-name)
+    (friends person-friends))
+
+  (letrec ((alice (make-person "Alice" (delay (list bob))))
+           (bob   (make-person "Bob" (delay (list alice)))))
+    (match alice
+      (($ person name (= force (($ person "Bob"))))
+       (list 'friend-of-bob name))
+      (_ #f))))
+
+@result{} (friend-of-bob "Alice")
+@end example
+
+@noindent
+Here the @code{$} pattern is used to match a SRFI-9 record of type
+@var{person} containing two or more slots.  The value of the first slot
+is bound to @var{name}.  The @code{=} pattern is used to apply
+@code{force} on the second slot, and then checking that the result
+matches the given pattern.  In other words, the complete pattern matches
+any @var{person} whose second slot is a promise that evaluates to a
+one-element list containing a @var{person} whose first slot is
+@code{"Bob"}.
+
+Please refer to the @code{ice-9/match.upstream.scm} file in your Guile
+installation for more details.
 
 Guile also comes with a pattern matcher specifically tailored to SXML
 trees, @xref{sxml-match}.
