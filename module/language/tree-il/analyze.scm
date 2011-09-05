@@ -23,6 +23,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
   #:use-module (ice-9 vlist)
+  #:use-module (ice-9 match)
   #:use-module (system base syntax)
   #:use-module (system base message)
   #:use-module (system vm program)
@@ -867,25 +868,20 @@ accurate information is missing from a given `tree-il' element."
   ;; the name of the variable being defined; otherwise return #f.  This
   ;; assumes knowledge of the current implementation of `define-class' et al.
   (define (toplevel-define-arg args)
-    (and (pair? args) (pair? (cdr args)) (null? (cddr args))
-         (record-case (car args)
-           ((<const> exp)
-            (and (symbol? exp) exp))
-           (else #f))))
+    (match args
+      ((($ <const> _ (and (? symbol?) exp)) _)
+       exp)
+      (_ #f)))
 
-  (record-case proc
-    ((<module-ref> mod public? name)
-     (and (equal? mod '(oop goops))
-          (not public?)
-          (eq? name 'toplevel-define!)
-          (toplevel-define-arg args)))
-    ((<toplevel-ref> name)
+  (match proc
+    (($ <module-ref> _ '(oop goops) 'toplevel-define! #f)
+     (toplevel-define-arg args))
+    (($ <toplevel-ref> _ 'toplevel-define!)
      ;; This may be the result of expanding one of the GOOPS macros within
      ;; `oop/goops.scm'.
-     (and (eq? name 'toplevel-define!)
-          (eq? env (resolve-module '(oop goops)))
+     (and (eq? env (resolve-module '(oop goops)))
           (toplevel-define-arg args)))
-    (else #f)))
+    (_ #f)))
 
 (define unbound-variable-analysis
   ;; Report possibly unbound variables in the given tree.
@@ -1343,24 +1339,17 @@ accurate information is missing from a given `tree-il' element."
                               min-count max-count))))
           (else (error "computer bought the farm" state))))))
 
-;; Return the literal format pattern for X, or #f.
 (define (const-fmt x)
-  (record-case x
-    ((<const> exp)
+  ;; Return the literal format pattern for X, or #f.
+  (match x
+    (($ <const> _ exp)
      exp)
-    ((<application> proc args)
+    (($ <application> _
+        (or ($ <toplevel-ref> _ '_) ($ <module-ref> _ '_))
+        (($ <const> _ (and (? string?) fmt))))
      ;; Gettexted literals, like `(_ "foo")'.
-     (and (record-case proc
-            ((<toplevel-ref> name) (eq? name '_))
-            ((<module-ref> name) (eq? name '_))
-            (else #f))
-          (pmatch args
-            ((,fmt)
-             (record-case fmt
-               ((<const> exp) exp)
-               (else #f)))
-            (else #f))))
-    (else #f)))
+     fmt)
+    (_ #f)))
 
 (define format-analysis
   ;; Report arity mismatches in the given tree.
@@ -1411,18 +1400,13 @@ accurate information is missing from a given `tree-il' element."
        (and (module? env)
             (false-if-exception (module-ref env name))))
 
-     (record-case x
-       ((<application> proc args src)
-        (let ((loc src))
-          (record-case proc
-            ((<toplevel-ref> name src)
-             (let ((proc (resolve-toplevel name)))
-               (and (or (eq? proc format)
-                        (eq? proc (@ (ice-9 format) format)))
-                    (check-format-args args (or src (find pair? locs))))))
-            (else #t)))
-        #t)
-       (else #t))
+     (match x
+       (($ <application> src ($ <toplevel-ref> _ name) args)
+        (let ((proc (resolve-toplevel name)))
+          (and (or (eq? proc format)
+                   (eq? proc (@ (ice-9 format) format)))
+               (check-format-args args (or src (find pair? locs))))))
+       (_ #t))
      #t)
 
    (lambda (x _ env locs)
