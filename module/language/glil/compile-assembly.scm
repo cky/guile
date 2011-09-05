@@ -856,7 +856,7 @@
             (vector-fold2 (lambda (x codes addr)
                             (receive (subcode addr) (ref-or-dump x i addr)
                               (values (cons subcode codes) addr)))
-                          x '() addr)
+                          contents '() addr)
           (receive (shape addr) (ref-or-dump (array-shape x) i addr)
             (values (fold append
                           (let ((len (vector-length contents)))
