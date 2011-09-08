@@ -34,15 +34,6 @@
   (post-order! (lambda (x) (set! (tree-il-src x) #f))
                x))
 
-(define-syntax assert-scheme->glil
-  (syntax-rules ()
-    ((_ in out)
-     (let ((tree-il (strip-source
-                     (compile 'in #:from 'scheme #:to 'tree-il))))
-       (pass-if 'in
-                (equal? (unparse-glil (compile tree-il #:from 'tree-il #:to 'glil))
-                        'out))))))
-
 (define-syntax assert-tree-il->glil
   (syntax-rules (with-partial-evaluation without-partial-evaluation
                  with-options)
