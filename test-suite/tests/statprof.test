@@ -50,11 +50,11 @@
                       ((car funcs) x)
                       (loop (- x 1) (cdr funcs))))))))
     
-    (let ((num-calls 40000)
+    (let ((num-calls 20000000)
           (funcs (circular-list (make-func) (make-func) (make-func))))
 
-      ;; Run test. 10000 us == 100 Hz.
-      (statprof-reset 0 10000 #f #f)
+      ;; Run test. 20000 us == 200 Hz.
+      (statprof-reset 0 20000 #f #f)
       (statprof-start)
       (run-test num-calls funcs)
       (statprof-stop)
