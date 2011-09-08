@@ -27,7 +27,8 @@
   #:use-module (srfi srfi-16)
   #:export (resolve-primitives! add-interesting-primitive!
             expand-primitives!
-            effect-free-primitive? effect+exception-free-primitive?))
+            effect-free-primitive? effect+exception-free-primitive?
+            constructor-primitive?))
 
 (define *interesting-primitive-names* 
   '(apply @apply
@@ -106,21 +107,24 @@
 
 (for-each add-interesting-primitive! *interesting-primitive-names*)
 
+(define *primitive-constructors*
+  ;; Primitives that return a fresh object.
+  '(acons cons cons* list vector make-struct make-struct/no-tail))
+
 (define *effect-free-primitives*
-  '(values
+  `(values
     eq? eqv? equal?
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo
     not
-    pair? null? list? symbol? vector? acons cons cons*
-    list vector
+    pair? null? list? symbol? vector?
     car cdr
     caar cadr cdar cddr
     caaar caadr cadar caddr cdaar cdadr cddar cdddr
     caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
     vector-ref
-    struct? struct-vtable make-struct make-struct/no-tail struct-ref
+    struct? struct-vtable struct-ref
     bytevector-u8-ref bytevector-s8-ref
     bytevector-u16-ref bytevector-u16-native-ref
     bytevector-s16-ref bytevector-s16-native-ref
@@ -129,7 +133,8 @@
     bytevector-u64-ref bytevector-u64-native-ref
     bytevector-s64-ref bytevector-s64-native-ref
     bytevector-ieee-single-ref bytevector-ieee-single-native-ref
-    bytevector-ieee-double-ref bytevector-ieee-double-native-ref))
+    bytevector-ieee-double-ref bytevector-ieee-double-native-ref
+    ,@*primitive-constructors*))
 
 ;; Like *effect-free-primitives* above, but further restricted in that they
 ;; cannot raise exceptions.
@@ -151,6 +156,8 @@
             (hashq-set! *effect+exceptions-free-primitive-table* x #t))
           *effect+exception-free-primitives*)
 
+(define (constructor-primitive? prim)
+  (memq prim *primitive-constructors*))
 (define (effect-free-primitive? prim)
   (hashq-ref *effect-free-primitive-table* prim))
 (define (effect+exception-free-primitive? prim)
@@ -245,6 +252,8 @@
 
 (define-primitive-expander zero? (x)
   (= x 0))
+
+;; FIXME: All the code that uses `const?' is redundant with `peval'.
 
 (define-primitive-expander +
   () 0

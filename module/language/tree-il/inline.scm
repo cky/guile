@@ -38,6 +38,7 @@
       ((<void>)
        (make-const src #t))
 
+      ;; FIXME: This is redundant with what the partial evaluator does.
       ((<conditional> test consequent alternate)
        (record-case (boolean-value test)
          ((<const> exp)

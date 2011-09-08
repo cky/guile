@@ -44,16 +44,27 @@
                         'out))))))
 
 (define-syntax assert-tree-il->glil
-  (syntax-rules ()
-    ((_ in pat test ...)
+  (syntax-rules (with-partial-evaluation without-partial-evaluation
+                 with-options)
+    ((_ with-partial-evaluation in pat test ...)
+     (assert-tree-il->glil with-options (#:partial-eval? #t)
+                           in pat test ...))
+    ((_ without-partial-evaluation in pat test ...)
+     (assert-tree-il->glil with-options (#:partial-eval? #f)
+                           in pat test ...))
+    ((_ with-options opts in pat test ...)
      (let ((exp 'in))
        (pass-if 'in
          (let ((glil (unparse-glil
                       (compile (strip-source (parse-tree-il exp))
-                               #:from 'tree-il #:to 'glil))))
+                               #:from 'tree-il #:to 'glil
+                               #:opts 'opts))))
            (pmatch glil
              (pat (guard test ...) #t)
-             (else #f))))))))
+             (else #f))))))
+    ((_ in pat test ...)
+     (assert-tree-il->glil with-partial-evaluation
+                           in pat test ...))))
 
 (define-syntax pass-if-tree-il->scheme
   (syntax-rules ()
@@ -66,6 +77,21 @@
          (pat (guard guard-exp) #t)
          (_ #f))))))
 
+(define peval
+  ;; The partial evaluator.
+  (@@ (language tree-il optimize) peval))
+
+(define-syntax pass-if-peval
+  (syntax-rules ()
+    ((_ in pat)
+     (pass-if 'in
+       (let ((evaled (unparse-tree-il
+                      (peval (compile 'in #:from 'scheme #:to 'tree-il)))))
+         (pmatch evaled
+           (pat #t)
+           (_   (pk 'peval-mismatch evaled) #f)))))))
+
+
 (with-test-prefix "tree-il->scheme"
   (pass-if-tree-il->scheme
    (case-lambda ((a) a) ((b c) (list b c)))
@@ -107,8 +133,8 @@
             (const 1) (call return 1)
             (label ,l2) (const 2) (call return 1))
    (eq? l1 l2))
-  
-  (assert-tree-il->glil
+
+  (assert-tree-il->glil without-partial-evaluation
    (begin (if (toplevel foo) (const 1) (const 2)) (const #f))
    (program () (std-prelude 0 0 #f) (label _) (toplevel ref foo) (branch br-if-not ,l1) (branch br ,l2)
             (label ,l3) (label ,l4) (const #f) (call return 1))
@@ -137,21 +163,21 @@
             (call return 1))))
 
 (with-test-prefix "lexical refs"
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (let (x) (y) ((const 1)) (lexical x y))
    (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (lexical #t #f ref 0) (call return 1)
             (unbind)))
 
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (let (x) (y) ((const 1)) (begin (lexical x y) (const #f)))
    (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
             (const #f) (call return 1)
             (unbind)))
 
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (let (x) (y) ((const 1)) (apply (primitive null?) (lexical x y)))
    (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
@@ -270,7 +296,7 @@
             (toplevel ref bar)
             (call return 1)))
 
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (begin (toplevel bar) (const #f))
    (program () (std-prelude 0 0 #f) (label _)
             (toplevel ref bar) (call drop 1)
@@ -332,13 +358,14 @@
             (const #f) (call return 1)))
 
   (assert-tree-il->glil
+   ;; This gets simplified by `peval'.
    (apply (primitive null?) (const 2))
    (program () (std-prelude 0 0 #f) (label _)
-            (const 2) (call null? 1) (call return 1))))
+            (const #f) (call return 1))))
 
 (with-test-prefix "letrec"
   ;; simple bindings -> let
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (letrec (x y) (x1 y1) ((const 10) (const 20))
            (apply (toplevel foo) (lexical x x1) (lexical y y1)))
    (program () (std-prelude 0 2 #f) (label _)
@@ -351,7 +378,7 @@
             (unbind)))
 
   ;; complex bindings -> box and set! within let
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (letrec (x y) (x1 y1) ((apply (toplevel foo)) (apply (toplevel bar)))
            (apply (primitive +) (lexical x x1) (lexical y y1)))
    (program () (std-prelude 0 4 #f) (label _)
@@ -367,7 +394,7 @@
             (call add 2) (call return 1) (unbind)))
   
   ;; complex bindings in letrec* -> box and set! in order
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (letrec* (x y) (x1 y1) ((apply (toplevel foo)) (apply (toplevel bar)))
             (apply (primitive +) (lexical x x1) (lexical y y1)))
    (program () (std-prelude 0 2 #f) (label _)
@@ -383,7 +410,7 @@
             (call add 2) (call return 1) (unbind)))
 
   ;; simple bindings in letrec* -> equivalent to letrec
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (letrec* (x y) (xx yy) ((const 1) (const 2))
             (lexical y yy))
    (program () (std-prelude 0 1 #f) (label _)
@@ -487,9 +514,10 @@
             (const #t) (call return 1)))
 
   (assert-tree-il->glil
+   ;; This gets simplified by `peval'.
    (apply (primitive null?) (begin (const #f) (const 2)))
    (program () (std-prelude 0 0 #f) (label _)
-            (const 2) (call null? 1) (call return 1))))
+            (const #f) (call return 1))))
 
 (with-test-prefix "values"
   (assert-tree-il->glil
@@ -514,7 +542,7 @@
 ;; FIXME: binding info for or-hacked locals might bork the disassembler,
 ;; and could be tightened in any case
 (with-test-prefix "the or hack"
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (let (x) (y) ((const 1))
         (if (lexical x y)
             (lexical x y)
@@ -532,7 +560,7 @@
    (eq? l1 l2))
 
   ;; second bound var is unreferenced
-  (assert-tree-il->glil
+  (assert-tree-il->glil without-partial-evaluation
    (let (x) (y) ((const 1))
         (if (lexical x y)
             (lexical x y)
@@ -585,6 +613,253 @@
             (toplevel ref foo)
             (toplevel ref bar) (call call/cc 1)
             (call tail-call 1))))
+
+
+(with-test-prefix "partial evaluation"
+
+  (pass-if-peval
+    ;; First order, primitive.
+    (let ((x 1) (y 2)) (+ x y))
+    (const 3))
+
+  (pass-if-peval
+    ;; First order, aliased primitive.
+    (let* ((x *) (y (x 1 2))) y)
+    (const 2))
+
+  (pass-if-peval
+    ;; First order, shadowed primitive.
+    (begin
+      (define (+ x y) (pk x y))
+      (+ 1 2))
+    (begin
+      (define +
+        (lambda (_)
+          (lambda-case
+           (((x y) #f #f #f () (_ _))
+            (apply (toplevel pk) (lexical x _) (lexical y _))))))
+      (apply (toplevel +) (const 1) (const 2))))
+
+  (pass-if-peval
+    ;; First-order, effects preserved.
+    (let ((x 2))
+      (do-something!)
+      x)
+    (begin
+      (apply (toplevel do-something!))
+      (const 2)))
+
+  (pass-if-peval
+    ;; First order, residual bindings removed.
+    (let ((x 2) (y 3))
+      (* (+ x y) z))
+    (apply (primitive *) (const 5) (toplevel z)))
+
+  (pass-if-peval
+    ;; First order, with lambda.
+    (define (foo x)
+      (define (bar z) (* z z))
+      (+ x (bar 3)))
+    (define foo
+      (lambda (_)
+        (lambda-case
+         (((x) #f #f #f () (_))
+          (letrec* (bar) (_) ((lambda (_) . _))
+                   (apply (primitive +) (lexical x _) (const 9))))))))
+
+  (pass-if-peval
+    ;; First order, with lambda inlined & specialized twice.
+    (let ((f (lambda (x y)
+               (+ (* x top) y)))
+          (x 2)
+          (y 3))
+      (+ (* x (f x y))
+         (f something x)))
+    (let (f) (_) ((lambda (_)
+                    (lambda-case
+                     (((x y) #f #f #f () (_ _))
+                      (apply (primitive +)
+                             (apply (primitive *)
+                                    (lexical x _)
+                                    (toplevel top))
+                             (lexical y _))))))
+         (apply (primitive +)
+                (apply (primitive *)
+                       (const 2)
+                       (apply (primitive +)       ; (f 2 3)
+                              (apply (primitive *)
+                                     (const 2)
+                                     (toplevel top))
+                              (const 3)))
+                (apply (primitive +)              ; (f something 2)
+                       (apply (primitive *)
+                              (toplevel something)
+                              (toplevel top))
+                       (const 2)))))
+
+  (pass-if-peval
+    ;; First order, with lambda inlined & specialized 3 times.
+    (let ((f (lambda (x y) (if (> x 0) y x))))
+      (+ (f -1 x) (f 2 y) (f z y)))
+    (let (f) (_)
+         ((lambda (_)
+            (lambda-case
+             (((x y) #f #f #f () (_ _))
+              (if (apply (primitive >) (lexical x _) (const 0))
+                  (lexical y _)
+                  (lexical x _))))))
+         (apply (primitive +)
+                (const -1)                        ; (f -1 x)
+                (toplevel y)                      ; (f 2 y)
+                (apply (lexical f _)              ; (f z y)
+                       (toplevel z) (toplevel y)))))
+
+  (pass-if-peval
+    ;; First order, conditional.
+    (let ((y 2))
+      (lambda (x)
+        (if (> y 0)
+            (display x)
+            'never-reached)))
+    (lambda ()
+      (lambda-case
+       (((x) #f #f #f () (_))
+        (apply (toplevel display) (lexical x _))))))
+
+  (pass-if-peval
+    ;; First order, recursive procedure.
+    (letrec ((fibo (lambda (n)
+                     (if (<= n 1)
+                         n
+                         (+ (fibo (- n 1))
+                            (fibo (- n 2)))))))
+      (fibo 7))
+    (const 13))
+
+  (pass-if-peval
+    ;; Higher order.
+    ((lambda (f x)
+       (f (* (car x) (cadr x))))
+     (lambda (x)
+       (+ x 1))
+     '(2 3))
+    (const 7))
+
+  (pass-if-peval
+    ;; Higher order with optional argument (default value).
+    ((lambda* (f x #:optional (y 0))
+       (+ y (f (* (car x) (cadr x)))))
+     (lambda (x)
+       (+ x 1))
+     '(2 3))
+    (const 7))
+
+  (pass-if-peval
+    ;; Higher order with optional argument (caller-supplied value).
+    ((lambda* (f x #:optional (y 0))
+       (+ y (f (* (car x) (cadr x)))))
+     (lambda (x)
+       (+ x 1))
+     '(2 3)
+     35)
+    (const 42))
+
+  (pass-if-peval
+    ;; Higher order, mutually recursive procedures.
+    (letrec ((even? (lambda (x)
+                      (or (= 0 x)
+                          (odd? (- x 1)))))
+             (odd?  (lambda (x)
+                      (not (even? (- x 1))))))
+      (and (even? 4) (odd? 7)))
+    (const #t))
+
+  ;;
+  ;; Below are cases where constant propagation should bail out.
+  ;;
+
+  (pass-if-peval
+    ;; Non-constant lexical is not propagated.
+    (let ((v (make-vector 6 #f)))
+      (lambda (n)
+        (vector-set! v n n)))
+    (let (v) (_)
+         ((apply (toplevel make-vector) (const 6) (const #f)))
+         (lambda ()
+           (lambda-case
+            (((n) #f #f #f () (_))
+             (apply (toplevel vector-set!)
+                    (lexical v _) (lexical n _) (lexical n _)))))))
+
+  (pass-if-peval
+    ;; Lexical that is not provably pure is not inlined nor propagated.
+    (let* ((x (if (> p q) (frob!) (display 'chbouib)))
+           (y (* x 2)))
+      (+ x x y))
+    (let (x) (_) ((if (apply (primitive >) (toplevel p) (toplevel q))
+                      (apply (toplevel frob!))
+                      (apply (toplevel display) (const chbouib))))
+         (let (y) (_) ((apply (primitive *) (lexical x _) (const 2)))
+              (apply (primitive +) (lexical x _) (lexical x _)
+                     (apply (primitive *) (lexical x _) (const 2))))))
+
+  (pass-if-peval
+    ;; Procedure only called with non-constant args is not inlined.
+    (let* ((g (lambda (x y) (+ x y)))
+           (f (lambda (g x) (g x x))))
+      (+ (f g foo) (f g bar)))
+    (let (g) (_)
+         ((lambda _                              ; g
+             (lambda-case
+              (((x y) #f #f #f () (_ _))
+               (apply (primitive +) (lexical x _) (lexical y _))))))
+         (let (f) (_)
+              ((lambda _                         ; f
+                 (lambda-case
+                  (((g x) #f #f #f () (_ _))
+                   (apply (lexical g _) (lexical x _) (lexical x _))))))
+              (apply (primitive +)
+                     (apply (lexical g _) (toplevel foo) (toplevel foo))
+                     (apply (lexical g _) (toplevel bar) (toplevel bar))))))
+
+  (pass-if-peval
+    ;; Bindings mutated.
+    (let ((x 2))
+      (set! x 3)
+      x)
+    (let (x) (_) ((const 2))
+         (begin
+           (set! (lexical x _) (const 3))
+           (lexical x _))))
+
+  (pass-if-peval
+    ;; Bindings mutated.
+    (letrec ((x 0)
+             (f (lambda ()
+                  (set! x (+ 1 x))
+                  x)))
+      (frob f) ; may mutate `x'
+      x)
+    (letrec (x f) (_ _) ((const 0) _)
+            (begin
+             (apply (toplevel frob) (lexical f _))
+             (lexical x _))))
+
+  (pass-if-peval
+    ;; Bindings mutated.
+    (letrec ((f (lambda (x)
+                  (set! f (lambda (_) x))
+                  x)))
+      (f 2))
+    (letrec _ . _))
+
+  (pass-if-peval
+    ;; Infinite recursion: `peval' gives up and leaves it as is.
+    (letrec ((f (lambda (x) (g (1- x))))
+             (g (lambda (x) (h (1+ x))))
+             (h (lambda (x) (f x))))
+      (f 0))
+    (letrec _ . _)))
 
 
 (with-test-prefix "tree-il-fold"
