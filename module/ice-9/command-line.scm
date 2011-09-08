@@ -122,8 +122,8 @@ If FILE begins with `-' the -s switch is mandatory.
   -e FUNCTION    after reading script, apply FUNCTION to
                  command line arguments
   -ds            do -s script at this point
-  --debug        start with debugging evaluator and backtraces
-  --no-debug     start with normal evaluator
+  --debug        start with the \"debugging\" VM engine
+  --no-debug     start with the normal VM engine, which also supports debugging
                  Default is to enable debugging for interactive
                  use, but not for `-s' and `-c'.
   --auto-compile compile source files automatically

@@ -156,6 +156,12 @@ interactive session.  When executing a script with @option{-s} or
 Do not use the debugging VM engine, even when entering an interactive
 session.
 
+Note that, despite the name, Guile running with @option{--no-debug}
+@emph{does} support the usual debugging facilities, such as printing a
+detailed backtrace upon error.  The only difference with
+@option{--debug} is lack of support for VM hooks and the facilities that
+build upon it (see above).
+
 @item -q
 @cindex init file, not loading
 @cindex @file{.guile} file, not loading
