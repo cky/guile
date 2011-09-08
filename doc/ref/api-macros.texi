@@ -24,9 +24,15 @@ macro must appear as the first element, like this:
 @end lisp
 
 @cindex macro expansion
+@cindex domain-specific language
+@cindex embedded domain-specific language
+@cindex DSL
+@cindex EDSL
 Macro expansion is a separate phase of evaluation, run before code is
 interpreted or compiled. A macro is a program that runs on programs, translating
-an embedded language into core Scheme.
+an embedded language into core Scheme@footnote{These days such embedded
+languages are often referred to as @dfn{embedded domain-specific
+languages}, or EDSLs.}.
 
 @menu
 * Defining Macros::             Binding macros, globally and locally.
