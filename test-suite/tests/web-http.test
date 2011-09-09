@@ -89,6 +89,9 @@
   (pass-if-parse date "Tue, 15 Nov 1994 08:12:31 GMT"
                  (string->date "Tue, 15 Nov 1994 08:12:31 +0000"
                                "~a, ~d ~b ~Y ~H:~M:~S ~z"))
+  (pass-if-parse date "Wed, 7 Sep 2011 11:25:00 GMT"
+                 (string->date "Wed, 7 Sep 2011 11:25:00 +0000"
+                               "~a,~e ~b ~Y ~H:~M:~S ~z"))
   (pass-if-parse-error date "Tue, 15 Nov 1994 08:12:31 EST" date)
   (pass-if-any-error date "Tue, 15 Qux 1994 08:12:31 EST")
 

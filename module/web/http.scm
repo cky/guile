@@ -702,15 +702,25 @@ ordered alist."
 ;; 0         1         2
 (define (parse-rfc-822-date str)
   ;; We could verify the day of the week but we don't.
-  (if (not (string-match? str "aaa, dd aaa dddd dd:dd:dd GMT"))
-      (bad-header 'date str))
-  (let ((date (parse-non-negative-integer str 5 7))
-        (month (parse-month str 8 11))
-        (year (parse-non-negative-integer str 12 16))
-        (hour (parse-non-negative-integer str 17 19))
-        (minute (parse-non-negative-integer str 20 22))
-        (second (parse-non-negative-integer str 23 25)))
-    (make-date 0 second minute hour date month year 0)))
+  (cond ((string-match? str "aaa, dd aaa dddd dd:dd:dd GMT")
+         (let ((date (parse-non-negative-integer str 5 7))
+               (month (parse-month str 8 11))
+               (year (parse-non-negative-integer str 12 16))
+               (hour (parse-non-negative-integer str 17 19))
+               (minute (parse-non-negative-integer str 20 22))
+               (second (parse-non-negative-integer str 23 25)))
+           (make-date 0 second minute hour date month year 0)))
+        ((string-match? str "aaa, d aaa dddd dd:dd:dd GMT")
+         (let ((date (parse-non-negative-integer str 5 6))
+               (month (parse-month str 7 10))
+               (year (parse-non-negative-integer str 11 15))
+               (hour (parse-non-negative-integer str 16 18))
+               (minute (parse-non-negative-integer str 19 21))
+               (second (parse-non-negative-integer str 22 24)))
+           (make-date 0 second minute hour date month year 0)))
+        (else
+         (bad-header 'date str)         ; prevent tail call
+         #f)))
 
 ;; RFC 850, updated by RFC 1036
 ;; Sunday, 06-Nov-94 08:49:37 GMT
