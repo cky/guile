@@ -40,8 +40,11 @@
 
     ;; make sure these are compiled so we're not swamped in `eval'
     (define (make-func)
+      ;; Disable partial evaluation so that `(+ i i)' doesn't get
+      ;; stripped.
       (compile '(lambda (n)
-                  (do ((i 0 (+ i 1))) ((= 200 i)) (+ i i)))))
+                  (do ((i 0 (+ i 1))) ((= 200 i)) (+ i i)))
+               #:opts '(#:partial-eval? #f)))
     (define run-test
       (compile '(lambda (num-calls funcs)
                   (let loop ((x num-calls) (funcs funcs))
@@ -50,7 +53,7 @@
                       ((car funcs) x)
                       (loop (- x 1) (cdr funcs))))))))
     
-    (let ((num-calls 20000000)
+    (let ((num-calls 80000)
           (funcs (circular-list (make-func) (make-func) (make-func))))
 
       ;; Run test. 20000 us == 200 Hz.
