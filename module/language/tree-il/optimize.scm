@@ -245,11 +245,12 @@ it should be called before `fix-letrec'."
                  (make-conditional src condition
                                    (loop subsequent env calls)
                                    (loop alternate env calls)))))
-          (($ <application> src proc* args*)
+          (($ <application> src proc* orig-args)
            ;; todo: augment the global env with specialized functions
-           (let* ((proc (loop proc* env calls))
-                  (args (map (cut loop <> env calls) args*))
-                  (app  (make-application src proc args)))
+           (let* ((proc  (loop proc* env calls))
+                  (args  (map (cut loop <> env calls) orig-args))
+                  (args* (map maybe-unconst orig-args args))
+                  (app   (make-application src proc args*)))
              ;; If ARGS are constants and this call hasn't already been
              ;; expanded before (to avoid infinite recursion), then
              ;; expand it (todo: emit an infinite recursion warning.)
@@ -276,7 +277,8 @@ it should be called before `fix-letrec'."
                     (let ((nargs  (length args))
                           (nreq   (length req))
                           (nopt   (if opt (length opt) 0)))
-                      (if (and (>= nargs nreq) (<= nargs (+ nreq nopt)))
+                      (if (and (>= nargs nreq) (<= nargs (+ nreq nopt))
+                               (every pure-expression? args))
                           (loop body
                                 (fold vhash-consq env gensyms
                                       (append args
@@ -299,7 +301,7 @@ it should be called before `fix-letrec'."
                                     (if (lambda? evaled)
                                         raw
                                         evaled))
-                                  args*
+                                  orig-args
                                   args)))
                    (make-application src proc args)))))
           (($ <lambda> src meta body)

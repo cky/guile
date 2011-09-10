@@ -640,11 +640,12 @@
              (apply (primitive cons) (const 2) (const 2))
              (apply (primitive cons) (const 3) (const 3)))))
 
-  ;; FIXME: The test below fails.
-  ;; (pass-if-peval
-  ;;   ;; Mutability preserved.
-  ;;   ((lambda (x y z) (list x y z)) 1 2 3)
-  ;;   (apply (primitive list) (const 1) (const 2) (const 3)))
+  (pass-if-peval
+    ;; Mutability preserved.
+    (define mutable
+      ((lambda (x y z) (list x y z)) 1 2 3))
+    (define mutable
+      (apply (primitive list) (const 1) (const 2) (const 3))))
 
   (pass-if-peval
     ;; First order, evaluated.
@@ -848,6 +849,29 @@
          (let (y) (_) ((apply (primitive *) (lexical x _) (const 2)))
               (apply (primitive +) (lexical x _) (lexical x _)
                      (apply (primitive *) (lexical x _) (const 2))))))
+
+  (pass-if-peval
+    ;; Non-constant arguments not propagated to lambdas.
+    ((lambda (x y z)
+       (vector-set! x 0 0)
+       (set-car! y 0)
+       (set-cdr! z '()))
+     (vector 1 2 3)
+     (make-list 10)
+     (list 1 2 3))
+    (apply (lambda ()
+             (lambda-case
+              (((x y z) #f #f #f () (_ _ _))
+               (begin
+                 (apply (toplevel vector-set!)
+                        (lexical x _) (const 0) (const 0))
+                 (apply (toplevel set-car!)
+                        (lexical y _) (const 0))
+                 (apply (toplevel set-cdr!)
+                        (lexical z _) (const ()))))))
+           (apply (primitive vector) (const 1) (const 2) (const 3))
+           (apply (toplevel make-list) (const 10))
+           (apply (primitive list) (const 1) (const 2) (const 3))))
 
   (pass-if-peval
     ;; Procedure only called with non-constant args is not inlined.
