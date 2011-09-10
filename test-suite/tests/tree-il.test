@@ -614,6 +614,49 @@
     (const 3))
 
   (pass-if-peval
+    ;; First order, coalesced.
+    (cons 0 (cons 1 (cons 2 (list 3 4 5))))
+    (const (0 1 2 3 4 5)))
+
+  (pass-if-peval
+    ;; First order, coalesced, mutability preserved.
+    (define mutable
+      (cons 0 (cons 1 (cons 2 (list 3 4 5)))))
+    (define mutable
+      ;; This must not be a constant.
+      (apply (primitive list)
+             (const 0) (const 1) (const 2) (const 3) (const 4) (const 5))))
+
+  (pass-if-peval
+    ;; First order, mutability preserved.
+    (define mutable
+      (let loop ((i 3) (r '()))
+        (if (zero? i)
+            r
+            (loop (1- i) (cons (cons i i) r)))))
+    (define mutable
+      (apply (primitive list)
+             (apply (primitive cons) (const 1) (const 1))
+             (apply (primitive cons) (const 2) (const 2))
+             (apply (primitive cons) (const 3) (const 3)))))
+
+  ;; FIXME: The test below fails.
+  ;; (pass-if-peval
+  ;;   ;; Mutability preserved.
+  ;;   ((lambda (x y z) (list x y z)) 1 2 3)
+  ;;   (apply (primitive list) (const 1) (const 2) (const 3)))
+
+  (pass-if-peval
+    ;; First order, evaluated.
+    (define one
+      (let loop ((i 7)
+                 (r '()))
+        (if (<= i 0)
+            (car r)
+            (loop (1- i) (cons i r)))))
+    (define one (const 1)))
+
+  (pass-if-peval
     ;; First order, aliased primitive.
     (let* ((x *) (y (x 1 2))) y)
     (const 2))
@@ -783,6 +826,18 @@
                     (lexical v _) (lexical n _) (lexical n _)))))))
 
   (pass-if-peval
+    ;; Mutable lexical is not propagated.
+    (let ((v (vector 1 2 3)))
+      (lambda ()
+        v))
+    (let (v) (_)
+         ((apply (primitive vector) (const 1) (const 2) (const 3)))
+         (lambda ()
+           (lambda-case
+            ((() #f #f #f () ())
+             (lexical v _))))))
+
+  (pass-if-peval
     ;; Lexical that is not provably pure is not inlined nor propagated.
     (let* ((x (if (> p q) (frob!) (display 'chbouib)))
            (y (* x 2)))
@@ -814,6 +869,16 @@
                      (apply (lexical g _) (toplevel bar) (toplevel bar))))))
 
   (pass-if-peval
+    ;; Fresh objects are not turned into constants.
+    (let* ((c '(2 3))
+           (x (cons 1 c))
+           (y (cons 0 x)))
+      y)
+    (let (x) (_) ((apply (primitive list) (const 1) (const 2) (const 3)))
+         (let (y) (_) ((apply (primitive cons) (const 0) (lexical x _)))
+              (lexical y _))))
+
+  (pass-if-peval
     ;; Bindings mutated.
     (let ((x 2))
       (set! x 3)
@@ -843,6 +908,16 @@
                   x)))
       (f 2))
     (letrec _ . _))
+
+  (pass-if-peval
+    ;; Bindings possibly mutated.
+    (let ((x (make-foo)))
+      (frob! x) ; may mutate `x'
+      x)
+    (let (x) (_) ((apply (toplevel make-foo)))
+         (begin
+           (apply (toplevel frob!) (lexical x _))
+           (lexical x _))))
 
   (pass-if-peval
     ;; Infinite recursion: `peval' gives up and leaves it as is.

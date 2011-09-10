@@ -88,8 +88,11 @@ it should be called before `fix-letrec'."
         (values #f '()))))
 
   (define (make-values src values)
-    (make-application src (make-primitive-ref src 'values)
-                      (map (cut make-const src <>) values)))
+    (match values
+      ((single) single)                           ; 1 value
+      ((_ ...)                                    ; 0, or 2 or more values
+       (make-application src (make-primitive-ref src 'values)
+                         values))))
 
   (define (const*? x)
     (or (const? x) (lambda? x) (void? x)))
@@ -124,6 +127,53 @@ it should be called before `fix-letrec'."
          (and (every loop vals) (loop body)))
         (_ #f))))
 
+  (define (mutable? exp)
+    ;; Return #t if EXP is a mutable object.
+    ;; todo: add an option to assume pairs are immutable
+    (or (pair? exp)
+        (vector? exp)
+        (struct? exp)
+        (string? exp)))
+
+  (define (make-value-construction src exp)
+    ;; Return an expression that builds a fresh copy of EXP at run-time,
+    ;; or #f.
+    (let loop ((exp exp))
+      (match exp
+        ((_ _ ...)                                 ; non-empty proper list
+         (let ((args (map loop exp)))
+           (and (every struct? args)
+                (make-application src (make-primitive-ref src 'list)
+                                  args))))
+        ((h . (? (negate pair?) t))                ; simple pair
+         (let ((h (loop h))
+               (t (loop t)))
+           (and h t
+                (make-application src (make-primitive-ref src 'cons)
+                                  (list h t)))))
+        ((? vector?)                               ; vector
+         (let ((args (map loop (vector->list exp))))
+           (and (every struct? args)
+                (make-application src (make-primitive-ref src 'vector)
+                                  args))))
+        ((? number?) (make-const src exp))
+        ((? string?) (make-const src exp))
+        ((? symbol?) (make-const src exp))
+        ;((? bytevector?) (make-const src exp))
+        (_ #f))))
+
+  (define (maybe-unconst orig new)
+    ;; If NEW is a constant, change it to a non-constant if need be.
+    ;; Expressions that build a mutable object, such as `(list 1 2)',
+    ;; must not be replaced by a constant; this procedure "undoes" the
+    ;; change from `(list 1 2)' to `'(1 2)'.
+    (match new
+      (($ <const> src (? mutable? value))
+       (if (equal? new orig)
+           new
+           (or (make-value-construction src value) orig)))
+      (_ new)))
+
   (catch 'match-error
     (lambda ()
       (let loop ((exp   exp)
@@ -142,11 +192,13 @@ it should be called before `fix-letrec'."
            (let ((val (lookup gensym)))
              (or (and (pure-expression? val) val) exp)))
           (($ <let> src names gensyms vals body)
-           (let* ((vals (map (cut loop <> env calls) vals))
-                  (body (loop body
-                              (fold vhash-consq env gensyms vals)
-                              calls)))
-             (if (const? body)
+           (let* ((vals* (map (cut loop <> env calls) vals))
+                  (vals  (map maybe-unconst vals vals*))
+                  (body* (loop body
+                               (fold vhash-consq env gensyms vals)
+                               calls))
+                  (body  (maybe-unconst body body*)))
+             (if (const? body*)
                  body
                  (let*-values (((stripped) (remove (compose const? car)
                                                    (zip vals gensyms names)))
@@ -158,11 +210,13 @@ it should be called before `fix-letrec'."
            ;; Things could be done more precisely when IN-ORDER? but
            ;; it's OK not to do it---at worst we lost an optimization
            ;; opportunity.
-           (let* ((vals (map (cut loop <> env calls) vals))
-                  (body (loop body
+           (let* ((vals* (map (cut loop <> env calls) vals))
+                  (vals  (map maybe-unconst vals vals*))
+                  (body* (loop body
                               (fold vhash-consq env gensyms vals)
-                              calls)))
-             (if (const? body)
+                              calls))
+                  (body  (maybe-unconst body body*)))
+             (if (const? body*)
                  body
                  (make-letrec src in-order? names gensyms vals body))))
           (($ <toplevel-ref> src (? effect-free-primitive? name))
@@ -177,7 +231,8 @@ it should be called before `fix-letrec'."
           (($ <module-ref>)
            exp)
           (($ <toplevel-define> src name exp)
-           (make-toplevel-define src name (loop exp env '())))
+           (make-toplevel-define src name
+                                 (maybe-unconst exp (loop exp env '()))))
           (($ <primitive-ref>)
            exp)
           (($ <conditional> src condition subsequent alternate)
@@ -207,11 +262,8 @@ it should be called before `fix-letrec'."
                                       (apply-primitive name
                                                        (map const-exp args))))
                           (if success?
-                              (match values
-                                ((value)
-                                 (make-const src value))
-                                (_
-                                 (make-values src values)))
+                              (make-values src (map (cut make-const src <>)
+                                                    values))
                               app))
                         app))
                    (($ <primitive-ref>)
@@ -254,7 +306,7 @@ it should be called before `fix-letrec'."
            (make-lambda src meta (loop body env calls)))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)
            (make-lambda-case src req opt rest kw inits gensyms
-                             (loop body env calls)
+                             (maybe-unconst body (loop body env calls))
                              alt))
           (($ <sequence> src exps)
            (let ((exps (map (cut loop <> env calls) exps)))
