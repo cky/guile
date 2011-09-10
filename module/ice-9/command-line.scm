@@ -331,15 +331,15 @@ If FILE begins with `-' the -s switch is mandatory.
             (parse
              args
              (cons
-              (let ((where (substring arg 8)))
+              (let ((where (substring arg 9)))
                 (cond
                  ((string->number where) ; --listen=PORT
                   => (lambda (port)
                        (if (and (integer? port) (exact? port) (>= port 0))
-                           (error "invalid port for --listen")
                            `(@@ (system repl server)
                                 (spawn-server
-                                 (make-tcp-server-socket #:port ,port))))))
+                                 (make-tcp-server-socket #:port ,port)))
+                           (error "invalid port for --listen"))))
                  ((string-prefix? "/" where) ; --listen=/PATH/TO/SOCKET
                   `(@@ (system repl server)
                        (spawn-server
