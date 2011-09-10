@@ -1779,14 +1779,16 @@ scm_to_latin1_stringn (SCM str, size_t *lenp)
 
   if (scm_i_is_narrow_string (str))
     {
-      if (lenp)
-	*lenp = scm_i_string_length (str);
+      size_t len = scm_i_string_length (str);
 
-      result = scm_strdup (scm_i_string_data (str));
+      if (lenp)
+        *lenp = len;
+
+      result = scm_strndup (scm_i_string_data (str), len);
     }
   else
     result = scm_to_stringn (str, lenp, NULL,
-			     SCM_FAILED_CONVERSION_ERROR);
+                             SCM_FAILED_CONVERSION_ERROR);
 
   return result;
 }

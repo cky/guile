@@ -178,6 +178,13 @@ test_scm_take_u8vector_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-take-u8vector
 TESTS += test-scm-take-u8vector
 
+# test-scm-take-u8vector
+test_scm_to_latin1_string_SOURCES = test-scm-to-latin1-string.c
+test_scm_to_latin1_string_CFLAGS = ${test_cflags}
+test_scm_to_latin1_string_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-scm-to-latin1-string
+TESTS += test-scm-to-latin1-string
+
 if HAVE_SHARED_LIBRARIES
 
 # test-extensions
