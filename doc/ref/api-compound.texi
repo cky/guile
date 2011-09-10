@@ -3207,7 +3207,7 @@ key is typically a constant-time operation.
 
 The VHash programming interface of @code{(ice-9 vlist)} is mostly the same as
 that of association lists found in SRFI-1, with procedure names prefixed by
-@code{vhash-} instead of @code{vlist-} (@pxref{SRFI-1 Association Lists}).
+@code{vhash-} instead of @code{alist-} (@pxref{SRFI-1 Association Lists}).
 
 In addition, vhashes can be manipulated using VList operations:
 
