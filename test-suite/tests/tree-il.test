@@ -800,6 +800,28 @@
     (const 42))
 
   (pass-if-peval
+    ;; Higher order.
+    ((lambda (f) (f x)) (lambda (x) x))
+    (apply (lambda ()
+             (lambda-case
+              (((x) #f #f #f () (_))
+               (lexical x _))))
+           (toplevel x)))
+
+  (pass-if-peval
+    ;; Bug reported at
+    ;; <https://lists.gnu.org/archive/html/bug-guile/2011-09/msg00019.html>.
+    (let ((fold (lambda (f g) (f (g top)))))
+      (fold 1+ (lambda (x) x)))
+    (let (fold) (_) (_)
+         (apply (primitive 1+)
+                (apply (lambda ()
+                         (lambda-case
+                          (((x) #f #f #f () (_))
+                           (lexical x _))))
+                       (toplevel top)))))
+
+  (pass-if-peval
     ;; Higher order, mutually recursive procedures.
     (letrec ((even? (lambda (x)
                       (or (= 0 x)
@@ -874,7 +896,7 @@
            (apply (primitive list) (const 1) (const 2) (const 3))))
 
   (pass-if-peval
-    ;; Procedure only called with non-constant args is not inlined.
+    ;; Procedure only called with dynamic args is not inlined.
     (let* ((g (lambda (x y) (+ x y)))
            (f (lambda (g x) (g x x))))
       (+ (f g foo) (f g bar)))

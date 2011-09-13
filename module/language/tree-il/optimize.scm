@@ -174,6 +174,22 @@ it should be called before `fix-letrec'."
            (or (make-value-construction src value) orig)))
       (_ new)))
 
+  (define (maybe-unlambda orig new env)
+    ;; If NEW is a named lambda and ORIG is what it looked like before
+    ;; partial evaluation, then attempt to replace NEW with a lexical
+    ;; ref, to avoid code duplication.
+    (match new
+      (($ <lambda> src (= (cut assq-ref <> 'name) (? symbol? name))
+          ($ <lambda-case> _ req opt rest kw inits gensyms body))
+       ;; Look for NEW in the current environment, starting from the
+       ;; outermost frame.
+       (or (any (lambda (x)
+                  (and (equal? (cdr x) new)
+                       (make-lexical-ref src name (car x))))
+                (vlist-fold cons '() env))        ; todo: optimize
+           new))
+      (_ new)))
+
   (catch 'match-error
     (lambda ()
       (let loop ((exp   exp)
@@ -245,12 +261,15 @@ it should be called before `fix-letrec'."
                  (make-conditional src condition
                                    (loop subsequent env calls)
                                    (loop alternate env calls)))))
-          (($ <application> src proc* orig-args)
+          (($ <application> src orig-proc orig-args)
            ;; todo: augment the global env with specialized functions
-           (let* ((proc  (loop proc* env calls))
+           (let* ((proc  (loop orig-proc env calls))
+                  (proc* (maybe-unlambda orig-proc proc env))
                   (args  (map (cut loop <> env calls) orig-args))
-                  (args* (map maybe-unconst orig-args args))
-                  (app   (make-application src proc args*)))
+                  (args* (map (cut maybe-unlambda <> <> env)
+                              orig-args
+                              (map maybe-unconst orig-args args)))
+                  (app   (make-application src proc* args*)))
              ;; If at least one of ARGS is static (to avoid infinite
              ;; inlining) and this call hasn't already been expanded
              ;; before (to avoid infinite recursion), then expand it
@@ -294,17 +313,7 @@ it should be called before `fix-letrec'."
                    (($ <toplevel-ref>)
                     app))
 
-                 ;; There are no constant arguments, so don't substitute
-                 ;; lambdas---i.e., prefer (lexical f) over an inline
-                 ;; copy of `f'.
-                 (let ((proc (if (lambda? proc) proc* proc))
-                       (args (map (lambda (raw evaled)
-                                    (if (lambda? evaled)
-                                        raw
-                                        evaled))
-                                  orig-args
-                                  args)))
-                   (make-application src proc args)))))
+                 app)))
           (($ <lambda> src meta body)
            (make-lambda src meta (loop body env calls)))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)
