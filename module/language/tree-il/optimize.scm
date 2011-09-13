@@ -274,7 +274,7 @@ it should be called before `fix-letrec'."
              ;; inlining) and this call hasn't already been expanded
              ;; before (to avoid infinite recursion), then expand it
              ;; (todo: emit an infinite recursion warning.)
-             (if (and (any const*? args)
+             (if (and (or (null? args) (any const*? args))
                       (not (member (cons proc args) calls)))
                  (match proc
                    (($ <primitive-ref> _ (? effect-free-primitive? name))
