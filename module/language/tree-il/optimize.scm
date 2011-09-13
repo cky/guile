@@ -34,18 +34,18 @@
   (let ((peval (match (memq #:partial-eval? opts)
                  ((#:partial-eval? #f _ ...)
                   ;; Disable partial evaluation.
-                  identity)
+                  (lambda (x e) x))
                  (_ peval))))
    (inline!
     (fix-letrec!
-     (peval
-      (expand-primitives!
-       (resolve-primitives! x env)))))))
+     (peval (expand-primitives! (resolve-primitives! x env))
+            env)))))
 
-(define* (peval exp #:optional (env vlist-null))
-  "Partially evaluate EXP in top-level environment ENV and return the
-resulting expression.  Since it does not handle <fix> and <let-values>,
-it should be called before `fix-letrec'."
+(define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
+  "Partially evaluate EXP in compilation environment CENV, with
+top-level bindings from ENV and return the resulting expression.  Since
+it does not handle <fix> and <let-values>, it should be called before
+`fix-letrec'."
 
   ;; This is a simple partial evaluator.  It effectively performs
   ;; constant folding, copy propagation, dead code elimination, and
@@ -237,11 +237,9 @@ it should be called before `fix-letrec'."
                  body
                  (make-letrec src in-order? names gensyms vals body))))
           (($ <toplevel-ref> src (? effect-free-primitive? name))
-           (if (and (not (local-toplevel? name))
-                    (eq? (module-ref (current-module) name #f)
-                         (module-ref the-scm-module name)))
-               (make-primitive-ref src name)
-               exp))
+           (if (local-toplevel? name)
+               exp
+               (resolve-primitives! exp cenv)))
           (($ <toplevel-ref>)
            ;; todo: open private local bindings.
            exp)
