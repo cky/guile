@@ -944,6 +944,37 @@
            (lexical x _))))
 
   (pass-if-peval
+    ;; Inlining stops at recursive calls with dynamic arguments.
+    (let loop ((x x))
+      (if (< x 0) x (loop (1- x))))
+    (letrec (loop) (_) ((lambda (_)
+                          (lambda-case
+                           (((x) #f #f #f () (_))
+                            (if _ _
+                                (apply (lexical loop _)
+                                       (apply (primitive 1-)
+                                              (lexical x _))))))))
+            (apply (lexical loop _) (toplevel x))))
+
+  (pass-if-peval
+    ;; Inlining stops at recursive calls (mixed static/dynamic arguments).
+    (let loop ((x x) (y 0))
+      (if (> y 0)
+          (loop (1+ x) (1+ y))
+          (if (< x 0) x (loop (1- x)))))
+    (letrec (loop) (_) ((lambda (_)
+                          (lambda-case
+                           (((x y) #f #f #f () (_ _))
+                            (if (apply (primitive >)
+                                       (lexical y _) (const 0))
+                                _ _)))))
+            ;; call to (loop x 0) is inlined & specialized
+            (if (apply (primitive <) (toplevel x) (const 0))
+                (toplevel x)
+                (apply (lexical loop _)
+                       (apply (primitive 1-) (toplevel x))))))
+
+  (pass-if-peval
     ;; Infinite recursion: `peval' gives up and leaves it as is.
     (letrec ((f (lambda (x) (g (1- x))))
              (g (lambda (x) (h (1+ x))))

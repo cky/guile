@@ -251,9 +251,10 @@ it should be called before `fix-letrec'."
                   (args  (map (cut loop <> env calls) orig-args))
                   (args* (map maybe-unconst orig-args args))
                   (app   (make-application src proc args*)))
-             ;; If ARGS are constants and this call hasn't already been
-             ;; expanded before (to avoid infinite recursion), then
-             ;; expand it (todo: emit an infinite recursion warning.)
+             ;; If at least one of ARGS is static (to avoid infinite
+             ;; inlining) and this call hasn't already been expanded
+             ;; before (to avoid infinite recursion), then expand it
+             ;; (todo: emit an infinite recursion warning.)
              (if (and (any const*? args)
                       (not (member (cons proc args) calls)))
                  (match proc
