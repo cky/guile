@@ -99,8 +99,9 @@ it should be called before `fix-letrec'."
 
   (define (pure-expression? x)
     ;; Return true if X is pure---i.e., if it is known to have no
-    ;; effects and does not allocate new storage.  Note: <module-ref> is
-    ;; not "pure" because it loads a module as a side-effect.
+    ;; effects and does not allocate storage for a mutable object.
+    ;; Note: <module-ref> is not "pure" because it loads a module as a
+    ;; side-effect.
     (let loop ((x x))
       (match x
         (($ <void>) #t)
