@@ -256,7 +256,7 @@ it does not handle <fix> and <let-values>, it should be called before
       (($ <lambda> src ()
           (and lc ($ <lambda-case>)))
        ;; This is an anonymous lambda that we're going to inline.  The
-       ;; variable allocation process assumes globally unique gensyms to
+       ;; variable allocation process assumes globally unique gensyms, so
        ;; alpha-rename the lambda to avoid any collision with other
        ;; copies of it.
        (make-lambda src '() (alpha-rename lc)))
