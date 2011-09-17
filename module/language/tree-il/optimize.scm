@@ -41,6 +41,70 @@
      (peval (expand-primitives! (resolve-primitives! x env))
             env)))))
 
+
+;;;
+;;; Partial evaluation.
+;;;
+
+(define (alpha-rename exp)
+  "Alpha-rename EXP.  For any lambda in EXP, generate new symbols and
+replace all lexical references to the former symbols with lexical
+references to the new symbols."
+  ;; XXX: This should be factorized somehow.
+  (let loop ((exp     exp)
+             (mapping vlist-null))             ; maps old to new gensyms
+    (match exp
+      (($ <lambda-case> src req opt rest kw inits gensyms body alt)
+       ;; Create new symbols to replace GENSYMS and propagate them down
+       ;; in BODY and ALT.
+       (let* ((new     (map (compose gensym symbol->string) gensyms))
+              (mapping (fold vhash-consq mapping gensyms new)))
+         (make-lambda-case src req opt rest kw inits new
+                           (loop body mapping)
+                           (and alt (loop alt mapping)))))
+      (($ <lexical-ref> src name gensym)
+       ;; Possibly replace GENSYM by the new gensym defined in MAPPING.
+       (let ((val (vhash-assq gensym mapping)))
+         (if val
+             (make-lexical-ref src name (cdr val))
+             exp)))
+      (($ <lambda> src meta body)
+       (make-lambda src meta (loop body mapping)))
+      (($ <let> src names gensyms vals body)
+       ;; As for `lambda-case' rename GENSYMS to avoid any collision.
+       (let* ((new     (map (compose gensym symbol->string) gensyms))
+              (mapping (fold vhash-consq mapping gensyms new))
+              (vals    (map (cut loop <> mapping) vals))
+              (body    (loop body mapping)))
+         (make-let src names new vals body)))
+      (($ <letrec> src in-order? names gensyms vals body)
+       ;; Likewise.
+       (let* ((new     (map (compose gensym symbol->string) gensyms))
+              (mapping (fold vhash-consq mapping gensyms new))
+              (vals    (map (cut loop <> mapping) vals))
+              (body    (loop body mapping)))
+         (make-letrec src in-order? names new vals body)))
+      (($ <const>)
+       exp)
+      (($ <void>)
+       exp)
+      (($ <toplevel-ref>)
+       exp)
+      (($ <module-ref>)
+       exp)
+      (($ <primitive-ref>)
+       exp)
+      (($ <conditional> src condition subsequent alternate)
+       (make-conditional src
+                         (loop condition mapping)
+                         (loop subsequent mapping)
+                         (loop alternate mapping)))
+      (($ <application> src proc args)
+       (make-application src (loop proc mapping)
+                         (map (cut loop <> mapping) args)))
+      (($ <sequence> src exps)
+       (make-sequence src (map (cut loop <> mapping) exps))))))
+
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
   "Partially evaluate EXP in compilation environment CENV, with
 top-level bindings from ENV and return the resulting expression.  Since
@@ -189,6 +253,13 @@ it does not handle <fix> and <let-values>, it should be called before
                        (make-lexical-ref src name (car x))))
                 (vlist-fold cons '() env))        ; todo: optimize
            new))
+      (($ <lambda> src ()
+          (and lc ($ <lambda-case>)))
+       ;; This is an anonymous lambda that we're going to inline.  The
+       ;; variable allocation process assumes globally unique gensyms to
+       ;; alpha-rename the lambda to avoid any collision with other
+       ;; copies of it.
+       (make-lambda src '() (alpha-rename lc)))
       (_ new)))
 
   (catch 'match-error
