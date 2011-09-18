@@ -105,6 +105,34 @@ references to the new symbols."
       (($ <sequence> src exps)
        (make-sequence src (map (cut loop <> mapping) exps))))))
 
+(define (code-contains-calls? body proc lookup)
+  "Return true if BODY contains calls to PROC.  Use LOOKUP to look up
+lexical references."
+  (define exit
+    ;; The exit label.
+    (gensym))
+
+  (catch exit
+    (lambda ()
+      (tree-il-fold (lambda (exp result) result)
+                    (lambda (exp result)
+                      (match exp
+                        (($ <application> _
+                            (and ref ($ <lexical-ref> _ _ gensym)) _)
+                         (and (or (equal? ref proc)
+                                  (equal? (lookup gensym) proc))
+                              (throw exit #t)))
+                        (($ <application>
+                            (and proc* ($ <lambda>)))
+                         (and (equal? proc* proc)
+                              (throw exit #t)))
+                        (_ #f)))
+                    (lambda (exp result) result)
+                    #f
+                    body))
+    (lambda (_ result)
+      result)))
+
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
   "Partially evaluate EXP in compilation environment CENV, with
 top-level bindings from ENV and return the resulting expression.  Since
@@ -369,14 +397,21 @@ it does not handle <fix> and <let-values>, it should be called before
                           (nopt   (if opt (length opt) 0)))
                       (if (and (>= nargs nreq) (<= nargs (+ nreq nopt))
                                (every pure-expression? args))
-                          (loop body
-                                (fold vhash-consq env gensyms
-                                      (append args
-                                              (drop inits
-                                                    (max 0
-                                                         (- nargs
-                                                            (+ nreq nopt))))))
-                                (cons (cons proc args) calls))
+                          (let* ((params
+                                  (append args
+                                          (drop inits
+                                                (max 0
+                                                     (- nargs
+                                                        (+ nreq nopt))))))
+                                 (body
+                                  (loop body
+                                        (fold vhash-consq env gensyms params)
+                                        (cons (cons proc args) calls))))
+                            ;; If the residual code contains recursive
+                            ;; calls, give up inlining.
+                            (if (code-contains-calls? body proc lookup)
+                                app
+                                body))
                           app)))
                    (($ <lambda>)
                     app)

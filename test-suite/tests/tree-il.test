@@ -829,48 +829,27 @@
                        (toplevel top)))))
 
   (pass-if-peval
-    ;; In this example, the two anonymous lambdas are inlined more than
-    ;; once; thus, they should use different gensyms for their
-    ;; arguments, because the variable allocation process assumes
-    ;; globally unique gensyms.  This test in itself doesn't check that;
-    ;; we rely on the next one to catch any error.
-    ;;
-    ;; Bug reported at
-    ;; <https://lists.gnu.org/archive/html/bug-guile/2011-09/msg00019.html> and
-    ;; <https://lists.gnu.org/archive/html/bug-guile/2011-09/msg00029.html>.
+    ;; Procedure not inlined when residual code contains recursive calls.
+    ;; <http://debbugs.gnu.org/9542>
     (letrec ((fold (lambda (f x3 b null? car cdr)
                      (if (null? x3)
                          b
                          (f (car x3) (fold f (cdr x3) b null? car cdr))))))
       (fold * x 1 zero? (lambda (x1) x1) (lambda (x2) (- x2 1))))
     (letrec (fold) (_) (_)
-            (if (apply (primitive zero?) (toplevel x))
-                (const 1)
-                (apply (primitive *)              ; f
-                       (apply (lambda ()          ; car
-                                (lambda-case
-                                 (((x1) #f #f #f () (_))
-                                  (lexical x1 _))))
-                              (toplevel x))
-                       (apply (lexical fold _)    ; fold
-                              (primitive *)
-                              (apply (lambda ()   ; cdr
-                                       (lambda-case
-                                        (((x2) #f #f #f () (_))
-                                         (apply (primitive -)
-                                                (lexical x2 _) (const 1)))))
-                                     (toplevel x))
-                              (const 1)
-                              (primitive zero?)
-                              (lambda ()          ; car
-                                (lambda-case
-                                 (((x1) #f #f #f () (_))
-                                  (lexical x1 _))))
-                              (lambda ()          ; cdr
-                                (lambda-case
-                                 (((x2) #f #f #f () (_))
-                                  (apply (primitive -)
-                                         (lexical x2 _) (const 1))))))))))
+            (apply (lexical fold _)
+                   (primitive *)
+                   (toplevel x)
+                   (const 1)
+                   (primitive zero?)
+                   (lambda ()
+                     (lambda-case
+                      (((x1) #f #f #f () (_))
+                       (lexical x1 _))))
+                   (lambda ()
+                     (lambda-case
+                      (((x2) #f #f #f () (_))
+                       (apply (primitive -) (lexical x2 _) (const 1))))))))
 
   (pass-if "inlined lambdas are alpha-renamed"
     ;; In this example, the two anonymous lambdas are inlined more than
@@ -1077,7 +1056,17 @@
             (apply (lexical loop _) (toplevel x))))
 
   (pass-if-peval
-    ;; Inlining stops at recursive calls (mixed static/dynamic arguments).
+    ;; Recursion on the 2nd argument is fully evaluated.
+    (let loop ((x x) (y 10))
+      (if (> y 0)
+          (loop x (1- y))
+          (foo x y)))
+    (letrec (loop) (_) (_)
+            (apply (toplevel foo) (toplevel x) (const 0))))
+
+  (pass-if-peval
+    ;; Inlining aborted when residual code contains recursive calls.
+    ;; <http://debbugs.gnu.org/9542>
     (let loop ((x x) (y 0))
       (if (> y 0)
           (loop (1+ x) (1+ y))
@@ -1088,11 +1077,7 @@
                             (if (apply (primitive >)
                                        (lexical y _) (const 0))
                                 _ _)))))
-            ;; call to (loop x 0) is inlined & specialized
-            (if (apply (primitive <) (toplevel x) (const 0))
-                (toplevel x)
-                (apply (lexical loop _)
-                       (apply (primitive 1-) (toplevel x))))))
+            (apply (lexical loop _) (toplevel x) (const 0))))
 
   (pass-if-peval
     ;; Infinite recursion: `peval' gives up and leaves it as is.
