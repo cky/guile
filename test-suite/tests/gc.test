@@ -1,5 +1,6 @@
 ;;;; gc.test --- test guile's garbage collection    -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2004, 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2004, 2006, 2007, 2008, 2009,
+;;;;   2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -46,6 +47,13 @@
 ;;; 
 ;;;
 
+(define (stack-cleanup depth)
+  ;; Clean up stack space for DEPTH words.  This is defined here so that
+  ;; `peval' doesn't inline it.
+  (let cleanup ((i depth))
+    (and (> i 0)
+         (begin (cleanup (1- i)) i))))
+
 (with-test-prefix "gc"
 
   (pass-if "after-gc-hook gets called"
@@ -65,9 +73,7 @@
       (for-each (lambda (x) (guard (make-module))) (iota total))
 
       ;; Avoid false references to the modules on the stack.
-      (let cleanup ((i 20))
-        (and (> i 0)
-             (begin (cleanup (1- i)) i)))
+      (stack-cleanup 20)
 
       (gc)
       (gc) ;; twice: have to kill the weak vectors.
