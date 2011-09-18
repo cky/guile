@@ -873,18 +873,51 @@
                                          (lexical x2 _) (const 1))))))))))
 
   (pass-if "inlined lambdas are alpha-renamed"
-    ;; This one should compile without errors; see above for an
-    ;; explanation.
-    (and (compile
-          '(letrec ((fold (lambda (f x3 b null? car cdr)
-                            (if (null? x3)
-                                b
-                                (f (car x3)
-                                   (fold f (cdr x3) b null? car cdr))))))
-             (fold * x 1 zero? (lambda (x1) x1) (lambda (x2) (- x2 1))))
-          #:opts '(#:partial-eval? #t)
-          #:to 'glil)
-         #t))
+    ;; In this example, the two anonymous lambdas are inlined more than
+    ;; once; thus, they should use different gensyms for their
+    ;; arguments, because the variable allocation process assumes
+    ;; globally unique gensyms.
+    ;;
+    ;; Bug reported at
+    ;; <https://lists.gnu.org/archive/html/bug-guile/2011-09/msg00019.html> and
+    ;; <https://lists.gnu.org/archive/html/bug-guile/2011-09/msg00029.html>.
+    (pmatch (unparse-tree-il
+             (peval (compile
+                     '(let ((f (lambda (g x)
+                                 (+ (g x) (g (+ x 1))))))
+                        (f (lambda (x0) (* x0 x0)) y))
+                     #:to 'tree-il)))
+      ((let (f) (_)
+            ((lambda ((name . f))
+               (lambda-case
+                (((g x) #f #f #f () (_ _))
+                 (apply (primitive +)
+                        (apply (lexical g _) (lexical x _))
+                        (apply (lexical g _)
+                               (apply (primitive +)
+                                      (lexical x _) (const 1))))))))
+            (apply (primitive +)
+                   (apply (lambda ()
+                            (lambda-case
+                             (((x0) #f #f #f () (,gensym1))
+                              (apply (primitive *)
+                                     (lexical x0 ,ref1a)
+                                     (lexical x0 ,ref1b)))))
+                          (toplevel y))
+                   (apply (lambda ()
+                            (lambda-case
+                             (((x0) #f #f #f () (,gensym2))
+                              (apply (primitive *)
+                                     (lexical x0 ,ref2a)
+                                     (lexical x0 ,ref2b)))))
+                          (apply (primitive +)
+                                 (toplevel y) (const 1)))))
+       (and (eq? gensym1 ref1a)
+            (eq? gensym1 ref1b)
+            (eq? gensym2 ref2a)
+            (eq? gensym2 ref2b)
+            (not (eq? gensym1 gensym2))))
+      (_ #f)))
 
   (pass-if-peval
     ;; Higher order, mutually recursive procedures.
