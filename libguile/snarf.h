@@ -372,7 +372,7 @@ SCM_SNARF_INIT(scm_set_smob_apply((tag), (c_name), (req), (opt), (rest));)
     SCM_PACK (0),                                                       \
     foreign,                                                            \
     SCM_BOOL_F, /* the name */                                          \
-  };									\
+  }
 
 #define SCM_STATIC_PROGRAM(c_name, objcode, objtable, freevars)         \
   static SCM_ALIGNED (8) SCM_UNUSED SCM                                 \
