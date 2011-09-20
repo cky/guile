@@ -139,6 +139,13 @@ lexical references."
        (_ #f)))
    body))
 
+(define (vlist-any proc vlist)
+  (let ((len (vlist-length vlist)))
+    (let lp ((i 0))
+      (and (< i len)
+           (or (proc (vlist-ref vlist i))
+               (lp (1+ i)))))))
+
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
   "Partially evaluate EXP in compilation environment CENV, with
 top-level bindings from ENV and return the resulting expression.  Since
@@ -282,10 +289,10 @@ it does not handle <fix> and <let-values>, it should be called before
           ($ <lambda-case> _ req opt rest kw inits gensyms body))
        ;; Look for NEW in the current environment, starting from the
        ;; outermost frame.
-       (or (any (lambda (x)
-                  (and (equal? (cdr x) new)
-                       (make-lexical-ref src name (car x))))
-                (vlist-fold cons '() env))        ; todo: optimize
+       (or (vlist-any (lambda (x)
+                        (and (equal? (cdr x) new)
+                             (make-lexical-ref src name (car x))))
+                      env)
            new))
       (($ <lambda> src ()
           (and lc ($ <lambda-case>)))
