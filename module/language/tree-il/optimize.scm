@@ -105,33 +105,39 @@ references to the new symbols."
       (($ <sequence> src exps)
        (make-sequence src (map (cut loop <> mapping) exps))))))
 
+(define-syntax-rule (let/ec k e e* ...)
+  (let ((tag (make-prompt-tag)))
+    (call-with-prompt
+     tag
+     (lambda ()
+       (let ((k (lambda args (apply abort-to-prompt tag args))))
+         e e* ...))
+     (lambda (_ res) res))))
+
+(define (tree-il-any proc exp)
+  (let/ec k
+    (tree-il-fold (lambda (exp res) #f)
+                  (lambda (exp res)
+                    (let ((res (proc exp)))
+                      (if res (k res) #f)))
+                  (lambda (exp res) #f)
+                  #f exp)))
+
 (define (code-contains-calls? body proc lookup)
   "Return true if BODY contains calls to PROC.  Use LOOKUP to look up
 lexical references."
-  (define exit
-    ;; The exit label.
-    (gensym))
-
-  (catch exit
-    (lambda ()
-      (tree-il-fold (lambda (exp result) result)
-                    (lambda (exp result)
-                      (match exp
-                        (($ <application> _
-                            (and ref ($ <lexical-ref> _ _ gensym)) _)
-                         (and (or (equal? ref proc)
-                                  (equal? (lookup gensym) proc))
-                              (throw exit #t)))
-                        (($ <application>
-                            (and proc* ($ <lambda>)))
-                         (and (equal? proc* proc)
-                              (throw exit #t)))
-                        (_ #f)))
-                    (lambda (exp result) result)
-                    #f
-                    body))
-    (lambda (_ result)
-      result)))
+  (tree-il-any
+   (lambda (exp)
+     (match exp
+       (($ <application> _
+           (and ref ($ <lexical-ref> _ _ gensym)) _)
+        (or (equal? ref proc)
+            (equal? (lookup gensym) proc)))
+       (($ <application>
+           (and proc* ($ <lambda>)))
+        (equal? proc* proc))
+       (_ #f)))
+   body))
 
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
   "Partially evaluate EXP in compilation environment CENV, with
