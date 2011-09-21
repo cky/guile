@@ -320,6 +320,7 @@ it does not handle <fix> and <let-values>, it should be called before
         (($ <lexical-ref>) #t)
         (($ <toplevel-ref>) #t)
         (($ <primitive-ref>) #t)
+        (($ <dynref> _ fluid) (loop fluid))
         (($ <conditional> _ condition subsequent alternate)
          (and (loop condition) (loop subsequent) (loop alternate)))
         (($ <application> _ ($ <primitive-ref> _ name) args)
@@ -334,6 +335,10 @@ it does not handle <fix> and <let-values>, it should be called before
          (and (every loop vals) (loop body)))
         (($ <letrec> _ _ _ _ vals body)
          (and (every loop vals) (loop body)))
+        (($ <fix> _ _ _ vals body)
+         (and (every loop vals) (loop body)))
+        (($ <let-values> _ exp body)
+         (and (loop exp) (loop body)))
         (_ #f))))
 
   (define (mutable? exp)
