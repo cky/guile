@@ -404,10 +404,9 @@ it does not handle <fix> and <let-values>, it should be called before
            new))
       (($ <lambda> src ()
           (and lc ($ <lambda-case>)))
-       ;; This is an anonymous lambda that we're going to inline.  The
-       ;; variable allocation process assumes globally unique gensyms, so
-       ;; alpha-rename the lambda to avoid any collision with other
-       ;; copies of it.
+       ;; This is an anonymous lambda that we're going to inline.
+       ;; Inlining creates new variable bindings, so we need to provide
+       ;; the new code with fresh names.
        (make-lambda src '() (alpha-rename lc)))
       (_ new)))
 
