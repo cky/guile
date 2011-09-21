@@ -28,7 +28,7 @@
   #:export (resolve-primitives! add-interesting-primitive!
             expand-primitives!
             effect-free-primitive? effect+exception-free-primitive?
-            constructor-primitive?))
+            constructor-primitive? singly-valued-primitive?))
 
 (define *interesting-primitive-names* 
   '(apply @apply
@@ -146,8 +146,55 @@
     list vector
     struct?))
 
+;; Primitives that only return one value.
+(define *singly-valued-primitives* 
+  '(eq? eqv? equal?
+    memq memv
+    = < > <= >= zero?
+    + * - / 1- 1+ quotient remainder modulo
+    ash logand logior logxor
+    not
+    pair? null? list? symbol? vector? acons cons cons*
+    list vector
+    car cdr
+    set-car! set-cdr!
+    caar cadr cdar cddr
+    caaar caadr cadar caddr cdaar cdadr cddar cdddr
+    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
+    vector-ref vector-set!
+    variable-ref variable-set!
+    variable-bound?
+    fluid-ref fluid-set!
+    make-prompt-tag
+    struct? struct-vtable make-struct struct-ref struct-set!
+    bytevector-u8-ref bytevector-u8-set!
+    bytevector-s8-ref bytevector-s8-set!
+    u8vector-ref u8vector-set! s8vector-ref s8vector-set!
+    bytevector-u16-ref bytevector-u16-set!
+    bytevector-u16-native-ref bytevector-u16-native-set!
+    bytevector-s16-ref bytevector-s16-set!
+    bytevector-s16-native-ref bytevector-s16-native-set!
+    u16vector-ref u16vector-set! s16vector-ref s16vector-set!
+    bytevector-u32-ref bytevector-u32-set!
+    bytevector-u32-native-ref bytevector-u32-native-set!
+    bytevector-s32-ref bytevector-s32-set!
+    bytevector-s32-native-ref bytevector-s32-native-set!
+    u32vector-ref u32vector-set! s32vector-ref s32vector-set!
+    bytevector-u64-ref bytevector-u64-set!
+    bytevector-u64-native-ref bytevector-u64-native-set!
+    bytevector-s64-ref bytevector-s64-set!
+    bytevector-s64-native-ref bytevector-s64-native-set!
+    u64vector-ref u64vector-set! s64vector-ref s64vector-set!
+    bytevector-ieee-single-ref bytevector-ieee-single-set!
+    bytevector-ieee-single-native-ref bytevector-ieee-single-native-set!
+    bytevector-ieee-double-ref bytevector-ieee-double-set!
+    bytevector-ieee-double-native-ref bytevector-ieee-double-native-set!
+    f32vector-ref f32vector-set! f64vector-ref f64vector-set!))
+
 (define *effect-free-primitive-table* (make-hash-table))
 (define *effect+exceptions-free-primitive-table* (make-hash-table))
+(define *singly-valued-primitive-table* (make-hash-table))
 
 (for-each (lambda (x)
             (hashq-set! *effect-free-primitive-table* x #t))
@@ -155,6 +202,9 @@
 (for-each (lambda (x) 
             (hashq-set! *effect+exceptions-free-primitive-table* x #t))
           *effect+exception-free-primitives*)
+(for-each (lambda (x) 
+            (hashq-set! *singly-valued-primitive-table* x #t))
+          *singly-valued-primitives*)
 
 (define (constructor-primitive? prim)
   (memq prim *primitive-constructors*))
@@ -162,6 +212,8 @@
   (hashq-ref *effect-free-primitive-table* prim))
 (define (effect+exception-free-primitive? prim)
   (hashq-ref *effect+exceptions-free-primitive-table* prim))
+(define (singly-valued-primitive? prim)
+  (hashq-ref *singly-valued-primitive-table* prim))
 
 (define (resolve-primitives! x mod)
   (post-order!
