@@ -192,6 +192,74 @@ it does not handle <fix> and <let-values>, it should be called before
       (lambda _
         (values #f '()))))
 
+  (define (inline-values exp src names gensyms body)
+    (let loop ((exp exp))
+      (match exp
+        ;; Some expression types are always singly-valued.
+        ((or ($ <const>)
+             ($ <void>)
+             ($ <lambda>)
+             ($ <lexical-ref>)
+             ($ <toplevel-ref>)
+             ($ <module-ref>)
+             ($ <primitive-ref>)
+             ($ <dynref>)
+             ($ <toplevel-set>)         ; FIXME: these set! expressions
+             ($ <toplevel-define>)      ; could return zero values in
+             ($ <module-set>))          ; the future
+         (and (= (length names) 1)
+              (make-let src names gensyms (list exp) body)))
+        (($ <application> src
+                ($ <primitive-ref> _ (? singly-valued-primitive? name)))
+         (and (= (length names) 1)
+              (make-let src names gensyms (list exp) body)))
+
+        ;; Statically-known number of values.
+        (($ <application> src ($ <primitive-ref> _ 'values) vals)
+         (and (= (length names) (length vals))
+              (make-let src names gensyms vals body)))
+
+        ;; Not going to copy code into both branches.
+        (($ <conditional>) #f)
+
+        ;; Bail on other applications.
+        (($ <application>) #f)
+
+        ;; Propagate to tail positions.
+        (($ <let> src names gensyms vals body)
+         (let ((body (loop body)))
+           (and body
+                (make-let src names gensyms vals body))))
+        (($ <letrec> src in-order? names gensyms vals body)
+         (let ((body (loop body)))
+           (and body
+                (make-letrec src in-order? names gensyms vals body))))
+        (($ <fix> src names gensyms vals body)
+         (let ((body (loop body)))
+           (and body
+                (make-fix src names gensyms vals body))))
+        (($ <let-values> src exp
+            ($ <lambda-case> src2 req opt rest kw inits gensyms body #f))
+         (let ((body (loop body)))
+           (and body
+                (make-let-values src exp
+                                 (make-lambda-case src2 req opt rest kw
+                                                   inits gensyms body #f)))))
+        (($ <dynwind> src winder body unwinder)
+         (let ((body (loop body)))
+           (and body
+                (make-dynwind src winder body unwinder))))
+        (($ <dynlet> src fluids vals body)
+         (let ((body (loop body)))
+           (and body
+                (make-dynlet src fluids vals body))))
+        (($ <sequence> src exps)
+         (match exps
+           ((head ... tail)
+            (let ((tail (loop tail)))
+              (and tail
+                   (make-sequence src (append head (list tail)))))))))))
+
   (define (make-values src values)
     (match values
       ((single) single)                           ; 1 value
@@ -358,6 +426,21 @@ it does not handle <fix> and <let-values>, it should be called before
              (if (const? body*)
                  body
                  (make-fix src names gensyms vals body))))
+          (($ <let-values> src producer
+              ($ <lambda-case> src2 req #f #f #f () gensyms body #f))
+           ;; Peval both producer and consumer, then try to inline.  If
+           ;; that succeeds, peval again.
+           (let* ((producer (maybe-unconst producer (loop producer env calls)))
+                  (body (maybe-unconst body (loop body env calls))))
+             (cond
+              ((inline-values producer src2 req gensyms body)
+               => (lambda (exp) (loop exp env calls)))
+              (else
+               (make-let-values
+                src producer
+                (make-lambda-case src2 req #f #f #f '() gensyms body #f))))))
+          (($ <let-values>)
+           exp)
           (($ <dynwind> src winder body unwinder)
            (make-dynwind src (loop winder env calls)
                          (loop body env calls)
@@ -401,6 +484,18 @@ it does not handle <fix> and <let-values>, it should be called before
                  (make-conditional src condition
                                    (loop subsequent env calls)
                                    (loop alternate env calls)))))
+          (($ <application> src
+                ($ <primitive-ref> _ '@call-with-values)
+                (producer
+                 ($ <lambda> _ _
+                    (and consumer
+                         ;; No optional or kwargs.
+                         ($ <lambda-case>
+                            _ req #f rest #f () gensyms body #f)))))
+           (loop (make-let-values src (make-application src producer '())
+                                  consumer)
+                 env calls))
+
           (($ <application> src orig-proc orig-args)
            ;; todo: augment the global env with specialized functions
            (let* ((proc  (loop orig-proc env calls))
