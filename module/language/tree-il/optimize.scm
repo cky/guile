@@ -46,6 +46,10 @@
 ;;; Partial evaluation.
 ;;;
 
+(define (fresh-gensyms syms)
+  (map (lambda (x) (gensym (string-append (symbol->string x) " ")))
+       syms))
+
 (define (alpha-rename exp)
   "Alpha-rename EXP.  For any lambda in EXP, generate new symbols and
 replace all lexical references to the former symbols with lexical
@@ -57,7 +61,11 @@ references to the new symbols."
       (($ <lambda-case> src req opt rest kw inits gensyms body alt)
        ;; Create new symbols to replace GENSYMS and propagate them down
        ;; in BODY and ALT.
-       (let* ((new     (map (compose gensym symbol->string) gensyms))
+       (let* ((new     (fresh-gensyms
+                        (append req
+                                (or opt '())
+                                (if rest (list rest) '())
+                                (if kw (map cadr (cdr kw)) '()))))
               (mapping (fold vhash-consq mapping gensyms new)))
          (make-lambda-case src req opt rest kw inits new
                            (loop body mapping)
@@ -72,14 +80,14 @@ references to the new symbols."
        (make-lambda src meta (loop body mapping)))
       (($ <let> src names gensyms vals body)
        ;; As for `lambda-case' rename GENSYMS to avoid any collision.
-       (let* ((new     (map (compose gensym symbol->string) gensyms))
+       (let* ((new     (fresh-gensyms names))
               (mapping (fold vhash-consq mapping gensyms new))
               (vals    (map (cut loop <> mapping) vals))
               (body    (loop body mapping)))
          (make-let src names new vals body)))
       (($ <letrec> src in-order? names gensyms vals body)
        ;; Likewise.
-       (let* ((new     (map (compose gensym symbol->string) gensyms))
+       (let* ((new     (fresh-gensyms names))
               (mapping (fold vhash-consq mapping gensyms new))
               (vals    (map (cut loop <> mapping) vals))
               (body    (loop body mapping)))
