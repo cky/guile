@@ -465,19 +465,19 @@ it does not handle <fix> and <let-values>, it should be called before
              (if (const? body*)
                  body
                  (make-fix src names gensyms vals body))))
-          (($ <let-values> src producer
-              ($ <lambda-case> src2 req #f #f #f () gensyms body #f))
+          (($ <let-values> lv-src producer
+              ($ <lambda-case> src req #f #f #f () gensyms body #f))
            ;; Peval both producer and consumer, then try to inline.  If
            ;; that succeeds, peval again.
            (let* ((producer (maybe-unconst producer (loop producer env calls)))
-                  (body (maybe-unconst body (loop body env calls))))
+                  (body     (maybe-unconst body (loop body env calls))))
              (cond
-              ((inline-values producer src2 req gensyms body)
+              ((inline-values producer src req gensyms body)
                => (lambda (exp) (loop exp env calls)))
               (else
-               (make-let-values
-                src producer
-                (make-lambda-case src2 req #f #f #f '() gensyms body #f))))))
+               (make-let-values lv-src producer
+                                (make-lambda-case src req #f #f #f '()
+                                                  gensyms body #f))))))
           (($ <let-values>)
            exp)
           (($ <dynwind> src winder body unwinder)
