@@ -26,6 +26,7 @@
   #:use-module (ice-9 vlist)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
   #:use-module (srfi srfi-26)
   #:export (optimize!))
@@ -194,6 +195,39 @@ lexical references."
            (or (proc (vlist-ref vlist i))
                (lp (1+ i)))))))
 
+(define-record-type <var>
+  (make-var name gensym refcount set?)
+  var?
+  (name var-name)
+  (gensym var-gensym)
+  (refcount var-refcount set-var-refcount!)
+  (set? var-set? set-var-set?!))
+
+(define* (build-var-table exp #:optional (table vlist-null))
+  (tree-il-fold
+   (lambda (exp res)
+     (match exp
+       (($ <lexical-ref> src name gensym)
+        (let ((var (vhash-assq gensym res)))
+          (if var
+              (begin
+                (set-var-refcount! (cdr var) (1+ (var-refcount (cdr var))))
+                res)
+              (vhash-consq gensym (make-var name gensym 1 #f) res))))
+       (_ res)))
+   (lambda (exp res)
+     (match exp
+       (($ <lexical-set> src name gensym exp)
+        (let ((var (vhash-assq gensym res)))
+          (if var
+              (begin
+                (set-var-set?! (cdr var) #t)
+                res)
+              (vhash-consq gensym (make-var name gensym 0 #t) res))))
+       (_ res)))
+   (lambda (exp res) res)
+   table exp))
+
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
   "Partially evaluate EXP in compilation environment CENV, with
 top-level bindings from ENV and return the resulting expression.  Since
@@ -227,6 +261,17 @@ it does not handle <fix> and <let-values>, it should be called before
 
   (define (local-toplevel? name)
     (vhash-assq name local-toplevel-env))
+
+  (define var-table (build-var-table exp))
+  (define (record-lexicals! x)
+    (set! var-table (build-var-table x var-table))
+    x)
+  (define (assigned-lexical? sym)
+    (let ((v (vhash-assq sym var-table)))
+      (and v (var-set? (cdr v)))))
+  (define (unreferenced-lexical? sym)
+    (let ((v (vhash-assq sym var-table)))
+      (if v (zero? (var-refcount (cdr v))) #t)))
 
   (define (apply-primitive name args)
     ;; todo: further optimize commutative primitives
