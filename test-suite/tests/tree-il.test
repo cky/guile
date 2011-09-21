@@ -23,6 +23,7 @@
   #:use-module (system base pmatch)
   #:use-module (system base message)
   #:use-module (language tree-il)
+  #:use-module (language tree-il primitives)
   #:use-module (language glil)
   #:use-module (srfi srfi-13))
 
@@ -73,11 +74,19 @@
   (@@ (language tree-il optimize) peval))
 
 (define-syntax pass-if-peval
-  (syntax-rules ()
+  (syntax-rules (resolve-primitives)
     ((_ in pat)
+     (pass-if-peval in pat
+                    (compile 'in #:from 'scheme #:to 'tree-il)))
+    ((_ resolve-primitives in pat)
+     (pass-if-peval in pat
+                    (expand-primitives!
+                     (resolve-primitives!
+                      (compile 'in #:from 'scheme #:to 'tree-il)
+                      (current-module)))))
+    ((_ in pat code)
      (pass-if 'in
-       (let ((evaled (unparse-tree-il
-                      (peval (compile 'in #:from 'scheme #:to 'tree-il)))))
+       (let ((evaled (unparse-tree-il (peval code))))
          (pmatch evaled
            (pat #t)
            (_   (pk 'peval-mismatch evaled) #f)))))))
@@ -618,6 +627,16 @@
     (let ((x 1) (y 2))
       (let ((f (lambda () (+ x y))))
         (f)))
+    (const 3))
+
+  (pass-if-peval resolve-primitives
+    ;; First order, let-values (requires primitive expansion for
+    ;; `call-with-values'.)
+    (let ((x 0))
+      (call-with-values
+          (lambda () (if (zero? x) (values 1 2) (values 3 4)))
+        (lambda (a b)
+          (+ a b))))
     (const 3))
 
   (pass-if-peval
