@@ -450,8 +450,8 @@ it does not handle <fix> and <let-values>, it should be called before
            (let* ((vals* (map (cut loop <> env calls) vals))
                   (vals  (map maybe-unconst vals vals*))
                   (body* (loop body
-                              (fold vhash-consq env gensyms vals)
-                              calls))
+                               (fold vhash-consq env gensyms vals)
+                               calls))
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
@@ -592,7 +592,13 @@ it does not handle <fix> and <let-values>, it should be called before
                    (($ <lambda>)
                     app)
                    (($ <toplevel-ref>)
-                    app))
+                    app)
+                   
+                   ;; In practice, this is the clause that stops peval:
+                   ;; module-ref applications (produced by macros,
+                   ;; typically) don't match, and so this throws,
+                   ;; aborting peval for an entire expression.
+                   )
 
                  app)))
           (($ <lambda> src meta body)
