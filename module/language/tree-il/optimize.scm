@@ -320,6 +320,7 @@ it does not handle <fix> and <let-values>, it should be called before
            ;; Propagate only pure expressions.
            (let ((val (lookup gensym)))
              (or (and (pure-expression? val) val) exp)))
+          ;; Lexical set! causes a bailout.
           (($ <let> src names gensyms vals body)
            (let* ((vals* (map (cut loop <> env calls) vals))
                   (vals  (map maybe-unconst vals vals*))
@@ -348,6 +349,28 @@ it does not handle <fix> and <let-values>, it should be called before
              (if (const? body*)
                  body
                  (make-letrec src in-order? names gensyms vals body))))
+          (($ <fix> src names gensyms vals body)
+           (let* ((vals (map (cut loop <> env calls) vals))
+                  (body* (loop body
+                           (fold vhash-consq env gensyms vals)
+                           calls))
+                  (body  (maybe-unconst body body*)))
+             (if (const? body*)
+                 body
+                 (make-fix src names gensyms vals body))))
+          (($ <dynwind> src winder body unwinder)
+           (make-dynwind src (loop winder env calls)
+                         (loop body env calls)
+                         (loop unwinder env calls)))
+          (($ <dynlet> src fluids vals body)
+           (make-dynlet src
+                        (map maybe-unconst fluids
+                             (map (cut loop <> env calls) fluids))
+                        (map maybe-unconst vals
+                             (map (cut loop <> env calls) vals))
+                        (maybe-unconst body (loop body env calls))))
+          (($ <dynref> src fluid)
+           (make-dynref src (maybe-unconst fluid (loop fluid env calls))))
           (($ <toplevel-ref> src (? effect-free-primitive? name))
            (if (local-toplevel? name)
                exp
@@ -357,9 +380,15 @@ it does not handle <fix> and <let-values>, it should be called before
            exp)
           (($ <module-ref>)
            exp)
+          (($ <module-set> src mod name public? exp)
+           (make-module-set src mod name public?
+                            (maybe-unconst exp (loop exp env '()))))
           (($ <toplevel-define> src name exp)
            (make-toplevel-define src name
                                  (maybe-unconst exp (loop exp env '()))))
+          (($ <toplevel-set> src name exp)
+           (make-toplevel-set src name
+                              (maybe-unconst exp (loop exp env '()))))
           (($ <primitive-ref>)
            exp)
           (($ <conditional> src condition subsequent alternate)
