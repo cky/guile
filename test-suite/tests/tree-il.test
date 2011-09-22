@@ -89,7 +89,17 @@
        (let ((evaled (unparse-tree-il (peval code))))
          (pmatch evaled
            (pat #t)
-           (_   (pk 'peval-mismatch evaled) #f)))))))
+           (_   (pk 'peval-mismatch)
+                ((@ (ice-9 pretty-print) pretty-print)
+                    'in)
+                (newline)
+                ((@ (ice-9 pretty-print) pretty-print)
+                    evaled)
+                (newline)
+                ((@ (ice-9 pretty-print) pretty-print)
+                    'pat)
+                (newline)
+                #f)))))))
 
 
 (with-test-prefix "tree-il->scheme"
@@ -996,9 +1006,8 @@
     (let (x) (_) ((if (apply (primitive >) (toplevel p) (toplevel q))
                       (apply (toplevel frob!))
                       (apply (toplevel display) (const chbouib))))
-         (let (y) (_) ((apply (primitive *) (lexical x _) (const 2)))
-              (apply (primitive +) (lexical x _) (lexical x _)
-                     (apply (primitive *) (lexical x _) (const 2))))))
+         (apply (primitive +) (lexical x _) (lexical x _)
+                (apply (primitive *) (lexical x _) (const 2)))))
 
   (pass-if-peval
     ;; Non-constant arguments not propagated to lambdas.

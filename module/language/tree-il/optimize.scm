@@ -266,7 +266,7 @@ it does not handle <fix> and <let-values>, it should be called before
     (vhash-assq name local-toplevel-env))
 
   (define var-table (build-var-table exp))
-  (define (record-lexicals! x)
+  (define (record-lexical-bindings! x)
     (set! var-table (build-var-table x var-table))
     x)
   (define (assigned-lexical? sym)
@@ -275,6 +275,10 @@ it does not handle <fix> and <let-values>, it should be called before
   (define (lexical-refcount sym)
     (let ((v (vhash-assq sym var-table)))
       (if v (var-refcount (cdr v)) 0)))
+
+  (define residual-lexical-references (make-hash-table))
+  (define (record-residual-lexical-reference! sym)
+    (hashq-set! residual-lexical-references sym #t))
 
   (define (apply-primitive name args)
     ;; todo: further optimize commutative primitives
@@ -458,8 +462,10 @@ it does not handle <fix> and <let-values>, it should be called before
        ;; Look for NEW in the current environment, starting from the
        ;; outermost frame.
        (or (vlist-any (lambda (x)
-                        (and (equal? (cdr x) new)
-                             (make-lexical-ref src name (car x))))
+                        (and (eq? (cdr x) new)
+                             (begin
+                               (record-residual-lexical-reference! (car x))
+                               (make-lexical-ref src name (car x)))))
                       env)
            new))
       (($ <lambda> src ()
@@ -467,7 +473,7 @@ it does not handle <fix> and <let-values>, it should be called before
        ;; This is an anonymous lambda that we're going to inline.
        ;; Inlining creates new variable bindings, so we need to provide
        ;; the new code with fresh names.
-       (make-lambda src '() (record-lexicals! (alpha-rename lc))))
+       (make-lambda src '() (record-lexical-bindings! (alpha-rename lc))))
       (_ new)))
 
   (catch 'match-error
@@ -489,29 +495,53 @@ it does not handle <fix> and <let-values>, it should be called before
              ((test) (make-const #f #t))
              (else exp)))
           (($ <lexical-ref> _ _ gensym)
-           ;; Propagate only pure expressions that are not assigned to.
            (case ctx
              ((effect) (make-void #f))
              (else
               (let ((val (lookup gensym)))
-                (if (and (not (assigned-lexical? gensym))
-                         (constant-expression? val))
-                    (case ctx
-                      ;; fixme: cache this?  it is a divergence from
-                      ;; O(n).
-                      ((test) (loop val env calls 'test))
-                      (else val))
-                    exp)))))
+                (cond
+                 ((or (not val)
+                      (assigned-lexical? gensym)
+                      (not (constant-expression? val)))
+                  ;; Don't copy-propagate through assigned variables,
+                  ;; and don't reorder effects.
+                  (record-residual-lexical-reference! gensym)
+                  exp)
+                 ((or (const? val)
+                      (void? val)
+                      (lexical-ref? val)
+                      (toplevel-ref? val)
+                      (primitive-ref? val))
+                  ;; Always propagate simple values that cannot lead to
+                  ;; code bloat.
+                  (case ctx
+                    ((test) (loop val env calls 'test))
+                    (else val)))
+                 ((= 1 (lexical-refcount gensym))
+                  ;; Always propagate values referenced only once.
+                  ;; There is no need to rename the bindings, as they
+                  ;; are only being moved, not copied.
+                  (case ctx
+                    ((test) (loop val env calls 'test))
+                    (else val)))
+                 (else
+                  ;; Always propagate constant expressions.  FIXME: leads to
+                  ;; divergence!
+                  (case ctx
+                    ((test) (loop val env calls 'test))
+                    (else val))))))))
           (($ <lexical-set> src name gensym exp)
            (if (zero? (lexical-refcount gensym))
                (let ((exp (loop exp env calls 'effect)))
                  (if (void? exp)
                      exp
                      (make-sequence src (list exp (make-void #f)))))
-               (make-lexical-set src name gensym
-                                 (maybe-unconst
-                                  exp
-                                  (loop exp env calls 'value)))))
+               (begin
+                 (record-residual-lexical-reference! gensym)
+                 (make-lexical-set src name gensym
+                                   (maybe-unconst
+                                    exp
+                                    (loop exp env calls 'value))))))
           (($ <let> src names gensyms vals body)
            (let* ((vals* (map (cut loop <> env calls 'value) vals))
                   (vals  (map maybe-unconst vals vals*))
@@ -522,15 +552,21 @@ it does not handle <fix> and <let-values>, it should be called before
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
-                 ;; Constants have already been propagated, so there is
-                 ;; no need to bind them to lexicals.
-                 (let*-values (((stripped) (remove
-                                            (lambda (x)
-                                              (and (const? (car x))
-                                                   (not (assigned-lexical?
-                                                         (cadr x)))))
-                                            (zip vals gensyms names)))
-                               ((vals gensyms names) (unzip3 stripped)))
+                 ;; Only include bindings for which lexical references
+                 ;; have been residualized.
+                 (let*-values
+                     (((stripped) (remove
+                                   (lambda (x)
+                                     (and (not (hashq-ref
+                                                residual-lexical-references
+                                                (cadr x)))
+                                          ;; FIXME: Here we can probably
+                                          ;; strip pure expressions in
+                                          ;; addition to constant
+                                          ;; expressions.
+                                          (constant-expression? (car x))))
+                                   (zip vals gensyms names)))
+                      ((vals gensyms names) (unzip3 stripped)))
                    (if (null? stripped)
                        body
                        (make-let src names gensyms vals body))))))
