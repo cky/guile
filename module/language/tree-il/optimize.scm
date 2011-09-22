@@ -656,7 +656,18 @@ it does not handle <fix> and <let-values>, it should be called before
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
-                 (make-letrec src in-order? names gensyms vals body))))
+                 (let*-values
+                     (((stripped) (remove
+                                   (lambda (x)
+                                     (and (constant-expression? (car x))
+                                          (not (hashq-ref
+                                                residual-lexical-references
+                                                (cadr x)))))
+                                   (zip vals gensyms names)))
+                      ((vals gensyms names) (unzip3 stripped)))
+                   (if (null? stripped)
+                       body
+                       (make-letrec src in-order? names gensyms vals body))))))
           (($ <fix> src names gensyms vals body)
            (let* ((vals (map for-value vals))
                   (body* (loop body
