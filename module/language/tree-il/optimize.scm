@@ -88,6 +88,10 @@ references to the new symbols."
          (if val
              (make-lexical-ref src name (cdr val))
              exp)))
+      (($ <lexical-set> src name gensym exp)
+       (let ((val (vhash-assq gensym mapping)))
+         (make-lexical-set src name (if val (cdr val) gensym)
+                           (loop exp mapping))))
       (($ <lambda> src meta body)
        (make-lambda src meta (loop body mapping)))
       (($ <let> src names gensyms vals body)
@@ -241,8 +245,7 @@ it does not handle <fix> and <let-values>, it should be called before
   ;;
   ;; Unlike a full-blown partial evaluator, it does not emit definitions
   ;; of specialized versions of lambdas encountered on its way.  Also,
-  ;; it's very conservative: it bails out if `set!', `prompt', etc. are
-  ;; met.
+  ;; it's not yet complete: it bails out for `prompt', etc.
 
   (define local-toplevel-env
     ;; The top-level environment of the module being compiled.
@@ -269,9 +272,9 @@ it does not handle <fix> and <let-values>, it should be called before
   (define (assigned-lexical? sym)
     (let ((v (vhash-assq sym var-table)))
       (and v (var-set? (cdr v)))))
-  (define (unreferenced-lexical? sym)
+  (define (lexical-refcount sym)
     (let ((v (vhash-assq sym var-table)))
-      (if v (zero? (var-refcount (cdr v))) #t)))
+      (if v (var-refcount (cdr v)) 0)))
 
   (define (apply-primitive name args)
     ;; todo: further optimize commutative primitives
@@ -297,9 +300,10 @@ it does not handle <fix> and <let-values>, it should be called before
              ($ <module-ref>)
              ($ <primitive-ref>)
              ($ <dynref>)
-             ($ <toplevel-set>)         ; FIXME: these set! expressions
-             ($ <toplevel-define>)      ; could return zero values in
-             ($ <module-set>))          ; the future
+             ($ <lexical-set>)          ; FIXME: these set! expressions
+             ($ <toplevel-set>)         ; could return zero values in
+             ($ <toplevel-define>)      ; the future
+             ($ <module-set>))          ; 
          (and (= (length names) 1)
               (make-let src names gensyms (list exp) body)))
         (($ <application> src
@@ -374,7 +378,8 @@ it does not handle <fix> and <let-values>, it should be called before
         (($ <lambda>) #t)
         (($ <lambda-case> _ req opt rest kw inits _ body alternate)
          (and (every loop inits) (loop body) (loop alternate)))
-        (($ <lexical-ref>) #t)
+        (($ <lexical-ref> _ _ gensym)
+         (not (assigned-lexical? gensym)))
         (($ <primitive-ref>) #t)
         (($ <conditional> _ condition subsequent alternate)
          (and (loop condition) (loop subsequent) (loop alternate)))
@@ -462,7 +467,7 @@ it does not handle <fix> and <let-values>, it should be called before
        ;; This is an anonymous lambda that we're going to inline.
        ;; Inlining creates new variable bindings, so we need to provide
        ;; the new code with fresh names.
-       (make-lambda src '() (alpha-rename lc)))
+       (make-lambda src '() (record-lexicals! (alpha-rename lc))))
       (_ new)))
 
   (catch 'match-error
@@ -489,14 +494,24 @@ it does not handle <fix> and <let-values>, it should be called before
              ((effect) (make-void #f))
              (else
               (let ((val (lookup gensym)))
-                (if (constant-expression? val)
+                (if (and (not (assigned-lexical? gensym))
+                         (constant-expression? val))
                     (case ctx
                       ;; fixme: cache this?  it is a divergence from
                       ;; O(n).
                       ((test) (loop val env calls 'test))
                       (else val))
                     exp)))))
-          ;; Lexical set! causes a bailout.
+          (($ <lexical-set> src name gensym exp)
+           (if (zero? (lexical-refcount gensym))
+               (let ((exp (loop exp env calls 'effect)))
+                 (if (void? exp)
+                     exp
+                     (make-sequence src (list exp (make-void #f)))))
+               (make-lexical-set src name gensym
+                                 (maybe-unconst
+                                  exp
+                                  (loop exp env calls 'value)))))
           (($ <let> src names gensyms vals body)
            (let* ((vals* (map (cut loop <> env calls 'value) vals))
                   (vals  (map maybe-unconst vals vals*))
@@ -509,8 +524,12 @@ it does not handle <fix> and <let-values>, it should be called before
                  body
                  ;; Constants have already been propagated, so there is
                  ;; no need to bind them to lexicals.
-                 (let*-values (((stripped) (remove (compose const? car)
-                                                   (zip vals gensyms names)))
+                 (let*-values (((stripped) (remove
+                                            (lambda (x)
+                                              (and (const? (car x))
+                                                   (not (assigned-lexical?
+                                                         (cadr x)))))
+                                            (zip vals gensyms names)))
                                ((vals gensyms names) (unzip3 stripped)))
                    (if (null? stripped)
                        body
@@ -721,6 +740,6 @@ it does not handle <fix> and <let-values>, it should be called before
                    (else
                     (lp rest (cons head effects))))))))))))
     (lambda _
-      ;; We encountered something we don't handle, like `<lexical-set>',
-      ;; <abort>, or some other effecting construct, so bail out.
+      ;; We encountered something we don't handle, like <abort> or
+      ;; <prompt>, so bail out.
       exp)))
