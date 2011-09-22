@@ -436,7 +436,7 @@ it does not handle <fix> and <let-values>, it should be called before
           (($ <lexical-ref> _ _ gensym)
            ;; Propagate only pure expressions.
            (let ((val (lookup gensym)))
-             (or (and (pure-expression? val) val) exp)))
+             (if (pure-expression? val) val exp)))
           ;; Lexical set! causes a bailout.
           (($ <let> src names gensyms vals body)
            (let* ((vals* (map (cut loop <> env calls) vals))
