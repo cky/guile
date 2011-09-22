@@ -232,6 +232,61 @@ lexical references."
    (lambda (exp res) res)
    table exp))
 
+(define-record-type <counter>
+  (%make-counter effort size continuation recursive? data prev)
+  counter?
+  (effort effort-counter)
+  (size size-counter)
+  (continuation counter-continuation)
+  (recursive? counter-recursive?)
+  (data counter-data)
+  (prev counter-prev))
+
+(define (abort-counter c)
+  ((counter-continuation c)))
+
+(define (record-effort! c)
+  (let ((e (effort-counter c)))
+    (if (zero? (variable-ref e))
+        (abort-counter c)
+        (variable-set! e (1- (variable-ref e))))))
+
+(define (record-size! c)
+  (let ((s (size-counter c)))
+    (if (zero? (variable-ref s))
+        (abort-counter c)
+        (variable-set! s (1- (variable-ref s))))))
+
+(define (find-counter data counter)
+  (and counter
+       (if (eq? data (counter-data counter))
+           counter
+           (find-counter data (counter-prev counter)))))
+
+(define (make-top-counter effort-limit size-limit continuation data)
+  (%make-counter (make-variable effort-limit)
+                 (make-variable size-limit)
+                 continuation
+                 #t
+                 data
+                 #f))
+
+(define (make-nested-counter continuation data current)
+  (%make-counter (effort-counter current)
+                 (size-counter current)
+                 continuation
+                 #f
+                 data
+                 current))
+
+(define (make-recursive-counter effort-limit size-limit orig current)
+  (%make-counter (make-variable effort-limit)
+                 (make-variable size-limit)
+                 (counter-continuation orig)
+                 #t
+                 (counter-data orig)
+                 current))
+
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
   "Partially evaluate EXP in compilation environment CENV, with
 top-level bindings from ENV and return the resulting expression.  Since
