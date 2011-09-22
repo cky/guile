@@ -320,18 +320,28 @@ it does not handle <fix> and <let-values>, it should be called before
   (define (local-toplevel? name)
     (vhash-assq name local-toplevel-env))
 
-  (define var-table (build-var-table exp))
-  (define (record-lexical-bindings! x)
-    (set! var-table (build-var-table x var-table))
-    x)
+  (define store (build-var-table exp))
+
   (define (assigned-lexical? sym)
-    (let ((v (vhash-assq sym var-table)))
+    (let ((v (vhash-assq sym store)))
       (and v (var-set? (cdr v)))))
+
   (define (lexical-refcount sym)
-    (let ((v (vhash-assq sym var-table)))
+    (let ((v (vhash-assq sym store)))
       (if v (var-refcount (cdr v)) 0)))
 
+  (define (record-source-expression! orig new)
+    (set! store (vhash-consq new
+                             (source-expression orig)
+                             (build-var-table new store)))
+    new)
+
+  (define (source-expression new)
+    (let ((x (vhash-assq new store)))
+      (if x (cdr x) new)))
+
   (define residual-lexical-references (make-hash-table))
+
   (define (record-residual-lexical-reference! sym)
     (hashq-set! residual-lexical-references sym #t))
 
@@ -528,7 +538,7 @@ it does not handle <fix> and <let-values>, it should be called before
        ;; This is an anonymous lambda that we're going to inline.
        ;; Inlining creates new variable bindings, so we need to provide
        ;; the new code with fresh names.
-       (make-lambda src '() (record-lexical-bindings! (alpha-rename lc))))
+       (record-source-expression! new (alpha-rename new)))
       (_ new)))
 
   (catch 'match-error
