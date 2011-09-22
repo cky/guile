@@ -428,19 +428,32 @@ it does not handle <fix> and <let-values>, it should be called before
       (let loop ((exp   exp)
                  (env   vlist-null)  ; static environment
                  (calls '())         ; inlined call stack
-                 (ctx 'value))       ; effect, value, or call
+                 (ctx 'value))       ; effect, value, test, or call
         (define (lookup var)
           (and=> (vhash-assq var env) cdr))
 
         (match exp
           (($ <const>)
-           exp)
+           (case ctx
+             ((effect) (make-void #f))
+             (else exp)))
           (($ <void>)
-           exp)
+           (case ctx
+             ((test) (make-const #f #t))
+             (else exp)))
           (($ <lexical-ref> _ _ gensym)
            ;; Propagate only pure expressions that are not assigned to.
-           (let ((val (lookup gensym)))
-             (if (pure-expression? val) val exp)))
+           (case ctx
+             ((effect) (make-void #f))
+             (else
+              (let ((val (lookup gensym)))
+                (if (pure-expression? val)
+                    (case ctx
+                      ;; fixme: cache this?  it is a divergence from
+                      ;; O(n).
+                      ((test) (loop val env calls 'test))
+                      (else val))
+                    exp)))))
           ;; Lexical set! causes a bailout.
           (($ <let> src names gensyms vals body)
            (let* ((vals* (map (cut loop <> env calls 'value) vals))
@@ -452,6 +465,8 @@ it does not handle <fix> and <let-values>, it should be called before
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
+                 ;; Constants have already been propagated, so there is
+                 ;; no need to bind them to lexicals.
                  (let*-values (((stripped) (remove (compose const? car)
                                                    (zip vals gensyms names)))
                                ((vals gensyms names) (unzip3 stripped)))
@@ -498,9 +513,9 @@ it does not handle <fix> and <let-values>, it should be called before
                  (make-let-values lv-src producer
                                   (loop consumer env calls ctx)))))
           (($ <dynwind> src winder body unwinder)
-           (make-dynwind src (loop winder env calls 'effect)
+           (make-dynwind src (loop winder env calls 'value)
                          (loop body env calls ctx)
-                         (loop unwinder env calls 'effect)))
+                         (loop unwinder env calls 'value)))
           (($ <dynlet> src fluids vals body)
            (make-dynlet src
                         (map maybe-unconst fluids
@@ -530,12 +545,14 @@ it does not handle <fix> and <let-values>, it should be called before
            (make-toplevel-set src name
                               (maybe-unconst exp (loop exp env '() 'value))))
           (($ <primitive-ref>)
-           exp)
+           (case ctx
+             ((effect) (make-void #f))
+             ((test) (make-const #f #t))
+             (else exp)))
           (($ <conditional> src condition subsequent alternate)
-           (let ((condition (loop condition env calls 'value)))
-             (if (const*? condition)
-                 (if (or (lambda? condition) (void? condition)
-                         (const-exp condition))
+           (let ((condition (loop condition env calls 'test)))
+             (if (const? condition)
+                 (if (const-exp condition)
                      (loop subsequent env calls ctx)
                      (loop alternate env calls ctx))
                  (make-conditional src condition
@@ -575,8 +592,17 @@ it does not handle <fix> and <let-values>, it should be called before
                                       (apply-primitive name
                                                        (map const-exp args))))
                           (if success?
-                              (make-values src (map (cut make-const src <>)
-                                                    values))
+                              (case ctx
+                                ((effect) (make-void #f))
+                                ((test)
+                                 ;; Values truncation: only take the first
+                                 ;; value.
+                                 (if (pair? values)
+                                     (make-const #f (car values))
+                                     (make-values src '())))
+                                (else
+                                 (make-values src (map (cut make-const src <>)
+                                                       values))))
                               app))
                         app))
                    (($ <primitive-ref>)
@@ -621,7 +647,11 @@ it does not handle <fix> and <let-values>, it should be called before
 
                  app)))
           (($ <lambda> src meta body)
-           (make-lambda src meta (loop body env calls 'value)))
+           (case ctx
+             ((effect) (make-void #f))
+             ((test) (make-const #f #t))
+             (else
+              (make-lambda src meta (loop body env calls 'value)))))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)
            (make-lambda-case src req opt rest kw
                              (map maybe-unconst inits
@@ -637,13 +667,17 @@ it does not handle <fix> and <let-values>, it should be called before
                     (loop last env calls ctx)
                     (make-sequence src (append (reverse effects)
                                                (list
-                                                (loop last env calls ctx))))))
+                                                (maybe-unconst last
+                                                               (loop last env calls ctx)))))))
                ((head . rest)
                 (let ((head (loop head env calls 'effect)))
-                  (lp rest
-                      (if (pure-expression? head)
-                          effects
-                          (cons head effects)))))))))))
+                  (cond
+                   ((sequence? head)
+                    (lp (append (sequence-exps head) rest) effects))
+                   ((void? head)
+                    (lp rest effects))
+                   (else
+                    (lp rest (cons head effects))))))))))))
     (lambda _
       ;; We encountered something we don't handle, like `<lexical-set>',
       ;; <abort>, or some other effecting construct, so bail out.
