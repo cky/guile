@@ -65,9 +65,19 @@ references to the new symbols."
                         (append req
                                 (or opt '())
                                 (if rest (list rest) '())
-                                (if kw (map cadr (cdr kw)) '()))))
+                                (match kw
+                                  ((aok? (_ name _) ...) name)
+                                  (_ '())))))
               (mapping (fold vhash-consq mapping gensyms new)))
-         (make-lambda-case src req opt rest kw inits new
+         (make-lambda-case src req opt rest
+                           (match kw
+                             ((aok? (kw name old) ...)
+                              (cons aok? (map list
+                                              kw
+                                              name
+                                              (take-right new (length old)))))
+                             (_ #f))
+                           inits new
                            (loop body mapping)
                            (and alt (loop alt mapping)))))
       (($ <lexical-ref> src name gensym)
