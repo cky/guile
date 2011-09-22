@@ -176,22 +176,6 @@ references to the new symbols."
                   (lambda (exp res) #f)
                   #f exp)))
 
-(define (code-contains-calls? body proc lookup)
-  "Return true if BODY contains calls to PROC.  Use LOOKUP to look up
-lexical references."
-  (tree-il-any
-   (lambda (exp)
-     (match exp
-       (($ <application> _
-           (and ref ($ <lexical-ref> _ _ gensym)) _)
-        (or (equal? ref proc)
-            (equal? (lookup gensym) proc)))
-       (($ <application>
-           (and proc* ($ <lambda>)))
-        (equal? proc* proc))
-       (_ #f)))
-   body))
-
 (define (vlist-any proc vlist)
   (let ((len (vlist-length vlist)))
     (let lp ((i 0))
@@ -287,7 +271,13 @@ lexical references."
                  (counter-data orig)
                  current))
 
-(define* (peval exp #:optional (cenv (current-module)) (env vlist-null))
+(define* (peval exp #:optional (cenv (current-module)) (env vlist-null)
+                #:key
+                (operator-size-limit 40)
+                (operand-size-limit 20)
+                (value-size-limit 10)
+                (effort-limit 500)
+                (recursive-effort-limit 100))
   "Partially evaluate EXP in compilation environment CENV, with
 top-level bindings from ENV and return the resulting expression.  Since
 it does not handle <fix> and <let-values>, it should be called before
@@ -470,6 +460,20 @@ it does not handle <fix> and <let-values>, it should be called before
          (and (loop exp) (loop body)))
         (_ #f))))
 
+  (define (small-expression? x limit)
+    (let/ec k
+      (tree-il-fold
+       (lambda (x res)                  ; leaf
+         (1+ res))
+       (lambda (x res)                  ; down
+         (1+ res))
+       (lambda (x res)                  ; up
+         (if (< res limit)
+             res
+             (k #f)))
+       0 x)
+      #t))
+  
   (define (mutable? exp)
     ;; Return #t if EXP is a mutable object.
     ;; todo: add an option to assume pairs are immutable
@@ -517,47 +521,28 @@ it does not handle <fix> and <let-values>, it should be called before
            (or (make-value-construction src value) orig)))
       (_ new)))
 
-  (define (maybe-unlambda orig new env)
-    ;; If NEW is a named lambda and ORIG is what it looked like before
-    ;; partial evaluation, then attempt to replace NEW with a lexical
-    ;; ref, to avoid code duplication.
-    (match new
-      (($ <lambda> src (= (cut assq-ref <> 'name) (? symbol? name))
-          ($ <lambda-case> _ req opt rest kw inits gensyms body))
-       ;; Look for NEW in the current environment, starting from the
-       ;; outermost frame.
-       (or (vlist-any (lambda (x)
-                        (and (eq? (cdr x) new)
-                             (begin
-                               (record-residual-lexical-reference! (car x))
-                               (make-lexical-ref src name (car x)))))
-                      env)
-           new))
-      (($ <lambda> src ()
-          (and lc ($ <lambda-case>)))
-       ;; This is an anonymous lambda that we're going to inline.
-       ;; Inlining creates new variable bindings, so we need to provide
-       ;; the new code with fresh names.
-       (record-source-expression! new (alpha-rename new)))
-      (_ new)))
-
   (catch 'match-error
     (lambda ()
       (let loop ((exp   exp)
                  (env   vlist-null)  ; static environment
-                 (calls '())         ; inlined call stack
-                 (ctx 'value))       ; effect, value, test, or call
+                 (counter #f)        ; inlined call stack
+                 (ctx 'value))       ; effect, value, test, operator, or operand
         (define (lookup var)
           (and=> (vhash-assq var env) cdr))
 
         (define (for-value exp)
-          (loop exp env calls 'value))
+          (loop exp env counter 'value))
+        (define (for-operand exp)
+          (loop exp env counter 'operand))
         (define (for-test exp)
-          (loop exp env calls 'test))
+          (loop exp env counter 'test))
         (define (for-effect exp)
-          (loop exp env calls 'effect))
+          (loop exp env counter 'effect))
         (define (for-tail exp)
-          (loop exp env calls ctx))
+          (loop exp env counter ctx))
+
+        (if counter
+            (record-effort! counter))
 
         (match exp
           (($ <const>)
@@ -581,29 +566,55 @@ it does not handle <fix> and <let-values>, it should be called before
                   ;; and don't reorder effects.
                   (record-residual-lexical-reference! gensym)
                   exp)
+                 ((lexical-ref? val)
+                  (for-tail val))
                  ((or (const? val)
                       (void? val)
-                      (lexical-ref? val)
-                      (toplevel-ref? val)
                       (primitive-ref? val))
                   ;; Always propagate simple values that cannot lead to
                   ;; code bloat.
-                  (case ctx
-                    ((test) (for-test val))
-                    (else val)))
+                  (for-tail val))
                  ((= 1 (lexical-refcount gensym))
                   ;; Always propagate values referenced only once.
                   ;; There is no need to rename the bindings, as they
-                  ;; are only being moved, not copied.
+                  ;; are only being moved, not copied.  However in
+                  ;; operator context we do rename it, as that
+                  ;; effectively clears out the residualized-lexical
+                  ;; flags that may have been set when this value was
+                  ;; visited previously as an operand.
                   (case ctx
                     ((test) (for-test val))
+                    ((operator) (record-source-expression! val (alpha-rename val)))
                     (else val)))
+                 ;; FIXME: do demand-driven size accounting rather than
+                 ;; these heuristics.
+                 ((eq? ctx 'operator)
+                  ;; A pure expression in the operator position.  Inline
+                  ;; if it's a lambda that's small enough.
+                  (if (and (lambda? val)
+                           (small-expression? val operator-size-limit))
+                      (record-source-expression! val (alpha-rename val))
+                      (begin
+                        (record-residual-lexical-reference! gensym)
+                        exp)))
+                 ((eq? ctx 'operand)
+                  ;; A pure expression in the operand position.  Inline
+                  ;; if it's small enough.
+                  (if (small-expression? val operand-size-limit)
+                      (record-source-expression! val (alpha-rename val))
+                      (begin
+                        (record-residual-lexical-reference! gensym)
+                        exp)))
                  (else
-                  ;; Always propagate constant expressions.  FIXME: leads to
-                  ;; divergence!
-                  (case ctx
-                    ((test) (for-test val))
-                    (else val))))))))
+                  ;; A pure expression, processed for value.  Don't
+                  ;; inline lambdas, because they will probably won't
+                  ;; fold because we don't know the operator.
+                  (if (and (small-expression? val value-size-limit)
+                           (not (tree-il-any lambda? val)))
+                      (record-source-expression! val (alpha-rename val))
+                      (begin
+                        (record-residual-lexical-reference! gensym)
+                        exp))))))))
           (($ <lexical-set> src name gensym exp)
            (if (zero? (lexical-refcount gensym))
                (let ((exp (for-effect exp)))
@@ -616,45 +627,58 @@ it does not handle <fix> and <let-values>, it should be called before
                                    (maybe-unconst exp
                                                   (for-value exp))))))
           (($ <let> src names gensyms vals body)
-           (let* ((vals* (map for-value vals))
+           (let* ((vals* (map for-operand vals))
                   (vals  (map maybe-unconst vals vals*))
                   (body* (loop body
                                (fold vhash-consq env gensyms vals)
-                               calls
+                               counter
                                ctx))
                   (body  (maybe-unconst body body*)))
-             (if (const? body*)
-                 body
-                 ;; Only include bindings for which lexical references
-                 ;; have been residualized.
-                 (let*-values
-                     (((stripped) (remove
-                                   (lambda (x)
-                                     (and (not (hashq-ref
-                                                residual-lexical-references
-                                                (cadr x)))
-                                          ;; FIXME: Here we can probably
-                                          ;; strip pure expressions in
-                                          ;; addition to constant
-                                          ;; expressions.
-                                          (constant-expression? (car x))))
-                                   (zip vals gensyms names)))
-                      ((vals gensyms names) (unzip3 stripped)))
-                   (if (null? stripped)
-                       body
-                       (make-let src names gensyms vals body))))))
+             (cond
+              ((const? body*)
+               (for-tail (make-sequence src (append vals (list body)))))
+              ((and (lexical-ref? body)
+                    (memq (lexical-ref-gensym body) gensyms))
+               (let ((sym (lexical-ref-gensym body))
+                     (pairs (map cons gensyms vals)))
+                 ;; (let ((x foo) (y bar) ...) x) => (begin bar ... foo)
+                 (for-tail
+                  (make-sequence
+                   src
+                   (append (map cdr (alist-delete sym pairs eq?))
+                           (list (assq-ref pairs sym)))))))
+              (else
+               ;; Only include bindings for which lexical references
+               ;; have been residualized.
+               (let*-values
+                   (((stripped) (remove
+                                 (lambda (x)
+                                   (and (not (hashq-ref
+                                              residual-lexical-references
+                                              (cadr x)))
+                                        ;; FIXME: Here we can probably
+                                        ;; strip pure expressions in
+                                        ;; addition to constant
+                                        ;; expressions.
+                                        (constant-expression? (car x))))
+                                 (zip vals gensyms names)))
+                    ((vals gensyms names) (unzip3 stripped)))
+                 (if (null? stripped)
+                     body
+                     (make-let src names gensyms vals body)))))))
           (($ <letrec> src in-order? names gensyms vals body)
            ;; Things could be done more precisely when IN-ORDER? but
            ;; it's OK not to do it---at worst we lost an optimization
            ;; opportunity.
-           (let* ((vals* (map for-value vals))
+           (let* ((vals* (map for-operand vals))
                   (vals  (map maybe-unconst vals vals*))
                   (body* (loop body
                                (fold vhash-consq env gensyms vals)
-                               calls
+                               counter
                                ctx))
                   (body  (maybe-unconst body body*)))
-             (if (const? body*)
+             (if (and (const? body*)
+                      (every constant-expression? vals*))
                  body
                  (let*-values
                      (((stripped) (remove
@@ -669,13 +693,14 @@ it does not handle <fix> and <let-values>, it should be called before
                        body
                        (make-letrec src in-order? names gensyms vals body))))))
           (($ <fix> src names gensyms vals body)
-           (let* ((vals (map for-value vals))
+           (let* ((vals (map for-operand vals))
                   (body* (loop body
                                (fold vhash-consq env gensyms vals)
-                               calls
+                               counter
                                ctx))
                   (body  (maybe-unconst body body*)))
-             (if (const? body*)
+             (if (and (const? body*)
+                      (every constant-expression? vals))
                  body
                  (make-fix src names gensyms vals body))))
           (($ <let-values> lv-src producer consumer)
@@ -747,84 +772,106 @@ it does not handle <fix> and <let-values>, it should be called before
 
           (($ <application> src orig-proc orig-args)
            ;; todo: augment the global env with specialized functions
-           (let* ((proc  (loop orig-proc env calls 'call))
-                  (proc* (maybe-unlambda orig-proc proc env))
-                  (args  (map for-value orig-args))
-                  (args* (map (cut maybe-unlambda <> <> env)
-                              orig-args
-                              (map maybe-unconst orig-args args)))
-                  (app   (make-application src proc* args*)))
-             ;; If at least one of ARGS is static (to avoid infinite
-             ;; inlining) and this call hasn't already been expanded
-             ;; before (to avoid infinite recursion), then expand it
-             ;; (todo: emit an infinite recursion warning.)
-             (if (and (or (null? args) (any const*? args))
-                      (not (member (cons proc args) calls)))
-                 (match proc
-                   (($ <primitive-ref> _ (? effect-free-primitive? name))
-                    (if (every const? args)  ; only simple constants
-                        (let-values (((success? values)
-                                      (apply-primitive name
-                                                       (map const-exp args))))
-                          (if success?
-                              (case ctx
-                                ((effect) (make-void #f))
-                                ((test)
-                                 ;; Values truncation: only take the first
-                                 ;; value.
-                                 (if (pair? values)
-                                     (make-const #f (car values))
-                                     (make-values src '())))
-                                (else
-                                 (make-values src (map (cut make-const src <>)
-                                                       values))))
-                              app))
-                        app))
-                   (($ <primitive-ref>)
-                    ;; An effectful primitive.
-                    app)
-                   (($ <lambda> _ _
-                       ($ <lambda-case> _ req opt #f #f inits gensyms body))
-                    ;; Simple case: no rest, no keyword arguments.
-                    ;; todo: handle the more complex cases
-                    (let ((nargs  (length args))
-                          (nreq   (length req))
-                          (nopt   (if opt (length opt) 0)))
-                      (if (and (>= nargs nreq) (<= nargs (+ nreq nopt))
-                               (every constant-expression? args))
-                          (let* ((params
-                                  (append args
-                                          (drop inits
-                                                (max 0
-                                                     (- nargs
-                                                        (+ nreq nopt))))))
-                                 (body
-                                  (loop body
-                                    (fold vhash-consq env gensyms params)
-                                    (cons (cons proc args) calls)
-                                    ctx)))
-                            ;; If the residual code contains recursive
-                            ;; calls, give up inlining.
-                            (if (code-contains-calls? body proc lookup)
-                                app
-                                body))
-                          app)))
-                   (($ <lambda>)
-                    app)
-                   (($ <toplevel-ref>)
-                    app)
-                   
-                   ;; In practice, this is the clause that stops peval:
-                   ;; module-ref applications (produced by macros,
-                   ;; typically) don't match, and so this throws,
-                   ;; aborting peval for an entire expression.
-                   )
+           (let ((proc (loop orig-proc env counter 'operator)))
+             (match proc
+               (($ <primitive-ref> _ (? effect-free-primitive? name))
+                (let ((args (map for-value orig-args)))
+                  (if (every const? args) ; only simple constants
+                      (let-values (((success? values)
+                                    (apply-primitive name
+                                                     (map const-exp args))))
+                        (if success?
+                            (case ctx
+                              ((effect) (make-void #f))
+                              ((test)
+                               ;; Values truncation: only take the first
+                               ;; value.
+                               (if (pair? values)
+                                   (make-const #f (car values))
+                                   (make-values src '())))
+                              (else
+                               (make-values src (map (cut make-const src <>)
+                                                     values))))
+                            (make-application src proc
+                                              (map maybe-unconst orig-args args))))
+                      (make-application src proc
+                                        (map maybe-unconst orig-args args)))))
+               (($ <lambda> _ _
+                   ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
+                ;; Simple case: no rest, no keyword arguments.
+                ;; todo: handle the more complex cases
+                (let* ((nargs (length orig-args))
+                       (nreq (length req))
+                       (nopt (if opt (length opt) 0))
+                       (key (source-expression proc)))
+                  (cond
+                   ((or (< nargs nreq) (> nargs (+ nreq nopt)))
+                    ;; An error, or effecting arguments.
+                    (make-application src (for-value orig-proc)
+                                      (map maybe-unconst orig-args
+                                           (map for-value orig-args))))
+                   ((and=> (find-counter key counter) counter-recursive?)
+                    ;; A recursive call.  Process again in tail context.
+                    (loop (make-let src (append req (or opt '()))
+                                    gensyms
+                                    (append orig-args
+                                            (drop inits
+                                                  (max 0
+                                                       (- nargs
+                                                          (+ nreq nopt)))))
+                                    body)
+                      env counter ctx))
+                   (else
+                    ;; An integration at the top-level, the first
+                    ;; recursion of a recursive procedure, or a nested
+                    ;; integration of a procedure that hasn't been seen
+                    ;; yet.
+                    (let/ec k
+                      (let ((abort (lambda ()
+                                     (k (make-application
+                                         src
+                                         (for-value orig-proc)
+                                         (map maybe-unconst orig-args
+                                              (map for-value orig-args)))))))
+                        (loop (make-let src (append req (or opt '()))
+                                        gensyms
+                                        (append orig-args
+                                                (drop inits
+                                                      (max 0
+                                                           (- nargs
+                                                              (+ nreq nopt)))))
+                                        body)
+                          env
+                          (cond
+                           ((find-counter key counter)
+                            => (lambda (prev)
+                                 (make-recursive-counter recursive-effort-limit
+                                                         operand-size-limit
+                                                         prev counter)))
+                           (counter
+                            (make-nested-counter abort key counter))
+                           (else
+                            (make-top-counter effort-limit operand-size-limit
+                                              abort key)))
+                          ctx)))))))
+               ((or ($ <primitive-ref>)
+                    ($ <lambda>)
+                    ($ <toplevel-ref>)
+                    ($ <lexical-ref>))
+                (make-application src proc
+                                  (map maybe-unconst orig-args
+                                       (map for-value orig-args))))
 
-                 app)))
+               ;; In practice, this is the clause that stops peval:
+               ;; module-ref applications (produced by macros,
+               ;; typically) don't match, and so this throws,
+               ;; aborting peval for an entire expression.
+               )))
           (($ <lambda> src meta body)
            (case ctx
              ((effect) (make-void #f))
              ((test) (make-const #f #t))
+             ((operator) exp)
              (else
               (make-lambda src meta (for-value body)))))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)

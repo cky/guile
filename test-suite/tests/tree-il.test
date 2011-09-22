@@ -663,18 +663,88 @@
       (apply (primitive list)
              (const 0) (const 1) (const 2) (const 3) (const 4) (const 5))))
 
+    ;; These two tests doesn't work any more because we changed the way we
+  ;; deal with constants -- now the algorithm will see a construction as
+  ;; being bound to the lexical, so it won't propagate it.  It can't
+  ;; even propagate it in the case that it is only referenced once,
+  ;; because:
+  ;;
+  ;;   (let ((x (cons 1 2))) (lambda () x))
+  ;;
+  ;; is not the same as
+  ;;
+  ;;   (lambda () (cons 1 2))
+  ;;
+  ;; Perhaps if we determined that not only was it only referenced once,
+  ;; it was not closed over by a lambda, then we could propagate it, and
+  ;; re-enable these two tests.
+  ;;
+  #;
   (pass-if-peval
-    ;; First order, mutability preserved.
-    (define mutable
-      (let loop ((i 3) (r '()))
-        (if (zero? i)
-            r
-            (loop (1- i) (cons (cons i i) r)))))
-    (define mutable
-      (apply (primitive list)
-             (apply (primitive cons) (const 1) (const 1))
-             (apply (primitive cons) (const 2) (const 2))
-             (apply (primitive cons) (const 3) (const 3)))))
+   ;; First order, mutability preserved.
+   (let loop ((i 3) (r '()))
+     (if (zero? i)
+         r
+         (loop (1- i) (cons (cons i i) r))))
+   (apply (primitive list)
+          (apply (primitive cons) (const 1) (const 1))
+          (apply (primitive cons) (const 2) (const 2))
+          (apply (primitive cons) (const 3) (const 3))))
+  ;;
+  ;; See above.
+  #;
+  (pass-if-peval
+   ;; First order, evaluated.
+   (let loop ((i 7)
+              (r '()))
+     (if (<= i 0)
+         (car r)
+         (loop (1- i) (cons i r))))
+   (const 1))
+
+  ;; Instead here are tests for what happens for the above cases: they
+  ;; unroll but they don't fold.
+  (pass-if-peval
+   (let loop ((i 3) (r '()))
+     (if (zero? i)
+         r
+         (loop (1- i) (cons (cons i i) r))))
+   (letrec (loop) (_) (_)
+           (let (r) (_)
+                ((apply (primitive list)
+                        (apply (primitive cons) (const 3) (const 3))))
+                (let (r) (_)
+                     ((apply (primitive cons)
+                             (apply (primitive cons) (const 2) (const 2))
+                             (lexical r _)))
+                     (apply (primitive cons)
+                            (apply (primitive cons) (const 1) (const 1))
+                            (lexical r _))))))
+
+  ;; See above.
+  (pass-if-peval
+   (let loop ((i 4)
+              (r '()))
+     (if (<= i 0)
+         (car r)
+         (loop (1- i) (cons i r))))
+   (letrec (loop) (_) (_)
+           (let (r) (_)
+                ((apply (primitive list) (const 4)))
+                (let (r) (_)
+                     ((apply (primitive cons)
+                             (const 3)
+                             (lexical r _)))
+                     (let (r) (_)
+                          ((apply (primitive cons)
+                                  (const 2)
+                                  (lexical r _)))
+                          (let (r) (_)
+                               ((apply (primitive cons)
+                                       (const 1)
+                                       (lexical r _)))
+                               (apply (primitive car)
+                                      (lexical r _))))))))
 
   (pass-if-peval
     ;; Mutability preserved.
@@ -708,14 +778,14 @@
           (lexical y _))))
   
   (pass-if-peval
-    ;; First order, evaluated.
-    (define one
-      (let loop ((i 7)
-                 (r '()))
-        (if (<= i 0)
-            (car r)
-            (loop (1- i) (cons i r)))))
-    (define one (const 1)))
+   ;; Infinite recursion
+   ((lambda (x) (x x)) (lambda (x) (x x)))
+   (let (x) (_)
+        ((lambda _
+           (lambda-case
+            (((x) _ _ _ _ _)
+             (apply (lexical x _) (lexical x _))))))
+        (apply (lexical x _) (lexical x _))))
 
   (pass-if-peval
     ;; First order, aliased primitive.
@@ -759,8 +829,7 @@
       (lambda (_)
         (lambda-case
          (((x) #f #f #f () (_))
-          (letrec* (bar) (_) ((lambda (_) . _))
-                   (apply (primitive +) (lexical x _) (const 9))))))))
+          (apply (primitive +) (lexical x _) (const 9)))))))
 
   (pass-if-peval
     ;; First order, with lambda inlined & specialized twice.
@@ -770,55 +839,40 @@
           (y 3))
       (+ (* x (f x y))
          (f something x)))
-    (let (f) (_) ((lambda (_)
-                    (lambda-case
-                     (((x y) #f #f #f () (_ _))
-                      (apply (primitive +)
-                             (apply (primitive *)
-                                    (lexical x _)
-                                    (toplevel top))
-                             (lexical y _))))))
-         (apply (primitive +)
-                (apply (primitive *)
-                       (const 2)
-                       (apply (primitive +)       ; (f 2 3)
-                              (apply (primitive *)
-                                     (const 2)
-                                     (toplevel top))
-                              (const 3)))
-                (apply (lexical f _)    ; (f something 2)
-                       ;; This arg is not const, so the lambda does not
-                       ;; fold.  We will fix this in the future when we
-                       ;; inline lambda to `let'.  That will offer the
-                       ;; possibility of creating a lexical binding for
-                       ;; `something', to preserve the order of effects.
-                       (toplevel something)
+    (apply (primitive +)
+           (apply (primitive *)
+                  (const 2)
+                  (apply (primitive +)  ; (f 2 3)
+                         (apply (primitive *)
+                                (const 2)
+                                (toplevel top))
+                         (const 3)))
+           (let (x) (_) ((toplevel something))                    ; (f something 2)
+                ;; `something' is not const, so preserve order of
+                ;; effects with a lexical binding.
+                (apply (primitive +)
+                       (apply (primitive *)
+                              (lexical x _)
+                              (toplevel top))
                        (const 2)))))
-
+  
   (pass-if-peval
-    ;; First order, with lambda inlined & specialized 3 times.
-    (let ((f (lambda (x y) (if (> x 0) y x))))
-      (+ (f -1 0)
-         (f 1 0)
-         (f -1 y)
-         (f 2 y)
-         (f z y)))
-    (let (f) (_)
-         ((lambda (_)
-            (lambda-case
-             (((x y) #f #f #f () (_ _))
-              (if (apply (primitive >) (lexical x _) (const 0))
-                  (lexical y _)
-                  (lexical x _))))))
-         (apply (primitive +)
-                (const -1)                        ; (f -1 0)
-                (const 0)                         ; (f 1 0)
-                (apply (lexical f _)              ; (f -1 y)
-                       (const -1) (toplevel y))
-                (apply (lexical f _)              ; (f 2 y)
-                       (const 2) (toplevel y))
-                (apply (lexical f _)              ; (f z y)
-                       (toplevel z) (toplevel y)))))
+   ;; First order, with lambda inlined & specialized 3 times.
+   (let ((f (lambda (x y) (if (> x 0) y x))))
+     (+ (f -1 0)
+        (f 1 0)
+        (f -1 y)
+        (f 2 y)
+        (f z y)))
+   (apply (primitive +)
+          (const -1)                      ; (f -1 0)
+          (const 0)                       ; (f 1 0)
+          (begin (toplevel y) (const -1)) ; (f -1 y)
+          (toplevel y)                    ; (f 2 y)
+          (let (x y) (_ _) ((toplevel z) (toplevel y)) ; (f z y)
+               (if (apply (primitive >) (lexical x _) (const 0))
+                   (lexical y _)
+                   (lexical x _)))))
 
   (pass-if-peval
     ;; First order, conditional.
@@ -839,8 +893,8 @@
                          n
                          (+ (fibo (- n 1))
                             (fibo (- n 2)))))))
-      (fibo 7))
-    (const 13))
+      (fibo 4))
+    (const 3))
 
   (pass-if-peval
    ;; Don't propagate toplevel references, as intervening expressions
@@ -884,25 +938,15 @@
   (pass-if-peval
     ;; Higher order.
     ((lambda (f) (f x)) (lambda (x) x))
-    (apply (lambda ()
-             (lambda-case
-              (((x) #f #f #f () (_))
-               (lexical x _))))
-           (toplevel x)))
+    (toplevel x))
 
   (pass-if-peval
     ;; Bug reported at
     ;; <https://lists.gnu.org/archive/html/bug-guile/2011-09/msg00019.html>.
     (let ((fold (lambda (f g) (f (g top)))))
       (fold 1+ (lambda (x) x)))
-    (let (fold) (_) (_)
-         (apply (primitive 1+)
-                (apply (lambda ()
-                         (lambda-case
-                          (((x) #f #f #f () (_))
-                           (lexical x _))))
-                       (toplevel top)))))
-
+    (apply (primitive 1+) (toplevel top)))
+  
   (pass-if-peval
     ;; Procedure not inlined when residual code contains recursive calls.
     ;; <http://debbugs.gnu.org/9542>
@@ -940,20 +984,19 @@
                              (lambda (x) (lambda (y) (+ x y)))))
                         (cons (make-adder 1) (make-adder 2)))
                      #:to 'tree-il)))
-      ((let (make-adder) (_) (_)
-            (apply (primitive cons)
-                   (lambda ()
-                     (lambda-case
-                      (((y) #f #f #f () (,gensym1))
-                       (apply (primitive +)
-                              (const 1)
-                              (lexical y ,ref1)))))
-                   (lambda ()
-                     (lambda-case
-                      (((y) #f #f #f () (,gensym2))
-                       (apply (primitive +)
-                              (const 2)
-                              (lexical y ,ref2)))))))
+      ((apply (primitive cons)
+              (lambda ()
+                (lambda-case
+                 (((y) #f #f #f () (,gensym1))
+                  (apply (primitive +)
+                         (const 1)
+                         (lexical y ,ref1)))))
+              (lambda ()
+                (lambda-case
+                 (((y) #f #f #f () (,gensym2))
+                  (apply (primitive +)
+                         (const 2)
+                         (lexical y ,ref2))))))
        (and (eq? gensym1 ref1)
             (eq? gensym2 ref2)
             (not (eq? gensym1 gensym2))))
@@ -1018,40 +1061,27 @@
      (vector 1 2 3)
      (make-list 10)
      (list 1 2 3))
-    (apply (lambda ()
-             (lambda-case
-              (((x y z) #f #f #f () (_ _ _))
-               (begin
-                 (apply (toplevel vector-set!)
-                        (lexical x _) (const 0) (const 0))
-                 (apply (toplevel set-car!)
-                        (lexical y _) (const 0))
-                 (apply (toplevel set-cdr!)
-                        (lexical z _) (const ()))))))
-           (apply (primitive vector) (const 1) (const 2) (const 3))
-           (apply (toplevel make-list) (const 10))
-           (apply (primitive list) (const 1) (const 2) (const 3))))
+    (let (x y z) (_ _ _)
+         ((apply (primitive vector) (const 1) (const 2) (const 3))
+          (apply (toplevel make-list) (const 10))
+          (apply (primitive list) (const 1) (const 2) (const 3)))
+         (begin
+           (apply (toplevel vector-set!)
+                  (lexical x _) (const 0) (const 0))
+           (apply (toplevel set-car!)
+                  (lexical y _) (const 0))
+           (apply (toplevel set-cdr!)
+                  (lexical z _) (const ())))))
 
   (pass-if-peval
-    ;; Procedure only called with dynamic args is not inlined.
    (let ((foo top-foo) (bar top-bar))
      (let* ((g (lambda (x y) (+ x y)))
             (f (lambda (g x) (g x x))))
        (+ (f g foo) (f g bar))))
    (let (foo bar) (_ _) ((toplevel top-foo) (toplevel top-bar))
-        (let (g) (_)
-             ((lambda _                 ; g
-                (lambda-case
-                 (((x y) #f #f #f () (_ _))
-                  (apply (primitive +) (lexical x _) (lexical y _))))))
-             (let (f) (_)
-                  ((lambda _            ; f
-                     (lambda-case
-                      (((g x) #f #f #f () (_ _))
-                       (apply (lexical g _) (lexical x _) (lexical x _))))))
-                  (apply (primitive +)
-                         (apply (lexical g _) (lexical foo _) (lexical foo _))
-                         (apply (lexical g _) (lexical bar _) (lexical bar _)))))))
+        (apply (primitive +)
+               (apply (primitive +) (lexical foo _) (lexical foo _))
+               (apply (primitive +) (lexical bar _) (lexical bar _)))))
 
   (pass-if-peval
     ;; Fresh objects are not turned into constants.
@@ -1060,9 +1090,8 @@
            (y (cons 0 x)))
       y)
     (let (x) (_) ((apply (primitive list) (const 1) (const 2) (const 3)))
-         (let (y) (_) ((apply (primitive cons) (const 0) (lexical x _)))
-              (lexical y _))))
-
+         (apply (primitive cons) (const 0) (lexical x _))))
+  
   (pass-if-peval
     ;; Bindings mutated.
     (let ((x 2))
@@ -1081,10 +1110,10 @@
                   x)))
       (frob f) ; may mutate `x'
       x)
-    (letrec (x f) (_ _) ((const 0) _)
+    (letrec (x) (_) ((const 0))
             (begin
-             (apply (toplevel frob) (lexical f _))
-             (lexical x _))))
+              (apply (toplevel frob) (lambda _ _))
+              (lexical x _))))
 
   (pass-if-peval
     ;; Bindings mutated.
@@ -1130,11 +1159,14 @@
 
   (pass-if-peval
     ;; Inlining aborted when residual code contains recursive calls.
+    ;;
     ;; <http://debbugs.gnu.org/9542>
     (let loop ((x x) (y 0))
       (if (> y 0)
-          (loop (1+ x) (1+ y))
-          (if (< x 0) x (loop (1- x)))))
+          (loop (1- x) (1- y))
+          (if (< x 0)
+              x
+              (loop (1+ x) (1+ y)))))
     (letrec (loop) (_) ((lambda (_)
                           (lambda-case
                            (((x y) #f #f #f () (_ _))
