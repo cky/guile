@@ -427,7 +427,8 @@ it does not handle <fix> and <let-values>, it should be called before
     (lambda ()
       (let loop ((exp   exp)
                  (env   vlist-null)  ; static environment
-                 (calls '()))        ; inlined call stack
+                 (calls '())         ; inlined call stack
+                 (ctx 'value))       ; effect, value, or call
         (define (lookup var)
           (and=> (vhash-assq var env) cdr))
 
@@ -437,16 +438,17 @@ it does not handle <fix> and <let-values>, it should be called before
           (($ <void>)
            exp)
           (($ <lexical-ref> _ _ gensym)
-           ;; Propagate only pure expressions.
+           ;; Propagate only pure expressions that are not assigned to.
            (let ((val (lookup gensym)))
              (if (pure-expression? val) val exp)))
           ;; Lexical set! causes a bailout.
           (($ <let> src names gensyms vals body)
-           (let* ((vals* (map (cut loop <> env calls) vals))
+           (let* ((vals* (map (cut loop <> env calls 'value) vals))
                   (vals  (map maybe-unconst vals vals*))
                   (body* (loop body
                                (fold vhash-consq env gensyms vals)
-                               calls))
+                               calls
+                               ctx))
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
@@ -460,20 +462,22 @@ it does not handle <fix> and <let-values>, it should be called before
            ;; Things could be done more precisely when IN-ORDER? but
            ;; it's OK not to do it---at worst we lost an optimization
            ;; opportunity.
-           (let* ((vals* (map (cut loop <> env calls) vals))
+           (let* ((vals* (map (cut loop <> env calls 'value) vals))
                   (vals  (map maybe-unconst vals vals*))
                   (body* (loop body
                                (fold vhash-consq env gensyms vals)
-                               calls))
+                               calls
+                               ctx))
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
                  (make-letrec src in-order? names gensyms vals body))))
           (($ <fix> src names gensyms vals body)
-           (let* ((vals (map (cut loop <> env calls) vals))
+           (let* ((vals (map (cut loop <> env calls 'value) vals))
                   (body* (loop body
-                           (fold vhash-consq env gensyms vals)
-                           calls))
+                               (fold vhash-consq env gensyms vals)
+                               calls
+                               ctx))
                   (body  (maybe-unconst body body*)))
              (if (const? body*)
                  body
@@ -482,29 +486,31 @@ it does not handle <fix> and <let-values>, it should be called before
            ;; Peval the producer, then try to inline the consumer into
            ;; the producer.  If that succeeds, peval again.  Otherwise
            ;; reconstruct the let-values, pevaling the consumer.
-           (let ((producer (maybe-unconst producer (loop producer env calls))))
+           (let ((producer (maybe-unconst producer
+                                          (loop producer env calls 'value))))
              (or (match consumer
                    (($ <lambda-case> src req #f #f #f () gensyms body #f)
                     (cond
                      ((inline-values producer src req gensyms body)
-                      => (cut loop <> env calls))
+                      => (cut loop <> env calls ctx))
                      (else #f)))
                    (_ #f))
                  (make-let-values lv-src producer
-                                  (loop consumer env calls)))))
+                                  (loop consumer env calls ctx)))))
           (($ <dynwind> src winder body unwinder)
-           (make-dynwind src (loop winder env calls)
-                         (loop body env calls)
-                         (loop unwinder env calls)))
+           (make-dynwind src (loop winder env calls 'effect)
+                         (loop body env calls ctx)
+                         (loop unwinder env calls 'effect)))
           (($ <dynlet> src fluids vals body)
            (make-dynlet src
                         (map maybe-unconst fluids
-                             (map (cut loop <> env calls) fluids))
+                             (map (cut loop <> env calls 'value) fluids))
                         (map maybe-unconst vals
-                             (map (cut loop <> env calls) vals))
-                        (maybe-unconst body (loop body env calls))))
+                             (map (cut loop <> env calls 'value) vals))
+                        (maybe-unconst body (loop body env calls ctx))))
           (($ <dynref> src fluid)
-           (make-dynref src (maybe-unconst fluid (loop fluid env calls))))
+           (make-dynref src
+                        (maybe-unconst fluid (loop fluid env calls 'value))))
           (($ <toplevel-ref> src (? effect-free-primitive? name))
            (if (local-toplevel? name)
                exp
@@ -516,42 +522,42 @@ it does not handle <fix> and <let-values>, it should be called before
            exp)
           (($ <module-set> src mod name public? exp)
            (make-module-set src mod name public?
-                            (maybe-unconst exp (loop exp env '()))))
+                            (maybe-unconst exp (loop exp env '() 'value))))
           (($ <toplevel-define> src name exp)
            (make-toplevel-define src name
-                                 (maybe-unconst exp (loop exp env '()))))
+                                 (maybe-unconst exp (loop exp env '() 'value))))
           (($ <toplevel-set> src name exp)
            (make-toplevel-set src name
-                              (maybe-unconst exp (loop exp env '()))))
+                              (maybe-unconst exp (loop exp env '() 'value))))
           (($ <primitive-ref>)
            exp)
           (($ <conditional> src condition subsequent alternate)
-           (let ((condition (loop condition env calls)))
+           (let ((condition (loop condition env calls 'value)))
              (if (const*? condition)
                  (if (or (lambda? condition) (void? condition)
                          (const-exp condition))
-                     (loop subsequent env calls)
-                     (loop alternate env calls))
+                     (loop subsequent env calls ctx)
+                     (loop alternate env calls ctx))
                  (make-conditional src condition
-                                   (loop subsequent env calls)
-                                   (loop alternate env calls)))))
+                                   (loop subsequent env calls ctx)
+                                   (loop alternate env calls ctx)))))
           (($ <application> src
-                ($ <primitive-ref> _ '@call-with-values)
-                (producer
-                 ($ <lambda> _ _
-                    (and consumer
-                         ;; No optional or kwargs.
-                         ($ <lambda-case>
-                            _ req #f rest #f () gensyms body #f)))))
+              ($ <primitive-ref> _ '@call-with-values)
+              (producer
+               ($ <lambda> _ _
+                  (and consumer
+                       ;; No optional or kwargs.
+                       ($ <lambda-case>
+                          _ req #f rest #f () gensyms body #f)))))
            (loop (make-let-values src (make-application src producer '())
                                   consumer)
-                 env calls))
+                 env calls ctx))
 
           (($ <application> src orig-proc orig-args)
            ;; todo: augment the global env with specialized functions
-           (let* ((proc  (loop orig-proc env calls))
+           (let* ((proc  (loop orig-proc env calls 'call))
                   (proc* (maybe-unlambda orig-proc proc env))
-                  (args  (map (cut loop <> env calls) orig-args))
+                  (args  (map (cut loop <> env calls 'value) orig-args))
                   (args* (map (cut maybe-unlambda <> <> env)
                               orig-args
                               (map maybe-unconst orig-args args)))
@@ -594,7 +600,8 @@ it does not handle <fix> and <let-values>, it should be called before
                                  (body
                                   (loop body
                                         (fold vhash-consq env gensyms params)
-                                        (cons (cons proc args) calls))))
+                                        (cons (cons proc args) calls)
+                                        ctx)))
                             ;; If the residual code contains recursive
                             ;; calls, give up inlining.
                             (if (code-contains-calls? body proc lookup)
@@ -614,23 +621,29 @@ it does not handle <fix> and <let-values>, it should be called before
 
                  app)))
           (($ <lambda> src meta body)
-           (make-lambda src meta (loop body env calls)))
+           (make-lambda src meta (loop body env calls 'value)))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)
            (make-lambda-case src req opt rest kw
                              (map maybe-unconst inits
-                                  (map (cut loop <> env calls) inits))
+                                  (map (cut loop <> env calls 'value) inits))
                              gensyms
-                             (maybe-unconst body (loop body env calls))
+                             (maybe-unconst body (loop body env calls ctx))
                              alt))
           (($ <sequence> src exps)
-           (let ((exps (map (cut loop <> env calls) exps)))
-             (if (every pure-expression? exps)
-                 (last exps)
-                 (match (reverse exps)
-                   ;; Remove all expressions but the last one.
-                   ((keep rest ...)
-                    (let ((rest (remove pure-expression? rest)))
-                      (make-sequence src (reverse (cons keep rest))))))))))))
+           (let lp ((exps exps) (effects '()))
+             (match exps
+               ((last)
+                (if (null? effects)
+                    (loop last env calls ctx)
+                    (make-sequence src (append (reverse effects)
+                                               (list
+                                                (loop last env calls ctx))))))
+               ((head . rest)
+                (let ((head (loop head env calls 'effect)))
+                  (lp rest
+                      (if (pure-expression? head)
+                          effects
+                          (cons head effects)))))))))))
     (lambda _
       ;; We encountered something we don't handle, like `<lexical-set>',
       ;; <abort>, or some other effecting construct, so bail out.
