@@ -161,7 +161,9 @@ references to the new symbols."
 
 (define (tree-il-any proc exp)
   (let/ec k
-    (tree-il-fold (lambda (exp res) #f)
+    (tree-il-fold (lambda (exp res)
+                    (let ((res (proc exp)))
+                      (if res (k res) #f)))
                   (lambda (exp res)
                     (let ((res (proc exp)))
                       (if res (k res) #f)))
