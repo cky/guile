@@ -509,18 +509,6 @@ it does not handle <fix> and <let-values>, it should be called before
         ;((? bytevector?) (make-const src exp))
         (_ #f))))
 
-  (define (maybe-unconst orig new)
-    ;; If NEW is a constant, change it to a non-constant if need be.
-    ;; Expressions that build a mutable object, such as `(list 1 2)',
-    ;; must not be replaced by a constant; this procedure "undoes" the
-    ;; change from `(list 1 2)' to `'(1 2)'.
-    (match new
-      (($ <const> src (? mutable? value))
-       (if (equal? new orig)
-           new
-           (or (make-value-construction src value) orig)))
-      (_ new)))
-
   (catch 'match-error
     (lambda ()
       (let loop ((exp   exp)
@@ -539,7 +527,7 @@ it does not handle <fix> and <let-values>, it should be called before
         (define (for-effect exp)
           (loop exp env counter 'effect))
         (define (for-tail exp)
-          (maybe-unconst exp (loop exp env counter ctx)))
+          (loop exp env counter ctx))
 
         (if counter
             (record-effort! counter))
@@ -623,19 +611,15 @@ it does not handle <fix> and <let-values>, it should be called before
                      (make-sequence src (list exp (make-void #f)))))
                (begin
                  (record-residual-lexical-reference! gensym)
-                 (make-lexical-set src name gensym
-                                   (maybe-unconst exp
-                                                  (for-value exp))))))
+                 (make-lexical-set src name gensym (for-value exp)))))
           (($ <let> src names gensyms vals body)
-           (let* ((vals* (map for-operand vals))
-                  (vals  (map maybe-unconst vals vals*))
-                  (body* (loop body
-                               (fold vhash-consq env gensyms vals)
-                               counter
-                               ctx))
-                  (body  (maybe-unconst body body*)))
+           (let* ((vals (map for-operand vals))
+                  (body (loop body
+                          (fold vhash-consq env gensyms vals)
+                          counter
+                          ctx)))
              (cond
-              ((const? body*)
+              ((const? body)
                (for-tail (make-sequence src (append vals (list body)))))
               ((and (lexical-ref? body)
                     (memq (lexical-ref-gensym body) gensyms))
@@ -670,15 +654,13 @@ it does not handle <fix> and <let-values>, it should be called before
            ;; Things could be done more precisely when IN-ORDER? but
            ;; it's OK not to do it---at worst we lost an optimization
            ;; opportunity.
-           (let* ((vals* (map for-operand vals))
-                  (vals  (map maybe-unconst vals vals*))
-                  (body* (loop body
-                               (fold vhash-consq env gensyms vals)
-                               counter
-                               ctx))
-                  (body  (maybe-unconst body body*)))
-             (if (and (const? body*)
-                      (every constant-expression? vals*))
+           (let* ((vals (map for-operand vals))
+                  (body (loop body
+                          (fold vhash-consq env gensyms vals)
+                          counter
+                          ctx)))
+             (if (and (const? body)
+                      (every constant-expression? vals))
                  body
                  (let*-values
                      (((stripped) (remove
@@ -694,20 +676,18 @@ it does not handle <fix> and <let-values>, it should be called before
                        (make-letrec src in-order? names gensyms vals body))))))
           (($ <fix> src names gensyms vals body)
            (let* ((vals (map for-operand vals))
-                  (body* (loop body
-                               (fold vhash-consq env gensyms vals)
-                               counter
-                               ctx))
-                  (body  (maybe-unconst body body*)))
-             (if (and (const? body*)
-                      (every constant-expression? vals))
+                  (body (loop body
+                          (fold vhash-consq env gensyms vals)
+                          counter
+                          ctx)))
+             (if (const? body)
                  body
                  (make-fix src names gensyms vals body))))
           (($ <let-values> lv-src producer consumer)
            ;; Peval the producer, then try to inline the consumer into
            ;; the producer.  If that succeeds, peval again.  Otherwise
            ;; reconstruct the let-values, pevaling the consumer.
-           (let ((producer (maybe-unconst producer (for-value producer))))
+           (let ((producer (for-value producer)))
              (or (match consumer
                    (($ <lambda-case> src req #f #f #f () gensyms body #f)
                     (cond
@@ -717,18 +697,13 @@ it does not handle <fix> and <let-values>, it should be called before
                    (_ #f))
                  (make-let-values lv-src producer (for-tail consumer)))))
           (($ <dynwind> src winder body unwinder)
-           (make-dynwind src
-                         (maybe-unconst winder (for-value winder))
-                         (for-tail body)
-                         (maybe-unconst unwinder (for-value unwinder))))
+           (make-dynwind src (for-value winder) (for-tail body)
+                         (for-value unwinder)))
           (($ <dynlet> src fluids vals body)
-           (make-dynlet src
-                        (map maybe-unconst fluids (map for-value fluids))
-                        (map maybe-unconst vals (map for-value vals))
+           (make-dynlet src (map for-value fluids) (map for-value vals)
                         (for-tail body)))
           (($ <dynref> src fluid)
-           (make-dynref src
-                        (maybe-unconst fluid (for-value fluid))))
+           (make-dynref src (for-value fluid)))
           (($ <toplevel-ref> src (? effect-free-primitive? name))
            (if (local-toplevel? name)
                exp
@@ -739,14 +714,11 @@ it does not handle <fix> and <let-values>, it should be called before
           (($ <module-ref>)
            exp)
           (($ <module-set> src mod name public? exp)
-           (make-module-set src mod name public?
-                            (maybe-unconst exp (for-value exp))))
+           (make-module-set src mod name public? (for-value exp)))
           (($ <toplevel-define> src name exp)
-           (make-toplevel-define src name
-                                 (maybe-unconst exp (for-value exp))))
+           (make-toplevel-define src name (for-value exp)))
           (($ <toplevel-set> src name exp)
-           (make-toplevel-set src name
-                              (maybe-unconst exp (for-value exp))))
+           (make-toplevel-set src name (for-value exp)))
           (($ <primitive-ref>)
            (case ctx
              ((effect) (make-void #f))
@@ -776,6 +748,59 @@ it does not handle <fix> and <let-values>, it should be called before
            ;; todo: augment the global env with specialized functions
            (let ((proc (loop orig-proc env counter 'operator)))
              (match proc
+               (($ <primitive-ref> _ (? constructor-primitive? name))
+                (case ctx
+                  ((effect test)
+                   (let ((exp (for-value exp))
+                         (res (if (eq? ctx 'effect)
+                                  (make-void #f)
+                                  (make-const #f #t))))
+                     (match (for-value exp)
+                       (($ <application> _ ($ <primitive-ref> _ 'cons) (x xs))
+                        (for-tail
+                         (make-sequence src (list x xs res))))
+                       (($ <application> _ ($ <primitive-ref> _ 'list) elts)
+                        (for-tail
+                         (make-sequence src (append elts (list res)))))
+                       (($ <application> _ ($ <primitive-ref> _ 'vector) elts)
+                        (for-tail
+                         (make-sequence src (append elts (list res)))))
+                       (_ exp))))
+                  (else
+                   (match (cons name (map for-value orig-args))
+                     (('cons head tail)
+                      (let ((tail (for-value tail)))
+                        (match tail
+                          (($ <const> src ())
+                           (make-application src (make-primitive-ref #f 'list)
+                                             (list head)))
+                          (($ <application> src ($ <primitive-ref> _ 'list) elts)
+                           (make-application src (make-primitive-ref #f 'list)
+                                             (cons head elts)))
+                          (_ (make-application src proc
+                                               (list head tail))))))
+
+                     (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+                      (for-tail (make-sequence src (list tail head))))
+                     (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+                      (for-tail (make-sequence src (list head tail))))
+                  
+                     (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+                      (for-tail (make-sequence src (append tail (list head)))))
+                     (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+                      (for-tail (make-sequence
+                                 src
+                                 (list head
+                                       (make-application
+                                        src (make-primitive-ref #f 'list) tail)))))
+                  
+                     (('car ($ <const> src (head . tail)))
+                      (for-tail (make-const src head)))
+                     (('cdr ($ <const> src (head . tail)))
+                      (for-tail (make-const src tail)))
+
+                     ((_ . args)
+                      (make-application src proc args))))))
                (($ <primitive-ref> _ (? effect-free-primitive? name))
                 (let ((args (map for-value orig-args)))
                   (if (every const? args) ; only simple constants
@@ -794,10 +819,8 @@ it does not handle <fix> and <let-values>, it should be called before
                               (else
                                (make-values src (map (cut make-const src <>)
                                                      values))))
-                            (make-application src proc
-                                              (map maybe-unconst orig-args args))))
-                      (make-application src proc
-                                        (map maybe-unconst orig-args args)))))
+                            (make-application src proc args)))
+                      (make-application src proc args))))
                (($ <lambda> _ _
                    ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
                 ;; Simple case: no rest, no keyword arguments.
@@ -810,8 +833,7 @@ it does not handle <fix> and <let-values>, it should be called before
                    ((or (< nargs nreq) (> nargs (+ nreq nopt)))
                     ;; An error, or effecting arguments.
                     (make-application src (for-value orig-proc)
-                                      (map maybe-unconst orig-args
-                                           (map for-value orig-args))))
+                                      (map for-value orig-args)))
                    ((and=> (find-counter key counter) counter-recursive?)
                     ;; A recursive call.  Process again in tail context.
                     (loop (make-let src (append req (or opt '()))
@@ -833,8 +855,7 @@ it does not handle <fix> and <let-values>, it should be called before
                                      (k (make-application
                                          src
                                          (for-value orig-proc)
-                                         (map maybe-unconst orig-args
-                                              (map for-value orig-args)))))))
+                                         (map for-value orig-args))))))
                         (loop (make-let src (append req (or opt '()))
                                         gensyms
                                         (append orig-args
@@ -860,9 +881,8 @@ it does not handle <fix> and <let-values>, it should be called before
                     ($ <lambda>)
                     ($ <toplevel-ref>)
                     ($ <lexical-ref>))
-                (make-application src (maybe-unconst orig-proc proc)
-                                  (map maybe-unconst orig-args
-                                       (map for-value orig-args))))
+                (make-application src proc
+                                  (map for-value orig-args)))
 
                ;; In practice, this is the clause that stops peval:
                ;; module-ref applications (produced by macros,
@@ -878,10 +898,9 @@ it does not handle <fix> and <let-values>, it should be called before
               (make-lambda src meta (for-value body)))))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)
            (make-lambda-case src req opt rest kw
-                             (map maybe-unconst inits
-                                  (map for-value inits))
+                             (map for-value inits)
                              gensyms
-                             (maybe-unconst body (for-tail body))
+                             (for-tail body)
                              (and alt (for-tail alt))))
           (($ <sequence> src exps)
            (let lp ((exps exps) (effects '()))

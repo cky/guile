@@ -650,20 +650,27 @@
     (const 3))
 
   (pass-if-peval
-    ;; First order, coalesced.
+    ;; First order, coalesced, mutability preserved.
     (cons 0 (cons 1 (cons 2 (list 3 4 5))))
-    (const (0 1 2 3 4 5)))
+    (apply (primitive list)
+           (const 0) (const 1) (const 2) (const 3) (const 4) (const 5)))
 
   (pass-if-peval
-    ;; First order, coalesced, mutability preserved.
-    (define mutable
-      (cons 0 (cons 1 (cons 2 (list 3 4 5)))))
-    (define mutable
-      ;; This must not be a constant.
-      (apply (primitive list)
-             (const 0) (const 1) (const 2) (const 3) (const 4) (const 5))))
+   ;; First order, coalesced, mutability preserved.
+   (cons 0 (cons 1 (cons 2 (list 3 4 5))))
+   ;; This must not be a constant.
+   (apply (primitive list)
+          (const 0) (const 1) (const 2) (const 3) (const 4) (const 5)))
 
-    ;; These two tests doesn't work any more because we changed the way we
+  (pass-if-peval
+    ;; First order, coalesced, immutability preserved.
+    (cons 0 (cons 1 (cons 2 '(3 4 5))))
+    (apply (primitive cons) (const 0)
+           (apply (primitive cons) (const 1)
+                  (apply (primitive cons) (const 2)
+                         (const (3 4 5))))))
+
+  ;; These two tests doesn't work any more because we changed the way we
   ;; deal with constants -- now the algorithm will see a construction as
   ;; being bound to the lexical, so it won't propagate it.  It can't
   ;; even propagate it in the case that it is only referenced once,
@@ -746,12 +753,18 @@
                                (apply (primitive car)
                                       (lexical r _))))))))
 
+   ;; Static sums.
   (pass-if-peval
-    ;; Mutability preserved.
-    (define mutable
-      ((lambda (x y z) (list x y z)) 1 2 3))
-    (define mutable
-      (apply (primitive list) (const 1) (const 2) (const 3))))
+   (let loop ((l '(1 2 3 4)) (sum 0))
+     (if (null? l)
+         sum
+         (loop (cdr l) (+ sum (car l)))))
+   (const 10))
+
+  (pass-if-peval
+   ;; Mutability preserved.
+   ((lambda (x y z) (list x y z)) 1 2 3)
+   (apply (primitive list) (const 1) (const 2) (const 3)))
 
   (pass-if-peval
    ;; Don't propagate effect-free expressions that operate on mutable
@@ -1084,14 +1097,15 @@
                (apply (primitive +) (lexical bar _) (lexical bar _)))))
 
   (pass-if-peval
-    ;; Fresh objects are not turned into constants.
+    ;; Fresh objects are not turned into constants, nor are constants
+    ;; turned into fresh objects.
     (let* ((c '(2 3))
            (x (cons 1 c))
            (y (cons 0 x)))
       y)
-    (let (x) (_) ((apply (primitive list) (const 1) (const 2) (const 3)))
+    (let (x) (_) ((apply (primitive cons) (const 1) (const (2 3))))
          (apply (primitive cons) (const 0) (lexical x _))))
-  
+
   (pass-if-peval
     ;; Bindings mutated.
     (let ((x 2))
@@ -1181,7 +1195,64 @@
              (g (lambda (x) (h (1+ x))))
              (h (lambda (x) (f x))))
       (f 0))
-    (letrec _ . _)))
+    (letrec _ . _))
+
+  (pass-if-peval
+    ;; Constant folding: cons
+   (begin (cons 1 2) #f)
+   (const #f))
+  
+  (pass-if-peval
+    ;; Constant folding: cons
+   (begin (cons (foo) 2) #f)
+   (begin (apply (toplevel foo)) (const #f)))
+  
+  (pass-if-peval
+    ;; Constant folding: cons
+   (if (cons 0 0) 1 2)
+   (const 1))
+  
+  (pass-if-peval
+   ;; Constant folding: car+cons
+   (car (cons 1 0))
+   (const 1))
+  
+  (pass-if-peval
+   ;; Constant folding: cdr+cons
+   (cdr (cons 1 0))
+   (const 0))
+  
+  (pass-if-peval
+   ;; Constant folding: car+cons, impure
+   (car (cons 1 (bar)))
+   (begin (apply (toplevel bar)) (const 1)))
+  
+  (pass-if-peval
+   ;; Constant folding: cdr+cons, impure
+   (cdr (cons (bar) 0))
+   (begin (apply (toplevel bar)) (const 0)))
+  
+  (pass-if-peval
+   ;; Constant folding: car+list
+   (car (list 1 0))
+   (const 1))
+  
+  (pass-if-peval
+   ;; Constant folding: cdr+list
+   (cdr (list 1 0))
+   (apply (primitive list) (const 0)))
+  
+  (pass-if-peval
+   ;; Constant folding: car+list, impure
+   (car (list 1 (bar)))
+   (begin (apply (toplevel bar)) (const 1)))
+  
+  (pass-if-peval
+   ;; Constant folding: cdr+list, impure
+   (cdr (list (bar) 0))
+   (begin (apply (toplevel bar)) (apply (primitive list) (const 0))))
+  
+  )
 
 
 (with-test-prefix "tree-il-fold"
