@@ -109,7 +109,8 @@
 
 (define *primitive-constructors*
   ;; Primitives that return a fresh object.
-  '(acons cons cons* list vector make-struct make-struct/no-tail))
+  '(acons cons cons* list vector make-struct make-struct/no-tail
+          car cdr vector-ref struct-ref))
 
 (define *effect-free-primitives*
   `(values
@@ -118,13 +119,11 @@
     + * - / 1- 1+ quotient remainder modulo
     not
     pair? null? list? symbol? vector?
-    car cdr
     caar cadr cdar cddr
     caaar caadr cadar caddr cdaar cdadr cddar cdddr
     caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
     cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
-    vector-ref
-    struct? struct-vtable struct-ref
+    struct? struct-vtable
     bytevector-u8-ref bytevector-s8-ref
     bytevector-u16-ref bytevector-u16-native-ref
     bytevector-s16-ref bytevector-s16-native-ref

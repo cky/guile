@@ -655,6 +655,30 @@
       (apply (primitive list) (const 1) (const 2) (const 3))))
 
   (pass-if-peval
+   ;; Don't propagate effect-free expressions that operate on mutable
+   ;; objects.
+   (let* ((x (list 1))
+          (y (car x)))
+     (set-car! x 0)
+     y)
+   (let (x) (_) ((apply (primitive list) (const 1)))
+        (let (y) (_) ((apply (primitive car) (lexical x _)))
+             (begin
+               (apply (toplevel set-car!) (lexical x _) (const 0))
+               (lexical y _)))))
+  
+  (pass-if-peval
+   ;; Don't propagate effect-free expressions that operate on objects we
+   ;; don't know about.
+   (let ((y (car x)))
+     (set-car! x 0)
+     y)
+   (let (y) (_) ((apply (primitive car) (toplevel x)))
+        (begin
+          (apply (toplevel set-car!) (toplevel x) (const 0))
+          (lexical y _))))
+  
+  (pass-if-peval
     ;; First order, evaluated.
     (define one
       (let loop ((i 7)
