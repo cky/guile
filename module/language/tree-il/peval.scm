@@ -708,6 +708,15 @@ it does not handle <fix> and <let-values>, it should be called before
       (($ <toplevel-ref>)
        ;; todo: open private local bindings.
        exp)
+      (($ <module-ref> src module (? effect-free-primitive? name) #f)
+       (let ((module (false-if-exception
+                      (resolve-module module #:ensure #f))))
+         (if (module? module)
+             (let ((var (module-variable module name)))
+               (if (eq? var (module-variable the-scm-module name))
+                   (make-primitive-ref src name)
+                   exp))
+             exp)))
       (($ <module-ref>)
        exp)
       (($ <module-set> src mod name public? exp)

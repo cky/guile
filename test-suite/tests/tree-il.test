@@ -762,6 +762,19 @@
    (const 10))
 
   (pass-if-peval
+    ;; Primitives in module-refs are resolved (the expansion of `pmatch'
+    ;; below leads to calls to (@@ (system base pmatch) car) and
+    ;; similar, which is what we want to be inlined.)
+    (begin
+      (use-modules (system base pmatch))
+      (pmatch '(a b c d)
+        ((a b . _)
+         #t)))
+    (begin
+      (apply . _)
+      (const #t)))
+
+  (pass-if-peval
    ;; Mutability preserved.
    ((lambda (x y z) (list x y z)) 1 2 3)
    (apply (primitive list) (const 1) (const 2) (const 3)))
