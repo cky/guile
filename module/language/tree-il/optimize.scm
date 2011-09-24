@@ -77,7 +77,8 @@ references to the new symbols."
                                               name
                                               (take-right new (length old)))))
                              (_ #f))
-                           inits new
+                           (map (cut loop <> mapping) inits)
+                           new
                            (loop body mapping)
                            (and alt (loop alt mapping)))))
       (($ <lexical-ref> src name gensym)
@@ -339,7 +340,7 @@ it does not handle <fix> and <let-values>, it should be called before
          (and (effect-free-primitive? name)
               (not (constructor-primitive? name))
               (every loop args)))
-        (($ <application> _ ($ <lambda> _ body) args)
+        (($ <application> _ ($ <lambda> _ _ body) args)
          (and (loop body) (every loop args)))
         (($ <sequence> _ exps)
          (every loop exps))
@@ -477,21 +478,20 @@ it does not handle <fix> and <let-values>, it should be called before
              (if (const? body*)
                  body
                  (make-fix src names gensyms vals body))))
-          (($ <let-values> lv-src producer
-              ($ <lambda-case> src req #f #f #f () gensyms body #f))
-           ;; Peval both producer and consumer, then try to inline.  If
-           ;; that succeeds, peval again.
-           (let* ((producer (maybe-unconst producer (loop producer env calls)))
-                  (body     (maybe-unconst body (loop body env calls))))
-             (cond
-              ((inline-values producer src req gensyms body)
-               => (lambda (exp) (loop exp env calls)))
-              (else
-               (make-let-values lv-src producer
-                                (make-lambda-case src req #f #f #f '()
-                                                  gensyms body #f))))))
-          (($ <let-values>)
-           exp)
+          (($ <let-values> lv-src producer consumer)
+           ;; Peval the producer, then try to inline the consumer into
+           ;; the producer.  If that succeeds, peval again.  Otherwise
+           ;; reconstruct the let-values, pevaling the consumer.
+           (let ((producer (maybe-unconst producer (loop producer env calls))))
+             (or (match consumer
+                   (($ <lambda-case> src req #f #f #f () gensyms body #f)
+                    (cond
+                     ((inline-values producer src req gensyms body)
+                      => (cut loop <> env calls))
+                     (else #f)))
+                   (_ #f))
+                 (make-let-values lv-src producer
+                                  (loop consumer env calls)))))
           (($ <dynwind> src winder body unwinder)
            (make-dynwind src (loop winder env calls)
                          (loop body env calls)
@@ -616,7 +616,10 @@ it does not handle <fix> and <let-values>, it should be called before
           (($ <lambda> src meta body)
            (make-lambda src meta (loop body env calls)))
           (($ <lambda-case> src req opt rest kw inits gensyms body alt)
-           (make-lambda-case src req opt rest kw inits gensyms
+           (make-lambda-case src req opt rest kw
+                             (map maybe-unconst inits
+                                  (map (cut loop <> env calls) inits))
+                             gensyms
                              (maybe-unconst body (loop body env calls))
                              alt))
           (($ <sequence> src exps)
