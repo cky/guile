@@ -57,3 +57,21 @@
 ;; Note: Make sure to update `match.test.upstream' when updating this
 ;; file.
 (include-from-path "ice-9/match.upstream.scm")
+
+(define-syntax match
+  (syntax-rules ()
+    ((match)
+     (match-syntax-error "missing match expression"))
+    ((match atom)
+     (match-syntax-error "no match clauses"))
+    ((match (app ...) (pat . body) ...)
+     (let ((v (app ...)))
+       (match-next v ((app ...) (set! (app ...))) (pat . body) ...)))
+    ((match #(vec ...) (pat . body) ...)
+     (let ((v #(vec ...)))
+       (match-next v (v (set! v)) (pat . body) ...)))
+    ((match atom (pat . body) ...)
+     (let ((v atom))
+       (match-next v (atom (set! atom)) (pat . body) ...)))
+    ))
+

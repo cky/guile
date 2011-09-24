@@ -102,6 +102,18 @@
         (('one ('two x) ('three y ('and z '(and 5))))
          (equal? (list x y z) '(2 3 4))))))
 
+  (pass-if "and, unique names"
+    (let ((tree '(1 2)))
+      (match tree
+        ((and (a 2) (1 b))
+         (equal? 3 (+ a b))))))
+  
+  (pass-if "and, same names"
+    (let ((a '(1 2)))
+      (match a
+        ((and (a 2) (1 b))
+         (equal? 3 (+ a b))))))
+  
   (with-test-prefix "records"
 
     (pass-if "all slots, bind"
