@@ -318,11 +318,10 @@ it does not handle <fix> and <let-values>, it should be called before
   (define (const*? x)
     (or (const? x) (lambda? x) (void? x)))
 
-  (define (pure-expression? x)
-    ;; Return true if X is pure---i.e., if it is known to have no
-    ;; effects and does not allocate storage for a mutable object.
-    ;; Note: <module-ref> is not "pure" because it loads a module as a
-    ;; side-effect.
+  (define (constant-expression? x)
+    ;; Return true if X is constant---i.e., if it is known to have no
+    ;; effects, does not allocate storage for a mutable object, and does
+    ;; not access mutable data (like `car' or toplevel references).
     (let loop ((x x))
       (match x
         (($ <void>) #t)
@@ -331,9 +330,7 @@ it does not handle <fix> and <let-values>, it should be called before
         (($ <lambda-case> _ req opt rest kw inits _ body alternate)
          (and (every loop inits) (loop body) (loop alternate)))
         (($ <lexical-ref>) #t)
-        (($ <toplevel-ref>) #t)
         (($ <primitive-ref>) #t)
-        (($ <dynref> _ fluid) (loop fluid))
         (($ <conditional> _ condition subsequent alternate)
          (and (loop condition) (loop subsequent) (loop alternate)))
         (($ <application> _ ($ <primitive-ref> _ name) args)
@@ -447,7 +444,7 @@ it does not handle <fix> and <let-values>, it should be called before
              ((effect) (make-void #f))
              (else
               (let ((val (lookup gensym)))
-                (if (pure-expression? val)
+                (if (constant-expression? val)
                     (case ctx
                       ;; fixme: cache this?  it is a divergence from
                       ;; O(n).
@@ -616,7 +613,7 @@ it does not handle <fix> and <let-values>, it should be called before
                           (nreq   (length req))
                           (nopt   (if opt (length opt) 0)))
                       (if (and (>= nargs nreq) (<= nargs (+ nreq nopt))
-                               (every pure-expression? args))
+                               (every constant-expression? args))
                           (let* ((params
                                   (append args
                                           (drop inits
