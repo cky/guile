@@ -539,7 +539,7 @@ it does not handle <fix> and <let-values>, it should be called before
         (define (for-effect exp)
           (loop exp env counter 'effect))
         (define (for-tail exp)
-          (loop exp env counter ctx))
+          (maybe-unconst exp (loop exp env counter ctx)))
 
         (if counter
             (record-effort! counter))
@@ -717,13 +717,15 @@ it does not handle <fix> and <let-values>, it should be called before
                    (_ #f))
                  (make-let-values lv-src producer (for-tail consumer)))))
           (($ <dynwind> src winder body unwinder)
-           (make-dynwind src (for-value winder) (for-tail body)
-                         (for-value unwinder)))
+           (make-dynwind src
+                         (maybe-unconst winder (for-value winder))
+                         (for-tail body)
+                         (maybe-unconst unwinder (for-value unwinder))))
           (($ <dynlet> src fluids vals body)
            (make-dynlet src
                         (map maybe-unconst fluids (map for-value fluids))
                         (map maybe-unconst vals (map for-value vals))
-                        (maybe-unconst body (for-tail body))))
+                        (for-tail body)))
           (($ <dynref> src fluid)
            (make-dynref src
                         (maybe-unconst fluid (for-value fluid))))
@@ -858,7 +860,7 @@ it does not handle <fix> and <let-values>, it should be called before
                     ($ <lambda>)
                     ($ <toplevel-ref>)
                     ($ <lexical-ref>))
-                (make-application src proc
+                (make-application src (maybe-unconst orig-proc proc)
                                   (map maybe-unconst orig-args
                                        (map for-value orig-args))))
 
@@ -887,10 +889,9 @@ it does not handle <fix> and <let-values>, it should be called before
                ((last)
                 (if (null? effects)
                     (for-tail last)
-                    (make-sequence src (append (reverse effects)
-                                               (list
-                                                (maybe-unconst last
-                                                               (for-tail last)))))))
+                    (make-sequence
+                     src
+                     (reverse (cons (for-tail last) effects)))))
                ((head . rest)
                 (let ((head (for-effect head)))
                   (cond
