@@ -828,10 +828,7 @@ it does not handle <fix> and <let-values>, it should be called before
                     (loop (make-let src (append req (or opt '()))
                                     gensyms
                                     (append orig-args
-                                            (drop inits
-                                                  (max 0
-                                                       (- nargs
-                                                          (+ nreq nopt)))))
+                                            (drop inits (- nargs nreq)))
                                     body)
                       env counter ctx))
                    (else
@@ -848,10 +845,7 @@ it does not handle <fix> and <let-values>, it should be called before
                         (loop (make-let src (append req (or opt '()))
                                         gensyms
                                         (append orig-args
-                                                (drop inits
-                                                      (max 0
-                                                           (- nargs
-                                                              (+ nreq nopt)))))
+                                                (drop inits (- nargs nreq)))
                                         body)
                           env
                           (cond

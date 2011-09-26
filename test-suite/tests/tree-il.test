@@ -949,6 +949,27 @@
     (const 42))
 
   (pass-if-peval
+    ;; Higher order with optional argument (side-effecting default
+    ;; value).
+    ((lambda* (f x #:optional (y (foo)))
+       (+ y (f (* (car x) (cadr x)))))
+     (lambda (x)
+       (+ x 1))
+     '(2 3))
+    (let (y) (_) ((apply (toplevel foo)))
+         (apply (primitive +) (lexical y _) (const 7))))
+
+  (pass-if-peval
+    ;; Higher order with optional argument (caller-supplied value).
+    ((lambda* (f x #:optional (y (foo)))
+       (+ y (f (* (car x) (cadr x)))))
+     (lambda (x)
+       (+ x 1))
+     '(2 3)
+     35)
+    (const 42))
+
+  (pass-if-peval
     ;; Higher order.
     ((lambda (f) (f x)) (lambda (x) x))
     (toplevel x))
