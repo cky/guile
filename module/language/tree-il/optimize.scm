@@ -423,9 +423,6 @@ it does not handle <fix> and <let-values>, it should be called before
        (make-application src (make-primitive-ref src 'values)
                          values))))
 
-  (define (const*? x)
-    (or (const? x) (lambda? x) (void? x)))
-
   (define (constant-expression? x)
     ;; Return true if X is constant---i.e., if it is known to have no
     ;; effects, does not allocate storage for a mutable object, and does
@@ -474,14 +471,6 @@ it does not handle <fix> and <let-values>, it should be called before
        0 x)
       #t))
   
-  (define (mutable? exp)
-    ;; Return #t if EXP is a mutable object.
-    ;; todo: add an option to assume pairs are immutable
-    (or (pair? exp)
-        (vector? exp)
-        (struct? exp)
-        (string? exp)))
-
   (define (make-value-construction src exp)
     ;; Return an expression that builds a fresh copy of EXP at run-time,
     ;; or #f.
