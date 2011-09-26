@@ -247,6 +247,19 @@ references to the new symbols."
            counter
            (find-counter data (counter-prev counter)))))
 
+(define* (transfer! from to #:optional
+                    (effort (variable-ref (effort-counter from)))
+                    (size (variable-ref (size-counter from))))
+  (define (transfer-counter! from-v to-v amount)
+    (let* ((from-balance (variable-ref from-v))
+           (to-balance (variable-ref to-v))
+           (amount (min amount from-balance)))
+      (variable-set! from-v (- from-balance amount))
+      (variable-set! to-v (+ to-balance amount))))
+
+  (transfer-counter! (effort-counter from) (effort-counter to) effort)
+  (transfer-counter! (size-counter from) (size-counter to) size))
+
 (define (make-top-counter effort-limit size-limit continuation data)
   (%make-counter (make-variable effort-limit)
                  (make-variable size-limit)
@@ -256,20 +269,24 @@ references to the new symbols."
                  #f))
 
 (define (make-nested-counter continuation data current)
-  (%make-counter (effort-counter current)
-                 (size-counter current)
-                 continuation
-                 #f
-                 data
-                 current))
+  (let ((c (%make-counter (make-variable 0)
+                          (make-variable 0)
+                          continuation
+                          #f
+                          data
+                          current)))
+    (transfer! current c)
+    c))
 
 (define (make-recursive-counter effort-limit size-limit orig current)
-  (%make-counter (make-variable effort-limit)
-                 (make-variable size-limit)
-                 (counter-continuation orig)
-                 #t
-                 (counter-data orig)
-                 current))
+  (let ((c (%make-counter (make-variable 0)
+                          (make-variable 0)
+                          (counter-continuation orig)
+                          #t
+                          (counter-data orig)
+                          current)))
+    (transfer! current c effort-limit size-limit)
+    c))
 
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null)
                 #:key
@@ -837,29 +854,43 @@ it does not handle <fix> and <let-values>, it should be called before
                     ;; integration of a procedure that hasn't been seen
                     ;; yet.
                     (let/ec k
-                      (let ((abort (lambda ()
-                                     (k (make-application
-                                         src
-                                         (for-value orig-proc)
-                                         (map for-value orig-args))))))
+                      (define (abort)
+                        (k (make-application src
+                                             (for-value orig-proc)
+                                             (map for-value orig-args))))
+                      (define new-counter
+                        (cond
+                         ;; These first two cases will transfer effort
+                         ;; from the current counter into the new
+                         ;; counter.
+                         ((find-counter key counter)
+                          => (lambda (prev)
+                               (make-recursive-counter recursive-effort-limit
+                                                       operand-size-limit
+                                                       prev counter)))
+                         (counter
+                          (make-nested-counter abort key counter))
+                         ;; This case opens a new account, effectively
+                         ;; printing money.  It should only do so once
+                         ;; for each call site in the source program.
+                         (else
+                          (make-top-counter effort-limit operand-size-limit
+                                            abort key))))
+                      (define result
                         (loop (make-let src (append req (or opt '()))
                                         gensyms
                                         (append orig-args
                                                 (drop inits (- nargs nreq)))
                                         body)
-                          env
-                          (cond
-                           ((find-counter key counter)
-                            => (lambda (prev)
-                                 (make-recursive-counter recursive-effort-limit
-                                                         operand-size-limit
-                                                         prev counter)))
-                           (counter
-                            (make-nested-counter abort key counter))
-                           (else
-                            (make-top-counter effort-limit operand-size-limit
-                                              abort key)))
-                          ctx)))))))
+                          env new-counter ctx))
+                      
+                      (if counter
+                          ;; The nested inlining attempt succeeded.
+                          ;; Deposit the unspent effort and size back
+                          ;; into the current counter.
+                          (transfer! new-counter counter))
+
+                      result)))))
                ((or ($ <primitive-ref>)
                     ($ <lambda>)
                     ($ <toplevel-ref>)

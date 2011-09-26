@@ -793,12 +793,14 @@
   (pass-if-peval
    ;; Infinite recursion
    ((lambda (x) (x x)) (lambda (x) (x x)))
-   (let (x) (_)
-        ((lambda _
+   (apply (lambda _
            (lambda-case
             (((x) _ _ _ _ _)
-             (apply (lexical x _) (lexical x _))))))
-        (apply (lexical x _) (lexical x _))))
+             (apply (lexical x _) (lexical x _)))))
+          (lambda _
+           (lambda-case
+            (((x) _ _ _ _ _)
+             (apply (lexical x _) (lexical x _)))))))
 
   (pass-if-peval
     ;; First order, aliased primitive.
