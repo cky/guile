@@ -919,28 +919,28 @@ can also work with modules from C, but it is more cumbersome.
 
 The following procedures are available.
 
-@deftypefn {C Procedure} SCM scm_current_module ()
+@deftypefn {C Function} SCM scm_current_module ()
 Return the module that is the @emph{current module}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_set_current_module (SCM @var{module})
+@deftypefn {C Function} SCM scm_set_current_module (SCM @var{module})
 Set the current module to @var{module} and return the previous current
 module.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_call_with_current_module (SCM @var{module}, SCM (*@var{func})(void *), void *@var{data})
+@deftypefn {C Function} SCM scm_c_call_with_current_module (SCM @var{module}, SCM (*@var{func})(void *), void *@var{data})
 Call @var{func} and make @var{module} the current module during the
 call.  The argument @var{data} is passed to @var{func}.  The return
 value of @code{scm_c_call_with_current_module} is the return value of
 @var{func}.
 @end deftypefn
 
-@deftypefn SCM scm_public_variable (SCM @var{module_name}, SCM @var{name})
-@deftypefnx SCM scm_c_public_variable (const char * @var{module_name}, const char * @var{name})
+@deftypefn {C Function} SCM scm_public_variable (SCM @var{module_name}, SCM @var{name})
+@deftypefnx {C Function} SCM scm_c_public_variable ({const char *}@var{module_name}, {const char *}@var{name})
 Find a the variable bound to the symbol @var{name} in the public
 interface of the module named @var{module_name}.
 
- @var{module_name} should be a list of symbols, when represented as a
+@var{module_name} should be a list of symbols, when represented as a
 Scheme object, or a space-separated string, in the @code{const char *}
 case.  See @code{scm_c_define_module} below, for more examples.
 
@@ -948,17 +948,17 @@ Signals an error if no module was found with the given name.  If
 @var{name} is not bound in the module, just returns @code{#f}.
 @end deftypefn
 
-@deftypefn SCM scm_private_variable (SCM @var{module_name}, SCM @var{name})
-@deftypefnx SCM scm_c_private_variable (const char * @var{module_name}, const char * @var{name})
+@deftypefn {C Function} SCM scm_private_variable (SCM @var{module_name}, SCM @var{name})
+@deftypefnx {C Function} SCM scm_c_private_variable ({const char *}@var{module_name}, {const char *}@var{name})
 Like @code{scm_public_variable}, but looks in the internals of the
 module named @var{module_name} instead of the public interface.
 Logically, these procedures should only be called on modules you write.
 @end deftypefn
 
-@deftypefn SCM scm_public_lookup (SCM @var{module_name}, SCM @var{name})
-@deftypefnx SCM scm_c_public_lookup (const char * @var{module_name}, const char * @var{name})
-@deftypefnx SCM scm_private_lookup (SCM @var{module_name}, SCM @var{name})
-@deftypefnx SCM scm_c_private_lookup (const char * @var{module_name}, const char * @var{name})
+@deftypefn {C Function} SCM scm_public_lookup (SCM @var{module_name}, SCM @var{name})
+@deftypefnx {C Function} SCM scm_c_public_lookup ({const char *}@var{module_name}, {const char *}@var{name})
+@deftypefnx {C Function} SCM scm_private_lookup (SCM @var{module_name}, SCM @var{name})
+@deftypefnx {C Function} SCM scm_c_private_lookup ({const char *}@var{module_name}, {const char *}@var{name})
 Like @code{scm_public_variable} or @code{scm_private_variable}, but if
 the @var{name} is not bound in the module, signals an error.  Returns a
 variable, always.
@@ -977,10 +977,10 @@ SCM my_eval_string (SCM str)
 @end example
 @end deftypefn
 
-@deftypefn SCM scm_public_ref (SCM @var{module_name}, SCM @var{name})
-@deftypefnx SCM scm_c_public_ref (const char * @var{module_name}, const char * @var{name})
-@deftypefnx SCM scm_private_ref (SCM @var{module_name}, SCM @var{name})
-@deftypefnx SCM scm_c_private_ref (const char * @var{module_name}, const char * @var{name})
+@deftypefn {C Function} SCM scm_public_ref (SCM @var{module_name}, SCM @var{name})
+@deftypefnx {C Function} SCM scm_c_public_ref ({const char *}@var{module_name}, {const char *}@var{name})
+@deftypefnx {C Function} SCM scm_private_ref (SCM @var{module_name}, SCM @var{name})
+@deftypefnx {C Function} SCM scm_c_private_ref ({const char *}@var{module_name}, {const char *}@var{name})
 Like @code{scm_public_lookup} or @code{scm_private_lookup}, but
 additionally dereferences the variable.  If the variable object is
 unbound, signals an error.  Returns the value bound to @var{name} in
@@ -991,50 +991,50 @@ In addition, there are a number of other lookup-related procedures.  We
 suggest that you use the @code{scm_public_} and @code{scm_private_}
 family of procedures instead, if possible.
 
-@deftypefn {C Procedure} SCM scm_c_lookup (const char *@var{name})
+@deftypefn {C Function} SCM scm_c_lookup ({const char *}@var{name})
 Return the variable bound to the symbol indicated by @var{name} in the
 current module.  If there is no such binding or the symbol is not
 bound to a variable, signal an error.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_lookup (SCM @var{name})
+@deftypefn {C Function} SCM scm_lookup (SCM @var{name})
 Like @code{scm_c_lookup}, but the symbol is specified directly.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_module_lookup (SCM @var{module}, const char *@var{name})
-@deftypefnx {C Procedure} SCM scm_module_lookup (SCM @var{module}, SCM @var{name})
+@deftypefn {C Function} SCM scm_c_module_lookup (SCM @var{module}, {const char *}@var{name})
+@deftypefnx {C Function} SCM scm_module_lookup (SCM @var{module}, SCM @var{name})
 Like @code{scm_c_lookup} and @code{scm_lookup}, but the specified
 module is used instead of the current one.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_module_variable (SCM @var{module}, SCM @var{name})
+@deftypefn {C Function} SCM scm_module_variable (SCM @var{module}, SCM @var{name})
 Like @code{scm_module_lookup}, but if the binding does not exist, just
 returns @code{#f} instead of raising an error.
 @end deftypefn
 
 To define a value, use @code{scm_define}:
 
-@deftypefn {C Procedure} SCM scm_c_define (const char *@var{name}, SCM @var{val})
+@deftypefn {C Function} SCM scm_c_define ({const char *}@var{name}, SCM @var{val})
 Bind the symbol indicated by @var{name} to a variable in the current
 module and set that variable to @var{val}.  When @var{name} is already
 bound to a variable, use that.  Else create a new variable.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_define (SCM @var{name}, SCM @var{val})
+@deftypefn {C Function} SCM scm_define (SCM @var{name}, SCM @var{val})
 Like @code{scm_c_define}, but the symbol is specified directly.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_module_define (SCM @var{module}, const char *@var{name}, SCM @var{val})
-@deftypefnx {C Procedure} SCM scm_module_define (SCM @var{module}, SCM @var{name}, SCM @var{val})
+@deftypefn {C Function} SCM scm_c_module_define (SCM @var{module}, {const char *}@var{name}, SCM @var{val})
+@deftypefnx {C Function} SCM scm_module_define (SCM @var{module}, SCM @var{name}, SCM @var{val})
 Like @code{scm_c_define} and @code{scm_define}, but the specified
 module is used instead of the current one.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_module_reverse_lookup (SCM @var{module}, SCM @var{variable})
+@deftypefn {C Function} SCM scm_module_reverse_lookup (SCM @var{module}, SCM @var{variable})
 Find the symbol that is bound to @var{variable} in @var{module}.  When no such binding is found, return @var{#f}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_define_module (const char *@var{name}, void (*@var{init})(void *), void *@var{data})
+@deftypefn {C Function} SCM scm_c_define_module ({const char *}@var{name}, void (*@var{init})(void *), void *@var{data})
 Define a new module named @var{name} and make it current while
 @var{init} is called, passing it @var{data}.  Return the module.
 
@@ -1046,25 +1046,25 @@ When there already exists a module named @var{name}, it is used
 unchanged, otherwise, an empty module is created.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_resolve_module (const char *@var{name})
+@deftypefn {C Function} SCM scm_c_resolve_module ({const char *}@var{name})
 Find the module name @var{name} and return it.  When it has not
 already been defined, try to auto-load it.  When it can't be found
 that way either, create an empty module.  The name is interpreted as
 for @code{scm_c_define_module}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_resolve_module (SCM @var{name})
+@deftypefn {C Function} SCM scm_resolve_module (SCM @var{name})
 Like @code{scm_c_resolve_module}, but the name is given as a real list
 of symbols.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_use_module (const char *@var{name})
+@deftypefn {C Function} SCM scm_c_use_module ({const char *}@var{name})
 Add the module named @var{name} to the uses list of the current
 module, as with @code{(use-modules @var{name})}.  The name is
 interpreted as for @code{scm_c_define_module}.
 @end deftypefn
 
-@deftypefn {C Procedure} SCM scm_c_export (const char *@var{name}, ...)
+@deftypefn {C Function} SCM scm_c_export ({const char *}@var{name}, ...)
 Add the bindings designated by @var{name}, ... to the public interface
 of the current module.  The list of names is terminated by
 @code{NULL}.
