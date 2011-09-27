@@ -154,7 +154,13 @@ references to the new symbols."
        (make-application src (loop proc mapping)
                          (map (cut loop <> mapping) args)))
       (($ <sequence> src exps)
-       (make-sequence src (map (cut loop <> mapping) exps))))))
+       (make-sequence src (map (cut loop <> mapping) exps)))
+      (($ <prompt> src tag body handler)
+       (make-prompt src (loop tag mapping) (loop body mapping)
+                    (loop handler mapping)))
+      (($ <abort> src tag args tail)
+       (make-abort src (loop tag mapping) (map (cut loop <> mapping) args)
+                   (loop tail mapping))))))
 
 (define-syntax-rule (let/ec k e e* ...)
   (let ((tag (make-prompt-tag)))
@@ -398,6 +404,10 @@ it does not handle <fix> and <let-values>, it should be called before
         ;; Bail on other applications.
         (($ <application>) #f)
 
+        ;; Bail on prompt and abort.
+        (($ <prompt>) #f)
+        (($ <abort>) #f)
+        
         ;; Propagate to tail positions.
         (($ <let> src names gensyms vals body)
          (let ((body (loop body)))
@@ -472,6 +482,8 @@ it does not handle <fix> and <let-values>, it should be called before
          (and (every loop vals) (loop body)))
         (($ <let-values> _ exp body)
          (and (loop exp) (loop body)))
+        (($ <prompt> _ tag body handler)
+         (and (loop tag) (loop body) (loop handler)))
         (_ #f))))
 
   (define (small-expression? x limit)
@@ -934,7 +946,58 @@ it does not handle <fix> and <let-values>, it should be called before
                    ((void? head)
                     (lp rest effects))
                    (else
-                    (lp rest (cons head effects))))))))))))
+                    (lp rest (cons head effects)))))))))
+          (($ <prompt> src tag body handler)
+           (define (singly-used-definition x)
+             (cond
+              ((and (lexical-ref? x)
+                    ;; Only fetch definitions with single uses.
+                    (= (lexical-refcount (lexical-ref-gensym x)) 1)
+                    (lookup (lexical-ref-gensym x)))
+               => singly-used-definition)
+              (else x)))
+           (define (escape-only? handler)
+             (match handler
+               (($ <lambda-case> _ (_ . _) _ _ _ _ (cont . _) body #f)
+                (tree-il-any (lambda (x)
+                               (and (lexical-ref? x)
+                                    (eq? (lexical-ref-gensym x) cont)))
+                             body))))
+           (define (thunk-application? x)
+             (match x
+               (($ <application> _
+                   ($ <lambda> _ _ ($ <lambda-case> _ () #f #f #f))
+                   ()) #t)
+               (_ #f)))
+           (define (make-thunk-application body)
+             (define thunk
+               (make-lambda #f '()
+                            (make-lambda-case #f '() #f #f #f '() '() body #f)))
+             (make-application #f thunk '()))
+
+           (match (singly-used-definition tag)
+             (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
+                 (or () ((? constant-expression?))))
+              ;; There is no way that an <abort> could know the tag
+              ;; for this <prompt>, so we can elide the <prompt>
+              ;; entirely.
+              (for-tail body))
+             (_
+              ;; It's a nasty, but this code has another job to do: to
+              ;; ensure that either the handler is escape-only, or the
+              ;; body is the application of a thunk.  Sad but true.
+              (let ((tag (for-value tag))
+                    (body (for-value body))
+                    (handler (for-value handler)))
+                (make-prompt src tag
+                             (if (or (escape-only? handler)
+                                     (thunk-application? body))
+                                 body
+                                 (make-thunk-application body))
+                             handler)))))
+          (($ <abort> src tag args tail)
+           (make-abort src (for-value tag) (map for-value args)
+                       (for-value tail))))))
     (lambda _
       ;; We encountered something we don't handle, like <abort> or
       ;; <prompt>, so bail out.

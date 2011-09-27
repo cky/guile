@@ -110,7 +110,7 @@
 (define *primitive-constructors*
   ;; Primitives that return a fresh object.
   '(acons cons cons* list vector make-struct make-struct/no-tail
-          car cdr vector-ref struct-ref))
+          car cdr vector-ref struct-ref make-prompt-tag))
 
 (define *effect-free-primitives*
   `(values

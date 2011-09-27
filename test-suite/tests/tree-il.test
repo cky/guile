@@ -1275,6 +1275,17 @@
    (cdr (list (bar) 0))
    (begin (apply (toplevel bar)) (apply (primitive list) (const 0))))
   
+  (pass-if-peval
+   resolve-primitives
+   ;; Prompt is removed if tag is unreferenced
+   (let ((tag (make-prompt-tag)))
+     (call-with-prompt tag
+                       (lambda () 1)
+                       (lambda args args)))
+   ;; FIXME: elide the (make-prompt-tag) call
+   (begin
+     (apply (primitive make-prompt-tag))
+     (const 1)))
   )
 
 
