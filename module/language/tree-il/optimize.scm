@@ -775,17 +775,18 @@ it does not handle <fix> and <let-values>, it should be called before
                   (else
                    (match (cons name (map for-value orig-args))
                      (('cons head tail)
-                      (let ((tail (for-value tail)))
-                        (match tail
-                          (($ <const> src ())
-                           (make-application src (make-primitive-ref #f 'list)
-                                             (list head)))
-                          (($ <application> src ($ <primitive-ref> _ 'list) elts)
-                           (make-application src (make-primitive-ref #f 'list)
-                                             (cons head elts)))
-                          (_ (make-application src proc
-                                               (list head tail))))))
+                      (match tail
+                        (($ <const> src ())
+                         (make-application src (make-primitive-ref #f 'list)
+                                           (list head)))
+                        (($ <application> src ($ <primitive-ref> _ 'list) elts)
+                         (make-application src (make-primitive-ref #f 'list)
+                                           (cons head elts)))
+                        (_ (make-application src proc
+                                             (list head tail)))))
 
+                     ;; FIXME: these for-tail recursions could take
+                     ;; place outside an effort counter.
                      (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
                       (for-tail (make-sequence src (list tail head))))
                      (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
