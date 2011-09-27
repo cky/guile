@@ -1293,7 +1293,25 @@
                        (lambda () 1)
                        (lambda args args)))
    (const 1))
-  )
+
+  (pass-if-peval
+   resolve-primitives
+   ;; `while' without `break' or `continue' has no prompts and gets its
+   ;; condition folded.  Unfortunately the outer `lp' does not yet get
+   ;; elided.
+   (while #t #t)
+   (letrec (lp) (_)
+           ((lambda _
+              (lambda-case
+               ((() #f #f #f () ())
+                (letrec (loop) (_)
+                        ((lambda _
+                           (lambda-case
+                            ((() #f #f #f () ())
+                             (apply (lexical loop _))))))
+                        (apply (lexical loop _)))))))
+           (apply (lexical lp _)))))
+
 
 
 (with-test-prefix "tree-il-fold"

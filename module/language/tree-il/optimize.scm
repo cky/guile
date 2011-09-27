@@ -500,6 +500,32 @@ it does not handle <fix> and <let-values>, it should be called before
          (and (loop tag) (loop body) (loop handler)))
         (_ #f))))
 
+  (define (prune-bindings names syms vals body for-effect
+                          build-result)
+    (let lp ((names names) (syms syms) (vals vals)
+             (names* '()) (syms* '()) (vals* '())
+             (effects '()))
+      (match (list names syms vals)
+       ((() () ())
+        (let ((body (if (null? effects)
+                        body
+                        (make-sequence #f (reverse (cons body effects))))))
+          (if (null? names*)
+              body
+              (build-result (reverse names*) (reverse syms*)
+                            (reverse vals*) body))))
+       (((name . names) (sym . syms) (val . vals))
+        (if (hashq-ref residual-lexical-references sym)
+            (lp names syms vals
+                (cons name names*) (cons sym syms*) (cons val vals*)
+                effects)
+            (let ((effect (for-effect val)))
+              (lp names syms vals
+                  names* syms* vals*
+                  (if (void? effect)
+                      effects
+                      (cons effect effects)))))))))
+  
   (define (small-expression? x limit)
     (let/ec k
       (tree-il-fold
@@ -637,22 +663,10 @@ it does not handle <fix> and <let-values>, it should be called before
           (else
            ;; Only include bindings for which lexical references
            ;; have been residualized.
-           (let*-values
-               (((stripped) (remove
-                             (lambda (x)
-                               (and (not (hashq-ref
-                                          residual-lexical-references
-                                          (cadr x)))
-                                    ;; FIXME: Here we can probably
-                                    ;; strip pure expressions in
-                                    ;; addition to constant
-                                    ;; expressions.
-                                    (constant-expression? (car x))))
-                             (zip vals gensyms names)))
-                ((vals gensyms names) (unzip3 stripped)))
-             (if (null? stripped)
-                 body
-                 (make-let src names gensyms vals body)))))))
+           (prune-bindings names gensyms vals body for-effect
+                           (lambda (names gensyms vals body)
+                             (if (null? names) (error "what!" names))
+                             (make-let src names gensyms vals body)))))))
       (($ <letrec> src in-order? names gensyms vals body)
        ;; Things could be done more precisely when IN-ORDER? but
        ;; it's OK not to do it---at worst we lost an optimization
@@ -665,18 +679,10 @@ it does not handle <fix> and <let-values>, it should be called before
          (if (and (const? body)
                   (every constant-expression? vals))
              body
-             (let*-values
-                 (((stripped) (remove
-                               (lambda (x)
-                                 (and (constant-expression? (car x))
-                                      (not (hashq-ref
-                                            residual-lexical-references
-                                            (cadr x)))))
-                               (zip vals gensyms names)))
-                  ((vals gensyms names) (unzip3 stripped)))
-               (if (null? stripped)
-                   body
-                   (make-letrec src in-order? names gensyms vals body))))))
+             (prune-bindings names gensyms vals body for-effect
+                             (lambda (names gensyms vals body)
+                               (make-letrec src in-order?
+                                            names gensyms vals body))))))
       (($ <fix> src names gensyms vals body)
        (let* ((vals (map for-operand vals))
               (body (loop body
@@ -685,7 +691,9 @@ it does not handle <fix> and <let-values>, it should be called before
                       ctx)))
          (if (const? body)
              body
-             (make-fix src names gensyms vals body))))
+             (prune-bindings names gensyms vals body for-effect
+                             (lambda (names gensyms vals body)
+                               (make-fix src names gensyms vals body))))))
       (($ <let-values> lv-src producer consumer)
        ;; Peval the producer, then try to inline the consumer into
        ;; the producer.  If that succeeds, peval again.  Otherwise
