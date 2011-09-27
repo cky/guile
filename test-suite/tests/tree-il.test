@@ -1085,8 +1085,9 @@
     (let (x) (_) ((if (apply (primitive >) (toplevel p) (toplevel q))
                       (apply (toplevel frob!))
                       (apply (toplevel display) (const chbouib))))
-         (apply (primitive +) (lexical x _) (lexical x _)
-                (apply (primitive *) (lexical x _) (const 2)))))
+         (let (y) (_) ((apply (primitive *) (lexical x _) (const 2)))
+              (apply (primitive +)
+                     (lexical x _) (lexical x _) (lexical y _)))))
 
   (pass-if-peval
     ;; Non-constant arguments not propagated to lambdas.

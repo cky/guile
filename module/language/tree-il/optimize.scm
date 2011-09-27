@@ -296,6 +296,16 @@ references to the new symbols."
     (transfer! current c effort-limit size-limit)
     c))
 
+(define (types-check? primitive-name args)
+  (case primitive-name
+    ((values) #t)
+    ((not pair? null? list? symbol? vector? struct?)
+     (= (length args) 1))
+    ((eq? eqv? equal?)
+     (= (length args) 2))
+    ;; FIXME: add more cases?
+    (else #f)))
+
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null)
                 #:key
                 (operator-size-limit 40)
@@ -472,6 +482,7 @@ it does not handle <fix> and <let-values>, it should be called before
         (($ <application> _ ($ <primitive-ref> _ name) args)
          (and (effect-free-primitive? name)
               (not (constructor-primitive? name))
+              (types-check? name args)
               (every loop args)))
         (($ <application> _ ($ <lambda> _ _ body) args)
          (and (loop body) (every loop args)))
@@ -818,7 +829,11 @@ it does not handle <fix> and <let-values>, it should be called before
                            (make-values src (map (cut make-const src <>)
                                                  values))))
                         (make-application src proc args)))
-                  (make-application src proc args))))
+                  (cond
+                   ((and (eq? ctx 'effect) (types-check? name args))
+                    (make-void #f))
+                   (else
+                    (make-application src proc args))))))
            (($ <lambda> _ _
                ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
             ;; Simple case: no rest, no keyword arguments.
