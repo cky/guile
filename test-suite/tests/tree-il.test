@@ -1282,10 +1282,16 @@
      (call-with-prompt tag
                        (lambda () 1)
                        (lambda args args)))
-   ;; FIXME: elide the (make-prompt-tag) call
-   (begin
-     (apply (primitive make-prompt-tag))
-     (const 1)))
+   (const 1))
+  
+  (pass-if-peval
+   resolve-primitives
+   ;; Prompt is removed if tag is unreferenced, with explicit stem
+   (let ((tag (make-prompt-tag "foo")))
+     (call-with-prompt tag
+                       (lambda () 1)
+                       (lambda args args)))
+   (const 1))
   )
 
 

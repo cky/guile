@@ -769,8 +769,7 @@ it does not handle <fix> and <let-values>, it should be called before
                (($ <primitive-ref> _ (? constructor-primitive? name))
                 (case ctx
                   ((effect test)
-                   (let ((exp (for-value exp))
-                         (res (if (eq? ctx 'effect)
+                   (let ((res (if (eq? ctx 'effect)
                                   (make-void #f)
                                   (make-const #f #t))))
                      (match (for-value exp)
@@ -783,7 +782,12 @@ it does not handle <fix> and <let-values>, it should be called before
                        (($ <application> _ ($ <primitive-ref> _ 'vector) elts)
                         (for-tail
                          (make-sequence src (append elts (list res)))))
-                       (_ exp))))
+                       (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag) ())
+                        res)
+                       (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
+                           (($ <const> _ (? string?))))
+                        res)
+                       (exp exp))))
                   (else
                    (match (cons name (map for-value orig-args))
                      (('cons head tail)
