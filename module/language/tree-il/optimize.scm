@@ -855,8 +855,11 @@ it does not handle <fix> and <let-values>, it should be called before
                 ;; An error, or effecting arguments.
                 (make-application src (for-value orig-proc)
                                   (map for-value orig-args)))
-               ((and=> (find-counter key counter) counter-recursive?)
-                ;; A recursive call.  Process again in tail context.
+               ((or (and=> (find-counter key counter) counter-recursive?)
+                    (lambda? orig-proc))
+                ;; A recursive call, or a lambda in the operator
+                ;; position of the source expression.  Process again in
+                ;; tail context.
                 (loop (make-let src (append req (or opt '()))
                                 gensyms
                                 (append orig-args
