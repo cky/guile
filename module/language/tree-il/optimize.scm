@@ -145,6 +145,8 @@ references to the new symbols."
                      (loop unwinder mapping)))
       (($ <dynref> src fluid)
        (make-dynref src (loop fluid mapping)))
+      (($ <dynset> src fluid exp)
+       (make-dynset src (loop fluid mapping) (loop exp mapping)))
       (($ <conditional> src condition subsequent alternate)
        (make-conditional src
                          (loop condition mapping)
@@ -385,11 +387,12 @@ it does not handle <fix> and <let-values>, it should be called before
              ($ <lexical-set>)          ; FIXME: these set! expressions
              ($ <toplevel-set>)         ; could return zero values in
              ($ <toplevel-define>)      ; the future
-             ($ <module-set>))          ; 
+             ($ <module-set>)           ;
+             ($ <dynset>))              ; 
          (and (= (length names) 1)
               (make-let src names gensyms (list exp) body)))
         (($ <application> src
-                ($ <primitive-ref> _ (? singly-valued-primitive? name)))
+            ($ <primitive-ref> _ (? singly-valued-primitive? name)))
          (and (= (length names) 1)
               (make-let src names gensyms (list exp) body)))
 
@@ -445,8 +448,8 @@ it does not handle <fix> and <let-values>, it should be called before
 
   (define (make-values src values)
     (match values
-      ((single) single)                           ; 1 value
-      ((_ ...)                                    ; 0, or 2 or more values
+      ((single) single)                 ; 1 value
+      ((_ ...)                          ; 0, or 2 or more values
        (make-application src (make-primitive-ref src 'values)
                          values))))
 
@@ -500,509 +503,469 @@ it does not handle <fix> and <let-values>, it should be called before
        0 x)
       #t))
   
-  (define (make-value-construction src exp)
-    ;; Return an expression that builds a fresh copy of EXP at run-time,
-    ;; or #f.
-    (let loop ((exp exp))
-      (match exp
-        ((_ _ ...)                                 ; non-empty proper list
-         (let ((args (map loop exp)))
-           (and (every struct? args)
-                (make-application src (make-primitive-ref src 'list)
-                                  args))))
-        ((h . (? (negate pair?) t))                ; simple pair
-         (let ((h (loop h))
-               (t (loop t)))
-           (and h t
-                (make-application src (make-primitive-ref src 'cons)
-                                  (list h t)))))
-        ((? vector?)                               ; vector
-         (let ((args (map loop (vector->list exp))))
-           (and (every struct? args)
-                (make-application src (make-primitive-ref src 'vector)
-                                  args))))
-        ((? number?) (make-const src exp))
-        ((? string?) (make-const src exp))
-        ((? symbol?) (make-const src exp))
-        ;((? bytevector?) (make-const src exp))
-        (_ #f))))
+  (let loop ((exp   exp)
+             (env   vlist-null)         ; static environment
+             (counter #f)               ; inlined call stack
+             (ctx 'value))   ; effect, value, test, operator, or operand
+    (define (lookup var)
+      (and=> (vhash-assq var env) cdr))
 
-  (catch 'match-error
-    (lambda ()
-      (let loop ((exp   exp)
-                 (env   vlist-null)  ; static environment
-                 (counter #f)        ; inlined call stack
-                 (ctx 'value))       ; effect, value, test, operator, or operand
-        (define (lookup var)
-          (and=> (vhash-assq var env) cdr))
+    (define (for-value exp)
+      (loop exp env counter 'value))
+    (define (for-operand exp)
+      (loop exp env counter 'operand))
+    (define (for-test exp)
+      (loop exp env counter 'test))
+    (define (for-effect exp)
+      (loop exp env counter 'effect))
+    (define (for-tail exp)
+      (loop exp env counter ctx))
 
-        (define (for-value exp)
-          (loop exp env counter 'value))
-        (define (for-operand exp)
-          (loop exp env counter 'operand))
-        (define (for-test exp)
-          (loop exp env counter 'test))
-        (define (for-effect exp)
-          (loop exp env counter 'effect))
-        (define (for-tail exp)
-          (loop exp env counter ctx))
+    (if counter
+        (record-effort! counter))
 
-        (if counter
-            (record-effort! counter))
-
-        (match exp
-          (($ <const>)
-           (case ctx
-             ((effect) (make-void #f))
-             (else exp)))
-          (($ <void>)
-           (case ctx
-             ((test) (make-const #f #t))
-             (else exp)))
-          (($ <lexical-ref> _ _ gensym)
-           (case ctx
-             ((effect) (make-void #f))
+    (match exp
+      (($ <const>)
+       (case ctx
+         ((effect) (make-void #f))
+         (else exp)))
+      (($ <void>)
+       (case ctx
+         ((test) (make-const #f #t))
+         (else exp)))
+      (($ <lexical-ref> _ _ gensym)
+       (case ctx
+         ((effect) (make-void #f))
+         (else
+          (let ((val (lookup gensym)))
+            (cond
+             ((or (not val)
+                  (assigned-lexical? gensym)
+                  (not (constant-expression? val)))
+              ;; Don't copy-propagate through assigned variables,
+              ;; and don't reorder effects.
+              (record-residual-lexical-reference! gensym)
+              exp)
+             ((lexical-ref? val)
+              (for-tail val))
+             ((or (const? val)
+                  (void? val)
+                  (primitive-ref? val))
+              ;; Always propagate simple values that cannot lead to
+              ;; code bloat.
+              (for-tail val))
+             ((= 1 (lexical-refcount gensym))
+              ;; Always propagate values referenced only once.
+              ;; There is no need to rename the bindings, as they
+              ;; are only being moved, not copied.  However in
+              ;; operator context we do rename it, as that
+              ;; effectively clears out the residualized-lexical
+              ;; flags that may have been set when this value was
+              ;; visited previously as an operand.
+              (case ctx
+                ((test) (for-test val))
+                ((operator) (record-source-expression! val (alpha-rename val)))
+                (else val)))
+             ;; FIXME: do demand-driven size accounting rather than
+             ;; these heuristics.
+             ((eq? ctx 'operator)
+              ;; A pure expression in the operator position.  Inline
+              ;; if it's a lambda that's small enough.
+              (if (and (lambda? val)
+                       (small-expression? val operator-size-limit))
+                  (record-source-expression! val (alpha-rename val))
+                  (begin
+                    (record-residual-lexical-reference! gensym)
+                    exp)))
+             ((eq? ctx 'operand)
+              ;; A pure expression in the operand position.  Inline
+              ;; if it's small enough.
+              (if (small-expression? val operand-size-limit)
+                  (record-source-expression! val (alpha-rename val))
+                  (begin
+                    (record-residual-lexical-reference! gensym)
+                    exp)))
              (else
-              (let ((val (lookup gensym)))
+              ;; A pure expression, processed for value.  Don't
+              ;; inline lambdas, because they will probably won't
+              ;; fold because we don't know the operator.
+              (if (and (small-expression? val value-size-limit)
+                       (not (tree-il-any lambda? val)))
+                  (record-source-expression! val (alpha-rename val))
+                  (begin
+                    (record-residual-lexical-reference! gensym)
+                    exp))))))))
+      (($ <lexical-set> src name gensym exp)
+       (if (zero? (lexical-refcount gensym))
+           (let ((exp (for-effect exp)))
+             (if (void? exp)
+                 exp
+                 (make-sequence src (list exp (make-void #f)))))
+           (begin
+             (record-residual-lexical-reference! gensym)
+             (make-lexical-set src name gensym (for-value exp)))))
+      (($ <let> src names gensyms vals body)
+       (let* ((vals (map for-operand vals))
+              (body (loop body
+                      (fold vhash-consq env gensyms vals)
+                      counter
+                      ctx)))
+         (cond
+          ((const? body)
+           (for-tail (make-sequence src (append vals (list body)))))
+          ((and (lexical-ref? body)
+                (memq (lexical-ref-gensym body) gensyms))
+           (let ((sym (lexical-ref-gensym body))
+                 (pairs (map cons gensyms vals)))
+             ;; (let ((x foo) (y bar) ...) x) => (begin bar ... foo)
+             (for-tail
+              (make-sequence
+               src
+               (append (map cdr (alist-delete sym pairs eq?))
+                       (list (assq-ref pairs sym)))))))
+          (else
+           ;; Only include bindings for which lexical references
+           ;; have been residualized.
+           (let*-values
+               (((stripped) (remove
+                             (lambda (x)
+                               (and (not (hashq-ref
+                                          residual-lexical-references
+                                          (cadr x)))
+                                    ;; FIXME: Here we can probably
+                                    ;; strip pure expressions in
+                                    ;; addition to constant
+                                    ;; expressions.
+                                    (constant-expression? (car x))))
+                             (zip vals gensyms names)))
+                ((vals gensyms names) (unzip3 stripped)))
+             (if (null? stripped)
+                 body
+                 (make-let src names gensyms vals body)))))))
+      (($ <letrec> src in-order? names gensyms vals body)
+       ;; Things could be done more precisely when IN-ORDER? but
+       ;; it's OK not to do it---at worst we lost an optimization
+       ;; opportunity.
+       (let* ((vals (map for-operand vals))
+              (body (loop body
+                      (fold vhash-consq env gensyms vals)
+                      counter
+                      ctx)))
+         (if (and (const? body)
+                  (every constant-expression? vals))
+             body
+             (let*-values
+                 (((stripped) (remove
+                               (lambda (x)
+                                 (and (constant-expression? (car x))
+                                      (not (hashq-ref
+                                            residual-lexical-references
+                                            (cadr x)))))
+                               (zip vals gensyms names)))
+                  ((vals gensyms names) (unzip3 stripped)))
+               (if (null? stripped)
+                   body
+                   (make-letrec src in-order? names gensyms vals body))))))
+      (($ <fix> src names gensyms vals body)
+       (let* ((vals (map for-operand vals))
+              (body (loop body
+                      (fold vhash-consq env gensyms vals)
+                      counter
+                      ctx)))
+         (if (const? body)
+             body
+             (make-fix src names gensyms vals body))))
+      (($ <let-values> lv-src producer consumer)
+       ;; Peval the producer, then try to inline the consumer into
+       ;; the producer.  If that succeeds, peval again.  Otherwise
+       ;; reconstruct the let-values, pevaling the consumer.
+       (let ((producer (for-value producer)))
+         (or (match consumer
+               (($ <lambda-case> src req #f #f #f () gensyms body #f)
                 (cond
-                 ((or (not val)
-                      (assigned-lexical? gensym)
-                      (not (constant-expression? val)))
-                  ;; Don't copy-propagate through assigned variables,
-                  ;; and don't reorder effects.
-                  (record-residual-lexical-reference! gensym)
-                  exp)
-                 ((lexical-ref? val)
-                  (for-tail val))
-                 ((or (const? val)
-                      (void? val)
-                      (primitive-ref? val))
-                  ;; Always propagate simple values that cannot lead to
-                  ;; code bloat.
-                  (for-tail val))
-                 ((= 1 (lexical-refcount gensym))
-                  ;; Always propagate values referenced only once.
-                  ;; There is no need to rename the bindings, as they
-                  ;; are only being moved, not copied.  However in
-                  ;; operator context we do rename it, as that
-                  ;; effectively clears out the residualized-lexical
-                  ;; flags that may have been set when this value was
-                  ;; visited previously as an operand.
-                  (case ctx
-                    ((test) (for-test val))
-                    ((operator) (record-source-expression! val (alpha-rename val)))
-                    (else val)))
-                 ;; FIXME: do demand-driven size accounting rather than
-                 ;; these heuristics.
-                 ((eq? ctx 'operator)
-                  ;; A pure expression in the operator position.  Inline
-                  ;; if it's a lambda that's small enough.
-                  (if (and (lambda? val)
-                           (small-expression? val operator-size-limit))
-                      (record-source-expression! val (alpha-rename val))
-                      (begin
-                        (record-residual-lexical-reference! gensym)
-                        exp)))
-                 ((eq? ctx 'operand)
-                  ;; A pure expression in the operand position.  Inline
-                  ;; if it's small enough.
-                  (if (small-expression? val operand-size-limit)
-                      (record-source-expression! val (alpha-rename val))
-                      (begin
-                        (record-residual-lexical-reference! gensym)
-                        exp)))
-                 (else
-                  ;; A pure expression, processed for value.  Don't
-                  ;; inline lambdas, because they will probably won't
-                  ;; fold because we don't know the operator.
-                  (if (and (small-expression? val value-size-limit)
-                           (not (tree-il-any lambda? val)))
-                      (record-source-expression! val (alpha-rename val))
-                      (begin
-                        (record-residual-lexical-reference! gensym)
-                        exp))))))))
-          (($ <lexical-set> src name gensym exp)
-           (if (zero? (lexical-refcount gensym))
-               (let ((exp (for-effect exp)))
-                 (if (void? exp)
-                     exp
-                     (make-sequence src (list exp (make-void #f)))))
-               (begin
-                 (record-residual-lexical-reference! gensym)
-                 (make-lexical-set src name gensym (for-value exp)))))
-          (($ <let> src names gensyms vals body)
-           (let* ((vals (map for-operand vals))
-                  (body (loop body
-                          (fold vhash-consq env gensyms vals)
-                          counter
-                          ctx)))
-             (cond
-              ((const? body)
-               (for-tail (make-sequence src (append vals (list body)))))
-              ((and (lexical-ref? body)
-                    (memq (lexical-ref-gensym body) gensyms))
-               (let ((sym (lexical-ref-gensym body))
-                     (pairs (map cons gensyms vals)))
-                 ;; (let ((x foo) (y bar) ...) x) => (begin bar ... foo)
-                 (for-tail
-                  (make-sequence
-                   src
-                   (append (map cdr (alist-delete sym pairs eq?))
-                           (list (assq-ref pairs sym)))))))
+                 ((inline-values producer src req gensyms body)
+                  => for-tail)
+                 (else #f)))
+               (_ #f))
+             (make-let-values lv-src producer (for-tail consumer)))))
+      (($ <dynwind> src winder body unwinder)
+       (make-dynwind src (for-value winder) (for-tail body)
+                     (for-value unwinder)))
+      (($ <dynlet> src fluids vals body)
+       (make-dynlet src (map for-value fluids) (map for-value vals)
+                    (for-tail body)))
+      (($ <dynref> src fluid)
+       (make-dynref src (for-value fluid)))
+      (($ <dynset> src fluid exp)
+       (make-dynset src (for-value fluid) (for-value exp)))
+      (($ <toplevel-ref> src (? effect-free-primitive? name))
+       (if (local-toplevel? name)
+           exp
+           (resolve-primitives! exp cenv)))
+      (($ <toplevel-ref>)
+       ;; todo: open private local bindings.
+       exp)
+      (($ <module-ref>)
+       exp)
+      (($ <module-set> src mod name public? exp)
+       (make-module-set src mod name public? (for-value exp)))
+      (($ <toplevel-define> src name exp)
+       (make-toplevel-define src name (for-value exp)))
+      (($ <toplevel-set> src name exp)
+       (make-toplevel-set src name (for-value exp)))
+      (($ <primitive-ref>)
+       (case ctx
+         ((effect) (make-void #f))
+         ((test) (make-const #f #t))
+         (else exp)))
+      (($ <conditional> src condition subsequent alternate)
+       (let ((condition (for-test condition)))
+         (if (const? condition)
+             (if (const-exp condition)
+                 (for-tail subsequent)
+                 (for-tail alternate))
+             (make-conditional src condition
+                               (for-tail subsequent)
+                               (for-tail alternate)))))
+      (($ <application> src
+          ($ <primitive-ref> _ '@call-with-values)
+          (producer
+           ($ <lambda> _ _
+              (and consumer
+                   ;; No optional or kwargs.
+                   ($ <lambda-case>
+                      _ req #f rest #f () gensyms body #f)))))
+       (for-tail (make-let-values src (make-application src producer '())
+                                  consumer)))
+
+      (($ <application> src orig-proc orig-args)
+       ;; todo: augment the global env with specialized functions
+       (let ((proc (loop orig-proc env counter 'operator)))
+         (match proc
+           (($ <primitive-ref> _ (? constructor-primitive? name))
+            (case ctx
+              ((effect test)
+               (let ((res (if (eq? ctx 'effect)
+                              (make-void #f)
+                              (make-const #f #t))))
+                 (match (for-value exp)
+                   (($ <application> _ ($ <primitive-ref> _ 'cons) (x xs))
+                    (for-tail
+                     (make-sequence src (list x xs res))))
+                   (($ <application> _ ($ <primitive-ref> _ 'list) elts)
+                    (for-tail
+                     (make-sequence src (append elts (list res)))))
+                   (($ <application> _ ($ <primitive-ref> _ 'vector) elts)
+                    (for-tail
+                     (make-sequence src (append elts (list res)))))
+                   (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag) ())
+                    res)
+                   (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
+                       (($ <const> _ (? string?))))
+                    res)
+                   (exp exp))))
               (else
-               ;; Only include bindings for which lexical references
-               ;; have been residualized.
-               (let*-values
-                   (((stripped) (remove
-                                 (lambda (x)
-                                   (and (not (hashq-ref
-                                              residual-lexical-references
-                                              (cadr x)))
-                                        ;; FIXME: Here we can probably
-                                        ;; strip pure expressions in
-                                        ;; addition to constant
-                                        ;; expressions.
-                                        (constant-expression? (car x))))
-                                 (zip vals gensyms names)))
-                    ((vals gensyms names) (unzip3 stripped)))
-                 (if (null? stripped)
-                     body
-                     (make-let src names gensyms vals body)))))))
-          (($ <letrec> src in-order? names gensyms vals body)
-           ;; Things could be done more precisely when IN-ORDER? but
-           ;; it's OK not to do it---at worst we lost an optimization
-           ;; opportunity.
-           (let* ((vals (map for-operand vals))
-                  (body (loop body
-                          (fold vhash-consq env gensyms vals)
-                          counter
-                          ctx)))
-             (if (and (const? body)
-                      (every constant-expression? vals))
-                 body
-                 (let*-values
-                     (((stripped) (remove
-                                   (lambda (x)
-                                     (and (constant-expression? (car x))
-                                          (not (hashq-ref
-                                                residual-lexical-references
-                                                (cadr x)))))
-                                   (zip vals gensyms names)))
-                      ((vals gensyms names) (unzip3 stripped)))
-                   (if (null? stripped)
-                       body
-                       (make-letrec src in-order? names gensyms vals body))))))
-          (($ <fix> src names gensyms vals body)
-           (let* ((vals (map for-operand vals))
-                  (body (loop body
-                          (fold vhash-consq env gensyms vals)
-                          counter
-                          ctx)))
-             (if (const? body)
-                 body
-                 (make-fix src names gensyms vals body))))
-          (($ <let-values> lv-src producer consumer)
-           ;; Peval the producer, then try to inline the consumer into
-           ;; the producer.  If that succeeds, peval again.  Otherwise
-           ;; reconstruct the let-values, pevaling the consumer.
-           (let ((producer (for-value producer)))
-             (or (match consumer
-                   (($ <lambda-case> src req #f #f #f () gensyms body #f)
+               (match (cons name (map for-value orig-args))
+                 (('cons head tail)
+                  (match tail
+                    (($ <const> src ())
+                     (make-application src (make-primitive-ref #f 'list)
+                                       (list head)))
+                    (($ <application> src ($ <primitive-ref> _ 'list) elts)
+                     (make-application src (make-primitive-ref #f 'list)
+                                       (cons head elts)))
+                    (_ (make-application src proc
+                                         (list head tail)))))
+
+                 ;; FIXME: these for-tail recursions could take
+                 ;; place outside an effort counter.
+                 (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+                  (for-tail (make-sequence src (list tail head))))
+                 (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+                  (for-tail (make-sequence src (list head tail))))
+                 (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+                  (for-tail (make-sequence src (append tail (list head)))))
+                 (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+                  (for-tail (make-sequence
+                             src
+                             (list head
+                                   (make-application
+                                    src (make-primitive-ref #f 'list) tail)))))
+                  
+                 (('car ($ <const> src (head . tail)))
+                  (for-tail (make-const src head)))
+                 (('cdr ($ <const> src (head . tail)))
+                  (for-tail (make-const src tail)))
+
+                 ((_ . args)
+                  (make-application src proc args))))))
+           (($ <primitive-ref> _ (? effect-free-primitive? name))
+            (let ((args (map for-value orig-args)))
+              (if (every const? args)   ; only simple constants
+                  (let-values (((success? values)
+                                (apply-primitive name
+                                                 (map const-exp args))))
+                    (if success?
+                        (case ctx
+                          ((effect) (make-void #f))
+                          ((test)
+                           ;; Values truncation: only take the first
+                           ;; value.
+                           (if (pair? values)
+                               (make-const #f (car values))
+                               (make-values src '())))
+                          (else
+                           (make-values src (map (cut make-const src <>)
+                                                 values))))
+                        (make-application src proc args)))
+                  (make-application src proc args))))
+           (($ <lambda> _ _
+               ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
+            ;; Simple case: no rest, no keyword arguments.
+            ;; todo: handle the more complex cases
+            (let* ((nargs (length orig-args))
+                   (nreq (length req))
+                   (nopt (if opt (length opt) 0))
+                   (key (source-expression proc)))
+              (cond
+               ((or (< nargs nreq) (> nargs (+ nreq nopt)))
+                ;; An error, or effecting arguments.
+                (make-application src (for-value orig-proc)
+                                  (map for-value orig-args)))
+               ((and=> (find-counter key counter) counter-recursive?)
+                ;; A recursive call.  Process again in tail context.
+                (loop (make-let src (append req (or opt '()))
+                                gensyms
+                                (append orig-args
+                                        (drop inits (- nargs nreq)))
+                                body)
+                  env counter ctx))
+               (else
+                ;; An integration at the top-level, the first
+                ;; recursion of a recursive procedure, or a nested
+                ;; integration of a procedure that hasn't been seen
+                ;; yet.
+                (let/ec k
+                  (define (abort)
+                    (k (make-application src
+                                         (for-value orig-proc)
+                                         (map for-value orig-args))))
+                  (define new-counter
                     (cond
-                     ((inline-values producer src req gensyms body)
-                      => for-tail)
-                     (else #f)))
-                   (_ #f))
-                 (make-let-values lv-src producer (for-tail consumer)))))
-          (($ <dynwind> src winder body unwinder)
-           (make-dynwind src (for-value winder) (for-tail body)
-                         (for-value unwinder)))
-          (($ <dynlet> src fluids vals body)
-           (make-dynlet src (map for-value fluids) (map for-value vals)
-                        (for-tail body)))
-          (($ <dynref> src fluid)
-           (make-dynref src (for-value fluid)))
-          (($ <toplevel-ref> src (? effect-free-primitive? name))
-           (if (local-toplevel? name)
-               exp
-               (resolve-primitives! exp cenv)))
-          (($ <toplevel-ref>)
-           ;; todo: open private local bindings.
-           exp)
-          (($ <module-ref>)
-           exp)
-          (($ <module-set> src mod name public? exp)
-           (make-module-set src mod name public? (for-value exp)))
-          (($ <toplevel-define> src name exp)
-           (make-toplevel-define src name (for-value exp)))
-          (($ <toplevel-set> src name exp)
-           (make-toplevel-set src name (for-value exp)))
-          (($ <primitive-ref>)
-           (case ctx
-             ((effect) (make-void #f))
-             ((test) (make-const #f #t))
-             (else exp)))
-          (($ <conditional> src condition subsequent alternate)
-           (let ((condition (for-test condition)))
-             (if (const? condition)
-                 (if (const-exp condition)
-                     (for-tail subsequent)
-                     (for-tail alternate))
-                 (make-conditional src condition
-                                   (for-tail subsequent)
-                                   (for-tail alternate)))))
-          (($ <application> src
-              ($ <primitive-ref> _ '@call-with-values)
-              (producer
-               ($ <lambda> _ _
-                  (and consumer
-                       ;; No optional or kwargs.
-                       ($ <lambda-case>
-                          _ req #f rest #f () gensyms body #f)))))
-           (for-tail (make-let-values src (make-application src producer '())
-                                      consumer)))
-
-          (($ <application> src orig-proc orig-args)
-           ;; todo: augment the global env with specialized functions
-           (let ((proc (loop orig-proc env counter 'operator)))
-             (match proc
-               (($ <primitive-ref> _ (? constructor-primitive? name))
-                (case ctx
-                  ((effect test)
-                   (let ((res (if (eq? ctx 'effect)
-                                  (make-void #f)
-                                  (make-const #f #t))))
-                     (match (for-value exp)
-                       (($ <application> _ ($ <primitive-ref> _ 'cons) (x xs))
-                        (for-tail
-                         (make-sequence src (list x xs res))))
-                       (($ <application> _ ($ <primitive-ref> _ 'list) elts)
-                        (for-tail
-                         (make-sequence src (append elts (list res)))))
-                       (($ <application> _ ($ <primitive-ref> _ 'vector) elts)
-                        (for-tail
-                         (make-sequence src (append elts (list res)))))
-                       (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag) ())
-                        res)
-                       (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
-                           (($ <const> _ (? string?))))
-                        res)
-                       (exp exp))))
-                  (else
-                   (match (cons name (map for-value orig-args))
-                     (('cons head tail)
-                      (match tail
-                        (($ <const> src ())
-                         (make-application src (make-primitive-ref #f 'list)
-                                           (list head)))
-                        (($ <application> src ($ <primitive-ref> _ 'list) elts)
-                         (make-application src (make-primitive-ref #f 'list)
-                                           (cons head elts)))
-                        (_ (make-application src proc
-                                             (list head tail)))))
-
-                     ;; FIXME: these for-tail recursions could take
-                     ;; place outside an effort counter.
-                     (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
-                      (for-tail (make-sequence src (list tail head))))
-                     (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
-                      (for-tail (make-sequence src (list head tail))))
-                  
-                     (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
-                      (for-tail (make-sequence src (append tail (list head)))))
-                     (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
-                      (for-tail (make-sequence
-                                 src
-                                 (list head
-                                       (make-application
-                                        src (make-primitive-ref #f 'list) tail)))))
-                  
-                     (('car ($ <const> src (head . tail)))
-                      (for-tail (make-const src head)))
-                     (('cdr ($ <const> src (head . tail)))
-                      (for-tail (make-const src tail)))
-
-                     ((_ . args)
-                      (make-application src proc args))))))
-               (($ <primitive-ref> _ (? effect-free-primitive? name))
-                (let ((args (map for-value orig-args)))
-                  (if (every const? args) ; only simple constants
-                      (let-values (((success? values)
-                                    (apply-primitive name
-                                                     (map const-exp args))))
-                        (if success?
-                            (case ctx
-                              ((effect) (make-void #f))
-                              ((test)
-                               ;; Values truncation: only take the first
-                               ;; value.
-                               (if (pair? values)
-                                   (make-const #f (car values))
-                                   (make-values src '())))
-                              (else
-                               (make-values src (map (cut make-const src <>)
-                                                     values))))
-                            (make-application src proc args)))
-                      (make-application src proc args))))
-               (($ <lambda> _ _
-                   ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
-                ;; Simple case: no rest, no keyword arguments.
-                ;; todo: handle the more complex cases
-                (let* ((nargs (length orig-args))
-                       (nreq (length req))
-                       (nopt (if opt (length opt) 0))
-                       (key (source-expression proc)))
-                  (cond
-                   ((or (< nargs nreq) (> nargs (+ nreq nopt)))
-                    ;; An error, or effecting arguments.
-                    (make-application src (for-value orig-proc)
-                                      (map for-value orig-args)))
-                   ((and=> (find-counter key counter) counter-recursive?)
-                    ;; A recursive call.  Process again in tail context.
+                     ;; These first two cases will transfer effort
+                     ;; from the current counter into the new
+                     ;; counter.
+                     ((find-counter key counter)
+                      => (lambda (prev)
+                           (make-recursive-counter recursive-effort-limit
+                                                   operand-size-limit
+                                                   prev counter)))
+                     (counter
+                      (make-nested-counter abort key counter))
+                     ;; This case opens a new account, effectively
+                     ;; printing money.  It should only do so once
+                     ;; for each call site in the source program.
+                     (else
+                      (make-top-counter effort-limit operand-size-limit
+                                        abort key))))
+                  (define result
                     (loop (make-let src (append req (or opt '()))
                                     gensyms
                                     (append orig-args
                                             (drop inits (- nargs nreq)))
                                     body)
-                      env counter ctx))
-                   (else
-                    ;; An integration at the top-level, the first
-                    ;; recursion of a recursive procedure, or a nested
-                    ;; integration of a procedure that hasn't been seen
-                    ;; yet.
-                    (let/ec k
-                      (define (abort)
-                        (k (make-application src
-                                             (for-value orig-proc)
-                                             (map for-value orig-args))))
-                      (define new-counter
-                        (cond
-                         ;; These first two cases will transfer effort
-                         ;; from the current counter into the new
-                         ;; counter.
-                         ((find-counter key counter)
-                          => (lambda (prev)
-                               (make-recursive-counter recursive-effort-limit
-                                                       operand-size-limit
-                                                       prev counter)))
-                         (counter
-                          (make-nested-counter abort key counter))
-                         ;; This case opens a new account, effectively
-                         ;; printing money.  It should only do so once
-                         ;; for each call site in the source program.
-                         (else
-                          (make-top-counter effort-limit operand-size-limit
-                                            abort key))))
-                      (define result
-                        (loop (make-let src (append req (or opt '()))
-                                        gensyms
-                                        (append orig-args
-                                                (drop inits (- nargs nreq)))
-                                        body)
-                          env new-counter ctx))
+                      env new-counter ctx))
                       
-                      (if counter
-                          ;; The nested inlining attempt succeeded.
-                          ;; Deposit the unspent effort and size back
-                          ;; into the current counter.
-                          (transfer! new-counter counter))
+                  (if counter
+                      ;; The nested inlining attempt succeeded.
+                      ;; Deposit the unspent effort and size back
+                      ;; into the current counter.
+                      (transfer! new-counter counter))
 
-                      result)))))
-               ((or ($ <primitive-ref>)
-                    ($ <lambda>)
-                    ($ <toplevel-ref>)
-                    ($ <lexical-ref>))
-                (make-application src proc
-                                  (map for-value orig-args)))
+                  result)))))
+           (_
+            (make-application src proc
+                              (map for-value orig-args))))))
+      (($ <lambda> src meta body)
+       (case ctx
+         ((effect) (make-void #f))
+         ((test) (make-const #f #t))
+         ((operator) exp)
+         (else
+          (make-lambda src meta (for-value body)))))
+      (($ <lambda-case> src req opt rest kw inits gensyms body alt)
+       (make-lambda-case src req opt rest kw
+                         (map for-value inits)
+                         gensyms
+                         (for-tail body)
+                         (and alt (for-tail alt))))
+      (($ <sequence> src exps)
+       (let lp ((exps exps) (effects '()))
+         (match exps
+           ((last)
+            (if (null? effects)
+                (for-tail last)
+                (make-sequence
+                 src
+                 (reverse (cons (for-tail last) effects)))))
+           ((head . rest)
+            (let ((head (for-effect head)))
+              (cond
+               ((sequence? head)
+                (lp (append (sequence-exps head) rest) effects))
+               ((void? head)
+                (lp rest effects))
+               (else
+                (lp rest (cons head effects)))))))))
+      (($ <prompt> src tag body handler)
+       (define (singly-used-definition x)
+         (cond
+          ((and (lexical-ref? x)
+                ;; Only fetch definitions with single uses.
+                (= (lexical-refcount (lexical-ref-gensym x)) 1)
+                (lookup (lexical-ref-gensym x)))
+           => singly-used-definition)
+          (else x)))
+       (define (escape-only? handler)
+         (match handler
+           (($ <lambda-case> _ (_ . _) _ _ _ _ (cont . _) body #f)
+            (tree-il-any (lambda (x)
+                           (and (lexical-ref? x)
+                                (eq? (lexical-ref-gensym x) cont)))
+                         body))
+           (else #f)))
+       (define (thunk-application? x)
+         (match x
+           (($ <application> _
+               ($ <lambda> _ _ ($ <lambda-case> _ () #f #f #f))
+               ()) #t)
+           (_ #f)))
+       (define (make-thunk-application body)
+         (define thunk
+           (make-lambda #f '()
+                        (make-lambda-case #f '() #f #f #f '() '() body #f)))
+         (make-application #f thunk '()))
 
-               ;; In practice, this is the clause that stops peval:
-               ;; module-ref applications (produced by macros,
-               ;; typically) don't match, and so this throws,
-               ;; aborting peval for an entire expression.
-               )))
-          (($ <lambda> src meta body)
-           (case ctx
-             ((effect) (make-void #f))
-             ((test) (make-const #f #t))
-             ((operator) exp)
-             (else
-              (make-lambda src meta (for-value body)))))
-          (($ <lambda-case> src req opt rest kw inits gensyms body alt)
-           (make-lambda-case src req opt rest kw
-                             (map for-value inits)
-                             gensyms
-                             (for-tail body)
-                             (and alt (for-tail alt))))
-          (($ <sequence> src exps)
-           (let lp ((exps exps) (effects '()))
-             (match exps
-               ((last)
-                (if (null? effects)
-                    (for-tail last)
-                    (make-sequence
-                     src
-                     (reverse (cons (for-tail last) effects)))))
-               ((head . rest)
-                (let ((head (for-effect head)))
-                  (cond
-                   ((sequence? head)
-                    (lp (append (sequence-exps head) rest) effects))
-                   ((void? head)
-                    (lp rest effects))
-                   (else
-                    (lp rest (cons head effects)))))))))
-          (($ <prompt> src tag body handler)
-           (define (singly-used-definition x)
-             (cond
-              ((and (lexical-ref? x)
-                    ;; Only fetch definitions with single uses.
-                    (= (lexical-refcount (lexical-ref-gensym x)) 1)
-                    (lookup (lexical-ref-gensym x)))
-               => singly-used-definition)
-              (else x)))
-           (define (escape-only? handler)
-             (match handler
-               (($ <lambda-case> _ (_ . _) _ _ _ _ (cont . _) body #f)
-                (tree-il-any (lambda (x)
-                               (and (lexical-ref? x)
-                                    (eq? (lexical-ref-gensym x) cont)))
-                             body))))
-           (define (thunk-application? x)
-             (match x
-               (($ <application> _
-                   ($ <lambda> _ _ ($ <lambda-case> _ () #f #f #f))
-                   ()) #t)
-               (_ #f)))
-           (define (make-thunk-application body)
-             (define thunk
-               (make-lambda #f '()
-                            (make-lambda-case #f '() #f #f #f '() '() body #f)))
-             (make-application #f thunk '()))
-
-           (match (singly-used-definition tag)
-             (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
-                 (or () ((? constant-expression?))))
-              ;; There is no way that an <abort> could know the tag
-              ;; for this <prompt>, so we can elide the <prompt>
-              ;; entirely.
-              (for-tail body))
-             (_
-              ;; It's a nasty, but this code has another job to do: to
-              ;; ensure that either the handler is escape-only, or the
-              ;; body is the application of a thunk.  Sad but true.
-              (let ((tag (for-value tag))
-                    (body (for-value body))
-                    (handler (for-value handler)))
-                (make-prompt src tag
-                             (if (or (escape-only? handler)
-                                     (thunk-application? body))
-                                 body
-                                 (make-thunk-application body))
-                             handler)))))
-          (($ <abort> src tag args tail)
-           (make-abort src (for-value tag) (map for-value args)
-                       (for-value tail))))))
-    (lambda _
-      ;; We encountered something we don't handle, like <abort> or
-      ;; <prompt>, so bail out.
-      exp)))
+       (match (singly-used-definition tag)
+         (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
+             (or () ((? constant-expression?))))
+          ;; There is no way that an <abort> could know the tag
+          ;; for this <prompt>, so we can elide the <prompt>
+          ;; entirely.
+          (for-tail body))
+         (_
+          ;; It's a nasty, but this code has another job to do: to
+          ;; ensure that either the handler is escape-only, or the
+          ;; body is the application of a thunk.  Sad but true.
+          (let ((tag (for-value tag))
+                (body (for-value body))
+                (handler (for-value handler)))
+            (make-prompt src tag
+                         (if (or (escape-only? handler)
+                                 (thunk-application? body))
+                             body
+                             (make-thunk-application body))
+                         handler)))))
+      (($ <abort> src tag args tail)
+       (make-abort src (for-value tag) (map for-value args)
+                   (for-value tail))))))
