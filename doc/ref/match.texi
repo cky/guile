@@ -129,7 +129,6 @@ pat ::= identifier                      anything, and binds identifier
 ooo ::= ...                             zero or more
       | ___                             zero or more
       | ..1                             1 or more
-      | __1                             1 or more
 
         quasi-patterns:                 matches:
 
