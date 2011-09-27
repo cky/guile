@@ -322,7 +322,7 @@
      `(dynref ,(unparse-tree-il fluid)))
 
     ((<dynset> fluid exp)
-     `(dynref ,(unparse-tree-il fluid) ,(unparse-tree-il exp)))
+     `(dynset ,(unparse-tree-il fluid) ,(unparse-tree-il exp)))
 
     ((<prompt> tag body handler)
      `(prompt ,(unparse-tree-il tag) ,(unparse-tree-il body) ,(unparse-tree-il handler)))
