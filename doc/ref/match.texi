@@ -122,11 +122,14 @@ pat ::= identifier                      anything, and binds identifier
       | (set! identifier)               anything, and binds setter
       | (get! identifier)               anything, and binds getter
       | `qp                             a quasi-pattern
+      | (identifier *** pat)            matches pat in a tree and binds
+                                        identifier to the path leading
+                                        to the object that matches pat
 
 ooo ::= ...                             zero or more
       | ___                             zero or more
-      | ..k                             k or more
-      | __k                             k or more
+      | ..1                             1 or more
+      | __1                             1 or more
 
         quasi-patterns:                 matches:
 
