@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -18,6 +18,7 @@
 
 (use-modules (language tree-il)
              (language tree-il optimize)
+             (language tree-il canonicalize)
              (ice-9 pretty-print))
 
 (let ((source (list-ref (command-line) 1))
@@ -34,10 +35,11 @@
             (close-port in))
           (begin
             (pretty-print (tree-il->scheme
-                           (optimize!
-                            (macroexpand x 'c '(compile load eval))
-                            (current-module)
-                            '()))
+                           (canonicalize!
+                            (optimize!
+                             (macroexpand x 'c '(compile load eval))
+                             (current-module)
+                             '())))
                           out)
             (newline out)
             (loop (read in))))))
