@@ -27,6 +27,7 @@
   #:use-module (system vm instruction)
   #:use-module (language tree-il)
   #:use-module (language tree-il optimize)
+  #:use-module (language tree-il canonicalize)
   #:use-module (language tree-il analyze)
   #:use-module ((srfi srfi-1) #:select (filter-map))
   #:export (compile-glil))
@@ -64,6 +65,7 @@
   (let* ((x (make-lambda (tree-il-src x) '()
                          (make-lambda-case #f '() #f #f #f '() '() x #f)))
          (x (optimize! x e opts))
+         (x (canonicalize! x))
          (allocation (analyze-lexicals x)))
 
     (with-fluids ((*comp-module* e))
