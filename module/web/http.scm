@@ -1079,7 +1079,18 @@ three values: the method, the URI, and the version."
   "Write the first line of an HTTP request to @var{port}."
   (display method port)
   (display #\space port)
-  (write-uri uri port)
+  (let ((path (uri-path uri))
+        (query (uri-query uri)))
+    (if (not (string-null? path))
+        (display path port))
+    (if query
+        (begin
+          (display "?" port)
+          (display query port)))
+    (if (and (string-null? path)
+             (not query))
+        ;; Make sure we display something.
+        (display "/" port)))
   (display #\space port)
   (write-http-version version port)
   (display "\r\n" port))
