@@ -58,6 +58,7 @@
 ;; file.
 (include-from-path "ice-9/match.upstream.scm")
 
+;; Patch to work around <http://debbugs.gnu.org/9567>.
 (define-syntax match
   (syntax-rules ()
     ((match)
