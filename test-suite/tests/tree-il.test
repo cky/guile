@@ -1233,6 +1233,15 @@
     (letrec _ . _))
 
   (pass-if-peval
+    ;; Infinite recursion: all the arguments to `loop' are static, but
+    ;; unrolling it would lead `peval' to enter an infinite loop.
+    (let loop ((x 0))
+      (and (< x top)
+           (loop (1+ x))))
+    (letrec (loop) (_) ((lambda . _))
+            (apply (lexical loop _) (const 0))))
+
+  (pass-if-peval
     ;; Constant folding: cons
    (begin (cons 1 2) #f)
    (const #f))
