@@ -110,6 +110,14 @@
     (equal? '(a b c)
             (read-string "(a b c #| d #| e |# f |#)")))
 
+  (pass-if "R6RS/SRFI-30 nested block comment (2)"
+    (equal? '(a b c)
+            (read-string "(a b c #|||||||#)")))
+
+  (pass-if "R6RS/SRFI-30 nested block comment (3)"
+    (equal? '(a b c)
+            (read-string "(a b c #||||||||#)")))
+
   (pass-if "R6RS/SRFI-30 block comment syntax overridden"
     ;; To be compatible with 1.8 and earlier, we should be able to override
     ;; this syntax.

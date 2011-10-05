@@ -1133,34 +1133,33 @@ scm_read_r6rs_block_comment (scm_t_wchar chr, SCM port)
   /* Unlike SCSH-style block comments, SRFI-30/R6RS block comments may be
      nested.  So care must be taken.  */
   int nesting_level = 1;
-  int opening_seen = 0, closing_seen = 0;
+
+  int a = scm_getc (port);
+
+  if (a == EOF)
+    scm_i_input_error ("scm_read_r6rs_block_comment", port,
+                       "unterminated `#| ... |#' comment", SCM_EOL);
 
   while (nesting_level > 0)
     {
-      int c = scm_getc (port);
+      int b = scm_getc (port);
 
-      if (c == EOF)
+      if (b == EOF)
 	scm_i_input_error ("scm_read_r6rs_block_comment", port,
 			   "unterminated `#| ... |#' comment", SCM_EOL);
 
-      if (opening_seen)
-	{
-	  if (c == '|')
-	    nesting_level++;
-	  opening_seen = 0;
-	}
-      else if (closing_seen)
-	{
-	  if (c == '#')
-	    nesting_level--;
-	  closing_seen = 0;
-	}
-      else if (c == '|')
-	closing_seen = 1;
-      else if (c == '#')
-	opening_seen = 1;
-      else
-	opening_seen = closing_seen = 0;
+      if (a == '|' && b == '#')
+        {
+          nesting_level--;
+          b = EOF;
+        }
+      else if (a == '#' && b == '|')
+        {
+          nesting_level++;
+          b = EOF;
+        }
+
+      a = b;
     }
 
   return SCM_UNSPECIFIED;
