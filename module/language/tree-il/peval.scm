@@ -28,13 +28,216 @@
   #:export (peval))
 
 ;;;
-;;; Partial evaluation.
+;;; Partial evaluation is Guile's most important source-to-source
+;;; optimization pass.  It performs copy propagation, dead code
+;;; elimination, inlining, and constant folding, all while preserving
+;;; the order of effects in the residual program.
 ;;;
+;;; For more on partial evaluation, see William Cook’s excellent
+;;; tutorial on partial evaluation at DSL 2011, called “Build your own
+;;; partial evaluator in 90 minutes”[0].
+;;;
+;;; Our implementation of this algorithm was heavily influenced by
+;;; Waddell and Dybvig's paper, "Fast and Effective Procedure Inlining",
+;;; IU CS Dept. TR 484.
+;;;
+;;; [0] http://www.cs.utexas.edu/~wcook/tutorial/.  
+;;;
+
+;; First, some helpers.
+;;
+(define-syntax-rule (let/ec k e e* ...)
+  (let ((tag (make-prompt-tag)))
+    (call-with-prompt
+     tag
+     (lambda ()
+       (let ((k (lambda args (apply abort-to-prompt tag args))))
+         e e* ...))
+     (lambda (_ res) res))))
+
+(define (tree-il-any proc exp)
+  (let/ec k
+    (tree-il-fold (lambda (exp res)
+                    (let ((res (proc exp)))
+                      (if res (k res) #f)))
+                  (lambda (exp res)
+                    (let ((res (proc exp)))
+                      (if res (k res) #f)))
+                  (lambda (exp res) #f)
+                  #f exp)))
+
+(define (vlist-any proc vlist)
+  (let ((len (vlist-length vlist)))
+    (let lp ((i 0))
+      (and (< i len)
+           (or (proc (vlist-ref vlist i))
+               (lp (1+ i)))))))
+
+;; Peval will do a one-pass analysis on the source program to determine
+;; the set of assigned lexicals, and to identify unreferenced and
+;; singly-referenced lexicals.
+;;
+;; If peval introduces more code, via copy-propagation, it will need to
+;; run `build-var-table' on the new code to add to make sure it can find
+;; a <var> for each gensym bound in the program.
+;;
+(define-record-type <var>
+  (make-var name gensym refcount set?)
+  var?
+  (name var-name)
+  (gensym var-gensym)
+  (refcount var-refcount set-var-refcount!)
+  (set? var-set? set-var-set?!))
+
+(define* (build-var-table exp #:optional (table vlist-null))
+  (tree-il-fold
+   (lambda (exp res)
+     (match exp
+       (($ <lexical-ref> src name gensym)
+        (let ((var (vhash-assq gensym res)))
+          (if var
+              (begin
+                (set-var-refcount! (cdr var) (1+ (var-refcount (cdr var))))
+                res)
+              (vhash-consq gensym (make-var name gensym 1 #f) res))))
+       (_ res)))
+   (lambda (exp res)
+     (match exp
+       (($ <lexical-set> src name gensym exp)
+        (let ((var (vhash-assq gensym res)))
+          (if var
+              (begin
+                (set-var-set?! (cdr var) #t)
+                res)
+              (vhash-consq gensym (make-var name gensym 0 #t) res))))
+       (_ res)))
+   (lambda (exp res) res)
+   table exp))
+
+;; Counters are data structures used to limit the effort that peval
+;; spends on particular inlining attempts.  Each call site in the source
+;; program is allocated some amount of effort.  If peval exceeds the
+;; effort counter while attempting to inline a call site, it aborts the
+;; inlining attempt and residualizes a call instead.
+;;
+;; As there is a fixed number of call sites, that makes `peval' O(N) in
+;; the number of call sites in the source program.
+;;
+;; Counters should limit the size of the residual program as well, but
+;; currently this is not implemented.
+;;
+;; At the top level, before seeing any peval call, there is no counter,
+;; because inlining will terminate as there is no recursion.  When peval
+;; sees a call at the top level, it will make a new counter, allocating
+;; it some amount of effort and size.
+;;
+;; This top-level effort counter effectively "prints money".  Within a
+;; toplevel counter, no more effort is printed ex nihilo; for a nested
+;; inlining attempt to proceed, effort must be transferred from the
+;; toplevel counter to the nested counter.
+;;
+;; Via `data' and `prev', counters form a linked list, terminating in a
+;; toplevel counter.  In practice `data' will be the a pointer to the
+;; source expression of the procedure being inlined.
+;;
+;; In this way peval can detect a recursive inlining attempt, by walking
+;; back on the `prev' links looking for matching `data'.  Recursive
+;; counters receive a more limited effort allocation, as we don't want
+;; to spend all of the effort for a toplevel inlining site on loops.
+;; Also, recursive counters don't need a prompt at each inlining site:
+;; either the call chain folds entirely, or it will be residualized at
+;; its original call.
+;;
+(define-record-type <counter>
+  (%make-counter effort size continuation recursive? data prev)
+  counter?
+  (effort effort-counter)
+  (size size-counter)
+  (continuation counter-continuation)
+  (recursive? counter-recursive?)
+  (data counter-data)
+  (prev counter-prev))
+
+(define (abort-counter c)
+  ((counter-continuation c)))
+
+(define (record-effort! c)
+  (let ((e (effort-counter c)))
+    (if (zero? (variable-ref e))
+        (abort-counter c)
+        (variable-set! e (1- (variable-ref e))))))
+
+(define (record-size! c)
+  (let ((s (size-counter c)))
+    (if (zero? (variable-ref s))
+        (abort-counter c)
+        (variable-set! s (1- (variable-ref s))))))
+
+(define (find-counter data counter)
+  (and counter
+       (if (eq? data (counter-data counter))
+           counter
+           (find-counter data (counter-prev counter)))))
+
+(define* (transfer! from to #:optional
+                    (effort (variable-ref (effort-counter from)))
+                    (size (variable-ref (size-counter from))))
+  (define (transfer-counter! from-v to-v amount)
+    (let* ((from-balance (variable-ref from-v))
+           (to-balance (variable-ref to-v))
+           (amount (min amount from-balance)))
+      (variable-set! from-v (- from-balance amount))
+      (variable-set! to-v (+ to-balance amount))))
+
+  (transfer-counter! (effort-counter from) (effort-counter to) effort)
+  (transfer-counter! (size-counter from) (size-counter to) size))
+
+(define (make-top-counter effort-limit size-limit continuation data)
+  (%make-counter (make-variable effort-limit)
+                 (make-variable size-limit)
+                 continuation
+                 #t
+                 data
+                 #f))
+
+(define (make-nested-counter continuation data current)
+  (let ((c (%make-counter (make-variable 0)
+                          (make-variable 0)
+                          continuation
+                          #f
+                          data
+                          current)))
+    (transfer! current c)
+    c))
+
+(define (make-recursive-counter effort-limit size-limit orig current)
+  (let ((c (%make-counter (make-variable 0)
+                          (make-variable 0)
+                          (counter-continuation orig)
+                          #t
+                          (counter-data orig)
+                          current)))
+    (transfer! current c effort-limit size-limit)
+    c))
+
+(define (types-check? primitive-name args)
+  (case primitive-name
+    ((values) #t)
+    ((not pair? null? list? symbol? vector? struct?)
+     (= (length args) 1))
+    ((eq? eqv? equal?)
+     (= (length args) 2))
+    ;; FIXME: add more cases?
+    (else #f)))
 
 (define (fresh-gensyms syms)
   (map (lambda (x) (gensym (string-append (symbol->string x) " ")))
        syms))
 
+;; Copy propagation of terms that bind variables, like `lambda' terms,
+;; will need to bind fresh variables.  This procedure renames all the
+;; lexicals in a term.
+;;
 (define (alpha-rename exp)
   "Alpha-rename EXP.  For any lambda in EXP, generate new symbols and
 replace all lexical references to the former symbols with lexical
@@ -148,148 +351,6 @@ references to the new symbols."
        (make-abort src (loop tag mapping) (map (cut loop <> mapping) args)
                    (loop tail mapping))))))
 
-(define-syntax-rule (let/ec k e e* ...)
-  (let ((tag (make-prompt-tag)))
-    (call-with-prompt
-     tag
-     (lambda ()
-       (let ((k (lambda args (apply abort-to-prompt tag args))))
-         e e* ...))
-     (lambda (_ res) res))))
-
-(define (tree-il-any proc exp)
-  (let/ec k
-    (tree-il-fold (lambda (exp res)
-                    (let ((res (proc exp)))
-                      (if res (k res) #f)))
-                  (lambda (exp res)
-                    (let ((res (proc exp)))
-                      (if res (k res) #f)))
-                  (lambda (exp res) #f)
-                  #f exp)))
-
-(define (vlist-any proc vlist)
-  (let ((len (vlist-length vlist)))
-    (let lp ((i 0))
-      (and (< i len)
-           (or (proc (vlist-ref vlist i))
-               (lp (1+ i)))))))
-
-(define-record-type <var>
-  (make-var name gensym refcount set?)
-  var?
-  (name var-name)
-  (gensym var-gensym)
-  (refcount var-refcount set-var-refcount!)
-  (set? var-set? set-var-set?!))
-
-(define* (build-var-table exp #:optional (table vlist-null))
-  (tree-il-fold
-   (lambda (exp res)
-     (match exp
-       (($ <lexical-ref> src name gensym)
-        (let ((var (vhash-assq gensym res)))
-          (if var
-              (begin
-                (set-var-refcount! (cdr var) (1+ (var-refcount (cdr var))))
-                res)
-              (vhash-consq gensym (make-var name gensym 1 #f) res))))
-       (_ res)))
-   (lambda (exp res)
-     (match exp
-       (($ <lexical-set> src name gensym exp)
-        (let ((var (vhash-assq gensym res)))
-          (if var
-              (begin
-                (set-var-set?! (cdr var) #t)
-                res)
-              (vhash-consq gensym (make-var name gensym 0 #t) res))))
-       (_ res)))
-   (lambda (exp res) res)
-   table exp))
-
-(define-record-type <counter>
-  (%make-counter effort size continuation recursive? data prev)
-  counter?
-  (effort effort-counter)
-  (size size-counter)
-  (continuation counter-continuation)
-  (recursive? counter-recursive?)
-  (data counter-data)
-  (prev counter-prev))
-
-(define (abort-counter c)
-  ((counter-continuation c)))
-
-(define (record-effort! c)
-  (let ((e (effort-counter c)))
-    (if (zero? (variable-ref e))
-        (abort-counter c)
-        (variable-set! e (1- (variable-ref e))))))
-
-(define (record-size! c)
-  (let ((s (size-counter c)))
-    (if (zero? (variable-ref s))
-        (abort-counter c)
-        (variable-set! s (1- (variable-ref s))))))
-
-(define (find-counter data counter)
-  (and counter
-       (if (eq? data (counter-data counter))
-           counter
-           (find-counter data (counter-prev counter)))))
-
-(define* (transfer! from to #:optional
-                    (effort (variable-ref (effort-counter from)))
-                    (size (variable-ref (size-counter from))))
-  (define (transfer-counter! from-v to-v amount)
-    (let* ((from-balance (variable-ref from-v))
-           (to-balance (variable-ref to-v))
-           (amount (min amount from-balance)))
-      (variable-set! from-v (- from-balance amount))
-      (variable-set! to-v (+ to-balance amount))))
-
-  (transfer-counter! (effort-counter from) (effort-counter to) effort)
-  (transfer-counter! (size-counter from) (size-counter to) size))
-
-(define (make-top-counter effort-limit size-limit continuation data)
-  (%make-counter (make-variable effort-limit)
-                 (make-variable size-limit)
-                 continuation
-                 #t
-                 data
-                 #f))
-
-(define (make-nested-counter continuation data current)
-  (let ((c (%make-counter (make-variable 0)
-                          (make-variable 0)
-                          continuation
-                          #f
-                          data
-                          current)))
-    (transfer! current c)
-    c))
-
-(define (make-recursive-counter effort-limit size-limit orig current)
-  (let ((c (%make-counter (make-variable 0)
-                          (make-variable 0)
-                          (counter-continuation orig)
-                          #t
-                          (counter-data orig)
-                          current)))
-    (transfer! current c effort-limit size-limit)
-    c))
-
-(define (types-check? primitive-name args)
-  (case primitive-name
-    ((values) #t)
-    ((not pair? null? list? symbol? vector? struct?)
-     (= (length args) 1))
-    ((eq? eqv? equal?)
-     (= (length args) 2))
-    ;; FIXME: add more cases?
-    (else #f)))
-
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null)
                 #:key
                 (operator-size-limit 40)
@@ -298,18 +359,18 @@ references to the new symbols."
                 (effort-limit 500)
                 (recursive-effort-limit 100))
   "Partially evaluate EXP in compilation environment CENV, with
-top-level bindings from ENV and return the resulting expression.  Since
-it does not handle <fix> and <let-values>, it should be called before
-`fix-letrec'."
+top-level bindings from ENV and return the resulting expression."
 
   ;; This is a simple partial evaluator.  It effectively performs
   ;; constant folding, copy propagation, dead code elimination, and
-  ;; inlining, but not across top-level bindings---there should be a way
-  ;; to allow this (TODO).
+  ;; inlining.
+
+  ;; TODO:
   ;;
-  ;; Unlike a full-blown partial evaluator, it does not emit definitions
-  ;; of specialized versions of lambdas encountered on its way.  Also,
-  ;; it's not yet complete: it bails out for `prompt', etc.
+  ;; Propagate copies across toplevel bindings, if we can prove the
+  ;; bindings to be immutable.
+  ;;
+  ;; Specialize lambda expressions with invariant arguments.
 
   (define local-toplevel-env
     ;; The top-level environment of the module being compiled.
@@ -329,6 +390,9 @@ it does not handle <fix> and <let-values>, it should be called before
   (define (local-toplevel? name)
     (vhash-assq name local-toplevel-env))
 
+  ;; gensym -> <var>
+  ;; renamed-term -> original-term
+  ;;
   (define store (build-var-table exp))
 
   (define (assigned-lexical? sym)
@@ -339,12 +403,18 @@ it does not handle <fix> and <let-values>, it should be called before
     (let ((v (vhash-assq sym store)))
       (if v (var-refcount (cdr v)) 0)))
 
+  ;; ORIG has been alpha-renamed to NEW.  Analyze NEW and record a link
+  ;; from it to ORIG.
+  ;;
   (define (record-source-expression! orig new)
     (set! store (vhash-consq new
                              (source-expression orig)
                              (build-var-table new store)))
     new)
 
+  ;; Find the source expression corresponding to NEW.  Used to detect
+  ;; recursive inlining attempts.
+  ;;
   (define (source-expression new)
     (let ((x (vhash-assq new store)))
       (if x (cdr x) new)))
