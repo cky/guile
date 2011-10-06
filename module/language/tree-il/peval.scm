@@ -246,6 +246,63 @@
     (transfer! current c effort-limit size-limit)
     c))
 
+;; Operand structures allow bindings to be processed lazily instead of
+;; eagerly.  By doing so, hopefully we can get process them in a way
+;; appropriate to their use contexts.  Operands also prevent values from
+;; being visited multiple times, wasting effort.
+;; 
+(define-record-type <operand>
+  (%make-operand var sym visit source visit-count residualize?
+                 copyable? residual-value constant-value)
+  operand?
+  (var operand-var)
+  (sym operand-sym)
+  (visit %operand-visit)
+  (source operand-source)
+  (visit-count operand-visit-count set-operand-visit-count!)
+  (residualize? operand-residualize? set-operand-residualize?!)
+  (copyable? operand-copyable? set-operand-copyable?!)
+  (residual-value operand-residual-value set-operand-residual-value!)
+  (constant-value operand-constant-value set-operand-constant-value!))
+
+(define* (make-operand var sym #:optional source visit)
+  ;; Bound operands are considered copyable until we prove otherwise.
+  (%make-operand var sym visit source 0 #f (and source #t) #f #f))
+
+(define (make-bound-operands vars syms sources visit)
+  (map (lambda (x y z) (make-operand x y z visit)) vars syms sources))
+
+(define (make-unbound-operands vars syms)
+  (map make-operand vars syms))
+
+(define* (visit-operand op counter ctx #:optional effort-limit size-limit)
+  ;; Peval is O(N) in call sites of the source program.  However,
+  ;; visiting an operand can introduce new call sites.  If we visit an
+  ;; operand outside a counter -- i.e., outside an inlining attempt --
+  ;; this can lead to divergence.  So, if we are visiting an operand to
+  ;; try to copy it, and there is no counter, make a new one.
+  ;;
+  ;; This will only happen at most as many times as there are lexical
+  ;; references in the source program.
+  (and (zero? (operand-visit-count op))
+       (dynamic-wind
+         (lambda ()
+           (set-operand-visit-count! op (1+ (operand-visit-count op))))
+         (lambda ()
+           (and (operand-source op)
+                (if (or counter (and (not effort-limit) (not size-limit)))
+                    ((%operand-visit op) (operand-source op) counter ctx)
+                    (let/ec k
+                      (define (abort) (k #f))
+                      ((%operand-visit op)
+                       (operand-source op) 
+                       (make-top-counter effort-limit size-limit abort op)
+                       ctx)))))
+         (lambda ()
+           (set-operand-visit-count! op (1- (operand-visit-count op)))))))
+
+;; A helper for constant folding.
+;;
 (define (types-check? primitive-name args)
   (case primitive-name
     ((values) #t)
