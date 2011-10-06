@@ -23,6 +23,7 @@
   #:use-module (language tree-il primitives)
   #:use-module (language tree-il peval)
   #:use-module (language tree-il fix-letrec)
+  #:use-module (language tree-il debug)
   #:use-module (ice-9 match)
   #:export (optimize!))
 
@@ -33,5 +34,6 @@
                   (lambda (x e) x))
                  (_ peval))))
     (fix-letrec!
-     (peval (expand-primitives! (resolve-primitives! x env))
-            env))))
+     (verify-tree-il
+      (peval (expand-primitives! (resolve-primitives! x env))
+             env)))))
