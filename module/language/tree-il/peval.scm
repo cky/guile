@@ -601,16 +601,14 @@ top-level bindings from ENV and return the resulting expression."
     (define (lookup var)
       (and=> (vhash-assq var env) cdr))
 
-    (define (for-value exp)
-      (loop exp env counter 'value))
-    (define (for-operand exp)
-      (loop exp env counter 'operand))
-    (define (for-test exp)
-      (loop exp env counter 'test))
-    (define (for-effect exp)
-      (loop exp env counter 'effect))
-    (define (for-tail exp)
+    (define (visit exp ctx)
       (loop exp env counter ctx))
+
+    (define (for-value exp)    (visit exp 'value))
+    (define (for-operand exp)  (visit exp 'operand))
+    (define (for-test exp)     (visit exp 'test))
+    (define (for-effect exp)   (visit exp 'effect))
+    (define (for-tail exp)     (visit exp ctx))
 
     (if counter
         (record-effort! counter))
