@@ -46,6 +46,31 @@
 
 ;; First, some helpers.
 ;;
+;; For efficiency we define *logging* to inline to #f, so that the call
+;; to log* gets optimized out.  If you want to log, do:
+;;
+;;   (define %logging #f)
+;;   (define-syntax *logging* (identifier-syntax %logging)
+;;
+;; Then you can change %logging at runtime.
+;;
+(define-syntax *logging* (identifier-syntax #f))
+
+(define-syntax log
+  (syntax-rules (quote)
+    ((log 'event arg ...)
+     (if (and *logging*
+              (or (eq? *logging* #t)
+                  (memq 'event *logging*)))
+         (log* 'event arg ...)))))
+
+(define (log* event . args)
+  (let ((pp (module-ref (resolve-interface '(ice-9 pretty-print))
+                        'pretty-print)))
+    (pp `(log ,event . ,args))
+    (newline)
+    (values)))
+
 (define-syntax-rule (let/ec k e e* ...)
   (let ((tag (make-prompt-tag)))
     (call-with-prompt
@@ -578,7 +603,9 @@ top-level bindings from ENV and return the resulting expression."
               (lp names syms vals
                   names* syms* vals*
                   (if (void? effect)
-                      effects
+                      (begin
+                        (log 'prune sym)
+                        effects)
                       (cons effect effects)))))))))
   
   (define (small-expression? x limit)
@@ -614,6 +641,9 @@ top-level bindings from ENV and return the resulting expression."
     (if counter
         (record-effort! counter))
 
+    (log 'visit ctx (and=> counter effort-counter)
+         (unparse-tree-il exp))
+
     (match exp
       (($ <const>)
        (case ctx
@@ -627,6 +657,7 @@ top-level bindings from ENV and return the resulting expression."
        (case ctx
          ((effect) (make-void #f))
          (else
+          (log 'begin-copy gensym)
           (let ((val (lookup gensym)))
             (cond
              ((or (not val)
@@ -634,6 +665,7 @@ top-level bindings from ENV and return the resulting expression."
                   (not (constant-expression? val)))
               ;; Don't copy-propagate through assigned variables,
               ;; and don't reorder effects.
+              (log 'unbound-or-not-constant gensym val)
               (record-residual-lexical-reference! gensym)
               exp)
              ((lexical-ref? val)
@@ -643,6 +675,7 @@ top-level bindings from ENV and return the resulting expression."
                   (primitive-ref? val))
               ;; Always propagate simple values that cannot lead to
               ;; code bloat.
+              (log 'copy-simple gensym val)
               (for-tail val))
              ((= 1 (lexical-refcount gensym))
               ;; Always propagate values referenced only once.
@@ -652,6 +685,7 @@ top-level bindings from ENV and return the resulting expression."
               ;; effectively clears out the residualized-lexical
               ;; flags that may have been set when this value was
               ;; visited previously as an operand.
+              (log 'copy-single gensym val)
               (case ctx
                 ((test) (for-test val))
                 ((operator) (record-source-expression! val (alpha-rename val)))
@@ -663,16 +697,22 @@ top-level bindings from ENV and return the resulting expression."
               ;; if it's a lambda that's small enough.
               (if (and (lambda? val)
                        (small-expression? val operator-size-limit))
-                  (record-source-expression! val (alpha-rename val))
                   (begin
+                    (log 'copy-operator gensym val)
+                    (record-source-expression! val (alpha-rename val)))
+                  (begin
+                    (log 'too-big-for-operator gensym val)
                     (record-residual-lexical-reference! gensym)
                     exp)))
              ((eq? ctx 'operand)
               ;; A pure expression in the operand position.  Inline
               ;; if it's small enough.
               (if (small-expression? val operand-size-limit)
-                  (record-source-expression! val (alpha-rename val))
                   (begin
+                    (log 'copy-operand gensym val)
+                    (record-source-expression! val (alpha-rename val)))
+                  (begin
+                    (log 'too-big-for-operand gensym val)
                     (record-residual-lexical-reference! gensym)
                     exp)))
              (else
@@ -681,8 +721,11 @@ top-level bindings from ENV and return the resulting expression."
               ;; fold because we don't know the operator.
               (if (and (small-expression? val value-size-limit)
                        (not (tree-il-any lambda? val)))
-                  (record-source-expression! val (alpha-rename val))
                   (begin
+                    (log 'copy-value gensym val)
+                    (record-source-expression! val (alpha-rename val)))
+                  (begin
+                    (log 'too-big-or-has-lambda gensym val)
                     (record-residual-lexical-reference! gensym)
                     exp))))))))
       (($ <lexical-set> src name gensym exp)
@@ -886,6 +929,7 @@ top-level bindings from ENV and return the resulting expression."
                   (let-values (((success? values)
                                 (apply-primitive name
                                                  (map const-exp args))))
+                    (log 'fold success? values exp)
                     (if success?
                         (case ctx
                           ((effect) (make-void #f))
@@ -922,6 +966,7 @@ top-level bindings from ENV and return the resulting expression."
                 ;; A recursive call, or a lambda in the operator
                 ;; position of the source expression.  Process again in
                 ;; tail context.
+                (log 'inline-recurse key)
                 (loop (make-let src (append req (or opt '()))
                                 gensyms
                                 (append orig-args
@@ -933,8 +978,10 @@ top-level bindings from ENV and return the resulting expression."
                 ;; recursion of a recursive procedure, or a nested
                 ;; integration of a procedure that hasn't been seen
                 ;; yet.
+                (log 'inline-begin exp)
                 (let/ec k
                   (define (abort)
+                    (log 'inline-abort exp)
                     (k (make-application src
                                          (for-value orig-proc)
                                          (map for-value orig-args))))
@@ -970,6 +1017,7 @@ top-level bindings from ENV and return the resulting expression."
                       ;; into the current counter.
                       (transfer! new-counter counter))
 
+                  (log 'inline-end result exp)
                   result)))))
            (_
             (make-application src proc
