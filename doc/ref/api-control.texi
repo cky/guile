@@ -1636,9 +1636,13 @@ causing a segmentation fault.  Guile provides some macros to make this
 easier.
 
 @deftypefn Macro void SCM_ASSERT (int @var{test}, SCM @var{obj}, unsigned int @var{position}, const char *@var{subr})
+@deftypefnx Macro void SCM_ASSERT_TYPE (int @var{test}, SCM @var{obj}, unsigned int @var{position}, const char *@var{subr}, const char *@var{expected}) 
 If @var{test} is zero, signal a ``wrong type argument'' error,
 attributed to the subroutine named @var{subr}, operating on the value
 @var{obj}, which is the @var{position}'th argument of @var{subr}.
+
+In @code{SCM_ASSERT_TYPE}, @var{expected} is a C string describing the
+type of argument that was expected.
 @end deftypefn
 
 @deftypefn Macro int SCM_ARG1
@@ -1663,6 +1667,13 @@ leave it unspecified which argument's type is incorrect.  Again,
 @code{SCM_ARGn} should be preferred over a raw zero constant.
 @end deftypefn
 
+The @code{SCM_ASRTGO} macro provides another strategy for handling 
+incorrect types.
+
+@deftypefn Macro void SCM_ASRTGO (int @var{test}, label)
+If @var{test} is zero, use @code{goto} to jump to the given @var{label}.
+@var{label} must appear within the current function.
+@end deftypefn
 
 @node Continuation Barriers
 @subsection Continuation Barriers
