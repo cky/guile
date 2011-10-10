@@ -24,12 +24,14 @@
   #:use-module (system base language)
   #:use-module (system base message)
   #:use-module (system vm program)
+  #:autoload (language tree-il optimize) (optimize!)
   #:use-module (ice-9 control)
   #:use-module (ice-9 history)
   #:export (<repl> make-repl repl-language repl-options
             repl-tm-stats repl-gc-stats repl-debug
             repl-welcome repl-prompt
             repl-read repl-compile repl-prepare-eval-thunk repl-eval
+            repl-expand repl-optimize
             repl-parse repl-print repl-option-ref repl-option-set!
             repl-default-option-set! repl-default-prompt-set!
             puts ->string user-error
@@ -168,6 +170,22 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
         (opts (repl-compile-options repl)))
     (compile form #:from from #:to 'objcode #:opts opts
              #:env (current-module))))
+
+(define (repl-expand repl form)
+  (let ((from (repl-language repl))
+        (opts (repl-compile-options repl)))
+    (decompile (compile form #:from from #:to 'tree-il #:opts opts
+                        #:env (current-module))
+               #:from 'tree-il #:to from)))
+
+(define (repl-optimize repl form)
+  (let ((from (repl-language repl))
+        (opts (repl-compile-options repl)))
+    (decompile (optimize! (compile form #:from from #:to 'tree-il #:opts opts
+                                   #:env (current-module))
+                          (current-module)
+                          opts)
+               #:from 'tree-il #:to from)))
 
 (define (repl-parse repl form)
   (let ((parser (language-parser (repl-language repl))))

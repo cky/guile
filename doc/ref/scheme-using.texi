@@ -271,6 +271,14 @@ Generate compiled code.
 Compile a file.
 @end deffn
 
+@deffn {REPL Command} expand exp
+Expand any macros in a form.
+@end deffn
+
+@deffn {REPL Command} optimize exp
+Run the optimizer on a piece of code and print the result.
+@end deffn
+
 @deffn {REPL Command} disassemble exp
 Disassemble a compiled procedure.
 @end deffn

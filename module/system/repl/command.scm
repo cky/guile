@@ -53,6 +53,7 @@
     (module   (module m) (import use) (load l) (reload re) (binding b) (in))
     (language (language L))
     (compile  (compile c) (compile-file cc)
+              (expand exp) (optimize opt)
 	      (disassemble x) (disassemble-file xx))
     (profile  (time t) (profile pr) (trace tr))
     (debug    (backtrace bt) (up) (down) (frame fr)
@@ -458,6 +459,20 @@ Generate compiled code."
   "compile-file FILE
 Compile a file."
   (compile-file (->string file) #:opts opts))
+
+(define-meta-command (expand repl (form))
+  "expand EXP
+Expand any macros in a form."
+  (let ((x (repl-expand repl (repl-parse repl form))))
+    (run-hook before-print-hook x)
+    (pp x)))
+
+(define-meta-command (optimize repl (form))
+  "optimize EXP
+Run the optimizer on a piece of code and print the result."
+  (let ((x (repl-optimize repl (repl-parse repl form))))
+    (run-hook before-print-hook x)
+    (pp x)))
 
 (define (guile:disassemble x)
   ((@ (language assembly disassemble) disassemble) x))
