@@ -45,7 +45,8 @@
     + * - / 1- 1+ quotient remainder modulo
     ash logand logior logxor
     not
-    pair? null? list? symbol? vector? acons cons cons*
+    pair? null? list? symbol? vector? string? struct?
+    acons cons cons*
 
     list vector
 
@@ -68,7 +69,9 @@
     @prompt call-with-prompt @abort abort-to-prompt
     make-prompt-tag
 
-    struct? struct-vtable make-struct struct-ref struct-set!
+    string-length string-ref string-set!
+
+    struct-vtable make-struct struct-ref struct-set!
 
     bytevector-u8-ref bytevector-u8-set!
     bytevector-s8-ref bytevector-s8-set!
@@ -120,6 +123,7 @@
     car cdr
     memq memv
     struct-vtable struct-ref
+    string-ref
     bytevector-u8-ref bytevector-s8-ref
     bytevector-u16-ref bytevector-u16-native-ref
     bytevector-s16-ref bytevector-s16-native-ref
@@ -136,7 +140,8 @@
     = < > <= >= zero?
     + * - / 1- 1+ quotient remainder modulo
     not
-    pair? null? list? symbol? vector? struct?
+    pair? null? list? symbol? vector? struct? string?
+    string-length
     ;; These all should get expanded out by expand-primitives!.
     caar cadr cdar cddr
     caaar caadr cadar caddr cdaar cdadr cddar cdddr
@@ -151,7 +156,7 @@
   '(values
     eq? eqv? equal?
     not
-    pair? null? list? symbol? vector? struct?
+    pair? null? list? symbol? vector? struct? string?
     acons cons cons* list vector))
 
 ;; Primitives that only return one value.
@@ -176,6 +181,7 @@
     fluid-ref fluid-set!
     make-prompt-tag
     struct? struct-vtable make-struct struct-ref struct-set!
+    string-length string-ref string-set!
     bytevector-u8-ref bytevector-u8-set!
     bytevector-s8-ref bytevector-s8-set!
     u8vector-ref u8vector-set! s8vector-ref s8vector-set!
