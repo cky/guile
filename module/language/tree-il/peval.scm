@@ -369,6 +369,9 @@ top-level bindings from ENV and return the resulting expression."
   ;;
   (define store (build-var-table exp))
 
+  (define (record-new-temporary! name sym refcount)
+    (set! store (vhash-consq sym (make-var name sym refcount #f) store)))
+
   (define (lookup-var sym)
     (let ((v (vhash-assq sym store)))
       (if v (cdr v) (error "unbound var" sym (vlist->list store)))))
@@ -952,6 +955,49 @@ top-level bindings from ENV and return the resulting expression."
                (for-tail (make-const src head)))
               (('cdr ($ <const> src (head . tail)))
                (for-tail (make-const src tail)))
+              (((or 'memq 'memv) k ($ <const> _ (elts ...)))
+               ;; FIXME: factor 
+               (case ctx
+                 ((effect)
+                  (for-tail
+                   (make-sequence src (list k (make-void #f)))))
+                 ((test)
+                  (cond
+                   ((const? k)
+                    ;; A shortcut.  The `else' case would handle it, but
+                    ;; this way is faster.
+                    (let ((member (case name ((memq) memq) ((memv) memv))))
+                      (make-const #f (and (member (const-exp k) elts) #t))))
+                   ((null? elts)
+                    (for-tail
+                     (make-sequence src (list k (make-const #f #f)))))
+                   (else
+                    (let ((t (gensym "t "))
+                          (eq (if (eq? name 'memq) 'eq? 'eqv?)))
+                      (record-new-temporary! 't t (length elts))
+                      (for-tail
+                       (make-let
+                        src (list 't) (list t) (list k)
+                        (let lp ((elts elts))
+                          (define test
+                            (make-application
+                             #f (make-primitive-ref #f eq)
+                             (list (make-lexical-ref #f 't t)
+                                   (make-const #f (car elts)))))
+                          (if (null? (cdr elts))
+                              test
+                              (make-conditional src test
+                                                (make-const #f #t)
+                                                (lp (cdr elts)))))))))))
+                 (else
+                  (cond
+                   ((const? k)
+                    (let ((member (case name ((memq) memq) ((memv) memv))))
+                      (make-const #f (member (const-exp k) elts))))
+                   ((null? elts)
+                    (for-tail (make-sequence src (list k (make-const #f #f)))))
+                   (else
+                    (make-application src proc (list k (make-const #f elts))))))))
               ((_ . args)
                (make-application src proc args))))
            (($ <primitive-ref> _ (? effect-free-primitive? name))
