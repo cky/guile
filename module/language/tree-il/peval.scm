@@ -103,10 +103,6 @@
 ;; the set of assigned lexicals, and to identify unreferenced and
 ;; singly-referenced lexicals.
 ;;
-;; If peval introduces more code, via copy-propagation, it will need to
-;; run `build-var-table' on the new code to add to make sure it can find
-;; a <var> for each gensym bound in the program.
-;;
 (define-record-type <var>
   (make-var name gensym refcount set?)
   var?
@@ -120,22 +116,36 @@
    (lambda (exp res)
      (match exp
        (($ <lexical-ref> src name gensym)
-        (let ((var (vhash-assq gensym res)))
-          (if var
-              (begin
-                (set-var-refcount! (cdr var) (1+ (var-refcount (cdr var))))
-                res)
-              (vhash-consq gensym (make-var name gensym 1 #f) res))))
+        (let ((var (cdr (vhash-assq gensym res))))
+          (set-var-refcount! var (1+ (var-refcount var)))
+          res))
        (_ res)))
    (lambda (exp res)
      (match exp
+       (($ <lambda-case> src req opt rest kw init gensyms body alt)
+        (fold (lambda (name sym res)
+                (vhash-consq sym (make-var name sym 0 #f) res))
+              res
+              (append req (or opt '()) (if rest (list rest) '())
+                      (match kw
+                        ((aok? (kw name sym) ...) name)
+                        (_ '())))
+              gensyms))
+       (($ <let> src names gensyms vals body)
+        (fold (lambda (name sym res)
+                (vhash-consq sym (make-var name sym 0 #f) res))
+              res names gensyms))
+       (($ <letrec> src in-order? names gensyms vals body)
+        (fold (lambda (name sym res)
+                (vhash-consq sym (make-var name sym 0 #f) res))
+              res names gensyms))
+       (($ <fix> src names gensyms vals body)
+        (fold (lambda (name sym res)
+                (vhash-consq sym (make-var name sym 0 #f) res))
+              res names gensyms))
        (($ <lexical-set> src name gensym exp)
-        (let ((var (vhash-assq gensym res)))
-          (if var
-              (begin
-                (set-var-set?! (cdr var) #t)
-                res)
-              (vhash-consq gensym (make-var name gensym 0 #t) res))))
+        (set-var-set?! (cdr (vhash-assq gensym res)) #t)
+        res)
        (_ res)))
    (lambda (exp res) res)
    table exp))
@@ -180,7 +190,7 @@
   (effort effort-counter)
   (size size-counter)
   (continuation counter-continuation)
-  (recursive? counter-recursive?)
+  (recursive? counter-recursive? set-counter-recursive?!)
   (data counter-data)
   (prev counter-prev))
 
@@ -250,6 +260,8 @@
 ;; eagerly.  By doing so, hopefully we can get process them in a way
 ;; appropriate to their use contexts.  Operands also prevent values from
 ;; being visited multiple times, wasting effort.
+;;
+;; TODO: Record value size in operand structure?
 ;; 
 (define-record-type <operand>
   (%make-operand var sym visit source visit-count residualize?
@@ -313,127 +325,6 @@
     ;; FIXME: add more cases?
     (else #f)))
 
-(define (fresh-gensyms syms)
-  (map (lambda (x) (gensym (string-append (symbol->string x) " ")))
-       syms))
-
-;; Copy propagation of terms that bind variables, like `lambda' terms,
-;; will need to bind fresh variables.  This procedure renames all the
-;; lexicals in a term.
-;;
-(define (alpha-rename exp)
-  "Alpha-rename EXP.  For any lambda in EXP, generate new symbols and
-replace all lexical references to the former symbols with lexical
-references to the new symbols."
-  ;; XXX: This should be factorized somehow.
-  (let loop ((exp     exp)
-             (mapping vlist-null))             ; maps old to new gensyms
-    (match exp
-      (($ <lambda-case> src req opt rest kw inits gensyms body alt)
-       ;; Create new symbols to replace GENSYMS and propagate them down
-       ;; in BODY and ALT.
-       (let* ((new     (fresh-gensyms
-                        (append req
-                                (or opt '())
-                                (if rest (list rest) '())
-                                (match kw
-                                  ((aok? (_ name _) ...) name)
-                                  (_ '())))))
-              (mapping (fold vhash-consq mapping gensyms new)))
-         (make-lambda-case src req opt rest
-                           (match kw
-                             ((aok? (kw name old) ...)
-                              (cons aok? (map list
-                                              kw
-                                              name
-                                              (take-right new (length old)))))
-                             (_ #f))
-                           (map (cut loop <> mapping) inits)
-                           new
-                           (loop body mapping)
-                           (and alt (loop alt mapping)))))
-      (($ <lexical-ref> src name gensym)
-       ;; Possibly replace GENSYM by the new gensym defined in MAPPING.
-       (let ((val (vhash-assq gensym mapping)))
-         (if val
-             (make-lexical-ref src name (cdr val))
-             exp)))
-      (($ <lexical-set> src name gensym exp)
-       (let ((val (vhash-assq gensym mapping)))
-         (make-lexical-set src name (if val (cdr val) gensym)
-                           (loop exp mapping))))
-      (($ <lambda> src meta body)
-       (make-lambda src meta (loop body mapping)))
-      (($ <let> src names gensyms vals body)
-       ;; As for `lambda-case' rename GENSYMS to avoid any collision.
-       (let* ((new     (fresh-gensyms names))
-              (mapping (fold vhash-consq mapping gensyms new))
-              (vals    (map (cut loop <> mapping) vals))
-              (body    (loop body mapping)))
-         (make-let src names new vals body)))
-      (($ <letrec> src in-order? names gensyms vals body)
-       ;; Likewise.
-       (let* ((new     (fresh-gensyms names))
-              (mapping (fold vhash-consq mapping gensyms new))
-              (vals    (map (cut loop <> mapping) vals))
-              (body    (loop body mapping)))
-         (make-letrec src in-order? names new vals body)))
-      (($ <fix> src names gensyms vals body)
-       ;; Likewise.
-       (let* ((new     (fresh-gensyms names))
-              (mapping (fold vhash-consq mapping gensyms new))
-              (vals    (map (cut loop <> mapping) vals))
-              (body    (loop body mapping)))
-         (make-fix src names new vals body)))
-      (($ <let-values> src exp body)
-       (make-let-values src (loop exp mapping) (loop body mapping)))
-      (($ <const>)
-       exp)
-      (($ <void>)
-       exp)
-      (($ <toplevel-ref>)
-       exp)
-      (($ <module-ref>)
-       exp)
-      (($ <primitive-ref>)
-       exp)
-      (($ <toplevel-set> src name exp)
-       (make-toplevel-set src name (loop exp mapping)))
-      (($ <toplevel-define> src name exp)
-       (make-toplevel-define src name (loop exp mapping)))
-      (($ <module-set> src mod name public? exp)
-       (make-module-set src mod name public? (loop exp mapping)))
-      (($ <dynlet> src fluids vals body)
-       (make-dynlet src
-                    (map (cut loop <> mapping) fluids)
-                    (map (cut loop <> mapping) vals)
-                    (loop body mapping)))
-      (($ <dynwind> src winder body unwinder)
-       (make-dynwind src
-                     (loop winder mapping)
-                     (loop body mapping)
-                     (loop unwinder mapping)))
-      (($ <dynref> src fluid)
-       (make-dynref src (loop fluid mapping)))
-      (($ <dynset> src fluid exp)
-       (make-dynset src (loop fluid mapping) (loop exp mapping)))
-      (($ <conditional> src condition subsequent alternate)
-       (make-conditional src
-                         (loop condition mapping)
-                         (loop subsequent mapping)
-                         (loop alternate mapping)))
-      (($ <application> src proc args)
-       (make-application src (loop proc mapping)
-                         (map (cut loop <> mapping) args)))
-      (($ <sequence> src exps)
-       (make-sequence src (map (cut loop <> mapping) exps)))
-      (($ <prompt> src tag body handler)
-       (make-prompt src (loop tag mapping) (loop body mapping)
-                    (loop handler mapping)))
-      (($ <abort> src tag args tail)
-       (make-abort src (loop tag mapping) (map (cut loop <> mapping) args)
-                   (loop tail mapping))))))
-
 (define* (peval exp #:optional (cenv (current-module)) (env vlist-null)
                 #:key
                 (operator-size-limit 40)
@@ -478,21 +369,29 @@ top-level bindings from ENV and return the resulting expression."
   ;;
   (define store (build-var-table exp))
 
-  (define (assigned-lexical? sym)
+  (define (lookup-var sym)
     (let ((v (vhash-assq sym store)))
-      (and v (var-set? (cdr v)))))
+      (if v (cdr v) (error "unbound var" sym (vlist->list store)))))
+
+  (define (fresh-gensyms vars)
+    (map (lambda (var)
+           (let ((new (gensym (string-append (symbol->string (var-name var))
+                                             " "))))
+             (set! store (vhash-consq new var store))
+             new))
+         vars))
+
+  (define (assigned-lexical? sym)
+    (var-set? (lookup-var sym)))
 
   (define (lexical-refcount sym)
-    (let ((v (vhash-assq sym store)))
-      (if v (var-refcount (cdr v)) 0)))
+    (var-refcount (lookup-var sym)))
 
   ;; ORIG has been alpha-renamed to NEW.  Analyze NEW and record a link
   ;; from it to ORIG.
   ;;
   (define (record-source-expression! orig new)
-    (set! store (vhash-consq new
-                             (source-expression orig)
-                             (build-var-table new store)))
+    (set! store (vhash-consq new (source-expression orig) store))
     new)
 
   ;; Find the source expression corresponding to NEW.  Used to detect
@@ -502,10 +401,12 @@ top-level bindings from ENV and return the resulting expression."
     (let ((x (vhash-assq new store)))
       (if x (cdr x) new)))
 
-  (define residual-lexical-references (make-hash-table))
-
-  (define (record-residual-lexical-reference! sym)
-    (hashq-set! residual-lexical-references sym #t))
+  (define* (residualize-lexical op #:optional ctx val)
+    (log 'residualize op)
+    (set-operand-residualize?! op #t)
+    (if (eq? ctx 'value)
+        (set-operand-residual-value! op val))
+    (make-lexical-ref #f (var-name (operand-var op)) (operand-sym op)))
 
   (define (apply-primitive name args)
     ;; todo: further optimize commutative primitives
@@ -638,33 +539,81 @@ top-level bindings from ENV and return the resulting expression."
          (and (loop tag) (loop body) (loop handler)))
         (_ #f))))
 
-  (define (prune-bindings names syms vals body for-effect
-                          build-result)
-    (let lp ((names names) (syms syms) (vals vals)
-             (names* '()) (syms* '()) (vals* '())
-             (effects '()))
-      (match (list names syms vals)
-       ((() () ())
-        (let ((body (if (null? effects)
-                        body
-                        (make-sequence #f (reverse (cons body effects))))))
-          (if (null? names*)
+  (define (prune-bindings ops in-order? body counter ctx build-result)
+    ;; This helper handles both `let' and `letrec'/`fix'.  In the latter
+    ;; cases we need to make sure that if referenced binding A needs
+    ;; as-yet-unreferenced binding B, that B is processed for value.
+    ;; Likewise if C, when processed for effect, needs otherwise
+    ;; unreferenced D, then D needs to be processed for value too.
+    ;;
+    (define (referenced? op)
+      ;; When we visit lambdas in operator context, we just copy them,
+      ;; as we will process their body later.  However this does have
+      ;; the problem that any free var referenced by the lambda is not
+      ;; marked as needing residualization.  Here we hack around this
+      ;; and treat all bindings as referenced if we are in operator
+      ;; context.
+      (or (eq? ctx 'operator) (operand-residualize? op)))
+    
+    ;; values := (op ...)
+    ;; effects := (op ...)
+    (define (residualize values effects)
+      ;; Note, values and effects are reversed.
+      (cond
+       (in-order?
+        (let ((values (filter operand-residual-value ops)))
+          (if (null? values)
               body
-              (build-result (reverse names*) (reverse syms*)
-                            (reverse vals*) body))))
-       (((name . names) (sym . syms) (val . vals))
-        (if (hashq-ref residual-lexical-references sym)
-            (lp names syms vals
-                (cons name names*) (cons sym syms*) (cons val vals*)
-                effects)
-            (let ((effect (for-effect val)))
-              (lp names syms vals
-                  names* syms* vals*
-                  (if (void? effect)
-                      (begin
-                        (log 'prune sym)
-                        effects)
-                      (cons effect effects)))))))))
+              (build-result (map (compose var-name operand-var) values)
+                            (map operand-sym values)
+                            (map operand-residual-value values)
+                            body))))
+       (else
+        (let ((body
+               (if (null? effects)
+                   body
+                   (let ((effect-vals (map operand-residual-value effects)))
+                     (make-sequence #f (reverse (cons body effect-vals)))))))
+          (if (null? values)
+              body
+              (let ((values (reverse values)))
+                (build-result (map (compose var-name operand-var) values)
+                              (map operand-sym values)
+                              (map operand-residual-value values)
+                              body)))))))
+
+    ;; old := (bool ...)
+    ;; values := (op ...)
+    ;; effects := ((op . value) ...)
+    (let prune ((old (map referenced? ops)) (values '()) (effects '()))
+      (let lp ((ops* ops) (values values) (effects effects))
+        (cond
+         ((null? ops*)
+          (let ((new (map referenced? ops)))
+            (if (not (equal? new old))
+                (prune new values '())
+                (residualize values
+                             (map (lambda (op val)
+                                    (set-operand-residual-value! op val)
+                                    op)
+                                  (map car effects) (map cdr effects))))))
+         (else
+          (let ((op (car ops*)))
+            (cond
+             ((memq op values)
+              (lp (cdr ops*) values effects))
+             ((operand-residual-value op)
+              (lp (cdr ops*) (cons op values) effects))
+             ((referenced? op)
+              (set-operand-residual-value! op (visit-operand op counter 'value))
+              (lp (cdr ops*) (cons op values) effects))
+             (else
+              (lp (cdr ops*)
+                  values
+                  (let ((effect (visit-operand op counter 'effect)))
+                    (if (void? effect)
+                        effects
+                        (acons op effect effects))))))))))))
   
   (define (small-expression? x limit)
     (let/ec k
@@ -680,20 +629,25 @@ top-level bindings from ENV and return the resulting expression."
        0 x)
       #t))
   
+  (define (extend-env sym op env)
+    (vhash-consq (operand-sym op) op (vhash-consq sym op env)))
+      
   (let loop ((exp   exp)
-             (env   vlist-null)         ; static environment
+             (env   vlist-null)         ; vhash of gensym -> <operand>
              (counter #f)               ; inlined call stack
-             (ctx 'value))   ; effect, value, test, operator, or operand
+             (ctx 'value))   ; effect, value, test, operator, or call
     (define (lookup var)
-      (and=> (vhash-assq var env) cdr))
+      (cond 
+       ((vhash-assq var env) => cdr)
+       (else (error "unbound var" var))))
 
     (define (visit exp ctx)
       (loop exp env counter ctx))
 
     (define (for-value exp)    (visit exp 'value))
-    (define (for-operand exp)  (visit exp 'operand))
     (define (for-test exp)     (visit exp 'test))
     (define (for-effect exp)   (visit exp 'effect))
+    (define (for-call exp)     (visit exp 'call))
     (define (for-tail exp)     (visit exp ctx))
 
     (if counter
@@ -712,102 +666,117 @@ top-level bindings from ENV and return the resulting expression."
          ((test) (make-const #f #t))
          (else exp)))
       (($ <lexical-ref> _ _ gensym)
-       (case ctx
-         ((effect) (make-void #f))
-         (else
-          (log 'begin-copy gensym)
-          (let ((val (lookup gensym)))
-            (cond
-             ((or (not val)
-                  (assigned-lexical? gensym)
-                  (not (constant-expression? val)))
-              ;; Don't copy-propagate through assigned variables,
-              ;; and don't reorder effects.
-              (log 'unbound-or-not-constant gensym val)
-              (record-residual-lexical-reference! gensym)
-              exp)
-             ((lexical-ref? val)
-              (for-tail val))
-             ((or (const? val)
-                  (void? val)
-                  (primitive-ref? val))
-              ;; Always propagate simple values that cannot lead to
-              ;; code bloat.
-              (log 'copy-simple gensym val)
-              (for-tail val))
-             ((= 1 (lexical-refcount gensym))
-              ;; Always propagate values referenced only once.
-              ;; There is no need to rename the bindings, as they
-              ;; are only being moved, not copied.  However in
-              ;; operator context we do rename it, as that
-              ;; effectively clears out the residualized-lexical
-              ;; flags that may have been set when this value was
-              ;; visited previously as an operand.
-              (log 'copy-single gensym val)
-              (case ctx
-                ((test) (for-test val))
-                ((operator) (record-source-expression! val (alpha-rename val)))
-                (else val)))
-             ;; FIXME: do demand-driven size accounting rather than
-             ;; these heuristics.
-             ((eq? ctx 'operator)
-              ;; A pure expression in the operator position.  Inline
-              ;; if it's a lambda that's small enough.
-              (if (and (lambda? val)
-                       (small-expression? val operator-size-limit))
-                  (begin
-                    (log 'copy-operator gensym val)
-                    (record-source-expression! val (alpha-rename val)))
-                  (begin
-                    (log 'too-big-for-operator gensym val)
-                    (record-residual-lexical-reference! gensym)
-                    exp)))
-             ((eq? ctx 'operand)
-              ;; A pure expression in the operand position.  Inline
-              ;; if it's small enough.
-              (if (small-expression? val operand-size-limit)
-                  (begin
-                    (log 'copy-operand gensym val)
-                    (record-source-expression! val (alpha-rename val)))
-                  (begin
-                    (log 'too-big-for-operand gensym val)
-                    (record-residual-lexical-reference! gensym)
-                    exp)))
-             (else
-              ;; A pure expression, processed for value.  Don't
-              ;; inline lambdas, because they will probably won't
-              ;; fold because we don't know the operator.
-              (if (and (small-expression? val value-size-limit)
-                       (not (tree-il-any lambda? val)))
-                  (begin
-                    (log 'copy-value gensym val)
-                    (record-source-expression! val (alpha-rename val)))
-                  (begin
-                    (log 'too-big-or-has-lambda gensym val)
-                    (record-residual-lexical-reference! gensym)
-                    exp))))))))
+       (log 'begin-copy gensym)
+       (let ((op (lookup gensym)))
+         (cond
+          ((eq? ctx 'effect)
+           (log 'lexical-for-effect gensym)
+           (make-void #f))
+          ((eq? ctx 'call)
+           ;; Don't propagate copies if we are residualizing a call.
+           (log 'residualize-lexical-call gensym op)
+           (residualize-lexical op))
+          ((var-set? (operand-var op))
+           ;; Assigned lexicals don't copy-propagate.
+           (log 'assigned-var gensym op)
+           (residualize-lexical op))
+          ((not (operand-copyable? op))
+           ;; We already know that this operand is not copyable.
+           (log 'not-copyable gensym op)
+           (residualize-lexical op))
+          ((and=> (operand-constant-value op)
+                  (lambda (x) (or (const? x) (void? x) (primitive-ref? x))))
+           ;; A cache hit.
+           (let ((val (operand-constant-value op)))
+             (log 'memoized-constant gensym val)
+             (for-tail val)))
+          ((visit-operand op counter ctx recursive-effort-limit operand-size-limit)
+           =>
+           ;; If we end up deciding to residualize this value instead of
+           ;; copying it, save that residualized value.
+           (lambda (val)
+             (cond
+              ((not (constant-expression? val))
+               (log 'not-constant gensym op)
+               ;; At this point, ctx is operator, test, or value.  A
+               ;; value that is non-constant in one context will be
+               ;; non-constant in the others, so it's safe to record
+               ;; that here, and avoid future visits.
+               (set-operand-copyable?! op #f)
+               (residualize-lexical op ctx val))
+              ((or (const? val)
+                   (void? val)
+                   (primitive-ref? val))
+               ;; Always propagate simple values that cannot lead to
+               ;; code bloat.
+               (log 'copy-simple gensym val)
+               ;; It could be this constant is the result of folding.
+               ;; If that is the case, cache it.  This helps loop
+               ;; unrolling get farther.
+               (if (eq? ctx 'value)
+                   (begin
+                     (log 'memoize-constant gensym val)
+                     (set-operand-constant-value! op val)))
+               val)
+              ((= 1 (var-refcount (operand-var op)))
+               ;; Always propagate values referenced only once.
+               (log 'copy-single gensym val)
+               val)
+              ;; FIXME: do demand-driven size accounting rather than
+              ;; these heuristics.
+              ((eq? ctx 'operator)
+               ;; A pure expression in the operator position.  Inline
+               ;; if it's a lambda that's small enough.
+               (if (and (lambda? val)
+                        (small-expression? val operator-size-limit))
+                   (begin
+                     (log 'copy-operator gensym val)
+                     val)
+                   (begin
+                     (log 'too-big-for-operator gensym val)
+                     (residualize-lexical op ctx val))))
+              (else
+               ;; A pure expression, processed for call or for value.
+               ;; Don't inline lambdas, because they will probably won't
+               ;; fold because we don't know the operator.
+               (if (and (small-expression? val value-size-limit)
+                        (not (tree-il-any lambda? val)))
+                   (begin
+                     (log 'copy-value gensym val)
+                     val)
+                   (begin
+                     (log 'too-big-or-has-lambda gensym val)
+                     (residualize-lexical op ctx val)))))))
+          (else
+           ;; Visit failed.  Either the operand isn't bound, as in
+           ;; lambda formal parameters, or the copy was aborted.
+           (log 'unbound-or-aborted gensym op)
+           (residualize-lexical op)))))
       (($ <lexical-set> src name gensym exp)
-       (if (zero? (lexical-refcount gensym))
-           (let ((exp (for-effect exp)))
-             (if (void? exp)
-                 exp
-                 (make-sequence src (list exp (make-void #f)))))
-           (begin
-             (record-residual-lexical-reference! gensym)
-             (make-lexical-set src name gensym (for-value exp)))))
+       (let ((op (lookup gensym)))
+         (if (zero? (var-refcount (operand-var op)))
+             (let ((exp (for-effect exp)))
+               (if (void? exp)
+                   exp
+                   (make-sequence src (list exp (make-void #f)))))
+             (begin
+               (set-operand-residualize?! op #t)
+               (make-lexical-set src name (operand-sym op) (for-value exp))))))
       (($ <let> src names gensyms vals body)
-       (let* ((vals (map for-operand vals))
-              (body (loop body
-                      (fold vhash-consq env gensyms vals)
-                      counter
-                      ctx)))
+       (let* ((vars (map lookup-var gensyms))
+              (new (fresh-gensyms vars))
+              (ops (make-bound-operands vars new vals
+                                        (lambda (exp counter ctx)
+                                          (loop exp env counter ctx))))
+              (env (fold extend-env env gensyms ops))
+              (body (loop body env counter ctx)))
          (cond
           ((const? body)
            (for-tail (make-sequence src (append vals (list body)))))
           ((and (lexical-ref? body)
-                (memq (lexical-ref-gensym body) gensyms))
+                (memq (lexical-ref-gensym body) new))
            (let ((sym (lexical-ref-gensym body))
-                 (pairs (map cons gensyms vals)))
+                 (pairs (map cons new vals)))
              ;; (let ((x foo) (y bar) ...) x) => (begin bar ... foo)
              (for-tail
               (make-sequence
@@ -817,35 +786,39 @@ top-level bindings from ENV and return the resulting expression."
           (else
            ;; Only include bindings for which lexical references
            ;; have been residualized.
-           (prune-bindings names gensyms vals body for-effect
+           (prune-bindings ops #f body counter ctx
                            (lambda (names gensyms vals body)
                              (if (null? names) (error "what!" names))
                              (make-let src names gensyms vals body)))))))
       (($ <letrec> src in-order? names gensyms vals body)
-       ;; Things could be done more precisely when IN-ORDER? but
-       ;; it's OK not to do it---at worst we lost an optimization
-       ;; opportunity.
-       (let* ((vals (map for-operand vals))
-              (body (loop body
-                      (fold vhash-consq env gensyms vals)
-                      counter
-                      ctx)))
-         (if (and (const? body)
+       ;; Note the difference from the `let' case: here we use letrec*
+       ;; so that the `visit' procedure for the new operands closes over
+       ;; an environment that includes the operands.
+       (letrec* ((visit (lambda (exp counter ctx)
+                          (loop exp env* counter ctx)))
+                 (vars (map lookup-var gensyms))
+                 (new (fresh-gensyms vars))
+                 (ops (make-bound-operands vars new vals visit))
+                 (env* (fold extend-env env gensyms ops))
+                 (body* (visit body counter ctx)))
+         (if (and (const? body*)
                   (every constant-expression? vals))
-             body
-             (prune-bindings names gensyms vals body for-effect
+             body*
+             (prune-bindings ops in-order? body* counter ctx
                              (lambda (names gensyms vals body)
                                (make-letrec src in-order?
                                             names gensyms vals body))))))
       (($ <fix> src names gensyms vals body)
-       (let* ((vals (map for-operand vals))
-              (body (loop body
-                      (fold vhash-consq env gensyms vals)
-                      counter
-                      ctx)))
-         (if (const? body)
-             body
-             (prune-bindings names gensyms vals body for-effect
+       (letrec* ((visit (lambda (exp counter ctx)
+                          (loop exp env* counter ctx)))
+                 (vars (map lookup-var gensyms))
+                 (new (fresh-gensyms vars))
+                 (ops (make-bound-operands vars new vals visit))
+                 (env* (fold extend-env env gensyms ops))
+                 (body* (visit body counter ctx)))
+         (if (const? body*)
+             body*
+             (prune-bindings ops #f body* counter ctx
                              (lambda (names gensyms vals body)
                                (make-fix src names gensyms vals body))))))
       (($ <let-values> lv-src producer consumer)
@@ -874,7 +847,10 @@ top-level bindings from ENV and return the resulting expression."
       (($ <toplevel-ref> src (? effect-free-primitive? name))
        (if (local-toplevel? name)
            exp
-           (resolve-primitives! exp cenv)))
+           (let ((exp (resolve-primitives! exp cenv)))
+             (if (primitive-ref? exp)
+                 (for-tail exp)
+                 exp))))
       (($ <toplevel-ref>)
        ;; todo: open private local bindings.
        exp)
@@ -922,71 +898,65 @@ top-level bindings from ENV and return the resulting expression."
 
       (($ <application> src orig-proc orig-args)
        ;; todo: augment the global env with specialized functions
-       (let ((proc (loop orig-proc env counter 'operator)))
+       (let ((proc (visit orig-proc 'operator)))
          (match proc
            (($ <primitive-ref> _ (? constructor-primitive? name))
-            (case ctx
-              ((effect test)
-               (let ((res (if (eq? ctx 'effect)
-                              (make-void #f)
-                              (make-const #f #t))))
-                 (match (for-value exp)
-                   (($ <application> _ ($ <primitive-ref> _ 'cons) (x xs))
-                    (for-tail
-                     (make-sequence src (list x xs res))))
-                   (($ <application> _ ($ <primitive-ref> _ 'list) elts)
-                    (for-tail
-                     (make-sequence src (append elts (list res)))))
-                   (($ <application> _ ($ <primitive-ref> _ 'vector) elts)
-                    (for-tail
-                     (make-sequence src (append elts (list res)))))
-                   (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag) ())
-                    res)
-                   (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
-                       (($ <const> _ (? string?))))
-                    res)
-                   (exp exp))))
-              (else
-               (match (cons name (map for-value orig-args))
-                 (('cons head tail)
-                  (match tail
-                    (($ <const> src ())
-                     (make-application src (make-primitive-ref #f 'list)
-                                       (list head)))
-                    (($ <application> src ($ <primitive-ref> _ 'list) elts)
-                     (make-application src (make-primitive-ref #f 'list)
-                                       (cons head elts)))
-                    (_ (make-application src proc
-                                         (list head tail)))))
+            (cond
+             ((and (memq ctx '(effect test))
+                   (match (cons name orig-args)
+                     ((or ('cons _ _)
+                          ('list . _)
+                          ('vector . _)
+                          ('make-prompt-tag)
+                          ('make-prompt-tag ($ <const> _ (? string?))))
+                      #t)
+                     (_ #f)))
+              ;; Some expressions can be folded without visiting the
+              ;; arguments for value.
+              (let ((res (if (eq? ctx 'effect)
+                             (make-void #f)
+                             (make-const #f #t))))
+                (for-tail (make-sequence src (append orig-args (list res))))))
+             (else
+              (match (cons name (map for-value orig-args))
+                (('cons head tail)
+                 (match tail
+                   (($ <const> src ())
+                    (make-application src (make-primitive-ref #f 'list)
+                                      (list head)))
+                   (($ <application> src ($ <primitive-ref> _ 'list) elts)
+                    (make-application src (make-primitive-ref #f 'list)
+                                      (cons head elts)))
+                   (_ (make-application src proc
+                                        (list head tail)))))
 
-                 ;; FIXME: these for-tail recursions could take
-                 ;; place outside an effort counter.
-                 (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
-                  (for-tail (make-sequence src (list tail head))))
-                 (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
-                  (for-tail (make-sequence src (list head tail))))
-                 (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
-                  (for-tail (make-sequence src (append tail (list head)))))
-                 (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
-                  (for-tail (make-sequence
-                             src
-                             (list head
-                                   (make-application
-                                    src (make-primitive-ref #f 'list) tail)))))
+                ;; FIXME: these for-tail recursions could take
+                ;; place outside an effort counter.
+                (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+                 (for-tail (make-sequence src (list tail head))))
+                (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+                 (for-tail (make-sequence src (list head tail))))
+                (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+                 (for-tail (make-sequence src (append tail (list head)))))
+                (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+                 (for-tail (make-sequence
+                            src
+                            (list head
+                                  (make-application
+                                   src (make-primitive-ref #f 'list) tail)))))
                   
-                 (('car ($ <const> src (head . tail)))
-                  (for-tail (make-const src head)))
-                 (('cdr ($ <const> src (head . tail)))
-                  (for-tail (make-const src tail)))
+                (('car ($ <const> src (head . tail)))
+                 (for-tail (make-const src head)))
+                (('cdr ($ <const> src (head . tail)))
+                 (for-tail (make-const src tail)))
 
-                 ((_ . args)
-                  (make-application src proc args))))))
+                ((_ . args)
+                 (make-application src proc args))))))
            (($ <primitive-ref> _ (? effect-free-primitive? name))
             (let ((args (map for-value orig-args)))
               (if (every const? args)   ; only simple constants
                   (let-values (((success? values)
-                                (apply-primitive name
-                                                 (map const-exp args))))
+                                (apply-primitive name (map const-exp args))))
                     (log 'fold success? values exp)
                     (if success?
                         (case ctx
@@ -1017,13 +987,28 @@ top-level bindings from ENV and return the resulting expression."
               (cond
                ((or (< nargs nreq) (> nargs (+ nreq nopt)))
                 ;; An error, or effecting arguments.
-                (make-application src (for-value orig-proc)
+                (make-application src (for-call orig-proc)
                                   (map for-value orig-args)))
                ((or (and=> (find-counter key counter) counter-recursive?)
                     (lambda? orig-proc))
                 ;; A recursive call, or a lambda in the operator
                 ;; position of the source expression.  Process again in
                 ;; tail context.
+                ;;
+                ;; In the recursive case, mark intervening counters as
+                ;; recursive, so we can handle a toplevel counter that
+                ;; recurses mutually with some other procedure.
+                ;; Otherwise, the next time we see the other procedure,
+                ;; the effort limit would be clamped to 100.
+                ;;
+                (let ((found (find-counter key counter)))
+                  (if (and found (counter-recursive? found))
+                      (let lp ((counter counter))
+                        (if (not (eq? counter found))
+                            (begin
+                              (set-counter-recursive?! counter #t)
+                              (lp (counter-prev counter)))))))
+
                 (log 'inline-recurse key)
                 (loop (make-let src (append req (or opt '()))
                                 gensyms
@@ -1040,8 +1025,7 @@ top-level bindings from ENV and return the resulting expression."
                 (let/ec k
                   (define (abort)
                     (log 'inline-abort exp)
-                    (k (make-application src
-                                         (for-value orig-proc)
+                    (k (make-application src (for-call orig-proc)
                                          (map for-value orig-args))))
                   (define new-counter
                     (cond
@@ -1078,21 +1062,32 @@ top-level bindings from ENV and return the resulting expression."
                   (log 'inline-end result exp)
                   result)))))
            (_
-            (make-application src proc
+            (make-application src (for-call orig-proc)
                               (map for-value orig-args))))))
       (($ <lambda> src meta body)
        (case ctx
          ((effect) (make-void #f))
          ((test) (make-const #f #t))
          ((operator) exp)
-         (else
-          (make-lambda src meta (for-value body)))))
+         (else (record-source-expression!
+                exp
+                (make-lambda src meta (for-tail body))))))
       (($ <lambda-case> src req opt rest kw inits gensyms body alt)
-       (make-lambda-case src req opt rest kw
-                         (map for-value inits)
-                         gensyms
-                         (for-tail body)
-                         (and alt (for-tail alt))))
+       (let* ((vars (map lookup-var gensyms))
+              (new (fresh-gensyms vars))
+              (env (fold extend-env env gensyms
+                         (make-unbound-operands vars new)))
+              (new-sym (lambda (old)
+                         (operand-sym (cdr (vhash-assq old env))))))
+         (make-lambda-case src req opt rest
+                           (match kw
+                             ((aok? (kw name old) ...)
+                              (cons aok? (map list kw name (map new-sym old))))
+                             (_ #f))
+                           (map (cut loop <> env counter 'value) inits)
+                           new
+                           (loop body env counter ctx)
+                           (and alt (for-tail alt)))))
       (($ <sequence> src exps)
        (let lp ((exps exps) (effects '()))
          (match exps
@@ -1118,7 +1113,8 @@ top-level bindings from ENV and return the resulting expression."
                 ;; Only fetch definitions with single uses.
                 (= (lexical-refcount (lexical-ref-gensym x)) 1)
                 (lookup (lexical-ref-gensym x)))
-           => singly-used-definition)
+           => (lambda (x)
+                (singly-used-definition (visit-operand x counter 'value 10 10))))
           (else x)))
        (match (singly-used-definition tag)
          (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
