@@ -46,15 +46,16 @@
 
 ;; First, some helpers.
 ;;
+(define-syntax *logging* (identifier-syntax #f))
+
 ;; For efficiency we define *logging* to inline to #f, so that the call
-;; to log* gets optimized out.  If you want to log, do:
+;; to log* gets optimized out.  If you want to log, uncomment these
+;; lines:
 ;;
-;;   (define %logging #f)
-;;   (define-syntax *logging* (identifier-syntax %logging)
+;; (define %logging #f)
+;; (define-syntax *logging* (identifier-syntax %logging))
 ;;
 ;; Then you can change %logging at runtime.
-;;
-(define-syntax *logging* (identifier-syntax #f))
 
 (define-syntax log
   (syntax-rules (quote)
