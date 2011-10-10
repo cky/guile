@@ -423,6 +423,38 @@ top-level bindings from ENV and return the resulting expression."
       (lambda _
         (values #f '()))))
 
+  (define (make-values src values)
+    (match values
+      ((single) single)                 ; 1 value
+      ((_ ...)                          ; 0, or 2 or more values
+       (make-application src (make-primitive-ref src 'values)
+                         values))))
+
+  (define (fold-constants src name args ctx)
+    (define (residualize-call)
+      (make-application src (make-primitive-ref #f name) args))
+    (cond
+     ((every const? args)
+      (let-values (((success? values)
+                    (apply-primitive name (map const-exp args))))
+        (log 'fold success? values name args)
+        (if success?
+            (case ctx
+              ((effect) (make-void src))
+              ((test)
+               ;; Values truncation: only take the first
+               ;; value.
+               (if (pair? values)
+                   (make-const src (car values))
+                   (make-values src '())))
+              (else
+               (make-values src (map (cut make-const src <>) values))))
+            (residualize-call))))
+     ((and (eq? ctx 'effect) (types-check? name args))
+      (make-void #f))
+     (else
+      (residualize-call))))
+
   (define (inline-values exp src names gensyms body)
     (let loop ((exp exp))
       (match exp
@@ -496,13 +528,6 @@ top-level bindings from ENV and return the resulting expression."
             (let ((tail (loop tail)))
               (and tail
                    (make-sequence src (append head (list tail)))))))))))
-
-  (define (make-values src values)
-    (match values
-      ((single) single)                 ; 1 value
-      ((_ ...)                          ; 0, or 2 or more values
-       (make-application src (make-primitive-ref src 'values)
-                         values))))
 
   (define (constant-expression? x)
     ;; Return true if X is constant---i.e., if it is known to have no
@@ -999,31 +1024,12 @@ top-level bindings from ENV and return the resulting expression."
                    (else
                     (make-application src proc (list k (make-const #f elts))))))))
               ((_ . args)
-               (make-application src proc args))))
+               (or (fold-constants src name args ctx)
+                   (make-application src proc args)))))
            (($ <primitive-ref> _ (? effect-free-primitive? name))
             (let ((args (map for-value orig-args)))
-              (if (every const? args)   ; only simple constants
-                  (let-values (((success? values)
-                                (apply-primitive name (map const-exp args))))
-                    (log 'fold success? values exp)
-                    (if success?
-                        (case ctx
-                          ((effect) (make-void #f))
-                          ((test)
-                           ;; Values truncation: only take the first
-                           ;; value.
-                           (if (pair? values)
-                               (make-const #f (car values))
-                               (make-values src '())))
-                          (else
-                           (make-values src (map (cut make-const src <>)
-                                                 values))))
-                        (make-application src proc args)))
-                  (cond
-                   ((and (eq? ctx 'effect) (types-check? name args))
-                    (make-void #f))
-                   (else
-                    (make-application src proc args))))))
+              (or (fold-constants src name args ctx)
+                  (make-application src proc args))))
            (($ <lambda> _ _
                ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
             ;; Simple case: no rest, no keyword arguments.

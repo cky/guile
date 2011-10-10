@@ -759,6 +759,21 @@
          (loop (cdr l) (+ sum (car l)))))
    (const 10))
 
+  (pass-if-peval resolve-primitives
+   (let ((string->chars
+          (lambda (s)
+            (define (char-at n)
+              (string-ref s n))
+            (define (len)
+              (string-length s))
+            (let loop ((i 0))
+              (if (< i (len))
+                  (cons (char-at i)
+                        (loop (1+ i)))
+                  '())))))
+     (string->chars "yo"))
+   (apply (primitive list) (const #\y) (const #\o)))
+
   (pass-if-peval
     ;; Primitives in module-refs are resolved (the expansion of `pmatch'
     ;; below leads to calls to (@@ (system base pmatch) car) and
