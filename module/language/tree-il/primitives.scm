@@ -28,7 +28,8 @@
   #:export (resolve-primitives! add-interesting-primitive!
             expand-primitives!
             effect-free-primitive? effect+exception-free-primitive?
-            constructor-primitive? singly-valued-primitive?))
+            constructor-primitive? accessor-primitive?
+            singly-valued-primitive?))
 
 (define *interesting-primitive-names* 
   '(apply @apply
@@ -110,20 +111,15 @@
 (define *primitive-constructors*
   ;; Primitives that return a fresh object.
   '(acons cons cons* list vector make-struct make-struct/no-tail
-          car cdr vector-ref struct-ref make-prompt-tag))
+    make-prompt-tag))
 
-(define *effect-free-primitives*
-  `(values
-    eq? eqv? equal?
-    = < > <= >= zero?
-    + * - / 1- 1+ quotient remainder modulo
-    not
-    pair? null? list? symbol? vector?
-    caar cadr cdar cddr
-    caaar caadr cadar caddr cdaar cdadr cddar cdddr
-    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
-    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
-    struct? struct-vtable
+(define *primitive-accessors*
+  ;; Primitives that are pure, but whose result depends on the mutable
+  ;; memory pointed to by their operands.
+  '(vector-ref
+    car cdr
+    memq memv
+    struct-vtable struct-ref
     bytevector-u8-ref bytevector-s8-ref
     bytevector-u16-ref bytevector-u16-native-ref
     bytevector-s16-ref bytevector-s16-native-ref
@@ -132,8 +128,22 @@
     bytevector-u64-ref bytevector-u64-native-ref
     bytevector-s64-ref bytevector-s64-native-ref
     bytevector-ieee-single-ref bytevector-ieee-single-native-ref
-    bytevector-ieee-double-ref bytevector-ieee-double-native-ref
-    ,@*primitive-constructors*))
+    bytevector-ieee-double-ref bytevector-ieee-double-native-ref))
+
+(define *effect-free-primitives*
+  `(values
+    eq? eqv? equal?
+    = < > <= >= zero?
+    + * - / 1- 1+ quotient remainder modulo
+    not
+    pair? null? list? symbol? vector? struct?
+    ;; These all should get expanded out by expand-primitives!.
+    caar cadr cdar cddr
+    caaar caadr cadar caddr cdaar cdadr cddar cdddr
+    caaaar caaadr caadar caaddr cadaar cadadr caddar cadddr
+    cdaaar cdaadr cdadar cdaddr cddaar cddadr cdddar cddddr
+    ,@*primitive-constructors*
+    ,@*primitive-accessors*))
 
 ;; Like *effect-free-primitives* above, but further restricted in that they
 ;; cannot raise exceptions.
@@ -141,9 +151,8 @@
   '(values
     eq? eqv? equal?
     not
-    pair? null? list? symbol? vector? acons cons cons*
-    list vector
-    struct?))
+    pair? null? list? symbol? vector? struct?
+    acons cons cons* list vector))
 
 ;; Primitives that only return one value.
 (define *singly-valued-primitives* 
@@ -207,6 +216,8 @@
 
 (define (constructor-primitive? prim)
   (memq prim *primitive-constructors*))
+(define (accessor-primitive? prim)
+  (memq prim *primitive-accessors*))
 (define (effect-free-primitive? prim)
   (hashq-ref *effect-free-primitive-table* prim))
 (define (effect+exception-free-primitive? prim)

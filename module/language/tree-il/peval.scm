@@ -521,6 +521,7 @@ top-level bindings from ENV and return the resulting expression."
         (($ <application> _ ($ <primitive-ref> _ name) args)
          (and (effect-free-primitive? name)
               (not (constructor-primitive? name))
+              (not (accessor-primitive? name))
               (types-check? name args)
               (every loop args)))
         (($ <application> _ ($ <lambda> _ _ body) args)
@@ -927,31 +928,32 @@ top-level bindings from ENV and return the resulting expression."
                    (($ <application> src ($ <primitive-ref> _ 'list) elts)
                     (make-application src (make-primitive-ref #f 'list)
                                       (cons head elts)))
-                   (_ (make-application src proc
-                                        (list head tail)))))
-
-                ;; FIXME: these for-tail recursions could take
-                ;; place outside an effort counter.
-                (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
-                 (for-tail (make-sequence src (list tail head))))
-                (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
-                 (for-tail (make-sequence src (list head tail))))
-                (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
-                 (for-tail (make-sequence src (append tail (list head)))))
-                (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
-                 (for-tail (make-sequence
-                            src
-                            (list head
-                                  (make-application
-                                   src (make-primitive-ref #f 'list) tail)))))
-                  
-                (('car ($ <const> src (head . tail)))
-                 (for-tail (make-const src head)))
-                (('cdr ($ <const> src (head . tail)))
-                 (for-tail (make-const src tail)))
-
+                   (_ (make-application src proc (list head tail)))))
                 ((_ . args)
                  (make-application src proc args))))))
+           (($ <primitive-ref> _ (? accessor-primitive? name))
+            (match (cons name (map for-value orig-args))
+              ;; FIXME: these for-tail recursions could take place outside
+              ;; an effort counter.
+              (('car ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+               (for-tail (make-sequence src (list tail head))))
+              (('cdr ($ <application> src ($ <primitive-ref> _ 'cons) (head tail)))
+               (for-tail (make-sequence src (list head tail))))
+              (('car ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+               (for-tail (make-sequence src (append tail (list head)))))
+              (('cdr ($ <application> src ($ <primitive-ref> _ 'list) (head . tail)))
+               (for-tail (make-sequence
+                          src
+                          (list head
+                                (make-application
+                                 src (make-primitive-ref #f 'list) tail)))))
+                  
+              (('car ($ <const> src (head . tail)))
+               (for-tail (make-const src head)))
+              (('cdr ($ <const> src (head . tail)))
+               (for-tail (make-const src tail)))
+              ((_ . args)
+               (make-application src proc args))))
            (($ <primitive-ref> _ (? effect-free-primitive? name))
             (let ((args (map for-value orig-args)))
               (if (every const? args)   ; only simple constants
