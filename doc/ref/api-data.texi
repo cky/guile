@@ -747,11 +747,24 @@ otherwise.
 
 @end deffn
 
+@deftypefn {C Function} int scm_is_exact (SCM z)
+Return a @code{1} if the number @var{z} is exact, and @code{0}
+otherwise.  This is equivalent to @code{scm_is_true (scm_exact_p (z))}.
+
+An alternate approch to testing the exactness of a number is to 
+use @code{scm_is_signed_integer} or @code{scm_is_unsigned_integer}.
+@end deftypefn
+
 @deffn {Scheme Procedure} inexact? z
 @deffnx {C Function} scm_inexact_p (z)
 Return @code{#t} if the number @var{z} is inexact, @code{#f}
 else.
 @end deffn
+
+@deftypefn {C Function} int scm_is_inexact (SCM z)
+Return a @code{1} if the number @var{z} is inexact, and @code{0}
+otherwise.  This is equivalent to @code{scm_is_true (scm_inexact_p (z))}.
+@end deftypefn
 
 @deffn {Scheme Procedure} inexact->exact z
 @deffnx {C Function} scm_inexact_to_exact (z)

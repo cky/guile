@@ -165,6 +165,7 @@ typedef struct scm_t_complex
 
 
 SCM_API SCM scm_exact_p (SCM x);
+SCM_API int scm_is_exact (SCM x);
 SCM_API SCM scm_odd_p (SCM n);
 SCM_API SCM scm_even_p (SCM n);
 SCM_API SCM scm_finite_p (SCM x);
@@ -241,6 +242,7 @@ SCM_API SCM scm_real_p (SCM x);
 SCM_API SCM scm_rational_p (SCM z);
 SCM_API SCM scm_integer_p (SCM x);
 SCM_API SCM scm_inexact_p (SCM x);
+SCM_API int scm_is_inexact (SCM x);
 SCM_API SCM scm_num_eq_p (SCM x, SCM y);
 SCM_API SCM scm_less_p (SCM x, SCM y);
 SCM_API SCM scm_gr_p (SCM x, SCM y);

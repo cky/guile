@@ -536,6 +536,11 @@ SCM_PRIMITIVE_GENERIC (scm_exact_p, "exact?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+int
+scm_is_exact (SCM val)
+{
+  return scm_is_true (scm_exact_p (val));
+}
 
 SCM_PRIMITIVE_GENERIC (scm_inexact_p, "inexact?", 1, 0, 0,
             (SCM x),
@@ -552,6 +557,11 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_p, "inexact?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+int
+scm_is_inexact (SCM val)
+{
+  return scm_is_true (scm_inexact_p (val));
+}
 
 SCM_PRIMITIVE_GENERIC (scm_odd_p, "odd?", 1, 0, 0, 
             (SCM n),

@@ -1079,6 +1079,37 @@ test_locale_strings ()
 }
 
 static void
+test_is_exact ()
+{
+  if (1 != scm_is_exact (scm_c_eval_string ("3")))
+    {
+      fprintf (stderr, "fail: scm_is_exact (\"3\") = 1\n");
+      exit (EXIT_FAILURE);
+    }
+  if (0 != scm_is_exact (scm_c_eval_string ("3.0")))
+    {
+      fprintf (stderr, "fail: scm_is_exact (\"3.0\") = 0\n");
+      exit (EXIT_FAILURE);
+    }
+}
+
+static void
+test_is_inexact ()
+{
+  if (1 !=scm_is_inexact (scm_c_eval_string ("3.0")))
+    {
+      fprintf (stderr, "fail: scm_is_inexact (\"3.0\") = 1\n");
+      exit (EXIT_FAILURE);
+    }
+  if (0 != scm_is_inexact (scm_c_eval_string ("3")))
+    {
+      fprintf (stderr, "fail: scm_is_inexact (\"3\") = 0\n");
+      exit (EXIT_FAILURE);
+    }
+}
+
+
+static void
 tests (void *data, int argc, char **argv)
 {
   test_is_signed_integer ();
@@ -1091,6 +1122,8 @@ tests (void *data, int argc, char **argv)
   test_from_double ();
   test_to_double ();
   test_locale_strings ();
+  test_is_exact ();
+  test_is_inexact ();
 }
 
 int
