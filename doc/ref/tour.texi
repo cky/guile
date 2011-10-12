@@ -181,6 +181,9 @@ scheme@@(guile-user)> (j0 2)
 $1 = 0.223890779141236
 @end smallexample
 
+For more on how to install your extension, @pxref{Installing Site
+Packages}.
+
 
 @node Using the Guile Module System
 @subsection Using the Guile Module System
@@ -247,6 +250,10 @@ scheme@@(guile-user)> (use-modules (foo bar))
 scheme@@(guile-user)> (frob 12)
 $1 = 24
 @end smallexample
+
+For more on how to install your module, @pxref{Installing Site
+Packages}.
+
 
 @node Putting Extensions into Modules
 @subsubsection Putting Extensions into Modules

@@ -732,6 +732,64 @@ using a CPAN-like system.
 A complete list of guild scripts can be had by invoking @code{guild
 list}, or simply @code{guild}.
 
+
+@node Installing Site Packages
+@section Installing Site Packages
+
+@cindex site
+@cindex site path
+@cindex load path
+@findex %site-dir
+
+At some point, you will probably want to share your code with other
+people.  To do so effectively, it is important to follow a set of common
+conventions, to make it easy for the user to install and use your
+package.
+
+The first thing to do is to install your Scheme files where Guile can
+find them.  When Guile goes to find a Scheme file, it will search a
+@dfn{load path} to find the file: first in Guile's own path, then in
+paths for @dfn{site packages}.  A site package is any Scheme code that
+is installed and not part of Guile itself.  @xref{Loading}, for more on
+load paths.
+
+There are several site paths, for historical reasons, but the one that
+should generally be used can be obtained by invoking the
+@code{%site-dir} procedure.  @xref{Build Config}.  If Guile
+@value{EFFECTIVE-VERSION} is installed on your system in @code{/usr/},
+then @code{(%site-dir)} will be
+@code{/usr/share/guile/site/@value{EFFECTIVE-VERSION}}.  Scheme files
+should be installed there.
+
+If you do not install compiled @code{.go} files, Guile will compile your
+modules and programs when they are first used, and cache them in the
+user's home directory.  @xref{Compilation}, for more on
+auto-compilation.  However, it is better to compile the files before
+they are installed, and to just copy the files to a place that Guile can
+find them.
+
+As with Scheme files, Guile searches a path to find compiled @code{.go}
+files, the @code{%load-compiled-path}.  By default, this path has two
+entries: a path for Guile's files, and a path for site packages.  You
+should install your @code{.go} files into the latter.  Currently there
+is no procedure to get at this path, which is probably a bug.  As in the
+previous example, if Guile @value{EFFECTIVE-VERSION} is installed on
+your system in @code{/usr/}, then the place to put compiled files for
+site packages will be
+@code{/usr/lib/guile/@value{EFFECTIVE-VERSION}/site-ccache}.
+
+Note that a @code{.go} file will only be loaded in preference to a
+@code{.scm} file if it is newer.  For that reason, you should install
+your Scheme files first, and your compiled files second.
+
+Finally, although this section is only about Scheme, sometimes you need
+to install C extensions too.  Shared libraries should be installed in
+the @dfn{extensions dir}.  This value can be had from the build config
+(@pxref{Build Config}).  Again, if Guile @value{EFFECTIVE-VERSION} is
+installed on your system in @code{/usr/}, then the extensions dir will
+be @code{/usr/lib/guile/@value{EFFECTIVE-VERSION}/extensions}.
+
+
 @c Local Variables:
 @c TeX-master: "guile.texi"
 @c End:
