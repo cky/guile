@@ -39,6 +39,7 @@ back.
 * HTTP Headers::                How Guile represents specific header values.
 * Requests::                    HTTP requests.
 * Responses::                   HTTP responses.
+* Web Client::                  Accessing web resources over HTTP.
 * Web Server::                  Serving HTTP to the internet.
 * Web Examples::                How to use this thing.
 @end menu
@@ -303,8 +304,8 @@ types by providing a number of low-level parsers and unparsers for
 elements of the HTTP protocol.
 
 If you are want to skip the low-level details for now and move on to web
-pages, @pxref{Web Server}.  Otherwise, load the HTTP module, and read
-on.
+pages, @pxref{Web Client}, and @pxref{Web Server}.  Otherwise, load the
+HTTP module, and read on.
 
 @example
 (use-modules (web http))
@@ -1279,6 +1280,40 @@ headers.
 @deffnx {Scheme Procedure} response-www-authenticate response [default=#f]
 Return the given response header, or @var{default} if none was present.
 @end deffn
+
+
+@node Web Client
+@subsection Web Client
+
+@code{(web client)} provides a simple, synchronous HTTP client, built on
+the lower-level HTTP, request, and response modules.
+
+@deffn {Scheme Procedure} open-socket-for-uri uri
+@end deffn
+
+@deffn {Scheme Procedure} http-get uri [#:port=(open-socket-for-uri uri)] [#:version='(1 . 1)] [#:keep-alive?=#f] [#:extra-headers='()] [#:decode-body=#t]
+Connect to the server corresponding to @var{uri} and ask for the
+resource, using the @code{GET} method.  If you already have a port open,
+pass it as @var{port}.  The port will be closed at the end of the
+request unless @var{keep-alive?} is true.  Any extra headers in the
+alist @var{extra-headers} will be added to the request.
+
+If @var{decode-body?} is true, as is the default, the body of the
+response will be decoded to string, if it is a textual content-type.
+Otherwise it will be returned as a bytevector.
+@end deffn
+
+@code{http-get} is useful for making one-off requests to web sites.  If
+you are writing a web spider or some other client that needs to handle a
+number of requests in parallel, it's better to build an event-driven URL
+fetcher, similar in structure to the web server (@pxref{Web Server}).
+
+Another option, good but not as performant, would be to use threads,
+possibly via par-map or futures.
+
+More helper procedures for the other common HTTP verbs would be a good
+addition to this module.  Send your code to
+@email{guile-user@@gnu.org}.
 
 
 @node Web Server
