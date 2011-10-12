@@ -16,23 +16,15 @@ head of any C source file that uses identifiers described in this
 manual.  Once you've compiled your source files, you need to link them
 against the Guile object code library, @code{libguile}.
 
-@code{<libguile.h>} is not in the default search path for headers,
-because Guile supports parallel installation of multiple versions of
-Guile, with each version's headers under their own directories.  This is
-to allow development against, say, both Guile 2.0 and 2.2.
+As noted in the previous section, @code{<libguile.h>} is not in the
+default search path for headers.  The following command lines give
+respectively the C compilation and link flags needed to build programs
+using Guile @value{EFFECTIVE-VERSION}:
 
-To compile code that includes @code{<libguile.h>}, or links to
-@code{libguile}, you need to select the effective version you are
-interested in, and then ask @code{pkg-config} for the compilation flags
-or linking instructions.  For effective version
-@value{EFFECTIVE-VERSION}, for example, you would invoke
-@code{pkg-config --cflags --libs guile-@value{EFFECTIVE-VERSION}} to get
-the compilation and linking flags necessary to link to version
-@value{EFFECTIVE-VERSION} of Guile.  You would typically run
-@code{pkg-config} during the configuration phase of your program and
-use the obtained information in the Makefile.
-
-See the @code{pkg-config} man page, for more information.
+@example
+pkg-config guile-@value{EFFECTIVE-VERSION} --cflags
+pkg-config guile-@value{EFFECTIVE-VERSION} --libs
+@end example
 
 @menu
 * Guile Initialization Functions::  What to call first.

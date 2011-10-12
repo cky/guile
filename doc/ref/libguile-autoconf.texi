@@ -6,11 +6,10 @@
 
 @page
 @node Autoconf Support
-@chapter Autoconf Support
+@section Autoconf Support
 
-When Guile is installed, a pkg-config description file and a set of
-Autoconf macros is installed.  This chapter documents pkg-config and
-Autoconf support, as well as the high-level guile-tool Autofrisk.
+Autoconf, a part of the GNU build system, makes it easy for users to
+build your package.  This section documents Guile's Autoconf support.
 
 @menu
 * Autoconf Background::         Why use autoconf?
@@ -20,7 +19,7 @@ Autoconf support, as well as the high-level guile-tool Autofrisk.
 
 
 @node Autoconf Background
-@section Autoconf Background
+@subsection Autoconf Background
 
 As explained in the @cite{GNU Autoconf Manual}, any package needs
 configuration at build-time (@pxref{Top, ,Introduction,autoconf,The GNU
@@ -42,35 +41,24 @@ checks.
 
 
 @node Autoconf Macros
-@section Autoconf Macros
+@subsection Autoconf Macros
 
-@cindex pkg-config
-@cindex autoconf
-
-GNU Guile provides a @dfn{pkg-config} description file, which contains
-all the information necessary to compile and link C applications that
-use Guile.  The @code{pkg-config} program is able to read this file
-and provide this information to application programmers; it can be
-obtained at @url{http://pkg-config.freedesktop.org/}.
-
-The following command lines give respectively the C compilation and link
-flags needed to build Guile-using programs:
-
-@example
-pkg-config guile-@value{EFFECTIVE-VERSION} --cflags
-pkg-config guile-@value{EFFECTIVE-VERSION} --libs
-@end example
-
-To ease use of pkg-config with Autoconf, pkg-config comes with a
-convenient Autoconf macro.  The following example looks for Guile and
-sets the @code{GUILE_CFLAGS} and @code{GUILE_LIBS} variables
-accordingly, or prints an error and exits if Guile was not found:
+As mentioned earlier in this chapter, Guile supports parallel
+installation, and uses @code{pkg-config} to let the user choose which
+version of Guile they are interested in.  @code{pkg-config} has its own
+set of Autoconf macros that are probably installed on most every
+development system.  The most useful of these macros is
+@code{PKG_CHECK_MODULES}.
 
 @findex PKG_CHECK_MODULES
 
 @example
 PKG_CHECK_MODULES([GUILE], [guile-@value{EFFECTIVE-VERSION}])
 @end example
+
+This example looks for Guile and sets the @code{GUILE_CFLAGS} and
+@code{GUILE_LIBS} variables accordingly, or prints an error and exits if
+Guile was not found.
 
 Guile comes with additional Autoconf macros providing more information,
 installed as @file{@var{prefix}/share/aclocal/guile.m4}.  Their names
@@ -81,7 +69,7 @@ all begin with @code{GUILE_}.
 
 
 @node Using Autoconf Macros
-@section Using Autoconf Macros
+@subsection Using Autoconf Macros
 
 Using the autoconf macros is straightforward: Add the macro "calls" (actually
 instantiations) to @file{configure.ac}, run @code{aclocal}, and finally,

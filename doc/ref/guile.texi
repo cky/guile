@@ -182,8 +182,6 @@ x
 
 * Guile Implementation::
 
-* Autoconf Support::
-
 Appendices
 
 * GNU Free Documentation License::  The license of this manual.
@@ -264,20 +262,25 @@ etc. that make up Guile's application programming interface (API),
 @xref{API Reference}.
 
 @menu
+* Parallel Installations::      Finding the right Guile.
 * Linking Programs With Guile:: More precisely, with the libguile library.
 * Linking Guile with Libraries::  To extend Guile itself. 
 * General Libguile Concepts::   General concepts for using libguile.
 * Defining New Types (Smobs)::  Adding new types to Guile.
 * Function Snarfing::           A way to define new functions.
 * Programming Overview::        An overview of Guile programming.
+* Autoconf Support::            Putting m4 to good use.
 @end menu
 
+@include libguile-parallel.texi
 @include libguile-linking.texi
 @include libguile-extensions.texi
 @include libguile-concepts.texi
 @include libguile-smobs.texi
 @include libguile-snarf.texi
 @include libguile-program.texi
+@include libguile-autoconf.texi
+
 
 @node API Reference
 @chapter API Reference
@@ -425,8 +428,6 @@ merely familiar with Scheme to being a real hacker.
 @include data-rep.texi
 @include vm.texi
 @include compiler.texi
-
-@include autoconf.texi
 
 @node GNU Free Documentation License
 @appendix GNU Free Documentation License
