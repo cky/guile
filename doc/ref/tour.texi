@@ -235,7 +235,7 @@ in a location where Guile can automatically find it.  The following
 session shows a simple example.
 
 @smallexample
-$ cat /usr/local/share/guile/foo/bar.scm
+$ cat /usr/local/share/guile/site/foo/bar.scm
 
 (define-module (foo bar)
   #:export (frob))
@@ -258,14 +258,14 @@ You do this by writing a small Scheme file that defines the module and
 call @code{load-extension} directly in the body of the module.
 
 @smallexample
-$ cat /usr/local/share/guile/math/bessel.scm
+$ cat /usr/local/share/guile/site/math/bessel.scm
 
 (define-module (math bessel)
   #:export (j0))
 
 (load-extension "libguile-bessel" "init_bessel")
 
-$ file /usr/local/lib/libguile-bessel.so
+$ file /usr/local/lib/guile/@value{EFFECTIVE-VERSION}/extensions/libguile-bessel.so
 @dots{} ELF 32-bit LSB shared object @dots{}
 $ guile
 scheme@@(guile-user)> (use-modules (math bessel))
