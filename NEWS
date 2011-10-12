@@ -5,6 +5,104 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.3 (since 2.0.2):
+
+* Speed improvements
+
+** Guile has a new optimizer, `peval'.
+
+`Peval' is a partial evaluator that performs constant folding, dead code
+elimination, copy propagation, and inlining.  By default it runs on
+every piece of code that Guile compiles, to fold computations that can
+happen at compile-time, so they don't have to happen at runtime.
+
+If we did our job right, the only impact you would see would be your
+programs getting faster.  But if you notice slowdowns or bloated code,
+please send a mail to bug-guile@gnu.org with details.
+
+Thanks to William R. Cook, Oscar Waddell, and Kent Dybvig for inspiring
+peval and its implementation.
+
+You can see what peval does on a given piece of code by running the new
+`,optimize' REPL meta-command, and comparing it to the output of
+`,expand'.  See "Compile Commands" in the manual, for more.
+
+** Fewer calls to `stat'.
+
+Guile now stats only the .go file and the .scm file when loading a fresh
+compiled file.
+
+* Notable changes
+
+** New module: `(web client)', a simple synchronous web client.
+
+See "Web Client" in the manual, for more.
+
+** Users can now install compiled `.go' files.
+
+See "Installing Site Packages" in the manual.
+
+** Remove Front-Cover and Back-Cover text from the manual.
+    
+The manual is still under the GNU Free Documentation License, but no
+longer has any invariant sections.
+
+** More helpful `guild help'.
+    
+`guild' is Guile's multi-tool, for use in shell scripting.  Now it has a
+nicer interface for querying the set of existing commands, and getting
+help on those commands.  Try it out and see!
+
+** New macro: `define-syntax-rule'
+
+`define-syntax-rule' is a shorthand to make a `syntax-rules' macro with
+one clause.  See "Syntax Rules" in the manual, for more.
+
+** The `,time' REPL meta-command now has more precision.
+
+The output of this command now has microsecond precision, instead of
+10-millisecond precision.
+
+** `(ice-9 match)' can now match records.
+    
+See "Pattern Matching" in the manual, for more on matching records.
+
+** New module: `(language tree-il debug)'.
+
+This module provides a tree-il verifier.  This is useful for people that
+generate tree-il, usually as part of a language compiler.
+
+** New functions: `scm_is_exact', `scm_is_inexact'.
+    
+These provide a nice C interface for Scheme's `exact?' and `inexact?',
+respectively.
+
+* Bugs fixed
+
+See the git log (or the ChangeLog) for more details on these bugs.
+
+** Fix order of importing modules and resolving duplicates handlers.
+** Fix a number of bugs involving extended (merged) generics.
+** Fix invocation of merge-generics duplicate handler.
+** Fix write beyond array end in arrays.c.
+** Fix read beyond end of hashtable size array in hashtab.c.
+** (web http): Locale-independent parsing and serialization of dates.
+** Ensure presence of Host header in HTTP/1.1 requests.
+** Fix take-right and drop-right for improper lists.
+** Fix leak in get_current_locale().
+** Fix recursive define-inlinable expansions.
+** Check that srfi-1 procedure arguments are procedures.
+** Fix r6rs `map' for multiple returns.
+** Fix scm_tmpfile leak on POSIX platforms.
+** Fix a couple of leaks (objcode->bytecode, make-boot-program).
+** Fix guile-lib back-compatibility for module-stexi-documentation.
+** Fix --listen option to allow other ports.
+** Fix scm_to_latin1_stringn for substrings.
+** Fix compilation of untyped arrays of rank not 1.
+** Fix unparse-tree-il of <dynset>.
+** Fix reading of #||||#.
+
+
 Changes in 2.0.2 (since 2.0.1):
 
 * Notable changes
