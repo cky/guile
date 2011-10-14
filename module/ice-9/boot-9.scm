@@ -142,7 +142,7 @@ If it exits normally, Guile unwinds the stack and dynamic context
 and then calls the normal (third argument) handler.  If it exits
 non-locally, that exit determines the continuation."
           (if (not (or (symbol? k) (eqv? k #t)))
-              (scm-error "catch" 'wrong-type-arg
+              (scm-error 'wrong-type-arg "catch"
                          "Wrong type argument in position ~a: ~a"
                          (list 1 k) (list k)))
           (let ((tag (make-prompt-tag "catch")))
@@ -163,7 +163,7 @@ non-locally, that exit determines the continuation."
           "Add @var{handler} to the dynamic context as a throw handler
 for key @var{key}, then invoke @var{thunk}."
           (if (not (or (symbol? k) (eqv? k #t)))
-              (scm-error "with-throw-handler" 'wrong-type-arg
+              (scm-error 'wrong-type-arg "with-throw-handler"
                          "Wrong type argument in position ~a: ~a"
                          (list 1 k) (list k)))
           (with-fluids ((%exception-handler
