@@ -162,6 +162,18 @@
                             (else    #f))))
                       counts))))))
 
+  (pass-if "case-lambda"
+    (let ((proc (code "cl.scm"  "(case-lambda       ;; 0
+                                   ((x)   (+ x 3))  ;; 1
+                                   ((x y) (+ x y))) ;; 2")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda ()
+                        (+ (proc 1) (proc 2 3))))))
+        (let ((counts (line-execution-counts data "cl.scm")))
+          (and (pair? counts)
+               (lset= equal? '((0 . 2) (1 . 1) (2 . 1)) counts))))))
+
   (pass-if "all code on one line"
     ;; There are several proc/IP pairs pointing to this source line, yet the hit
     ;; count for the line should be 1.
@@ -183,6 +195,16 @@
                       (lambda () (+ (proc 1 2) (proc 2 3))))))
         (and (coverage-data? data)
              (= 3 result)
+             (= (procedure-execution-count data proc) 2)))))
+
+  (pass-if "case-lambda"
+    (let ((proc (code "foo.scm" "(case-lambda ((x) x) ((x y) (+ x y)))")))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm
+                      (lambda ()
+                        (+ (proc 1) (proc 2 3))))))
+        (and (coverage-data? data)
+             (= 6 result)
              (= (procedure-execution-count data proc) 2)))))
 
   (pass-if "never"
