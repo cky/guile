@@ -801,10 +801,30 @@ setter or an operator struct.
 @node Inlinable Procedures
 @subsection Inlinable Procedures
 
+@cindex inlining
+@cindex procedure inlining
 You can define an @dfn{inlinable procedure} by using
 @code{define-inlinable} instead of @code{define}.  An inlinable
 procedure behaves the same as a regular procedure, but direct calls will
 result in the procedure body being inlined into the caller.
+
+@cindex partial evaluator
+Bear in mind that starting from version 2.0.3, Guile has a partial
+evaluator that can inline the body of inner procedures when deemed
+appropriate:
+
+@example
+scheme@@(guile-user)> ,optimize (define (foo x)
+                                 (define (bar) (+ x 3))
+                                 (* (bar) 2))
+$1 = (define foo
+       (lambda (#@{x 94@}#) (* (+ #@{x 94@}# 3) 2)))
+@end example
+
+@noindent
+The partial evaluator does not inline top-level bindings, though, so
+this is a situation where you may find it interesting to use
+@code{define-inlinable}.
 
 Procedures defined with @code{define-inlinable} are @emph{always}
 inlined, at all direct call sites.  This eliminates function call
