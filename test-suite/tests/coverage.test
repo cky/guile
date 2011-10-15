@@ -1,6 +1,6 @@
 ;;;; coverage.test --- Code coverage.    -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -34,6 +34,12 @@
        (compile (read input))))))
 
 (define %test-vm (make-vm))
+
+(define test-procedure
+  (compile '(lambda (x)
+              (if (> x 2)
+                  (- x 2)
+                  (+ x 2)))))
 
 
 (with-test-prefix "instrumented/executed-lines"
@@ -204,7 +210,16 @@
                               (make-pointer (object-address 2)))))))
         (and (coverage-data? data)
              (= (object-address 3) (pointer-address result))
-             (= (procedure-execution-count data proc) 1))))))
+             (= (procedure-execution-count data proc) 1)))))
+
+  (pass-if "called from eval"
+    (let-values (((data result)
+                  (with-code-coverage %test-vm
+                    (lambda ()
+                      (eval '(test-procedure 123) (current-module))))))
+      (and (coverage-data? data)
+           (= (test-procedure 123) result)
+           (= (procedure-execution-count data test-procedure) 1)))))
 
 
 (with-test-prefix "instrumented-source-files"
