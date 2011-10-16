@@ -52,27 +52,8 @@
 ;; `match' doesn't support clauses of the form `(pat => exp)'.
 
 ;; Unmodified public domain code by Alex Shinn retrieved from
-;; the Chibi-Scheme repository, commit 833:6daa2971f3fe.
+;; the Chibi-Scheme repository, commit 876:528cdab3f818.
 ;;
 ;; Note: Make sure to update `match.test.upstream' when updating this
 ;; file.
 (include-from-path "ice-9/match.upstream.scm")
-
-;; Patch to work around <http://debbugs.gnu.org/9567>.
-(define-syntax match
-  (syntax-rules ()
-    ((match)
-     (match-syntax-error "missing match expression"))
-    ((match atom)
-     (match-syntax-error "no match clauses"))
-    ((match (app ...) (pat . body) ...)
-     (let ((v (app ...)))
-       (match-next v ((app ...) (set! (app ...))) (pat . body) ...)))
-    ((match #(vec ...) (pat . body) ...)
-     (let ((v #(vec ...)))
-       (match-next v (v (set! v)) (pat . body) ...)))
-    ((match atom (pat . body) ...)
-     (let ((v atom))
-       (match-next v (atom (set! atom)) (pat . body) ...)))
-    ))
-
