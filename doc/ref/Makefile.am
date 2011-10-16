@@ -74,7 +74,7 @@ guile_TEXINFOS = preface.texi			\
 		 match.texi			\
 		 misc-modules.texi		\
 		 api-compound.texi		\
-		 autoconf.texi			\
+		 libguile-autoconf.texi		\
 		 autoconf-macros.texi		\
 		 tools.texi			\
 		 history.texi			\
@@ -113,7 +113,7 @@ EXTRA_DIST = ChangeLog-2008 $(PICTURES)
 
 # Automated snarfing
 
-autoconf.texi: autoconf-macros.texi
+libguile-autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
 	GUILE_AUTO_COMPILE=0 $(top_builddir)/meta/uninstalled-env guild \
 	  snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
