@@ -29,6 +29,7 @@ info_TEXINFOS = guile.texi
 guile_TEXINFOS = preface.texi			\
                  intro.texi			\
                  tour.texi			\
+		 libguile-parallel.texi		\
                  libguile-program.texi		\
                  scheme-intro.texi		\
 		 api-scm.texi			\
