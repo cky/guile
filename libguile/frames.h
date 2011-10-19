@@ -59,28 +59,43 @@
    `sizeof (SCM *) == sizeof (SCM)', since pointers (the `link' parts) are
    assumed to be as long as SCM objects.  */
 
+/* This structure maps to the contents of a VM stack frame.  It can
+   alias a frame directly.  */
+struct scm_vm_frame
+{
+  SCM *dynamic_link;
+  scm_t_uint8 *mv_return_address;
+  scm_t_uint8 *return_address;
+  SCM program;
+  SCM stack[1]; /* Variable-length */
+};
+
+#define SCM_FRAME_STRUCT(fp)		((struct scm_vm_frame*)(((SCM*)(fp)) - 4))
+
 #define SCM_FRAME_DATA_ADDRESS(fp)	(fp - 4)
-#define SCM_FRAME_STACK_ADDRESS(fp)	(fp)
-#define SCM_FRAME_UPPER_ADDRESS(fp)	(fp - 2)
-#define SCM_FRAME_LOWER_ADDRESS(fp)	(fp - 4)
+#define SCM_FRAME_STACK_ADDRESS(fp)	(SCM_FRAME_STRUCT (fp)->stack)
+#define SCM_FRAME_UPPER_ADDRESS(fp)	((SCM*)&SCM_FRAME_STRUCT (fp)->return_address)
+#define SCM_FRAME_LOWER_ADDRESS(fp)	((SCM*)SCM_FRAME_STRUCT (fp))
 
 #define SCM_FRAME_BYTE_CAST(x)		((scm_t_uint8 *) SCM_UNPACK (x))
 #define SCM_FRAME_STACK_CAST(x)		((SCM *) SCM_UNPACK (x))
 
-#define SCM_FRAME_RETURN_ADDRESS(fp)				\
-  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[2]))
-#define SCM_FRAME_SET_RETURN_ADDRESS(fp, ra)			\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[2])) = SCM_PACK (ra)
-#define SCM_FRAME_MV_RETURN_ADDRESS(fp)				\
-  (SCM_FRAME_BYTE_CAST (SCM_FRAME_DATA_ADDRESS (fp)[1]))
-#define SCM_FRAME_SET_MV_RETURN_ADDRESS(fp, mvra)		\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[1])) = SCM_PACK (mvra)
-#define SCM_FRAME_DYNAMIC_LINK(fp)				\
-  (SCM_FRAME_STACK_CAST (SCM_FRAME_DATA_ADDRESS (fp)[0]))
-#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)			\
-  ((SCM_FRAME_DATA_ADDRESS (fp)[0])) = SCM_PACK (dl)
-#define SCM_FRAME_VARIABLE(fp,i)	SCM_FRAME_STACK_ADDRESS (fp)[i]
-#define SCM_FRAME_PROGRAM(fp)		SCM_FRAME_STACK_ADDRESS (fp)[-1]
+#define SCM_FRAME_RETURN_ADDRESS(fp)            \
+  (SCM_FRAME_STRUCT (fp)->return_address)
+#define SCM_FRAME_SET_RETURN_ADDRESS(fp, ra)    \
+  SCM_FRAME_STRUCT (fp)->return_address = (ra)
+#define SCM_FRAME_MV_RETURN_ADDRESS(fp)         \
+  (SCM_FRAME_STRUCT (fp)->mv_return_address)
+#define SCM_FRAME_SET_MV_RETURN_ADDRESS(fp, mvra)       \
+  SCM_FRAME_STRUCT (fp)->mv_return_address = (mvra)
+#define SCM_FRAME_DYNAMIC_LINK(fp)              \
+  (SCM_FRAME_STRUCT (fp)->dynamic_link)
+#define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)      \
+  SCM_FRAME_STRUCT (fp)->dynamic_link = (dl)
+#define SCM_FRAME_VARIABLE(fp,i)                \
+  (SCM_FRAME_STRUCT (fp)->stack[i])
+#define SCM_FRAME_PROGRAM(fp)                   \
+  (SCM_FRAME_STRUCT (fp)->program)
 
 
 /*
