@@ -206,8 +206,15 @@
                        (x #:accessor x #:init-value 123)
                        (z #:accessor z #:init-value 789))
                     (current-module))
-              (eval '(equal? (x (make <qux>)) 123) (current-module)))))
-     
+              (eval '(equal? (x (make <qux>)) 123) (current-module)))
+
+     (pass-if-exception "cannot redefine fields of <class>"
+       '(misc-error . "cannot be redefined")
+       (eval '(begin
+                (define-class <test-class> (<class>) 
+                  name) 
+                (make <test-class>))
+             (current-module)))))
 
 (with-test-prefix "defining generics"
 

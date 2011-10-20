@@ -373,7 +373,7 @@ map (SCM (*proc) (SCM), SCM ls)
       SCM res = scm_cons (proc (SCM_CAR (ls)), SCM_EOL);
       SCM h = res;
       ls = SCM_CDR (ls);
-      while (!scm_is_null (ls))
+      while (scm_is_pair (ls))
 	{
 	  SCM_SETCDR (h, scm_cons (proc (SCM_CAR (ls)), SCM_EOL));
 	  h = SCM_CDR (h);
@@ -387,7 +387,7 @@ static SCM
 filter_cpl (SCM ls)
 {
   SCM res = SCM_EOL;
-  while (!scm_is_null (ls))
+  while (scm_is_pair (ls))
     {
       SCM el = SCM_CAR (ls);
       if (scm_is_false (scm_c_memq (el, res)))
@@ -422,7 +422,7 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
 {
   SCM tmp;
 
-  if (scm_is_null (l))
+  if (!scm_is_pair (l))
     return res;
 
   tmp = SCM_CAAR (l);
@@ -437,15 +437,63 @@ remove_duplicate_slots (SCM l, SCM res, SCM slots_already_seen)
   return remove_duplicate_slots (SCM_CDR (l), res, slots_already_seen);
 }
 
+static void 
+check_cpl (SCM slots, SCM bslots)
+{
+  for (; scm_is_pair (bslots); bslots = SCM_CDR (bslots))
+    if (scm_is_true (scm_assq (SCM_CAAR (bslots), slots)))
+      scm_misc_error ("init-object", "a predefined <class> inherited "
+                      "field cannot be redefined", SCM_EOL);  
+}
+
+static SCM 
+build_class_class_slots (void);
+
 static SCM
 build_slots_list (SCM dslots, SCM cpl)
 {
-  register SCM res = dslots;
+  SCM bslots, class_slots;
+  int classp;
+  SCM res = dslots;
 
-  for (cpl = SCM_CDR (cpl); !scm_is_null (cpl); cpl = SCM_CDR (cpl))
-    res = scm_append (scm_list_2 (SCM_SLOT (SCM_CAR (cpl),
-					    scm_si_direct_slots),
-				  res));
+  class_slots = SCM_EOL;  
+  classp = scm_is_true (scm_memq (scm_class_class, cpl));
+  
+  if (classp) 
+    {
+      bslots = build_class_class_slots ();
+      check_cpl (res, bslots);
+    }
+  else
+    bslots = SCM_EOL;
+
+  if (scm_is_pair (cpl))
+    {      
+      for (cpl = SCM_CDR (cpl); scm_is_pair (cpl); cpl = SCM_CDR (cpl))
+        {
+          SCM new_slots = SCM_SLOT (SCM_CAR (cpl),
+                                    scm_si_direct_slots);
+          if (classp)
+            {
+              if (!scm_is_eq (SCM_CAR (cpl), scm_class_class))
+                check_cpl (new_slots, bslots);
+              else
+                {
+                  /* Move class slots to the head of the list. */
+                  class_slots = new_slots;
+                  continue;
+                }
+            }	 
+          res = scm_append (scm_list_2 (new_slots, res));
+        }
+    }
+  else
+    scm_misc_error ("%compute-slots", "malformed cpl argument in "
+                    "build_slots_list", SCM_EOL);
+
+  /* make sure to add the <class> slots to the head of the list */
+  if (classp)
+    res = scm_append (scm_list_2 (class_slots, res));
 
   /* res contains a list of slots. Remove slots which appears more than once */
   return remove_duplicate_slots (scm_reverse (res), SCM_EOL, SCM_EOL);
@@ -457,8 +505,11 @@ maplist (SCM ls)
   SCM orig = ls;
   while (!scm_is_null (ls))
     {
+      if (!scm_is_pair (ls))
+        scm_misc_error ("%compute-slots", "malformed ls argument in "
+                        "maplist", SCM_EOL);
       if (!scm_is_pair (SCM_CAR (ls)))
-	SCM_SETCAR (ls, scm_cons (SCM_CAR (ls), SCM_EOL));
+        SCM_SETCAR (ls, scm_cons (SCM_CAR (ls), SCM_EOL));
       ls = SCM_CDR (ls);
     }
   return orig;
@@ -882,7 +933,7 @@ SCM_SYMBOL (sym_nfields, "nfields");
 
 
 static SCM
-build_class_class_slots ()
+build_class_class_slots (void)
 {
   /* has to be kept in sync with SCM_VTABLE_BASE_LAYOUT and
      SCM_CLASS_CLASS_LAYOUT */
