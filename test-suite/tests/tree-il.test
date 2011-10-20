@@ -625,6 +625,19 @@
             (call tail-call 1))))
 
 
+(with-test-prefix "labels allocation"
+  (pass-if "http://debbugs.gnu.org/9769"
+    ((compile '(lambda ()
+                 (let ((fail (lambda () #f)))
+                   (let ((test (lambda () (fail))))
+                     (test))
+                   #t))
+              ;; Prevent inlining.  We're testing analyze.scm's
+              ;; labels allocator here, and inlining it will
+              ;; reduce the entire thing to #t.
+              #:opts '(#:partial-eval? #f)))))
+
+
 (with-test-prefix "partial evaluation"
 
   (pass-if-peval

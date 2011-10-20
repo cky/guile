@@ -171,7 +171,7 @@
 
   ;; returns variables referenced in expr
   (define (analyze! x proc labels-in-proc tail? tail-call-args)
-    (define (step y) (analyze! y proc labels-in-proc #f #f))
+    (define (step y) (analyze! y proc '() #f #f))
     (define (step-tail y) (analyze! y proc labels-in-proc tail? #f))
     (define (step-tail-call y args) (analyze! y proc labels-in-proc #f
                                               (and tail? args)))
