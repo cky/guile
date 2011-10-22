@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+ *   2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -154,7 +155,7 @@ scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
   /* Nothing to do.  */
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
-    scm_malloc_register (mem);
+    scm_malloc_register (mem, what);
 #endif
 }
 
