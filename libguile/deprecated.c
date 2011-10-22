@@ -254,7 +254,7 @@ static SCM try_module_autoload_var;
 static void
 init_module_stuff ()
 {
-  if (module_prefix == SCM_BOOL_F)
+  if (scm_is_false (module_prefix))
     {
       module_prefix = scm_list_2 (scm_sym_app, scm_sym_modules);
       make_modules_in_var = scm_c_lookup ("make-modules-in");
@@ -312,7 +312,7 @@ scm_load_scheme_module (SCM name)
 static void
 maybe_close_port (void *data, SCM port)
 {
-  SCM except_set = (SCM) data;
+  SCM except_set = PTR2SCM (data);
 
   while (!scm_is_null (except_set))
     {
@@ -337,11 +337,11 @@ SCM_DEFINE (scm_close_all_ports_except, "close-all-ports-except", 0, 0, 1,
 {
   SCM p;
   SCM_VALIDATE_REST_ARGUMENT (ports);
-  
+
   for (p = ports; !scm_is_null (p); p = SCM_CDR (p))
     SCM_VALIDATE_OPPORT (SCM_ARG1, SCM_COERCE_OUTPORT (SCM_CAR (p)));
 
-  scm_c_port_for_each (maybe_close_port, ports);
+  scm_c_port_for_each (maybe_close_port, SCM2PTR (ports));
 
   return SCM_UNSPECIFIED;
 }
@@ -2414,7 +2414,7 @@ SCM_DEFINE (scm_primitive_make_property, "primitive-make-property", 1, 0, 0,
   scm_c_issue_deprecation_warning
     ("`primitive-make-property' is deprecated.  Use object properties.");
 
-  if (not_found_proc != SCM_BOOL_F)
+  if (!scm_is_false (not_found_proc))
     SCM_VALIDATE_PROC (SCM_ARG1, not_found_proc);
   return scm_cons (not_found_proc, SCM_EOL);
 }
