@@ -435,7 +435,8 @@ scm_i_init_guile (void *base)
   scm_init_objprop ();
   scm_init_promises ();         /* requires smob_prehistory */
   scm_init_hooks ();            /* Requires smob_prehistory */
-  scm_init_gc ();		/* Requires hooks */
+  scm_init_stime ();
+  scm_init_gc ();		/* Requires hooks and `get_internal_run_time' */
   scm_init_gc_protect_object ();  /* requires threads_prehistory */
   scm_init_gdbint ();           /* Requires strports, gc_protect_object */
   scm_init_gettext ();
@@ -481,7 +482,6 @@ scm_i_init_guile (void *base)
   scm_init_load ();     /* Requires strings */
   scm_init_print ();	/* Requires strings, struct, smob */
   scm_init_read ();
-  scm_init_stime ();
   scm_init_strorder ();
   scm_init_srfi_13 ();
   scm_init_srfi_14 ();  /* Requires smob_prehistory */
