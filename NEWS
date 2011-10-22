@@ -101,6 +101,8 @@ See the git log (or the ChangeLog) for more details on these bugs.
 ** Fix compilation of untyped arrays of rank not 1.
 ** Fix unparse-tree-il of <dynset>.
 ** Fix reading of #||||#.
+** Fix segfault in GOOPS when class fields are redefined.
+** Prefer poll(2) over select(2) to allow file descriptors above FD_SETSIZE.
 
 
 Changes in 2.0.2 (since 2.0.1):
