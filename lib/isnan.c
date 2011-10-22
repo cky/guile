@@ -83,7 +83,7 @@ int
 FUNC (DOUBLE x)
 {
 #ifdef KNOWN_EXPBIT0_LOCATION
-# if defined USE_LONG_DOUBLE && ((defined __ia64 && LDBL_MANT_DIG == 64) || (defined __x86_64__ || defined __amd64__) || (defined __i386 || defined __i386__ || defined _I386 || defined _M_IX86 || defined _X86_))
+# if defined USE_LONG_DOUBLE && ((defined __ia64 && LDBL_MANT_DIG == 64) || (defined __x86_64__ || defined __amd64__) || (defined __i386 || defined __i386__ || defined _I386 || defined _M_IX86 || defined _X86_)) && !HAVE_SAME_LONG_DOUBLE_AS_DOUBLE
   /* Special CPU dependent code is needed to treat bit patterns outside the
      IEEE 754 specification (such as Pseudo-NaNs, Pseudo-Infinities,
      Pseudo-Zeroes, Unnormalized Numbers, and Pseudo-Denormals) as NaNs.
@@ -117,17 +117,20 @@ FUNC (DOUBLE x)
 # else
   /* Be careful to not do any floating-point operation on x, such as x == x,
      because x may be a signaling NaN.  */
-#  if defined __TINYC__ || defined __SUNPRO_C || defined __DECC \
-      || (defined __sgi && !defined __GNUC__) || defined __ICC
-  /* The Sun C 5.0, Intel ICC 10.0, and Compaq (ex-DEC) 6.4 compilers don't
-     recognize the initializers as constant expressions.  The latter compiler
-     also fails when constant-folding 0.0 / 0.0 even when constant-folding is
-     not required.  The SGI MIPSpro C compiler complains about "floating-point
-     operation result is out of range".  */
+#  if defined __SUNPRO_C || defined __ICC || defined _MSC_VER \
+      || defined __DECC || defined __TINYC__ \
+      || (defined __sgi && !defined __GNUC__)
+  /* The Sun C 5.0, Intel ICC 10.0, Microsoft Visual C/C++ 9.0, Compaq (ex-DEC)
+     6.4, and TinyCC compilers don't recognize the initializers as constant
+     expressions.  The Compaq compiler also fails when constant-folding
+     0.0 / 0.0 even when constant-folding is not required.  The Microsoft
+     Visual C/C++ compiler also fails when constant-folding 1.0 / 0.0 even
+     when constant-folding is not required. The SGI MIPSpro C compiler
+     complains about "floating-point operation result is out of range".  */
   static DOUBLE zero = L_(0.0);
   memory_double nan;
-  DOUBLE plus_inf = L_(1.0) / L_(0.0);
-  DOUBLE minus_inf = -L_(1.0) / L_(0.0);
+  DOUBLE plus_inf = L_(1.0) / zero;
+  DOUBLE minus_inf = -L_(1.0) / zero;
   nan.value = zero / zero;
 #  else
   static memory_double nan = { L_(0.0) / L_(0.0) };
@@ -154,7 +157,7 @@ FUNC (DOUBLE x)
      the signaling NaNs, handle only the quiet NaNs.  */
   if (x == x)
     {
-# if defined USE_LONG_DOUBLE && ((defined __ia64 && LDBL_MANT_DIG == 64) || (defined __x86_64__ || defined __amd64__) || (defined __i386 || defined __i386__ || defined _I386 || defined _M_IX86 || defined _X86_))
+# if defined USE_LONG_DOUBLE && ((defined __ia64 && LDBL_MANT_DIG == 64) || (defined __x86_64__ || defined __amd64__) || (defined __i386 || defined __i386__ || defined _I386 || defined _M_IX86 || defined _X86_)) && !HAVE_SAME_LONG_DOUBLE_AS_DOUBLE
       /* Detect any special bit patterns that pass ==; see comment above.  */
       memory_double m1;
       memory_double m2;

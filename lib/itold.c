@@ -1,5 +1,6 @@
-/* An ftell() function that works around platform bugs.
-   Copyright (C) 2007-2011 Free Software Foundation, Inc.
+/* Replacement for 'int' to 'long double' conversion routine.
+   Copyright (C) 2011 Free Software Foundation, Inc.
+   Written by Bruno Haible <bruno@clisp.org>, 2011.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -17,22 +18,11 @@
 #include <config.h>
 
 /* Specification.  */
-#include <stdio.h>
+#include <float.h>
 
-#include <errno.h>
-/* Get off_t.  */
-#include <unistd.h>
-
-long
-ftell (FILE *fp)
+void
+_Qp_itoq (long double *result, int a)
 {
-  /* Use the replacement ftello function with all its workarounds.  */
-  off_t offset = ftello (fp);
-  if (offset == (long)offset)
-    return (long)offset;
-  else
-    {
-      errno = EOVERFLOW;
-      return -1;
-    }
+  /* Convert from 'int' to 'double', then from 'double' to 'long double'.  */
+  *result = (double) a;
 }

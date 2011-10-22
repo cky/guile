@@ -95,7 +95,9 @@ pipe2 (int fd[2], int flags)
         goto fail;
     }
 # else
-  verify (O_NONBLOCK == 0);
+  {
+    verify (O_NONBLOCK == 0);
+  }
 # endif
 
   return 0;
@@ -151,6 +153,8 @@ pipe2 (int fd[2], int flags)
 
 #endif
 
+#if GNULIB_defined_O_NONBLOCK || \
+  !((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
  fail:
   {
     int saved_errno = errno;
@@ -161,4 +165,5 @@ pipe2 (int fd[2], int flags)
     errno = saved_errno;
     return -1;
   }
+#endif
 }

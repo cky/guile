@@ -1,4 +1,4 @@
-# frexp.m4 serial 11
+# frexp.m4 serial 13
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -88,11 +88,12 @@ AC_DEFUN([gl_CHECK_FREXP_NO_LIBM],
 
 dnl Test whether frexp() works also on denormalized numbers (this fails e.g. on
 dnl NetBSD 3.0), on infinite numbers (this fails e.g. on IRIX 6.5 and mingw),
-dnl and on negative zero (this fails e.g. on NetBSD 4.99).
+dnl and on negative zero (this fails e.g. on NetBSD 4.99 and mingw).
 AC_DEFUN([gl_FUNC_FREXP_WORKS],
 [
   AC_REQUIRE([AC_PROG_CC])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_CHECK_FUNCS_ONCE([alarm])
   AC_CACHE_CHECK([whether frexp works], [gl_cv_func_frexp_works],
     [
       AC_RUN_IFELSE(
@@ -100,6 +101,9 @@ AC_DEFUN([gl_FUNC_FREXP_WORKS],
 #include <float.h>
 #include <math.h>
 #include <string.h>
+#if HAVE_ALARM
+# include <unistd.h>
+#endif
 /* HP cc on HP-UX 10.20 has a bug with the constant expression -0.0.
    ICC 10.0 has a bug when optimizing the expression -zero.
    The expression -DBL_MIN * DBL_MIN does not work when cross-compiling
@@ -120,6 +124,11 @@ int main()
   int i;
   volatile double x;
   double zero = 0.0;
+#if HAVE_ALARM
+  /* NeXTstep 3.3 frexp() runs into an endless loop when called on an infinite
+     number.  Let the test fail in this case.  */
+  alarm (5);
+#endif
   /* Test on denormalized numbers.  */
   for (i = 1, x = 1.0; i >= DBL_MIN_EXP; i--, x *= 0.5)
     ;
@@ -133,7 +142,7 @@ int main()
         result |= 1;
     }
   /* Test on infinite numbers.  */
-  x = 1.0 / 0.0;
+  x = 1.0 / zero;
   {
     int exp;
     double y = frexp (x, &exp);

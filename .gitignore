@@ -143,3 +143,4 @@ INSTALL
 /test-suite/standalone/test-pthread-create
 /test-suite/standalone/test-pthread-create-secondary
 /lib/fcntl.h
+/lib/sys/uio.h

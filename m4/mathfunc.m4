@@ -1,11 +1,11 @@
-# mathfunc.m4 serial 6
+# mathfunc.m4 serial 9
 dnl Copyright (C) 2010-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
 dnl with or without modifications, as long as this notice is preserved.
 
-# gl_MATHFUNC(FUNC, RETTYPE, PARAMTYPES)
-# --------------------------------------------------
+# gl_MATHFUNC(FUNC, RETTYPE, PARAMTYPES [, EXTRA-CODE])
+# -----------------------------------------------------
 # tests whether the function FUNC is available in libc or libm.
 # RETTYPE is the return type. PARAMTYPES is a parameter list, with parentheses.
 # It sets FUNC_LIBM to empty or "-lm" accordingly.
@@ -13,12 +13,40 @@ dnl with or without modifications, as long as this notice is preserved.
 AC_DEFUN([gl_MATHFUNC],
 [
   dnl We need the RETTYPE and PARAMTYPES in order to force linking with the
-  dnl function. With gcc >= 4.3 on glibc/x86_64, calls to the 'fabs' function
-  dnl are inlined by the compiler, therefore linking of these calls does not
-  dnl require -lm, but taking the function pointer of 'fabs' does.
+  dnl function.
+  dnl 1) With gcc >= 4.3 on glibc/x86_64, calls to the 'fabs' function
+  dnl    are inlined by the compiler, therefore linking of these calls does
+  dnl    not require -lm, but taking the function pointer of 'fabs' does.
+  dnl 2) On MSVC 9, many math functions exist only as macros with arguments,
+  dnl    whereas the function pointer is undefined.
+  dnl On the other hand, taking just the function pointer is not enough.
+  dnl 1) On AIX 7.1, when 'long double' is 128 bit large ("xlc -qldbl128" or
+  dnl    "xlc -qlongdouble" or "gcc -mlong-double-128") many math functions
+  dnl    exist as macros with arguments, that may reference libm or even
+  dnl    completely undefined functions such as __rint128.
+  dnl 2) In AIX 7.1 with gcc 4.2, when optimization is turned on, calls to
+  dnl    rint() with simple arguments are turned into rintf() calls by the
+  dnl    compiler. But while rint() is resides in libc, rintf() is in libm.
   m4_pushdef([func], [$1])
   m4_pushdef([FUNC], [m4_translit([$1],[abcdefghijklmnopqrstuvwxyz],
                                        [ABCDEFGHIJKLMNOPQRSTUVWXYZ])])
+  m4_pushdef([ARGS], [m4_bpatsubst(
+                        [m4_bpatsubst(
+                           [m4_bpatsubst(
+                              [m4_bpatsubst(
+                                 [m4_bpatsubst(
+                                    [m4_bpatsubst(
+                                       [m4_bpatsubst(
+                                          [m4_bpatsubst(
+                                             [$3],
+                                             [int \*], [&i_ret])],
+                                          [float \*], [&f_ret])],
+                                       [double \*], [&d_ret])],
+                                    [long double \*], [&l_ret])],
+                                 [int], [2])],
+                              [float], [1.618034f])],
+                           [long double], [1.618033988749894848L])],
+                        [double], [1.6180339887])])
   FUNC[]_LIBM=
   AC_CACHE_CHECK([whether func() can be used without linking with libm],
     [gl_cv_func_]func[_no_libm],
@@ -30,8 +58,12 @@ AC_DEFUN([gl_MATHFUNC],
              #endif
              #include <math.h>
              $2 (*funcptr) $3 = ]func[;
-             double d_ret;]],
-           [[$2 y = funcptr ]m4_bpatsubst([m4_bpatsubst([m4_bpatsubst([$3], [int], [2])], [double \*], [&d_ret])], [double], [1.6180339887])[;
+             int i_ret;
+             float f_ret;
+             double d_ret;
+             long double l_ret;]],
+           [[$2 y = funcptr ]ARGS[ + ]func[ ]ARGS[;
+             $4
              return y < 0.3 || y > 1.7;
            ]])],
         [gl_cv_func_]func[_no_libm=yes],
@@ -50,8 +82,12 @@ AC_DEFUN([gl_MATHFUNC],
                #endif
                #include <math.h>
                $2 (*funcptr) $3 = ]func[;
-               double d_ret;]],
-             [[$2 y = funcptr ]m4_bpatsubst([m4_bpatsubst([m4_bpatsubst([$3], [int], [2])], [double \*], [&d_ret])], [double], [1.6180339887])[;
+               int i_ret;
+               float f_ret;
+               double d_ret;
+               long double l_ret;]],
+             [[$2 y = funcptr ]ARGS[ + ]func[ ]ARGS[;
+               $4
                return y < 0.3 || y > 1.7;
              ]])],
           [gl_cv_func_]func[_in_libm=yes],
@@ -63,6 +99,7 @@ AC_DEFUN([gl_MATHFUNC],
     fi
   fi
   AC_SUBST(FUNC[_LIBM])
+  m4_popdef([ARGS])
   m4_popdef([FUNC])
   m4_popdef([func])
 ])

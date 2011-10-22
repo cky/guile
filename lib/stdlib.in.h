@@ -89,11 +89,7 @@ struct random_data
 # include <unistd.h>
 #endif
 
-#if 3 <= __GNUC__ || __GNUC__ == 2 && 8 <= __GNUC_MINOR__
-# define _GL_ATTRIBUTE_NORETURN __attribute__ ((__noreturn__))
-#else
-# define _GL_ATTRIBUTE_NORETURN
-#endif
+/* The definition of _Noreturn is copied here.  */
 
 /* The definitions of _GL_FUNCDECL_RPL etc. are copied here.  */
 
@@ -120,7 +116,7 @@ struct random_data
 /* Terminate the current process with the given return code, without running
    the 'atexit' handlers.  */
 # if !@HAVE__EXIT@
-_GL_FUNCDECL_SYS (_Exit, void, (int status) _GL_ATTRIBUTE_NORETURN);
+_GL_FUNCDECL_SYS (_Exit, _Noreturn void, (int status));
 # endif
 _GL_CXXALIAS_SYS (_Exit, void, (int status));
 _GL_CXXALIASWARN (_Exit);
@@ -424,6 +420,22 @@ _GL_CXXALIASWARN (mkstemps);
 # if HAVE_RAW_DECL_MKSTEMPS
 _GL_WARN_ON_USE (mkstemps, "mkstemps is unportable - "
                  "use gnulib module mkstemps for portability");
+# endif
+#endif
+
+#if @GNULIB_POSIX_OPENPT@
+/* Return an FD open to the master side of a pseudo-terminal.  Flags should
+   include O_RDWR, and may also include O_NOCTTY.  */
+# if !@HAVE_POSIX_OPENPT@
+_GL_FUNCDECL_SYS (posix_openpt, int, (int flags));
+# endif
+_GL_CXXALIAS_SYS (posix_openpt, int, (int flags));
+_GL_CXXALIASWARN (posix_openpt);
+#elif defined GNULIB_POSIXCHECK
+# undef posix_openpt
+# if HAVE_RAW_DECL_POSIX_OPENPT
+_GL_WARN_ON_USE (posix_openpt, "posix_openpt is not portable - "
+                 "use gnulib module posix_openpt for portability");
 # endif
 #endif
 

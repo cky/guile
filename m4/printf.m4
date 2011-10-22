@@ -1,4 +1,4 @@
-# printf.m4 serial 43
+# printf.m4 serial 46
 dnl Copyright (C) 2003, 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -178,28 +178,28 @@ static double zero = 0.0;
 int main ()
 {
   int result = 0;
-  if (sprintf (buf, "%f", 1.0 / 0.0) < 0
+  if (sprintf (buf, "%f", 1.0 / zero) < 0
       || (strcmp (buf, "inf") != 0 && strcmp (buf, "infinity") != 0))
     result |= 1;
-  if (sprintf (buf, "%f", -1.0 / 0.0) < 0
+  if (sprintf (buf, "%f", -1.0 / zero) < 0
       || (strcmp (buf, "-inf") != 0 && strcmp (buf, "-infinity") != 0))
     result |= 1;
   if (sprintf (buf, "%f", zero / zero) < 0
       || !strisnan (buf, 0, strlen (buf)))
     result |= 2;
-  if (sprintf (buf, "%e", 1.0 / 0.0) < 0
+  if (sprintf (buf, "%e", 1.0 / zero) < 0
       || (strcmp (buf, "inf") != 0 && strcmp (buf, "infinity") != 0))
     result |= 4;
-  if (sprintf (buf, "%e", -1.0 / 0.0) < 0
+  if (sprintf (buf, "%e", -1.0 / zero) < 0
       || (strcmp (buf, "-inf") != 0 && strcmp (buf, "-infinity") != 0))
     result |= 4;
   if (sprintf (buf, "%e", zero / zero) < 0
       || !strisnan (buf, 0, strlen (buf)))
     result |= 8;
-  if (sprintf (buf, "%g", 1.0 / 0.0) < 0
+  if (sprintf (buf, "%g", 1.0 / zero) < 0
       || (strcmp (buf, "inf") != 0 && strcmp (buf, "infinity") != 0))
     result |= 16;
-  if (sprintf (buf, "%g", -1.0 / 0.0) < 0
+  if (sprintf (buf, "%g", -1.0 / zero) < 0
       || (strcmp (buf, "-inf") != 0 && strcmp (buf, "-infinity") != 0))
     result |= 16;
   if (sprintf (buf, "%g", zero / zero) < 0
@@ -251,6 +251,7 @@ AC_DEFUN([gl_PRINTF_INFINITE_LONG_DOUBLE],
   AC_REQUIRE([gl_PRINTF_LONG_DOUBLE])
   AC_REQUIRE([AC_PROG_CC])
   AC_REQUIRE([gl_BIGENDIAN])
+  AC_REQUIRE([gl_LONG_DOUBLE_VS_DOUBLE])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
   dnl The user can set or unset the variable gl_printf_safe to indicate
   dnl that he wishes a safe handling of non-IEEE-754 'long double' values.
@@ -294,34 +295,34 @@ int main ()
 {
   int result = 0;
   nocrash_init();
-  if (sprintf (buf, "%Lf", 1.0L / 0.0L) < 0
+  if (sprintf (buf, "%Lf", 1.0L / zeroL) < 0
       || (strcmp (buf, "inf") != 0 && strcmp (buf, "infinity") != 0))
     result |= 1;
-  if (sprintf (buf, "%Lf", -1.0L / 0.0L) < 0
+  if (sprintf (buf, "%Lf", -1.0L / zeroL) < 0
       || (strcmp (buf, "-inf") != 0 && strcmp (buf, "-infinity") != 0))
     result |= 1;
   if (sprintf (buf, "%Lf", zeroL / zeroL) < 0
       || !strisnan (buf, 0, strlen (buf)))
     result |= 1;
-  if (sprintf (buf, "%Le", 1.0L / 0.0L) < 0
+  if (sprintf (buf, "%Le", 1.0L / zeroL) < 0
       || (strcmp (buf, "inf") != 0 && strcmp (buf, "infinity") != 0))
     result |= 1;
-  if (sprintf (buf, "%Le", -1.0L / 0.0L) < 0
+  if (sprintf (buf, "%Le", -1.0L / zeroL) < 0
       || (strcmp (buf, "-inf") != 0 && strcmp (buf, "-infinity") != 0))
     result |= 1;
   if (sprintf (buf, "%Le", zeroL / zeroL) < 0
       || !strisnan (buf, 0, strlen (buf)))
     result |= 1;
-  if (sprintf (buf, "%Lg", 1.0L / 0.0L) < 0
+  if (sprintf (buf, "%Lg", 1.0L / zeroL) < 0
       || (strcmp (buf, "inf") != 0 && strcmp (buf, "infinity") != 0))
     result |= 1;
-  if (sprintf (buf, "%Lg", -1.0L / 0.0L) < 0
+  if (sprintf (buf, "%Lg", -1.0L / zeroL) < 0
       || (strcmp (buf, "-inf") != 0 && strcmp (buf, "-infinity") != 0))
     result |= 1;
   if (sprintf (buf, "%Lg", zeroL / zeroL) < 0
       || !strisnan (buf, 0, strlen (buf)))
     result |= 1;
-#if CHECK_PRINTF_SAFE && ((defined __ia64 && LDBL_MANT_DIG == 64) || (defined __x86_64__ || defined __amd64__) || (defined __i386 || defined __i386__ || defined _I386 || defined _M_IX86 || defined _X86_))
+#if CHECK_PRINTF_SAFE && ((defined __ia64 && LDBL_MANT_DIG == 64) || (defined __x86_64__ || defined __amd64__) || (defined __i386 || defined __i386__ || defined _I386 || defined _M_IX86 || defined _X86_)) && !HAVE_SAME_LONG_DOUBLE_AS_DOUBLE
 /* Representation of an 80-bit 'long double' as an initializer for a sequence
    of 'unsigned int' words.  */
 # ifdef WORDS_BIGENDIAN
@@ -478,6 +479,7 @@ AC_DEFUN([gl_PRINTF_DIRECTIVE_A],
 #include <stdio.h>
 #include <string.h>
 static char buf[100];
+static double zero = 0.0;
 int main ()
 {
   int result = 0;
@@ -502,7 +504,7 @@ int main ()
     result |= 4;
   /* This catches a FreeBSD 6.1 bug.  See
      <http://lists.gnu.org/archive/html/bug-gnulib/2007-04/msg00107.html> */
-  if (sprintf (buf, "%010a %d", 1.0 / 0.0, 33, 44, 55) < 0
+  if (sprintf (buf, "%010a %d", 1.0 / zero, 33, 44, 55) < 0
       || buf[0] == '0')
     result |= 8;
   /* This catches a MacOS X 10.3.9 (Darwin 7.9) bug.  */
@@ -562,13 +564,14 @@ AC_DEFUN([gl_PRINTF_DIRECTIVE_F],
 #include <stdio.h>
 #include <string.h>
 static char buf[100];
+static double zero = 0.0;
 int main ()
 {
   int result = 0;
   if (sprintf (buf, "%F %d", 1234567.0, 33, 44, 55) < 0
       || strcmp (buf, "1234567.000000 33") != 0)
     result |= 1;
-  if (sprintf (buf, "%F", 1.0 / 0.0) < 0
+  if (sprintf (buf, "%F", 1.0 / zero) < 0
       || (strcmp (buf, "INF") != 0 && strcmp (buf, "INFINITY") != 0))
     result |= 2;
   /* This catches a Cygwin 1.5.x bug.  */
@@ -615,12 +618,27 @@ AC_DEFUN([gl_PRINTF_DIRECTIVE_N],
       AC_RUN_IFELSE(
         [AC_LANG_SOURCE([[
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#ifdef _MSC_VER
+/* See page about "Parameter Validation" on msdn.microsoft.com.  */
+static void cdecl
+invalid_parameter_handler (const wchar_t *expression,
+                           const wchar_t *function,
+                           const wchar_t *file, unsigned int line,
+                           uintptr_t dummy)
+{
+  exit (1);
+}
+#endif
 static char fmtstring[10];
 static char buf[100];
 int main ()
 {
   int count = -1;
+#ifdef _MSC_VER
+  _set_invalid_parameter_handler (invalid_parameter_handler);
+#endif
   /* Copy the format string.  Some systems (glibc with _FORTIFY_SOURCE=2)
      support %n in format strings in read-only memory but not in writable
      memory.  */
@@ -636,7 +654,8 @@ int main ()
         [
 changequote(,)dnl
          case "$host_os" in
-           *)     gl_cv_func_printf_directive_n="guessing yes";;
+           mingw*) gl_cv_func_printf_directive_n="guessing no";;
+           *)      gl_cv_func_printf_directive_n="guessing yes";;
          esac
 changequote([,])dnl
         ])
@@ -862,9 +881,10 @@ AC_DEFUN([gl_PRINTF_FLAG_ZERO],
 #include <stdio.h>
 #include <string.h>
 static char buf[100];
+static double zero = 0.0;
 int main ()
 {
-  if (sprintf (buf, "%010f", 1.0 / 0.0, 33, 44, 55) < 0
+  if (sprintf (buf, "%010f", 1.0 / zero, 33, 44, 55) < 0
       || (strcmp (buf, "       inf") != 0
           && strcmp (buf, "  infinity") != 0))
     return 1;
@@ -1076,6 +1096,7 @@ AC_DEFUN([gl_SNPRINTF_TRUNCATION_C99],
 [
   AC_REQUIRE([AC_PROG_CC])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_REQUIRE([gl_SNPRINTF_PRESENCE])
   AC_CACHE_CHECK([whether snprintf truncates the result as in C99],
     [gl_cv_func_snprintf_truncation_c99],
     [
@@ -1083,11 +1104,25 @@ AC_DEFUN([gl_SNPRINTF_TRUNCATION_C99],
         [AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>
+#if HAVE_SNPRINTF
+# define my_snprintf snprintf
+#else
+# include <stdarg.h>
+static int my_snprintf (char *buf, int size, const char *format, ...)
+{
+  va_list args;
+  int ret;
+  va_start (args, format);
+  ret = vsnprintf (buf, size, format, args);
+  va_end (args);
+  return ret;
+}
+#endif
 static char buf[100];
 int main ()
 {
   strcpy (buf, "ABCDEF");
-  snprintf (buf, 3, "%d %d", 4567, 89);
+  my_snprintf (buf, 3, "%d %d", 4567, 89);
   if (memcmp (buf, "45\0DEF", 6) != 0)
     return 1;
   return 0;
@@ -1157,6 +1192,7 @@ AC_DEFUN_ONCE([gl_SNPRINTF_RETVAL_C99],
 [
   AC_REQUIRE([AC_PROG_CC])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_REQUIRE([gl_SNPRINTF_PRESENCE])
   AC_CACHE_CHECK([whether snprintf returns a byte count as in C99],
     [gl_cv_func_snprintf_retval_c99],
     [
@@ -1164,15 +1200,29 @@ AC_DEFUN_ONCE([gl_SNPRINTF_RETVAL_C99],
         [AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>
+#if HAVE_SNPRINTF
+# define my_snprintf snprintf
+#else
+# include <stdarg.h>
+static int my_snprintf (char *buf, int size, const char *format, ...)
+{
+  va_list args;
+  int ret;
+  va_start (args, format);
+  ret = vsnprintf (buf, size, format, args);
+  va_end (args);
+  return ret;
+}
+#endif
 static char buf[100];
 int main ()
 {
   strcpy (buf, "ABCDEF");
-  if (snprintf (buf, 3, "%d %d", 4567, 89) != 7)
+  if (my_snprintf (buf, 3, "%d %d", 4567, 89) != 7)
     return 1;
-  if (snprintf (buf, 0, "%d %d", 4567, 89) != 7)
+  if (my_snprintf (buf, 0, "%d %d", 4567, 89) != 7)
     return 2;
-  if (snprintf (NULL, 0, "%d %d", 4567, 89) != 7)
+  if (my_snprintf (NULL, 0, "%d %d", 4567, 89) != 7)
     return 3;
   return 0;
 }]])],
@@ -1221,6 +1271,7 @@ AC_DEFUN([gl_SNPRINTF_DIRECTIVE_N],
 [
   AC_REQUIRE([AC_PROG_CC])
   AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_REQUIRE([gl_SNPRINTF_PRESENCE])
   AC_CACHE_CHECK([whether snprintf fully supports the 'n' directive],
     [gl_cv_func_snprintf_directive_n],
     [
@@ -1228,6 +1279,20 @@ AC_DEFUN([gl_SNPRINTF_DIRECTIVE_N],
         [AC_LANG_SOURCE([[
 #include <stdio.h>
 #include <string.h>
+#if HAVE_SNPRINTF
+# define my_snprintf snprintf
+#else
+# include <stdarg.h>
+static int my_snprintf (char *buf, int size, const char *format, ...)
+{
+  va_list args;
+  int ret;
+  va_start (args, format);
+  ret = vsnprintf (buf, size, format, args);
+  va_end (args);
+  return ret;
+}
+#endif
 static char fmtstring[10];
 static char buf[100];
 int main ()
@@ -1237,7 +1302,7 @@ int main ()
      support %n in format strings in read-only memory but not in writable
      memory.  */
   strcpy (fmtstring, "%d %n");
-  snprintf (buf, 4, fmtstring, 12345, &count, 33, 44, 55);
+  my_snprintf (buf, 4, fmtstring, 12345, &count, 33, 44, 55);
   if (count != 6)
     return 1;
   return 0;
@@ -1289,16 +1354,31 @@ dnl Result is gl_cv_func_snprintf_size1.
 AC_DEFUN([gl_SNPRINTF_SIZE1],
 [
   AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([gl_SNPRINTF_PRESENCE])
   AC_CACHE_CHECK([whether snprintf respects a size of 1],
     [gl_cv_func_snprintf_size1],
     [
       AC_RUN_IFELSE(
         [AC_LANG_SOURCE([[
 #include <stdio.h>
+#if HAVE_SNPRINTF
+# define my_snprintf snprintf
+#else
+# include <stdarg.h>
+static int my_snprintf (char *buf, int size, const char *format, ...)
+{
+  va_list args;
+  int ret;
+  va_start (args, format);
+  ret = vsnprintf (buf, size, format, args);
+  va_end (args);
+  return ret;
+}
+#endif
 int main()
 {
   static char buf[8] = { 'D', 'E', 'A', 'D', 'B', 'E', 'E', 'F' };
-  snprintf (buf, 1, "%d", 12345);
+  my_snprintf (buf, 1, "%d", 12345);
   return buf[1] != 'E';
 }]])],
         [gl_cv_func_snprintf_size1=yes],
@@ -1483,4 +1563,7 @@ dnl   NetBSD 4.0                     .  ?  ?  ?  ?  ?  .  ?  .  ?  ?  ?  ?  ?  .
 dnl   NetBSD 3.0                     .  .  .  .  #  #  .  ?  #  #  ?  #  .  #  .  .  .  .  .  .
 dnl   Haiku                          .  .  .  #  #  #  .  #  .  .  .  .  .  ?  .  .  ?  .  .  .
 dnl   BeOS                           #  #  .  #  #  #  .  ?  #  .  ?  .  #  ?  .  .  ?  .  .  .
-dnl   mingw                          #  #  #  #  #  #  .  .  #  #  .  #  #  ?  .  #  #  #  .  .
+dnl   old mingw / msvcrt             #  #  #  #  #  #  .  .  #  #  .  #  #  ?  .  #  #  #  .  .
+dnl   MSVC 9                         #  #  #  #  #  #  #  .  #  #  .  #  #  ?  #  #  #  #  .  .
+dnl   mingw 2009-2011                .  #  .  #  .  .  .  .  #  #  .  .  .  ?  .  .  .  .  .  .
+dnl   mingw-w64 2011                 #  #  #  #  #  #  .  .  #  #  .  #  #  ?  .  #  #  #  .  .

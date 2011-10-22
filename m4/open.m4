@@ -1,4 +1,4 @@
-# open.m4 serial 12
+# open.m4 serial 13
 dnl Copyright (C) 2007-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -9,7 +9,7 @@ AC_DEFUN([gl_FUNC_OPEN],
   AC_REQUIRE([AC_CANONICAL_HOST])
   case "$host_os" in
     mingw* | pw*)
-      gl_REPLACE_OPEN
+      REPLACE_OPEN=1
       ;;
     *)
       dnl open("foo/") should not create a file when the file name has a
@@ -57,28 +57,30 @@ changequote([,])dnl
         *no)
           AC_DEFINE([OPEN_TRAILING_SLASH_BUG], [1],
             [Define to 1 if open() fails to recognize a trailing slash.])
-          gl_REPLACE_OPEN
+          REPLACE_OPEN=1
           ;;
       esac
       ;;
   esac
+  dnl Replace open() for supporting the gnulib-defined fchdir() function,
+  dnl to keep fchdir's bookkeeping up-to-date.
+  m4_ifdef([gl_FUNC_FCHDIR], [
+    if test $REPLACE_OPEN = 0; then
+      gl_TEST_FCHDIR
+      if test $HAVE_FCHDIR = 0; then
+        REPLACE_OPEN=1
+      fi
+    fi
+  ])
   dnl Replace open() for supporting the gnulib-defined O_NONBLOCK flag.
   m4_ifdef([gl_NONBLOCKING_IO], [
     if test $REPLACE_OPEN = 0; then
       gl_NONBLOCKING_IO
       if test $gl_cv_have_open_O_NONBLOCK != yes; then
-        gl_REPLACE_OPEN
+        REPLACE_OPEN=1
       fi
     fi
   ])
-])
-
-AC_DEFUN([gl_REPLACE_OPEN],
-[
-  AC_REQUIRE([gl_FCNTL_H_DEFAULTS])
-  REPLACE_OPEN=1
-  AC_LIBOBJ([open])
-  gl_PREREQ_OPEN
 ])
 
 # Prerequisites of lib/open.c.
