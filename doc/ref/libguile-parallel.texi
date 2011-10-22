@@ -36,9 +36,30 @@ to get the compilation and linking flags necessary to link to version
 @code{pkg-config} during the configuration phase of your program and use
 the obtained information in the Makefile.
 
+Guile's @code{pkg-config} file,
+@file{guile-@value{EFFECTIVE-VERSION}.pc}, defines additional useful
+variables:
+
+@table @code
+@item sitedir
+@cindex @code{sitedir}
+The default directory where Guile looks for Scheme source and compiled
+files (@pxref{Installing Site Packages, %site-dir}).  Run
+@command{pkg-config guile-@value{EFFECTIVE-VERSION} --variable=sitedir}
+to see its value.  @xref{Autoconf Macros, GUILE_SITE_DIR}, for more on
+how to use it from Autoconf.
+
+@item extensiondir
+@cindex @code{extensiondir}
+The default directory where Guile looks for extensions---i.e., shared
+libraries providing additional features (@pxref{Modules and
+Extensions}).  Run @command{pkg-config guile-@value{EFFECTIVE-VERSION}
+--variable=extensiondir} to see its value.
+@end table
+
+@noindent
 See the @code{pkg-config} man page, for more information, or its web
 site, @url{http://pkg-config.freedesktop.org/}.
-
 @xref{Autoconf Support}, for more on checking for Guile from within a
 @code{configure.ac} file.
 
