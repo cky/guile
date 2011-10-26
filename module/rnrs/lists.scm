@@ -22,8 +22,7 @@
 	  remv remq memp member memv memq assp assoc assv assq cons*)
   (import (rnrs base (6))
           (only (guile) filter member memv memq assoc assv assq cons*)
-	  (rename (only (srfi srfi-1) fold 
-			              any 
+	  (rename (only (srfi srfi-1) any 
 				      every 
 				      remove 
 				      member 
@@ -32,13 +31,20 @@
 				      partition
 				      fold-right 
 				      filter-map)
-		  (fold fold-left) 
 		  (any exists) 
 		  (every for-all)
 		  (remove remp)
 		  
 		  (member memp-internal)
 		  (assoc assp-internal)))
+
+  (define (fold-left combine nil list . lists)
+    (define (fold nil lists)
+      (if (exists null? lists)
+          nil
+          (fold (apply combine nil (map car lists))
+                (map cdr lists))))
+    (fold nil (cons list lists)))
 
   (define (remove obj list) (remp (lambda (elt) (equal? obj elt)) list))
   (define (remv obj list) (remp (lambda (elt) (eqv? obj elt)) list))

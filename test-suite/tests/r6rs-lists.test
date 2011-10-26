@@ -30,3 +30,29 @@
     (let ((d '((3 a) (1 b) (4 c))))
       (equal? (assp even? d) '(4 c)))))
 
+(with-test-prefix "fold-left"
+  (pass-if "fold-left sum"
+    (equal? (fold-left + 0 '(1 2 3 4 5))
+            15))
+  (pass-if "fold-left reverse"
+    (equal? (fold-left (lambda (a e) (cons e a)) '() '(1 2 3 4 5))
+            '(5 4 3 2 1)))
+  (pass-if "fold-left max-length"
+    (equal? (fold-left (lambda (max-len s)
+                         (max max-len (string-length s)))
+                       0
+                       '("longest" "long" "longer"))
+            7))
+  (pass-if "fold-left with-cons"
+    (equal? (fold-left cons '(q) '(a b c))
+            '((((q) . a) . b) . c)))
+  (pass-if "fold-left sum-multiple"
+    (equal? (fold-left + 0 '(1 2 3) '(4 5 6))
+            21))
+  (pass-if "fold-left pairlis"
+    (equal? (fold-left (lambda (accum e1 e2)
+                         (cons (cons e1 e2) accum))
+                       '((d . 4))
+                       '(a b c)
+                       '(1 2 3))
+            '((c . 3) (b . 2) (a . 1) (d  . 4)))))

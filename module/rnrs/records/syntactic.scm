@@ -134,13 +134,13 @@
               (let* ((fields (if (unspecified? _fields) '() _fields))
                      (field-names (list->vector (map car fields)))
                      (field-accessors
-                      (fold-left (lambda (x c lst)
+                      (fold-left (lambda (lst x c)
                                    (cons #`(define #,(cadr x)
                                              (record-accessor record-name #,c))
                                          lst))
                                  '() fields (sequence (length fields))))
                      (field-mutators
-                      (fold-left (lambda (x c lst)
+                      (fold-left (lambda (lst x c)
                                    (if (caddr x)
                                        (cons #`(define #,(caddr x)
                                                  (record-mutator record-name
