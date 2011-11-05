@@ -52,7 +52,7 @@
 ;;;   bound-identifier=?
 ;;;   datum->syntax
 ;;;   define-syntax
-;;;   fluid-let-syntax
+;;;   syntax-parameterize
 ;;;   free-identifier=?
 ;;;   generate-temporaries
 ;;;   identifier?
@@ -1763,7 +1763,7 @@
     (global-extend 'local-syntax 'letrec-syntax #t)
     (global-extend 'local-syntax 'let-syntax #f)
 
-    (global-extend 'core 'fluid-let-syntax
+    (global-extend 'core 'syntax-parameterize
                    (lambda (e r w s mod)
                      (syntax-case e ()
                        ((_ ((var val) ...) e1 e2 ...)
@@ -1773,7 +1773,7 @@
                            (lambda (id n)
                              (case (binding-type (lookup n r mod))
                                ((displaced-lexical)
-                                (syntax-violation 'fluid-let-syntax
+                                (syntax-violation 'syntax-parameterize
                                                   "identifier out of context"
                                                   e
                                                   (source-wrap id w s mod)))))
@@ -1793,7 +1793,7 @@
                             r)
                            w
                            mod)))
-                       (_ (syntax-violation 'fluid-let-syntax "bad syntax"
+                       (_ (syntax-violation 'syntax-parameterize "bad syntax"
                                             (source-wrap e w s mod))))))
 
     (global-extend 'core 'quote

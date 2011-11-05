@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -68,7 +68,8 @@
             top-repl
             turn-on-debugging
             read-hash-procedures
-            process-define-module))
+            process-define-module
+            fluid-let-syntax))
 
 
 ;;;; Deprecated definitions.
@@ -869,3 +870,12 @@ it.")
                    imports exports re-exports replacements autoloads))
             (else
              (unrecognized kws)))))))
+
+(define-syntax fluid-let-syntax
+  (lambda (x)
+    (issue-deprecation-warning
+     "`fluid-let-syntax' is deprecated.  Use syntax parameters instead.")
+    (syntax-case x ()
+      ((_ ((k v) ...) body0 body ...)
+       #'(syntax-parameterize ((k v) ...)
+           body0 body ...)))))
