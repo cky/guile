@@ -497,6 +497,7 @@
     ;;               (begin)                         begin
     ;;               (define)                        define
     ;;               (define-syntax)                 define-syntax
+    ;;               (define-syntax-parameter)       define-syntax-parameter
     ;;               (local-syntax . rec?)           let-syntax/letrec-syntax
     ;;               (eval-when)                     eval-when
     ;;               (syntax . (<var> . <level>))    pattern variables
@@ -506,11 +507,11 @@
     ;; <level>   ::= <nonnegative integer>
     ;; <var>     ::= variable returned by build-lexical-var
 
-    ;; a macro is a user-defined syntactic-form.  a core is a system-defined
-    ;; syntactic form.  begin, define, define-syntax, and eval-when are
-    ;; treated specially since they are sensitive to whether the form is
-    ;; at top-level and (except for eval-when) can denote valid internal
-    ;; definitions.
+    ;; a macro is a user-defined syntactic-form.  a core is a
+    ;; system-defined syntactic form.  begin, define, define-syntax,
+    ;; define-syntax-parameter, and eval-when are treated specially
+    ;; since they are sensitive to whether the form is at top-level and
+    ;; (except for eval-when) can denote valid internal definitions.
 
     ;; a pattern variable is a variable introduced by syntax-case and can
     ;; be referenced only within a syntax form.
@@ -941,7 +942,7 @@
                                 (values exps))
                                (else
                                 (values exps)))))))
-                        ((define-syntax-form)
+                        ((define-syntax-form define-syntax-parameter-form)
                          (let ((n (id-var-name value w)) (r (macros-only-env r)))
                            (case m
                              ((c)
@@ -1058,6 +1059,7 @@
     ;;    begin                  none          begin keyword
     ;;    define                 none          define keyword
     ;;    define-syntax          none          define-syntax keyword
+    ;;    define-syntax-parameter none         define-syntax-parameter keyword
     ;;    local-syntax           rec?          letrec-syntax/let-syntax keyword
     ;;    eval-when              none          eval-when keyword
     ;;    syntax                 level         pattern variable
@@ -1068,18 +1070,20 @@
     ;;    begin-form             none          begin expression
     ;;    define-form            id            variable definition
     ;;    define-syntax-form     id            syntax definition
+    ;;    define-syntax-parameter-form id      syntax parameter definition
     ;;    local-syntax-form      rec?          syntax definition
     ;;    eval-when-form         none          eval-when form
     ;;    constant               none          self-evaluating datum
     ;;    other                  none          anything else
     ;;
-    ;; For define-form and define-syntax-form, e is the rhs expression.
-    ;; For all others, e is the entire form.  w is the wrap for e.
-    ;; s is the source for the entire form. mod is the module for e.
+    ;; For definition forms (define-form, define-syntax-parameter-form,
+    ;; and define-syntax-form), e is the rhs expression.  For all
+    ;; others, e is the entire form.  w is the wrap for e.  s is the
+    ;; source for the entire form. mod is the module for e.
     ;;
-    ;; syntax-type expands macros and unwraps as necessary to get to
-    ;; one of the forms above.  It also parses define and define-syntax
-    ;; forms, although perhaps this should be done by the consumer.
+    ;; syntax-type expands macros and unwraps as necessary to get to one
+    ;; of the forms above.  It also parses definition forms, although
+    ;; perhaps this should be done by the consumer.
 
     (define syntax-type
       (lambda (e r w s rib mod for-car?)
@@ -1149,8 +1153,12 @@
                    (syntax-case e ()
                      ((_ name val)
                       (id? #'name)
-                      (values 'define-syntax-form #'name
-                              #'val w s mod))))
+                      (values 'define-syntax-form #'name #'val w s mod))))
+                  ((define-syntax-parameter)
+                   (syntax-case e ()
+                     ((_ name val)
+                      (id? #'name)
+                      (values 'define-syntax-parameter-form #'name #'val w s mod))))
                   (else
                    (values 'call #f e w s mod)))))))
          ((syntax-object? e)
@@ -1223,7 +1231,7 @@
                 (if (memq 'eval when-list)
                     (expand-sequence #'(e1 e2 ...) r w s mod)
                     (expand-void))))))
-          ((define-form define-syntax-form)
+          ((define-form define-syntax-form define-syntax-parameter-form)
            (syntax-violation #f "definition in expression context"
                              e (wrap value w mod)))
           ((syntax)
@@ -1378,7 +1386,7 @@
                                     (cons id var-ids)
                                     (cons var vars) (cons (cons er (wrap e w mod)) vals)
                                     (cons (make-binding 'lexical var) bindings)))))
-                        ((define-syntax-form)
+                        ((define-syntax-form define-syntax-parameter-form)
                          (let ((id (wrap value w mod)) (label (gen-label)))
                            (extend-ribcage! ribcage id label)
                            (parse (cdr body)
@@ -2211,6 +2219,7 @@
     (global-extend 'define 'define '())
 
     (global-extend 'define-syntax 'define-syntax '())
+    (global-extend 'define-syntax-parameter 'define-syntax-parameter '())
 
     (global-extend 'eval-when 'eval-when '())
 
