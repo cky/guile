@@ -530,16 +530,18 @@ top-level bindings from ENV and return the resulting expression."
                    (make-sequence src (append head (list tail)))))))))))
 
   (define (constant-expression? x)
-    ;; Return true if X is constant---i.e., if it is known to have no
-    ;; effects, does not allocate storage for a mutable object, and does
-    ;; not access mutable data (like `car' or toplevel references).
+    ;; Return true if X is constant, for the purposes of copying or
+    ;; elision---i.e., if it is known to have no effects, does not
+    ;; allocate storage for a mutable object, and does not access
+    ;; mutable data (like `car' or toplevel references).
     (let loop ((x x))
       (match x
         (($ <void>) #t)
         (($ <const>) #t)
         (($ <lambda>) #t)
-        (($ <lambda-case> _ req opt rest kw inits _ body alternate)
-         (and (every loop inits) (loop body)
+        (($ <lambda-case> _ req opt rest kw inits syms body alternate)
+         (and (not (any assigned-lexical? syms))
+              (every loop inits) (loop body)
               (or (not alternate) (loop alternate))))
         (($ <lexical-ref> _ _ gensym)
          (not (assigned-lexical? gensym)))
@@ -556,10 +558,12 @@ top-level bindings from ENV and return the resulting expression."
          (and (loop body) (every loop args)))
         (($ <sequence> _ exps)
          (every loop exps))
-        (($ <let> _ _ _ vals body)
-         (and (every loop vals) (loop body)))
-        (($ <letrec> _ _ _ _ vals body)
-         (and (every loop vals) (loop body)))
+        (($ <let> _ _ syms vals body)
+         (and (not (any assigned-lexical? syms))
+              (every loop vals) (loop body)))
+        (($ <letrec> _ _ _ syms vals body)
+         (and (not (any assigned-lexical? syms))
+              (every loop vals) (loop body)))
         (($ <fix> _ _ _ vals body)
          (and (every loop vals) (loop body)))
         (($ <let-values> _ exp body)
@@ -830,8 +834,10 @@ top-level bindings from ENV and return the resulting expression."
                  (ops (make-bound-operands vars new vals visit))
                  (env* (fold extend-env env gensyms ops))
                  (body* (visit body counter ctx)))
-         (if (and (const? body*)
-                  (every constant-expression? vals))
+         (if (and (const? body*) (every constant-expression? vals))
+             ;; We may have folded a loop completely, even though there
+             ;; might be cyclical references between the bound values.
+             ;; Handle this degenerate case specially.
              body*
              (prune-bindings ops in-order? body* counter ctx
                              (lambda (names gensyms vals body)
