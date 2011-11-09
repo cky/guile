@@ -870,8 +870,39 @@ top-level bindings from ENV and return the resulting expression."
                (_ #f))
              (make-let-values lv-src producer (for-tail consumer)))))
       (($ <dynwind> src winder body unwinder)
-       (make-dynwind src (for-value winder) (for-tail body)
-                     (for-value unwinder)))
+       (let ((pre (for-value winder))
+             (body (for-tail body))
+             (post (for-value unwinder)))
+         (cond
+          ((not (constant-expression? pre))
+           (cond
+            ((not (constant-expression? post))
+             (let ((pre-sym (gensym "pre ")) (post-sym (gensym "post ")))
+               (record-new-temporary! 'pre pre-sym 1)
+               (record-new-temporary! 'post post-sym 1)
+               (make-let src '(pre post) (list pre-sym post-sym) (list pre post)
+                         (make-dynwind src
+                                       (make-lexical-ref #f 'pre pre-sym)
+                                       body
+                                       (make-lexical-ref #f 'post post-sym)))))
+            (else
+             (let ((pre-sym (gensym "pre ")))
+               (record-new-temporary! 'pre pre-sym 1)
+               (make-let src '(pre) (list pre-sym) (list pre)
+                         (make-dynwind src
+                                       (make-lexical-ref #f 'pre pre-sym)
+                                       body
+                                       post))))))
+          ((not (constant-expression? post))
+           (let ((post-sym (gensym "post ")))
+             (record-new-temporary! 'post post-sym 1)
+             (make-let src '(post) (list post-sym) (list post)
+                       (make-dynwind src
+                                     pre
+                                     body
+                                     (make-lexical-ref #f 'post post-sym)))))
+          (else
+           (make-dynwind src pre body post)))))
       (($ <dynlet> src fluids vals body)
        (make-dynlet src (map for-value fluids) (map for-value vals)
                     (for-tail body)))

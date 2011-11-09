@@ -1457,6 +1457,26 @@
   
   (pass-if-peval
    resolve-primitives
+   ;; Non-constant guards get lexical bindings.
+   (dynamic-wind foo (lambda () bar) baz)
+   (let (pre post) (_ _) ((toplevel foo) (toplevel baz))
+        (dynwind (lexical pre _) (toplevel bar) (lexical post _))))
+  
+  (pass-if-peval
+   resolve-primitives
+   ;; Constant guards don't need lexical bindings.
+   (dynamic-wind (lambda () foo) (lambda () bar) (lambda () baz))
+   (dynwind
+    (lambda ()
+      (lambda-case
+       ((() #f #f #f () ()) (toplevel foo))))
+    (toplevel bar)
+    (lambda ()
+      (lambda-case
+       ((() #f #f #f () ()) (toplevel baz))))))
+  
+  (pass-if-peval
+   resolve-primitives
    ;; Prompt is removed if tag is unreferenced
    (let ((tag (make-prompt-tag)))
      (call-with-prompt tag
