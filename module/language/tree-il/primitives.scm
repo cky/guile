@@ -473,36 +473,19 @@
             'dynamic-wind
             (case-lambda
               ((src pre thunk post)
-               ;; Here we will make concessions to the fact that our inliner is
-               ;; lame, and add a hack.
-               (cond
-                ((lambda? thunk)
-                 (let ((PRE (gensym " pre"))
-                       (POST (gensym " post")))
-                   (make-let
-                    src
-                    '(pre post)
-                    (list PRE POST)
-                    (list pre post)
-                    (make-dynwind
-                     src
-                     (make-lexical-ref #f 'pre PRE)
-                     (make-application #f thunk '())
-                     (make-lexical-ref #f 'post POST)))))
-                (else
-                 (let ((PRE (gensym " pre"))
-                       (THUNK (gensym " thunk"))
-                       (POST (gensym " post")))
-                   (make-let
-                    src
-                    '(pre thunk post)
-                    (list PRE THUNK POST)
-                    (list pre thunk post)
-                    (make-dynwind
-                     src
-                     (make-lexical-ref #f 'pre PRE)
-                     (make-application #f (make-lexical-ref #f 'thunk THUNK) '())
-                     (make-lexical-ref #f 'post POST)))))))
+               (let ((PRE (gensym " pre"))
+                     (THUNK (gensym " thunk"))
+                     (POST (gensym " post")))
+                 (make-let
+                  src
+                  '(pre thunk post)
+                  (list PRE THUNK POST)
+                  (list pre thunk post)
+                  (make-dynwind
+                   src
+                   (make-lexical-ref #f 'pre PRE)
+                   (make-application #f (make-lexical-ref #f 'thunk THUNK) '())
+                   (make-lexical-ref #f 'post POST)))))
               (else #f)))
 
 (hashq-set! *primitive-expand-table*
