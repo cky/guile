@@ -310,9 +310,9 @@
     ((<let-values> exp body)
      `(let-values ,(unparse-tree-il exp) ,(unparse-tree-il body)))
 
-    ((<dynwind> body winder unwinder)
-     `(dynwind ,(unparse-tree-il body)
-               ,(unparse-tree-il winder) ,(unparse-tree-il unwinder)))
+    ((<dynwind> winder body unwinder)
+     `(dynwind ,(unparse-tree-il winder) ,(unparse-tree-il body)
+               ,(unparse-tree-il unwinder)))
 
     ((<dynlet> fluids vals body)
      `(dynlet ,(map unparse-tree-il fluids) ,(map unparse-tree-il vals)
