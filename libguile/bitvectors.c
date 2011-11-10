@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -568,7 +568,7 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
 	    "\n"
 	    "If @var{kv} is a bit vector, then those entries where it has\n"
 	    "@code{#t} are the ones in @var{v} which are set to @var{obj}.\n"
-	    "@var{kv} and @var{v} must be the same length.  When @var{obj}\n"
+	    "@var{v} must be at least as long as @var{kv}.  When @var{obj}\n"
 	    "is @code{#t} it's like @var{kv} is OR'ed into @var{v}.  Or when\n"
 	    "@var{obj} is @code{#f} it can be seen as an ANDNOT.\n"
 	    "\n"
@@ -611,10 +611,10 @@ SCM_DEFINE (scm_bit_set_star_x, "bit-set*!", 3, 0, 0,
       ssize_t kv_inc;
       const scm_t_uint32 *kv_bits;
       
-      kv_bits = scm_bitvector_elements (v, &kv_handle,
+      kv_bits = scm_bitvector_elements (kv, &kv_handle,
 					&kv_off, &kv_len, &kv_inc);
 
-      if (v_len != kv_len)
+      if (v_len < kv_len)
 	scm_misc_error (NULL,
 			"bit vectors must have equal length",
 			SCM_EOL);

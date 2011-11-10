@@ -1,6 +1,6 @@
 ;;;; bitvectors.test --- tests guile's bitvectors     -*- scheme -*-
 ;;;;
-;;;; Copyright 2010 Free Software Foundation, Inc.
+;;;; Copyright 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -55,5 +55,20 @@
       (uniform-vector-set! bv 0 #t)
       (pass-if (eqv? (uniform-vector-ref bv 0) #t)))))
 
-
-
+(with-test-prefix "bit-set*!"
+  (pass-if "#t"
+    (let ((v (bitvector #t #t #f #f)))
+      (bit-set*! v #*1010 #t)
+      (equal? v #*1110)))
+  (pass-if "#f"
+    (let ((v (bitvector #t #t #f #f)))
+      (bit-set*! v #*1010 #f)
+      (equal? v #*0100)))
+  (pass-if "#t, shorter"
+    (let ((v (bitvector #t #t #f #f)))
+      (bit-set*! v #*101 #t)
+      (equal? v #*1110)))
+  (pass-if "#f, shorter"
+    (let ((v (bitvector #t #t #f #f)))
+      (bit-set*! v #*101 #f)
+      (equal? v #*0100))))
