@@ -399,7 +399,9 @@
             (call new-frame 0) (toplevel ref bar) (call call 0)
             (bind (x #f 2) (y #f 3)) (lexical #t #f set 3) (lexical #t #f set 2)
             (lexical #t #f ref 2) (lexical #t #t set 0)
-            (lexical #t #f ref 3) (lexical #t #t set 1) (unbind)
+            (lexical #t #f ref 3) (lexical #t #t set 1)
+            (void) (lexical #t #f set 2) (void) (lexical #t #f set 3) ;; clear bindings
+            (unbind)
             (lexical #t #t ref 0) (lexical #t #t ref 1)
             (call add 2) (call return 1) (unbind)))
   
