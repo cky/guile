@@ -51,9 +51,25 @@ SCM_GLOBAL_SYMBOL (scm_sym_name, "name");
 static SCM overrides;
 static scm_i_pthread_mutex_t overrides_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
+static SCM arity_overrides;
+
 int
 scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
 {
+  SCM o;
+
+  scm_i_pthread_mutex_lock (&overrides_lock);
+  o = scm_hashq_ref (arity_overrides, proc, SCM_BOOL_F);
+  scm_i_pthread_mutex_unlock (&overrides_lock);
+
+  if (scm_is_true (o))
+    {
+      *req = scm_to_int (scm_car (o));
+      *opt = scm_to_int (scm_cadr (o));
+      *rest = scm_is_true (scm_caddr (o));
+      return 1;
+    }
+
   while (!SCM_PROGRAM_P (proc))
     {
       if (SCM_IMP (proc))
@@ -74,8 +90,28 @@ scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
           return 0;
         }
     }
+
   return scm_i_program_arity (proc, req, opt, rest);
 }
+
+SCM_DEFINE (scm_set_procedure_minimum_arity_x, "set-procedure-minimum-arity!",
+            4, 0, 0, (SCM proc, SCM req, SCM opt, SCM rest),
+            "")
+#define FUNC_NAME s_scm_set_procedure_minimum_arity_x
+{
+  int t SCM_UNUSED;
+
+  SCM_VALIDATE_PROC (1, proc);
+  SCM_VALIDATE_INT_COPY (2, req, t);
+  SCM_VALIDATE_INT_COPY (3, opt, t);
+  SCM_VALIDATE_BOOL (4, rest);
+
+  scm_i_pthread_mutex_lock (&overrides_lock);
+  scm_hashq_set_x (arity_overrides, proc, scm_list_3 (req, opt, rest));
+  scm_i_pthread_mutex_unlock (&overrides_lock);
+  return SCM_UNDEFINED;
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_procedure_minimum_arity, "procedure-minimum-arity", 1, 0, 0, 
            (SCM proc),
@@ -207,6 +243,7 @@ void
 scm_init_procprop ()
 {
   overrides = scm_make_weak_key_hash_table (SCM_UNDEFINED);
+  arity_overrides = scm_make_weak_key_hash_table (SCM_UNDEFINED);
 #include "libguile/procprop.x"
 }
 

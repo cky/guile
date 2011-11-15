@@ -1,7 +1,7 @@
 ;;;; procprop.test --- Procedure properties -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -52,4 +52,19 @@
 
   (pass-if "list"
     (equal? (procedure-minimum-arity list)
-            '(0 0 #t))))
+            '(0 0 #t)))
+
+  (pass-if "fixed, eval"
+    (equal? (procedure-minimum-arity (eval '(lambda (a b) #t)
+                                           (current-module)))
+            '(2 0 #f)))
+
+  (pass-if "rest, eval"
+    (equal? (procedure-minimum-arity (eval '(lambda (a b . c) #t)
+                                           (current-module)))
+            '(2 0 #t)))
+
+  (pass-if "opt, eval"
+    (equal? (procedure-minimum-arity (eval '(lambda* (a b #:optional c) #t)
+                                           (current-module)))
+            '(2 1 #f))))

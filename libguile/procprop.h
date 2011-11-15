@@ -36,6 +36,8 @@ SCM_API SCM scm_sym_system_procedure;
 
 
 SCM_INTERNAL int scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest);
+SCM_API SCM scm_set_procedure_minimum_arity_x (SCM proc, SCM req, SCM opt,
+                                               SCM rest);
 SCM_API SCM scm_procedure_minimum_arity (SCM proc);
 SCM_API SCM scm_procedure_properties (SCM proc);
 SCM_API SCM scm_set_procedure_properties_x (SCM proc, SCM alist);
