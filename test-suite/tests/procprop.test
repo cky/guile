@@ -26,7 +26,12 @@
     (eq? 'display (procedure-name display)))
 
   (pass-if "gsubr"
-    (eq? 'hashq-ref (procedure-name hashq-ref))))
+    (eq? 'hashq-ref (procedure-name hashq-ref)))
+
+  (pass-if "from eval"
+    (eq? 'foobar (procedure-name
+                  (eval '(begin (define (foobar) #t) foobar)
+                        (current-module))))))
 
 
 (with-test-prefix "procedure-arity"

@@ -425,7 +425,10 @@
               (memoize-variable-access! exp #f))))
 
         (('define (name . x))
-         (define! name (eval x env)))
+         (let ((x (eval x env)))
+           (if (and (procedure? x) (not (procedure-property x 'name)))
+               (set-procedure-property! x 'name name))
+           (define! name x)))
       
         (('toplevel-set! (var-or-sym . x))
          (variable-set!
