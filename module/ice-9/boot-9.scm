@@ -2923,7 +2923,26 @@ module '(ice-9 q) '(make-q q-length))}."
 (define repl-reader
   (lambda* (prompt #:optional (reader (fluid-ref current-reader)))
     (if (not (char-ready?))
-        (display (if (string? prompt) prompt (prompt))))
+        (begin
+          (display (if (string? prompt) prompt (prompt)))
+          ;; An interesting situation.  The printer resets the column to
+          ;; 0 by printing a newline, but we then advance it by printing
+          ;; the prompt.  However the port-column of the output port
+          ;; does not typically correspond with the actual column on the
+          ;; screen, because the input is is echoed back!  Since the
+          ;; input is line-buffered and thus ends with a newline, the
+          ;; output will really start on column zero.  So, here we zero
+          ;; it out.  See bug 9664.
+          ;;
+          ;; Note that for similar reasons, the output-line will not
+          ;; reflect the actual line on the screen.  But given the
+          ;; possibility of multiline input, the fix is not as
+          ;; straightforward, so we don't bother.
+          ;;
+          ;; Also note that the readline implementation papers over
+          ;; these concerns, because it's readline itself printing the
+          ;; prompt, and not Guile.
+          (set-port-column! (current-output-port) 0)))
     (force-output)
     (run-hook before-read-hook)
     ((or reader read) (current-input-port))))
