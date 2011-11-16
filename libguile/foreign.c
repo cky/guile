@@ -1127,7 +1127,7 @@ SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
 	    "type should match @var{return-type} and @var{arg-types}.\n")
 #define FUNC_NAME s_scm_procedure_to_pointer
 {
-  SCM pointer;
+  SCM cif_pointer, pointer;
   ffi_cif *cif;
   ffi_status err;
   void *closure, *executable;
@@ -1144,8 +1144,16 @@ SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
       SCM_MISC_ERROR ("`ffi_prep_closure_loc' failed", SCM_EOL);
     }
 
+  /* CIF points to GC-managed memory and it should remain as long as
+     POINTER (see below) is live.  Wrap it in a Scheme pointer to then
+     hold a weak reference on it.  */
+  cif_pointer = scm_from_pointer (cif, NULL);
+
   if (closure == executable)
-    pointer = scm_from_pointer (executable, ffi_closure_free);
+    {
+      pointer = scm_from_pointer (executable, ffi_closure_free);
+      register_weak_reference (pointer, cif_pointer);
+    }
   else
     {
       /* CLOSURE needs to be freed eventually.  However, since
@@ -1158,7 +1166,7 @@ SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
       pointer = scm_from_pointer (executable, NULL);
       friend = scm_from_pointer (closure, ffi_closure_free);
 
-      register_weak_reference (pointer, friend);
+      register_weak_reference (pointer, scm_list_2 (cif_pointer, friend));
     }
 
   return pointer;
