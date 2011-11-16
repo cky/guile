@@ -16,7 +16,7 @@ Guile has support for a number of SRFIs.  This chapter gives an overview
 over the available SRFIs and some usage hints.  For complete
 documentation, design rationales and further examples, we advise you to
 get the relevant SRFI documents from the SRFI home page
-@url{http://srfi.schemers.org}.
+@url{http://srfi.schemers.org/}.
 
 @menu
 * About SRFI Usage::            What to know about Guile's SRFI support.

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2010, 2011
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -8,9 +8,9 @@
 @chapter Introduction
 
 Guile is an implementation of the Scheme programming language.  Scheme
-(@url{schemers.org}) is an elegant and conceptually simple dialect of
-Lisp, originated by Guy Steele and Gerald Sussman, and since evolved
-by the series of reports known as RnRS (the
+(@url{http://schemers.org/}) is an elegant and conceptually simple
+dialect of Lisp, originated by Guy Steele and Gerald Sussman, and since
+evolved by the series of reports known as RnRS (the
 @tex
 Revised$^n$
 @end tex
