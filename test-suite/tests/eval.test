@@ -231,10 +231,10 @@
 
 (with-test-prefix "define set procedure-name"
 
-  (expect-fail "closure"
+  (pass-if "closure"
     (eq? 'foo-closure (procedure-name bar-closure)))
 
-  (expect-fail "procedure-with-setter"
+  (expect-fail "procedure-with-setter" ; FIXME: `pass-if' when it's supported
     (eq? 'foo-pws (procedure-name bar-pws))))
 
 ;;;
@@ -384,7 +384,6 @@
       ;; correct.
       (catch 'result
         (lambda ()
-          (throw 'unresolved)
           (start-stack 'foo
             (lazy-catch 'wrong-type-arg
               (lambda ()
