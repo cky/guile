@@ -134,7 +134,9 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
 
 (define %make-repl make-repl)
 (define* (make-repl lang #:optional debug)
-  (%make-repl #:language (lookup-language lang)
+  (%make-repl #:language (if (language? lang)
+                             lang
+                             (lookup-language lang))
               #:options (copy-tree repl-default-options)
               #:tm-stats (times)
               #:gc-stats (gc-stats)
