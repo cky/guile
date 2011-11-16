@@ -847,7 +847,7 @@ indicating any etag, or a list of entity tags.
 Indicates that a response should proceed if and only if the resource has
 been modified since the given date.
 @example
-(parse-header if-modified-since "Tue, 15 Nov 1994 08:12:31 GMT")
+(parse-header 'if-modified-since "Tue, 15 Nov 1994 08:12:31 GMT")
 @result{} #<date ...>
 @end example
 @end deftypevr
