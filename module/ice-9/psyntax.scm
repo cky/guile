@@ -908,7 +908,7 @@
                         ((eval-when-form)
                          (syntax-case e ()
                            ((_ (x ...) e1 e2 ...)
-                            (let ((when-list (expand-when-list e #'(x ...) w))
+                            (let ((when-list (parse-when-list e #'(x ...)))
                                   (body #'(e1 e2 ...)))
                               (cond
                                ((eq? m 'e)
@@ -1032,23 +1032,17 @@
                 (build-data no-source 'macro)
                 e)))))
   
-    (define expand-when-list
-      (lambda (e when-list w)
+    (define parse-when-list
+      (lambda (e when-list)
         ;; when-list is syntax'd version of list of situations
-        (let f ((when-list when-list) (situations '()))
-          (if (null? when-list)
-              situations
-              (f (cdr when-list)
-                 (cons (let ((x (car when-list)))
-                         (cond
-                          ((free-id=? x #'compile) 'compile)
-                          ((free-id=? x #'load) 'load)
-                          ((free-id=? x #'eval) 'eval)
-                          ((eq? (syntax->datum x) 'expand) 'expand)
-                          (else (syntax-violation 'eval-when
-                                                  "invalid situation"
-                                                  e (wrap x w #f)))))
-                       situations))))))
+        (let ((result (strip when-list empty-wrap)))
+          (let lp ((l result))
+            (if (null? l)
+                result
+                (if (memq (car l) '(compile load eval expand))
+                    (lp (cdr l))
+                    (syntax-violation 'eval-when "invalid situation" e
+                                      (car l))))))))
 
     ;; syntax-type returns six values: type, value, e, w, s, and mod. The
     ;; first two are described in the table below.
@@ -1216,7 +1210,7 @@
           ((eval-when-form)
            (syntax-case e ()
              ((_ (x ...) e1 e2 ...)
-              (let ((when-list (expand-when-list e #'(x ...) w)))
+              (let ((when-list (parse-when-list e #'(x ...))))
                 (if (memq 'eval when-list)
                     (expand-sequence #'(e1 e2 ...) r w s mod)
                     (expand-void))))))
