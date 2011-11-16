@@ -254,6 +254,16 @@
                   (map proc* arg1 arg2 arg3)))
         (throw 'unresolved)))
 
+  (pass-if "procedures returning a pointer"
+    (if (defined? 'procedure->pointer)
+        (let* ((called? #f)
+               (proc    (lambda (i) (set! called? #t) (make-pointer i)))
+               (pointer (procedure->pointer '* proc (list int)))
+               (proc*   (pointer->procedure '* pointer (list int)))
+               (result  (proc* 777)))
+          (and called? (equal? result (make-pointer 777))))
+        (throw 'unresolved)))
+
   (pass-if "procedures returning void"
     (if (defined? 'procedure->pointer)
         (let* ((called? #f)
