@@ -277,7 +277,7 @@ memoize (SCM exp, SCM env)
         int nreq, nopt, ntotal;
 
         req = REF (exp, LAMBDA_CASE, REQ);
-        rest = REF (exp, LAMBDA_CASE, REST);
+        rest = scm_not (scm_not (REF (exp, LAMBDA_CASE, REST)));
         opt = REF (exp, LAMBDA_CASE, OPT);
         kw = REF (exp, LAMBDA_CASE, KW);
         inits = REF (exp, LAMBDA_CASE, INITS);
