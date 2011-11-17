@@ -330,77 +330,49 @@
           0))
 
 (with-test-prefix "stacks"
-  (with-debugging-evaluator
+  (pass-if "stack involving a primitive"
+    ;; The primitive involving the error must appear exactly once on the
+    ;; stack.
+    (catch 'result
+      (lambda ()
+        (start-stack 'foo
+                     (with-throw-handler 'wrong-type-arg
+                       (lambda ()
+                         ;; Trigger a `wrong-type-arg' exception.
+                         (hashq-ref 'wrong 'type 'arg))
+                       (lambda _
+                         (let* ((stack  (make-stack #t))
+                                (frames (stack->frames stack)))
+                           (throw 'result
+                                  (count (lambda (frame)
+                                           (eq? (frame-procedure frame)
+                                                hashq-ref))
+                                         frames)))))))
+      (lambda (key result)
+        (= 1 result))))
 
-    (pass-if "stack involving a subr"
-      ;; The subr involving the error must appear exactly once on the stack.
-      (catch 'result
-        (lambda ()
-          (throw 'unresolved)
-          (start-stack 'foo
-            (lazy-catch 'wrong-type-arg
-              (lambda ()
-                ;; Trigger a `wrong-type-arg' exception.
-                (fluid-ref 'not-a-fluid))
-              (lambda _
-                (let* ((stack  (make-stack #t))
-                       (frames (stack->frames stack)))
-                  (throw 'result
-                         (count (lambda (frame)
-                                  (and (frame-procedure? frame)
-                                       (eq? (frame-procedure frame)
-                                            fluid-ref)))
-                                frames)))))))
-        (lambda (key result)
-          (= 1 result))))
-
-    (pass-if "stack involving a gsubr"
-      ;; The gsubr involving the error must appear exactly once on the stack.
-      ;; This is less obvious since gsubr application may require an
-      ;; additional `SCM_APPLY ()' call, which should not be visible to the
-      ;; application.
-      (catch 'result
-        (lambda ()
-          (throw 'unresolved)
-          (start-stack 'foo
-            (lazy-catch 'wrong-type-arg
-              (lambda ()
-                ;; Trigger a `wrong-type-arg' exception.
-                (hashq-ref 'wrong 'type 'arg))
-              (lambda _
-                (let* ((stack  (make-stack #t))
-                       (frames (stack->frames stack)))
-                  (throw 'result
-                         (count (lambda (frame)
-                                  (and (frame-procedure? frame)
-                                       (eq? (frame-procedure frame)
-                                            hashq-ref)))
-                                frames)))))))
-        (lambda (key result)
-          (= 1 result))))
-
-    (pass-if "arguments of a gsubr stack frame"
-      ;; Create a stack with two gsubr frames and make sure the arguments are
-      ;; correct.
-      (catch 'result
-        (lambda ()
-          (start-stack 'foo
-            (lazy-catch 'wrong-type-arg
-              (lambda ()
-                ;; Trigger a `wrong-type-arg' exception.
-                (substring 'wrong 'type 'arg))
-              (lambda _
-                (let* ((stack  (make-stack #t))
-                       (frames (stack->frames stack)))
-                  (throw 'result
-                         (map (lambda (frame)
-                                (cons (frame-procedure frame)
-                                      (frame-arguments frame)))
-                              frames)))))))
-        (lambda (key result)
-          (and (equal? (car result) `(,make-stack #t))
-               (pair? (member `(,substring  wrong type arg)
-                              (cdr result)))))))))
+  (pass-if "arguments of a primitive stack frame"
+    ;; Create a stack with two primitive frames and make sure the
+    ;; arguments are correct.
+    (catch 'result
+      (lambda ()
+        (start-stack 'foo
+                     (with-throw-handler 'wrong-type-arg
+                       (lambda ()
+                         ;; Trigger a `wrong-type-arg' exception.
+                         (substring 'wrong 'type 'arg))
+                       (lambda _
+                         (let* ((stack  (make-stack #t))
+                                (frames (stack->frames stack)))
+                           (throw 'result
+                                  (map (lambda (frame)
+                                         (cons (frame-procedure frame)
+                                               (frame-arguments frame)))
+                                       frames)))))))
+      (lambda (key result)
+        (and (equal? (car result) `(,make-stack #t))
+             (pair? (member `(,substring  wrong type arg)
+                            (cdr result))))))))
 
 ;;;
 ;;; letrec init evaluation
