@@ -1022,6 +1022,7 @@ scm_init_struct ()
   GC_REGISTER_DISPLACEMENT (2 * sizeof (scm_t_bits));
 
   required_vtable_fields = scm_from_locale_string (SCM_VTABLE_BASE_LAYOUT);
+  scm_c_define ("standard-vtable-fields", required_vtable_fields);
   required_applicable_fields = scm_from_locale_string (SCM_APPLICABLE_BASE_LAYOUT);
   required_applicable_with_setter_fields = scm_from_locale_string (SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT);
 
