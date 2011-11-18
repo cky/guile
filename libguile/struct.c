@@ -1027,6 +1027,7 @@ scm_init_struct ()
 
   scm_standard_vtable_vtable =
     scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
+  scm_c_define ("<standard-vtable>", scm_standard_vtable_vtable);
 
   scm_applicable_struct_vtable_vtable =
     scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
