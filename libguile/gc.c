@@ -82,11 +82,14 @@ int scm_expensive_debug_cell_accesses_p = 0;
  */
 int scm_debug_cells_gc_interval = 0;
 
+#if SCM_ENABLE_DEPRECATED == 1
 /* Hash table that keeps a reference to objects the user wants to protect from
    garbage collection.  It could arguably be private but applications have come
    to rely on it (e.g., Lilypond 2.13.9).  */
 SCM scm_protects;
-
+#else
+static SCM scm_protects;
+#endif
 
 #if (SCM_DEBUG_CELL_ACCESSES == 1)
 
