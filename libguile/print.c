@@ -1544,14 +1544,12 @@ SCM_DEFINE (scm_get_print_state, "get-print-state", 1, 0, 0,
 void
 scm_init_print ()
 {
-  SCM vtable, layout, type;
+  SCM type;
 
   scm_gc_register_root (&print_state_pool);
   scm_gc_register_root (&scm_print_state_vtable);
-  vtable = scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
-  layout =
-    scm_make_struct_layout (scm_from_locale_string (SCM_PRINT_STATE_LAYOUT));
-  type = scm_make_struct (vtable, SCM_INUM0, scm_list_1 (layout));
+  type = scm_make_vtable (scm_from_locale_string (SCM_PRINT_STATE_LAYOUT),
+                          SCM_BOOL_F);
   scm_set_struct_vtable_name_x (type, scm_from_latin1_symbol ("print-state"));
   scm_print_state_vtable = type;
 
