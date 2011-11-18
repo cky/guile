@@ -1050,16 +1050,13 @@ VALUE."
 
 ;; 0: type-name, 1: fields, 2: constructor
 (define record-type-vtable
-  ;; FIXME: This should just call make-vtable, not make-vtable-vtable; but for
-  ;; that we need to expose the bare vtable-vtable to Scheme.
-  (make-vtable-vtable "prprpw" 0
-                      (lambda (s p)
-                        (cond ((eq? s record-type-vtable)
-                               (display "#<record-type-vtable>" p))
-                              (else
-                               (display "#<record-type " p)
-                               (display (record-type-name s) p)
-                               (display ">" p))))))
+  (let ((s (make-vtable (string-append standard-vtable-fields "prprpw")
+                        (lambda (s p)
+                          (display "#<record-type " p)
+                          (display (record-type-name s) p)
+                          (display ">" p)))))
+    (set-struct-vtable-name! s 'record-type)
+    s))
 
 (define (record-type? obj)
   (and (struct? obj) (eq? record-type-vtable (struct-vtable obj))))
