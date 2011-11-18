@@ -180,7 +180,10 @@ SCM_API SCM scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_inits,
 SCM_API SCM scm_c_make_structv (SCM vtable, size_t n_tail, size_t n_inits,
                                 scm_t_bits init[]);
 SCM_API SCM scm_make_vtable (SCM fields, SCM printer);
-SCM_API SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
+SCM_INTERNAL SCM scm_i_make_vtable_vtable (SCM extra_fields);
+#if SCM_ENABLE_DEPRECATED == 1
+SCM_DEPRECATED SCM scm_make_vtable_vtable (SCM extra_fields, SCM tail_array_size, SCM init);
+#endif
 SCM_API SCM scm_struct_ref (SCM handle, SCM pos);
 SCM_API SCM scm_struct_set_x (SCM handle, SCM pos, SCM val);
 SCM_API SCM scm_struct_vtable (SCM handle);

@@ -982,7 +982,7 @@ create_basic_classes (void)
   /**** <class> ****/
   SCM cs = scm_from_locale_string (SCM_CLASS_CLASS_LAYOUT);
   SCM name = scm_from_latin1_symbol ("<class>");
-  scm_class_class = scm_make_vtable_vtable (cs, SCM_INUM0, SCM_EOL);
+  scm_class_class = scm_i_make_vtable_vtable (cs);
   SCM_SET_CLASS_FLAGS (scm_class_class, (SCM_CLASSF_GOOPS_OR_VALID
 					 | SCM_CLASSF_METACLASS));
 

@@ -24,6 +24,8 @@
 #include <alloca.h>
 #include <assert.h>
 
+#define SCM_BUILDING_DEPRECATED_CODE
+
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/chars.h"
@@ -562,53 +564,10 @@ SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1,
 
 
 
-SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
-            (SCM user_fields, SCM tail_array_size, SCM init),
-	    "Return a new, self-describing vtable structure.\n\n"
-	    "@var{user-fields} is a string describing user defined fields of the\n"
-	    "vtable beginning at index @code{vtable-offset-user}\n"
-	    "(see @code{make-struct-layout}).\n\n"
-	    "@var{tail_array_size} specifies the size of the tail-array (if any) of\n"
-	    "this vtable.\n\n"
-	    "@var{init1}, @dots{} are the optional initializers for the fields of\n"
-	    "the vtable.\n\n"
-	    "Vtables have one initializable system field---the struct printer.\n"
-	    "This field comes before the user fields in the initializers passed\n"
-	    "to @code{make-vtable-vtable} and @code{make-struct}, and thus works as\n"
-	    "a third optional argument to @code{make-vtable-vtable} and a fourth to\n"
-	    "@code{make-struct} when creating vtables:\n\n"
-	    "If the value is a procedure, it will be called instead of the standard\n"
-	    "printer whenever a struct described by this vtable is printed.\n"
-	    "The procedure will be called with arguments STRUCT and PORT.\n\n"
-	    "The structure of a struct is described by a vtable, so the vtable is\n"
-	    "in essence the type of the struct.  The vtable is itself a struct with\n"
-	    "a vtable.  This could go on forever if it weren't for the\n"
-	    "vtable-vtables which are self-describing vtables, and thus terminate\n"
-	    "the chain.\n\n"
-	    "There are several potential ways of using structs, but the standard\n"
-	    "one is to use three kinds of structs, together building up a type\n"
-	    "sub-system: one vtable-vtable working as the root and one or several\n"
-	    "\"types\", each with a set of \"instances\".  (The vtable-vtable should be\n"
-	    "compared to the class <class> which is the class of itself.)\n\n"
-	    "@lisp\n"
-	    "(define ball-root (make-vtable-vtable \"pr\" 0))\n\n"
-	    "(define (make-ball-type ball-color)\n"
-	    "  (make-struct ball-root 0\n"
-	    "	       (make-struct-layout \"pw\")\n"
-	    "               (lambda (ball port)\n"
-	    "                 (format port \"#<a ~A ball owned by ~A>\"\n"
-	    "                         (color ball)\n"
-	    "                         (owner ball)))\n"
-	    "               ball-color))\n"
-	    "(define (color ball) (struct-ref (struct-vtable ball) vtable-offset-user))\n"
-	    "(define (owner ball) (struct-ref ball 0))\n\n"
-	    "(define red (make-ball-type 'red))\n"
-	    "(define green (make-ball-type 'green))\n\n"
-	    "(define (make-ball type owner) (make-struct type 0 owner))\n\n"
-	    "(define ball (make-ball green 'Nisse))\n"
-	    "ball @result{} #<a green ball owned by Nisse>\n"
-	    "@end lisp")
-#define FUNC_NAME s_scm_make_vtable_vtable
+#if SCM_ENABLE_DEPRECATED == 1
+SCM
+scm_make_vtable_vtable (SCM user_fields, SCM tail_array_size, SCM init)
+#define FUNC_NAME "make-vtable-vtable"
 {
   SCM fields, layout, obj;
   size_t basic_size, n_tail, i, n_init;
@@ -656,7 +615,38 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
   return obj;
 }
 #undef FUNC_NAME
+#endif
 
+SCM
+scm_i_make_vtable_vtable (SCM user_fields)
+#define FUNC_NAME "make-vtable-vtable"
+{
+  SCM fields, layout, obj;
+  size_t basic_size;
+  scm_t_bits v;
+
+  SCM_VALIDATE_STRING (1, user_fields);
+
+  fields = scm_string_append (scm_list_2 (required_vtable_fields,
+					  user_fields));
+  layout = scm_make_struct_layout (fields);
+  if (!scm_is_valid_vtable_layout (layout))
+    SCM_MISC_ERROR ("invalid user fields", scm_list_1 (user_fields));
+
+  basic_size = scm_i_symbol_length (layout) / 2;
+
+  obj = scm_i_alloc_struct (NULL, basic_size);
+  /* Make it so that the vtable of OBJ is itself.  */
+  SCM_SET_CELL_WORD_0 (obj, (scm_t_bits) SCM_STRUCT_DATA (obj) | scm_tc3_struct);
+
+  v = SCM_UNPACK (layout);
+  scm_struct_init (obj, layout, 0, 1, &v);
+  SCM_SET_VTABLE_FLAGS (obj,
+                        SCM_VTABLE_FLAG_VTABLE | SCM_VTABLE_FLAG_VALIDATED);
+
+  return obj;
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_make_vtable, "make-vtable", 1, 1, 0,
             (SCM fields, SCM printer),
@@ -1026,8 +1016,7 @@ scm_init_struct ()
   required_applicable_fields = scm_from_locale_string (SCM_APPLICABLE_BASE_LAYOUT);
   required_applicable_with_setter_fields = scm_from_locale_string (SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT);
 
-  scm_standard_vtable_vtable =
-    scm_make_vtable_vtable (scm_nullstr, SCM_INUM0, SCM_EOL);
+  scm_standard_vtable_vtable = scm_i_make_vtable_vtable (scm_nullstr);
   scm_c_define ("<standard-vtable>", scm_standard_vtable_vtable);
 
   scm_applicable_struct_vtable_vtable =
@@ -1049,6 +1038,9 @@ scm_init_struct ()
 		scm_from_int (scm_vtable_index_instance_printer));
   scm_c_define ("vtable-offset-user", scm_from_int (scm_vtable_offset_user));
 #include "libguile/struct.x"
+#if SCM_ENABLE_DEPRECATED
+  scm_c_define_gsubr ("make-vtable-vtable", 2, 0, 1, scm_make_vtable_vtable);
+#endif
 }
 
 /*
