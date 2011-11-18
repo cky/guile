@@ -48,14 +48,14 @@
   ;; The vtable of all condition types.
   ;;   vtable fields: vtable, self, printer
   ;;   user fields:   id, parent, all-field-names
-  (make-vtable-vtable "prprpr" 0
-		      (lambda (ct port)
-			(if (eq? ct %condition-type-vtable)
-			    (display "#<condition-type-vtable>")
-			    (format port "#<condition-type ~a ~a>"
-				    (condition-type-id ct)
-				    (number->string (object-address ct)
-						    16))))))
+  (let ((s (make-vtable (string-append standard-vtable-fields "prprpr")
+                        (lambda (ct port)
+                          (format port "#<condition-type ~a ~a>"
+                                  (condition-type-id ct)
+                                  (number->string (object-address ct)
+                                                  16))))))
+    (set-struct-vtable-name! s 'condition-type)
+    s))
 
 (define (%make-condition-type layout id parent all-fields)
   (let ((struct (make-struct %condition-type-vtable 0
