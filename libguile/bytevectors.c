@@ -579,9 +579,9 @@ SCM_DEFINE (scm_bytevector_copy_x, "bytevector-copy!", 5, 0, 0,
   if (SCM_UNLIKELY (c_target_start + c_len > c_target_len))
     scm_out_of_range (FUNC_NAME, target_start);
 
-  memcpy (c_target + c_target_start,
-	  c_source + c_source_start,
-	  c_len);
+  memmove (c_target + c_target_start,
+	   c_source + c_source_start,
+	   c_len);
 
   return SCM_UNSPECIFIED;
 }

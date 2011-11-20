@@ -4546,7 +4546,8 @@ Fill bytevector @var{bv} with @var{fill}, a byte.
 @deffnx {C Function} scm_bytevector_copy_x (source, source_start, target, target_start, len)
 Copy @var{len} bytes from @var{source} into @var{target}, starting
 reading from @var{source-start} (a positive index within @var{source})
-and start writing at @var{target-start}.
+and start writing at @var{target-start}.  It is permitted for the
+@var{source} and @var{target} regions to overlap.
 @end deffn
 
 @deffn {Scheme Procedure} bytevector-copy bv
