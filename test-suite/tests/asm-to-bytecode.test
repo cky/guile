@@ -1,15 +1,17 @@
 ;;;; Assembly to bytecode compilation -*- mode: scheme; coding: utf-8; -*-
 ;;;;
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -19,6 +21,7 @@
   #:use-module ((rnrs io ports) #:select (open-bytevector-output-port))
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)
+  #:use-module (system base target)
   #:use-module (language assembly)
   #:use-module (language assembly compile-bytecode))
 
@@ -114,3 +117,23 @@
                  (uint32 0)     ;; metalen
                  make-int8 3
                  return))))
+
+
+(define (test-triplet cpu vendor os)
+  (let ((triplet (string-append cpu "-" vendor "-" os)))
+    (pass-if (format #f "triplet ~a" triplet)
+      (with-target triplet
+        (lambda ()
+          (and (string=? (target-cpu) cpu)
+               (string=? (target-vendor) vendor)
+               (string=? (target-os) os)))))))
+
+(with-test-prefix "cross-compilation"
+
+  (test-triplet "i586" "pc" "gnu0.3")
+  (test-triplet "x86_64" "unknown" "linux-gnu")
+  (test-triplet "x86_64" "unknown" "kfreebsd-gnu"))
+
+;; Local Variables:
+;; eval: (put 'with-target 'scheme-indent-function 1)
+;; End:

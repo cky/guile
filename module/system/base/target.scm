@@ -42,7 +42,7 @@
 (define (validate-target target)
   (if (or (not (string? target))
           (let ((parts (string-split target #\-)))
-            (or (< 3 (length parts))
+            (or (< (length parts) 3)
                 (or-map string-null? parts))))
       (error "invalid target" target)))
 
