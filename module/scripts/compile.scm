@@ -30,6 +30,7 @@
 
 (define-module (scripts compile)
   #:use-module ((system base compile) #:select (compile-file))
+  #:use-module (system base target)
   #:use-module (system base message)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-13)
@@ -88,7 +89,12 @@
 		(lambda (opt name arg result)
                   (if (assoc-ref result 'to)
                       (fail "`--to' option cannot be specified more than once")
-                      (alist-cons 'to (string->symbol arg) result))))))
+                      (alist-cons 'to (string->symbol arg) result))))
+        (option '(#\T "target") #t #f
+                (lambda (opt name arg result)
+                  (if (assoc-ref result 'target)
+                      (fail "`--target' option cannot be specified more than once")
+                      (alist-cons 'target arg result))))))
 
 (define (parse-args args)
   "Parse argument list @var{args} and return an alist with all the relevant
@@ -109,7 +115,7 @@ options."
 
 (define (show-version)
   (format #t "compile (GNU Guile) ~A~%" (version))
-  (format #t "Copyright (C) 2009 Free Software Foundation, Inc.
+  (format #t "Copyright (C) 2009, 2011 Free Software Foundation, Inc.
 License LGPLv3+: GNU LGPL version 3 or later <http://gnu.org/licenses/lgpl.html>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.~%"))
@@ -134,6 +140,7 @@ There is NO WARRANTY, to the extent permitted by law.~%"))
                                 o)))
          (from            (or (assoc-ref options 'from) 'scheme))
          (to              (or (assoc-ref options 'to) 'objcode))
+         (target          (or (assoc-ref options 'target) %host-type))
 	 (input-files     (assoc-ref options 'input-files))
 	 (output-file     (assoc-ref options 'output-file))
 	 (load-path       (assoc-ref options 'load-path)))
@@ -152,6 +159,7 @@ Compile each Guile source file FILE into a Guile object.
 
   -f, --from=LANG      specify a source language other than `scheme'
   -t, --to=LANG        specify a target language other than `objcode'
+  -T, --target=TRIPLET produce bytecode for host TRIPLET
 
 Note that auto-compilation will be turned off.
 
@@ -171,11 +179,13 @@ Report bugs to <~A>.~%"
     (for-each (lambda (file)
                 (format #t "wrote `~A'\n"
                         (with-fluids ((*current-warning-prefix* ""))
-                          (compile-file file
-                                        #:output-file output-file
-                                        #:from from
-                                        #:to to
-                                        #:opts compile-opts))))
+                          (with-target target
+                            (lambda ()
+                              (compile-file file
+                                            #:output-file output-file
+                                            #:from from
+                                            #:to to
+                                            #:opts compile-opts))))))
               input-files)))
 
 (define main compile)
