@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <alignof.h>
+#include <byteswap.h>
 
 #include <full-read.h>
 
@@ -45,10 +46,54 @@
    The length of the header must be a multiple of 8 bytes.  */
 verify (((sizeof (SCM_OBJCODE_COOKIE) - 1) & 7) == 0);
 
+/* Endianness and word size of the compilation target.  */
+static SCM target_endianness_var = SCM_BOOL_F;
+static SCM target_word_size_var = SCM_BOOL_F;
+
 
 /*
  * Objcode type
  */
+
+/* Endianness of the build machine.  */
+#ifdef WORDS_BIGENDIAN
+# define NATIVE_ENDIANNESS 'B'
+#else
+# define NATIVE_ENDIANNESS 'L'
+#endif
+
+/* Return the endianness of the compilation target.  */
+static char
+target_endianness (void)
+{
+  if (scm_is_true (target_endianness_var))
+    return scm_is_eq (scm_call_0 (scm_variable_ref (target_endianness_var)),
+		      scm_endianness_big) ? 'B' : 'L';
+  else
+    return NATIVE_ENDIANNESS;
+}
+
+/* Return the word size in bytes of the compilation target.  */
+static size_t
+target_word_size (void)
+{
+  if (scm_is_true (target_word_size_var))
+    return scm_to_size_t (scm_call_0
+			  (scm_variable_ref (target_word_size_var)));
+  else
+    return sizeof (void *);
+}
+
+/* Convert X, which is in byte order ENDIANNESS, to its native
+   representation.  */
+static inline uint32_t
+to_native_order (uint32_t x, char endianness)
+{
+  if (endianness == NATIVE_ENDIANNESS)
+    return x;
+  else
+    return bswap_32 (x);
+}
 
 static void
 verify_cookie (char *cookie, struct stat *st, int map_fd, void *map_addr)
@@ -183,7 +228,7 @@ make_objcode_from_file (int fd)
 
     verify_cookie (cookie, &st, -1, NULL);
 
-    return scm_bytecode_to_objcode (bv);
+    return scm_bytecode_to_native_objcode (bv);
   }
 #endif
 }
@@ -254,12 +299,12 @@ SCM_DEFINE (scm_objcode_meta, "objcode-meta", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
-	    (SCM bytecode),
-	    "")
-#define FUNC_NAME s_scm_bytecode_to_objcode
+/* Turn BYTECODE into objcode encoded for ENDIANNESS and WORD_SIZE.  */
+static SCM
+bytecode_to_objcode (SCM bytecode, char endianness, size_t word_size)
+#define FUNC_NAME "bytecode->objcode"
 {
-  size_t size;
+  size_t size, len, metalen;
   const scm_t_uint8 *c_bytecode;
   struct scm_objcode *data;
 
@@ -268,14 +313,17 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
 
   size = SCM_BYTEVECTOR_LENGTH (bytecode);
   c_bytecode = (const scm_t_uint8*)SCM_BYTEVECTOR_CONTENTS (bytecode);
-  
+
   SCM_ASSERT_RANGE (0, bytecode, size >= sizeof(struct scm_objcode));
   data = (struct scm_objcode*)c_bytecode;
 
-  if (data->len + data->metalen != (size - sizeof (*data)))
+  len = to_native_order (data->len, endianness);
+  metalen = to_native_order (data->metalen, endianness);
+
+  if (len + metalen != (size - sizeof (*data)))
     scm_misc_error (FUNC_NAME, "bad bytevector size (~a != ~a)",
 		    scm_list_2 (scm_from_size_t (size),
-				scm_from_uint32 (sizeof (*data) + data->len + data->metalen)));
+				scm_from_uint32 (sizeof (*data) + len + metalen)));
 
   /* foolishly, we assume that as long as bytecode is around, that c_bytecode
      will be of the same length; perhaps a bad assumption? */
@@ -283,6 +331,27 @@ SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
                           (scm_t_bits)data, SCM_UNPACK (bytecode), 0);
 }
 #undef FUNC_NAME
+
+SCM_DEFINE (scm_bytecode_to_objcode, "bytecode->objcode", 1, 0, 0,
+	    (SCM bytecode),
+	    "")
+#define FUNC_NAME s_scm_bytecode_to_objcode
+{
+  /* Assume we're called from Scheme, which known that to do with
+     `target-type'.  */
+  return bytecode_to_objcode (bytecode, target_endianness (),
+			      target_word_size ());
+}
+#undef FUNC_NAME
+
+/* Like `bytecode->objcode', but ignore the `target-type' fluid.  This
+   is useful for native compilation that happens lazily---e.g., direct
+   calls to this function from libguile itself.  */
+SCM
+scm_bytecode_to_native_objcode (SCM bytecode)
+{
+  return bytecode_to_objcode (bytecode, NATIVE_ENDIANNESS, sizeof (void *));
+}
 
 SCM_DEFINE (scm_load_objcode, "load-objcode", 1, 0, 0,
 	    (SCM file),
@@ -327,40 +396,36 @@ SCM_DEFINE (scm_write_objcode, "write-objcode", 2, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_write_objcode
 {
-  static SCM target_endianness_var = SCM_BOOL_F;
-  static SCM target_word_size_var = SCM_BOOL_F;
-
   char cookie[sizeof (SCM_OBJCODE_COOKIE) - 1];
-  char endianness;
-  char word_size;
+  char endianness, word_size;
+  size_t total_size;
 
   SCM_VALIDATE_OBJCODE (1, objcode);
   SCM_VALIDATE_OUTPUT_PORT (2, port);
-  
-  if (scm_is_false (target_endianness_var))
-    target_endianness_var =
-      scm_c_public_variable ("system base target", "target-endianness");
-  if (scm_is_false (target_word_size_var))
-    target_word_size_var =
-      scm_c_public_variable ("system base target", "target-word-size");
-
-  endianness = 
-    scm_is_eq (scm_call_0 (scm_variable_ref (target_endianness_var)),
-               scm_endianness_big) ? 'B' : 'L';
-  switch (scm_to_int (scm_call_0 (scm_variable_ref (target_word_size_var))))
+  endianness = target_endianness ();
+  switch (target_word_size ())
     {
-    case 4: word_size = '4'; break;
-    case 8: word_size = '8'; break;
-    default: abort ();
+    case 4:
+      word_size = '4';
+      break;
+    case 8:
+      word_size = '8';
+      break;
+    default:
+      abort ();
     }
 
   memcpy (cookie, SCM_OBJCODE_COOKIE, strlen (SCM_OBJCODE_COOKIE));
   cookie[SCM_OBJCODE_ENDIANNESS_OFFSET] = endianness;
   cookie[SCM_OBJCODE_WORD_SIZE_OFFSET] = word_size;
 
+  total_size =
+    to_native_order (SCM_OBJCODE_LEN (objcode), target_endianness ())
+    + to_native_order (SCM_OBJCODE_META_LEN (objcode), target_endianness ());
+
   scm_c_write (port, cookie, strlen (SCM_OBJCODE_COOKIE));
   scm_c_write (port, SCM_OBJCODE_DATA (objcode),
-               sizeof (struct scm_objcode) + SCM_OBJCODE_TOTAL_LEN (objcode));
+               sizeof (struct scm_objcode) + total_size);
 
   return SCM_UNSPECIFIED;
 }
@@ -400,6 +465,11 @@ scm_init_objcodes (void)
 
   scm_c_define ("word-size", scm_from_size_t (sizeof(SCM)));
   scm_c_define ("byte-order", scm_from_uint16 (SCM_BYTE_ORDER));
+
+  target_endianness_var = scm_c_public_variable ("system base target",
+						 "target-endianness");
+  target_word_size_var = scm_c_public_variable ("system base target",
+						"target-word-size");
 }
 
 /*

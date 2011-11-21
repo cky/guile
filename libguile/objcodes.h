@@ -65,6 +65,7 @@ SCM_API SCM scm_load_objcode (SCM file);
 SCM_API SCM scm_objcode_p (SCM obj);
 SCM_API SCM scm_objcode_meta (SCM objcode);
 SCM_API SCM scm_bytecode_to_objcode (SCM bytecode);
+SCM_INTERNAL SCM scm_bytecode_to_native_objcode (SCM bytecode);
 SCM_API SCM scm_objcode_to_bytecode (SCM objcode);
 SCM_API SCM scm_write_objcode (SCM objcode, SCM port);
 

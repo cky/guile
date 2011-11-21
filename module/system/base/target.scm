@@ -21,6 +21,7 @@
 
 (define-module (system base target)
   #:use-module (rnrs bytevectors)
+  #:use-module (ice-9 regex)
   #:export (target-type with-target
 
             target-cpu target-vendor target-os
@@ -34,10 +35,13 @@
 ;;;
 
 (define %target-type (make-fluid))
+(define %target-endianness (make-fluid))
+(define %target-word-size (make-fluid))
 
-(define (target-type)
-  (or (fluid-ref %target-type)
-      %host-type))
+(define %native-word-size
+  ;; The native word size.  Note: don't use `word-size' from
+  ;; (system vm objcode) to avoid a circular dependency.
+  ((@ (system foreign) sizeof) '*))
 
 (define (validate-target target)
   (if (or (not (string? target))
@@ -48,29 +52,73 @@
 
 (define (with-target target thunk)
   (validate-target target)
-  (with-fluids ((%target-type target))
-    (thunk)))
+  (let ((cpu (triplet-cpu target)))
+    (with-fluids ((%target-type target)
+                  (%target-endianness (cpu-endianness cpu))
+                  (%target-word-size (cpu-word-size cpu)))
+      (thunk))))
 
-(define (target-cpu)
-  (let ((t (target-type)))
-    (substring t 0 (string-index t #\-))))
+(define (cpu-endianness cpu)
+  "Return the endianness for CPU."
+  (if (string=? cpu (triplet-cpu %host-type))
+      (native-endianness)
+      (cond ((string-match "^i[0-9]86$" cpu)
+             (endianness little))
+            ((member cpu '("x86_64" "ia64"
+                           "powerpcle" "powerpc64le" "mipsel" "mips64el"))
+             (endianness little))
+            ((member cpu '("sparc" "sparc64" "powerpc" "powerpc64" "spu"
+                           "mips" "mips64"))
+             (endianness big))
+            ((string-match "^arm.*el" cpu)
+             (endianness little))
+            (else
+             (error "unknown CPU endianness" cpu)))))
 
-(define (target-vendor)
-  (let* ((t (target-type))
-         (start (1+ (string-index t #\-))))
+(define (cpu-word-size cpu)
+  "Return the word size for CPU."
+  (if (string=? cpu (triplet-cpu %host-type))
+      %native-word-size
+      (cond ((string-match "^i[0-9]86$" cpu) 4)
+            ((string-match "64$" cpu) 8)
+            ((string-match "64[lbe][lbe]$" cpu) 8)
+            ((member cpu '("sparc" "powerpc" "mips")) 4)
+            ((string-match "^arm.*" cpu) 4)
+            (else "unknown CPU word size" cpu))))
+
+(define (triplet-cpu t)
+  (substring t 0 (string-index t #\-)))
+
+(define (triplet-vendor t)
+  (let ((start (1+ (string-index t #\-))))
     (substring t start (string-index t #\- start))))
 
-(define (target-os)
-  (let* ((t (target-type))
-         (start (1+ (string-index t #\- (1+ (string-index t #\-))))))
+(define (triplet-os t)
+  (let ((start (1+ (string-index t #\- (1+ (string-index t #\-))))))
     (substring t start)))
 
+
+(define (target-type)
+  "Return the GNU configuration triplet of the target platform."
+  (or (fluid-ref %target-type)
+      %host-type))
+
+(define (target-cpu)
+  "Return the CPU name of the target platform."
+  (triplet-cpu (target-type)))
+
+(define (target-vendor)
+  "Return the vendor name of the target platform."
+  (triplet-vendor (target-type)))
+
+(define (target-os)
+  "Return the operating system name of the target platform."
+  (triplet-os (target-type)))
+
 (define (target-endianness)
-  (if (equal? (target-type) %host-type)
-      (native-endianness)
-      (error "cross-compilation not yet handled" %host-type (target-type))))
+  "Return the endianness object of the target platform."
+  (or (fluid-ref %target-endianness) (native-endianness)))
 
 (define (target-word-size)
-  (if (equal? (target-type) %host-type)
-      ((@ (system foreign) sizeof) '*)
-      (error "cross-compilation not yet handled" %host-type (target-type))))
+  "Return the word size, in bytes, of the target platform."
+  (or (fluid-ref %target-word-size) %native-word-size))

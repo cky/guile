@@ -21,6 +21,7 @@
   #:use-module ((rnrs io ports) #:select (open-bytevector-output-port))
   #:use-module (test-suite lib)
   #:use-module (system vm instruction)
+  #:use-module (system vm objcode)
   #:use-module (system base target)
   #:use-module (language assembly)
   #:use-module (language assembly compile-bytecode))
@@ -128,11 +129,68 @@
                (string=? (target-vendor) vendor)
                (string=? (target-os) os)))))))
 
+(define %objcode-cookie-size
+  (string-length "GOOF----LE-8-2.0"))
+
+(define (test-target triplet endian word-size)
+  (pass-if (format #f "target `~a' honored" triplet)
+    (call-with-values (lambda ()
+                        (open-bytevector-output-port))
+      (lambda (p get-objcode)
+        (with-target triplet
+          (lambda ()
+            (let ((b (compile-bytecode
+                      '(load-program () 16 #f
+                                     (assert-nargs-ee/locals 1)
+                                     (make-int8 77)
+                                     (toplevel-ref 1)
+                                     (local-ref 0)
+                                     (mul)
+                                     (add)
+                                     (return)
+                                     (nop) (nop) (nop)
+                                     (nop) (nop))
+                      #f)))
+              (write-objcode (bytecode->objcode b) p)
+              (let ((cookie   (make-bytevector %objcode-cookie-size))
+                    (expected (format #f "GOOF----~a-~a-~a"
+                                      (cond ((eq? endian (endianness little))
+                                             "LE")
+                                            ((eq? endian (endianness big))
+                                             "BE")
+                                            (else
+                                             (error "unknown endianness"
+                                                    endian)))
+                                      word-size
+                                      (effective-version))))
+                (bytevector-copy! (get-objcode) 0 cookie 0
+                                  %objcode-cookie-size)
+                (string=? (utf8->string cookie) expected)))))))))
+
 (with-test-prefix "cross-compilation"
 
   (test-triplet "i586" "pc" "gnu0.3")
   (test-triplet "x86_64" "unknown" "linux-gnu")
-  (test-triplet "x86_64" "unknown" "kfreebsd-gnu"))
+  (test-triplet "x86_64" "unknown" "kfreebsd-gnu")
+
+  (test-target "i586-pc-gnu0.3" (endianness little) 4)
+  (test-target "x86_64-pc-linux-gnu" (endianness little) 8)
+  (test-target "powerpc-unknown-linux-gnu" (endianness big) 4)
+  (test-target "sparc64-unknown-freebsd8.2" (endianness big) 8)
+
+  (pass-if-exception "unknown target"
+    exception:miscellaneous-error
+    (call-with-values (lambda ()
+                        (open-bytevector-output-port))
+      (lambda (p get-objcode)
+        (let* ((b (compile-bytecode '(load-program () 3 #f
+                                                   (make-int8 77)
+                                                   (return))
+                                    #f))
+               (o (bytecode->objcode b)))
+          (with-target "fcpu-unknown-gnu1.0"
+            (lambda ()
+              (write-objcode o p))))))))
 
 ;; Local Variables:
 ;; eval: (put 'with-target 'scheme-indent-function 1)
