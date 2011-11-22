@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -290,6 +290,22 @@ files or not.
 This variable names the file that holds the Guile REPL command history.
 You can specify a different history file by setting this environment
 variable.  By default, the history file is @file{$HOME/.guile_history}.
+
+@item GUILE_INSTALL_LOCALE
+@vindex GUILE_INSTALL_LOCALE
+This is a flag that can be used to tell Guile whether or not to install
+the current locale at startup, via a call to @code{(setlocale LC_ALL
+"")}.  @xref{Locales}, for more information on locales.
+
+You may explicitly indicate that you do not want to install
+the locale by setting @env{GUILE_INSTALL_LOCALE} to @code{0}, or
+explicitly enable it by setting the variable to @code{1}.
+
+Usually, installing the current locale is the right thing to do.  It
+allows Guile to correctly parse and print strings with non-ASCII
+characters.  However, for compatibility with previous Guile 2.0
+releases, this option is off by default.  The next stable release series
+of Guile (the 2.2 series) will install locales by default.
 
 @item GUILE_LOAD_COMPILED_PATH
 @vindex GUILE_LOAD_COMPILED_PATH
