@@ -530,6 +530,56 @@ AC_DEFUN([GUILE_UNISTRING_ICONVEH_VALUES], [
   GUILE_UNISTRING_CONSTANT([iconveh_escape_sequence])
 ])
 
+dnl GUILE_CHECK_VERSION
+dnl
+dnl Ensure that $GUILE_FOR_BUILD has the same version as ourselves.
+AC_DEFUN([GUILE_CHECK_VERSION], [
+  if ! "$GUILE_FOR_BUILD" --version > /dev/null 2>&1; then
+     AC_MSG_ERROR([failed to run `$GUILE_FOR_BUILD'])
+  fi
+
+  dnl Use MAJOR.MINOR.MICRO instead of (version) so that developers can
+  dnl freely shoot themselves in the foot by using, say, 2.0.3.80 and
+  dnl 2.0.3.42.
+  AC_CACHE_CHECK([the version of $GUILE_FOR_BUILD],
+    [ac_cv_guile_for_build_version],
+    [ac_cv_guile_for_build_version="`"$GUILE_FOR_BUILD" \
+       -c '(format #t "~a.~a.~a" (major-version) (minor-version) (micro-version))'`"
+    ])
+
+  if test "$ac_cv_guile_for_build_version" != \
+       "$GUILE_MAJOR_VERSION.$GUILE_MINOR_VERSION.$GUILE_MICRO_VERSION"
+  then
+      AC_MSG_ERROR([building Guile $PACKAGE_VERSION but `$GUILE_FOR_BUILD' has version $ac_cv_guile_for_build_version"])
+  fi
+])
+
+dnl GUILE_CHECK_GUILE_FOR_BUILD
+dnl
+dnl When cross-compiling, ensure that $GUILE_FOR_BUILD is suitable.
+AC_DEFUN([GUILE_CHECK_GUILE_FOR_BUILD], [
+  if test "$cross_compiling" = "yes"; then
+    if test "x$GUILE_FOR_BUILD" = "x"; then
+      AC_PATH_PROG([GUILE_FOR_BUILD], [guile], [not-found])
+      if test "$GUILE_FOR_BUILD" = "not-found"; then
+        AC_MSG_ERROR([a native Guile $PACKAGE_VERSION is required to cross-build Guile])
+      fi
+    fi
+    AC_MSG_CHECKING([guile for build])
+    AC_MSG_RESULT([$GUILE_FOR_BUILD])
+
+    dnl Since there is currently no distinction between the run-time
+    dnl search path, %load-path, and the compiler's search path,
+    dnl $GUILE_FOR_BUILD must be a native build of the very same version.
+    GUILE_CHECK_VERSION
+  else
+    GUILE_FOR_BUILD='this-value-will-never-be-used'
+  fi
+
+  AC_ARG_VAR([GUILE_FOR_BUILD], [guile for the build system])
+  AM_SUBST_NOTMAKE([GUILE_FOR_BUILD])
+])
+
 dnl Declare file $1 to be a script that needs configuring,
 dnl and arrange to make it executable in the process.
 AC_DEFUN([GUILE_CONFIG_SCRIPT],[AC_CONFIG_FILES([$1],[chmod +x $1])])

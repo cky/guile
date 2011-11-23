@@ -1511,20 +1511,7 @@ AC_SUBST(CCLD_FOR_BUILD)
 HOST_CC="$CC_FOR_BUILD"
 AC_SUBST(HOST_CC)
 
-if test "$cross_compiling" = "yes"; then
-  AC_MSG_CHECKING(guile for build)
-  GUILE_FOR_BUILD="${GUILE_FOR_BUILD-guile}"
-else
-  GUILE_FOR_BUILD='this-value-will-never-be-used'
-fi   
-
-## AC_MSG_CHECKING("if we are cross compiling")
-## AC_MSG_RESULT($cross_compiling)
-if test "$cross_compiling" = "yes"; then
-   AC_MSG_RESULT($GUILE_FOR_BUILD)
-fi
-AC_ARG_VAR(GUILE_FOR_BUILD,[guile for build system])
-AM_SUBST_NOTMAKE(GUILE_FOR_BUILD)
+GUILE_CHECK_GUILE_FOR_BUILD
   			
 ## If we're using GCC, ask for aggressive warnings.
 GCC_CFLAGS=""
