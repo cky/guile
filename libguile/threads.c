@@ -478,7 +478,7 @@ static SCM scm_i_default_dynamic_state;
 
 /* Run when a fluid is collected.  */
 void
-scm_i_reset_fluid (size_t n, SCM val)
+scm_i_reset_fluid (size_t n)
 {
   scm_i_thread *t;
 
@@ -489,7 +489,7 @@ scm_i_reset_fluid (size_t n, SCM val)
         SCM v = SCM_I_DYNAMIC_STATE_FLUIDS (t->dynamic_state);
           
         if (n < SCM_SIMPLE_VECTOR_LENGTH (v))
-          SCM_SIMPLE_VECTOR_SET (v, n, val);
+          SCM_SIMPLE_VECTOR_SET (v, n, SCM_UNDEFINED);
       }
   scm_i_pthread_mutex_unlock (&thread_admin_mutex);
 }

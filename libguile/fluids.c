@@ -68,7 +68,7 @@ grow_dynamic_state (SCM state)
   /* Assume the assignment below is atomic.  */
   len = allocated_fluids_len;
 
-  new_fluids = scm_c_make_vector (len, SCM_BOOL_F);
+  new_fluids = scm_c_make_vector (len, SCM_UNDEFINED);
 
   for (i = 0; i < old_len; i++)
     SCM_SIMPLE_VECTOR_SET (new_fluids, i,
@@ -103,14 +103,14 @@ scm_i_with_fluids_print (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 /* Return a new fluid.  */
 static SCM
-new_fluid ()
+new_fluid (SCM init)
 {
   SCM fluid;
   size_t trial, n;
 
-  /* Fluids are pointerless cells: the first word is the type tag; the second
-     word is the fluid number.  */
-  fluid = PTR2SCM (scm_gc_malloc_pointerless (sizeof (scm_t_cell), "fluid"));
+  /* Fluids hold the type tag and the fluid number in the first word,
+     and the default value in the second word.  */
+  fluid = scm_cell (scm_tc7_fluid, SCM_UNPACK (init));
   SCM_SET_CELL_TYPE (fluid, scm_tc7_fluid);
 
   scm_dynwind_begin (0);
@@ -157,7 +157,7 @@ new_fluid ()
     }
 
   allocated_fluids[n] = SCM2PTR (fluid);
-  SCM_SET_CELL_WORD_1 (fluid, (scm_t_bits) n);
+  SCM_SET_CELL_WORD_0 (fluid, (scm_tc7_fluid | (n << 8)));
 
   GC_GENERAL_REGISTER_DISAPPEARING_LINK (&allocated_fluids[n],
 					 SCM2PTR (fluid));
@@ -166,13 +166,19 @@ new_fluid ()
 
   /* Now null out values.  We could (and probably should) do this when
      the fluid is collected instead of now.  */
-  scm_i_reset_fluid (n, SCM_BOOL_F);
+  scm_i_reset_fluid (n);
 
   return fluid;
 }
 
-SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0, 
-	    (),
+SCM
+scm_make_fluid (void)
+{
+  return new_fluid (SCM_BOOL_F);
+}
+
+SCM_DEFINE (scm_make_fluid_with_default, "make-fluid", 0, 1, 0, 
+	    (SCM dflt),
 	    "Return a newly created fluid.\n"
 	    "Fluids are objects that can hold one\n"
 	    "value per dynamic state.  That is, modifications to this value are\n"
@@ -180,9 +186,9 @@ SCM_DEFINE (scm_make_fluid, "make-fluid", 0, 0, 0,
 	    "the modifying code.  When a new dynamic state is constructed, it\n"
 	    "inherits the values from its parent.  Because each thread normally executes\n"
 	    "with its own dynamic state, you can use fluids for thread local storage.")
-#define FUNC_NAME s_scm_make_fluid
+#define FUNC_NAME s_scm_make_fluid_with_default
 {
-  return new_fluid ();
+  return new_fluid (SCM_UNBNDP (dflt) ? SCM_BOOL_F : dflt);
 }
 #undef FUNC_NAME
 
@@ -191,9 +197,7 @@ SCM_DEFINE (scm_make_unbound_fluid, "make-unbound-fluid", 0, 0, 0,
             "Make a fluid that is initially unbound.")
 #define FUNC_NAME s_scm_make_unbound_fluid
 {
-  SCM f = new_fluid ();
-  scm_fluid_set_x (f, SCM_UNDEFINED);
-  return f;
+  return new_fluid (SCM_UNDEFINED);
 }
 #undef FUNC_NAME
 
@@ -217,6 +221,7 @@ scm_is_fluid (SCM obj)
 static SCM
 fluid_ref (SCM fluid)
 {
+  SCM ret;
   SCM fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
 
   if (SCM_UNLIKELY (FLUID_NUM (fluid) >= SCM_SIMPLE_VECTOR_LENGTH (fluids)))
@@ -227,7 +232,11 @@ fluid_ref (SCM fluid)
       fluids = DYNAMIC_STATE_FLUIDS (SCM_I_CURRENT_THREAD->dynamic_state);
     }
 
-  return SCM_SIMPLE_VECTOR_REF (fluids, FLUID_NUM (fluid));
+  ret = SCM_SIMPLE_VECTOR_REF (fluids, FLUID_NUM (fluid));
+  if (SCM_UNBNDP (ret))
+    return SCM_I_FLUID_DEFAULT (fluid);
+  else
+    return ret;
 }
 
 SCM_DEFINE (scm_fluid_ref, "fluid-ref", 1, 0, 0, 
@@ -274,6 +283,9 @@ SCM_DEFINE (scm_fluid_unset_x, "fluid-unset!", 1, 0, 0,
             "Unset the value associated with @var{fluid}.")
 #define FUNC_NAME s_scm_fluid_unset_x
 {
+  /* FIXME: really unset the default value, too?  The current test
+     suite demands it, but I would prefer not to.  */
+  SCM_SET_CELL_OBJECT_1 (fluid, SCM_UNDEFINED);
   return scm_fluid_set_x (fluid, SCM_UNDEFINED);
 }
 #undef FUNC_NAME

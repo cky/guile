@@ -3,7 +3,7 @@
 #ifndef SCM_FLUIDS_H
 #define SCM_FLUIDS_H
 
-/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1996,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -56,10 +56,12 @@
 
 #define SCM_FLUID_P(x)          (!SCM_IMP (x) && SCM_TYP7 (x) == scm_tc7_fluid)
 #ifdef BUILDING_LIBGUILE
-#define SCM_I_FLUID_NUM(x)        ((size_t)SCM_CELL_WORD_1(x))
+#define SCM_I_FLUID_NUM(x)        ((size_t)(SCM_CELL_WORD_0 (x) >> 8))
+#define SCM_I_FLUID_DEFAULT(x)    (SCM_CELL_OBJECT_1 (x))
 #endif
 
 SCM_API SCM scm_make_fluid (void);
+SCM_API SCM scm_make_fluid_with_default (SCM dflt);
 SCM_API SCM scm_make_unbound_fluid (void);
 SCM_API int scm_is_fluid (SCM obj);
 SCM_API SCM scm_fluid_p (SCM fl);

@@ -66,9 +66,7 @@
 ;;;
 
 (define block-growth-factor
-  (let ((f (make-fluid)))
-    (fluid-set! f 2)
-    f))
+  (make-fluid 2))
 
 (define-syntax-rule (define-inline (name formals ...) body ...)
   ;; Work around the lack of an inliner.

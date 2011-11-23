@@ -1660,6 +1660,8 @@ VM_DEFINE_INSTRUCTION (91, fluid_ref, "fluid-ref", 0, 1, 1)
   else
     {
       SCM val = SCM_SIMPLE_VECTOR_REF (fluids, num);
+      if (scm_is_eq (val, SCM_UNDEFINED))
+        val = SCM_I_FLUID_DEFAULT (*sp);
       if (SCM_UNLIKELY (scm_is_eq (val, SCM_UNDEFINED)))
         {
           finish_args = *sp;
