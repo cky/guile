@@ -470,7 +470,7 @@ ordered alist."
   val)
 
 (define (default-val-validator k val)
-  (string? val))
+  (or (not val) (string? val)))
 
 (define (default-val-writer k val port)
   (if (or (string-index val #\;)
@@ -518,9 +518,9 @@ ordered alist."
                ((pair? elt)
                 (let ((k (car elt))
                       (v (cdr elt)))
-                  (and (or (string? k) (symbol? k))
+                  (and (symbol? k)
                        (valid? k v))))
-               ((or (string? elt) (symbol? elt))
+               ((symbol? elt)
                 (valid? elt #f))
                (else #f)))))
 
@@ -611,7 +611,7 @@ ordered alist."
                               (valid? default-val-validator))
   (list-of? list
             (lambda (elt)
-              (key-value-list? list valid?))))
+              (key-value-list? elt valid?))))
 
 (define* (write-param-list list port #:optional
                            (val-writer default-val-writer))
@@ -871,7 +871,10 @@ ordered alist."
          (cons scheme (parse-key-value-list str default-val-parser delim end)))))))
 
 (define (validate-credentials val)
-  (and (pair? val) (symbol? (car val)) (key-value-list? (cdr val))))
+  (and (pair? val) (symbol? (car val))
+       (case (car val)
+         ((basic) (string? (cdr val)))
+         (else (key-value-list? (cdr val))))))
 
 (define (write-credentials val port)
   (display (car val) port)
@@ -1137,7 +1140,7 @@ phrase\"."
     (lambda (str)
       (map string->symbol (split-and-trim str)))
     (lambda (v)
-      (list-of? symbol? v))
+      (list-of? v symbol?))
     (lambda (v port)
       (write-list v port display ", "))))
 
@@ -1242,7 +1245,14 @@ phrase\"."
       ((private no-cache)
        (and v-str (split-header-names v-str)))
       (else v-str)))
-  default-val-validator
+  (lambda (k v)
+    (case k
+      ((max-age max-stale min-fresh s-maxage)
+       (non-negative-integer? v))
+      ((private no-cache)
+       (or (not v) (list-of-header-names? v)))
+      (else
+       (not v))))
   (lambda (k v port)
     (cond
      ((string? v) (display v port))
@@ -1522,7 +1532,7 @@ phrase\"."
   (lambda (k v)
     (if (eq? k 'q)
         (valid-quality? v)
-        (string? v)))
+        (or (not v) (string? v))))
   (lambda (k v port)
     (if (eq? k 'q)
         (write-quality v port)
