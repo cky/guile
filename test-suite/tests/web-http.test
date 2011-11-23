@@ -41,8 +41,9 @@
   (syntax-rules ()
     ((_ sym str val)
      (pass-if (format #f "~a: ~s -> ~s" 'sym str val)
-       (equal? (parse-header 'sym str)
-               val)))))
+       (and (equal? (parse-header 'sym str)
+                    val)
+            (valid-header? 'sym val))))))
 
 (define-syntax pass-if-any-error
   (syntax-rules ()
