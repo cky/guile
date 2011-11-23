@@ -239,25 +239,28 @@ switches specific to Guile you may find useful in some circumstances.
 
 Cross building Guile  =====================================================
 
-As of guile-1.5.x, the build process uses compiled C files for
-snarfing, and (indirectly, through libtool) for linking, and uses the
-guile executable for generating documentation.
+As of Guile 2.0.x, the build process produces a library, libguile-2.0,
+along with Guile "object files" containing bytecode to be interpreted by
+Guile's virtual machine.  The bytecode format depends on the endianness
+and word size of the host CPU.
 
-When cross building guile, you first need to configure, build and
-install guile for your build host.
+Thus, when cross building Guile, you first need to configure, build and
+install it for your build host.
 
-Then, you may configure guile for cross building, eg:
+Then, you may configure Guile for cross building:
 
     ./configure --host=i686-pc-cygwin --disable-shared
 
-A C compiler for the build system is required.  The default is
-"PATH=/usr/bin:$PATH cc".  If that doesn't suit it can be specified
-with the CC_FOR_BUILD variable in the usual way, for instance
+A C compiler for the build system is required.  If that doesn't suit it
+can be specified with the CC_FOR_BUILD variable in the usual way, for
+instance:
 
     ./configure --host=m68k-unknown-linux-gnu CC_FOR_BUILD=/my/local/gcc
 
 Guile for the build system can be specified similarly with the
-GUILE_FOR_BUILD variable, it defaults to just "guile".
+GUILE_FOR_BUILD variable, which defaults to whatever `guile' executable
+is found in $PATH.  It must have the exact same version has the Guile
+that you intend to cross-build.
 
 
 Using Guile Without Installing It =========================================
