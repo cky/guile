@@ -46,35 +46,40 @@ top_builddir="@top_builddir_absolute@"
     exit 1
 }
 
-if [ x"$GUILE_LOAD_PATH" = x ]
-then
-    GUILE_LOAD_PATH="${top_srcdir}/module:${top_srcdir}/guile-readline:${top_srcdir}"
-    if test "${top_srcdir}" != "${top_builddir}"; then
-        GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}/guile-readline:${top_builddir}"
-    fi
-else
-  for d in "/module" "/guile-readline" ""
-  do
-    # This hair prevents double inclusion.
-    # The ":" prevents prefix aliasing.
-    case x"$GUILE_LOAD_PATH" in
-      x*${top_srcdir}${d}:*) ;;
-      x*${top_srcdir}${d}) ;;
-      *) GUILE_LOAD_PATH="${top_srcdir}${d}:$GUILE_LOAD_PATH" ;;
-    esac
-    case x"$GUILE_LOAD_PATH" in
-      x*${top_builddir}${d}:*) ;;
-      x*${top_builddir}${d}) ;;
-      *) GUILE_LOAD_PATH="${top_builddir}${d}:$GUILE_LOAD_PATH" ;;
-    esac
-  done
-fi
-export GUILE_LOAD_PATH
-
 # When cross-compiling, let $GUILE_FOR_BUILD use its own .go files since
-# the ones that are being built may be incompatible.
+# the ones that are being built may be incompatible ($GUILE_FOR_BUILD is
+# typically used to run `guild compile --target=$host'.)  Likewise,
+# $GUILE_FOR_BUILD must use its own source files when booting; for
+# instance, $srcdir/module/ice-9/boot-9.scm must not be in its search
+# path, because it would then end up using its C evaluator to run the
+# compiler.
 if test "@cross_compiling@" = "no"
 then
+    if [ x"$GUILE_LOAD_PATH" = x ]
+    then
+	GUILE_LOAD_PATH="${top_srcdir}/module:${top_srcdir}/guile-readline:${top_srcdir}"
+	if test "${top_srcdir}" != "${top_builddir}"; then
+            GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}/guile-readline:${top_builddir}"
+	fi
+    else
+	for d in "/module" "/guile-readline" ""
+	do
+            # This hair prevents double inclusion.
+            # The ":" prevents prefix aliasing.
+	    case x"$GUILE_LOAD_PATH" in
+		x*${top_srcdir}${d}:*) ;;
+		x*${top_srcdir}${d}) ;;
+		*) GUILE_LOAD_PATH="${top_srcdir}${d}:$GUILE_LOAD_PATH" ;;
+	    esac
+	    case x"$GUILE_LOAD_PATH" in
+		x*${top_builddir}${d}:*) ;;
+		x*${top_builddir}${d}) ;;
+		*) GUILE_LOAD_PATH="${top_builddir}${d}:$GUILE_LOAD_PATH" ;;
+	    esac
+	done
+    fi
+    export GUILE_LOAD_PATH
+
     if test "x$GUILE_LOAD_COMPILED_PATH" = "x"
     then
 	GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}/guile-readline:${top_builddir}"
@@ -91,22 +96,22 @@ then
 	done
     fi
     export GUILE_LOAD_COMPILED_PATH
-fi
 
-# Don't look in installed dirs for guile modules
-if ( env | grep -v '^GUILE_SYSTEM_PATH=' > /dev/null ); then
-  GUILE_SYSTEM_PATH=
-  export GUILE_SYSTEM_PATH
-fi
-# Don't look in installed dirs for compiled guile modules
-if ( env | grep -v '^GUILE_SYSTEM_COMPILED_PATH=' > /dev/null ); then
-  GUILE_SYSTEM_COMPILED_PATH=
-  export GUILE_SYSTEM_COMPILED_PATH
-fi
-# Don't look in installed dirs for dlopen-able modules
-if ( env | grep -v '^GUILE_SYSTEM_EXTENSIONS_PATH=' > /dev/null ); then
-  GUILE_SYSTEM_EXTENSIONS_PATH=
-  export GUILE_SYSTEM_EXTENSIONS_PATH
+    # Don't look in installed dirs for guile modules
+    if ( env | grep -v '^GUILE_SYSTEM_PATH=' > /dev/null ); then
+	GUILE_SYSTEM_PATH=
+	export GUILE_SYSTEM_PATH
+    fi
+    # Don't look in installed dirs for compiled guile modules
+    if ( env | grep -v '^GUILE_SYSTEM_COMPILED_PATH=' > /dev/null ); then
+	GUILE_SYSTEM_COMPILED_PATH=
+	export GUILE_SYSTEM_COMPILED_PATH
+    fi
+    # Don't look in installed dirs for dlopen-able modules
+    if ( env | grep -v '^GUILE_SYSTEM_EXTENSIONS_PATH=' > /dev/null ); then
+	GUILE_SYSTEM_EXTENSIONS_PATH=
+	export GUILE_SYSTEM_EXTENSIONS_PATH
+    fi
 fi
 
 # handle LTDL_LIBRARY_PATH (no clobber)
