@@ -425,8 +425,7 @@
   (append (current-test-prefix) (list name)))
 
 ;;; A fluid containing the current test prefix, as a list.
-(define prefix-fluid (make-fluid))
-(fluid-set! prefix-fluid '())
+(define prefix-fluid (make-fluid '()))
 (define (current-test-prefix)
   (fluid-ref prefix-fluid))
 

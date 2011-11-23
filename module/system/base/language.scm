@@ -111,7 +111,7 @@
 ;;; Current language
 ;;;
 
-(define *current-language* (make-fluid))
+(define *current-language* (make-fluid 'scheme))
 
 (define (current-language)
-  (or (fluid-ref *current-language*) 'scheme))
+  (fluid-ref *current-language*))

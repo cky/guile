@@ -56,15 +56,13 @@
 
 (define *current-warning-port*
   ;; The port where warnings are sent.
-  (make-fluid))
+  (make-fluid (current-error-port)))
 
 (fluid-set! *current-warning-port* (current-error-port))
 
 (define *current-warning-prefix*
   ;; Prefix string when emitting a warning.
-  (make-fluid))
-
-(fluid-set! *current-warning-prefix* ";;; ")
+  (make-fluid ";;; "))
 
 
 (define-record-type <warning-type>

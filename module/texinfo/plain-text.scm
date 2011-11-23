@@ -1,6 +1,6 @@
 ;;;; (texinfo plain-text) -- rendering stexinfo as plain text
 ;;;;
-;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -41,9 +41,6 @@
   (or (arg-ref key %-args)
       (error "Missing argument:" key %-args)))
 
-(define *indent* (make-fluid))
-(define *itemizer* (make-fluid))
-
 (define (make-ticker str)
   (lambda () str))
 (define (make-enumerator n)
@@ -52,9 +49,8 @@
       (set! n (1+ n))
       (format #f "~A. " last))))
 
-(fluid-set! *indent* "")
-;; Shouldn't be necessary to do this, but just in case.
-(fluid-set! *itemizer* (make-ticker "* "))
+(define *indent* (make-fluid ""))
+(define *itemizer* (make-fluid (make-ticker "* ")))
 
 (define-macro (with-indent n . body)
   `(with-fluids ((*indent* (string-append (fluid-ref *indent*)

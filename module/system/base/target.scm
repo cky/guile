@@ -34,14 +34,14 @@
 ;;; Target types
 ;;;
 
-(define %target-type (make-fluid))
-(define %target-endianness (make-fluid))
-(define %target-word-size (make-fluid))
-
 (define %native-word-size
   ;; The native word size.  Note: don't use `word-size' from
   ;; (system vm objcode) to avoid a circular dependency.
   ((@ (system foreign) sizeof) '*))
+
+(define %target-type (make-fluid %host-type))
+(define %target-endianness (make-fluid (native-endianness)))
+(define %target-word-size (make-fluid %native-word-size))
 
 (define (validate-target target)
   (if (or (not (string? target))
@@ -100,8 +100,7 @@
 
 (define (target-type)
   "Return the GNU configuration triplet of the target platform."
-  (or (fluid-ref %target-type)
-      %host-type))
+  (fluid-ref %target-type))
 
 (define (target-cpu)
   "Return the CPU name of the target platform."
@@ -117,8 +116,8 @@
 
 (define (target-endianness)
   "Return the endianness object of the target platform."
-  (or (fluid-ref %target-endianness) (native-endianness)))
+  (fluid-ref %target-endianness))
 
 (define (target-word-size)
   "Return the word size, in bytes, of the target platform."
-  (or (fluid-ref %target-word-size) %native-word-size))
+  (fluid-ref %target-word-size))

@@ -57,37 +57,41 @@
 (define get-conv-tag (lambda () 'get-conv)) ;; arbitrary unique (as per eq?) value
 
 (define (make-parameter/helper val conv)
-  (let ((value (make-fluid))
-        (conv conv))
-    (begin
-      (fluid-set! value (conv val))
-      (lambda new-value
-        (cond
-         ((null? new-value) (fluid-ref value))
-         ((eq? (car new-value) get-fluid-tag) value)
-         ((eq? (car new-value) get-conv-tag) conv)
-         ((null? (cdr new-value)) (fluid-set! value (conv (car new-value))))
-         (else (error "make-parameter expects 0 or 1 arguments" new-value)))))))
+  (let ((fluid (make-fluid (conv val))))
+    (case-lambda
+      (()
+       (fluid-ref fluid))
+      ((new-value)
+       (cond
+        ((eq? new-value get-fluid-tag) fluid)
+        ((eq? new-value get-conv-tag) conv)
+        (else (fluid-set! fluid (conv new-value))))))))
 
 (define-syntax-rule (parameterize ((?param ?value) ...) ?body ...)
   (with-parameters* (list ?param ...)
                     (list ?value ...)
                     (lambda () ?body ...)))
 
-(define (current-input-port . new-value)
-  (if (null? new-value)
-      ((@ (guile) current-input-port))
-      (apply set-current-input-port new-value)))
+(define current-input-port
+  (case-lambda
+    (()
+     ((@ (guile) current-input-port)))
+    ((new-value)
+     (set-current-input-port new-value))))
 
-(define (current-output-port . new-value)
-  (if (null? new-value)
-      ((@ (guile) current-output-port))
-      (apply set-current-output-port new-value)))
+(define current-output-port
+  (case-lambda
+    (()
+     ((@ (guile) current-output-port)))
+    ((new-value)
+     (set-current-output-port new-value))))
 
-(define (current-error-port . new-value)
-  (if (null? new-value)
-      ((@ (guile) current-error-port))
-      (apply set-current-error-port new-value)))
+(define current-error-port
+  (case-lambda
+    (()
+     ((@ (guile) current-error-port)))
+    ((new-value)
+     (set-current-error-port new-value))))
 
 (define port-list
   (list current-input-port current-output-port current-error-port))

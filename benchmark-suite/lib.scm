@@ -1,5 +1,5 @@
 ;;;; benchmark-suite/lib.scm --- generic support for benchmarking
-;;;; Copyright (C) 2002, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2002, 2006, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -348,8 +348,7 @@
   (append (current-benchmark-prefix) (list name)))
 
 ;;; A fluid containing the current benchmark prefix, as a list.
-(define prefix-fluid (make-fluid))
-(fluid-set! prefix-fluid '())
+(define prefix-fluid (make-fluid '()))
 (define (current-benchmark-prefix)
   (fluid-ref prefix-fluid))
 

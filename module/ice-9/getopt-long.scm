@@ -164,9 +164,9 @@
   #:use-module (ice-9 optargs)
   #:export (getopt-long option-ref))
 
-(define %program-name (make-fluid))
+(define %program-name (make-fluid "guile"))
 (define (program-name)
-  (or (fluid-ref %program-name) "guile"))
+  (fluid-ref %program-name))
 
 (define (fatal-error fmt . args)
   (format (current-error-port) "~a: " (program-name))

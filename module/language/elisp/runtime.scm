@@ -1,6 +1,6 @@
 ;;; Guile Emacs Lisp
 
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -131,8 +131,8 @@
       ((_ name value)
        (with-syntax ((scheme-name (make-id #'name 'macro- #'name)))
         #'(begin
-            (define-public scheme-name (make-fluid))
-            (fluid-set! scheme-name (cons 'macro value))))))))
+            (define-public scheme-name
+              (make-fluid (cons 'macro value)))))))))
 
 (define-syntax defspecial
   (lambda (x)
@@ -140,10 +140,10 @@
       ((_ name args body ...)
        (with-syntax ((scheme-name (make-id #'name 'compile- #'name)))
          #'(begin
-             (define scheme-name (make-fluid))
-             (fluid-set! scheme-name
-                         (cons 'special-operator
-                               (lambda args body ...)))))))))
+             (define scheme-name
+               (make-fluid
+                (cons 'special-operator
+                      (lambda args body ...))))))))))
 
 ;;; Call a guile-primitive that may be rebound for elisp and thus needs
 ;;; absolute addressing.
