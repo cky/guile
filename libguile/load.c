@@ -1043,8 +1043,7 @@ scm_init_load ()
   scm_loc_fresh_auto_compile
     = SCM_VARIABLE_LOC (scm_c_define ("%fresh-auto-compile", SCM_BOOL_F));
 
-  the_reader = scm_make_fluid ();
-  scm_fluid_set_x (the_reader, SCM_BOOL_F);
+  the_reader = scm_make_fluid_with_default (SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);
 
   scm_c_define ("load-compiled",

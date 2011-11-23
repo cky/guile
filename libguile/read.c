@@ -1759,8 +1759,7 @@ scm_init_read ()
 {
   SCM read_hash_procs;
 
-  read_hash_procs = scm_make_fluid ();
-  scm_fluid_set_x (read_hash_procs, SCM_EOL);
+  read_hash_procs = scm_make_fluid_with_default (SCM_EOL);
   
   scm_i_read_hash_procedures =
     SCM_VARIABLE_LOC (scm_c_define ("%read-hash-procedures", read_hash_procs));

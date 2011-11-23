@@ -2549,13 +2549,13 @@ scm_init_ports ()
 #include "libguile/ports.x"
 
   /* Use Latin-1 as the default port encoding.  */
-  SCM_VARIABLE_SET (default_port_encoding_var, scm_make_fluid ());
-  scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
+  SCM_VARIABLE_SET (default_port_encoding_var,
+                    scm_make_fluid_with_default (SCM_BOOL_F));
   scm_port_encoding_init = 1;
 
-  SCM_VARIABLE_SET (scm_conversion_strategy, scm_make_fluid ());
-  scm_fluid_set_x (SCM_VARIABLE_REF (scm_conversion_strategy), 
-		   scm_from_int ((int) SCM_FAILED_CONVERSION_QUESTION_MARK));
+  SCM_VARIABLE_SET (scm_conversion_strategy,
+                    scm_make_fluid_with_default
+                    (scm_from_int ((int) SCM_FAILED_CONVERSION_QUESTION_MARK)));
   scm_conversion_strategy_init = 1;
   
 }
