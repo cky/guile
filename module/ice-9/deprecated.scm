@@ -26,6 +26,7 @@
             $sqrt
             $abs
             $exp
+            $expt
             $log
             $sin
             $cos
@@ -300,6 +301,10 @@
   (issue-deprecation-warning
    "`$exp' is deprecated.  Use `exp' instead.")
   (exp z))
+(define ($expt z1 z2)
+  (issue-deprecation-warning
+   "`$expt' is deprecated.  Use `expt' instead.")
+  (expt z1 z2))
 (define ($log z)
   (issue-deprecation-warning
    "`$log' is deprecated.  Use `log' instead.")
