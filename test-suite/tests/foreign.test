@@ -272,6 +272,22 @@
                (proc*   (pointer->procedure void pointer '())))
           (proc*)
           called?)
+        (throw 'unresolved)))
+
+  (pass-if "procedure is retained"
+    ;; The lambda passed to `procedure->pointer' must remain live.
+    (if (defined? 'procedure->pointer)
+        (let* ((ptr   (procedure->pointer int
+                                          (lambda (x) (+ x 7))
+                                          (list int)))
+               (procs (unfold (cut >= <> 10000)
+                              (lambda (i)
+                                (pointer->procedure int ptr (list int)))
+                              1+
+                              0)))
+          (gc) (gc) (gc)
+          (every (cut = <> 9)
+                 (map (lambda (f) (f 2)) procs)))
         (throw 'unresolved))))
 
 

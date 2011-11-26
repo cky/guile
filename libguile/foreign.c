@@ -1152,7 +1152,8 @@ SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
   if (closure == executable)
     {
       pointer = scm_from_pointer (executable, ffi_closure_free);
-      register_weak_reference (pointer, cif_pointer);
+      register_weak_reference (pointer,
+			       scm_list_2 (proc, cif_pointer));
     }
   else
     {
@@ -1166,7 +1167,8 @@ SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
       pointer = scm_from_pointer (executable, NULL);
       friend = scm_from_pointer (closure, ffi_closure_free);
 
-      register_weak_reference (pointer, scm_list_2 (cif_pointer, friend));
+      register_weak_reference (pointer,
+			       scm_list_3 (proc, cif_pointer, friend));
     }
 
   return pointer;
