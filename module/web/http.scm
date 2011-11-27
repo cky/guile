@@ -1240,19 +1240,25 @@ phrase\"."
 (declare-key-value-list-header! "Cache-Control"
   (lambda (k v-str)
     (case k
-      ((max-age max-stale min-fresh s-maxage)
+      ((max-age min-fresh s-maxage)
        (parse-non-negative-integer v-str))
+      ((max-stale)
+       (and v-str (parse-non-negative-integer v-str)))
       ((private no-cache)
        (and v-str (split-header-names v-str)))
       (else v-str)))
   (lambda (k v)
     (case k
-      ((max-age max-stale min-fresh s-maxage)
+      ((max-age min-fresh s-maxage)
        (non-negative-integer? v))
+      ((max-stale)
+       (or (not v) (non-negative-integer? v)))
       ((private no-cache)
        (or (not v) (list-of-header-names? v)))
+      ((no-store no-transform only-if-cache must-revalidate proxy-revalidate)
+       (not v))
       (else
-       (not v))))
+       (or (not v) (string? v)))))
   (lambda (k v port)
     (cond
      ((string? v) (display v port))

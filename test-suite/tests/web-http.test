@@ -83,6 +83,8 @@
                  '((private . (foo))))
   (pass-if-parse cache-control "no-cache,max-age=10"
                  '(no-cache (max-age . 10)))
+  (pass-if-parse cache-control "max-stale" '(max-stale))
+  (pass-if-parse cache-control "max-stale=10" '((max-stale . 10)))
 
   (pass-if-parse connection "close" '(close))
   (pass-if-parse connection "Content-Encoding" '(content-encoding))
