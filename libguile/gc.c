@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <math.h>
 
 #ifdef __ia64__
 #include <ucontext.h>
@@ -194,6 +195,8 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 
 
 
+/* Compatibility.  */
+
 #ifndef HAVE_GC_GET_HEAP_USAGE_SAFE
 static void
 GC_get_heap_usage_safe (GC_word *pheap_size, GC_word *pfree_bytes,
@@ -205,6 +208,14 @@ GC_get_heap_usage_safe (GC_word *pheap_size, GC_word *pfree_bytes,
   *punmapped_bytes = GC_get_unmapped_bytes ();
   *pbytes_since_gc = GC_get_bytes_since_gc ();
   *ptotal_bytes = GC_get_total_bytes ();
+}
+#endif
+
+#ifndef HAVE_GC_GET_FREE_SPACE_DIVISOR
+static GC_word
+GC_get_free_space_divisor (void)
+{
+  return GC_free_space_divisor;
 }
 #endif
 
@@ -230,6 +241,9 @@ unsigned long scm_gc_ports_collected = 0;
 static long gc_time_taken = 0;
 static long gc_start_time = 0;
 
+static unsigned long free_space_divisor;
+static unsigned long minimum_free_space_divisor;
+static double target_free_space_divisor;
 
 static unsigned long protected_obj_count = 0;
 
@@ -598,7 +612,10 @@ void
 scm_storage_prehistory ()
 {
   GC_all_interior_pointers = 0;
-  GC_set_free_space_divisor (scm_getenv_int ("GC_FREE_SPACE_DIVISOR", 3));
+  free_space_divisor = scm_getenv_int ("GC_FREE_SPACE_DIVISOR", 3);
+  minimum_free_space_divisor = free_space_divisor;
+  target_free_space_divisor = free_space_divisor;
+  GC_set_free_space_divisor (free_space_divisor);
 
   GC_INIT ();
 
@@ -742,10 +759,138 @@ accumulate_gc_timer (void * hook_data SCM_UNUSED,
                 void *data SCM_UNUSED)
 {
   if (gc_start_time)
-    { long now = scm_c_get_internal_run_time ();
+    {
+      long now = scm_c_get_internal_run_time ();
       gc_time_taken += now - gc_start_time;
       gc_start_time = 0;
     }
+
+  return NULL;
+}
+
+/* Return some idea of the memory footprint of a process, in bytes.
+   Currently only works on Linux systems.  */
+static size_t
+get_image_size (void)
+{
+  unsigned long size, resident, share;
+  size_t ret;
+
+  FILE *fp = fopen ("/proc/self/statm", "r");
+
+  if (fp && fscanf (fp, "%lu %lu %lu", &size, &resident, &share) == 3)
+    ret = resident * 4096;
+
+  if (fp)
+    fclose (fp);
+
+  return ret;
+}
+
+/* Make GC run more frequently when the process image size is growing,
+   measured against the number of bytes allocated through the GC.
+
+   If Guile is allocating at a GC-managed heap size H, libgc will tend
+   to limit the process image size to H*N.  But if at the same time the
+   user program is mallocating at a rate M bytes per GC-allocated byte,
+   then the process stabilizes at H*N*M -- assuming that collecting data
+   will result in malloc'd data being freed.  It doesn't take a very
+   large M for this to be a bad situation.  To limit the image size,
+   Guile should GC more often -- the bigger the M, the more often.
+
+   Numeric functions that produce bigger and bigger integers are
+   pessimal, because M is an increasing function of time.  Here is an
+   example of such a function:
+
+      (define (factorial n)
+        (define (fac n acc)
+          (if (<= n 1)
+            acc
+            (fac (1- n) (* n acc))))
+        (fac n 1))
+
+   It is possible for a process to grow for reasons that will not be
+   solved by faster GC.  In that case M will be estimated as
+   artificially high for a while, and so GC will happen more often on
+   the Guile side.  But when it stabilizes, Guile can ease back the GC
+   frequency.
+
+   The key is to measure process image growth, not mallocation rate.
+   For maximum effectiveness, Guile reacts quickly to process growth,
+   and exponentially backs down when the process stops growing.
+
+   See http://thread.gmane.org/gmane.lisp.guile.devel/12552/focus=12936
+   for further discussion.
+ */
+static void *
+adjust_gc_frequency (void * hook_data SCM_UNUSED,
+                     void *fn_data SCM_UNUSED,
+                     void *data SCM_UNUSED)
+{
+  static size_t prev_image_size = 0;
+  static size_t prev_bytes_alloced = 0;
+  size_t image_size;
+  size_t bytes_alloced;
+  
+  image_size = get_image_size ();
+  bytes_alloced = GC_get_total_bytes ();
+
+#define HEURISTICS_DEBUG 1
+
+#if HEURISTICS_DEBUG
+  fprintf (stderr, "prev image / alloced: %lu / %lu\n", prev_image_size, prev_bytes_alloced);
+  fprintf (stderr, "     image / alloced: %lu / %lu\n", image_size, bytes_alloced);
+  fprintf (stderr, "divisor %lu / %f\n", free_space_divisor, target_free_space_divisor);
+#endif
+
+  if (prev_image_size && bytes_alloced != prev_bytes_alloced)
+    {
+      double growth_rate, new_target_free_space_divisor;
+      double decay_factor = 0.5;
+      double hysteresis = 0.1;
+
+      growth_rate = ((double) image_size - prev_image_size)
+        / ((double)bytes_alloced - prev_bytes_alloced);
+      
+#if HEURISTICS_DEBUG
+      fprintf (stderr, "growth rate %f\n", growth_rate);
+#endif
+
+      new_target_free_space_divisor = minimum_free_space_divisor;
+
+      if (growth_rate > 0)
+        new_target_free_space_divisor *= 1.0 + growth_rate;
+
+#if HEURISTICS_DEBUG
+      fprintf (stderr, "new divisor %f\n", new_target_free_space_divisor);
+#endif
+
+      if (new_target_free_space_divisor < target_free_space_divisor)
+        /* Decay down.  */
+        target_free_space_divisor =
+          (decay_factor * target_free_space_divisor
+           + (1.0 - decay_factor) * new_target_free_space_divisor);
+      else
+        /* Jump up.  */
+        target_free_space_divisor = new_target_free_space_divisor;
+
+#if HEURISTICS_DEBUG
+      fprintf (stderr, "new target divisor %f\n", target_free_space_divisor);
+#endif
+
+      if (free_space_divisor + 0.5 + hysteresis < target_free_space_divisor
+          || free_space_divisor - 0.5 - hysteresis > target_free_space_divisor)
+        {
+          free_space_divisor = lround (target_free_space_divisor);
+#if HEURISTICS_DEBUG
+          fprintf (stderr, "new divisor %lu\n", free_space_divisor);
+#endif
+          GC_set_free_space_divisor (free_space_divisor);
+        }
+    }
+
+  prev_image_size = image_size;
+  prev_bytes_alloced = bytes_alloced;
 
   return NULL;
 }
@@ -847,6 +992,7 @@ scm_init_gc ()
   scm_c_hook_add (&scm_before_gc_c_hook, queue_after_gc_hook, NULL, 0);
   scm_c_hook_add (&scm_before_gc_c_hook, start_gc_timer, NULL, 0);
   scm_c_hook_add (&scm_after_gc_c_hook, accumulate_gc_timer, NULL, 0);
+  scm_c_hook_add (&scm_after_gc_c_hook, adjust_gc_frequency, NULL, 0);
 
 #ifdef HAVE_GC_SET_START_CALLBACK
   GC_set_start_callback (run_before_gc_c_hook);
