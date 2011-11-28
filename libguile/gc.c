@@ -193,6 +193,22 @@ SCM_DEFINE (scm_set_debug_cell_accesses_x, "set-debug-cell-accesses!", 1, 0, 0,
 #endif  /* SCM_DEBUG_CELL_ACCESSES == 1 */
 
 
+
+#ifndef HAVE_GC_GET_HEAP_USAGE_SAFE
+static void
+GC_get_heap_usage_safe (GC_word *pheap_size, GC_word *pfree_bytes,
+                        GC_word *punmapped_bytes, GC_word *pbytes_since_gc,
+                        GC_word *ptotal_bytes)
+{
+  *pheap_size = GC_get_heap_size ();
+  *pfree_bytes = GC_get_free_bytes ();
+  *punmapped_bytes = GC_get_unmapped_bytes ();
+  *pbytes_since_gc = GC_get_bytes_since_gc ();
+  *ptotal_bytes = GC_get_total_bytes ();
+}
+#endif
+
+
 /* Hooks.  */
 scm_t_c_hook scm_before_gc_c_hook;
 scm_t_c_hook scm_before_mark_c_hook;
@@ -275,14 +291,12 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 #define FUNC_NAME s_scm_gc_stats
 {
   SCM answer;
-  size_t heap_size, free_bytes, bytes_since_gc, total_bytes;
+  GC_word heap_size, free_bytes, unmapped_bytes, bytes_since_gc, total_bytes;
   size_t gc_times;
 
-  heap_size      = GC_get_heap_size ();
-  free_bytes     = GC_get_free_bytes ();
-  bytes_since_gc = GC_get_bytes_since_gc ();
-  total_bytes    = GC_get_total_bytes ();
-  gc_times       = GC_gc_no;
+  GC_get_heap_usage_safe (&heap_size, &free_bytes, &unmapped_bytes,
+                          &bytes_since_gc, &total_bytes);
+  gc_times = GC_gc_no;
 
   answer =
     scm_list_n (scm_cons (sym_gc_time_taken, scm_from_long (gc_time_taken)),
