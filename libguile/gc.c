@@ -989,10 +989,10 @@ scm_init_gc ()
                                                     after_gc_async_thunk),
                                   SCM_BOOL_F);
 
+  scm_c_hook_add (&scm_before_gc_c_hook, adjust_gc_frequency, NULL, 0);
   scm_c_hook_add (&scm_before_gc_c_hook, queue_after_gc_hook, NULL, 0);
   scm_c_hook_add (&scm_before_gc_c_hook, start_gc_timer, NULL, 0);
   scm_c_hook_add (&scm_after_gc_c_hook, accumulate_gc_timer, NULL, 0);
-  scm_c_hook_add (&scm_after_gc_c_hook, adjust_gc_frequency, NULL, 0);
 
 #ifdef HAVE_GC_SET_START_CALLBACK
   GC_set_start_callback (run_before_gc_c_hook);
