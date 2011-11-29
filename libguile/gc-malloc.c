@@ -89,12 +89,14 @@ scm_realloc (void *mem, size_t size)
 {
   void *ptr;
 
+  scm_gc_register_allocation (size);
+
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)
     return ptr;
 
   /* Time is hard: trigger a full, ``stop-the-world'' GC, and try again.  */
-  GC_gcollect ();
+  GC_gcollect_and_unmap ();
 
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)

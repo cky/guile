@@ -182,6 +182,8 @@ SCM_INTERNAL void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);
 SCM_API void scm_gc_sweep (void);
 
+SCM_API void scm_gc_register_allocation (size_t size);
+
 SCM_API void *scm_malloc (size_t size) SCM_MALLOC;
 SCM_API void *scm_calloc (size_t size) SCM_MALLOC;
 SCM_API void *scm_realloc (void *mem, size_t size);

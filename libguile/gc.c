@@ -787,6 +787,10 @@ get_image_size (void)
   return ret;
 }
 
+/* These are discussed later.  */
+static size_t bytes_until_gc;
+static scm_i_pthread_mutex_t bytes_until_gc_lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
 /* Make GC run more frequently when the process image size is growing,
    measured against the number of bytes allocated through the GC.
 
@@ -832,6 +836,10 @@ adjust_gc_frequency (void * hook_data SCM_UNUSED,
   size_t image_size;
   size_t bytes_alloced;
   
+  scm_i_pthread_mutex_lock (&bytes_until_gc_lock);
+  bytes_until_gc = GC_get_heap_size ();
+  scm_i_pthread_mutex_unlock (&bytes_until_gc_lock);
+
   image_size = get_image_size ();
   bytes_alloced = GC_get_total_bytes ();
 
@@ -893,6 +901,33 @@ adjust_gc_frequency (void * hook_data SCM_UNUSED,
   prev_bytes_alloced = bytes_alloced;
 
   return NULL;
+}
+
+/* The adjust_gc_frequency routine handles transients in the process
+   image size.  It can't handle instense non-GC-managed steady-state
+   allocation though, as it decays the FSD at steady-state down to its
+   minimum value.
+
+   The only real way to handle continuous, high non-GC allocation is to
+   let the GC know about it.  This routine can handle non-GC allocation
+   rates that are similar in size to the GC-managed heap size.
+ */
+
+void
+scm_gc_register_allocation (size_t size)
+{
+  scm_i_pthread_mutex_lock (&bytes_until_gc_lock);
+  if (bytes_until_gc - size > bytes_until_gc)
+    {
+      bytes_until_gc = GC_get_heap_size ();
+      scm_i_pthread_mutex_unlock (&bytes_until_gc_lock);
+      GC_gcollect ();
+    }
+  else
+    {
+      bytes_until_gc -= size;
+      scm_i_pthread_mutex_unlock (&bytes_until_gc_lock);
+    }
 }
 
 
