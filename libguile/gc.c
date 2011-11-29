@@ -835,7 +835,7 @@ adjust_gc_frequency (void * hook_data SCM_UNUSED,
   image_size = get_image_size ();
   bytes_alloced = GC_get_total_bytes ();
 
-#define HEURISTICS_DEBUG 1
+#define HEURISTICS_DEBUG 0
 
 #if HEURISTICS_DEBUG
   fprintf (stderr, "prev image / alloced: %lu / %lu\n", prev_image_size, prev_bytes_alloced);
