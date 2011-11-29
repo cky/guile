@@ -1006,6 +1006,7 @@ SCM_DEFINE (scm_call_with_new_thread, "call-with-new-thread", 1, 1, 0,
   SCM_ASSERT (SCM_UNBNDP (handler) || scm_is_true (scm_procedure_p (handler)),
 	      handler, SCM_ARG2, FUNC_NAME);
 
+  GC_collect_a_little ();
   data.parent = scm_current_dynamic_state ();
   data.thunk = thunk;
   data.handler = handler;
