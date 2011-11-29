@@ -774,7 +774,7 @@ static size_t
 get_image_size (void)
 {
   unsigned long size, resident, share;
-  size_t ret;
+  size_t ret = 0;
 
   FILE *fp = fopen ("/proc/self/statm", "r");
 
