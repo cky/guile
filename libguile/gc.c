@@ -1024,10 +1024,19 @@ scm_init_gc ()
                                                     after_gc_async_thunk),
                                   SCM_BOOL_F);
 
-  scm_c_hook_add (&scm_before_gc_c_hook, adjust_gc_frequency, NULL, 0);
   scm_c_hook_add (&scm_before_gc_c_hook, queue_after_gc_hook, NULL, 0);
   scm_c_hook_add (&scm_before_gc_c_hook, start_gc_timer, NULL, 0);
   scm_c_hook_add (&scm_after_gc_c_hook, accumulate_gc_timer, NULL, 0);
+
+#if HAVE_GC_GET_HEAP_USAGE_SAFE
+  /* GC_get_heap_usage does not take a lock, and so can run in the GC
+     start hook.  */
+  scm_c_hook_add (&scm_before_gc_c_hook, adjust_gc_frequency, NULL, 0);
+#else
+  /* GC_get_heap_usage might take a lock (and did from 7.2alpha1 to
+     7.2alpha7), so call it in the after_gc_hook.  */
+  scm_c_hook_add (&scm_after_gc_c_hook, adjust_gc_frequency, NULL, 0);
+#endif
 
 #ifdef HAVE_GC_SET_START_CALLBACK
   GC_set_start_callback (run_before_gc_c_hook);
