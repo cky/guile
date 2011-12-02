@@ -520,6 +520,9 @@ SCM_API double scm_c_angle (SCM z);
 
 SCM_API int scm_is_number (SCM val);
 
+/* If nonzero, tell gmp to use GC_malloc for its allocations.  */
+SCM_API int scm_install_gmp_memory_functions;
+
 SCM_INTERNAL void scm_init_numbers (void);
 
 #endif  /* SCM_NUMBERS_H */

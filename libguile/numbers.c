@@ -114,6 +114,10 @@ typedef scm_t_signed_bits scm_t_inum;
 /* the macro above will not work as is with fractions */
 
 
+/* Default to 1, because as we used to hard-code `free' as the
+   deallocator, we know that overriding these functions with
+   instrumented `malloc' / `free' is OK.  */
+int scm_install_gmp_memory_functions = 1;
 static SCM flo0;
 static SCM exactly_one_half;
 static SCM flo_log10e;
@@ -172,6 +176,7 @@ scm_from_complex_double (complex double z)
 static mpz_t z_negative_one;
 
 
+
 /* Clear the `mpz_t' embedded in bignum PTR.  */
 static void
 finalize_bignum (GC_PTR ptr, GC_PTR data)
@@ -181,6 +186,31 @@ finalize_bignum (GC_PTR ptr, GC_PTR data)
   bignum = PTR2SCM (ptr);
   mpz_clear (SCM_I_BIG_MPZ (bignum));
 }
+
+/* The next three functions (custom_libgmp_*) are passed to
+   mp_set_memory_functions (in GMP) so that memory used by the digits
+   themselves is known to the garbage collector.  This is needed so
+   that GC will be run at appropriate times.  Otherwise, a program which
+   creates many large bignums would malloc a huge amount of memory
+   before the GC runs. */
+static void *
+custom_gmp_malloc (size_t alloc_size)
+{
+  return scm_malloc (alloc_size);
+}
+
+static void *
+custom_gmp_realloc (void *old_ptr, size_t old_size, size_t new_size)
+{
+  return scm_realloc (old_ptr, new_size);
+}
+
+static void
+custom_gmp_free (void *ptr, size_t size)
+{
+  free (ptr);
+}
+
 
 /* Return a new uninitialized bignum.  */
 static inline SCM
@@ -5368,9 +5398,12 @@ int
 scm_bigprint (SCM exp, SCM port, scm_print_state *pstate SCM_UNUSED)
 {
   char *str = mpz_get_str (NULL, 10, SCM_I_BIG_MPZ (exp));
+  size_t len = strlen (str);
+  void (*freefunc) (void *, size_t);
+  mp_get_memory_functions (NULL, NULL, &freefunc);
   scm_remember_upto_here_1 (exp);
-  scm_lfwrite (str, (size_t) strlen (str), port);
-  free (str);
+  scm_lfwrite (str, len, port);
+  freefunc (str, len + 1);
   return !0;
 }
 /*** END nums->strs ***/
@@ -9687,6 +9720,11 @@ void
 scm_init_numbers ()
 {
   int i;
+
+  if (scm_install_gmp_memory_functions)
+    mp_set_memory_functions (custom_gmp_malloc,
+                             custom_gmp_realloc,
+                             custom_gmp_free);
 
   mpz_init_set_si (z_negative_one, -1);
 
