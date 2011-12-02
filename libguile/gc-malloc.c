@@ -154,7 +154,8 @@ scm_strdup (const char *str)
 void
 scm_gc_register_collectable_memory (void *mem, size_t size, const char *what)
 {
-  /* Nothing to do.  */
+  scm_gc_register_allocation (size);
+
 #ifdef GUILE_DEBUG_MALLOC
   if (mem)
     scm_malloc_register (mem, what);
