@@ -5330,8 +5330,14 @@ SCM_DEFINE (scm_number_to_string, "number->string", 1, 1, 0,
   else if (SCM_BIGP (n))
     {
       char *str = mpz_get_str (NULL, base, SCM_I_BIG_MPZ (n));
+      size_t len = strlen (str);
+      void (*freefunc) (void *, size_t);
+      SCM ret;
+      mp_get_memory_functions (NULL, NULL, &freefunc);
       scm_remember_upto_here_1 (n);
-      return scm_take_locale_string (str);
+      ret = scm_from_latin1_stringn (str, len);
+      freefunc (str, len + 1);
+      return ret;
     }
   else if (SCM_FRACTIONP (n))
     {
