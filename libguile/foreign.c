@@ -913,7 +913,7 @@ cif_to_procedure (SCM cif, SCM func_ptr)
 
 /* Set *LOC to the foreign representation of X with TYPE.  */
 static void
-unpack (const ffi_type *type, void *loc, SCM x)
+unpack (const ffi_type *type, void *loc, SCM x, int return_value_p)
 #define FUNC_NAME "scm_i_foreign_call"
 {
   switch (type->type)
@@ -924,23 +924,45 @@ unpack (const ffi_type *type, void *loc, SCM x)
     case FFI_TYPE_DOUBLE:
       *(double *) loc = scm_to_double (x);
       break;
+
+    /* For integer return values smaller than `int', libffi expects the
+       result in an `ffi_arg'-long buffer.  */
+
     case FFI_TYPE_UINT8:
-      *(scm_t_uint8 *) loc = scm_to_uint8 (x);
+      if (return_value_p)
+	*(ffi_arg *) loc = scm_to_uint8 (x);
+      else
+	*(scm_t_uint8 *) loc = scm_to_uint8 (x);
       break;
     case FFI_TYPE_SINT8:
-      *(scm_t_int8 *) loc = scm_to_int8 (x);
+      if (return_value_p)
+	*(ffi_arg *) loc = scm_to_int8 (x);
+      else
+	*(scm_t_int8 *) loc = scm_to_int8 (x);
       break;
     case FFI_TYPE_UINT16:
-      *(scm_t_uint16 *) loc = scm_to_uint16 (x);
+      if (return_value_p)
+	*(ffi_arg *) loc = scm_to_uint16 (x);
+      else
+	*(scm_t_uint16 *) loc = scm_to_uint16 (x);
       break;
     case FFI_TYPE_SINT16:
-      *(scm_t_int16 *) loc = scm_to_int16 (x);
+      if (return_value_p)
+	*(ffi_arg *) loc = scm_to_int16 (x);
+      else
+	*(scm_t_int16 *) loc = scm_to_int16 (x);
       break;
     case FFI_TYPE_UINT32:
-      *(scm_t_uint32 *) loc = scm_to_uint32 (x);
+      if (return_value_p)
+	*(ffi_arg *) loc = scm_to_uint32 (x);
+      else
+	*(scm_t_uint32 *) loc = scm_to_uint32 (x);
       break;
     case FFI_TYPE_SINT32:
-      *(scm_t_int32 *) loc = scm_to_int32 (x);
+      if (return_value_p)
+	*(ffi_arg *) loc = scm_to_int32 (x);
+      else
+	*(scm_t_int32 *) loc = scm_to_int32 (x);
       break;
     case FFI_TYPE_UINT64:
       *(scm_t_uint64 *) loc = scm_to_uint64 (x);
@@ -1076,7 +1098,7 @@ scm_i_foreign_call (SCM foreign, const SCM *argv)
       args[i] = (void *) ROUND_UP ((scm_t_uintptr) data + off,
 				   cif->arg_types[i]->alignment);
       assert ((scm_t_uintptr) args[i] % cif->arg_types[i]->alignment == 0);
-      unpack (cif->arg_types[i], args[i], argv[i]);
+      unpack (cif->arg_types[i], args[i], argv[i], 0);
     }
 
   /* Prepare space for the return value.  On some platforms, such as
@@ -1115,7 +1137,7 @@ invoke_closure (ffi_cif *cif, void *ret, void **args, void *data)
 
   result = scm_call_n (proc, argv, cif->nargs);
 
-  unpack (cif->rtype, ret, result);
+  unpack (cif->rtype, ret, result, 1);
 }
 
 SCM_DEFINE (scm_procedure_to_pointer, "procedure->pointer", 3, 0, 0,
