@@ -38,6 +38,9 @@
   (load-extension (string-append "libguile-" (effective-version))
                   "scm_init_poll"))
 
+(if (not (= %sizeof-struct-pollfd 8))
+    (error "Unexpected struct pollfd size" %sizeof-struct-pollfd))
+
 (if (defined? 'POLLIN)
     (export POLLIN))
 

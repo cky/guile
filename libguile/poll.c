@@ -184,6 +184,7 @@ scm_init_poll (void)
 {
 #if HAVE_POLL
   scm_c_define_gsubr ("primitive-poll", 4, 0, 0, scm_primitive_poll);
+  scm_c_define ("%sizeof-struct-pollfd", scm_from_size_t (sizeof (struct pollfd)));
 #else
   scm_misc_error ("%init-poll", "`poll' unavailable on this platform", SCM_EOL);
 #endif
