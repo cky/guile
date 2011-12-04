@@ -45,11 +45,14 @@ SCM_INTERNAL scm_t_option scm_debug_opts[];
 */
 SCM_INTERNAL scm_t_option scm_print_opts[];
 
+#define SCM_PRINT_HIGHLIGHT_PREFIX_I 0
 #define SCM_PRINT_HIGHLIGHT_PREFIX  (SCM_PACK (scm_print_opts[0].val))
+#define SCM_PRINT_HIGHLIGHT_SUFFIX_I 1
 #define SCM_PRINT_HIGHLIGHT_SUFFIX  (SCM_PACK (scm_print_opts[1].val))
 #define SCM_PRINT_KEYWORD_STYLE_I   2
 #define SCM_PRINT_KEYWORD_STYLE     (SCM_PACK (scm_print_opts[2].val))
-#define SCM_N_PRINT_OPTIONS 3
+#define SCM_PRINT_ESCAPE_NEWLINES_P scm_print_opts[3].val
+#define SCM_N_PRINT_OPTIONS 4
 
 
 /*
