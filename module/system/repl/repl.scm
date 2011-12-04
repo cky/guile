@@ -132,7 +132,10 @@
 ;;;
 
 (define* (start-repl #:optional (lang (current-language)) #:key debug)
-  (run-repl (make-repl lang debug)))
+  ;; ,language at the REPL will fluid-set! the *current-language*.  Make
+  ;; sure that it does so in a new scope.
+  (with-fluids ((*current-language* lang))
+    (run-repl (make-repl lang debug))))
 
 ;; (put 'abort-on-error 'scheme-indent-function 1)
 (define-syntax-rule (abort-on-error string exp)

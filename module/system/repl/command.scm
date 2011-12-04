@@ -441,6 +441,7 @@ Change languages."
         (cur (repl-language repl)))
     (format #t "Happy hacking with ~a!  To switch back, type `,L ~a'.\n"
             (language-title lang) (language-name cur))
+    (fluid-set! *current-language* lang)
     (set! (repl-language repl) lang)))
 
 
