@@ -217,7 +217,7 @@ If there is no handler at all, Guile prints an error and then exits."
 (define current-warning-port current-error-port)
 
 (define (warn . stuff)
-  (with-output-to-port (current-error-port)
+  (with-output-to-port (current-warning-port)
     (lambda ()
       (newline)
       (display ";;; WARNING ")
@@ -1382,7 +1382,7 @@ VALUE."
 
 (define (%load-announce file)
   (if %load-verbosely
-      (with-output-to-port (current-error-port)
+      (with-output-to-port (current-warning-port)
         (lambda ()
           (display ";;; ")
           (display "loading ")
@@ -3393,7 +3393,7 @@ module '(ice-9 q) '(make-q q-length))}."
                  #f))
     
     (define (warn module name int1 val1 int2 val2 var val)
-      (format (current-error-port)
+      (format (current-warning-port)
               "WARNING: ~A: `~A' imported from both ~A and ~A\n"
               (module-name module)
               name
@@ -3415,7 +3415,7 @@ module '(ice-9 q) '(make-q q-length))}."
     (define (warn-override-core module name int1 val1 int2 val2 var val)
       (and (eq? int1 the-scm-module)
            (begin
-             (format (current-error-port)
+             (format (current-warning-port)
                      "WARNING: ~A: imported module ~A overrides core binding `~A'\n"
                      (module-name module)
                      (module-name int2)
@@ -3537,13 +3537,13 @@ module '(ice-9 q) '(make-q q-length))}."
               go-path
               (begin
                 (if gostat
-                    (format (current-error-port)
+                    (format (current-warning-port)
                             ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
                             name go-path))
                 (cond
                  (%load-should-auto-compile
                   (%warn-auto-compilation-enabled)
-                  (format (current-error-port) ";;; compiling ~a\n" name)
+                  (format (current-warning-port) ";;; compiling ~a\n" name)
                   (let ((cfn
                          ((module-ref
                                (resolve-interface '(system base compile))
@@ -3551,15 +3551,15 @@ module '(ice-9 q) '(make-q q-length))}."
                               name
                               #:opts %auto-compilation-options
                               #:env (current-module))))
-                    (format (current-error-port) ";;; compiled ~a\n" cfn)
+                    (format (current-warning-port) ";;; compiled ~a\n" cfn)
                     cfn))
                  (else #f))))))
       (lambda (k . args)
-        (format (current-error-port)
+        (format (current-warning-port)
                 ";;; WARNING: compilation of ~a failed:\n" name)
         (for-each (lambda (s)
                     (if (not (string-null? s))
-                        (format (current-error-port) ";;; ~a\n" s)))
+                        (format (current-warning-port) ";;; ~a\n" s)))
                   (string-split
                    (call-with-output-string
                     (lambda (port) (print-exception port #f k args)))

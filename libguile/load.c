@@ -738,18 +738,18 @@ auto_compile_catch_handler (void *data, SCM tag, SCM throw_args)
   oport = scm_open_output_string ();
   scm_print_exception (oport, SCM_BOOL_F, tag, throw_args);
 
-  scm_puts (";;; WARNING: compilation of ", scm_current_error_port ());
-  scm_display (source, scm_current_error_port ());
-  scm_puts (" failed:\n", scm_current_error_port ());
+  scm_puts (";;; WARNING: compilation of ", scm_current_warning_port ());
+  scm_display (source, scm_current_warning_port ());
+  scm_puts (" failed:\n", scm_current_warning_port ());
 
   lines = scm_string_split (scm_get_output_string (oport),
                             SCM_MAKE_CHAR ('\n'));
   for (; scm_is_pair (lines); lines = scm_cdr (lines))
     if (scm_c_string_length (scm_car (lines)))
       {
-        scm_puts (";;; ", scm_current_error_port ());
-        scm_display (scm_car (lines), scm_current_error_port ());
-        scm_newline (scm_current_error_port ());
+        scm_puts (";;; ", scm_current_warning_port ());
+        scm_display (scm_car (lines), scm_current_warning_port ());
+        scm_newline (scm_current_warning_port ());
       }
 
   scm_close_port (oport);
@@ -767,7 +767,7 @@ SCM_DEFINE (scm_sys_warn_auto_compilation_enabled, "%warn-auto-compilation-enabl
     {
       scm_puts (";;; note: auto-compilation is enabled, set GUILE_AUTO_COMPILE=0\n"
                 ";;;       or pass the --no-auto-compile argument to disable.\n",
-                scm_current_error_port ());
+                scm_current_warning_port ());
       message_shown = 1;
     }
 
@@ -933,9 +933,9 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
       if (stat_ret == 0 && compiled_is_fresh (full_filename, fallback,
                                               &stat_source, &stat_compiled))
         {
-          scm_puts (";;; found fresh local cache at ", scm_current_error_port ());
-          scm_display (fallback, scm_current_error_port ());
-          scm_newline (scm_current_error_port ());
+          scm_puts (";;; found fresh local cache at ", scm_current_warning_port ());
+          scm_display (fallback, scm_current_warning_port ());
+          scm_newline (scm_current_warning_port ());
           return scm_load_compiled_with_vm (fallback);
         }
     }

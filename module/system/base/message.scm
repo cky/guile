@@ -54,11 +54,13 @@
 ;;; Warnings
 ;;;
 
+;; This name existed before %current-warning-port was introduced, but
+;; otherwise it is a deprecated binding.
 (define *current-warning-port*
-  ;; The port where warnings are sent.
-  (make-fluid (current-error-port)))
-
-(fluid-set! *current-warning-port* (current-error-port))
+  ;; Can't play the identifier-syntax deprecation game in Guile 2.0, as
+  ;; other modules might depend on this being a normal binding and not a
+  ;; syntax binding.
+  (parameter-fluid current-warning-port))
 
 (define *current-warning-prefix*
   ;; Prefix string when emitting a warning.
@@ -194,7 +196,7 @@
   "Emit a warning of type TYPE for source location LOCATION (a source
 property alist) using the data in ARGS."
   (let ((wt   (lookup-warning-type type))
-        (port (fluid-ref *current-warning-port*)))
+        (port (current-warning-port)))
     (if (warning-type? wt)
         (apply (warning-type-printer wt)
                port (location-string location)
