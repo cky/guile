@@ -74,6 +74,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/numbers.test			\
 	    tests/optargs.test			\
 	    tests/options.test			\
+	    tests/parameters.test		\
 	    tests/print.test			\
 	    tests/procprop.test			\
 	    tests/procs.test			\

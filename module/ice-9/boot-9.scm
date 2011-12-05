@@ -2859,6 +2859,53 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
+;;; {Parameters}
+;;;
+
+(define <parameter>
+  ;; Three fields: the procedure itself, the fluid, and the converter.
+  (make-struct <applicable-struct-vtable> 0 'pwprpr))
+(set-struct-vtable-name! <parameter> '<parameter>)
+
+(define* (make-parameter init #:optional (conv (lambda (x) x)))
+  (let ((fluid (make-fluid (conv init))))
+    (make-struct <parameter> 0
+                 (case-lambda
+                   (() (fluid-ref fluid))
+                   ((x) (fluid-set! fluid (conv x))))
+                 fluid conv)))
+
+(define (parameter? x)
+  (and (struct? x) (eq? (struct-vtable x) <parameter>)))
+
+(define (parameter-fluid p)
+  (if (parameter? p)
+      (struct-ref p 1)
+      (scm-error 'wrong-type-arg "parameter-fluid"
+                 "Not a parameter: ~S" (list p) #f)))
+
+(define (parameter-converter p)
+  (if (parameter? p)
+      (struct-ref p 2)
+      (scm-error 'wrong-type-arg "parameter-fluid"
+                 "Not a parameter: ~S" (list p) #f)))
+
+(define-syntax parameterize
+  (lambda (x)
+    (syntax-case x ()
+      ((_ ((param value) ...) body body* ...)
+       (with-syntax (((p ...) (generate-temporaries #'(param ...))))
+         #'(let ((p param) ...)
+             (if (not (parameter? p))
+                        (scm-error 'wrong-type-arg "parameterize"
+                                   "Not a parameter: ~S" (list p) #f))
+             ...
+             (with-fluids (((struct-ref p 1) ((struct-ref p 2) value))
+                           ...)
+               body body* ...)))))))
+
+
+
 ;;; {Running Repls}
 ;;;
 
