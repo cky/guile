@@ -2872,7 +2872,9 @@ module '(ice-9 q) '(make-q q-length))}."
     (make-struct <parameter> 0
                  (case-lambda
                    (() (fluid-ref fluid))
-                   ((x) (fluid-set! fluid (conv x))))
+                   ((x) (let ((prev (fluid-ref fluid)))
+                          (fluid-set! fluid (conv x))
+                          prev)))
                  fluid conv)))
 
 (define (parameter? x)
