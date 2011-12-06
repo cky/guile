@@ -664,6 +664,23 @@
           (+ a b))))
     (const 3))
 
+  (pass-if-peval resolve-primitives
+    ;; First order, multiple values.
+    (let ((x 1) (y 2))
+      (values x y))
+    (apply (primitive values) (const 1) (const 2)))
+
+  (pass-if-peval resolve-primitives
+    ;; First order, multiple values truncated.
+    (let ((x (values 1 'a)) (y 2))
+      (values x y))
+    (apply (primitive values) (const 1) (const 2)))
+
+  (pass-if-peval resolve-primitives
+    ;; First order, multiple values truncated.
+    (or (values 1 2) 3)
+    (const 1))
+
   (pass-if-peval
     ;; First order, coalesced, mutability preserved.
     (cons 0 (cons 1 (cons 2 (list 3 4 5))))

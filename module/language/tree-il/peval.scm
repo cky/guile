@@ -99,6 +99,47 @@
            (or (proc (vlist-ref vlist i))
                (lp (1+ i)))))))
 
+(define (truncate-values x)
+  "Discard all but the first value of X."
+  (let loop ((x x))
+    (match x
+      (($ <const>) x)
+      (($ <lexical-ref>) x)
+      (($ <void>) x)
+      (($ <lexical-ref>) x)
+      (($ <primitive-ref>) x)
+      (($ <module-ref>) x)
+      (($ <toplevel-ref>) x)
+      (($ <conditional> src condition subsequent alternate)
+       (make-conditional src condition (loop subsequent) (loop alternate)))
+      (($ <application> _ ($ <primitive-ref> _ 'values) (first _ ...))
+       first)
+      (($ <application> _ ($ <primitive-ref> _ 'values) (val))
+       val)
+      (($ <application> src
+          (and prim ($ <primitive-ref> _ (? singly-valued-primitive?)))
+          args)
+       (make-application src prim (map loop args)))
+      (($ <application> src proc args)
+       (make-application src proc (map loop args)))
+      (($ <sequence> src (exps ... last))
+       (make-sequence src (append exps (list (loop last)))))
+      (($ <lambda>) x)
+      (($ <dynlet> src fluids vals body)
+       (make-dynlet src fluids vals (loop body)))
+      (($ <let> src names gensyms vals body)
+       (make-let src names gensyms vals (loop body)))
+      (($ <letrec> src in-order? names gensyms vals body)
+       (make-letrec src in-order? names gensyms vals (loop body)))
+      (($ <fix> src names gensyms vals body)
+       (make-fix src names gensyms vals body))
+      (($ <let-values> src exp body)
+       (make-let-values src exp (loop body)))
+      (else
+       (make-application (tree-il-src x)
+                         (make-primitive-ref #f 'values)
+                         (list x))))))
+
 ;; Peval will do a one-pass analysis on the source program to determine
 ;; the set of assigned lexicals, and to identify unreferenced and
 ;; singly-referenced lexicals.
@@ -278,8 +319,10 @@
   (constant-value operand-constant-value set-operand-constant-value!))
 
 (define* (make-operand var sym #:optional source visit)
+  ;; Bind SYM to VAR, with value SOURCE.
   ;; Bound operands are considered copyable until we prove otherwise.
-  (%make-operand var sym visit source 0 #f (and source #t) #f #f))
+  (let ((source (if source (truncate-values source) source)))
+    (%make-operand var sym visit source 0 #f (and source #t) #f #f)))
 
 (define (make-bound-operands vars syms sources visit)
   (map (lambda (x y z) (make-operand x y z visit)) vars syms sources))
