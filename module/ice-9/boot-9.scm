@@ -732,6 +732,9 @@ If there is no handler at all, Guile prints an error and then exits."
              (_ (default-printer)))
            args))
 
+  (define (getaddrinfo-error-printer port key args default-printer)
+    (format port "In procedure getaddrinfo: ~a" (gai-strerror (car args))))
+
   (set-exception-printer! 'goops-error scm-error-printer)
   (set-exception-printer! 'host-not-found scm-error-printer)
   (set-exception-printer! 'keyword-argument-error scm-error-printer)
@@ -751,7 +754,9 @@ If there is no handler at all, Guile prints an error and then exits."
   (set-exception-printer! 'wrong-number-of-args scm-error-printer)
   (set-exception-printer! 'wrong-type-arg scm-error-printer)
 
-  (set-exception-printer! 'syntax-error syntax-error-printer))
+  (set-exception-printer! 'syntax-error syntax-error-printer)
+
+  (set-exception-printer! 'getaddrinfo-error getaddrinfo-error-printer))
 
 
 
