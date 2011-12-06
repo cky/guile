@@ -125,14 +125,18 @@ consistency checks to make sure that the constructed URI is valid."
            userinfo-pat host-pat port-pat)))
 
 (define (parse-authority authority fail)
-  (let ((m (regexp-exec authority-regexp authority)))
-    (if (and m (valid-host? (match:substring m 3)))
-        (values (match:substring m 2)
-                (match:substring m 3)
-                (let ((port (match:substring m 5)))
-                  (and port (not (string-null? port))
-                       (string->number port))))
-        (fail))))
+  (if (equal? authority "//")
+      ;; Allow empty authorities: file:///etc/hosts is a synonym of
+      ;; file:/etc/hosts.
+      (values #f #f #f)
+      (let ((m (regexp-exec authority-regexp authority)))
+        (if (and m (valid-host? (match:substring m 3)))
+            (values (match:substring m 2)
+                    (match:substring m 3)
+                    (let ((port (match:substring m 5)))
+                      (and port (not (string-null? port))
+                           (string->number port))))
+            (fail)))))
 
 
 ;;; RFC 3986, #3.

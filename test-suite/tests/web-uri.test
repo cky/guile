@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -150,7 +150,22 @@
     (not (string->uri "http://:10")))
 
   (pass-if "http://foo@"
-    (not (string->uri "http://foo@"))))
+    (not (string->uri "http://foo@")))
+
+  (pass-if "file:/"
+    (uri=? (string->uri "file:/")
+           #:scheme 'file
+           #:path "/"))
+
+  (pass-if "file:/etc/hosts"
+    (uri=? (string->uri "file:/etc/hosts")
+           #:scheme 'file
+           #:path "/etc/hosts"))
+
+  (pass-if "file:///etc/hosts"
+    (uri=? (string->uri "file:///etc/hosts")
+           #:scheme 'file
+           #:path "/etc/hosts")))
 
 (with-test-prefix "uri->string"
   (pass-if "ftp:"
