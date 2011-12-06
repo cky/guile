@@ -27,7 +27,7 @@
 ;;; the web server.
 ;;;
 ;;; Another option, good but not as performant, would be to use threads,
-;;; possibly via par-map or futures.
+;;; possibly via a thread pool.
 ;;;
 ;;; Code:
 
