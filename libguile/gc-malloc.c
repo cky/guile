@@ -96,7 +96,11 @@ scm_realloc (void *mem, size_t size)
     return ptr;
 
   /* Time is hard: trigger a full, ``stop-the-world'' GC, and try again.  */
+#ifdef HAVE_GC_GCOLLECT_AND_UNMAP
   GC_gcollect_and_unmap ();
+#else
+  GC_gcollect ();
+#endif
 
   SCM_SYSCALL (ptr = realloc (mem, size));
   if (ptr)

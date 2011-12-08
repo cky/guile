@@ -205,7 +205,11 @@ GC_get_heap_usage_safe (GC_word *pheap_size, GC_word *pfree_bytes,
 {
   *pheap_size = GC_get_heap_size ();
   *pfree_bytes = GC_get_free_bytes ();
+#ifdef HAVE_GC_GET_UNMAPPED_BYTES
   *punmapped_bytes = GC_get_unmapped_bytes ();
+#else
+  *punmapped_bytes = 0;
+#endif
   *pbytes_since_gc = GC_get_bytes_since_gc ();
   *ptotal_bytes = GC_get_total_bytes ();
 }
