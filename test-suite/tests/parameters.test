@@ -67,3 +67,64 @@
                   (lambda ()
                     (parameterize ((inside? #t))
                       (raise 'some-exception)))))))))
+
+(let ()
+  (define (test-ports param new-port new-port-2)
+    (let ((old-port (param)))
+
+      (pass-if "new value"
+	(parameterize ((param new-port))
+	  (eq? (param) new-port)))
+
+      (pass-if "set value"
+	(parameterize ((param old-port))
+	  (param new-port)
+	  (eq? (param) new-port)))
+
+      (pass-if "old restored"
+	(parameterize ((param new-port))
+	  #f)
+	(eq? (param) old-port))
+
+      (pass-if "throw exit"
+	(catch 'bail
+	  (lambda ()
+	    (parameterize ((param new-port))
+	      (throw 'bail)))
+	  (lambda args #f))
+	(eq? (param) old-port))
+
+      (pass-if "call/cc re-enter"
+	(let ((cont  #f)
+	      (count 0)
+	      (port  #f)
+	      (good  #t))
+	  (parameterize ((param new-port))
+	    (call/cc (lambda (k) (set! cont k)))
+	    (set! count (1+ count))
+	    (set! port (param))
+	    (if (= 1 count) (param new-port-2)))
+	  (set! good (and good (eq? (param) old-port)))
+	  (case count
+	    ((1)
+	     (set! good (and good (eq? port new-port)))
+	     ;; re-entering should give new-port-2 left there last time
+	     (cont))
+	    ((2)
+	     (set! good (and good (eq? port new-port-2)))))
+	  good))
+
+      (pass-if "original unchanged"
+	(eq? (param) old-port))))
+
+  (with-test-prefix "current-input-port"
+    (test-ports current-input-port
+		(open-input-string "xyz") (open-input-string "xyz")))
+
+  (with-test-prefix "current-output-port"
+    (test-ports current-output-port
+		(open-output-string) (open-output-string)))
+
+  (with-test-prefix "current-error-port"
+    (test-ports current-error-port
+		(open-output-string) (open-output-string))))

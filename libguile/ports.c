@@ -2582,6 +2582,11 @@ scm_init_ports ()
                     (scm_from_int ((int) SCM_FAILED_CONVERSION_QUESTION_MARK)));
   scm_conversion_strategy_init = 1;
   
+  /* These bindings are used when boot-9 turns `current-input-port' et
+     al into parameters.  They are then removed from the guile module.  */
+  scm_c_define ("%current-input-port-fluid", cur_inport_fluid);
+  scm_c_define ("%current-output-port-fluid", cur_outport_fluid);
+  scm_c_define ("%current-error-port-fluid", cur_errport_fluid);
 }
 
 /*
