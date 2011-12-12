@@ -17,16 +17,17 @@
 
 
 (define-module (ice-9 session)
-  :use-module (ice-9 documentation)
-  :use-module (ice-9 regex)
-  :use-module (ice-9 rdelim)
-  :export (help
-           add-value-help-handler! remove-value-help-handler!
-           add-name-help-handler! remove-name-help-handler!
-           apropos apropos-internal apropos-fold apropos-fold-accessible
-           apropos-fold-exported apropos-fold-all source arity
-           procedure-arguments
-           module-commentary))
+  #:use-module (ice-9 documentation)
+  #:use-module (ice-9 regex)
+  #:use-module (ice-9 rdelim)
+  #:export (help
+            add-value-help-handler! remove-value-help-handler!
+            add-name-help-handler! remove-name-help-handler!
+            apropos-hook
+            apropos apropos-internal apropos-fold apropos-fold-accessible
+            apropos-fold-exported apropos-fold-all source arity
+            procedure-arguments
+            module-commentary))
 
 
 
@@ -284,8 +285,13 @@ where OPTIONSET is one of debug, read, eval, print
 ;;; Author: Roland Orre <orre@nada.kth.se>
 ;;;
 
+;; Two arguments: the module, and the pattern, as a string.
+;;
+(define apropos-hook (make-hook 2))
+
 (define (apropos rgx . options)
   "Search for bindings: apropos regexp {options= 'full 'shadow 'value}"
+  (run-hook apropos-hook (current-module) rgx)
   (if (zero? (string-length rgx))
       "Empty string not allowed"
       (let* ((match (make-regexp rgx))
@@ -354,6 +360,7 @@ Fourth arg FOLDER is one of
   (apropos-fold-accessible MODULE) ;fold over bindings accessible in MODULE
   apropos-fold-exported		   ;fold over all exported bindings
   apropos-fold-all		   ;fold over all bindings"
+  (run-hook apropos-hook (current-module) rgx)
   (let ((match (make-regexp rgx))
 	(recorded (make-hash-table)))
     (let ((fold-module
