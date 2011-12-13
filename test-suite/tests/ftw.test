@@ -1,6 +1,6 @@
 ;;;; ftw.test --- exercise ice-9/ftw.scm      -*- scheme -*-
 ;;;;
-;;;; Copyright 2006 Free Software Foundation, Inc.
+;;;; Copyright 2006, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,10 @@
 
 (define-module (test-suite test-ice-9-ftw)
   #:use-module (test-suite lib)
-  #:use-module (ice-9 ftw))
+  #:use-module (ice-9 ftw)
+  #:use-module (ice-9 match)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-26))
 
 
 ;; the procedure-source checks here ensure the vector indexes we write match
@@ -72,3 +75,94 @@
     (pass-if "5 7 - 2nd" (eq? #t (try-visited? 5 7)))
     (pass-if "7 5 - 2nd" (eq? #t (try-visited? 7 5)))
     (pass-if "7 7 - 2nd" (eq? #t (try-visited? 7 7)))))
+
+
+;;;
+;;; `file-system-fold' & co.
+;;;
+
+(define %top-srcdir
+  (assq-ref %guile-build-info 'top_srcdir))
+
+(define %test-dir
+  (string-append %top-srcdir "/test-suite"))
+
+(with-test-prefix "file-system-fold"
+
+  (pass-if "test-suite"
+    (let ((enter? (lambda (n s r)
+                    ;; Enter only `test-suite/tests/'.
+                    (if (member `(down ,%test-dir) r)
+                        (string=? (basename n) "tests")
+                        (string=? (basename n) "test-suite"))))
+          (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+          (down   (lambda (n s r) (cons `(down ,n) r)))
+          (up     (lambda (n s r) (cons `(up ,n) r)))
+          (skip   (lambda (n s r) (cons `(skip ,n) r))))
+      (define seq
+        (reverse
+         (file-system-fold enter? leaf down up skip '() %test-dir)))
+
+      (match seq
+        ((('down (? (cut string=? <> %test-dir)))
+          between ...
+          ('up (? (cut string=? <> %test-dir))))
+         (and (any (match-lambda (('leaf (= basename "lib.scm")) #t) (_ #f))
+                   between)
+              (any (match-lambda (('down (= basename "tests")) #t) (_ #f))
+                   between)
+              (any (match-lambda (('leaf (= basename "alist.test")) #t) (_ #f))
+                   between)
+              (any (match-lambda (('up   (= basename "tests")) #t) (_ #f))
+                   between)
+              (any (match-lambda (('skip (= basename "vm")) #t) (_ #f))
+                   between))))))
+
+  (pass-if "test-suite (never enter)"
+    (let ((enter? (lambda (n s r) #f))
+          (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+          (down   (lambda (n s r) (cons `(down ,n) r)))
+          (up     (lambda (n s r) (cons `(up ,n) r)))
+          (skip   (lambda (n s r) (cons `(skip ,n) r))))
+      (equal? (file-system-fold enter? leaf down up skip '() %test-dir)
+              `((skip , %test-dir)))))
+
+  (pass-if "test-suite/lib.scm (flat file)"
+    (let ((enter? (lambda (n s r) #t))
+          (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+          (down   (lambda (n s r) (cons `(down ,n) r)))
+          (up     (lambda (n s r) (cons `(up ,n) r)))
+          (skip   (lambda (n s r) (cons `(skip ,n) r)))
+          (name   (string-append %test-dir "/lib.scm")))
+      (equal? (file-system-fold enter? leaf down up skip '() name)
+              `((leaf ,name))))))
+
+(with-test-prefix "file-system-tree"
+
+  (pass-if "test-suite (never enter)"
+    (match (file-system-tree %test-dir (lambda (n s) #f))
+      (("test-suite" (= stat:type 'directory))    ; no children
+       #t)))
+
+  (pass-if "test-suite/*"
+    (match (file-system-tree %test-dir (lambda (n s)
+                                         (string=? n %test-dir)))
+      (("test-suite" (= stat:type 'directory) children ...)
+       (any (match-lambda
+             (("tests" (= stat:type 'directory))  ; no children
+              #t)
+             (_ #f))
+            children))))
+
+  (pass-if "test-suite (recursive)"
+    (match (file-system-tree %test-dir)
+      (("test-suite" (= stat:type 'directory) children ...)
+       (any (match-lambda
+             (("tests" (= stat:type 'directory) (= car files) ...)
+              (let ((expected '("alist.test" "bytevectors.test"
+                                "ftw.test" "gc.test" "vlist.test")))
+                (lset= string=?
+                       (lset-intersection string=? files expected)
+                       expected)))
+             (_ #f))
+            children)))))

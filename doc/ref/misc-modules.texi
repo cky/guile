@@ -1099,14 +1099,144 @@ try to use one of them.  The reason for two versions is that the full
 @cindex file tree walk
 
 The functions in this section traverse a tree of files and
-directories, in a fashion similar to the C @code{ftw} and @code{nftw}
-routines (@pxref{Working with Directory Trees,,, libc, GNU C Library
-Reference Manual}).
+directories.  They come in two flavors: the first one is a high-level
+functional interface, and the second one is similar to the C @code{ftw}
+and @code{nftw} routines (@pxref{Working with Directory Trees,,, libc,
+GNU C Library Reference Manual}).
 
 @example
 (use-modules (ice-9 ftw))
 @end example
 @sp 1
+
+@defun file-system-tree file-name [enter?]
+Return a tree of the form @code{(@var{file-name} @var{stat}
+@var{children} ...)} where @var{stat} is the result of @code{(lstat
+@var{file-name})} and @var{children} are similar structures for each
+file contained in @var{file-name} when it designates a directory.
+
+The optional @var{enter?} predicate is invoked as @code{(@var{enter?}
+@var{name} @var{stat})} and should return true to allow recursion into
+directory @var{name}; the default value is a procedure that always
+returns @code{#t}.  When a directory does not match @var{enter?}, it
+nonetheless appears in the resulting tree, only with zero children.
+
+The example below shows how to obtain a hierarchical listing of the
+files under the @file{module/language} directory in the Guile source
+tree, discarding their @code{stat} info:
+
+@example
+(use-modules (ice-9 match))
+
+(define remove-stat
+  ;; Remove the `stat' object the `file-system-tree' provides
+  ;; for each file in the tree.
+  (match-lambda
+    ((name stat)              ; flat file
+     name)
+    ((name stat children ...) ; directory
+     (list name (map remove-stat children)))))
+
+(let ((dir (string-append (assq-ref %guile-build-info 'top_srcdir)
+                          "/module/language")))
+  (remove-stat (file-system-tree dir)))
+
+@result{}
+("language"
+ (("value" ("spec.go" "spec.scm"))
+  ("scheme"
+   ("spec.go"
+    "spec.scm"
+    "compile-tree-il.scm"
+    "decompile-tree-il.scm"
+    "decompile-tree-il.go"
+    "compile-tree-il.go"))
+  ("tree-il"
+   ("spec.go"
+    "fix-letrec.go"
+    "inline.go"
+    "fix-letrec.scm"
+    "compile-glil.go"
+    "spec.scm"
+    "optimize.scm"
+    "primitives.scm"
+    @dots{}))
+  @dots{}))
+@end example
+@end defun
+
+@cindex file system combinator
+
+It is often desirable to process directories entries directly, rather
+than building up a tree of entries in memory, like
+@code{file-system-tree} does.  The following procedure, a
+@dfn{combinator}, is designed to allow directory entries to be processed
+directly as a directory tree is traversed; in fact,
+@code{file-system-tree} is implemented in terms of it.
+
+@defun file-system-fold enter? leaf down up skip init file-name
+Traverse the directory at @var{file-name}, recursively, and return the
+result of the successive applications of the @var{leaf}, @var{down},
+@var{up}, and @var{skip} procedures as described below.
+
+Enter sub-directories only when @code{(@var{enter?} @var{path}
+@var{stat} @var{result})} returns true.  When a sub-directory is
+entered, call @code{(@var{down} @var{path} @var{stat} @var{result})},
+where @var{path} is the path of the sub-directory and @var{stat} the
+result of @code{(false-if-exception (lstat @var{path}))}; when it is
+left, call @code{(@var{up} @var{path} @var{stat} @var{result})}.
+
+For each file in a directory, call @code{(@var{leaf} @var{path}
+@var{stat} @var{result})}.
+
+When @var{enter?} returns @code{#f}, or when an unreadable directory is
+encountered, call @code{(@var{skip} @var{path} @var{stat}
+@var{result})}.
+
+When @var{file-name} names a flat file, @code{(@var{leaf} @var{path}
+@var{stat} @var{init})} is returned.
+
+The special @file{.} and @file{..} entries are not passed to these
+procedures.  The @var{path} argument to the procedures is a full file
+name---e.g., @code{"../foo/bar/gnu"}; if @var{file-name} is an absolute
+file name, then @var{path} is also an absolute file name.  Files and
+directories, as identified by their device/inode number pair, are
+traversed only once.
+
+The example below illustrates the use of @code{file-system-fold}:
+
+@example
+(define (total-file-size file-name)
+  "Return the size in bytes of the files under FILE-NAME (similar
+to `du --apparent-size' with GNU Coreutils.)"
+
+  (define (enter? name stat result)
+    ;; Skip version control directories.
+    (not (member (basename name) '(".git" ".svn" "CVS"))))
+  (define (leaf name stat result)
+    ;; Return RESULT plus the size of the file at NAME.
+    (+ result (stat:size stat)))
+
+  ;; Count zero bytes for directories.
+  (define (down name stat result) result)
+  (define (up name stat result) result)
+
+  ;; Likewise for skipped directories.
+  (define (skip name stat result) result)
+
+  (file-system-fold enter? leaf down up skip
+                           0  ; initial counter is zero bytes
+                           file-name))
+
+(total-file-size ".")
+@result{} 8217554
+
+(total-file-size "/dev/null")
+@result{} 0
+@end example
+@end defun
+
+The alternative C-like functions are described below.
 
 @defun ftw startname proc ['hash-size n]
 Walk the file system tree descending from @var{startname}, calling

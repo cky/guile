@@ -1,6 +1,6 @@
 ;;;; ftw.scm --- file system tree walk
 
-;;;; 	Copyright (C) 2002, 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2002, 2003, 2006, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -190,7 +190,12 @@
 ;;; Code:
 
 (define-module (ice-9 ftw)
-  :export (ftw nftw))
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 vlist)
+  #:use-module (srfi srfi-1)
+  #:export (ftw nftw
+            file-system-fold
+            file-system-tree))
 
 (define (directory-files dir)
   (let ((dir-stream (opendir dir)))
@@ -376,5 +381,126 @@
                         (lambda (key val) val))))
         (chdir od)
         ret))))
+
+
+;;;
+;;; `file-system-fold' & co.
+;;;
+
+(define (file-system-fold enter? leaf down up skip init file-name)
+  "Traverse the directory at FILE-NAME, recursively.  Enter
+sub-directories only when (ENTER? PATH STAT RESULT) returns true.  When
+a sub-directory is entered, call (DOWN PATH STAT RESULT), where PATH is
+the path of the sub-directory and STAT the result of (lstat PATH); when
+it is left, call (UP PATH STAT RESULT).  For each file in a directory,
+call (LEAF PATH STAT RESULT).  When ENTER? returns false, call (SKIP
+PATH STAT RESULT).  Return the result of these successive applications.
+When FILE-NAME names a flat file,(LEAF PATH STAT INIT) is returned."
+
+  (define (mark v s)
+    (vhash-cons (cons (stat:dev s) (stat:ino s)) #t v))
+
+  (define (visited? v s)
+    (vhash-assoc (cons (stat:dev s) (stat:ino s)) v))
+
+  (let loop ((name     file-name)
+             (path     "")
+             (dir-stat (false-if-exception (lstat file-name)))
+             (result   init)
+             (visited  vlist-null))
+
+    (define full-name
+      (if (string=? path "")
+          name
+          (string-append path "/" name)))
+
+    (cond
+     ((not dir-stat)
+      ;; FILE-NAME is not readable.
+      (leaf full-name dir-stat result))
+     ((visited? visited dir-stat)
+      (values result visited))
+     ((eq? 'directory (stat:type dir-stat)) ; true except perhaps the 1st time
+      (if (enter? full-name dir-stat result)
+          (let ((dir     (false-if-exception (opendir full-name)))
+                (visited (mark visited dir-stat)))
+            (if dir
+                (let liip ((entry   (readdir dir))
+                           (result  (down full-name dir-stat result))
+                           (subdirs '()))
+                  (cond ((eof-object? entry)
+                         (begin
+                           (closedir dir)
+                           (let ((r+v
+                                  (fold (lambda (subdir result+visited)
+                                          (call-with-values
+                                              (lambda ()
+                                                (loop (car subdir)
+                                                      full-name
+                                                      (cdr subdir)
+                                                      (car result+visited)
+                                                      (cdr result+visited)))
+                                            cons))
+                                        (cons result visited)
+                                        subdirs)))
+                             (values (up full-name dir-stat (car r+v))
+                                     (cdr r+v)))))
+                        ((or (string=? entry ".")
+                             (string=? entry ".."))
+                         (liip (readdir dir)
+                               result
+                               subdirs))
+                        (else
+                         (let* ((child (string-append full-name "/" entry))
+                                (stat  (lstat child))) ; cannot fail
+                           (cond
+                            ((eq? (stat:type stat) 'directory)
+                             (liip (readdir dir)
+                                   result
+                                   (alist-cons entry stat subdirs)))
+                            (else
+                             (liip (readdir dir)
+                                   (leaf child stat result)
+                                   subdirs)))))))
+
+                ;; Directory FULL-NAME not readable.
+                ;; XXX: It's up to the user to distinguish between not
+                ;; readable and not ENTER?.
+                (values (skip full-name dir-stat result)
+                        visited)))
+          (values (skip full-name dir-stat result)
+                  (mark visited dir-stat))))
+     (else
+      ;; Caller passed a FILE-NAME that names a flat file, not a directory.
+      (leaf full-name dir-stat result)))))
+
+(define* (file-system-tree file-name #:optional (enter? (lambda (n s) #t)))
+  "Return a tree of the form (FILE-NAME STAT CHILDREN ...) where STAT is
+the result of (lstat FILE-NAME) and CHILDREN are similar structures for
+each file contained in FILE-NAME when it designates a directory.  The
+optional ENTER? predicate is invoked as (ENTER? NAME STAT) and should
+return true to allow recursion into directory NAME; the default value is
+a procedure that always returns #t.  When a directory does not match
+ENTER?, it nonetheless appears in the resulting tree, only with zero
+children."
+  (define (enter?* name stat result)
+    (enter? name stat))
+  (define (leaf name stat result)
+    (match result
+      (((siblings ...) rest ...)
+       (cons (alist-cons (basename name) (cons stat '()) siblings)
+             rest))))
+  (define (down name stat result)
+    (cons '() result))
+  (define (up name stat result)
+    (match result
+      (((children ...) (siblings ...) rest ...)
+       (cons (alist-cons (basename name) (cons stat children)
+                         siblings)
+             rest))))
+  (define skip                   ; keep an entry for skipped directories
+    leaf)
+
+  (caar (file-system-fold enter?* leaf down up skip '(()) file-name)))
 
 ;;; ftw.scm ends here
