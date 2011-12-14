@@ -2,6 +2,7 @@
 @c -*-texinfo-*-
 @c %**start of header
 @setfilename guile.info
+@documentencoding UTF-8
 @settitle Guile Reference Manual
 @set guile
 @set MANUAL-REVISION 1

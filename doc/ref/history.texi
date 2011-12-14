@@ -133,21 +133,9 @@ years until the end of 1999, when he too moved on to other projects.
 Since then, Guile has had a group maintainership. The first group was
 Maciej Stachowiak, Mikael Djurfeldt, and Marius Vollmer, with Vollmer
 staying on the longest. By late 2007, Vollmer had mostly moved on to
-other things, so Neil Jerram and Ludovic
-@iftex
-Court@`es
-@end iftex
-@ifnottex
-Courtès
-@end ifnottex
+other things, so Neil Jerram and Ludovic Court@`es
 stepped up to take on the primary maintenance responsibility. Jerram and
-@iftex
-Court@`es
-@end iftex
-@ifnottex
-Courtès
-@end ifnottex
-were joined by Andy Wingo in late 2009.
+Court@`es were joined by Andy Wingo in late 2009.
 
 Of course, a large part of the actual work on Guile has come from
 other contributors too numerous to mention, but without whom the world
