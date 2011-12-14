@@ -145,3 +145,5 @@ INSTALL
 /lib/fcntl.h
 /lib/sys/uio.h
 /lib/stdalign.h
+/lib/signal.h
+/lib/sys/types.h
