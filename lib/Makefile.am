@@ -789,6 +789,9 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's/@''GNULIB_FLOOR''@/$(GNULIB_FLOOR)/g' \
 	      -e 's/@''GNULIB_FLOORF''@/$(GNULIB_FLOORF)/g' \
 	      -e 's/@''GNULIB_FLOORL''@/$(GNULIB_FLOORL)/g' \
+	      -e 's/@''GNULIB_FMA''@/$(GNULIB_FMA)/g' \
+	      -e 's/@''GNULIB_FMAF''@/$(GNULIB_FMAF)/g' \
+	      -e 's/@''GNULIB_FMAL''@/$(GNULIB_FMAL)/g' \
 	      -e 's/@''GNULIB_FMODF''@/$(GNULIB_FMODF)/g' \
 	      -e 's/@''GNULIB_FREXPF''@/$(GNULIB_FREXPF)/g' \
 	      -e 's/@''GNULIB_FREXP''@/$(GNULIB_FREXP)/g' \
@@ -842,6 +845,9 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''HAVE_EXPF''@|$(HAVE_EXPF)|g' \
 	      -e 's|@''HAVE_EXPL''@|$(HAVE_EXPL)|g' \
 	      -e 's|@''HAVE_FABSF''@|$(HAVE_FABSF)|g' \
+	      -e 's|@''HAVE_FMA''@|$(HAVE_FMA)|g' \
+	      -e 's|@''HAVE_FMAF''@|$(HAVE_FMAF)|g' \
+	      -e 's|@''HAVE_FMAL''@|$(HAVE_FMAL)|g' \
 	      -e 's|@''HAVE_FMODF''@|$(HAVE_FMODF)|g' \
 	      -e 's|@''HAVE_FREXPF''@|$(HAVE_FREXPF)|g' \
 	      -e 's|@''HAVE_ISNANF''@|$(HAVE_ISNANF)|g' \
@@ -893,6 +899,9 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''REPLACE_FLOOR''@|$(REPLACE_FLOOR)|g' \
 	      -e 's|@''REPLACE_FLOORF''@|$(REPLACE_FLOORF)|g' \
 	      -e 's|@''REPLACE_FLOORL''@|$(REPLACE_FLOORL)|g' \
+	      -e 's|@''REPLACE_FMA''@|$(REPLACE_FMA)|g' \
+	      -e 's|@''REPLACE_FMAF''@|$(REPLACE_FMAF)|g' \
+	      -e 's|@''REPLACE_FMAL''@|$(REPLACE_FMAL)|g' \
 	      -e 's|@''REPLACE_FREXPF''@|$(REPLACE_FREXPF)|g' \
 	      -e 's|@''REPLACE_FREXP''@|$(REPLACE_FREXP)|g' \
 	      -e 's|@''REPLACE_FREXPL''@|$(REPLACE_FREXPL)|g' \
@@ -1373,6 +1382,29 @@ EXTRA_DIST += stat-time.h
 
 ## end   gnulib module stat-time
 
+## begin gnulib module stdalign
+
+BUILT_SOURCES += $(STDALIGN_H)
+
+# We need the following in order to create <stdalign.h> when the system
+# doesn't have one that works.
+if GL_GENERATE_STDALIGN_H
+stdalign.h: stdalign.in.h $(top_builddir)/config.status
+	$(AM_V_GEN)rm -f $@-t $@ && \
+	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */'; \
+	  cat $(srcdir)/stdalign.in.h; \
+	} > $@-t && \
+	mv $@-t $@
+else
+stdalign.h: $(top_builddir)/config.status
+	rm -f $@
+endif
+MOSTLYCLEANFILES += stdalign.h stdalign.h-t
+
+EXTRA_DIST += stdalign.in.h
+
+## end   gnulib module stdalign
+
 ## begin gnulib module stdbool
 
 BUILT_SOURCES += $(STDBOOL_H)
@@ -1636,6 +1668,7 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e 's/@''GNULIB_MKSTEMPS''@/$(GNULIB_MKSTEMPS)/g' \
 	      -e 's/@''GNULIB_POSIX_OPENPT''@/$(GNULIB_POSIX_OPENPT)/g' \
 	      -e 's/@''GNULIB_PTSNAME''@/$(GNULIB_PTSNAME)/g' \
+	      -e 's/@''GNULIB_PTSNAME_R''@/$(GNULIB_PTSNAME_R)/g' \
 	      -e 's/@''GNULIB_PUTENV''@/$(GNULIB_PUTENV)/g' \
 	      -e 's/@''GNULIB_RANDOM_R''@/$(GNULIB_RANDOM_R)/g' \
 	      -e 's/@''GNULIB_REALLOC_POSIX''@/$(GNULIB_REALLOC_POSIX)/g' \
@@ -1663,6 +1696,7 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e 's|@''HAVE_MKSTEMPS''@|$(HAVE_MKSTEMPS)|g' \
 	      -e 's|@''HAVE_POSIX_OPENPT''@|$(HAVE_POSIX_OPENPT)|g' \
 	      -e 's|@''HAVE_PTSNAME''@|$(HAVE_PTSNAME)|g' \
+	      -e 's|@''HAVE_PTSNAME_R''@|$(HAVE_PTSNAME_R)|g' \
 	      -e 's|@''HAVE_RANDOM_H''@|$(HAVE_RANDOM_H)|g' \
 	      -e 's|@''HAVE_RANDOM_R''@|$(HAVE_RANDOM_R)|g' \
 	      -e 's|@''HAVE_REALPATH''@|$(HAVE_REALPATH)|g' \
@@ -1680,6 +1714,7 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e 's|@''REPLACE_MALLOC''@|$(REPLACE_MALLOC)|g' \
 	      -e 's|@''REPLACE_MBTOWC''@|$(REPLACE_MBTOWC)|g' \
 	      -e 's|@''REPLACE_MKSTEMP''@|$(REPLACE_MKSTEMP)|g' \
+	      -e 's|@''REPLACE_PTSNAME_R''@|$(REPLACE_PTSNAME_R)|g' \
 	      -e 's|@''REPLACE_PUTENV''@|$(REPLACE_PUTENV)|g' \
 	      -e 's|@''REPLACE_REALLOC''@|$(REPLACE_REALLOC)|g' \
 	      -e 's|@''REPLACE_REALPATH''@|$(REPLACE_REALPATH)|g' \
@@ -2153,11 +2188,12 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's/@''GNULIB_READLINK''@/$(GNULIB_READLINK)/g' \
 	      -e 's/@''GNULIB_READLINKAT''@/$(GNULIB_READLINKAT)/g' \
 	      -e 's/@''GNULIB_RMDIR''@/$(GNULIB_RMDIR)/g' \
+	      -e 's/@''GNULIB_SETHOSTNAME''@/$(GNULIB_SETHOSTNAME)/g' \
 	      -e 's/@''GNULIB_SLEEP''@/$(GNULIB_SLEEP)/g' \
 	      -e 's/@''GNULIB_SYMLINK''@/$(GNULIB_SYMLINK)/g' \
 	      -e 's/@''GNULIB_SYMLINKAT''@/$(GNULIB_SYMLINKAT)/g' \
 	      -e 's/@''GNULIB_TTYNAME_R''@/$(GNULIB_TTYNAME_R)/g' \
-	      -e 's/@''GNULIB_UNISTD_H_GETOPT''@/$(GNULIB_UNISTD_H_GETOPT)/g' \
+	      -e 's/@''GNULIB_UNISTD_H_GETOPT''@/0$(GNULIB_GL_UNISTD_H_GETOPT)/g' \
 	      -e 's/@''GNULIB_UNISTD_H_NONBLOCKING''@/$(GNULIB_UNISTD_H_NONBLOCKING)/g' \
 	      -e 's/@''GNULIB_UNISTD_H_SIGPIPE''@/$(GNULIB_UNISTD_H_SIGPIPE)/g' \
 	      -e 's/@''GNULIB_UNLINK''@/$(GNULIB_UNLINK)/g' \
@@ -2190,6 +2226,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_PWRITE''@|$(HAVE_PWRITE)|g' \
 	      -e 's|@''HAVE_READLINK''@|$(HAVE_READLINK)|g' \
 	      -e 's|@''HAVE_READLINKAT''@|$(HAVE_READLINKAT)|g' \
+	      -e 's|@''HAVE_SETHOSTNAME''@|$(HAVE_SETHOSTNAME)|g' \
 	      -e 's|@''HAVE_SLEEP''@|$(HAVE_SLEEP)|g' \
 	      -e 's|@''HAVE_SYMLINK''@|$(HAVE_SYMLINK)|g' \
 	      -e 's|@''HAVE_SYMLINKAT''@|$(HAVE_SYMLINKAT)|g' \
@@ -2202,6 +2239,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''HAVE_DECL_GETLOGIN_R''@|$(HAVE_DECL_GETLOGIN_R)|g' \
 	      -e 's|@''HAVE_DECL_GETPAGESIZE''@|$(HAVE_DECL_GETPAGESIZE)|g' \
 	      -e 's|@''HAVE_DECL_GETUSERSHELL''@|$(HAVE_DECL_GETUSERSHELL)|g' \
+	      -e 's|@''HAVE_DECL_SETHOSTNAME''@|$(HAVE_DECL_SETHOSTNAME)|g' \
 	      -e 's|@''HAVE_DECL_TTYNAME_R''@|$(HAVE_DECL_TTYNAME_R)|g' \
 	      -e 's|@''HAVE_OS_H''@|$(HAVE_OS_H)|g' \
 	      -e 's|@''HAVE_SYS_PARAM_H''@|$(HAVE_SYS_PARAM_H)|g' \

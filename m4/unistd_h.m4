@@ -1,4 +1,4 @@
-# unistd_h.m4 serial 61
+# unistd_h.m4 serial 62
 dnl Copyright (C) 2006-2011 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -43,8 +43,8 @@ AC_DEFUN([gl_UNISTD_H],
     fdatasync fsync ftruncate getcwd getdomainname getdtablesize getgroups
     gethostname getlogin getlogin_r getpagesize getusershell setusershell
     endusershell group_member lchown link linkat lseek pipe pipe2 pread pwrite
-    readlink readlinkat rmdir sleep symlink symlinkat ttyname_r unlink unlinkat
-    usleep])
+    readlink readlinkat rmdir sethostname sleep symlink symlinkat ttyname_r
+    unlink unlinkat usleep])
 ])
 
 AC_DEFUN([gl_UNISTD_MODULE_INDICATOR],
@@ -94,11 +94,11 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   GNULIB_READLINK=0;             AC_SUBST([GNULIB_READLINK])
   GNULIB_READLINKAT=0;           AC_SUBST([GNULIB_READLINKAT])
   GNULIB_RMDIR=0;                AC_SUBST([GNULIB_RMDIR])
+  GNULIB_SETHOSTNAME=0;          AC_SUBST([GNULIB_SETHOSTNAME])
   GNULIB_SLEEP=0;                AC_SUBST([GNULIB_SLEEP])
   GNULIB_SYMLINK=0;              AC_SUBST([GNULIB_SYMLINK])
   GNULIB_SYMLINKAT=0;            AC_SUBST([GNULIB_SYMLINKAT])
   GNULIB_TTYNAME_R=0;            AC_SUBST([GNULIB_TTYNAME_R])
-  GNULIB_UNISTD_H_GETOPT=0;      AC_SUBST([GNULIB_UNISTD_H_GETOPT])
   GNULIB_UNISTD_H_NONBLOCKING=0; AC_SUBST([GNULIB_UNISTD_H_NONBLOCKING])
   GNULIB_UNISTD_H_SIGPIPE=0;     AC_SUBST([GNULIB_UNISTD_H_SIGPIPE])
   GNULIB_UNLINK=0;               AC_SUBST([GNULIB_UNLINK])
@@ -131,6 +131,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   HAVE_PWRITE=1;          AC_SUBST([HAVE_PWRITE])
   HAVE_READLINK=1;        AC_SUBST([HAVE_READLINK])
   HAVE_READLINKAT=1;      AC_SUBST([HAVE_READLINKAT])
+  HAVE_SETHOSTNAME=1;     AC_SUBST([HAVE_SETHOSTNAME])
   HAVE_SLEEP=1;           AC_SUBST([HAVE_SLEEP])
   HAVE_SYMLINK=1;         AC_SUBST([HAVE_SYMLINK])
   HAVE_SYMLINKAT=1;       AC_SUBST([HAVE_SYMLINKAT])
@@ -143,6 +144,7 @@ AC_DEFUN([gl_UNISTD_H_DEFAULTS],
   HAVE_DECL_GETLOGIN_R=1; AC_SUBST([HAVE_DECL_GETLOGIN_R])
   HAVE_DECL_GETPAGESIZE=1; AC_SUBST([HAVE_DECL_GETPAGESIZE])
   HAVE_DECL_GETUSERSHELL=1; AC_SUBST([HAVE_DECL_GETUSERSHELL])
+  HAVE_DECL_SETHOSTNAME=1; AC_SUBST([HAVE_DECL_SETHOSTNAME])
   HAVE_DECL_TTYNAME_R=1;  AC_SUBST([HAVE_DECL_TTYNAME_R])
   HAVE_OS_H=0;            AC_SUBST([HAVE_OS_H])
   HAVE_SYS_PARAM_H=0;     AC_SUBST([HAVE_SYS_PARAM_H])

@@ -162,6 +162,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module ssize_t:
   # Code from module stat:
   # Code from module stat-time:
+  # Code from module stdalign:
   # Code from module stdbool:
   # Code from module stddef:
   # Code from module stdint:
@@ -548,6 +549,7 @@ fi
 gl_SYS_STAT_MODULE_INDICATOR([stat])
 gl_STAT_TIME
 gl_STAT_BIRTHTIME
+gl_STDALIGN_H
 AM_STDBOOL_H
 gl_STDDEF_H
 gl_STDINT_H
@@ -872,6 +874,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sockets.h
   lib/stat-time.h
   lib/stat.c
+  lib/stdalign.in.h
   lib/stdbool.in.h
   lib/stddef.in.h
   lib/stdint.in.h
@@ -1006,6 +1009,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ssize_t.m4
   m4/stat-time.m4
   m4/stat.m4
+  m4/stdalign.m4
   m4/stdbool.m4
   m4/stddef_h.m4
   m4/stdint.m4

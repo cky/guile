@@ -507,6 +507,80 @@ _GL_WARN_ON_USE (floorl, "floorl is unportable - "
 #endif
 
 
+#if @GNULIB_FMAF@
+# if @REPLACE_FMAF@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fmaf
+#   define fmaf rpl_fmaf
+#  endif
+_GL_FUNCDECL_RPL (fmaf, float, (float x, float y, float z));
+_GL_CXXALIAS_RPL (fmaf, float, (float x, float y, float z));
+# else
+#  if !@HAVE_FMAF@
+_GL_FUNCDECL_SYS (fmaf, float, (float x, float y, float z));
+#  endif
+_GL_CXXALIAS_SYS (fmaf, float, (float x, float y, float z));
+# endif
+_GL_CXXALIASWARN (fmaf);
+#elif defined GNULIB_POSIXCHECK
+# undef fmaf
+# if HAVE_RAW_DECL_FMAF
+_GL_WARN_ON_USE (fmaf, "fmaf is unportable - "
+                 "use gnulib module fmaf for portability");
+# endif
+#endif
+
+#if @GNULIB_FMA@
+# if @REPLACE_FMA@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fma
+#   define fma rpl_fma
+#  endif
+_GL_FUNCDECL_RPL (fma, double, (double x, double y, double z));
+_GL_CXXALIAS_RPL (fma, double, (double x, double y, double z));
+# else
+#  if !@HAVE_FMA@
+_GL_FUNCDECL_SYS (fma, double, (double x, double y, double z));
+#  endif
+_GL_CXXALIAS_SYS (fma, double, (double x, double y, double z));
+# endif
+_GL_CXXALIASWARN (fma);
+#elif defined GNULIB_POSIXCHECK
+# undef fma
+# if HAVE_RAW_DECL_FMA
+_GL_WARN_ON_USE (fma, "fma is unportable - "
+                 "use gnulib module fma for portability");
+# endif
+#endif
+
+#if @GNULIB_FMAL@
+# if @REPLACE_FMAL@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef fmal
+#   define fmal rpl_fmal
+#  endif
+_GL_FUNCDECL_RPL (fmal, long double,
+                  (long double x, long double y, long double z));
+_GL_CXXALIAS_RPL (fmal, long double,
+                  (long double x, long double y, long double z));
+# else
+#  if !@HAVE_FMAL@
+_GL_FUNCDECL_SYS (fmal, long double,
+                  (long double x, long double y, long double z));
+#  endif
+_GL_CXXALIAS_SYS (fmal, long double,
+                  (long double x, long double y, long double z));
+# endif
+_GL_CXXALIASWARN (fmal);
+#elif defined GNULIB_POSIXCHECK
+# undef fmal
+# if HAVE_RAW_DECL_FMAL
+_GL_WARN_ON_USE (fmal, "fmal is unportable - "
+                 "use gnulib module fmal for portability");
+# endif
+#endif
+
+
 #if @GNULIB_FMODF@
 # if !@HAVE_FMODF@
 #  undef fmodf
@@ -1172,7 +1246,7 @@ _GL_EXTERN_C int isnand (double x);
 /* Test whether X is a NaN.  */
 #  undef isnanl
 #  define isnanl rpl_isnanl
-_GL_EXTERN_C int isnanl (long double x);
+_GL_EXTERN_C int isnanl (long double x) _GL_ATTRIBUTE_CONST;
 # endif
 #endif
 
@@ -1198,7 +1272,7 @@ _GL_EXTERN_C int rpl_isnand (double x);
 #  if @HAVE_ISNANL@ && __GNUC__ >= 4
 #   define gl_isnan_l(x) __builtin_isnanl ((long double)(x))
 #  else
-_GL_EXTERN_C int rpl_isnanl (long double x);
+_GL_EXTERN_C int rpl_isnanl (long double x) _GL_ATTRIBUTE_CONST;
 #   define gl_isnan_l(x) rpl_isnanl (x)
 #  endif
 #  undef isnan
