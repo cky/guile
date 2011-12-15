@@ -1098,6 +1098,9 @@ try to use one of them.  The reason for two versions is that the full
 @section File Tree Walk
 @cindex file tree walk
 
+@cindex file system traversal
+@cindex directory traversal
+
 The functions in this section traverse a tree of files and
 directories.  They come in two flavors: the first one is a high-level
 functional interface, and the second one is similar to the C @code{ftw}
@@ -1109,9 +1112,9 @@ GNU C Library Reference Manual}).
 @end example
 @sp 1
 
-@defun file-system-tree file-name [enter?]
+@defun file-system-tree file-name [enter? [stat]]
 Return a tree of the form @code{(@var{file-name} @var{stat}
-@var{children} ...)} where @var{stat} is the result of @code{(lstat
+@var{children} ...)} where @var{stat} is the result of @code{(@var{stat}
 @var{file-name})} and @var{children} are similar structures for each
 file contained in @var{file-name} when it designates a directory.
 
@@ -1120,6 +1123,9 @@ The optional @var{enter?} predicate is invoked as @code{(@var{enter?}
 directory @var{name}; the default value is a procedure that always
 returns @code{#t}.  When a directory does not match @var{enter?}, it
 nonetheless appears in the resulting tree, only with zero children.
+
+The @var{stat} argument is optional and defaults to @code{lstat}, as for
+@code{file-system-fold} (see below.)
 
 The example below shows how to obtain a hierarchical listing of the
 files under the @file{module/language} directory in the Guile source
@@ -1174,7 +1180,7 @@ than building up a tree of entries in memory, like
 directly as a directory tree is traversed; in fact,
 @code{file-system-tree} is implemented in terms of it.
 
-@defun file-system-fold enter? leaf down up skip init file-name
+@defun file-system-fold enter? leaf down up skip init file-name [stat]
 Traverse the directory at @var{file-name}, recursively, and return the
 result of the successive applications of the @var{leaf}, @var{down},
 @var{up}, and @var{skip} procedures as described below.
@@ -1183,7 +1189,7 @@ Enter sub-directories only when @code{(@var{enter?} @var{path}
 @var{stat} @var{result})} returns true.  When a sub-directory is
 entered, call @code{(@var{down} @var{path} @var{stat} @var{result})},
 where @var{path} is the path of the sub-directory and @var{stat} the
-result of @code{(false-if-exception (lstat @var{path}))}; when it is
+result of @code{(false-if-exception (@var{stat} @var{path}))}; when it is
 left, call @code{(@var{up} @var{path} @var{stat} @var{result})}.
 
 For each file in a directory, call @code{(@var{leaf} @var{path}
@@ -1202,6 +1208,11 @@ name---e.g., @code{"../foo/bar/gnu"}; if @var{file-name} is an absolute
 file name, then @var{path} is also an absolute file name.  Files and
 directories, as identified by their device/inode number pair, are
 traversed only once.
+
+The optional @var{stat} argument defaults to @code{lstat}, which means
+that symbolic links are not followed; the @code{stat} procedure can be
+used instead when symbolic links are to be followed (@pxref{File System,
+stat}).
 
 The example below illustrates the use of @code{file-system-fold}:
 

@@ -387,15 +387,17 @@
 ;;; `file-system-fold' & co.
 ;;;
 
-(define (file-system-fold enter? leaf down up skip init file-name)
+(define* (file-system-fold enter? leaf down up skip init file-name
+                           #:optional (stat lstat))
   "Traverse the directory at FILE-NAME, recursively.  Enter
 sub-directories only when (ENTER? PATH STAT RESULT) returns true.  When
 a sub-directory is entered, call (DOWN PATH STAT RESULT), where PATH is
-the path of the sub-directory and STAT the result of (lstat PATH); when
+the path of the sub-directory and STAT the result of (stat PATH); when
 it is left, call (UP PATH STAT RESULT).  For each file in a directory,
 call (LEAF PATH STAT RESULT).  When ENTER? returns false, call (SKIP
 PATH STAT RESULT).  Return the result of these successive applications.
-When FILE-NAME names a flat file,(LEAF PATH STAT INIT) is returned."
+When FILE-NAME names a flat file, (LEAF PATH STAT INIT) is returned.
+The optional STAT parameter defaults to `lstat'."
 
   (define (mark v s)
     (vhash-cons (cons (stat:dev s) (stat:ino s)) #t v))
@@ -405,7 +407,7 @@ When FILE-NAME names a flat file,(LEAF PATH STAT INIT) is returned."
 
   (let loop ((name     file-name)
              (path     "")
-             (dir-stat (false-if-exception (lstat file-name)))
+             (dir-stat (false-if-exception (stat file-name)))
              (result   init)
              (visited  vlist-null))
 
@@ -452,16 +454,14 @@ When FILE-NAME names a flat file,(LEAF PATH STAT INIT) is returned."
                                subdirs))
                         (else
                          (let* ((child (string-append full-name "/" entry))
-                                (stat  (lstat child))) ; cannot fail
-                           (cond
-                            ((eq? (stat:type stat) 'directory)
-                             (liip (readdir dir)
-                                   result
-                                   (alist-cons entry stat subdirs)))
-                            (else
-                             (liip (readdir dir)
-                                   (leaf child stat result)
-                                   subdirs)))))))
+                                (st    (false-if-exception (stat child))))
+                           (if (and stat (eq? (stat:type st) 'directory))
+                               (liip (readdir dir)
+                                     result
+                                     (alist-cons entry st subdirs))
+                               (liip (readdir dir)
+                                     (leaf child st result)
+                                     subdirs))))))
 
                 ;; Directory FULL-NAME not readable.
                 ;; XXX: It's up to the user to distinguish between not
@@ -474,15 +474,17 @@ When FILE-NAME names a flat file,(LEAF PATH STAT INIT) is returned."
       ;; Caller passed a FILE-NAME that names a flat file, not a directory.
       (leaf full-name dir-stat result)))))
 
-(define* (file-system-tree file-name #:optional (enter? (lambda (n s) #t)))
+(define* (file-system-tree file-name
+                           #:optional (enter? (lambda (n s) #t))
+                                      (stat lstat))
   "Return a tree of the form (FILE-NAME STAT CHILDREN ...) where STAT is
-the result of (lstat FILE-NAME) and CHILDREN are similar structures for
+the result of (stat FILE-NAME) and CHILDREN are similar structures for
 each file contained in FILE-NAME when it designates a directory.  The
 optional ENTER? predicate is invoked as (ENTER? NAME STAT) and should
 return true to allow recursion into directory NAME; the default value is
 a procedure that always returns #t.  When a directory does not match
 ENTER?, it nonetheless appears in the resulting tree, only with zero
-children."
+children.  The optional STAT parameter defaults to `lstat'."
   (define (enter?* name stat result)
     (enter? name stat))
   (define (leaf name stat result)
@@ -501,6 +503,6 @@ children."
   (define skip                   ; keep an entry for skipped directories
     leaf)
 
-  (caar (file-system-fold enter?* leaf down up skip '(()) file-name)))
+  (caar (file-system-fold enter?* leaf down up skip '(()) file-name stat)))
 
 ;;; ftw.scm ends here
