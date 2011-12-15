@@ -1,0 +1,84 @@
+Add a variant of `locale_charset' that returns its result based solely on
+information from the environment.  See
+http://lists.gnu.org/archive/html/guile-devel/2011-11/msg00040.html for the
+rationale.
+
+--- a/lib/localcharset.c	2011-12-14 23:10:58.000000000 +0100
++++ b/lib/localcharset.c	2011-12-15 00:45:12.000000000 +0100
+@@ -527,6 +527,76 @@ locale_charset (void)
+     codeset = "";
+ 
+   /* Resolve alias. */
++  for (aliases = get_charset_aliases ();
++       *aliases != '\0';
++       aliases += strlen (aliases) + 1, aliases += strlen (aliases) + 1)
++    if (strcmp (codeset, aliases) == 0
++        || (aliases[0] == '*' && aliases[1] == '\0'))
++      {
++        codeset = aliases + strlen (aliases) + 1;
++        break;
++      }
++
++  /* Don't return an empty string.  GNU libc and GNU libiconv interpret
++     the empty string as denoting "the locale's character encoding",
++     thus GNU libiconv would call this function a second time.  */
++  if (codeset[0] == '\0')
++    codeset = "ASCII";
++
++  return codeset;
++}
++
++/* A variant of the above, without calls to `setlocale', `nl_langinfo',
++   etc.  */
++const char *
++environ_locale_charset (void)
++{
++  static char buf[2 + 10 + 1];
++  const char *codeset, *aliases;
++  const char *locale = NULL;
++
++  locale = getenv ("LC_ALL");
++  if (locale == NULL || locale[0] == '\0')
++    {
++      locale = getenv ("LC_CTYPE");
++      if (locale == NULL || locale[0] == '\0')
++	locale = getenv ("LANG");
++    }
++
++  if (locale != NULL && locale[0] != '\0')
++    {
++      /* If the locale name contains an encoding after the dot, return it.  */
++      const char *dot = strchr (locale, '.');
++
++      if (dot != NULL)
++        {
++          const char *modifier;
++
++          dot++;
++          /* Look for the possible @... trailer and remove it, if any.  */
++          modifier = strchr (dot, '@');
++          if (modifier == NULL)
++            return dot;
++          if (modifier - dot < sizeof (buf))
++            {
++              memcpy (buf, dot, modifier - dot);
++              buf [modifier - dot] = '\0';
++              return buf;
++            }
++        }
++      else if (strcmp (locale, "C") == 0)
++	{
++	  strcpy (buf, "ASCII");
++	  return buf;
++	}
++
++      /* Resolve through the charset.alias file.  */
++      codeset = locale;
++    }
++  else
++    codeset = "";
++
++  /* Resolve alias. */
+   for (aliases = get_charset_aliases ();
+        *aliases != '\0';
+        aliases += strlen (aliases) + 1, aliases += strlen (aliases) + 1)

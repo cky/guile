@@ -33,6 +33,7 @@ EXTRA_DIST =
 TESTS_ENVIRONMENT =						\
   srcdir="$(srcdir)"						\
   builddir="$(builddir)"					\
+  @LOCALCHARSET_TESTS_ENVIRONMENT@				\
   GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
 
 ## Check for headers in $(srcdir) and bulid dir before $(CPPFLAGS), which

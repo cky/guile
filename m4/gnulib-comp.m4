@@ -56,6 +56,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module ceil:
   # Code from module chdir:
   # Code from module close:
+  # Code from module configmake:
   # Code from module connect:
   # Code from module dirname-lgpl:
   # Code from module dosname:
@@ -112,6 +113,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module lib-symbol-visibility:
   # Code from module libunistring:
   # Code from module listen:
+  # Code from module localcharset:
   # Code from module locale:
   # Code from module log1p:
   # Code from module lstat:
@@ -245,6 +247,7 @@ if test $REPLACE_CLOSE = 1; then
   AC_LIBOBJ([close])
 fi
 gl_UNISTD_MODULE_INDICATOR([close])
+gl_CONFIGMAKE_PREP
 AC_REQUIRE([gl_HEADER_SYS_SOCKET])
 if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([connect])
@@ -402,6 +405,9 @@ if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([listen])
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([listen])
+gl_LOCALCHARSET
+LOCALCHARSET_TESTS_ENVIRONMENT="CHARSETALIASDIR=\"\$(abs_top_builddir)/$gl_source_base\""
+AC_SUBST([LOCALCHARSET_TESTS_ENVIRONMENT])
 gl_LOCALE_H
 gl_COMMON_DOUBLE_MATHFUNC([log1p])
 gl_FUNC_LSTAT
@@ -778,6 +784,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/canonicalize-lgpl.c
   lib/ceil.c
   lib/close.c
+  lib/config.charset
   lib/connect.c
   lib/dirname-lgpl.c
   lib/dirname.h
@@ -825,6 +832,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/itold.c
   lib/libunistring.valgrind
   lib/listen.c
+  lib/localcharset.c
+  lib/localcharset.h
   lib/locale.in.h
   lib/lstat.c
   lib/malloc.c
@@ -855,6 +864,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/readlink.c
   lib/recv.c
   lib/recvfrom.c
+  lib/ref-add.sin
+  lib/ref-del.sin
   lib/rename.c
   lib/rmdir.c
   lib/safe-read.c
@@ -924,6 +935,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/ceil.m4
   m4/check-math-lib.m4
   m4/close.m4
+  m4/codeset.m4
+  m4/configmake.m4
   m4/dirname.m4
   m4/double-slash-root.m4
   m4/duplocale.m4
@@ -944,6 +957,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fstat.m4
   m4/func.m4
   m4/getaddrinfo.m4
+  m4/glibc21.m4
   m4/gnulib-common.m4
   m4/hostent.m4
   m4/iconv.m4
@@ -969,6 +983,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lib-prefix.m4
   m4/libunistring-base.m4
   m4/libunistring.m4
+  m4/localcharset.m4
   m4/locale_h.m4
   m4/longlong.m4
   m4/lstat.m4

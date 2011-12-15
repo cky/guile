@@ -42,12 +42,15 @@ SUBDIRS =					\
 libguileincludedir = $(pkgincludedir)/$(GUILE_EFFECTIVE_VERSION)
 libguileinclude_HEADERS = libguile.h
 
-EXTRA_DIST = LICENSE HACKING GUILE-VERSION	\
-	     m4/ChangeLog-2008			\
-	     ChangeLog-2008			\
-	     .version
+EXTRA_DIST = LICENSE HACKING GUILE-VERSION		\
+	     m4/ChangeLog-2008				\
+	     ChangeLog-2008				\
+	     .version					\
+	     gnulib-local/lib/localcharset.h.diff	\
+	     gnulib-local/lib/localcharset.c.diff
 
 TESTS = check-guile
+TESTS_ENVIRONMENT = @LOCALCHARSET_TESTS_ENVIRONMENT@
 
 ACLOCAL_AMFLAGS = -I m4
 

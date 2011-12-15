@@ -1,0 +1,22 @@
+Add a variant of `locale_charset' that returns its result based solely on
+information from the environment.  See
+http://lists.gnu.org/archive/html/guile-devel/2011-11/msg00040.html for the
+rationale.
+
+diff --git a/lib/localcharset.h b/lib/localcharset.h
+index 8907ccd..43e976f 100644
+--- a/lib/localcharset.h
++++ b/lib/localcharset.h
+@@ -32,6 +32,12 @@ extern "C" {
+    name.  */
+ extern const char * locale_charset (void);
+ 
++/* Same as above, but only look at environment variables, avoiding calls to
++   `setlocale', `nl_langinfo', etc.  See
++   <http://lists.gnu.org/archive/html/guile-devel/2011-11/msg00040.html> for
++   the rationale.  */
++extern const char * environ_locale_charset (void);
++
+ 
+ #ifdef __cplusplus
+ }

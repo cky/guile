@@ -209,6 +209,8 @@ LALR_EXTRA +=					\
   lalr/run-guile-test.sh
 
 TESTS = $(LALR_TESTS)
-TESTS_ENVIRONMENT = $(top_builddir)/meta/guile --no-auto-compile
+TESTS_ENVIRONMENT =				\
+  @LOCALCHARSET_TESTS_ENVIRONMENT@		\
+  $(top_builddir)/meta/guile --no-auto-compile
 
 EXTRA_DIST += $(LALR_EXTRA) $(LALR_TESTS) tests/sxml-match-tests.ss
