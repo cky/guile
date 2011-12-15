@@ -82,6 +82,9 @@ TESTS += test-import-order
 EXTRA_DIST += test-import-order-a.scm test-import-order-b.scm \
   test-import-order-c.scm test-import-order-d.scm
 
+check_SCRIPTS += test-command-line-encoding
+TESTS += test-command-line-encoding
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}

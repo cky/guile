@@ -332,7 +332,7 @@ invoke_main_func (void *body_data)
 {
   struct main_func_closure *closure = (struct main_func_closure *) body_data;
 
-  scm_set_program_arguments (closure->argc, closure->argv, 0);
+  scm_i_set_boot_program_arguments (closure->argc, closure->argv);
   (*closure->main_func) (closure->closure, closure->argc, closure->argv);
 
   scm_restore_signals ();

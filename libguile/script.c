@@ -22,10 +22,12 @@
 #  include <config.h>
 #endif
 
+#include <localcharset.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+#include <uniconv.h>
 
 #include "libguile/_scm.h"
 #include "libguile/eval.h"
@@ -368,6 +370,41 @@ scm_shell_usage (int fatal, char *message)
                : SCM_BOOL_F));
 }
 
+/* Return a list of strings from ARGV, which contains ARGC strings
+   assumed to be encoded in the current locale.  Use
+   `environ_locale_charset' instead of relying on
+   `scm_from_locale_string' because the user hasn't had a change to call
+   (setlocale LC_ALL "") yet.
+
+   XXX: This hack is for 2.0 and will be removed in the next stable
+   series where the `setlocale' call will be implicit.  See
+   <http://lists.gnu.org/archive/html/guile-devel/2011-11/msg00040.html>
+   for details.  */
+static SCM
+locale_arguments_to_string_list (int argc, char **const argv)
+{
+  int i;
+  SCM lst;
+  const char *encoding;
+
+  encoding = environ_locale_charset ();
+  for (i = argc - 1, lst = SCM_EOL;
+       i >= 0;
+       i--)
+    lst = scm_cons (scm_from_stringn (argv[i], (size_t) -1, encoding,
+				      SCM_FAILED_CONVERSION_ESCAPE_SEQUENCE),
+		    lst);
+
+  return lst;
+}
+
+/* Set the value returned by `program-arguments', given ARGC and ARGV.  */
+void
+scm_i_set_boot_program_arguments (int argc, char *argv[])
+{
+  scm_fluid_set_x (scm_program_arguments_fluid,
+		   locale_arguments_to_string_list (argc, argv));
+}
 
 /* Given an array of command-line switches, return a Scheme expression
    to carry out the actions specified by the switches.
@@ -378,7 +415,7 @@ scm_compile_shell_switches (int argc, char **argv)
 {
   return scm_call_2 (scm_c_public_ref ("ice-9 command-line",
                                        "compile-shell-switches"),
-                     scm_makfromstrs (argc, argv),
+		     locale_arguments_to_string_list (argc, argv),
                      (scm_usage_name
                       ? scm_from_locale_string (scm_usage_name)
                       : scm_from_latin1_string ("guile")));

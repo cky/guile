@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+ *   2006, 2007, 2009, 2011 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -36,7 +37,8 @@
 
 
 
-static SCM progargs_fluid;
+SCM scm_program_arguments_fluid;
+
 static SCM features_var;
 
 void
@@ -58,7 +60,7 @@ SCM_DEFINE (scm_program_arguments, "program-arguments", 0, 0, 0,
 	    "options like @code{-e} and @code{-l}.")
 #define FUNC_NAME s_scm_program_arguments
 {
-  return scm_fluid_ref (progargs_fluid);
+  return scm_fluid_ref (scm_program_arguments_fluid);
 }
 #undef FUNC_NAME
 
@@ -74,7 +76,7 @@ scm_set_program_arguments (int argc, char **argv, char *first)
   SCM args = scm_makfromstrs (argc, argv);
   if (first)
     args = scm_cons (scm_from_locale_string (first), args);
-  scm_fluid_set_x (progargs_fluid, args);
+  scm_fluid_set_x (scm_program_arguments_fluid, args);
 }
 
 SCM_DEFINE (scm_set_program_arguments_scm, "set-program-arguments", 1, 0, 0, 
@@ -89,7 +91,7 @@ SCM_DEFINE (scm_set_program_arguments_scm, "set-program-arguments", 1, 0, 0,
 	    "strings within it are copied, so should not be modified later.")
 #define FUNC_NAME s_scm_set_program_arguments_scm
 {
-  return scm_fluid_set_x (progargs_fluid, lst);
+  return scm_fluid_set_x (scm_program_arguments_fluid, lst);
 }
 #undef FUNC_NAME
 
@@ -99,7 +101,7 @@ SCM_DEFINE (scm_set_program_arguments_scm, "set-program-arguments", 1, 0, 0,
 void
 scm_init_feature()
 {
-  progargs_fluid = scm_make_fluid ();
+  scm_program_arguments_fluid = scm_make_fluid ();
 
   features_var = scm_c_define ("*features*", SCM_EOL);
 #ifndef _Windows

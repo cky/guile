@@ -3,7 +3,7 @@
 #ifndef SCM_SCRIPT_H
 #define SCM_SCRIPT_H
 
-/* Copyright (C) 1997,1998,2000, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1998,2000, 2006, 2008, 2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,6 +37,7 @@ SCM_API void scm_shell_usage (int fatal, char *message);
 SCM_API SCM scm_compile_shell_switches (int argc, char **argv);
 SCM_API void scm_shell (int argc, char **argv);
 SCM_API char *scm_usage_name;
+SCM_INTERNAL void scm_i_set_boot_program_arguments (int argc, char *argv[]);
 SCM_INTERNAL void scm_init_script (void);
 
 #endif  /* SCM_SCRIPT_H */

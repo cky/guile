@@ -3,7 +3,8 @@
 #ifndef SCM_FEATURE_H
 #define SCM_FEATURE_H
 
-/* Copyright (C) 1995,1996,1999,2000,2001, 2006, 2007, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1999, 2000, 2001, 2006, 2007, 2008,
+ *   2011 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,6 +30,8 @@ SCM_API void scm_add_feature (const char* str);
 SCM_API SCM scm_program_arguments (void);
 SCM_API void scm_set_program_arguments (int argc, char **argv, char *first);
 SCM_API SCM scm_set_program_arguments_scm (SCM lst);
+
+SCM_INTERNAL SCM scm_program_arguments_fluid;
 SCM_INTERNAL void scm_init_feature (void);
 
 #endif  /* SCM_FEATURE_H */
