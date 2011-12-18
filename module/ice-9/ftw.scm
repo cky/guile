@@ -193,9 +193,11 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 vlist)
   #:use-module (srfi srfi-1)
+  #:autoload   (ice-9 i18n)   (string-locale<?)
   #:export (ftw nftw
             file-system-fold
-            file-system-tree))
+            file-system-tree
+            scandir))
 
 (define (directory-files dir)
   (let ((dir-stream (opendir dir)))
@@ -504,5 +506,33 @@ children.  The optional STAT parameter defaults to `lstat'."
     leaf)
 
   (caar (file-system-fold enter?* leaf down up skip '(()) file-name stat)))
+
+(define* (scandir name #:optional (select? (const #t))
+                                  (entry<? string-locale<?))
+  "Return the list of the names of files contained in directory NAME
+that match predicate SELECT? (by default, all files.)  The returned list
+of file names is sorted according to ENTRY<?, which defaults to
+`string-locale<?'."
+  (define (enter? name stat result)
+    (and stat (string=? name name)))
+
+  (define (leaf name stat result)
+    (if (select? name)
+        (cons (basename name) result)
+        result))
+
+  (define (down name stat result)
+    (cons "." result))
+
+  (define (up name stat result)
+    (cons ".." result))
+
+  (define (skip name stat result)
+    ;; NAME itself is not readable.
+    #f)
+
+  (and=> (file-system-fold enter? leaf down up skip '() name stat)
+         (lambda (files)
+           (sort files entry<?))))
 
 ;;; ftw.scm ends here

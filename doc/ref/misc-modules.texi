@@ -1249,6 +1249,18 @@ to `du --apparent-size' with GNU Coreutils.)"
 
 The alternative C-like functions are described below.
 
+@defun scandir name [select? [entry<?]]
+Return the list of the names of files contained in directory @var{name}
+that match predicate @var{select?} (by default, all files).  The
+returned list of file names is sorted according to @var{entry<?}, which
+defaults to @code{string-locale<?} such that file names are sorted in
+the locale's alphabetical order (@pxref{Text Collation}).
+
+This procedure is modeled after the C library function of the same name
+(@pxref{Scanning Directory Content,,, libc, GNU C Library Reference
+Manual}).
+@end defun
+
 @defun ftw startname proc ['hash-size n]
 Walk the file system tree descending from @var{startname}, calling
 @var{proc} for each file and directory.
