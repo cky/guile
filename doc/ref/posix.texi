@@ -843,6 +843,10 @@ be empty for this to succeed.  The return value is unspecified.
 @cindex directory contents
 Open the directory specified by @var{dirname} and return a directory
 stream.
+
+Before using this and the procedures below, make sure to see the
+higher-level procedures for directory traversal that are available
+(@pxref{File Tree Walk}).
 @end deffn
 
 @deffn {Scheme Procedure} directory-stream? object
