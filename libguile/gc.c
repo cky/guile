@@ -22,6 +22,8 @@
 #  include <config.h>
 #endif
 
+#define SCM_BUILDING_DEPRECATED_CODE
+
 #include "libguile/gen-scmconfig.h"
 
 #include <stdio.h>
