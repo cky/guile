@@ -169,6 +169,18 @@
 
 (with-test-prefix "scandir"
 
+  (pass-if "top-srcdir"
+    (let ((valid? (negate (cut string-any #\/ <>))))
+      (match (scandir %top-srcdir)
+        (((? valid? files) ...)
+         ;; Both subdirs and files must be included.
+         (let ((expected '("libguile" "README" "COPYING"
+                           "test-suite" "Makefile.am"
+                           "." "..")))
+           (lset= string=?
+                  (lset-intersection string=? files expected)
+                  expected))))))
+
   (pass-if "test-suite"
     (let ((select? (cut string-suffix? ".test" <>)))
       (match (scandir (string-append %test-dir "/tests") select?)

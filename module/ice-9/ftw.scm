@@ -530,7 +530,7 @@ of file names is sorted according to ENTRY<?, which defaults to
 
   (define (skip name stat result)
     ;; All the sub-directories are skipped.
-    result)
+    (cons (basename name) result))
 
   (and=> (file-system-fold enter? leaf down up skip #f name stat)
          (lambda (files)
