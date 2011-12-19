@@ -99,46 +99,28 @@
            (or (proc (vlist-ref vlist i))
                (lp (1+ i)))))))
 
+(define (singly-valued-expression? exp)
+  (match exp
+    (($ <const>) #t)
+    (($ <lexical-ref>) #t)
+    (($ <void>) #t)
+    (($ <lexical-ref>) #t)
+    (($ <primitive-ref>) #t)
+    (($ <module-ref>) #t)
+    (($ <toplevel-ref>) #t)
+    (($ <application> _
+        ($ <primitive-ref> _ (? singly-valued-primitive?))) #t)
+    (($ <application> _ ($ <primitive-ref> _ 'values) (val)) #t)
+    (($ <lambda>) #t)
+    (else #f)))
+
 (define (truncate-values x)
   "Discard all but the first value of X."
-  (let loop ((x x))
-    (match x
-      (($ <const>) x)
-      (($ <lexical-ref>) x)
-      (($ <void>) x)
-      (($ <lexical-ref>) x)
-      (($ <primitive-ref>) x)
-      (($ <module-ref>) x)
-      (($ <toplevel-ref>) x)
-      (($ <conditional> src condition subsequent alternate)
-       (make-conditional src condition (loop subsequent) (loop alternate)))
-      (($ <application> _ ($ <primitive-ref> _ 'values) (first _ ...))
-       first)
-      (($ <application> _ ($ <primitive-ref> _ 'values) (val))
-       val)
-      (($ <application> src
-          (and prim ($ <primitive-ref> _ (? singly-valued-primitive?)))
-          args)
-       (make-application src prim (map loop args)))
-      (($ <application> src proc args)
-       (make-application src proc (map loop args)))
-      (($ <sequence> src (exps ... last))
-       (make-sequence src (append exps (list (loop last)))))
-      (($ <lambda>) x)
-      (($ <dynlet> src fluids vals body)
-       (make-dynlet src fluids vals (loop body)))
-      (($ <let> src names gensyms vals body)
-       (make-let src names gensyms vals (loop body)))
-      (($ <letrec> src in-order? names gensyms vals body)
-       (make-letrec src in-order? names gensyms vals (loop body)))
-      (($ <fix> src names gensyms vals body)
-       (make-fix src names gensyms vals body))
-      (($ <let-values> src exp body)
-       (make-let-values src exp (loop body)))
-      (else
-       (make-application (tree-il-src x)
-                         (make-primitive-ref #f 'values)
-                         (list x))))))
+  (if (singly-valued-expression? x)
+      x
+      (make-application (tree-il-src x)
+                        (make-primitive-ref #f 'values)
+                        (list x))))
 
 ;; Peval will do a one-pass analysis on the source program to determine
 ;; the set of assigned lexicals, and to identify unreferenced and
@@ -315,13 +297,15 @@
   (visit-count operand-visit-count set-operand-visit-count!)
   (residualize? operand-residualize? set-operand-residualize?!)
   (copyable? operand-copyable? set-operand-copyable?!)
-  (residual-value operand-residual-value set-operand-residual-value!)
+  (residual-value operand-residual-value %set-operand-residual-value!)
   (constant-value operand-constant-value set-operand-constant-value!))
 
 (define* (make-operand var sym #:optional source visit)
-  ;; Bind SYM to VAR, with value SOURCE.
-  ;; Bound operands are considered copyable until we prove otherwise.
-  (let ((source (if source (truncate-values source) source)))
+  ;; Bind SYM to VAR, with value SOURCE.  Bound operands are considered
+  ;; copyable until we prove otherwise.  If we have a source expression,
+  ;; truncate it to one value.  Copy propagation does not work on
+  ;; multiply-valued expressions.
+  (let ((source (and=> source truncate-values)))
     (%make-operand var sym visit source 0 #f (and source #t) #f #f)))
 
 (define (make-bound-operands vars syms sources visit)
@@ -329,6 +313,17 @@
 
 (define (make-unbound-operands vars syms)
   (map make-operand vars syms))
+
+(define (set-operand-residual-value! op val)
+  (%set-operand-residual-value!
+   op
+   (match val
+    (($ <application> src ($ <primitive-ref> _ 'values) (first))
+     ;; The continuation of a residualized binding does not need the
+     ;; introduced `values' node, so undo the effects of truncation.
+     first)
+    (else
+     val))))
 
 (define* (visit-operand op counter ctx #:optional effort-limit size-limit)
   ;; Peval is O(N) in call sites of the source program.  However,
@@ -454,26 +449,25 @@ top-level bindings from ENV and return the resulting expression."
         (set-operand-residual-value! op val))
     (make-lexical-ref #f (var-name (operand-var op)) (operand-sym op)))
 
-  (define (apply-primitive name args)
-    ;; todo: further optimize commutative primitives
-    (catch #t
-      (lambda ()
-        (call-with-values
-            (lambda ()
-              (apply (module-ref the-scm-module name) args))
-          (lambda results
-            (values #t results))))
-      (lambda _
-        (values #f '()))))
-
-  (define (make-values src values)
-    (match values
-      ((single) single)                 ; 1 value
-      ((_ ...)                          ; 0, or 2 or more values
-       (make-application src (make-primitive-ref src 'values)
-                         values))))
-
   (define (fold-constants src name args ctx)
+    (define (apply-primitive name args)
+      ;; todo: further optimize commutative primitives
+      (catch #t
+        (lambda ()
+          (call-with-values
+              (lambda ()
+                (apply (module-ref the-scm-module name) args))
+            (lambda results
+              (values #t results))))
+        (lambda _
+          (values #f '()))))
+
+    (define (make-values src values)
+      (match values
+        ((single) single)               ; 1 value
+        ((_ ...)                        ; 0, or 2 or more values
+         (make-application src (make-primitive-ref src 'values)
+                           values))))
     (define (residualize-call)
       (make-application src (make-primitive-ref #f name) args))
     (cond
@@ -591,6 +585,9 @@ top-level bindings from ENV and return the resulting expression."
         (($ <primitive-ref>) #t)
         (($ <conditional> _ condition subsequent alternate)
          (and (loop condition) (loop subsequent) (loop alternate)))
+        (($ <application> _ ($ <primitive-ref> _ 'values) exps)
+         (and (not (null? exps))
+              (every loop exps)))
         (($ <application> _ ($ <primitive-ref> _ name) args)
          (and (effect-free-primitive? name)
               (not (constructor-primitive? name))
@@ -711,7 +708,7 @@ top-level bindings from ENV and return the resulting expression."
   (let loop ((exp   exp)
              (env   vlist-null)         ; vhash of gensym -> <operand>
              (counter #f)               ; inlined call stack
-             (ctx 'value))   ; effect, value, test, operator, or call
+             (ctx 'values))   ; effect, value, values, test, operator, or call
     (define (lookup var)
       (cond 
        ((vhash-assq var env) => cdr)
@@ -721,6 +718,7 @@ top-level bindings from ENV and return the resulting expression."
       (loop exp env counter ctx))
 
     (define (for-value exp)    (visit exp 'value))
+    (define (for-values exp)   (visit exp 'values))
     (define (for-test exp)     (visit exp 'test))
     (define (for-effect exp)   (visit exp 'effect))
     (define (for-call exp)     (visit exp 'call))
@@ -766,7 +764,8 @@ top-level bindings from ENV and return the resulting expression."
            (let ((val (operand-constant-value op)))
              (log 'memoized-constant gensym val)
              (for-tail val)))
-          ((visit-operand op counter ctx recursive-effort-limit operand-size-limit)
+          ((visit-operand op counter (if (eq? ctx 'values) 'value ctx)
+                          recursive-effort-limit operand-size-limit)
            =>
            ;; If we end up deciding to residualize this value instead of
            ;; copying it, save that residualized value.
@@ -789,7 +788,7 @@ top-level bindings from ENV and return the resulting expression."
                ;; It could be this constant is the result of folding.
                ;; If that is the case, cache it.  This helps loop
                ;; unrolling get farther.
-               (if (eq? ctx 'value)
+               (if (or (eq? ctx 'value) (eq? ctx 'values))
                    (begin
                      (log 'memoize-constant gensym val)
                      (set-operand-constant-value! op val)))
@@ -903,7 +902,7 @@ top-level bindings from ENV and return the resulting expression."
        ;; Peval the producer, then try to inline the consumer into
        ;; the producer.  If that succeeds, peval again.  Otherwise
        ;; reconstruct the let-values, pevaling the consumer.
-       (let ((producer (for-value producer)))
+       (let ((producer (for-values producer)))
          (or (match consumer
                (($ <lambda-case> src req #f #f #f () gensyms body #f)
                 (cond
@@ -1004,7 +1003,18 @@ top-level bindings from ENV and return the resulting expression."
                       _ req #f rest #f () gensyms body #f)))))
        (for-tail (make-let-values src (make-application src producer '())
                                   consumer)))
-
+      (($ <application> src ($ <primitive-ref> _ 'values) exps)
+       (cond
+        ((null? exps)
+         (if (eq? ctx 'effect)
+             (make-void #f)
+             exp))
+        (else
+         (let ((vals (map for-value exps)))
+           (if (and (memq ctx '(value test effect))
+                    (every singly-valued-expression? vals))
+               (for-tail (make-sequence src (append (cdr vals) (list (car vals)))))
+               (make-application src (make-primitive-ref #f 'values) vals))))))
       (($ <application> src orig-proc orig-args)
        ;; todo: augment the global env with specialized functions
        (let ((proc (visit orig-proc 'operator)))
@@ -1205,7 +1215,7 @@ top-level bindings from ENV and return the resulting expression."
          ((operator) exp)
          (else (record-source-expression!
                 exp
-                (make-lambda src meta (for-tail body))))))
+                (make-lambda src meta (for-values body))))))
       (($ <lambda-case> src req opt rest kw inits gensyms body alt)
        (let* ((vars (map lookup-var gensyms))
               (new (fresh-gensyms vars))
