@@ -512,17 +512,18 @@ children.  The optional STAT parameter defaults to `lstat'."
   "Return the list of the names of files contained in directory NAME
 that match predicate SELECT? (by default, all files.)  The returned list
 of file names is sorted according to ENTRY<?, which defaults to
-`string-locale<?'."
+`string-locale<?'.  Return #f when NAME is unreadable or is not a directory."
   (define (enter? name stat result)
     (and stat (string=? name name)))
 
   (define (leaf name stat result)
     (if (select? name)
-        (cons (basename name) result)
+        (and (pair? result)                      ; must have a "." entry
+             (cons (basename name) result))
         result))
 
   (define (down name stat result)
-    (cons "." result))
+    (list "."))
 
   (define (up name stat result)
     (cons ".." result))
@@ -531,7 +532,7 @@ of file names is sorted according to ENTRY<?, which defaults to
     ;; NAME itself is not readable.
     #f)
 
-  (and=> (file-system-fold enter? leaf down up skip '() name stat)
+  (and=> (file-system-fold enter? leaf down up skip #f name stat)
          (lambda (files)
            (sort files entry<?))))
 

@@ -173,4 +173,7 @@
     (let ((select? (cut string-suffix? ".test" <>)))
       (match (scandir (string-append %test-dir "/tests") select?)
         (("." ".." "00-initial-env.test" (? select?) ...)
-         #t)))))
+         #t))))
+
+  (pass-if "flat file"
+    (not (scandir (string-append %test-dir "/Makefile.am")))))

@@ -1254,7 +1254,8 @@ Return the list of the names of files contained in directory @var{name}
 that match predicate @var{select?} (by default, all files).  The
 returned list of file names is sorted according to @var{entry<?}, which
 defaults to @code{string-locale<?} such that file names are sorted in
-the locale's alphabetical order (@pxref{Text Collation}).
+the locale's alphabetical order (@pxref{Text Collation}).  Return
+@code{#f} when @var{name} is unreadable or is not a directory.
 
 This procedure is modeled after the C library function of the same name
 (@pxref{Scanning Directory Content,,, libc, GNU C Library Reference
