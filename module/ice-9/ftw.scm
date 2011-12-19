@@ -457,7 +457,7 @@ The optional STAT parameter defaults to `lstat'."
                         (else
                          (let* ((child (string-append full-name "/" entry))
                                 (st    (false-if-exception (stat child))))
-                           (if (and stat (eq? (stat:type st) 'directory))
+                           (if (and st (eq? (stat:type st) 'directory))
                                (liip (readdir dir)
                                      result
                                      (alist-cons entry st subdirs))
@@ -513,8 +513,8 @@ children.  The optional STAT parameter defaults to `lstat'."
 that match predicate SELECT? (by default, all files.)  The returned list
 of file names is sorted according to ENTRY<?, which defaults to
 `string-locale<?'.  Return #f when NAME is unreadable or is not a directory."
-  (define (enter? name stat result)
-    (and stat (string=? name name)))
+  (define (enter? dir stat result)
+    (and stat (string=? dir name)))
 
   (define (leaf name stat result)
     (if (select? name)
@@ -529,8 +529,8 @@ of file names is sorted according to ENTRY<?, which defaults to
     (cons ".." result))
 
   (define (skip name stat result)
-    ;; NAME itself is not readable.
-    #f)
+    ;; All the sub-directories are skipped.
+    result)
 
   (and=> (file-system-fold enter? leaf down up skip #f name stat)
          (lambda (files)
