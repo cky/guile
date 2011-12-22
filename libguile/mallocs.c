@@ -24,15 +24,14 @@
 #  include <config.h>
 #endif
 
+#include <stdlib.h>
+
 #include "libguile/_scm.h"
 #include "libguile/ports.h"
 #include "libguile/smob.h"
 
 #include "libguile/mallocs.h"
 
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

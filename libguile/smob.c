@@ -23,6 +23,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "libguile/_scm.h"
@@ -32,10 +33,6 @@
 #include "libguile/instructions.h"
 #include "libguile/objcodes.h"
 #include "libguile/programs.h"
-
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
-#endif
 
 #include "libguile/smob.h"
 
