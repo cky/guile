@@ -445,7 +445,7 @@ top-level bindings from ENV and return the resulting expression."
   (define* (residualize-lexical op #:optional ctx val)
     (log 'residualize op)
     (set-operand-residualize?! op #t)
-    (if (eq? ctx 'value)
+    (if (memq ctx '(value values))
         (set-operand-residual-value! op val))
     (make-lexical-ref #f (var-name (operand-var op)) (operand-sym op)))
 
