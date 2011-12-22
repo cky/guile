@@ -1,6 +1,6 @@
 ;;;; unif.test --- tests guile's uniform arrays     -*- scheme -*-
 ;;;;
-;;;; Copyright 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -606,3 +606,19 @@
                                (lambda (i) (list i i))
                                '(0 2))
             #(a e i))))
+
+;;;
+;;; slices as generalized vectors
+;;;
+
+(let ((array #2u32((0 1) (2 3))))
+  (define (array-row a i)
+    (make-shared-array a (lambda (j) (list i j))
+                       (cadr (array-dimensions a))))
+  (with-test-prefix "generalized vector slices"
+    (pass-if (equal? (array-row array 1)
+                     #u32(2 3)))
+    (pass-if (equal? (array-ref (array-row array 1) 0)
+                     2))
+    (pass-if (equal? (generalized-vector-ref (array-row array 1) 0)
+                     2))))
