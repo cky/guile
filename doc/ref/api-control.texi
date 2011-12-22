@@ -11,7 +11,7 @@ See @ref{Control Flow} for a discussion of how the more general control
 flow of Scheme affects C code.
 
 @menu
-* begin::                       Evaluating a sequence of expressions.
+* begin::                       Sequencing and splicing.
 * if cond case::                Simple conditional evaluation.
 * and or::                      Conditional evaluation of a sequence.
 * while do::                    Iteration mechanisms.
@@ -26,37 +26,82 @@ flow of Scheme affects C code.
 @end menu
 
 @node begin
-@subsection Evaluating a Sequence of Expressions
+@subsection Sequencing and Splicing
 
 @cindex begin
 @cindex sequencing
 @cindex expression sequencing
 
-The @code{begin} syntax is used for grouping several expressions
-together so that they are treated as if they were one expression.
-This is particularly important when syntactic expressions are used
-which only allow one expression, but the programmer wants to use more
-than one expression in that place.  As an example, consider the
-conditional expression below:
+As an expression, the @code{begin} syntax is used to evaluate a sequence
+of sub-expressions in order.  Consider the conditional expression below:
 
 @lisp
 (if (> x 0)
     (begin (display "greater") (newline)))
 @end lisp
 
-If the two calls to @code{display} and @code{newline} were not embedded
-in a @code{begin}-statement, the call to @code{newline} would get
-misinterpreted as the else-branch of the @code{if}-expression.
+If the test is true, we want to display ``greater'' to the current
+output port, then display a newline.  We use @code{begin} to form a
+compound expression out of this sequence of sub-expressions.
 
 @deffn syntax begin expr1 expr2 @dots{}
-The expression(s) are evaluated in left-to-right order and the value
-of the last expression is returned as the value of the
+The expression(s) are evaluated in left-to-right order and the value of
+the last expression is returned as the value of the
 @code{begin}-expression.  This expression type is used when the
 expressions before the last one are evaluated for their side effects.
-
-Guile also allows the expression @code{(begin)}, a @code{begin} with no
-sub-expressions.  Such an expression returns the `unspecified' value.
 @end deffn
+
+@cindex splicing
+@cindex definition splicing
+
+The @code{begin} syntax has another role in definition context
+(@pxref{Internal Definitions}).  A @code{begin} form in a definition
+context @dfn{splices} its subforms into its place.  For example,
+consider the following procedure:
+
+@lisp
+(define (make-seal)
+  (define-sealant seal open)
+  (values seal open))
+@end lisp
+
+Let us assume the existence of a @code{define-sealant} macro that
+expands out to some definitions wrapped in a @code{begin}, like so:
+
+@lisp
+(define (make-seal)
+  (begin
+    (define seal-tag
+      (list 'seal))
+    (define (seal x)
+      (cons seal-tag x))
+    (define (sealed? x)
+      (and (pair? x) (eq? (car x) seal-tag)))
+    (define (open x)
+      (if (sealed? x)
+          (cdr x)
+          (error "Expected a sealed value:" x))))
+  (values seal open))
+@end lisp
+
+Here, because the @code{begin} is in definition context, its subforms
+are @dfn{spliced} into the place of the @code{begin}.  This allows the
+definitions created by the macro to be visible to the following
+expression, the @code{values} form.
+
+It is a fine point, but splicing and sequencing are different.  It can
+make sense to splice zero forms, because it can make sense to have zero
+internal definitions before the expressions in a procedure or lexical
+binding form.  However it does not make sense to have a sequence of zero
+expressions, because in that case it would not be clear what the value
+of the sequence would be, because in a sequence of zero expressions,
+there can be no last value.  Sequencing zero expressions is an error.
+
+It would be more elegant in some ways to eliminate splicing from the
+Scheme language, and without macros (@pxref{Macros}), that would be a
+good idea.  But it is useful to be able to write macros that expand out
+to multiple definitions, as in @code{define-sealant} above, so Scheme
+abuses the @code{begin} form for these two tasks.
 
 @node if cond case
 @subsection Simple Conditional Evaluation

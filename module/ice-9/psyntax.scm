@@ -1204,7 +1204,12 @@
           ((call) (expand-application (expand (car e) r w mod) e r w s mod))
           ((begin-form)
            (syntax-case e ()
-             ((_ e1 e2 ...) (expand-sequence #'(e1 e2 ...) r w s mod))))
+             ((_ e1 e2 ...) (expand-sequence #'(e1 e2 ...) r w s mod))
+             ((_)
+              (begin
+                (issue-deprecation-warning
+                 "Sequences of zero expressions are deprecated.  Use *unspecified*.")
+                (expand-void)))))
           ((local-syntax-form)
            (expand-local-syntax value e r w s mod expand-sequence))
           ((eval-when-form)

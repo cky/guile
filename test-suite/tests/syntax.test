@@ -150,9 +150,10 @@
   (pass-if "legal (begin)"
     (eval '(begin (begin) #t) (interaction-environment)))
 
-  (pass-if-syntax-error "illegal (begin)"
-    exception:generic-syncase-error
-    (eval '(begin (if #t (begin)) #t) (interaction-environment))))
+  (if (not (include-deprecated-features))
+      (pass-if-syntax-error "illegal (begin)"
+        exception:generic-syncase-error
+        (eval '(begin (if #t (begin)) #t) (interaction-environment)))))
 
 (define-syntax matches?
   (syntax-rules (<>)
