@@ -279,13 +279,12 @@ As an example, here is a possible implementation of the @code{square?}
 primitive:
 
 @lisp
-#define FUNC_NAME "square?"
 static SCM square_p (SCM shape)
 @{
   struct dia_guile_shape * guile_shape;
 
   /* Check that arg is really a shape SMOB. */
-  SCM_VALIDATE_SHAPE (SCM_ARG1, shape);
+  scm_assert_smob_type (shape_tag, shape);
 
   /* Access Scheme-specific shape structure. */
   guile_shape = SCM_SMOB_DATA (shape);
@@ -295,7 +294,6 @@ static SCM square_p (SCM shape)
   return scm_from_bool (guile_shape->c_shape &&
                         (guile_shape->c_shape->type == DIA_SQUARE));
 @}
-#undef FUNC_NAME
 @end lisp
 
 Notice how easy it is to chain through from the @code{SCM shape}
@@ -303,10 +301,11 @@ parameter that @code{square_p} receives --- which is a SMOB --- to the
 Scheme-specific structure inside the SMOB, and thence to the underlying
 C structure for the shape.
 
-In this code, @code{SCM_SMOB_DATA} and @code{scm_from_bool} are from
-the standard Guile API.  @code{SCM_VALIDATE_SHAPE} is a macro that you
-should define as part of your SMOB definition: it checks that the
-passed parameter is of the expected type.  This is needed to guard
+In this code, @code{scm_assert_smob_type}, @code{SCM_SMOB_DATA}, and
+@code{scm_from_bool} are from the standard Guile API.  We assume that
+@code{shape_tag} was given to us when we made the shape SMOB type, using
+@code{scm_make_smob_type}.  The call to @code{scm_assert_smob_type}
+ensures that @var{shape} is indeed a shape.  This is needed to guard
 against Scheme code using the @code{square?} procedure incorrectly, as
 in @code{(square? "hello")}; Scheme's latent typing means that usage
 errors like this must be caught at run time.
