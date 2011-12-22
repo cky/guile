@@ -1261,7 +1261,7 @@ phrase\"."
        (or (not v) (string? v)))))
   (lambda (k v port)
     (cond
-     ((string? v) (display v port))
+     ((string? v) (default-val-writer k v port))
      ((pair? v)
       (display #\" port)
       (write-header-list v port)

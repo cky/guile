@@ -45,6 +45,18 @@
                     val)
             (valid-header? 'sym val))))))
 
+(define-syntax pass-if-round-trip
+  (syntax-rules ()
+    ((_ str)
+     (pass-if (format #f "~s round trip" str)
+       (equal? (call-with-output-string
+                (lambda (port)
+                  (call-with-values
+                      (lambda () (read-header (open-input-string str)))
+                    (lambda (sym val)
+                      (write-header sym val port)))))
+               str)))))
+
 (define-syntax pass-if-any-error
   (syntax-rules ()
     ((_ sym str)
@@ -85,6 +97,10 @@
                  '(no-cache (max-age . 10)))
   (pass-if-parse cache-control "max-stale" '(max-stale))
   (pass-if-parse cache-control "max-stale=10" '((max-stale . 10)))
+  (pass-if-round-trip "Cache-Control: acme-cache-extension\r\n")
+  (pass-if-round-trip "Cache-Control: acme-cache-extension=20\r\n")
+  (pass-if-round-trip "Cache-Control: acme-cache-extension=100 quux\r\n")
+  (pass-if-round-trip "Cache-Control: acme-cache-extension=\"100, quux\"\r\n")
 
   (pass-if-parse connection "close" '(close))
   (pass-if-parse connection "Content-Encoding" '(content-encoding))
