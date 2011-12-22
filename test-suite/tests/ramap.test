@@ -19,6 +19,14 @@
 (define-module (test-suite test-ramap)
   #:use-module (test-suite lib))
 
+(define (array-row a i)
+  (make-shared-array a (lambda (j) (list i j))
+                       (cadr (array-dimensions a))))
+
+(define (array-col a j)
+  (make-shared-array a (lambda (i) (list i j))
+                       (car (array-dimensions a))))
+
 ;;;
 ;;; array-index-map!
 ;;;
@@ -183,4 +191,67 @@
     (pass-if "+"
       (let ((a (make-array #f 4)))
 	(array-map! a + #(1 2 3 4) #(5 6 7 8))
-	(equal? a #(6 8 10 12))))))
+	(equal? a #(6 8 10 12))))
+        
+    (pass-if "noncompact arrays 1"
+      (let ((a #2((0 1) (2 3)))
+            (c #(0 0)))
+        (begin
+          (array-map! c + (array-row a 1) (array-row a 1))
+          (array-equal? c #(4 6)))))
+          
+    (pass-if "noncompact arrays 2"
+      (let ((a #2((0 1) (2 3)))
+            (c #(0 0)))
+        (begin
+          (array-map! c + (array-col a 1) (array-col a 1))
+          (array-equal? c #(2 6)))))
+          
+    (pass-if "noncompact arrays 3"
+      (let ((a #2((0 1) (2 3)))
+            (c #(0 0)))
+        (begin
+          (array-map! c + (array-col a 1) (array-row a 1))
+          (array-equal? c #(3 6)))))
+          
+    (pass-if "noncompact arrays 4"
+      (let ((a #2((0 1) (2 3)))
+            (c #(0 0)))
+        (begin
+          (array-map! c + (array-col a 1) (array-row a 1))
+          (array-equal? c #(3 6)))))))
+
+;;;
+;;; array-for-each
+;;;
+
+(with-test-prefix "array-for-each"
+
+  (with-test-prefix "3 sources"
+    (pass-if "noncompact arrays 1"
+      (let* ((a #2((0 1) (2 3)))
+             (l '())
+             (rec (lambda args (set! l (cons args l)))))
+        (array-for-each rec (array-row a 1) (array-row a 1) (array-row a 1))
+        (equal? l '((3 3 3) (2 2 2)))))
+          
+    (pass-if "noncompact arrays 2"
+      (let* ((a #2((0 1) (2 3)))
+             (l '())
+             (rec (lambda args (set! l (cons args l)))))
+        (array-for-each rec (array-row a 1) (array-row a 1) (array-col a 1))
+        (equal? l '((3 3 3) (2 2 1)))))
+          
+    (pass-if "noncompact arrays 3"
+      (let* ((a #2((0 1) (2 3)))
+             (l '())
+             (rec (lambda args (set! l (cons args l)))))
+        (array-for-each rec (array-row a 1) (array-col a 1) (array-col a 1))
+        (equal? l '((3 3 3) (2 1 1)))))
+          
+    (pass-if "noncompact arrays 4"
+      (let* ((a #2((0 1) (2 3)))
+             (l '())
+             (rec (lambda args (set! l (cons args l)))))
+        (array-for-each rec (array-col a 1) (array-col a 0) (array-row a 1))
+        (equal? l '((3 2 3) (1 0 2)))))))
