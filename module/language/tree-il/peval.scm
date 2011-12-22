@@ -1040,7 +1040,7 @@ top-level bindings from ENV and return the resulting expression."
               (match (cons name (map for-value orig-args))
                 (('cons head tail)
                  (match tail
-                   (($ <const> src ())
+                   (($ <const> src (? (cut eq? <> '())))
                     (make-application src (make-primitive-ref #f 'list)
                                       (list head)))
                    (($ <application> src ($ <primitive-ref> _ 'list) elts)
