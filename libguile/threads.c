@@ -38,6 +38,10 @@
 #include <sys/time.h>
 #endif
 
+#if HAVE_PTHREAD_NP_H
+# include <pthread_np.h>
+#endif
+
 #include <assert.h>
 #include <fcntl.h>
 #include <nproc.h>
@@ -139,6 +143,29 @@ static void *
 get_thread_stack_base ()
 {
   return pthread_get_stackaddr_np (pthread_self ());
+}
+
+#elif HAVE_PTHREAD_ATTR_GET_NP
+/* This one is for FreeBSD 9.  */
+static void *
+get_thread_stack_base ()
+{
+  pthread_attr_t attr;
+  void *start, *end;
+  size_t size;
+
+  pthread_attr_init (&attr);
+  pthread_attr_get_np (pthread_self (), &attr);
+  pthread_attr_getstack (&attr, &start, &size);
+  pthread_attr_destroy (&attr);
+
+  end = (char *)start + size;
+
+#if SCM_STACK_GROWS_UP
+  return start;
+#else
+  return end;
+#endif
 }
 
 #else 

@@ -775,6 +775,7 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime
 #   sys/param.h - not in mingw
 #   pthread.h - only available with pthreads.  ACX_PTHREAD doesn't
 #       check this specifically, we need it for the timespec test below.
+#   pthread_np.h - available on FreeBSD
 #   sethostname - the function itself check because it's not in mingw,
 #       the DECL is checked because Solaris 10 doens't have in any header
 #   hstrerror - on Tru64 5.1b the symbol is available in libc but the
@@ -782,7 +783,7 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime
 #   cuserid - on Tru64 5.1b the declaration is documented to be available
 #       only with `_XOPEN_SOURCE' or some such.
 #
-AC_CHECK_HEADERS([crypt.h netdb.h pthread.h sys/param.h sys/resource.h sys/file.h sys/mman.h])
+AC_CHECK_HEADERS([crypt.h netdb.h pthread.h pthread_np.h sys/param.h sys/resource.h sys/file.h sys/mman.h])
 AC_CHECK_FUNCS(chroot flock getlogin cuserid getpriority setpriority getpass sethostname gethostname)
 AC_CHECK_DECLS([sethostname, hstrerror, cuserid])
 
@@ -1364,9 +1365,11 @@ case "$with_threads" in
     #         all; not present on MacOS X or Solaris 10
     #     pthread_get_stackaddr_np - "np" meaning "non portable" says it
     #         all; specific to MacOS X
+    #     pthread_attr_get_np - "np" meaning "non portable" says it
+    #         all; specific to FreeBSD
     #     pthread_sigmask - not available on mingw
     #
-    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np pthread_get_stackaddr_np pthread_sigmask)
+    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np pthread_get_stackaddr_np pthread_attr_get_np pthread_sigmask)
 
     # On past versions of Solaris, believe 8 through 10 at least, you
     # had to write "pthread_once_t foo = { PTHREAD_ONCE_INIT };".
