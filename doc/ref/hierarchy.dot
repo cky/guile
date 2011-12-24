@@ -1,0 +1,21 @@
+/*
+ * Process this file with graphviz to produce hierarchy.[png,eps]
+ * e.g. dot hierarchy.dot -Tpng > hierarchy.png
+ */
+digraph hierarchy {
+	graph [rankdir="BT"];
+	node  [shape="none"];
+	F -> D
+	F -> E
+	D -> A
+	E -> A
+	D -> B
+	E -> C
+	A -> "<object>"
+	B -> "<object>"
+	C -> "<object>"
+	"<object>"    -> "<top>"
+	"<pair>"      -> "<top>"
+	"<procedure>" -> "<top>"
+	"<integer>"   -> "<real>" -> "<complex>" -> "<number>" -> "<top>"
+}
