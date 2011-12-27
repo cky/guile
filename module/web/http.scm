@@ -1514,7 +1514,15 @@ phrase\"."
 
 ;; Expires = HTTP-date
 ;;
-(declare-date-header! "Expires")
+(define *date-in-the-past* (parse-date "Thu, 01 Jan 1970 00:00:00 GMT"))
+
+(declare-header! "Expires"
+  (lambda (str)
+    (if (member str '("0" "-1"))
+        *date-in-the-past*
+        (parse-date str)))
+  date?
+  write-date)
 
 ;; Last-Modified = HTTP-date
 ;;
