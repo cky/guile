@@ -91,7 +91,7 @@ consistency checks to make sure that the constructed URI is valid."
 (define ipv4-regexp
   (make-regexp "^([0-9.]+)$"))
 (define ipv6-regexp
-  (make-regexp "^\\[([0-9a-fA-F:]+)\\]$"))
+  (make-regexp "^\\[([0-9a-fA-F:.]+)\\]$"))
 (define domain-label-regexp
   (make-regexp "^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
 (define top-label-regexp
@@ -115,7 +115,7 @@ consistency checks to make sure that the constructed URI is valid."
 (define userinfo-pat
   "[a-zA-Z0-9_.!~*'();:&=+$,-]+")
 (define host-pat
-  "[a-zA-Z0-9.-]+")
+  "[a-zA-Z0-9.-]+|\\[[0-9a-FA-F:.]+\\]")
 (define port-pat
   "[0-9]*")
 (define authority-regexp

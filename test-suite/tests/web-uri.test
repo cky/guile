@@ -102,6 +102,10 @@
     (uri=? (build-uri 'http #:host "[2001:db8::1]")
            #:scheme 'http #:host "[2001:db8::1]" #:path ""))
 
+  (pass-if "http://[::ffff:192.0.2.1]"
+    (uri=? (build-uri 'http #:host "[::ffff:192.0.2.1]")
+           #:scheme 'http #:host "[::ffff:192.0.2.1]" #:path ""))
+
   (pass-if-uri-exception "http://foo:not-a-port"
                          "Expected.*port"
                          (build-uri 'http #:host "foo" #:port "not-a-port"))
@@ -160,11 +164,15 @@
            #:scheme 'http #:host "[2001:db8::1]" #:path ""))
 
   (pass-if "http://[2001:db8::1]:80"
-    (uri=? (string->uri "http://[2001:db8::1]")
+    (uri=? (string->uri "http://[2001:db8::1]:80")
            #:scheme 'http
            #:host "[2001:db8::1]"
            #:port 80
            #:path ""))
+
+  (pass-if "http://[::ffff:192.0.2.1]"
+    (uri=? (string->uri "http://[::ffff:192.0.2.1]")
+           #:scheme 'http #:host "[::ffff:192.0.2.1]" #:path ""))
 
   (pass-if "http://foo:"
     (uri=? (string->uri "http://foo:")
@@ -227,9 +235,9 @@
     (equal? "http://[2001:db8::1]"
             (uri->string (string->uri "http://[2001:db8::1]"))))
 
-  (pass-if "http://[2001:db8::1]:80"
-    (equal? "http://[2001:db8::1]:80"
-           (uri->string (string->uri "http://[2001:db8::1]:80"))))
+  (pass-if "http://[::ffff:192.0.2.1]"
+    (equal? "http://[::ffff:192.0.2.1]"
+            (uri->string (string->uri "http://[::ffff:192.0.2.1]"))))
 
   (pass-if "http://foo:"
     (equal? "http://foo"
