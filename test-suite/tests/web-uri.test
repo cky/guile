@@ -90,6 +90,18 @@
     (uri=? (build-uri 'http #:host "bad.host.1" #:validate? #f)
            #:scheme 'http #:host "bad.host.1" #:path ""))
 
+  (pass-if "http://1.good.host"
+    (uri=? (build-uri 'http #:host "1.good.host")
+           #:scheme 'http #:host "1.good.host" #:path ""))
+
+  (pass-if "http://192.0.2.1"
+    (uri=? (build-uri 'http #:host "192.0.2.1")
+           #:scheme 'http #:host "192.0.2.1" #:path ""))
+
+  (pass-if "http://[2001:db8::1]"
+    (uri=? (build-uri 'http #:host "[2001:db8::1]")
+           #:scheme 'http #:host "[2001:db8::1]" #:path ""))
+
   (pass-if-uri-exception "http://foo:not-a-port"
                          "Expected.*port"
                          (build-uri 'http #:host "foo" #:port "not-a-port"))
@@ -134,6 +146,25 @@
 
   (pass-if "http://bad.host.1"
     (not (string->uri "http://bad.host.1")))
+
+  (pass-if "http://1.good.host"
+    (uri=? (string->uri "http://1.good.host")
+           #:scheme 'http #:host "1.good.host" #:path ""))
+
+  (pass-if "http://192.0.2.1"
+    (uri=? (string->uri "http://192.0.2.1")
+           #:scheme 'http #:host "192.0.2.1" #:path ""))
+
+  (pass-if "http://[2001:db8::1]"
+    (uri=? (string->uri "http://[2001:db8::1]")
+           #:scheme 'http #:host "[2001:db8::1]" #:path ""))
+
+  (pass-if "http://[2001:db8::1]:80"
+    (uri=? (string->uri "http://[2001:db8::1]")
+           #:scheme 'http
+           #:host "[2001:db8::1]"
+           #:port 80
+           #:path ""))
 
   (pass-if "http://foo:"
     (uri=? (string->uri "http://foo:")
@@ -188,6 +219,18 @@
     (equal? "ftp://foo@bar:22/baz"
             (uri->string (string->uri "ftp://foo@bar:22/baz"))))
   
+  (pass-if "http://192.0.2.1"
+    (equal? "http://192.0.2.1"
+            (uri->string (string->uri "http://192.0.2.1"))))
+
+  (pass-if "http://[2001:db8::1]"
+    (equal? "http://[2001:db8::1]"
+            (uri->string (string->uri "http://[2001:db8::1]"))))
+
+  (pass-if "http://[2001:db8::1]:80"
+    (equal? "http://[2001:db8::1]:80"
+           (uri->string (string->uri "http://[2001:db8::1]:80"))))
+
   (pass-if "http://foo:"
     (equal? "http://foo"
             (uri->string (string->uri "http://foo:"))))
@@ -197,7 +240,11 @@
             (uri->string (string->uri "http://foo:/")))))
 
 (with-test-prefix "decode"
-  (pass-if (equal? "foo bar" (uri-decode "foo%20bar"))))
+  (pass-if "foo%20bar"
+    (equal? "foo bar" (uri-decode "foo%20bar")))
+
+  (pass-if "foo+bar"
+    (equal? "foo bar" (uri-decode "foo+bar"))))
 
 (with-test-prefix "encode"
   (pass-if (equal? "foo%20bar" (uri-encode "foo bar"))))
