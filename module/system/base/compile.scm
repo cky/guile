@@ -99,7 +99,7 @@
 ;;; files, either you know where they should go, in which case you tell
 ;;; compile-file explicitly, as in the srcdir != builddir case; or you
 ;;; don't know, in which case this function is called, and we just put
-;;; them in your own ccache dir in ~/.guile-ccache.
+;;; them in your own ccache dir in ~/.cache/guile/ccache.
 ;;;
 ;;; See also boot-9.scm:load.
 (define (compiled-file-name file)
