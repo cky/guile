@@ -359,7 +359,8 @@
       (else '())))
   
   ;; allocation: sym -> {lambda -> address}
-  ;;             lambda -> (nlocs labels . free-locs)
+  ;;             lambda -> (labels . free-locs)
+  ;;             lambda-case -> (gensym . nlocs)
   (define allocation (make-hash-table))
   
   (define (allocate! x proc n)
