@@ -3293,10 +3293,13 @@ Again the choice of @var{hash-proc} must be consistent with previous calls to
 @code{vhash-cons}.
 @end deffn
 
-@deffn {Scheme Procedure} vhash-fold proc vhash
-@deffnx {Scheme Procedure} vhash-fold-right proc vhash
-Fold over the key/value elements of @var{vhash} in the given direction.
-For each pair call @var{proc} as @code{(@var{proc} key value result)}.
+@deffn {Scheme Procedure} vhash-fold proc init vhash
+@deffnx {Scheme Procedure} vhash-fold-right proc init vhash
+Fold over the key/value elements of @var{vhash} in the given direction,
+with each call to @var{proc} having the form @code{(@var{proc} key value
+result)}, where @var{result} is the result of the previous call to
+@var{proc} and @var{init} the value of @var{result} for the first call
+to @var{proc}.
 @end deffn
 
 @deffn {Scheme Procedure} vhash-fold* proc init key vhash [equal? [hash]]

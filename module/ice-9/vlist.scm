@@ -545,23 +545,26 @@ with @var{equal?}."
 (define vhash-delq (cut vhash-delete <> <> eq? hashq))
 (define vhash-delv (cut vhash-delete <> <> eqv? hashv))
 
-(define (vhash-fold proc seed vhash)
-  "Fold over the key/pair elements of @var{vhash}.  For each pair call
-@var{proc} as @code{(@var{proc} key value result)}."
+(define (vhash-fold proc init vhash)
+  "Fold over the key/pair elements of @var{vhash} from left to right, with
+each call to @var{proc} having the form @code{(@var{proc} key value result)},
+where @var{result} is the result of the previous call to @var{proc} and
+@var{init} the value of @var{result} for the first call to @var{proc}."
   (vlist-fold (lambda (key+value result)
                 (proc (car key+value) (cdr key+value)
                       result))
-              seed
+              init
               vhash))
 
-(define (vhash-fold-right proc seed vhash)
-  "Fold over the key/pair elements of @var{vhash}, starting from the 0th
-element.  For each pair call @var{proc} as @code{(@var{proc} key value
-result)}."
+(define (vhash-fold-right proc init vhash)
+  "Fold over the key/pair elements of @var{vhash} from right to left, with
+each call to @var{proc} having the form @code{(@var{proc} key value result)},
+where @var{result} is the result of the previous call to @var{proc} and
+@var{init} the value of @var{result} for the first call to @var{proc}."
   (vlist-fold-right (lambda (key+value result)
                       (proc (car key+value) (cdr key+value)
                             result))
-                    seed
+                    init
                     vhash))
 
 (define* (alist->vhash alist #:optional (hash hash))
