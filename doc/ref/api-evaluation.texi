@@ -20,6 +20,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Load Paths::                  Where Guile looks for code.
 * Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
+* Local Evaluation::            Evaluation in a local lexical environment.
 @end menu
 
 
@@ -978,6 +979,39 @@ promise.  Higher evaluations run to completion in the normal way, but
 their results are ignored, @code{force} always returns the first
 value.
 @end deffn
+
+
+@node Local Evaluation
+@subsection Local Evaluation
+
+@deffn syntax the-environment
+Captures and returns a lexical environment for use with
+@code{local-eval} or @code{local-compile}.
+@end deffn
+
+@deffn {Scheme Procedure} local-eval exp env
+@deffnx {C Function} scm_local_eval (exp, env)
+Evaluate the expression @var{exp} in the lexical environment @var{env}.
+This mostly behaves as if @var{exp} had been wrapped in a lambda
+expression @code{`(lambda () ,@var{exp})} and put in place of
+@code{(the-environment)}, with the resulting procedure called by
+@code{local-eval}.  In other words, @var{exp} is evaluated within the
+lexical environment of @code{(the-environment)}, but within the dynamic
+environment of the call to @code{local-eval}.
+@end deffn
+
+@deffn {Scheme Procedure} local-compile exp env [opts=()]
+Compile the expression @var{exp} in the lexical environment @var{env}.
+If @var{exp} is a procedure, the result will be a compiled procedure;
+otherwise @code{local-compile} is mostly equivalent to
+@code{local-eval}.  @var{opts} specifies the compilation options.
+@end deffn
+
+Note that the current implementation of @code{(the-environment)} does
+not capture local syntax transformers bound by @code{let-syntax},
+@code{letrec-syntax} or non-top-level @code{define-syntax} forms.  Any
+attempt to reference such captured syntactic keywords via
+@code{local-eval} or @code{local-compile} produces an error.
 
 
 @c Local Variables:

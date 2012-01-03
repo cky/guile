@@ -1,5 +1,5 @@
 /* Debugging extensions for Guile
- * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation
+ * Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -207,6 +207,17 @@ SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0,
 }
 #undef FUNC_NAME
 #endif
+
+SCM
+scm_local_eval (SCM exp, SCM env)
+{
+  static SCM local_eval_var = SCM_BOOL_F;
+
+  if (scm_is_false (local_eval_var))
+    local_eval_var = scm_c_public_variable ("ice-9 local-eval", "local-eval");
+
+  return scm_call_2 (SCM_VARIABLE_REF (local_eval_var), exp, env);
+}
 
 static void
 init_stack_limit (void)

@@ -3,7 +3,7 @@
  * Test items of the Guile C API that aren't covered by any other tests.
  */
 
-/* Copyright (C) 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -43,9 +43,23 @@ test_scm_from_locale_keywordn ()
 }
 
 static void
+test_scm_local_eval ()
+{
+  SCM result = scm_local_eval
+    (scm_list_3 (scm_from_latin1_symbol ("+"),
+                 scm_from_latin1_symbol ("x"),
+                 scm_from_latin1_symbol ("y")),
+     scm_c_eval_string ("(let ((x 1) (y 2)) (the-environment))"));
+     
+  assert (scm_is_true (scm_equal_p (result,
+                                    scm_from_signed_integer (3))));
+}
+
+static void
 tests (void *data, int argc, char **argv)
 {
   test_scm_from_locale_keywordn ();
+  test_scm_local_eval ();
 }
 
 int

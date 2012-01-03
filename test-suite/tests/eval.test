@@ -1,5 +1,5 @@
 ;;;; eval.test --- tests guile's evaluator     -*- scheme -*-
-;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000, 2001, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,8 @@
   :use-module (test-suite lib)
   :use-module ((srfi srfi-1) :select (unfold count))
   :use-module ((system vm vm) :select (make-vm call-with-vm))
-  :use-module (ice-9 documentation))
+  :use-module (ice-9 documentation)
+  :use-module (ice-9 local-eval))
 
 
 (define exception:bad-expression
@@ -421,5 +422,95 @@
     (let ((vm    (make-vm))
           (thunk (let loop () (cons 's (loop)))))
       (call-with-vm vm thunk))))
+
+;;;
+;;; local-eval
+;;;
+
+(with-test-prefix "local evaluation"
+
+  (pass-if "local-eval"
+
+    (let* ((env1 (let ((x 1) (y 2) (z 3))
+                   (define-syntax-rule (foo x) (quote x))
+                   (the-environment)))
+           (env2 (local-eval '(let ((x 111) (a 'a))
+                                (define-syntax-rule (bar x) (quote x))
+                                (the-environment))
+                           env1)))
+      (local-eval '(set! x 11) env1)
+      (local-eval '(set! y 22) env1)
+      (local-eval '(set! z 33) env2)
+      (and (equal? (local-eval '(list x y z) env1)
+                   '(11 22 33))
+           (equal? (local-eval '(list x y z a) env2)
+                   '(111 22 33 a)))))
+
+  (pass-if "local-compile"
+
+    (let* ((env1 (let ((x 1) (y 2) (z 3))
+                   (define-syntax-rule (foo x) (quote x))
+                   (the-environment)))
+           (env2 (local-compile '(let ((x 111) (a 'a))
+                                   (define-syntax-rule (bar x) (quote x))
+                                   (the-environment))
+                                env1)))
+      (local-compile '(set! x 11) env1)
+      (local-compile '(set! y 22) env1)
+      (local-compile '(set! z 33) env2)
+      (and (equal? (local-compile '(list x y z) env1)
+                   '(11 22 33))
+           (equal? (local-compile '(list x y z a) env2)
+                   '(111 22 33 a)))))
+
+  (pass-if "the-environment within a macro"
+    (let ((module-a-name '(test module the-environment a))
+          (module-b-name '(test module the-environment b)))
+      (let ((module-a (resolve-module module-a-name))
+            (module-b (resolve-module module-b-name)))
+        (module-use! module-a (resolve-interface '(guile)))
+        (module-use! module-a (resolve-interface '(ice-9 local-eval)))
+        (eval '(begin
+                 (define z 3)
+                 (define-syntax-rule (test)
+                   (let ((x 1) (y 2))
+                     (the-environment))))
+              module-a)
+        (module-use! module-b (resolve-interface '(guile)))
+        (let ((env (eval `(let ((x 111) (y 222))
+                            ((@@ ,module-a-name test)))
+                         module-b)))
+          (equal? (local-eval '(list x y z) env)
+                  '(1 2 3))))))
+
+  (pass-if "capture pattern variables"
+    (let ((env (syntax-case #'(((a 1) (b 2) (c 3))
+                               ((d 4) (e 5) (f 6))) ()
+                 ((((k v) ...) ...) (the-environment)))))
+      (equal? (syntax->datum (local-eval '#'((k ... v ...) ...) env))
+              '((a b c 1 2 3) (d e f 4 5 6)))))
+
+  (pass-if "mixed primitive-eval, local-eval and local-compile"
+
+    (let* ((env1 (primitive-eval '(let ((x 1) (y 2) (z 3))
+                                    (define-syntax-rule (foo x) (quote x))
+                                    (the-environment))))
+           (env2 (local-eval '(let ((x 111) (a 'a))
+                                (define-syntax-rule (bar x) (quote x))
+                                (the-environment))
+                             env1))
+           (env3 (local-compile '(let ((y 222) (b 'b))
+                                   (the-environment))
+                                env2)))
+      (local-eval    '(set! x 11) env1)
+      (local-compile '(set! y 22) env2)
+      (local-eval    '(set! z 33) env2)
+      (local-compile '(set! a (* y 2)) env3)
+      (and (equal? (local-compile '(list x y z) env1)
+                   '(11 22 33))
+           (equal? (local-eval '(list x y z a) env2)
+                   '(111 22 33 444))
+           (equal? (local-eval '(list x y z a b) env3)
+                   '(111 222 33 444 b))))))
 
 ;;; eval.test ends here

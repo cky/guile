@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+##  	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -243,7 +243,8 @@ ICE_9_SOURCES = \
   ice-9/weak-vector.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
-  ice-9/vlist.scm
+  ice-9/vlist.scm \
+  ice-9/local-eval.scm
 
 SRFI_SOURCES = \
   srfi/srfi-1.scm \
