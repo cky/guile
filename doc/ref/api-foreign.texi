@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008,
-@c   2009, 2010, 2011 Free Software Foundation, Inc.
+@c   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Foreign Function Interface
@@ -680,7 +680,7 @@ pointers to manipulate them.  We could write:
   (lambda (b p)
     (format p "#<bottle of ~a ~x>"
             (bottle-contents b)
-            (pointer-address (unwrap-foo b)))))
+            (pointer-address (unwrap-bottle b)))))
 
 (define grab-bottle
   ;; Wrapper for `bottle_t *grab (void)'.
