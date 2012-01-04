@@ -3366,7 +3366,7 @@ Change every character in @var{str} between @var{start} and
 @var{end} to @var{fill}.
 
 @lisp
-(define y "abcdefg")
+(define y (string-copy "abcdefg"))
 (substring-fill! y 1 3 #\r)
 y
 @result{} "arrdefg"
