@@ -436,6 +436,9 @@ scm_i_string_length (SCM str)
 int
 scm_i_is_narrow_string (SCM str)
 {
+  if (IS_SH_STRING (str))
+    str = SH_STRING_STRING (str);
+
   return !STRINGBUF_WIDE (STRING_STRINGBUF (str));
 }
 
@@ -446,6 +449,9 @@ scm_i_is_narrow_string (SCM str)
 int
 scm_i_try_narrow_string (SCM str)
 {
+  if (IS_SH_STRING (str))
+    str = SH_STRING_STRING (str);
+
   SET_STRING_STRINGBUF (str, narrow_stringbuf (STRING_STRINGBUF (str)));
 
   return scm_i_is_narrow_string (str);
@@ -664,6 +670,12 @@ scm_i_string_strcmp (SCM sstr, size_t start_x, const char *cstr)
 void
 scm_i_string_set_x (SCM str, size_t p, scm_t_wchar chr)
 {
+  if (IS_SH_STRING (str))
+    {
+      p += STRING_START (str);
+      str = SH_STRING_STRING (str);
+    }
+
   if (chr > 0xFF && scm_i_is_narrow_string (str))
     SET_STRING_STRINGBUF (str, wide_stringbuf (STRING_STRINGBUF (str)));
 
