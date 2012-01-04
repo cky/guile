@@ -1,21 +1,23 @@
 ;;;; c-api.test --- complementary test suite for the c-api     -*- scheme -*-
 ;;;; MDJ 990915 <djurfeldt@nada.kth.se>
 ;;;;
-;;;; 	Copyright (C) 1999, 2006 Free Software Foundation, Inc.
-;;;; 
+;;;;   Copyright (C) 1999, 2006, 2012 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(use-modules (test-suite lib))
 
 (define srcdir (cdr (assq 'srcdir %guile-build-info)))
 
@@ -25,15 +27,14 @@
 (define (seek-offset-test dirname)
   (let ((dir (opendir dirname)))
     (do ((filename (readdir dir) (readdir dir)))
-	((eof-object? filename))
-      (if (and 
-	   (eqv? (string-ref filename (- (string-length filename) 1)) #\c)
-	   (eqv? (string-ref filename (- (string-length filename) 2)) #\.))
-	  (let ((file (string-append dirname "/" filename)))
-	    (if (and (file-exists? file)
-		     (egrep "SEEK_(SET|CUR|END)" file)
-		     (not (egrep "unistd.h" file)))
-		(fail file)))))))
+        ((eof-object? filename))
+      (if (and
+           (eqv? (string-ref filename (- (string-length filename) 1)) #\c)
+           (eqv? (string-ref filename (- (string-length filename) 2)) #\.))
+          (let ((file (string-append dirname "/" filename)))
+            (if (and (file-exists? file)
+                     (egrep "SEEK_(SET|CUR|END)" file))
+                (pass-if file (egrep "unistd.h" file))))))))
 
 ;;; A rough conservative test to check that all source files
 ;;; which use SEEK_SET, SEEK_CUR, and SEEK_END include unistd.h.
