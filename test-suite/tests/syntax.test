@@ -1,7 +1,8 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
-;;;; 
+;;;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2009, 2010,
+;;;;   2011, 2012 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
@@ -88,7 +89,7 @@
     ((_ name pat exp)
      (pass-if name
        (catch 'syntax-error
-         (lambda () exp (error "expected uri-error exception"))
+         (lambda () exp (error "expected syntax-error exception"))
          (lambda (k who what where form . maybe-subform)
            (if (if (pair? pat)
                    (and (eq? who (car pat))

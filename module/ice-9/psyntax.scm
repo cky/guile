@@ -1,7 +1,8 @@
 ;;;; -*-scheme-*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
-;;;; 
+;;;; Copyright (C) 2001, 2003, 2006, 2009, 2010, 2011,
+;;;;   2012 Free Software Foundation, Inc.
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
@@ -1206,10 +1207,13 @@
            (syntax-case e ()
              ((_ e1 e2 ...) (expand-sequence #'(e1 e2 ...) r w s mod))
              ((_)
-              (begin
-                (issue-deprecation-warning
-                 "Sequences of zero expressions are deprecated.  Use *unspecified*.")
-                (expand-void)))))
+              (if (include-deprecated-features)
+                  (begin
+                    (issue-deprecation-warning
+                     "Sequences of zero expressions are deprecated.  Use *unspecified*.")
+                    (expand-void))
+                  (syntax-violation #f "sequence of zero expressions"
+                                    (source-wrap e w s mod))))))
           ((local-syntax-form)
            (expand-local-syntax value e r w s mod expand-sequence))
           ((eval-when-form)
