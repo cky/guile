@@ -81,6 +81,8 @@
 
 (define exception:too-many-args
   "too many arguments")
+(define exception:zero-expression-sequence
+  "sequence of zero expressions")
 
 
 ;; (put 'pass-if-syntax-error 'scheme-indent-function 1)
@@ -148,12 +150,12 @@
 
 (with-test-prefix "begin"
 
-  (pass-if "legal (begin)"
+  (pass-if "valid (begin)"
     (eval '(begin (begin) #t) (interaction-environment)))
 
   (if (not (include-deprecated-features))
-      (pass-if-syntax-error "illegal (begin)"
-        exception:generic-syncase-error
+      (pass-if-syntax-error "invalid (begin)"
+        exception:zero-expression-sequence
         (eval '(begin (if #t (begin)) #t) (interaction-environment)))))
 
 (define-syntax matches?
