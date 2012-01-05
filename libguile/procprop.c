@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2003,2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2003, 2004, 2006,
+ *   2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -175,7 +176,7 @@ SCM_DEFINE (scm_set_procedure_properties_x, "set-procedure-properties!", 2, 0, 0
   SCM_VALIDATE_PROC (1, proc);
 
 #if (SCM_ENABLE_DEPRECATED == 1)
-  if (scm_assq (alist, scm_sym_arity))
+  if (scm_is_true (scm_assq (scm_sym_arity, alist)))
     SCM_MISC_ERROR ("arity is a read-only property", SCM_EOL);
 #endif
 
