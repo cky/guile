@@ -85,7 +85,7 @@
    - SCM_STRING_CHARS uses scm_i_string_writable_chars and immediately
      calls scm_i_stop_writing, hoping for the best.  SCM_STRING_LENGTH
      is the same as scm_i_string_length.  SCM_STRING_CHARS will throw
-     an error for for strings that are not null-terminated.  There is
+     an error for strings that are not null-terminated.  There is
      no wide version of this interface.
 */
 

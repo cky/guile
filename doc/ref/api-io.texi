@@ -1181,7 +1181,7 @@ procedures and does not rely on R6RS support.
 
 Some of the procedures described in this chapter accept a file name as an
 argument. Valid values for such a file name include strings that name a file
-using the native notation of filesystem paths on an implementation's
+using the native notation of file system paths on an implementation's
 underlying operating system, and may include implementation-dependent
 values as well.
 

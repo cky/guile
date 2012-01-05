@@ -93,7 +93,7 @@
 ;;; This function is among the trickiest I've ever written. I tried many
 ;;; variants. In the end, simple is best, of course.
 ;;;
-;;; After turning this around a number of times, it seems that the the
+;;; After turning this around a number of times, it seems that the
 ;;; desired behavior is that .go files should exist in a path, for
 ;;; searching. That is orthogonal to this function. For writing .go
 ;;; files, either you know where they should go, in which case you tell

@@ -1,4 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
+ *   2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +27,7 @@
 #include "libguile/bdw-gc.h"
 #include "libguile/_scm.h"
 
+#include <stdlib.h>
 #if HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -862,7 +865,7 @@ scm_init_guile ()
   else
     {
       fprintf (stderr, "Failed to get stack base for current thread.\n");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 }
 

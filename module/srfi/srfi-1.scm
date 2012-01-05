@@ -652,7 +652,7 @@ has just one element then that's the return value."
 (define map! map)
 
 (define (filter-map proc list1 . rest)
-  "Apply PROC to to the elements of LIST1... and return a list of the
+  "Apply PROC to the elements of LIST1... and return a list of the
 results as per SRFI-1 `map', except that any #f results are omitted from
 the list returned."
   (check-arg procedure? proc filter-map)

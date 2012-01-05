@@ -4,3 +4,4 @@
 ^emacs/
 ^NEWS
 ^doc/
+^test-suite/tests/ports.test

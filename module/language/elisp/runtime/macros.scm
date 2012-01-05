@@ -81,7 +81,7 @@
                         (progn ,@(cdr cur))
                         ,rest))))))))
 
-;;; The and and or forms can also be easily defined with macros.
+;;; The `and' and `or' forms can also be easily defined with macros.
 
 (built-in-macro and
   (case-lambda

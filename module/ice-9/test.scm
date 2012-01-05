@@ -17,7 +17,7 @@
 ;;;; "test.scm" Test correctness of scheme implementations.
 ;;; Author: Aubrey Jaffer
 ;;; Modified: Mikael Djurfeldt (Removed tests which Guile deliberately
-;;; won't pass.  Made the the tests (test-cont), (test-sc4), and
+;;; won't pass.  Made the tests (test-cont), (test-sc4), and
 ;;; (test-delay) start to run automatically.
 
 ;;; This includes examples from

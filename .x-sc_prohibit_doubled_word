@@ -1,0 +1,7 @@
+^AUTHORS
+^gc-benchmarks/larceny/
+^module/ice-9/format.scm
+^module/ice-9/match.upstream.scm
+^module/sxml/upstream
+compile.scm
+ChangeLog

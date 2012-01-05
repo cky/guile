@@ -7132,7 +7132,7 @@ with the strings in the list @var{ls}.
 @deffn {Scheme Procedure} string-concatenate-reverse/shared ls [final_string [end]]
 @deffnx {C Function} scm_string_concatenate_reverse_shared (ls, final_string, end)
 Like @code{string-concatenate-reverse}, but the result may
-share memory with the the strings in the @var{ls} arguments.
+share memory with the strings in the @var{ls} arguments.
 @end deffn
 
 string-map

@@ -1,7 +1,8 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
-;;;; Free Software Foundation, Inc.
+;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -3013,7 +3014,7 @@ module '(ice-9 q) '(make-q q-length))}."
           ;; 0 by printing a newline, but we then advance it by printing
           ;; the prompt.  However the port-column of the output port
           ;; does not typically correspond with the actual column on the
-          ;; screen, because the input is is echoed back!  Since the
+          ;; screen, because the input is echoed back!  Since the
           ;; input is line-buffered and thus ends with a newline, the
           ;; output will really start on column zero.  So, here we zero
           ;; it out.  See bug 9664.
@@ -3504,7 +3505,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {`load'.}
 ;;;
 ;;; Load is tricky when combined with relative paths, compilation, and
-;;; the filesystem.  If a path is relative, what is it relative to?  The
+;;; the file system.  If a path is relative, what is it relative to?  The
 ;;; path of the source file at the time it was compiled?  The path of
 ;;; the compiled file?  What if both or either were installed?  And how
 ;;; do you get that information?  Tricky, I say.

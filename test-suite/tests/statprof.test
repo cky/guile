@@ -75,7 +75,7 @@
 
         (let ((drift-fraction (/ max-diff average)))
           (or (< drift-fraction max-allowed-drift)
-              ;; don't stop the the test suite for what statistically is
+              ;; don't stop the test suite for what statistically is
               ;; bound to happen.
               (throw 'unresolved (pk average drift-fraction))))))))
 

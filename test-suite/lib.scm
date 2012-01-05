@@ -119,7 +119,7 @@
 ;;;;
 ;;;; * (pass-if-exception name exception body) will pass if the execution of
 ;;;;   body causes the given exception to be thrown.  If no exception is
-;;;;   thrown, the test fails.  If some other exception is thrown, is is an
+;;;;   thrown, the test fails.  If some other exception is thrown, it is an
 ;;;;   error.
 ;;;; * (expect-fail-exception name exception body) will pass unexpectedly if
 ;;;;   the execution of body causes the given exception to be thrown.  If no

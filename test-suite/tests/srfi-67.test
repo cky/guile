@@ -36,7 +36,7 @@
 ; Test engine
 ; ===========
 ;
-; We use an extended version of the the checker of SRFI-42 (with
+; We use an extended version of the checker of SRFI-42 (with
 ; Felix' reduction on codesize) for running a batch of tests for
 ; the various procedures of 'compare.scm'. Moreover, we use the
 ; comprehensions of SRFI-42 to generate examples systematically.

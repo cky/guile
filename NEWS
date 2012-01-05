@@ -1,5 +1,5 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2011 Free Software Foundation, Inc.
+Copyright (C) 1996-2012 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
@@ -1386,7 +1386,7 @@ Arguments", and "Case-lambda" in the manual.
 
 Instead of accessing a procedure's arity as a property, use the new
 `procedure-minimum-arity' function, which gives the most permissive
-arity that the the function has, in the same format as the old arity
+arity that the function has, in the same format as the old arity
 accessor.
 
 ** `lambda*' and `define*' are now available in the default environment
@@ -2156,7 +2156,7 @@ allocated to primitive procedures, each with its own calling convention.
 Now there is only one, the gsubr. This may affect user code if you were
 defining a procedure using scm_c_make_subr rather scm_c_make_gsubr. The
 solution is to switch to use scm_c_make_gsubr. This solution works well
-both with the old 1.8 and and with the current 1.9 branch.
+both with the old 1.8 and with the current 1.9 branch.
 
 Guile's old evaluator used to have special cases for applying "gsubrs",
 primitive procedures with specified numbers of required, optional, and
@@ -6193,7 +6193,7 @@ incrementally add to the innermost environment, without checking
 whether the restrictions specified in RnRS were met.  This lead to the
 correct behaviour when these restriction actually were met, but didn't
 catch all illegal uses.  Such an illegal use could lead to crashes of
-the Guile interpreter or or other unwanted results.  An example of
+the Guile interpreter or other unwanted results.  An example of
 incorrect internal defines that made Guile behave erratically:
 
   (let ()

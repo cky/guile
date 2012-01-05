@@ -239,7 +239,7 @@
                           c)
                      (list body)))
                    (else
-                    ;; Otherwise for plain letrec, evaluate the the "complex"
+                    ;; Otherwise for plain letrec, evaluate the "complex"
                     ;; bindings, in a `let' to indicate that order doesn't
                     ;; matter, and bind to their variables.
                     (list

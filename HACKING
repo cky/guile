@@ -1,6 +1,6 @@
 -*-text-*-
 Guile Hacking Guide
-Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2008 Free software Foundation, Inc.
+Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2008, 2012 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -222,7 +222,7 @@ When deprecating a definition, always follow this procedure:
    manage without the deprecated definition.
 
 4. Add an entry that the definition has been deprecated in NEWS and
-   explain what do do instead.
+   explain what to do instead.
 
 5. In file TODO, there is a list of releases with reminders about what
    to do at each release.  Add a reminder about the removal of the

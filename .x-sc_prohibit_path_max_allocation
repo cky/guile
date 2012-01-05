@@ -1,0 +1,2 @@
+libguile/win32-socket.c
+lib/stat.c

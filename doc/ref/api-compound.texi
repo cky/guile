@@ -1560,7 +1560,7 @@ same type, and have corresponding elements which are either
 @c  FIXME: array-for-each doesn't say what happens if the sources have
 @c  different index ranges.  The code currently iterates over the
 @c  indices of the first and expects the others to cover those.  That
-@c  at least vaguely matches array-map!, but is is meant to be a
+@c  at least vaguely matches array-map!, but is it meant to be a
 @c  documented feature?
 
 @deffn {Scheme Procedure} array-map! dst proc src1 @dots{} srcN

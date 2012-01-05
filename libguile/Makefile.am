@@ -62,7 +62,7 @@ gen-scmconfig.$(OBJEXT): gen-scmconfig.c
 	$(AM_V_GEN) \
 	if [ "$(cross_compiling)" = "yes" ]; then \
 		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) -I$(top_builddir) \
-	           -c -o $@ $<; \
+		   -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi

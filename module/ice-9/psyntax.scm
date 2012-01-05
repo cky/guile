@@ -1265,7 +1265,7 @@
     ;;
     ;; The only wrinkle is when we want a macro to expand to code in another
     ;; module, as is the case for the r6rs `library' form -- the body expressions
-    ;; should be scoped relative the the new module, the one defined by the macro.
+    ;; should be scoped relative the new module, the one defined by the macro.
     ;; For that, use `(@@ mod-name body)'.
     ;;
     ;; Part of the macro output will be from the site of the macro use and part
