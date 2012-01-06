@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008, 2009, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -44,12 +44,13 @@ be used for interacting with the module system.
 * General Information about Modules::  Guile module basics.
 * Using Guile Modules::         How to use existing modules.
 * Creating Guile Modules::      How to package your code into modules.
-* Module System Reflection::    Accessing module objects at run-time.
-* Included Guile Modules::      Which modules come with Guile?
+* Modules and the File System:: Installing modules in the file system.
 * R6RS Version References::     Using version numbers with modules.
 * R6RS Libraries::              The library and import forms.
-* Accessing Modules from C::    How to work with modules with C code.
 * Variables::                   First-class variables.
+* Module System Reflection::    First-class modules.
+* Accessing Modules from C::    How to work with modules with C code.
+* Included Guile Modules::      Which modules come with Guile?
 * provide and require::         The SLIB feature mechanism.
 * Environments::                R5RS top-level environments.
 @end menu
@@ -60,12 +61,6 @@ be used for interacting with the module system.
 A Guile module can be thought of as a collection of named procedures,
 variables and macros.  More precisely, it is a set of @dfn{bindings}
 of symbols (names) to Scheme objects.
-
-An environment is a mapping from identifiers (or symbols) to locations,
-i.e., a set of bindings.
-There are top-level environments and lexical environments.
-The environment in which a lambda is executed is remembered as part of its
-definition.
 
 Within a module, all bindings are visible.  Certain bindings
 can be declared @dfn{public}, in which case they are added to the
@@ -81,42 +76,18 @@ algorithmically @dfn{rename} bindings.  In contrast, when using the
 providing module's public interface, the entire export list is available
 without renaming (@pxref{Using Guile Modules}).
 
-To use a module, it must be found and loaded.  All Guile modules have a
-unique @dfn{module name}, which is a list of one or more symbols.
-Examples are @code{(ice-9 popen)} or @code{(srfi srfi-11)}.  When Guile
-searches for the code of a module, it constructs the name of the file to
-load by concatenating the name elements with slashes between the
-elements and appending a number of file name extensions from the list
-@code{%load-extensions} (@pxref{Loading}).  The resulting file name is
-then searched in all directories in the variable @code{%load-path}
-(@pxref{Build Config}).  For example, the @code{(ice-9 popen)} module
-would result in the filename @code{ice-9/popen.scm} and searched in the
-installation directories of Guile and in all other directories in the
-load path.
+All Guile modules have a unique @dfn{module name}, for example
+@code{(ice-9 popen)} or @code{(srfi srfi-11)}.  Module names are lists
+of one or more symbols.
 
-A slightly different search mechanism is used when a client module
-specifies a version reference as part of a request to load a module
-(@pxref{R6RS Version References}).  Instead of searching the directories
-in the load path for a single filename, Guile uses the elements of the 
-version reference to locate matching, numbered subdirectories of a 
-constructed base path.  For example, a request for the 
-@code{(rnrs base)} module with version reference @code{(6)} would cause
-Guile to discover the @code{rnrs/6} subdirectory (if it exists in any of
-the directories in the load path) and search its contents for the
-filename @code{base.scm}.
+When Guile goes to use an interface from a module, for example
+@code{(ice-9 popen)}, Guile first looks to see if it has loaded
+@code{(ice-9 popen)} for any reason.  If the module has not been loaded
+yet, Guile searches a @dfn{load path} for a file that might define it,
+and loads that file.
 
-When multiple modules are found that match a version reference, Guile
-sorts these modules by version number, followed by the length of their
-version specifications, in order to choose a ``best'' match.
-
-@c FIXME::martin:  Not sure about this, maybe someone knows better?
-Every module has a so-called syntax transformer associated with it.
-This is a procedure which performs all syntax transformation for the
-time the module is read in and evaluated.  When working with modules,
-you can manipulate the current syntax transformer using the
-@code{use-syntax} syntactic form or the @code{#:use-syntax} module
-definition option (@pxref{Creating Guile Modules}).
-
+The following subsections go into more detail on using, creating,
+installing, and otherwise manipulating modules and the module system.
 
 @node Using Guile Modules
 @subsection Using Guile Modules
@@ -198,14 +169,11 @@ has not yet been loaded yet will be loaded when referenced by a
 You can also use the @code{@@} and @code{@@@@} syntaxes as the target
 of a @code{set!} when the binding refers to a variable.
 
-@c begin (scm-doc-string "boot-9.scm" "symbol-prefix-proc")
 @deffn {Scheme Procedure} symbol-prefix-proc prefix-sym
 Return a procedure that prefixes its arg (a symbol) with
 @var{prefix-sym}.
-@c Insert gratuitous C++ slam here.  --ttn
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "use-modules")
 @deffn syntax use-modules spec @dots{}
 Resolve each interface specification @var{spec} into an interface and
 arrange for these to be accessible by the current module.  The return
@@ -218,7 +186,7 @@ whose public interface is found and used.
 
 @cindex binding renamer
 @lisp
- (MODULE-NAME [:select SELECTION] [:renamer RENAMER])
+ (MODULE-NAME [#:select SELECTION] [#:renamer RENAMER])
 @end lisp
 
 in which case a custom interface is newly created and used.
@@ -229,37 +197,26 @@ a pair of symbols @code{(ORIG . SEEN)}, where @var{orig} is the name in
 the used module and @var{seen} is the name in the using module.  Note
 that @var{seen} is also passed through @var{renamer}.
 
-The @code{:select} and @code{:renamer} clauses are optional.  If both are
-omitted, the returned interface has no bindings.  If the @code{:select}
+The @code{#:select} and @code{#:renamer} clauses are optional.  If both are
+omitted, the returned interface has no bindings.  If the @code{#:select}
 clause is omitted, @var{renamer} operates on the used module's public
 interface.
 
-In addition to the above, @var{spec} can also include a @code{:version} 
+In addition to the above, @var{spec} can also include a @code{#:version} 
 clause, of the form:
 
 @lisp
- :version VERSION-SPEC
+ #:version VERSION-SPEC
 @end lisp
 
-where @var{version-spec} is an R6RS-compatible version reference.  The 
-presence of this clause changes Guile's search behavior as described in
-the section on module name resolution 
-(@pxref{General Information about Modules}).  An error will be signaled 
-in the case in which a module with the same name has already been 
-loaded, if that module specifies a version and that version is not 
-compatible with @var{version-spec}.
+where @var{version-spec} is an R6RS-compatible version reference.  An
+error will be signaled in the case in which a module with the same name
+has already been loaded, if that module specifies a version and that
+version is not compatible with @var{version-spec}.  @xref{R6RS Version
+References}, for more on version references.
 
-Signal error if module name is not resolvable.
-@end deffn
-
-
-@c FIXME::martin: Is this correct, and is there more to say?
-@c FIXME::martin: Define term and concept `syntax transformer' somewhere.
-
-@deffn syntax use-syntax module-name
-Load the module @code{module-name} and use its syntax
-transformer as the syntax transformer for the currently defined module,
-as well as installing it as the current syntax transformer.
+If the module name is not resolvable, @code{use-modules} will signal an
+error.
 @end deffn
 
 @deffn syntax @@ module-name binding-name
@@ -293,10 +250,8 @@ Export all bindings which should be in the public interface, either
 by using @code{define-public} or @code{export} (both documented below).
 @end itemize
 
-@c begin (scm-doc-string "boot-9.scm" "define-module")
 @deffn syntax define-module module-name [options @dots{}]
-@var{module-name} is of the form @code{(hierarchy file)}.  One
-example of this is
+@var{module-name} is a list of one or more symbols.
 
 @lisp
 (define-module (ice-9 popen))
@@ -309,16 +264,10 @@ The @var{options} are keyword/value pairs which specify more about the
 defined module.  The recognized options and their meaning is shown in
 the following table.
 
-@c fixme: Should we use "#:" or ":"?
-
 @table @code
 @item #:use-module @var{interface-specification}
 Equivalent to a @code{(use-modules @var{interface-specification})}
 (@pxref{Using Guile Modules}).
-
-@item #:use-syntax @var{module}
-Use @var{module} when loading the currently defined module, and install
-it as the syntax transformer.
 
 @item #:autoload @var{module} @var{symbol-list}
 @cindex autoload
@@ -347,7 +296,7 @@ the module is used.
 @item #:export @var{list}
 @cindex export
 Export all identifiers in @var{list} which must be a list of symbols
-or pairs of symbols. This is equivalent to @code{(export @var{list})} 
+or pairs of symbols.  This is equivalent to @code{(export @var{list})} 
 in the module body.
 
 @item #:re-export @var{list}
@@ -356,20 +305,6 @@ Re-export all identifiers in @var{list} which must be a list of
 symbols or pairs of symbols.  The symbols in @var{list} must be 
 imported by the current module from other modules.  This is equivalent
 to @code{re-export} below.
-
-@item #:export-syntax @var{list}
-@cindex export-syntax
-Export all identifiers in @var{list} which must be a list of symbols
-or pairs of symbols.  The identifiers in @var{list} must refer to 
-macros (@pxref{Macros}) defined in the current module.  This is 
-equivalent to @code{(export-syntax @var{list})} in the module body.
-
-@item #:re-export-syntax @var{list}
-@cindex re-export-syntax
-Re-export all identifiers in @var{list} which must be a list of
-symbols or pairs of symbols.  The symbols in @var{list} must refer to
-macros imported by the current module from other modules.  This is 
-equivalent to @code{(re-export-syntax @var{list})} in the module body. 
 
 @item #:replace @var{list}
 @cindex replace
@@ -399,6 +334,9 @@ Time}) which is not compatible with the core @code{current-time}
 function (@pxref{Time}).  Guile assumes that a user importing a module
 knows what she is doing, and uses @code{#:replace} for this binding
 rather than @code{#:export}.
+
+A @code{#:replace} clause is equivalent to @code{(export! @var{list})}
+in the module body.
 
 The @code{#:duplicates} (see below) provides fine-grain control about
 duplicate binding handling on the module-user side.
@@ -464,6 +402,10 @@ a duplicate binding situation.  As mentioned above, some resolution
 policies may explicitly leave the responsibility of handling the
 duplication to the next handler in @var{list}.
 
+If GOOPS has been loaded before the @code{#:duplicates} clause is
+processed, there are additional strategies available for dealing with
+generic functions.  @xref{Merging Generics}, for more information.
+
 @findex default-duplicate-binding-handler
 The default duplicate binding resolution policy is given by the
 @code{default-duplicate-binding-handler} procedure, and is
@@ -471,11 +413,6 @@ The default duplicate binding resolution policy is given by the
 @lisp
 (replace warn-override-core warn last)
 @end lisp
-
-@item #:no-backtrace
-@cindex no backtrace
-Tell Guile not to record information for procedure backtraces when
-executing the procedures in this module.
 
 @item #:pure
 @cindex pure module
@@ -486,7 +423,6 @@ do not know anything about dangerous procedures.
 @end table
 
 @end deffn
-@c end
 
 @deffn syntax export variable @dots{}
 Add all @var{variable}s (which must be symbols or pairs of symbols) to 
@@ -496,11 +432,9 @@ current module and its @code{cdr} specifies a name for the binding in
 the current module's public interface.
 @end deffn
 
-@c begin (scm-doc-string "boot-9.scm" "define-public")
 @deffn syntax define-public @dots{}
 Equivalent to @code{(begin (define foo ...) (export foo))}.
 @end deffn
-@c end
 
 @deffn syntax re-export variable @dots{}
 Add all @var{variable}s (which must be symbols or pairs of symbols) to 
@@ -509,184 +443,47 @@ symbols are handled as in @code{export}.  Re-exported bindings must be
 imported by the current module from some other module.
 @end deffn
 
-@node Module System Reflection
-@subsection Module System Reflection
-
-The previous sections have described a declarative view of the module
-system.  You can also work with it programmatically by accessing and
-modifying various parts of the Scheme objects that Guile uses to
-implement the module system.
-
-At any time, there is a @dfn{current module}.  This module is the one
-where a top-level @code{define} and similar syntax will add new
-bindings.  You can find other module objects with @code{resolve-module},
-for example.
-
-These module objects can be used as the second argument to @code{eval}.
-
-@deffn {Scheme Procedure} current-module
-Return the current module object.
+@deffn syntax export! variable @dots{}
+Like @code{export}, but marking the exported variables as replacing.
+Using a module with replacing bindings will cause any existing bindings
+to be replaced without issuing any warnings.  See the discussion of
+@code{#:replace} above.
 @end deffn
 
-@deffn {Scheme Procedure} set-current-module module
-Set the current module to @var{module} and return
-the previous current module.
-@end deffn
+@node Modules and the File System
+@subsection Modules and the File System
 
-@deffn {Scheme Procedure} save-module-excursion thunk
-Call @var{thunk} within a @code{dynamic-wind} such that the module that
-is current at invocation time is restored when @var{thunk}'s dynamic
-extent is left (@pxref{Dynamic Wind}).
+Typical programs only use a small subset of modules installed on a Guile
+system.  In order to keep startup time down, Guile only loads modules
+when a program uses them, on demand.
 
-More precisely, if @var{thunk} escapes non-locally, the current module
-(at the time of escape) is saved, and the original current module (at
-the time @var{thunk}'s dynamic extent was last entered) is restored.  If
-@var{thunk}'s dynamic extent is re-entered, then the current module is
-saved, and the previously saved inner module is set current again.
-@end deffn
+When a program evaluates @code{(use-modules (ice-9 popen))}, and the
+module is not loaded, Guile searches for a conventionally-named file
+from in the @dfn{load path}.
 
-@deffn {Scheme Procedure} resolve-module name
-Find the module named @var{name} and return it.  When it has not already
-been defined, try to auto-load it.  When it can't be found that way
-either, create an empty module.  The name is a list of symbols.
-@end deffn
+In this case, loading @code{(ice-9 popen)} will eventually cause Guile
+to run @code{(primitive-load-path "ice-9/popen")}.
+@code{primitive-load-path} will search for a file @file{ice-9/popen} in
+the @code{%load-path} (@pxref{Build Config}).  For each directory in
+@code{%load-path}, Guile will try to find the file name, concatenated
+with the extensions from @code{%load-extensions}.  By default, this will
+cause Guile to @code{stat} @file{ice-9/popen.scm}, and then
+@file{ice-9/popen}.  @xref{Loading}, for more on
+@code{primitive-load-path}.
 
-@deffn {Scheme Procedure} resolve-interface name
-Find the module named @var{name} as with @code{resolve-module} and
-return its interface.  The interface of a module is also a module
-object, but it contains only the exported bindings.
-@end deffn
+If a corresponding compiled @file{.go} file is found in the
+@code{%load-compiled-path} or in the fallback path, and is as fresh as
+the source file, it will be loaded instead of the source file.  If no
+compiled file is found, Guile may try to compile the source file and
+cache away the resulting @file{.go} file.  @xref{Compilation}, for more
+on compilation.
 
-@deffn {Scheme Procedure} module-use! module interface
-Add @var{interface} to the front of the use-list of @var{module}.  Both
-arguments should be module objects, and @var{interface} should very
-likely be a module returned by @code{resolve-interface}.
-@end deffn
+Once Guile finds a suitable source or compiled file is found, the file
+will be loaded.  If, after loading the file, the module under
+consideration is still not defined, Guile will signal an error.
 
-@deffn {Scheme Procedure} reload-module module
-Revisit the source file that corresponds to @var{module}.  Raises an
-error if no source file is associated with the given module.
-@end deffn
-
-
-@node Included Guile Modules
-@subsection Included Guile Modules
-
-@c FIXME::martin: Review me!
-
-Some modules are included in the Guile distribution; here are references
-to the entries in this manual which describe them in more detail:
-
-@table @strong
-@item boot-9
-boot-9 is Guile's initialization module, and it is always loaded when
-Guile starts up.
-
-@item (ice-9 expect)
-Actions based on matching input from a port (@pxref{Expect}).
-
-@item (ice-9 format)
-Formatted output in the style of Common Lisp (@pxref{Formatted
-Output}).
-
-@item (ice-9 ftw)
-File tree walker (@pxref{File Tree Walk}).
-
-@item (ice-9 getopt-long)
-Command line option processing (@pxref{getopt-long}).
-
-@item (ice-9 history)
-Refer to previous interactive expressions (@pxref{Value History}).
-
-@item (ice-9 popen)
-Pipes to and from child processes (@pxref{Pipes}).
-
-@item (ice-9 pretty-print)
-Nicely formatted output of Scheme expressions and objects
-(@pxref{Pretty Printing}).
-
-@item (ice-9 q)
-First-in first-out queues (@pxref{Queues}).
-
-@item (ice-9 rdelim)
-Line- and character-delimited input (@pxref{Line/Delimited}).
-
-@item (ice-9 readline)
-@code{readline} interactive command line editing (@pxref{Readline
-Support}).
-
-@item (ice-9 receive)
-Multiple-value handling with @code{receive} (@pxref{Multiple Values}).
-
-@item (ice-9 regex)
-Regular expression matching (@pxref{Regular Expressions}).
-
-@item (ice-9 rw)
-Block string input/output (@pxref{Block Reading and Writing}).
-
-@item (ice-9 streams)
-Sequence of values calculated on-demand (@pxref{Streams}).
-
-@item (ice-9 syncase)
-R5RS @code{syntax-rules} macro system (@pxref{Syntax Rules}).
-
-@item (ice-9 threads)
-Guile's support for multi threaded execution (@pxref{Scheduling}).
-
-@item (ice-9 documentation)
-Online documentation (REFFIXME).
-
-@item (srfi srfi-1)
-A library providing a lot of useful list and pair processing
-procedures (@pxref{SRFI-1}).
-
-@item (srfi srfi-2)
-Support for @code{and-let*} (@pxref{SRFI-2}).
-
-@item (srfi srfi-4)
-Support for homogeneous numeric vectors (@pxref{SRFI-4}).
-
-@item (srfi srfi-6)
-Support for some additional string port procedures (@pxref{SRFI-6}).
-
-@item (srfi srfi-8)
-Multiple-value handling with @code{receive} (@pxref{SRFI-8}).
-
-@item (srfi srfi-9)
-Record definition with @code{define-record-type} (@pxref{SRFI-9}).
-
-@item (srfi srfi-10)
-Read hash extension @code{#,()} (@pxref{SRFI-10}).
-
-@item (srfi srfi-11)
-Multiple-value handling with @code{let-values} and @code{let*-values}
-(@pxref{SRFI-11}).
-
-@item (srfi srfi-13)
-String library (@pxref{SRFI-13}).
-
-@item (srfi srfi-14)
-Character-set library (@pxref{SRFI-14}).
-
-@item (srfi srfi-16)
-@code{case-lambda} procedures of variable arity (@pxref{SRFI-16}).
-
-@item (srfi srfi-17)
-Getter-with-setter support (@pxref{SRFI-17}).
-
-@item (srfi srfi-19)
-Time/Date library (@pxref{SRFI-19}).
-
-@item (srfi srfi-26)
-Convenient syntax for partial application (@pxref{SRFI-26})
-
-@item (srfi srfi-31)
-@code{rec} convenient recursive expressions (@pxref{SRFI-31})
-
-@item (ice-9 slib)
-This module contains hooks for using Aubrey Jaffer's portable Scheme
-library SLIB from Guile (@pxref{SLIB}).
-@end table
+For more information on where and how to install Scheme modules,
+@xref{Installing Site Packages}.
 
 
 @node R6RS Version References
@@ -910,6 +707,196 @@ same form as in the @code{library} form described above.
 @end deffn
 
 
+@node Variables
+@subsection Variables
+@tpindex Variables
+
+Each module has its own hash table, sometimes known as an @dfn{obarray},
+that maps the names defined in that module to their corresponding
+variable objects.
+
+A variable is a box-like object that can hold any Scheme value.  It is
+said to be @dfn{undefined} if its box holds a special Scheme value that
+denotes undefined-ness (which is different from all other Scheme values,
+including for example @code{#f}); otherwise the variable is
+@dfn{defined}.
+
+On its own, a variable object is anonymous.  A variable is said to be
+@dfn{bound} when it is associated with a name in some way, usually a
+symbol in a module obarray.  When this happens, the name is said to be
+bound to the variable, in that module.
+
+(That's the theory, anyway.  In practice, defined-ness and bound-ness
+sometimes get confused, because Lisp and Scheme implementations have
+often conflated --- or deliberately drawn no distinction between --- a
+name that is unbound and a name that is bound to a variable whose value
+is undefined.  We will try to be clear about the difference and explain
+any confusion where it is unavoidable.)
+
+Variables do not have a read syntax.  Most commonly they are created and
+bound implicitly by @code{define} expressions: a top-level @code{define}
+expression of the form
+
+@lisp
+(define @var{name} @var{value})
+@end lisp
+
+@noindent
+creates a variable with initial value @var{value} and binds it to the
+name @var{name} in the current module.  But they can also be created
+dynamically by calling one of the constructor procedures
+@code{make-variable} and @code{make-undefined-variable}.
+
+@deffn {Scheme Procedure} make-undefined-variable
+@deffnx {C Function} scm_make_undefined_variable ()
+Return a variable that is initially unbound.
+@end deffn
+
+@deffn {Scheme Procedure} make-variable init
+@deffnx {C Function} scm_make_variable (init)
+Return a variable initialized to value @var{init}.
+@end deffn
+
+@deffn {Scheme Procedure} variable-bound? var
+@deffnx {C Function} scm_variable_bound_p (var)
+Return @code{#t} iff @var{var} is bound to a value.
+Throws an error if @var{var} is not a variable object.
+@end deffn
+
+@deffn {Scheme Procedure} variable-ref var
+@deffnx {C Function} scm_variable_ref (var)
+Dereference @var{var} and return its value.
+@var{var} must be a variable object; see @code{make-variable}
+and @code{make-undefined-variable}.
+@end deffn
+
+@deffn {Scheme Procedure} variable-set! var val
+@deffnx {C Function} scm_variable_set_x (var, val)
+Set the value of the variable @var{var} to @var{val}.
+@var{var} must be a variable object, @var{val} can be any
+value. Return an unspecified value.
+@end deffn
+
+@deffn {Scheme Procedure} variable-unset! var
+@deffnx {C Function} scm_variable_unset_x (var)
+Unset the value of the variable @var{var}, leaving @var{var} unbound.
+@end deffn
+
+@deffn {Scheme Procedure} variable? obj
+@deffnx {C Function} scm_variable_p (obj)
+Return @code{#t} iff @var{obj} is a variable object, else
+return @code{#f}.
+@end deffn
+
+
+@node Module System Reflection
+@subsection Module System Reflection
+
+The previous sections have described a declarative view of the module
+system.  You can also work with it programmatically by accessing and
+modifying various parts of the Scheme objects that Guile uses to
+implement the module system.
+
+At any time, there is a @dfn{current module}.  This module is the one
+where a top-level @code{define} and similar syntax will add new
+bindings.  You can find other module objects with @code{resolve-module},
+for example.
+
+These module objects can be used as the second argument to @code{eval}.
+
+@deffn {Scheme Procedure} current-module
+@deffnx {C Function} scm_current_module ()
+Return the current module object.
+@end deffn
+
+@deffn {Scheme Procedure} set-current-module module
+@deffnx {C Function} scm_set_current_module (module)
+Set the current module to @var{module} and return
+the previous current module.
+@end deffn
+
+@deffn {Scheme Procedure} save-module-excursion thunk
+Call @var{thunk} within a @code{dynamic-wind} such that the module that
+is current at invocation time is restored when @var{thunk}'s dynamic
+extent is left (@pxref{Dynamic Wind}).
+
+More precisely, if @var{thunk} escapes non-locally, the current module
+(at the time of escape) is saved, and the original current module (at
+the time @var{thunk}'s dynamic extent was last entered) is restored.  If
+@var{thunk}'s dynamic extent is re-entered, then the current module is
+saved, and the previously saved inner module is set current again.
+@end deffn
+
+@deffn {Scheme Procedure} resolve-module name [autoload=#t] [version=#f] [#:ensure=#t]
+@deffnx {C Function} scm_resolve_module (name)
+Find the module named @var{name} and return it.  When it has not already
+been defined and @var{autoload} is true, try to auto-load it.  When it
+can't be found that way either, create an empty module if @var{ensure}
+is true, otherwise return @code{#f}.  If @var{version} is true, ensure
+that the resulting module is compatible with the given version reference
+(@pxref{R6RS Version References}).  The name is a list of symbols.
+@end deffn
+
+@deffn {Scheme Procedure} resolve-interface name [#:select=#f] [#:hide='()] [#:select=()] [#:prefix=#f] [#:renamer] [#:version=#f]
+Find the module named @var{name} as with @code{resolve-module} and
+return its interface.  The interface of a module is also a module
+object, but it contains only the exported bindings.
+@end deffn
+
+@deffn {Scheme Procedure} module-uses module
+Return a list of the interfaces used by @var{module}.
+@end deffn
+
+@deffn {Scheme Procedure} module-use! module interface
+Add @var{interface} to the front of the use-list of @var{module}.  Both
+arguments should be module objects, and @var{interface} should very
+likely be a module returned by @code{resolve-interface}.
+@end deffn
+
+@deffn {Scheme Procedure} reload-module module
+Revisit the source file that corresponds to @var{module}.  Raises an
+error if no source file is associated with the given module.
+@end deffn
+
+As mentioned in the previous section, modules contain a mapping between
+identifiers (as symbols) and storage locations (as variables).  Guile
+defines a number of procedures to allow access to this mapping.  If you
+are programming in C, @ref{Accessing Modules from C}.
+
+@deffn {Scheme Procedure} module-variable module name
+Return the variable bound to @var{name} (a symbol) in @var{module}, or
+@code{#f} if @var{name} is unbound.
+@end deffn
+
+@deffn {Scheme Procedure} module-add! module name var
+Define a new binding between @var{name} (a symbol) and @var{var} (a
+variable) in @var{module}.
+@end deffn
+
+@deffn {Scheme Procedure} module-ref module name
+Look up the value bound to @var{name} in @var{module}.  Like
+@code{module-variable}, but also does a @code{variable-ref} on the
+resulting variable, raising an error if @var{name} is unbound.
+@end deffn
+
+@deffn {Scheme Procedure} module-define! module name value
+Locally bind @var{name} to @var{value} in @var{module}.  If @var{name}
+was already locally bound in @var{module}, i.e., defined locally and not
+by an imported module, the value stored in the existing variable will be
+updated.  Otherwise, a new variable will be added to the module, via
+@code{module-add!}.
+@end deffn
+
+@deffn {Scheme Procedure} module-set! module name value
+Update the binding of @var{name} in @var{module} to @var{value}, raising
+an error if @var{name} is not already bound in @var{module}.
+@end deffn
+
+There are many other reflective procedures available in the default
+environment.  If you find yourself using one of them, please contact the
+Guile developers so that we can commit to stability for that interface.
+
+
 @node Accessing Modules from C
 @subsection Accessing Modules from C
 
@@ -918,15 +905,6 @@ which is the recommended way of creating and accessing modules.  You
 can also work with modules from C, but it is more cumbersome.
 
 The following procedures are available.
-
-@deftypefn {C Function} SCM scm_current_module ()
-Return the module that is the @emph{current module}.
-@end deftypefn
-
-@deftypefn {C Function} SCM scm_set_current_module (SCM @var{module})
-Set the current module to @var{module} and return the previous current
-module.
-@end deftypefn
 
 @deftypefn {C Function} SCM scm_c_call_with_current_module (SCM @var{module}, SCM (*@var{func})(void *), void *@var{data})
 Call @var{func} and make @var{module} the current module during the
@@ -1053,11 +1031,6 @@ that way either, create an empty module.  The name is interpreted as
 for @code{scm_c_define_module}.
 @end deftypefn
 
-@deftypefn {C Function} SCM scm_resolve_module (SCM @var{name})
-Like @code{scm_c_resolve_module}, but the name is given as a real list
-of symbols.
-@end deftypefn
-
 @deftypefn {C Function} SCM scm_c_use_module ({const char *}@var{name})
 Add the module named @var{name} to the uses list of the current
 module, as with @code{(use-modules @var{name})}.  The name is
@@ -1071,87 +1044,122 @@ of the current module.  The list of names is terminated by
 @end deftypefn
 
 
-@node Variables
-@subsection Variables
-@tpindex Variables
+@node Included Guile Modules
+@subsection Included Guile Modules
 
-Each module has its own hash table, sometimes known as an @dfn{obarray},
-that maps the names defined in that module to their corresponding
-variable objects.
+Some modules are included in the Guile distribution; here are references
+to the entries in this manual which describe them in more detail:
 
-A variable is a box-like object that can hold any Scheme value.  It is
-said to be @dfn{undefined} if its box holds a special Scheme value that
-denotes undefined-ness (which is different from all other Scheme values,
-including for example @code{#f}); otherwise the variable is
-@dfn{defined}.
+@table @strong
+@item boot-9
+boot-9 is Guile's initialization module, and it is always loaded when
+Guile starts up.
 
-On its own, a variable object is anonymous.  A variable is said to be
-@dfn{bound} when it is associated with a name in some way, usually a
-symbol in a module obarray.  When this happens, the relationship is
-mutual: the variable is bound to the name (in that module), and the name
-(in that module) is bound to the variable.
+@item (ice-9 expect)
+Actions based on matching input from a port (@pxref{Expect}).
 
-(That's the theory, anyway.  In practice, defined-ness and bound-ness
-sometimes get confused, because Lisp and Scheme implementations have
-often conflated --- or deliberately drawn no distinction between --- a
-name that is unbound and a name that is bound to a variable whose value
-is undefined.  We will try to be clear about the difference and explain
-any confusion where it is unavoidable.)
+@item (ice-9 format)
+Formatted output in the style of Common Lisp (@pxref{Formatted
+Output}).
 
-Variables do not have a read syntax.  Most commonly they are created and
-bound implicitly by @code{define} expressions: a top-level @code{define}
-expression of the form
+@item (ice-9 ftw)
+File tree walker (@pxref{File Tree Walk}).
 
-@lisp
-(define @var{name} @var{value})
-@end lisp
+@item (ice-9 getopt-long)
+Command line option processing (@pxref{getopt-long}).
 
-@noindent
-creates a variable with initial value @var{value} and binds it to the
-name @var{name} in the current module.  But they can also be created
-dynamically by calling one of the constructor procedures
-@code{make-variable} and @code{make-undefined-variable}.
+@item (ice-9 history)
+Refer to previous interactive expressions (@pxref{Value History}).
 
-@deffn {Scheme Procedure} make-undefined-variable
-@deffnx {C Function} scm_make_undefined_variable ()
-Return a variable that is initially unbound.
-@end deffn
+@item (ice-9 popen)
+Pipes to and from child processes (@pxref{Pipes}).
 
-@deffn {Scheme Procedure} make-variable init
-@deffnx {C Function} scm_make_variable (init)
-Return a variable initialized to value @var{init}.
-@end deffn
+@item (ice-9 pretty-print)
+Nicely formatted output of Scheme expressions and objects
+(@pxref{Pretty Printing}).
 
-@deffn {Scheme Procedure} variable-bound? var
-@deffnx {C Function} scm_variable_bound_p (var)
-Return @code{#t} iff @var{var} is bound to a value.
-Throws an error if @var{var} is not a variable object.
-@end deffn
+@item (ice-9 q)
+First-in first-out queues (@pxref{Queues}).
 
-@deffn {Scheme Procedure} variable-ref var
-@deffnx {C Function} scm_variable_ref (var)
-Dereference @var{var} and return its value.
-@var{var} must be a variable object; see @code{make-variable}
-and @code{make-undefined-variable}.
-@end deffn
+@item (ice-9 rdelim)
+Line- and character-delimited input (@pxref{Line/Delimited}).
 
-@deffn {Scheme Procedure} variable-set! var val
-@deffnx {C Function} scm_variable_set_x (var, val)
-Set the value of the variable @var{var} to @var{val}.
-@var{var} must be a variable object, @var{val} can be any
-value. Return an unspecified value.
-@end deffn
+@item (ice-9 readline)
+@code{readline} interactive command line editing (@pxref{Readline
+Support}).
 
-@deffn {Scheme Procedure} variable-unset! var
-@deffnx {C Function} scm_variable_unset_x (var)
-Unset the value of the variable @var{var}, leaving @var{var} unbound.
-@end deffn
+@item (ice-9 receive)
+Multiple-value handling with @code{receive} (@pxref{Multiple Values}).
 
-@deffn {Scheme Procedure} variable? obj
-@deffnx {C Function} scm_variable_p (obj)
-Return @code{#t} iff @var{obj} is a variable object, else
-return @code{#f}.
-@end deffn
+@item (ice-9 regex)
+Regular expression matching (@pxref{Regular Expressions}).
+
+@item (ice-9 rw)
+Block string input/output (@pxref{Block Reading and Writing}).
+
+@item (ice-9 streams)
+Sequence of values calculated on-demand (@pxref{Streams}).
+
+@item (ice-9 syncase)
+R5RS @code{syntax-rules} macro system (@pxref{Syntax Rules}).
+
+@item (ice-9 threads)
+Guile's support for multi threaded execution (@pxref{Scheduling}).
+
+@item (ice-9 documentation)
+Online documentation (REFFIXME).
+
+@item (srfi srfi-1)
+A library providing a lot of useful list and pair processing
+procedures (@pxref{SRFI-1}).
+
+@item (srfi srfi-2)
+Support for @code{and-let*} (@pxref{SRFI-2}).
+
+@item (srfi srfi-4)
+Support for homogeneous numeric vectors (@pxref{SRFI-4}).
+
+@item (srfi srfi-6)
+Support for some additional string port procedures (@pxref{SRFI-6}).
+
+@item (srfi srfi-8)
+Multiple-value handling with @code{receive} (@pxref{SRFI-8}).
+
+@item (srfi srfi-9)
+Record definition with @code{define-record-type} (@pxref{SRFI-9}).
+
+@item (srfi srfi-10)
+Read hash extension @code{#,()} (@pxref{SRFI-10}).
+
+@item (srfi srfi-11)
+Multiple-value handling with @code{let-values} and @code{let*-values}
+(@pxref{SRFI-11}).
+
+@item (srfi srfi-13)
+String library (@pxref{SRFI-13}).
+
+@item (srfi srfi-14)
+Character-set library (@pxref{SRFI-14}).
+
+@item (srfi srfi-16)
+@code{case-lambda} procedures of variable arity (@pxref{SRFI-16}).
+
+@item (srfi srfi-17)
+Getter-with-setter support (@pxref{SRFI-17}).
+
+@item (srfi srfi-19)
+Time/Date library (@pxref{SRFI-19}).
+
+@item (srfi srfi-26)
+Convenient syntax for partial application (@pxref{SRFI-26})
+
+@item (srfi srfi-31)
+@code{rec} convenient recursive expressions (@pxref{SRFI-31})
+
+@item (ice-9 slib)
+This module contains hooks for using Aubrey Jaffer's portable Scheme
+library SLIB from Guile (@pxref{SLIB}).
+@end table
 
 
 @node provide and require
