@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2224,7 +2224,7 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_CHAR, scm_make_string)
 void
 scm_init_strings ()
 {
-  scm_nullstr = scm_i_make_string (0, NULL, 1);
+  scm_nullstr = scm_i_make_string (0, NULL, 0);
 
 #include "libguile/strings.x"
 }
