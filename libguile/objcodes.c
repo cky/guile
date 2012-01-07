@@ -145,7 +145,7 @@ verify_cookie (char *cookie, struct stat *st, int map_fd, void *map_addr)
      - scm_tc7_objcode | type | flags
      - the struct scm_objcode C object
      - the parent of this objcode: either another objcode, a bytevector,
-       or, in the case of mmap types, file descriptors (as an inum)
+       or, in the case of mmap types, #f
      - "native code" -- not currently used.
  */
 
@@ -203,12 +203,11 @@ make_objcode_from_file (int fd)
                                     scm_from_size_t (total_len)));
       }
 
-    /* FIXME: we leak ourselves and the file descriptor. but then again so does
-       dlopen(). */
+    (void) close (fd);
     return scm_permanent_object
       (scm_double_cell (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_MMAP, 0),
                         (scm_t_bits)(addr + strlen (SCM_OBJCODE_COOKIE)),
-                        SCM_UNPACK (scm_from_int (fd)), 0));
+                        SCM_BOOL_F_BITS, 0));
   }
 #else
   {
