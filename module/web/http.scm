@@ -805,9 +805,6 @@ ordered alist."
     (display-digits (date-second date) 2 port)
     (display " GMT" port)))
 
-(define (write-uri uri port)
-  (display (uri->string uri) port))
-
 (define (parse-entity-tag val)
   (if (string-prefix? "W/" val)
       (cons (parse-qstring val 2) #f)
