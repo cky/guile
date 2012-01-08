@@ -802,7 +802,7 @@ SCM_DEPRECATED SCM scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
 
 
 
-SCM_DEPRECATED SCM scm_i_deprecated_asrtgo (scm_t_bits condition);
+SCM_DEPRECATED scm_t_bits scm_i_deprecated_asrtgo (scm_t_bits condition);
 
 /* Deprecated 08-01-2012, as it's undocumented and unused.  */
 #define SCM_ASRTGO(_cond, _label)		\

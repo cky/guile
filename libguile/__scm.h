@@ -4,7 +4,7 @@
 #define SCM___SCM_H
 
 /* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2006,
- *   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -593,7 +593,6 @@ do { \
 #ifdef SCM_RECKLESS
 #define SCM_ASSERT(_cond, _arg, _pos, _subr)
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)
-#define SCM_ASRTGO(_cond, _label)
 #else
 #define SCM_ASSERT(_cond, _arg, _pos, _subr)			\
         do { if (SCM_UNLIKELY (!(_cond)))			\
@@ -601,9 +600,6 @@ do { \
 #define SCM_ASSERT_TYPE(_cond, _arg, _pos, _subr, _msg)			\
         do { if (SCM_UNLIKELY (!(_cond)))				\
           scm_wrong_type_arg_msg(_subr, _pos, _arg, _msg);  } while (0)
-#define SCM_ASRTGO(_cond, _label)		\
-        do {  if (SCM_UNLIKELY (!(_cond)))	\
-          goto _label; } while (0)
 #endif
 
 /*
