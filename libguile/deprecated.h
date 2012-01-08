@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -796,9 +796,17 @@ SCM_DEPRECATED SCM scm_struct_create_handle (SCM obj);
 
 /* Deprecated 26-05-2011, as the GC_STUBBORN API doesn't do anything any
    more.  */
-SCM_API SCM scm_immutable_cell (scm_t_bits car, scm_t_bits cdr);
-SCM_API SCM scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
+SCM_DEPRECATED SCM scm_immutable_cell (scm_t_bits car, scm_t_bits cdr);
+SCM_DEPRECATED SCM scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
 				       scm_t_bits ccr, scm_t_bits cdr);
+
+
+
+SCM_DEPRECATED SCM scm_i_deprecated_asrtgo (scm_t_bits condition);
+
+/* Deprecated 08-01-2012, as it's undocumented and unused.  */
+#define SCM_ASRTGO(_cond, _label)		\
+  do { if (!scm_i_deprecated_asrtgo(_cond)) goto _label; } while (0)
 
 
 

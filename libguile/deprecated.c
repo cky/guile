@@ -2624,6 +2624,18 @@ scm_immutable_double_cell (scm_t_bits car, scm_t_bits cbr,
   return scm_double_cell (car, cbr, ccr, cdr);
 }
 
+
+
+
+scm_t_bits
+scm_i_deprecated_asrtgo (scm_t_bits condition)
+{
+  scm_c_issue_deprecation_warning
+    ("SCM_ASRTGO is deprecated.  Use `if (!condition) goto label;' directly.");
+
+  return condition;
+}
+
 
 
 

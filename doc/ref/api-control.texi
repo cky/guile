@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1710,14 +1710,6 @@ understand.
 Passing a value of zero or @code{SCM_ARGn} for @var{position} allows to
 leave it unspecified which argument's type is incorrect.  Again,
 @code{SCM_ARGn} should be preferred over a raw zero constant.
-@end deftypefn
-
-The @code{SCM_ASRTGO} macro provides another strategy for handling 
-incorrect types.
-
-@deftypefn Macro void SCM_ASRTGO (int @var{test}, label)
-If @var{test} is zero, use @code{goto} to jump to the given @var{label}.
-@var{label} must appear within the current function.
 @end deftypefn
 
 @node Continuation Barriers
