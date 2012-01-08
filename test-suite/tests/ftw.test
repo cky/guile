@@ -1,6 +1,6 @@
 ;;;; ftw.test --- exercise ice-9/ftw.scm      -*- scheme -*-
 ;;;;
-;;;; Copyright 2006, 2011 Free Software Foundation, Inc.
+;;;; Copyright 2006, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -81,11 +81,70 @@
 ;;; `file-system-fold' & co.
 ;;;
 
+(define %top-builddir
+  (canonicalize-path (getcwd)))
+
 (define %top-srcdir
   (assq-ref %guile-build-info 'top_srcdir))
 
 (define %test-dir
   (string-append %top-srcdir "/test-suite"))
+
+(define (make-file-tree dir tree)
+  "Make file system TREE at DIR."
+  (define (touch file)
+    (call-with-output-file file
+      (cut display "" <>)))
+
+  (let loop ((dir  dir)
+             (tree tree))
+    (define (scope file)
+      (string-append dir "/" file))
+
+    (match tree
+      (('directory name (body ...))
+       (mkdir (scope name))
+       (for-each (cute loop (scope name) <>) body))
+      (('directory name (? integer? mode) (body ...))
+       (mkdir (scope name))
+       (for-each (cute loop (scope name) <>) body)
+       (chmod (scope name) mode))
+      ((file)
+       (touch (scope file)))
+      ((file (? integer? mode))
+       (touch (scope file))
+       (chmod (scope file) mode))
+      ((from '-> to)
+       (symlink to (scope from))))))
+
+(define (delete-file-tree dir tree)
+  "Delete file TREE from DIR."
+  (let loop ((dir  dir)
+             (tree tree))
+    (define (scope file)
+      (string-append dir "/" file))
+
+    (match tree
+      (('directory name (body ...))
+       (for-each (cute loop (scope name) <>) body)
+       (rmdir (scope name)))
+      (('directory name (? integer? mode) (body ...))
+       (chmod (scope name) #o755)          ; make sure it can be entered
+       (for-each (cute loop (scope name) <>) body)
+       (rmdir (scope name)))
+      ((from '-> _)
+       (delete-file (scope from)))
+      ((file _ ...)
+       (delete-file (scope file))))))
+
+(define-syntax-rule (with-file-tree dir tree body ...)
+  (dynamic-wind
+    (lambda ()
+      (make-file-tree dir tree))
+    (lambda ()
+      body ...)
+    (lambda ()
+      (delete-file-tree dir tree))))
 
 (with-test-prefix "file-system-fold"
 
@@ -98,10 +157,11 @@
           (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
           (down   (lambda (n s r) (cons `(down ,n) r)))
           (up     (lambda (n s r) (cons `(up ,n) r)))
-          (skip   (lambda (n s r) (cons `(skip ,n) r))))
+          (skip   (lambda (n s r) (cons `(skip ,n) r)))
+          (error  (lambda (n s e r) (cons `(error ,n) r))))
       (define seq
         (reverse
-         (file-system-fold enter? leaf down up skip '() %test-dir)))
+         (file-system-fold enter? leaf down up skip error '() %test-dir)))
 
       (match seq
         ((('down (? (cut string=? <> %test-dir)))
@@ -123,8 +183,9 @@
           (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
           (down   (lambda (n s r) (cons `(down ,n) r)))
           (up     (lambda (n s r) (cons `(up ,n) r)))
-          (skip   (lambda (n s r) (cons `(skip ,n) r))))
-      (equal? (file-system-fold enter? leaf down up skip '() %test-dir)
+          (skip   (lambda (n s r) (cons `(skip ,n) r)))
+          (error  (lambda (n s e r) (cons `(error ,n) r))))
+      (equal? (file-system-fold enter? leaf down up skip error '() %test-dir)
               `((skip , %test-dir)))))
 
   (pass-if "test-suite/lib.scm (flat file)"
@@ -133,9 +194,67 @@
           (down   (lambda (n s r) (cons `(down ,n) r)))
           (up     (lambda (n s r) (cons `(up ,n) r)))
           (skip   (lambda (n s r) (cons `(skip ,n) r)))
+          (error  (lambda (n s e r) (cons `(error ,n) r)))
           (name   (string-append %test-dir "/lib.scm")))
-      (equal? (file-system-fold enter? leaf down up skip '() name)
-              `((leaf ,name))))))
+      (equal? (file-system-fold enter? leaf down up skip error '() name)
+              `((leaf ,name)))))
+
+  (pass-if "ENOENT"
+    (let ((enter? (lambda (n s r) #t))
+          (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+          (down   (lambda (n s r) (cons `(down ,n) r)))
+          (up     (lambda (n s r) (cons `(up ,n) r)))
+          (skip   (lambda (n s r) (cons `(skip ,n) r)))
+          (error  (lambda (n s e r) (cons `(error ,n ,e) r)))
+          (name   "/.does-not-exist."))
+      (equal? (file-system-fold enter? leaf down up skip error '() name)
+              `((error ,name ,ENOENT)))))
+
+  (pass-if "EACCES"
+    (with-file-tree %top-builddir '(directory "test-EACCES" #o000
+                                              (("a") ("b")))
+      (let ((enter? (lambda (n s r) #t))
+            (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+            (down   (lambda (n s r) (cons `(down ,n) r)))
+            (up     (lambda (n s r) (cons `(up ,n) r)))
+            (skip   (lambda (n s r) (cons `(skip ,n) r)))
+            (error  (lambda (n s e r) (cons `(error ,n ,e) r)))
+            (name   (string-append %top-builddir "/test-EACCES")))
+        (equal? (file-system-fold enter? leaf down up skip error '() name)
+                `((error ,name ,EACCES))))))
+
+  (pass-if "dangling symlink and lstat"
+    (with-file-tree %top-builddir '(directory "test-dangling"
+                                              (("dangling" -> "xxx")))
+      (let ((enter? (lambda (n s r) #t))
+            (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+            (down   (lambda (n s r) (cons `(down ,n) r)))
+            (up     (lambda (n s r) (cons `(up ,n) r)))
+            (skip   (lambda (n s r) (cons `(skip ,n) r)))
+            (error  (lambda (n s e r) (cons `(error ,n ,e) r)))
+            (name   (string-append %top-builddir "/test-dangling")))
+        (equal? (file-system-fold enter? leaf down up skip error '()
+                                  name)
+                `((up   ,name)
+                  (leaf ,(string-append name "/dangling"))
+                  (down ,name))))))
+
+  (pass-if "dangling symlink and stat"
+    ;; Same as above, but using `stat' instead of `lstat'.
+    (with-file-tree %top-builddir '(directory "test-dangling"
+                                              (("dangling" -> "xxx")))
+      (let ((enter? (lambda (n s r) #t))
+            (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+            (down   (lambda (n s r) (cons `(down ,n) r)))
+            (up     (lambda (n s r) (cons `(up ,n) r)))
+            (skip   (lambda (n s r) (cons `(skip ,n) r)))
+            (error  (lambda (n s e r) (cons `(error ,n ,e) r)))
+            (name   (string-append %top-builddir "/test-dangling")))
+        (equal? (file-system-fold enter? leaf down up skip error '()
+                                  name stat)
+                `((up    ,name)
+                  (error ,(string-append name "/dangling") ,ENOENT)
+                  (down  ,name)))))))
 
 (with-test-prefix "file-system-tree"
 
@@ -165,7 +284,10 @@
                        (lset-intersection string=? files expected)
                        expected)))
              (_ #f))
-            children)))))
+            children))))
+
+  (pass-if "ENOENT"
+    (not (file-system-tree "/.does-not-exist."))))
 
 (with-test-prefix "scandir"
 
@@ -188,4 +310,11 @@
          #t))))
 
   (pass-if "flat file"
-    (not (scandir (string-append %test-dir "/Makefile.am")))))
+    (not (scandir (string-append %test-dir "/Makefile.am"))))
+
+  (pass-if "EACCES"
+    (not (scandir "/.does-not-exist."))))
+
+;;; Local Variables:
+;;; eval: (put 'with-file-tree 'scheme-indent-function 2)
+;;; End:

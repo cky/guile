@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2009, 2010, 2011
-@c   Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2009,
+@c   2010, 2011, 2012  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Pretty Printing
@@ -1180,7 +1180,7 @@ than building up a tree of entries in memory, like
 directly as a directory tree is traversed; in fact,
 @code{file-system-tree} is implemented in terms of it.
 
-@deffn {Scheme Procedure} file-system-fold enter? leaf down up skip init file-name [stat]
+@deffn {Scheme Procedure} file-system-fold enter? leaf down up skip error init file-name [stat]
 Traverse the directory at @var{file-name}, recursively, and return the
 result of the successive applications of the @var{leaf}, @var{down},
 @var{up}, and @var{skip} procedures as described below.
@@ -1201,6 +1201,12 @@ encountered, call @code{(@var{skip} @var{path} @var{stat}
 
 When @var{file-name} names a flat file, @code{(@var{leaf} @var{path}
 @var{stat} @var{init})} is returned.
+
+When an @code{opendir} or @var{stat} call fails, call @code{(@var{error}
+@var{path} @var{stat} @var{errno} @var{result})}, with @var{errno} being
+the operating system error number that was raised---e.g.,
+@code{EACCES}---and @var{stat} either @code{#f} or the result of the
+@var{stat} call for that entry, when available.
 
 The special @file{.} and @file{..} entries are not passed to these
 procedures.  The @var{path} argument to the procedures is a full file
@@ -1235,7 +1241,13 @@ to `du --apparent-size' with GNU Coreutils.)"
   ;; Likewise for skipped directories.
   (define (skip name stat result) result)
 
-  (file-system-fold enter? leaf down up skip
+  ;; Ignore unreadable files/directories but warn the user.
+  (define (error name stat errno result)
+    (format (current-error-port) "warning: ~a: ~a~%"
+            name (strerror errno))
+    result)
+
+  (file-system-fold enter? leaf down up skip error
                            0  ; initial counter is zero bytes
                            file-name))
 

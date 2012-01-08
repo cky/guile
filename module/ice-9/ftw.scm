@@ -1,6 +1,6 @@
 ;;;; ftw.scm --- file system tree walk
 
-;;;; 	Copyright (C) 2002, 2003, 2006, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2002, 2003, 2006, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -389,7 +389,14 @@
 ;;; `file-system-fold' & co.
 ;;;
 
-(define* (file-system-fold enter? leaf down up skip init file-name
+(define-syntax-rule (errno-if-exception expr)
+  (catch 'system-error
+    (lambda ()
+      expr)
+    (lambda args
+      (system-error-errno args))))
+
+(define* (file-system-fold enter? leaf down up skip error init file-name
                            #:optional (stat lstat))
   "Traverse the directory at FILE-NAME, recursively.  Enter
 sub-directories only when (ENTER? PATH STAT RESULT) returns true.  When
@@ -397,7 +404,11 @@ a sub-directory is entered, call (DOWN PATH STAT RESULT), where PATH is
 the path of the sub-directory and STAT the result of (stat PATH); when
 it is left, call (UP PATH STAT RESULT).  For each file in a directory,
 call (LEAF PATH STAT RESULT).  When ENTER? returns false, call (SKIP
-PATH STAT RESULT).  Return the result of these successive applications.
+PATH STAT RESULT).  When an `opendir' or STAT call raises an exception,
+call (ERROR PATH STAT ERRNO RESULT), with ERRNO being the operating
+system error number that was raised.
+
+Return the result of these successive applications.
 When FILE-NAME names a flat file, (LEAF PATH STAT INIT) is returned.
 The optional STAT parameter defaults to `lstat'."
 
@@ -409,7 +420,7 @@ The optional STAT parameter defaults to `lstat'."
 
   (let loop ((name     file-name)
              (path     "")
-             (dir-stat (false-if-exception (stat file-name)))
+             (dir-stat (errno-if-exception (stat file-name)))
              (result   init)
              (visited  vlist-null))
 
@@ -419,57 +430,60 @@ The optional STAT parameter defaults to `lstat'."
           (string-append path "/" name)))
 
     (cond
-     ((not dir-stat)
+     ((integer? dir-stat)
       ;; FILE-NAME is not readable.
-      (leaf full-name dir-stat result))
+      (error full-name #f dir-stat result))
      ((visited? visited dir-stat)
       (values result visited))
      ((eq? 'directory (stat:type dir-stat)) ; true except perhaps the 1st time
       (if (enter? full-name dir-stat result)
-          (let ((dir     (false-if-exception (opendir full-name)))
+          (let ((dir     (errno-if-exception (opendir full-name)))
                 (visited (mark visited dir-stat)))
-            (if dir
-                (let liip ((entry   (readdir dir))
-                           (result  (down full-name dir-stat result))
-                           (subdirs '()))
-                  (cond ((eof-object? entry)
-                         (begin
-                           (closedir dir)
-                           (let ((r+v
-                                  (fold (lambda (subdir result+visited)
-                                          (call-with-values
-                                              (lambda ()
-                                                (loop (car subdir)
-                                                      full-name
-                                                      (cdr subdir)
-                                                      (car result+visited)
-                                                      (cdr result+visited)))
-                                            cons))
-                                        (cons result visited)
-                                        subdirs)))
-                             (values (up full-name dir-stat (car r+v))
-                                     (cdr r+v)))))
-                        ((or (string=? entry ".")
-                             (string=? entry ".."))
-                         (liip (readdir dir)
-                               result
-                               subdirs))
-                        (else
-                         (let* ((child (string-append full-name "/" entry))
-                                (st    (false-if-exception (stat child))))
-                           (if (and st (eq? (stat:type st) 'directory))
-                               (liip (readdir dir)
-                                     result
-                                     (alist-cons entry st subdirs))
-                               (liip (readdir dir)
-                                     (leaf child st result)
-                                     subdirs))))))
-
-                ;; Directory FULL-NAME not readable.
-                ;; XXX: It's up to the user to distinguish between not
-                ;; readable and not ENTER?.
-                (values (skip full-name dir-stat result)
-                        visited)))
+            (cond
+             ((directory-stream? dir)
+              (let liip ((entry   (readdir dir))
+                         (result  (down full-name dir-stat result))
+                         (subdirs '()))
+                (cond ((eof-object? entry)
+                       (begin
+                         (closedir dir)
+                         (let ((r+v
+                                (fold (lambda (subdir result+visited)
+                                        (call-with-values
+                                            (lambda ()
+                                              (loop (car subdir)
+                                                    full-name
+                                                    (cdr subdir)
+                                                    (car result+visited)
+                                                    (cdr result+visited)))
+                                          cons))
+                                      (cons result visited)
+                                      subdirs)))
+                           (values (up full-name dir-stat (car r+v))
+                                   (cdr r+v)))))
+                      ((or (string=? entry ".")
+                           (string=? entry ".."))
+                       (liip (readdir dir)
+                             result
+                             subdirs))
+                      (else
+                       (let* ((child (string-append full-name "/" entry))
+                              (st    (errno-if-exception (stat child))))
+                         (if (integer? st) ; CHILD is a dangling symlink?
+                             (liip (readdir dir)
+                                   (error child #f st result)
+                                   subdirs)
+                             (if (eq? (stat:type st) 'directory)
+                                 (liip (readdir dir)
+                                       result
+                                       (alist-cons entry st subdirs))
+                                 (liip (readdir dir)
+                                       (leaf child st result)
+                                       subdirs))))))))
+             (else
+              ;; Directory FULL-NAME not readable, but it is stat'able.
+              (values (error full-name dir-stat dir result)
+                      visited))))
           (values (skip full-name dir-stat result)
                   (mark visited dir-stat))))
      (else
@@ -480,13 +494,14 @@ The optional STAT parameter defaults to `lstat'."
                            #:optional (enter? (lambda (n s) #t))
                                       (stat lstat))
   "Return a tree of the form (FILE-NAME STAT CHILDREN ...) where STAT is
-the result of (stat FILE-NAME) and CHILDREN are similar structures for
+the result of (STAT FILE-NAME) and CHILDREN are similar structures for
 each file contained in FILE-NAME when it designates a directory.  The
 optional ENTER? predicate is invoked as (ENTER? NAME STAT) and should
 return true to allow recursion into directory NAME; the default value is
 a procedure that always returns #t.  When a directory does not match
 ENTER?, it nonetheless appears in the resulting tree, only with zero
-children.  The optional STAT parameter defaults to `lstat'."
+children.  The optional STAT parameter defaults to `lstat'.  Return #f
+when FILE-NAME is not readable."
   (define (enter?* name stat result)
     (enter? name stat))
   (define (leaf name stat result)
@@ -504,8 +519,15 @@ children.  The optional STAT parameter defaults to `lstat'."
              rest))))
   (define skip                   ; keep an entry for skipped directories
     leaf)
+  (define (error name stat errno result)
+    (if (string=? name file-name)
+        result
+        (leaf name stat result)))
 
-  (caar (file-system-fold enter?* leaf down up skip '(()) file-name stat)))
+  (match (file-system-fold enter?* leaf down up skip error '(())
+                           file-name stat)
+    (((tree)) tree)
+    ((())     #f)))                            ; FILE-NAME is unreadable
 
 (define* (scandir name #:optional (select? (const #t))
                                   (entry<? string-locale<?))
@@ -532,7 +554,12 @@ of file names is sorted according to ENTRY<?, which defaults to
     ;; All the sub-directories are skipped.
     (cons (basename name) result))
 
-  (and=> (file-system-fold enter? leaf down up skip #f name stat)
+  (define (error name* stat errno result)
+    (if (string=? name name*)             ; top-level NAME is unreadable
+        result
+        (cons (basename name*) result)))
+
+  (and=> (file-system-fold enter? leaf down up skip error #f name stat)
          (lambda (files)
            (sort files entry<?))))
 
