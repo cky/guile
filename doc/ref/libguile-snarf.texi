@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -82,10 +82,10 @@ The @code{SCM_DEFINE} declaration says that the C function
 rest argument.  The string @code{"Clear the image."} provides a short
 help text for the function, it is called a @dfn{docstring}.
 
-For historical reasons, the @code{SCM_DEFINE} macro also defines a
-static array of characters named @code{s_clear_image}, initialized to
-the string "clear-image".  You shouldn't use this array, but you might
-need to be aware that it exists.
+@code{SCM_DEFINE} macro also defines a static array of characters
+initialized to the Scheme name of the function.  In this case,
+@code{s_clear_image} is set to the C string, "clear-image".  You might
+want to use this symbol when generating error messages.
 
 Assuming the text above lives in a file named @file{image-type.c}, you
 will need to execute the following command to prepare this file for
