@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -865,31 +865,32 @@ wrapping in @code{#'} syntax forms.
 @node Syntax Parameters
 @subsection Syntax Parameters
 
-Syntax parameters@footnote{Described in the paper @cite{Keeping it Clean with
-Syntax Parameters} by Barzilay, Culpepper and Flatt.} are a mechanism for rebinding a macro
-definition within the dynamic extent of a macro expansion. It provides
-a convenient solution to one of the most common types of unhygienic
-macro: those that introduce a unhygienic binding each time the macro
-is used. Examples include a @code{lambda} form with a @code{return} keyword, or
-class macros that introduce a special @code{self} binding.
+Syntax parameters@footnote{Described in the paper @cite{Keeping it Clean
+with Syntax Parameters} by Barzilay, Culpepper and Flatt.} are a
+mechanism for rebinding a macro definition within the dynamic extent of
+a macro expansion.  This provides a convenient solution to one of the
+most common types of unhygienic macro: those that introduce a unhygienic
+binding each time the macro is used.  Examples include a @code{lambda}
+form with a @code{return} keyword, or class macros that introduce a
+special @code{self} binding.
 
 With syntax parameters, instead of introducing the binding
-unhygienically each time, we instead create one binding for the
-keyword, which we can then adjust later when we want the keyword to
-have a different meaning. As no new bindings are introduced, hygiene
-is preserved. This is similar to the dynamic binding mechanisms we
-have at run-time like @ref{SRFI-39, parameters} or
-@ref{Fluids and Dynamic States, fluids}, except that the dynamic
-binding only occurs during macro expansion. The code after macro
-expansion remains lexically scoped.
+unhygienically each time, we instead create one binding for the keyword,
+which we can then adjust later when we want the keyword to have a
+different meaning.  As no new bindings are introduced, hygiene is
+preserved. This is similar to the dynamic binding mechanisms we have at
+run-time (@pxref{SRFI-39, parameters}), except that the dynamic binding
+only occurs during macro expansion.  The code after macro expansion
+remains lexically scoped.
 
 @deffn {Syntax} define-syntax-parameter keyword transformer
-Binds @var{keyword} to the value obtained by evaluating @var{transformer}. The
-@var{transformer} provides the default expansion for the syntax parameter,
-and in the absence of @code{syntax-parameterize}, is functionally equivalent
-to @code{define-syntax}. Usually, you will just want to have the @var{transformer}
-throw a syntax error indicating that the @var{keyword} is supposed to be
-used in conjunction with another macro, for example:
+Binds @var{keyword} to the value obtained by evaluating
+@var{transformer}.  The @var{transformer} provides the default expansion
+for the syntax parameter, and in the absence of
+@code{syntax-parameterize}, is functionally equivalent to
+@code{define-syntax}.  Usually, you will just want to have the
+@var{transformer} throw a syntax error indicating that the @var{keyword}
+is supposed to be used in conjunction with another macro, for example:
 @example
 (define-syntax-parameter return
   (lambda (stx)
@@ -899,31 +900,30 @@ used in conjunction with another macro, for example:
 
 @deffn {Syntax} syntax-parameterize ((keyword transformer) @dots{}) exp @dots{}
 Adjusts @var{keyword} @dots{} to use the values obtained by evaluating
-their @var{transformer} @dots{}, in the expansion of the @var{exp} @dots{}
-forms. Each @var{keyword} must be bound to a
-syntax-parameter. @code{syntax-parameterize} differs from
-@code{let-syntax}, in that the binding is not shadowed, but adjusted,
-and so uses of the keyword in the expansion of exp forms use the new
-transformers. This is somewhatsimilar to how @code{parameterize}
-adjusts the values of regular parameters, rather than creating new
-bindings.
+their @var{transformer} @dots{}, in the expansion of the @var{exp}
+@dots{} forms.  Each @var{keyword} must be bound to a syntax-parameter.
+@code{syntax-parameterize} differs from @code{let-syntax}, in that the
+binding is not shadowed, but adjusted, and so uses of the keyword in the
+expansion of @var{exp} @dots{} use the new transformers. This is
+somewhat similar to how @code{parameterize} adjusts the values of
+regular parameters, rather than creating new bindings.
 
 @example
 (define-syntax lambda^
   (syntax-rules ()
-    [(lambda^ argument-list body bodies ...)
+    [(lambda^ argument-list body body* ...)
      (lambda argument-list
        (call-with-current-continuation
         (lambda (escape)
-          ;; in the body we adjust the 'return' keyword so that calls
-          ;; to 'return' are replaced with calls to the escape continuation
+          ;; In the body we adjust the 'return' keyword so that calls
+          ;; to 'return' are replaced with calls to the escape
+          ;; continuation.
           (syntax-parameterize ([return (syntax-rules ()
                                           [(return vals (... ...))
                                            (escape vals (... ...))])])
-            body
-            bodies ...))))]))
+            body body* ...))))]))
 
-;; now we can write functions that return early. Here, 'product' will
+;; Now we can write functions that return early.  Here, 'product' will
 ;; return immediately if it sees any 0 element.
 (define product
   (lambda^ (list)
