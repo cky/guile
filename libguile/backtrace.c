@@ -144,6 +144,19 @@ SCM_DEFINE (scm_display_error, "display-error", 6, 0, 0,
 {
   SCM_VALIDATE_OUTPUT_PORT (2, port);
 
+#if SCM_ENABLE_DEPRECATED
+  if (SCM_STACKP (frame))
+    {
+      scm_c_issue_deprecation_warning
+        ("Passing a stack as the first argument to `scm_display_error' is "
+         "deprecated.  Pass a frame instead.");
+      if (SCM_STACK_LENGTH (frame))
+        frame = scm_stack_ref (frame, SCM_INUM0);
+      else
+        frame = SCM_BOOL_F;
+    }
+#endif
+
   scm_i_display_error (frame, port, subr, message, args, rest);
 
   return SCM_UNSPECIFIED;
