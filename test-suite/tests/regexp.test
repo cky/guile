@@ -145,6 +145,14 @@
          (with-latin1-locale body ...)
          (begin body ...)))))
 
+;; Since `regexp-quote' uses string ports, and since it is used below
+;; with non-ASCII characters, these ports must be Unicode-capable.
+(define-syntax with-unicode
+  (syntax-rules ()
+    ((_ exp)
+     (with-fluids ((%default-port-encoding "UTF-8"))
+       exp))))
+
 (with-test-prefix "regexp-quote"
 
   (pass-if-exception "no args" exception:wrong-num-args
@@ -173,7 +181,7 @@
                     (s (string c)))
                (pass-if (list "char" i (format #f "~s ~s" c s))
                  (with-ascii-or-latin1-locale i
-                  (let* ((q (regexp-quote s))
+                  (let* ((q (with-unicode (regexp-quote s)))
                          (m (regexp-exec (make-regexp q flag) s)))
                     (and (= 0 (match:start m))
                          (= 1 (match:end m))))))))
@@ -185,7 +193,7 @@
 	       ((>= i char-code-limit))
              (let* ((c (integer->char i))
                     (s (string #\a c))
-                    (q (regexp-quote s)))
+                    (q (with-unicode (regexp-quote s))))
                (pass-if (list "string \"aX\"" i (format #f "~s ~s ~s" c s q))
                  (with-ascii-or-latin1-locale i
 		  (let* ((m (regexp-exec (make-regexp q flag) s)))
@@ -194,7 +202,8 @@
 
 	   (pass-if "string of all chars"
              (with-latin1-locale
-               (let ((m (regexp-exec (make-regexp (regexp-quote allchars)
+               (let ((m (regexp-exec (make-regexp (with-unicode
+                                                   (regexp-quote allchars))
                                                   flag) allchars)))
                  (and (= 0 (match:start m))
                       (= (string-length allchars) (match:end m)))))))))
