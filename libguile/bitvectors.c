@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,7 +27,6 @@
 
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
-#include "libguile/smob.h"
 #include "libguile/strings.h"
 #include "libguile/array-handle.h"
 #include "libguile/bitvectors.h"
@@ -39,14 +38,12 @@
  * but alack, all we have is this crufty C.
  */
 
-static scm_t_bits scm_tc16_bitvector;
+#define IS_BITVECTOR(obj)       SCM_TYP16_PREDICATE(scm_tc7_bitvector,(obj))
+#define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_CELL_WORD_1(obj))
+#define BITVECTOR_LENGTH(obj)   ((size_t)SCM_CELL_WORD_2(obj))
 
-#define IS_BITVECTOR(obj)       SCM_SMOB_PREDICATE(scm_tc16_bitvector,(obj))
-#define BITVECTOR_BITS(obj)     ((scm_t_uint32 *)SCM_SMOB_DATA(obj))
-#define BITVECTOR_LENGTH(obj)   ((size_t)SCM_SMOB_DATA_2(obj))
-
-static int
-bitvector_print (SCM vec, SCM port, scm_print_state *pstate)
+int
+scm_i_print_bitvector (SCM vec, SCM port, scm_print_state *pstate)
 {
   size_t bit_len = BITVECTOR_LENGTH (vec);
   size_t word_len = (bit_len+31)/32;
@@ -64,8 +61,8 @@ bitvector_print (SCM vec, SCM port, scm_print_state *pstate)
   return 1;
 }
 
-static SCM
-bitvector_equalp (SCM vec1, SCM vec2)
+SCM
+scm_i_bitvector_equal_p (SCM vec1, SCM vec2)
 {
   size_t bit_len = BITVECTOR_LENGTH (vec1);
   size_t word_len = (bit_len + 31) / 32;
@@ -113,7 +110,7 @@ scm_c_make_bitvector (size_t len, SCM fill)
 
   bits = scm_gc_malloc_pointerless (sizeof (scm_t_uint32) * word_len,
 				    "bitvector");
-  SCM_NEWSMOB2 (res, scm_tc16_bitvector, bits, len);
+  res = scm_double_cell (scm_tc7_bitvector, (scm_t_bits)bits, len, 0);
 
   if (!SCM_UNBNDP (fill))
     scm_bitvector_fill_x (res, fill);
@@ -145,7 +142,8 @@ SCM_DEFINE (scm_bitvector, "bitvector", 0, 0, 1,
 size_t
 scm_c_bitvector_length (SCM vec)
 {
-  scm_assert_smob_type (scm_tc16_bitvector, vec);
+  if (!IS_BITVECTOR (vec))
+    scm_wrong_type_arg_msg (NULL, 0, vec, "bitvector");
   return BITVECTOR_LENGTH (vec);
 }
 
@@ -880,8 +878,8 @@ bitvector_get_handle (SCM bv, scm_t_array_handle *h)
   h->elements = h->writable_elements = BITVECTOR_BITS (bv);
 }
 
-SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_tc16_bitvector),
-                          SCM_SMOB_TYPE_MASK,
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_bitvector,
+                          0x7f,
                           bitvector_handle_ref, bitvector_handle_set,
                           bitvector_get_handle)
 SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_BIT, scm_make_bitvector)
@@ -889,10 +887,6 @@ SCM_VECTOR_IMPLEMENTATION (SCM_ARRAY_ELEMENT_TYPE_BIT, scm_make_bitvector)
 void
 scm_init_bitvectors ()
 {
-  scm_tc16_bitvector = scm_make_smob_type ("bitvector", 0);
-  scm_set_smob_print (scm_tc16_bitvector, bitvector_print);
-  scm_set_smob_equalp (scm_tc16_bitvector, bitvector_equalp);
-
 #include "libguile/bitvectors.x"
 }
 

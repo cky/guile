@@ -358,6 +358,8 @@ scm_equal_p (SCM x, SCM y)
       return scm_bytevector_eq_p (x, y);
     case scm_tc7_array:
       return scm_array_equal_p (x, y);
+    case scm_tc7_bitvector:
+      return scm_i_bitvector_equal_p (x, y);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);

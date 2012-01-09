@@ -653,6 +653,9 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_bytevector:
 	  scm_i_print_bytevector (exp, port, pstate);
 	  break;
+	case scm_tc7_bitvector:
+	  scm_i_print_bitvector (exp, port, pstate);
+	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
