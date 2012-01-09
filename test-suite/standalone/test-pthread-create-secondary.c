@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <libguile.h>
 
-#include <gc/gc_version.h>
+#include <gc/gc.h>
 
 
 /* Up to GC 7.2alpha5, calling `GC_INIT' from a secondary thread would
