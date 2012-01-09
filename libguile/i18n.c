@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -196,21 +196,10 @@ typedef struct scm_locale
   int   category_mask;
 } *scm_t_locale;
 
-
-/* Free the resources used by LOCALE.  */
-static inline void
-scm_i_locale_free (scm_t_locale locale)
-{
-  free (locale->locale_name);
-  locale->locale_name = NULL;
-}
-
 #else /* USE_GNU_LOCALE_API */
 
 /* Alias for glibc's locale type.  */
 typedef locale_t scm_t_locale;
-
-#define scm_i_locale_free freelocale
 
 #endif /* USE_GNU_LOCALE_API */
 
@@ -244,15 +233,19 @@ SCM_GLOBAL_VARIABLE (scm_global_locale, "%global-locale");
 
 SCM_SMOB (scm_tc16_locale_smob_type, "locale", 0);
 
+#ifdef USE_GNU_LOCALE_API
+
 SCM_SMOB_FREE (scm_tc16_locale_smob_type, smob_locale_free, locale)
 {
   scm_t_locale c_locale;
 
   c_locale = (scm_t_locale) SCM_SMOB_DATA (locale);
-  scm_i_locale_free (c_locale);
+  freelocale (c_locale);
 
   return 0;
 }
+
+#endif /* USE_GNU_LOCALE_API */
 
 
 static void inline scm_locale_error (const char *, int) SCM_NORETURN;
@@ -667,7 +660,8 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
   c_locale = scm_gc_malloc (sizeof (* c_locale), "locale");
 
   c_locale->category_mask = c_category_mask;
-  c_locale->locale_name = c_locale_name;
+  c_locale->locale_name = scm_gc_strdup (c_locale_name, "locale");
+  free (c_locale_name);
 
   if (scm_is_eq (base_locale, SCM_VARIABLE_REF (scm_global_locale)))
     {
