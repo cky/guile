@@ -646,6 +646,13 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_with_fluids:
 	  scm_i_with_fluids_print (exp, port, pstate);
 	  break;
+	case scm_tc7_array:
+	  ENTER_NESTED_DATA (pstate, exp, circref);
+          scm_i_print_array (exp, port, pstate);
+          break;
+	case scm_tc7_bytevector:
+	  scm_i_print_bytevector (exp, port, pstate);
+	  break;
 	case scm_tc7_wvect:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  if (SCM_IS_WHVEC (exp))
@@ -653,10 +660,6 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  else
 	    scm_puts ("#w(", port);
 	  goto common_vector_printer;
-
-	case scm_tc7_bytevector:
-	  scm_i_print_bytevector (exp, port, pstate);
-	  break;
 	case scm_tc7_vector:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
 	  scm_puts ("#(", port);

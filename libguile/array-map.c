@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009, 2010, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -892,7 +892,6 @@ SCM_DEFINE (scm_i_array_equal_p, "array-equal?", 0, 2, 1,
 void
 scm_init_array_map (void)
 {
-  scm_smobs[SCM_TC2SMOBNUM (scm_i_tc16_array)].equalp = scm_array_equal_p;
 #include "libguile/array-map.x"
   scm_add_feature (s_scm_array_for_each);
 }

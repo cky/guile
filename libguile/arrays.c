@@ -33,7 +33,6 @@
 #include "libguile/chars.h"
 #include "libguile/eval.h"
 #include "libguile/fports.h"
-#include "libguile/smob.h"
 #include "libguile/feature.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
@@ -54,11 +53,10 @@
 #include "libguile/uniform.h"
 
 
-scm_t_bits scm_i_tc16_array;
 #define SCM_SET_ARRAY_CONTIGUOUS_FLAG(x) \
-  (SCM_SET_SMOB_FLAGS ((x), SCM_SMOB_FLAGS (x) | SCM_I_ARRAY_FLAG_CONTIGUOUS))
+  (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) | (SCM_I_ARRAY_FLAG_CONTIGUOUS << 16)))
 #define SCM_CLR_ARRAY_CONTIGUOUS_FLAG(x) \
-  (SCM_SET_SMOB_FLAGS ((x), SCM_SMOB_FLAGS (x) & ~SCM_I_ARRAY_FLAG_CONTIGUOUS))
+  (SCM_SET_CELL_WORD_0 ((x), SCM_CELL_WORD_0 (x) & ~(SCM_I_ARRAY_FLAG_CONTIGUOUS << 16)))
 
 
 SCM_DEFINE (scm_shared_array_root, "shared-array-root", 1, 0, 0, 
@@ -115,10 +113,10 @@ SCM
 scm_i_make_array (int ndim)
 {
   SCM ra;
-  SCM_NEWSMOB(ra, ((scm_t_bits) ndim << 17) + scm_i_tc16_array,
-              scm_gc_malloc ((sizeof (scm_i_t_array) +
-			      ndim * sizeof (scm_t_array_dim)),
-			     "array"));
+  ra = scm_cell (((scm_t_bits) ndim << 17) + scm_tc7_array,
+                 SCM_UNPACK (scm_gc_malloc ((sizeof (scm_i_t_array) +
+                                             ndim * sizeof (scm_t_array_dim)),
+                                            "array")));
   SCM_I_ARRAY_V (ra) = SCM_BOOL_F;
   return ra;
 }
@@ -743,7 +741,7 @@ scm_i_print_array_dimension (scm_t_array_handle *h, int dim, int pos,
 /* Print an array.
 */
 
-static int
+int
 scm_i_print_array (SCM array, SCM port, scm_print_state *pstate)
 {
   scm_t_array_handle h;
@@ -1015,18 +1013,14 @@ array_get_handle (SCM array, scm_t_array_handle *h)
   h->base = SCM_I_ARRAY_BASE (array);
 }
 
-SCM_ARRAY_IMPLEMENTATION (SCM_SMOB_TYPE_BITS (scm_i_tc16_array),
-                          SCM_SMOB_TYPE_MASK,
+SCM_ARRAY_IMPLEMENTATION (scm_tc7_array,
+                          0x7f,
                           array_handle_ref, array_handle_set,
                           array_get_handle)
 
 void
 scm_init_arrays ()
 {
-  scm_i_tc16_array = scm_make_smob_type ("array", 0);
-  scm_set_smob_print (scm_i_tc16_array, scm_i_print_array);
-  scm_set_smob_equalp (scm_i_tc16_array, scm_array_equal_p);
-
   scm_add_feature ("array");
 
 #include "libguile/arrays.x"

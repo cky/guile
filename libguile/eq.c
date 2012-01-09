@@ -302,10 +302,6 @@ scm_equal_p (SCM x, SCM y)
       y = SCM_CDR(y);
       goto tailrecurse;
     }
-  if (SCM_TYP7 (x) == scm_tc7_string && SCM_TYP7 (y) == scm_tc7_string)
-    return scm_string_equal_p (x, y);
-  if (SCM_TYP7 (x) == scm_tc7_bytevector && SCM_TYP7 (y) == scm_tc7_bytevector)
-    return scm_bytevector_eq_p (x, y);
   if (SCM_TYP7 (x) == scm_tc7_smob && SCM_TYP16 (x) == SCM_TYP16 (y))
     {
       int i = SCM_SMOBNUM (x);
@@ -316,8 +312,6 @@ scm_equal_p (SCM x, SCM y)
       else
 	goto generic_equal;
     }
-  if (SCM_POINTER_P (x) && SCM_POINTER_P (y))
-    return scm_from_bool (SCM_POINTER_VALUE (x) == SCM_POINTER_VALUE (y));
 
   /* This ensures that types and scm_length are the same.  */
   if (SCM_CELL_TYPE (x) != SCM_CELL_TYPE (y))
@@ -352,7 +346,18 @@ scm_equal_p (SCM x, SCM y)
           return scm_complex_equalp (x, y);
 	case scm_tc16_fraction:
           return scm_i_fraction_equalp (x, y);
+        default:
+          /* assert not reached? */
+          return SCM_BOOL_F;
         }
+    case scm_tc7_pointer:
+      return scm_from_bool (SCM_POINTER_VALUE (x) == SCM_POINTER_VALUE (y));
+    case scm_tc7_string:
+      return scm_string_equal_p (x, y);
+    case scm_tc7_bytevector:
+      return scm_bytevector_eq_p (x, y);
+    case scm_tc7_array:
+      return scm_array_equal_p (x, y);
     case scm_tc7_vector:
     case scm_tc7_wvect:
       return scm_i_vector_equal_p (x, y);
