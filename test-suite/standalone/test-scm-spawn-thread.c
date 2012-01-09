@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -48,7 +48,7 @@ inner_main (void *data)
 
   thread = scm_spawn_thread (thread_main, 0, thread_handler, 0);
   timeout = scm_from_unsigned_integer (time (NULL) + 10);
-  return (void *) scm_join_thread_timed (thread, timeout, SCM_BOOL_F);
+  return SCM2PTR (scm_join_thread_timed (thread, timeout, SCM_BOOL_F));
 }
 
 
