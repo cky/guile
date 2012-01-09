@@ -1,6 +1,6 @@
 ;;; Compilation targets
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -82,9 +82,9 @@
       (cond ((string-match "^i[0-9]86$" cpu) 4)
             ((string-match "64$" cpu) 8)
             ((string-match "64[lbe][lbe]$" cpu) 8)
-            ((member cpu '("sparc" "powerpc" "mips")) 4)
+            ((member cpu '("sparc" "powerpc" "mips" "mipsel")) 4)
             ((string-match "^arm.*" cpu) 4)
-            (else "unknown CPU word size" cpu))))
+            (else (error "unknown CPU word size" cpu)))))
 
 (define (triplet-cpu t)
   (substring t 0 (string-index t #\-)))
