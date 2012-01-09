@@ -1,7 +1,7 @@
 ;;;; load.test --- test LOAD and path searching functions  -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2006, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2006, 2010, 2012 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,8 +18,9 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-load)
-  :use-module (test-suite lib)
-  :use-module (test-suite guile-test))
+  #:use-module (test-suite lib)
+  #:use-module (test-suite guile-test)
+  #:use-module (system base compile))
 
 (define temp-dir (data-file-name "load-test.dir"))
 
@@ -124,4 +125,17 @@
   (try-search-with-extensions path "ugly.scm" extensions "dir3/ugly.scm")
   (try-search-with-extensions path "ugly.ss"  extensions #f))
       
+(with-test-prefix "return value of `load'"
+  (let ((temp-file (in-vicinity temp-dir "foo.scm")))
+    (call-with-output-file temp-file
+      (lambda (port)
+        (write '(+ 2 3) port)
+        (newline port)))
+    (pass-if "primitive-load"
+      (equal? 5 (primitive-load temp-file)))
+    (let ((temp-compiled-file (in-vicinity temp-dir "foo.go")))
+      (compile-file temp-file #:output-file temp-compiled-file)
+      (pass-if "load-compiled"
+        (equal? 5 (load-compiled temp-compiled-file))))))
+
 (delete-tree temp-dir)

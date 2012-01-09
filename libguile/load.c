@@ -87,7 +87,9 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 #define FUNC_NAME s_scm_primitive_load
 {
   SCM hook = *scm_loc_load_hook;
+  SCM ret = SCM_UNSPECIFIED;
   char *encoding;
+
   SCM_VALIDATE_STRING (1, filename);
   if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
     SCM_MISC_ERROR ("value of %load-hook is neither a procedure nor #f",
@@ -96,8 +98,10 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
   if (!scm_is_false (hook))
     scm_call_1 (hook, filename);
 
-  { /* scope */
-    SCM port = scm_open_file (filename, scm_from_locale_string ("r"));
+  {
+    SCM port;
+
+    port = scm_open_file (filename, scm_from_locale_string ("r"));
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
 
@@ -124,13 +128,13 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 	if (SCM_EOF_OBJECT_P (form))
 	  break;
 
-	scm_primitive_eval_x (form);
+	ret = scm_primitive_eval_x (form);
       }
 
     scm_dynwind_end ();
     scm_close_port (port);
   }
-  return SCM_UNSPECIFIED;
+  return ret;
 }
 #undef FUNC_NAME
 
