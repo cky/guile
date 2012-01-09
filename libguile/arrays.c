@@ -109,14 +109,14 @@ SCM_DEFINE (scm_shared_array_increments, "shared-array-increments", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM 
+SCM
 scm_i_make_array (int ndim)
 {
   SCM ra;
   ra = scm_cell (((scm_t_bits) ndim << 17) + scm_tc7_array,
-                 SCM_UNPACK (scm_gc_malloc ((sizeof (scm_i_t_array) +
-                                             ndim * sizeof (scm_t_array_dim)),
-                                            "array")));
+		 (scm_t_bits) scm_gc_malloc (sizeof (scm_i_t_array) +
+					     ndim * sizeof (scm_t_array_dim),
+					     "array"));
   SCM_I_ARRAY_V (ra) = SCM_BOOL_F;
   return ra;
 }
