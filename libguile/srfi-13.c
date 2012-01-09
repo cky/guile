@@ -546,17 +546,20 @@ SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
   MY_VALIDATE_SUBSTRING_SPEC (3, s,
 			      4, start, cstart,
 			      5, end, cend);
-  len = cend - cstart;
-  SCM_ASSERT_RANGE (3, s, len <= scm_i_string_length (target) - ctstart);
-
-  target = scm_i_string_start_writing (target);
-  for (i = 0; i < cend - cstart; i++)
+  if (cstart < cend)
     {
-      scm_i_string_set_x (target, ctstart + i, 
-                          scm_i_string_ref (s, cstart + i));
+      len = cend - cstart;
+      SCM_ASSERT_RANGE (3, s, len <= scm_i_string_length (target) - ctstart);
+
+      target = scm_i_string_start_writing (target);
+      for (i = 0; i < cend - cstart; i++)
+        {
+          scm_i_string_set_x (target, ctstart + i, 
+                              scm_i_string_ref (s, cstart + i));
+        }
+      scm_i_string_stop_writing ();
+      scm_remember_upto_here_1 (target);
     }
-  scm_i_string_stop_writing ();
-  scm_remember_upto_here_1 (target);
 
   return SCM_UNSPECIFIED;
 }
@@ -970,11 +973,13 @@ SCM_DEFINE (scm_substring_fill_x, "string-fill!", 2, 2, 0,
 			      4, end, cend);
   SCM_VALIDATE_CHAR (2, chr);
 
-
-  str = scm_i_string_start_writing (str);
-  for (k = cstart; k < cend; k++)
-    scm_i_string_set_x (str, k, SCM_CHAR (chr));
-  scm_i_string_stop_writing ();
+  if (cstart < cend)
+    {
+      str = scm_i_string_start_writing (str);
+      for (k = cstart; k < cend; k++)
+        scm_i_string_set_x (str, k, SCM_CHAR (chr));
+      scm_i_string_stop_writing ();
+    }
 
   return SCM_UNSPECIFIED;
 }
@@ -2089,11 +2094,14 @@ string_upcase_x (SCM v, size_t start, size_t end)
 {
   size_t k;
 
-  v = scm_i_string_start_writing (v);
-  for (k = start; k < end; ++k)
-    scm_i_string_set_x (v, k, uc_toupper (scm_i_string_ref (v, k)));
-  scm_i_string_stop_writing ();
-  scm_remember_upto_here_1 (v);
+  if (start < end)
+    {
+      v = scm_i_string_start_writing (v);
+      for (k = start; k < end; ++k)
+        scm_i_string_set_x (v, k, uc_toupper (scm_i_string_ref (v, k)));
+      scm_i_string_stop_writing ();
+      scm_remember_upto_here_1 (v);
+    }
 
   return v;
 }
@@ -2152,11 +2160,14 @@ string_downcase_x (SCM v, size_t start, size_t end)
 {
   size_t k;
 
-  v = scm_i_string_start_writing (v);
-  for (k = start; k < end; ++k)
-    scm_i_string_set_x (v, k, uc_tolower (scm_i_string_ref (v, k)));
-  scm_i_string_stop_writing ();
-  scm_remember_upto_here_1 (v);
+  if (start < end)
+    {
+      v = scm_i_string_start_writing (v);
+      for (k = start; k < end; ++k)
+        scm_i_string_set_x (v, k, uc_tolower (scm_i_string_ref (v, k)));
+      scm_i_string_stop_writing ();
+      scm_remember_upto_here_1 (v);
+    }
 
   return v;
 }
@@ -2219,27 +2230,30 @@ string_titlecase_x (SCM str, size_t start, size_t end)
   size_t i;
   int in_word = 0;
 
-  str = scm_i_string_start_writing (str);
-  for(i = start; i < end;  i++)
+  if (start < end)
     {
-      ch = SCM_MAKE_CHAR (scm_i_string_ref (str, i));
-      if (scm_is_true (scm_char_alphabetic_p (ch)))
-	{
-	  if (!in_word)
-	    {
-	      scm_i_string_set_x (str, i, uc_totitle (SCM_CHAR (ch)));
-	      in_word = 1;
-	    }
-	  else
-	    {
-	      scm_i_string_set_x (str, i, uc_tolower (SCM_CHAR (ch)));
-	    }
-	}
-      else
-	in_word = 0;
+      str = scm_i_string_start_writing (str);
+      for(i = start; i < end;  i++)
+        {
+          ch = SCM_MAKE_CHAR (scm_i_string_ref (str, i));
+          if (scm_is_true (scm_char_alphabetic_p (ch)))
+            {
+              if (!in_word)
+                {
+                  scm_i_string_set_x (str, i, uc_totitle (SCM_CHAR (ch)));
+                  in_word = 1;
+                }
+              else
+                {
+                  scm_i_string_set_x (str, i, uc_tolower (SCM_CHAR (ch)));
+                }
+            }
+          else
+            in_word = 0;
+        }
+      scm_i_string_stop_writing ();
+      scm_remember_upto_here_1 (str);
     }
-  scm_i_string_stop_writing ();
-  scm_remember_upto_here_1 (str);
 
   return str;
 }
@@ -2309,22 +2323,25 @@ SCM_DEFINE (scm_string_capitalize, "string-capitalize", 1, 0, 0,
 static void
 string_reverse_x (SCM str, size_t cstart, size_t cend)
 {
-  SCM tmp;
-
-  str = scm_i_string_start_writing (str);
-  if (cend > 0)
+  if (cstart < cend)
     {
-      cend--;
-      while (cstart < cend)
-	{
-	  tmp = SCM_MAKE_CHAR (scm_i_string_ref (str, cstart));
-	  scm_i_string_set_x (str, cstart, scm_i_string_ref (str, cend));
-	  scm_i_string_set_x (str, cend, SCM_CHAR (tmp));
-	  cstart++;
-	  cend--;
-	}
+      str = scm_i_string_start_writing (str);
+      if (cend > 0)
+        {
+          SCM tmp;
+
+          cend--;
+          while (cstart < cend)
+            {
+              tmp = SCM_MAKE_CHAR (scm_i_string_ref (str, cstart));
+              scm_i_string_set_x (str, cstart, scm_i_string_ref (str, cend));
+              scm_i_string_set_x (str, cend, SCM_CHAR (tmp));
+              cstart++;
+              cend--;
+            }
+        }
+      scm_i_string_stop_writing ();
     }
-  scm_i_string_stop_writing ();
 }
 
 
@@ -2866,26 +2883,29 @@ SCM_DEFINE (scm_string_xcopy_x, "string-xcopy!", 4, 3, 0,
     csto = csfrom + (cend - cstart);
   else
     csto = scm_to_int (sto); 
-  if (cstart == cend && csfrom != csto)
-    SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
-  SCM_ASSERT_RANGE (1, tstart,
-		    ctstart + (csto - csfrom) <= scm_i_string_length (target));
-
-  p = 0;
-  target = scm_i_string_start_writing (target);
-  while (csfrom < csto)
+  if (csfrom < csto)
     {
-      size_t t = ((csfrom < 0) ? -csfrom : csfrom) % (cend - cstart);
-      if (csfrom < 0)
-	scm_i_string_set_x (target, p + cstart, scm_i_string_ref (s, (cend - cstart) - t));
-      else
-	scm_i_string_set_x (target, p + cstart, scm_i_string_ref (s, t));
-      csfrom++;
-      p++;
-    }
-  scm_i_string_stop_writing ();
+      if (cstart == cend)
+        SCM_MISC_ERROR ("start and end indices must not be equal", SCM_EOL);
+      SCM_ASSERT_RANGE (1, tstart,
+                        ctstart + (csto - csfrom) <= scm_i_string_length (target));
 
-  scm_remember_upto_here_2 (target, s);
+      p = 0;
+      target = scm_i_string_start_writing (target);
+      while (csfrom < csto)
+        {
+          size_t t = ((csfrom < 0) ? -csfrom : csfrom) % (cend - cstart);
+          if (csfrom < 0)
+            scm_i_string_set_x (target, p + cstart, scm_i_string_ref (s, (cend - cstart) - t));
+          else
+            scm_i_string_set_x (target, p + cstart, scm_i_string_ref (s, t));
+          csfrom++;
+          p++;
+        }
+      scm_i_string_stop_writing ();
+
+      scm_remember_upto_here_2 (target, s);
+    }
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
