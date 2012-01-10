@@ -1473,9 +1473,9 @@ scm_from_stringn (const char *str, size_t len, const char *encoding,
   if (len == (size_t) -1)
     len = strlen (str);
 
-  if (encoding == NULL)
+  if (encoding == NULL || len == 0)
     {
-      /* If encoding is null, use Latin-1.  */
+      /* If encoding is null (or the string is empty), use Latin-1.  */
       char *buf;
       res = scm_i_make_string (len, &buf, 0);
       memcpy (buf, str, len);
