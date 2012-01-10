@@ -349,8 +349,9 @@ SCM
 scm_i_substring_copy (SCM str, size_t start, size_t end)
 {
   size_t len = end - start;
-  SCM buf, my_buf;
+  SCM buf, my_buf, substr;
   size_t str_start;
+  int wide = 0;
   get_str_buf_start (&str, &buf, &str_start);
   if (scm_i_is_narrow_string (str))
     {
@@ -364,12 +365,14 @@ scm_i_substring_copy (SCM str, size_t start, size_t end)
       u32_cpy ((scm_t_uint32 *) STRINGBUF_WIDE_CHARS (my_buf),
                (scm_t_uint32 *) (STRINGBUF_WIDE_CHARS (buf) + str_start 
                                  + start), len);
-      /* Even though this string is wide, the substring may be narrow.
-         Consider adding code to narrow the string.  */
+      wide = 1;
     }
   scm_remember_upto_here_1 (buf);
-  return scm_double_cell (STRING_TAG, SCM_UNPACK (my_buf),
-                          (scm_t_bits) 0, (scm_t_bits) len);
+  substr = scm_double_cell (STRING_TAG, SCM_UNPACK (my_buf),
+                            (scm_t_bits) 0, (scm_t_bits) len);
+  if (wide)
+    scm_i_try_narrow_string (substr);
+  return substr;
 }
 
 SCM
