@@ -267,8 +267,22 @@ SCM scm_nullstr;
 SCM
 scm_i_make_string (size_t len, char **charsp, int read_only_p)
 {
-  SCM buf = make_stringbuf (len);
+  static SCM null_stringbuf = SCM_BOOL_F;
+  SCM buf;
   SCM res;
+
+  if (len == 0)
+    {
+      if (SCM_UNLIKELY (scm_is_false (null_stringbuf)))
+        {
+          null_stringbuf = make_stringbuf (0);
+          SET_STRINGBUF_SHARED (null_stringbuf);
+        }
+      buf = null_stringbuf;
+    }
+  else
+    buf = make_stringbuf (len);
+
   if (charsp)
     *charsp = (char *) STRINGBUF_CHARS (buf);
   res = scm_double_cell (read_only_p ? RO_STRING_TAG : STRING_TAG,
