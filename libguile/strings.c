@@ -320,29 +320,39 @@ get_str_buf_start (SCM *str, SCM *buf, size_t *start)
 SCM
 scm_i_substring (SCM str, size_t start, size_t end)
 {
-  SCM buf;
-  size_t str_start;
-  get_str_buf_start (&str, &buf, &str_start);
-  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
-  SET_STRINGBUF_SHARED (buf);
-  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
-  return scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
-			  (scm_t_bits)str_start + start,
-			  (scm_t_bits) end - start);
+  if (start == end)
+    return scm_i_make_string (0, NULL, 0);
+  else
+    {
+      SCM buf;
+      size_t str_start;
+      get_str_buf_start (&str, &buf, &str_start);
+      scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
+      SET_STRINGBUF_SHARED (buf);
+      scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
+      return scm_double_cell (STRING_TAG, SCM_UNPACK(buf),
+                              (scm_t_bits)str_start + start,
+                              (scm_t_bits) end - start);
+    }
 }
 
 SCM
 scm_i_substring_read_only (SCM str, size_t start, size_t end)
 {
-  SCM buf;
-  size_t str_start;
-  get_str_buf_start (&str, &buf, &str_start);
-  scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
-  SET_STRINGBUF_SHARED (buf);
-  scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
-  return scm_double_cell (RO_STRING_TAG, SCM_UNPACK(buf),
-			  (scm_t_bits)str_start + start,
-			  (scm_t_bits) end - start);
+  if (start == end)
+    return scm_i_make_string (0, NULL, 1);
+  else
+    {
+      SCM buf;
+      size_t str_start;
+      get_str_buf_start (&str, &buf, &str_start);
+      scm_i_pthread_mutex_lock (&stringbuf_write_mutex);
+      SET_STRINGBUF_SHARED (buf);
+      scm_i_pthread_mutex_unlock (&stringbuf_write_mutex);
+      return scm_double_cell (RO_STRING_TAG, SCM_UNPACK(buf),
+                              (scm_t_bits)str_start + start,
+                              (scm_t_bits) end - start);
+    }
 }
 
 SCM
@@ -380,7 +390,9 @@ scm_i_substring_shared (SCM str, size_t start, size_t end)
 {
   if (start == 0 && end == STRING_LENGTH (str))
     return str;
-  else 
+  else if (start == end)
+    return scm_i_make_string (0, NULL, 0);
+  else
     {
       size_t len = end - start;
       if (IS_SH_STRING (str))
