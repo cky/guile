@@ -31,8 +31,22 @@
   #:use-module (srfi srfi-1)
   #:use-module (statprof))
 
+;; Throw `unresolved' upon ENOSYS.  This is used to skip tests on
+;; platforms such as GNU/Hurd where `ITIMER_PROF' is is currently
+;; unimplemented.
+(define-syntax-rule (when-implemented body ...)
+  (catch 'system-error
+    (lambda ()
+      body ...)
+    (lambda args
+      (let ((errno (system-error-errno args)))
+        (false-if-exception (statprof-stop))
+        (if (= errno ENOSYS)
+            (throw 'unresolved)
+            (apply throw args))))))
+
 (pass-if "statistical sample counts within expected range"
-  (let ()
+  (when-implemented
     ;; test to see that if we call 3 identical functions equally, they
     ;; show up equally in the call count, +/- 30%. it's a big range, and
     ;; I tried to do something more statistically valid, but failed (for
@@ -80,7 +94,7 @@
               (throw 'unresolved (pk average drift-fraction))))))))
 
 (pass-if "accurate call counting"
-  (let ()
+  (when-implemented
     ;; Test to see that if we call a function N times while the profiler
     ;; is active, it shows up N times.
     (let ((num-calls 200))
