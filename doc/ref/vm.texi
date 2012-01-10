@@ -438,7 +438,7 @@ expressions.
 @end deffn
 
 @deffn Instruction local-boxed-ref index
-@deffnx Instruction local-boxed-ref index
+@deffnx Instruction local-boxed-set index
 Get or set the value of the variable located at @var{index} within the
 current stack frame. A shortcut for @code{local-ref} then
 @code{variable-ref} or @code{variable-set}, respectively.
