@@ -1132,6 +1132,8 @@ scm_spawn_thread (scm_t_catch_body body, void *body_data,
   scm_i_scm_pthread_cond_wait (&data.cond, &data.mutex);
   scm_i_pthread_mutex_unlock (&data.mutex);
 
+  assert (SCM_I_IS_THREAD (data.thread));
+
   return data.thread;
 }
 
