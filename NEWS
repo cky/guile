@@ -7,9 +7,9 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.0.4 (since 2.0.3):
 
-* Features
+* Notable changes
 
-** Better debuggability for interpreted procedures
+** Better debuggability for interpreted procedures.
     
 Guile 2.0 came with a great debugging experience for compiled
 procedures, but the story for interpreted procedures was terrible.  Now,
@@ -74,368 +74,81 @@ Thanks to Mark Weaver for inspiration.
 
 ** SRFI-39 parameters are available by default.
     
-Guile now includes support for "parameters", as defined by SRFI-39, in
-the default environment.  See 
-    * module/ice-9/boot-9.scm (<parameter>, make-parameter, parameter?)
-      (parameter-fluid, parameter-converter, parameterize): New top-level
-      bindings, implementing SRFI-39 parameters.  Currently,
-      current-input-port and similar procedures are not yet parameters.
+Guile now includes support for parameters, as defined by SRFI-39, in the
+default environment.  See "Parameters" in the manual, for more
+information.  `current-input-port', `current-output-port', and
+`current-error-port' are now parameters.
     
-** add current-warning-port
+** Add `current-warning-port'
     
-    * libguile/ports.h:
-    * libguile/ports.c (scm_current_warning_port)
-      (scm_set_current_warning_port): New functions, wrapping the Scheme
-      parameter.
-    
-    * module/ice-9/boot-9.scm (current-warning-port): New parameter,
-      defining a port for warnings.
+Guile now outputs warnings on a separate port, `current-warning-port',
+initialized to the value that `current-error-port' has on startup.
 
-    warnings written to warning port
-    
-    * libguile/deprecation.c (scm_c_issue_deprecation_warning):
-    * libguile/load.c (auto_compile_catch_handler):
-      (scm_sys_warn_auto_compilation_enabled, scm_primitive_load_path):
-    * module/ice-9/boot-9.scm (warn, %load-announce, duplicate-handlers)
-      (load-in-vicinity):
-    * module/system/base/message.scm (warning): Write to the warning port.
-      (*current-warning-port*): Alias the warning port.
+** Syntax parameters.
 
+Following Racket's lead, Guile now supports syntax parameters.  See
+"Syntax parameters" in the manual, for more.
 
-** add define-syntax-parameter, same as define-syntax
+Also see Barzilay, Culpepper, and Flatt's 2011 SFP workshop paper,
+"Keeping it Clean with syntax-parameterize".
     
-    * module/ice-9/psyntax.scm (define-syntax-parameter): New toplevel form.
-      Will be used to implement syntax parameters, following Barzilay,
-      Culpepper, and Flatt's 2011 SFP workshop paper, "Keeping it Clean with
-      syntax-parameterize".  Adds a new binding type and definition form.
     
-**    deprecate fluid-let-syntax in favor of syntax-parameterize
+`primitive-load' returns the values yielded from evaluating the last
+expression in the file.  This in turn makes `load' always return the
+results of the last expression, both when interpreted and compiled.
     
-    * module/ice-9/psyntax.scm (syntax-parameterize): Rename from
-      fluid-let-syntax.
+** Parse command-line arguments from the locale encoding.
     
-Author: Ian Price <ianprice90@googlemail.com>
-Date:   Sat Jan 7 01:59:33 2012 +0000
+Guile now attempts to parse command-line arguments using the user's
+locale.  However for backwards compatibility with other 2.0.x releases,
+it does so without actually calling `setlocale'.  Please report any bugs
+in this facility to bug-guile@gnu.org.
 
-    document syntax parameters
-    
-    * doc/ref/api-macros.texi (Macros): Add subsection for "Syntax Parameters"
+* New interfaces
 
-**    primitive-load returns the value(s) of the last expression
-    
-    * libguile/load.c (scm_primitive_load): Return the values yielded from
-      evaluating the last expression in the file.
-    
+** (ice-9 session): `apropos-hook'
+** New print option: `escape-newlines', defaults to #t.
+** (ice-9 ftw): `file-system-fold', `file-system-tree', `scandir'
+
 * Bug fixes
 
 ** Fix R6RS `fold-left' so the accumulator is the first argument.
 ** fix <dynwind> serialization.
-** Fix bugs in the new optimizer.
-
-The new `peval' optimizer had three bugs: one related to dynamic-wind,
-one regarding propagation of expressions that yield multiple values, and
-one that would mistakenly turn (cons 'foo #nil) into (list 'foo).  These
-were fixed.
-    
-** when leaving a non-tail let, allow bound vals to be collected
-    
-    * module/language/tree-il/compile-glil.scm (flatten-lambda-case): Clear
-      lexical stack slots at the end of a non-tail let, letrec, or fix.
-      Fixes http://debbugs.gnu.org/9900.
-    
-** fix bit-set*! bug (!)
-    
-    * libguile/bitvectors.c (scm_bit_set_star_x): Fix a long-standing (since
-      2005) bug in which instead of using the kv bitvector, we actually use
-      the `v' bitvector.  Also, change to allow `kv' being shorter than
-      `v'.
-
-** fix bug in make-repl when lang is actually a language
-    
-    * module/system/repl/common.scm (make-repl): Fix to accept language
-      objects in addition to symbols.  Fixes http://debbugs.gnu.org/9857.
-      Thanks to Tristan Colgate for the report.
-
-** hack the port-column of current-output-port after printing a prompt
-    
-    * module/ice-9/boot-9.scm (repl-reader): Reset the output-column to 0
-      after printing the prompt.  Fixes bug 9664.
-
+** Fix bugs in the new `peval' optimizer.
+** Allow values bound in non-tail let expressions to be collected.
+** Fix bit-set*! bug from 2005.
+** Fix bug in `make-repl' when `lang' is actually a language.
+** Hack the port-column of current-output-port after printing a prompt.
 ** FFI: Hold a weak reference to the CIF made by `procedure->pointer'.
-    
-    * libguile/foreign.c (scm_procedure_to_pointer): Keep a weak reference
-      to CIF so that it is not reclaimed before POINTER.  Before that it
-      could be reclaimed and typically reused to store the CIF of another
-      procedure with the same arity, leading to obscure wrong-type-arg
-      errors.
-
-** Allow overlapping regions to be passed to `bytevector-copy!'.
-    
-    Reported by Dmitry Chestnykh <dmitry@codingrobots.com>.
-    Fixes <http://debbugs.gnu.org/10070>.
-
-** Fix `validate-target' in (system base target).
-    
-    * module/system/base/target.scm (validate-target): Accept any tuple with
-      at least 3 parts.
-    
-** fix validators for various list-style headers
-
-commit 69b8c5df14dbc1f9602925788507d371a529dfbe
-Author: Daniel Hartwig <mandyke@gmail.com>
-Date:   Wed Nov 23 20:56:10 2011 +0100
-
-    * module/web/http.scm (default-val-validator): Valid with no value.
-      (key-value-list?): Keys are always symbols, do not accept strings.
-      (validate-param-list): Apply `valid?' to list elements.
-      (validate-credentials): Validate param for Basic scheme, which
-      is parsed as a string.
-      (declare-symbol-list-header!): `list-of?' args were in wrong order.
-      ("Cache-Control"): Replace `default-val-validator' with more
-      specific procedure.
-      ("Accept"): Validate on first param which has no value.
-
 ** FFI: Hold a weak reference to the procedure passed to `procedure->pointer'.
-    
-    * libguile/foreign.c (scm_procedure_to_pointer): Keep a weak reference
-      to PROC.
-    
-    * test-suite/tests/foreign.test ("procedure->pointer")["procedure is
-      retained"]: New test.
-
-** ,language at REPL sets current-language
-    
-    * module/system/repl/command.scm (language): Set the
-      *current-language*.
-    * module/system/repl/repl.scm (start-repl): Create a new dynamic scope
-      for *current-language*.
-
-** new print option escape-newlines, defaults to #t
-    
-    * libguile/private-options.h (SCM_PRINT_ESCAPE_NEWLINES_P):
-    * libguile/print.c: Add new escape-newlines print option, defaulting to
-      on.
-      (write_character): For newlines, if SCM_PRINT_ESCAPE_NEWLINES_P, then
-      print them as \n.
-      (scm_init_print): Refactor print options initialization.
-
-** allow URIs of the form file:///etc/hosts
-    
-    * module/web/uri.scm (parse-authority): Allow empty authorities, so that
-      we accept URIs of the form, file:///etc/hosts.
-
-**    peval: Truncate multiple values when extending the environment.
-    
-    Reported by Cédric Cellier <rixed@happyleptic.org>.
-    
-** Add an exception printer for `getaddrinfo-error'.
-    
-    * module/ice-9/boot-9.scm (getaddrinfo-error-printer): New procedure.
-      Use it as the `getaddrinfo-error' exception printer.
-
-** current-input-port et al are srfi-39 parameters
-    
-** add an apropos-hook to ice-9 session
-    
-    * module/ice-9/session.scm: #:keyword-ify the define-module form, and
-      export apropos-hook.
-      (apropos-hook): New hook.
-      (apropos, apropos-fold): Run the apropos-hook.
-
-**    Add `file-system-fold' and `file-system-tree' to (ice-9 ftw).
-    
-    * doc/ref/misc-modules.texi (File Tree Walk): Document
-      `file-system-tree' and `file-system-fold'.
-
-** Arrange to convert command-line arguments from the right encoding.
-    
-    This is a temporary workaround for the 2.0 stable series.  The next
-    stable series should have an implicit `setlocale (LC_ALL, "")' call,
-    which will make this unnecessary.
-    
-    * libguile/feature.c (progargs_fluid): Rename to...
-      (scm_program_arguments_fluid): ... this.  Update users.
-    
-    * libguile/feature.h (scm_program_arguments_fluid): New internal
-      declaration.
-    
-    * libguile/init.c (invoke_main_func): Call
-      `scm_i_set_boot_program_arguments' instead of
-      `scm_set_program_arguments'.
-    
-    * libguile/script.c (locale_arguments_to_string_list,
-      scm_i_set_boot_program_arguments): New functions.
-      (scm_compile_shell_switches): Use `locale_arguments_to_string_list'.
-    
-    * libguile/script.h (scm_i_set_boot_program_arguments): New internal
-      declaration.
-    
-    * test-suite/standalone/Makefile.am (check_SCRIPTS, TESTS): Add
-      `test-command-line-encoding'.
-    * test-suite/standalone/test-command-line-encoding: New file.
-
-**    ftw: Add `scandir'.
-    
-    Suggested by Nala Ginrut <nalaginrut@gmail.com>.
-    
-    * module/ice-9/ftw.scm (scandir): New procedure.
-    * test-suite/tests/ftw.test ("scandir"): New test prefix.
-    * doc/ref/misc-modules.texi (File Tree Walk): Document `scandir'.
-
 ** FFI: Properly unpack small integer return values in closure call.
-    
-    Fixes <http://debbugs.gnu.org/10203>.
-    
-commit a6ea740b3ca1174cc4414ef9b03659fe259d0fe6
-Author: Andreas Schwab <schwab@linux-m68k.org>
-Date:   Sat Dec 3 12:17:46 2011 +0100
-
-    * libguile/foreign.c (unpack): Add parameter return_value_p.
-      Properly store integer return values smaller than int.
-      (scm_i_foreign_call): Update call to unpack.
-      (invoke_closure): Likewise.
-
- libguile/foreign.c |   40 +++++++++++++++++++++++++++++++---------
- 1 files changed, 31 insertions(+), 9 deletions(-)
-
-** Add a deprecated alias for $expt
-    
-commit 3cc21d7995313782f6def1789ca0150e95c8363f
-Author: Christian Persch <chpe@gnome.org>
-Date:   Thu Nov 24 23:10:21 2011 +0100
-
-    * module/ice-9/deprecated.scm: Add alias for $expt. $expt was removed
-      in commit 6fc4d0124d633d1b3ddc5af82967f23bd17556f8 but no deprecated
-      alias was added in ad79736c68a803a59814fbfc0cb4b092c2b4cddf like for
-      all the other deprecated $sin, $cos, ... functions.
-
- module/ice-9/deprecated.scm |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-**    document invalidity of (begin) as expression; add back-compat shim
-    
-    * doc/ref/api-control.texi (begin): Update to distinguish between
-      splicing begin and sequencing begin.
-    
-    * module/ice-9/psyntax.scm (expand-expr): Add a back-compatibility shim
-      for `(begin)'.
-
-**    peval fix: (cons 1 #nil) is not (list 1)
-    
-** Extend handling of "Cache-Control" header.
-
-Author: Daniel Hartwig <mandyke@gmail.com>
-    
-    * module/web/http.scm ("Cache-Control"): Value for `max-stale' is
-      optional.  Strict validation for value-less directives (`no-store',
-      etc.).  String values optional for "cache-extension" directives.
-    * test-suite/tests/web-http.test: Value for `max-stale' is optional.
-
+** Allow overlapping regions to be passed to `bytevector-copy!'.
+** Fix `validate-target' in (system base target).
+** `,language' at REPL sets the current-language fluid.
+** `primitive-load' returns the value(s) of the last expression.
+** Add an exception printer for `getaddrinfo-error'.
+** Add a deprecated alias for $expt.
+** Document invalidity of (begin) as expression; add back-compat shim.
+** Web: Allow URIs with empty authorities, like "file:///etc/hosts".
+** HTTP: Fix validators for various list-style headers.
+** HTTP: Extend handling of "Cache-Control" header.
 ** HTTP: Fix qstring writing of cache-extension values
-    
-    * module/web/http.scm ("Cache-Control"): Write string values using the
-      default val writer, to get quoting correct.
-    
-** freebsd build fixes (incomplete)
-
-** fix generalized-vector-{ref,set!} for slices
-    
-    * libguile/generalized-vectors.c (scm_c_generalized_vector_ref):
-      (scm_c_generalized_vector_set_x): Fix for the case in which base was
-      not 1, lbnd was not 0, or inc was not 1.
-    
-    * test-suite/tests/arrays.test (array): Add a test.  Thanks to Daniel
-      Llorens for the report.
-
+** HTTP: `write-request-line' writes absolute paths, not absolute URIs.
+** HTTP: Permit non-date values for Expires header.
+** FreeBSD build fixes.
+** Fix generalized-vector-{ref,set!} for slices.
 ** Fix erroneous check in `set-procedure-properties!'.
-    
-    * libguile/procprop.c
-      (scm_set_procedure_properties_x)[SCM_ENABLE_DEPRECATED == 1]: Pass arguments
-      to `scm_assq' in the right order, and check its return value with
-      `scm_is_true'.  Reported by Mike Gran <spk121@yahoo.com>.
-
-** `write-request-line' writes absolute paths, not absolute URIs.
-
-commit ab66fb3cd1d6e4343741ccb406e17eb3314eba84
-Author: Ian Price <ianprice90@googlemail.com>
-Date:   Thu Sep 29 03:12:00 2011 +0100
-
-    * module/web/http.scm (write-request-line): RFC 2616 says that absolute
-      paths are used to identify resources on an origin server.
-
-**    don't leak file descriptors when mmaping objcode
-    
-    * libguile/objcodes.c (make_objcode_from_file): Close the mmap'd file,
-      so that we don't leak the descriptor.  I was previously under the
-      mistaken impression that closing the fd unmapped the memory, which is
-      not the case.  Thanks to Cedric Cellier for the tip!
-
-**    Fix bugs related to mutation, the null string, and shared substrings
-    
-    * libguile/strings.c (scm_i_is_narrow_string, scm_i_try_narrow_string,
-      scm_i_string_set_x): Check to see if the provided string is a
-      mutation-sharing substring, and do the right thing in that case.
-      Previously, if such a string was passed to these functions, they would
-      behave very badly: while trying to fetch and/or mutate the cell
-      containing the stringbuf, they were actually fetching or mutating the
-      cell containing the original shared string.  That's because
-      mutation-sharing substrings store the original string in CELL_1,
-      whereas all other strings store the stringbuf there.
-
-**    deprecate SCM_ASRTGO
-    
-**    allow scm_display_error to use a stack as the first argument
-    
-    * libguile/backtrace.c (scm_display_error): Allow a deprecated use of
-      this function to pass a stack as the first argument.  Thanks to Peter
-      Brett for pointing it out, in
-      http://lists.gnu.org/archive/html/guile-user/2011-06/msg00000.html.
-
-**    i18n: Fix gc_malloc/free mismatch on non-GNU systems.
-    
-    * libguile/i18n.c (scm_i_locale_free): Remove.
-      (smob_locale_free): Define only when USE_GNU_LOCALE_API.
-      (scm_make_locale)[!USE_GNU_LOCALE_API]: Allocate
-      `c_locale->locale_name' with `scm_gc_strdup', not `malloc'.
-
-**    Make sure `regexp-quote' tests use Unicode-capable string ports.
-    
-    * test-suite/tests/regexp.test (with-unicode): New macro.
-      ("regexp-quote"): Wrap all `regexp-quote' calls in it.  This fixes
-      tests on machines where the default port encoding is US-ASCII.
-
-**    Have `cpu-word-size' error out on unknown CPUs; add support for MIPSEL.
-    
-**    permit non-date values for Expires header
-    
-    * module/web/http.scm ("Expires"): Permit (some) non-date values.
-
-**    Remove null string optimization from scm_from_stringn
-    
-    * libguile/strings.c (scm_from_stringn): Always return a freshly
-      allocated string from scm_from_stringn, even when asked to construct
-      the null string, in accordance with the R5RS.  Previously, we
-      optimized the null string case by returning a reference to a global
-      null string object (scm_nullstr).
-
-**    Empty substrings no longer reference the original stringbuf
-    
-    * libguile/strings.c (scm_i_substring, scm_i_substring_read_only,
-      scm_i_substring_shared): When asked to create an empty substring,
-      return a freshly allocated null string.  Previously, an empty
-      substring needlessly held a reference to the original stringbuf.
-
-**    scm_i_substring_copy tries to narrow the substring
-    
-    * libguile/strings.c (scm_i_substring_copy): Try to narrow the substring
-      if it came from a wide string.
-
-**    Avoid calling `u32_conv_from_encoding' on the null string
-    
-    * libguile/strings.c (scm_from_stringn): Avoid calling
-      `u32_conv_from_encoding' on the null string, by using the same
-      fast-path code used if (encoding == NULL).  This is an optimization,
-      and also avoids any possible encoding errors.
+** Don't leak file descriptors when mmaping objcode.
+** Fix bugs related to mutation, the null string, and shared substrings.
+** Deprecate SCM_ASRTGO.
+** Add deprecated shim for `scm_display_error' with stack as first argument.
+** i18n: Fix gc_malloc/free mismatch on non-GNU systems.
+** Make sure `regexp-quote' tests use Unicode-capable string ports.
+** Have `cpu-word-size' error out on unknown CPUs; add support for MIPSEL.
+** `scm_from_stringn' always returns unique strings.
+** Empty substrings no longer reference the original stringbuf.
+** `scm_i_substring_copy' tries to narrow the substring.
+** Avoid calling `u32_conv_from_encoding' on the null string.
 
 Changes in 2.0.3 (since 2.0.2):
 
