@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -417,6 +417,8 @@ quote-keywordish-symbols  reader  How to print symbols that have a colon
                                   '#t' quotes them; 'reader' quotes them
                                   when the reader option 'keywords' is
                                   not '#f'.
+escape-newlines           yes     Render newlines as \n when printing
+                                  using `write'. 
 @end smalllisp
 
 These options may be modified with the print-set! syntax.
