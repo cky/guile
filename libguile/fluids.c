@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,2000,2001, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -179,7 +179,8 @@ scm_make_fluid (void)
 
 SCM_DEFINE (scm_make_fluid_with_default, "make-fluid", 0, 1, 0, 
 	    (SCM dflt),
-	    "Return a newly created fluid.\n"
+	    "Return a newly created fluid, whose initial value is @var{dflt},\n"
+            "or @code{#f} if @var{dflt} is not given.\n"
 	    "Fluids are objects that can hold one\n"
 	    "value per dynamic state.  That is, modifications to this value are\n"
 	    "only visible to code that executes with the same dynamic state as\n"
