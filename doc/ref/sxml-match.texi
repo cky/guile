@@ -356,8 +356,8 @@ transformation that formats a ``TV Guide'' into HTML.
 
 @unnumberedsubsec @code{sxml-match-let} and @code{sxml-match-let*}
 
-@deffn {Scheme Syntax} sxml-match-let ((pat expr) ...) expression0 expression ...)
-@deffnx {Scheme Syntax} sxml-match-let* ((pat expr) ...) expression0 expression ...)
+@deffn {Scheme Syntax} sxml-match-let ((pat expr) ...) expression0 expression ...
+@deffnx {Scheme Syntax} sxml-match-let* ((pat expr) ...) expression0 expression ...
 These forms generalize the @code{let} and @code{let*} forms of Scheme to allow
 an XML pattern in the binding position, rather than a simple variable.
 @end deffn
