@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -15,6 +15,7 @@
 * Blocking::                    How to block properly in guile mode.
 * Critical Sections::           Avoiding concurrency and reentries.
 * Fluids and Dynamic States::   Thread-local variables, etc.
+* Parameters::                  Dynamic scoping in Scheme.
 * Futures::                     Fine-grain parallelism.
 * Parallel Forms::              Parallel execution of forms.
 @end menu
@@ -680,9 +681,11 @@ used for testing whether an object is actually a fluid.  The values
 stored in a fluid can be accessed with @code{fluid-ref} and
 @code{fluid-set!}.
 
-@deffn {Scheme Procedure} make-fluid
+@deffn {Scheme Procedure} make-fluid [dflt]
 @deffnx {C Function} scm_make_fluid ()
-Return a newly created fluid.
+@deffnx {C Function} scm_make_fluid_with_default (dflt)
+Return a newly created fluid, whose initial value is @var{dflt}, or
+@code{#f} if @var{dflt} is not given.
 Fluids are objects that can hold one
 value per dynamic state.  That is, modifications to this value are
 only visible to code that executes with the same dynamic state as
@@ -694,7 +697,7 @@ with its own dynamic state, you can use fluids for thread local storage.
 @deffn {Scheme Procedure} make-unbound-fluid
 @deffnx {C Function} scm_make_unbound_fluid ()
 Return a new fluid that is initially unbound (instead of being
-implicitly bound to @code{#f}.
+implicitly bound to some definite value).
 @end deffn
 
 @deffn {Scheme Procedure} fluid? obj
@@ -707,8 +710,8 @@ Return @code{#t} iff @var{obj} is a fluid; otherwise, return
 @deffnx {C Function} scm_fluid_ref (fluid)
 Return the value associated with @var{fluid} in the current
 dynamic root.  If @var{fluid} has not been set, then return
-@code{#f}. Calling @code{fluid-ref} on an unbound fluid produces a
-runtime error.
+its default value. Calling @code{fluid-ref} on an unbound fluid produces
+a runtime error.
 @end deffn
 
 @deffn {Scheme Procedure} fluid-set! fluid value
@@ -819,6 +822,119 @@ context.
 Like @code{scm_with_dynamic_state}, but call @var{func} with
 @var{data}.
 @end deftypefn
+
+@node Parameters
+@subsection Parameters
+
+@cindex SRFI-39
+@cindex parameter object
+@tindex Parameter
+
+A parameter object is a procedure.  Calling it with no arguments returns
+its value.  Calling it with one argument sets the value.
+
+@example
+(define my-param (make-parameter 123))
+(my-param) @result{} 123
+(my-param 456)
+(my-param) @result{} 456
+@end example
+
+The @code{parameterize} special form establishes new locations for
+parameters, those new locations having effect within the dynamic scope
+of the @code{parameterize} body.  Leaving restores the previous
+locations.  Re-entering (through a saved continuation) will again use
+the new locations.
+
+@example
+(parameterize ((my-param 789))
+  (my-param)) @result{} 789
+(my-param) @result{} 456
+@end example
+
+Parameters are like dynamically bound variables in other Lisp dialects.
+They allow an application to establish parameter settings (as the name
+suggests) just for the execution of a particular bit of code, restoring
+when done.  Examples of such parameters might be case-sensitivity for a
+search, or a prompt for user input.
+
+Global variables are not as good as parameter objects for this sort of
+thing.  Changes to them are visible to all threads, but in Guile
+parameter object locations are per-thread, thereby truly limiting the
+effect of @code{parameterize} to just its dynamic execution.
+
+Passing arguments to functions is thread-safe, but that soon becomes
+tedious when there's more than a few or when they need to pass down
+through several layers of calls before reaching the point they should
+affect.  And introducing a new setting to existing code is often easier
+with a parameter object than adding arguments.
+
+@defun make-parameter init [converter]
+Return a new parameter object, with initial value @var{init}.
+
+If a @var{converter} is given, then a call @code{(@var{converter}
+val)} is made for each value set, its return is the value stored.
+Such a call is made for the @var{init} initial value too.
+
+A @var{converter} allows values to be validated, or put into a
+canonical form.  For example,
+
+@example
+(define my-param (make-parameter 123
+                   (lambda (val)
+                     (if (not (number? val))
+                         (error "must be a number"))
+                     (inexact->exact val))))
+(my-param 0.75)
+(my-param) @result{} 3/4
+@end example
+@end defun
+
+@deffn {Scheme Syntax} parameterize ((param value) @dots{}) body @dots{}
+Establish a new dynamic scope with the given @var{param}s bound to new
+locations and set to the given @var{value}s.  @var{body} is evaluated
+in that environment, the result is the return from the last form in
+@var{body}.
+
+Each @var{param} is an expression which is evaluated to get the
+parameter object.  Often this will just be the name of a variable
+holding the object, but it can be anything that evaluates to a
+parameter.
+
+The @var{param} expressions and @var{value} expressions are all
+evaluated before establishing the new dynamic bindings, and they're
+evaluated in an unspecified order.
+
+For example,
+
+@example
+(define prompt (make-parameter "Type something: "))
+(define (get-input)
+  (display (prompt))
+  ...)
+
+(parameterize ((prompt "Type a number: "))
+  (get-input)
+  ...)
+@end example
+@end deffn
+
+Parameter objects are implemented using fluids (@pxref{Fluids and
+Dynamic States}), so each dynamic state has its own parameter
+locations.  That includes the separate locations when outside any
+@code{parameterize} form.  When a parameter is created it gets a
+separate initial location in each dynamic state, all initialized to the
+given @var{init} value.
+
+As alluded to above, because each thread usually has a separate dynamic
+state, each thread has its own locations behind parameter objects, and
+changes in one thread are not visible to any other.  When a new dynamic
+state or thread is created, the values of parameters in the originating
+context are copied, into new locations.
+
+@cindex SRFI-39
+Guile's parameters conform to SRFI-39 (@pxref{SRFI-39}).
+
 
 @node Futures
 @subsection Futures
