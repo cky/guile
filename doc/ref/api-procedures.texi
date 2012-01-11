@@ -270,6 +270,15 @@ sense at certain points in the program, delimited by these
 @code{arity:start} and @code{arity:end} values.
 @end deffn
 
+@deffn {Scheme Procedure} program-arguments-alist program [ip]
+@deffnx {Scheme Procedure} program-lambda-list [ip]
+Accessors for a representation of the arguments of a program, with both
+names and types (ie. either required, optional or keywords)
+
+@code{program-arguments-alist} returns this information in the form of
+an association list while @code{program-lambda-list} returns the same
+information in a form similar to a lambda definition.
+@end deffn
 
 @node Optional Arguments
 @subsection Optional Arguments

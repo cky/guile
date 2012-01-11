@@ -238,11 +238,13 @@
 
 ;; the name "program-arguments" is taken by features.c...
 (define* (program-arguments-alist prog #:optional ip)
+  "Returns the signature of the given procedure in the form of an association list."
   (let ((arity (program-arity prog ip)))
     (and arity
          (arity->arguments-alist prog arity))))
 
 (define* (program-lambda-list prog #:optional ip)
+  "Returns the signature of the given procedure in the form of an argument list."
   (and=> (program-arguments-alist prog ip) arguments-alist->lambda-list))
 
 (define (arguments-alist->lambda-list arguments-alist)
