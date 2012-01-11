@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -163,6 +163,9 @@ between different modules.
 
 The function @code{scm_calloc} is similar to @code{scm_malloc}, but
 initializes the block of memory to zero as well.
+
+These functions will (indirectly) call
+@code{scm_gc_register_allocation}.
 @end deftypefn
 
 @deftypefn {C Function} {void *} scm_realloc (void *@var{mem}, size_t @var{new_size})
@@ -174,6 +177,8 @@ and allocates a new block of size @var{new_size}.
 
 When not enough memory is available, signal an error.  This function
 runs the GC to free up some memory when it deems it appropriate.
+
+This function will call @code{scm_gc_register_allocation}.
 @end deftypefn
 
 
@@ -209,39 +214,26 @@ the memory management overhead very low.  However, in Guile 2.x,
 @end deftypefn
 
 
-@deftypefn {C Function} void scm_gc_register_collectable_memory (void *@var{mem}, size_t @var{size}, const char *@var{what})
-Informs the GC that the memory at @var{mem} of size @var{size} can
-potentially be freed during a GC.  That is, announce that @var{mem} is
-part of a GC controlled object and when the GC happens to free that
-object, @var{size} bytes will be freed along with it.  The GC will
-@strong{not} free the memory itself, it will just know that so-and-so
-much bytes of memory are associated with GC controlled objects and the
-memory system figures this into its decisions when to run a GC.
+@deftypefn {C Function} void scm_gc_register_allocation (size_t @var{size})
+Informs the garbage collector that @var{size} bytes have been allocated,
+which the collector would otherwise not have known about.
 
-The @var{what} argument is used for statistical purposes.  It should
-describe the type of object that the memory will be used for so that
-users can identify just what strange objects are eating up their
-memory.
+In general, Scheme will decide to collect garbage only after some amount
+of memory has been allocated.  Calling this function will make the
+Scheme garbage collector know about more allocation, and thus run more
+often (as appropriate).
 
-In Guile 2.x, this function has no effect.
-@end deftypefn
-
-@deftypefn {C Function} void scm_gc_unregister_collectable_memory (void *@var{mem}, size_t @var{size})
-Informs the GC that the memory at @var{mem} of size @var{size} is no
-longer associated with a GC controlled object.  You must take care to
-match up every call to @code{scm_gc_register_collectable_memory} with
-a call to @code{scm_gc_unregister_collectable_memory}.  If you don't do
-this, the GC might have a wrong impression of what is going on and run
-much less efficiently than it could.
-
-In Guile 2.x, this function has no effect.
+It is especially important to call this function when large unmanaged
+allocations, like images, may be freed by small Scheme allocations, like
+SMOBs.
 @end deftypefn
 
 
-@deftypefn {C Function} void scm_frame_free (void *mem)
-Equivalent to @code{scm_frame_unwind_handler (free, @var{mem},
-SCM_F_WIND_EXPLICITLY)}.  That is, the memory block at @var{mem} will
-be freed when the current frame is left.
+@deftypefn {C Function} void scm_dynwind_free (void *mem)
+Equivalent to @code{scm_dynwind_unwind_handler (free, @var{mem},
+SCM_F_WIND_EXPLICITLY)}.  That is, the memory block at @var{mem} will be
+freed (using @code{free} from the C library) when the current dynwind is
+left.
 @end deftypefn
 
 @deffn {Scheme Procedure} malloc-stats
@@ -272,7 +264,7 @@ The functions @code{scm_must_malloc} and @code{scm_must_realloc}
 behaved like @code{scm_gc_malloc} and @code{scm_gc_realloc} do now,
 respectively.  They would inform the GC about the newly allocated
 memory via the internal equivalent of
-@code{scm_gc_register_collectable_memory}.  However,
+@code{scm_gc_register_allocation}.  However,
 @code{scm_must_free} did not unregister the memory it was about to
 free.  The usual way to unregister memory was to return its size from
 a smob free function.
