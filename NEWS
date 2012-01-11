@@ -13,17 +13,17 @@ Changes in 2.0.4 (since 2.0.3):
     
 Guile 2.0 came with a great debugging experience for compiled
 procedures, but the story for interpreted procedures was terrible.  Now,
-at least, interpreted procedures have names, and the 'arity procedure
-property is always as correct (or, as it can be, in the presence of
-case-lambda).
+at least, interpreted procedures have names, and the `arity' procedure
+property is always correct (or, as correct as it can be, in the presence
+of `case-lambda').
 
 ** Support for cross-compilation.
     
 One can now use a native Guile to cross-compile `.go' files for a
 different architecture.  See the documentation for `--target' in the
-"Compilation" section of the manual, for how to use the cross-compiler.
-See the "Cross building Guile" section of the README, for more on how to
-cross-compile Guile itself.
+"Compilation" section of the manual, for information on how to use the
+cross-compiler.  See the "Cross building Guile" section of the README,
+for more on how to cross-compile Guile itself.
 
 ** Fluids can now have default values.
 
@@ -33,7 +33,7 @@ However, there was a case in which a new thread would enter Guile, and
 the default values of all the fluids would be `#f' for that thread.
 
 This has now been fixed so that `make-fluid' has an optional default
-value, which defaults to `#f'. 
+value for fluids in unrelated dynamic roots, which defaults to `#f'.
 
 ** Garbage collector tuning.
 
@@ -65,12 +65,10 @@ threads.
     
 Similarly, bignums can occupy a lot of memory.  Guile now offers hooks
 to enable custom GMP allocators that end up calling
-scm_gc_register_allocation'.  These allocators are enabled by default
+`scm_gc_register_allocation'.  These allocators are enabled by default
 when running Guile from the command-line.  To enable them in libraries,
 set the `scm_install_gmp_memory_functions' variable to a nonzero value
 before loading Guile.
-
-Thanks to Mark Weaver for inspiration.
 
 ** SRFI-39 parameters are available by default.
     
@@ -91,11 +89,6 @@ Following Racket's lead, Guile now supports syntax parameters.  See
 
 Also see Barzilay, Culpepper, and Flatt's 2011 SFP workshop paper,
 "Keeping it Clean with syntax-parameterize".
-    
-    
-`primitive-load' returns the values yielded from evaluating the last
-expression in the file.  This in turn makes `load' always return the
-results of the last expression, both when interpreted and compiled.
     
 ** Parse command-line arguments from the locale encoding.
     
