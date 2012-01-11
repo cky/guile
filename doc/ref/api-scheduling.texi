@@ -316,10 +316,10 @@ Higher level thread procedures are available by loading the
 @code{(ice-9 threads)} module.  These provide standardized
 thread creation.
 
-@deffn macro make-thread proc [args@dots{}]
-Apply @var{proc} to @var{args} in a new thread formed by
+@deffn macro make-thread proc arg @dots{}
+Apply @var{proc} to @var{arg} @dots{} in a new thread formed by
 @code{call-with-new-thread} using a default error handler that display
-the error to the current error port.  The @var{args@dots{}}
+the error to the current error port.  The @var{arg} @dots{}
 expressions are evaluated in the new thread.
 @end deffn
 
@@ -751,12 +751,12 @@ set/restored when control enter or leaves the established dynamic
 extent.
 @end deffn
 
-@deffn {Scheme Macro} with-fluids ((fluid value) ...) body...
-Execute @var{body...} while each @var{fluid} is set to the
-corresponding @var{value}.  Both @var{fluid} and @var{value} are
-evaluated and @var{fluid} must yield a fluid.  @var{body...} is
-executed inside a @code{dynamic-wind} and the fluids are set/restored
-when control enter or leaves the established dynamic extent.
+@deffn {Scheme Macro} with-fluids ((fluid value) @dots{}) body1 body2 @dots{}
+Execute body @var{body1} @var{body2} @dots{}  while each @var{fluid} is
+set to the corresponding @var{value}.  Both @var{fluid} and @var{value}
+are evaluated and @var{fluid} must yield a fluid.  The body is executed
+inside a @code{dynamic-wind} and the fluids are set/restored when
+control enter or leaves the established dynamic extent.
 @end deffn
 
 @deftypefn {C Function} SCM scm_c_with_fluids (SCM fluids, SCM vals, SCM (*cproc)(void *), void *data)
@@ -1043,16 +1043,16 @@ are implemented in terms of futures (@pxref{Futures}).  Thus they are
 relatively cheap as they re-use existing threads, and portable, since
 they automatically use one thread per available CPU core.
 
-@deffn syntax parallel expr1 @dots{} exprN
+@deffn syntax parallel expr @dots{}
 Evaluate each @var{expr} expression in parallel, each in its own thread.
-Return the results as a set of @var{N} multiple values
-(@pxref{Multiple Values}).
+Return the results of @var{n} expressions as a set of @var{n} multiple
+values (@pxref{Multiple Values}).
 @end deffn
 
-@deffn syntax letpar ((var1 expr1) @dots{} (varN exprN)) body@dots{}
+@deffn syntax letpar ((var expr) @dots{}) body1 body2 @dots{}
 Evaluate each @var{expr} in parallel, each in its own thread, then bind
-the results to the corresponding @var{var} variables and evaluate
-@var{body}.
+the results to the corresponding @var{var} variables, and then evaluate
+@var{body1} @var{body2} @enddots{}
 
 @code{letpar} is like @code{let} (@pxref{Local Bindings}), but all the
 expressions for the bindings are evaluated in parallel.
@@ -1065,11 +1065,10 @@ returns a list comprising the return values from @var{proc}.
 @code{par-for-each} returns an unspecified value, but waits for all
 calls to complete.
 
-The @var{proc} calls are @code{(@var{proc} @var{elem1} @dots{}
-@var{elemN})}, where each @var{elem} is from the corresponding
-@var{lst}.  Each @var{lst} must be the same length.  The calls are
-potentially made in parallel, depending on the number of CPU cores
-available.
+The @var{proc} calls are @code{(@var{proc} @var{elem1} @var{elem2}
+@dots{})}, where each @var{elem} is from the corresponding @var{lst} .
+Each @var{lst} must be the same length.  The calls are potentially made
+in parallel, depending on the number of CPU cores available.
 
 These functions are like @code{map} and @code{for-each} (@pxref{List
 Mapping}), but make their @var{proc} calls in parallel.

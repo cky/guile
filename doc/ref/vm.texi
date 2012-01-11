@@ -432,7 +432,7 @@ then @code{local-set}, used when binding boxed variables.
 @end deffn
 
 @deffn Instruction empty-box index
-Set the @var{indext}h local variable to a box containing a variable
+Set the @var{index}th local variable to a box containing a variable
 whose value is unbound. Used when compiling some @code{letrec}
 expressions.
 @end deffn
@@ -918,13 +918,13 @@ Jump to @var{offset} if the object on the stack is false.
 
 @deffn Instruction br-if-eq offset
 Jump to @var{offset} if the two objects located on the stack are
-equal in the sense of @var{eq?}.  Note that, for this instruction, the
+equal in the sense of @code{eq?}.  Note that, for this instruction, the
 stack pointer is decremented by two Scheme objects instead of only
 one.
 @end deffn
 
 @deffn Instruction br-if-not-eq offset
-Same as @var{br-if-eq} for non-@code{eq?} objects.
+Same as @code{br-if-eq} for non-@code{eq?} objects.
 @end deffn
 
 @deffn Instruction br-if-null offset

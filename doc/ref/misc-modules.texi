@@ -90,13 +90,13 @@ dots.}, or in the worst case, displayed as @nicode{#}.
 
 @deffn {Scheme Procedure} truncated-print obj [port] [keyword-options]
 Print @var{obj}, truncating the output, if necessary, to make it fit
-into @var{width} characters. By default, @var{x} will be printed using
+into @var{width} characters. By default, @var{obj} will be printed using
 @code{write}, though that behavior can be overridden via the
 @var{display?} keyword argument.
 
 The default behaviour is to print depth-first, meaning that the entire
-remaining width will be available to each sub-expression of @var{x} --
-e.g., if @var{x} is a vector, each member of @var{x}. One can attempt to
+remaining width will be available to each sub-expression of @var{obj} --
+e.g., if @var{obj} is a vector, each member of @var{obj}. One can attempt to
 ``ration'' the available width, trying to allocate it equally to each
 sub-expression, via the @var{breadth-first?} keyword argument.
 

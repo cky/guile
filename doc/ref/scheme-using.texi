@@ -311,7 +311,7 @@ they do not work at the top level.
 @deffn {REPL Command} backtrace [count] [#:width w] [#:full? f]
 Print a backtrace.
 
-Print a backtrace of all stack frames, or innermost @var{COUNT} frames.
+Print a backtrace of all stack frames, or innermost @var{count} frames.
 If @var{count} is negative, the last @var{count} frames will be shown.
 @end deffn
 
@@ -406,11 +406,11 @@ reenter the REPL.
 @node Inspect Commands
 @subsubsection Inspect Commands
 
-@deffn {REPL Command} inspect EXP
+@deffn {REPL Command} inspect exp
 Inspect the result(s) of evaluating @var{exp}.
 @end deffn
 
-@deffn {REPL Command} pretty-print EXP
+@deffn {REPL Command} pretty-print exp
 Pretty-print the result(s) of evaluating @var{exp}.
 @end deffn
 

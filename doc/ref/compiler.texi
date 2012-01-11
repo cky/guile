@@ -429,9 +429,9 @@ any, then the rest argument if any, then all of the keyword arguments.
 
 @var{body} is the body of the clause. If the procedure is called with
 an appropriate number of arguments, @var{body} is evaluated in tail
-position. Otherwise, if there is a @var{consequent}, it should be a
+position. Otherwise, if there is an @var{alternate}, it should be a
 @code{<lambda-case>} expression, representing the next clause to try.
-If there is no @var{consequent}, a wrong-number-of-arguments error is
+If there is no @var{alternate}, a wrong-number-of-arguments error is
 signaled.
 @end deftp
 @deftp {Scheme Variable} <let> src names gensyms vals exp

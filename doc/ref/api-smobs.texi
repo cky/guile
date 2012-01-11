@@ -22,8 +22,8 @@ If @var{size} is 0, the default @emph{free} function will do nothing.
 
 If @var{size} is not 0, the default @emph{free} function will
 deallocate the memory block pointed to by @code{SCM_SMOB_DATA} with
-@code{scm_gc_free}.  The @var{WHAT} parameter in the call to
-@code{scm_gc_free} will be @var{NAME}.
+@code{scm_gc_free}.  The @var{what} parameter in the call to
+@code{scm_gc_free} will be @var{name}.
 
 Default values are provided for the @emph{mark}, @emph{free},
 @emph{print}, and @emph{equalp} functions, as described in
@@ -43,7 +43,7 @@ a @dfn{finalizer}) for the smob type specified by the tag
 @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 
 The @var{free} procedure must deallocate all resources that are
-directly associated with the smob instance @var{OBJ}.  It must assume
+directly associated with the smob instance @var{obj}.  It must assume
 that all @code{SCM} values that it references have already been freed
 and are thus invalid.
 
@@ -107,14 +107,14 @@ with @code{scm_display}, @code{scm_write}, @code{scm_simple_format},
 and @code{scm_puts}.
 @end deftypefn
 
-@deftypefn {C Function} void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM obj1, SCM obj1))
+@deftypefn {C Function} void scm_set_smob_equalp (scm_t_bits tc, SCM (*equalp) (SCM obj1, SCM obj2))
 This function sets the smob equality-testing predicate for the smob
 type specified by the tag @var{tc}. @var{tc} is the tag returned by
 @code{scm_make_smob_type}.
 
 The @var{equalp} procedure should return @code{SCM_BOOL_T} when
 @var{obj1} is @code{equal?} to @var{obj2}.  Else it should return
-@var{SCM_BOOL_F}.  Both @var{obj1} and @var{obj2} are instances of the
+@code{SCM_BOOL_F}.  Both @var{obj1} and @var{obj2} are instances of the
 smob type @var{tc}.
 @end deftypefn
 

@@ -211,8 +211,8 @@ initialized to zero.  The @var{modes} string is the same as that
 accepted by @code{open-file} (@pxref{File Ports, open-file}).
 @end deffn
 
-@deffn {Scheme Procedure} fdes->ports fd
-@deffnx {C Function} scm_fdes_to_ports (fd)
+@deffn {Scheme Procedure} fdes->ports fdes
+@deffnx {C Function} scm_fdes_to_ports (fdes)
 Return a list of existing ports which have @var{fdes} as an
 underlying file descriptor, without changing their revealed
 counts.
@@ -230,8 +230,8 @@ descriptor, if one exists, and increments its revealed count.
 Otherwise, returns a new output port with a revealed count of 1.
 @end deffn
 
-@deffn {Scheme Procedure} primitive-move->fdes port fd
-@deffnx {C Function} scm_primitive_move_to_fdes (port, fd)
+@deffn {Scheme Procedure} primitive-move->fdes port fdes
+@deffnx {C Function} scm_primitive_move_to_fdes (port, fdes)
 Moves the underlying file descriptor for @var{port} to the integer
 value @var{fdes} without changing the revealed count of @var{port}.
 Any other ports already using this descriptor will be automatically
@@ -252,10 +252,10 @@ The return value is unspecified.
 Decrements the revealed count for a port.
 @end deffn
 
-@deffn {Scheme Procedure} fsync object
-@deffnx {C Function} scm_fsync (object)
+@deffn {Scheme Procedure} fsync port_or_fd
+@deffnx {C Function} scm_fsync (port_or_fd)
 Copies any unwritten data for the specified output file descriptor to disk.
-If @var{port/fd} is a port, its buffer is flushed before the underlying
+If @var{port_or_fd} is a port, its buffer is flushed before the underlying
 file descriptor is fsync'd.
 The return value is unspecified.
 @end deffn
@@ -402,11 +402,11 @@ port.
 This procedure is equivalent to @code{(dup->port @var{port} @var{modes})}.
 @end deffn
 
-@deffn {Scheme Procedure} redirect-port old new
-@deffnx {C Function} scm_redirect_port (old, new)
+@deffn {Scheme Procedure} redirect-port old_port new_port
+@deffnx {C Function} scm_redirect_port (old_port, new_port)
 This procedure takes two ports and duplicates the underlying file
-descriptor from @var{old-port} into @var{new-port}.  The
-current file descriptor in @var{new-port} will be closed.
+descriptor from @var{old_port} into @var{new_port}.  The
+current file descriptor in @var{new_port} will be closed.
 After the redirection the two ports will share a file position
 and file status flags.
 
@@ -648,7 +648,7 @@ The GNU C Library Reference Manual}.
 @deffn {Scheme Procedure} stat object
 @deffnx {C Function} scm_stat (object)
 Return an object containing various information about the file
-determined by @var{obj}.  @var{obj} can be a string containing
+determined by @var{object}.  @var{object} can be a string containing
 a file name or a port or integer file descriptor which is open
 on a file (in which case @code{fstat} is used as the underlying
 system call).
@@ -728,8 +728,8 @@ An integer representing the access permission bits.
 @end deffn
 @end deffn
 
-@deffn {Scheme Procedure} lstat str
-@deffnx {C Function} scm_lstat (str)
+@deffn {Scheme Procedure} lstat path
+@deffnx {C Function} scm_lstat (path)
 Similar to @code{stat}, but does not follow symbolic links, i.e.,
 it will return information about a symbolic link itself, not the
 file it points to.  @var{path} must be a string.
@@ -762,8 +762,8 @@ as @code{-1}, then that ID is not changed.
 @findex fchmod
 @deffn {Scheme Procedure} chmod object mode
 @deffnx {C Function} scm_chmod (object, mode)
-Changes the permissions of the file referred to by @var{obj}.
-@var{obj} can be a string containing a file name or a port or integer file
+Changes the permissions of the file referred to by @var{object}.
+@var{object} can be a string containing a file name or a port or integer file
 descriptor which is open on a file (in which case @code{fchmod} is used
 as the underlying system call).
 @var{mode} specifies
@@ -774,7 +774,7 @@ The return value is unspecified.
 @deffn {Scheme Procedure} utime pathname [actime [modtime [actimens [modtimens [flags]]]]]
 @deffnx {C Function} scm_utime (pathname, actime, modtime, actimens, modtimens, flags)
 @code{utime} sets the access and modification times for the
-file named by @var{path}.  If @var{actime} or @var{modtime} is
+file named by @var{pathname}.  If @var{actime} or @var{modtime} is
 not supplied, then the current time is used.  @var{actime} and
 @var{modtime} must be integer time values as returned by the
 @code{current-time} procedure.
@@ -1055,7 +1055,7 @@ stream.  Otherwise, close the stream.  The @code{setpwent} and
 
 @deffn {Scheme Procedure} getpw [user]
 @deffnx {C Function} scm_getpwuid (user)
-Look up an entry in the user database.  @var{obj} can be an integer,
+Look up an entry in the user database.  @var{user} can be an integer,
 a string, or omitted, giving the behaviour of getpwuid, getpwnam
 or getpwent respectively.
 @end deffn
@@ -1108,9 +1108,9 @@ stream.  Otherwise, close the stream.  The @code{setgrent} and
 @code{endgrent} procedures are implemented on top of this.
 @end deffn
 
-@deffn {Scheme Procedure} getgr [name]
-@deffnx {C Function} scm_getgrgid (name)
-Look up an entry in the group database.  @var{obj} can be an integer,
+@deffn {Scheme Procedure} getgr [group]
+@deffnx {C Function} scm_getgrgid (group)
+Look up an entry in the group database.  @var{group} can be an integer,
 a string, or omitted, giving the behaviour of getgrgid, getgrnam
 or getgrent respectively.
 @end deffn
@@ -1284,7 +1284,7 @@ names are from the current locale and in the locale character set.
 @cindex time parsing
 Performs the reverse action to @code{strftime}, parsing
 @var{string} according to the specification supplied in
-@var{template}.  The interpretation of month and day names is
+@var{format}.  The interpretation of month and day names is
 dependent on the current locale.  The value returned is a pair.
 The @acronym{CAR} has an object with time components
 in the form returned by @code{localtime} or @code{gmtime},
@@ -1411,8 +1411,8 @@ The given strings are all copied, so the C data is not accessed again
 once @code{scm_set_program_arguments} returns.
 @end deftypefn
 
-@deffn {Scheme Procedure} getenv nam
-@deffnx {C Function} scm_getenv (nam)
+@deffn {Scheme Procedure} getenv name
+@deffnx {C Function} scm_getenv (name)
 @cindex environment
 Looks up the string @var{name} in the current environment.  The return
 value is @code{#f} unless a string of the form @code{NAME=VALUE} is
@@ -1442,8 +1442,8 @@ If @var{env} is omitted, return the current environment (in the
 Unix sense) as a list of strings.  Otherwise set the current
 environment, which is also the default environment for child
 processes, to the supplied list of strings.  Each member of
-@var{env} should be of the form @var{NAME}=@var{VALUE} and values of
-@var{NAME} should not be duplicated.  If @var{env} is supplied
+@var{env} should be of the form @var{name}=@var{value} and values of
+@var{name} should not be duplicated.  If @var{env} is supplied
 then the return value is unspecified.
 @end deffn
 
@@ -1452,11 +1452,11 @@ then the return value is unspecified.
 Modifies the environment of the current process, which is
 also the default environment inherited by child processes.
 
-If @var{string} is of the form @code{NAME=VALUE} then it will be written
+If @var{str} is of the form @code{NAME=VALUE} then it will be written
 directly into the environment, replacing any existing environment string
 with
-name matching @code{NAME}.  If @var{string} does not contain an equal
-sign, then any existing string with name matching @var{string} will
+name matching @code{NAME}.  If @var{str} does not contain an equal
+sign, then any existing string with name matching @var{str} will
 be removed.
 
 The return value is unspecified.
@@ -1472,7 +1472,7 @@ The return value is unspecified.
 @deffn {Scheme Procedure} chdir str
 @deffnx {C Function} scm_chdir (str)
 @cindex current directory
-Change the current working directory to @var{path}.
+Change the current working directory to @var{str}.
 The return value is unspecified.
 @end deffn
 
@@ -1745,13 +1745,13 @@ in the child would upset the protocol in the parent, so
 
 @deffn {Scheme Procedure} execl filename . args
 @deffnx {C Function} scm_execl (filename, args)
-Executes the file named by @var{path} as a new process image.
+Executes the file named by @var{filename} as a new process image.
 The remaining arguments are supplied to the process; from a C program
 they are accessible as the @code{argv} argument to @code{main}.
-Conventionally the first @var{arg} is the same as @var{path}.
+Conventionally the first @var{arg} is the same as @var{filename}.
 All arguments must be strings.
 
-If @var{arg} is missing, @var{path} is executed with a null
+If @var{arg} is missing, @var{filename} is executed with a null
 argument list, which may have system-dependent side-effects.
 
 This procedure is currently implemented using the @code{execv} system

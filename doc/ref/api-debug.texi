@@ -96,7 +96,7 @@ stack frames from the top and bottom of the stack that
 @code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}
 @var{outer_cut_2} @dots{})}.
 
-Each @var{inner_cut_N} can be @code{#t}, an integer, a prompt
+Each @var{inner_cut_i} can be @code{#t}, an integer, a prompt
 tag, or a procedure.  @code{#t} means to cut away all frames up
 to but excluding the first user module frame.  An integer means
 to cut away exactly that number of frames.  A prompt tag means
@@ -105,14 +105,14 @@ tag. A procedure means to cut away all frames up to but
 excluding the application frame whose procedure matches the
 specified one.
 
-Each @var{outer_cut_N} can be an integer, a prompt tag, or a
+Each @var{outer_cut_i} can be an integer, a prompt tag, or a
 procedure.  An integer means to cut away that number of frames.
 A prompt tag means to cut away all frames that are outside a
 prompt with the given tag. A procedure means to cut away
 frames down to but excluding the application frame whose
 procedure matches the specified one.
 
-If the @var{outer_cut_N} of the last pair is missing, it is
+If the @var{outer_cut_i} of the last pair is missing, it is
 taken as 0.
 @end deffn
 

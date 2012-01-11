@@ -2322,7 +2322,7 @@ any) will be stored for later retrieval via a call to
 Wait for @var{thread} to terminate and return its exit value.  When a 
 time value @var{timeout} is given, it specifies a point in time where
 the waiting should be aborted.  When the waiting is aborted, 
-@var{timeoutval} is returned if it is specified; otherwise, a
+@var{timeout-val} is returned if it is specified; otherwise, a
 @code{join-timeout-exception} exception is raised 
 (@pxref{SRFI-18 Exceptions}).  Exceptions may also be raised if the 
 thread was terminated by a call to @code{thread-terminate!} 
@@ -2430,8 +2430,8 @@ replaces a procedure of the same name in the core library.
 @end defun
 
 @defun condition-variable-name condition-variable
-Returns the name assigned to @var{thread} at the time of its creation,
-or @code{#f} if it was not given a name.
+Returns the name assigned to @var{condition-variable} at the time of its
+creation, or @code{#f} if it was not given a name.
 @end defun
 
 @defun condition-variable-specific condition-variable
@@ -3533,7 +3533,7 @@ Return the value of the field named @var{field-name} from condition @var{c}.
 If @var{c} is a compound condition and several underlying condition
 types contain a field named @var{field-name}, then the value of the
 first such field is returned, using the order in which conditions were
-passed to @var{make-compound-condition}.
+passed to @code{make-compound-condition}.
 @end deffn
 
 @deffn {Scheme Procedure} extract-condition c type
@@ -3858,7 +3858,7 @@ This is a Guile-specific addition to the SRFI, similar to the core
 @defun with-parameters* param-list value-list thunk
 Establish a new dynamic scope, as per @code{parameterize} above,
 taking parameters from @var{param-list} and corresponding values from
-@var{values-list}.  A call @code{(@var{thunk})} is made in the new
+@var{value-list}.  A call @code{(@var{thunk})} is made in the new
 scope and the result from that @var{thunk} is the return from
 @code{with-parameters*}.
 @end defun

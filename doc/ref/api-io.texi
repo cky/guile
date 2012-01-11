@@ -251,7 +251,7 @@ sequence when the error is raised.
 
 @deffn {Scheme Procedure} unread-char cobj [port]
 @deffnx {C Function} scm_unread_char (cobj, port)
-Place @var{char} in @var{port} so that it will be read by the
+Place character @var{cobj} in @var{port} so that it will be read by the
 next read operation.  If called multiple times, the unread characters
 will be read again in last-in first-out order.  If @var{port} is
 not supplied, the current input port is used.
@@ -343,7 +343,7 @@ the current output port.
 @var{message} can contain @code{~A} (was @code{%s}) and
 @code{~S} (was @code{%S}) escapes.  When printed,
 the escapes are replaced with corresponding members of
-@var{ARGS}:
+@var{args}:
 @code{~A} formats using @code{display} and @code{~S} formats
 using @code{write}.
 If @var{destination} is @code{#t}, then use the current output
@@ -426,7 +426,7 @@ open.
 
 @deffn {Scheme Procedure} seek fd_port offset whence
 @deffnx {C Function} scm_seek (fd_port, offset, whence)
-Sets the current position of @var{fd/port} to the integer
+Sets the current position of @var{fd_port} to the integer
 @var{offset}, which is interpreted according to the value of
 @var{whence}.
 
@@ -441,7 +441,7 @@ Seek from the current position.
 @defvar SEEK_END
 Seek from the end of the file.
 @end defvar
-If @var{fd/port} is a file descriptor, the underlying system
+If @var{fd_port} is a file descriptor, the underlying system
 call is @code{lseek}.  @var{port} may be a string port.
 
 The value returned is the new position in the file.  This means
@@ -454,7 +454,7 @@ that the current position of a port can be obtained using:
 @deffn {Scheme Procedure} ftell fd_port
 @deffnx {C Function} scm_ftell (fd_port)
 Return an integer representing the current position of
-@var{fd/port}, measured from the beginning.  Equivalent to:
+@var{fd_port}, measured from the beginning.  Equivalent to:
 
 @lisp
 (seek port 0 SEEK_CUR)
@@ -922,7 +922,7 @@ of the respective current port is restored.
 The current port setting is managed with @code{dynamic-wind}, so the
 previous value is restored no matter how @var{thunk} exits (eg.@: an
 exception), and if @var{thunk} is re-entered (via a captured
-continuation) then it's set again to the @var{FILENAME} port.
+continuation) then it's set again to the @var{filename} port.
 
 The port is closed when @var{thunk} returns normally, but not when
 exited via an exception or new continuation.  This ensures it's still
@@ -1414,7 +1414,7 @@ This condition type could be defined by
 An exception with this type is raised when one of the operations for
 textual output to a port encounters a character that cannot be
 translated into bytes by the output direction of the port's transcoder.
-@var{Char} is the character that could not be encoded.
+@var{char} is the character that could not be encoded.
 @end deffn
 
 @deffn {Scheme Syntax} error-handling-mode @var{error-handling-mode-symbol}
@@ -1430,7 +1430,7 @@ symbol acceptable as a @var{handling-mode} argument to
 raised.
 
 @quotation Note
-  Only the name of @var{error-handling-style-symbol} is significant.
+  Only the name of @var{error-handling-mode-symbol} is significant.
 @end quotation
 
 The error-handling mode of a transcoder specifies the behavior
@@ -1470,7 +1470,7 @@ symbol; and @var{handling-mode}, if present, an error-handling-mode
 symbol.
 
 @var{eol-style} may be omitted, in which case it defaults to the native
-end-of-line style of the underlying platform.  @var{Handling-mode} may
+end-of-line style of the underlying platform.  @var{handling-mode} may
 be omitted, in which case it defaults to @code{replace}.  The result is
 a transcoder with the behavior specified by its arguments.
 @end deffn
@@ -1566,11 +1566,11 @@ encoding.  Likewise, Guile does not prevent use of
 @end deffn
 
 @deffn {Scheme Procedure} textual-port? port
-Always return @var{#t}, as all ports can be used for textual I/O in
+Always return @code{#t}, as all ports can be used for textual I/O in
 Guile.
 @end deffn
 
-@deffn {Scheme Procedure} transcoded-port obj
+@deffn {Scheme Procedure} transcoded-port binary-port transcoder
 The @code{transcoded-port} procedure
 returns a new textual port with the specified @var{transcoder}.
 Otherwise the new textual port's state is largely the same as
@@ -1629,12 +1629,12 @@ of @var{proc}.  Return the return values of @var{proc}.
 @node R6RS Input Ports
 @subsubsection Input Ports
 
-@deffn {Scheme Procedure} input-port? obj@
+@deffn {Scheme Procedure} input-port? obj
 Returns @code{#t} if the argument is an input port (or a combined input
 and output port), and returns @code{#f} otherwise.
 @end deffn
 
-@deffn {Scheme Procedure} port-eof? port
+@deffn {Scheme Procedure} port-eof? input-port
 Returns @code{#t}
 if the @code{lookahead-u8} procedure (if @var{input-port} is a binary port)
 or the @code{lookahead-char} procedure (if @var{input-port} is a textual port)
@@ -1648,7 +1648,7 @@ but the port cannot be determined to be at end of file.
 @deffnx {Scheme Procedure} open-file-input-port filename file-options
 @deffnx {Scheme Procedure} open-file-input-port filename file-options buffer-mode
 @deffnx {Scheme Procedure} open-file-input-port filename file-options buffer-mode maybe-transcoder
-@var{Maybe-transcoder} must be either a transcoder or @code{#f}.
+@var{maybe-transcoder} must be either a transcoder or @code{#f}.
 
 The @code{open-file-input-port} procedure returns an
 input port for the named file. The @var{file-options} and
@@ -1718,13 +1718,13 @@ indicating the number of bytes read, or @code{0} to indicate the
 end-of-file.
 
 Optionally, if @var{get-position} is not @code{#f}, it must be a thunk
-that will be called when @var{port-position} is invoked on the custom
+that will be called when @code{port-position} is invoked on the custom
 binary port and should return an integer indicating the position within
 the underlying data stream; if @var{get-position} was not supplied, the
-returned port does not support @var{port-position}.
+returned port does not support @code{port-position}.
 
 Likewise, if @var{set-position!} is not @code{#f}, it should be a
-one-argument procedure.  When @var{set-port-position!} is invoked on the
+one-argument procedure.  When @code{set-port-position!} is invoked on the
 custom binary input port, @var{set-position!} is passed an integer
 indicating the position of the next byte is to read.
 
@@ -1806,7 +1806,7 @@ end-of-file object (if no data were available).
 @node R6RS Textual Input
 @subsubsection Textual Input
 
-@deffn {Scheme Procedure} get-char port
+@deffn {Scheme Procedure} get-char textual-input-port
 Reads from @var{textual-input-port}, blocking as necessary, until a
 complete character is available from @var{textual-input-port},
 or until an end of file is reached.
@@ -1817,14 +1817,14 @@ point past the character. If an end of file is reached before any
 character is read, @code{get-char} returns the end-of-file object.
 @end deffn
 
-@deffn {Scheme Procedure} lookahead-char port
+@deffn {Scheme Procedure} lookahead-char textual-input-port
 The @code{lookahead-char} procedure is like @code{get-char}, but it does
 not update @var{textual-input-port} to point past the character.
 @end deffn
 
-@deffn {Scheme Procedure} get-string-n port count
+@deffn {Scheme Procedure} get-string-n textual-input-port count
 
-@var{Count} must be an exact, non-negative integer object, representing
+@var{count} must be an exact, non-negative integer object, representing
 the number of characters to be read.
 
 The @code{get-string-n} procedure reads from @var{textual-input-port},
@@ -1840,11 +1840,11 @@ to point just past the characters read. If no characters can be read
 before an end of file, the end-of-file object is returned.
 @end deffn
 
-@deffn {Scheme Procedure} get-string-n! port string start count
+@deffn {Scheme Procedure} get-string-n! textual-input-port string start count
 
-@var{Start} and @var{count} must be exact, non-negative integer objects,
+@var{start} and @var{count} must be exact, non-negative integer objects,
 with @var{count} representing the number of characters to be read.
-@var{String} must be a string with at least $@var{start} + @var{count}$
+@var{string} must be a string with at least $@var{start} + @var{count}$
 characters.
 
 The @code{get-string-n!} procedure reads from @var{textual-input-port}
@@ -1858,7 +1858,7 @@ exact integer object. If no characters can be read before an end of
 file, the end-of-file object is returned.
 @end deffn
 
-@deffn {Scheme Procedure} get-string-all port count
+@deffn {Scheme Procedure} get-string-all textual-input-port count
 Reads from @var{textual-input-port} until an end of file, decoding
 characters in the same manner as @code{get-string-n} and
 @code{get-string-n!}.
@@ -1868,7 +1868,7 @@ all the characters decoded from that data are returned. If no character
 precedes the end of file, the end-of-file object is returned.
 @end deffn
 
-@deffn {Scheme Procedure} get-line port
+@deffn {Scheme Procedure} get-line textual-input-port
 Reads from @var{textual-input-port} up to and including the linefeed
 character or end of file, decoding characters in the same manner as
 @code{get-string-n} and @code{get-string-n!}.
@@ -1887,7 +1887,7 @@ any characters are read, the end-of-file object is returned.
 @end quotation
 @end deffn
 
-@deffn {Scheme Procedure} get-datum port count
+@deffn {Scheme Procedure} get-datum textual-input-port count
 Reads an external representation from @var{textual-input-port} and returns the
 datum it represents.  The @code{get-datum} procedure returns the next
 datum that can be parsed from the given @var{textual-input-port}, updating
@@ -2048,7 +2048,7 @@ Writes @var{char} to the port. The @code{put-char} procedure returns
 @code{put-string} procedure returns an unspecified value.
 @end deffn
 
-@deffn {Scheme Procedure} put-datum port datum
+@deffn {Scheme Procedure} put-datum textual-output-port datum
 @var{datum} should be a datum value.  The @code{put-datum} procedure
 writes an external representation of @var{datum} to
 @var{textual-output-port}.  The specific external representation is

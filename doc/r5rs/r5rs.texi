@@ -4615,7 +4615,7 @@ implementation-dependent range.  See section @ref{Implementation restrictions}.
 @deffn {procedure} number->string  z
 @deffnx {procedure} number->string  z radix
 
-@var{Radix} must be an exact integer, either 2, 8, 10, or 16.  If omitted,
+@var{radix} must be an exact integer, either 2, 8, 10, or 16.  If omitted,
 @var{radix} defaults to 10.
 The procedure @samp{number->string} takes a
 number and a radix and returns as a string an external representation of
@@ -4674,7 +4674,7 @@ allows for infinities, NaNs, and non-flonum representations.
 @c  for the third argument.
 
 Returns a number of the maximally precise representation expressed by the
-given @var{string}.  @var{Radix} must be an exact integer, either 2, 8, 10,
+given @var{string}.  @var{radix} must be an exact integer, either 2, 8, 10,
 or 16.  If supplied, @var{radix} is a default radix that may be overridden
 by an explicit radix prefix in @var{string} (e.g. @t{"#o177"}).  If @var{radix}
 is not supplied, then the default radix is 10.  If @var{string} is not
@@ -5381,7 +5381,7 @@ returned.  @samp{Memq} uses @samp{eq?} to compare @var{obj} with the elements of
 @deffnx {library procedure} assv  obj alist
 @deffnx {library procedure} assoc  obj alist
 
-@var{Alist} (for ``association list'') must be a list of
+@var{alist} (for ``association list'') must be a list of
 pairs.  These procedures find the first pair in @var{alist} whose car field is @var{obj},
 and returns that pair.  If no pair in @var{alist} has @var{obj} as its
 car, then @t{#f} (not the empty list) is returned.  @samp{Assq} uses
@@ -5830,10 +5830,9 @@ Returns @t{#t} if @var{obj} is a string, otherwise returns @t{#f}.
 
 @c \domain{\vr{k} must be a non-negative integer, and \var{char} must be
 @c a character.}  
-@samp{Make-string} returns a newly allocated string of
-length @var{k}.  If @var{char} is given, then all elements of the string
-are initialized to @var{char}, otherwise the contents of the
-@var{string} are unspecified.
+@samp{Make-string} returns a newly allocated string of length @var{k}.
+If @var{char} is given, then all elements of the string are initialized
+to @var{char}, otherwise the contents of the string are unspecified.
 
 @end deffn
 
@@ -5927,7 +5926,7 @@ the corresponding numerical predicates.
 
 @deffn {library procedure} substring  string start end
 
-@var{String} must be a string, and @var{start} and @var{end}
+@var{string} must be a string, and @var{start} and @var{end}
 must be exact integers satisfying
 
 
@@ -6194,7 +6193,7 @@ Returns @t{#t} if @var{obj} is a procedure, otherwise returns @t{#f}.
 
 @deffn {procedure} apply  proc arg1 @dots{} args
 
-@var{Proc} must be a procedure and @var{args} must be a list.
+@var{proc} must be a procedure and @var{args} must be a list.
 Calls @var{proc} with the elements of the list
 @samp{(append (list @var{arg1} @dots{},) @var{args})} as the actual
 arguments.
@@ -6466,7 +6465,7 @@ and @samp{+}:
 
 @deffn {procedure} call-with-current-continuation  proc
 
- @var{Proc} must be a procedure of one
+ @var{proc} must be a procedure of one
 argument. The procedure @samp{call-with-current-continuation} packages
 up the current continuation (see the rationale below) as an ``escape
 procedure'' and passes it as an argument to
@@ -6616,11 +6615,11 @@ continuation of the call to @t{call-with-values}.
 @deffn {procedure} dynamic-wind  before thunk after
 
 Calls @var{thunk} without arguments, returning the result(s) of this call.
-@var{Before} and @var{after} are called, also without arguments, as required
+@var{before} and @var{after} are called, also without arguments, as required
 by the following rules (note that in the absence of calls to continuations
 captured using @code{call-with-current-continuation} the three arguments are
 @vindex @w{call-with-current-continuation}
-called once each, in order).  @var{Before} is called whenever execution
+called once each, in order).  @var{before} is called whenever execution
 enters the dynamic extent of the call to @var{thunk} and @var{after} is called
 whenever it exits that dynamic extent.  The dynamic extent of a procedure
 call is the period between when the call is initiated and when it
@@ -6703,7 +6702,7 @@ extent of a call to @var{before} or @var{after} is undefined.
 @deffn {procedure} eval  expression environment-specifier
 
 Evaluates @var{expression} in the specified environment and returns its value.
-@var{Expression} must be a valid Scheme expression represented as data,
+@var{expression} must be a valid Scheme expression represented as data,
 and @var{environment-specifier} must be a value returned by one of the
 three procedures described below.
 Implementations may extend @samp{eval} to allow non-expression programs
@@ -6731,7 +6730,7 @@ allowed to create new bindings in the environments associated with
 @deffn {procedure} scheme-report-environment  version
 @deffnx {procedure} null-environment  version
 
-@var{Version} must be the exact integer @samp{5},
+@var{version} must be the exact integer @samp{5},
 corresponding to this revision of the Scheme report (the
 Revised^5 Report on Scheme).
 @samp{Scheme-report-environment} returns a specifier for an
@@ -6797,7 +6796,7 @@ Haase: Mention that there are alternatives to files?
 @deffn {library procedure} call-with-input-file  string proc
 @deffnx {library procedure} call-with-output-file  string proc
 
-@var{String} should be a string naming a file, and
+@var{string} should be a string naming a file, and
 @var{proc} should be a procedure that accepts one argument.
 For @samp{call-with-input-file},
 the file should already exist; for
@@ -6862,8 +6861,8 @@ Returns the current default input or output port.
 @deffn {optional procedure} with-input-from-file  string thunk
 @deffnx {optional procedure} with-output-to-file  string thunk
 
-@var{String} should be a string naming a file, and
-@var{proc} should be a procedure of no arguments.
+@var{string} should be a string naming a file, and
+@var{thunk} should be a procedure of no arguments.
 For @samp{with-input-from-file},
 the file should already exist; for
 @samp{with-output-to-file},
@@ -6999,7 +6998,7 @@ a closed port.
 
 Returns the next character available from the input @var{port}, updating
 the @var{port} to point to the following character.  If no more characters
-are available, an end of file object is returned.  @var{Port} may be
+are available, an end of file object is returned.  @var{port} may be
 omitted, in which case it defaults to the value returned by @samp{current-input-port}.
 
 @end deffn
@@ -7012,7 +7011,7 @@ omitted, in which case it defaults to the value returned by @samp{current-input-
 Returns the next character available from the input @var{port},
 @emph{without} updating
 the @var{port} to point to the following character.  If no more characters
-are available, an end of file object is returned.  @var{Port} may be
+are available, an end of file object is returned.  @var{port} may be
 omitted, in which case it defaults to the value returned by @samp{current-input-port}.
 
 
@@ -7050,7 +7049,7 @@ Returns @t{#t} if a character is ready on the input @var{port} and
 returns @t{#f} otherwise.  If @samp{char-ready} returns @t{#t} then
 the next @samp{read-char} operation on the given @var{port} is guaranteed
 not to hang.  If the @var{port} is at end of file then @samp{char-ready?}
-returns @t{#t}.  @var{Port} may be omitted, in which case it defaults to
+returns @t{#t}.  @var{port} may be omitted, in which case it defaults to
 the value returned by @samp{current-input-port}.
 
 
@@ -7163,7 +7162,7 @@ Fix
 
 @c \domain{\var{Filename} should be a string naming an existing file
 @c containing Scheme source code.} The {\cf load} procedure reads
-@var{Filename} should be a string naming an existing file
+@var{filename} should be a string naming an existing file
 containing Scheme source code.  The @samp{load} procedure reads
 expressions and definitions from the file and evaluates them
 sequentially.  It is unspecified whether the results of the expressions
@@ -7186,7 +7185,7 @@ implementations.
 @deffn {optional procedure} transcript-on  filename
 @deffnx {optional procedure} transcript-off 
 
-@var{Filename} must be a string naming an output file to be
+@var{filename} must be a string naming an output file to be
 created. The effect of @samp{transcript-on} is to open the named file
 for output, and to cause a transcript of subsequent interaction between
 the user and the Scheme system to be written to the file.  The

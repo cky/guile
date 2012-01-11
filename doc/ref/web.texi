@@ -1116,7 +1116,7 @@ if there was no request body.
 @end deffn
 
 @deffn {Scheme Procedure} write-request-body r bv
-Write @var{body}, a bytevector, to the port corresponding to the HTTP
+Write @var{bv}, a bytevector, to the port corresponding to the HTTP
 request @var{r}.
 @end deffn
 
@@ -1212,7 +1212,7 @@ As a side effect, sets the encoding on @var{port} to ISO-8859-1
 discussion of character sets in @ref{Responses}, for more information.
 @end deffn
 
-@deffn {Scheme Procedure} build-response [#:version='(1 . 1)] [#:code=200] [#:reason-phrase=#f] [#:headers='()] [#:port=#f] [#:validate-headers=#t]
+@deffn {Scheme Procedure} build-response [#:version='(1 . 1)] [#:code=200] [#:reason-phrase=#f] [#:headers='()] [#:port=#f] [#:validate-headers?=#t]
 Construct an HTTP response object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators.
 @end deffn
@@ -1241,7 +1241,7 @@ if there was no response body.
 @end deffn
 
 @deffn {Scheme Procedure} write-response-body r bv
-Write @var{body}, a bytevector, to the port corresponding to the HTTP
+Write @var{bv}, a bytevector, to the port corresponding to the HTTP
 response @var{r}.
 @end deffn
 
@@ -1291,7 +1291,7 @@ the lower-level HTTP, request, and response modules.
 @deffn {Scheme Procedure} open-socket-for-uri uri
 @end deffn
 
-@deffn {Scheme Procedure} http-get uri [#:port=(open-socket-for-uri uri)] [#:version='(1 . 1)] [#:keep-alive?=#f] [#:extra-headers='()] [#:decode-body=#t]
+@deffn {Scheme Procedure} http-get uri [#:port=(open-socket-for-uri uri)] [#:version='(1 . 1)] [#:keep-alive?=#f] [#:extra-headers='()] [#:decode-body?=#t]
 Connect to the server corresponding to @var{uri} and ask for the
 resource, using the @code{GET} method.  If you already have a port open,
 pass it as @var{port}.  The port will be closed at the end of the

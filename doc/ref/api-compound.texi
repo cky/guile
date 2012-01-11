@@ -779,15 +779,15 @@ in the vector.
 Return the number of elements in @var{vector} as an exact integer.
 @end deffn
 
-@deftypefn {C Function} size_t scm_c_vector_length (SCM v)
-Return the number of elements in @var{vector} as a @code{size_t}.
+@deftypefn {C Function} size_t scm_c_vector_length (SCM vec)
+Return the number of elements in @var{vec} as a @code{size_t}.
 @end deftypefn
 
 @rnindex vector-ref
-@deffn {Scheme Procedure} vector-ref vector k
-@deffnx {C Function} scm_vector_ref vector k
-Return the contents of position @var{k} of @var{vector}.
-@var{k} must be a valid index of @var{vector}.
+@deffn {Scheme Procedure} vector-ref vec k
+@deffnx {C Function} scm_vector_ref vec k
+Return the contents of position @var{k} of @var{vec}.
+@var{k} must be a valid index of @var{vec}.
 @lisp
 (vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
 (vector-ref '#(1 1 2 3 5 8 13 21)
@@ -798,9 +798,9 @@ Return the contents of position @var{k} of @var{vector}.
 @end lisp
 @end deffn
 
-@deftypefn {C Function} SCM scm_c_vector_ref (SCM v, size_t k)
+@deftypefn {C Function} SCM scm_c_vector_ref (SCM vec, size_t k)
 Return the contents of position @var{k} (a @code{size_t}) of
-@var{vector}.
+@var{vec}.
 @end deftypefn
 
 A vector created by one of the dynamic vector constructor procedures
@@ -813,10 +813,10 @@ considered as constants.  Currently, however, Guile does not detect this
 error.
 
 @rnindex vector-set!
-@deffn {Scheme Procedure} vector-set! vector k obj
-@deffnx {C Function} scm_vector_set_x vector k obj
-Store @var{obj} in position @var{k} of @var{vector}.
-@var{k} must be a valid index of @var{vector}.
+@deffn {Scheme Procedure} vector-set! vec k obj
+@deffnx {C Function} scm_vector_set_x vec k obj
+Store @var{obj} in position @var{k} of @var{vec}.
+@var{k} must be a valid index of @var{vec}.
 The value returned by @samp{vector-set!} is unspecified.
 @lisp
 (let ((vec (vector 0 '(2 2 2 2) "Anna")))
@@ -825,14 +825,14 @@ The value returned by @samp{vector-set!} is unspecified.
 @end lisp
 @end deffn
 
-@deftypefn {C Function} void scm_c_vector_set_x (SCM v, size_t k, SCM obj)
-Store @var{obj} in position @var{k} (a @code{size_t}) of @var{v}.
+@deftypefn {C Function} void scm_c_vector_set_x (SCM vec, size_t k, SCM obj)
+Store @var{obj} in position @var{k} (a @code{size_t}) of @var{vec}.
 @end deftypefn
 
 @rnindex vector-fill!
-@deffn {Scheme Procedure} vector-fill! v fill
-@deffnx {C Function} scm_vector_fill_x (v, fill)
-Store @var{fill} in every position of @var{vector}.  The value
+@deffn {Scheme Procedure} vector-fill! vec fill
+@deffnx {C Function} scm_vector_fill_x (vec, fill)
+Store @var{fill} in every position of @var{vec}.  The value
 returned by @code{vector-fill!} is unspecified.
 @end deffn
 
@@ -1031,7 +1031,7 @@ Return the element at index @var{idx} of the bitvector
 @var{vec}.
 @end deffn
 
-@deftypefn {C Function} SCM scm_c_bitvector_ref (SCM obj, size_t idx)
+@deftypefn {C Function} SCM scm_c_bitvector_ref (SCM vec, size_t idx)
 Return the element at index @var{idx} of the bitvector
 @var{vec}.
 @end deftypefn
@@ -1042,7 +1042,7 @@ Set the element at index @var{idx} of the bitvector
 @var{vec} when @var{val} is true, else clear it.
 @end deffn
 
-@deftypefn {C Function} SCM scm_c_bitvector_set_x (SCM obj, size_t idx, SCM val)
+@deftypefn {C Function} SCM scm_c_bitvector_set_x (SCM vec, size_t idx, SCM val)
 Set the element at index @var{idx} of the bitvector
 @var{vec} when @var{val} is true, else clear it.
 @end deftypefn
@@ -1427,8 +1427,8 @@ stored in the variable @code{*unspecified*} so that for example
 @code{(make-typed-array 'u32 *unspecified* 4)} creates a uninitialized
 @code{u32} vector of length 4.
 
-Each @var{bound} may be a positive non-zero integer @var{N}, in which
-case the index for that dimension can range from 0 through @var{N-1}; or
+Each @var{bound} may be a positive non-zero integer @var{n}, in which
+case the index for that dimension can range from 0 through @var{n}-1; or
 an explicit index range specifier in the form @code{(LOWER UPPER)},
 where both @var{lower} and @var{upper} are integers, possibly less than
 zero, and possibly the same number (however, @var{lower} cannot be
@@ -1512,8 +1512,8 @@ For example,
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} array-rank obj
-@deffnx {C Function} scm_array_rank (obj)
+@deffn {Scheme Procedure} array-rank array
+@deffnx {C Function} scm_array_rank (array)
 Return the rank of @var{array}.
 @end deffn
 
@@ -1625,10 +1625,10 @@ $\left(\matrix{%
 
 @deffn {Scheme Procedure} uniform-array-read! ra [port_or_fd [start [end]]]
 @deffnx {C Function} scm_uniform_array_read_x (ra, port_or_fd, start, end)
-Attempt to read all elements of @var{ura}, in lexicographic order, as
-binary objects from @var{port-or-fdes}.
+Attempt to read all elements of array @var{ra}, in lexicographic order, as
+binary objects from @var{port_or_fd}.
 If an end of file is encountered,
-the objects up to that point are put into @var{ura}
+the objects up to that point are put into @var{ra}
 (starting at the beginning) and the remainder of the array is
 unchanged.
 
@@ -1637,21 +1637,21 @@ a specified region of a vector (or linearized array) to be read,
 leaving the remainder of the vector unchanged.
 
 @code{uniform-array-read!} returns the number of objects read.
-@var{port-or-fdes} may be omitted, in which case it defaults to the value
+@var{port_or_fd} may be omitted, in which case it defaults to the value
 returned by @code{(current-input-port)}.
 @end deffn
 
-@deffn {Scheme Procedure} uniform-array-write v [port_or_fd [start [end]]]
-@deffnx {C Function} scm_uniform_array_write (v, port_or_fd, start, end)
-Writes all elements of @var{ura} as binary objects to
-@var{port-or-fdes}.
+@deffn {Scheme Procedure} uniform-array-write ra [port_or_fd [start [end]]]
+@deffnx {C Function} scm_uniform_array_write (ra, port_or_fd, start, end)
+Writes all elements of @var{ra} as binary objects to
+@var{port_or_fd}.
 
 The optional arguments @var{start}
 and @var{end} allow
 a specified region of a vector (or linearized array) to be written.
 
 The number of objects actually written is returned.
-@var{port-or-fdes} may be
+@var{port_or_fd} may be
 omitted, in which case it defaults to the value returned by
 @code{(current-output-port)}.
 @end deffn
@@ -1663,7 +1663,7 @@ omitted, in which case it defaults to the value returned by
 @deffnx {C Function} scm_make_shared_array (oldarray, mapfunc, boundlist)
 Return a new array which shares the storage of @var{oldarray}.
 Changes made through either affect the same underlying storage.  The
-@var{bound@dots{}} arguments are the shape of the new array, the same
+@var{bound} @dots{} arguments are the shape of the new array, the same
 as @code{make-array} (@pxref{Array Procedures}).
 
 @var{mapfunc} translates coordinates from the new array to the

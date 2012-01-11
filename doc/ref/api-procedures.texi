@@ -103,7 +103,7 @@ useful mechanism, combining the process of registration
 (@code{scm_c_make_gsubr}) and definition (@code{scm_define}).
 
 @deftypefun SCM scm_c_make_gsubr (const char *name, int req, int opt, int rst, fcn)
-Register a C procedure @var{FCN} as a ``subr'' --- a primitive
+Register a C procedure @var{fcn} as a ``subr'' --- a primitive
 subroutine that can be called from Scheme.  It will be associated with
 the given @var{name} but no environment binding will be created.  The
 arguments @var{req}, @var{opt} and @var{rst} specify the number of
@@ -115,7 +115,7 @@ to @var{fcn}, but may not exceed 10.  The number of rest arguments should be 0 o
 @end deftypefun
 
 @deftypefun SCM scm_c_define_gsubr (const char *name, int req, int opt, int rst, fcn)
-Register a C procedure @var{FCN}, as for @code{scm_c_make_gsubr}
+Register a C procedure @var{fcn}, as for @code{scm_c_make_gsubr}
 above, and additionally create a top-level Scheme binding for the
 procedure in the ``current environment'' using @code{scm_define}.
 @code{scm_c_define_gsubr} returns a handle for the procedure in the

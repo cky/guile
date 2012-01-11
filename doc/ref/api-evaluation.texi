@@ -444,10 +444,10 @@ it as code.
 @deffn {Scheme Procedure} eval exp module_or_state
 @deffnx {C Function} scm_eval (exp, module_or_state)
 Evaluate @var{exp}, a list representing a Scheme expression,
-in the top-level environment specified by @var{module}.
+in the top-level environment specified by @var{module_or_state}.
 While @var{exp} is evaluated (using @code{primitive-eval}),
-@var{module} is made the current module.  The current module
-is reset to its previous value when @var{eval} returns.
+@var{module_or_state} is made the current module.  The current module
+is reset to its previous value when @code{eval} returns.
 XXX - dynamic states.
 Example: (eval '(+ 1 2) (interaction-environment))
 @end deffn

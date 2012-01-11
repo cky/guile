@@ -962,7 +962,7 @@ SCM my_eval_string (SCM str)
 Like @code{scm_public_lookup} or @code{scm_private_lookup}, but
 additionally dereferences the variable.  If the variable object is
 unbound, signals an error.  Returns the value bound to @var{name} in
-@var{module}.
+@var{module_name}.
 @end deftypefn
 
 In addition, there are a number of other lookup-related procedures.  We
@@ -1009,7 +1009,7 @@ module is used instead of the current one.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_module_reverse_lookup (SCM @var{module}, SCM @var{variable})
-Find the symbol that is bound to @var{variable} in @var{module}.  When no such binding is found, return @var{#f}.
+Find the symbol that is bound to @var{variable} in @var{module}.  When no such binding is found, return @code{#f}.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_c_define_module ({const char *}@var{name}, void (*@var{init})(void *), void *@var{data})
