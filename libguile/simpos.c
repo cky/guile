@@ -169,7 +169,7 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
 
 SCM_DEFINE (scm_getenv, "getenv", 1, 0, 0, 
             (SCM nam),
-	    "Looks up the string @var{name} in the current environment.  The return\n"
+	    "Looks up the string @var{nam} in the current environment.  The return\n"
 	    "value is @code{#f} unless a string of the form @code{NAME=VALUE} is\n"
 	    "found, in which case the string @code{VALUE} is returned.")
 #define FUNC_NAME s_scm_getenv

@@ -198,7 +198,7 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
            (SCM v, SCM args),
 	    "Return the element at the @code{(index1, index2)} element in\n"
-	    "@var{array}.")
+	    "array @var{v}.")
 #define FUNC_NAME s_scm_array_ref
 {
   scm_t_array_handle handle;
@@ -214,8 +214,9 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
 
 SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1, 
            (SCM v, SCM obj, SCM args),
-	    "Set the element at the @code{(index1, index2)} element in @var{array} to\n"
-	    "@var{new-value}.  The value returned by array-set! is unspecified.")
+	    "Set the element at the @code{(index1, index2)} element in array\n"
+	    "@var{v} to @var{obj}.  The value returned by @code{array-set!}\n"
+	    "is unspecified.")
 #define FUNC_NAME s_scm_array_set_x           
 {
   scm_t_array_handle handle;

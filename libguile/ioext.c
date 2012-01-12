@@ -49,7 +49,7 @@
 SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0, 
             (SCM fd_port),
 	    "Return an integer representing the current position of\n"
-	    "@var{fd/port}, measured from the beginning.  Equivalent to:\n"
+	    "@var{fd_port}, measured from the beginning.  Equivalent to:\n"
 	    "\n"
 	    "@lisp\n"
 	    "(seek port 0 SEEK_CUR)\n"
@@ -63,8 +63,8 @@ SCM_DEFINE (scm_ftell, "ftell", 1, 0, 0,
 SCM_DEFINE (scm_redirect_port, "redirect-port", 2, 0, 0,
             (SCM old, SCM new),
 	    "This procedure takes two ports and duplicates the underlying file\n"
-	    "descriptor from @var{old-port} into @var{new-port}.  The\n"
-	    "current file descriptor in @var{new-port} will be closed.\n"
+	    "descriptor from @var{old} into @var{new}.  The\n"
+	    "current file descriptor in @var{new} will be closed.\n"
 	    "After the redirection the two ports will share a file position\n"
 	    "and file status flags.\n\n"
 	    "The return value is unspecified.\n\n"
@@ -236,7 +236,7 @@ SCM_DEFINE (scm_fdopen, "fdopen", 2, 0, 0,
 SCM_DEFINE (scm_primitive_move_to_fdes, "primitive-move->fdes", 2, 0, 0,
             (SCM port, SCM fd),
 	    "Moves the underlying file descriptor for @var{port} to the integer\n"
-	    "value @var{fdes} without changing the revealed count of @var{port}.\n"
+	    "value @var{fd} without changing the revealed count of @var{port}.\n"
 	    "Any other ports already using this descriptor will be automatically\n"
 	    "shifted to new descriptors and their revealed counts reset to zero.\n"
 	    "The return value is @code{#f} if the file descriptor already had the\n"
@@ -284,7 +284,7 @@ get_matching_port (void *closure, SCM port, SCM val, SCM result)
 /* Return a list of ports using a given file descriptor.  */
 SCM_DEFINE (scm_fdes_to_ports, "fdes->ports", 1, 0, 0, 
            (SCM fd),
-	    "Return a list of existing ports which have @var{fdes} as an\n"
+	    "Return a list of existing ports which have @var{fd} as an\n"
 	    "underlying file descriptor, without changing their revealed\n"
 	    "counts.")
 #define FUNC_NAME s_scm_fdes_to_ports

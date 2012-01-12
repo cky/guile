@@ -1475,11 +1475,12 @@ SCM scm_lock_mutex (SCM mx)
 
 SCM_DEFINE (scm_lock_mutex_timed, "lock-mutex", 1, 2, 0,
 	    (SCM m, SCM timeout, SCM owner),
-"Lock @var{mutex}. If the mutex is already locked, the calling thread "
-"blocks until the mutex becomes available. The function returns when "
-"the calling thread owns the lock on @var{mutex}.  Locking a mutex that "
-"a thread already owns will succeed right away and will not block the "
-"thread.  That is, Guile's mutexes are @emph{recursive}. ")
+	    "Lock mutex @var{m}. If the mutex is already locked, the calling\n"
+	    "thread blocks until the mutex becomes available. The function\n"
+	    "returns when the calling thread owns the lock on @var{m}.\n"
+	    "Locking a mutex that a thread already owns will succeed right\n"
+	    "away and will not block the thread.  That is, Guile's mutexes\n"
+	    "are @emph{recursive}.")
 #define FUNC_NAME s_scm_lock_mutex_timed
 {
   SCM exception;
@@ -1769,9 +1770,9 @@ SCM_DEFINE (scm_make_condition_variable, "make-condition-variable", 0, 0, 0,
 
 SCM_DEFINE (scm_timed_wait_condition_variable, "wait-condition-variable", 2, 1, 0,
 	    (SCM cv, SCM mx, SCM t),
-"Wait until @var{cond-var} has been signalled.  While waiting, "
-"@var{mutex} is atomically unlocked (as with @code{unlock-mutex}) and "
-"is locked again when this function returns.  When @var{time} is given, "
+"Wait until condition variable @var{cv} has been signalled.  While waiting, "
+"mutex @var{mx} is atomically unlocked (as with @code{unlock-mutex}) and "
+"is locked again when this function returns.  When @var{t} is given, "
 "it specifies a point in time where the waiting should be aborted.  It "
 "can be either a integer as returned by @code{current-time} or a pair "
 "as returned by @code{gettimeofday}.  When the waiting is aborted the "

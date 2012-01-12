@@ -519,10 +519,10 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 	    "@end defvar\n"
 	    "\n"
 	    "@defvar SO_LINGER\n"
-	    "The @var{value} returned is a pair of integers\n"
-	    "@code{(@var{ENABLE} . @var{TIMEOUT})}.  On old systems without\n"
+	    "The value returned is a pair of integers\n"
+	    "@code{(@var{enable} . @var{timeout})}.  On old systems without\n"
 	    "timeout support (ie.@: without @code{struct linger}), only\n"
-	    "@var{ENABLE} has an effect but the value in Guile is always a\n"
+	    "@var{enable} has an effect but the value in Guile is always a\n"
 	    "pair.\n"
 	    "@end defvar")
 #define FUNC_NAME s_scm_getsockopt
@@ -1632,7 +1632,7 @@ SCM_DEFINE (scm_sendto, "sendto", 3, 1, 1,
             (SCM sock, SCM message, SCM fam_or_sockaddr, SCM address, SCM args_and_flags),
 	    "Transmit bytevector @var{message} on socket port\n"
 	    "@var{sock}.  The\n"
-	    "destination address is specified using the @var{fam},\n"
+	    "destination address is specified using the @var{fam_or_sockaddr},\n"
 	    "@var{address} and\n"
 	    "@var{args_and_flags} arguments, or just a socket address object "
 	    "returned by @code{make-socket-address}, in a similar way to the\n"

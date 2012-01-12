@@ -698,8 +698,8 @@ SCM_DEFINE (scm_char_set_eq, "char-set=", 0, 0, 1,
 
 SCM_DEFINE (scm_char_set_leq, "char-set<=", 0, 0, 1,
 	    (SCM char_sets),
-	    "Return @code{#t} if every character set @var{cs}i is a subset\n"
-	    "of character set @var{cs}i+1.")
+	    "Return @code{#t} if every character set @var{char_set}i is a subset\n"
+	    "of character set @var{char_set}i+1.")
 #define FUNC_NAME s_scm_char_set_leq
 {
   int argnum = 1;
@@ -732,7 +732,7 @@ SCM_DEFINE (scm_char_set_hash, "char-set-hash", 1, 1, 0,
 	    (SCM cs, SCM bound),
 	    "Compute a hash value for the character set @var{cs}.  If\n"
 	    "@var{bound} is given and non-zero, it restricts the\n"
-	    "returned value to the range 0 @dots{} @var{bound - 1}.")
+	    "returned value to the range 0 @dots{} @var{bound} - 1.")
 #define FUNC_NAME s_scm_char_set_hash
 {
   const unsigned long default_bnd = 871;

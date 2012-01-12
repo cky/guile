@@ -285,7 +285,7 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
 SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
             (SCM group_vec),
 	    "Set the current set of supplementary group IDs to the integers\n"
-	    "in the given vector @var{vec}.  The return value is\n"
+	    "in the given vector @var{group_vec}.  The return value is\n"
 	    "unspecified.\n"
 	    "\n"
 	    "Generally only the superuser can set the process group IDs.")
@@ -335,9 +335,10 @@ SCM_DEFINE (scm_setgroups, "setgroups", 1, 0, 0,
 #ifdef HAVE_GETPWENT
 SCM_DEFINE (scm_getpwuid, "getpw", 0, 1, 0,
             (SCM user),
-	    "Look up an entry in the user database.  @var{obj} can be an integer,\n"
-	    "a string, or omitted, giving the behaviour of getpwuid, getpwnam\n"
-	    "or getpwent respectively.")
+	    "Look up an entry in the user database.  @var{user} can be an\n"
+	    "integer, a string, or omitted, giving the behaviour of\n"
+	    "@code{getpwuid}, @code{getpwnam} or @code{getpwent}\n"
+	    "respectively.")
 #define FUNC_NAME s_scm_getpwuid
 {
   struct passwd *entry;
@@ -404,9 +405,10 @@ SCM_DEFINE (scm_setpwent, "setpw", 0, 1, 0,
 /* Combines getgrgid and getgrnam.  */
 SCM_DEFINE (scm_getgrgid, "getgr", 0, 1, 0,
             (SCM name),
-	    "Look up an entry in the group database.  @var{obj} can be an integer,\n"
-	    "a string, or omitted, giving the behaviour of getgrgid, getgrnam\n"
-	    "or getgrent respectively.")
+	    "Look up an entry in the group database.  @var{name} can be an\n"
+	    "integer, a string, or omitted, giving the behaviour of\n"
+	    "@code{getgrgid}, @code{getgrnam} or @code{getgrent}\n"
+	    "respectively.")
 #define FUNC_NAME s_scm_getgrgid
 {
   struct group *entry;
@@ -698,7 +700,7 @@ SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
 	    "group.\n"
 	    "@item @var{pid} less than -1\n"
 	    "Request status information for any child process whose process group ID\n"
-	    "is -@var{PID}.\n"
+	    "is -@var{pid}.\n"
 	    "@end table\n\n"
 	    "The @var{options} argument, if supplied, should be the bitwise OR of the\n"
 	    "values of zero or more of the following variables:\n\n"
@@ -1122,10 +1124,10 @@ SCM_DEFINE (scm_tcsetpgrp, "tcsetpgrp", 2, 0, 0,
 
 SCM_DEFINE (scm_execl, "execl", 1, 0, 1, 
             (SCM filename, SCM args),
-	    "Executes the file named by @var{path} as a new process image.\n"
+	    "Executes the file named by @var{filename} as a new process image.\n"
 	    "The remaining arguments are supplied to the process; from a C program\n"
 	    "they are accessible as the @code{argv} argument to @code{main}.\n"
-	    "Conventionally the first @var{arg} is the same as @var{path}.\n"
+	    "Conventionally the first @var{arg} is the same as @var{filename}.\n"
 	    "All arguments must be strings.\n\n"
 	    "If @var{arg} is missing, @var{path} is executed with a null\n"
 	    "argument list, which may have system-dependent side-effects.\n\n"
@@ -1359,7 +1361,7 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
             (SCM pathname, SCM actime, SCM modtime, SCM actimens, SCM modtimens,
              SCM flags),
 	    "@code{utime} sets the access and modification times for the\n"
-	    "file named by @var{path}.  If @var{actime} or @var{modtime} is\n"
+	    "file named by @var{pathname}.  If @var{actime} or @var{modtime} is\n"
 	    "not supplied, then the current time is used.  @var{actime} and\n"
 	    "@var{modtime} must be integer time values as returned by the\n"
 	    "@code{current-time} procedure.\n\n"
@@ -1461,14 +1463,14 @@ SCM_DEFINE (scm_getpid, "getpid", 0, 0, 0,
 
 SCM_DEFINE (scm_putenv, "putenv", 1, 0, 0, 
             (SCM str),
-	    "Modifies the environment of the current process, which is\n"
-	    "also the default environment inherited by child processes.\n\n"
-	    "If @var{string} is of the form @code{NAME=VALUE} then it will be written\n"
-	    "directly into the environment, replacing any existing environment string\n"
-	    "with\n"
-	    "name matching @code{NAME}.  If @var{string} does not contain an equal\n"
-	    "sign, then any existing string with name matching @var{string} will\n"
-	    "be removed.\n\n"
+	    "Modifies the environment of the current process, which is also\n"
+	    "the default environment inherited by child processes.  If\n"
+	    "@var{str} is of the form @code{NAME=VALUE} then it will be\n"
+	    "written directly into the environment, replacing any existing\n"
+	    "environment string with name matching @code{NAME}.  If\n"
+	    "@var{str} does not contain an equal sign, then any existing\n"
+	    "string with name matching @var{str} will be removed.\n"
+	    "\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_putenv
 {

@@ -384,7 +384,7 @@ SCM_DEFINE (scm_symbol_hash, "symbol-hash", 1, 0, 0,
 
 SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0, 
            (SCM s),
-	    "Return the contents of @var{symbol}'s @dfn{function slot}.")
+	    "Return the contents of the symbol @var{s}'s @dfn{function slot}.")
 #define FUNC_NAME s_scm_symbol_fref
 {
   SCM_VALIDATE_SYMBOL (1, s);
@@ -395,7 +395,8 @@ SCM_DEFINE (scm_symbol_fref, "symbol-fref", 1, 0, 0,
 
 SCM_DEFINE (scm_symbol_pref, "symbol-pref", 1, 0, 0, 
            (SCM s),
-	    "Return the @dfn{property list} currently associated with @var{symbol}.")
+	    "Return the @dfn{property list} currently associated with the\n"
+	    "symbol @var{s}.")
 #define FUNC_NAME s_scm_symbol_pref
 {
   SCM_VALIDATE_SYMBOL (1, s);
@@ -406,7 +407,7 @@ SCM_DEFINE (scm_symbol_pref, "symbol-pref", 1, 0, 0,
 
 SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0, 
            (SCM s, SCM val),
-	    "Change the binding of @var{symbol}'s function slot.")
+	    "Change the binding of the symbol @var{s}'s function slot.")
 #define FUNC_NAME s_scm_symbol_fset_x
 {
   SCM_VALIDATE_SYMBOL (1, s);
@@ -418,7 +419,7 @@ SCM_DEFINE (scm_symbol_fset_x, "symbol-fset!", 2, 0, 0,
 
 SCM_DEFINE (scm_symbol_pset_x, "symbol-pset!", 2, 0, 0,
            (SCM s, SCM val),
-	    "Change the binding of @var{symbol}'s property slot.")
+	    "Change the binding of the symbol @var{s}'s property slot.")
 #define FUNC_NAME s_scm_symbol_pset_x
 {
   SCM_VALIDATE_SYMBOL (1, s);

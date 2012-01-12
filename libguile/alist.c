@@ -257,9 +257,9 @@ SCM_DEFINE (scm_assq_set_x, "assq-set!", 3, 0, 0,
             (SCM alist, SCM key, SCM val),
 	    "@deffnx {Scheme Procedure} assv-set! alist key value\n"
 	    "@deffnx {Scheme Procedure} assoc-set! alist key value\n"
-	    "Reassociate @var{key} in @var{alist} with @var{value}: find any existing\n"
+	    "Reassociate @var{key} in @var{alist} with @var{val}: find any existing\n"
 	    "@var{alist} entry for @var{key} and associate it with the new\n"
-	    "@var{value}.  If @var{alist} does not contain an entry for @var{key},\n"
+	    "@var{val}.  If @var{alist} does not contain an entry for @var{key},\n"
 	    "add a new one.  Return the (possibly new) alist.\n\n"
 	    "These functions do not attempt to verify the structure of @var{alist},\n"
 	    "and so may cause unusual results if passed an object that is not an\n"

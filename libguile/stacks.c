@@ -225,7 +225,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 	    "@code{(@var{inner_cut_1} @var{outer_cut_1} @var{inner_cut_2}\n"
 	    "@var{outer_cut_2} @dots{})}.\n"
             "\n"
-	    "Each @var{inner_cut_N} can be @code{#t}, an integer, a prompt\n"
+	    "Each @var{inner_cut_i} can be @code{#t}, an integer, a prompt\n"
             "tag, or a procedure.  @code{#t} means to cut away all frames up\n"
             "to but excluding the first user module frame.  An integer means\n"
             "to cut away exactly that number of frames.  A prompt tag means\n"
@@ -234,14 +234,14 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
             "excluding the application frame whose procedure matches the\n"
             "specified one.\n"
             "\n"
-	    "Each @var{outer_cut_N} can be an integer, a prompt tag, or a\n"
+	    "Each @var{outer_cut_i} can be an integer, a prompt tag, or a\n"
             "procedure.  An integer means to cut away that number of frames.\n"
             "A prompt tag means to cut away all frames that are outside a\n"
             "prompt with the given tag. A procedure means to cut away\n"
             "frames down to but excluding the application frame whose\n"
             "procedure matches the specified one.\n"
             "\n"
-	    "If the @var{outer_cut_N} of the last pair is missing, it is\n"
+	    "If the @var{outer_cut_i} of the last pair is missing, it is\n"
 	    "taken as 0.")
 #define FUNC_NAME s_scm_make_stack
 {

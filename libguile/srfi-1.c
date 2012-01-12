@@ -714,8 +714,8 @@ SCM_DEFINE (scm_srfi1_lset_difference_x, "lset-difference!", 2, 0, 1,
 
 SCM_DEFINE (scm_srfi1_assoc, "assoc", 2, 1, 0,
 	    (SCM key, SCM alist, SCM pred),
-	    "Behaves like @code{assq} but uses third argument @var{pred?}\n"
-	    "for key comparison.  If @var{pred?} is not supplied,\n"
+	    "Behaves like @code{assq} but uses third argument @var{pred}\n"
+	    "for key comparison.  If @var{pred} is not supplied,\n"
 	    "@code{equal?} is used.  (Extended from R5RS.)\n")
 #define FUNC_NAME s_scm_srfi1_assoc
 {
@@ -844,9 +844,9 @@ SCM_DEFINE (scm_srfi1_partition_x, "partition!", 2, 0, 0,
 
 SCM_DEFINE (scm_srfi1_remove, "remove", 2, 0, 0,
 	    (SCM pred, SCM list),
-	    "Return a list containing all elements from @var{lst} which do\n"
+	    "Return a list containing all elements from @var{list} which do\n"
 	    "not satisfy the predicate @var{pred}.  The elements in the\n"
-	    "result list have the same order as in @var{lst}.  The order in\n"
+	    "result list have the same order as in @var{list}.  The order in\n"
 	    "which @var{pred} is applied to the list elements is not\n"
 	    "specified.")
 #define FUNC_NAME s_scm_srfi1_remove

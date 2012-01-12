@@ -1350,7 +1350,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
 	    "@var{message} can contain @code{~A} (was @code{%s}) and\n"
 	    "@code{~S} (was @code{%S}) escapes.  When printed,\n"
 	    "the escapes are replaced with corresponding members of\n"
-	    "@var{ARGS}:\n"
+	    "@var{args}:\n"
 	    "@code{~A} formats using @code{display} and @code{~S} formats\n"
 	    "using @code{write}.\n"
 	    "If @var{destination} is @code{#t}, then use the current output\n"

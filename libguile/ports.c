@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -940,9 +940,9 @@ SCM_DEFINE (scm_port_for_each, "port-for-each", 1, 0, 0,
 	    "Apply @var{proc} to each port in the Guile port table\n"
 	    "in turn.  The return value is unspecified.  More specifically,\n"
 	    "@var{proc} is applied exactly once to every port that exists\n"
-	    "in the system at the time @var{port-for-each} is invoked.\n"
-	    "Changes to the port table while @var{port-for-each} is running\n"
-	    "have no effect as far as @var{port-for-each} is concerned.") 
+	    "in the system at the time @code{port-for-each} is invoked.\n"
+	    "Changes to the port table while @code{port-for-each} is running\n"
+	    "have no effect as far as @code{port-for-each} is concerned.") 
 #define FUNC_NAME s_scm_port_for_each
 {
   SCM ports;
@@ -1861,10 +1861,11 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 
 SCM_DEFINE (scm_unread_char, "unread-char", 1, 1, 0,
             (SCM cobj, SCM port),
-	    "Place @var{char} in @var{port} so that it will be read by the\n"
-	    "next read operation.  If called multiple times, the unread characters\n"
-	    "will be read again in last-in first-out order.  If @var{port} is\n"
-	    "not supplied, the current input port is used.")
+	    "Place character @var{cobj} in @var{port} so that it will be\n"
+	    "read by the next read operation.  If called multiple times, the\n"
+	    "unread characters will be read again in last-in first-out\n"
+	    "order.  If @var{port} is not supplied, the current input port\n"
+	    "is used.")
 #define FUNC_NAME s_scm_unread_char
 {
   int c;
@@ -1906,7 +1907,7 @@ SCM_DEFINE (scm_unread_string, "unread-string", 2, 0, 0,
 
 SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
             (SCM fd_port, SCM offset, SCM whence),
-	    "Sets the current position of @var{fd/port} to the integer\n"
+	    "Sets the current position of @var{fd_port} to the integer\n"
 	    "@var{offset}, which is interpreted according to the value of\n"
 	    "@var{whence}.\n"
 	    "\n"
@@ -1921,7 +1922,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 	    "@defvar SEEK_END\n"
 	    "Seek from the end of the file.\n"
 	    "@end defvar\n"
-	    "If @var{fd/port} is a file descriptor, the underlying system\n"
+	    "If @var{fd_port} is a file descriptor, the underlying system\n"
 	    "call is @code{lseek}.  @var{port} may be a string port.\n"
 	    "\n"
 	    "The value returned is the new position in the file.  This means\n"
@@ -1995,8 +1996,9 @@ truncate (const char *file, off_t length)
 
 SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
             (SCM object, SCM length),
-	    "Truncate @var{file} to @var{length} bytes.  @var{file} can be a\n"
-	    "filename string, a port object, or an integer file descriptor.\n"
+	    "Truncate file @var{object} to @var{length} bytes.  @var{object}\n"
+	    "can be a filename string, a port object, or an integer file\n"
+	    "descriptor.\n"
 	    "The return value is unspecified.\n"
 	    "\n"
 	    "For a port or file descriptor @var{length} can be omitted, in\n"

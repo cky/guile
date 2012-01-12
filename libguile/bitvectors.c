@@ -497,7 +497,7 @@ SCM_DEFINE (scm_bit_position, "bit-position", 3, 0, 0,
 	    "Return the index of the first occurrence of @var{item} in bit\n"
 	    "vector @var{v}, starting from @var{k}.  If there is no\n"
 	    "@var{item} entry between @var{k} and the end of\n"
-	    "@var{bitvector}, then return @code{#f}.  For example,\n"
+	    "@var{v}, then return @code{#f}.  For example,\n"
 	    "\n"
 	    "@example\n"
 	    "(bit-position #t #*000101 0)  @result{} 3\n"

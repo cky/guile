@@ -320,8 +320,8 @@ scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
 
 SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 	    (SCM ra, SCM fill),
-	    "Store @var{fill} in every element of @var{array}.  The value returned\n"
-	    "is unspecified.")
+	    "Store @var{fill} in every element of array @var{ra}.  The value\n"
+	    "returned is unspecified.")
 #define FUNC_NAME s_scm_array_fill_x
 {
   scm_ramapc (scm_array_fill_int, fill, ra, SCM_EOL, FUNC_NAME);
@@ -374,9 +374,9 @@ SCM_REGISTER_PROC(s_array_copy_in_order_x, "array-copy-in-order!", 2, 0, 0, scm_
 SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
 	    (SCM src, SCM dst),
 	    "@deffnx {Scheme Procedure} array-copy-in-order! src dst\n"
-	    "Copy every element from vector or array @var{source} to the\n"
-	    "corresponding element of @var{destination}.  @var{destination} must have\n"
-	    "the same rank as @var{source}, and be at least as large in each\n"
+	    "Copy every element from vector or array @var{src} to the\n"
+	    "corresponding element of @var{dst}.  @var{dst} must have the\n"
+	    "same rank as @var{src}, and be at least as large in each\n"
 	    "dimension.  The order is unspecified.")
 #define FUNC_NAME s_scm_array_copy_x
 {
@@ -670,12 +670,13 @@ SCM_SYMBOL (sym_b, "b");
 SCM_DEFINE (scm_array_map_x, "array-map!", 2, 0, 1,
 	    (SCM ra0, SCM proc, SCM lra),
 	    "@deffnx {Scheme Procedure} array-map-in-order! ra0 proc . lra\n"
-	    "@var{array1}, @dots{} must have the same number of dimensions as\n"
-	    "@var{array0} and have a range for each index which includes the range\n"
-	    "for the corresponding index in @var{array0}.  @var{proc} is applied to\n"
-	    "each tuple of elements of @var{array1} @dots{} and the result is stored\n"
-	    "as the corresponding element in @var{array0}.  The value returned is\n"
-	    "unspecified.  The order of application is unspecified.")
+	    "@var{array1}, @dots{} must have the same number of dimensions\n"
+	    "as @var{ra0} and have a range for each index which includes the\n"
+	    "range for the corresponding index in @var{ra0}.  @var{proc} is\n"
+	    "applied to each tuple of elements of @var{array1}, @dots{} and\n"
+	    "the result is stored as the corresponding element in @var{ra0}.\n"
+	    "The value returned is unspecified.  The order of application is\n"
+	    "unspecified.")
 #define FUNC_NAME s_scm_array_map_x
 {
   SCM_VALIDATE_PROC (2, proc);
@@ -722,7 +723,7 @@ rafe (SCM ra0, SCM proc, SCM ras)
 
 SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
 	    (SCM proc, SCM ra0, SCM lra),
-	    "Apply @var{proc} to each tuple of elements of @var{array0} @dots{}\n"
+	    "Apply @var{proc} to each tuple of elements of @var{ra0} @dots{}\n"
 	    "in row-major order.  The value returned is unspecified.")
 #define FUNC_NAME s_scm_array_for_each
 {
@@ -735,7 +736,7 @@ SCM_DEFINE (scm_array_for_each, "array-for-each", 2, 0, 1,
 
 SCM_DEFINE (scm_array_index_map_x, "array-index-map!", 2, 0, 0,
 	    (SCM ra, SCM proc),
-	    "Apply @var{proc} to the indices of each element of @var{array} in\n"
+	    "Apply @var{proc} to the indices of each element of @var{ra} in\n"
 	    "turn, storing the result in the corresponding element.  The value\n"
 	    "returned and the order of application are unspecified.\n\n"
 	    "One can implement @var{array-indexes} as\n"

@@ -375,7 +375,7 @@ SCM_SYMBOL (scm_sym_prefix, "prefix");
 SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
             (SCM ls, SCM delimiter, SCM grammar),
 	    "Append the string in the string list @var{ls}, using the string\n"
-	    "@var{delim} as a delimiter between the elements of @var{ls}.\n"
+	    "@var{delimiter} as a delimiter between the elements of @var{ls}.\n"
 	    "@var{grammar} is a symbol which specifies how the delimiter is\n"
 	    "placed between the strings, and defaults to the symbol\n"
 	    "@code{infix}.\n"
@@ -1356,7 +1356,7 @@ SCM_DEFINE (scm_string_ci_ge, "string-ci>=", 2, 4, 0,
 
 SCM_DEFINE (scm_substring_hash, "string-hash", 1, 3, 0,
 	    (SCM s, SCM bound, SCM start, SCM end),
-	    "Compute a hash value for @var{S}.  the optional argument "
+	    "Compute a hash value for @var{s}.  the optional argument "
 	    "@var{bound} is a non-negative exact "
             "integer specifying the range of the hash function. "
 	    "A positive value restricts the return value to the "
@@ -1373,7 +1373,7 @@ SCM_DEFINE (scm_substring_hash, "string-hash", 1, 3, 0,
 
 SCM_DEFINE (scm_substring_hash_ci, "string-hash-ci", 1, 3, 0,
 	    (SCM s, SCM bound, SCM start, SCM end),
-	    "Compute a hash value for @var{S}.  the optional argument "
+	    "Compute a hash value for @var{s}.  the optional argument "
 	    "@var{bound} is a non-negative exact "
             "integer specifying the range of the hash function. "
 	    "A positive value restricts the return value to the "

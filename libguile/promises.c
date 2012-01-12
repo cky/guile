@@ -98,8 +98,8 @@ promise_print (SCM exp, SCM port, scm_print_state *pstate)
 
 SCM_DEFINE (scm_force, "force", 1, 0, 0, 
 	    (SCM promise),
-	    "If the promise @var{x} has not been computed yet, compute and\n"
-	    "return @var{x}, otherwise just return the previously computed\n"
+	    "If @var{promise} has not been computed yet, compute and\n"
+	    "return @var{promise}, otherwise just return the previously computed\n"
 	    "value.")
 #define FUNC_NAME s_scm_force
 {

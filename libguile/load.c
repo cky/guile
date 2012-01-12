@@ -571,9 +571,9 @@ SCM_DEFINE (scm_search_path, "search-path", 2, 0, 1,
 	    "@var{filename}. The file must be readable, and not a directory.\n"
 	    "If we find one, return its full filename; otherwise, return\n"
 	    "@code{#f}.  If @var{filename} is absolute, return it unchanged.\n"
-	    "If given, @var{extensions} is a list of strings; for each\n"
+	    "If given, @var{rest} is a list of extension strings; for each\n"
 	    "directory in @var{path}, we search for @var{filename}\n"
-	    "concatenated with each @var{extension}.")
+	    "concatenated with each extension.")
 #define FUNC_NAME s_scm_search_path
 {
   SCM extensions, require_exts;

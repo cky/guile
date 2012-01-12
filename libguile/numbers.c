@@ -8701,8 +8701,8 @@ scm_c_make_rectangular (double re, double im)
 
 SCM_DEFINE (scm_make_rectangular, "make-rectangular", 2, 0, 0,
             (SCM real_part, SCM imaginary_part),
-	    "Return a complex number constructed of the given @var{real-part} "
-	    "and @var{imaginary-part} parts.")
+	    "Return a complex number constructed of the given @var{real_part} "
+	    "and @var{imaginary_part} parts.")
 #define FUNC_NAME s_scm_make_rectangular
 {
   SCM_ASSERT_TYPE (scm_is_real (real_part), real_part,

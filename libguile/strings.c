@@ -1157,7 +1157,7 @@ SCM_DEFINE (scm_make_string, "make-string", 1, 1, 0,
 	    "Return a newly allocated string of\n"
             "length @var{k}.  If @var{chr} is given, then all elements of\n"
 	    "the string are initialized to @var{chr}, otherwise the contents\n"
-	    "of the @var{string} are all set to @var{#\nul}.")
+	    "of the string are all set to @code{#\nul}.")
 #define FUNC_NAME s_scm_make_string
 {
   return scm_c_make_string (scm_to_size_t (k), chr);

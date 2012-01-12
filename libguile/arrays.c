@@ -326,11 +326,12 @@ scm_i_ra_set_contp (SCM ra)
 
 SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
            (SCM oldra, SCM mapfunc, SCM dims),
-	    "@code{make-shared-array} can be used to create shared subarrays of other\n"
-	    "arrays.  The @var{mapper} is a function that translates coordinates in\n"
-	    "the new array into coordinates in the old array.  A @var{mapper} must be\n"
-	    "linear, and its range must stay within the bounds of the old array, but\n"
-	    "it can be otherwise arbitrary.  A simple example:\n"
+	    "@code{make-shared-array} can be used to create shared subarrays\n"
+	    "of other arrays.  The @var{mapfunc} is a function that\n"
+	    "translates coordinates in the new array into coordinates in the\n"
+	    "old array.  A @var{mapfunc} must be linear, and its range must\n"
+	    "stay within the bounds of the old array, but it can be\n"
+	    "otherwise arbitrary.  A simple example:\n"
 	    "@lisp\n"
 	    "(define fred (make-array #f 8 8))\n"
 	    "(define freds-diagonal\n"
@@ -444,18 +445,18 @@ SCM_DEFINE (scm_make_shared_array, "make-shared-array", 2, 0, 1,
 /* args are RA . DIMS */
 SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1, 
            (SCM ra, SCM args),
-	    "Return an array sharing contents with @var{array}, but with\n"
+	    "Return an array sharing contents with @var{ra}, but with\n"
 	    "dimensions arranged in a different order.  There must be one\n"
-	    "@var{dim} argument for each dimension of @var{array}.\n"
+	    "@var{dim} argument for each dimension of @var{ra}.\n"
 	    "@var{dim0}, @var{dim1}, @dots{} should be integers between 0\n"
 	    "and the rank of the array to be returned.  Each integer in that\n"
 	    "range must appear at least once in the argument list.\n"
 	    "\n"
 	    "The values of @var{dim0}, @var{dim1}, @dots{} correspond to\n"
 	    "dimensions in the array to be returned, their positions in the\n"
-	    "argument list to dimensions of @var{array}.  Several @var{dim}s\n"
+	    "argument list to dimensions of @var{ra}.  Several @var{dim}s\n"
 	    "may have the same value, in which case the returned array will\n"
-	    "have smaller rank than @var{array}.\n"
+	    "have smaller rank than @var{ra}.\n"
 	    "\n"
 	    "@lisp\n"
 	    "(transpose-array '#2((a b) (c d)) 1 0) @result{} #2((a c) (b d))\n"
@@ -546,15 +547,15 @@ SCM_DEFINE (scm_transpose_array, "transpose-array", 1, 0, 1,
 		     wouldn't have contiguous elements.  */
 SCM_DEFINE (scm_array_contents, "array-contents", 1, 1, 0,
            (SCM ra, SCM strict),
-	    "If @var{array} may be @dfn{unrolled} into a one dimensional shared array\n"
-	    "without changing their order (last subscript changing fastest), then\n"
-	    "@code{array-contents} returns that shared array, otherwise it returns\n"
-	    "@code{#f}.  All arrays made by @var{make-array} and\n"
-	    "@var{make-uniform-array} may be unrolled, some arrays made by\n"
-	    "@var{make-shared-array} may not be.\n\n"
-	    "If the optional argument @var{strict} is provided, a shared array will\n"
-	    "be returned only if its elements are stored internally contiguous in\n"
-	    "memory.")
+	    "If @var{ra} may be @dfn{unrolled} into a one dimensional shared\n"
+	    "array without changing their order (last subscript changing\n"
+	    "fastest), then @code{array-contents} returns that shared array,\n"
+	    "otherwise it returns @code{#f}.  All arrays made by\n"
+	    "@code{make-array} and @code{make-uniform-array} may be unrolled,\n"
+	    "some arrays made by @code{make-shared-array} may not be.  If\n"
+	    "the optional argument @var{strict} is provided, a shared array\n"
+	    "will be returned only if its elements are stored internally\n"
+	    "contiguous in memory.")
 #define FUNC_NAME s_scm_array_contents
 {
   SCM sra;

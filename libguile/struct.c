@@ -527,9 +527,9 @@ scm_c_make_struct (SCM vtable, size_t n_tail, size_t n_init, scm_t_bits init, ..
 SCM_DEFINE (scm_make_struct, "make-struct", 2, 0, 1, 
             (SCM vtable, SCM tail_array_size, SCM init),
 	    "Create a new structure.\n\n"
-	    "@var{type} must be a vtable structure (@pxref{Vtables}).\n\n"
-	    "@var{tail-elts} must be a non-negative integer.  If the layout\n"
-	    "specification indicated by @var{type} includes a tail-array,\n"
+	    "@var{vtable} must be a vtable structure (@pxref{Vtables}).\n\n"
+	    "@var{tail_array_size} must be a non-negative integer.  If the layout\n"
+	    "specification indicated by @var{vtable} includes a tail-array,\n"
 	    "this is the number of elements allocated to that array.\n\n"
 	    "The @var{init1}, @dots{} are optional arguments describing how\n"
 	    "successive fields of the structure should be initialized.  Only fields\n"
@@ -576,7 +576,7 @@ SCM_DEFINE (scm_make_vtable_vtable, "make-vtable-vtable", 2, 0, 1,
 	    "@var{user-fields} is a string describing user defined fields of the\n"
 	    "vtable beginning at index @code{vtable-offset-user}\n"
 	    "(see @code{make-struct-layout}).\n\n"
-	    "@var{tail-size} specifies the size of the tail-array (if any) of\n"
+	    "@var{tail_array_size} specifies the size of the tail-array (if any) of\n"
 	    "this vtable.\n\n"
 	    "@var{init1}, @dots{} are the optional initializers for the fields of\n"
 	    "the vtable.\n\n"
@@ -738,10 +738,15 @@ scm_i_struct_equalp (SCM s1, SCM s2)
 
 SCM_DEFINE (scm_struct_ref, "struct-ref", 2, 0, 0,
             (SCM handle, SCM pos),
-	    "Access the @var{n}th field of @var{struct}.\n\n"
-	    "If the field is of type 'p', then it can be set to an arbitrary value.\n\n"
-	    "If the field is of type 'u', then it can only be set to a non-negative\n"
-	    "integer value small enough to fit in one machine word.")
+	    "Access the @var{pos}th field of struct associated with\n"
+	    "@var{handle}.\n"
+	    "\n"
+	    "If the field is of type 'p', then it can be set to an arbitrary\n"
+	    "value.\n"
+	    "\n"
+	    "If the field is of type 'u', then it can only be set to a\n"
+	    "non-negative integer value small enough to fit in one machine\n"
+	    "word.")
 #define FUNC_NAME s_scm_struct_ref
 {
   SCM vtable, answer = SCM_UNDEFINED;
@@ -910,7 +915,8 @@ SCM_DEFINE (scm_struct_set_x, "struct-set!", 3, 0, 0,
 
 SCM_DEFINE (scm_struct_vtable, "struct-vtable", 1, 0, 0, 
             (SCM handle),
-	    "Return the vtable structure that describes the type of @var{struct}.")
+	    "Return the vtable structure that describes the type of struct\n"
+	    "associated with @var{handle}.")
 #define FUNC_NAME s_scm_struct_vtable
 {
   SCM_VALIDATE_STRUCT (1, handle);

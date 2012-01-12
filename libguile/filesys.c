@@ -465,7 +465,7 @@ static int fstat_Win32 (int fdes, struct stat *buf)
 SCM_DEFINE (scm_stat, "stat", 1, 1, 0, 
             (SCM object, SCM exception_on_error),
 	    "Return an object containing various information about the file\n"
-	    "determined by @var{obj}.  @var{obj} can be a string containing\n"
+	    "determined by @var{object}.  @var{object} can be a string containing\n"
 	    "a file name or a port or integer file descriptor which is open\n"
 	    "on a file (in which case @code{fstat} is used as the underlying\n"
 	    "system call).\n"
@@ -586,7 +586,7 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
             (SCM str),
 	    "Similar to @code{stat}, but does not follow symbolic links, i.e.,\n"
 	    "it will return information about a symbolic link itself, not the\n"
-	    "file it points to.  @var{path} must be a string.")
+	    "file it points to.  @var{str} must be a string.")
 #define FUNC_NAME s_scm_lstat
 {
   int rv;
@@ -640,7 +640,7 @@ SCM_DEFINE (scm_link, "link", 2, 0, 0,
 
 SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0, 
             (SCM str),
-	    "Change the current working directory to @var{path}.\n"
+	    "Change the current working directory to @var{str}.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_chdir
 {
@@ -942,10 +942,10 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 #ifdef HAVE_FCNTL
 SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
             (SCM object, SCM cmd, SCM value),
-	    "Apply @var{command} to the specified file descriptor or the underlying\n"
+	    "Apply @var{cmd} to the specified file descriptor or the underlying\n"
 	    "file descriptor of the specified port.  @var{value} is an optional\n"
 	    "integer argument.\n\n"
-	    "Values for @var{command} are:\n\n"
+	    "Values for @var{cmd} are:\n\n"
 	    "@table @code\n"
 	    "@item F_DUPFD\n"
 	    "Duplicate a file descriptor\n"
@@ -993,9 +993,9 @@ SCM_DEFINE (scm_fcntl, "fcntl", 2, 1, 0,
 
 SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0, 
             (SCM object),
-	    "Copies any unwritten data for the specified output file descriptor to disk.\n"
-	    "If @var{port/fd} is a port, its buffer is flushed before the underlying\n"
-	    "file descriptor is fsync'd.\n"
+	    "Copies any unwritten data for the specified output file\n"
+	    "descriptor to disk.  If @var{object} is a port, its buffer is\n"
+	    "flushed before the underlying file descriptor is fsync'd.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_fsync
 {
@@ -1020,8 +1020,9 @@ SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0,
 #ifdef HAVE_SYMLINK
 SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-	    "Create a symbolic link named @var{path-to} with the value (i.e., pointing to)\n"
-	    "@var{path-from}.  The return value is unspecified.")
+	    "Create a symbolic link named @var{oldpath} with the value\n"
+	    "(i.e., pointing to) @var{newpath}.  The return value is\n"
+	    "unspecified.")
 #define FUNC_NAME s_scm_symlink
 {
   int val;
@@ -1079,7 +1080,7 @@ SCM_DEFINE (scm_readlink, "readlink", 1, 0, 0,
 
 SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
             (SCM oldfile, SCM newfile),
-	    "Copy the file specified by @var{path-from} to @var{path-to}.\n"
+	    "Copy the file specified by @var{oldfile} to @var{newfile}.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_copy_file
 {
@@ -1257,7 +1258,7 @@ SCM_DEFINE (scm_rename, "rename-file", 2, 0, 0,
 
 SCM_DEFINE (scm_delete_file, "delete-file", 1, 0, 0, 
            (SCM str),
-	    "Deletes (or \"unlinks\") the file specified by @var{path}.")
+	    "Deletes (or \"unlinks\") the file specified by @var{str}.")
 #define FUNC_NAME s_scm_delete_file
 {
   int ans;
@@ -1325,12 +1326,12 @@ SCM_DEFINE (scm_access, "access?", 2, 0, 0,
 
 SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
             (SCM object, SCM mode),
-	    "Changes the permissions of the file referred to by @var{obj}.\n"
-	    "@var{obj} can be a string containing a file name or a port or integer file\n"
-	    "descriptor which is open on a file (in which case @code{fchmod} is used\n"
-	    "as the underlying system call).\n"
-	    "@var{mode} specifies\n"
-	    "the new permissions as a decimal number, e.g., @code{(chmod \"foo\" #o755)}.\n"
+	    "Changes the permissions of the file referred to by\n"
+	    "@var{object}.  @var{object} can be a string containing a file\n"
+	    "name or a port or integer file descriptor which is open on a\n"
+	    "file (in which case @code{fchmod} is used as the underlying\n"
+	    "system call).  @var{mode} specifies the new permissions as a\n"
+	    "decimal number, e.g., @code{(chmod \"foo\" #o755)}.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_chmod
 {
@@ -1488,7 +1489,7 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 	    "Return the base name of the file name @var{filename}. The\n"
 	    "base name is the file name without any directory components.\n"
 	    "If @var{suffix} is provided, and is equal to the end of\n"
-	    "@var{basename}, it is removed also.")
+	    "@var{filename}, it is removed also.")
 #define FUNC_NAME s_scm_basename
 {
   int i, j, len, end;
@@ -1625,7 +1626,7 @@ scm_t_bits scm_tc16_dir;
 
 SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
 	    (SCM obj),
-	    "Return a boolean indicating whether @var{object} is a directory\n"
+	    "Return a boolean indicating whether @var{obj} is a directory\n"
 	    "stream as returned by @code{opendir}.")
 #define FUNC_NAME s_scm_directory_stream_p
 {
@@ -1636,7 +1637,7 @@ SCM_DEFINE (scm_directory_stream_p, "directory-stream?", 1, 0, 0,
 
 SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 	    (SCM dirname),
-	    "Open the directory specified by @var{path} and return a directory\n"
+	    "Open the directory specified by @var{dirname} and return a directory\n"
 	    "stream.")
 #define FUNC_NAME s_scm_opendir
 {
@@ -1658,7 +1659,7 @@ SCM_DEFINE (scm_opendir, "opendir", 1, 0, 0,
 SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 	    (SCM port),
 	    "Return (as a string) the next directory entry from the directory stream\n"
-	    "@var{stream}.  If there is no remaining entry to be read then the\n"
+	    "@var{port}.  If there is no remaining entry to be read then the\n"
 	    "end of file object is returned.")
 #define FUNC_NAME s_scm_readdir
 {
@@ -1732,7 +1733,7 @@ SCM_DEFINE (scm_readdir, "readdir", 1, 0, 0,
 
 SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 	    (SCM port),
-	    "Reset the directory port @var{stream} so that the next call to\n"
+	    "Reset the directory port @var{port} so that the next call to\n"
 	    "@code{readdir} will return the first directory entry.")
 #define FUNC_NAME s_scm_rewinddir
 {
@@ -1749,7 +1750,7 @@ SCM_DEFINE (scm_rewinddir, "rewinddir", 1, 0, 0,
 
 SCM_DEFINE (scm_closedir, "closedir", 1, 0, 0,
 	    (SCM port),
-	    "Close the directory stream @var{stream}.\n"
+	    "Close the directory stream @var{port}.\n"
 	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_closedir
 {

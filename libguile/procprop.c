@@ -141,7 +141,7 @@ SCM_DEFINE (scm_procedure_minimum_arity, "procedure-minimum-arity", 1, 0, 0,
 
 SCM_DEFINE (scm_procedure_properties, "procedure-properties", 1, 0, 0, 
            (SCM proc),
-	    "Return @var{obj}'s property list.")
+	    "Return @var{proc}'s property list.")
 #define FUNC_NAME s_scm_procedure_properties
 {
   SCM ret;

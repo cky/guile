@@ -551,13 +551,14 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 
 SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
             (SCM sbd_time, SCM zone),
-	    "@var{bd-time} is an object representing broken down time and @code{zone}\n"
-	    "is an optional time zone specifier (otherwise the TZ environment variable\n"
-	    "or the system default is used).\n\n"
-	    "Returns a pair: the car is a corresponding\n"
-	    "integer time value like that returned\n"
-	    "by @code{current-time}; the cdr is a broken down time object, similar to\n"
-	    "as @var{bd-time} but with normalized values.")
+	    "@var{sbd_time} is an object representing broken down time and\n"
+	    "@code{zone} is an optional time zone specifier (otherwise the\n"
+	    "TZ environment variable or the system default is used).\n"
+	    "\n"
+	    "Returns a pair: the car is a corresponding integer time value\n"
+	    "like that returned by @code{current-time}; the cdr is a broken\n"
+	    "down time object, similar to as @var{sbd_time} but with\n"
+	    "normalized values.")
 #define FUNC_NAME s_scm_mktime
 {
   timet itime;
@@ -763,7 +764,7 @@ SCM_DEFINE (scm_strptime, "strptime", 2, 0, 0,
             (SCM format, SCM string),
 	    "Performs the reverse action to @code{strftime}, parsing\n"
 	    "@var{string} according to the specification supplied in\n"
-	    "@var{template}.  The interpretation of month and day names is\n"
+	    "@var{format}.  The interpretation of month and day names is\n"
 	    "dependent on the current locale.  The value returned is a pair.\n"
 	    "The car has an object with time components\n"
 	    "in the form returned by @code{localtime} or @code{gmtime},\n"
