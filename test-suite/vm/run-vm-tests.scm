@@ -67,7 +67,7 @@ it succeeded."
 (define (run-vm-tests files)
   "For each file listed in @var{files}, load it and run it through both the
 interpreter and the VM (after having it compiled).  Both results must be
-equal in the sense of @var{equal?}."
+equal in the sense of @code{equal?}."
   (let* ((res (map (lambda (file)
 		     (format #t "running `~a'...  " file)
 		     (if (catch #t

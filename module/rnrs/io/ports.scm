@@ -237,7 +237,7 @@ if the port has no transcoder."
   (not (port-encoding port)))
 
 (define (textual-port? port)
-  "Always returns @var{#t}, as all ports can be used for textual I/O in
+  "Always returns @code{#t}, as all ports can be used for textual I/O in
 Guile."
   #t)
 

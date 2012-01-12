@@ -226,7 +226,7 @@ on @var{port}, perhaps using some transfer encoding."
                             (bytevector-length bv) nbytes))))))
 
 (define (write-response-body r bv)
-  "Write @var{body}, a bytevector, to the port corresponding to the HTTP
+  "Write @var{bv}, a bytevector, to the port corresponding to the HTTP
 response @var{r}."
   (put-bytevector (response-port r) bv))
 

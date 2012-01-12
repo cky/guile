@@ -39,14 +39,14 @@
   (@call-with-values producer consumer))
 (define (dynamic-wind in thunk out)
   "All three arguments must be 0-argument procedures.
-@var{in_guard} is called, then @var{thunk}, then
-@var{out_guard}.
+Guard @var{in} is called, then @var{thunk}, then
+guard @var{out}.
 
 If, any time during the execution of @var{thunk}, the
 continuation of the @code{dynamic_wind} expression is escaped
-non-locally, @var{out_guard} is called.  If the continuation of
-the dynamic-wind is re-entered, @var{in_guard} is called.  Thus
-@var{in_guard} and @var{out_guard} may be called any number of
+non-locally, @var{out} is called.  If the continuation of
+the dynamic-wind is re-entered, @var{in} is called.  Thus
+@var{in} and @var{out} may be called any number of
 times.
 @lisp
  (define x 'normal-binding)

@@ -298,7 +298,7 @@ port directly after OBJ, like (pretty-print OBJ PORT)."
                           (width 79)
                           (display? #f)
                           (breadth-first? #f))
-  "Print @var{obj}, truncating the output, if necessary, to make it fit
+  "Print @var{x}, truncating the output, if necessary, to make it fit
 into @var{width} characters. By default, @var{x} will be printed using
 @code{write}, though that behavior can be overriden via the
 @var{display?} keyword argument.

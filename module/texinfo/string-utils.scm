@@ -160,7 +160,7 @@ characters.  Any needed padding is done by character @var{chr}, which
 defaults to @samp{#\\space}.  If @var{rchr} is provided, then the
 padding to the right will use it instead.  See the examples below.
 left and @var{rchr} on the right.  The default @var{width} is 80.  The
-default @var{lchr} and @var{rchr} is @samp{#\\space}.  The string is
+default @var{chr} and @var{rchr} is @samp{#\\space}.  The string is
 never truncated.
 @lisp
  (center-string \"Richard Todd\" 24)
@@ -392,7 +392,7 @@ in @code{make-text-wrapper}."
 
 (define (fill-string str . kwargs)
   "Wraps the text given in string @var{str} according to the parameters
-provided in @var{keywds}, or the default setting if they are not
+provided in @var{kwargs}, or the default setting if they are not
 given.  Returns a single string with the wrapped text.  Valid keyword
 arguments are discussed in @code{make-text-wrapper}."
   (string-join (apply string->wrapped-lines str kwargs)

@@ -161,7 +161,7 @@ non-locally, that exit determines the continuation."
   (set! with-throw-handler
         (lambda (k thunk pre-unwind-handler)
           "Add @var{handler} to the dynamic context as a throw handler
-for key @var{key}, then invoke @var{thunk}."
+for key @var{k}, then invoke @var{thunk}."
           (if (not (or (symbol? k) (eqv? k #t)))
               (scm-error 'wrong-type-arg "with-throw-handler"
                          "Wrong type argument in position ~a: ~a"

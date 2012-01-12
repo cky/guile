@@ -205,7 +205,7 @@ header with name @var{sym}."
 (define (write-header sym val port)
   "Writes the given header name and value to @var{port}.  If @var{sym}
 is a known header, uses the specific writer registered for that header.
-Otherwise the value is written using @var{display}."
+Otherwise the value is written using @code{display}."
   (display (header->string sym) port)
   (display ": " port)
   ((header-writer sym) val port)
