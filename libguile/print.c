@@ -1,5 +1,5 @@
 /* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -649,6 +649,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	case scm_tc7_array:
 	  ENTER_NESTED_DATA (pstate, exp, circref);
           scm_i_print_array (exp, port, pstate);
+          EXIT_NESTED_DATA (pstate);
           break;
 	case scm_tc7_bytevector:
 	  scm_i_print_bytevector (exp, port, pstate);
