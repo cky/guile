@@ -106,9 +106,11 @@
 ;; This tests for a proper scheme list whose last cdr is '(), not #nil.
 ;;
 (define (scheme-list? x)
-  (or (eq? x '())
-      (and (pair? x)
-           (scheme-list? (cdr x)))))
+  (and (list? x)
+       (or (eq? x '())
+           (let ((p (last-pair x)))
+             (and (pair? p)
+                  (eq? (cdr p) '()))))))
 
 ;; Note: in all of these procedures that build up constant tables, the
 ;; first (zeroth) index is reserved.  At runtime it is replaced with the
