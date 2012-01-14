@@ -103,6 +103,13 @@
 (define (immediate? x)
   (object->assembly x))
 
+;; This tests for a proper scheme list whose last cdr is '(), not #nil.
+;;
+(define (scheme-list? x)
+  (or (eq? x '())
+      (and (pair? x)
+           (scheme-list? (cdr x)))))
+
 ;; Note: in all of these procedures that build up constant tables, the
 ;; first (zeroth) index is reserved.  At runtime it is replaced with the
 ;; procedure's module.  Hence all of this 1+ length business.
@@ -733,7 +740,7 @@
    ((keyword? x)
     `(,@(dump-object (keyword->symbol x) addr)
       (make-keyword)))
-   ((list? x)
+   ((scheme-list? x)
     (let ((tail (let ((len (length x)))
                   (if (>= len 65536) (too-long "list"))
                   `((list ,(quotient len 256) ,(modulo len 256))))))
@@ -815,7 +822,7 @@
         (values code (addr+ addr code))))
      ((variable-cache-cell? x)
       (dump1 (variable-cache-cell-key x) i addr))
-     ((list? x)
+     ((scheme-list? x)
       (receive (codes addr)
           (fold2 (lambda (x codes addr)
                    (receive (subcode addr) (ref-or-dump x i addr)
