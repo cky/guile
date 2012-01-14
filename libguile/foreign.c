@@ -1,4 +1,4 @@
-/* Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -269,7 +269,8 @@ SCM_DEFINE (scm_pointer_to_bytevector, "pointer->bytevector", 2, 2, 0,
 
   blen = scm_to_size_t (len);
 
-  ret = scm_c_take_typed_bytevector (ptr + boffset, blen, btype);
+  ret = scm_c_take_typed_bytevector ((signed char *) ptr + boffset,
+				     blen, btype);
   register_weak_reference (ret, pointer);
   return ret;
 }
@@ -283,7 +284,7 @@ SCM_DEFINE (scm_bytevector_to_pointer, "bytevector->pointer", 1, 1, 0,
 #define FUNC_NAME s_scm_bytevector_to_pointer
 {
   SCM ret;
-  scm_t_int8 *ptr;
+  signed char *ptr;
   size_t boffset;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
