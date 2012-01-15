@@ -1744,13 +1744,23 @@ define_langinfo_items (void)
   DEFINE_NLITEM_CONSTANT (T_FMT);   /* Time format for strftime.  */
   DEFINE_NLITEM_CONSTANT (T_FMT_AMPM);/* 12-hour time format for strftime.  */
 
+#ifdef ERA
   DEFINE_NLITEM_CONSTANT (ERA);	        /* Alternate era.  */
+#endif
+#ifdef ERA_D_FMT
   DEFINE_NLITEM_CONSTANT (ERA_D_FMT);	/* Date in alternate era format.  */
+#endif
+#ifdef ERA_D_T_FMT
   DEFINE_NLITEM_CONSTANT (ERA_D_T_FMT);	/* Date and time in alternate era
 					   format.  */
+#endif
+#ifdef ERA_T_FMT
   DEFINE_NLITEM_CONSTANT (ERA_T_FMT);	/* Time in alternate era format.  */
+#endif
 
+#ifdef ALT_DIGITS
   DEFINE_NLITEM_CONSTANT (ALT_DIGITS);	/* Alternate symbols for digits.  */
+#endif
   DEFINE_NLITEM_CONSTANT (RADIXCHAR);
   DEFINE_NLITEM_CONSTANT (THOUSEP);
 
