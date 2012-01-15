@@ -230,7 +230,7 @@ Show description/documentation.
 Change modules / Show current module.
 @end deffn
 
-@deffn {REPL Command} import [module ...]
+@deffn {REPL Command} import module @dots{}
 Import modules / List those imported.
 @end deffn
 
@@ -247,7 +247,7 @@ List current bindings.
 @end deffn
 
 @deffn {REPL Command} in module expression
-@deffnx {REPL Command} in module command [args ...]
+@deffnx {REPL Command} in module command arg @dots{}
 Evaluate an expression, or alternatively, execute another meta-command
 in the context of a module.  For example, @samp{,in (foo bar) ,binding}
 will show the bindings in the module @code{(foo bar)}.

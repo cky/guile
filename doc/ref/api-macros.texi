@@ -81,8 +81,9 @@ source code will invoke the syntax transformer defined by @var{transformer}.
 
 One can also establish local syntactic bindings with @code{let-syntax}.
 
-@deffn {Syntax} let-syntax ((keyword transformer) ...) exp...
-Bind @var{keyword...} to @var{transformer...} while expanding @var{exp...}.
+@deffn {Syntax} let-syntax ((keyword transformer) @dots{}) exp1 exp2 @dots{}
+Bind each @var{keyword} to its corresponding @var{transformer} while
+expanding @var{exp1} @var{exp2} @enddots{}.
 
 A @code{let-syntax} binding only exists at expansion-time. 
 
@@ -104,8 +105,9 @@ top-level, or locally. Just as a local @code{define} expands out to an instance
 of @code{letrec}, a local @code{define-syntax} expands out to
 @code{letrec-syntax}.
 
-@deffn {Syntax} letrec-syntax ((keyword transformer) ...) exp...
-Bind @var{keyword...} to @var{transformer...} while expanding @var{exp...}.
+@deffn {Syntax} letrec-syntax ((keyword transformer) @dots{}) exp1 exp2 @dots{}
+Bind each @var{keyword} to its corresponding @var{transformer} while
+expanding @var{exp1} @var{exp2} @enddots{}.
 
 In the spirit of @code{letrec} versus @code{let}, an expansion produced by
 @var{transformer} may reference a @var{keyword} bound by the

@@ -323,8 +323,8 @@ the error to the current error port.  The @var{arg} @dots{}
 expressions are evaluated in the new thread.
 @end deffn
 
-@deffn macro begin-thread first [rest@dots{}]
-Evaluate forms @var{first} and @var{rest} in a new thread formed by
+@deffn macro begin-thread expr1 expr2 @dots{}
+Evaluate forms @var{expr1} @var{expr2} @dots{} in a new thread formed by
 @code{call-with-new-thread} using a default error handler that display
 the error to the current error port.
 @end deffn
@@ -353,10 +353,10 @@ Acquiring requisite mutexes in a fixed order (like always A before B)
 in all threads is one way to avoid such problems.
 
 @sp 1
-@deffn {Scheme Procedure} make-mutex . flags
+@deffn {Scheme Procedure} make-mutex flag @dots{}
 @deffnx {C Function} scm_make_mutex ()
 @deffnx {C Function} scm_make_mutex_with_flags (SCM flags)
-Return a new mutex.  It is initially unlocked.  If @var{flags} is
+Return a new mutex.  It is initially unlocked.  If @var{flag} @dots{} is
 specified, it must be a list of symbols specifying configuration flags
 for the newly-created mutex.  The supported flags are:
 @table @code
@@ -523,25 +523,25 @@ available from
 (use-modules (ice-9 threads))
 @end example
 
-@deffn macro with-mutex mutex [body@dots{}]
-Lock @var{mutex}, evaluate the @var{body} forms, then unlock
-@var{mutex}.  The return value is the return from the last @var{body}
-form.
+@deffn macro with-mutex mutex body1 body2 @dots{}
+Lock @var{mutex}, evaluate the body @var{body1} @var{body2} @dots{},
+then unlock @var{mutex}.  The return value is that returned by the last
+body form.
 
 The lock, body and unlock form the branches of a @code{dynamic-wind}
 (@pxref{Dynamic Wind}), so @var{mutex} is automatically unlocked if an
-error or new continuation exits @var{body}, and is re-locked if
-@var{body} is re-entered by a captured continuation.
+error or new continuation exits the body, and is re-locked if
+the body is re-entered by a captured continuation.
 @end deffn
 
-@deffn macro monitor body@dots{}
-Evaluate the @var{body} forms, with a mutex locked so only one thread
-can execute that code at any one time.  The return value is the return
-from the last @var{body} form.
+@deffn macro monitor body1 body2 @dots{}
+Evaluate the body form @var{body1} @var{body2} @dots{} with a mutex
+locked so only one thread can execute that code at any one time.  The
+return value is the return from the last body form.
 
 Each @code{monitor} form has its own private mutex and the locking and
 evaluation is as per @code{with-mutex} above.  A standard mutex
-(@code{make-mutex}) is used, which means @var{body} must not
+(@code{make-mutex}) is used, which means the body must not
 recursively re-enter the @code{monitor} form.
 
 The term ``monitor'' comes from operating system theory, where it
@@ -890,11 +890,11 @@ canonical form.  For example,
 @end example
 @end defun
 
-@deffn {Scheme Syntax} parameterize ((param value) @dots{}) body @dots{}
+@deffn {library syntax} parameterize ((param value) @dots{}) body1 body2 @dots{}
 Establish a new dynamic scope with the given @var{param}s bound to new
-locations and set to the given @var{value}s.  @var{body} is evaluated
-in that environment, the result is the return from the last form in
-@var{body}.
+locations and set to the given @var{value}s.  @var{body1} @var{body2}
+@dots{} is evaluated in that environment.  The value returned is that of
+last body form.
 
 Each @var{param} is an expression which is evaluated to get the
 parameter object.  Often this will just be the name of a variable
@@ -1058,8 +1058,8 @@ the results to the corresponding @var{var} variables, and then evaluate
 expressions for the bindings are evaluated in parallel.
 @end deffn
 
-@deffn {Scheme Procedure} par-map proc lst1 @dots{} lstN
-@deffnx {Scheme Procedure} par-for-each proc lst1 @dots{} lstN
+@deffn {Scheme Procedure} par-map proc lst1 lst2 @dots{}
+@deffnx {Scheme Procedure} par-for-each proc lst1 lst2 @dots{}
 Call @var{proc} on the elements of the given lists.  @code{par-map}
 returns a list comprising the return values from @var{proc}.
 @code{par-for-each} returns an unspecified value, but waits for all
@@ -1084,8 +1084,8 @@ completion, which makes them quite expensive.
 
 Therefore, they should be avoided.
 
-@deffn {Scheme Procedure} n-par-map n proc lst1 @dots{} lstN
-@deffnx {Scheme Procedure} n-par-for-each n proc lst1 @dots{} lstN
+@deffn {Scheme Procedure} n-par-map n proc lst1 lst2 @dots{}
+@deffnx {Scheme Procedure} n-par-for-each n proc lst1 lst2 @dots{}
 Call @var{proc} on the elements of the given lists, in the same way as
 @code{par-map} and @code{par-for-each} above, but use no more than
 @var{n} threads at any one time.  The order in which calls are
@@ -1097,7 +1097,7 @@ a dual-CPU system for instance @math{@var{n}=4} might be enough to
 keep the CPUs utilized, and not consume too much memory.
 @end deffn
 
-@deffn {Scheme Procedure} n-for-each-par-map n sproc pproc lst1 @dots{} lstN
+@deffn {Scheme Procedure} n-for-each-par-map n sproc pproc lst1 lst2 @dots{}
 Apply @var{pproc} to the elements of the given lists, and apply
 @var{sproc} to each result returned by @var{pproc}.  The final return
 value is unspecified, but all calls will have been completed before

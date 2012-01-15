@@ -64,16 +64,16 @@ bound to, respectively, the first and second element of @var{l}.
 
 The pattern matcher is defined as follows:
 
-@deffn {Scheme Syntax} match exp clause ...
-Match object @var{exp} against the patterns in the given @var{clause}s,
-in the order in which they appear.  Return the value produced by the
-first matching clause.  If no @var{clause} matches, throw an exception
-with key @code{match-error}.
+@deffn {Scheme Syntax} match exp clause1 clause2 @dots{}
+Match object @var{exp} against the patterns in @var{clause1}
+@var{clause2} @dots{}  in the order in which they appear.  Return the
+value produced by the first matching clause.  If no clause matches,
+throw an exception with key @code{match-error}.
 
-Each @var{clause} has the form @code{(pattern body)}.  Each
-@var{pattern} must follow the syntax described below.  Each @var{body}
-is an arbitrary Scheme expression, possibly referring to pattern
-variables of @var{pattern}.
+Each clause has the form @code{(pattern body1 body2 @dots{})}.  Each
+@var{pattern} must follow the syntax described below.  Each body is an
+arbitrary Scheme expression, possibly referring to pattern variables of
+@var{pattern}.
 @end deffn
 
 @c FIXME: Document other forms:

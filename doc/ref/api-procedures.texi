@@ -418,8 +418,8 @@ elements.  @code{let-optional} binds all variables simultaneously, while
 @code{let-optional*} binds them sequentially, consistent with @code{let}
 and @code{let*} (@pxref{Local Bindings}).
 
-@deffn {library syntax} let-optional rest-arg (binding @dots{}) expr @dots{}
-@deffnx {library syntax} let-optional* rest-arg (binding @dots{}) expr @dots{}
+@deffn {library syntax} let-optional rest-arg (binding @dots{}) body1 body2 @dots{}
+@deffnx {library syntax} let-optional* rest-arg (binding @dots{}) body1 body2 @dots{}
 These two macros give you an optional argument interface that is very
 @dfn{Schemey} and introduces no fancy syntax. They are compatible with
 the scsh macros of the same name, but are slightly extended. Each of
@@ -431,22 +431,22 @@ runs out, the remaining vars are bound either to the default values or
 @code{#f} if no default value was specified. @var{rest-arg} remains
 bound to whatever may have been left of @var{rest-arg}.
 
-After binding the variables, the expressions @var{expr} @dots{} are
-evaluated in order.
+After binding the variables, the expressions @var{body1} @var{body2} @dots{}
+are evaluated in order.
 @end deffn
 
 Similarly, @code{let-keywords} and @code{let-keywords*} extract values
 from keyword style argument lists, binding local variables to those
 values or to defaults.
 
-@deffn {library syntax} let-keywords args allow-other-keys? (binding @dots{})  body @dots{}
-@deffnx {library syntax} let-keywords* args allow-other-keys? (binding @dots{})  body @dots{}
+@deffn {library syntax} let-keywords args allow-other-keys? (binding @dots{}) body1 body2 @dots{}
+@deffnx {library syntax} let-keywords* args allow-other-keys? (binding @dots{}) body1 body2 @dots{}
 @var{args} is evaluated and should give a list of the form
 @code{(#:keyword1 value1 #:keyword2 value2 @dots{})}.  The
-@var{binding}s are variables and default expressions, with the
-variables to be set (by name) from the keyword values.  The @var{body}
-forms are then evaluated and the last is the result.  An example will
-make the syntax clearest,
+@var{binding}s are variables and default expressions, with the variables
+to be set (by name) from the keyword values.  The @var{body1}
+@var{body2} @dots{}  forms are then evaluated and the last is the
+result.  An example will make the syntax clearest,
 
 @example
 (define args '(#:xyzzy "hello" #:foo "world"))
@@ -478,12 +478,12 @@ exist for defining macros with the improved argument list handling
 possibilities. The @code{-public} versions not only define the
 procedures/macros, but also export them from the current module.
 
-@deffn {library syntax} define*-public formals body
+@deffn {library syntax} define*-public formals body1 body2 @dots{}
 Like a mix of @code{define*} and @code{define-public}.
 @end deffn
 
-@deffn {library syntax} defmacro* name formals body
-@deffnx {library syntax} defmacro*-public name formals body
+@deffn {library syntax} defmacro* name formals body1 body2 @dots{}
+@deffnx {library syntax} defmacro*-public name formals body1 body2 @dots{}
 These are just like @code{defmacro} and @code{defmacro-public} except that they
 take @code{lambda*}-style extended parameter lists, where @code{#:optional},
 @code{#:key}, @code{#:allow-other-keys} and @code{#:rest} are allowed with the usual
@@ -611,10 +611,11 @@ Return a procedure with the same arity as @var{proc} that returns the
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} compose proc rest ...
-Compose @var{proc} with the procedures in @var{rest}, such that the last
-one in @var{rest} is applied first and @var{proc} last, and return the
-resulting procedure.  The given procedures must have compatible arity.
+@deffn {Scheme Procedure} compose proc1 proc2 @dots{}
+Compose @var{proc1} with the procedures @var{proc2} @dots{}  such that
+the last @var{proc} argument is applied first and @var{proc1} last, and
+return the resulting procedure.  The given procedures must have
+compatible arity.
 
 @lisp
 (procedure? (compose 1+ 1-)) @result{} #t
@@ -835,9 +836,9 @@ making large procedures inlinable will probably result in an increase in
 code size.  Additionally, the elimination of the call overhead rarely
 matters for large procedures.
 
-@deffn {Scheme Syntax} define-inlinable (name parameter ...) body ...
+@deffn {Scheme Syntax} define-inlinable (name parameter @dots{}) body1 body2 @dots{}
 Define @var{name} as a procedure with parameters @var{parameter}s and
-body @var{body}.
+bodies @var{body1}, @var{body2}, @enddots{}.
 @end deffn
 
 @c Local Variables:

@@ -80,15 +80,15 @@ describes the Scheme stack at that point.
 Use @code{start-stack} to limit the stack extent captured by future
 @code{make-stack} calls.
 
-@deffn {Scheme Procedure} make-stack obj . args
+@deffn {Scheme Procedure} make-stack obj arg @dots{}
 @deffnx {C Function} scm_make_stack (obj, args)
 Create a new stack. If @var{obj} is @code{#t}, the current
 evaluation stack is used for creating the stack frames,
 otherwise the frames are taken from @var{obj} (which must be
 a continuation or a frame object).
 
-@var{args} should be a list containing any combination of
-integer, procedure, prompt tag and @code{#t} values.
+@var{arg} @dots{} can be any combination of integer, procedure, prompt
+tag and @code{#t} values.
 
 These values specify various ways of cutting away uninteresting
 stack frames from the top and bottom of the stack that

@@ -273,8 +273,10 @@ grouped below by the existing manual sections to which they correspond.
 @end deffn
 
 @deffn {Scheme Syntax} define-syntax keyword expression
-@deffnx {Scheme Syntax} let-syntax ((keyword transformer) ...) exp ...
-@deffnx {Scheme Syntax} letrec-syntax ((keyword transformer) ...) exp ...
+@deffnx {Scheme Syntax} let-syntax ((keyword transformer) @dots{})
+                        exp1 exp2 @dots{}
+@deffnx {Scheme Syntax} letrec-syntax ((keyword transformer) @dots{})
+                        exp1 exp2 @dots{}
 @xref{Defining Macros}, for documentation.
 @end deffn
 
@@ -403,7 +405,7 @@ grouped below by the existing manual sections to which they correspond.
 @xref{SRFI-1 Fold and Map}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} list elem1 ... elemN
+@deffn {Scheme Procedure} list elem @dots{}
 @xref{List Constructors}, for documentation.
 @end deffn
 
@@ -413,7 +415,8 @@ grouped below by the existing manual sections to which they correspond.
 @xref{List Selection}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} append lst1 ... lstN
+@deffn {Scheme Procedure} append lst @dots{} obj
+@deffnx {Scheme Procedure} append
 @deffnx {Scheme Procedure} reverse lst
 @xref{Append/Reverse}, for documentation.
 @end deffn
@@ -440,15 +443,15 @@ grouped below by the existing manual sections to which they correspond.
 @xref{String Selection}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} string=? [s1 [s2 . rest]]
-@deffnx {Scheme Procedure} string<? [s1 [s2 . rest]]
-@deffnx {Scheme Procedure} string>? [s1 [s2 . rest]]
-@deffnx {Scheme Procedure} string<=? [s1 [s2 . rest]]
-@deffnx {Scheme Procedure} string>=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string=? s1 s2 s3 @dots{}
+@deffnx {Scheme Procedure} string<? s1 s2 s3 @dots{}
+@deffnx {Scheme Procedure} string>? s1 s2 s3 @dots{}
+@deffnx {Scheme Procedure} string<=? s1 s2 s3 @dots{}
+@deffnx {Scheme Procedure} string>=? s1 s2 s3 @dots{}
 @xref{String Comparison}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} string-append . args
+@deffn {Scheme Procedure} string-append arg @dots{}
 @xref{Reversing and Appending Strings}, for documentation.
 @end deffn
 
@@ -579,7 +582,7 @@ These procedures implement the @code{map} and @code{for-each} contracts
 over vectors.
 @end deffn
 
-@deffn {Scheme Procedure} vector . l
+@deffn {Scheme Procedure} vector arg @dots{}
 @deffnx {Scheme Procedure} vector? obj
 @deffnx {Scheme Procedure} make-vector len
 @deffnx {Scheme Procedure} make-vector len fill
@@ -600,7 +603,7 @@ over vectors.
 @xref{Continuations}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} values arg1 ... argN
+@deffn {Scheme Procedure} values arg @dots{}
 @deffnx {Scheme Procedure} call-with-values producer consumer
 @xref{Multiple Values}, for documentation.
 @end deffn
@@ -609,7 +612,7 @@ over vectors.
 @xref{Dynamic Wind}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} apply proc arg1 ... argN arglst
+@deffn {Scheme Procedure} apply proc arg @dots{} arglst
 @xref{Fly Evaluation}, for documentation.
 @end deffn
 
@@ -717,8 +720,8 @@ These procedures are identical to the ones provided by SRFI-1.
 @xref{SRFI-1 Filtering and Partitioning}, for @code{partition}.
 @end deffn
 
-@deffn {Scheme Procedure} fold-left combine nil list1 list2 ... listn
-@deffnx {Scheme Procedure} fold-right combine nil list1 list2 ... listn
+@deffn {Scheme Procedure} fold-left combine nil list1 list2 @dots{}
+@deffnx {Scheme Procedure} fold-right combine nil list1 list2 @dots{}
 These procedures are identical to the @code{fold} and @code{fold-right}
 procedures provided by SRFI-1.  @xref{SRFI-1 Fold and Map}, for
 documentation.
@@ -903,7 +906,7 @@ compatible with either.
 The @code{(rnrs records syntactic (6))} library exports the syntactic
 API for working with R6RS records.
 
-@deffn {Scheme Syntax} define-record-type name-spec record-clause*
+@deffn {Scheme Syntax} define-record-type name-spec record-clause @dots{}
 Defines a new record type, introducing bindings for a record-type
 descriptor, a record constructor descriptor, a constructor procedure,
 a record predicate, and accessor and mutator procedures for the new

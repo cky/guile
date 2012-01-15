@@ -228,7 +228,7 @@ and replace them with the contents of another string.  The following
 functions are convenient ways to do this.
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
-@deffn {Scheme Procedure} regexp-substitute port match [item@dots{}]
+@deffn {Scheme Procedure} regexp-substitute port match item @dots{}
 Write to @var{port} selected parts of the match structure @var{match}.
 Or if @var{port} is @code{#f} then form a string from those parts and
 return that.
@@ -276,7 +276,7 @@ re-ordering and hyphenating the fields.
 
 
 @c begin (scm-doc-string "regex.scm" "regexp-substitute")
-@deffn {Scheme Procedure} regexp-substitute/global port regexp target [item@dots{}]
+@deffn {Scheme Procedure} regexp-substitute/global port regexp target item@dots{}
 @cindex search and replace
 Write to @var{port} selected parts of matches of @var{regexp} in
 @var{target}.  If @var{port} is @code{#f} then form a string from

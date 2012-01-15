@@ -2324,12 +2324,12 @@ Return @code{#t} if @var{obj} is a character set, @code{#f}
 otherwise.
 @end deffn
 
-@deffn {Scheme Procedure} char-set= . char_sets
+@deffn {Scheme Procedure} char-set= char_set @dots{}
 @deffnx {C Function} scm_char_set_eq (char_sets)
 Return @code{#t} if all given character sets are equal.
 @end deffn
 
-@deffn {Scheme Procedure} char-set<= . char_sets
+@deffn {Scheme Procedure} char-set<= char_set @dots{}
 @deffnx {C Function} scm_char_set_leq (char_sets)
 Return @code{#t} if every character set @var{char_set}i is a subset
 of character set @var{char_set}i+1.
@@ -2339,7 +2339,7 @@ of character set @var{char_set}i+1.
 @deffnx {C Function} scm_char_set_hash (cs, bound)
 Compute a hash value for the character set @var{cs}.  If
 @var{bound} is given and non-zero, it restricts the
-returned value to the range 0 @dots{} @var{bound - 1}.
+returned value to the range 0 @dots{} @var{bound} - 1.
 @end deffn
 
 @c ===================================================================
@@ -2443,8 +2443,8 @@ Return a newly allocated character set containing all
 characters in @var{cs}.
 @end deffn
 
-@deffn {Scheme Procedure} char-set . rest
-@deffnx {C Function} scm_char_set (rest)
+@deffn {Scheme Procedure} char-set chr @dots{}
+@deffnx {C Function} scm_char_set (chrs)
 Return a character set containing all given characters.
 @end deffn
 
@@ -2607,26 +2607,26 @@ such as union, complement, intersection etc.  All of these procedures
 provide side-effecting variants, which modify their character set
 argument(s).
 
-@deffn {Scheme Procedure} char-set-adjoin cs . rest
-@deffnx {C Function} scm_char_set_adjoin (cs, rest)
+@deffn {Scheme Procedure} char-set-adjoin cs chr @dots{}
+@deffnx {C Function} scm_char_set_adjoin (cs, chrs)
 Add all character arguments to the first argument, which must
 be a character set.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-delete cs . rest
-@deffnx {C Function} scm_char_set_delete (cs, rest)
+@deffn {Scheme Procedure} char-set-delete cs chr @dots{}
+@deffnx {C Function} scm_char_set_delete (cs, chrs)
 Delete all character arguments from the first argument, which
 must be a character set.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-adjoin! cs . rest
-@deffnx {C Function} scm_char_set_adjoin_x (cs, rest)
+@deffn {Scheme Procedure} char-set-adjoin! cs chr @dots{}
+@deffnx {C Function} scm_char_set_adjoin_x (cs, chrs)
 Add all character arguments to the first argument, which must
 be a character set.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-delete! cs . rest
-@deffnx {C Function} scm_char_set_delete_x (cs, rest)
+@deffn {Scheme Procedure} char-set-delete! cs chr @dots{}
+@deffnx {C Function} scm_char_set_delete_x (cs, chrs)
 Delete all character arguments from the first argument, which
 must be a character set.
 @end deffn
@@ -2642,28 +2642,28 @@ characters).  It may be helpful to modify the output of
 @code{char-set-complement} by computing its intersection with the set
 of designated code points, @code{char-set:designated}.
 
-@deffn {Scheme Procedure} char-set-union . rest
-@deffnx {C Function} scm_char_set_union (rest)
+@deffn {Scheme Procedure} char-set-union cs @dots{}
+@deffnx {C Function} scm_char_set_union (char_sets)
 Return the union of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-intersection . rest
-@deffnx {C Function} scm_char_set_intersection (rest)
+@deffn {Scheme Procedure} char-set-intersection cs @dots{}
+@deffnx {C Function} scm_char_set_intersection (char_sets)
 Return the intersection of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-difference cs1 . rest
-@deffnx {C Function} scm_char_set_difference (cs1, rest)
+@deffn {Scheme Procedure} char-set-difference cs1 cs @dots{}
+@deffnx {C Function} scm_char_set_difference (cs1, char_sets)
 Return the difference of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-xor . rest
-@deffnx {C Function} scm_char_set_xor (rest)
+@deffn {Scheme Procedure} char-set-xor cs @dots{}
+@deffnx {C Function} scm_char_set_xor (char_sets)
 Return the exclusive-or of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-diff+intersection cs1 . rest
-@deffnx {C Function} scm_char_set_diff_plus_intersection (cs1, rest)
+@deffn {Scheme Procedure} char-set-diff+intersection cs1 cs @dots{}
+@deffnx {C Function} scm_char_set_diff_plus_intersection (cs1, char_sets)
 Return the difference and the intersection of all argument
 character sets.
 @end deffn
@@ -2673,28 +2673,28 @@ character sets.
 Return the complement of the character set @var{cs}.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-union! cs1 . rest
-@deffnx {C Function} scm_char_set_union_x (cs1, rest)
+@deffn {Scheme Procedure} char-set-union! cs1 cs @dots{}
+@deffnx {C Function} scm_char_set_union_x (cs1, char_sets)
 Return the union of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-intersection! cs1 . rest
-@deffnx {C Function} scm_char_set_intersection_x (cs1, rest)
+@deffn {Scheme Procedure} char-set-intersection! cs1 cs @dots{}
+@deffnx {C Function} scm_char_set_intersection_x (cs1, char_sets)
 Return the intersection of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-difference! cs1 . rest
-@deffnx {C Function} scm_char_set_difference_x (cs1, rest)
+@deffn {Scheme Procedure} char-set-difference! cs1 cs @dots{}
+@deffnx {C Function} scm_char_set_difference_x (cs1, char_sets)
 Return the difference of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-xor! cs1 . rest
-@deffnx {C Function} scm_char_set_xor_x (cs1, rest)
+@deffn {Scheme Procedure} char-set-xor! cs1 cs @dots{}
+@deffnx {C Function} scm_char_set_xor_x (cs1, char_sets)
 Return the exclusive-or of all argument character sets.
 @end deffn
 
-@deffn {Scheme Procedure} char-set-diff+intersection! cs1 cs2 . rest
-@deffnx {C Function} scm_char_set_diff_plus_intersection_x (cs1, cs2, rest)
+@deffn {Scheme Procedure} char-set-diff+intersection! cs1 cs2 cs @dots{}
+@deffnx {C Function} scm_char_set_diff_plus_intersection_x (cs1, cs2, char_sets)
 Return the difference and the intersection of all argument
 character sets.
 @end deffn
@@ -3404,11 +3404,11 @@ comparison.  See @xref{Text Collation, the @code{(ice-9
 i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
-@deffn {Scheme Procedure} string=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string=? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_equal_p (s1, s2, rest)
-Lexicographic equality predicate; return @code{#t} if the two
-strings are the same length and contain the same characters in
-the same positions, otherwise return @code{#f}.
+Lexicographic equality predicate; return @code{#t} if all strings are
+the same length and contain the same characters in the same positions,
+otherwise return @code{#f}.
 
 The procedure @code{string-ci=?} treats upper and lower case
 letters as though they were the same character, but
@@ -3417,72 +3417,80 @@ characters.
 @end deffn
 
 @rnindex string<?
-@deffn {Scheme Procedure} string<? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string<? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_less_p (s1, s2, rest)
-Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically less than @var{s2}.
+Lexicographic ordering predicate; return @code{#t} if, for every pair of
+consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
+lexicographically less than @var{str_i+1}.
 @end deffn
 
 @rnindex string<=?
-@deffn {Scheme Procedure} string<=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string<=? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_leq_p (s1, s2, rest)
-Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically less than or equal to @var{s2}.
+Lexicographic ordering predicate; return @code{#t} if, for every pair of
+consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
+lexicographically less than or equal to @var{str_i+1}.
 @end deffn
 
 @rnindex string>?
-@deffn {Scheme Procedure} string>? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string>? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_gr_p (s1, s2, rest)
-Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically greater than @var{s2}.
+Lexicographic ordering predicate; return @code{#t} if, for every pair of
+consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
+lexicographically greater than @var{str_i+1}.
 @end deffn
 
 @rnindex string>=?
-@deffn {Scheme Procedure} string>=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string>=? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_geq_p (s1, s2, rest)
-Lexicographic ordering predicate; return @code{#t} if @var{s1}
-is lexicographically greater than or equal to @var{s2}.
+Lexicographic ordering predicate; return @code{#t} if, for every pair of
+consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
+lexicographically greater than or equal to @var{str_i+1}.
 @end deffn
 
 @rnindex string-ci=?
-@deffn {Scheme Procedure} string-ci=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string-ci=? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_ci_equal_p (s1, s2, rest)
 Case-insensitive string equality predicate; return @code{#t} if
-the two strings are the same length and their component
+all strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
 return @code{#f}.
 @end deffn
 
 @rnindex string-ci<?
-@deffn {Scheme Procedure} string-ci<? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string-ci<? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_ci_less_p (s1, s2, rest)
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically less than @var{s2}
+Case insensitive lexicographic ordering predicate; return @code{#t} if,
+for every pair of consecutive string arguments @var{str_i} and
+@var{str_i+1}, @var{str_i} is lexicographically less than @var{str_i+1}
 regardless of case.
 @end deffn
 
 @rnindex string<=?
-@deffn {Scheme Procedure} string-ci<=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string-ci<=? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_ci_leq_p (s1, s2, rest)
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically less than or equal
-to @var{s2} regardless of case.
+Case insensitive lexicographic ordering predicate; return @code{#t} if,
+for every pair of consecutive string arguments @var{str_i} and
+@var{str_i+1}, @var{str_i} is lexicographically less than or equal to
+@var{str_i+1} regardless of case.
 @end deffn
 
 @rnindex string-ci>?
-@deffn {Scheme Procedure} string-ci>? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string-ci>? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_ci_gr_p (s1, s2, rest)
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically greater than
-@var{s2} regardless of case.
+Case insensitive lexicographic ordering predicate; return @code{#t} if,
+for every pair of consecutive string arguments @var{str_i} and
+@var{str_i+1}, @var{str_i} is lexicographically greater than
+@var{str_i+1} regardless of case.
 @end deffn
 
 @rnindex string-ci>=?
-@deffn {Scheme Procedure} string-ci>=? [s1 [s2 . rest]]
+@deffn {Scheme Procedure} string-ci>=? s1 s2 s3 @dots{}
 @deffnx {C Function} scm_i_string_ci_geq_p (s1, s2, rest)
-Case insensitive lexicographic ordering predicate; return
-@code{#t} if @var{s1} is lexicographically greater than or
-equal to @var{s2} regardless of case.
+Case insensitive lexicographic ordering predicate; return @code{#t} if,
+for every pair of consecutive string arguments @var{str_i} and
+@var{str_i+1}, @var{str_i} is lexicographically greater than or equal to
+@var{str_i+1} regardless of case.
 @end deffn
 
 @deffn {Scheme Procedure} string-compare s1 s2 proc_lt proc_eq proc_gt [start1 [end1 [start2 [end2]]]]
@@ -3934,10 +3942,10 @@ operate on.  The return value is unspecified.
 @end deffn
 
 @rnindex string-append
-@deffn {Scheme Procedure} string-append . args
+@deffn {Scheme Procedure} string-append arg @dots{}
 @deffnx {C Function} scm_string_append (args)
 Return a newly allocated string whose characters form the
-concatenation of the given strings, @var{args}.
+concatenation of the given strings, @var{arg} @enddots{}.
 
 @example
 (let ((h "hello "))
@@ -3946,17 +3954,16 @@ concatenation of the given strings, @var{args}.
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} string-append/shared . rest
-@deffnx {C Function} scm_string_append_shared (rest)
+@deffn {Scheme Procedure} string-append/shared arg @dots{}
+@deffnx {C Function} scm_string_append_shared (args)
 Like @code{string-append}, but the result may share memory
 with the argument strings.
 @end deffn
 
 @deffn {Scheme Procedure} string-concatenate ls
 @deffnx {C Function} scm_string_concatenate (ls)
-Append the elements of @var{ls} (which must be strings)
-together into a single string.  Guaranteed to return a freshly
-allocated string.
+Append the elements (which must be strings) of @var{ls} together into a
+single string.  Guaranteed to return a freshly allocated string.
 @end deffn
 
 @deffn {Scheme Procedure} string-concatenate-reverse ls [final_string [end]]
@@ -5181,9 +5188,9 @@ Return a newly allocated symbol made from a list of characters.
 @end deffn
 
 @rnindex symbol-append
-@deffn {Scheme Procedure} symbol-append . args
+@deffn {Scheme Procedure} symbol-append arg @dots{}
 Return a newly allocated symbol whose characters form the
-concatenation of the given symbols, @var{args}.
+concatenation of the given symbols, @var{arg} @enddots{}.
 
 @example
 (let ((h 'hello))

@@ -1698,12 +1698,12 @@ If @code{system} is called without arguments, return a boolean
 indicating whether the command processor is available.
 @end deffn
 
-@deffn {Scheme Procedure} system* . args
+@deffn {Scheme Procedure} system* arg1 arg2 @dots{}
 @deffnx {C Function} scm_system_star (args)
-Execute the command indicated by @var{args}.  The first element must
-be a string indicating the command to be executed, and the remaining
-items must be strings representing each of the arguments to that
-command.
+Execute the command indicated by @var{arg1} @var{arg2} @enddots{}.  The
+first element must be a string indicating the command to be executed,
+and the remaining items must be strings representing each of the
+arguments to that command.
 
 This function returns the exit status of the command as provided by
 @code{waitpid}.  This value can be handled with @code{status:exit-val}
@@ -1743,7 +1743,7 @@ in the child would upset the protocol in the parent, so
 @code{primitive-_exit} should be used to exit without that.
 @end deffn
 
-@deffn {Scheme Procedure} execl filename . args
+@deffn {Scheme Procedure} execl filename arg @dots{}
 @deffnx {C Function} scm_execl (filename, args)
 Executes the file named by @var{filename} as a new process image.
 The remaining arguments are supplied to the process; from a C program
@@ -1758,7 +1758,7 @@ This procedure is currently implemented using the @code{execv} system
 call, but we call it @code{execl} because of its Scheme calling interface.
 @end deffn
 
-@deffn {Scheme Procedure} execlp filename . args
+@deffn {Scheme Procedure} execlp filename arg @dots{}
 @deffnx {C Function} scm_execlp (filename, args)
 Similar to @code{execl}, however if
 @var{filename} does not contain a slash
@@ -1769,7 +1769,7 @@ This procedure is currently implemented using the @code{execvp} system
 call, but we call it @code{execlp} because of its Scheme calling interface.
 @end deffn
 
-@deffn {Scheme Procedure} execle filename env . args
+@deffn {Scheme Procedure} execle filename env arg @dots{}
 @deffnx {C Function} scm_execle (filename, env, args)
 Similar to @code{execl}, but the environment of the new process is
 specified by @var{env}, which must be a list of strings as returned by the

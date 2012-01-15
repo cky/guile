@@ -504,23 +504,22 @@ eval-string)}, evaluating within @var{module} or the current module.
 of an @code{SCM}.
 @end deftypefn
 
-@deffn {Scheme Procedure} apply proc arg1 @dots{} argN arglst
+@deffn {Scheme Procedure} apply proc arg @dots{} arglst
 @deffnx {C Function} scm_apply_0 (proc, arglst)
 @deffnx {C Function} scm_apply_1 (proc, arg1, arglst)
 @deffnx {C Function} scm_apply_2 (proc, arg1, arg2, arglst)
 @deffnx {C Function} scm_apply_3 (proc, arg1, arg2, arg3, arglst)
 @deffnx {C Function} scm_apply (proc, arg, rest)
 @rnindex apply
-Call @var{proc} with arguments @var{arg1} @dots{} @var{argN} plus the
+Call @var{proc} with arguments @var{arg} @dots{} and the
 elements of the @var{arglst} list.
 
 @code{scm_apply} takes parameters corresponding to a Scheme level
-@code{(lambda (proc arg . rest) ...)}.  So @var{arg} and all but the
-last element of the @var{rest} list make up
-@var{arg1}@dots{}@var{argN} and the last element of @var{rest} is the
-@var{arglst} list.  Or if @var{rest} is the empty list @code{SCM_EOL}
-then there's no @var{arg1}@dots{}@var{argN} and @var{arg} is the
-@var{arglst}.
+@code{(lambda (proc arg1 . rest) ...)}.  So @var{arg1} and all but the
+last element of the @var{rest} list make up @var{arg} @dots{}, and the
+last element of @var{rest} is the @var{arglst} list.  Or if @var{rest}
+is the empty list @code{SCM_EOL} then there's no @var{arg} @dots{}, and
+(@var{arg1}) is the @var{arglst}.
 
 @var{arglst} is not modified, but the @var{rest} list passed to
 @code{scm_apply} is modified.

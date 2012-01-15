@@ -250,7 +250,7 @@ Export all bindings which should be in the public interface, either
 by using @code{define-public} or @code{export} (both documented below).
 @end itemize
 
-@deffn syntax define-module module-name [options @dots{}]
+@deffn syntax define-module module-name option @dots{}
 @var{module-name} is a list of one or more symbols.
 
 @lisp
@@ -260,8 +260,8 @@ by using @code{define-public} or @code{export} (both documented below).
 @code{define-module} makes this module available to Guile programs under
 the given @var{module-name}.
 
-The @var{options} are keyword/value pairs which specify more about the
-defined module.  The recognized options and their meaning is shown in
+@var{option} @dots{} are keyword/value pairs which specify more about the
+defined module.  The recognized options and their meaning are shown in
 the following table.
 
 @table @code

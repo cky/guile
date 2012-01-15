@@ -156,7 +156,7 @@ C programmers will note the similarity between @code{format} and
 instead of @nicode{%}, and are more powerful.
 
 @sp 1
-@deffn {Scheme Procedure} format dest fmt [args@dots{}]
+@deffn {Scheme Procedure} format dest fmt arg @dots{}
 Write output specified by the @var{fmt} string to @var{dest}.
 @var{dest} can be an output port, @code{#t} for
 @code{current-output-port} (@pxref{Default Ports}), or @code{#f} to
@@ -1695,35 +1695,35 @@ secondly the number of elements in that list.
 Return a vector which is the entire contents of @var{stream}.
 @end deffn
 
-@deffn {Scheme Procedure} stream-fold proc init stream0 @dots{} streamN
+@defun stream-fold proc init stream1 stream2 @dots{}
 Apply @var{proc} successively over the elements of the given streams,
 from first to last until the end of the shortest stream is reached.
 Return the result from the last @var{proc} call.
 
-Each call is @code{(@var{proc} elem0 @dots{} elemN prev)}, where each
+Each call is @code{(@var{proc} elem1 elem2 @dots{} prev)}, where each
 @var{elem} is from the corresponding @var{stream}.  @var{prev} is the
 return from the previous @var{proc} call, or the given @var{init} for
 the first call.
-@end deffn
+@end defun
 
-@deffn {Scheme Procedure} stream-for-each proc stream0 @dots{} streamN
+@defun stream-for-each proc stream1 stream2 @dots{}
 Call @var{proc} on the elements from the given @var{stream}s.  The
 return value is unspecified.
 
-Each call is @code{(@var{proc} elem0 @dots{} elemN)}, where each
+Each call is @code{(@var{proc} elem1 elem2 @dots{})}, where each
 @var{elem} is from the corresponding @var{stream}.
 @code{stream-for-each} stops when it reaches the end of the shortest
 @var{stream}.
-@end deffn
+@end defun
 
-@deffn {Scheme Procedure} stream-map proc stream0 @dots{} streamN
+@defun stream-map proc stream1 stream2 @dots{}
 Return a new stream which is the results of applying @var{proc} to the
 elements of the given @var{stream}s.
 
-Each call is @code{(@var{proc} elem0 @dots{} elemN)}, where each
+Each call is @code{(@var{proc} elem1 elem2 @dots{})}, where each
 @var{elem} is from the corresponding @var{stream}.  The new stream
 ends when the end of the shortest given @var{stream} is reached.
-@end deffn
+@end defun
 
 
 @node Buffered Input

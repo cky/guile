@@ -97,11 +97,12 @@ Class options, slot descriptions and inheritance are discussed more
 below.
 @cindex slot
 
-@deffn syntax define-class name (super @dots{}) slot-definition @dots{} . options
+@deffn syntax define-class name (super @dots{}) @
+              slot-definition @dots{} class-option @dots{}
 Define a class called @var{name} that inherits from @var{super}s, with
-direct slots defined by @var{slot-definition}s and class options
-@var{options}.  The newly created class is bound to the variable name
-@var{name} in the current environment.
+direct slots defined by @var{slot-definition}s and @var{class-option}s.
+The newly created class is bound to the variable name @var{name} in the
+current environment.
 
 Each @var{slot-definition} is either a symbol that names the slot or a
 list,
@@ -115,8 +116,7 @@ list with an even number of elements.  The even-numbered elements of
 @var{slot-options} (counting from zero) are slot option keywords; the
 odd-numbered elements are the corresponding values for those keywords.
 
-@var{options} is a similarly structured list containing class option
-keywords and corresponding values.
+Each @var{class-option} is an option keyword and corresponding value.
 @end deffn
 
 As an example, let us define a type for representing a complex number
@@ -183,13 +183,13 @@ creates a new @code{<my-complex>} object and binds it to the Scheme
 variable @code{c}.
 
 @deffn generic make
-@deffnx method make (class <class>) . initargs
+@deffnx method make (class <class>) initarg @dots{}
 Create and return a new instance of class @var{class}, initialized using
-@var{initargs}.
+@var{initarg} @enddots{}.
 
-In theory, @var{initargs} can have any structure that is understood by
-whatever methods get applied when the @code{initialize} generic function
-is applied to the newly allocated instance.
+In theory, @var{initarg} @dots{} can have any structure that is
+understood by whatever methods get applied when the @code{initialize}
+generic function is applied to the newly allocated instance.
 
 In practice, specialized @code{initialize} methods would normally call
 @code{(next-method)}, and so eventually the standard GOOPS
@@ -206,7 +206,7 @@ instance's class.  Any unprocessed keyword value pairs are ignored.
 @end deffn
 
 @deffn generic make-instance
-@deffnx method make-instance (class <class>) . initargs
+@deffnx method make-instance (class <class>) initarg @dots{}
 @code{make-instance} is an alias for @code{make}.
 @end deffn
 
@@ -674,9 +674,9 @@ setter).  Any other previous value, including an existing generic
 function, is discarded and replaced by a new, empty generic function.
 @end deffn
 
-@deffn syntax define-method (generic parameter @dots{}) . body
+@deffn syntax define-method (generic parameter @dots{}) body @dots{}
 Define a method for the generic function or accessor @var{generic} with
-parameters @var{parameter}s and body @var{body}.
+parameters @var{parameter}s and body @var{body} @enddots{}.
 
 @var{generic} is a generic function.  If @var{generic} is a variable
 which is not yet bound to a generic function object, the expansion of
@@ -688,12 +688,12 @@ generic-with-setter object, the expansion will include a call to
 
 Each @var{parameter} must be either a symbol or a two-element list
 @code{(@var{symbol} @var{class})}.  The symbols refer to variables in
-the @var{body} that will be bound to the parameters supplied by the
+the body forms that will be bound to the parameters supplied by the
 caller when calling this method.  The @var{class}es, if present,
 specify the possible combinations of parameters to which this method
 can be applied.
 
-@var{body} is the body of the method definition.
+@var{body} @dots{} are the bodies of the method definition.
 @end deffn
 
 @code{define-method} expressions look a little like Scheme procedure
@@ -1698,10 +1698,10 @@ If you customize these functions for particular classes or metaclasses,
 you may still want to use @code{goops-error} to signal any error
 conditions that you detect.
 
-@deffn procedure goops-error format-string . args
+@deffn procedure goops-error format-string arg @dots{}
 Raise an error with key @code{goops-error} and error message constructed
-from @var{format-string} and @var{args}.  Error message formatting is
-as done by @code{scm-error}.
+from @var{format-string} and @var{arg} @enddots{}.  Error message
+formatting is as done by @code{scm-error}.
 @end deffn
 
 
@@ -2228,11 +2228,12 @@ handles the redefinition by invoking @code{class-redefinition}
 (@pxref{Redefining a Class}).
 @end itemize
 
-@deffn syntax class name (super @dots{}) slot-definition @dots{} . options
+@deffn syntax class name (super @dots{}) @
+              slot-definition @dots{} class-option @dots{}
 Return a newly created class that inherits from @var{super}s, with
-direct slots defined by @var{slot-definition}s and class options
-@var{options}.  For the format of @var{slot-definition}s and
-@var{options}, see @ref{Class Definition,, define-class}.
+direct slots defined by @var{slot-definition}s and @var{class-option}s.
+For the format of @var{slot-definition}s and @var{class-option}s, see
+@ref{Class Definition,, define-class}.
 @end deffn
 
 @noindent @code{class} expands to an expression which
@@ -2250,13 +2251,12 @@ calls @code{make-class} to create the class with the processed and
 evaluated parameters.
 @end itemize
 
-@deffn procedure make-class supers slots . options
+@deffn procedure make-class supers slots class-option @dots{}
 Return a newly created class that inherits from @var{supers}, with
-direct slots defined by @var{slots} and class options @var{options}.
-For the format of @var{slots} and @var{options}, see @ref{Class
+direct slots defined by @var{slots} and @var{class-option}s.  For the
+format of @var{slots} and @var{class-option}s, see @ref{Class
 Definition,, define-class}, except note that for @code{make-class},
-@var{slots} and @var{options} are separate list parameters: @var{slots}
-here is a list of slot definitions.
+@var{slots} is a separate list of slot definitions.
 @end deffn
 
 @noindent @code{make-class}
@@ -2307,18 +2307,19 @@ has to be created once.
 The @code{env} parameter is ignored.
 @end deffn
 
-@deffn generic make metaclass @dots{}
+@deffn generic make metaclass initarg @dots{}
 @var{metaclass} is the metaclass of the class being defined, either
 taken from the @code{#:metaclass} class option or computed by
 @code{ensure-metaclass}.  The applied method must create and return the
 fully initialized class metaobject for the new class definition.
 @end deffn
 
-The @code{(make @var{metaclass} @dots{})} invocation is a particular
-case of the instance creation protocol covered in the previous section.
-It will create an class metaobject with metaclass @var{metaclass}.  By
-default, this metaobject will be initialized by the @code{initialize}
-method that is specialized for instances of type @code{<class>}.
+The @code{(make @var{metaclass} @var{initarg} @dots{})} invocation is a
+particular case of the instance creation protocol covered in the
+previous section.  It will create an class metaobject with metaclass
+@var{metaclass}.  By default, this metaobject will be initialized by the
+@code{initialize} method that is specialized for instances of type
+@code{<class>}.
 
 The @code{initialize} method for classes (signature @code{(initialize
 <class> initargs)}) calls the following generic functions.
@@ -2565,7 +2566,7 @@ calls @code{add-method!} to add this method to the relevant generic
 function.
 @end itemize
 
-@deffn syntax method (parameter @dots{}) . body
+@deffn syntax method (parameter @dots{}) body @dots{}
 Make a method whose specializers are defined by the classes in
 @var{parameter}s and whose procedure definition is constructed from the
 @var{parameter} symbols and @var{body} forms.

@@ -64,7 +64,7 @@ Dybvig at Indiana University.
 @code{sxml-match} provides @code{case}-like form for pattern matching of XML
 nodes.
 
-@deffn {Scheme Syntax} sxml-match input-expression clause ...
+@deffn {Scheme Syntax} sxml-match input-expression clause1 clause2 @dots{}
 Match @var{input-expression}, an SXML tree, according to the given @var{clause}s
 (one or more), each consisting of a pattern and one or more expressions to be
 evaluated if the pattern match succeeds.  Optionally, each @var{clause} within

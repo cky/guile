@@ -583,11 +583,11 @@ value of this procedure is not specified.
 Convert the procedure list of @var{hook} to a list.
 @end deffn
 
-@deffn {Scheme Procedure} run-hook hook . args
+@deffn {Scheme Procedure} run-hook hook arg @dots{}
 @deffnx {C Function} scm_run_hook (hook, args)
-Apply all procedures from the hook @var{hook} to the arguments
-@var{args}.  The order of the procedure application is first to
-last.  The return value of this procedure is not specified.
+Apply all procedures from the hook @var{hook} to the arguments @var{arg}
+@enddots{}.  The order of the procedure application is first to last.
+The return value of this procedure is not specified.
 @end deffn
 
 If, in C code, you are certain that you have a hook object and well

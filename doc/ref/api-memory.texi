@@ -398,7 +398,7 @@ set to @var{fill}. The default value for @var{fill} is the
 empty list.
 @end deffn
 
-@deffn {Scheme Procedure} weak-vector . l
+@deffn {Scheme Procedure} weak-vector elem @dots{}
 @deffnx {Scheme Procedure} list->weak-vector l
 @deffnx {C Function} scm_weak_vector (l)
 Construct a weak vector from a list: @code{weak-vector} uses

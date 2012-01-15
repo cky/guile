@@ -326,7 +326,7 @@ the last pair of the list.
 @c  no-op since it does nothing but return the list the caller must
 @c  have already created.
 @c
-@deffn {Scheme Procedure} list elem1 @dots{} elemN
+@deffn {Scheme Procedure} list elem @dots{}
 @deffnx {C Function} scm_list_1 (elem1)
 @deffnx {C Function} scm_list_2 (elem1, elem2)
 @deffnx {C Function} scm_list_3 (elem1, elem2, elem3)
@@ -334,11 +334,11 @@ the last pair of the list.
 @deffnx {C Function} scm_list_5 (elem1, elem2, elem3, elem4, elem5)
 @deffnx {C Function} scm_list_n (elem1, @dots{}, elemN, @nicode{SCM_UNDEFINED})
 @rnindex list
-Return a new list containing elements @var{elem1} to @var{elemN}.
+Return a new list containing elements @var{elem} @enddots{}.
 
 @code{scm_list_n} takes a variable number of arguments, terminated by
 the special @code{SCM_UNDEFINED}.  That final @code{SCM_UNDEFINED} is
-not included in the list.  None of @var{elem1} to @var{elemN} can
+not included in the list.  None of @var{elem} @dots{} can
 themselves be @code{SCM_UNDEFINED}, or @code{scm_list_n} will
 terminate at that point.
 @end deffn
@@ -430,12 +430,14 @@ pairs.  This is why you should be careful when using the side-effecting
 variants.
 
 @rnindex append
-@deffn {Scheme Procedure} append lst1 @dots{} lstN
-@deffnx {Scheme Procedure} append! lst1 @dots{} lstN
+@deffn {Scheme Procedure} append lst @dots{} obj
+@deffnx {Scheme Procedure} append
+@deffnx {Scheme Procedure} append! lst @dots{} obj
+@deffnx {Scheme Procedure} append!
 @deffnx {C Function} scm_append (lstlst)
 @deffnx {C Function} scm_append_x (lstlst)
-Return a list comprising all the elements of lists @var{lst1} to
-@var{lstN}.
+Return a list comprising all the elements of lists @var{lst} @dots{}
+@var{obj}.  If called with no arguments, return the empty list.
 
 @lisp
 (append '(x) '(y))          @result{}  (x y)
@@ -443,7 +445,7 @@ Return a list comprising all the elements of lists @var{lst1} to
 (append '(a (b)) '((c)))    @result{}  (a (b) (c))
 @end lisp
 
-The last argument @var{lstN} may actually be any object; an improper
+The last argument @var{obj} may actually be any object; an improper
 list results if the last argument is not a proper list.
 
 @lisp
@@ -452,11 +454,11 @@ list results if the last argument is not a proper list.
 @end lisp
 
 @code{append} doesn't modify the given lists, but the return may share
-structure with the final @var{lstN}.  @code{append!} modifies the
+structure with the final @var{obj}.  @code{append!} modifies the
 given lists to form its return.
 
 For @code{scm_append} and @code{scm_append_x}, @var{lstlst} is a list
-of the list operands @var{lst1} @dots{} @var{lstN}.  That @var{lstlst}
+of the list operands @var{lst} @dots{} @var{obj}.  That @var{lstlst}
 itself is not modified or used in the return.
 @end deffn
 
@@ -709,7 +711,7 @@ thus created is determined implicitly by the number of arguments given.
 
 @rnindex vector
 @rnindex list->vector
-@deffn {Scheme Procedure} vector . l
+@deffn {Scheme Procedure} vector arg @dots{}
 @deffnx {Scheme Procedure} list->vector l
 @deffnx {C Function} scm_vector (l)
 Return a newly allocated vector composed of the
@@ -1010,7 +1012,7 @@ Like @code{scm_make_bitvector}, but the length is given as a
 @code{size_t}.
 @end deftypefn
 
-@deffn {Scheme Procedure} bitvector . bits
+@deffn {Scheme Procedure} bitvector bit @dots{}
 @deffnx {C Function} scm_bitvector (bits)
 Create a new bitvector with the arguments as elements.
 @end deffn
@@ -1546,7 +1548,7 @@ is unspecified.
 @end deffn
 
 @c begin (texi-doc-string "guile" "array-equal?")
-@deffn {Scheme Procedure} array-equal? array1 array2 @dots{}
+@deffn {Scheme Procedure} array-equal? array @dots{}
 Return @code{#t} if all arguments are arrays with the same shape, the
 same type, and have corresponding elements which are either
 @code{equal?} or @code{array-equal?}.  This function differs from
@@ -1563,7 +1565,7 @@ same type, and have corresponding elements which are either
 @c  at least vaguely matches array-map!, but is it meant to be a
 @c  documented feature?
 
-@deffn {Scheme Procedure} array-map! dst proc src1 @dots{} srcN
+@deffn {Scheme Procedure} array-map! dst proc src @dots{}
 @deffnx {Scheme Procedure} array-map-in-order! dst proc src1 @dots{} srcN
 @deffnx {C Function} scm_array_map_x (dst, proc, srclist)
 Set each element of the @var{dst} array to values obtained from calls
@@ -1580,10 +1582,10 @@ range in @var{dst}.  This ensures all @var{dst} indices are valid in
 each @var{src}.
 @end deffn
 
-@deffn {Scheme Procedure} array-for-each proc src1 @dots{} srcN
+@deffn {Scheme Procedure} array-for-each proc src1 src2 @dots{}
 @deffnx {C Function} scm_array_for_each (proc, src1, srclist)
-Apply @var{proc} to each tuple of elements of @var{src1} @dots{}
-@var{srcN}, in row-major order.  The value returned is unspecified.
+Apply @var{proc} to each tuple of elements of @var{src1} @var{src2}
+@dots{}, in row-major order.  The value returned is unspecified.
 @end deffn
 
 @deffn {Scheme Procedure} array-index-map! dst proc
@@ -1793,7 +1795,7 @@ be returned only if its elements are stored internally contiguous in
 memory.
 @end deffn
 
-@deffn {Scheme Procedure} transpose-array array dim1 @dots{}
+@deffn {Scheme Procedure} transpose-array array dim1 dim2 @dots{}
 @deffnx {C Function} scm_transpose_array (array, dimlist)
 Return an array sharing contents with @var{array}, but with
 dimensions arranged in a different order.  There must be one
@@ -2235,7 +2237,7 @@ Return a new vlist, as for SRFI-1 @code{unfold} and @code{unfold-right}
 (@pxref{SRFI-1, @code{unfold}}).
 @end deffn
 
-@deffn {Scheme Procedure} vlist-append vlists ...
+@deffn {Scheme Procedure} vlist-append vlist @dots{}
 Append the given vlists and return the resulting vlist.
 @end deffn
 
@@ -2465,7 +2467,7 @@ This section describes the basic procedures for working with
 structures.  @code{make-struct} creates a structure, and
 @code{struct-ref} and @code{struct-set!} access write fields.
 
-@deffn {Scheme Procedure} make-struct vtable tail-size [init...]
+@deffn {Scheme Procedure} make-struct vtable tail-size init @dots{}
 @deffnx {C Function} scm_make_struct (vtable, tail_size, init_list)
 Create a new structure, with layout per the given @var{vtable}
 (@pxref{Vtables}).
