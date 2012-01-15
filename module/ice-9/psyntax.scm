@@ -791,6 +791,55 @@
                       id))))))
          (else (syntax-violation 'id-var-name "invalid id" id)))))
 
+    ;; A helper procedure for syntax-locally-bound-identifiers, which
+    ;; itself is a helper for transformer procedures.
+    ;; `locally-bound-identifiers' returns a list of all bindings
+    ;; visible to a syntax object with the given wrap.  They are in
+    ;; order from outer to inner.
+    ;;
+    ;; The purpose of this procedure is to give a transformer procedure
+    ;; references on bound identifiers, that the transformer can then
+    ;; introduce some of them in its output.  As such, the identifiers
+    ;; are anti-marked, so that rebuild-macro-output doesn't apply new
+    ;; marks to them.
+    ;;
+    (define locally-bound-identifiers
+      (lambda (w mod)
+        (define scan
+          (lambda (subst results)
+            (if (null? subst)
+                results
+                (let ((fst (car subst)))
+                  (if (eq? fst 'shift)
+                      (scan (cdr subst) results)
+                      (let ((symnames (ribcage-symnames fst))
+                            (marks (ribcage-marks fst)))
+                        (if (vector? symnames)
+                            (scan-vector-rib subst symnames marks results)
+                            (scan-list-rib subst symnames marks results))))))))
+        (define scan-list-rib
+          (lambda (subst symnames marks results)
+            (let f ((symnames symnames) (marks marks) (results results))
+              (if (null? symnames)
+                  (scan (cdr subst) results)
+                  (f (cdr symnames) (cdr marks)
+                     (cons (wrap (car symnames)
+                                 (anti-mark (make-wrap (car marks) subst))
+                                 mod)
+                           results))))))
+        (define scan-vector-rib
+          (lambda (subst symnames marks results)
+            (let ((n (vector-length symnames)))
+              (let f ((i 0) (results results))
+                (if (fx= i n)
+                    (scan (cdr subst) results)
+                    (f (fx+ i 1)
+                       (cons (wrap (vector-ref symnames i)
+                                   (anti-mark (make-wrap (vector-ref marks i) subst))
+                                   mod)
+                             results)))))))
+        (scan (wrap-subst w) '())))
+
     ;; Returns three values: binding type, binding value, the module (for
     ;; resolving toplevel vars).
     (define (resolve-identifier id w r mod)
@@ -2478,7 +2527,7 @@
 
     (set! syntax-local-binding
           (lambda (id)
-            (arg-check nonsymbol-id? id 'syntax-local-value)
+            (arg-check nonsymbol-id? id 'syntax-local-binding)
             (with-transformer-environment
              (lambda (e r w s rib mod)
                (define (strip-anti-mark w)
@@ -2500,9 +2549,15 @@
                      ((macro) (values 'macro value))
                      ((syntax) (values 'pattern-variable value))
                      ((displaced-lexical) (values 'displaced-lexical #f))
-                     ((global) (values 'global (cons value mod)))
+                     ((global) (values 'global (cons value (cdr mod))))
                      (else (values 'other #f)))))))))
 
+    (set! syntax-locally-bound-identifiers
+          (lambda (x)
+            (arg-check nonsymbol-id? x 'syntax-locally-bound-identifiers)
+            (locally-bound-identifiers (syntax-object-wrap x)
+                                       (syntax-object-module x))))
+    
     (set! generate-temporaries
           (lambda (ls)
             (arg-check list? ls 'generate-temporaries)

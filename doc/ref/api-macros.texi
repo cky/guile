@@ -744,7 +744,7 @@ information with macros:
 (define-syntax-rule (with-aux aux value)
   (let ((trans value))
     (set! (aux-property trans) aux)
-    trans)))
+    trans))
 (define-syntax retrieve-aux
   (lambda (x)
     (syntax-case x ()
@@ -767,6 +767,41 @@ information with macros:
 @code{syntax-local-binding} must be called within the dynamic extent of
 a syntax transformer; to call it otherwise will signal an error.
 @end deffn
+
+@deffn {Scheme Procedure} syntax-locally-bound-identifiers id
+Return a list of identifiers that were visible lexically when the
+identifier @var{id} was created, in order from outermost to innermost.
+
+This procedure is intended to be used in specialized procedural macros,
+to provide a macro with the set of bound identifiers that the macro can
+reference.
+
+As a technical implementation detail, the identifiers returned by
+@code{syntax-locally-bound-identifiers} will be anti-marked, like the
+syntax object that is given as input to a macro.  This is to signal to
+the macro expander that these bindings were present in the original
+source, and do not need to be hygienically renamed, as would be the case
+with other introduced identifiers.  See the discussion of hygiene in
+section 12.1 of the R6RS, for more information on marks.
+
+@example
+(define (local-lexicals id)
+  (filter (lambda (x)
+            (eq? (syntax-local-binding x) 'lexical))
+          (syntax-locally-bound-identifiers id)))
+(define-syntax lexicals
+  (lambda (x)
+    (syntax-case x ()
+      ((lexicals) #'(lexicals lexicals))
+      ((lexicals scope)
+       (with-syntax (((id ...) (local-lexicals #'scope)))
+         #'(list (cons 'id id) ...))))))
+
+(let* ((x 10) (x 20)) (lexicals))
+@result{} ((x . 10) (x . 20))
+@end example
+@end deffn
+
 
 @node Defmacros
 @subsection Lisp-style Macro Definitions
