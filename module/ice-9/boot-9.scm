@@ -389,6 +389,7 @@ If there is no handler at all, Guile prints an error and then exits."
 (define generate-temporaries #f)
 (define bound-identifier=? #f)
 (define free-identifier=? #f)
+(define syntax-local-binding #f)
 
 ;; $sc-dispatch is an implementation detail of psyntax. It is used by
 ;; expanded macros, to dispatch an input against a set of patterns.

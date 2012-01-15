@@ -38,9 +38,10 @@ languages}, or EDSLs.}.
 * Defining Macros::             Binding macros, globally and locally.
 * Syntax Rules::                Pattern-driven macros.
 * Syntax Case::                 Procedural, hygienic macros.
+* Syntax Transformer Helpers::  Helpers for use in procedural macros.
 * Defmacros::                   Lisp-style macros.
 * Identifier Macros::           Identifier macros.
-* Syntax Parameters::           Syntax Parameters
+* Syntax Parameters::           Syntax Parameters.
 * Eval When::                   Affecting the expand-time environment.
 * Internal Macros::             Macros as first-class values.
 @end menu
@@ -671,28 +672,101 @@ source file, one may write:
           (newline))))))
 @end example
 
-Finally, we should mention the following helper procedures defined by the core
-of @code{syntax-case}:
+Readers interested in further information on @code{syntax-case} macros should
+see R. Kent Dybvig's excellent @cite{The Scheme Programming Language}, either
+edition 3 or 4, in the chapter on syntax. Dybvig was the primary author of the
+@code{syntax-case} system. The book itself is available online at
+@uref{http://scheme.com/tspl4/}.
+
+@node Syntax Transformer Helpers
+@subsection Syntax Transformer Helpers
+
+As noted in the previous section, Guile's syntax expander operates on
+syntax objects.  Procedural macros consume and produce syntax objects.
+This section describes some of the auxiliary helpers that procedural
+macros can use to compare, generate, and query objects of this data
+type.
 
 @deffn {Scheme Procedure} bound-identifier=? a b
-Returns @code{#t} iff the syntax objects @var{a} and @var{b} refer to the same
-lexically-bound identifier.
+Return @code{#t} iff the syntax objects @var{a} and @var{b} refer to the
+same lexically-bound identifier.
 @end deffn
 
 @deffn {Scheme Procedure} free-identifier=? a b
-Returns @code{#t} iff the syntax objects @var{a} and @var{b} refer to the same
-free identifier.
+Return @code{#t} iff the syntax objects @var{a} and @var{b} refer to the
+same free identifier.
 @end deffn
 
 @deffn {Scheme Procedure} generate-temporaries ls
 Return a list of temporary identifiers as long as @var{ls} is long.
 @end deffn
 
-Readers interested in further information on @code{syntax-case} macros should
-see R. Kent Dybvig's excellent @cite{The Scheme Programming Language}, either
-edition 3 or 4, in the chapter on syntax. Dybvig was the primary author of the
-@code{syntax-case} system. The book itself is available online at
-@uref{http://scheme.com/tspl4/}.
+@deffn {Scheme Procedure} syntax-source x
+Return the source properties that correspond to the syntax object
+@var{x}.  @xref{Source Properties}, for more information.
+@end deffn
+
+@deffn {Scheme Procedure} syntax-local-binding id
+Resolve the identifer @var{id}, a syntax object, within the current
+lexical environment, and return two values, the binding type and a
+binding value.  The binding type is a symbol, which may be one of the
+following:
+
+@table @code
+@item lexical
+A lexically-bound variable.  The value is a unique token (in the sense
+of @code{eq?}) identifying this binding.
+@item macro
+A syntax transformer, either local or global.  The value is the
+transformer procedure.
+@item pattern-variable
+A pattern variable, bound via syntax-case.  The value is an opaque
+object, internal to the expander.
+@item displaced-lexical
+A lexical variable that has gone out of scope.  This can happen if a
+badly-written procedural macro saves a syntax object, then attempts to
+introduce it in a context in which it is unbound.  The value is
+@code{#f}.
+@item global
+A global binding.  The value is a pair, whose head is the symbol, and
+whose tail is the name of the module in which to resolve the symbol.
+@item other
+Some other binding, like @code{lambda} or other core bindings.  The
+value is @code{#f}.
+@end table
+
+This is a very low-level procedure, with limited uses.  One case in
+which it is useful is to build abstractions that associate auxiliary
+information with macros:
+
+@example
+(define aux-property (make-object-property))
+(define-syntax-rule (with-aux aux value)
+  (let ((trans value))
+    (set! (aux-property trans) aux)
+    trans)))
+(define-syntax retrieve-aux
+  (lambda (x)
+    (syntax-case x ()
+      ((x id)
+       (call-with-values (lambda () (syntax-local-binding #'id))
+         (lambda (type val)
+           (with-syntax ((aux (datum->syntax #'here
+                                             (and (eq? type 'macro)
+                                                  (aux-property val)))))
+             #''aux)))))))
+(define-syntax foo
+  (with-aux 'bar
+    (syntax-rules () ((_) 'foo))))
+(foo)
+@result{} foo
+(retrieve-aux foo)
+@result{} bar
+@end example
+
+@code{syntax-local-binding} must be called within the dynamic extent of
+a syntax transformer; to call it otherwise will signal an error.
+@end deffn
 
 @node Defmacros
 @subsection Lisp-style Macro Definitions

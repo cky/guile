@@ -786,6 +786,40 @@
                       id))))))
          (else (syntax-violation 'id-var-name "invalid id" id)))))
 
+    ;; Returns three values: binding type, binding value, the module (for
+    ;; resolving toplevel vars).
+    (define (resolve-identifier id w r mod)
+      (define (resolve-global var mod)
+        (let ((b (or (get-global-definition-hook var mod)
+                     (make-binding 'global))))
+          (if (eq? (binding-type b) 'global)
+              (values 'global var mod)
+              (values (binding-type b) (binding-value b) mod))))
+      (define (resolve-lexical label mod)
+        (let ((b (or (assq-ref r label)
+                     (make-binding 'displaced-lexical))))
+          (values (binding-type b) (binding-value b) mod)))
+      (let ((n (id-var-name id w)))
+        (cond
+         ((symbol? n)
+          (resolve-global n (if (syntax-object? id)
+                                (syntax-object-module id)
+                                mod)))
+         ((string? n)
+          (resolve-lexical n (if (syntax-object? id)
+                                 (syntax-object-module id)
+                                 mod)))
+         (else
+          (error "unexpected id-var-name" id w n)))))
+
+    (define transformer-environment
+      (make-fluid
+       (lambda (k)
+         (error "called outside the dynamic extent of a syntax transformer"))))
+
+    (define (with-transformer-environment k)
+      ((fluid-ref transformer-environment) k))
+
     ;; free-id=? must be passed fully wrapped ids since (free-id=? x y)
     ;; may be true even if (free-id=? (wrap x w) (wrap y w)) is not.
 
@@ -1321,8 +1355,10 @@
                    (syntax-violation #f "encountered raw symbol in macro output"
                                      (source-wrap e w (wrap-subst w) mod) x))
                   (else (decorate-source x s)))))
-        (rebuild-macro-output (p (source-wrap e (anti-mark w) s mod))
-                              (new-mark))))
+        (with-fluids ((transformer-environment
+                       (lambda (k) (k e r w s rib mod))))
+          (rebuild-macro-output (p (source-wrap e (anti-mark w) s mod))
+                                (new-mark)))))
 
     (define expand-body
       ;; In processing the forms of the body, we create a new, empty wrap.
@@ -2434,6 +2470,33 @@
 
     (set! syntax-source
           (lambda (x) (source-annotation x)))
+
+    (set! syntax-local-binding
+          (lambda (id)
+            (arg-check nonsymbol-id? id 'syntax-local-value)
+            (with-transformer-environment
+             (lambda (e r w s rib mod)
+               (define (strip-anti-mark w)
+                 (let ((ms (wrap-marks w)) (s (wrap-subst w)))
+                   (if (and (pair? ms) (eq? (car ms) the-anti-mark))
+                       ;; output is from original text
+                       (make-wrap (cdr ms) (if rib (cons rib (cdr s)) (cdr s)))
+                       ;; output introduced by macro
+                       (make-wrap ms (if rib (cons rib s) s)))))
+               (call-with-values (lambda ()
+                                   (resolve-identifier
+                                    (syntax-object-expression id)
+                                    (strip-anti-mark (syntax-object-wrap id))
+                                    r
+                                    (syntax-object-module id)))
+                 (lambda (type value mod)
+                   (case type
+                     ((lexical) (values 'lexical value))
+                     ((macro) (values 'macro value))
+                     ((syntax) (values 'pattern-variable value))
+                     ((displaced-lexical) (values 'displaced-lexical #f))
+                     ((global) (values 'global (cons value mod)))
+                     (else (values 'other #f)))))))))
 
     (set! generate-temporaries
           (lambda (ls)
