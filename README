@@ -93,10 +93,15 @@ Guile requires the following external packages:
   - pkg-config
 
     Guile's ./configure script uses pkg-config to discover the correct
-    compile and link options for libgc and libffi.  If you don't have
-    pkg-config installed, or you have a version of libgc that doesn't
-    provide a .pc file, you can work around this by setting some
-    variables as part of the configure command-line:
+    compile and link options for libgc and libffi.  For this to work,
+    the `PKG_CONFIG_PATH' environment variable must be set to point to
+    the places where libgc's and libffi's `.pc' files can be found:
+
+      PKG_CONFIG_PATH=/path/to/libgc/lib/pkgconfig:/path/to/libffi/lib/pkgconfig
+
+    Alternatively, when pkg-config is not installed, you can work around
+    this by setting some variables as part of the configure
+    command-line:
 
     - PKG_CONFIG=true
 
