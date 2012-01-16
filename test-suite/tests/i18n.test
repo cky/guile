@@ -138,9 +138,11 @@
   (under-locale-or-unresolved %french-utf8-locale thunk))
 
 (define (under-turkish-utf8-locale-or-unresolved thunk)
-  ;; FreeBSD 8.2 has a broken tr_TR locale where `i' is mapped to
-  ;; uppercase `I' instead of `İ', so disable tests on that platform.
-  (if (string-contains %host-type "freebsd8")
+  ;; FreeBSD 8.2 and Solaris 2.10 have a broken tr_TR locale where `i'
+  ;; is mapped to uppercase `I' instead of `İ', so disable tests on that
+  ;; platform.
+  (if (or (string-contains %host-type "freebsd8")
+          (string-contains %host-type "solaris2.10"))
       (throw 'unresolved)
       (under-locale-or-unresolved %turkish-utf8-locale thunk)))
 
