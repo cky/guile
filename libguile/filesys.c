@@ -1,5 +1,6 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
+ *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -96,23 +97,9 @@
 #include <pwd.h>
 #endif
 
+#include <dirent.h>
 
-#if HAVE_DIRENT_H
-# include <dirent.h>
-# define NAMLEN(dirent) strlen((dirent)->d_name)
-#else
-# define dirent direct
-# define NAMLEN(dirent) (dirent)->d_namlen
-# if HAVE_SYS_NDIR_H
-#  include <sys/ndir.h>
-# endif
-# if HAVE_SYS_DIR_H
-#  include <sys/dir.h>
-# endif
-# if HAVE_NDIR_H
-#  include <ndir.h>
-# endif
-#endif
+#define NAMLEN(dirent)  strlen ((dirent)->d_name)
 
 /* Some more definitions for the native Windows port. */
 #ifdef __MINGW32__
@@ -121,15 +108,6 @@
 # define fchmod(fd, mode) (-1)
 #endif /* __MINGW32__ */
 
-/* dirfd() returns the file descriptor underlying a "DIR*" directory stream.
-   Found on MacOS X for instance.  The following definition is for Solaris
-   10, it's probably not right elsewhere, but that's ok, it shouldn't be
-   used elsewhere.  Crib note: If we need more then gnulib has a dirfd.m4
-   figuring out how to get the fd (dirfd function, dirfd macro, dd_fd field,
-   or d_fd field).  */
-#ifndef dirfd
-#define dirfd(dirstream) ((dirstream)->dd_fd)
-#endif
 
 
 

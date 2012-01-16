@@ -1,5 +1,5 @@
 /* Substitute for and wrapper around <unistd.h>.
-   Copyright (C) 2003-2011 Free Software Foundation, Inc.
+   Copyright (C) 2003-2012 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -84,12 +84,19 @@
 #endif
 
 /* Native Windows platforms declare chdir, getcwd, rmdir in
-   <io.h> and/or <direct.h>, not in <unistd.h>.  */
+   <io.h> and/or <direct.h>, not in <unistd.h>.
+   They also declare access(), chmod(), close(), dup(), dup2(), isatty(),
+   lseek(), read(), unlink(), write() in <io.h>.  */
 #if ((@GNULIB_CHDIR@ || @GNULIB_GETCWD@ || @GNULIB_RMDIR@ \
       || defined GNULIB_POSIXCHECK) \
      && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__))
 # include <io.h>     /* mingw32, mingw64 */
 # include <direct.h> /* mingw64, MSVC 9 */
+#elif (@GNULIB_CLOSE@ || @GNULIB_DUP@ || @GNULIB_DUP2@ || @GNULIB_ISATTY@ \
+       || @GNULIB_LSEEK@ || @GNULIB_READ@ || @GNULIB_UNLINK@ || @GNULIB_WRITE@ \
+       || defined GNULIB_POSIXCHECK) \
+      && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+# include <io.h>
 #endif
 
 /* AIX and OSF/1 5.1 declare getdomainname in <netdb.h>, not in <unistd.h>.
@@ -931,6 +938,27 @@ _GL_CXXALIASWARN (group_member);
 # if HAVE_RAW_DECL_GROUP_MEMBER
 _GL_WARN_ON_USE (group_member, "group_member is unportable - "
                  "use gnulib module group-member for portability");
+# endif
+#endif
+
+
+#if @GNULIB_ISATTY@
+# if @REPLACE_ISATTY@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef isatty
+#   define isatty rpl_isatty
+#  endif
+_GL_FUNCDECL_RPL (isatty, int, (int fd));
+_GL_CXXALIAS_RPL (isatty, int, (int fd));
+# else
+_GL_CXXALIAS_SYS (isatty, int, (int fd));
+# endif
+_GL_CXXALIASWARN (isatty);
+#elif defined GNULIB_POSIXCHECK
+# undef isatty
+# if HAVE_RAW_DECL_ISATTY
+_GL_WARN_ON_USE (isatty, "isatty has portability problems on native Windows - "
+                 "use gnulib module isatty for portability");
 # endif
 #endif
 

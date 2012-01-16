@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2011 Free Software Foundation, Inc.
+# Copyright (C) 2002-2012 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -58,6 +58,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module close:
   # Code from module configmake:
   # Code from module connect:
+  # Code from module dirent:
+  # Code from module dirfd:
   # Code from module dirname-lgpl:
   # Code from module dosname:
   # Code from module double-slash-root:
@@ -253,6 +255,13 @@ if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([connect])
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([connect])
+gl_DIRENT_H
+gl_FUNC_DIRFD
+if test $ac_cv_func_dirfd = no && test $gl_cv_func_dirfd_macro = no; then
+  AC_LIBOBJ([dirfd])
+  gl_PREREQ_DIRFD
+fi
+gl_DIRENT_MODULE_INDICATOR([dirfd])
 gl_DIRNAME_LGPL
 gl_DOUBLE_SLASH_ROOT
 gl_FUNC_DUPLOCALE
@@ -786,6 +795,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/close.c
   lib/config.charset
   lib/connect.c
+  lib/dirent.in.h
+  lib/dirfd.c
   lib/dirname-lgpl.c
   lib/dirname.h
   lib/dosname.h
@@ -937,6 +948,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/close.m4
   m4/codeset.m4
   m4/configmake.m4
+  m4/dirent_h.m4
+  m4/dirfd.m4
   m4/dirname.m4
   m4/double-slash-root.m4
   m4/duplocale.m4

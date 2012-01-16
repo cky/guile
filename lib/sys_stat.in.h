@@ -1,5 +1,5 @@
 /* Provide a more complete sys/stat header file.
-   Copyright (C) 2005-2011 Free Software Foundation, Inc.
+   Copyright (C) 2005-2012 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -60,6 +60,11 @@
 #if (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
 # include <io.h>     /* mingw32, mingw64 */
 # include <direct.h> /* mingw64, MSVC 9 */
+#endif
+
+/* Native Windows platforms declare umask() in <io.h>.  */
+#if 0 && ((defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__)
+# include <io.h>
 #endif
 
 #ifndef S_IFIFO

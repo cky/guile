@@ -1,5 +1,5 @@
 /* Return the canonical absolute name of a given file.
-   Copyright (C) 1996-2011 Free Software Foundation, Inc.
+   Copyright (C) 1996-2012 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    This program is free software: you can redistribute it and/or modify
@@ -84,10 +84,10 @@
 
 #if !FUNC_REALPATH_WORKS || defined _LIBC
 /* Return the canonical absolute name of file NAME.  A canonical name
-   does not contain any `.', `..' components nor any repeated path
+   does not contain any ".", ".." components nor any repeated path
    separators ('/') or symlinks.  All path components must exist.  If
    RESOLVED is null, the result is malloc'd; otherwise, if the
-   canonical name is PATH_MAX chars or more, returns null with `errno'
+   canonical name is PATH_MAX chars or more, returns null with 'errno'
    set to ENAMETOOLONG; if the name fits in fewer than PATH_MAX chars,
    returns the name in RESOLVED.  If the name cannot be resolved and
    RESOLVED is non-NULL, it contains the path of the first component

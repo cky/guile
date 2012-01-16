@@ -1,5 +1,5 @@
 /* Get address information (partial implementation).
-   Copyright (C) 1997, 2001-2002, 2004-2011 Free Software Foundation, Inc.
+   Copyright (C) 1997, 2001-2002, 2004-2012 Free Software Foundation, Inc.
    Contributed by Simon Josefsson <simon@josefsson.org>.
 
    This program is free software; you can redistribute it and/or modify
@@ -56,13 +56,13 @@
 #endif
 
 #if defined _WIN32 || defined __WIN32__
-# define WIN32_NATIVE
+# define WINDOWS_NATIVE
 #endif
 
 /* gl_sockets_startup */
 #include "sockets.h"
 
-#ifdef WIN32_NATIVE
+#ifdef WINDOWS_NATIVE
 typedef int (WSAAPI *getaddrinfo_func) (const char*, const char*,
                                         const struct addrinfo*,
                                         struct addrinfo**);
@@ -153,7 +153,7 @@ getaddrinfo (const char *restrict nodename,
   };
 #endif
 
-#ifdef WIN32_NATIVE
+#ifdef WINDOWS_NATIVE
   if (use_win32_p ())
     return getaddrinfo_ptr (nodename, servname, hints, res);
 #endif
@@ -332,11 +332,11 @@ getaddrinfo (const char *restrict nodename,
   return 0;
 }
 
-/* Free `addrinfo' structure AI including associated storage.  */
+/* Free 'addrinfo' structure AI including associated storage.  */
 void
 freeaddrinfo (struct addrinfo *ai)
 {
-#ifdef WIN32_NATIVE
+#ifdef WINDOWS_NATIVE
   if (use_win32_p ())
     {
       freeaddrinfo_ptr (ai);
@@ -362,7 +362,7 @@ getnameinfo (const struct sockaddr *restrict sa, socklen_t salen,
              char *restrict service, socklen_t servicelen,
              int flags)
 {
-#ifdef WIN32_NATIVE
+#ifdef WINDOWS_NATIVE
   if (use_win32_p ())
     return getnameinfo_ptr (sa, salen, node, nodelen,
                             service, servicelen, flags);

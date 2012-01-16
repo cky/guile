@@ -1,6 +1,6 @@
 /* stat-related time functions.
 
-   Copyright (C) 2005, 2007, 2009-2011 Free Software Foundation, Inc.
+   Copyright (C) 2005, 2007, 2009-2012 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -155,7 +155,7 @@ get_stat_birthtime (struct stat const *st)
   t.tv_sec = st->st_birthtime;
   t.tv_nsec = st->st_birthtimensec;
 #elif (defined _WIN32 || defined __WIN32__) && ! defined __CYGWIN__
-  /* Woe32 native platforms (but not Cygwin) put the "file creation
+  /* Native Windows platforms (but not Cygwin) put the "file creation
      time" in st_ctime (!).  See
      <http://msdn2.microsoft.com/de-de/library/14h5k7ff(VS.80).aspx>.  */
   t.tv_sec = st->st_ctime;

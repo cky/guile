@@ -147,3 +147,4 @@ INSTALL
 /lib/stdalign.h
 /lib/signal.h
 /lib/sys/types.h
+/lib/dirent.h
