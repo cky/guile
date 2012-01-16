@@ -777,7 +777,7 @@ in the vector.
 
 @rnindex vector-length
 @deffn {Scheme Procedure} vector-length vector
-@deffnx {C Function} scm_vector_length vector
+@deffnx {C Function} scm_vector_length (vector)
 Return the number of elements in @var{vector} as an exact integer.
 @end deffn
 
@@ -787,7 +787,7 @@ Return the number of elements in @var{vec} as a @code{size_t}.
 
 @rnindex vector-ref
 @deffn {Scheme Procedure} vector-ref vec k
-@deffnx {C Function} scm_vector_ref vec k
+@deffnx {C Function} scm_vector_ref (vec, k)
 Return the contents of position @var{k} of @var{vec}.
 @var{k} must be a valid index of @var{vec}.
 @lisp
@@ -816,7 +816,7 @@ error.
 
 @rnindex vector-set!
 @deffn {Scheme Procedure} vector-set! vec k obj
-@deffnx {C Function} scm_vector_set_x vec k obj
+@deffnx {C Function} scm_vector_set_x (vec, k, obj)
 Store @var{obj} in position @var{k} of @var{vec}.
 @var{k} must be a valid index of @var{vec}.
 The value returned by @samp{vector-set!} is unspecified.

@@ -953,7 +953,7 @@ which is usual for ordinary file creation,
 @end deffn
 
 @deffn {Scheme Procedure} tmpfile
-@deffnx {C Function} scm_tmpfile
+@deffnx {C Function} scm_tmpfile ()
 Return an input/output port to a unique temporary file
 named using the path prefix @code{P_tmpdir} defined in
 @file{stdio.h}.
@@ -2841,7 +2841,7 @@ created with,
 @deffn {Scheme Procedure} make-socket-address AF_INET ipv4addr port
 @deffnx {Scheme Procedure} make-socket-address AF_INET6 ipv6addr port [flowinfo [scopeid]]
 @deffnx {Scheme Procedure} make-socket-address AF_UNIX path
-@deffnx {C Function} scm_make_socket_address family address arglist
+@deffnx {C Function} scm_make_socket_address (family, address, arglist)
 Return a new socket address object.  The first argument is the address
 family, one of the @code{AF} constants, then the arguments vary
 according to the family.

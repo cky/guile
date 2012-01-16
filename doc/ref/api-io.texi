@@ -129,7 +129,7 @@ this fluid otherwise.
 @end defvr
 
 @deffn {Scheme Procedure} port-encoding port
-@deffnx {C Function} scm_port_encoding
+@deffnx {C Function} scm_port_encoding (port)
 Returns, as a string, the character encoding that @var{port} uses to interpret
 its input and output.  The value @code{#f} is equivalent to @code{"ISO-8859-1"}.
 @end deffn

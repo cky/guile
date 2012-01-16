@@ -540,7 +540,7 @@ A value returned by @code{dynamic-pointer} is a Scheme wrapper for a C
 pointer.
 
 @deffn {Scheme Procedure} pointer-address pointer
-@deffnx {C Function} scm_pointer_address pointer
+@deffnx {C Function} scm_pointer_address (pointer)
 Return the numerical value of @var{pointer}.
 
 @example
@@ -594,7 +594,7 @@ module contains procedures that can be used to convert byte sequences to
 Scheme objects such as strings, floating point numbers, or integers.
 
 @deffn {Scheme Procedure} pointer->bytevector pointer len [offset [uvec_type]]
-@deffnx {C Function} scm_foreign_to_bytevector pointer len offset uvec_type
+@deffnx {C Function} scm_foreign_to_bytevector (pointer, len, offset, uvec_type)
 Return a bytevector aliasing the @var{len} bytes pointed to by
 @var{pointer}.
 
@@ -614,7 +614,7 @@ Mutating the returned bytevector mutates the memory pointed to by
 @end deffn
 
 @deffn {Scheme Procedure} bytevector->pointer bv [offset]
-@deffnx {C Function} scm_bytevector_to_pointer bv offset
+@deffnx {C Function} scm_bytevector_to_pointer (bv, offset)
 Return a pointer pointer aliasing the memory pointed to by @var{bv} or
 @var{offset} bytes after @var{bv} when @var{offset} is passed.
 @end deffn
@@ -740,7 +740,7 @@ its type, offset, and alignment. Guile has some primitives to support
 this.
 
 @deffn {Scheme Procedure} sizeof type
-@deffnx {C Function} scm_sizeof type
+@deffnx {C Function} scm_sizeof (type)
 Return the size of @var{type}, in bytes.
 
 @var{type} should be a valid C type, like @code{int}.
@@ -751,7 +751,7 @@ also be a list of types, in which case the size of a
 @end deffn
 
 @deffn {Scheme Procedure} alignof type
-@deffnx {C Function} scm_alignof type
+@deffnx {C Function} scm_alignof (type)
 Return the alignment of @var{type}, in bytes.
 
 @var{type} should be a valid C type, like @code{int}.
@@ -801,7 +801,7 @@ Of course, the land of C is not all nouns and no verbs: there are
 functions too, and Guile allows you to call them.
 
 @deffn {Scheme Procedure} pointer->procedure return_type func_ptr arg_types
-@deffnx {C Procedure} scm_pointer_to_procedure return_type func_ptr arg_types
+@deffnx {C Procedure} scm_pointer_to_procedure (return_type, func_ptr, arg_types)
 Make a foreign function.
 
 Given the foreign void pointer @var{func_ptr}, its argument and

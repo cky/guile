@@ -1012,7 +1012,7 @@ by @code{file-encoding}, if any, again by using
 @code{set-port-encoding!}.  Then the code can be read as normal.
 
 @deffn {Scheme Procedure} file-encoding port
-@deffnx {C Function} scm_file_encoding port
+@deffnx {C Function} scm_file_encoding (port)
 Scan the port for an Emacs-like character coding declaration near the
 top of the contents of a port with random-accessible contents
 (@pxref{Recognize Coding, how Emacs recognizes file encoding,, emacs,

@@ -1463,18 +1463,18 @@ indicated type.
 @deffnx {Scheme Procedure} make-f64vector n [value]
 @deffnx {Scheme Procedure} make-c32vector n [value]
 @deffnx {Scheme Procedure} make-c64vector n [value]
-@deffnx {C Function} scm_make_u8vector n [value]
-@deffnx {C Function} scm_make_s8vector n [value]
-@deffnx {C Function} scm_make_u16vector n [value]
-@deffnx {C Function} scm_make_s16vector n [value]
-@deffnx {C Function} scm_make_u32vector n [value]
-@deffnx {C Function} scm_make_s32vector n [value]
-@deffnx {C Function} scm_make_u64vector n [value]
-@deffnx {C Function} scm_make_s64vector n [value]
-@deffnx {C Function} scm_make_f32vector n [value]
-@deffnx {C Function} scm_make_f64vector n [value]
-@deffnx {C Function} scm_make_c32vector n [value]
-@deffnx {C Function} scm_make_c64vector n [value]
+@deffnx {C Function} scm_make_u8vector (n, value)
+@deffnx {C Function} scm_make_s8vector (n, value)
+@deffnx {C Function} scm_make_u16vector (n, value)
+@deffnx {C Function} scm_make_s16vector (n, value)
+@deffnx {C Function} scm_make_u32vector (n, value)
+@deffnx {C Function} scm_make_s32vector (n, value)
+@deffnx {C Function} scm_make_u64vector (n, value)
+@deffnx {C Function} scm_make_s64vector (n, value)
+@deffnx {C Function} scm_make_f32vector (n, value)
+@deffnx {C Function} scm_make_f64vector (n, value)
+@deffnx {C Function} scm_make_c32vector (n, value)
+@deffnx {C Function} scm_make_c64vector (n, value)
 Return a newly allocated homogeneous numeric vector holding @var{n}
 elements of the indicated type.  If @var{value} is given, the vector
 is initialized with that value, otherwise the contents are
@@ -1549,18 +1549,18 @@ Return the number of elements in @var{vec}.
 @deffnx {Scheme Procedure} f64vector-ref vec i
 @deffnx {Scheme Procedure} c32vector-ref vec i
 @deffnx {Scheme Procedure} c64vector-ref vec i
-@deffnx {C Function} scm_u8vector_ref (vec i)
-@deffnx {C Function} scm_s8vector_ref (vec i)
-@deffnx {C Function} scm_u16vector_ref (vec i)
-@deffnx {C Function} scm_s16vector_ref (vec i)
-@deffnx {C Function} scm_u32vector_ref (vec i)
-@deffnx {C Function} scm_s32vector_ref (vec i)
-@deffnx {C Function} scm_u64vector_ref (vec i)
-@deffnx {C Function} scm_s64vector_ref (vec i)
-@deffnx {C Function} scm_f32vector_ref (vec i)
-@deffnx {C Function} scm_f64vector_ref (vec i)
-@deffnx {C Function} scm_c32vector_ref (vec i)
-@deffnx {C Function} scm_c64vector_ref (vec i)
+@deffnx {C Function} scm_u8vector_ref (vec, i)
+@deffnx {C Function} scm_s8vector_ref (vec, i)
+@deffnx {C Function} scm_u16vector_ref (vec, i)
+@deffnx {C Function} scm_s16vector_ref (vec, i)
+@deffnx {C Function} scm_u32vector_ref (vec, i)
+@deffnx {C Function} scm_s32vector_ref (vec, i)
+@deffnx {C Function} scm_u64vector_ref (vec, i)
+@deffnx {C Function} scm_s64vector_ref (vec, i)
+@deffnx {C Function} scm_f32vector_ref (vec, i)
+@deffnx {C Function} scm_f64vector_ref (vec, i)
+@deffnx {C Function} scm_c32vector_ref (vec, i)
+@deffnx {C Function} scm_c64vector_ref (vec, i)
 Return the element at index @var{i} in @var{vec}.  The first element
 in @var{vec} is index 0.
 @end deffn
@@ -1577,18 +1577,18 @@ in @var{vec} is index 0.
 @deffnx {Scheme Procedure} f64vector-set! vec i value
 @deffnx {Scheme Procedure} c32vector-set! vec i value
 @deffnx {Scheme Procedure} c64vector-set! vec i value
-@deffnx {C Function} scm_u8vector_set_x (vec i value)
-@deffnx {C Function} scm_s8vector_set_x (vec i value)
-@deffnx {C Function} scm_u16vector_set_x (vec i value)
-@deffnx {C Function} scm_s16vector_set_x (vec i value)
-@deffnx {C Function} scm_u32vector_set_x (vec i value)
-@deffnx {C Function} scm_s32vector_set_x (vec i value)
-@deffnx {C Function} scm_u64vector_set_x (vec i value)
-@deffnx {C Function} scm_s64vector_set_x (vec i value)
-@deffnx {C Function} scm_f32vector_set_x (vec i value)
-@deffnx {C Function} scm_f64vector_set_x (vec i value)
-@deffnx {C Function} scm_c32vector_set_x (vec i value)
-@deffnx {C Function} scm_c64vector_set_x (vec i value)
+@deffnx {C Function} scm_u8vector_set_x (vec, i, value)
+@deffnx {C Function} scm_s8vector_set_x (vec, i, value)
+@deffnx {C Function} scm_u16vector_set_x (vec, i, value)
+@deffnx {C Function} scm_s16vector_set_x (vec, i, value)
+@deffnx {C Function} scm_u32vector_set_x (vec, i, value)
+@deffnx {C Function} scm_s32vector_set_x (vec, i, value)
+@deffnx {C Function} scm_u64vector_set_x (vec, i, value)
+@deffnx {C Function} scm_s64vector_set_x (vec, i, value)
+@deffnx {C Function} scm_f32vector_set_x (vec, i, value)
+@deffnx {C Function} scm_f64vector_set_x (vec, i, value)
+@deffnx {C Function} scm_c32vector_set_x (vec, i, value)
+@deffnx {C Function} scm_c64vector_set_x (vec, i, value)
 Set the element at index @var{i} in @var{vec} to @var{value}.  The
 first element in @var{vec} is index 0.  The return value is
 unspecified.
@@ -1736,13 +1736,13 @@ Return the number of elements in @var{vec}.
 @end deffn
 
 @deffn  {Scheme Procedure} uniform-vector-ref vec i
-@deffnx {C Function} scm_uniform_vector_ref (vec i)
+@deffnx {C Function} scm_uniform_vector_ref (vec, i)
 Return the element at index @var{i} in @var{vec}.  The first element
 in @var{vec} is index 0.
 @end deffn
 
 @deffn  {Scheme Procedure} uniform-vector-set! vec i value
-@deffnx {C Function} scm_uniform_vector_set_x (vec i value)
+@deffnx {C Function} scm_uniform_vector_set_x (vec, i, value)
 Set the element at index @var{i} in @var{vec} to @var{value}.  The
 first element in @var{vec} is index 0.  The return value is
 unspecified.
