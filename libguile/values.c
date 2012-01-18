@@ -67,6 +67,31 @@ print_values (SCM obj, SCM pwps)
   return SCM_UNSPECIFIED;
 }
 
+SCM
+scm_c_value_ref (SCM obj, size_t idx)
+{
+  if (SCM_LIKELY (SCM_VALUESP (obj)))
+    {
+      SCM values = scm_struct_ref (obj, SCM_INUM0);
+      size_t i = idx;
+      while (SCM_LIKELY (scm_is_pair (values)))
+        {
+          if (i == 0)
+            return SCM_CAR (values);
+          values = SCM_CDR (values);
+          i--;
+        }
+    }
+  else if (idx == 0)
+    return obj;
+
+  scm_error (scm_out_of_range_key,
+	     "scm_c_value_ref",
+	     "Too few values in ~S to access index ~S",
+             scm_list_2 (obj, scm_from_unsigned_integer (idx)),
+             scm_list_1 (scm_from_unsigned_integer (idx)));
+}
+
 SCM_DEFINE (scm_values, "values", 0, 0, 1,
 	    (SCM args),
 	    "Delivers all of its arguments to its continuation.  Except for\n"

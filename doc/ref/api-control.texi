@@ -785,6 +785,13 @@ the current implementation that object shares structure with
 @var{args}, so @var{args} should not be modified subsequently.
 @end deffn
 
+@deffn {C Function} scm_c_value_ref (values, idx)
+Returns the value at the position specified by @var{idx} in
+@var{values}.  Note that @var{values} will ordinarily be a
+multiple-values object, but it need not be.  Any other object
+represents a single value (itself), and is handled appropriately.
+@end deffn
+
 @rnindex call-with-values
 @deffn {Scheme Procedure} call-with-values producer consumer
 Calls its @var{producer} argument with no values and a

@@ -33,6 +33,7 @@ SCM_API SCM scm_values_vtable;
 SCM_INTERNAL void scm_i_extract_values_2 (SCM obj, SCM *p1, SCM *p2);
 
 SCM_API SCM scm_values (SCM args);
+SCM_API SCM scm_c_value_ref (SCM values, size_t idx);
 SCM_INTERNAL void scm_init_values (void);
 
 #endif  /* SCM_VALUES_H */

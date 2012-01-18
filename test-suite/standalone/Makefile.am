@@ -189,6 +189,13 @@ test_scm_to_latin1_string_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-to-latin1-string
 TESTS += test-scm-to-latin1-string
 
+# test-scm-values
+test_scm_values_SOURCES = test-scm-values.c
+test_scm_values_CFLAGS = ${test_cflags}
+test_scm_values_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-scm-values
+TESTS += test-scm-values
+
 if HAVE_SHARED_LIBRARIES
 
 # test-extensions
