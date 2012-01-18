@@ -81,6 +81,10 @@ typedef struct scm_i_thread {
   SCM dynamic_state;
   SCM dynwinds;
 
+  /* Thread-local gensym counter.
+   */
+  unsigned char *gensym_counter;
+
   /* For system asyncs.
    */
   SCM active_asyncs;            /* The thunks to be run at the next

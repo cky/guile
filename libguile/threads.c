@@ -545,6 +545,7 @@ guilify_self_1 (struct GC_stack_base *base)
   t.join_queue = SCM_EOL;
   t.dynamic_state = SCM_BOOL_F;
   t.dynwinds = SCM_EOL;
+  t.gensym_counter = NULL;
   t.active_asyncs = SCM_EOL;
   t.block_asyncs = 1;
   t.pending_asyncs = 1;

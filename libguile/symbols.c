@@ -31,6 +31,7 @@
 #include "libguile/variable.h"
 #include "libguile/alist.h"
 #include "libguile/fluids.h"
+#include "libguile/threads.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/hashtab.h"
@@ -340,7 +341,9 @@ SCM_DEFINE (scm_string_ci_to_symbol, "string-ci->symbol", 1, 0, 0,
 /* The default prefix for `gensym'd symbols.  */
 static SCM default_gensym_prefix;
 
-#define MAX_PREFIX_LENGTH 30
+#define GENSYM_LENGTH      22  /* bytes */
+#define GENSYM_RADIX_BITS  6
+#define GENSYM_RADIX       (1 << (GENSYM_RADIX_BITS))
 
 SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
             (SCM prefix),
@@ -351,22 +354,47 @@ SCM_DEFINE (scm_gensym, "gensym", 0, 1, 0,
 	    "resetting the counter.")
 #define FUNC_NAME s_scm_gensym
 {
-  static int gensym_counter = 0;
-  
+  static const char base64[GENSYM_RADIX] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$@";
+  static const char base4[4] = "_.-~";
+
+  unsigned char *digit_buf = SCM_I_CURRENT_THREAD->gensym_counter;
+  char char_buf[GENSYM_LENGTH];
   SCM suffix, name;
-  int n, n_digits;
-  char buf[SCM_INTBUFLEN];
+  int i;
 
   if (SCM_UNBNDP (prefix))
     prefix = default_gensym_prefix;
 
-  /* mutex in case another thread looks and incs at the exact same moment */
-  scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
-  n = gensym_counter++;
-  scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+  if (SCM_UNLIKELY (digit_buf == NULL))
+    {
+      /* This is the first time gensym has been called in this thread.
+         Allocate and randomize our new thread-local gensym counter */
+      digit_buf = (unsigned char *)
+        scm_gc_malloc_pointerless (GENSYM_LENGTH, "gensym-counter");
+      scm_i_random_bytes_from_platform (digit_buf, GENSYM_LENGTH);
+      for (i = (GENSYM_LENGTH - 1); i >= 0; --i)
+        digit_buf[i] &= (GENSYM_RADIX - 1);
+      SCM_I_CURRENT_THREAD->gensym_counter = digit_buf;
+    }
 
-  n_digits = scm_iint2str (n, 10, buf);
-  suffix = scm_from_latin1_stringn (buf, n_digits);
+  /* Increment our thread-local gensym_counter. */
+  for (i = (GENSYM_LENGTH - 1); i >= 0; --i)
+    {
+      if (SCM_LIKELY (++(digit_buf[i]) < GENSYM_RADIX))
+        break;
+      else
+        digit_buf[i] = 0;
+    }
+
+  /* Encode digit_buf as base64, except for the first character where we
+     use the sparse glyphs "_.-~" (base 4) to provide some visual
+     separation between the prefix and the dense base64 block. */
+  for (i = (GENSYM_LENGTH - 1); i > 0; --i)
+    char_buf[i] = base64[digit_buf[i]];
+  char_buf[0] = base4[digit_buf[0] & 3];
+
+  suffix = scm_from_latin1_stringn (char_buf, GENSYM_LENGTH);
   name = scm_string_append (scm_list_2 (prefix, suffix));
   return scm_string_to_symbol (name);
 }
