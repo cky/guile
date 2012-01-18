@@ -653,6 +653,107 @@ SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0,
 }
 #undef FUNC_NAME
 
+/* Return a new random-state seeded from the time, date, process ID, an
+   address from a freshly allocated heap cell, an address from the local
+   stack frame, and a high-resolution timer if available.  This is only
+   to be used as a last resort, when no better source of entropy is
+   available. */
+static SCM
+random_state_of_last_resort (void)
+{
+  SCM state;
+  SCM time_of_day = scm_gettimeofday ();
+  SCM sources = scm_list_n
+    (scm_from_unsigned_integer (SCM_UNPACK (time_of_day)),  /* heap addr */
+     scm_getpid (),         /* process ID */
+     scm_get_internal_real_time (), /* high-resolution process timer */
+     scm_from_unsigned_integer ((scm_t_bits) &time_of_day), /* stack addr */
+     scm_car (time_of_day), /* seconds since midnight 1970-01-01 UTC */
+     scm_cdr (time_of_day), /* microsecond component of the above clock */
+     SCM_UNDEFINED);
+
+  /* Concatenate the sources bitwise to form the seed */
+  SCM seed = SCM_INUM0;
+  while (scm_is_pair (sources))
+    {
+      seed = scm_logxor (seed, scm_ash (scm_car (sources),
+                                        scm_integer_length (seed)));
+      sources = scm_cdr (sources);
+    }
+
+  /* FIXME The following code belongs in `scm_seed_to_random_state',
+     and here we should simply do:
+
+       return scm_seed_to_random_state (seed);
+
+     Unfortunately, `scm_seed_to_random_state' only preserves around 32
+     bits of entropy from the provided seed.  I don't know if it's okay
+     to fix that in 2.0, so for now we have this workaround. */
+  {
+    int i, len;
+    unsigned char *buf;
+    len = scm_to_int (scm_ceiling_quotient (scm_integer_length (seed),
+                                            SCM_I_MAKINUM (8)));
+    buf = (unsigned char *) malloc (len);
+    for (i = len-1; i >= 0; --i)
+      {
+        buf[i] = scm_to_int (scm_logand (seed, SCM_I_MAKINUM (255)));
+        seed = scm_ash (seed, SCM_I_MAKINUM (-8));
+      }
+    state = make_rstate (scm_c_make_rstate ((char *) buf, len));
+    free (buf);
+  }
+  return state;
+}
+
+/* Attempt to fill buffer with random bytes from /dev/urandom.
+   Return 1 if successful, else return 0. */
+static int
+read_dev_urandom (unsigned char *buf, size_t len)
+{
+  size_t res = 0;
+  FILE *f = fopen ("/dev/urandom", "r");
+  if (f)
+    {
+      res = fread(buf, 1, len, f);
+      fclose (f);
+    }
+  return (res == len);
+}
+
+/* Fill a buffer with random bytes seeded from a platform-specific
+   source of entropy.  /dev/urandom is used if available.  Note that
+   this function provides no guarantees about the amount of entropy
+   present in the returned bytes. */
+void
+scm_i_random_bytes_from_platform (unsigned char *buf, size_t len)
+{
+  if (read_dev_urandom (buf, len))
+    return;
+  else  /* FIXME: support other platform sources */
+    {
+      /* When all else fails, use this (rather weak) fallback */
+      SCM random_state = random_state_of_last_resort ();
+      int i;
+      for (i = len-1; i >= 0; --i)
+        buf[i] = scm_to_int (scm_random (SCM_I_MAKINUM (256), random_state));
+    }
+}
+
+SCM_DEFINE (scm_random_state_from_platform, "random-state-from-platform", 0, 0, 0,
+            (void),
+            "Construct a new random state seeded from a platform-specific\n\
+source of entropy, appropriate for use in non-security-critical applications.")
+#define FUNC_NAME s_scm_random_state_from_platform
+{
+  unsigned char buf[32];
+  if (read_dev_urandom (buf, sizeof(buf)))
+    return make_rstate (scm_c_make_rstate ((char *) buf, sizeof(buf)));
+  else
+    return random_state_of_last_resort ();
+}
+#undef FUNC_NAME
+
 void
 scm_init_random ()
 {

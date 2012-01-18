@@ -1865,6 +1865,16 @@ Return a datum representation of @var{state} that may be written out and
 read back with the Scheme reader.
 @end deffn
 
+@deffn {Scheme Procedure} random-state-from-platform
+@deffnx {C Function} scm_random_state_from_platform ()
+Construct a new random state seeded from a platform-specific source of
+entropy, appropriate for use in non-security-critical applications.
+Currently @file{/dev/urandom} is tried first, or else the seed is based
+on the time, date, process ID, an address from a freshly allocated heap
+cell, an address from the local stack frame, and a high-resolution timer
+if available.
+@end deffn
+
 @defvar *random-state*
 The global random state used by the above functions when the
 @var{state} parameter is not given.
@@ -1887,28 +1897,12 @@ Guile started up, will always give:
 (0 1 1 2 2 2 1 2 6 7 10 0 5 3 12 5 5 12)
 @end lisp
 
-To use the time of day as the random seed, you can use code like this:
+To seed the random state in a sensible way for non-security-critical
+applications, do this during initialization of your program:
 
 @lisp
-(let ((time (gettimeofday)))
-  (set! *random-state*
-        (seed->random-state (+ (car time)
-                               (cdr time)))))
+(set! *random-state* (random-state-from-platform))
 @end lisp
-
-@noindent
-And then (depending on the time of day, of course):
-
-@lisp
-(map random (cdr (iota 19)))
-@result{}
-(0 0 1 0 2 4 5 4 5 5 9 3 10 1 8 3 14 17)
-@end lisp
-
-For security applications, such as password generation, you should use
-more bits of seed.  Otherwise an open source password generator could
-be attacked by guessing the seed@dots{} but that's a subject for
-another manual.
 
 
 @node Characters

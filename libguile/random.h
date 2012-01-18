@@ -86,6 +86,7 @@ SCM_API SCM scm_copy_random_state (SCM state);
 SCM_API SCM scm_seed_to_random_state (SCM seed);
 SCM_API SCM scm_datum_to_random_state (SCM datum);
 SCM_API SCM scm_random_state_to_datum (SCM state);
+SCM_API SCM scm_random_state_from_platform (void);
 SCM_API SCM scm_random_uniform (SCM state);
 SCM_API SCM scm_random_solid_sphere_x (SCM v, SCM state);
 SCM_API SCM scm_random_hollow_sphere_x (SCM v, SCM state);
@@ -93,6 +94,8 @@ SCM_API SCM scm_random_normal (SCM state);
 SCM_API SCM scm_random_normal_vector_x (SCM v, SCM state);
 SCM_API SCM scm_random_exp (SCM state);
 SCM_INTERNAL void scm_init_random (void);
+
+SCM_INTERNAL void scm_i_random_bytes_from_platform (unsigned char *buf, size_t len);
 
 #endif  /* SCM_RANDOM_H */
 
