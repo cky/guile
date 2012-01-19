@@ -636,7 +636,12 @@
     ;; labels must be comparable with "eq?", have read-write invariance,
     ;; and distinct from symbols.
     (define gen-label
-      (lambda () (symbol->string (gensym "i"))))
+      (let ((i 0))
+        (lambda ()
+          (let ((n i))
+            ;; FIXME: Use atomic ops.
+            (set! i (1+ n))
+            (number->string n 36)))))
 
     (define gen-labels
       (lambda (ls)
