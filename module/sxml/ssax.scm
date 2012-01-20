@@ -1,6 +1,6 @@
 ;;;; (sxml ssax) -- the SSAX parser
 ;;;;
-;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010,2012  Free Software Foundation, Inc.
 ;;;;    Modified 2004 by Andy Wingo <wingo at pobox dot com>.
 ;;;;    Written 2001,2002,2003,2004 by Oleg Kiselyov <oleg at pobox dot com> as SSAX.scm.
 ;;;; 
@@ -208,13 +208,6 @@ Instances of &@var{entity}; in XML text will be replaced with the
 string @var{str}, which will then be parsed."
   (set! ssax:predefined-parsed-entities
         (acons entity str ssax:predefined-parsed-entities)))
-
-;; if condition is true, execute stmts in turn and return the result of
-;; the last statement otherwise, return #f
-(define-syntax when
-  (syntax-rules ()
-    ((when condition . stmts)
-      (and condition (begin . stmts)))))
 
 ;; Execute a sequence of forms and return the result of the _first_ one.
 ;; Like PROG1 in Lisp. Typically used to evaluate one or more forms with

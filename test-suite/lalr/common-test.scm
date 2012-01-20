@@ -8,13 +8,6 @@
 
 (define *error* '())
 
-(define-syntax when
-  (syntax-rules ()
-    ((_ ?expr ?body ...)
-     (if ?expr
-	 (let () ?body ...)
-       #f))))
-
 (define-syntax check
   (syntax-rules (=>)
     ((_ ?expr => ?expected-result)

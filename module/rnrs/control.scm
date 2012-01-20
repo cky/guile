@@ -1,6 +1,6 @@
 ;;; control.scm --- The R6RS control structures library
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -19,14 +19,4 @@
 
 (library (rnrs control (6))
   (export when unless do case-lambda)
-  (import (only (guile) if not begin define-syntax syntax-rules do case-lambda))
-
-  (define-syntax when
-    (syntax-rules ()
-      ((when test result1 result2 ...)
-       (if test (begin result1 result2 ...)))))
-
-  (define-syntax unless
-    (syntax-rules ()
-      ((unless test result1 result2 ...)
-       (if (not test) (begin result1 result2 ...))))))
+  (import (only (guile) when unless do case-lambda)))
