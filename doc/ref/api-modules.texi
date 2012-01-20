@@ -468,7 +468,7 @@ the @code{%load-path} (@pxref{Build Config}).  For each directory in
 @code{%load-path}, Guile will try to find the file name, concatenated
 with the extensions from @code{%load-extensions}.  By default, this will
 cause Guile to @code{stat} @file{ice-9/popen.scm}, and then
-@file{ice-9/popen}.  @xref{Loading}, for more on
+@file{ice-9/popen}.  @xref{Load Paths}, for more on
 @code{primitive-load-path}.
 
 If a corresponding compiled @file{.go} file is found in the

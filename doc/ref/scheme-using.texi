@@ -750,8 +750,8 @@ The first thing to do is to install your Scheme files where Guile can
 find them.  When Guile goes to find a Scheme file, it will search a
 @dfn{load path} to find the file: first in Guile's own path, then in
 paths for @dfn{site packages}.  A site package is any Scheme code that
-is installed and not part of Guile itself.  @xref{Loading}, for more on
-load paths.
+is installed and not part of Guile itself.  @xref{Load Paths}, for more
+on load paths.
 
 There are several site paths, for historical reasons, but the one that
 should generally be used can be obtained by invoking the

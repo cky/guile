@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -291,6 +291,25 @@ properties.
 If the @code{positions} reader option is enabled, each parenthesized
 expression will have values set for the @code{filename}, @code{line} and
 @code{column} properties.
+
+Source properties are also associated with syntax objects.  Procedural
+macros can get at the source location of their input using the
+@code{syntax-source} accessor.  @xref{Syntax Transformer Helpers}, for
+more.
+
+Guile also defines a couple of convenience macros built on
+@code{syntax-source}:
+
+@deffn {Scheme Syntax} current-source-location
+Expands to the source properties corresponding to the location of the
+@code{(current-source-location)} form.
+@end deffn
+
+@deffn {Scheme Syntax} current-filename
+Expands to the current filename: the filename that the
+@code{(current-filename)} form appears in.  Expands to @code{#f} if this
+information is unavailable.
+@end deffn
 
 If you're stuck with defmacros (@pxref{Defmacros}), and want to preserve
 source information, the following helper function might be useful to

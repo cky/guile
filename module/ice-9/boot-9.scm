@@ -512,6 +512,18 @@ If there is no handler at all, Guile prints an error and then exits."
        (with-syntax ((s (datum->syntax x (syntax-source x))))
          #''s)))))
 
+;; We provide this accessor out of convenience.  current-line and
+;; current-column aren't so interesting, because they distort what they
+;; are measuring; better to use syntax-source from a macro.
+;;
+(define-syntax current-filename
+  (lambda (x)
+    "A macro that expands to the current filename: the filename that
+the (current-filename) form appears in.  Expands to #f if this
+information is unavailable."
+    (and=> (syntax-source x)
+           (lambda (s) (assq-ref s 'filename)))))
+
 (define-syntax-rule (define-once sym val)
   (define sym
     (if (module-locally-bound? (current-module) 'sym) sym val)))
@@ -1389,6 +1401,15 @@ VALUE."
 (define (load-from-path name)
   (start-stack 'load-stack
                (primitive-load-path name)))
+
+(define-syntax-rule (add-to-path path elt)
+  "Add ELT to PATH, at compile-time and at run-time."
+  (eval-when (compile load eval)
+    (set! path (cons elt path))))
+
+(define-syntax-rule (add-to-load-path elt)
+  "Add ELT to Guile's load path, at compile-time and at run-time."
+  (add-to-path %load-path elt))
 
 (define %load-verbosely #f)
 (define (assert-load-verbosity v) (set! %load-verbosely v))

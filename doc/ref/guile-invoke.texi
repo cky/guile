@@ -73,7 +73,7 @@ the user's @file{.guile} file.
 
 @item -x @var{extension}
 Add @var{extension} to the front of Guile's load extension list
-(@pxref{Loading, @code{%load-extensions}}).  The specified extensions
+(@pxref{Load Paths, @code{%load-extensions}}).  The specified extensions
 are tried in the order given on the command line, and before the default
 load extensions.  Extensions added here are @emph{not} in effect during
 execution of the user's @file{.guile} file.

@@ -17,6 +17,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Fly Evaluation::              Procedures for on the fly evaluation.
 * Compilation::                 How to compile Scheme files and procedures.
 * Loading::                     Loading Scheme code from file.
+* Load Paths::                  Where Guile looks for code.
 * Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 @end menu
@@ -711,7 +712,7 @@ useful compilation warnings.  It can be customized from @file{~/.guile}.
 @rnindex load
 @deffn {Scheme Procedure} load filename [reader]
 Load @var{filename} and evaluate its contents in the top-level
-environment.  The load paths are not searched.
+environment.
 
 @var{reader} if provided should be either @code{#f}, or a procedure with
 the signature @code{(lambda (port) @dots{})} which reads the next
@@ -730,62 +731,27 @@ documentation for @code{%load-hook} later in this section.
 @end deffn
 
 @deffn {Scheme Procedure} load-compiled filename
-Load the compiled file named @var{filename}. The load paths are not
-searched.
+Load the compiled file named @var{filename}.
 
 Compiling a source file (@pxref{Read/Load/Eval/Compile}) and then
 calling @code{load-compiled} on the resulting file is equivalent to
 calling @code{load} on the source file.
 @end deffn
 
-@deffn {Scheme Procedure} load-from-path filename
-Similar to @code{load}, but searches for @var{filename} in the load
-paths. Preferentially loads a compiled version of the file, if it is
-available and up-to-date.
-@end deffn
-
 @deffn {Scheme Procedure} primitive-load filename
 @deffnx {C Function} scm_primitive_load (filename)
-Load the file named @var{filename} and evaluate its contents in
-the top-level environment. The load paths are not searched;
-@var{filename} must either be a full pathname or be a pathname
-relative to the current directory.  If the  variable
-@code{%load-hook} is defined, it should be bound to a procedure
-that will be called before any code is loaded.  See the
-documentation for @code{%load-hook} later in this section.
+Load the file named @var{filename} and evaluate its contents in the
+top-level environment.  @var{filename} must either be a full pathname or
+be a pathname relative to the current directory.  If the variable
+@code{%load-hook} is defined, it should be bound to a procedure that
+will be called before any code is loaded.  See the documentation for
+@code{%load-hook} later in this section.
 @end deffn
 
 @deftypefn {C Function} SCM scm_c_primitive_load (const char *filename)
 @code{scm_primitive_load}, but taking a C string instead of an
 @code{SCM}.
 @end deftypefn
-
-@deffn {Scheme Procedure} primitive-load-path filename [exception-on-not-found]
-@deffnx {C Function} scm_primitive_load_path (filename)
-Search @code{%load-path} for the file named @var{filename} and
-load it into the top-level environment.  If @var{filename} is a
-relative pathname and is not found in the list of search paths,
-an error is signalled. Preferentially loads a compiled version of the
-file, if it is available and up-to-date.
-
-By default or if @var{exception-on-not-found} is true, an exception is
-raised if @var{filename} is not found.  If @var{exception-on-not-found}
-is @code{#f} and @var{filename} is not found, no exception is raised and
-@code{#f} is returned.  For compatibility with Guile 1.8 and earlier,
-the C function takes only one argument, which can be either a string
-(the file name) or an argument list.
-@end deffn
-
-@deffn {Scheme Procedure} %search-load-path filename
-@deffnx {C Function} scm_sys_search_load_path (filename)
-Search @code{%load-path} for the file named @var{filename},
-which must be readable by the current user.  If @var{filename}
-is found in the list of paths to search or is an absolute
-pathname, return its full pathname.  Otherwise, return
-@code{#f}.  Filenames may have any of the optional extensions
-in the @code{%load-extensions} list; @code{%search-load-path}
-will try each extension automatically.
-@end deffn
 
 @defvar current-reader
 @code{current-reader} holds the read procedure that is currently being
@@ -814,9 +780,9 @@ change occurs at the right time.
 @defvar %load-hook
 A procedure to be called @code{(%load-hook @var{filename})} whenever a
 file is loaded, or @code{#f} for no such call.  @code{%load-hook} is
-used by all of the above loading functions (@code{load},
-@code{load-path}, @code{primitive-load} and
-@code{primitive-load-path}).
+used by all of the loading functions (@code{load} and
+@code{primitive-load}, and @code{load-path} and
+@code{primitive-load-path} documented in the next section).
 
 For example an application can set this to show what's loaded,
 
@@ -834,12 +800,79 @@ Return the current-load-port.
 The load port is used internally by @code{primitive-load}.
 @end deffn
 
+@node Load Paths
+@subsection Load Paths
+
+The procedure in the previous section look for Scheme code in the file
+system at specific location.  Guile also has some procedures to search
+the load path for code.
+
+For more on the @code{%load-path} variable, @xref{Build Config}.
+
+@deffn {Scheme Procedure} load-from-path filename
+Similar to @code{load}, but searches for @var{filename} in the load
+paths. Preferentially loads a compiled version of the file, if it is
+available and up-to-date.
+@end deffn
+
+A user can extend the load path by calling @code{add-to-load-path}.
+
+@deffn {Scheme Syntax} add-to-load-path dir
+Add @var{dir} to the load path.
+
+For example, a script might include this form to add the directory that
+it is in to the load path:
+
+@example
+(add-to-load-path (dirname (current-filename)))
+@end example
+@end deffn
+
+It's better to use @code{add-to-load-path} than to modify
+@code{%load-path} directly, because @code{add-to-load-path} takes care
+of modifying the path both at compile-time and at run-time.
+
+There is a more general version for use with other paths, like
+@code{%load-compiled-path}:
+
+@deffn {Scheme Syntax} add-to-path path dir
+Add @var{dir} to @var{path}.
+@end deffn
+
+@deffn {Scheme Procedure} primitive-load-path filename [exception-on-not-found]
+@deffnx {C Function} scm_primitive_load_path (filename)
+Search @code{%load-path} for the file named @var{filename} and
+load it into the top-level environment.  If @var{filename} is a
+relative pathname and is not found in the list of search paths,
+an error is signalled. Preferentially loads a compiled version of the
+file, if it is available and up-to-date.
+
+By default or if @var{exception-on-not-found} is true, an exception is
+raised if @var{filename} is not found.  If @var{exception-on-not-found}
+is @code{#f} and @var{filename} is not found, no exception is raised and
+@code{#f} is returned.  For compatibility with Guile 1.8 and earlier,
+the C function takes only one argument, which can be either a string
+(the file name) or an argument list.
+@end deffn
+
+@deffn {Scheme Procedure} %search-load-path filename
+@deffnx {C Function} scm_sys_search_load_path (filename)
+Search @code{%load-path} for the file named @var{filename},
+which must be readable by the current user.  If @var{filename}
+is found in the list of paths to search or is an absolute
+pathname, return its full pathname.  Otherwise, return
+@code{#f}.  Filenames may have any of the optional extensions
+in the @code{%load-extensions} list; @code{%search-load-path}
+will try each extension automatically.
+@end deffn
+
 @defvar %load-extensions
 A list of default file extensions for files containing Scheme code.
 @code{%search-load-path} tries each of these extensions when looking for
 a file to load.  By default, @code{%load-extensions} is bound to the
 list @code{("" ".scm")}.
 @end defvar
+
 
 @node Character Encoding of Source Files
 @subsection Character Encoding of Source Files
