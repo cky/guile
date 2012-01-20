@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -964,11 +964,11 @@ same as a procedure which returns its last argument, because the
 evaluation of a procedure invocation expression does not guarantee to
 evaluate the arguments in order.
 
-@code{if} and @code{cond} (@pxref{if cond case}) provide conditional
+@code{if} and @code{cond} (@pxref{Conditionals}) provide conditional
 evaluation of argument expressions depending on whether one or more
 conditions evaluate to ``true'' or ``false''.
 
-@code{case} (@pxref{if cond case}) provides conditional evaluation of
+@code{case} (@pxref{Conditionals}) provides conditional evaluation of
 argument expressions depending on whether a variable has one of a
 specified group of values.
 

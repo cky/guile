@@ -12,7 +12,7 @@ flow of Scheme affects C code.
 
 @menu
 * begin::                       Sequencing and splicing.
-* if cond case::                Simple conditional evaluation.
+* Conditionals::                If, when, unless, case, and cond.
 * and or::                      Conditional evaluation of a sequence.
 * while do::                    Iteration mechanisms.
 * Prompts::                     Composable, delimited continuations.
@@ -103,11 +103,13 @@ good idea.  But it is useful to be able to write macros that expand out
 to multiple definitions, as in @code{define-sealant} above, so Scheme
 abuses the @code{begin} form for these two tasks.
 
-@node if cond case
+@node Conditionals
 @subsection Simple Conditional Evaluation
 
 @cindex conditional evaluation
 @cindex if
+@cindex when
+@cindex unless
 @cindex case
 @cindex cond
 
@@ -121,12 +123,42 @@ values.
 All arguments may be arbitrary expressions.  First, @var{test} is
 evaluated.  If it returns a true value, the expression @var{consequent}
 is evaluated and @var{alternate} is ignored.  If @var{test} evaluates to
-@code{#f}, @var{alternate} is evaluated instead.  The value of the
-evaluated branch (@var{consequent} or @var{alternate}) is returned as
-the value of the @code{if} expression.
+@code{#f}, @var{alternate} is evaluated instead.  The values of the
+evaluated branch (@var{consequent} or @var{alternate}) are returned as
+the values of the @code{if} expression.
 
 When @var{alternate} is omitted and the @var{test} evaluates to
 @code{#f}, the value of the expression is not specified.
+@end deffn
+
+When you go to write an @code{if} without an alternate (a @dfn{one-armed
+@code{if}}), part of what you are expressing is that you don't care
+about the return value (or values) of the expression.  As such, you are
+more interested in the @emph{effect} of evaluating the consequent
+expression.  (By convention, we use the word @dfn{statement} to refer to
+an expression that is evaluated for effect, not for value).
+
+In such a case, it is considered more clear to express these intentions
+with these special forms, @code{when} and @code{unless}.  As an added
+bonus, these forms accept multiple statements to evaluate, which are
+implicitly wrapped in a @code{begin}.
+
+@deffn {Scheme Syntax} when test statement1 statement2 ...
+@deffnx {Scheme Syntax} unless test statement1 statement2 ...
+The actual definitions of these forms are in many ways their most clear
+documentation:
+
+@example
+(define-syntax-rule (when test stmt stmt* ...)
+  (if test (begin stmt stmt* ...)))
+
+(define-syntax-rule (unless condition stmt stmt* ...)
+  (if (not test) (begin stmt stmt* ...)))
+@end example
+
+That is to say, @code{when} evaluates its consequent statements in order
+if @var{test} is true.  @code{unless} is the opposite: it evaluates the
+statements if @var{test} is false.
 @end deffn
 
 @deffn syntax cond clause1 clause2 @dots{}

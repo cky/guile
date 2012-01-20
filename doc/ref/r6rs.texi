@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2010, 2011
+@c Copyright (C)  2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -316,7 +316,7 @@ grouped below by the existing manual sections to which they correspond.
 @deffn {Scheme Syntax} if test consequence [alternate]
 @deffnx {Scheme Syntax} cond clause1 clause2 ...
 @deffnx {Scheme Syntax} case key clause1 clause2 ...
-@xref{if cond case}, for documentation.
+@xref{Conditionals}, for documentation.
 @end deffn
 
 @deffn {Scheme Syntax} and expr ...
@@ -1146,7 +1146,7 @@ exception handler that binds a raised exception to @var{variable} and
 then evaluates the specified @var{clause}s as if they were part of a 
 @code{cond} expression, with the value of the first matching clause 
 becoming the value of the @code{guard} expression 
-(@pxref{if cond case}).  If none of the clause's test expressions 
+(@pxref{Conditionals}).  If none of the clause's test expressions 
 evaluates to @code{#t}, the exception is re-raised, with the exception
 handler that was current before the evaluation of the @code{guard} form.
 

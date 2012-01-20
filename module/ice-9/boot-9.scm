@@ -412,6 +412,12 @@ If there is no handler at all, Guile prints an error and then exits."
     ((_ x) x)
     ((_ x y ...) (let ((t x)) (if t t (or y ...))))))
 
+(define-syntax-rule (when test stmt stmt* ...)
+  (if test (begin stmt stmt* ...)))
+
+(define-syntax-rule (unless test stmt stmt* ...)
+  (if (not test) (begin stmt stmt* ...)))
+
 ;; The "maybe-more" bits are something of a hack, so that we can support
 ;; SRFI-61. Rewrites into a standalone syntax-case macro would be
 ;; appreciated.

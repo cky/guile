@@ -4193,7 +4193,7 @@ This SRFI extends RnRS @code{cond} to support test expressions that
 return multiple values, as well as arbitrary definitions of test
 success.  SRFI 61 is implemented in the Guile core; there's no module
 needed to get SRFI-61 itself.  Extended @code{cond} is documented in
-@ref{if cond case,, Simple Conditional Evaluation}.
+@ref{Conditionals,, Simple Conditional Evaluation}.
 
 @node SRFI-67
 @subsection SRFI-67 - Compare procedures

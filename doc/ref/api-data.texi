@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -78,10 +78,10 @@ equality predicates @code{eq?}, @code{eqv?} and @code{equal?}
 #t
 @end lisp
 
-In test condition contexts like @code{if} and @code{cond} (@pxref{if
-cond case}), where a group of subexpressions will be evaluated only if a
-@var{condition} expression evaluates to ``true'', ``true'' means any
-value at all except @code{#f}.
+In test condition contexts like @code{if} and @code{cond}
+(@pxref{Conditionals}), where a group of subexpressions will be
+evaluated only if a @var{condition} expression evaluates to ``true'',
+``true'' means any value at all except @code{#f}.
 
 @lisp
 (if #t "yes" "no")
