@@ -1,6 +1,6 @@
 ;;;; Assembly to bytecode compilation -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -129,6 +129,12 @@
                (string=? (target-vendor) vendor)
                (string=? (target-os) os)))))))
 
+(define (native-cpu)
+  (with-target %host-type target-cpu))
+
+(define (native-word-size)
+  ((@ (system foreign) sizeof) '*))
+
 (define %objcode-cookie-size
   (string-length "GOOF----LE-8-2.0"))
 
@@ -139,7 +145,17 @@
       (lambda (p get-objcode)
         (with-target triplet
           (lambda ()
-            (let ((b (compile-bytecode
+            (let ((word-size
+                   ;; When the target is the native CPU, rather trust
+                   ;; the native CPU's word size.  This is because
+                   ;; Debian's `sparc64-linux-gnu' port, for instance,
+                   ;; actually has a 32-bit user-land, for instance (see
+                   ;; <http://www.debian.org/ports/sparc/#sparc64bit>
+                   ;; for details.)
+                   (if (string=? (native-cpu) (target-cpu))
+                       (native-word-size)
+                       word-size))
+                  (b (compile-bytecode
                       '(load-program () 16 #f
                                      (assert-nargs-ee/locals 1)
                                      (make-int8 77)
