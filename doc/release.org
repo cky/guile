@@ -6,6 +6,10 @@ This document describes the typical release process for Guile 2.0.
 
 * Preparing & uploading the tarball
 
+** M-x debbugs-gnu
+
+… or http://bugs.gnu.org/guile, for an idea of things to fix.
+
 ** Update Gnulib
 
 The commit log's first line should be "Update Gnulib to X", where X is
@@ -48,6 +52,12 @@ builds on 11 architectures).  It also has FreeBSD and NetBSD boxes.
 If you're still in a good mood, you may also want to check on porter
 boxes for other OSes.  The GNU/Hurd people have [[http://www.gnu.org/software/hurd/public_hurd_boxen.html][porter boxes]], so does
 the [[http://www.opencsw.org/standards/build_farm][OpenCSW Solaris Team]].
+
+
+*** Post a pre-release announcement to `platform-testers@gnu.org'
+
+Send a link to [[http://hydra.nixos.org/job/gnu/guile-2-0/tarball/latest/download-by-type/file/source-dist][the latest tarball]].  This will allow readers to test on
+possibly weird platforms and report any bugs.
 
 ** Update `GUILE-VERSION'
 
