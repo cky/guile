@@ -395,7 +395,7 @@ scm_i_hashtable_print (SCM exp, SCM port, scm_print_state *pstate)
   else if (SCM_HASHTABLE_DOUBLY_WEAK_P (exp))
     scm_puts ("doubly-weak-", port);
   scm_puts ("hash-table ", port);
-  scm_uintprint (SCM2PTR (exp), 16, port);
+  scm_uintprint (SCM_UNPACK (exp), 16, port);
   scm_putc (' ', port);
   scm_uintprint (SCM_HASHTABLE_N_ITEMS (exp), 10, port);
   scm_putc ('/', port);

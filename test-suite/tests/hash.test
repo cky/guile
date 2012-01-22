@@ -1,6 +1,6 @@
 ;;;; hash.test --- test guile hashing     -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004, 2005, 2006, 2008, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005, 2006, 2008, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -75,9 +75,10 @@
 		    (make-hash-table -1))
  (pass-if (hash-table? (make-hash-table 0))) ;; default
  (pass-if (not (hash-table? 'not-a-hash-table)))
- (pass-if (equal? "#<hash-table 0/113>" 
-		  (with-output-to-string 
-		    (lambda () (write (make-hash-table 100)))))))
+ (pass-if (string-suffix? " 0/113>"
+                          (with-output-to-string
+                            (lambda ()
+                              (write (make-hash-table 100)))))))
 
 ;;;
 ;;; usual set and reference
@@ -129,8 +130,9 @@
 		 (equal? 'thirty (hash-ref table 30))
 		 (equal? 'thirty-three (hash-ref table 33))
 		 (equal? 'bar (hash-ref table 'foo))
-		 (equal? "#<hash-table 36/61>" 
-			 (with-output-to-string (lambda () (write table)))))))
+		 (string-suffix? " 36/61>"
+                                 (with-output-to-string
+                                   (lambda () (write table)))))))
 
  ;; 1 and 1 are equal? and eqv? and eq?
  (pass-if (equal? 'foo
@@ -240,8 +242,9 @@
    (pass-if (equal? 'equal (hashx-ref hash assoc table 2/64)))
    (pass-if (equal? 'equal (hashx-ref hash assoc table 2/66)))
    (pass-if (equal? 'equal (hashx-ref hash assoc table 34)))
-   (pass-if (equal? "#<hash-table 33/61>" 
-		    (with-output-to-string (lambda () (write table)))))))
+   (pass-if (string-suffix? " 33/61>"
+                            (with-output-to-string
+                              (lambda () (write table)))))))
 
 (with-test-prefix 
  "hashx"
