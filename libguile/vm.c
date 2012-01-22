@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -280,7 +280,8 @@ vm_reinstate_partial_continuation (SCM vm, SCM cont, SCM intwinds,
   cp = SCM_VM_CONT_DATA (cont);
   base = SCM_FRAME_UPPER_ADDRESS (vp->fp) + 1;
 
-#define RELOC(scm_p) (scm_p + cp->reloc + (base - cp->stack_base))
+#define RELOC(scm_p)						\
+  (((SCM *) (scm_p)) + cp->reloc + (base - cp->stack_base))
 
   if ((base - vp->stack_base) + cp->stack_size + n + 1 > vp->stack_size)
     scm_misc_error ("vm-engine",

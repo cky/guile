@@ -70,9 +70,10 @@ struct scm_vm_frame
   SCM stack[1]; /* Variable-length */
 };
 
-#define SCM_FRAME_STRUCT(fp)		((struct scm_vm_frame*)(((SCM*)(fp)) - 4))
+#define SCM_FRAME_STRUCT(fp)				\
+  ((struct scm_vm_frame *) SCM_FRAME_DATA_ADDRESS (fp))
 
-#define SCM_FRAME_DATA_ADDRESS(fp)	(fp - 4)
+#define SCM_FRAME_DATA_ADDRESS(fp)	(((SCM *) (fp)) - 4)
 #define SCM_FRAME_STACK_ADDRESS(fp)	(SCM_FRAME_STRUCT (fp)->stack)
 #define SCM_FRAME_UPPER_ADDRESS(fp)	((SCM*)&SCM_FRAME_STRUCT (fp)->return_address)
 #define SCM_FRAME_LOWER_ADDRESS(fp)	((SCM*)SCM_FRAME_STRUCT (fp))
@@ -91,7 +92,7 @@ struct scm_vm_frame
 #define SCM_FRAME_DYNAMIC_LINK(fp)              \
   (SCM_FRAME_STRUCT (fp)->dynamic_link)
 #define SCM_FRAME_SET_DYNAMIC_LINK(fp, dl)      \
-  SCM_FRAME_STRUCT (fp)->dynamic_link = (dl)
+  SCM_FRAME_DYNAMIC_LINK (fp) = (dl)
 #define SCM_FRAME_VARIABLE(fp,i)                \
   (SCM_FRAME_STRUCT (fp)->stack[i])
 #define SCM_FRAME_PROGRAM(fp)                   \

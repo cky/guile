@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -24,9 +24,16 @@
 #include <string.h>
 #include "_scm.h"
 #include "frames.h"
+#include <verify.h>
+
+/* Make sure assumptions on the layout of `struct scm_vm_frame' hold.  */
+verify (sizeof (SCM) == sizeof (SCM *));
+verify (sizeof (struct scm_vm_frame) == 5 * sizeof (SCM));
+verify (offsetof (struct scm_vm_frame, dynamic_link) == 0);
 
 
-#define RELOC(frame, val) (val + SCM_VM_FRAME_OFFSET (frame))
+#define RELOC(frame, val)				\
+  (((SCM *) (val)) + SCM_VM_FRAME_OFFSET (frame))
 
 SCM
 scm_c_make_frame (SCM stack_holder, SCM *fp, SCM *sp,
