@@ -706,6 +706,11 @@ Return the source properties that correspond to the syntax object
 @var{x}.  @xref{Source Properties}, for more information.
 @end deffn
 
+@deffn {Scheme Procedure} syntax-module id
+Return the name of the module whose source contains the identifier
+@var{id}.
+@end deffn
+
 @deffn {Scheme Procedure} syntax-local-binding id
 Resolve the identifer @var{id}, a syntax object, within the current
 lexical environment, and return two values, the binding type and a

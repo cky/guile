@@ -2525,6 +2525,11 @@
     (set! syntax-source
           (lambda (x) (source-annotation x)))
 
+    (set! syntax-module
+          (lambda (id)
+            (arg-check nonsymbol-id? id 'syntax-module)
+            (cdr (syntax-object-module id))))
+
     (set! syntax-local-binding
           (lambda (id)
             (arg-check nonsymbol-id? id 'syntax-local-binding)

@@ -385,6 +385,7 @@ If there is no handler at all, Guile prints an error and then exits."
 (define datum->syntax #f)
 (define syntax->datum #f)
 (define syntax-source #f)
+(define syntax-module #f)
 (define identifier? #f)
 (define generate-temporaries #f)
 (define bound-identifier=? #f)
