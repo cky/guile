@@ -781,7 +781,7 @@ change occurs at the right time.
 A procedure to be called @code{(%load-hook @var{filename})} whenever a
 file is loaded, or @code{#f} for no such call.  @code{%load-hook} is
 used by all of the loading functions (@code{load} and
-@code{primitive-load}, and @code{load-path} and
+@code{primitive-load}, and @code{load-from-path} and
 @code{primitive-load-path} documented in the next section).
 
 For example an application can set this to show what's loaded,
@@ -831,13 +831,6 @@ it is in to the load path:
 It's better to use @code{add-to-load-path} than to modify
 @code{%load-path} directly, because @code{add-to-load-path} takes care
 of modifying the path both at compile-time and at run-time.
-
-There is a more general version for use with other paths, like
-@code{%load-compiled-path}:
-
-@deffn {Scheme Syntax} add-to-path path dir
-Add @var{dir} to @var{path}.
-@end deffn
 
 @deffn {Scheme Procedure} primitive-load-path filename [exception-on-not-found]
 @deffnx {C Function} scm_primitive_load_path (filename)
