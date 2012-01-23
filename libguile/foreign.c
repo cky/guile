@@ -319,8 +319,6 @@ SCM_DEFINE (scm_set_pointer_finalizer_x, "set-pointer-finalizer!", 2, 0, 0,
 
   c_finalizer = SCM_POINTER_VALUE (finalizer);
 
-  SCM_SET_CELL_WORD_0 (pointer, SCM_CELL_WORD_0 (pointer) | (1 << 16UL));
-
   GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (pointer),
                                   pointer_finalizer_trampoline,
                                   c_finalizer,
