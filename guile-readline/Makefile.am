@@ -1,6 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+##   Copyright (C) 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2008,
+##     2009, 2010, 2012 Free Software Foundation, Inc.
 ##
 ##   This file is part of guile-readline.
 ##
@@ -68,7 +69,7 @@ EXTRA_DIST += LIBGUILEREADLINE-VERSION ChangeLog-2008
 ETAGS_ARGS +=							\
   $(libguilereadline_v_@LIBGUILEREADLINE_MAJOR@_la_SOURCES)
 
-CLEANFILES += *.x
+CLEANFILES += *.x *.go
 
 endif HAVE_READLINE
 
