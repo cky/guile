@@ -1,5 +1,6 @@
-/* Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 2001, 2008, 2009, 2010, 2011,
+ *   2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -18,6 +19,17 @@
 
 
 /* This file is included in vm_engine.c */
+
+/* Compiler barrier, to prevent instruction reordering, apparently due
+   to a bug in GCC 4.3.2 on sparc-linux-gnu and on hppa2.0-linux-gnu.
+   See <http://bugs.gnu.org/10520>, for details.  */
+
+#ifdef __GNUC__
+# define COMPILER_BARRIER  __asm__ __volatile__ ("")
+#else
+# define COMPILER_BARRIER  do { } while (0)
+#endif
+
 
 
 /*
@@ -55,6 +67,7 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
        stack */
     ip = SCM_FRAME_RETURN_ADDRESS (fp);
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
+    COMPILER_BARRIER;
     NULLSTACK (old_sp - sp);
   }
   
@@ -1267,6 +1280,7 @@ VM_DEFINE_INSTRUCTION (67, return, "return", 0, 1, 1)
     sp = SCM_FRAME_LOWER_ADDRESS (fp);
     ip = SCM_FRAME_RETURN_ADDRESS (fp);
     fp = SCM_FRAME_DYNAMIC_LINK (fp);
+    COMPILER_BARRIER;
 
 #ifdef VM_ENABLE_STACK_NULLING
     NULLSTACK (old_sp - sp);
@@ -1302,7 +1316,8 @@ VM_DEFINE_INSTRUCTION (68, return_values, "return/values", 1, -1, -1)
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
       ip = SCM_FRAME_MV_RETURN_ADDRESS (fp);
       fp = SCM_FRAME_DYNAMIC_LINK (fp);
-        
+      COMPILER_BARRIER;
+
       /* Push return values, and the number of values */
       for (i = 0; i < nvalues; i++)
         *++sp = vals[i+1];
@@ -1322,7 +1337,8 @@ VM_DEFINE_INSTRUCTION (68, return_values, "return/values", 1, -1, -1)
       sp = SCM_FRAME_LOWER_ADDRESS (fp) - 1;
       ip = SCM_FRAME_RETURN_ADDRESS (fp);
       fp = SCM_FRAME_DYNAMIC_LINK (fp);
-        
+      COMPILER_BARRIER;
+
       /* Push first value */
       *++sp = vals[1];
              
@@ -1713,6 +1729,7 @@ VM_DEFINE_INSTRUCTION (93, assert_nargs_ee_locals, "assert-nargs-ee/locals", 1, 
   NEXT;
 }
 
+#undef COMPILER_BARRIER
 
 /*
 (defun renumber-ops ()
