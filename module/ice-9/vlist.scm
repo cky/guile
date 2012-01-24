@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-26)
+  #:use-module (ice-9 format)
 
   #:export (vlist? vlist-cons vlist-head vlist-tail vlist-null?
             vlist-null list->vlist vlist-ref vlist-drop vlist-take
