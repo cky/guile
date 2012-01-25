@@ -1,6 +1,6 @@
 ;;; Guile Scheme specification
 
-;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -53,4 +53,11 @@
                     ;; compile-time changes to `current-reader' are
                     ;; limited to the current compilation unit.
                     (module-define! m 'current-reader (make-fluid))
+
+                    ;; Default to `simple-format', as is the case until
+                    ;; (ice-9 format) is loaded.  This allows
+                    ;; compile-time warnings to be emitted when using
+                    ;; unsupported options.
+                    (module-set! m 'format simple-format)
+
                     m)))

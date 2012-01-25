@@ -1,6 +1,6 @@
 ;;; User interface messages
 
-;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -150,6 +150,10 @@
                         (emit #f "~a to ~a" min max))))
 
                (match rest
+                 (('simple-format fmt opt)
+                  (emit port
+                        "~A: warning: ~S: unsupported format option ~~~A, use (ice-9 format) instead~%"
+                        loc (escape-newlines fmt) opt))
                  (('wrong-format-arg-count fmt min max actual)
                   (emit port
                         "~A: warning: ~S: wrong number of `format' arguments: expected ~A, got ~A~%"

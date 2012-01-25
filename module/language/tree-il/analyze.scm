@@ -22,6 +22,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
+  #:use-module (srfi srfi-26)
   #:use-module (ice-9 vlist)
   #:use-module (ice-9 match)
   #:use-module (system base syntax)
@@ -1397,6 +1398,36 @@ accurate information is missing from a given `tree-il' element."
          (else
           (warning 'format loc 'wrong-num-args (length args)))))
 
+     (define (check-simple-format-args args loc)
+       ;; Check the arguments to the `simple-format' procedure, which is
+       ;; less capable than that of (ice-9 format).
+
+       (define allowed-chars
+         '(#\A #\S #\a #\s #\~ #\%))
+
+       (define (format-chars fmt)
+         (let loop ((chars  (string->list fmt))
+                    (result '()))
+           (match chars
+             (()
+              (reverse result))
+             ((#\~ opt rest ...)
+              (loop rest (cons opt result)))
+             ((_ rest ...)
+              (loop rest result)))))
+
+       (match args
+         ((port ($ <const> _ (? string? fmt)) _ ...)
+          (let ((opts (format-chars fmt)))
+            (or (every (cut memq <> allowed-chars) opts)
+                (begin
+                  (warning 'format loc 'simple-format fmt
+                           (find (negate (cut memq <> allowed-chars)) opts))
+                  #f))))
+         ((port (($ <const> _ '_) fmt) args ...)
+          (check-simple-format-args `(,port ,fmt ,args) loc))
+         (_ #t)))
+
      (define (resolve-toplevel name)
        (and (module? env)
             (false-if-exception (module-ref env name))))
@@ -1404,9 +1435,19 @@ accurate information is missing from a given `tree-il' element."
      (match x
        (($ <application> src ($ <toplevel-ref> _ name) args)
         (let ((proc (resolve-toplevel name)))
-          (and (or (eq? proc format)
-                   (eq? proc (@ (ice-9 format) format)))
-               (check-format-args args (or src (find pair? locs))))))
+          (if (or (and (eq? proc (@ (guile) simple-format))
+                       (check-simple-format-args args
+                                                 (or src (find pair? locs))))
+                  (eq? proc (@ (ice-9 format) format)))
+              (check-format-args args (or src (find pair? locs))))))
+       (($ <application> src ($ <module-ref> _ '(ice-9 format) 'format) args)
+        (check-format-args args (or src (find pair? locs))))
+       (($ <application> src ($ <module-ref> _ '(guile)
+                                (or 'format 'simple-format))
+           args)
+        (and (check-simple-format-args args
+                                       (or src (find pair? locs)))
+             (check-format-args args (or src (find pair? locs)))))
        (_ #t))
      #t)
 
