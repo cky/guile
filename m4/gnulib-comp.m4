@@ -149,6 +149,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module send:
   # Code from module sendto:
   # Code from module servent:
+  # Code from module setenv:
   # Code from module setsockopt:
   # Code from module shutdown:
   # Code from module signal-h:
@@ -523,6 +524,11 @@ if test "$ac_cv_header_winsock2_h" = yes; then
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([sendto])
 gl_SERVENT
+gl_FUNC_SETENV
+if test $HAVE_SETENV = 0 || test $REPLACE_SETENV = 1; then
+  AC_LIBOBJ([setenv])
+fi
+gl_STDLIB_MODULE_INDICATOR([setenv])
 AC_REQUIRE([gl_HEADER_SYS_SOCKET])
 if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([setsockopt])
@@ -886,6 +892,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/same-inode.h
   lib/send.c
   lib/sendto.c
+  lib/setenv.c
   lib/setsockopt.c
   lib/shutdown.c
   lib/signal.in.h
@@ -1027,6 +1034,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/safe-read.m4
   m4/safe-write.m4
   m4/servent.m4
+  m4/setenv.m4
   m4/signal_h.m4
   m4/size_max.m4
   m4/snprintf.m4
