@@ -2525,44 +2525,6 @@
     (set! syntax-source
           (lambda (x) (source-annotation x)))
 
-    (set! syntax-module
-          (lambda (id)
-            (arg-check nonsymbol-id? id 'syntax-module)
-            (cdr (syntax-object-module id))))
-
-    (set! syntax-local-binding
-          (lambda (id)
-            (arg-check nonsymbol-id? id 'syntax-local-binding)
-            (with-transformer-environment
-             (lambda (e r w s rib mod)
-               (define (strip-anti-mark w)
-                 (let ((ms (wrap-marks w)) (s (wrap-subst w)))
-                   (if (and (pair? ms) (eq? (car ms) the-anti-mark))
-                       ;; output is from original text
-                       (make-wrap (cdr ms) (if rib (cons rib (cdr s)) (cdr s)))
-                       ;; output introduced by macro
-                       (make-wrap ms (if rib (cons rib s) s)))))
-               (call-with-values (lambda ()
-                                   (resolve-identifier
-                                    (syntax-object-expression id)
-                                    (strip-anti-mark (syntax-object-wrap id))
-                                    r
-                                    (syntax-object-module id)))
-                 (lambda (type value mod)
-                   (case type
-                     ((lexical) (values 'lexical value))
-                     ((macro) (values 'macro value))
-                     ((syntax) (values 'pattern-variable value))
-                     ((displaced-lexical) (values 'displaced-lexical #f))
-                     ((global) (values 'global (cons value (cdr mod))))
-                     (else (values 'other #f)))))))))
-
-    (set! syntax-locally-bound-identifiers
-          (lambda (x)
-            (arg-check nonsymbol-id? x 'syntax-locally-bound-identifiers)
-            (locally-bound-identifiers (syntax-object-wrap x)
-                                       (syntax-object-module x))))
-    
     (set! generate-temporaries
           (lambda (ls)
             (arg-check list? ls 'generate-temporaries)
@@ -2591,6 +2553,50 @@
                    (strip form empty-wrap)
                    (and subform (strip subform empty-wrap)))))
 
+    (let ()
+      (define (syntax-module id)
+        (arg-check nonsymbol-id? id 'syntax-module)
+        (cdr (syntax-object-module id)))
+
+      (define (syntax-local-binding id)
+        (arg-check nonsymbol-id? id 'syntax-local-binding)
+        (with-transformer-environment
+         (lambda (e r w s rib mod)
+           (define (strip-anti-mark w)
+             (let ((ms (wrap-marks w)) (s (wrap-subst w)))
+               (if (and (pair? ms) (eq? (car ms) the-anti-mark))
+                   ;; output is from original text
+                   (make-wrap (cdr ms) (if rib (cons rib (cdr s)) (cdr s)))
+                   ;; output introduced by macro
+                   (make-wrap ms (if rib (cons rib s) s)))))
+           (call-with-values (lambda ()
+                               (resolve-identifier
+                                (syntax-object-expression id)
+                                (strip-anti-mark (syntax-object-wrap id))
+                                r
+                                (syntax-object-module id)))
+             (lambda (type value mod)
+               (case type
+                 ((lexical) (values 'lexical value))
+                 ((macro) (values 'macro value))
+                 ((syntax) (values 'pattern-variable value))
+                 ((displaced-lexical) (values 'displaced-lexical #f))
+                 ((global) (values 'global (cons value (cdr mod))))
+                 (else (values 'other #f))))))))
+
+      (define (syntax-locally-bound-identifiers id)
+        (arg-check nonsymbol-id? id 'syntax-locally-bound-identifiers)
+        (locally-bound-identifiers (syntax-object-wrap id)
+                                   (syntax-object-module id)))
+
+      ;; Using define! instead of set! to avoid warnings at
+      ;; compile-time, after the variables are stolen away into (system
+      ;; syntax).  See the end of boot-9.scm.
+      ;;
+      (define! 'syntax-module syntax-module)
+      (define! 'syntax-local-binding syntax-local-binding)
+      (define! 'syntax-locally-bound-identifiers syntax-locally-bound-identifiers))
+    
     ;; $sc-dispatch expects an expression and a pattern.  If the expression
     ;; matches the pattern a list of the matching expressions for each
     ;; "any" is returned.  Otherwise, #f is returned.  (This use of #f will

@@ -385,13 +385,10 @@ If there is no handler at all, Guile prints an error and then exits."
 (define datum->syntax #f)
 (define syntax->datum #f)
 (define syntax-source #f)
-(define syntax-module #f)
 (define identifier? #f)
 (define generate-temporaries #f)
 (define bound-identifier=? #f)
 (define free-identifier=? #f)
-(define syntax-local-binding #f)
-(define syntax-locally-bound-identifiers #f)
 
 ;; $sc-dispatch is an implementation detail of psyntax. It is used by
 ;; expanded macros, to dispatch an input against a set of patterns.
@@ -3863,11 +3860,42 @@ module '(ice-9 q) '(make-q q-length))}."
 
 
 
-;;; Place the user in the guile-user module.
+;;; SRFI-4 in the default environment.  FIXME: we should figure out how
+;;; to deprecate this.
 ;;;
 
 ;; FIXME:
 (module-use! the-scm-module (resolve-interface '(srfi srfi-4)))
+
+
+
+;;; A few identifiers that need to be defined in this file are really
+;;; internal implementation details.  We shove them off into internal
+;;; modules, removing them from the (guile) module.
+;;;
+
+(define-module (system syntax))
+
+(let ()
+  (define (steal-bindings! from to ids)
+    (for-each
+     (lambda (sym)
+       (let ((v (module-local-variable from sym)))
+         (module-remove! from sym)
+         (module-add! to sym v)))
+     ids)
+    (module-export! to ids))
+
+  (steal-bindings! the-root-module (resolve-module '(system syntax))
+                   '(syntax-local-binding
+                     syntax-module
+                     syntax-locally-bound-identifiers)))
+
+
+
+
+;;; Place the user in the guile-user module.
+;;;
 
 ;; Set filename to #f to prevent reload.
 (define-module (guile-user)

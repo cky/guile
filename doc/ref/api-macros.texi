@@ -706,6 +706,18 @@ Return the source properties that correspond to the syntax object
 @var{x}.  @xref{Source Properties}, for more information.
 @end deffn
 
+Guile also offers some more experimental interfaces in a separate
+module.  As was the case with the Large Hadron Collider, it is unclear
+to our senior macrologists whether adding these interfaces will result
+in awesomeness or in the destruction of Guile via the creation of a
+singularity.  We will preserve their functionality through the 2.0
+series, but we reserve the right to modify them in a future stable
+series, to a more than usual degree.
+
+@example
+(use-modules (system syntax))
+@end example
+
 @deffn {Scheme Procedure} syntax-module id
 Return the name of the module whose source contains the identifier
 @var{id}.
