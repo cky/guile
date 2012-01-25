@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -141,6 +141,9 @@
                          (list "`~a'~@[ (arg)~]"
                                (binding:name b) (< (binding:index b) nargs))
                          (lp (cdr bindings))))))))
+      ((assert-nargs-ee/locals assert-nargs-ge/locals)
+       (list "~a arg~:p, ~a local~:p"
+             (logand (car args) #x7) (ash (car args) -3)))
       ((free-ref free-boxed-ref free-boxed-set)
        ;; FIXME: we can do better than this
        (list "(closure variable)"))
