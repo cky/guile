@@ -1,6 +1,6 @@
 ;;; Tree-IL partial evaluator
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1011,7 +1011,9 @@ top-level bindings from ENV and return the resulting expression."
              exp))
         (else
          (let ((vals (map for-value exps)))
-           (if (and (memq ctx '(value test effect))
+           (if (and (case ctx
+                      ((value test effect) #t)
+                      (else (null? (cdr vals))))
                     (every singly-valued-expression? vals))
                (for-tail (make-sequence src (append (cdr vals) (list (car vals)))))
                (make-application src (make-primitive-ref #f 'values) vals))))))
