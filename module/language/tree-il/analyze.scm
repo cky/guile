@@ -1387,7 +1387,7 @@ accurate information is missing from a given `tree-il' element."
          ((,port ,fmt . ,rest)
           (if (and (const? port)
                    (not (boolean? (const-exp port))))
-              (warn 'format loc 'wrong-port (const-exp port)))
+              (warning 'format loc 'wrong-port (const-exp port)))
           ;; Warn on non-literal format strings, unless they refer to a
           ;; lexical variable named "fmt".
           (if (record-case fmt
