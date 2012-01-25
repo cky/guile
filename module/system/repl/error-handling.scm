@@ -1,6 +1,6 @@
 ;;; Error handling in the REPL
 
-;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -23,6 +23,7 @@
   #:use-module (system base pmatch)
   #:use-module (system vm trap-state)
   #:use-module (system repl debug)
+  #:use-module (ice-9 format)
   #:export (call-with-error-handling
             with-error-handling))
 

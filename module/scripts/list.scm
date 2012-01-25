@@ -1,6 +1,6 @@
 ;;; List --- List scripts that can be invoked by guild  -*- coding: iso-8859-1 -*-
 
-;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,7 @@
 ;;; Code:
 
 (define-module (scripts list)
+  #:use-module (srfi srfi-1)
   #:export (list-scripts))
 
 (define %include-in-guild-list #f)
