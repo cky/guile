@@ -1,7 +1,7 @@
 ;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
 ;;;; Andy Wingo <wingo@pobox.com> --- May 2009
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -549,7 +549,24 @@
    (apply (primitive +)
           (apply (primitive values) (const 1) (const 2)))
    (program () (std-prelude 0 0 #f) (label _)
-            (const 1) (call return 1))))
+            (const 1) (call return 1)))
+
+  ;; Testing `(values foo)' in push context with RA.
+  (assert-tree-il->glil without-partial-evaluation
+   (apply (primitive cdr)
+          (letrec (lp) (#{lp ~V9KrhVD4PFEL6oCTrLg3A}#)
+                  ((lambda ((name . lp))
+                     (lambda-case ((() #f #f #f () ())
+                                   (apply (toplevel values) (const (one two)))))))
+                  (apply (lexical lp #{lp ~V9KrhVD4PFEL6oCTrLg3A}#))))
+   (program () (std-prelude 0 0 #f) (label _)
+            (branch br _) ;; entering the fix, jump to :2
+            ;; :1 body of lp, jump to :3
+            (label _) (bind) (const (one two)) (branch br _) (unbind)
+            ;; :2 initial call of lp, jump to :1
+            (label _) (bind) (branch br _) (label _) (unbind)
+            ;; :3 the push continuation
+            (call cdr 1) (call return 1))))
 
 ;; FIXME: binding info for or-hacked locals might bork the disassembler,
 ;; and could be tightened in any case

@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -341,13 +341,12 @@
                (comp-push proc)
                (emit-code src (make-glil-call 'call 0))
                (maybe-emit-return))
-              ((1)
-               (comp-push (car args)))
               (else
                ;; Taking advantage of unspecified order of evaluation of
                ;; arguments.
                (for-each comp-drop (cdr args))
-               (comp-push (car args)))))
+               (comp-push (car args))
+               (maybe-emit-return))))
            ((vals)
             (for-each comp-push args)
             (emit-code #f (make-glil-const (length args)))
