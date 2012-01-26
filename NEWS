@@ -25,6 +25,14 @@ different architecture.  See the documentation for `--target' in the
 cross-compiler.  See the "Cross building Guile" section of the README,
 for more on how to cross-compile Guile itself.
 
+** The return of `local-eval'.
+
+Back by popular demand, `the-environment' and `local-eval' allow the
+user to capture a lexical environment, and then evaluate arbitrary
+expressions in that context.  There is also a new `local-compile'
+command.  See "Local Evaluation" in the manual, for more.  Special
+thanks to Mark Weaver for an initial implementation of this feature.
+
 ** Fluids can now have default values.
 
 Fluids are used for dynamic and thread-local binding.  They have always
@@ -77,7 +85,7 @@ default environment.  See "Parameters" in the manual, for more
 information.  `current-input-port', `current-output-port', and
 `current-error-port' are now parameters.
     
-** Add `current-warning-port'
+** Add `current-warning-port'.
     
 Guile now outputs warnings on a separate port, `current-warning-port',
 initialized to the value that `current-error-port' has on startup.
@@ -97,51 +105,92 @@ locale.  However for backwards compatibility with other 2.0.x releases,
 it does so without actually calling `setlocale'.  Please report any bugs
 in this facility to bug-guile@gnu.org.
 
+** One-armed conditionals: `when' and `unless'
+
+Guile finally has `when' and `unless' in the default environment.  Use
+them whenever you would use an `if' with only one branch.  See
+"Conditionals" in the manual, for more.
+
+** `current-filename', `add-to-load-path'
+
+There is a new form, `(current-filename)', which expands out to the
+source file in which it occurs.  Combined with the new
+`add-to-load-path', this allows simple scripts to easily add nearby
+directories to the load path.  See "Load Paths" in the manual, for more.
+
+** `random-state-from-platform'
+
+This procedure initializes a random seed using good random sources
+available on your platform, such as /dev/urandom.  See "Random Number
+Generation" in the manual, for more.
+
 * New interfaces
 
 ** (ice-9 session): `apropos-hook'
 ** New print option: `escape-newlines', defaults to #t.
 ** (ice-9 ftw): `file-system-fold', `file-system-tree', `scandir'
+** `scm_c_value_ref': access to multiple returned values from C
+** Some new syntax helpers in (system syntax)
+
+Search the manual for these identifiers and modules, for more.
+
+* Build fixes
+
+** FreeBSD build fixes.
+** OpenBSD compilation fixes.
+** Solaris 2.10 test suite fixes.
+** IA64 compilation fix.
+** MinGW build fixes.
+** Work around instruction reordering on SPARC and HPPA in the VM.
+** Gnulib updates: added `dirfd', `setenv' modules.
 
 * Bug fixes
 
-** Fix R6RS `fold-left' so the accumulator is the first argument.
-** fix <dynwind> serialization.
-** Fix bugs in the new `peval' optimizer.
-** Allow values bound in non-tail let expressions to be collected.
-** Fix bit-set*! bug from 2005.
-** Fix bug in `make-repl' when `lang' is actually a language.
-** Hack the port-column of current-output-port after printing a prompt.
+** Add a deprecated alias for $expt.
+** Add an exception printer for `getaddrinfo-error'.
+** Add deprecated shim for `scm_display_error' with stack as first argument.
+** Add warnings for unsupported `simple-format' options.
+** Allow overlapping regions to be passed to `bytevector-copy!'.
+** Avoid calling `u32_conv_from_encoding' on the null string.
+** Better function prologue disassembly
+** Compiler: fix miscompilation of (values foo ...) in some contexts.
+** Compiler: fix serialization of #nil-terminated lists.
+** Compiler: allow values bound in non-tail let expressions to be collected.
+** Deprecate SCM_ASRTGO.
+** Document invalidity of (begin) as expression; add back-compat shim.
+** Don't leak file descriptors when mmaping objcode.
+** Empty substrings no longer reference the original stringbuf.
+** FFI: Fix `set-pointer-finalizer!' to leave the type cell unchanged.
+** FFI: Fix signed/unsigned pointer mismatches in implementation.
 ** FFI: Hold a weak reference to the CIF made by `procedure->pointer'.
 ** FFI: Hold a weak reference to the procedure passed to `procedure->pointer'.
 ** FFI: Properly unpack small integer return values in closure call.
-** Allow overlapping regions to be passed to `bytevector-copy!'.
+** Fix R6RS `fold-left' so the accumulator is the first argument.
 ** Fix `validate-target' in (system base target).
-** `,language' at REPL sets the current-language fluid.
-** `primitive-load' returns the value(s) of the last expression.
-** Add an exception printer for `getaddrinfo-error'.
-** Add a deprecated alias for $expt.
-** Document invalidity of (begin) as expression; add back-compat shim.
-** Web: Allow URIs with empty authorities, like "file:///etc/hosts".
-** HTTP: Fix validators for various list-style headers.
+** Fix bit-set*! bug from 2005.
+** Fix bug in `make-repl' when `lang' is actually a <language>.
+** Fix bugs related to mutation, the null string, and shared substrings.
+** Fix <dynwind> serialization.
+** Fix erroneous check in `set-procedure-properties!'.
+** Fix generalized-vector-{ref,set!} for slices.
 ** HTTP: Extend handling of "Cache-Control" header.
 ** HTTP: Fix qstring writing of cache-extension values
-** HTTP: `write-request-line' writes absolute paths, not absolute URIs.
+** HTTP: Fix validators for various list-style headers.
 ** HTTP: Permit non-date values for Expires header.
-** FreeBSD build fixes.
-** Fix generalized-vector-{ref,set!} for slices.
-** Fix erroneous check in `set-procedure-properties!'.
-** Don't leak file descriptors when mmaping objcode.
-** Fix bugs related to mutation, the null string, and shared substrings.
-** Deprecate SCM_ASRTGO.
-** Add deprecated shim for `scm_display_error' with stack as first argument.
-** i18n: Fix gc_malloc/free mismatch on non-GNU systems.
-** Make sure `regexp-quote' tests use Unicode-capable string ports.
+** HTTP: `write-request-line' writes absolute paths, not absolute URIs.
+** Hack the port-column of current-output-port after printing a prompt.
 ** Have `cpu-word-size' error out on unknown CPUs; add support for MIPSEL.
+** Make sure `regexp-quote' tests use Unicode-capable string ports.
+** Peval: Fix bugs in the new optimizer.
+** Peval: fold (values FOO) to FOO in more cases
+** Statistically unique marks and labels, for robust hygiene across sessions.
+** Web: Allow URIs with empty authorities, like "file:///etc/hosts".
+** `,language' at REPL sets the current-language fluid.
+** `primitive-load' returns the value(s) of the last expression.
 ** `scm_from_stringn' always returns unique strings.
-** Empty substrings no longer reference the original stringbuf.
 ** `scm_i_substring_copy' tries to narrow the substring.
-** Avoid calling `u32_conv_from_encoding' on the null string.
+** guile-readline: Clean `.go' files.
+** i18n: Fix gc_malloc/free mismatch on non-GNU systems.
 
 Changes in 2.0.3 (since 2.0.2):
 
