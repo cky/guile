@@ -417,7 +417,7 @@ top-level bindings from ENV and return the resulting expression."
   (define (fresh-gensyms vars)
     (map (lambda (var)
            (let ((new (gensym (string-append (symbol->string (var-name var))
-                                             " "))))
+                                             "-"))))
              (set! store (vhash-consq new var store))
              new))
          vars))
@@ -919,7 +919,7 @@ top-level bindings from ENV and return the resulting expression."
           ((not (constant-expression? pre))
            (cond
             ((not (constant-expression? post))
-             (let ((pre-sym (gensym "pre ")) (post-sym (gensym "post ")))
+             (let ((pre-sym (gensym "pre-")) (post-sym (gensym "post-")))
                (record-new-temporary! 'pre pre-sym 1)
                (record-new-temporary! 'post post-sym 1)
                (make-let src '(pre post) (list pre-sym post-sym) (list pre post)
@@ -928,7 +928,7 @@ top-level bindings from ENV and return the resulting expression."
                                        body
                                        (make-lexical-ref #f 'post post-sym)))))
             (else
-             (let ((pre-sym (gensym "pre ")))
+             (let ((pre-sym (gensym "pre-")))
                (record-new-temporary! 'pre pre-sym 1)
                (make-let src '(pre) (list pre-sym) (list pre)
                          (make-dynwind src
@@ -936,7 +936,7 @@ top-level bindings from ENV and return the resulting expression."
                                        body
                                        post))))))
           ((not (constant-expression? post))
-           (let ((post-sym (gensym "post ")))
+           (let ((post-sym (gensym "post-")))
              (record-new-temporary! 'post post-sym 1)
              (make-let src '(post) (list post-sym) (list post)
                        (make-dynwind src
@@ -1089,7 +1089,7 @@ top-level bindings from ENV and return the resulting expression."
                     (for-tail
                      (make-sequence src (list k (make-const #f #f)))))
                    (else
-                    (let ((t (gensym "t "))
+                    (let ((t (gensym "t-"))
                           (eq (if (eq? name 'memq) 'eq? 'eqv?)))
                       (record-new-temporary! 't t (length elts))
                       (for-tail
