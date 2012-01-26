@@ -984,6 +984,14 @@ value.
 @node Local Evaluation
 @subsection Local Evaluation
 
+Guile includes a facility to capture a lexical environment, and later
+evaluate a new expression within that environment.  This code is
+implemented in a module.
+
+@example
+(use-modules (ice-9 local-eval))
+@end example
+
 @deffn syntax the-environment
 Captures and returns a lexical environment for use with
 @code{local-eval} or @code{local-compile}.
@@ -991,27 +999,44 @@ Captures and returns a lexical environment for use with
 
 @deffn {Scheme Procedure} local-eval exp env
 @deffnx {C Function} scm_local_eval (exp, env)
-Evaluate the expression @var{exp} in the lexical environment @var{env}.
-This mostly behaves as if @var{exp} had been wrapped in a lambda
-expression @code{`(lambda () ,@var{exp})} and put in place of
-@code{(the-environment)}, with the resulting procedure called by
-@code{local-eval}.  In other words, @var{exp} is evaluated within the
-lexical environment of @code{(the-environment)}, but within the dynamic
-environment of the call to @code{local-eval}.
+@deffnx {Scheme Procedure} local-compile exp env [opts=()]
+Evaluate or compile the expression @var{exp} in the lexical environment
+@var{env}.
 @end deffn
 
-@deffn {Scheme Procedure} local-compile exp env [opts=()]
-Compile the expression @var{exp} in the lexical environment @var{env}.
-If @var{exp} is a procedure, the result will be a compiled procedure;
-otherwise @code{local-compile} is mostly equivalent to
-@code{local-eval}.  @var{opts} specifies the compilation options.
-@end deffn
+Here is a simple example, illustrating that it is the variable
+that gets captured, not just its value at one point in time.
 
-Note that the current implementation of @code{(the-environment)} does
-not capture local syntax transformers bound by @code{let-syntax},
-@code{letrec-syntax} or non-top-level @code{define-syntax} forms.  Any
-attempt to reference such captured syntactic keywords via
-@code{local-eval} or @code{local-compile} produces an error.
+@example
+(define e (let ((x 100)) (the-environment)))
+(define fetch-x (local-eval '(lambda () x) e))
+(fetch-x)
+@result{} 100
+(local-eval '(set! x 42) e)
+(fetch-x)
+@result{} 42
+@end example
+
+While @var{exp} is evaluated within the lexical environment of
+@code{(the-environment)}, it has the dynamic environment of the call to
+@code{local-eval}.
+
+@code{local-eval} and @code{local-compile} can only evaluate
+expressions, not definitions.
+
+@example
+(local-eval '(define foo 42)
+            (let ((x 100)) (the-environment)))
+@result{} syntax error: definition in expression context
+@end example
+
+Note that the current implementation of @code{(the-environment)} only
+captures ``normal'' lexical bindings, and pattern variables bound by
+@code{syntax-case}.  It does not currently capture local syntax
+transformers bound by @code{let-syntax}, @code{letrec-syntax} or
+non-top-level @code{define-syntax} forms.  Any attempt to reference such
+captured syntactic keywords via @code{local-eval} or
+@code{local-compile} produces an error.
 
 
 @c Local Variables:
