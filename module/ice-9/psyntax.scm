@@ -273,8 +273,11 @@
         (lambda (x mod)
           (primitive-eval x)))
     
-      (define-syntax-rule (gensym-hook)
-        (gensym))
+      ;; Capture syntax-session-id before we shove it off into a module.
+      (define session-id
+        (let ((v (module-variable (current-module) 'syntax-session-id)))
+          (lambda ()
+            ((variable-ref v)))))
 
       (define put-global-definition-hook
         (lambda (symbol type val)
@@ -450,7 +453,7 @@
 
     ;; FIXME: use a faster gensym
     (define-syntax-rule (build-lexical-var src id)
-      (gensym (string-append (symbol->string id) " ")))
+      (gensym (string-append (symbol->string id) "-")))
 
     (define-structure (syntax-object expression wrap module))
 
@@ -635,13 +638,8 @@
 
     ;; labels must be comparable with "eq?", have read-write invariance,
     ;; and distinct from symbols.
-    (define gen-label
-      (let ((i 0))
-        (lambda ()
-          (let ((n i))
-            ;; FIXME: Use atomic ops.
-            (set! i (1+ n))
-            (number->string n 36)))))
+    (define (gen-label)
+      (string-append "l-" (session-id) (symbol->string (gensym "-"))))
 
     (define gen-labels
       (lambda (ls)
@@ -670,7 +668,7 @@
                    (cons 'shift (wrap-subst w)))))
 
     (define-syntax-rule (new-mark)
-      (gensym "m"))
+      (gensym (string-append "m-" (session-id) "-")))
 
     ;; make-empty-ribcage and extend-ribcage maintain list-based ribcages for
     ;; internal definitions, in which the ribcages are built incrementally
@@ -2529,7 +2527,7 @@
           (lambda (ls)
             (arg-check list? ls 'generate-temporaries)
             (let ((mod (cons 'hygiene (module-name (current-module)))))
-              (map (lambda (x) (wrap (gensym-hook) top-wrap mod)) ls))))
+              (map (lambda (x) (wrap (gensym "t-") top-wrap mod)) ls))))
 
     (set! free-identifier=?
           (lambda (x y)

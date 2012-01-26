@@ -3889,7 +3889,8 @@ module '(ice-9 q) '(make-q q-length))}."
   (steal-bindings! the-root-module (resolve-module '(system syntax))
                    '(syntax-local-binding
                      syntax-module
-                     syntax-locally-bound-identifiers)))
+                     syntax-locally-bound-identifiers
+                     syntax-session-id)))
 
 
 

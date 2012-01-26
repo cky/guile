@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,12 @@
 (use-modules (language tree-il)
              (language tree-il optimize)
              (language tree-il canonicalize)
-             (ice-9 pretty-print))
+             (ice-9 pretty-print)
+             (system syntax))
+
+;; Avoid gratuitous churn in psyntax-pp.scm due to the marks and labels
+;; changing session identifiers.
+(set! syntax-session-id (lambda () "*"))
 
 (let ((source (list-ref (command-line) 1))
       (target (list-ref (command-line) 2)))

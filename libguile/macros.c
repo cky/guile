@@ -177,12 +177,46 @@ SCM_DEFINE (scm_macro_binding, "macro-binding", 1, 0, 0,
 #undef FUNC_NAME
 
 
+static SCM syntax_session_id;
+
+#define SESSION_ID_LENGTH      22  /* bytes */
+#define BASE64_RADIX_BITS  6
+#define BASE64_RADIX       (1 << (BASE64_RADIX_BITS))
+#define BASE64_MASK        (BASE64_RADIX - 1)
+
+static SCM
+fresh_syntax_session_id (void)
+{
+  static const char base64[BASE64_RADIX] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789$@";
+
+  unsigned char digit_buf[SESSION_ID_LENGTH];
+  char char_buf[SESSION_ID_LENGTH];
+  size_t i;
+
+  scm_i_random_bytes_from_platform (digit_buf, SESSION_ID_LENGTH);
+  for (i = 0; i < SESSION_ID_LENGTH; ++i)
+    char_buf[i] = base64[digit_buf[i] & BASE64_MASK];
+
+  return scm_from_latin1_stringn (char_buf, SESSION_ID_LENGTH);
+}
+
+static SCM
+scm_syntax_session_id (void)
+{
+  return syntax_session_id;
+}
+
+
 void
 scm_init_macros ()
 {
   scm_tc16_macro = scm_make_smob_type ("macro", 0);
   scm_set_smob_print (scm_tc16_macro, macro_print);
 #include "libguile/macros.x"
+
+  syntax_session_id = fresh_syntax_session_id();
+  scm_c_define_gsubr ("syntax-session-id", 0, 0, 0, scm_syntax_session_id);
 }
 
 /*
