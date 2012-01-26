@@ -45,7 +45,10 @@ test_scm_from_locale_keywordn ()
 static void
 test_scm_local_eval ()
 {
-  SCM result = scm_local_eval
+  SCM result;
+
+  scm_c_use_module ("ice-9 local-eval");
+  result = scm_local_eval
     (scm_list_3 (scm_from_latin1_symbol ("+"),
                  scm_from_latin1_symbol ("x"),
                  scm_from_latin1_symbol ("y")),
