@@ -425,11 +425,11 @@ its own @code{gettext} message catalogue
 (@pxref{Internationalization}).
 
 It will be noted all of the above requires that the Scheme code to be
-found in @code{%load-path} (@pxref{Build Config}).  Presently it's
-left up to the system administrator or each user to augment that path
-when installing Guile modules in non-default locations.  But having
-reached the Scheme code, that code should take care of hitting any of
-its own private files etc.
+found in @code{%load-path} (@pxref{Load Paths}).  Presently it's left up
+to the system administrator or each user to augment that path when
+installing Guile modules in non-default locations.  But having reached
+the Scheme code, that code should take care of hitting any of its own
+private files etc.
 
 
 @node Foreign Pointers

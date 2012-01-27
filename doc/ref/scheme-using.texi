@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2006, 2010, 2011
+@c Copyright (C) 2006, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -780,7 +780,8 @@ site packages will be
 
 Note that a @code{.go} file will only be loaded in preference to a
 @code{.scm} file if it is newer.  For that reason, you should install
-your Scheme files first, and your compiled files second.
+your Scheme files first, and your compiled files second.  @code{Load
+Paths}, for more on the loading process.
 
 Finally, although this section is only about Scheme, sometimes you need
 to install C extensions too.  Shared libraries should be installed in

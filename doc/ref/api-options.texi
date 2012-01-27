@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010, 2011, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -59,14 +59,14 @@ The @code{effective-version} function returns the version name that
 should remain unchanged during a stable series.  Currently that means
 that it omits the micro version.  The effective version should be used
 for items like the versioned share directory name
-i.e.@: @file{/usr/share/guile/1.6/}
+i.e.@: @file{/usr/share/guile/2.0/}
 
 @lisp
-(version) @result{} "1.6.0"
-(effective-version) @result{} "1.6"
-(major-version) @result{} "1"
-(minor-version) @result{} "6"
-(micro-version) @result{} "0"
+(version) @result{} "2.0.4"
+(effective-version) @result{} "2.0"
+(major-version) @result{} "2"
+(minor-version) @result{} "0"
+(micro-version) @result{} "4"
 @end lisp
 @end deffn
 
@@ -86,7 +86,7 @@ party package) are installed.  On Unix-like systems this is usually
 @file{/usr/share/guile/@var{GUILE_EFFECTIVE_VERSION}};
 
 @noindent
-for example @file{/usr/local/share/guile/1.6}.
+for example @file{/usr/local/share/guile/2.0}.
 @end deffn
 
 @deffn {Scheme Procedure} %site-dir
@@ -94,40 +94,6 @@ for example @file{/usr/local/share/guile/1.6}.
 Return the name of the directory where Guile Scheme files specific to
 your site should be installed.  On Unix-like systems, this is usually
 @file{/usr/local/share/guile/site} or @file{/usr/share/guile/site}.
-@end deffn
-
-@cindex @env{GUILE_LOAD_PATH}
-@defvar %load-path
-List of directories which should be searched for Scheme modules and
-libraries.  @code{%load-path} is initialized when Guile starts up to
-@code{(list (%site-dir) (%library-dir) (%package-data-dir))},
-prepended with the contents of the @env{GUILE_LOAD_PATH} environment variable,
-if it is set.
-@end defvar
-
-@deffn {Scheme Procedure} parse-path path [tail]
-@deffnx {C Function} scm_parse_path (path, tail)
-Parse @var{path}, which is expected to be a colon-separated
-string, into a list and return the resulting list with
-@var{tail} appended. If @var{path} is @code{#f}, @var{tail}
-is returned.
-@end deffn
-
-@deffn {Scheme Procedure} search-path path filename [extensions [require-exts?]]
-@deffnx {C Function} scm_search_path (path, filename, rest)
-Search @var{path} for a directory containing a file named
-@var{filename}. The file must be readable, and not a directory.
-If we find one, return its full filename; otherwise, return
-@code{#f}.  If @var{filename} is absolute, return it unchanged.
-If given, @var{extensions} is a list of strings; for each
-directory in @var{path}, we search for @var{filename}
-concatenated with each @var{extension}.  If @var{require-exts?}
-is true, require that the returned file name have one of the
-given extensions; if @var{require-exts?} is not given, it
-defaults to @code{#f}.
-
-For compatibility with Guile 1.8 and earlier, the C function takes only
-three arguments
 @end deffn
 
 @defvar %guile-build-info

@@ -98,8 +98,8 @@ types of access are handled by the syntactic form @code{use-modules},
 which accepts one or more interface specifications and, upon evaluation,
 arranges for those interfaces to be available to the current module.
 This process may include locating and loading code for a given module if
-that code has not yet been loaded, following @code{%load-path} (@pxref{Build
-Config}).
+that code has not yet been loaded, following @code{%load-path}
+(@pxref{Modules and the File System}).
 
 An @dfn{interface specification} has one of two forms.  The first
 variation is simply to name the module, in which case its public
@@ -464,7 +464,7 @@ from in the @dfn{load path}.
 In this case, loading @code{(ice-9 popen)} will eventually cause Guile
 to run @code{(primitive-load-path "ice-9/popen")}.
 @code{primitive-load-path} will search for a file @file{ice-9/popen} in
-the @code{%load-path} (@pxref{Build Config}).  For each directory in
+the @code{%load-path} (@pxref{Load Paths}).  For each directory in
 @code{%load-path}, Guile will try to find the file name, concatenated
 with the extensions from @code{%load-extensions}.  By default, this will
 cause Guile to @code{stat} @file{ice-9/popen.scm}, and then
