@@ -1527,9 +1527,14 @@ case "$GCC" in
     ## and it became equally exasperating (gcc 2.95 and/or glibc 2.1.2).
     ## -Wundef was removed because Gnulib prevented it (see
     ## <http://thread.gmane.org/gmane.lisp.guile.bugs/5329>.)
+
+    ## Build with `-fno-strict-aliasing' to prevent miscompilation on
+    ## some platforms.  See
+    ## <http://lists.gnu.org/archive/html/guile-devel/2012-01/msg00487.html>.
+
     POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
       -Wdeclaration-after-statement \
-      -Wswitch-enum"
+      -Wswitch-enum -fno-strict-aliasing"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
     if test "${GUILE_ERROR_ON_WARNING}" = yes
