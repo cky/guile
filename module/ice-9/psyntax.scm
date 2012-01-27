@@ -982,7 +982,7 @@
                       (lambda ()
                         (let ((e (car body)))
                           (syntax-type e r w (or (source-annotation e) s) #f mod #f)))
-                    (lambda (type value e w s mod)
+                    (lambda (type value form e w s mod)
                       (case type
                         ((begin-form)
                          (syntax-case e ()
@@ -1079,18 +1079,20 @@
                                 exps)))
                              ((displaced-lexical)
                               (syntax-violation #f "identifier out of context"
-                                                e (wrap value w mod)))
+                                                (source-wrap form w s mod)
+                                                (wrap value w mod)))
                              (else
                               (syntax-violation #f "cannot define keyword at top level"
-                                                e (wrap value w mod))))))
+                                                (source-wrap form w s mod)
+                                                (wrap value w mod))))))
                         (else
                          (values (cons
                                   (if (eq? m 'c&e)
-                                      (let ((x (expand-expr type value e r w s mod)))
+                                      (let ((x (expand-expr type value form e r w s mod)))
                                         (top-level-eval-hook x mod)
                                         x)
                                       (lambda ()
-                                        (expand-expr type value e r w s mod)))
+                                        (expand-expr type value form e r w s mod)))
                                   exps)))))))
               (lambda (exps)
                 (scan (cdr body) r w s m esew mod exps))))))
@@ -1132,8 +1134,8 @@
                     (syntax-violation 'eval-when "invalid situation" e
                                       (car l))))))))
 
-    ;; syntax-type returns six values: type, value, e, w, s, and mod. The
-    ;; first two are described in the table below.
+    ;; syntax-type returns seven values: type, value, form, e, w, s, and
+    ;; mod. The first two are described in the table below.
     ;;
     ;;    type                   value         explanation
     ;;    -------------------------------------------------------------------
@@ -1162,10 +1164,11 @@
     ;;    constant               none          self-evaluating datum
     ;;    other                  none          anything else
     ;;
-    ;; For definition forms (define-form, define-syntax-parameter-form,
-    ;; and define-syntax-form), e is the rhs expression.  For all
-    ;; others, e is the entire form.  w is the wrap for e.  s is the
-    ;; source for the entire form. mod is the module for e.
+    ;; form is the entire form.  For definition forms (define-form,
+    ;; define-syntax-form, and define-syntax-parameter-form), e is the
+    ;; rhs expression.  For all others, e is the entire form.  w is the
+    ;; wrap for both form and e.  s is the source for the entire form.
+    ;; mod is the module for both form and e.
     ;;
     ;; syntax-type expands macros and unwraps as necessary to get to one
     ;; of the forms above.  It also parses definition forms, although
@@ -1179,28 +1182,28 @@
                  (b (lookup n r mod))
                  (type (binding-type b)))
             (case type
-              ((lexical) (values type (binding-value b) e w s mod))
-              ((global) (values type n e w s mod))
+              ((lexical) (values type (binding-value b) e e w s mod))
+              ((global) (values type n e e w s mod))
               ((macro)
                (if for-car?
-                   (values type (binding-value b) e w s mod)
+                   (values type (binding-value b) e e w s mod)
                    (syntax-type (expand-macro (binding-value b) e r w s rib mod)
                                 r empty-wrap s rib mod #f)))
-              (else (values type (binding-value b) e w s mod)))))
+              (else (values type (binding-value b) e e w s mod)))))
          ((pair? e)
           (let ((first (car e)))
             (call-with-values
                 (lambda () (syntax-type first r w s rib mod #t))
-              (lambda (ftype fval fe fw fs fmod)
+              (lambda (ftype fval fform fe fw fs fmod)
                 (case ftype
                   ((lexical)
-                   (values 'lexical-call fval e w s mod))
+                   (values 'lexical-call fval e e w s mod))
                   ((global)
                    ;; If we got here via an (@@ ...) expansion, we need to
                    ;; make sure the fmod information is propagated back
                    ;; correctly -- hence this consing.
                    (values 'global-call (make-syntax-object fval w fmod)
-                           e w s mod))
+                           e e w s mod))
                   ((macro)
                    (syntax-type (expand-macro fval e r w s rib mod)
                                 r empty-wrap s rib mod for-car?))
@@ -1209,23 +1212,24 @@
                      (lambda (e r w s mod)
                        (syntax-type e r w s rib mod for-car?))))
                   ((core)
-                   (values 'core-form fval e w s mod))
+                   (values 'core-form fval e e w s mod))
                   ((local-syntax)
-                   (values 'local-syntax-form fval e w s mod))
+                   (values 'local-syntax-form fval e e w s mod))
                   ((begin)
-                   (values 'begin-form #f e w s mod))
+                   (values 'begin-form #f e e w s mod))
                   ((eval-when)
-                   (values 'eval-when-form #f e w s mod))
+                   (values 'eval-when-form #f e e w s mod))
                   ((define)
                    (syntax-case e ()
                      ((_ name val)
                       (id? #'name)
-                      (values 'define-form #'name #'val w s mod))
+                      (values 'define-form #'name e #'val w s mod))
                      ((_ (name . args) e1 e2 ...)
                       (and (id? #'name)
                            (valid-bound-ids? (lambda-var-list #'args)))
                       ;; need lambda here...
                       (values 'define-form (wrap #'name w mod)
+                              (wrap e w mod)
                               (decorate-source
                                (cons #'lambda (wrap #'(args e1 e2 ...) w mod))
                                s)
@@ -1233,38 +1237,39 @@
                      ((_ name)
                       (id? #'name)
                       (values 'define-form (wrap #'name w mod)
+                              (wrap e w mod)
                               #'(if #f #f)
                               empty-wrap s mod))))
                   ((define-syntax)
                    (syntax-case e ()
                      ((_ name val)
                       (id? #'name)
-                      (values 'define-syntax-form #'name #'val w s mod))))
+                      (values 'define-syntax-form #'name e #'val w s mod))))
                   ((define-syntax-parameter)
                    (syntax-case e ()
                      ((_ name val)
                       (id? #'name)
-                      (values 'define-syntax-parameter-form #'name #'val w s mod))))
+                      (values 'define-syntax-parameter-form #'name e #'val w s mod))))
                   (else
-                   (values 'call #f e w s mod)))))))
+                   (values 'call #f e e w s mod)))))))
          ((syntax-object? e)
           (syntax-type (syntax-object-expression e)
                        r
                        (join-wraps w (syntax-object-wrap e))
                        (or (source-annotation e) s) rib
                        (or (syntax-object-module e) mod) for-car?))
-         ((self-evaluating? e) (values 'constant #f e w s mod))
-         (else (values 'other #f e w s mod)))))
+         ((self-evaluating? e) (values 'constant #f e e w s mod))
+         (else (values 'other #f e e w s mod)))))
 
     (define expand
       (lambda (e r w mod)
         (call-with-values
             (lambda () (syntax-type e r w (source-annotation e) #f mod #f))
-          (lambda (type value e w s mod)
-            (expand-expr type value e r w s mod)))))
+          (lambda (type value form e w s mod)
+            (expand-expr type value form e r w s mod)))))
 
     (define expand-expr
-      (lambda (type value e r w s mod)
+      (lambda (type value form e r w s mod)
         (case type
           ((lexical)
            (build-lexical-reference 'value s e value))
@@ -1318,8 +1323,8 @@
                     (expand-sequence #'(e1 e2 ...) r w s mod)
                     (expand-void))))))
           ((define-form define-syntax-form define-syntax-parameter-form)
-           (syntax-violation #f "definition in expression context"
-                             e (wrap value w mod)))
+           (syntax-violation #f "definition in expression context, where definitions are not allowed,"
+                             (source-wrap form w s mod)))
           ((syntax)
            (syntax-violation #f "reference to pattern variable outside syntax form"
                              (source-wrap e w s mod)))
@@ -1463,7 +1468,7 @@
                 (let ((e (cdar body)) (er (caar body)))
                   (call-with-values
                       (lambda () (syntax-type e er empty-wrap (source-annotation er) ribcage mod #f))
-                    (lambda (type value e w s mod)
+                    (lambda (type value form e w s mod)
                       (case type
                         ((define-form)
                          (let ((id (wrap value w mod)) (label (gen-label)))
@@ -2222,7 +2227,7 @@
                        ((_ (head tail ...) val)
                         (call-with-values
                             (lambda () (syntax-type #'head r empty-wrap no-source #f mod #t))
-                          (lambda (type value ee ww ss modmod)
+                          (lambda (type value formform ee ww ss modmod)
                             (case type
                               ((module-ref)
                                (let ((val (expand #'val r w mod)))
