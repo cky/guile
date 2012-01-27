@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -73,6 +73,9 @@ VM_DEFINE_LOADER (104, load_program, "load-program")
 
   PUSH (scm_make_program (objcode, objs, SCM_BOOL_F));
 
+  DEAD (objs);
+  DEAD (objcode);
+
   ip += len;
 
   NEXT;
@@ -84,6 +87,7 @@ VM_DEFINE_INSTRUCTION (105, link_now, "link-now", 0, 1, 1)
   POP (what);
   SYNC_REGISTER ();
   PUSH (resolve_variable (what, scm_current_module ()));
+  DEAD (what);
   NEXT;
 }
 
@@ -95,6 +99,8 @@ VM_DEFINE_LOADER (106, load_array, "load-array")
   POP2 (shape, type);
   SYNC_REGISTER ();
   PUSH (scm_from_contiguous_typed_array (type, shape, ip, len));
+  DEAD (type);
+  DEAD (shape);
   ip += len;
   NEXT;
 }
