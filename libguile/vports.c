@@ -56,21 +56,11 @@ sf_flush (SCM port)
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   SCM stream = SCM_PACK (pt->stream);
 
-  if (pt->write_pos > pt->write_buf)
-    {
-      /* write the byte. */
-      scm_call_1 (SCM_SIMPLE_VECTOR_REF (stream, 0),
-		  SCM_MAKE_CHAR (*pt->write_buf));
-      pt->write_pos = pt->write_buf;
-  
-      /* flush the output.  */
-      {
-	SCM f = SCM_SIMPLE_VECTOR_REF (stream, 2);
+  SCM f = SCM_SIMPLE_VECTOR_REF (stream, 2);
 
-	if (scm_is_true (f))
-	  scm_call_0 (f);
-      }
-    }
+  if (scm_is_true (f))
+    scm_call_0 (f);
+
 }
 
 static void
