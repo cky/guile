@@ -21,6 +21,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Character Encoding of Source Files:: Loading non-ASCII Scheme code from file.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 * Local Evaluation::            Evaluation in a local lexical environment.
+* Local Inclusion::             Compile-time inclusion of one file in another.
 @end menu
 
 
@@ -1100,6 +1101,67 @@ non-top-level @code{define-syntax} forms.  Any attempt to reference such
 captured syntactic keywords via @code{local-eval} or
 @code{local-compile} produces an error.
 
+
+@node Local Inclusion
+@subsection Local Inclusion
+
+This section has discussed various means of linking Scheme code
+together: fundamentally, loading up files at run-time using @code{load}
+and @code{load-compiled}.  Guile provides another option to compose
+parts of programs together at expansion-time instead of at run-time.
+
+@deffn {Scheme Syntax} include file-name
+Open @var{file-name}, at expansion-time, and read the Scheme forms that
+it contains, splicing them into the location of the @code{include},
+within a @code{begin}.
+@end deffn
+
+If you are a C programmer, if @code{load} in Scheme is like
+@code{dlopen} in C, consider @code{include} to be like the C
+preprocessor's @code{#include}.  When you use @code{include}, it is as
+if the contents of the included file were typed in instead of the
+@code{include} form.
+
+Because the code is included at compile-time, it is available to the
+macroexpander.  Syntax definitions in the included file are available to
+later code in the form in which the @code{include} appears, without the
+need for @code{eval-when}.  (@xref{Eval When}.)
+
+For the same reason, compiling a form that uses @code{include} results
+in one compilation unit, composed of multiple files.  Loading the
+compiled file is one @code{stat} operation for the compilation unit,
+instead of @code{2*@var{n}} in the case of @code{load} (once for each
+loaded source file, and once each corresponding compiled file, in the
+best case).
+
+Unlike @code{load}, @code{include} also works within nested lexical
+contexts.  It so happens that the optimizer works best within a lexical
+context, because all of the uses of bindings in a lexical context are
+visible, so composing files by including them within a @code{(let ()
+...)} can sometimes lead to important speed improvements.
+
+On the other hand, @code{include} does have all the disadvantages of
+early binding: once the code with the @code{include} is compiled, no
+change to the included file is reflected in the future behavior of the
+including form.
+
+Also, the particular form of @code{include}, which requires an absolute
+path, or a path relative to the current directory at compile-time, is
+not very amenable to compiling the source in one place, but then
+installing the source to another place.  For this reason, Guile provides
+another form, @code{include-from-path}, which looks for the source file
+to include within a load path.
+
+@deffn {Scheme Syntax} include-from-path file-name
+Like @code{include}, but instead of expecting @code{file-name} to be an
+absolute file name, it is expected to be a relative path to search in
+the @code{%load-path}.
+@end deffn
+
+@code{include-from-path} is more useful when you want to install all of
+the source files for a package (as you should!).  It makes it possible
+to evaluate an installed file from source, instead of relying on the
+@code{.go} file being up to date.
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
