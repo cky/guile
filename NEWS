@@ -124,6 +124,12 @@ This procedure initializes a random seed using good random sources
 available on your platform, such as /dev/urandom.  See "Random Number
 Generation" in the manual, for more.
 
+** Manual updates
+
+Besides the sections already mentioned, the following manual sections
+are new in this release: "Modules and the File System", "Module System
+Reflection", "Syntax Transformer Helpers", and "Local Inclusion".
+
 * New interfaces
 
 ** (ice-9 session): `apropos-hook'
