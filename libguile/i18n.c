@@ -645,6 +645,7 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
   c_locale = newlocale (c_category_mask, c_locale_name, c_base_locale);
 
   free (c_locale_name);
+  c_locale_name = NULL;
 
   if (c_locale == (locale_t) 0)
     {
@@ -662,6 +663,7 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
   c_locale->category_mask = c_category_mask;
   c_locale->locale_name = scm_gc_strdup (c_locale_name, "locale");
   free (c_locale_name);
+  c_locale_name = NULL;
 
   if (scm_is_eq (base_locale, SCM_VARIABLE_REF (scm_global_locale)))
     {
@@ -1652,6 +1654,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	    default:
 	      result = scm_from_latin1_symbol ("unspecified");
 	    }
+	  free (c_result);
 	  break;
 #endif
 
