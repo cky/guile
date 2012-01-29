@@ -33,7 +33,6 @@ VM_DEFINE_FUNCTION (128, not, "not", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_false (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -41,7 +40,6 @@ VM_DEFINE_FUNCTION (129, not_not, "not-not", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (!scm_is_false (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -49,8 +47,6 @@ VM_DEFINE_FUNCTION (130, eq, "eq?", 2)
 {
   ARGS2 (x, y);
   RETURN (scm_from_bool (scm_is_eq (x, y)));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -58,8 +54,6 @@ VM_DEFINE_FUNCTION (131, not_eq, "not-eq?", 2)
 {
   ARGS2 (x, y);
   RETURN (scm_from_bool (!scm_is_eq (x, y)));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -67,7 +61,6 @@ VM_DEFINE_FUNCTION (132, nullp, "null?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_null (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -75,7 +68,6 @@ VM_DEFINE_FUNCTION (133, not_nullp, "not-null?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (!scm_is_null (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -91,8 +83,6 @@ VM_DEFINE_FUNCTION (134, eqv, "eqv?", 2)
       SYNC_REGISTER ();
       RETURN (scm_eqv_p (x, y));
     }
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -108,8 +98,6 @@ VM_DEFINE_FUNCTION (135, equal, "equal?", 2)
       SYNC_REGISTER ();
       RETURN (scm_equal_p (x, y));
     }
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -117,7 +105,6 @@ VM_DEFINE_FUNCTION (136, pairp, "pair?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_pair (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -125,7 +112,6 @@ VM_DEFINE_FUNCTION (137, listp, "list?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_ilength (x) >= 0));
-  DEAD (x);
   NEXT;
 }
 
@@ -133,7 +119,6 @@ VM_DEFINE_FUNCTION (138, symbolp, "symbol?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_symbol (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -141,7 +126,6 @@ VM_DEFINE_FUNCTION (139, vectorp, "vector?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (SCM_I_IS_VECTOR (x)));
-  DEAD (x);
   NEXT;
 }
 
@@ -155,8 +139,6 @@ VM_DEFINE_FUNCTION (140, cons, "cons", 2)
   ARGS2 (x, y);
   CONS (x, x, y);
   RETURN (x);
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -173,7 +155,6 @@ VM_DEFINE_FUNCTION (141, car, "car", 1)
   ARGS1 (x);
   VM_VALIDATE_CONS (x, "car");
   RETURN (SCM_CAR (x));
-  DEAD (x);
   NEXT;
 }
 
@@ -182,7 +163,6 @@ VM_DEFINE_FUNCTION (142, cdr, "cdr", 1)
   ARGS1 (x);
   VM_VALIDATE_CONS (x, "cdr");
   RETURN (SCM_CDR (x));
-  DEAD (x);
   NEXT;
 }
 
@@ -192,8 +172,6 @@ VM_DEFINE_INSTRUCTION (143, set_car, "set-car!", 0, 2, 0)
   POP2 (y, x);
   VM_VALIDATE_CONS (x, "set-car!");
   SCM_SETCAR (x, y);
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -203,8 +181,6 @@ VM_DEFINE_INSTRUCTION (144, set_cdr, "set-cdr!", 0, 2, 0)
   POP2 (y, x);
   VM_VALIDATE_CONS (x, "set-cdr!");
   SCM_SETCDR (x, y);
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -225,8 +201,6 @@ VM_DEFINE_INSTRUCTION (144, set_cdr, "set-cdr!", 0, 2, 0)
         SYNC_REGISTER ();                                               \
         RETURN (srel (x, y));                                           \
       }                                                                 \
-    DEAD (x);                                                           \
-    DEAD (y);                                                           \
     NEXT;                                                               \
   }
 
@@ -276,15 +250,11 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
         if (SCM_FIXABLE (n))                                    \
           {                                                     \
             RETURN (SCM_I_MAKINUM (n));                         \
-            DEAD (x);                                           \
-            DEAD (y);                                           \
             NEXT;                                               \
           }                                                     \
       }                                                         \
     SYNC_REGISTER ();                                           \
     RETURN (SFUNC (x, y));                                      \
-    DEAD (x);                                                   \
-    DEAD (y);                                                   \
     NEXT;                                                       \
   }
 
@@ -349,8 +319,6 @@ VM_DEFINE_FUNCTION (150, add, "add", 2)
   ASM_ADD (x, y);
   SYNC_REGISTER ();
   RETURN (scm_sum (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 #endif
 }
@@ -372,15 +340,12 @@ VM_DEFINE_FUNCTION (151, add1, "add1", 1)
       if (SCM_LIKELY (SCM_I_INUMP (result)))
         {
           RETURN (result);
-          DEAD (result);
           NEXT;
         }
-      DEAD (result);
     }
 
   SYNC_REGISTER ();
   RETURN (scm_sum (x, SCM_I_MAKINUM (1)));
-  DEAD (x);
   NEXT;
 }
 
@@ -393,8 +358,6 @@ VM_DEFINE_FUNCTION (152, sub, "sub", 2)
   ASM_SUB (x, y);
   SYNC_REGISTER ();
   RETURN (scm_difference (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 #endif
 }
@@ -416,15 +379,12 @@ VM_DEFINE_FUNCTION (153, sub1, "sub1", 1)
       if (SCM_LIKELY (SCM_I_INUMP (result)))
         {
           RETURN (result);
-          DEAD (result);
           NEXT;
         }
-      DEAD (result);
     }
 
   SYNC_REGISTER ();
   RETURN (scm_difference (x, SCM_I_MAKINUM (1)));
-  DEAD (x);
   NEXT;
 }
 
@@ -436,8 +396,6 @@ VM_DEFINE_FUNCTION (154, mul, "mul", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_product (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -446,8 +404,6 @@ VM_DEFINE_FUNCTION (155, div, "div", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_divide (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -456,8 +412,6 @@ VM_DEFINE_FUNCTION (156, quo, "quo", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_quotient (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -466,8 +420,6 @@ VM_DEFINE_FUNCTION (157, rem, "rem", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_remainder (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -476,8 +428,6 @@ VM_DEFINE_FUNCTION (158, mod, "mod", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_modulo (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -490,8 +440,6 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
         /* Right shift, will be a fixnum. */
         {
           RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) >> -SCM_I_INUM (y)));
-          DEAD (x);
-          DEAD (y);
           NEXT;
         }
       else
@@ -507,8 +455,6 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
                   (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
                   <= 1))
             {
-              DEAD (x);
-              DEAD (y);
               RETURN (SCM_I_MAKINUM (nn << bits_to_shift));
               NEXT;
             }
@@ -518,8 +464,6 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
     }
   SYNC_REGISTER ();
   RETURN (scm_ash (x, y));
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -533,8 +477,6 @@ VM_DEFINE_FUNCTION (160, logand, "logand", 2)
       SYNC_REGISTER ();
       RETURN (scm_logand (x, y));
     }
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -548,8 +490,6 @@ VM_DEFINE_FUNCTION (161, logior, "logior", 2)
       SYNC_REGISTER ();
       RETURN (scm_logior (x, y));
     }
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -563,8 +503,6 @@ VM_DEFINE_FUNCTION (162, logxor, "logxor", 2)
       SYNC_REGISTER ();
       RETURN (scm_logxor (x, y));
     }
-  DEAD (x);
-  DEAD (y);
   NEXT;
 }
 
@@ -587,8 +525,6 @@ VM_DEFINE_FUNCTION (163, vector_ref, "vector-ref", 2)
       SYNC_REGISTER ();
       RETURN (scm_vector_ref (vect, idx));
     }
-  DEAD (vect);
-  DEAD (idx);
   NEXT;
 }
 
@@ -607,9 +543,6 @@ VM_DEFINE_INSTRUCTION (164, vector_set, "vector-set", 0, 3, 0)
       SYNC_REGISTER ();
       scm_vector_set_x (vect, idx, val);
     }
-  DEAD (vect);
-  DEAD (idx);
-  DEAD (val);
   NEXT;
 }
 
@@ -625,10 +558,8 @@ VM_DEFINE_INSTRUCTION (165, make_array, "make-array", 3, -1, 1)
   SYNC_REGISTER ();
   PRE_CHECK_UNDERFLOW (len);
   ret = scm_from_contiguous_array (shape, sp - len + 1, len);
-  DEAD (shape);
   DROPN (len);
   PUSH (ret);
-  DEAD (ret);
   NEXT;
 }
 
@@ -648,7 +579,6 @@ VM_DEFINE_FUNCTION (166, struct_p, "struct?", 1)
 {
   ARGS1 (obj);
   RETURN (scm_from_bool (SCM_STRUCTP (obj)));
-  DEAD (obj);
   NEXT;
 }
 
@@ -657,7 +587,6 @@ VM_DEFINE_FUNCTION (167, struct_vtable, "struct-vtable", 1)
   ARGS1 (obj);
   VM_VALIDATE_STRUCT (obj, "struct_vtable");
   RETURN (SCM_STRUCT_VTABLE (obj));
-  DEAD (obj);
   NEXT;
 }
 
@@ -687,11 +616,9 @@ VM_DEFINE_INSTRUCTION (168, make_struct, "make-struct", 2, -1, 1)
     }
   else
     ret = scm_c_make_structv (vtable, 0, n - 1, (scm_t_bits *) inits);
-  DEAD (vtable);
 
   DROPN (n);
   PUSH (ret);
-  DEAD (ret);
 
   NEXT;
 }
@@ -719,16 +646,12 @@ VM_DEFINE_FUNCTION (169, struct_ref, "struct-ref", 2)
   	{
           scm_t_bits *data = SCM_STRUCT_DATA (obj);
           RETURN (SCM_PACK (data[index]));
-          DEAD (obj);
-          DEAD (pos);
           NEXT;
   	}
     }
 
   SYNC_REGISTER ();
   RETURN (scm_struct_ref (obj, pos));
-  DEAD (obj);
-  DEAD (pos);
   NEXT;
 }
 
@@ -754,20 +677,13 @@ VM_DEFINE_FUNCTION (170, struct_set, "struct-set", 3)
   	{
           scm_t_bits *data = SCM_STRUCT_DATA (obj);
           data[index] = SCM_UNPACK (val);
-          /* FIXME: Shouldn't be returning anything, right? */
           RETURN (val);
-          DEAD (obj);
-          DEAD (pos);
-          DEAD (val);
           NEXT;
   	}
     }
 
   SYNC_REGISTER ();
   RETURN (scm_struct_set_x (obj, pos, val));
-  DEAD (obj);
-  DEAD (pos);
-  DEAD (val);
   NEXT;
 }
 
@@ -785,7 +701,6 @@ VM_DEFINE_FUNCTION (171, class_of, "class-of", 1)
       SYNC_REGISTER ();
       RETURN (scm_class_of (obj));
     }
-  DEAD (obj);
   NEXT;
 }
 
@@ -795,9 +710,7 @@ VM_DEFINE_FUNCTION (172, slot_ref, "slot-ref", 2)
   size_t slot;
   ARGS2 (instance, idx);
   slot = SCM_I_INUM (idx);
-  DEAD (idx);
   RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
-  DEAD (instance);
   NEXT;
 }
 
@@ -808,10 +721,7 @@ VM_DEFINE_INSTRUCTION (173, slot_set, "slot-set", 0, 3, 0)
   size_t slot;
   POP3 (val, idx, instance);
   slot = SCM_I_INUM (idx);
-  DEAD (idx);
   SCM_STRUCT_DATA (instance) [slot] = SCM_UNPACK (val);
-  DEAD (instance);
-  DEAD (val);
   NEXT;
 }
 
@@ -836,17 +746,11 @@ VM_DEFINE_INSTRUCTION (173, slot_set, "slot-set", 0, 3, 0)
   SCM endianness;                                                       \
   POP (endianness);                                                     \
   if (scm_is_eq (endianness, scm_i_native_endianness))                  \
-    {                                                                   \
-      DEAD (endianness);                                                \
-      goto VM_LABEL (bv_##stem##_native_ref);                           \
-    }                                                                   \
+    goto VM_LABEL (bv_##stem##_native_ref);                             \
   {                                                                     \
     ARGS2 (bv, idx);                                                    \
     SYNC_REGISTER ();							\
     RETURN (scm_bytevector_##fn_stem##_ref (bv, idx, endianness));      \
-    DEAD (bv);                                                          \
-    DEAD (idx);                                                         \
-    DEAD (endianness);                                                  \
     NEXT;                                                               \
   }                                                                     \
 }
@@ -894,8 +798,6 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
       SYNC_REGISTER ();							\
       RETURN (scm_bytevector_ ## fn_stem ## _ref (bv, idx));            \
     }									\
-  DEAD (bv);                                                            \
-  DEAD (idx);                                                           \
   NEXT;                                                                 \
 }
 
@@ -928,8 +830,6 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
       SYNC_REGISTER ();							\
       RETURN (scm_bytevector_ ## stem ## _native_ref (bv, idx));	\
     }									\
-  DEAD (bv);                                                            \
-  DEAD (idx);                                                           \
   NEXT;                                                                 \
 }
 
@@ -951,8 +851,6 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
     RETURN (scm_from_double (*float_ptr));				\
   else									\
     RETURN (scm_bytevector_ ## fn_stem ## _native_ref (bv, idx));	\
-  DEAD (bv);                                                            \
-  DEAD (idx);                                                           \
   NEXT;                                                                 \
 }
 
@@ -996,18 +894,11 @@ BV_FLOAT_REF (f64, ieee_double, double, 8)
   SCM endianness;                                                       \
   POP (endianness);                                                     \
   if (scm_is_eq (endianness, scm_i_native_endianness))                  \
-    {                                                                   \
-      DEAD (endianness);                                                \
-      goto VM_LABEL (bv_##stem##_native_set);                           \
-    }                                                                   \
+    goto VM_LABEL (bv_##stem##_native_set);                             \
   {                                                                     \
     SCM bv, idx, val; POP3 (val, idx, bv);                              \
     SYNC_REGISTER ();                                                   \
     scm_bytevector_##fn_stem##_set_x (bv, idx, val, endianness);        \
-    DEAD (bv);                                                          \
-    DEAD (idx);                                                         \
-    DEAD (val);                                                         \
-    DEAD (endianness);                                                  \
     NEXT;                                                               \
   }                                                                     \
 }
@@ -1055,9 +946,6 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
       SYNC_REGISTER ();                                                 \
       scm_bytevector_ ## fn_stem ## _set_x (bv, idx, val);		\
     }                                                                   \
-  DEAD (bv);                                                            \
-  DEAD (idx);                                                           \
-  DEAD (val);                                                           \
   NEXT;									\
 }
 
@@ -1082,9 +970,6 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
       SYNC_REGISTER ();                                                 \
       scm_bytevector_ ## stem ## _native_set_x (bv, idx, val);		\
     }                                                                   \
-  DEAD (bv);                                                            \
-  DEAD (idx);                                                           \
-  DEAD (val);                                                           \
   NEXT;                                                                 \
 }
 
@@ -1109,9 +994,6 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
       SYNC_REGISTER ();                                                 \
       scm_bytevector_ ## fn_stem ## _native_set_x (bv, idx, val);       \
     }                                                                   \
-  DEAD (bv);                                                            \
-  DEAD (idx);                                                           \
-  DEAD (val);                                                           \
   NEXT;                                                                 \
 }
 

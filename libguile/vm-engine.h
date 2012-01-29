@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -151,8 +151,6 @@
 #define ASSERT_ALIGNED_PROCEDURE()
 #define ASSERT_BOUND(x)
 #endif
-
-#define DEAD(v) v = SCM_UNDEFINED
 
 #if VM_CHECK_OBJECT
 #define SET_OBJECT_COUNT(n) object_count = n
@@ -327,7 +325,6 @@ do						\
       CONS (l, x, l);                           \
     }                                           \
   PUSH (l);					\
-  DEAD (l);                                     \
 } while (0)
 
 /* The opposite: push all of the elements in L onto the list. */
@@ -353,9 +350,7 @@ do {						\
       CONS (l, o, l);				\
       POP (o);					\
     }						\
-  DEAD (o);                                     \
   PUSH (l);					\
-  DEAD (l);                                     \
 } while (0)
 
 #define POP_CONS_MARK()				\
@@ -368,9 +363,7 @@ do {						\
       CONS (l, o, l);				\
       POP (o);					\
     }						\
-  DEAD (o);                                     \
   PUSH (l);					\
-  DEAD (l);                                     \
 } while (0)
 
 
