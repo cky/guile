@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,48 +27,42 @@
 #define ARGS2(a1,a2)	SCM a1 = sp[-1], a2 = sp[0]; sp--; NULLSTACK (1);
 #define ARGS3(a1,a2,a3)	SCM a1 = sp[-2], a2 = sp[-1], a3 = sp[0]; sp -= 2; NULLSTACK (2);
 
-#define RETURN(x)	do { *sp = x; } while (0)
+#define RETURN(x)	do { *sp = x; NEXT; } while (0)
 
 VM_DEFINE_FUNCTION (128, not, "not", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_false (x)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (129, not_not, "not-not", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (!scm_is_false (x)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (130, eq, "eq?", 2)
 {
   ARGS2 (x, y);
   RETURN (scm_from_bool (scm_is_eq (x, y)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (131, not_eq, "not-eq?", 2)
 {
   ARGS2 (x, y);
   RETURN (scm_from_bool (!scm_is_eq (x, y)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (132, nullp, "null?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_null (x)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (133, not_nullp, "not-null?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (!scm_is_null (x)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (134, eqv, "eqv?", 2)
@@ -76,14 +70,10 @@ VM_DEFINE_FUNCTION (134, eqv, "eqv?", 2)
   ARGS2 (x, y);
   if (scm_is_eq (x, y))
     RETURN (SCM_BOOL_T);
-  else if (SCM_IMP (x) || SCM_IMP (y))
+  if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
-  else
-    {
-      SYNC_REGISTER ();
-      RETURN (scm_eqv_p (x, y));
-    }
-  NEXT;
+  SYNC_REGISTER ();
+  RETURN (scm_eqv_p (x, y));
 }
 
 VM_DEFINE_FUNCTION (135, equal, "equal?", 2)
@@ -91,42 +81,34 @@ VM_DEFINE_FUNCTION (135, equal, "equal?", 2)
   ARGS2 (x, y);
   if (scm_is_eq (x, y))
     RETURN (SCM_BOOL_T);
-  else if (SCM_IMP (x) || SCM_IMP (y))
+  if (SCM_IMP (x) || SCM_IMP (y))
     RETURN (SCM_BOOL_F);
-  else
-    {
-      SYNC_REGISTER ();
-      RETURN (scm_equal_p (x, y));
-    }
-  NEXT;
+  SYNC_REGISTER ();
+  RETURN (scm_equal_p (x, y));
 }
 
 VM_DEFINE_FUNCTION (136, pairp, "pair?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_pair (x)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (137, listp, "list?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_ilength (x) >= 0));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (138, symbolp, "symbol?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (scm_is_symbol (x)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (139, vectorp, "vector?", 1)
 {
   ARGS1 (x);
   RETURN (scm_from_bool (SCM_I_IS_VECTOR (x)));
-  NEXT;
 }
 
 
@@ -139,13 +121,11 @@ VM_DEFINE_FUNCTION (140, cons, "cons", 2)
   ARGS2 (x, y);
   CONS (x, x, y);
   RETURN (x);
-  NEXT;
 }
 
 #define VM_VALIDATE_CONS(x, proc)		\
   if (SCM_UNLIKELY (!scm_is_pair (x)))          \
-    {                                           \
-      func_name = proc;                         \
+    { func_name = proc;                         \
       finish_args = x;                          \
       goto vm_error_not_a_pair;                 \
     }
@@ -155,7 +135,6 @@ VM_DEFINE_FUNCTION (141, car, "car", 1)
   ARGS1 (x);
   VM_VALIDATE_CONS (x, "car");
   RETURN (SCM_CAR (x));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (142, cdr, "cdr", 1)
@@ -163,7 +142,6 @@ VM_DEFINE_FUNCTION (142, cdr, "cdr", 1)
   ARGS1 (x);
   VM_VALIDATE_CONS (x, "cdr");
   RETURN (SCM_CDR (x));
-  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (143, set_car, "set-car!", 0, 2, 0)
@@ -196,12 +174,8 @@ VM_DEFINE_INSTRUCTION (144, set_cdr, "set-cdr!", 0, 2, 0)
     if (SCM_I_INUMP (x) && SCM_I_INUMP (y))                             \
       RETURN (scm_from_bool (((scm_t_signed_bits) SCM_UNPACK (x))       \
                              crel ((scm_t_signed_bits) SCM_UNPACK (y)))); \
-    else                                                                \
-      {                                                                 \
-        SYNC_REGISTER ();                                               \
-        RETURN (srel (x, y));                                           \
-      }                                                                 \
-    NEXT;                                                               \
+    SYNC_REGISTER ();                                                   \
+    RETURN (srel (x, y));						\
   }
 
 VM_DEFINE_FUNCTION (145, ee, "ee?", 2)
@@ -241,22 +215,18 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 #define INUM_MIN (INTPTR_MIN + scm_tc2_int)
 
 #undef FUNC2
-#define FUNC2(CFUNC,SFUNC)                                      \
-  {                                                             \
-    ARGS2 (x, y);                                               \
-    if (SCM_I_INUMP (x) && SCM_I_INUMP (y))                     \
-      {                                                         \
-        scm_t_int64 n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);    \
-        if (SCM_FIXABLE (n))                                    \
-          {                                                     \
-            RETURN (SCM_I_MAKINUM (n));                         \
-            NEXT;                                               \
-          }                                                     \
-      }                                                         \
-    SYNC_REGISTER ();                                           \
-    RETURN (SFUNC (x, y));                                      \
-    NEXT;                                                       \
-  }
+#define FUNC2(CFUNC,SFUNC)				\
+{							\
+  ARGS2 (x, y);						\
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))		\
+    {							\
+      scm_t_int64 n = SCM_I_INUM (x) CFUNC SCM_I_INUM (y);\
+      if (SCM_FIXABLE (n))				\
+	RETURN (SCM_I_MAKINUM (n));			\
+    }							\
+  SYNC_REGISTER ();					\
+  RETURN (SFUNC (x, y));				\
+}
 
 /* Assembly tagged integer arithmetic routines.  This code uses the
    `asm goto' feature introduced in GCC 4.5.  */
@@ -319,7 +289,6 @@ VM_DEFINE_FUNCTION (150, add, "add", 2)
   ASM_ADD (x, y);
   SYNC_REGISTER ();
   RETURN (scm_sum (x, y));
-  NEXT;
 #endif
 }
 
@@ -338,15 +307,11 @@ VM_DEFINE_FUNCTION (151, add1, "add1", 1)
 			 - scm_tc2_int);
 
       if (SCM_LIKELY (SCM_I_INUMP (result)))
-        {
-          RETURN (result);
-          NEXT;
-        }
+	RETURN (result);
     }
 
   SYNC_REGISTER ();
   RETURN (scm_sum (x, SCM_I_MAKINUM (1)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (152, sub, "sub", 2)
@@ -358,7 +323,6 @@ VM_DEFINE_FUNCTION (152, sub, "sub", 2)
   ASM_SUB (x, y);
   SYNC_REGISTER ();
   RETURN (scm_difference (x, y));
-  NEXT;
 #endif
 }
 
@@ -377,15 +341,11 @@ VM_DEFINE_FUNCTION (153, sub1, "sub1", 1)
 			 + scm_tc2_int);
 
       if (SCM_LIKELY (SCM_I_INUMP (result)))
-        {
-          RETURN (result);
-          NEXT;
-        }
+	RETURN (result);
     }
 
   SYNC_REGISTER ();
   RETURN (scm_difference (x, SCM_I_MAKINUM (1)));
-  NEXT;
 }
 
 # undef ASM_ADD
@@ -396,7 +356,6 @@ VM_DEFINE_FUNCTION (154, mul, "mul", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_product (x, y));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (155, div, "div", 2)
@@ -404,7 +363,6 @@ VM_DEFINE_FUNCTION (155, div, "div", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_divide (x, y));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (156, quo, "quo", 2)
@@ -412,7 +370,6 @@ VM_DEFINE_FUNCTION (156, quo, "quo", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_quotient (x, y));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (157, rem, "rem", 2)
@@ -420,7 +377,6 @@ VM_DEFINE_FUNCTION (157, rem, "rem", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_remainder (x, y));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (158, mod, "mod", 2)
@@ -428,7 +384,6 @@ VM_DEFINE_FUNCTION (158, mod, "mod", 2)
   ARGS2 (x, y);
   SYNC_REGISTER ();
   RETURN (scm_modulo (x, y));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (159, ash, "ash", 2)
@@ -438,10 +393,7 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
     {
       if (SCM_I_INUM (y) < 0)
         /* Right shift, will be a fixnum. */
-        {
-          RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) >> -SCM_I_INUM (y)));
-          NEXT;
-        }
+        RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) >> -SCM_I_INUM (y)));
       else
         /* Left shift. See comments in scm_ash. */
         {
@@ -454,56 +406,40 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
               && ((scm_t_bits)
                   (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
                   <= 1))
-            {
-              RETURN (SCM_I_MAKINUM (nn << bits_to_shift));
-              NEXT;
-            }
+            RETURN (SCM_I_MAKINUM (nn << bits_to_shift));
           /* fall through */
         }
       /* fall through */
     }
   SYNC_REGISTER ();
   RETURN (scm_ash (x, y));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (160, logand, "logand", 2)
 {
   ARGS2 (x, y);
-  if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
     RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) & SCM_I_INUM (y)));
-  else
-    {
-      SYNC_REGISTER ();
-      RETURN (scm_logand (x, y));
-    }
-  NEXT;
+  SYNC_REGISTER ();
+  RETURN (scm_logand (x, y));
 }
 
 VM_DEFINE_FUNCTION (161, logior, "logior", 2)
 {
   ARGS2 (x, y);
-  if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
     RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) | SCM_I_INUM (y)));
-  else
-    {
-      SYNC_REGISTER ();
-      RETURN (scm_logior (x, y));
-    }
-  NEXT;
+  SYNC_REGISTER ();
+  RETURN (scm_logior (x, y));
 }
 
 VM_DEFINE_FUNCTION (162, logxor, "logxor", 2)
 {
   ARGS2 (x, y);
-  if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))
+  if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
     RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) ^ SCM_I_INUM (y)));
-  else
-    {
-      SYNC_REGISTER ();
-      RETURN (scm_logxor (x, y));
-    }
-  NEXT;
+  SYNC_REGISTER ();
+  RETURN (scm_logxor (x, y));
 }
 
 
@@ -525,7 +461,6 @@ VM_DEFINE_FUNCTION (163, vector_ref, "vector-ref", 2)
       SYNC_REGISTER ();
       RETURN (scm_vector_ref (vect, idx));
     }
-  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (164, vector_set, "vector-set", 0, 3, 0)
@@ -579,7 +514,6 @@ VM_DEFINE_FUNCTION (166, struct_p, "struct?", 1)
 {
   ARGS1 (obj);
   RETURN (scm_from_bool (SCM_STRUCTP (obj)));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (167, struct_vtable, "struct-vtable", 1)
@@ -587,7 +521,6 @@ VM_DEFINE_FUNCTION (167, struct_vtable, "struct-vtable", 1)
   ARGS1 (obj);
   VM_VALIDATE_STRUCT (obj, "struct_vtable");
   RETURN (SCM_STRUCT_VTABLE (obj));
-  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (168, make_struct, "make-struct", 2, -1, 1)
@@ -644,15 +577,13 @@ VM_DEFINE_FUNCTION (169, struct_ref, "struct-ref", 2)
 
       if (SCM_LIKELY (index < len))
   	{
-          scm_t_bits *data = SCM_STRUCT_DATA (obj);
-          RETURN (SCM_PACK (data[index]));
-          NEXT;
+  	  scm_t_bits *data = SCM_STRUCT_DATA (obj);
+  	  RETURN (SCM_PACK (data[index]));
   	}
     }
 
   SYNC_REGISTER ();
   RETURN (scm_struct_ref (obj, pos));
-  NEXT;
 }
 
 VM_DEFINE_FUNCTION (170, struct_set, "struct-set", 3)
@@ -675,16 +606,14 @@ VM_DEFINE_FUNCTION (170, struct_set, "struct-set", 3)
       len = SCM_STRUCT_DATA_REF (vtable, scm_vtable_index_size);
       if (SCM_LIKELY (index < len))
   	{
-          scm_t_bits *data = SCM_STRUCT_DATA (obj);
-          data[index] = SCM_UNPACK (val);
-          RETURN (val);
-          NEXT;
+  	  scm_t_bits *data = SCM_STRUCT_DATA (obj);
+  	  data[index] = SCM_UNPACK (val);
+  	  RETURN (val);
   	}
     }
 
   SYNC_REGISTER ();
   RETURN (scm_struct_set_x (obj, pos, val));
-  NEXT;
 }
 
 
@@ -696,12 +625,8 @@ VM_DEFINE_FUNCTION (171, class_of, "class-of", 1)
   ARGS1 (obj);
   if (SCM_INSTANCEP (obj))
     RETURN (SCM_CLASS_OF (obj));
-  else
-    {
-      SYNC_REGISTER ();
-      RETURN (scm_class_of (obj));
-    }
-  NEXT;
+  SYNC_REGISTER ();
+  RETURN (scm_class_of (obj));
 }
 
 /* FIXME: No checking whatsoever. */
@@ -711,7 +636,6 @@ VM_DEFINE_FUNCTION (172, slot_ref, "slot-ref", 2)
   ARGS2 (instance, idx);
   slot = SCM_I_INUM (idx);
   RETURN (SCM_PACK (SCM_STRUCT_DATA (instance) [slot]));
-  NEXT;
 }
 
 /* FIXME: No checking whatsoever. */
@@ -751,7 +675,6 @@ VM_DEFINE_INSTRUCTION (173, slot_set, "slot-set", 0, 3, 0)
     ARGS2 (bv, idx);                                                    \
     SYNC_REGISTER ();							\
     RETURN (scm_bytevector_##fn_stem##_ref (bv, idx, endianness));      \
-    NEXT;                                                               \
   }                                                                     \
 }
 
@@ -792,13 +715,12 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
                   && (i >= 0)						\
                   && (i + size <= SCM_BYTEVECTOR_LENGTH (bv))		\
                   && (ALIGNED_P (int_ptr, scm_t_ ## type))))		\
-    RETURN (SCM_I_MAKINUM (*int_ptr));                                  \
+    RETURN (SCM_I_MAKINUM (*int_ptr));					\
   else									\
     {									\
       SYNC_REGISTER ();							\
-      RETURN (scm_bytevector_ ## fn_stem ## _ref (bv, idx));            \
+      RETURN (scm_bytevector_ ## fn_stem ## _ref (bv, idx));		\
     }									\
-  NEXT;                                                                 \
 }
 
 #define BV_INT_REF(stem, type, size)					\
@@ -830,7 +752,6 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
       SYNC_REGISTER ();							\
       RETURN (scm_bytevector_ ## stem ## _native_ref (bv, idx));	\
     }									\
-  NEXT;                                                                 \
 }
 
 #define BV_FLOAT_REF(stem, fn_stem, type, size)				\
@@ -851,7 +772,6 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
     RETURN (scm_from_double (*float_ptr));				\
   else									\
     RETURN (scm_bytevector_ ## fn_stem ## _native_ref (bv, idx));	\
-  NEXT;                                                                 \
 }
 
 VM_DEFINE_FUNCTION (182, bv_u8_ref, "bv-u8-ref", 2)
