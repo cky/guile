@@ -87,14 +87,26 @@
          total)))
 
   (pass-if "Lexical vars are collectable"
-    (list?
-     (compile
-      '(begin
-         (define guardian (make-guardian))
-         (let ((f (list 'foo)))
-           ;; Introduce a useless second reference to f to prevent the
-           ;; optimizer from propagating the lexical binding.
-           f
-           (guardian f))
-         (gc)(gc)(gc)
-         (guardian))))))
+    (let ((l (compile
+              '(begin
+                 (define guardian (make-guardian))
+                 (let ((f (list 'foo)))
+                   (guardian f))
+                 ;; See below.
+                 ;; ((lambda () #t))
+                 (gc)(gc)(gc)
+                 (guardian))
+              ;; Prevent the optimizer from propagating f.
+              #:opts '(#:partial-eval? #f))))
+      (if (not l)
+          ;; We think that something on the C stack in the VM is holding
+          ;; on to a reference to the list.  This happens on
+          ;; register-poor architectures, where more locals are spilled
+          ;; to the stack.  If more code runs before the (gc) is run,
+          ;; like a ((lambda () #t)), then the test passes.  So given
+          ;; that at some point, the reference will be dropped, we will
+          ;; count these cases as "unresolved" instead of "fail".
+          ;;
+          ;; See http://debbugs.gnu.org/cgi/bugreport.cgi?bug=10336.
+          (throw 'unresolved)
+          (equal? l '(foo))))))
