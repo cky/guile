@@ -75,6 +75,10 @@
 
 (with-test-prefix "evaluator"
 
+  (pass-if "definitions return #<unspecified>"
+    (eq? (primitive-eval '(define test-var 'foo))
+         (if #f #f)))
+
   (with-test-prefix "symbol lookup"
 
     (with-test-prefix "top level"

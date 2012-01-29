@@ -180,6 +180,7 @@ Search the manual for these identifiers and modules, for more.
 ** Fix erroneous check in `set-procedure-properties!'.
 ** Fix generalized-vector-{ref,set!} for slices.
 ** Fix error messages involving definition forms.
+** Fix primitive-eval to return #<unspecified> for definitions.
 ** HTTP: Extend handling of "Cache-Control" header.
 ** HTTP: Fix qstring writing of cache-extension values
 ** HTTP: Fix validators for various list-style headers.

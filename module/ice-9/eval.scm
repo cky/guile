@@ -428,7 +428,8 @@
          (let ((x (eval x env)))
            (if (and (procedure? x) (not (procedure-property x 'name)))
                (set-procedure-property! x 'name name))
-           (define! name x)))
+           (define! name x)
+           (if #f #f)))
       
         (('toplevel-set! (var-or-sym . x))
          (variable-set!
