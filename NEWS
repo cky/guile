@@ -124,6 +124,11 @@ This procedure initializes a random seed using good random sources
 available on your platform, such as /dev/urandom.  See "Random Number
 Generation" in the manual, for more.
 
+** Warn about unsupported `simple-format' options.
+
+The `-Wformat' compilation option now reports unsupported format options
+passed to `simple-format'.
+
 ** Manual updates
 
 Besides the sections already mentioned, the following manual sections
@@ -158,7 +163,6 @@ Search the manual for these identifiers and modules, for more.
 ** Add deprecated shim for `scm_display_error' with stack as first argument.
 ** Add warnings for unsupported `simple-format' options.
 ** Allow overlapping regions to be passed to `bytevector-copy!'.
-** Avoid calling `u32_conv_from_encoding' on the null string.
 ** Better function prologue disassembly
 ** Compiler: fix miscompilation of (values foo ...) in some contexts.
 ** Compiler: fix serialization of #nil-terminated lists.
@@ -168,12 +172,10 @@ Search the manual for these identifiers and modules, for more.
 ** Don't leak file descriptors when mmaping objcode.
 ** Empty substrings no longer reference the original stringbuf.
 ** FFI: Fix `set-pointer-finalizer!' to leave the type cell unchanged.
-** FFI: Fix signed/unsigned pointer mismatches in implementation.
 ** FFI: Hold a weak reference to the CIF made by `procedure->pointer'.
 ** FFI: Hold a weak reference to the procedure passed to `procedure->pointer'.
 ** FFI: Properly unpack small integer return values in closure call.
 ** Fix R6RS `fold-left' so the accumulator is the first argument.
-** Fix `validate-target' in (system base target).
 ** Fix bit-set*! bug from 2005.
 ** Fix bug in `make-repl' when `lang' is actually a <language>.
 ** Fix bugs related to mutation, the null string, and shared substrings.
@@ -188,19 +190,17 @@ Search the manual for these identifiers and modules, for more.
 ** HTTP: Permit non-date values for Expires header.
 ** HTTP: `write-request-line' writes absolute paths, not absolute URIs.
 ** Hack the port-column of current-output-port after printing a prompt.
-** Have `cpu-word-size' error out on unknown CPUs; add support for MIPSEL.
 ** Make sure `regexp-quote' tests use Unicode-capable string ports.
 ** Peval: Fix bugs in the new optimizer.
-** Peval: fold (values FOO) to FOO in more cases
 ** Statistically unique marks and labels, for robust hygiene across sessions.
 ** Web: Allow URIs with empty authorities, like "file:///etc/hosts".
 ** `,language' at REPL sets the current-language fluid.
 ** `primitive-load' returns the value(s) of the last expression.
 ** `scm_from_stringn' always returns unique strings.
 ** `scm_i_substring_copy' tries to narrow the substring.
-** guile-readline: Clean `.go' files.
 ** i18n: Fix gc_malloc/free mismatch on non-GNU systems.
 
+
 Changes in 2.0.3 (since 2.0.2):
 
 * Speed improvements
