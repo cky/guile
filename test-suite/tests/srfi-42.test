@@ -3,7 +3,7 @@
 ;;; Examples for Eager Comprehensions in [outer..inner|expr]-Convention
 ;;; ===================================================================
 ;;;
-;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;; Copyright (c) 2007 Sebastian Egner
 ;;;
 ;;; This code is based on the file examples.scm in the reference
@@ -616,3 +616,5 @@
      (close-output-port f))
    (read-lines "tmp1") )
  => (list-ec (:char-range c #\0 #\9) (string c #\newline)) )
+
+(false-if-exception (delete-file "tmp1"))
