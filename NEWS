@@ -5,6 +5,13 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.5 (since 2.0.4):
+
+This release fixes the binary interface information (SONAME) of
+libguile, which was incorrect in 2.0.4.  It does not contain other
+changes.
+
+
 Changes in 2.0.4 (since 2.0.3):
 
 * Notable changes
