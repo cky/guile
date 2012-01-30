@@ -136,6 +136,7 @@ Reflection", "Syntax Transformer Helpers", and "Local Inclusion".
 ** New print option: `escape-newlines', defaults to #t.
 ** (ice-9 ftw): `file-system-fold', `file-system-tree', `scandir'
 ** `scm_c_value_ref': access to multiple returned values from C
+** scm_call_7, scm_call_8, scm_call_9, and scm_call_varargs
 ** Some new syntax helpers in (system syntax)
 
 Search the manual for these identifiers and modules, for more.

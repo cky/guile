@@ -533,7 +533,22 @@ then there's no @var{arg1}@dots{}@var{argN} and @var{arg} is the
 @deffnx {C Function} scm_call_4 (proc, arg1, arg2, arg3, arg4)
 @deffnx {C Function} scm_call_5 (proc, arg1, arg2, arg3, arg4, arg5)
 @deffnx {C Function} scm_call_6 (proc, arg1, arg2, arg3, arg4, arg5, arg6)
+@deffnx {C Function} scm_call_7 (proc, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+@deffnx {C Function} scm_call_8 (proc, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
+@deffnx {C Function} scm_call_9 (proc, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9)
 Call @var{proc} with the given arguments.
+@end deffn
+
+@deffn {C Function} scm_call_varargs (proc, ...)
+Call @var{proc} with any number of arguments.  The argument list must be
+terminated by @code{SCM_UNDEFINED}.  For example:
+
+@example
+scm_call_varargs (scm_c_public_ref ("guile", "+"),
+                  scm_from_int (1),
+                  scm_from_int (2),
+                  SCM_UNDEFINED);
+@end example
 @end deffn
 
 @deffn {C Function} scm_call_n (proc, argv, nargs)

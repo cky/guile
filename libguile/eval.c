@@ -24,6 +24,7 @@
 #endif
 
 #include <alloca.h>
+#include <stdarg.h>
 
 #include "libguile/__scm.h"
 
@@ -522,8 +523,53 @@ scm_call_6 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4, SCM arg5,
 }
 
 SCM
+scm_call_7 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4, SCM arg5,
+            SCM arg6, SCM arg7)
+{
+  SCM args[] = { arg1, arg2, arg3, arg4, arg5, arg6, arg7 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 7);
+}
+
+SCM
+scm_call_8 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4, SCM arg5,
+            SCM arg6, SCM arg7, SCM arg8)
+{
+  SCM args[] = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 8);
+}
+
+SCM
+scm_call_9 (SCM proc, SCM arg1, SCM arg2, SCM arg3, SCM arg4, SCM arg5,
+            SCM arg6, SCM arg7, SCM arg8, SCM arg9)
+{
+  SCM args[] = { arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9 };
+  return scm_c_vm_run (scm_the_vm (), proc, args, 9);
+}
+
+SCM
 scm_call_n (SCM proc, SCM *argv, size_t nargs)
 {
+  return scm_c_vm_run (scm_the_vm (), proc, argv, nargs);
+}
+
+SCM
+scm_call_varargs (SCM proc, ...)
+{
+  va_list argp;
+  SCM *argv = NULL;
+  size_t i, nargs = 0;
+
+  va_start (argp, proc);
+  while (!SCM_UNBNDP (va_arg (argp, SCM)))
+    nargs++;
+  va_end (argp);
+
+  argv = alloca (nargs * sizeof (SCM));
+  va_start (argp, proc);
+  for (i = 0; i < nargs; i++)
+    argv[i] = va_arg (argp, SCM);
+  va_end (argp);
+
   return scm_c_vm_run (scm_the_vm (), proc, argv, nargs);
 }
 
