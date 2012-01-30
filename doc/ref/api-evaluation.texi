@@ -539,15 +539,15 @@ then there's no @var{arg1}@dots{}@var{argN} and @var{arg} is the
 Call @var{proc} with the given arguments.
 @end deffn
 
-@deffn {C Function} scm_call_varargs (proc, ...)
+@deffn {C Function} scm_call (proc, ...)
 Call @var{proc} with any number of arguments.  The argument list must be
 terminated by @code{SCM_UNDEFINED}.  For example:
 
 @example
-scm_call_varargs (scm_c_public_ref ("guile", "+"),
-                  scm_from_int (1),
-                  scm_from_int (2),
-                  SCM_UNDEFINED);
+scm_call (scm_c_public_ref ("guile", "+"),
+          scm_from_int (1),
+          scm_from_int (2),
+          SCM_UNDEFINED);
 @end example
 @end deffn
 

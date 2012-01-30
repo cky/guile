@@ -553,7 +553,7 @@ scm_call_n (SCM proc, SCM *argv, size_t nargs)
 }
 
 SCM
-scm_call_varargs (SCM proc, ...)
+scm_call (SCM proc, ...)
 {
   va_list argp;
   SCM *argv = NULL;

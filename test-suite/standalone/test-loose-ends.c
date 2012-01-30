@@ -59,18 +59,18 @@ test_scm_local_eval ()
 }
 
 static void
-test_scm_call_varargs ()
+test_scm_call ()
 {
   SCM result;
 
-  result = scm_call_varargs (scm_c_public_ref ("guile", "+"),
-                             scm_from_int (1),
-                             scm_from_int (2),
-                             SCM_UNDEFINED);
+  result = scm_call (scm_c_public_ref ("guile", "+"),
+                     scm_from_int (1),
+                     scm_from_int (2),
+                     SCM_UNDEFINED);
   assert (scm_is_true (scm_equal_p (result, scm_from_int (3))));
 
-  result = scm_call_varargs (scm_c_public_ref ("guile", "list"),
-                             SCM_UNDEFINED);
+  result = scm_call (scm_c_public_ref ("guile", "list"),
+                     SCM_UNDEFINED);
   assert (scm_is_eq (result, SCM_EOL));
 }
 
@@ -79,7 +79,7 @@ tests (void *data, int argc, char **argv)
 {
   test_scm_from_locale_keywordn ();
   test_scm_local_eval ();
-  test_scm_call_varargs ();
+  test_scm_call ();
 }
 
 int
