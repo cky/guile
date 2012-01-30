@@ -235,7 +235,7 @@
                         (scope (caddr l)))
                     (within-nested-ellipses (datum->syntax scope name) lvl)))
                 (lexenv-patterns e))))
-   ((module? e) `(lambda () #f ,exp))
+   ((module? e) #`(lambda () #f #,x))
    (else (error "invalid lexical environment" e))))
 
 (define (local-eval x e)

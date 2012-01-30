@@ -431,9 +431,10 @@
 
   (pass-if "local-eval"
 
-    (let* ((env1 (let ((x 1) (y 2) (z 3))
-                   (define-syntax-rule (foo x) (quote x))
-                   (the-environment)))
+    (let* ((env1 (local-eval '(let ((x 1) (y 2) (z 3))
+                                (define-syntax-rule (foo x) (quote x))
+                                (the-environment))
+                             (current-module)))
            (env2 (local-eval '(let ((x 111) (a 'a))
                                 (define-syntax-rule (bar x) (quote x))
                                 (the-environment))
@@ -448,9 +449,10 @@
 
   (pass-if "local-compile"
 
-    (let* ((env1 (let ((x 1) (y 2) (z 3))
-                   (define-syntax-rule (foo x) (quote x))
-                   (the-environment)))
+    (let* ((env1 (local-compile '(let ((x 1) (y 2) (z 3))
+                                   (define-syntax-rule (foo x) (quote x))
+                                   (the-environment))
+                                (current-module)))
            (env2 (local-compile '(let ((x 111) (a 'a))
                                    (define-syntax-rule (bar x) (quote x))
                                    (the-environment))
@@ -477,9 +479,9 @@
                      (the-environment))))
               module-a)
         (module-use! module-b (resolve-interface '(guile)))
-        (let ((env (eval `(let ((x 111) (y 222))
-                            ((@@ ,module-a-name test)))
-                         module-b)))
+        (let ((env (local-eval `(let ((x 111) (y 222))
+                                  ((@@ ,module-a-name test)))
+                               module-b)))
           (equal? (local-eval '(list x y z) env)
                   '(1 2 3))))))
 
