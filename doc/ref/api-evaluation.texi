@@ -645,6 +645,7 @@ name is as for @code{compile-file} (see below).
 
 @item -W @var{warning}
 @itemx --warn=@var{warning}
+@cindex warnings, compiler
 Emit warnings of type @var{warning}; use @code{--warn=help} for a list
 of available warnings and their description.  Currently recognized
 warnings include @code{unused-variable}, @code{unused-toplevel},
