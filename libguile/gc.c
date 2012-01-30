@@ -234,6 +234,10 @@ scm_t_c_hook scm_after_gc_c_hook;
 static void
 run_before_gc_c_hook (void)
 {
+  if (!SCM_I_CURRENT_THREAD)
+    /* GC while a thread is spinning up; punt.  */
+    return;
+
   scm_c_hook_run (&scm_before_gc_c_hook, NULL);
 }
 
