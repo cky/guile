@@ -1,6 +1,6 @@
 ;;;; test-suite/lib.scm --- generic support for testing
 ;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;   2011 Free Software Foundation, Inc.
+;;;;   2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -55,6 +55,9 @@
 
  ;; Using the debugging evaluator.
  with-debugging-evaluator with-debugging-evaluator*
+
+ ;; Clearing stale references on the C stack for GC-sensitive tests.
+ clear-stale-stack-references
 
  ;; Using a given locale
  with-locale with-locale* with-latin1-locale with-latin1-locale*
@@ -483,6 +486,17 @@
 ;;; Evaluate BODY... using the debugging evaluator.
 (define-macro (with-debugging-evaluator . body)
   `(with-debugging-evaluator* (lambda () ,@body)))
+
+;; Recurse through a C function that should clear any values that might
+;; have spilled on the stack temporarily.  (The salient feature of
+;; with-continuation-barrier is that currently it is implemented as a C
+;; function that recursively calls the VM.)
+;;
+(define* (clear-stale-stack-references #:optional (n 10))
+  (if (positive? n)
+      (with-continuation-barrier
+       (lambda ()
+         (clear-stale-stack-references (1- n))))))
 
 ;;; Call THUNK with a given locale
 (define (with-locale* nloc thunk)

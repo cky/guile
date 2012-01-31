@@ -1,6 +1,6 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -35,13 +35,6 @@
     ;; let's not rely on that here.)
     (equal? '(a b c) '(a b c))
     a))
-
-(define (stack-cleanup depth)
-  ;; Clean up stack space for DEPTH words.  This is defined here so that
-  ;; `peval' doesn't inline it.
-  (let cleanup ((i depth))
-    (and (> i 0)
-         (begin (cleanup (1- i)) i))))
 
 (if (provided? 'threads)
     (begin
@@ -410,7 +403,7 @@
             (g (let ((m (make-mutex))) (lock-mutex m) m))
 
             ;; Avoid false references to M on the stack.
-            (stack-cleanup 20)
+            (clear-stale-stack-references)
 
             (gc) (gc)
             (let ((m (g)))
