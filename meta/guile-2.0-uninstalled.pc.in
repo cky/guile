@@ -5,5 +5,8 @@ Name: GNU Guile (uninstalled)
 Description: GNU's Ubiquitous Intelligent Language for Extension (uninstalled)
 Version: @GUILE_VERSION@
 Libs: -L${builddir}/libguile -lguile-@GUILE_EFFECTIVE_VERSION@ @BDW_GC_LIBS@
-Libs.private: @LIB_CLOCK_GETTIME@ @LIBGMP@ @LIBLTDL@ @LIBFFI_LIBS@ @GUILE_LIBS@
+Libs.private: @LIB_CLOCK_GETTIME@ @LIBGMP@ @LIBLTDL@ @LIBFFI_LIBS@	\
+  @LIBUNISTRING@ @GUILE_LIBS@ @LIBICONV@ @LIBINTL@ @LIBSOCKET@		\
+  @SERVENT_LIB@ @HOSTENT_LIB@ @GETADDRINFO_LIB@ @INET_NTOP_LIB@		\
+  @INET_PTON_LIB@
 Cflags: -I${srcdir} -I${builddir} @GUILE_CFLAGS@ @BDW_GC_CFLAGS@
