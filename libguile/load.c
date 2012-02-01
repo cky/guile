@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2004, 2006, 2008,
+ *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -419,8 +420,9 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
 
 /* Search PATH for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
-   If we find one, return its full filename; otherwise, return #f.
+   If we find one, return its full pathname; otherwise, return #f.
    If FILENAME is absolute, return it unchanged.
+   We also fill *stat_buf corresponding to the returned pathname.
    If given, EXTENSIONS is a list of strings; for each directory 
    in PATH, we search for FILENAME concatenated with each EXTENSION.  */
 static SCM
@@ -445,7 +447,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   filename_len = strlen (filename_chars);
   scm_dynwind_free (filename_chars);
 
-  /* If FILENAME is absolute, return it unchanged.  */
+  /* If FILENAME is absolute and is still valid, return it unchanged.  */
 #ifdef __MINGW32__
   if (((filename_len >= 1) && 
        (filename_chars[0] == '/' || filename_chars[0] == '\\')) ||
@@ -457,14 +459,13 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   if (filename_len >= 1 && filename_chars[0] == '/')
 #endif
     {
-      SCM res = filename;
-      if (scm_is_true (require_exts) &&
-          !scm_c_string_has_an_ext (filename_chars, filename_len,
+      if ((scm_is_false (require_exts) ||
+           scm_c_string_has_an_ext (filename_chars, filename_len,
                                     extensions))
-        res = SCM_BOOL_F;
-
-      scm_dynwind_end ();
-      return res;
+          && stat (filename_chars, stat_buf) == 0
+          && !(stat_buf->st_mode & S_IFDIR))
+        result = filename;
+      goto end;
     }
 
   /* If FILENAME has an extension, don't try to add EXTENSIONS to it.  */
@@ -483,8 +484,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
               {
                 /* This filename has an extension, but not one of the right
                    ones... */
-                scm_dynwind_end ();
-                return SCM_BOOL_F;
+                goto end;
               }
 	    /* This filename already has an extension, so cancel the
                list of extensions.  */
