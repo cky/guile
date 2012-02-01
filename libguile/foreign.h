@@ -1,7 +1,7 @@
 #ifndef SCM_FOREIGN_H
 #define SCM_FOREIGN_H
 
-/* Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,8 +23,7 @@
 
 /* A "foreign pointer" is a wrapped C pointer.  It is represented by a
    cell whose second word is a pointer.  The first word has the
-   `scm_tc7_pointer' type code and a bit saying whether it has an
-   associated finalizer or not.
+   `scm_tc7_pointer' type code.
 
    The basic idea is that we can help the programmer to avoid cutting herself,
    but we won't take away her knives.  */

@@ -22,6 +22,16 @@
   #:use-module ((system base compile) #:select (compile)))
 
 
+;; Some of these tests verify that things are collectable.  As we use a
+;; third-party conservative collector, we really can't guarantee that --
+;; we can try, but on some platforms, on some versions (possibly), the
+;; test might fail.  But we don't want that to stop the build.  So,
+;; instead of failing, throw 'unresolved.
+;;
+(define (maybe-gc-flakiness result)
+  (or result
+      (throw 'unresolved)))
+
 ;;;
 ;;; miscellaneous
 ;;;
@@ -73,11 +83,12 @@
       (gc)   ;; thrice: because the test doesn't succeed with only
       ;; one gc round. not sure why.
 
-      (= (let lp ((i 0))
-           (if (guard)
-               (lp (1+ i))
-               i))
-         total)))
+      (maybe-gc-flakiness
+       (= (let lp ((i 0))
+            (if (guard)
+                (lp (1+ i))
+                i))
+          total))))
 
   (pass-if "Lexical vars are collectable"
     (let ((l (compile
