@@ -2714,7 +2714,7 @@ useful, several predefined character set variables exist.
 These character sets are locale independent and are not recomputed
 upon a @code{setlocale} call.  They contain characters from the whole
 range of Unicode code points. For instance, @code{char-set:letter}
-contains about 94,000 characters.
+contains about 100,000 characters.
 
 @defvr {Scheme Variable} char-set:lower-case
 @defvrx {C Variable} scm_char_set_lower_case
