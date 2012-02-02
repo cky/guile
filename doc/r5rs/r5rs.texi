@@ -2155,7 +2155,7 @@ and @r{<body>} should be a sequence of
 one or more expressions.
 
 @emph{Semantics:}
-@samp{let*} is similar to @samp{let}, but the bindings are performed
+@samp{Let*} is similar to @samp{let}, but the bindings are performed
 sequentially from left to right, and the region of a binding indicated
 @cindex @w{region}
 by @samp{(@r{<variable>} @r{<init>})} is that part of the @samp{let*}
@@ -2271,12 +2271,12 @@ output.
 @deffn {library syntax} do ((@r{<variable1>} @r{<init1>} @r{<step1>}) @dots{}) (@r{<test>} @r{<expression>} @dots{}) @r{<command>} @dots{}
 @cindex @w{do}
 
-@samp{do} is an iteration construct.  It specifies a set of variables to
+@samp{Do} is an iteration construct.  It specifies a set of variables to
 be bound, how they are to be initialized at the start, and how they are
 to be updated on each iteration.  When a termination condition is met,
 the loop exits after evaluating the @r{<expression>}s.
 
-@samp{do} expressions are evaluated as follows:
+@samp{Do} expressions are evaluated as follows:
 The @r{<init>} expressions are evaluated (in some unspecified order),
 the @r{<variable>}s are bound to fresh locations, the results of the
 @r{<init>} expressions are stored in the bindings of the
@@ -2595,7 +2595,7 @@ bindings that may surround the use of the macro.
 
 
 
-@samp{let-syntax} and @samp{letrec-syntax} are
+@samp{Let-syntax} and @samp{letrec-syntax} are
 analogous to @samp{let} and @samp{letrec}, but they bind
 syntactic keywords to macro transformers instead of binding variables
 to locations that contain values.  Syntactic keywords may also be
@@ -3254,7 +3254,7 @@ value (@t{#t} or @t{#f}).  An @dfn{equivalence predicate} is
 the computational analogue of a mathematical equivalence relation (it is
 symmetric, reflexive, and transitive).  Of the equivalence predicates
 described in this section, @samp{eq?} is the finest or most
-discriminating, and @samp{equal?} is the coarsest.  @samp{eqv?} is
+discriminating, and @samp{equal?} is the coarsest.  @samp{Eqv?} is
 slightly less discriminating than @samp{eq?}.  
 @ignore todo
 Pitman doesn't like
@@ -3419,9 +3419,9 @@ boolean.
 
 
 The next set of examples shows the use of @samp{eqv?} with procedures
-that have local state.  @samp{gen-counter} must return a distinct
+that have local state.  @samp{Gen-counter} must return a distinct
 procedure every time, since each procedure has its own internal counter.
-@samp{gen-loser}, however, returns equivalent procedures each time, since
+@samp{Gen-loser}, however, returns equivalent procedures each time, since
 the local state does not affect the value or side effects of the
 procedures.
 
@@ -3500,17 +3500,17 @@ bit pattern to represent both.
 
 @deffn {procedure} eq?  obj1 obj2
 
-@samp{eq?} is similar to @samp{eqv?} except that in some cases it is
+@samp{Eq?} is similar to @samp{eqv?} except that in some cases it is
 capable of discerning distinctions finer than those detectable by
 @samp{eqv?}.
 
-@samp{eq?} and @samp{eqv?} are guaranteed to have the same
+@samp{Eq?} and @samp{eqv?} are guaranteed to have the same
 behavior on symbols, booleans, the empty list, pairs, procedures,
 and non-empty
-strings and vectors.  @samp{eq?}'s behavior on numbers and characters is
+strings and vectors.  @samp{Eq?}'s behavior on numbers and characters is
 implementation-dependent, but it will always return either true or
 false, and will return true only when @samp{eqv?} would also return
-true.  @samp{eq?} may also behave differently from @samp{eqv?} on empty
+true.  @samp{Eq?} may also behave differently from @samp{eqv?} on empty
 vectors and empty strings.
 
 
@@ -3549,7 +3549,7 @@ more efficiently than @samp{eqv?}, for example, as a simple pointer
 comparison instead of as some more complicated operation.  One reason is
 that it may not be possible to compute @samp{eqv?} of two numbers in
 constant time, whereas @samp{eq?} implemented as pointer comparison will
-always finish in constant time.  @samp{eq?} may be used like @samp{eqv?}
+always finish in constant time.  @samp{Eq?} may be used like @samp{eqv?}
 in applications using procedures to implement objects with state since
 it obeys the same constraints as @samp{eqv?}.
 @end quotation
@@ -3561,10 +3561,10 @@ it obeys the same constraints as @samp{eqv?}.
 
 @deffn {library procedure} equal?  obj1 obj2
 
-@samp{equal?} recursively compares the contents of pairs, vectors, and
+@samp{Equal?} recursively compares the contents of pairs, vectors, and
 strings, applying @samp{eqv?} on other objects such as numbers and symbols.
 A rule of thumb is that objects are generally @samp{equal?} if they print
-the same.  @samp{equal?} may fail to terminate if its arguments are
+the same.  @samp{Equal?} may fail to terminate if its arguments are
 circular data structures.
 
 
@@ -4211,7 +4211,7 @@ however, they return the additive or multiplicative inverse of their argument.
 
 @deffn {library procedure} abs  x
 
-@samp{abs} returns the absolute value of its argument.  
+@samp{Abs} returns the absolute value of its argument.  
 @c - {\cf Abs} is exactness preserving when its argument is real.
 
 @format
@@ -4344,17 +4344,17 @@ More description and examples needed.
 
 
 These procedures return integers.
-@samp{floor} returns the largest integer not larger than @var{x}.
-@samp{ceiling} returns the smallest integer not smaller than @var{x}.
-@samp{truncate} returns the integer closest to @var{x} whose absolute
-value is not larger than the absolute value of @var{x}.  @samp{tound} returns the
+@samp{Floor} returns the largest integer not larger than @var{x}.
+@samp{Ceiling} returns the smallest integer not smaller than @var{x}.
+@samp{Truncate} returns the integer closest to @var{x} whose absolute
+value is not larger than the absolute value of @var{x}.  @samp{Round} returns the
 closest integer to @var{x}, rounding to even when @var{x} is halfway between two
 integers.
 
 
 @quotation
 @emph{Rationale:}
-@samp{round} rounds to even for consistency with the default rounding
+@samp{Round} rounds to even for consistency with the default rounding
 mode specified by the IEEE floating point standard.
 @end quotation
 
@@ -4393,7 +4393,7 @@ result should be passed to the @samp{inexact->exact} procedure.
 @c - \proto{rationalize}{ x}{procedure}
 
 
-@samp{rationalize} returns the @emph{simplest} rational number
+@samp{Rationalize} returns the @emph{simplest} rational number
 differing from @var{x} by no more than @var{y}.  A rational number r_1 is
 @emph{simpler}  than another rational number
 @cindex @w{simplest rational}
@@ -4556,7 +4556,7 @@ for some integer n.
 
 @quotation
 @emph{Rationale:}
-@samp{magnitude} is the same as @code{abs} for a real argument,
+@samp{Magnitude} is the same as @code{abs} for a real argument,
 @vindex @w{abs}
 but @samp{abs} must be present in all implementations, whereas
 @samp{magnitude} need only be present in implementations that support
@@ -4571,7 +4571,7 @@ general complex numbers.
 @deffn {procedure} exact->inexact  @var{z}
 @deffnx {procedure} inexact->exact  @var{z}
 
-@samp{exact->inexact} returns an @r{inexact} representation of @var{z}.
+@samp{Exact->inexact} returns an @r{inexact} representation of @var{z}.
 The value returned is the
 @r{inexact} number that is numerically closest to the argument.  
 @c %R4%%For
@@ -4580,7 +4580,7 @@ The value returned is the
 If an @r{exact} argument has no reasonably close @r{inexact} equivalent,
 then a violation of an implementation restriction may be reported.
 
-@samp{inexact->exact} returns an @r{exact} representation of
+@samp{Inexact->exact} returns an @r{exact} representation of
 @var{z}.  The value returned is the @r{exact} number that is numerically
 closest to the argument.
 @c %R4%%  For \tupe{inexact} arguments which have no
@@ -4615,7 +4615,7 @@ implementation-dependent range.  See section @ref{Implementation restrictions}.
 @deffn {procedure} number->string  z
 @deffnx {procedure} number->string  z radix
 
-@var{radix} must be an exact integer, either 2, 8, 10, or 16.  If omitted,
+@var{Radix} must be an exact integer, either 2, 8, 10, or 16.  If omitted,
 @var{radix} defaults to 10.
 The procedure @samp{number->string} takes a
 number and a radix and returns as a string an external representation of
@@ -4674,7 +4674,7 @@ allows for infinities, NaNs, and non-flonum representations.
 @c  for the third argument.
 
 Returns a number of the maximally precise representation expressed by the
-given @var{string}.  @var{radix} must be an exact integer, either 2, 8, 10,
+given @var{string}.  @var{Radix} must be an exact integer, either 2, 8, 10,
 or 16.  If supplied, @var{radix} is a default radix that may be overridden
 by an explicit radix prefix in @var{string} (e.g. @t{"#o177"}).  If @var{radix}
 is not supplied, then the default radix is 10.  If @var{string} is not
@@ -4695,7 +4695,7 @@ returns @t{#f}.
 @quotation
 @emph{Note:}
 The domain of @samp{string->number} may be restricted by implementations
-in the following ways.  @samp{string->number} is permitted to return
+in the following ways.  @samp{String->number} is permitted to return
 @t{#f} whenever @var{string} contains an explicit radix prefix.
 If all numbers supported by an implementation are real, then
 @samp{string->number} is permitted to return @t{#f} whenever
@@ -4802,7 +4802,7 @@ in programs.
 
 @deffn {library procedure} not  obj
 
-@samp{not} returns @t{#t} if @var{obj} is false, and returns
+@samp{Not} returns @t{#t} if @var{obj} is false, and returns
 @t{#f} otherwise.
 
 
@@ -4824,7 +4824,7 @@ in programs.
 
 @deffn {library procedure} boolean?  obj
 
-@samp{boolean?} returns @t{#t} if @var{obj} is either @t{#t} or
+@samp{Boolean?} returns @t{#t} if @var{obj} is either @t{#t} or
 @t{#f} and returns @t{#f} otherwise.
 
 
@@ -5011,7 +5011,7 @@ parse Scheme programs.  See section @ref{External representations}.
 
 @deffn {procedure} pair?  obj
 
-@samp{pair?} returns @t{#t} if @var{obj} is a pair, and otherwise
+@samp{Pair?} returns @t{#t} if @var{obj} is a pair, and otherwise
 returns @t{#f}.
 
 
@@ -5295,7 +5295,7 @@ in reverse order.
 
 Returns the sublist of @var{list} obtained by omitting the first @var{k}
 elements.  It is an error if @var{list} has fewer than @var{k} elements.
-@samp{list-tail} could be defined by
+@samp{List-tail} could be defined by
 
 
 @format
@@ -5356,7 +5356,7 @@ These procedures return the first sublist of @var{list} whose car is
 returned by @t{(list-tail @var{list} @var{k})} for @var{k} less
 than the length of @var{list}.  If
 @var{obj} does not occur in @var{list}, then @t{#f} (not the empty list) is
-returned.  @samp{memq} uses @samp{eq?} to compare @var{obj} with the elements of
+returned.  @samp{Memq} uses @samp{eq?} to compare @var{obj} with the elements of
 @var{list}, while @samp{memv} uses @samp{eqv?} and @samp{member} uses @samp{equal?}.
 
 
@@ -5381,10 +5381,10 @@ returned.  @samp{memq} uses @samp{eq?} to compare @var{obj} with the elements of
 @deffnx {library procedure} assv  obj alist
 @deffnx {library procedure} assoc  obj alist
 
-@var{alist} (for ``association list'') must be a list of
+@var{Alist} (for ``association list'') must be a list of
 pairs.  These procedures find the first pair in @var{alist} whose car field is @var{obj},
 and returns that pair.  If no pair in @var{alist} has @var{obj} as its
-car, then @t{#f} (not the empty list) is returned.  @samp{assq} uses
+car, then @t{#f} (not the empty list) is returned.  @samp{Assq} uses
 @samp{eq?} to compare @var{obj} with the car fields of the pairs in @var{alist},
 while @samp{assv} uses @samp{eqv?} and @samp{assoc} uses @samp{equal?}.
 
@@ -5830,9 +5830,10 @@ Returns @t{#t} if @var{obj} is a string, otherwise returns @t{#f}.
 
 @c \domain{\vr{k} must be a non-negative integer, and \var{char} must be
 @c a character.}  
-@samp{make-string} returns a newly allocated string of length @var{k}.
-If @var{char} is given, then all elements of the string are initialized
-to @var{char}, otherwise the contents of the string are unspecified.
+@samp{Make-string} returns a newly allocated string of
+length @var{k}.  If @var{char} is given, then all elements of the string
+are initialized to @var{char}, otherwise the contents of the
+@var{string} are unspecified.
 
 @end deffn
 
@@ -5854,7 +5855,7 @@ Returns the number of characters in the given @var{string}.
 @deffn {procedure} string-ref  string @var{k}
 
 @var{k} must be a valid index of @var{string}.
-@samp{string-ref} returns character @var{k} of @var{string} using zero-origin indexing.
+@samp{String-ref} returns character @var{k} of @var{string} using zero-origin indexing.
 @end deffn
 
 
@@ -5866,7 +5867,7 @@ Returns the number of characters in the given @var{string}.
 @var{k} must be a valid index of @var{string}
 @c , and \var{char} must be a character
 .
-@samp{string-set!} stores @var{char} in element @var{k} of @var{string}
+@samp{String-set!} stores @var{char} in element @var{k} of @var{string}
 and returns an unspecified value.  
 @c  <!>
 
@@ -5892,7 +5893,7 @@ and returns an unspecified value.
 
 Returns @t{#t} if the two strings are the same length and contain the same
 characters in the same positions, otherwise returns @t{#f}.
-@samp{string-ci=?} treats
+@samp{String-ci=?} treats
 upper and lower case letters as though they were the same character, but
 @samp{string=?} treats upper and lower case as distinct characters.
 
@@ -5926,13 +5927,13 @@ the corresponding numerical predicates.
 
 @deffn {library procedure} substring  string start end
 
-@var{string} must be a string, and @var{start} and @var{end}
+@var{String} must be a string, and @var{start} and @var{end}
 must be exact integers satisfying
 
 
 @center 0 <= @var{start} <= @var{end} <= @w{@t{(string-length @var{string})@r{.}}}
 
-@samp{substring} returns a newly allocated string formed from the characters of
+@samp{Substring} returns a newly allocated string formed from the characters of
 @var{string} beginning with index @var{start} (inclusive) and ending with index
 @var{end} (exclusive).
 @end deffn
@@ -5951,10 +5952,10 @@ given strings.
 @deffn {library procedure} string->list  string
 @deffnx {library procedure} list->string  list
 
-@samp{string->list} returns a newly allocated list of the
-characters that make up the given string.  @samp{list->string}
+@samp{String->list} returns a newly allocated list of the
+characters that make up the given string.  @samp{List->string}
 returns a newly allocated string formed from the characters in the list
-@var{list}, which must be a list of characters. @samp{string->list}
+@var{list}, which must be a list of characters. @samp{String->list}
 and @samp{list->string} are
 inverses so far as @samp{equal?} is concerned.  
 @c Implementations that provide
@@ -6077,7 +6078,7 @@ Returns the number of elements in @var{vector} as an exact integer.
 @deffn {procedure} vector-ref  vector k
 
 @var{k} must be a valid index of @var{vector}.
-@samp{vector-ref} returns the contents of element @var{k} of
+@samp{Vector-ref} returns the contents of element @var{k} of
 @var{vector}.
 
 
@@ -6101,7 +6102,7 @@ Returns the number of elements in @var{vector} as an exact integer.
 @deffn {procedure} vector-set!  vector k obj
 
 @var{k} must be a valid index of @var{vector}.
-@samp{vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
+@samp{Vector-set!} stores @var{obj} in element @var{k} of @var{vector}.
 The value returned by @samp{vector-set!} is unspecified.  
 @c  <!>
 
@@ -6124,8 +6125,8 @@ The value returned by @samp{vector-set!} is unspecified.
 @deffn {library procedure} vector->list  vector
 @deffnx {library procedure} list->vector  list
 
-@samp{vector->list} returns a newly allocated list of the objects contained
-in the elements of @var{vector}.  @samp{list->vector} returns a newly
+@samp{Vector->list} returns a newly allocated list of the objects contained
+in the elements of @var{vector}.  @samp{List->vector} returns a newly
 created vector initialized to the elements of the list @var{list}.
 
 
@@ -6193,7 +6194,7 @@ Returns @t{#t} if @var{obj} is a procedure, otherwise returns @t{#f}.
 
 @deffn {procedure} apply  proc arg1 @dots{} args
 
-@var{proc} must be a procedure and @var{args} must be a list.
+@var{Proc} must be a procedure and @var{args} must be a list.
 Calls @var{proc} with the elements of the list
 @samp{(append (list @var{arg1} @dots{},) @var{args})} as the actual
 arguments.
@@ -6215,13 +6216,13 @@ arguments.
 
 
 
-@deffn {library procedure} map  proc list1 list2 @dots{}
+@deffn {library procedure} map  proc list1 list2 @dots{},
 
 The @var{list}s must be lists, and @var{proc} must be a
 procedure taking as many arguments as there are @i{list}s
 and returning a single value.  If more
 than one @var{list} is given, then they must all be the same length.
-@samp{map} applies @var{proc} element-wise to the elements of the
+@samp{Map} applies @var{proc} element-wise to the elements of the
 @var{list}s and returns a list of the results, in order.
 The dynamic order in which @var{proc} is applied to the elements of the
 @var{list}s is unspecified.
@@ -6308,7 +6309,7 @@ time, the previously computed value is returned.
 @end format
 
 
-@samp{force} and @samp{delay} are mainly intended for programs written in
+@samp{Force} and @samp{delay} are mainly intended for programs written in
 functional style.  The following examples should not be considered to
 illustrate good programming style, but they illustrate the property that
 only one value is computed for a promise, no matter how many times it is
@@ -6465,7 +6466,7 @@ and @samp{+}:
 
 @deffn {procedure} call-with-current-continuation  proc
 
- @var{proc} must be a procedure of one
+ @var{Proc} must be a procedure of one
 argument. The procedure @samp{call-with-current-continuation} packages
 up the current continuation (see the rationale below) as an ``escape
 procedure'' and passes it as an argument to
@@ -6545,7 +6546,7 @@ the answer to the top level continuation to be printed.  Normally these
 ubiquitous continuations are hidden behind the scenes and programmers do not
 think much about them.  On rare occasions, however, a programmer may
 need to deal with continuations explicitly.
-@samp{call-with-current-continuation} allows Scheme programmers to do
+@samp{Call-with-current-continuation} allows Scheme programmers to do
 that by creating a procedure that acts just like the current
 continuation.
 
@@ -6615,11 +6616,11 @@ continuation of the call to @t{call-with-values}.
 @deffn {procedure} dynamic-wind  before thunk after
 
 Calls @var{thunk} without arguments, returning the result(s) of this call.
-@var{before} and @var{after} are called, also without arguments, as required
+@var{Before} and @var{after} are called, also without arguments, as required
 by the following rules (note that in the absence of calls to continuations
 captured using @code{call-with-current-continuation} the three arguments are
 @vindex @w{call-with-current-continuation}
-called once each, in order).  @var{before} is called whenever execution
+called once each, in order).  @var{Before} is called whenever execution
 enters the dynamic extent of the call to @var{thunk} and @var{after} is called
 whenever it exits that dynamic extent.  The dynamic extent of a procedure
 call is the period between when the call is initiated and when it
@@ -6702,7 +6703,7 @@ extent of a call to @var{before} or @var{after} is undefined.
 @deffn {procedure} eval  expression environment-specifier
 
 Evaluates @var{expression} in the specified environment and returns its value.
-@var{expression} must be a valid Scheme expression represented as data,
+@var{Expression} must be a valid Scheme expression represented as data,
 and @var{environment-specifier} must be a value returned by one of the
 three procedures described below.
 Implementations may extend @samp{eval} to allow non-expression programs
@@ -6730,13 +6731,13 @@ allowed to create new bindings in the environments associated with
 @deffn {procedure} scheme-report-environment  version
 @deffnx {procedure} null-environment  version
 
-@var{version} must be the exact integer @samp{5},
+@var{Version} must be the exact integer @samp{5},
 corresponding to this revision of the Scheme report (the
 Revised^5 Report on Scheme).
-@samp{scheme-report-environment} returns a specifier for an
+@samp{Scheme-report-environment} returns a specifier for an
 environment that is empty except for all bindings defined in
 this report that are either required or both optional and
-supported by the implementation. @samp{null-environment} returns
+supported by the implementation. @samp{Null-environment} returns
 a specifier for an environment that is empty except for the
 (syntactic) bindings for all syntactic keywords defined in
 this report that are either required or both optional and
@@ -6796,7 +6797,7 @@ Haase: Mention that there are alternatives to files?
 @deffn {library procedure} call-with-input-file  string proc
 @deffnx {library procedure} call-with-output-file  string proc
 
-@var{string} should be a string naming a file, and
+@var{String} should be a string naming a file, and
 @var{proc} should be a procedure that accepts one argument.
 For @samp{call-with-input-file},
 the file should already exist; for
@@ -6861,8 +6862,8 @@ Returns the current default input or output port.
 @deffn {optional procedure} with-input-from-file  string thunk
 @deffnx {optional procedure} with-output-to-file  string thunk
 
-@var{string} should be a string naming a file, and
-@var{thunk} should be a procedure of no arguments.
+@var{String} should be a string naming a file, and
+@var{proc} should be a procedure of no arguments.
 For @samp{with-input-from-file},
 the file should already exist; for
 @samp{with-output-to-file},
@@ -6875,7 +6876,7 @@ connected to it is made the default value returned by
 and the
 @var{thunk} is called with no arguments.  When the @var{thunk} returns,
 the port is closed and the previous default is restored.
-@samp{with-input-from-file} and @samp{with-output-to-file} return(s) the
+@samp{With-input-from-file} and @samp{with-output-to-file} return(s) the
 value(s) yielded by @var{thunk}.
 If an escape procedure
 is used to escape from the continuation of these procedures, their
@@ -6968,10 +6969,10 @@ The input routines have some things in common, maybe explain here.
 @deffn {library procedure} read 
 @deffnx {library procedure} read  port
 
-@samp{read} converts external representations of Scheme objects into the
+@samp{Read} converts external representations of Scheme objects into the
 objects themselves.  That is, it is a parser for the nonterminal
 <datum> (see sections @pxref{External representation} and
-@pxref{Pairs and lists}).  @samp{read} returns the next
+@pxref{Pairs and lists}).  @samp{Read} returns the next
 object parsable from the given input @var{port}, updating @var{port} to point to
 the first character past the end of the external representation of the object.
 
@@ -6998,7 +6999,7 @@ a closed port.
 
 Returns the next character available from the input @var{port}, updating
 the @var{port} to point to the following character.  If no more characters
-are available, an end of file object is returned.  @var{port} may be
+are available, an end of file object is returned.  @var{Port} may be
 omitted, in which case it defaults to the value returned by @samp{current-input-port}.
 
 @end deffn
@@ -7011,7 +7012,7 @@ omitted, in which case it defaults to the value returned by @samp{current-input-
 Returns the next character available from the input @var{port},
 @emph{without} updating
 the @var{port} to point to the following character.  If no more characters
-are available, an end of file object is returned.  @var{port} may be
+are available, an end of file object is returned.  @var{Port} may be
 omitted, in which case it defaults to the value returned by @samp{current-input-port}.
 
 
@@ -7049,13 +7050,13 @@ Returns @t{#t} if a character is ready on the input @var{port} and
 returns @t{#f} otherwise.  If @samp{char-ready} returns @t{#t} then
 the next @samp{read-char} operation on the given @var{port} is guaranteed
 not to hang.  If the @var{port} is at end of file then @samp{char-ready?}
-returns @t{#t}.  @var{port} may be omitted, in which case it defaults to
+returns @t{#t}.  @var{Port} may be omitted, in which case it defaults to
 the value returned by @samp{current-input-port}.
 
 
 @quotation
 @emph{Rationale:}
-@samp{char-ready?} exists to make it possible for a program to
+@samp{Char-ready?} exists to make it possible for a program to
 accept characters from interactive ports without getting stuck waiting for
 input.  Any input editors associated with such ports must ensure that
 characters whose existence has been asserted by @samp{char-ready?} cannot
@@ -7087,7 +7088,7 @@ that appear in the written representation are enclosed in doublequotes, and
 within those strings backslash and doublequote characters are
 escaped by backslashes.
 Character objects are written using the @samp{#\} notation.
-@samp{write} returns an unspecified value.  The
+@samp{Write} returns an unspecified value.  The
 @var{port} argument may be omitted, in which case it defaults to the value
 returned by @samp{current-output-port}.
 
@@ -7102,14 +7103,14 @@ Writes a representation of @var{obj} to the given @var{port}.  Strings
 that appear in the written representation are not enclosed in
 doublequotes, and no characters are escaped within those strings.  Character
 objects appear in the representation as if written by @samp{write-char}
-instead of by @samp{write}.  @samp{display} returns an unspecified value.
+instead of by @samp{write}.  @samp{Display} returns an unspecified value.
 The @var{port} argument may be omitted, in which case it defaults to the
 value returned by @samp{current-output-port}.
 
 
 @quotation
 @emph{Rationale:}
-@samp{write} is intended
+@samp{Write} is intended
 for producing mach@-ine-readable output and @samp{display} is for producing
 human-readable output.  Implementations that allow ``slashification''
 within symbols will probably want @samp{write} but not @samp{display} to
@@ -7162,13 +7163,13 @@ Fix
 
 @c \domain{\var{Filename} should be a string naming an existing file
 @c containing Scheme source code.} The {\cf load} procedure reads
-@var{filename} should be a string naming an existing file
+@var{Filename} should be a string naming an existing file
 containing Scheme source code.  The @samp{load} procedure reads
 expressions and definitions from the file and evaluates them
 sequentially.  It is unspecified whether the results of the expressions
 are printed.  The @samp{load} procedure does not affect the values
 returned by @samp{current-input-port} and @samp{current-output-port}.
-@samp{load} returns an unspecified value.
+@samp{Load} returns an unspecified value.
 
 
 @quotation
@@ -7185,7 +7186,7 @@ implementations.
 @deffn {optional procedure} transcript-on  filename
 @deffnx {optional procedure} transcript-off 
 
-@var{filename} must be a string naming an output file to be
+@var{Filename} must be a string naming an output file to be
 created. The effect of @samp{transcript-on} is to open the named file
 for output, and to cause a transcript of subsequent interaction between
 the user and the Scheme system to be written to the file.  The
@@ -7959,7 +7960,7 @@ of the main body of the report.  The rewrite rules for derived expressions
 have been replaced with macro definitions.  There are no reserved identifiers.
 
 @item
-@samp{syntax-rules} now allows vector patterns.
+@samp{Syntax-rules} now allows vector patterns.
 
 @item
 Multiple-value returns, @samp{eval}, and @samp{dynamic-wind} have
@@ -8073,7 +8074,7 @@ programs, implementations, and other material related to Scheme.
 @c  -*- Mode: Lisp; Package: SCHEME; Syntax: Common-lisp -*-
 
 
-@samp{integrate-system} integrates the system 
+@samp{Integrate-system} integrates the system 
 
 
 @center y_k^^ = f_k(y_1, y_2, @dots{}, y_n),    k = 1, @dots{}, n
@@ -8104,8 +8105,8 @@ system states.
 @end example
 
 
-@samp{runge-kutta-4} takes a function, @t{f}, that produces a
-system derivative from a system state.  @samp{runge-kutta-4}
+@samp{Runge-Kutta-4} takes a function, @t{f}, that produces a
+system derivative from a system state.  @samp{Runge-Kutta-4}
 produces a function that takes a system state and
 produces a new system state.
 
@@ -8162,7 +8163,7 @@ produces a new system state.
 @end example
 
 
-@samp{map-streams} is analogous to @samp{map}: it applies its first
+@samp{Map-streams} is analogous to @samp{map}: it applies its first
 argument (a procedure) to all the elements of its second argument (a
 stream).
 
