@@ -75,11 +75,28 @@ test_scm_call ()
 }
 
 static void
+test_scm_to_pointer ()
+{
+  int (*add3) (int a, int b, int c);
+  SCM int_type = scm_c_public_ref ("system foreign", "int");
+
+  add3 = scm_to_pointer
+    (scm_procedure_to_pointer (int_type,
+                               scm_c_public_ref ("guile", "+"),
+                               scm_list_3 (int_type,
+                                           int_type,
+                                           int_type)));
+
+  assert ((*add3) (1000000, 1000, -1) == 1000999);
+}
+
+static void
 tests (void *data, int argc, char **argv)
 {
   test_scm_from_locale_keywordn ();
   test_scm_local_eval ();
   test_scm_call ();
+  test_scm_to_pointer ();
 }
 
 int

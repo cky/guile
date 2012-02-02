@@ -139,6 +139,15 @@ SCM_DEFINE (scm_make_pointer, "make-pointer", 1, 1, 0,
 }
 #undef FUNC_NAME
 
+void *
+scm_to_pointer (SCM pointer)
+#define FUNC_NAME "scm_to_pointer"
+{
+  SCM_VALIDATE_POINTER (1, pointer);
+  return SCM_POINTER_VALUE (pointer);
+}
+#undef FUNC_NAME
+
 SCM
 scm_from_pointer (void *ptr, scm_t_pointer_finalizer finalizer)
 {

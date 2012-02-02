@@ -55,6 +55,7 @@ typedef void (*scm_t_pointer_finalizer) (void *);
 #define SCM_POINTER_VALUE(x)			\
   ((void *) SCM_CELL_WORD_1 (x))
 
+SCM_API void *scm_to_pointer (SCM pointer);
 SCM_API SCM scm_from_pointer (void *, scm_t_pointer_finalizer);
 
 SCM_API SCM scm_alignof (SCM type);
