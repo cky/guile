@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2004, 2006, 2010 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2004, 2006, 2010,
+ *   2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -99,7 +100,7 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-#ifdef __MINGW32__
+#if defined __MINGW32__ && defined HAVE_NETWORKING
 # include "win32-socket.h"
 # define SCM_I_STRERROR(err) \
     ((err >= WSABASEERR) ? scm_i_socket_strerror (err) : strerror (err))
