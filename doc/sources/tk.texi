@@ -1,5 +1,0 @@
-@node Tk interface
-@chapter Tk interface
-
-For now Guile has no well-specified Tk interface.  It is an important part
-of Guile, though, and will be documented here when it is written.

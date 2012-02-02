@@ -1,6 +1,0 @@
-@node Examples of adding libraries
-@chapter Examples of adding libraries
-
-Should contain examples of brute-force gh_, Guile magic snarfer,
-libtool, SWIG on a dummy API, followed by some real examples of how
-libraries are added.

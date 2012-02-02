@@ -1,2 +1,0 @@
-@node Adding types to Guile
-@chapter Adding types to Guile

@@ -1,4 +1,0 @@
-@node Libguile -- SCM interface
-@chapter Libguile -- SCM interface
-
-

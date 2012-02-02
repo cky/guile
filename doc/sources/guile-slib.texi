@@ -1,2 +1,0 @@
-@node Guile and SLIB
-@chapter Guile and SLIB
