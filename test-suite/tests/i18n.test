@@ -479,3 +479,21 @@
          (let ((fr (make-locale LC_ALL %french-locale-name)))
            (string=? "1 234,5"
                      (number->locale-string 1234.567 1 fr))))))))
+
+(with-test-prefix "monetary-amount->locale-string"
+
+  (with-test-prefix "French"
+
+    (pass-if "integer"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (string=? "123 456 +EUR"
+                     (monetary-amount->locale-string 123456 #f fr))))))
+
+    (pass-if "fraction"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (let ((fr (make-locale LC_ALL %french-locale-name)))
+           (string=? "1 234,56 EUR "
+                     (monetary-amount->locale-string 1234.567 #t fr))))))))
