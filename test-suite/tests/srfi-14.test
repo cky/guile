@@ -797,13 +797,13 @@
   (pass-if "char-set:punctuation"
     (char-set<= (string->char-set 
                  (string-append "!\"#%&'()*,-./:;?@[\\]_{}"
-                                "¡«·»¿"))
+                                "¡§«¶·»¿"))
                 char-set:punctuation))
 
   (pass-if "char-set:symbol"
     (char-set<= (string->char-set 
                  (string-append "$+<=>^`|~"
-                                "¢£¤¥¦§¨©¬®¯°±´¶¸×÷"))
+                                "¢£¤¥¦¨©¬®¯°±´¸×÷"))
                 char-set:symbol))
 
   ;; Note that SRFI-14 itself is inconsistent here.  Characters that
