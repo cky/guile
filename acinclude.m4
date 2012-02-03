@@ -614,7 +614,8 @@ AC_DEFUN([gl_CLOCK_TIME],
                       AC_SEARCH_LIBS([clock_getcpuclockid], [rt posix4],
                                      [test "$ac_cv_search_clock_getcpuclockid" = "none required" \
                                       || LIB_CLOCK_GETTIME=$ac_cv_search_clock_getcpuclockid],
-                                     [LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
+                                     [test "$ac_cv_search_clock_gettime" = "none required" \
+                                      || LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
                     else
                       LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime
                     fi])
