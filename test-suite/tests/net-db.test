@@ -1,7 +1,7 @@
 ;;;; net-db.test --- Test suite for `net-db' -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -100,7 +100,11 @@
                 #f))
           (lambda (key errcode)
             ;; According to POSIX, both error codes are valid (glibc 2.11
-            ;; chooses `EAI_SERVICE'; Darwin chooses `EAI_NONAME'.)
+            ;; chooses `EAI_SERVICE'; Darwin 8.11.0 chooses the non-POSIX
+            ;; `EAI_NODATA', and more recent Darwin versions choose
+            ;; `EAI_NONAME'.)
             (and (or (= errcode EAI_SERVICE)
-                     (= errcode EAI_NONAME))
+                     (= errcode EAI_NONAME)
+                     (and (defined? 'EAI_NODATA)
+                          (= errcode EAI_NODATA)))
                  (string? (gai-strerror errcode))))))))
