@@ -269,7 +269,7 @@ Integer.  Parameters: @var{minwidth}, @var{padchar}, @var{commachar},
 @var{commawidth}.
 
 Output an integer argument as a decimal, hexadecimal, octal or binary
-integer (respectively).
+integer (respectively), in a locale-independent way.
 
 @example
 (format #t "~d" 123) @print{} 123
@@ -297,7 +297,9 @@ minimum), it's padded on the left with the @var{padchar} parameter
 @end example
 
 @nicode{~:d} adds commas (or the @var{commachar} parameter) every
-three digits (or the @var{commawidth} parameter many).
+three digits (or the @var{commawidth} parameter many).  However, when
+your intent is to write numbers in a way that follows typographical
+conventions, using @nicode{~h} is recommended.
 
 @example
 (format #t "~:d" 1234567)         @print{} 1,234,567
@@ -402,6 +404,29 @@ printed instead of the value.
 @example
 (format #t "~6,,,'xf" 12345) @print{} 12345.
 (format #t "~5,,,'xf" 12345) @print{} xxxxx
+@end example
+
+@item @nicode{~h}
+Localized number@footnote{The @nicode{~h} format specifier first
+appeared in Guile version 2.0.6.}.  Parameters: @var{width},
+@var{decimals}, @var{padchar}.
+
+Like @nicode{~f}, output an exact or floating point number, but do so
+according to the current locale, or according to the given locale object
+when the @code{:} modifier is used (@pxref{Number Input and Output,
+@code{number->locale-string}}).
+
+@example
+(format #t "~h" 12345.5678)  ; with "C" as the current locale
+@print{} 12345.5678
+
+(format #t "~14,,'*:h" 12345.5678
+        (make-locale LC_ALL "en_US"))
+@print{} ***12,345.5678
+
+(format #t "~,2:h" 12345.5678
+        (make-locale LC_NUMERIC "fr_FR"))
+@print{} 12 345,56
 @end example
 
 @item @nicode{~e}

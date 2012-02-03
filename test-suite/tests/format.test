@@ -1,7 +1,7 @@
 ;;;; format.test --- test suite for Guile's CL-ish format  -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 
 (define-module (test-format)
   #:use-module (test-suite lib)
+  #:use-module (ice-9 i18n)
   #:use-module (ice-9 format))
 
 
@@ -95,6 +96,31 @@
   ;; stripped, moving the decimal point and giving "25.0" here
   (pass-if "string 02.5"
     (string=? "2.5" (format #f "~f" "02.5"))))
+
+;;;
+;;; ~h
+;;;
+
+(setlocale LC_ALL "C")
+(with-test-prefix "~h localized number"
+
+  (pass-if "1234.5"
+    (string=? (format #f "~h" 1234.5) "1234.5"))
+
+  (pass-if "padding"
+    (string=? (format #f "~6h" 123.2) " 123.2"))
+
+  (pass-if "padchar"
+    (string=? (format #f "~8,,'*h" 123.2) "***123.2"))
+
+  (pass-if "decimals"
+    (string=? (format #f "~,2h" 123.4567)
+              "123.45"))
+
+  (pass-if "locale"
+    (string=? (format #f "~,3:h, ~a" 1234.5678
+                      %global-locale "approximately")
+              "1234.567, approximately")))
 
 ;;;
 ;;; ~{

@@ -1,5 +1,5 @@
 ;;;; "format.scm" Common LISP text output formatter for SLIB
-;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,7 @@
 
 (define-module (ice-9 format)
   #:autoload (ice-9 pretty-print) (pretty-print truncated-print)
+  #:autoload (ice-9 i18n)         (%global-locale number->locale-string)
   #:replace (format))
 
 (define format:version "3.0")
@@ -271,6 +272,24 @@
                    (anychar-dispatch))
                   ((#\D)                ; Decimal
                    (format:out-num-padded modifier (next-arg) params 10)
+                   (anychar-dispatch))
+                  ((#\H)                ; Localized number
+                   (let* ((num      (next-arg))
+                          (locale   (case modifier
+                                      ((colon) (next-arg))
+                                      (else    %global-locale)))
+                          (argc     (length params))
+                          (width    (format:par params argc 0 #f "width"))
+                          (decimals (format:par params argc 1 #t "decimals"))
+                          (padchar  (integer->char
+                                     (format:par params argc 2 format:space-ch
+                                                 "padchar")))
+                          (str      (number->locale-string num decimals
+                                                           locale)))
+                     (format:out-str (if (and width
+                                              (< (string-length str) width))
+                                         (string-pad str width padchar)
+                                         str)))
                    (anychar-dispatch))
                   ((#\X)                ; Hexadecimal
                    (format:out-num-padded modifier (next-arg) params 16)

@@ -18,9 +18,10 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite i18n)
-  :use-module (ice-9 i18n)
-  :use-module (srfi srfi-1)
-  :use-module (test-suite lib))
+  #:use-module (ice-9 i18n)
+  #:use-module (ice-9 format)
+  #:use-module (srfi srfi-1)
+  #:use-module (test-suite lib))
 
 ;; Start from a pristine locale state.
 (setlocale LC_ALL "C")
@@ -94,6 +95,9 @@
 (define %greek-utf8-locale-name
   "el_GR.UTF-8")
 
+(define %american-english-locale-name
+  "en_US")
+
 (define %french-locale
   (false-if-exception
    (make-locale (list LC_CTYPE LC_COLLATE LC_NUMERIC LC_TIME)
@@ -118,6 +122,11 @@
   (false-if-exception
    (make-locale LC_ALL
                 %turkish-utf8-locale-name)))
+
+(define %american-english-locale
+  (false-if-exception
+   (make-locale LC_ALL
+                %american-english-locale-name)))
 
 (define (under-locale-or-unresolved locale thunk)
   ;; On non-GNU systems, an exception may be raised only when the locale is
@@ -152,6 +161,10 @@
 
 (define (under-greek-utf8-locale-or-unresolved thunk)
   (under-locale-or-unresolved %greek-utf8-locale thunk))
+
+(define (under-american-english-locale-or-unresolved thunk)
+  (under-locale-or-unresolved %american-english-locale thunk))
+
 
 (with-test-prefix "text collation (French)"
 
@@ -479,6 +492,25 @@
          (let ((fr (make-locale LC_ALL %french-locale-name)))
            (string=? "1 234,5"
                      (number->locale-string 1234.567 1 fr))))))))
+
+(with-test-prefix "format ~h"
+
+  (with-test-prefix "French"
+
+    (pass-if "12345.5678"
+      (under-french-locale-or-unresolved
+       (lambda ()
+         (string=? "12 345,6789"
+                   (format #f "~:h" 12345.6789 %french-locale))))))
+
+  (with-test-prefix "English"
+
+    (pass-if "12345.5678"
+      (under-american-english-locale-or-unresolved
+       (lambda ()
+         (string=? "12,345.6789"
+                   (format #f "~:h" 12345.6789
+                           %american-english-locale)))))))
 
 (with-test-prefix "monetary-amount->locale-string"
 
