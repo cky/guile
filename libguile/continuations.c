@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -71,36 +71,35 @@ static scm_t_bits tc16_continuation;
 #define META_HEADER(meta)         meta, 0, 0, 0, 0,      0, 0, 0
 #endif
 
-#define ALIGN_PTR(type,p,align) (type*)(ROUND_UP (((scm_t_bits)p), align))
+#define OBJCODE_TAG SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_STATIC, 0)
 
-#ifdef SCM_ALIGNED
+#if defined (SCM_ALIGNED) && 0
 #define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)     \
 static const type sym[]
 #define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)  \
 static SCM_ALIGNED (alignment) const type sym[]
-#else
-#define SCM_DECLARE_STATIC_ALIGNED_ARRAY(type, sym)     \
-static type *sym
-#define SCM_STATIC_ALIGNED_ARRAY(alignment, type, sym)                  \
-SCM_SNARF_INIT(sym = scm_malloc_pointerless (sizeof(sym##__unaligned)); \
-               memcpy (sym, sym##__unaligned, sizeof(sym##__unaligned));) \
-static type *sym = NULL;                                                \
-static const type sym##__unaligned[]
-#endif
-
-#define STATIC_OBJCODE_TAG                                      \
-  SCM_PACK (SCM_MAKE_OBJCODE_TAG (SCM_OBJCODE_TYPE_STATIC, 0))
-
 #define SCM_STATIC_OBJCODE(sym)                                         \
   SCM_DECLARE_STATIC_ALIGNED_ARRAY (scm_t_uint8, sym##__bytecode);      \
   SCM_STATIC_ALIGNED_ARRAY (8, scm_t_cell, sym##__cells) = {            \
-    { STATIC_OBJCODE_TAG, SCM_PACK (sym##__bytecode) },                 \
+    { SCM_PACK (OBJCODE_TAG), SCM_PACK (sym##__bytecode) },             \
     { SCM_BOOL_F, SCM_PACK (0) }                                        \
   };                                                                    \
   static const SCM sym = SCM_PACK (sym##__cells);                       \
   SCM_STATIC_ALIGNED_ARRAY (8, scm_t_uint8, sym##__bytecode)
+#else
+#define SCM_STATIC_OBJCODE(sym)                                         \
+static SCM sym;                                                         \
+static scm_t_uint8 *sym##_bytecode;                                     \
+SCM_SNARF_INIT(sym##_bytecode = scm_gc_malloc_pointerless (sizeof(sym##_bytecode__unaligned), "partial continuation stub"); \
+               memcpy (sym##_bytecode, sym##_bytecode__unaligned, sizeof(sym##_bytecode__unaligned));) \
+SCM_SNARF_INIT(sym = scm_double_cell (OBJCODE_TAG,                      \
+                                      (scm_t_bits)sym##_bytecode,       \
+                                      SCM_UNPACK (SCM_BOOL_F),          \
+                                      0);)                              \
+static const scm_t_uint8 sym##_bytecode__unaligned[]
+#endif
 
-  
+
 SCM_STATIC_OBJCODE (cont_objcode) = {
   /* This code is the same as in gsubr.c, except we use continuation_call
      instead of subr_call. */
