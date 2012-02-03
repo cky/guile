@@ -101,7 +101,7 @@
 ;;;
 
 ;; Helper macro: Define a procedure named NAME that maps its argument to
-;; NL-ITEMS (when `nl-langinfo' is provided).
+;; NL-ITEMS.  Gnulib guarantees that these items are available.
 (define-macro (define-vector-langinfo-mapping name nl-items)
   (let* ((item-count (length nl-items))
          (defines   `(define %nl-items (vector #f ,@nl-items)))
@@ -136,33 +136,39 @@
 ;;;
 
 ;; Define a procedure NAME that gets langinfo item ITEM.  Gnulib's
-;; `nl_langinfo' guarantees that all these items are supported.
-(define-syntax-rule (define-simple-langinfo-mapping name item)
-  (define* (name #:optional (locale %global-locale))
-    (nl-langinfo item locale)))
+;; `nl_langinfo' does not guarantee that all these items are supported
+;; (for instance, `GROUPING' is lacking on Darwin and Gnulib provides no
+;; replacement), so use DEFAULT as the default value when ITEM is not
+;; available.
+(define-macro (define-simple-langinfo-mapping name item default)
+  (let ((body (if (defined? item)
+                  `(apply nl-langinfo ,item locale)
+                  default)))
+    `(define (,name . locale)
+       ,body)))
 
 (define-simple-langinfo-mapping locale-am-string
-  AM_STR)
+  AM_STR "AM")
 (define-simple-langinfo-mapping locale-pm-string
-  PM_STR)
+  PM_STR "PM")
 (define-simple-langinfo-mapping locale-date+time-format
-  D_T_FMT)
+  D_T_FMT "%a %b %e %H:%M:%S %Y")
 (define-simple-langinfo-mapping locale-date-format
-  D_FMT)
+  D_FMT   "%m/%d/%y")
 (define-simple-langinfo-mapping locale-time-format
-  T_FMT)
+  T_FMT   "%H:%M:%S")
 (define-simple-langinfo-mapping locale-time+am/pm-format
-  T_FMT_AMPM)
+  T_FMT_AMPM "%I:%M:%S %p")
 (define-simple-langinfo-mapping locale-era
-  ERA)
+  ERA        "")
 (define-simple-langinfo-mapping locale-era-year
-  ERA_YEAR)
+  ERA_YEAR   "")
 (define-simple-langinfo-mapping locale-era-date+time-format
-  ERA_D_T_FMT)
+  ERA_D_T_FMT "")
 (define-simple-langinfo-mapping locale-era-date-format
-  ERA_D_FMT)
+  ERA_D_FMT   "")
 (define-simple-langinfo-mapping locale-era-time-format
-  ERA_T_FMT)
+  ERA_T_FMT   "")
 
 
 
@@ -198,15 +204,15 @@
   2                  2)
 
 (define-simple-langinfo-mapping locale-monetary-positive-sign
-  POSITIVE_SIGN)
+  POSITIVE_SIGN        "+")
 (define-simple-langinfo-mapping locale-monetary-negative-sign
-  NEGATIVE_SIGN)
+  NEGATIVE_SIGN        "-")
 (define-simple-langinfo-mapping locale-monetary-decimal-point
-  MON_DECIMAL_POINT)
+  MON_DECIMAL_POINT    "")
 (define-simple-langinfo-mapping locale-monetary-thousands-separator
-  MON_THOUSANDS_SEP)
+  MON_THOUSANDS_SEP    "")
 (define-simple-langinfo-mapping locale-monetary-digit-grouping
-  MON_GROUPING)
+  MON_GROUPING         '())
 
 (define-monetary-langinfo-mapping locale-currency-symbol-precedes-positive?
   P_CS_PRECEDES       INT_P_CS_PRECEDES
@@ -352,11 +358,11 @@ locale is used."
 ;;;
 
 (define-simple-langinfo-mapping locale-digit-grouping
-  GROUPING)
+  GROUPING             '())
 (define-simple-langinfo-mapping locale-decimal-point
-  RADIXCHAR)
+  RADIXCHAR            ".")
 (define-simple-langinfo-mapping locale-thousands-separator
-  THOUSEP)
+  THOUSEP              "")
 
 (define* (number->locale-string number
                                 #:optional (fraction-digits #t)
@@ -402,9 +408,9 @@ number of fractional digits to be displayed."
 ;;;
 
 (define-simple-langinfo-mapping locale-yes-regexp
-  YESEXPR)
+  YESEXPR              "^[yY]")
 (define-simple-langinfo-mapping locale-no-regexp
-  NOEXPR)
+  NOEXPR               "^[nN]")
 
 ;; `YESSTR' and `NOSTR' are considered deprecated so we don't provide them.
 
