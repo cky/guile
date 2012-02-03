@@ -5,7 +5,7 @@ dnl
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
 Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -656,7 +656,7 @@ AC_SUBST([SCM_I_GSC_HAVE_STRUCT_DIRENT64])
 #   sched.h - missing on MinGW
 #
 AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h memory.h process.h string.h \
-regex.h rxposix.h rx/rxposix.h sys/dir.h sys/ioctl.h sys/select.h \
+sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
 direct.h langinfo.h nl_types.h machine/fpu.h poll.h sched.h])
@@ -1112,24 +1112,8 @@ if test $guile_cv_localtime_cache = yes; then
 fi
 
 if test "$enable_regex" = yes; then
-   if test "$ac_cv_header_regex_h" = yes ||
-      test "$ac_cv_header_rxposix_h" = yes ||
-      test "$ac_cv_header_rx_rxposix_h" = yes; then
-     GUILE_NAMED_CHECK_FUNC(regcomp, norx, [AC_LIBOBJ([regex-posix])],
-     [AC_CHECK_LIB(rx, main)
-      GUILE_NAMED_CHECK_FUNC(regcomp, rx, [AC_LIBOBJ([regex-posix])],
-     [AC_CHECK_LIB(regex, main)
-      GUILE_NAMED_CHECK_FUNC(regcomp, regex, [AC_LIBOBJ([regex-posix])])])]
-     )
-     dnl The following should not be necessary, but for some reason
-     dnl autoheader misses it if we don't include it!
-     if test "$ac_cv_func_regcomp_norx" = yes ||
-        test "$ac_cv_func_regcomp_regex" = yes ||
-        test "$ac_cv_func_regcomp_rx" = yes; then
-       AC_DEFINE([HAVE_REGCOMP], 1,
-         [This is included as part of a workaround for a autoheader bug.])
-     fi
-   fi
+   AC_LIBOBJ([regex-posix])
+   AC_DEFINE([ENABLE_REGEX], 1, [Define when regex support is enabled.])
 fi
 
 AC_REPLACE_FUNCS([strerror memmove mkstemp])

@@ -48,6 +48,7 @@ AC_DEFUN([gl_EARLY],
   AB_INIT
   # Code from module binary-io:
   # Code from module bind:
+  # Code from module btowc:
   # Code from module byteswap:
   # Code from module c-ctype:
   # Code from module c-strcase:
@@ -108,6 +109,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module isnand-nolibm:
   # Code from module isnanf:
   # Code from module isnanl:
+  # Code from module langinfo:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
   # Code from module ldexp:
@@ -124,12 +126,16 @@ AC_DEFUN([gl_EARLY],
   # Code from module malloc-posix:
   # Code from module malloca:
   # Code from module math:
+  # Code from module mbrtowc:
+  # Code from module mbsinit:
+  # Code from module mbtowc:
   # Code from module memchr:
   # Code from module msvc-inval:
   # Code from module msvc-nothrow:
   # Code from module multiarch:
   # Code from module netdb:
   # Code from module netinet_in:
+  # Code from module nl_langinfo:
   # Code from module nocrash:
   # Code from module nproc:
   # Code from module open:
@@ -141,6 +147,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module readlink:
   # Code from module recv:
   # Code from module recvfrom:
+  # Code from module regex:
   # Code from module rename:
   # Code from module rmdir:
   # Code from module safe-read:
@@ -173,9 +180,12 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdint:
   # Code from module stdio:
   # Code from module stdlib:
+  # Code from module strcase:
+  # Code from module streq:
   # Code from module strftime:
   # Code from module striconveh:
   # Code from module string:
+  # Code from module strings:
   # Code from module sys_file:
   # Code from module sys_socket:
   # Code from module sys_stat:
@@ -200,6 +210,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module vsnprintf:
   # Code from module warnings:
   # Code from module wchar:
+  # Code from module wcrtomb:
+  # Code from module wctype-h:
   # Code from module write:
   # Code from module xsize:
 ])
@@ -231,6 +243,12 @@ if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([bind])
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([bind])
+gl_FUNC_BTOWC
+if test $HAVE_BTOWC = 0 || test $REPLACE_BTOWC = 1; then
+  AC_LIBOBJ([btowc])
+  gl_PREREQ_BTOWC
+fi
+gl_WCHAR_MODULE_INDICATOR([btowc])
 gl_BYTESWAP
 gl_CANONICALIZE_LGPL
 if test $HAVE_CANONICALIZE_FILE_NAME = 0 || test $REPLACE_CANONICALIZE_FILE_NAME = 1; then
@@ -406,6 +424,7 @@ if test $HAVE_ISNANL = 0 || test $REPLACE_ISNAN = 1; then
   gl_PREREQ_ISNANL
 fi
 gl_MATH_MODULE_INDICATOR([isnanl])
+gl_LANGINFO_H
 gl_FUNC_LDEXP
 gl_LD_VERSION_SCRIPT
 gl_VISIBILITY
@@ -440,6 +459,24 @@ fi
 gl_STDLIB_MODULE_INDICATOR([malloc-posix])
 gl_MALLOCA
 gl_MATH_H
+gl_FUNC_MBRTOWC
+if test $HAVE_MBRTOWC = 0 || test $REPLACE_MBRTOWC = 1; then
+  AC_LIBOBJ([mbrtowc])
+  gl_PREREQ_MBRTOWC
+fi
+gl_WCHAR_MODULE_INDICATOR([mbrtowc])
+gl_FUNC_MBSINIT
+if test $HAVE_MBSINIT = 0 || test $REPLACE_MBSINIT = 1; then
+  AC_LIBOBJ([mbsinit])
+  gl_PREREQ_MBSINIT
+fi
+gl_WCHAR_MODULE_INDICATOR([mbsinit])
+gl_FUNC_MBTOWC
+if test $REPLACE_MBTOWC = 1; then
+  AC_LIBOBJ([mbtowc])
+  gl_PREREQ_MBTOWC
+fi
+gl_STDLIB_MODULE_INDICATOR([mbtowc])
 gl_FUNC_MEMCHR
 if test $HAVE_MEMCHR = 0 || test $REPLACE_MEMCHR = 1; then
   AC_LIBOBJ([memchr])
@@ -458,6 +495,11 @@ gl_MULTIARCH
 gl_HEADER_NETDB
 gl_HEADER_NETINET_IN
 AC_PROG_MKDIR_P
+gl_FUNC_NL_LANGINFO
+if test $HAVE_NL_LANGINFO = 0 || test $REPLACE_NL_LANGINFO = 1; then
+  AC_LIBOBJ([nl_langinfo])
+fi
+gl_LANGINFO_MODULE_INDICATOR([nl_langinfo])
 gl_NPROC
 gl_FUNC_OPEN
 if test $REPLACE_OPEN = 1; then
@@ -501,6 +543,11 @@ if test "$ac_cv_header_winsock2_h" = yes; then
   AC_LIBOBJ([recvfrom])
 fi
 gl_SYS_SOCKET_MODULE_INDICATOR([recvfrom])
+gl_REGEX
+if test $ac_use_included_regex = yes; then
+  AC_LIBOBJ([regex])
+  gl_PREREQ_REGEX
+fi
 gl_FUNC_RENAME
 if test $REPLACE_RENAME = 1; then
   AC_LIBOBJ([rename])
@@ -576,12 +623,22 @@ gl_STDDEF_H
 gl_STDINT_H
 gl_STDIO_H
 gl_STDLIB_H
+gl_STRCASE
+if test $HAVE_STRCASECMP = 0; then
+  AC_LIBOBJ([strcasecmp])
+  gl_PREREQ_STRCASECMP
+fi
+if test $HAVE_STRNCASECMP = 0; then
+  AC_LIBOBJ([strncasecmp])
+  gl_PREREQ_STRNCASECMP
+fi
 gl_FUNC_GNU_STRFTIME
 if test $gl_cond_libtool = false; then
   gl_ltlibdeps="$gl_ltlibdeps $LTLIBICONV"
   gl_libdeps="$gl_libdeps $LIBICONV"
 fi
 gl_HEADER_STRING_H
+gl_HEADER_STRINGS_H
 gl_HEADER_SYS_FILE_H
 AC_PROG_MKDIR_P
 gl_HEADER_SYS_SOCKET
@@ -623,6 +680,13 @@ gl_FUNC_VSNPRINTF
 gl_STDIO_MODULE_INDICATOR([vsnprintf])
 AC_SUBST([WARN_CFLAGS])
 gl_WCHAR_H
+gl_FUNC_WCRTOMB
+if test $HAVE_WCRTOMB = 0 || test $REPLACE_WCRTOMB = 1; then
+  AC_LIBOBJ([wcrtomb])
+  gl_PREREQ_WCRTOMB
+fi
+gl_WCHAR_MODULE_INDICATOR([wcrtomb])
+gl_WCTYPE_H
 gl_FUNC_WRITE
 if test $REPLACE_WRITE = 1; then
   AC_LIBOBJ([write])
@@ -789,6 +853,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/basename-lgpl.c
   lib/binary-io.h
   lib/bind.c
+  lib/btowc.c
   lib/byteswap.in.h
   lib/c-ctype.c
   lib/c-ctype.h
@@ -847,6 +912,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/isnanf.c
   lib/isnanl.c
   lib/itold.c
+  lib/langinfo.in.h
   lib/libunistring.valgrind
   lib/listen.c
   lib/localcharset.c
@@ -858,6 +924,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/malloca.h
   lib/malloca.valgrind
   lib/math.in.h
+  lib/mbrtowc.c
+  lib/mbsinit.c
+  lib/mbtowc-impl.h
+  lib/mbtowc.c
   lib/memchr.c
   lib/memchr.valgrind
   lib/msvc-inval.c
@@ -866,6 +936,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/msvc-nothrow.h
   lib/netdb.in.h
   lib/netinet_in.in.h
+  lib/nl_langinfo.c
   lib/nproc.c
   lib/nproc.h
   lib/open.c
@@ -883,6 +954,12 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/recvfrom.c
   lib/ref-add.sin
   lib/ref-del.sin
+  lib/regcomp.c
+  lib/regex.c
+  lib/regex.h
+  lib/regex_internal.c
+  lib/regex_internal.h
+  lib/regexec.c
   lib/rename.c
   lib/rmdir.c
   lib/safe-read.c
@@ -909,12 +986,16 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdint.in.h
   lib/stdio.in.h
   lib/stdlib.in.h
+  lib/strcasecmp.c
+  lib/streq.h
   lib/strftime.c
   lib/strftime.h
   lib/striconveh.c
   lib/striconveh.h
   lib/string.in.h
+  lib/strings.in.h
   lib/stripslash.c
+  lib/strncasecmp.c
   lib/sys_file.in.h
   lib/sys_socket.in.h
   lib/sys_stat.in.h
@@ -941,6 +1022,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/vsnprintf.c
   lib/w32sock.h
   lib/wchar.in.h
+  lib/wcrtomb.c
+  lib/wctype.in.h
   lib/write.c
   lib/xsize.h
   m4/00gnulib.m4
@@ -948,6 +1031,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/alloca.m4
   m4/arpa_inet_h.m4
   m4/autobuild.m4
+  m4/btowc.m4
   m4/byteswap.m4
   m4/canonicalize.m4
   m4/ceil.m4
@@ -995,6 +1079,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/isnand.m4
   m4/isnanf.m4
   m4/isnanl.m4
+  m4/langinfo_h.m4
   m4/largefile.m4
   m4/ld-version-script.m4
   m4/ldexp.m4
@@ -1004,6 +1089,9 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/libunistring-base.m4
   m4/libunistring.m4
   m4/localcharset.m4
+  m4/locale-fr.m4
+  m4/locale-ja.m4
+  m4/locale-zh.m4
   m4/locale_h.m4
   m4/longlong.m4
   m4/lstat.m4
@@ -1011,6 +1099,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/malloca.m4
   m4/math_h.m4
   m4/mathfunc.m4
+  m4/mbrtowc.m4
+  m4/mbsinit.m4
+  m4/mbstate_t.m4
+  m4/mbtowc.m4
   m4/memchr.m4
   m4/mmap-anon.m4
   m4/mode_t.m4
@@ -1019,6 +1111,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/multiarch.m4
   m4/netdb_h.m4
   m4/netinet_in_h.m4
+  m4/nl_langinfo.m4
   m4/nocrash.m4
   m4/nproc.m4
   m4/open.m4
@@ -1029,6 +1122,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/raise.m4
   m4/read.m4
   m4/readlink.m4
+  m4/regex.m4
   m4/rename.m4
   m4/rmdir.m4
   m4/safe-read.m4
@@ -1052,8 +1146,10 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdint_h.m4
   m4/stdio_h.m4
   m4/stdlib_h.m4
+  m4/strcase.m4
   m4/strftime.m4
   m4/string_h.m4
+  m4/strings_h.m4
   m4/sys_file_h.m4
   m4/sys_socket_h.m4
   m4/sys_stat_h.m4
@@ -1072,6 +1168,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/warnings.m4
   m4/wchar_h.m4
   m4/wchar_t.m4
+  m4/wcrtomb.m4
+  m4/wctype_h.m4
   m4/wint_t.m4
   m4/write.m4
   m4/xsize.m4

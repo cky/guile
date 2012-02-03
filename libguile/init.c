@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+ *   2004, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -91,7 +92,7 @@
 #include "libguile/poll.h"
 #include "libguile/ports.h"
 #include "libguile/posix.h"
-#ifdef HAVE_REGCOMP
+#ifdef ENABLE_REGEX
 #include "libguile/regex-posix.h"
 #endif
 #include "libguile/print.h"
@@ -453,7 +454,7 @@ scm_i_init_guile (void *base)
 #ifdef HAVE_POSIX
   scm_init_posix ();
 #endif
-#ifdef HAVE_REGCOMP
+#ifdef ENABLE_REGEX
   scm_init_regex_posix (); /* Requires smob_prehistory */
 #endif
   scm_init_procs ();

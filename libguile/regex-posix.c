@@ -1,4 +1,4 @@
-/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010, 2011 Free Software Foundation, Inc.
+/*	Copyright (C) 1997, 1998, 1999, 2000, 2001, 2004, 2006, 2007, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -35,23 +35,7 @@
 
 #include "libguile/_scm.h"
 
-/* Supposedly, this file is never compiled unless we know we have
-   POSIX regular expressions.  But we still put this in an #ifdef so
-   the file is CPP'able (for dependency scanning) even on systems that
-   don't have a <regex.h> header.  */
-#ifdef HAVE_REGCOMP
-#ifdef HAVE_REGEX_H
 #include <regex.h>
-#else
-#ifdef HAVE_RXPOSIX_H
-#include <rxposix.h>		/* GNU Rx library */
-#else
-#ifdef HAVE_RX_RXPOSIX_H
-#include <rx/rxposix.h>		/* GNU Rx library on Linux */
-#endif
-#endif
-#endif
-#endif
 
 #ifdef HAVE_WCHAR_H
 #include <wchar.h>
