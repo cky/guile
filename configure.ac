@@ -652,24 +652,13 @@ AC_SUBST([SCM_I_GSC_HAVE_STRUCT_DIRENT64])
 #   machine/fpu.h - on Tru64 5.1b, the declaration of fesetround(3) is in
 #     this file instead of <fenv.h>
 #   process.h - mingw specific
-#   langinfo.h, nl_types.h - SuS v2
 #   sched.h - missing on MinGW
 #
 AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h memory.h process.h string.h \
 sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
-direct.h langinfo.h nl_types.h machine/fpu.h poll.h sched.h])
-
-# Reasons for testing:
-#   nl_item - lacking on Cygwin
-AC_CHECK_TYPES([nl_item], [], [],
-  [[#ifdef HAVE_LANGINFO_H
-    # include <langinfo.h>
-    #endif
-    #ifdef HAVE_NL_TYPES_H
-    # include <nl_types.h>
-    #endif]])
+direct.h machine/fpu.h poll.h sched.h])
 
 # "complex double" is new in C99, and "complex" is only a keyword if
 # <complex.h> is included
@@ -764,11 +753,10 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   isblank - available as a GNU extension or in C99
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
-#   nl_langinfo - X/Open, not available on Windows.
 #   utimensat: posix.1-2008
 #   sched_getaffinity, sched_setaffinity: GNU extensions (glibc)
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe poll readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale nl_langinfo utimensat sched_getaffinity sched_setaffinity])
+AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe poll readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale utimensat sched_getaffinity sched_setaffinity])
 
 # Reasons for testing:
 #   netdb.h - not in mingw

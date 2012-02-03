@@ -59,16 +59,8 @@
 
 #include "libguile/posix.h"  /* for `scm_i_locale_mutex' */
 
-#ifdef HAVE_LANGINFO_H
-# include <langinfo.h>
-#endif
-#ifdef HAVE_NL_TYPES_H
-# include <nl_types.h>
-#endif
-#ifndef HAVE_NL_ITEM
-/* Cygwin has <langinfo.h> but lacks <nl_types.h> and `nl_item'.  */
-typedef int nl_item;
-#endif
+/* Use Gnulib's header, which also provides `nl_item' & co.  */
+#include <langinfo.h>
 
 #ifndef HAVE_SETLOCALE
 static inline char *
@@ -223,7 +215,7 @@ SCM_GLOBAL_VARIABLE (scm_global_locale, "%global-locale");
 #define SCM_VALIDATE_OPTIONAL_LOCALE_COPY(_pos, _arg, _c_locale)	\
   do									\
     {									\
-      if (!scm_is_eq ((_arg), SCM_UNDEFINED))                           \
+      if (!SCM_UNBNDP (_arg))						\
 	SCM_VALIDATE_LOCALE_COPY (_pos, _arg, _c_locale);		\
       else								\
 	(_c_locale) = NULL;						\
@@ -1481,14 +1473,11 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	    "Reference Manual}).")
 #define FUNC_NAME s_scm_nl_langinfo
 {
-#ifdef HAVE_NL_LANGINFO
   SCM result;
   nl_item c_item;
   char *c_result;
   scm_t_locale c_locale;
-#ifdef HAVE_LANGINFO_CODESET
   char *codeset;
-#endif
 
   SCM_VALIDATE_INT_COPY (2, item, c_item);
   SCM_VALIDATE_OPTIONAL_LOCALE_COPY (2, locale, c_locale);
@@ -1505,9 +1494,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
     {
 #ifdef USE_GNU_LOCALE_API
       c_result = nl_langinfo_l (c_item, c_locale);
-#ifdef HAVE_LANGINFO_CODESET
       codeset = nl_langinfo_l (CODESET, c_locale);
-#endif /* HAVE_LANGINFO_CODESET */
 #else /* !USE_GNU_LOCALE_API */
       /* We can't use `RUN_IN_LOCALE_SECTION ()' here because the locale
 	 mutex is already taken.  */
@@ -1532,9 +1519,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
       else
 	{
 	  c_result = nl_langinfo (c_item);
-#ifdef HAVE_LANGINFO_CODESET
           codeset = nl_langinfo (CODESET);
-#endif /* HAVE_LANGINFO_CODESET */
 
 	  restore_locale_settings (&lsec_prev_locale);
 	  free_locale_settings (&lsec_prev_locale);
@@ -1544,9 +1529,7 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
   else
     {
       c_result = nl_langinfo (c_item);
-#ifdef HAVE_LANGINFO_CODESET
       codeset = nl_langinfo (CODESET);
-#endif /* HAVE_LANGINFO_CODESET */
     }
 
   c_result = strdup (c_result);
@@ -1659,26 +1642,14 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 #endif
 
 	default:
-#ifdef HAVE_LANGINFO_CODESET
           result = scm_from_stringn (c_result, strlen (c_result),
                                      codeset,
                                      SCM_FAILED_CONVERSION_QUESTION_MARK);
-#else /* !HAVE_LANGINFO_CODESET */
-          /* This may be incorrectly encoded if the locale differs
-             from the c_locale.  */
-          result = scm_from_locale_string (c_result);
-#endif /* !HAVE_LANGINFO_CODESET */
           free (c_result);
 	}
     }
 
   return result;
-#else
-  scm_syserror_msg (FUNC_NAME, "`nl-langinfo' not supported on your system",
-		    SCM_EOL, ENOSYS);
-
-  return SCM_BOOL_F;
-#endif
 }
 #undef FUNC_NAME
 
@@ -1686,8 +1657,6 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 static inline void
 define_langinfo_items (void)
 {
-#ifdef HAVE_LANGINFO_H
-
 #define DEFINE_NLITEM_CONSTANT(_item)		\
   scm_c_define (# _item, scm_from_int (_item))
 
@@ -1852,8 +1821,6 @@ define_langinfo_items (void)
 #endif
 
 #undef DEFINE_NLITEM_CONSTANT
-
-#endif /* HAVE_NL_TYPES_H */
 }
 
 
@@ -1862,10 +1829,8 @@ scm_init_i18n ()
 {
   SCM global_locale_smob;
 
-#ifdef HAVE_NL_LANGINFO
   scm_add_feature ("nl-langinfo");
   define_langinfo_items ();
-#endif
 
 #include "libguile/i18n.x"
 
