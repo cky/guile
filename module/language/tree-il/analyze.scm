@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1328,6 +1328,12 @@ accurate information is missing from a given `tree-il' element."
               ;; We don't have enough info to determine the exact number
               ;; of args, but we could determine a lower bound (TODO).
               (values 'any 'any))
+             ((#\h #\H)
+                        (let ((argc (if (memq #\: params) 2 1)))
+                          (loop (cdr chars) 'literal '()
+                                conditions end-group
+                                (+ argc min-count)
+                                (+ argc max-count))))
              (else      (loop (cdr chars) 'literal '()
                               conditions end-group
                               (+ 1 min-count) (+ 1 max-count)))))

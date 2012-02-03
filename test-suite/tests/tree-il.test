@@ -2243,6 +2243,32 @@
               (number? (string-contains (car w)
                                         "expected 1, got 2")))))
 
+     (pass-if "~h"
+       (null? (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #t
+                              "foo ~h ~a~%" 123.4 'bar)
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+
+     (pass-if "~:h with locale object"
+       (null? (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #t
+                              "foo ~:h~%" 123.4 %global-locale)
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+
+     (pass-if "~:h without locale object"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #t "foo ~,2:h" 123.4)
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 2, got 1")))))
+
      (with-test-prefix "conditionals"
        (pass-if "literals"
         (null? (call-with-warnings
