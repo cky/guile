@@ -495,22 +495,30 @@
 
 (with-test-prefix "format ~h"
 
+  ;; Some systems like Darwin lack the `GROUPING' nl_item, and thus
+  ;; `locale-digit-grouping' defaults to '(); skip the tests in that
+  ;; case.
+
   (with-test-prefix "French"
 
     (pass-if "12345.5678"
       (under-french-locale-or-unresolved
        (lambda ()
-         (string=? "12 345,6789"
-                   (format #f "~:h" 12345.6789 %french-locale))))))
+         (if (null? (locale-digit-grouping %french-locale))
+             (throw 'unresolved)
+             (string=? "12 345,6789"
+                       (format #f "~:h" 12345.6789 %french-locale)))))))
 
   (with-test-prefix "English"
 
     (pass-if "12345.5678"
       (under-american-english-locale-or-unresolved
        (lambda ()
-         (string=? "12,345.6789"
-                   (format #f "~:h" 12345.6789
-                           %american-english-locale)))))))
+         (if (null? (locale-digit-grouping %american-english-locale))
+             (throw 'unresolved)
+             (string=? "12,345.6789"
+                       (format #f "~:h" 12345.6789
+                               %american-english-locale))))))))
 
 (with-test-prefix "monetary-amount->locale-string"
 
