@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -78,6 +78,49 @@ extern unsigned long * __libc_ia64_register_backing_store_base;
 
 
 
+
+static void*
+do_realloc (void *from, size_t new_size)
+{
+  scm_gc_register_allocation (new_size);
+  return realloc (from, new_size);
+}
+
+static void*
+do_calloc (size_t n, size_t size)
+{
+  scm_gc_register_allocation (size);
+  return calloc (n, size);
+}
+
+static void*
+do_gc_malloc (size_t size, const char *what)
+{
+  /* Ensure nonzero size to be compatible with always-nonzero return of
+     glibc malloc.  */
+  return GC_MALLOC (size ? size : sizeof (void *));
+}
+
+static void*
+do_gc_malloc_atomic (size_t size, const char *what)
+{
+  return GC_MALLOC_ATOMIC (size ? size : sizeof (void *));
+}
+
+static void*
+do_gc_realloc (void *from, size_t size, const char *what)
+{
+  return GC_REALLOC (from, size ? size : sizeof (void *));
+}
+
+static void
+do_gc_free (void *ptr)
+{
+  GC_FREE (ptr);
+}
+
+
+
 /* Function for non-cell memory management.
  */
 
@@ -86,10 +129,9 @@ scm_realloc (void *mem, size_t size)
 {
   void *ptr;
 
-  scm_gc_register_allocation (size);
+  ptr = do_realloc (mem, size);
 
-  SCM_SYSCALL (ptr = realloc (mem, size));
-  if (ptr)
+  if (ptr || size == 0)
     return ptr;
 
   /* Time is hard: trigger a full, ``stop-the-world'' GC, and try again.  */
@@ -99,7 +141,7 @@ scm_realloc (void *mem, size_t size)
   GC_gcollect ();
 #endif
 
-  SCM_SYSCALL (ptr = realloc (mem, size));
+  ptr = do_realloc (mem, size);
   if (ptr)
     return ptr;
 
@@ -125,8 +167,8 @@ scm_calloc (size_t sz)
     By default, try to use calloc, as it is likely more efficient than
     calling memset by hand.
    */
-  SCM_SYSCALL (ptr = calloc (sz, 1));
-  if (ptr)
+  ptr = do_calloc (sz, 1);
+  if (ptr || sz == 0)
     return ptr;
 
   ptr = scm_realloc (NULL, sz);
@@ -181,57 +223,38 @@ scm_gc_unregister_collectable_memory (void *mem, size_t size, const char *what)
 void *
 scm_gc_malloc_pointerless (size_t size, const char *what)
 {
-  return GC_MALLOC_ATOMIC (size);
+  return do_gc_malloc_atomic (size, what);
 }
 
 void *
 scm_gc_malloc (size_t size, const char *what)
 {
-  void *ptr;
-
-  if (size == 0)
-    /* `GC_MALLOC ()' doesn't handle zero.  */
-    size = sizeof (void *);
-
-  ptr = GC_MALLOC (size);
-
-  return ptr;
+  return do_gc_malloc (size, what);
 }
 
 void *
 scm_gc_calloc (size_t size, const char *what)
 {
   /* `GC_MALLOC ()' always returns a zeroed buffer.  */
-  return scm_gc_malloc (size, what);
+  return do_gc_malloc (size, what);
 }
-
 
 void *
 scm_gc_realloc (void *mem, size_t old_size, size_t new_size, const char *what)
 {
-  void *ptr;
-
-  ptr = GC_REALLOC (mem, new_size);
-
-#ifdef GUILE_DEBUG_MALLOC
-  if (mem)
-    scm_malloc_reregister (mem, ptr, what);
-#endif
-
-  return ptr;
+  return do_gc_realloc (mem, new_size, what);
 }
 
 void
 scm_gc_free (void *mem, size_t size, const char *what)
 {
-  scm_gc_unregister_collectable_memory (mem, size, what);
-  GC_FREE (mem);
+  do_gc_free (mem);
 }
 
 char *
 scm_gc_strndup (const char *str, size_t n, const char *what)
 {
-  char *dst = GC_MALLOC_ATOMIC (n + 1);
+  char *dst = do_gc_malloc_atomic (n + 1, what);
   memcpy (dst, str, n);
   dst[n] = 0;
   return dst;
@@ -309,11 +332,7 @@ scm_must_free (void *obj)
     ("scm_must_free is deprecated.  "
      "Use scm_gc_malloc and scm_gc_free instead.");
 
-#ifdef GUILE_DEBUG_MALLOC
-  scm_malloc_unregister (obj);
-#endif
-
-  GC_FREE (obj);
+  do_gc_free (obj);
 }
 #undef FUNC_NAME
 
