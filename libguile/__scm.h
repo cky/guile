@@ -126,7 +126,8 @@
 
 /* The SCM_ALIGNED macro, when defined, can be used to instruct the compiler
  * to honor the given alignment constraint.  */
-#if defined __GNUC__
+/* Sun Studio supports alignment since Sun Studio 12 */
+#if defined __GNUC__ || (defined( __SUNPRO_C ) && (__SUNPRO_C - 0 >= 0x590))
 # define SCM_ALIGNED(x)  __attribute__ ((aligned (x)))
 #elif defined __INTEL_COMPILER
 # define SCM_ALIGNED(x)  __declspec (align (x))
