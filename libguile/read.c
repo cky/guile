@@ -142,13 +142,13 @@ SCM_DEFINE (scm_read_options, "read-options-interface", 0, 1, 0,
    characters to procedures.  */
 static SCM *scm_i_read_hash_procedures;
 
-static inline SCM
+static SCM
 scm_i_read_hash_procedures_ref (void)
 {
   return scm_fluid_ref (*scm_i_read_hash_procedures);
 }
 
-static inline void
+static void
 scm_i_read_hash_procedures_set_x (SCM value)
 {
   scm_fluid_set_x (*scm_i_read_hash_procedures, value);
@@ -197,7 +197,7 @@ scm_i_read_hash_procedures_set_x (SCM value)
    || ((_chr) == 'd') || ((_chr) == 'l'))
 
 /* Read an SCSH block comment.  */
-static inline SCM scm_read_scsh_block_comment (scm_t_wchar, SCM);
+static SCM scm_read_scsh_block_comment (scm_t_wchar, SCM);
 static SCM scm_read_r6rs_block_comment (scm_t_wchar, SCM);
 static SCM scm_read_commented_expression (scm_t_wchar, SCM);
 static SCM scm_read_shebang (scm_t_wchar, SCM);
@@ -207,7 +207,7 @@ static SCM scm_get_hash_procedure (int);
    result in the pre-allocated buffer BUF.  Return zero if the whole token has
    fewer than BUF_SIZE bytes, non-zero otherwise. READ will be set the number of
    bytes actually read.  */
-static inline int
+static int
 read_token (SCM port, char *buf, const size_t buf_size, size_t *read)
  {
    *read = 0;
@@ -286,7 +286,7 @@ read_complete_token (SCM port, char *buffer, const size_t buffer_size,
 static int
 flush_ws (SCM port, const char *eoferr)
 {
-  register scm_t_wchar c;
+  scm_t_wchar c;
   while (1)
     switch (c = scm_getc (port))
       {
@@ -836,7 +836,7 @@ scm_read_syntax (int chr, SCM port)
   return p;
 }
 
-static inline SCM
+static SCM
 scm_read_nil (int chr, SCM port)
 {
   SCM id = scm_read_mixed_case_symbol (chr, port);
@@ -849,7 +849,7 @@ scm_read_nil (int chr, SCM port)
   return SCM_ELISP_NIL;
 }
   
-static inline SCM
+static SCM
 scm_read_semicolon_comment (int chr, SCM port)
 {
   int c;
@@ -990,7 +990,7 @@ scm_read_character (scm_t_wchar chr, SCM port)
 }
 #undef FUNC_NAME
 
-static inline SCM
+static SCM
 scm_read_keyword (int chr, SCM port)
 {
   SCM symbol;
@@ -1009,7 +1009,7 @@ scm_read_keyword (int chr, SCM port)
   return (scm_symbol_to_keyword (symbol));
 }
 
-static inline SCM
+static SCM
 scm_read_vector (int chr, SCM port)
 {
   /* Note: We call `scm_read_sexp ()' rather than READER here in order to
@@ -1019,7 +1019,7 @@ scm_read_vector (int chr, SCM port)
   return (scm_vector (scm_read_sexp (chr, port)));
 }
 
-static inline SCM
+static SCM
 scm_read_srfi4_vector (int chr, SCM port)
 {
   return scm_i_read_array (port, chr);
@@ -1069,7 +1069,7 @@ scm_read_guile_bit_vector (scm_t_wchar chr, SCM port)
   return scm_bitvector (scm_reverse_x (s_bits, SCM_EOL));
 }
 
-static inline SCM
+static SCM
 scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 {
   int bang_seen = 0;
@@ -1414,7 +1414,7 @@ scm_read_expression (SCM port)
 {
   while (1)
     {
-      register scm_t_wchar chr;
+      scm_t_wchar chr;
 
       chr = scm_getc (port);
 
