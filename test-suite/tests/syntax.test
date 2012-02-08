@@ -648,11 +648,13 @@
 
     (pass-if-syntax-error "missing recipient"
       '(cond . "wrong number of receiver expressions")
-      (cond (#t identity =>)))
+      (eval '(cond (#t identity =>))
+            (interaction-environment)))
 
     (pass-if-syntax-error "extra recipient"
       '(cond . "wrong number of receiver expressions")
-      (cond (#t identity => identity identity))))
+      (eval '(cond (#t identity => identity identity))
+            (interaction-environment))))
 
   (with-test-prefix "bad or missing clauses"
 
@@ -662,43 +664,48 @@
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond #t)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond #t)
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond 1)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond 1)
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond 1 2)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond 1 2)
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond 1 2 3)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond 1 2 3)
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond 1 2 3 4)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond 1 2 3 4)
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond ())"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond ())
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond () 1)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond () 1)
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(cond (1) 1)"
-      exception:generic-syncase-error
+      '(cond . "invalid clause")
       (eval '(cond (1) 1)
+	    (interaction-environment)))
+
+    (pass-if-syntax-error "(cond (else #f) (#t #t))"
+      '(cond . "else must be the last clause")
+      (eval '(cond (else #f) (#t #t))
 	    (interaction-environment))))
 
   (with-test-prefix "wrong number of arguments"
@@ -712,10 +719,46 @@
   (pass-if "clause with empty labels list"
     (case 1 (() #f) (else #t)))
 
+  (with-test-prefix "case handles '=> correctly"
+
+    (pass-if "(1 2 3) => list"
+      (equal? (case 1 ((1 2 3) => list))
+              '(1)))
+
+    (pass-if "else => list"
+      (equal? (case 6
+                ((1 2 3) 'wrong)
+                (else => list))
+              '(6)))
+
+    (with-test-prefix "bound '=> is handled correctly"
+
+      (pass-if "(1) => 'ok"
+        (let ((=> 'foo))
+          (eq? (case 1 ((1) => 'ok)) 'ok)))
+
+      (pass-if "else =>"
+        (let ((=> 'foo))
+          (eq? (case 1 (else =>)) 'foo)))
+
+      (pass-if "else => list"
+        (let ((=> 'foo))
+          (eq? (case 1 (else => identity)) identity))))
+
+    (pass-if-syntax-error "missing recipient"
+      '(case . "wrong number of receiver expressions")
+      (eval '(case 1 ((1) =>))
+            (interaction-environment)))
+
+    (pass-if-syntax-error "extra recipient"
+      '(case . "wrong number of receiver expressions")
+      (eval '(case 1 ((1) => identity identity))
+            (interaction-environment))))
+
   (with-test-prefix "case is hygienic"
 
     (pass-if-syntax-error "bound 'else is handled correctly"
-      exception:generic-syncase-error
+      '(case . "invalid clause")
       (eval '(let ((else #f)) (case 1 (else #f)))
             (interaction-environment))))
 
@@ -742,22 +785,22 @@
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(case 1 \"foo\")"
-      exception:generic-syncase-error
+      '(case . "invalid clause")
       (eval '(case 1 "foo")
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(case 1 ())"
-      exception:generic-syncase-error
+      '(case . "invalid clause")
       (eval '(case 1 ())
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(case 1 (\"foo\"))"
-      exception:generic-syncase-error
+      '(case . "invalid clause")
       (eval '(case 1 ("foo"))
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(case 1 (\"foo\" \"bar\"))"
-      exception:generic-syncase-error
+      '(case . "invalid clause")
       (eval '(case 1 ("foo" "bar"))
 	    (interaction-environment)))
 
@@ -767,7 +810,7 @@
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(case 1 ((2) \"bar\") (else))"
-      exception:generic-syncase-error
+      '(case . "invalid clause")
       (eval '(case 1 ((2) "bar") (else))
 	    (interaction-environment)))
 
@@ -777,7 +820,7 @@
 	    (interaction-environment)))
 
     (pass-if-syntax-error "(case 1 (else #f) ((1) #t))"
-      exception:generic-syncase-error
+      '(case . "else must be the last clause")
       (eval '(case 1 (else #f) ((1) #t))
 	    (interaction-environment)))))
 

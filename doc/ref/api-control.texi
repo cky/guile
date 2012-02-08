@@ -212,16 +212,28 @@ result of the @code{cond}-expression.
 @end deffn
 
 @deffn syntax case key clause1 clause2 @dots{}
-@var{key} may be any expression, the @var{clause}s must have the form
+@var{key} may be any expression, and the @var{clause}s must have the form
 
 @lisp
 ((@var{datum1} @dots{}) @var{expr1} @var{expr2} @dots{})
+@end lisp
+
+or
+
+@lisp
+((@var{datum1} @dots{}) => @var{expression})
 @end lisp
 
 and the last @var{clause} may have the form
 
 @lisp
 (else @var{expr1} @var{expr2} @dots{})
+@end lisp
+
+or
+
+@lisp
+(else => @var{expression})
 @end lisp
 
 All @var{datum}s must be distinct.  First, @var{key} is evaluated.  The
@@ -234,6 +246,11 @@ If the @var{key} matches no @var{datum} and there is an
 @code{else}-clause, the expressions following the @code{else} are
 evaluated.  If there is no such clause, the result of the expression is
 unspecified.
+
+For the @code{=>} clause types, @var{expression} is evaluated and the
+resulting procedure is applied to the value of @var{key}.  The result of
+this procedure application is then the result of the
+@code{case}-expression.
 @end deffn
 
 

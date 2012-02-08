@@ -1156,14 +1156,14 @@
     (case foo
       ((3 2 1) 'a)
       (else 'b))
-    (if (let (t) (_) ((toplevel foo))
-             (if (apply (primitive eqv?) (lexical t _) (const 3))
+    (let (key) (_) ((toplevel foo))
+         (if (if (apply (primitive eqv?) (lexical key _) (const 3))
                  (const #t)
-                 (if (apply (primitive eqv?) (lexical t _) (const 2))
+                 (if (apply (primitive eqv?) (lexical key _) (const 2))
                      (const #t)
-                     (apply (primitive eqv?) (lexical t _) (const 1)))))
-        (const a)
-        (const b)))
+                     (apply (primitive eqv?) (lexical key _) (const 1))))
+             (const a)
+             (const b))))
 
   (pass-if-peval
     ;; Memv with non-constant key, empty list, test context.  Currently
@@ -1171,9 +1171,7 @@
     (case foo
       (() 'a)
       (else 'b))
-    (if (begin (toplevel foo) (const #f))
-        (const a)
-        (const b)))
+    (begin (toplevel foo) (const b)))
 
   ;;
   ;; Below are cases where constant propagation should bail out.

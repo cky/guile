@@ -411,70 +411,150 @@ If there is no handler at all, Guile prints an error and then exits."
     ((_ x) x)
     ((_ x y ...) (let ((t x)) (if t t (or y ...))))))
 
+(include-from-path "ice-9/quasisyntax")
+
 (define-syntax-rule (when test stmt stmt* ...)
   (if test (begin stmt stmt* ...)))
 
 (define-syntax-rule (unless test stmt stmt* ...)
   (if (not test) (begin stmt stmt* ...)))
 
-;; The "maybe-more" bits are something of a hack, so that we can support
-;; SRFI-61. Rewrites into a standalone syntax-case macro would be
-;; appreciated.
 (define-syntax cond
-  (syntax-rules (=> else)
-    ((_ "maybe-more" test consequent)
-     (if test consequent))
-
-    ((_ "maybe-more" test consequent clause ...)
-     (if test consequent (cond clause ...)))
-
-    ((_ (else else1 else2 ...))
-     (begin else1 else2 ...))
-
-    ((_ (test => receiver) more-clause ...)
-     (let ((t test))
-       (cond "maybe-more" t (receiver t) more-clause ...)))
-
-    ((_ (generator guard => receiver) more-clause ...)
-     (call-with-values (lambda () generator)
-       (lambda t
-         (cond "maybe-more"
-               (apply guard t) (apply receiver t) more-clause ...))))
-
-    ((_ (test => receiver ...) more-clause ...)
-     (syntax-violation 'cond "wrong number of receiver expressions"
-                       '(test => receiver ...)))
-    ((_ (generator guard => receiver ...) more-clause ...)
-     (syntax-violation 'cond "wrong number of receiver expressions"
-                       '(generator guard => receiver ...)))
-    
-    ((_ (test) more-clause ...)
-     (let ((t test))
-       (cond "maybe-more" t t more-clause ...)))
-
-    ((_ (test body1 body2 ...) more-clause ...)
-     (cond "maybe-more"
-           test (begin body1 body2 ...) more-clause ...))))
+  (lambda (whole-expr)
+    (define (fold f seed xs)
+      (let loop ((xs xs) (seed seed))
+        (if (null? xs) seed
+            (loop (cdr xs) (f (car xs) seed)))))
+    (define (reverse-map f xs)
+      (fold (lambda (x seed) (cons (f x) seed))
+            '() xs))
+    (syntax-case whole-expr ()
+      ((_ clause clauses ...)
+       #`(begin
+           #,@(fold (lambda (clause-builder tail)
+                      (clause-builder tail))
+                    #'()
+                    (reverse-map
+                     (lambda (clause)
+                       (define* (bad-clause #:optional (msg "invalid clause"))
+                         (syntax-violation 'cond msg whole-expr clause))
+                       (syntax-case clause (=> else)
+                         ((else e e* ...)
+                          (lambda (tail)
+                            (if (null? tail)
+                                #'((begin e e* ...))
+                                (bad-clause "else must be the last clause"))))
+                         ((else . _) (bad-clause))
+                         ((test => receiver)
+                          (lambda (tail)
+                            #`((let ((t test))
+                                 (if t
+                                     (receiver t)
+                                     #,@tail)))))
+                         ((test => receiver ...)
+                          (bad-clause "wrong number of receiver expressions"))
+                         ((generator guard => receiver)
+                          (lambda (tail)
+                            #`((call-with-values (lambda () generator)
+                                 (lambda vals
+                                   (if (apply guard vals)
+                                       (apply receiver vals)
+                                       #,@tail))))))
+                         ((generator guard => receiver ...)
+                          (bad-clause "wrong number of receiver expressions"))
+                         ((test)
+                          (lambda (tail)
+                            #`((let ((t test))
+                                 (if t t #,@tail)))))
+                         ((test e e* ...)
+                          (lambda (tail)
+                            #`((if test
+                                   (begin e e* ...)
+                                   #,@tail))))
+                         (_ (bad-clause))))
+                     #'(clause clauses ...))))))))
 
 (define-syntax case
-  (syntax-rules (else)
-    ((case (key ...)
-       clauses ...)
-     (let ((atom-key (key ...)))
-       (case atom-key clauses ...)))
-    ((case key
-       (else result1 result2 ...))
-     (begin result1 result2 ...))
-    ((case key
-       ((atoms ...) result1 result2 ...))
-     (if (memv key '(atoms ...))
-         (begin result1 result2 ...)))
-    ((case key
-       ((atoms ...) result1 result2 ...)
-       clause clauses ...)
-     (if (memv key '(atoms ...))
-         (begin result1 result2 ...)
-         (case key clause clauses ...)))))
+  (lambda (whole-expr)
+    (define (fold f seed xs)
+      (let loop ((xs xs) (seed seed))
+        (if (null? xs) seed
+            (loop (cdr xs) (f (car xs) seed)))))
+    (define (fold2 f a b xs)
+      (let loop ((xs xs) (a a) (b b))
+        (if (null? xs) (values a b)
+            (call-with-values
+                (lambda () (f (car xs) a b))
+              (lambda (a b)
+                (loop (cdr xs) a b))))))
+    (define (reverse-map-with-seed f seed xs)
+      (fold2 (lambda (x ys seed)
+               (call-with-values
+                   (lambda () (f x seed))
+                 (lambda (y seed)
+                   (values (cons y ys) seed))))
+             '() seed xs))
+    (syntax-case whole-expr ()
+      ((_ expr clause clauses ...)
+       (with-syntax ((key #'key))
+         #`(let ((key expr))
+             #,@(fold
+                 (lambda (clause-builder tail)
+                   (clause-builder tail))
+                 #'()
+                 (reverse-map-with-seed
+                  (lambda (clause seen)
+                    (define* (bad-clause #:optional (msg "invalid clause"))
+                      (syntax-violation 'case msg whole-expr clause))
+                    (syntax-case clause ()
+                      ((test . rest)
+                       (with-syntax
+                           ((clause-expr
+                             (syntax-case #'rest (=>)
+                               ((=> receiver) #'(receiver key))
+                               ((=> receiver ...)
+                                (bad-clause
+                                 "wrong number of receiver expressions"))
+                               ((e e* ...) #'(begin e e* ...))
+                               (_ (bad-clause)))))
+                         (syntax-case #'test (else)
+                           ((datums ...)
+                            (let ((seen
+                                   (fold
+                                    (lambda (datum seen)
+                                      (define (warn-datum type)
+                                        ((@ (system base message)
+                                            warning)
+                                         type
+                                         (append (source-properties datum)
+                                                 (source-properties
+                                                  (syntax->datum #'test)))
+                                         datum
+                                         (syntax->datum clause)
+                                         (syntax->datum whole-expr)))
+                                      (if (memv datum seen)
+                                          (warn-datum 'duplicate-case-datum))
+                                      (if (or (pair? datum)
+                                              (array? datum)
+                                              (generalized-vector? datum))
+                                          (warn-datum 'bad-case-datum))
+                                      (cons datum seen))
+                                    seen
+                                    (map syntax->datum #'(datums ...)))))
+                              (values (lambda (tail)
+                                        #`((if (memv key '(datums ...))
+                                               clause-expr
+                                               #,@tail)))
+                                      seen)))
+                           (else (values (lambda (tail)
+                                           (if (null? tail)
+                                               #'(clause-expr)
+                                               (bad-clause
+                                                "else must be the last clause")))
+                                         seen))
+                           (_ (bad-clause)))))
+                      (_ (bad-clause))))
+                  '() #'(clause clauses ...)))))))))
 
 (define-syntax do
   (syntax-rules ()
@@ -501,8 +581,6 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define-syntax-rule (delay exp)
   (make-promise (lambda () exp)))
-
-(include-from-path "ice-9/quasisyntax")
 
 (define-syntax current-source-location
   (lambda (x)

@@ -126,6 +126,20 @@
                          "~A: warning: possibly wrong number of arguments to `~A'~%"
                          loc name))))
 
+           (duplicate-case-datum
+            "report a duplicate datum in a case expression"
+            ,(lambda (port loc datum clause case-expr)
+               (emit port
+                     "~A: warning: duplicate datum ~S in clause ~S of case expression ~S~%"
+                     loc datum clause case-expr)))
+
+           (bad-case-datum
+            "report a case datum that cannot be meaningfully compared using `eqv?'"
+            ,(lambda (port loc datum clause case-expr)
+               (emit port
+                     "~A: warning: datum ~S cannot be meaningfully compared using `eqv?' in clause ~S of case expression ~S~%"
+                     loc datum clause case-expr)))
+
            (format
             "report wrong number of arguments to `format'"
             ,(lambda (port loc . rest)
