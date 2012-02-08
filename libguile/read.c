@@ -356,7 +356,7 @@ flush_ws (SCM port, const char *eoferr)
 /* Token readers.  */
 
 static SCM scm_read_expression (SCM port);
-static SCM scm_read_sharp (int chr, SCM port);
+static SCM scm_read_sharp (int chr, SCM port, long line, int column);
 
 
 static SCM
@@ -497,6 +497,10 @@ scm_read_string (int chr, SCM port)
   unsigned c_str_len = 0;
   scm_t_wchar c;
 
+  /* Need to capture line and column numbers here. */
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
+
   str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL, 0);
   while ('"' != (c = scm_getc (port)))
     {
@@ -580,7 +584,8 @@ scm_read_string (int chr, SCM port)
       scm_i_string_set_x (str, c_str_len++, c);
       scm_i_string_stop_writing ();
     }
-  return scm_i_substring_copy (str, 0, c_str_len);
+  return maybe_annotate_source (scm_i_substring_copy (str, 0, c_str_len),
+                                port, line, column);
 }
 #undef FUNC_NAME
 
@@ -1003,23 +1008,34 @@ scm_read_keyword (int chr, SCM port)
 }
 
 static SCM
-scm_read_vector (int chr, SCM port)
+scm_read_vector (int chr, SCM port, long line, int column)
 {
   /* Note: We call `scm_read_sexp ()' rather than READER here in order to
      guarantee that it's going to do what we want.  After all, this is an
      implementation detail of `scm_read_vector ()', not a desirable
      property.  */
-  return (scm_vector (scm_read_sexp (chr, port)));
+  return maybe_annotate_source (scm_vector (scm_read_sexp (chr, port)),
+                                port, line, column);
 }
 
 static SCM
-scm_read_srfi4_vector (int chr, SCM port)
+scm_read_array (int chr, SCM port, long line, int column)
 {
-  return scm_i_read_array (port, chr);
+  SCM result = scm_i_read_array (port, chr);
+  if (scm_is_false (result))
+    return result;
+  else
+    return maybe_annotate_source (result, port, line, column);
 }
 
 static SCM
-scm_read_bytevector (scm_t_wchar chr, SCM port)
+scm_read_srfi4_vector (int chr, SCM port, long line, int column)
+{
+  return scm_read_array (chr, port, line, column);
+}
+
+static SCM
+scm_read_bytevector (scm_t_wchar chr, SCM port, long line, int column)
 {
   chr = scm_getc (port);
   if (chr != 'u')
@@ -1033,7 +1049,9 @@ scm_read_bytevector (scm_t_wchar chr, SCM port)
   if (chr != '(')
     goto syntax;
 
-  return scm_u8_list_to_bytevector (scm_read_sexp (chr, port));
+  return maybe_annotate_source
+    (scm_u8_list_to_bytevector (scm_read_sexp (chr, port)),
+     port, line, column);
 
  syntax:
   scm_i_input_error ("read_bytevector", port,
@@ -1043,7 +1061,7 @@ scm_read_bytevector (scm_t_wchar chr, SCM port)
 }
 
 static SCM
-scm_read_guile_bit_vector (scm_t_wchar chr, SCM port)
+scm_read_guile_bit_vector (scm_t_wchar chr, SCM port, long line, int column)
 {
   /* Read the `#*10101'-style read syntax for bit vectors in Guile.  This is
      terribly inefficient but who cares?  */
@@ -1059,7 +1077,9 @@ scm_read_guile_bit_vector (scm_t_wchar chr, SCM port)
   if (chr != EOF)
     scm_ungetc (chr, port);
 
-  return scm_bitvector (scm_reverse_x (s_bits, SCM_EOL));
+  return maybe_annotate_source
+    (scm_bitvector (scm_reverse_x (s_bits, SCM_EOL)),
+     port, line, column);
 }
 
 static SCM
@@ -1295,7 +1315,7 @@ scm_read_sharp_extension (int chr, SCM port)
 /* The reader for the sharp `#' character.  It basically dispatches reads
    among the above token readers.   */
 static SCM
-scm_read_sharp (scm_t_wchar chr, SCM port)
+scm_read_sharp (scm_t_wchar chr, SCM port, long line, int column)
 #define FUNC_NAME "scm_lreadr"
 {
   SCM result;
@@ -1311,17 +1331,17 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     case '\\':
       return (scm_read_character (chr, port));
     case '(':
-      return (scm_read_vector (chr, port));
+      return (scm_read_vector (chr, port, line, column));
     case 's':
     case 'u':
     case 'f':
     case 'c':
       /* This one may return either a boolean or an SRFI-4 vector.  */
-      return (scm_read_srfi4_vector (chr, port));
+      return (scm_read_srfi4_vector (chr, port, line, column));
     case 'v':
-      return (scm_read_bytevector (chr, port));
+      return (scm_read_bytevector (chr, port, line, column));
     case '*':
-      return (scm_read_guile_bit_vector (chr, port));
+      return (scm_read_guile_bit_vector (chr, port, line, column));
     case 't':
     case 'T':
     case 'F':
@@ -1338,7 +1358,7 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
     case 'h':
     case 'l':
 #endif
-      return (scm_i_read_array (port, chr));
+      return (scm_read_array (chr, port, line, column));
 
     case 'i':
     case 'e':
@@ -1350,7 +1370,7 @@ scm_read_sharp (scm_t_wchar chr, SCM port)
 	if (next_c != EOF)
 	  scm_ungetc (next_c, port);
 	if (next_c == '(')
-	  return scm_i_read_array (port, chr);
+	  return scm_read_array (chr, port, line, column);
 	/* Fall through. */
       }
 #endif
@@ -1433,8 +1453,9 @@ scm_read_expression (SCM port)
 	  return (scm_read_quote (chr, port));
 	case '#':
 	  {
-	    SCM result;
-	    result = scm_read_sharp (chr, port);
+            long line  = SCM_LINUM (port);
+            int column = SCM_COL (port) - 1;
+	    SCM result = scm_read_sharp (chr, port, line, column);
 	    if (scm_is_eq (result, SCM_UNSPECIFIED))
 	      /* We read a comment or some such.  */
 	      break;

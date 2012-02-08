@@ -238,11 +238,11 @@ that, if an error occurs when evaluating the transformed expression,
 Guile's debugger can point back to the file and location where the
 expression originated.
 
-The way that source properties are stored means that Guile can only
-associate source properties with parenthesized expressions, and not, for
-example, with individual symbols, numbers or strings.  The difference
-can be seen by typing @code{(xxx)} and @code{xxx} at the Guile prompt
-(where the variable @code{xxx} has not been defined):
+The way that source properties are stored means that Guile cannot
+associate source properties with individual numbers, symbols,
+characters, booleans, or keywords.  This can be seen by typing
+@code{(xxx)} and @code{xxx} at the Guile prompt (where the variable
+@code{xxx} has not been defined):
 
 @example
 scheme@@(guile-user)> (xxx)
@@ -288,8 +288,8 @@ Return the property specified by @var{key} from @var{obj}'s source
 properties.
 @end deffn
 
-If the @code{positions} reader option is enabled, each parenthesized
-expression will have values set for the @code{filename}, @code{line} and
+If the @code{positions} reader option is enabled, supported expressions
+will have values set for the @code{filename}, @code{line} and
 @code{column} properties.
 
 Source properties are also associated with syntax objects.  Procedural
