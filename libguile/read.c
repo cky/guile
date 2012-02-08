@@ -360,6 +360,14 @@ static SCM scm_read_sharp (int chr, SCM port);
 
 
 static SCM
+maybe_annotate_source (SCM x, SCM port, long line, int column)
+{
+  if (SCM_RECORD_POSITIONS_P)
+    scm_i_set_source_properties_x (x, line, column, SCM_FILENAME (port));
+  return x;
+}
+
+static SCM
 scm_read_sexp (scm_t_wchar chr, SCM port)
 #define FUNC_NAME "scm_i_lreadparen"
 {
@@ -423,10 +431,7 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
     }
 
  exit:
-  if (SCM_RECORD_POSITIONS_P)
-    scm_i_set_source_properties_x (ans, line, column, SCM_FILENAME (port));
-
-  return ans;
+  return maybe_annotate_source (ans, port, line, column);
 }
 #undef FUNC_NAME
 
@@ -780,10 +785,7 @@ scm_read_quote (int chr, SCM port)
     }
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
-  if (SCM_RECORD_POSITIONS_P)
-    scm_i_set_source_properties_x (p, line, column, SCM_FILENAME (port));
-
-  return p;
+  return maybe_annotate_source (p, port, line, column);
 }
 
 SCM_SYMBOL (sym_syntax, "syntax");
@@ -830,10 +832,7 @@ scm_read_syntax (int chr, SCM port)
     }
 
   p = scm_cons2 (p, scm_read_expression (port), SCM_EOL);
-  if (SCM_RECORD_POSITIONS_P)
-    scm_i_set_source_properties_x (p, line, column, SCM_FILENAME (port));
-
-  return p;
+  return maybe_annotate_source (p, port, line, column);
 }
 
 static SCM
