@@ -580,13 +580,7 @@ scm_read_string (int chr, SCM port)
       scm_i_string_set_x (str, c_str_len++, c);
       scm_i_string_stop_writing ();
     }
-
-  if (c_str_len > 0)
-    {
-      return scm_i_substring_copy (str, 0, c_str_len);
-    }
-
-  return scm_nullstr;
+  return scm_i_substring_copy (str, 0, c_str_len);
 }
 #undef FUNC_NAME
 

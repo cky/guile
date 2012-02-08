@@ -1,7 +1,7 @@
 ;;;; srfi-13.test --- Test suite for Guile's SRFI-13 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-07
 ;;;;
-;;;; Copyright (C) 2001, 2004, 2005, 2006, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2004, 2005, 2006, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -561,13 +561,15 @@
 (with-test-prefix "substring/shared"
 
   (pass-if "empty string"
-    (eq? "" (substring/shared "" 0)))
-
-  (pass-if "non-empty string"
-    (string=? "foo" (substring/shared "foo-bar" 0 3)))
+    (let ((s ""))
+      (eq? s (substring/shared s 0))))
 
   (pass-if "non-empty string, not eq?"
-    (string=? "foo-bar" (substring/shared "foo-bar" 0 7))))
+    (string=? "foo" (substring/shared "foo-bar" 0 3)))
+
+  (pass-if "shared copy of non-empty string is eq?"
+    (let ((s "foo-bar"))
+      (eq? s (substring/shared s 0 7)))))
 
 (with-test-prefix "string-copy!"
 
