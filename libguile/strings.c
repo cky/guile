@@ -372,31 +372,36 @@ scm_i_substring_read_only (SCM str, size_t start, size_t end)
 SCM
 scm_i_substring_copy (SCM str, size_t start, size_t end)
 {
-  size_t len = end - start;
-  SCM buf, my_buf, substr;
-  size_t str_start;
-  int wide = 0;
-  get_str_buf_start (&str, &buf, &str_start);
-  if (scm_i_is_narrow_string (str))
-    {
-      my_buf = make_stringbuf (len);
-      memcpy (STRINGBUF_CHARS (my_buf),
-              STRINGBUF_CHARS (buf) + str_start + start, len);
-    }
+  if (start == end)
+    return scm_i_make_string (0, NULL, 0);
   else
     {
-      my_buf = make_wide_stringbuf (len);
-      u32_cpy ((scm_t_uint32 *) STRINGBUF_WIDE_CHARS (my_buf),
-               (scm_t_uint32 *) (STRINGBUF_WIDE_CHARS (buf) + str_start 
-                                 + start), len);
-      wide = 1;
+      size_t len = end - start;
+      SCM buf, my_buf, substr;
+      size_t str_start;
+      int wide = 0;
+      get_str_buf_start (&str, &buf, &str_start);
+      if (scm_i_is_narrow_string (str))
+        {
+          my_buf = make_stringbuf (len);
+          memcpy (STRINGBUF_CHARS (my_buf),
+                  STRINGBUF_CHARS (buf) + str_start + start, len);
+        }
+      else
+        {
+          my_buf = make_wide_stringbuf (len);
+          u32_cpy ((scm_t_uint32 *) STRINGBUF_WIDE_CHARS (my_buf),
+                   (scm_t_uint32 *) (STRINGBUF_WIDE_CHARS (buf) + str_start 
+                                     + start), len);
+          wide = 1;
+        }
+      scm_remember_upto_here_1 (buf);
+      substr = scm_double_cell (STRING_TAG, SCM_UNPACK (my_buf),
+                                (scm_t_bits) 0, (scm_t_bits) len);
+      if (wide)
+        scm_i_try_narrow_string (substr);
+      return substr;
     }
-  scm_remember_upto_here_1 (buf);
-  substr = scm_double_cell (STRING_TAG, SCM_UNPACK (my_buf),
-                            (scm_t_bits) 0, (scm_t_bits) len);
-  if (wide)
-    scm_i_try_narrow_string (substr);
-  return substr;
 }
 
 SCM
