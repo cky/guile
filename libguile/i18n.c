@@ -232,7 +232,8 @@ SCM_SMOB_FREE (scm_tc16_locale_smob_type, smob_locale_free, locale)
   scm_t_locale c_locale;
 
   c_locale = (scm_t_locale) SCM_SMOB_DATA (locale);
-  freelocale (c_locale);
+  if (c_locale)
+    freelocale (c_locale);
 
   return 0;
 }
