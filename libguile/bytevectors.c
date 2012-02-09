@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1954,33 +1954,15 @@ SCM_DEFINE (scm_string_to_utf8, "string->utf8",
 #define FUNC_NAME s_scm_string_to_utf8
 {
   SCM utf;
-  uint8_t *c_utf;
-  size_t c_strlen, c_utf_len = 0;
+  scm_t_uint8 *c_utf;
+  size_t c_utf_len = 0;
 
   SCM_VALIDATE_STRING (1, str);
 
-  c_strlen = scm_i_string_length (str);
-  if (scm_i_is_narrow_string (str))
-    c_utf = u8_conv_from_encoding ("ISO-8859-1", iconveh_question_mark,
-                                   scm_i_string_chars (str), c_strlen,
-                                   NULL, NULL, &c_utf_len);
-  else
-    {
-      const scm_t_wchar *wbuf = scm_i_string_wide_chars (str);
-      c_utf = u32_to_u8 ((const uint32_t *) wbuf, c_strlen, NULL, &c_utf_len);
-    }
-  if (SCM_UNLIKELY (c_utf == NULL))
-    scm_syserror (FUNC_NAME);
-  else
-    {
-      scm_dynwind_begin (0);
-      scm_dynwind_free (c_utf);
-
-      utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
-      memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);
-
-      scm_dynwind_end ();
-    }
+  c_utf = (scm_t_uint8 *) scm_to_utf8_stringn (str, &c_utf_len);
+  utf = make_bytevector (c_utf_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+  memcpy (SCM_BYTEVECTOR_CONTENTS (utf), c_utf, c_utf_len);
+  free (c_utf);
 
   return (utf);
 }
@@ -1997,6 +1979,14 @@ SCM_DEFINE (scm_string_to_utf16, "string->utf16",
 }
 #undef FUNC_NAME
 
+static void
+swap_u32 (scm_t_wchar *vals, size_t len)
+{
+  size_t n;
+  for (n = 0; n < len; n++)
+    vals[n] = bswap_32 (vals[n]);
+}
+
 SCM_DEFINE (scm_string_to_utf32, "string->utf32",
 	    1, 1, 0,
 	    (SCM str, SCM endianness),
@@ -2004,7 +1994,21 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
 	    "encoding of @var{str}.")
 #define FUNC_NAME s_scm_string_to_utf32
 {
-  STRING_TO_UTF (32);
+  SCM bv;
+  scm_t_wchar *wchars;
+  size_t wchar_len, bytes_len;
+
+  wchars = scm_to_utf32_stringn (str, &wchar_len);
+  bytes_len = wchar_len * sizeof (scm_t_wchar);
+  if (!scm_is_eq (SCM_UNBNDP (endianness) ? scm_endianness_big : endianness,
+                  scm_i_native_endianness))
+    swap_u32 (wchars, wchar_len);
+  
+  bv = make_bytevector (bytes_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
+  memcpy (SCM_BYTEVECTOR_CONTENTS (bv), wchars, bytes_len);
+  free (wchars);
+
+  return bv;
 }
 #undef FUNC_NAME
 
