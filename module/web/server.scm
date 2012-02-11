@@ -1,6 +1,6 @@
 ;;; Web server
 
-;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -159,11 +159,8 @@ values."
    (lambda ()
      ((server-impl-read impl) server))
    #:pass-keys '(quit interrupt)
-   #:on-error (if (batch-mode?) 'pass 'debug)
-   #:post-error
-   (lambda (k . args)
-     (warn "Error while accepting client" k args)
-     (values #f #f #f))))
+   #:on-error (if (batch-mode?) 'backtrace 'debug)
+   #:post-error (lambda _ (values #f #f #f))))
 
 ;; like call-with-output-string, but actually closes the port (doh)
 (define (call-with-output-string* proc)
@@ -306,11 +303,9 @@ in, allowing the user's handler to explicitly manage its state."
              (debug-elapsed 'sanitize)
              (values response body state))))))
    #:pass-keys '(quit interrupt)
-   #:on-error (if (batch-mode?) 'pass 'debug)
-   #:post-error
-   (lambda (k . args)
-     (warn "Error handling request" k args)
-     (values (build-response #:code 500) #f state))))
+   #:on-error (if (batch-mode?) 'backtrace 'debug)
+   #:post-error (lambda _
+                  (values (build-response #:code 500) #f state))))
 
 ;; -> unspecified values
 (define (write-client impl server client response body)
@@ -322,11 +317,8 @@ attaching it to the @var{server} argument somehow."
    (lambda ()
      ((server-impl-write impl) server client response body))
    #:pass-keys '(quit interrupt)
-   #:on-error (if (batch-mode?) 'pass 'debug)
-   #:post-error
-   (lambda (k . args)
-     (warn "Error while writing response" k args)
-     (values))))
+   #:on-error (if (batch-mode?) 'backtrace 'debug)
+   #:post-error (lambda _ (values))))
 
 ;; -> unspecified values
 (define (close-server impl server)
