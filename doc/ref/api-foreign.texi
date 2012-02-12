@@ -594,7 +594,7 @@ module contains procedures that can be used to convert byte sequences to
 Scheme objects such as strings, floating point numbers, or integers.
 
 @deffn {Scheme Procedure} pointer->bytevector pointer len [offset [uvec_type]]
-@deffnx {C Function} scm_foreign_to_bytevector (pointer, len, offset, uvec_type)
+@deffnx {C Function} scm_pointer_to_bytevector (pointer, len, offset, uvec_type)
 Return a bytevector aliasing the @var{len} bytes pointed to by
 @var{pointer}.
 
