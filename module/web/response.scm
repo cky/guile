@@ -1,6 +1,6 @@
 ;;; HTTP response objects
 
-;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,7 @@
             adapt-response-version
             write-response
 
+            response-must-not-include-body?
             read-response-body
             write-response-body
 
@@ -213,6 +214,15 @@ on @var{port}, perhaps using some transfer encoding."
       r
       (make-response (response-version r) (response-code r)
                      (response-reason-phrase r) (response-headers r) port)))
+
+(define (response-must-not-include-body? r)
+  "Returns @code{#t} if the response @var{r} is not permitted to have a body.
+
+This is true for some response types, like those with code 304."
+  ;; RFC 2616, section 4.3.
+  (or (<= 100 (response-code r) 199)
+      (= (response-code r) 204)
+      (= (response-code r) 304)))
 
 (define (read-response-body r)
   "Reads the response body from @var{r}, as a bytevector.  Returns

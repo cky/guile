@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+@c Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Web
@@ -1233,6 +1233,14 @@ Write the given HTTP response to @var{port}.
 
 Return a new response, whose @code{response-port} will continue writing
 on @var{port}, perhaps using some transfer encoding.
+@end deffn
+
+@deffn {Scheme Procedure} response-must-not-include-body? r
+Some responses, like those with status code 304, are specified as never
+having bodies.  This predicate returns @code{#t} for those responses.
+
+Note also, though, that responses to @code{HEAD} requests must also not
+have a body.
 @end deffn
 
 @deffn {Scheme Procedure} read-response-body r

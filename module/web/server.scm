@@ -262,7 +262,11 @@ on the procedure being called at any particular time."
            (extend-response response 'content-type
                             `(,@type (charset . ,charset))))
        (call-with-encoded-output-string charset body))))
-   ((bytevector? body)
+   ((not (bytevector? body))
+    (error "unexpected body type"))
+   ((response-must-not-include-body? response)
+    (error "response with this status code must not include body" response))
+   (else
     ;; check length; assert type; add other required fields?
     (values (let ((rlen (response-content-length response))
                   (blen (bytevector-length body)))
@@ -272,9 +276,12 @@ on the procedure being called at any particular time."
                          (error "bad content-length" rlen blen)))
                ((zero? blen) response)
                (else (extend-response response 'content-length blen))))
-            body))
-   (else
-    (error "unexpected body type"))))
+            (if (eq? (request-method request) 'HEAD)
+                ;; Responses to HEAD requests must not include bodies.
+                ;; We could raise an error here, but it seems more
+                ;; appropriate to just do something sensible.
+                #f
+                body)))))
 
 ;; -> response body state
 (define (handle-request handler request body state)
