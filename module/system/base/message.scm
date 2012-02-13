@@ -75,7 +75,7 @@
   (printer      warning-type-printer))
 
 (define %warning-types
-  ;; List of know warning types.
+  ;; List of known warning types.
   (map (lambda (args)
          (apply make-warning-type args))
 
