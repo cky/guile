@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002, 2006, 2008, 2009, 2010, 2011 Free Software Foundation
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2006,
+ *   2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -164,18 +165,22 @@ SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0,
 	    "Return the source property association list of @var{obj}.")
 #define FUNC_NAME s_scm_source_properties
 {
-  SCM p;
-  SCM_VALIDATE_NIM (1, obj);
-
-  scm_i_pthread_mutex_lock (&source_lock);
-  p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL); 
-  scm_i_pthread_mutex_unlock (&source_lock);
-
-  if (SRCPROPSP (p))
-    return scm_srcprops_to_alist (p);
+  if (SCM_IMP (obj))
+    return SCM_EOL;
   else
-    /* list from set-source-properties!, or SCM_EOL for not found */
-    return p;
+    {
+      SCM p;
+
+      scm_i_pthread_mutex_lock (&source_lock);
+      p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
+      scm_i_pthread_mutex_unlock (&source_lock);
+
+      if (SRCPROPSP (p))
+        return scm_srcprops_to_alist (p);
+      else
+        /* list from set-source-properties!, or SCM_EOL for not found */
+        return p;
+    }
 }
 #undef FUNC_NAME
 
@@ -201,15 +206,18 @@ int
 scm_i_has_source_properties (SCM obj)
 #define FUNC_NAME "%set-source-properties"
 {
-  int ret;
-  
-  SCM_VALIDATE_NIM (1, obj);
+  if (SCM_IMP (obj))
+    return 0;
+  else
+    {
+      int ret;
 
-  scm_i_pthread_mutex_lock (&source_lock);
-  ret = scm_is_true (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F));
-  scm_i_pthread_mutex_unlock (&source_lock);
+      scm_i_pthread_mutex_lock (&source_lock);
+      ret = scm_is_true (scm_hashq_ref (scm_source_whash, obj, SCM_BOOL_F));
+      scm_i_pthread_mutex_unlock (&source_lock);
 
-  return ret;
+      return ret;
+    }
 }
 #undef FUNC_NAME
   
@@ -237,29 +245,33 @@ SCM_DEFINE (scm_source_property, "source-property", 2, 0, 0,
 	    "@var{obj}'s source property list.")
 #define FUNC_NAME s_scm_source_property
 {
-  SCM p;
-  SCM_VALIDATE_NIM (1, obj);
-
-  scm_i_pthread_mutex_lock (&source_lock);
-  p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
-  scm_i_pthread_mutex_unlock (&source_lock);
-
-  if (!SRCPROPSP (p))
-    goto alist;
-  if (scm_is_eq (scm_sym_line, key))
-    p = scm_from_int (SRCPROPLINE (p));
-  else if (scm_is_eq (scm_sym_column, key))
-    p = scm_from_int (SRCPROPCOL (p));
-  else if (scm_is_eq (scm_sym_copy, key))
-    p = SRCPROPCOPY (p);
+  if (SCM_IMP (obj))
+    return SCM_BOOL_F;
   else
     {
-      p = SRCPROPALIST (p);
-    alist:
-      p = scm_assoc (key, p);
-      return (SCM_NIMP (p) ? SCM_CDR (p) : SCM_BOOL_F);
+      SCM p;
+
+      scm_i_pthread_mutex_lock (&source_lock);
+      p = scm_hashq_ref (scm_source_whash, obj, SCM_EOL);
+      scm_i_pthread_mutex_unlock (&source_lock);
+
+      if (!SRCPROPSP (p))
+        goto alist;
+      if (scm_is_eq (scm_sym_line, key))
+        p = scm_from_int (SRCPROPLINE (p));
+      else if (scm_is_eq (scm_sym_column, key))
+        p = scm_from_int (SRCPROPCOL (p));
+      else if (scm_is_eq (scm_sym_copy, key))
+        p = SRCPROPCOPY (p);
+      else
+        {
+          p = SRCPROPALIST (p);
+        alist:
+          p = scm_assoc (key, p);
+          return (SCM_NIMP (p) ? SCM_CDR (p) : SCM_BOOL_F);
+        }
+      return SCM_UNBNDP (p) ? SCM_BOOL_F : p;
     }
-  return SCM_UNBNDP (p) ? SCM_BOOL_F : p;
 }
 #undef FUNC_NAME
 
