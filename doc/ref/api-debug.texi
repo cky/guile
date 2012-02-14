@@ -258,6 +258,12 @@ ERROR: Unbound variable: xxx
 In the latter case, no source properties were stored, so the error
 doesn't have any source information.
 
+@deffn {Scheme Procedure} supports-source-properties? obj
+@deffnx {C Function} scm_supports_source_properties_p (obj)
+Return #t if source properties can be associated with @var{obj},
+otherwise return #f.
+@end deffn
+
 The recording of source properties is controlled by the read option
 named ``positions'' (@pxref{Scheme Read}).  This option is switched
 @emph{on} by default.

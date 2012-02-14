@@ -94,6 +94,14 @@ static SCM scm_srcprops_to_alist (SCM obj);
 
 scm_t_bits scm_tc16_srcprops;
 
+
+static int
+supports_source_props (SCM obj)
+{
+  return SCM_NIMP (obj) && !scm_is_symbol (obj) && !scm_is_keyword (obj);
+}
+
+
 static int
 srcprops_print (SCM obj, SCM port, scm_print_state *pstate)
 {
@@ -159,6 +167,16 @@ scm_srcprops_to_alist (SCM obj)
   alist = scm_acons (scm_sym_line, scm_from_int (SRCPROPLINE (obj)), alist);
   return alist;
 }
+
+SCM_DEFINE (scm_supports_source_properties_p, "supports-source-properties?", 1, 0, 0,
+            (SCM obj),
+            "Return #t if @var{obj} supports adding source properties,\n"
+            "otherwise return #f.")
+#define FUNC_NAME s_scm_supports_source_properties_p
+{
+  return scm_from_bool (supports_source_props (obj));
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_source_properties, "source-properties", 1, 0, 0, 
             (SCM obj),

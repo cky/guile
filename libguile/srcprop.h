@@ -3,7 +3,8 @@
 #ifndef SCM_SRCPROP_H
 #define SCM_SRCPROP_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 2000, 2001, 2006, 2008, 2009, 2010,
+ *   2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,6 +42,7 @@ SCM_API SCM scm_sym_column;
 
 
 
+SCM_API SCM scm_supports_source_properties_p (SCM obj);
 SCM_API SCM scm_make_srcprops (long line, int col, SCM fname, SCM copy, SCM plist);
 SCM_API SCM scm_source_property (SCM obj, SCM key);
 SCM_API SCM scm_set_source_property_x (SCM obj, SCM key, SCM datum);
