@@ -264,7 +264,9 @@ on the procedure being called at any particular time."
        (call-with-encoded-output-string charset body))))
    ((not (bytevector? body))
     (error "unexpected body type"))
-   ((response-must-not-include-body? response)
+   ((and (response-must-not-include-body? response)
+         body
+         (not (zero? (bytevector-length body))))
     (error "response with this status code must not include body" response))
    (else
     ;; check length; assert type; add other required fields?
