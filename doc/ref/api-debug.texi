@@ -239,8 +239,8 @@ Guile's debugger can point back to the file and location where the
 expression originated.
 
 The way that source properties are stored means that Guile cannot
-associate source properties with individual numbers, symbols,
-characters, booleans, or keywords.  This can be seen by typing
+associate source properties with individual symbols, keywords,
+characters, booleans, or small integers.  This can be seen by typing
 @code{(xxx)} and @code{xxx} at the Guile prompt (where the variable
 @code{xxx} has not been defined):
 

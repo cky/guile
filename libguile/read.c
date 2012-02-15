@@ -600,6 +600,10 @@ scm_read_number (scm_t_wchar chr, SCM port)
   int overflow;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
+  /* Need to capture line and column numbers here. */
+  long line = SCM_LINUM (port);
+  int column = SCM_COL (port) - 1;
+
   scm_ungetc (chr, port);
   overflow = read_complete_token (port, buffer, sizeof (buffer),
                                   &overflow_buffer, &bytes_read);
@@ -611,13 +615,15 @@ scm_read_number (scm_t_wchar chr, SCM port)
                             pt->ilseq_handler);
 
   result = scm_string_to_number (str, SCM_UNDEFINED);
-  if (!scm_is_true (result))
+  if (scm_is_false (result))
     {
       /* Return a symbol instead of a number */
       if (SCM_CASE_INSENSITIVE_P)
         str = scm_string_downcase_x (str);
       result = scm_string_to_symbol (str);
     }
+  else if (SCM_NIMP (result))
+    result = maybe_annotate_source (result, port, line, column);
 
   if (overflow)
     free (overflow_buffer);
