@@ -2552,7 +2552,8 @@
                        who 'syntax-violation)
             (arg-check string? message 'syntax-violation)
             (throw 'syntax-error who message
-                   (source-annotation (or form subform))
+                   (or (source-annotation subform)
+                       (source-annotation form))
                    (strip form empty-wrap)
                    (and subform (strip subform empty-wrap)))))
 
