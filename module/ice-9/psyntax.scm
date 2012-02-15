@@ -301,7 +301,7 @@
 
 
     (define (decorate-source e s)
-      (if (and (pair? e) s)
+      (if (and s (supports-source-properties? e))
           (set-source-properties! e s))
       e)
 
@@ -461,14 +461,11 @@
 
     (define source-annotation
       (lambda (x)
-        (cond
-         ((syntax-object? x)
-          (source-annotation (syntax-object-expression x)))
-         ((pair? x) (let ((props (source-properties x)))
-                      (if (pair? props)
-                          props
-                          #f)))
-         (else #f))))
+        (let ((props (source-properties
+                      (if (syntax-object? x)
+                          (syntax-object-expression x)
+                          x))))
+          (and (pair? props) props))))
 
     (define-syntax-rule (arg-check pred? e who)
       (let ((x e))
