@@ -25,15 +25,51 @@
 ;;;
 
 (with-test-prefix "source-properties"
-  
+
   (pass-if "no props"
     (null? (source-properties (list 1 2 3))))
-  
+
   (read-enable 'positions)
-  (let ((s (read (open-input-string "(1 . 2)"))))
-    
-    (pass-if "read properties"
-      (not (null? (source-properties s))))))
+  (with-test-prefix "read properties"
+    (define (reads-with-srcprops? str)
+      (let ((x (read (open-input-string str))))
+        (not (null? (source-properties x)))))
+
+    (pass-if "pairs"           (reads-with-srcprops? "(1 . 2)"))
+    (pass-if "vectors"         (reads-with-srcprops? "#(1 2 3)"))
+    (pass-if "bytevectors"     (reads-with-srcprops? "#vu8(1 2 3)"))
+    (pass-if "bitvectors"      (reads-with-srcprops? "#*101011"))
+    (pass-if "srfi4 vectors"   (reads-with-srcprops? "#f64(3.1415 2.71)"))
+    (pass-if "arrays"          (reads-with-srcprops? "#2u32@2@3((1 2) (2 3))"))
+    (pass-if "strings"         (reads-with-srcprops? "\"hello\""))
+    (pass-if "null string"     (reads-with-srcprops? "\"\""))
+
+    (pass-if "floats"          (reads-with-srcprops? "3.1415"))
+    (pass-if "fractions"       (reads-with-srcprops? "1/2"))
+    (pass-if "complex numbers" (reads-with-srcprops? "1+1i"))
+    (pass-if "bignums"
+      (and (reads-with-srcprops? (number->string (1+ most-positive-fixnum)))
+           (reads-with-srcprops? (number->string (1- most-negative-fixnum)))))
+
+    (pass-if "fixnums (should have none)"
+      (not (or (reads-with-srcprops? "0")
+               (reads-with-srcprops? "1")
+               (reads-with-srcprops? "-1")
+               (reads-with-srcprops? (number->string most-positive-fixnum))
+               (reads-with-srcprops? (number->string most-negative-fixnum)))))
+
+    (pass-if "symbols (should have none)"
+      (not (reads-with-srcprops? "foo")))
+
+    (pass-if "keywords (should have none)"
+      (not (reads-with-srcprops? "#:foo")))
+
+    (pass-if "characters (should have none)"
+      (not (reads-with-srcprops? "#\\c")))
+
+    (pass-if "booleans (should have none)"
+      (not (or (reads-with-srcprops? "#t")
+               (reads-with-srcprops? "#f"))))))
 
 ;;;
 ;;; set-source-property!
