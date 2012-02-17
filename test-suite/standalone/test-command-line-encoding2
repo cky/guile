@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Choose a locale name that lacks a dot followed by the encoding name.
+# This should not confuse `environ_locale_charset'.
+# See <http://bugs.gnu.org/10742> for the original bug report.
+LC_ALL="en_US"
+export LC_ALL
+unset LANG
+unset LC_CTYPE
+
+exec guile -q -s "$0" "hello"
+!#
+
+;; Make sure our argument was suitable decoded.
+(exit (string=? (cadr (program-arguments)) "hello"))
+
+;; Local Variables:
+;; mode: scheme
+;; coding: iso-8859-1
+;; End:

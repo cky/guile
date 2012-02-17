@@ -5,28 +5,10 @@ rationale.
 
 --- a/lib/localcharset.c	2011-12-14 23:10:58.000000000 +0100
 +++ b/lib/localcharset.c	2011-12-15 00:45:12.000000000 +0100
-@@ -527,6 +527,76 @@ locale_charset (void)
-     codeset = "";
+@@ -545,3 +545,74 @@ locale_charset (void)
  
-   /* Resolve alias. */
-+  for (aliases = get_charset_aliases ();
-+       *aliases != '\0';
-+       aliases += strlen (aliases) + 1, aliases += strlen (aliases) + 1)
-+    if (strcmp (codeset, aliases) == 0
-+        || (aliases[0] == '*' && aliases[1] == '\0'))
-+      {
-+        codeset = aliases + strlen (aliases) + 1;
-+        break;
-+      }
-+
-+  /* Don't return an empty string.  GNU libc and GNU libiconv interpret
-+     the empty string as denoting "the locale's character encoding",
-+     thus GNU libiconv would call this function a second time.  */
-+  if (codeset[0] == '\0')
-+    codeset = "ASCII";
-+
-+  return codeset;
-+}
+   return codeset;
+ }
 +
 +/* A variant of the above, without calls to `setlocale', `nl_langinfo',
 +   etc.  */
@@ -71,14 +53,29 @@ rationale.
 +	  strcpy (buf, "ASCII");
 +	  return buf;
 +	}
-+
-+      /* Resolve through the charset.alias file.  */
-+      codeset = locale;
++      else
++	codeset = "";
 +    }
 +  else
 +    codeset = "";
 +
 +  /* Resolve alias. */
-   for (aliases = get_charset_aliases ();
-        *aliases != '\0';
-        aliases += strlen (aliases) + 1, aliases += strlen (aliases) + 1)
++  for (aliases = get_charset_aliases ();
++       *aliases != '\0';
++       aliases += strlen (aliases) + 1, aliases += strlen (aliases) + 1)
++    if (strcmp (codeset, aliases) == 0
++        || (aliases[0] == '*' && aliases[1] == '\0'))
++      {
++        codeset = aliases + strlen (aliases) + 1;
++        break;
++      }
++
++  /* Don't return an empty string.  GNU libc and GNU libiconv interpret
++     the empty string as denoting "the locale's character encoding",
++     thus GNU libiconv would call this function a second time.  */
++  if (codeset[0] == '\0')
++    /* Default to Latin-1, for backward compatibility with Guile 1.8.  */
++    codeset = "ISO-8859-1";
++
++  return codeset;
++}

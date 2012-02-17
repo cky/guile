@@ -589,9 +589,8 @@ environ_locale_charset (void)
 	  strcpy (buf, "ASCII");
 	  return buf;
 	}
-
-      /* Resolve through the charset.alias file.  */
-      codeset = locale;
+      else
+	codeset = "";
     }
   else
     codeset = "";
@@ -611,7 +610,8 @@ environ_locale_charset (void)
      the empty string as denoting "the locale's character encoding",
      thus GNU libiconv would call this function a second time.  */
   if (codeset[0] == '\0')
-    codeset = "ASCII";
+    /* Default to Latin-1, for backward compatibility with Guile 1.8.  */
+    codeset = "ISO-8859-1";
 
   return codeset;
 }
