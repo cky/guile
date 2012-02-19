@@ -1347,14 +1347,30 @@ accurate information is missing from a given `tree-il' element."
                               min-count max-count))))
           (else (error "computer bought the farm" state))))))
 
-(define (const-fmt x)
+(define (gettext? proc env)
+  "Return #t when PROC designates the `gettext' procedure in ENV."
+  (match proc
+    (($ <toplevel-ref> _ name)
+     (let ((var (false-if-exception (module-variable env name))))
+       (if var
+           (eq? (variable-ref var) gettext)
+           (eq? name '_))))      ; special hack to support local aliases
+    (($ <module-ref> _ module name public?)
+     (let ((m (false-if-exception (if public?
+                                      (resolve-interface module)
+                                      (resolve-module module)))))
+       (and m
+            (eq? (false-if-exception (module-ref module name))
+                 gettext))))
+    (_ #f)))
+
+(define (const-fmt x env)
   ;; Return the literal format pattern for X, or #f.
   (match x
     (($ <const> _ exp)
      exp)
-    (($ <application> _
-        (or ($ <toplevel-ref> _ '_) ($ <module-ref> _ '_))
-        (($ <const> _ (and (? string?) fmt))))
+    (($ <application> _ (? (cut gettext? <> env))
+        (($ <const> _ (? string? fmt))))
      ;; Gettexted literals, like `(_ "foo")'.
      fmt)
     (_ #f)))
@@ -1371,11 +1387,11 @@ accurate information is missing from a given `tree-il' element."
      (define (check-format-args args loc)
        (pmatch args
          ((,port ,fmt . ,rest)
-          (guard (const-fmt fmt))
+          (guard (const-fmt fmt env))
           (if (and (const? port)
                    (not (boolean? (const-exp port))))
               (warning 'format loc 'wrong-port (const-exp port)))
-          (let ((fmt   (const-fmt fmt))
+          (let ((fmt   (const-fmt fmt env))
                 (count (length rest)))
             (if (string? fmt)
                 (catch &syntax-error
@@ -1430,7 +1446,8 @@ accurate information is missing from a given `tree-il' element."
                   (warning 'format loc 'simple-format fmt
                            (find (negate (cut memq <> allowed-chars)) opts))
                   #f))))
-         ((port (($ <const> _ '_) fmt) args ...)
+         ((port ($ <application> _ (? (cut gettext? <> env)) (fmt))
+                args ...)
           (check-simple-format-args `(,port ,fmt ,args) loc))
          (_ #t)))
 

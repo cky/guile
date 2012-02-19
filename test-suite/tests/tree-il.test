@@ -2158,6 +2158,13 @@
      (pass-if "non-literal format string using gettext"
        (null? (call-with-warnings
                (lambda ()
+                 (compile '(format #t (gettext "~A ~A!") "hello" "world")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "non-literal format string using gettext as _"
+       (null? (call-with-warnings
+               (lambda ()
                  (compile '(format #t (_ "~A ~A!") "hello" "world")
                           #:opts %opts-w-format
                           #:to 'assembly)))))
@@ -2203,7 +2210,7 @@
      (pass-if "one missing argument, gettext"
        (let ((w (call-with-warnings
                  (lambda ()
-                   (compile '(format some-port (_ "foo ~A~%"))
+                   (compile '(format some-port (gettext "foo ~A~%"))
                             #:opts %opts-w-format
                             #:to 'assembly)))))
          (and (= (length w) 1)
@@ -2532,6 +2539,15 @@
          (let ((w (call-with-warnings
                    (lambda ()
                      (compile '(simple-format #t "foo ~x~%" 16)
+                              #:opts %opts-w-format
+                              #:to 'assembly)))))
+           (and (= (length w) 1)
+                (number? (string-contains (car w) "unsupported format option")))))
+
+       (pass-if "unsupported, gettext"
+         (let ((w (call-with-warnings
+                   (lambda ()
+                     (compile '(simple-format #t (gettext "foo ~2f~%") 3.14)
                               #:opts %opts-w-format
                               #:to 'assembly)))))
            (and (= (length w) 1)
