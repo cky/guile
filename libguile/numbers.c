@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -217,17 +217,13 @@ static inline SCM
 make_bignum (void)
 {
   scm_t_bits *p;
-  GC_finalization_proc prev_finalizer;
-  GC_PTR prev_finalizer_data;
 
   /* Allocate one word for the type tag and enough room for an `mpz_t'.  */
   p = scm_gc_malloc_pointerless (sizeof (scm_t_bits) + sizeof (mpz_t),
 				 "bignum");
   p[0] = scm_tc16_big;
 
-  GC_REGISTER_FINALIZER_NO_ORDER (p, finalize_bignum, NULL,
-				  &prev_finalizer,
-				  &prev_finalizer_data);
+  scm_i_set_finalizer (p, finalize_bignum, NULL);
 
   return SCM_PACK (p);
 }

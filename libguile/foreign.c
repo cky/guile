@@ -160,16 +160,8 @@ scm_from_pointer (void *ptr, scm_t_pointer_finalizer finalizer)
       ret = scm_cell (scm_tc7_pointer, (scm_t_bits) ptr);
 
       if (finalizer)
-	{
-	  /* Register a finalizer for the newly created instance.  */
-	  GC_finalization_proc prev_finalizer;
-	  GC_PTR prev_finalizer_data;
-	  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (ret),
-					  pointer_finalizer_trampoline,
-					  finalizer,
-					  &prev_finalizer,
-					  &prev_finalizer_data);
-	}
+        scm_i_set_finalizer (SCM2PTR (ret), pointer_finalizer_trampoline,
+                             finalizer);
     }
 
   return ret;
@@ -319,20 +311,11 @@ SCM_DEFINE (scm_set_pointer_finalizer_x, "set-pointer-finalizer!", 2, 0, 0,
             "Scheme. If you need a Scheme finalizer, use guardians.")
 #define FUNC_NAME s_scm_set_pointer_finalizer_x
 {
-  void *c_finalizer;
-  GC_finalization_proc prev_finalizer;
-  GC_PTR prev_finalizer_data;
-
   SCM_VALIDATE_POINTER (1, pointer);
   SCM_VALIDATE_POINTER (2, finalizer);
 
-  c_finalizer = SCM_POINTER_VALUE (finalizer);
-
-  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (pointer),
-                                  pointer_finalizer_trampoline,
-                                  c_finalizer,
-                                  &prev_finalizer,
-                                  &prev_finalizer_data);
+  scm_i_add_finalizer (SCM2PTR (pointer), pointer_finalizer_trampoline,
+                       SCM_POINTER_VALUE (finalizer));
 
   return SCM_UNSPECIFIED;
 }

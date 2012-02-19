@@ -546,14 +546,9 @@ static void finalize_port (GC_PTR, GC_PTR);
 static SCM_C_INLINE_KEYWORD void
 register_finalizer_for_port (SCM port)
 {
-  GC_finalization_proc prev_finalizer;
-  GC_PTR prev_finalization_data;
-
   /* Register a finalizer for PORT so that its iconv CDs get freed and
      optionally its type's `free' function gets called.  */
-  GC_REGISTER_FINALIZER_NO_ORDER (SCM2PTR (port), finalize_port, 0,
-				  &prev_finalizer,
-				  &prev_finalization_data);
+  scm_i_set_finalizer (SCM2PTR (port), finalize_port, NULL);
 }
 
 /* Finalize the object (a port) pointed to by PTR.  */
