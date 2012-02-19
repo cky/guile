@@ -2169,6 +2169,21 @@
                           #:opts %opts-w-format
                           #:to 'assembly)))))
 
+     (pass-if "non-literal format string using ngettext"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t
+                                   (ngettext "~a thing" "~a things" n "dom") n)
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "non-literal format string using ngettext as N_"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t (N_ "~a thing" "~a things" n) n)
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
      (pass-if "wrong format string"
        (let ((w (call-with-warnings
                  (lambda ()
@@ -2548,6 +2563,15 @@
          (let ((w (call-with-warnings
                    (lambda ()
                      (compile '(simple-format #t (gettext "foo ~2f~%") 3.14)
+                              #:opts %opts-w-format
+                              #:to 'assembly)))))
+           (and (= (length w) 1)
+                (number? (string-contains (car w) "unsupported format option")))))
+
+       (pass-if "unsupported, ngettext"
+         (let ((w (call-with-warnings
+                   (lambda ()
+                     (compile '(simple-format #t (ngettext "s ~x" "p ~x" x) x)
                               #:opts %opts-w-format
                               #:to 'assembly)))))
            (and (= (length w) 1)
