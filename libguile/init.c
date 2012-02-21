@@ -444,7 +444,8 @@ scm_i_init_guile (void *base)
   scm_init_ioext ();
   scm_init_keywords ();    /* Requires smob_prehistory */
   scm_init_list ();
-  scm_init_macros ();      /* Requires smob_prehistory */
+  scm_init_random ();      /* Requires smob_prehistory */
+  scm_init_macros ();      /* Requires smob_prehistory and random */
   scm_init_mallocs ();     /* Requires smob_prehistory */
   scm_init_modules ();     /* Requires smob_prehistory */
   scm_init_numbers ();
@@ -500,7 +501,6 @@ scm_i_init_guile (void *base)
   scm_init_eval_in_scheme ();
   scm_init_evalext ();
   scm_init_debug ();	/* Requires macro smobs */
-  scm_init_random ();   /* Requires smob_prehistory */
   scm_init_simpos ();
 #if HAVE_MODULES
   scm_init_dynamic_linking (); /* Requires smob_prehistory */
