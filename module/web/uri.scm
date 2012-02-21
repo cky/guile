@@ -95,7 +95,7 @@ consistency checks to make sure that the constructed URI is valid."
 (define domain-label-regexp
   (make-regexp "^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
 (define top-label-regexp
-  (make-regexp "^[a-zA-Z]?([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
+  (make-regexp "^[a-zA-Z]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
 
 (define (valid-host? host)
   (cond
