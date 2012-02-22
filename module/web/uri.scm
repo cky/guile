@@ -1,6 +1,6 @@
 ;;;; (web uri) --- URI manipulation tools
 ;;;;
-;;;; Copyright (C) 1997,2001,2002,2010,2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 1997,2001,2002,2010,2011,2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -100,18 +100,17 @@ consistency checks to make sure that the constructed URI is valid."
 (define (valid-host? host)
   (cond
    ((regexp-exec ipv4-regexp host)
-    => (lambda (m)
-         (false-if-exception (inet-pton AF_INET (match:substring m 1)))))
+    (false-if-exception (inet-pton AF_INET host)))
    ((regexp-exec ipv6-regexp host)
-    => (lambda (m)
-         (false-if-exception (inet-pton AF_INET6 (match:substring m 1)))))
+    (false-if-exception (inet-pton AF_INET6 host)))
    (else
-    (let ((labels (reverse (string-split host #\.))))
-      (and (pair? labels)
-           (regexp-exec top-label-regexp (car labels))
-           (and-map (lambda (label)
-                      (regexp-exec domain-label-regexp label))
-                    (cdr labels)))))))
+    (let lp ((start 0))
+      (let ((end (string-index host #\. start)))
+        (if end
+            (and (regexp-exec domain-label-regexp
+                              (substring host start end))
+                 (lp (1+ end)))
+            (regexp-exec top-label-regexp host start)))))))
 
 (define userinfo-pat
   "[a-zA-Z0-9_.!~*'();:&=+$,-]+")
