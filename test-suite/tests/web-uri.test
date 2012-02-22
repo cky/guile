@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -142,6 +142,10 @@
   (pass-if "http://foo:/"
     (uri=? (string->uri "http://foo:/")
            #:scheme 'http #:host "foo" #:path "/"))
+
+  (pass-if "http://2012.jsconf.us/"
+    (uri=? (string->uri "http://2012.jsconf.us/")
+           #:scheme 'http #:host "2012.jsconf.us" #:path "/"))
 
   (pass-if "http://foo:not-a-port"
     (not (string->uri "http://foo:not-a-port")))
