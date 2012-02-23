@@ -1254,6 +1254,201 @@ SCM_DEFINE (scm_fork, "primitive-fork", 0, 0, 0,
   return scm_from_int (pid);
 }
 #undef FUNC_NAME
+
+/* Since Guile uses threads, we have to be very careful to avoid calling
+   functions that are not async-signal-safe in the child.  That's why
+   this function is implemented in C.  */
+static SCM
+scm_open_process (SCM mode, SCM prog, SCM args)
+#define FUNC_NAME "open-process"
+{
+  long mode_bits;
+  int reading, writing;
+  int c2p[2]; /* Child to parent.  */
+  int p2c[2]; /* Parent to child.  */
+  int in = -1, out = -1, err = -1;
+  int pid;
+  char *exec_file;
+  char **exec_argv;
+  int max_fd = 1024;
+
+  exec_file = scm_to_locale_string (prog);
+  exec_argv = scm_i_allocate_string_pointers (scm_cons (prog, args));
+
+  mode_bits = scm_i_mode_bits (mode);
+  reading = mode_bits & SCM_RDNG;
+  writing = mode_bits & SCM_WRTNG;
+
+  if (reading)
+    {
+      if (pipe (c2p))
+        {
+          int errno_save = errno;
+          free (exec_file);
+          errno = errno_save;
+          SCM_SYSERROR;
+        }
+      out = c2p[1];
+    }
+  
+  if (writing)
+    {
+      if (pipe (p2c))
+        {
+          int errno_save = errno;
+          free (exec_file);
+          if (reading)
+            {
+              close (c2p[0]);
+              close (c2p[1]);
+            }
+          errno = errno_save;
+          SCM_SYSERROR;
+        }
+      in = p2c[0];
+    }
+  
+  {
+    SCM port;
+
+    if (SCM_OPOUTFPORTP ((port = scm_current_error_port ())))
+      err = SCM_FPORT_FDES (port);
+    if (out == -1 && SCM_OPOUTFPORTP ((port = scm_current_output_port ())))
+      out = SCM_FPORT_FDES (port);
+    if (in == -1 && SCM_OPINFPORTP ((port = scm_current_input_port ())))
+      in = SCM_FPORT_FDES (port);
+  }
+
+#if defined (HAVE_GETRLIMIT) && defined (RLIMIT_NOFILE)
+  {
+    struct rlimit lim = { 0, 0 };
+    if (getrlimit (RLIMIT_NOFILE, &lim) == 0)
+      max_fd = lim.rlim_cur;
+  }
+#endif
+
+  pid = fork ();
+
+  if (pid == -1)
+    {
+      int errno_save = errno;
+      free (exec_file);
+      if (reading)
+        {
+          close (c2p[0]);
+          close (c2p[1]);
+        }
+      if (writing)
+        {
+          close (p2c[0]);
+          close (p2c[1]);
+        }
+      errno = errno_save;
+      SCM_SYSERROR;
+    }
+
+  if (pid)
+    /* Parent. */
+    {
+      SCM read_port = SCM_BOOL_F, write_port = SCM_BOOL_F, port;
+
+      /* There is no sense in catching errors on close().  */
+      if (reading) 
+        {
+          close (c2p[1]);
+          read_port = scm_fdes_to_port (c2p[0], "r", sym_read_pipe);
+          scm_setvbuf (read_port, scm_from_int (_IONBF), SCM_UNDEFINED);
+        }
+      if (writing)
+        {
+          close (p2c[0]);
+          write_port = scm_fdes_to_port (p2c[1], "w", sym_write_pipe);
+          scm_setvbuf (write_port, scm_from_int (_IONBF), SCM_UNDEFINED);
+        }
+      
+      if (reading && writing)
+        {
+          static SCM make_rw_port = SCM_BOOL_F;
+
+          if (scm_is_false (make_rw_port))
+            make_rw_port = scm_c_private_variable ("ice-9 popen",
+                                                   "make-rw-port");
+
+          port = scm_call_2 (scm_variable_ref (make_rw_port),
+                             read_port, write_port);
+        }
+      else if (reading)
+        port = read_port;
+      else if (writing)
+        port = write_port;
+      else
+        port = scm_sys_make_void_port (mode);
+
+      return scm_cons (port, scm_from_int (pid));
+    }
+  
+  /* The child.  */
+  if (reading)
+    close (c2p[0]);
+  if (writing)
+    close (p2c[1]);
+
+  /* Close all file descriptors in ports inherited from the parent
+     except for in, out, and err.  Heavy-handed, but robust.  */
+  while (max_fd--)
+    if (max_fd != in && max_fd != out && max_fd != err)
+      close (max_fd);
+
+  /* Ignore errors on these open() calls.  */
+  if (in == -1)
+    in = open ("/dev/null", O_RDONLY);
+  if (out == -1)
+    out = open ("/dev/null", O_WRONLY);
+  if (err == -1)
+    err = open ("/dev/null", O_WRONLY);
+    
+  if (in > 0)
+    {
+      if (out == 0)
+        do out = dup (out); while (errno == EINTR);
+      if (err == 0)
+        do err = dup (err); while (errno == EINTR);
+      do dup2 (in, 0); while (errno == EINTR);
+      close (in);
+    }
+  if (out > 1)
+    {
+      if (err == 1)
+        do err = dup (err); while (errno == EINTR);
+      do dup2 (out, 1); while (errno == EINTR);
+      close (out);
+    }
+  if (err > 2)
+    {
+      do dup2 (err, 2); while (errno == EINTR);
+      close (err);
+    }
+
+  execvp (exec_file,
+#ifdef __MINGW32__
+          /* extra "const" in mingw formals, provokes warning from gcc */
+          (const char * const *)
+#endif
+          exec_argv);
+
+  /* The exec failed!  There is nothing sensible to do.  */
+  if (err > 0)
+    {
+      char *msg = strerror (errno);
+      fprintf (fdopen (err, "a"), "In execlp of %s: %s\n",
+               exec_file, msg);
+    }
+
+  _exit (EXIT_FAILURE);
+  /* Not reached.  */
+  return SCM_BOOL_F;
+}
+#undef FUNC_NAME
 #endif /* HAVE_FORK */
 
 #ifdef __MINGW32__
@@ -2083,6 +2278,14 @@ SCM_DEFINE (scm_gethostname, "gethostname", 0, 0, 0,
 #endif /* HAVE_GETHOSTNAME */
 
 
+#ifdef HAVE_FORK
+static void
+scm_init_popen (void)
+{
+  scm_c_define_gsubr ("open-process", 2, 0, 1, scm_open_process);
+}
+#endif
+
 void
 scm_init_posix ()
 {
@@ -2171,6 +2374,11 @@ scm_init_posix ()
 
 #include "libguile/cpp-SIG.c"
 #include "libguile/posix.x"
+
+  scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
+                            "scm_init_popen",
+			    (scm_t_extension_init_func) scm_init_popen,
+			    NULL);
 }
 
 /*
