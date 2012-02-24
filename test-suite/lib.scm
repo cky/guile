@@ -314,34 +314,33 @@
 
 ;;; The central testing routine.
 ;;; The idea is taken from Greg, the GNUstep regression test environment.
-(define run-test #f)
-(let ((test-running #f))
-  (define (local-run-test name expect-pass thunk)
-    (if test-running
-	(error "Nested calls to run-test are not permitted.")
-	(let ((test-name (full-name name)))
-	  (set! test-running #t)
-	  (catch #t
-	    (lambda ()
-	      (let ((result (thunk)))
-		(if (eq? result #t) (throw 'pass))
-		(if (eq? result #f) (throw 'fail))
-		(throw 'unresolved)))
-	    (lambda (key . args)
-	      (case key
-		((pass)
-		 (report (if expect-pass 'pass 'upass) test-name))
-		((fail)
-		 (report (if expect-pass 'fail 'xfail) test-name))
-		((unresolved untested unsupported)
-		 (report key test-name))
-		((quit)
-		 (report 'unresolved test-name)
-		 (quit))
-		(else
-		 (report 'error test-name (cons key args))))))
-	  (set! test-running #f))))
-  (set! run-test local-run-test))
+(define run-test
+  (let ((test-running #f))
+    (lambda (name expect-pass thunk)
+      (if test-running
+          (error "Nested calls to run-test are not permitted."))
+      (let ((test-name (full-name name)))
+            (set! test-running #t)
+            (catch #t
+              (lambda ()
+                (let ((result (thunk)))
+                  (if (eq? result #t) (throw 'pass))
+                  (if (eq? result #f) (throw 'fail))
+                  (throw 'unresolved)))
+              (lambda (key . args)
+                (case key
+                  ((pass)
+                   (report (if expect-pass 'pass 'upass) test-name))
+                  ((fail)
+                   (report (if expect-pass 'fail 'xfail) test-name))
+                  ((unresolved untested unsupported)
+                   (report key test-name))
+                  ((quit)
+                   (report 'unresolved test-name)
+                   (quit))
+                  (else
+                   (report 'error test-name (cons key args))))))
+            (set! test-running #f)))))
 
 ;;; A short form for tests that are expected to pass, taken from Greg.
 (define-syntax pass-if
