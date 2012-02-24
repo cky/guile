@@ -620,6 +620,9 @@ guilify_self_2 (SCM parent)
 
   t->join_queue = make_queue ();
   t->block_asyncs = 0;
+
+  /* See note in finalizers.c:queue_finalizer_async().  */
+  GC_invoke_finalizers ();
 }
 
 

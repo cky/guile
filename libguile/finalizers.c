@@ -31,6 +31,11 @@
 
 
 
+static size_t finalization_count;
+
+
+
+
 void
 scm_i_set_finalizer (void *obj, scm_t_finalizer_proc proc, void *data)
 {
@@ -117,10 +122,61 @@ scm_i_add_finalizer (void *obj, scm_t_finalizer_proc proc, void *data)
   shuffle_resuscitators_to_front (chained_data);
 }
 
+
 
 
+static SCM finalizer_async_cell;
+
+static SCM
+run_finalizers_async_thunk (void)
+{
+  finalization_count += GC_invoke_finalizers ();
+  return SCM_UNSPECIFIED;
+}
+
+
+/* The function queue_finalizer_async is run by the GC when there are
+ * objects to finalize.  It will enqueue an asynchronous call to
+ * GC_invoke_finalizers() at the next SCM_TICK in this thread.
+ */
+static void
+queue_finalizer_async (void)
+{
+  scm_i_thread *t = SCM_I_CURRENT_THREAD;
+  static scm_i_pthread_mutex_t lock = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+
+  scm_i_pthread_mutex_lock (&lock);
+  /* If t is NULL, that could be because we're allocating in
+     threads.c:guilify_self_1.  In that case, rely on the
+     GC_invoke_finalizers call there after the thread spins up.  */
+  if (t && scm_is_false (SCM_CDR (finalizer_async_cell)))
+    {
+      SCM_SETCDR (finalizer_async_cell, t->active_asyncs);
+      t->active_asyncs = finalizer_async_cell;
+      t->pending_asyncs = 1;
+    }
+  scm_i_pthread_mutex_unlock (&lock);
+}
+
+
+
+
+#ifndef HAVE_GC_SET_FINALIZER_NOTIFIER
+static void
+GC_set_finalizer_notifier (void (*notifier) (void))
+{
+  GC_finalizer_notifier = notifier;
+}
+#endif
 
 void
 scm_init_finalizers (void)
 {
+  /* When the async is to run, the cdr of the pair gets set to the
+     asyncs queue of the current thread.  */
+  finalizer_async_cell =
+    scm_cons (scm_c_make_gsubr ("%run-finalizers", 0, 0, 0,
+                                run_finalizers_async_thunk),
+              SCM_BOOL_F);
+  GC_set_finalizer_notifier (queue_finalizer_async);
 }

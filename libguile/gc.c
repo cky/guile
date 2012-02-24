@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -391,6 +391,9 @@ SCM_DEFINE (scm_gc, "gc", 0, 0, 0,
 #define FUNC_NAME s_scm_gc
 {
   scm_i_gc ("call");
+  /* If you're calling scm_gc(), you probably want synchronous
+     finalization.  */
+  GC_invoke_finalizers ();
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -623,6 +626,7 @@ scm_storage_prehistory ()
   minimum_free_space_divisor = free_space_divisor;
   target_free_space_divisor = free_space_divisor;
   GC_set_free_space_divisor (free_space_divisor);
+  GC_set_finalize_on_demand (1);
 
   GC_INIT ();
 

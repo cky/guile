@@ -59,6 +59,7 @@
 #include "libguile/expand.h"
 #include "libguile/feature.h"
 #include "libguile/filesys.h"
+#include "libguile/finalizers.h"
 #include "libguile/fluids.h"
 #include "libguile/fports.h"
 #include "libguile/frames.h"
@@ -423,6 +424,7 @@ scm_i_init_guile (void *base)
   scm_init_dynwind ();            /* requires smob_prehistory */
   scm_init_eq ();
   scm_init_error ();
+  scm_init_finalizers ();
   scm_init_fluids ();
   scm_init_control ();            /* requires fluids */
   scm_init_feature ();
