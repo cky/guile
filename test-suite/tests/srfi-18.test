@@ -1,7 +1,7 @@
 ;;;; srfi-18.test --- Test suite for Guile's SRFI-18 functions. -*- scheme -*-
 ;;;; Julian Graham, 2007-10-26
 ;;;;
-;;;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+;;;; Copyright (C) 2007, 2008, 2012 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -25,461 +25,458 @@
 (if (provided? 'threads)
     (use-modules (srfi srfi-18)))
 
-(and
- (provided? 'threads)
+(cond
+ ((provided? 'threads)
+  (with-test-prefix "current-thread"
 
-(with-test-prefix "current-thread"
+    (pass-if "current-thread eq current-thread"
+      (eq? (current-thread) (current-thread))))
 
-  (pass-if "current-thread eq current-thread"
-    (eq? (current-thread) (current-thread))))
+  (with-test-prefix "thread?"
 
-(with-test-prefix "thread?"
+    (pass-if "current-thread is thread"
+      (thread? (current-thread)))
 
-  (pass-if "current-thread is thread"
-    (thread? (current-thread)))
+    (pass-if "foo not thread"
+      (not (thread? 'foo))))
 
-  (pass-if "foo not thread"
-    (not (thread? 'foo))))
+  (with-test-prefix "make-thread"
 
-(with-test-prefix "make-thread"
+    (pass-if "make-thread creates new thread"
+      (let* ((n (length (all-threads)))
+             (t (make-thread (lambda () 'foo) 'make-thread-1))
+             (r (> (length (all-threads)) n)))
+        (thread-terminate! t) r)))
 
-  (pass-if "make-thread creates new thread"
-    (let* ((n (length (all-threads)))
-	   (t (make-thread (lambda () 'foo) 'make-thread-1))
-	   (r (> (length (all-threads)) n)))
-      (thread-terminate! t) r)))
+  (with-test-prefix "thread-name"
 
-(with-test-prefix "thread-name"
+    (pass-if "make-thread with name binds name"
+      (let* ((t (make-thread (lambda () 'foo) 'thread-name-1))
+             (r (eq? (thread-name t) 'thread-name-1)))
+        (thread-terminate! t) r))
 
-  (pass-if "make-thread with name binds name"
-    (let* ((t (make-thread (lambda () 'foo) 'thread-name-1))
-	   (r (eq? (thread-name t) 'thread-name-1)))
-      (thread-terminate! t) r))
+    (pass-if "make-thread without name does not bind name"
+      (let* ((t (make-thread (lambda () 'foo)))
+             (r (not (thread-name t))))
+        (thread-terminate! t) r)))
 
-  (pass-if "make-thread without name does not bind name"
-    (let* ((t (make-thread (lambda () 'foo)))
-	   (r (not (thread-name t))))
-      (thread-terminate! t) r)))
+  (with-test-prefix "thread-specific"
 
-(with-test-prefix "thread-specific"
+    (pass-if "thread-specific is initially #f"
+      (let* ((t (make-thread (lambda () 'foo) 'thread-specific-1))
+             (r (not (thread-specific t))))
+        (thread-terminate! t) r))
 
-  (pass-if "thread-specific is initially #f"
-    (let* ((t (make-thread (lambda () 'foo) 'thread-specific-1))
-	   (r (not (thread-specific t))))
-      (thread-terminate! t) r))
+    (pass-if "thread-specific-set! can set value"
+      (let ((t (make-thread (lambda () 'foo) 'thread-specific-2)))
+        (thread-specific-set! t "hello")
+        (let ((r (equal? (thread-specific t) "hello")))
+          (thread-terminate! t) r))))
 
-  (pass-if "thread-specific-set! can set value"
-    (let ((t (make-thread (lambda () 'foo) 'thread-specific-2)))
-      (thread-specific-set! t "hello")
-      (let ((r (equal? (thread-specific t) "hello")))
-	(thread-terminate! t) r))))
+  (with-test-prefix "thread-start!"
 
-(with-test-prefix "thread-start!"
+    (pass-if "thread activates only after start" 
+      (let* ((started #f)
+             (m (make-mutex 'thread-start-mutex))
+             (t (make-thread (lambda () (set! started #t)) 'thread-start-1)))
+        (and (not started) (thread-start! t) (thread-join! t) started))))
 
-  (pass-if "thread activates only after start" 
-    (let* ((started #f)
-	   (m (make-mutex 'thread-start-mutex))
-	   (t (make-thread (lambda () (set! started #t)) 'thread-start-1)))
-      (and (not started) (thread-start! t) (thread-join! t) started))))
+  (with-test-prefix "thread-yield!"
 
-(with-test-prefix "thread-yield!"
+    (pass-if "thread yield suceeds"
+      (thread-yield!) #t))
 
-  (pass-if "thread yield suceeds"
-    (thread-yield!) #t))
+  (with-test-prefix "thread-sleep!"
 
-(with-test-prefix "thread-sleep!"
+    (pass-if "thread sleep with time"
+      (let ((future-time (seconds->time (+ (time->seconds (current-time)) 2))))
+        (unspecified? (thread-sleep! future-time))))
 
-  (pass-if "thread sleep with time"
-    (let ((future-time (seconds->time (+ (time->seconds (current-time)) 2))))
-      (unspecified? (thread-sleep! future-time))))
+    (pass-if "thread sleep with number"
+      (let ((old-secs (car (current-time))))
+        (unspecified? (thread-sleep! (+ (time->seconds (current-time)))))))
 
-  (pass-if "thread sleep with number"
-    (let ((old-secs (car (current-time))))
-      (unspecified? (thread-sleep! (+ (time->seconds (current-time)))))))
+    (pass-if "thread does not sleep on past time"
+      (let ((past-time (seconds->time (- (time->seconds (current-time)) 2))))
+        (unspecified? (thread-sleep! past-time)))))
 
-  (pass-if "thread does not sleep on past time"
-    (let ((past-time (seconds->time (- (time->seconds (current-time)) 2))))
-      (unspecified? (thread-sleep! past-time)))))
-
-(with-test-prefix "thread-terminate!"
+  (with-test-prefix "thread-terminate!"
   
-  (pass-if "termination destroys non-started thread"
-    (let ((t (make-thread (lambda () 'nothing) 'thread-terminate-1))
-	  (num-threads (length (all-threads)))
-	  (success #f))
-      (thread-terminate! t)
-      (with-exception-handler 
-       (lambda (obj) (set! success (terminated-thread-exception? obj)))
-       (lambda () (thread-join! t)))
-      success))
+    (pass-if "termination destroys non-started thread"
+      (let ((t (make-thread (lambda () 'nothing) 'thread-terminate-1))
+            (num-threads (length (all-threads)))
+            (success #f))
+        (thread-terminate! t)
+        (with-exception-handler 
+         (lambda (obj) (set! success (terminated-thread-exception? obj)))
+         (lambda () (thread-join! t)))
+        success))
 
-  (pass-if "termination destroys started thread"
-    (let* ((m1 (make-mutex 'thread-terminate-2a))
-	   (m2 (make-mutex 'thread-terminate-2b))
-	   (c (make-condition-variable 'thread-terminate-2))
-	   (t (make-thread (lambda () 
-			     (mutex-lock! m1) 
-			     (condition-variable-signal! c)
-			     (mutex-unlock! m1)
-			     (mutex-lock! m2))
-			   'thread-terminate-2))
-	   (success #f))
-      (mutex-lock! m1)
-      (mutex-lock! m2)
-      (thread-start! t)
-      (mutex-unlock! m1 c)
-      (thread-terminate! t)
-      (with-exception-handler
-       (lambda (obj) (set! success (terminated-thread-exception? obj)))
-       (lambda () (thread-join! t)))
-      success)))
+    (pass-if "termination destroys started thread"
+      (let* ((m1 (make-mutex 'thread-terminate-2a))
+             (m2 (make-mutex 'thread-terminate-2b))
+             (c (make-condition-variable 'thread-terminate-2))
+             (t (make-thread (lambda () 
+                               (mutex-lock! m1) 
+                               (condition-variable-signal! c)
+                               (mutex-unlock! m1)
+                               (mutex-lock! m2))
+                             'thread-terminate-2))
+             (success #f))
+        (mutex-lock! m1)
+        (mutex-lock! m2)
+        (thread-start! t)
+        (mutex-unlock! m1 c)
+        (thread-terminate! t)
+        (with-exception-handler
+         (lambda (obj) (set! success (terminated-thread-exception? obj)))
+         (lambda () (thread-join! t)))
+        success)))
 
-(with-test-prefix "thread-join!"
+  (with-test-prefix "thread-join!"
 
-  (pass-if "join receives result of thread"
-    (let ((t (make-thread (lambda () 'foo) 'thread-join-1)))
-      (thread-start! t)
-      (eq? (thread-join! t) 'foo)))
+    (pass-if "join receives result of thread"
+      (let ((t (make-thread (lambda () 'foo) 'thread-join-1)))
+        (thread-start! t)
+        (eq? (thread-join! t) 'foo)))
 
-  (pass-if "join receives timeout val if timeout expires"
-    (let* ((m (make-mutex 'thread-join-2))
-	   (t (make-thread (lambda () (mutex-lock! m)) 'thread-join-2)))
-      (mutex-lock! m)
-      (thread-start! t)
-      (let ((r (thread-join! t (current-time) 'bar)))
-	(thread-terminate! t)
-	(eq? r 'bar))))
+    (pass-if "join receives timeout val if timeout expires"
+      (let* ((m (make-mutex 'thread-join-2))
+             (t (make-thread (lambda () (mutex-lock! m)) 'thread-join-2)))
+        (mutex-lock! m)
+        (thread-start! t)
+        (let ((r (thread-join! t (current-time) 'bar)))
+          (thread-terminate! t)
+          (eq? r 'bar))))
 
-  (pass-if "join throws exception on timeout without timeout val"
-    (let* ((m (make-mutex 'thread-join-3))
-	   (t (make-thread (lambda () (mutex-lock! m)) 'thread-join-3))
-	   (success #f))
-      (mutex-lock! m)
-      (thread-start! t)
-      (with-exception-handler
-       (lambda (obj) (set! success (join-timeout-exception? obj)))
-       (lambda () (thread-join! t (current-time))))
-      (thread-terminate! t)
-      success))
+    (pass-if "join throws exception on timeout without timeout val"
+      (let* ((m (make-mutex 'thread-join-3))
+             (t (make-thread (lambda () (mutex-lock! m)) 'thread-join-3))
+             (success #f))
+        (mutex-lock! m)
+        (thread-start! t)
+        (with-exception-handler
+         (lambda (obj) (set! success (join-timeout-exception? obj)))
+         (lambda () (thread-join! t (current-time))))
+        (thread-terminate! t)
+        success))
 
-  (pass-if "join waits on timeout"
-    (let ((t (make-thread (lambda () (sleep 1) 'foo) 'thread-join-4)))
-      (thread-start! t)
-      (eq? (thread-join! t (+ (time->seconds (current-time)) 2)) 'foo))))
+    (pass-if "join waits on timeout"
+      (let ((t (make-thread (lambda () (sleep 1) 'foo) 'thread-join-4)))
+        (thread-start! t)
+        (eq? (thread-join! t (+ (time->seconds (current-time)) 2)) 'foo))))
 
-(with-test-prefix "mutex?"
+  (with-test-prefix "mutex?"
 
-  (pass-if "make-mutex creates mutex"
-    (mutex? (make-mutex)))
+    (pass-if "make-mutex creates mutex"
+      (mutex? (make-mutex)))
 
-  (pass-if "symbol not mutex"
-    (not (mutex? 'foo))))
+    (pass-if "symbol not mutex"
+      (not (mutex? 'foo))))
 
-(with-test-prefix "mutex-name"
+  (with-test-prefix "mutex-name"
 
-  (pass-if "make-mutex with name binds name"
-    (let* ((m (make-mutex 'mutex-name-1)))
-      (eq? (mutex-name m) 'mutex-name-1)))
+    (pass-if "make-mutex with name binds name"
+      (let* ((m (make-mutex 'mutex-name-1)))
+        (eq? (mutex-name m) 'mutex-name-1)))
 
-  (pass-if "make-mutex without name does not bind name"
-    (let* ((m (make-mutex)))
-      (not (mutex-name m)))))
+    (pass-if "make-mutex without name does not bind name"
+      (let* ((m (make-mutex)))
+        (not (mutex-name m)))))
 
-(with-test-prefix "mutex-specific"
+  (with-test-prefix "mutex-specific"
 
-  (pass-if "mutex-specific is initially #f"
-    (let ((m (make-mutex 'mutex-specific-1)))
-      (not (mutex-specific m))))
+    (pass-if "mutex-specific is initially #f"
+      (let ((m (make-mutex 'mutex-specific-1)))
+        (not (mutex-specific m))))
 
-  (pass-if "mutex-specific-set! can set value"
-    (let ((m (make-mutex 'mutex-specific-2)))
-      (mutex-specific-set! m "hello")
-      (equal? (mutex-specific m) "hello"))))
+    (pass-if "mutex-specific-set! can set value"
+      (let ((m (make-mutex 'mutex-specific-2)))
+        (mutex-specific-set! m "hello")
+        (equal? (mutex-specific m) "hello"))))
 
-(with-test-prefix "mutex-state"
+  (with-test-prefix "mutex-state"
 
-  (pass-if "mutex state is initially not-abandoned"
-    (let ((m (make-mutex 'mutex-state-1)))
-      (eq? (mutex-state m) 'not-abandoned)))
+    (pass-if "mutex state is initially not-abandoned"
+      (let ((m (make-mutex 'mutex-state-1)))
+        (eq? (mutex-state m) 'not-abandoned)))
 
-  (pass-if "mutex state of locked, owned mutex is owner thread"
-    (let ((m (make-mutex 'mutex-state-2)))
-      (mutex-lock! m)
-      (eq? (mutex-state m) (current-thread))))
+    (pass-if "mutex state of locked, owned mutex is owner thread"
+      (let ((m (make-mutex 'mutex-state-2)))
+        (mutex-lock! m)
+        (eq? (mutex-state m) (current-thread))))
 	  
-  (pass-if "mutex state of locked, unowned mutex is not-owned"
-    (let ((m (make-mutex 'mutex-state-3)))
-      (mutex-lock! m #f #f)
-      (eq? (mutex-state m) 'not-owned)))
+    (pass-if "mutex state of locked, unowned mutex is not-owned"
+      (let ((m (make-mutex 'mutex-state-3)))
+        (mutex-lock! m #f #f)
+        (eq? (mutex-state m) 'not-owned)))
 
-  (pass-if "mutex state of unlocked, abandoned mutex is abandoned"
-    (let* ((m (make-mutex 'mutex-state-4))
-	   (t (make-thread (lambda () (mutex-lock! m)))))
-      (thread-start! t)
-      (thread-join! t)
-      (eq? (mutex-state m) 'abandoned))))
+    (pass-if "mutex state of unlocked, abandoned mutex is abandoned"
+      (let* ((m (make-mutex 'mutex-state-4))
+             (t (make-thread (lambda () (mutex-lock! m)))))
+        (thread-start! t)
+        (thread-join! t)
+        (eq? (mutex-state m) 'abandoned))))
 
-(with-test-prefix "mutex-lock!"
+  (with-test-prefix "mutex-lock!"
   
-  (pass-if "mutex-lock! returns true on successful lock"
-    (let* ((m (make-mutex 'mutex-lock-1)))
-      (mutex-lock! m)))
+    (pass-if "mutex-lock! returns true on successful lock"
+      (let* ((m (make-mutex 'mutex-lock-1)))
+        (mutex-lock! m)))
 
-  (pass-if "mutex-lock! returns false on timeout"
-    (let* ((m (make-mutex 'mutex-lock-2))
-	   (t (make-thread (lambda () (mutex-lock! m (current-time) #f)))))
-      (mutex-lock! m)
-      (thread-start! t)
-      (not (thread-join! t))))
+    (pass-if "mutex-lock! returns false on timeout"
+      (let* ((m (make-mutex 'mutex-lock-2))
+             (t (make-thread (lambda () (mutex-lock! m (current-time) #f)))))
+        (mutex-lock! m)
+        (thread-start! t)
+        (not (thread-join! t))))
 
-  (pass-if "mutex-lock! returns true when lock obtained within timeout"
-    (let* ((m (make-mutex 'mutex-lock-3))
-	   (t (make-thread (lambda () 
-			     (mutex-lock! m (+ (time->seconds (current-time)) 
-					       100)
-					  #f)))))
-      (mutex-lock! m)
-      (thread-start! t)
-      (mutex-unlock! m)
-      (thread-join! t)))
+    (pass-if "mutex-lock! returns true when lock obtained within timeout"
+      (let* ((m (make-mutex 'mutex-lock-3))
+             (t (make-thread (lambda () 
+                               (mutex-lock! m (+ (time->seconds (current-time)) 
+                                                 100)
+                                            #f)))))
+        (mutex-lock! m)
+        (thread-start! t)
+        (mutex-unlock! m)
+        (thread-join! t)))
 
-  (pass-if "can lock mutex for non-current thread"
-    (let* ((m1 (make-mutex 'mutex-lock-4a))
-	   (m2 (make-mutex 'mutex-lock-4b))
-	   (t (make-thread (lambda () (mutex-lock! m1)) 'mutex-lock-4)))
-      (mutex-lock! m1)
-      (thread-start! t)
-      (mutex-lock! m2 #f t)
-      (let ((success (eq? (mutex-state m2) t))) 
-	(thread-terminate! t) success)))
+    (pass-if "can lock mutex for non-current thread"
+      (let* ((m1 (make-mutex 'mutex-lock-4a))
+             (m2 (make-mutex 'mutex-lock-4b))
+             (t (make-thread (lambda () (mutex-lock! m1)) 'mutex-lock-4)))
+        (mutex-lock! m1)
+        (thread-start! t)
+        (mutex-lock! m2 #f t)
+        (let ((success (eq? (mutex-state m2) t))) 
+          (thread-terminate! t) success)))
 
-  (pass-if "locking abandoned mutex throws exception"
-    (let* ((m (make-mutex 'mutex-lock-5))
-	   (t (make-thread (lambda () (mutex-lock! m)) 'mutex-lock-5))
-	   (success #f))
-      (thread-start! t)
-      (thread-join! t)
-      (with-exception-handler
-       (lambda (obj) (set! success (abandoned-mutex-exception? obj)))
-       (lambda () (mutex-lock! m)))
-      (and success (eq? (mutex-state m) (current-thread)))))
+    (pass-if "locking abandoned mutex throws exception"
+      (let* ((m (make-mutex 'mutex-lock-5))
+             (t (make-thread (lambda () (mutex-lock! m)) 'mutex-lock-5))
+             (success #f))
+        (thread-start! t)
+        (thread-join! t)
+        (with-exception-handler
+         (lambda (obj) (set! success (abandoned-mutex-exception? obj)))
+         (lambda () (mutex-lock! m)))
+        (and success (eq? (mutex-state m) (current-thread)))))
 
-  (pass-if "sleeping threads notified of abandonment"
-    (let* ((m1 (make-mutex 'mutex-lock-6a))
-	   (m2 (make-mutex 'mutex-lock-6b))
-	   (c (make-condition-variable 'mutex-lock-6))
-	   (t (make-thread (lambda () 
-			     (mutex-lock! m1)
-			     (mutex-lock! m2)
-			     (condition-variable-signal! c))))
-	   (success #f))
-      (mutex-lock! m1)
-      (thread-start! t)
-      (with-exception-handler
-       (lambda (obj) (set! success (abandoned-mutex-exception? obj)))
-       (lambda () (mutex-unlock! m1 c) (mutex-lock! m2)))
-      success)))
+    (pass-if "sleeping threads notified of abandonment"
+      (let* ((m1 (make-mutex 'mutex-lock-6a))
+             (m2 (make-mutex 'mutex-lock-6b))
+             (c (make-condition-variable 'mutex-lock-6))
+             (t (make-thread (lambda () 
+                               (mutex-lock! m1)
+                               (mutex-lock! m2)
+                               (condition-variable-signal! c))))
+             (success #f))
+        (mutex-lock! m1)
+        (thread-start! t)
+        (with-exception-handler
+         (lambda (obj) (set! success (abandoned-mutex-exception? obj)))
+         (lambda () (mutex-unlock! m1 c) (mutex-lock! m2)))
+        success)))
 
-(with-test-prefix "mutex-unlock!"
+  (with-test-prefix "mutex-unlock!"
    
-  (pass-if "unlock changes mutex state"
-    (let* ((m (make-mutex 'mutex-unlock-1)))
-      (mutex-lock! m)
-      (mutex-unlock! m)
-      (eq? (mutex-state m) 'not-abandoned)))
+    (pass-if "unlock changes mutex state"
+      (let* ((m (make-mutex 'mutex-unlock-1)))
+        (mutex-lock! m)
+        (mutex-unlock! m)
+        (eq? (mutex-state m) 'not-abandoned)))
 
-  (pass-if "can unlock from any thread"
-    (let* ((m (make-mutex 'mutex-unlock-2))
-	   (t (make-thread (lambda () (mutex-unlock! m)) 'mutex-unlock-2)))
-      (mutex-lock! m)
-      (thread-start! t)
-      (thread-join! t)
-      (eq? (mutex-state m) 'not-abandoned)))
+    (pass-if "can unlock from any thread"
+      (let* ((m (make-mutex 'mutex-unlock-2))
+             (t (make-thread (lambda () (mutex-unlock! m)) 'mutex-unlock-2)))
+        (mutex-lock! m)
+        (thread-start! t)
+        (thread-join! t)
+        (eq? (mutex-state m) 'not-abandoned)))
 
-  (pass-if "mutex unlock is true when condition is signalled"
-    (let* ((m (make-mutex 'mutex-unlock-3))
-	   (c (make-condition-variable 'mutex-unlock-3))
-	   (t (make-thread (lambda () 
-			     (mutex-lock! m) 
-			     (condition-variable-signal! c) 
-			     (mutex-unlock! m)))))
-      (mutex-lock! m)
-      (thread-start! t)
-      (mutex-unlock! m c)))
+    (pass-if "mutex unlock is true when condition is signalled"
+      (let* ((m (make-mutex 'mutex-unlock-3))
+             (c (make-condition-variable 'mutex-unlock-3))
+             (t (make-thread (lambda () 
+                               (mutex-lock! m) 
+                               (condition-variable-signal! c) 
+                               (mutex-unlock! m)))))
+        (mutex-lock! m)
+        (thread-start! t)
+        (mutex-unlock! m c)))
 
-  (pass-if "mutex unlock is false when condition times out"
-    (let* ((m (make-mutex 'mutex-unlock-4))
-	   (c (make-condition-variable 'mutex-unlock-4)))
-      (mutex-lock! m)
-      (not (mutex-unlock! m c (+ (time->seconds (current-time)) 1))))))
+    (pass-if "mutex unlock is false when condition times out"
+      (let* ((m (make-mutex 'mutex-unlock-4))
+             (c (make-condition-variable 'mutex-unlock-4)))
+        (mutex-lock! m)
+        (not (mutex-unlock! m c (+ (time->seconds (current-time)) 1))))))
 
-(with-test-prefix "condition-variable?"
+  (with-test-prefix "condition-variable?"
 
-  (pass-if "make-condition-variable creates condition variable"
-    (condition-variable? (make-condition-variable)))
+    (pass-if "make-condition-variable creates condition variable"
+      (condition-variable? (make-condition-variable)))
 
-  (pass-if "symbol not condition variable"
-    (not (condition-variable? 'foo))))
+    (pass-if "symbol not condition variable"
+      (not (condition-variable? 'foo))))
 
-(with-test-prefix "condition-variable-name"
+  (with-test-prefix "condition-variable-name"
 
-  (pass-if "make-condition-variable with name binds name"
-    (let* ((c (make-condition-variable 'condition-variable-name-1)))
-      (eq? (condition-variable-name c) 'condition-variable-name-1)))
+    (pass-if "make-condition-variable with name binds name"
+      (let* ((c (make-condition-variable 'condition-variable-name-1)))
+        (eq? (condition-variable-name c) 'condition-variable-name-1)))
 
-  (pass-if "make-condition-variable without name does not bind name"
-    (let* ((c (make-condition-variable)))
-      (not (condition-variable-name c)))))
+    (pass-if "make-condition-variable without name does not bind name"
+      (let* ((c (make-condition-variable)))
+        (not (condition-variable-name c)))))
 
-(with-test-prefix "condition-variable-specific"
+  (with-test-prefix "condition-variable-specific"
 
-  (pass-if "condition-variable-specific is initially #f"
-    (let ((c (make-condition-variable 'condition-variable-specific-1)))
-      (not (condition-variable-specific c))))
+    (pass-if "condition-variable-specific is initially #f"
+      (let ((c (make-condition-variable 'condition-variable-specific-1)))
+        (not (condition-variable-specific c))))
 
-  (pass-if "condition-variable-specific-set! can set value"
-    (let ((c (make-condition-variable 'condition-variable-specific-1)))
-      (condition-variable-specific-set! c "hello")
-      (equal? (condition-variable-specific c) "hello"))))
+    (pass-if "condition-variable-specific-set! can set value"
+      (let ((c (make-condition-variable 'condition-variable-specific-1)))
+        (condition-variable-specific-set! c "hello")
+        (equal? (condition-variable-specific c) "hello"))))
 
-(with-test-prefix "condition-variable-signal!"
+  (with-test-prefix "condition-variable-signal!"
   
-  (pass-if "condition-variable-signal! wakes up single thread"
-    (let* ((m (make-mutex 'condition-variable-signal-1))
-	   (c (make-condition-variable 'condition-variable-signal-1))
-	   (t (make-thread (lambda () 
-			     (mutex-lock! m) 
-			     (condition-variable-signal! c) 
-			     (mutex-unlock! m)))))
-      (mutex-lock! m)
-      (thread-start! t)
-      (mutex-unlock! m c))))
+    (pass-if "condition-variable-signal! wakes up single thread"
+      (let* ((m (make-mutex 'condition-variable-signal-1))
+             (c (make-condition-variable 'condition-variable-signal-1))
+             (t (make-thread (lambda () 
+                               (mutex-lock! m) 
+                               (condition-variable-signal! c) 
+                               (mutex-unlock! m)))))
+        (mutex-lock! m)
+        (thread-start! t)
+        (mutex-unlock! m c))))
 
-(with-test-prefix "condition-variable-broadcast!"
+  (with-test-prefix "condition-variable-broadcast!"
 
-  (pass-if "condition-variable-broadcast! wakes up multiple threads"
-    (let* ((sem 0)
-	   (c1 (make-condition-variable 'condition-variable-broadcast-1-a))
-	   (m1 (make-mutex 'condition-variable-broadcast-1-a))
-	   (c2 (make-condition-variable 'condition-variable-broadcast-1-b))
-	   (m2 (make-mutex 'condition-variable-broadcast-1-b))
-	   (inc-sem! (lambda () 
-		       (mutex-lock! m1)
-		       (set! sem (+ sem 1))
-		       (condition-variable-broadcast! c1)
-		       (mutex-unlock! m1)))
-	   (dec-sem! (lambda ()
-		       (mutex-lock! m1)
-		       (while (eqv? sem 0) (wait-condition-variable c1 m1))
-		       (set! sem (- sem 1))
-		       (mutex-unlock! m1)))
-	   (t1 (make-thread (lambda () 
-			      (mutex-lock! m2)
-			      (inc-sem!)
-			      (mutex-unlock! m2 c2)
-			      (inc-sem!))))
-	   (t2 (make-thread (lambda () 
-			      (mutex-lock! m2)
-			      (inc-sem!)
-			      (mutex-unlock! m2 c2)
-			      (inc-sem!)))))
-      (thread-start! t1)
-      (thread-start! t2)
-      (dec-sem!)
-      (dec-sem!)
-      (mutex-lock! m2)
-      (condition-variable-broadcast! c2)
-      (mutex-unlock! m2)
-      (dec-sem!)
-      (dec-sem!))))
+    (pass-if "condition-variable-broadcast! wakes up multiple threads"
+      (let* ((sem 0)
+             (c1 (make-condition-variable 'condition-variable-broadcast-1-a))
+             (m1 (make-mutex 'condition-variable-broadcast-1-a))
+             (c2 (make-condition-variable 'condition-variable-broadcast-1-b))
+             (m2 (make-mutex 'condition-variable-broadcast-1-b))
+             (inc-sem! (lambda () 
+                         (mutex-lock! m1)
+                         (set! sem (+ sem 1))
+                         (condition-variable-broadcast! c1)
+                         (mutex-unlock! m1)))
+             (dec-sem! (lambda ()
+                         (mutex-lock! m1)
+                         (while (eqv? sem 0) (wait-condition-variable c1 m1))
+                         (set! sem (- sem 1))
+                         (mutex-unlock! m1)))
+             (t1 (make-thread (lambda () 
+                                (mutex-lock! m2)
+                                (inc-sem!)
+                                (mutex-unlock! m2 c2)
+                                (inc-sem!))))
+             (t2 (make-thread (lambda () 
+                                (mutex-lock! m2)
+                                (inc-sem!)
+                                (mutex-unlock! m2 c2)
+                                (inc-sem!)))))
+        (thread-start! t1)
+        (thread-start! t2)
+        (dec-sem!)
+        (dec-sem!)
+        (mutex-lock! m2)
+        (condition-variable-broadcast! c2)
+        (mutex-unlock! m2)
+        (dec-sem!)
+        (dec-sem!))))
 
-(with-test-prefix "time?"
+  (with-test-prefix "time?"
 
-  (pass-if "current-time is time" (time? (current-time)))
-  (pass-if "number is not time" (not (time? 123)))
-  (pass-if "symbol not time" (not (time? 'foo))))
+    (pass-if "current-time is time" (time? (current-time)))
+    (pass-if "number is not time" (not (time? 123)))
+    (pass-if "symbol not time" (not (time? 'foo))))
 
-(with-test-prefix "time->seconds"
+  (with-test-prefix "time->seconds"
 
-  (pass-if "time->seconds makes time into rational"
-    (rational? (time->seconds (current-time))))
+    (pass-if "time->seconds makes time into rational"
+      (rational? (time->seconds (current-time))))
 
-  (pass-if "time->seconds is reversible"
-    (let ((t (current-time)))
-      (equal? t (seconds->time (time->seconds t))))))
+    (pass-if "time->seconds is reversible"
+      (let ((t (current-time)))
+        (equal? t (seconds->time (time->seconds t))))))
 
-(with-test-prefix "seconds->time"
+  (with-test-prefix "seconds->time"
 
-  (pass-if "seconds->time makes rational into time"
-    (time? (seconds->time 123.456)))
+    (pass-if "seconds->time makes rational into time"
+      (time? (seconds->time 123.456)))
 
-  (pass-if "seconds->time is reversible"
-    (let ((t (time->seconds (current-time))))
-      (equal? t (time->seconds (seconds->time t))))))
+    (pass-if "seconds->time is reversible"
+      (let ((t (time->seconds (current-time))))
+        (equal? t (time->seconds (seconds->time t))))))
 
-(with-test-prefix "current-exception-handler"
+  (with-test-prefix "current-exception-handler"
 
-  (pass-if "current handler returned at top level"
-    (procedure? (current-exception-handler)))
+    (pass-if "current handler returned at top level"
+      (procedure? (current-exception-handler)))
 
-  (pass-if "specified handler set under with-exception-handler"
-    (let ((h (lambda (key . args) 'nothing)))
-      (with-exception-handler h (lambda () (eq? (current-exception-handler) 
-						h)))))
+    (pass-if "specified handler set under with-exception-handler"
+      (let ((h (lambda (key . args) 'nothing)))
+        (with-exception-handler h (lambda () (eq? (current-exception-handler) 
+                                                  h)))))
 
-  (pass-if "multiple levels of handler nesting"
-    (let ((h (lambda (key . args) 'nothing))
-	  (i (current-exception-handler)))
-      (and (with-exception-handler h (lambda () 
-				       (eq? (current-exception-handler) h)))
-	   (eq? (current-exception-handler) i))))
+    (pass-if "multiple levels of handler nesting"
+      (let ((h (lambda (key . args) 'nothing))
+            (i (current-exception-handler)))
+        (and (with-exception-handler h (lambda () 
+                                         (eq? (current-exception-handler) h)))
+             (eq? (current-exception-handler) i))))
 
-  (pass-if "exception handler installation is thread-safe"
-    (let* ((h1 (current-exception-handler))
-	   (h2 (lambda (key . args) 'nothing-2))
-	   (m (make-mutex 'current-exception-handler-4))
-	   (c (make-condition-variable 'current-exception-handler-4))
-	   (t (make-thread (lambda () 
-			     (with-exception-handler 
-			      h2 (lambda () 
-				   (mutex-lock! m) 
-				   (condition-variable-signal! c) 
-				   (wait-condition-variable c m)
-				   (and (eq? (current-exception-handler) h2)
-					(mutex-unlock! m)))))
-			   'current-exception-handler-4)))
-      (mutex-lock! m)
-      (thread-start! t)
-      (wait-condition-variable c m)
-      (and (eq? (current-exception-handler) h1)
-	   (condition-variable-signal! c)
-	   (mutex-unlock! m)
-	   (thread-join! t)))))
+    (pass-if "exception handler installation is thread-safe"
+      (let* ((h1 (current-exception-handler))
+             (h2 (lambda (key . args) 'nothing-2))
+             (m (make-mutex 'current-exception-handler-4))
+             (c (make-condition-variable 'current-exception-handler-4))
+             (t (make-thread (lambda () 
+                               (with-exception-handler 
+                                h2 (lambda () 
+                                     (mutex-lock! m) 
+                                     (condition-variable-signal! c) 
+                                     (wait-condition-variable c m)
+                                     (and (eq? (current-exception-handler) h2)
+                                          (mutex-unlock! m)))))
+                             'current-exception-handler-4)))
+        (mutex-lock! m)
+        (thread-start! t)
+        (wait-condition-variable c m)
+        (and (eq? (current-exception-handler) h1)
+             (condition-variable-signal! c)
+             (mutex-unlock! m)
+             (thread-join! t)))))
 
-(with-test-prefix "uncaught-exception-reason"
+  (with-test-prefix "uncaught-exception-reason"
 
-  (pass-if "initial handler captures top level exception"
-    (let ((t (make-thread (lambda () (raise 'foo))))
-	  (success #f))
-      (thread-start! t)
-      (with-exception-handler
-       (lambda (obj)
-	 (and (uncaught-exception? obj)
-	      (eq? (uncaught-exception-reason obj) 'foo)
-	      (set! success #t)))
-       (lambda () (thread-join! t)))
-      success))
+    (pass-if "initial handler captures top level exception"
+      (let ((t (make-thread (lambda () (raise 'foo))))
+            (success #f))
+        (thread-start! t)
+        (with-exception-handler
+         (lambda (obj)
+           (and (uncaught-exception? obj)
+                (eq? (uncaught-exception-reason obj) 'foo)
+                (set! success #t)))
+         (lambda () (thread-join! t)))
+        success))
 
-  (pass-if "initial handler captures non-SRFI-18 throw"
-    (let ((t (make-thread (lambda () (throw 'foo))))
-	  (success #f))
-      (thread-start! t)
-      (with-exception-handler
-       (lambda (obj)
-	 (and (uncaught-exception? obj)
-	      (eq? (uncaught-exception-reason obj) 'foo)
-	      (set! success #t)))
-       (lambda () (thread-join! t)))
-      success)))
-
-)
+    (pass-if "initial handler captures non-SRFI-18 throw"
+      (let ((t (make-thread (lambda () (throw 'foo))))
+            (success #f))
+        (thread-start! t)
+        (with-exception-handler
+         (lambda (obj)
+           (and (uncaught-exception? obj)
+                (eq? (uncaught-exception-reason obj) 'foo)
+                (set! success #t)))
+         (lambda () (thread-join! t)))
+        success)))))
