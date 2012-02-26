@@ -1,6 +1,7 @@
 ;;;; -*- coding: utf-8; mode: scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2004, 2006, 2009, 2010,
+;;;;      2012 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -32,7 +33,8 @@
 
 (define genwrite:newline-str (make-string 1 #\newline))
 
-(define (generic-write obj display? width per-line-prefix output)
+(define (generic-write
+         obj display? width max-expr-width per-line-prefix output)
 
   (define (read-macro? l)
     (define (length1? l) (and (pair? l) (null? (cdr l))))
@@ -93,7 +95,7 @@
       (if (or (pair? obj) (vector? obj)) ; may have to split on multiple lines
         (let ((result '())
               (left (min (+ (- (- width col) extra) 1) max-expr-width)))
-          (generic-write obj display? #f ""
+          (generic-write obj display? #f max-expr-width ""
             (lambda (str)
               (set! result (cons str result))
               (set! left (- left (string-length str)))
@@ -223,12 +225,10 @@
 
     (define max-call-head-width 5)
 
-    (define max-expr-width 50)
-
     (define (style head)
       (case head
-        ((lambda let* letrec define define-public
-          define-syntax let-syntax letrec-syntax)
+        ((lambda lambda* let* letrec define define* define-public
+                 define-syntax let-syntax letrec-syntax with-syntax)
                                      pp-LAMBDA)
         ((if set!)                   pp-IF)
         ((cond)                      pp-COND)
@@ -273,6 +273,7 @@
                        #:key 
                        (port (or port* (current-output-port)))
                        (width 79)
+                       (max-expr-width 50)
                        (display? #f)
                        (per-line-prefix ""))
   "Pretty-print OBJ on PORT, which is a keyword argument defaulting to
@@ -286,6 +287,7 @@ Instead of with a keyword argument, you can also specify the output
 port directly after OBJ, like (pretty-print OBJ PORT)."
   (generic-write obj display?
 		 (- width (string-length per-line-prefix))
+                 max-expr-width
 		 per-line-prefix
 		 (lambda (s) (display s port) #t)))
 
