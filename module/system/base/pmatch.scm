@@ -1,6 +1,6 @@
 ;;; pmatch, a simple matcher
 
-;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc
+;;; Copyright (C) 2009, 2010, 2012 Free Software Foundation, Inc
 ;;; Copyright (C) 2005,2006,2007 Oleg Kiselyov
 ;;; Copyright (C) 2007 Daniel P. Friedman
 ;;;
@@ -35,22 +35,22 @@
 ;;; Code:
 
 (define-module (system base pmatch)
-  #:export (pmatch))
+  #:export-syntax (pmatch))
 
-(define-syntax pmatch
+(define-syntax-rule (pmatch e cs ...)
+  (let ((v e)) (pmatch1 v cs ...)))
+
+(define-syntax pmatch1
   (syntax-rules (else guard)
-    ((_ (op arg ...) cs ...)
-     (let ((v (op arg ...)))
-       (pmatch v cs ...)))
     ((_ v) (if #f #f))
     ((_ v (else e0 e ...)) (let () e0 e ...))
     ((_ v (pat (guard g ...) e0 e ...) cs ...)
-     (let ((fk (lambda () (pmatch v cs ...))))
+     (let ((fk (lambda () (pmatch1 v cs ...))))
        (ppat v pat
              (if (and g ...) (let () e0 e ...) (fk))
              (fk))))
     ((_ v (pat e0 e ...) cs ...)
-     (let ((fk (lambda () (pmatch v cs ...))))
+     (let ((fk (lambda () (pmatch1 v cs ...))))
        (ppat v pat (let () e0 e ...) (fk))))))
 
 (define-syntax ppat
