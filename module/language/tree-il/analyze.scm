@@ -1354,7 +1354,8 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
     (($ <toplevel-ref> _ name)
      (let ((var (false-if-exception (module-variable env name))))
        (if var
-           (eq? (variable-ref var) proc)
+           (eq? (false-if-exception (variable-ref var)) ; VAR may be unbound
+                proc)
            (eq? name special-name))))      ; special hack to support local aliases
     (($ <module-ref> _ module name public?)
      (let ((m (false-if-exception (if public?

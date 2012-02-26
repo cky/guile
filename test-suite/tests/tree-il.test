@@ -2184,6 +2184,19 @@
                           #:opts %opts-w-format
                           #:to 'assembly)))))
 
+     (pass-if "non-literal format string with forward declaration"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(begin
+                               (define (foo)
+                                 (format #t (_ "~A ~A!") "hello" "world"))
+                               (define _ bar))
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "non-literal format string")))))
+
      (pass-if "wrong format string"
        (let ((w (call-with-warnings
                  (lambda ()
