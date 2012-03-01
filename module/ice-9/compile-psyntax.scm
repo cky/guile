@@ -17,7 +17,7 @@
 ;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (use-modules (language tree-il)
-             (language tree-il optimize)
+             (language tree-il primitives)
              (language tree-il canonicalize)
              (ice-9 pretty-print)
              (system syntax))
@@ -41,11 +41,17 @@
           (begin
             (pretty-print (tree-il->scheme
                            (canonicalize!
-                            (optimize!
+                            (resolve-primitives!
                              (macroexpand x 'c '(compile load eval))
-                             (current-module)
-                             '())))
-                          out)
+                             (current-module)))
+                           (current-module)
+                           (list #:avoid-lambda? #f
+                                 #:use-case? #f
+                                 #:strip-numeric-suffixes? #t
+                                 #:use-derived-syntax?
+                                 (and (pair? x)
+                                      (eq? 'let (car x)))))
+                          out #:width 120 #:max-expr-width 70)
             (newline out)
             (loop (read in))))))
   (system (format #f "mv -f ~s.tmp ~s" target target)))

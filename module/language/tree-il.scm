@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -331,155 +331,10 @@
      `(abort ,(unparse-tree-il tag) ,(map unparse-tree-il args)
              ,(unparse-tree-il tail)))))
 
-(define (tree-il->scheme e)
-  (record-case e
-    ((<void>)
-     '(if #f #f))
-
-    ((<application> proc args)
-     `(,(tree-il->scheme proc) ,@(map tree-il->scheme args)))
-
-    ((<conditional> test consequent alternate)
-     (if (void? alternate)
-         `(if ,(tree-il->scheme test) ,(tree-il->scheme consequent))
-         `(if ,(tree-il->scheme test) ,(tree-il->scheme consequent) ,(tree-il->scheme alternate))))
-
-    ((<primitive-ref> name)
-     name)
-
-    ((<lexical-ref> gensym)
-     gensym)
-
-    ((<lexical-set> gensym exp)
-     `(set! ,gensym ,(tree-il->scheme exp)))
-
-    ((<module-ref> mod name public?)
-     `(,(if public? '@ '@@) ,mod ,name))
-
-    ((<module-set> mod name public? exp)
-     `(set! (,(if public? '@ '@@) ,mod ,name) ,(tree-il->scheme exp)))
-
-    ((<toplevel-ref> name)
-     name)
-
-    ((<toplevel-set> name exp)
-     `(set! ,name ,(tree-il->scheme exp)))
-
-    ((<toplevel-define> name exp)
-     `(define ,name ,(tree-il->scheme exp)))
-
-    ((<lambda> meta body)
-     ;; fixme: put in docstring
-     (tree-il->scheme body))
-
-    ((<lambda-case> req opt rest kw inits gensyms body alternate)
-     (cond
-      ((and (not opt) (not kw) (not alternate))
-       `(lambda ,(if rest (apply cons* gensyms) gensyms)
-          ,(tree-il->scheme body)))
-      ((and (not opt) (not kw))
-       (let ((alt-expansion (tree-il->scheme alternate))
-             (formals (if rest (apply cons* gensyms) gensyms)))
-         (case (car alt-expansion)
-           ((lambda)
-            `(case-lambda (,formals ,(tree-il->scheme body))
-                          ,(cdr alt-expansion)))
-           ((lambda*)
-            `(case-lambda* (,formals ,(tree-il->scheme body))
-                           ,(cdr alt-expansion)))
-           ((case-lambda)
-            `(case-lambda (,formals ,(tree-il->scheme body))
-                          ,@(cdr alt-expansion)))
-           ((case-lambda*)
-            `(case-lambda* (,formals ,(tree-il->scheme body))
-                           ,@(cdr alt-expansion))))))
-      (else
-       (let* ((alt-expansion (and alternate (tree-il->scheme alternate)))
-              (nreq (length req))
-              (nopt (if opt (length opt) 0))
-              (restargs (if rest (list-ref gensyms (+ nreq nopt)) '()))
-              (reqargs (list-head gensyms nreq))
-              (optargs (if opt
-                           `(#:optional
-                             ,@(map list
-                                    (list-head (list-tail gensyms nreq) nopt)
-                                    (map tree-il->scheme
-                                         (list-head inits nopt))))
-                           '()))
-              (kwargs (if kw
-                          `(#:key
-                            ,@(map list
-                                   (map caddr (cdr kw))
-                                   (map tree-il->scheme
-                                        (list-tail inits nopt))
-                                   (map car (cdr kw)))
-                            ,@(if (car kw)
-                                  '(#:allow-other-keys)
-                                  '()))
-                          '()))
-              (formals `(,@reqargs ,@optargs ,@kwargs . ,restargs)))
-         (if (not alt-expansion)
-             `(lambda* ,formals ,(tree-il->scheme body))
-             (case (car alt-expansion)
-               ((lambda lambda*)
-                `(case-lambda* (,formals ,(tree-il->scheme body))
-                               ,(cdr alt-expansion)))
-               ((case-lambda case-lambda*)
-                `(case-lambda* (,formals ,(tree-il->scheme body))
-                               ,@(cdr alt-expansion)))))))))
-
-    ((<const> exp)
-     (if (and (self-evaluating? exp) (not (vector? exp)))
-         exp
-         (list 'quote exp)))
-
-    ((<sequence> exps)
-     `(begin ,@(map tree-il->scheme exps)))
-
-    ((<let> gensyms vals body)
-     `(let ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
-
-    ((<letrec> in-order? gensyms vals body)
-     `(,(if in-order? 'letrec* 'letrec)
-       ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
-
-    ((<fix> gensyms vals body)
-     ;; not a typo, we really do translate back to letrec. use letrec* since it
-     ;; doesn't matter, and the naive letrec* transformation does not require an
-     ;; inner let.
-     `(letrec* ,(map list gensyms (map tree-il->scheme vals)) ,(tree-il->scheme body)))
-
-    ((<let-values> exp body)
-     `(call-with-values (lambda () ,(tree-il->scheme exp))
-        ,(tree-il->scheme (make-lambda #f '() body))))
-
-    ((<dynwind> body winder unwinder)
-     `(dynamic-wind ,(tree-il->scheme winder)
-                    (lambda () ,(tree-il->scheme body))
-                    ,(tree-il->scheme unwinder)))
-
-    ((<dynlet> fluids vals body)
-     `(with-fluids ,(map list
-                         (map tree-il->scheme fluids)
-                         (map tree-il->scheme vals))
-        ,(tree-il->scheme body)))
-
-    ((<dynref> fluid)
-     `(fluid-ref ,(tree-il->scheme fluid)))
-
-    ((<dynset> fluid exp)
-     `(fluid-set! ,(tree-il->scheme fluid) ,(tree-il->scheme exp)))
-
-    ((<prompt> tag body handler)
-     `(call-with-prompt
-       ,(tree-il->scheme tag)
-       (lambda () ,(tree-il->scheme body))
-       ,(tree-il->scheme handler)))
-
-
-    ((<abort> tag args tail)
-     `(apply abort ,(tree-il->scheme tag) ,@(map tree-il->scheme args)
-             ,(tree-il->scheme tail)))))
+(define* (tree-il->scheme e #:optional (env #f) (opts '()))
+  (values ((@ (language scheme decompile-tree-il)
+              decompile-tree-il)
+           e env opts)))
 
 
 (define (tree-il-fold leaf down up seed tree)
