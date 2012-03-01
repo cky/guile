@@ -1,6 +1,7 @@
 ;;; srfi-4.scm --- Homogeneous Numeric Vector Datatypes
 
-;; 	Copyright (C) 2001, 2002, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2004, 2006, 2009, 2010,
+;;   2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -79,7 +80,8 @@
        (apply make-srfi-4-vector ',tag len fill))
      (define (,(symbol-append tag 'vector-length) v)
        (let ((len (* (uniform-vector-length v)
-                     (/ ,size (uniform-vector-element-size v)))))
+                     (uniform-vector-element-size v)
+                     (/ ,size))))
          (if (integer? len)
              len
              (error "fractional length" v ',tag ,size))))

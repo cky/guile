@@ -515,3 +515,28 @@
   (pass-if-exception "generalized-vector-set!, out-of-range"
     exception:out-of-range
     (generalized-vector-set! (c64vector 1.0) 1 2.0)))
+
+(with-test-prefix "accessing uniform vectors of different types"
+
+  (pass-if "u32vector-length of u16vector"
+    (= 2 (u32vector-length (make-u16vector 4))))
+
+  (pass-if "u32vector-length of u8vector"
+    (= 2 (u32vector-length (make-u8vector 8))))
+
+  (pass-if "u8vector-length of u16vector"
+    (= 4 (u8vector-length (make-u16vector 2))))
+
+  (pass-if "u8vector-length of u32vector"
+    (= 8 (u8vector-length (make-u32vector 2))))
+
+  (pass-if "u32vector-set! of u16vector"
+    (let ((v (make-u16vector 4 #xFFFF)))
+      (u32vector-set! v 1 0)
+      (equal? v #u16(#xFFFF #xFFFF 0 0))))
+
+  (pass-if "u16vector-set! of u32vector"
+    (let ((v (make-u32vector 2 #xFFFFFFFF)))
+      (u16vector-set! v 2 0)
+      (u16vector-set! v 3 0)
+      (equal? v #u32(#xFFFFFFFF 0)))))
