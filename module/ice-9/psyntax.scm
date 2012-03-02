@@ -2775,8 +2775,8 @@
               ((out ...) (let () e1 e2 ...)))))))
 
 (define-syntax syntax-rules
-  (lambda (x)
-    (syntax-case x ()
+  (lambda (xx)
+    (syntax-case xx ()
       ((_ (k ...) ((keyword . pattern) template) ...)
        #'(lambda (x)
            ;; embed patterns as procedure metadata
@@ -3027,8 +3027,8 @@
       (error "variable transformer not a procedure" proc)))
 
 (define-syntax identifier-syntax
-  (lambda (x)
-    (syntax-case x (set!)
+  (lambda (xx)
+    (syntax-case xx (set!)
       ((_ e)
        #'(lambda (x)
            #((macro-type . identifier-syntax))
