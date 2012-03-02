@@ -1532,6 +1532,35 @@
                        (lambda args args)))
    (const 1))
 
+  ;; Handler lambda inlined
+  (pass-if-peval
+   resolve-primitives
+   (call-with-prompt tag
+                     (lambda () 1)
+                     (lambda args args))
+   (prompt (toplevel tag)
+           (const 1)
+           (lambda-case
+            ((() #f args #f () (_))
+             (apply (primitive @apply)
+                    (lambda _ _)
+                    (lexical args _))))))
+
+  ;; Handler toplevel not inlined
+  (pass-if-peval
+   resolve-primitives
+   (call-with-prompt tag
+                     (lambda () 1)
+                     handler)
+   (let (handler) (_) ((toplevel handler))
+        (prompt (toplevel tag)
+                (const 1)
+                (lambda-case
+                 ((() #f args #f () (_))
+                  (apply (primitive @apply)
+                         (lexical handler _)
+                         (lexical args _)))))))
+
   (pass-if-peval
    resolve-primitives
    ;; `while' without `break' or `continue' has no prompts and gets its
