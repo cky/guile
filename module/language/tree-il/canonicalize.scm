@@ -1,6 +1,6 @@
 ;;; Tree-il canonicalizer
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -58,10 +58,10 @@
         (define (escape-only? handler)
           (match handler
             (($ <lambda-case> _ (_ . _) _ _ _ _ (cont . _) body #f)
-             (tree-il-any (lambda (x)
-                            (and (lexical-ref? x)
-                                 (eq? (lexical-ref-gensym x) cont)))
-                          body))
+             (not (tree-il-any (lambda (x)
+                                 (and (lexical-ref? x)
+                                      (eq? (lexical-ref-gensym x) cont)))
+                               body)))
             (else #f)))
         (define (thunk-application? x)
           (match x
