@@ -1537,14 +1537,12 @@
    resolve-primitives
    (call-with-prompt tag
                      (lambda () 1)
-                     (lambda args args))
+                     (lambda (k x) x))
    (prompt (toplevel tag)
            (const 1)
            (lambda-case
-            ((() #f args #f () (_))
-             (apply (primitive @apply)
-                    (lambda _ _)
-                    (lexical args _))))))
+            (((k x) #f #f #f () (_ _))
+             (lexical x _)))))
 
   ;; Handler toplevel not inlined
   (pass-if-peval
@@ -1577,7 +1575,17 @@
                             ((() #f #f #f () ())
                              (apply (lexical loop _))))))
                         (apply (lexical loop _)))))))
-           (apply (lexical lp _)))))
+           (apply (lexical lp _))))
+
+  (pass-if-peval
+   resolve-primitives
+   (lambda (a . rest)
+     (apply (lambda (x y) (+ x y))
+            a rest))
+   (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       _)))))
 
 
 

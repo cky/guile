@@ -1219,21 +1219,37 @@ top-level bindings from ENV and return the resulting expression."
                 exp
                 (make-lambda src meta (for-values body))))))
       (($ <lambda-case> src req opt rest kw inits gensyms body alt)
+       (define (lift-applied-lambda body gensyms)
+         (and (not opt) rest (not kw)
+              (match body
+                (($ <application> _
+                    ($ <primitive-ref> _ '@apply)
+                    (($ <lambda> _ _ lcase)
+                     ($ <lexical-ref> _ _ sym)
+                     ...))
+                 (and (equal? sym gensyms)
+                      (not (lambda-case-alternate lcase))
+                      lcase))
+                (_ #f))))
        (let* ((vars (map lookup-var gensyms))
               (new (fresh-gensyms vars))
               (env (fold extend-env env gensyms
                          (make-unbound-operands vars new)))
               (new-sym (lambda (old)
-                         (operand-sym (cdr (vhash-assq old env))))))
-         (make-lambda-case src req opt rest
-                           (match kw
-                             ((aok? (kw name old) ...)
-                              (cons aok? (map list kw name (map new-sym old))))
-                             (_ #f))
-                           (map (cut loop <> env counter 'value) inits)
-                           new
-                           (loop body env counter ctx)
-                           (and alt (for-tail alt)))))
+                         (operand-sym (cdr (vhash-assq old env)))))
+              (body (loop body env counter ctx)))
+         (or
+          ;; (lambda args (apply (lambda ...) args)) => (lambda ...)
+          (lift-applied-lambda body new)
+          (make-lambda-case src req opt rest
+                            (match kw
+                              ((aok? (kw name old) ...)
+                               (cons aok? (map list kw name (map new-sym old))))
+                              (_ #f))
+                            (map (cut loop <> env counter 'value) inits)
+                            new
+                            body
+                            (and alt (for-tail alt))))))
       (($ <sequence> src exps)
        (let lp ((exps exps) (effects '()))
          (match exps
