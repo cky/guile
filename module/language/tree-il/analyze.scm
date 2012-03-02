@@ -1352,16 +1352,16 @@ accurate information is missing from a given `tree-il' element."
 resort, return #t when EXP refers to the global variable SPECIAL-NAME."
   (match exp
     (($ <toplevel-ref> _ name)
-     (let ((var (false-if-exception (module-variable env name))))
-       (if var
-           (eq? (false-if-exception (variable-ref var)) ; VAR may be unbound
-                proc)
-           (eq? name special-name))))      ; special hack to support local aliases
+     (let ((var (module-variable env name)))
+       (if (and var (variable-bound? var))
+           (eq? (variable-ref var) proc)
+           (eq? name special-name)))) ; special hack to support local aliases
     (($ <module-ref> _ module name public?)
-     (let ((m (false-if-exception (if public?
-                                      (resolve-interface module)
-                                      (resolve-module module)))))
-       (and m (eq? (false-if-exception (module-ref module name)) proc))))
+     (let* ((mod (if public?
+                     (false-if-exception (resolve-interface module))
+                     (resolve-module module #:ensure? #f)))
+            (var (and mod (module-variable mod name))))
+       (and var (variable-bound? var) (eq? (variable-ref var) proc))))
     (_ #f)))
 
 (define gettext? (cut proc-ref? <> gettext '_ <>))
