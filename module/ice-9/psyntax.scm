@@ -2815,6 +2815,9 @@
                            (binding (car bindings)))
                #'(let (binding) body))))))))
 
+;; This definition of 'do' is never used, as it is immediately
+;; replaced by the definition in boot-9.scm.
+#;
 (define-syntax do
    (lambda (orig-x)
       (syntax-case orig-x ()
@@ -2988,6 +2991,10 @@
                       "expression not valid outside of quasiquote"
                       x)))
 
+;; This definition of 'case' is never used, as it is immediately
+;; replaced by the definition in boot-9.scm.  This version lacks
+;; R7RS-mandated support for '=>'.
+#;
 (define-syntax case
   (lambda (x)
     (syntax-case x ()
