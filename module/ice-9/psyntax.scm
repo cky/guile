@@ -617,21 +617,14 @@
 
     ;; syntax object wraps
 
-    ;;         <wrap> ::= ((<mark> ...) . (<subst> ...))
-    ;;        <subst> ::= <shift> | <subs>
-    ;;         <subs> ::= #(<old name> <label> (<mark> ...))
-    ;;        <shift> ::= positive fixnum
+    ;;      <wrap> ::= ((<mark> ...) . (<subst> ...))
+    ;;     <subst> ::= shift | <subs>
+    ;;      <subs> ::= #(ribcage #(<sym> ...) #(<mark> ...) #(<label> ...))
+    ;;                 | #(ribcage (<sym> ...) (<mark> ...) (<label> ...))
 
     (define-syntax make-wrap (identifier-syntax cons))
     (define-syntax wrap-marks (identifier-syntax car))
     (define-syntax wrap-subst (identifier-syntax cdr))
-
-    (define-syntax subst-rename? (identifier-syntax vector?))
-    (define-syntax-rule (rename-old x) (vector-ref x 0))
-    (define-syntax-rule (rename-new x) (vector-ref x 1))
-    (define-syntax-rule (rename-marks x) (vector-ref x 2))
-    (define-syntax-rule (make-rename old new marks)
-      (vector old new marks))
 
     ;; labels must be comparable with "eq?", have read-write invariance,
     ;; and distinct from symbols.
