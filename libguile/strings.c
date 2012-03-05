@@ -748,7 +748,7 @@ scm_i_make_symbol (SCM name, scm_t_bits flags,
       name = SH_STRING_STRING (name);
       start += STRING_START (name);
     }
-  buf = SYMBOL_STRINGBUF (name);
+  buf = STRING_STRINGBUF (name);
 
   if (start == 0 && length == STRINGBUF_LENGTH (buf))
     {
