@@ -879,3 +879,8 @@ it.")
       ((_ ((k v) ...) body0 body ...)
        #'(syntax-parameterize ((k v) ...)
            body0 body ...)))))
+
+(define (close-io-port port)
+  (issue-deprecation-warning
+   "`close-io-port' is deprecated.  Use `close-port' instead.")
+  (close-port port))
