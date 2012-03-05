@@ -3405,7 +3405,6 @@ i18n)} module}, for locale-dependent string comparison.
 
 @rnindex string=?
 @deffn {Scheme Procedure} string=? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_equal_p (s1, s2, rest)
 Lexicographic equality predicate; return @code{#t} if all strings are
 the same length and contain the same characters in the same positions,
 otherwise return @code{#f}.
@@ -3418,7 +3417,6 @@ characters.
 
 @rnindex string<?
 @deffn {Scheme Procedure} string<? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_less_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if, for every pair of
 consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
 lexicographically less than @var{str_i+1}.
@@ -3426,7 +3424,6 @@ lexicographically less than @var{str_i+1}.
 
 @rnindex string<=?
 @deffn {Scheme Procedure} string<=? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_leq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if, for every pair of
 consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
 lexicographically less than or equal to @var{str_i+1}.
@@ -3434,7 +3431,6 @@ lexicographically less than or equal to @var{str_i+1}.
 
 @rnindex string>?
 @deffn {Scheme Procedure} string>? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_gr_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if, for every pair of
 consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
 lexicographically greater than @var{str_i+1}.
@@ -3442,7 +3438,6 @@ lexicographically greater than @var{str_i+1}.
 
 @rnindex string>=?
 @deffn {Scheme Procedure} string>=? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_geq_p (s1, s2, rest)
 Lexicographic ordering predicate; return @code{#t} if, for every pair of
 consecutive string arguments @var{str_i} and @var{str_i+1}, @var{str_i} is
 lexicographically greater than or equal to @var{str_i+1}.
@@ -3450,7 +3445,6 @@ lexicographically greater than or equal to @var{str_i+1}.
 
 @rnindex string-ci=?
 @deffn {Scheme Procedure} string-ci=? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_ci_equal_p (s1, s2, rest)
 Case-insensitive string equality predicate; return @code{#t} if
 all strings are the same length and their component
 characters match (ignoring case) at each position; otherwise
@@ -3459,7 +3453,6 @@ return @code{#f}.
 
 @rnindex string-ci<?
 @deffn {Scheme Procedure} string-ci<? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_ci_less_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return @code{#t} if,
 for every pair of consecutive string arguments @var{str_i} and
 @var{str_i+1}, @var{str_i} is lexicographically less than @var{str_i+1}
@@ -3468,7 +3461,6 @@ regardless of case.
 
 @rnindex string<=?
 @deffn {Scheme Procedure} string-ci<=? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_ci_leq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return @code{#t} if,
 for every pair of consecutive string arguments @var{str_i} and
 @var{str_i+1}, @var{str_i} is lexicographically less than or equal to
@@ -3477,7 +3469,6 @@ for every pair of consecutive string arguments @var{str_i} and
 
 @rnindex string-ci>?
 @deffn {Scheme Procedure} string-ci>? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_ci_gr_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return @code{#t} if,
 for every pair of consecutive string arguments @var{str_i} and
 @var{str_i+1}, @var{str_i} is lexicographically greater than
@@ -3486,7 +3477,6 @@ for every pair of consecutive string arguments @var{str_i} and
 
 @rnindex string-ci>=?
 @deffn {Scheme Procedure} string-ci>=? s1 s2 s3 @dots{}
-@deffnx {C Function} scm_i_string_ci_geq_p (s1, s2, rest)
 Case insensitive lexicographic ordering predicate; return @code{#t} if,
 for every pair of consecutive string arguments @var{str_i} and
 @var{str_i+1}, @var{str_i} is lexicographically greater than or equal to
