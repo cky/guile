@@ -1,6 +1,6 @@
 ;;; ports.bm --- Port I/O.         -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -21,68 +21,72 @@
   #:use-module (ice-9 rdelim)
   #:use-module (benchmark-suite lib))
 
+(define-syntax sequence
+  (lambda (s)
+    ;; Create a sequence `(begin EXPR ...)' with COUNT occurrences of EXPR.
+    (syntax-case s ()
+      ((_ expr count)
+       (number? (syntax->datum #'count))
+       (cons #'begin
+             (make-list (syntax->datum #'count) #'expr))))))
+
+(define (large-string s)
+  (string-concatenate (make-list (* iteration-factor 10000) s)))
+
 (define %latin1-port
   (with-fluids ((%default-port-encoding #f))
-    (open-input-string "hello, world")))
+    (open-input-string (large-string "hello, world"))))
 
 (define %utf8/ascii-port
   (with-fluids ((%default-port-encoding "UTF-8"))
-    (open-input-string "hello, world")))
+    (open-input-string (large-string "hello, world"))))
 
 (define %utf8/wide-port
   (with-fluids ((%default-port-encoding "UTF-8"))
-    (open-input-string "안녕하세요")))
+    (open-input-string (large-string "안녕하세요"))))
 
 
 (with-benchmark-prefix "peek-char"
 
-  (benchmark "latin-1 port" 700000
-    (peek-char %latin1-port))
+  (benchmark "latin-1 port" 700
+    (sequence (peek-char %latin1-port) 1000))
 
-  (benchmark "utf-8 port, ascii character" 700000
-    (peek-char %utf8/ascii-port))
+  (benchmark "utf-8 port, ascii character" 700
+    (sequence (peek-char %utf8/ascii-port) 1000))
 
-  (benchmark "utf-8 port, Korean character" 700000
-    (peek-char %utf8/wide-port)))
-
-(with-benchmark-prefix "read-char"
-
-  (benchmark "latin-1 port" 10000000
-    (read-char %latin1-port))
-
-  (benchmark "utf-8 port, ascii character" 10000000
-    (read-char %utf8/ascii-port))
-
-  (benchmark "utf-8 port, Korean character" 10000000
-    (read-char %utf8/wide-port)))
+  (benchmark "utf-8 port, Korean character" 700
+    (sequence (peek-char %utf8/wide-port) 1000)))
 
 (with-benchmark-prefix "char-ready?"
 
-  (benchmark "latin-1 port" 10000000
-    (char-ready? %latin1-port))
+  (benchmark "latin-1 port" 10000
+    (sequence (char-ready? %latin1-port) 1000))
 
-  (benchmark "utf-8 port, ascii character" 10000000
-    (char-ready? %utf8/ascii-port))
+  (benchmark "utf-8 port, ascii character" 10000
+    (sequence (char-ready? %utf8/ascii-port) 1000))
 
-  (benchmark "utf-8 port, Korean character" 10000000
-    (char-ready? %utf8/wide-port)))
+  (benchmark "utf-8 port, Korean character" 10000
+    (sequence (char-ready? %utf8/wide-port) 1000)))
+
+;; Keep the `read-char' benchmarks last as they consume input from the
+;; ports.
+
+(with-benchmark-prefix "read-char"
+
+  (benchmark "latin-1 port" 10000
+    (sequence (read-char %latin1-port) 1000))
+
+  (benchmark "utf-8 port, ascii character" 10000
+    (sequence (read-char %utf8/ascii-port) 1000))
+
+  (benchmark "utf-8 port, Korean character" 10000
+    (sequence (read-char %utf8/wide-port) 1000)))
 
 
 (with-benchmark-prefix "rdelim"
 
-  (let-syntax ((sequence (lambda (s)
-                           ;; Create a sequence `(begin EXPR ...)' with
-                           ;; COUNT occurrences of EXPR.
-                           (syntax-case s ()
-                             ((_ expr count)
-                              (number? (syntax->datum #'count))
-                              (cons #'begin
-                                    (make-list
-                                     (syntax->datum #'count)
-                                     #'expr)))))))
-    (let ((str (string-concatenate
-                (make-list 1000 "one line\n"))))
-      (benchmark "read-line" 1000
-        (let ((port (with-fluids ((%default-port-encoding "UTF-8"))
-                      (open-input-string str))))
-          (sequence (read-line port) 1000))))))
+  (let ((str (string-concatenate (make-list 1000 "one line\n"))))
+    (benchmark "read-line" 1000
+               (let ((port (with-fluids ((%default-port-encoding "UTF-8"))
+                             (open-input-string str))))
+                 (sequence (read-line port) 1000)))))
