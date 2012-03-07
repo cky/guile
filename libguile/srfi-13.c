@@ -1,6 +1,6 @@
 /* srfi-13.c --- SRFI-13 procedures for Guile
  *
- * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ * Copyright (C) 2001, 2004, 2005, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -719,7 +719,8 @@ SCM_DEFINE (scm_string_trim, "string-trim", 1, 3, 0,
   MY_VALIDATE_SUBSTRING_SPEC (1, s,
 			      3, start, cstart,
 			      4, end, cend);
-  if (SCM_UNBNDP (char_pred))
+  if (SCM_UNBNDP (char_pred)
+      || scm_is_eq (char_pred, scm_char_set_whitespace))
     {
       while (cstart < cend)
 	{
@@ -794,7 +795,8 @@ SCM_DEFINE (scm_string_trim_right, "string-trim-right", 1, 3, 0,
   MY_VALIDATE_SUBSTRING_SPEC (1, s,
 			      3, start, cstart,
 			      4, end, cend);
-  if (SCM_UNBNDP (char_pred))
+  if (SCM_UNBNDP (char_pred)
+      || scm_is_eq (char_pred, scm_char_set_whitespace))
     {
       while (cstart < cend)
 	{
@@ -869,7 +871,8 @@ SCM_DEFINE (scm_string_trim_both, "string-trim-both", 1, 3, 0,
   MY_VALIDATE_SUBSTRING_SPEC (1, s,
 			      3, start, cstart,
 			      4, end, cend);
-  if (SCM_UNBNDP (char_pred))
+  if (SCM_UNBNDP (char_pred)
+      || scm_is_eq (char_pred, scm_char_set_whitespace))
     {
       while (cstart < cend)
 	{

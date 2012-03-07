@@ -185,7 +185,7 @@ body was reached (i.e., a blank line)."
             sym
             (read-continuation-line
              port
-             (string-trim-both line char-whitespace? (1+ delim)))))))))
+             (string-trim-both line char-set:whitespace (1+ delim)))))))))
 
 (define (parse-header sym val)
   "Parse @var{val}, a string, with the parser registered for the header
@@ -277,7 +277,7 @@ ordered alist."
   (let lp ((i start))
     (if (< i end)
         (let* ((idx (string-index str delim i end))
-               (tok (string-trim-both str char-whitespace? i (or idx end))))
+               (tok (string-trim-both str char-set:whitespace i (or idx end))))
           (cons tok (split-and-trim str delim (if idx (1+ idx) end) end)))
         '())))
 
@@ -420,13 +420,13 @@ ordered alist."
          (cond
           ((string-rindex part #\;)
            => (lambda (idx)
-                (let ((qpart (string-trim-both part char-whitespace? (1+ idx))))
+                (let ((qpart (string-trim-both part char-set:whitespace (1+ idx))))
                   (if (string-prefix? "q=" qpart)
                       (cons (parse-quality qpart 2)
-                            (string-trim-both part char-whitespace? 0 idx))
+                            (string-trim-both part char-set:whitespace 0 idx))
                       (bad-header-component 'quality qpart)))))
           (else
-           (cons 1000 (string-trim-both part char-whitespace?)))))
+           (cons 1000 (string-trim-both part char-set:whitespace)))))
        (string-split str #\,)))
 
 (define (validate-quality-list l)
@@ -541,15 +541,15 @@ ordered alist."
 ;; param-component = token [ "=" (token | quoted-string) ] \
 ;;    *(";" token [ "=" (token | quoted-string) ])
 ;;
+(define param-delimiters (char-set #\, #\; #\=))
+(define param-value-delimiters (char-set-adjoin char-set:whitespace #\, #\;))
 (define* (parse-param-component str #:optional
                                 (val-parser default-val-parser)
                                 (start 0) (end (string-length str)))
   (let lp ((i start) (out '()))
     (if (not (< i end))
         (values (reverse! out) end)
-        (let ((delim (string-index str
-                                   (lambda (c) (memq c '(#\, #\; #\=)))
-                                   i)))
+        (let ((delim (string-index str param-delimiters i)))
           (let ((k (string->symbol
                     (substring str i (trim-whitespace str i (or delim end)))))
                 (delimc (and delim (string-ref str delim))))
@@ -561,13 +561,8 @@ ordered alist."
                        (if (and (< i end) (eqv? (string-ref str i) #\"))
                            (parse-qstring str i end #:incremental? #t)
                            (let ((delim
-                                  (or (string-index
-                                       str
-                                       (lambda (c)
-                                         (or (eqv? c #\;)
-                                             (eqv? c #\,)
-                                             (char-whitespace? c)))
-                                       i end)
+                                  (or (string-index str param-value-delimiters
+                                                    i end)
                                       end)))
                              (values (substring str i delim)
                                      delim)))))
@@ -853,7 +848,7 @@ ordered alist."
 (define* (parse-credentials str #:optional (val-parser default-val-parser)
                             (start 0) (end (string-length str)))
   (let* ((start (skip-whitespace str start end))
-         (delim (or (string-index str char-whitespace? start end) end)))
+         (delim (or (string-index str char-set:whitespace start end) end)))
     (if (= start end)
         (bad-header-component 'authorization str))
     (let ((scheme (string->symbol
@@ -1038,8 +1033,8 @@ not have to have a scheme or host name.  The result is a URI object."
   "Read the first line of an HTTP request from @var{port}, returning
 three values: the method, the URI, and the version."
   (let* ((line (read-line* port))
-         (d0 (string-index line char-whitespace?)) ; "delimiter zero"
-         (d1 (string-rindex line char-whitespace?)))
+         (d0 (string-index line char-set:whitespace)) ; "delimiter zero"
+         (d1 (string-rindex line char-set:whitespace)))
     (if (and d0 d1 (< d0 d1))
         (values (parse-http-method line 0 d0)
                 (parse-request-uri line (skip-whitespace line (1+ d0) d1) d1)
@@ -1100,14 +1095,14 @@ three values: the method, the URI, and the version."
 three values: the HTTP version, the response code, and the \"reason
 phrase\"."
   (let* ((line (read-line* port))
-         (d0 (string-index line char-whitespace?)) ; "delimiter zero"
-         (d1 (and d0 (string-index line char-whitespace?
+         (d0 (string-index line char-set:whitespace)) ; "delimiter zero"
+         (d1 (and d0 (string-index line char-set:whitespace
                                    (skip-whitespace line d0)))))
     (if (and d0 d1)
         (values (parse-http-version line 0 d0)
                 (parse-non-negative-integer line (skip-whitespace line d0 d1)
                                             d1)
-                (string-trim-both line char-whitespace? d1))
+                (string-trim-both line char-set:whitespace d1))
         (bad-response "Bad Response-Line: ~s" line))))
 
 (define (write-response-line version code reason-phrase port)
@@ -1488,9 +1483,10 @@ phrase\"."
             (map (lambda (x)
                    (let ((eq (string-index x #\=)))
                      (if (and eq (= eq (string-rindex x #\=)))
-                         (cons (string->symbol
-                                (string-trim x char-whitespace? 0 eq))
-                               (string-trim-right x char-whitespace? (1+ eq)))
+                         (cons
+                          (string->symbol
+                           (string-trim x char-set:whitespace 0 eq))
+                          (string-trim-right x char-set:whitespace (1+ eq)))
                          (bad-header 'content-type str))))
                  (cdr parts)))))
   (lambda (val)
