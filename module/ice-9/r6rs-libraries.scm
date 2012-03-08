@@ -197,7 +197,7 @@
                  (export e ...)
                  (re-export r ...)
                  (export! x ...)
-                 (@@ (name name* ...) body)
+                 (@@ @@ (name name* ...) body)
                  ...))))))))
     
 (define-syntax import

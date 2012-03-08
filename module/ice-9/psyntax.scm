@@ -2239,7 +2239,9 @@
                      (syntax-case e ()
                        ((_ (mod ...) id)
                         (and (and-map id? #'(mod ...)) (id? #'id))
-                        (values (syntax->datum #'id) r w #f
+                        ;; Strip the wrap from the identifier and return top-wrap
+                        ;; so that the identifier will not be captured by lexicals.
+                        (values (syntax->datum #'id) r top-wrap #f
                                 (syntax->datum
                                  #'(public mod ...)))))))
 
@@ -2262,9 +2264,20 @@
                                       ((fx= i n) v)
                                     (vector-set! v i (remodulate (vector-ref x i) mod)))))
                                (else x))))
-                     (syntax-case e ()
-                       ((_ (mod ...) exp)
+                     (syntax-case e (@@)
+                       ((_ (mod ...) id)
+                        (and (and-map id? #'(mod ...)) (id? #'id))
+                        ;; Strip the wrap from the identifier and return top-wrap
+                        ;; so that the identifier will not be captured by lexicals.
+                        (values (syntax->datum #'id) r top-wrap #f
+                                (syntax->datum
+                                 #'(private mod ...))))
+                       ((_ @@ (mod ...) exp)
                         (and-map id? #'(mod ...))
+                        ;; This is a special syntax used to support R6RS library forms.
+                        ;; Unlike the syntax above, the last item is not restricted to
+                        ;; be a single identifier, and the syntax objects are kept
+                        ;; intact, with only their module changed.
                         (let ((mod (syntax->datum #'(private mod ...))))
                           (values (remodulate #'exp mod)
                                   r w (source-annotation #'exp)

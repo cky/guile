@@ -1950,7 +1950,7 @@
                    (values
                      (syntax->datum id)
                      r
-                     w
+                     '((top))
                      #f
                      (syntax->datum
                        (cons '#(syntax-object public ((top)) (hygiene guile)) mod))))
@@ -1982,16 +1982,32 @@
                             (loop (+ i 1)))))))
                    (else x)))))
         (let* ((tmp-1 e) (tmp ($sc-dispatch tmp-1 '(_ each-any any))))
-          (if (and tmp (apply (lambda (mod exp) (and-map id? mod)) tmp))
-            (apply (lambda (mod exp)
-                     (let ((mod (syntax->datum
-                                  (cons '#(syntax-object private ((top)) (hygiene guile)) mod))))
-                       (values (remodulate exp mod) r w (source-annotation exp) mod)))
+          (if (and tmp
+                   (apply (lambda (mod id) (and (and-map id? mod) (id? id))) tmp))
+            (apply (lambda (mod id)
+                     (values
+                       (syntax->datum id)
+                       r
+                       '((top))
+                       #f
+                       (syntax->datum
+                         (cons '#(syntax-object private ((top)) (hygiene guile)) mod))))
                    tmp)
-            (syntax-violation
-              #f
-              "source expression failed to match any pattern"
-              tmp-1))))))
+            (let ((tmp ($sc-dispatch
+                         tmp-1
+                         '(_ #(free-id #(syntax-object @@ ((top)) (hygiene guile)))
+                             each-any
+                             any))))
+              (if (and tmp (apply (lambda (mod exp) (and-map id? mod)) tmp))
+                (apply (lambda (mod exp)
+                         (let ((mod (syntax->datum
+                                      (cons '#(syntax-object private ((top)) (hygiene guile)) mod))))
+                           (values (remodulate exp mod) r w (source-annotation exp) mod)))
+                       tmp)
+                (syntax-violation
+                  #f
+                  "source expression failed to match any pattern"
+                  tmp-1))))))))
   (global-extend
     'core
     'if

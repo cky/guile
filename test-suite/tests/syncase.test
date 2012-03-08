@@ -115,16 +115,16 @@
          'foo)))
 
 (with-test-prefix "changes to expansion environment"
-  (pass-if "expander detects changes to current-module with @@"
+  (pass-if "expander detects changes to current-module with @@ @@"
     (compile '(begin
                 (define-module (new-module))
-                (@@ (new-module)
-                    (define-syntax new-module-macro
-                      (lambda (stx)
-                        (syntax-case stx () 
-                          ((_ arg) (syntax arg))))))
-                (@@ (new-module)
-                    (new-module-macro #t)))
+                (@@ @@ (new-module)
+                       (define-syntax new-module-macro
+                         (lambda (stx)
+                           (syntax-case stx () 
+                             ((_ arg) (syntax arg))))))
+                (@@ @@ (new-module)
+                       (new-module-macro #t)))
              #:env (current-module))))
 
 (define-module (test-suite test-syncase-2)
