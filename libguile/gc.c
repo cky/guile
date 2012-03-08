@@ -618,6 +618,14 @@ scm_getenv_int (const char *var, int def)
   return res;
 }
 
+#ifndef HAVE_GC_SET_FINALIZE_ON_DEMAND
+static void
+GC_set_finalize_on_demand (int foo)
+{
+  GC_finalize_on_demand = foo;
+}
+#endif
+
 void
 scm_storage_prehistory ()
 {
