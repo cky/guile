@@ -1585,7 +1585,15 @@
    (lambda _
      (lambda-case
       (((x y) #f #f #f () (_ _))
-       _)))))
+       _))))
+
+  (pass-if-peval resolve-primitives
+   ((@ (guile) car) '(1 2))
+   (const 1))
+
+  (pass-if-peval resolve-primitives
+   ((@@ (guile) car) '(1 2))
+   (const 1)))
 
 
 

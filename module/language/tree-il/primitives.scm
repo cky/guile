@@ -240,13 +240,15 @@
                           (module-variable mod name))
                (lambda (name) (make-primitive-ref src name))))
        ((<module-ref> src mod name public?)
-        ;; for the moment, we're disabling primitive resolution for
-        ;; public refs because resolve-interface can raise errors.
-        (let ((m (and (not public?) (resolve-module mod))))
-          (and m 
-               (and=> (hashq-ref *interesting-primitive-vars*
-                                 (module-variable m name))
-                      (lambda (name) (make-primitive-ref src name))))))
+        (and=> (and=> (resolve-module mod)
+                      (if public?
+                          module-public-interface
+                          identity))
+               (lambda (m)
+                 (and=> (hashq-ref *interesting-primitive-vars*
+                                   (module-variable m name))
+                        (lambda (name)
+                          (make-primitive-ref src name))))))
        (else #f)))
    x))
 
