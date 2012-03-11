@@ -240,7 +240,22 @@ ordered alist."
 (define (bad-header sym val)
   (throw 'bad-header sym val))
 (define (bad-header-component sym val)
-  (throw 'bad-header sym val))
+  (throw 'bad-header-component sym val))
+
+(define (bad-header-printer port key args default-printer)
+  (apply (case-lambda
+           ((sym val)
+            (format port "Bad ~a header: ~a\n" (header->string sym) val))
+           (_ (default-printer)))
+         args))
+(define (bad-header-component-printer port key args default-printer)
+  (apply (case-lambda
+           ((sym val)
+            (format port "Bad ~a header component: ~a\n" sym val))
+           (_ (default-printer)))
+         args))
+(set-exception-printer! 'bad-header bad-header-printer)
+(set-exception-printer! 'bad-header-component bad-header-component-printer)
 
 (define (parse-opaque-string str)
   str)
