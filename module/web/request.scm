@@ -1,6 +1,6 @@
 ;;; HTTP request objects
 
-;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -130,6 +130,17 @@
 
 (define (bad-request message . args)
   (throw 'bad-request message args))
+
+(define (bad-request-printer port key args default-printer)
+  (apply (case-lambda
+           ((msg args)
+            (display "Bad request: " port)
+            (apply format port msg args)
+            (newline port))
+           (_ (default-printer)))
+         args))
+
+(set-exception-printer! 'bad-request bad-request-printer)
 
 (define (non-negative-integer? n)
   (and (number? n) (>= n 0) (exact? n) (integer? n)))
