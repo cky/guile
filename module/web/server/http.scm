@@ -1,6 +1,6 @@
 ;;; Web I/O: HTTP
 
-;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -69,6 +69,11 @@
     (poll-set-add! poll-set socket *events*)
     (make-http-server socket 0 poll-set)))
 
+(define (bad-request port)
+  (write-response (build-response #:version '(1 . 0) #:code 400
+                                  #:headers '((content-length . 0)))
+                  port))
+
 ;; -> (client request body | #f #f #f)
 (define (http-read server)
   (let* ((poll-set (http-poll-set server)))
@@ -123,7 +128,14 @@
                            req
                            (read-request-body req))))
                (lambda (k . args)
-                 (false-if-exception (close-port port)))))))))))))
+                 (define-syntax-rule (cleanup-catch statement)
+                   (catch #t
+                     (lambda () statement)
+                     (lambda (k . args)
+                       (format (current-error-port) "In ~a:\n" 'statement)
+                       (print-exception (current-error-port) #f k args))))
+                 (cleanup-catch (bad-request port))
+                 (cleanup-catch (close-port port)))))))))))))
 
 (define (keep-alive? response)
   (let ((v (response-version response)))
