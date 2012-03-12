@@ -1,6 +1,6 @@
 ;;; HTTP messages
 
-;; Copyright (C)  2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -790,7 +790,7 @@ ordered alist."
              port)
     (display-digits (date-day date) 2 port)
     (display (case (date-month date)
-               ((1)  " Jan ") ((2)  " Feb ") ((3)  " Ma ")
+               ((1)  " Jan ") ((2)  " Feb ") ((3)  " Mar ")
                ((4)  " Apr ") ((5)  " May ") ((6)  " Jun ")
                ((7)  " Jul ") ((8)  " Aug ") ((9)  " Sep ")
                ((10) " Oct ") ((11) " Nov ") ((12) " Dec ")
