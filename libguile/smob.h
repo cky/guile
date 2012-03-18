@@ -40,6 +40,7 @@ typedef struct scm_smob_descriptor
   int (*print) (SCM exp, SCM port, scm_print_state *pstate);
   SCM (*equalp) (SCM, SCM);
   scm_t_subr apply;
+  /* In 2.2 this field is renamed to "apply_trampoline".  */
   SCM apply_trampoline_objcode;
 } scm_smob_descriptor;
 
@@ -203,8 +204,6 @@ SCM_API void scm_assert_smob_type (scm_t_bits tag, SCM val);
 /* Function for creating smobs */
 
 SCM_API SCM scm_make_smob (scm_t_bits tc);
-
-SCM_INTERNAL SCM scm_i_smob_apply_trampoline (SCM smob);
 
 SCM_API void scm_smob_prehistory (void);
 

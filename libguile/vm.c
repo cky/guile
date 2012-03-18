@@ -423,6 +423,25 @@ vm_make_boot_program (long nargs)
  * VM
  */
 
+/* We are calling a SMOB.  The calling code pushed the SMOB after the
+   args, and incremented nargs.  That nargs is passed here.  This
+   function's job is to replace the procedure with the trampoline, and
+   shuffle the smob itself to be argument 0.  This function must not
+   allocate or throw, as the VM registers are not synchronized.  */
+static void
+prepare_smob_call (SCM *sp, int nargs, SCM smob)
+{
+  SCM *args = sp - nargs + 1;
+
+  /* Shuffle args up.  */
+  while (nargs--)
+    args[nargs + 1] = args[nargs];
+
+  args[0] = smob;
+  /* apply_trampoline_objcode is actually a program.  */
+  args[-1] = SCM_SMOB_DESCRIPTOR (smob).apply_trampoline_objcode;
+}
+
 static SCM
 resolve_variable (SCM what, SCM program_module)
 {

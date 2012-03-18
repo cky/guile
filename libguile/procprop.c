@@ -80,8 +80,16 @@ scm_i_procedure_arity (SCM proc, int *req, int *opt, int *rest)
         case scm_tc7_smob:
           if (!SCM_SMOB_APPLICABLE_P (proc))
             return 0;
-          proc = scm_i_smob_apply_trampoline (proc);
-          break;
+          if (!scm_i_program_arity
+              (SCM_SMOB_DESCRIPTOR (proc).apply_trampoline_objcode,
+               req, opt, rest))
+            return 0;
+
+          /* The trampoline gets the smob too, which users don't
+             see.  */
+          *req -= 1;
+
+          return 1;
         case scm_tcs_struct:
           if (!SCM_STRUCT_APPLICABLE_P (proc))
             return 0;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -790,8 +790,8 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
       else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
                && SCM_SMOB_APPLICABLE_P (program))
         {
-          SYNC_REGISTER ();
-          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          PUSH (program);
+          prepare_smob_call (sp, ++nargs, program);
           goto vm_call;
         }
       else
@@ -838,8 +838,8 @@ VM_DEFINE_INSTRUCTION (54, tail_call, "tail-call", 1, -1, 1)
       else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
                && SCM_SMOB_APPLICABLE_P (program))
         {
-          SYNC_REGISTER ();
-          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          PUSH (program);
+          prepare_smob_call (sp, ++nargs, program);
           goto vm_tail_call;
         }
       else
@@ -1099,8 +1099,8 @@ VM_DEFINE_INSTRUCTION (62, mv_call, "mv-call", 4, -1, 1)
       else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
                && SCM_SMOB_APPLICABLE_P (program))
         {
-          SYNC_REGISTER ();
-          sp[-nargs] = scm_i_smob_apply_trampoline (program);
+          PUSH (program);
+          prepare_smob_call (sp, ++nargs, program);
           goto vm_mv_call;
         }
       else
