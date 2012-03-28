@@ -342,7 +342,12 @@ Find bindings/modules/packages."
 (define-meta-command (describe repl (form))
   "describe OBJ
 Show description/documentation."
-  (display (object-documentation (repl-eval repl (repl-parse repl form))))
+  (display
+    (object-documentation
+      (let ((input (repl-parse repl form)))
+        (if (symbol? input)
+            (module-ref (current-module) input)
+            (repl-eval repl input)))))
   (newline))
 
 (define-meta-command (option repl . args)
