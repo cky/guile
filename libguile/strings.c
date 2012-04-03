@@ -1944,7 +1944,7 @@ scm_to_utf8_stringn (SCM str, size_t *lenp)
       else
         {
           buf = scm_malloc (predicted_len + 1);
-          ret[predicted_len] = 0;
+          buf[predicted_len] = 0;
         }
 
       ret = u32_to_u8 ((scm_t_uint32 *) scm_i_string_wide_chars (str),
