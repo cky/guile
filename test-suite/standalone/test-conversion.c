@@ -1079,6 +1079,74 @@ test_locale_strings ()
 }
 
 static void
+test_to_utf8_stringn ()
+{
+  scm_t_wchar wstr[] = { 0x20,      /* 0x20 */
+                         0xDF,      /* 0xC3, 0x9F */
+                         0x65E5,    /* 0xE6, 0x97, 0xA5 */
+                         0x1D400 }; /* 0xF0, 0x9D, 0x90, 0x80 */
+
+  SCM str0 = scm_from_utf32_stringn (wstr, 1); /* ASCII */
+  SCM str1 = scm_from_utf32_stringn (wstr, 2); /* Narrow */
+  SCM str2 = scm_from_utf32_stringn (wstr, 4); /* Wide */
+
+  char cstr0[] = { 0x20, 0 };
+  char cstr1[] = { 0x20, 0xC3, 0x9F, 0 };
+  char cstr2[] = { 0x20, 0xC3, 0x9F, 0xE6, 0x97, 0xA5,
+                   0xF0, 0x9D, 0x90, 0x80, 0 };
+  char *cstr;
+  size_t len;
+
+  /* Test conversion of ASCII string */
+  cstr = scm_to_utf8_stringn (str0, &len);
+  if (len + 1 != sizeof (cstr0) || memcmp (cstr, cstr0, len))
+    {
+      fprintf (stderr, "fail: scm_to_utf8_stringn (<ASCII>, &len)");
+      exit (EXIT_FAILURE);
+    }
+  free (cstr);
+  cstr = scm_to_utf8_stringn (str0, NULL);
+  if (memcmp (cstr, cstr0, len + 1))
+    {
+      fprintf (stderr, "fail: scm_to_utf8_stringn (<ASCII>, NULL)");
+      exit (EXIT_FAILURE);
+    }
+  free (cstr);
+
+  /* Test conversion of narrow string */
+  cstr = scm_to_utf8_stringn (str1, &len);
+  if (len + 1 != sizeof (cstr1) || memcmp (cstr, cstr1, len))
+    {
+      fprintf (stderr, "fail: scm_to_utf8_stringn (<NARROW>, &len)");
+      exit (EXIT_FAILURE);
+    }
+  free (cstr);
+  cstr = scm_to_utf8_stringn (str1, NULL);
+  if (memcmp (cstr, cstr1, len + 1))
+    {
+      fprintf (stderr, "fail: scm_to_utf8_stringn (<NARROW>, NULL)");
+      exit (EXIT_FAILURE);
+    }
+  free (cstr);
+
+  /* Test conversion of wide string */
+  cstr = scm_to_utf8_stringn (str2, &len);
+  if (len + 1 != sizeof (cstr2) || memcmp (cstr, cstr2, len))
+    {
+      fprintf (stderr, "fail: scm_to_utf8_stringn (<WIDE>, &len)");
+      exit (EXIT_FAILURE);
+    }
+  free (cstr);
+  cstr = scm_to_utf8_stringn (str2, NULL);
+  if (memcmp (cstr, cstr2, len + 1))
+    {
+      fprintf (stderr, "fail: scm_to_utf8_stringn (<WIDE>, NULL)");
+      exit (EXIT_FAILURE);
+    }
+  free (cstr);
+}
+
+static void
 test_is_exact ()
 {
   if (1 != scm_is_exact (scm_c_eval_string ("3")))
@@ -1122,6 +1190,7 @@ tests (void *data, int argc, char **argv)
   test_from_double ();
   test_to_double ();
   test_locale_strings ();
+  test_to_utf8_stringn ();
   test_is_exact ();
   test_is_inexact ();
 }

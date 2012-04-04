@@ -1929,28 +1929,28 @@ scm_to_utf8_stringn (SCM str, size_t *lenp)
                                   NULL, lenp);
   else
     {
+      scm_t_uint32 *chars = (scm_t_uint32 *) scm_i_string_wide_chars (str);
       scm_t_uint8 *buf, *ret;
-      size_t predicted_len, actual_len;  /* length in bytes */
+      size_t num_chars = scm_i_string_length (str);
+      size_t num_bytes_predicted, num_bytes_actual;
 
-      predicted_len = u32_u8_length_in_bytes
-        ((scm_t_uint32 *) scm_i_string_wide_chars (str),
-         scm_i_string_length (str));
+      num_bytes_predicted = u32_u8_length_in_bytes (chars, num_chars);
 
       if (lenp)
         {
-          *lenp = predicted_len;
-          buf = scm_malloc (predicted_len);
+          *lenp = num_bytes_predicted;
+          buf = scm_malloc (num_bytes_predicted);
         }
       else
         {
-          buf = scm_malloc (predicted_len + 1);
-          buf[predicted_len] = 0;
+          buf = scm_malloc (num_bytes_predicted + 1);
+          buf[num_bytes_predicted] = 0;
         }
 
-      ret = u32_to_u8 ((scm_t_uint32 *) scm_i_string_wide_chars (str),
-                       scm_i_string_length (str), buf, &actual_len);
+      num_bytes_actual = num_bytes_predicted;
+      ret = u32_to_u8 (chars, num_chars, buf, &num_bytes_actual);
 
-      if (SCM_LIKELY (ret == buf && actual_len == predicted_len))
+      if (SCM_LIKELY (ret == buf && num_bytes_actual == num_bytes_predicted))
         return (char *) ret;
 
       /* An error: a bad codepoint.  */
