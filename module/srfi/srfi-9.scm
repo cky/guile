@@ -1,6 +1,6 @@
 ;;; srfi-9.scm --- define-record-type
 
-;; 	Copyright (C) 2001, 2002, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -188,8 +188,12 @@
        (let* ((fields      (field-identifiers #'(field-spec ...)))
               (field-count (length fields))
               (layout      (string-concatenate (make-list field-count "pw")))
-              (indices     (field-indices (map syntax->datum fields))))
+              (indices     (field-indices (map syntax->datum fields)))
+              (ctor-name   (syntax-case #'constructor-spec ()
+                             ((ctor args ...) #'ctor))))
          #`(begin
+             #,(constructor #'type-name #'constructor-spec indices)
+
              (define type-name
                (let ((rtd (make-struct/no-tail
                            record-type-vtable
@@ -198,12 +202,12 @@
                            'type-name
                            '#,fields)))
                  (set-struct-vtable-name! rtd 'type-name)
+                 (struct-set! rtd (+ 2 vtable-offset-user) #,ctor-name)
                  rtd))
+
              (define-inlinable (predicate-name obj)
                (and (struct? obj)
                     (eq? (struct-vtable obj) type-name)))
-
-             #,(constructor #'type-name #'constructor-spec indices)
 
              #,@(accessors #'type-name #'(field-spec ...) indices)))))))
 
