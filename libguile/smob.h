@@ -76,7 +76,7 @@ SCM_INLINE SCM scm_new_double_smob (scm_t_bits tc, scm_t_bits,
 /* These two are internal details of the previous implementation of
    SCM_NEWSMOB and are no longer used.  They are still here to preserve
    ABI stability in the 2.0 series.  */
-SCM_API void scm_i_finalize_smob (GC_PTR ptr, GC_PTR data);
+SCM_API void scm_i_finalize_smob (void *ptr, void *data);
 SCM_API SCM scm_i_new_smob_with_mark_proc (scm_t_bits tc, scm_t_bits,
                                            scm_t_bits, scm_t_bits);
 
