@@ -96,6 +96,7 @@ SCHEME_LANG_SOURCES =						\
 TREE_IL_LANG_SOURCES =						\
   language/tree-il/primitives.scm				\
   language/tree-il/peval.scm                                 	\
+  language/tree-il/effects.scm                                 	\
   language/tree-il/fix-letrec.scm                               \
   language/tree-il/optimize.scm                                 \
   language/tree-il/canonicalize.scm                             \
