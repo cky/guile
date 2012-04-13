@@ -148,7 +148,7 @@
             (lexical #t #f ref 0) (call return 1)
             (unbind)))
 
-  (assert-tree-il->glil without-partial-evaluation
+  (assert-tree-il->glil with-options (#:partial-eval? #f #:cse? #f)
    (let (x) (y) ((const 1)) (begin (lexical x y) (const #f)))
    (program () (std-prelude 0 1 #f) (label _)
             (const 1) (bind (x #f 0)) (lexical #t #f set 0)
