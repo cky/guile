@@ -754,13 +754,13 @@
     ;; This test checks that the `start' binding is indeed residualized.
     ;; See the `referenced?' procedure in peval's `prune-bindings'.
     (let ((pos 0))
-      (set! pos 1) ;; Cause references to `pos' to residualize.
       (let ((here (let ((start pos)) (lambda () start))))
+        (set! pos 1) ;; Cause references to `pos' to residualize.
         (here)))
     (let (pos) (_) ((const 0))
-         (begin
-           (set! (lexical pos _) (const 1))
-           (let (here) (_) (_)
+         (let (here) (_) (_)
+              (begin
+                (set! (lexical pos _) (const 1))
                 (apply (lexical here _))))))
   
   (pass-if-peval
