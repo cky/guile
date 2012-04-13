@@ -1,0 +1,252 @@
+;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
+;;;; Andy Wingo <wingo@pobox.com> --- May 2009
+;;;;
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite tree-il)
+  #:use-module (test-suite lib)
+  #:use-module (system base compile)
+  #:use-module (system base pmatch)
+  #:use-module (system base message)
+  #:use-module (language tree-il)
+  #:use-module (language tree-il primitives)
+  #:use-module (language tree-il cse)
+  #:use-module (language tree-il peval)
+  #:use-module (language glil)
+  #:use-module (srfi srfi-13))
+
+(define-syntax pass-if-cse
+  (syntax-rules ()
+    ((_ in pat)
+     (pass-if 'in
+       (let ((evaled (unparse-tree-il
+                      (cse
+                       (peval
+                        (expand-primitives!
+                         (resolve-primitives!
+                          (compile 'in #:from 'scheme #:to 'tree-il)
+                          (current-module))))))))
+         (pmatch evaled
+           (pat #t)
+           (_   (pk 'cse-mismatch)
+                ((@ (ice-9 pretty-print) pretty-print)
+                 'in)
+                (newline)
+                ((@ (ice-9 pretty-print) pretty-print)
+                 evaled)
+                (newline)
+                ((@ (ice-9 pretty-print) pretty-print)
+                 'pat)
+                (newline)
+                #f)))))))
+
+
+(with-test-prefix "cse"
+
+  ;; The eq? propagates, and (if TEST #t #f) folds to TEST if TEST is
+  ;; boolean-valued.
+  (pass-if-cse
+   (lambda (x y)
+      (and (eq? x y)
+           (eq? x y)))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (apply (primitive eq?) (lexical x _) (lexical y _))))))
+
+  ;; The eq? propagates, and (if TEST #f #t) folds to (not TEST).
+  (pass-if-cse
+   (lambda (x y)
+      (if (eq? x y) #f #t))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (apply (primitive not)
+              (apply (primitive eq?) (lexical x _) (lexical y _)))))))
+
+  ;; (if TEST (not TEST) #f)
+  ;; => (if TEST #f #f)
+  ;; => (begin TEST #f)
+  ;; => #f
+  (pass-if-cse
+    (lambda (x y)
+      (and (eq? x y) (not (eq? x y))))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (const #f)))))
+
+  ;; (if TEST #f TEST) => (if TEST #f #f) => ...
+  (pass-if-cse
+   (lambda (x y)
+      (if (eq? x y) #f (eq? x y)))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (const #f)))))
+
+  ;; The same, but side-effecting primitives do not propagate.
+  (pass-if-cse
+   (lambda (x y)
+      (and (set-car! x y) (not (set-car! x y))))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (if (apply (primitive set-car!)
+                  (lexical x _)
+                  (lexical y _))
+           (apply (primitive not)
+                  (apply (primitive set-car!)
+                         (lexical x _)
+                         (lexical y _)))
+           (const #f))))))
+
+  ;; Primitives that access mutable memory can propagate, as long as
+  ;; there is no intervening mutation.
+  (pass-if-cse
+    (lambda (x y)
+      (and (string-ref x y)
+           (begin
+             (string-ref x y)
+             (not (string-ref x y)))))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (begin
+         (apply (primitive string-ref)
+                (lexical x _)
+                (lexical y _))
+         (const #f))))))
+
+  ;; However, expressions with dependencies on effects do not propagate
+  ;; through a lambda.
+  (pass-if-cse
+    (lambda (x y)
+      (and (string-ref x y)
+           (lambda ()
+             (and (string-ref x y) #t))))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (if (apply (primitive string-ref)
+                  (lexical x _)
+                  (lexical y _))
+           (lambda _
+             (lambda-case
+              ((() #f #f #f () ())
+               (if (apply (primitive string-ref)
+                          (lexical x _)
+                          (lexical y _))
+                   (const #t)
+                   (const #f)))))
+           (const #f))))))
+
+  ;; A mutation stops the propagation.
+  (pass-if-cse
+    (lambda (x y)
+      (and (string-ref x y)
+           (begin
+             (string-set! x #\!)
+             (not (string-ref x y)))))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (if (apply (primitive string-ref)
+                  (lexical x _)
+                  (lexical y _))
+           (begin
+             (apply (primitive string-set!)
+                    (lexical x _)
+                    (const #\!))
+             (apply (primitive not)
+                    (apply (primitive string-ref)
+                           (lexical x _)
+                           (lexical y _))))
+           (const #f))))))
+
+  ;; Predicates are only added to the database if they are in a
+  ;; predicate context.
+  (pass-if-cse
+    (lambda (x y)
+      (begin (eq? x y) (eq? x y)))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (apply (primitive eq?) (lexical x _) (lexical y _))))))
+
+  ;; Conditional bailouts do cause primitives to be added to the DB.
+  (pass-if-cse
+    (lambda (x y)
+      (begin (unless (eq? x y) (throw 'foo)) (eq? x y)))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (begin
+         (if (apply (primitive eq?)
+                    (lexical x _) (lexical y _))
+             (void)
+             (apply (primitive 'throw) (const 'foo)))
+         (const #t))))))
+
+  ;; A chain of tests in a conditional bailout add data to the DB
+  ;; correctly.
+  (pass-if-cse
+    (lambda (x y)
+      (begin
+        (unless (and (struct? x) (eq? (struct-vtable x) x-vtable))
+          (throw 'foo))
+        (if (and (struct? x) (eq? (struct-vtable x) x-vtable))
+            (struct-ref x y)
+            (throw 'bar))))
+    (lambda _
+     (lambda-case
+      (((x y) #f #f #f () (_ _))
+       (begin
+         (if (if (apply (primitive struct?) (lexical x _))
+                 (apply (primitive eq?)
+                        (apply (primitive struct-vtable)
+                               (lexical x _))
+                        (toplevel x-vtable))
+                 (const #f))
+             (void)
+             (apply (primitive 'throw) (const 'foo)))
+         (apply (primitive struct-ref) (lexical x _) (lexical y _)))))))
+
+  ;; Strict argument evaluation also adds info to the DB.
+  (pass-if-cse
+    (lambda (x)
+      ((lambda (z)
+         (+ z (if (and (struct? x) (eq? (struct-vtable x) x-vtable))
+                  (struct-ref x 2)
+                  (throw 'bar))))
+       (if (and (struct? x) (eq? (struct-vtable x) x-vtable))
+           (struct-ref x 1)
+           (throw 'foo))))
+    
+    (lambda _
+      (lambda-case
+       (((x) #f #f #f () (_))
+        (let (z) (_) ((if (if (apply (primitive struct?) (lexical x _))
+                              (apply (primitive eq?)
+                                     (apply (primitive struct-vtable)
+                                            (lexical x _))
+                                     (toplevel x-vtable))
+                              (const #f))
+                          (apply (primitive struct-ref) (lexical x _) (const 1))
+                          (apply (primitive 'throw) (const 'foo))))
+             (apply (primitive +) (lexical z _)
+                    (apply (primitive struct-ref) (lexical x _) (const 2)))))))))
