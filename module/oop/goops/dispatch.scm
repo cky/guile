@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 1999, 2000, 2001, 2003, 2006, 2009 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2000, 2001, 2003, 2006, 2009, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -178,7 +178,9 @@
                      '())
                  (acons gf gf-sym '()))))
   (define (comp exp vals)
-    (let ((p ((@ (system base compile) compile) exp #:env *dispatch-module*)))
+    (let ((p ((@ (system base compile) compile) exp
+              #:env *dispatch-module*
+              #:opts '(#:partial-eval? #f #:cse? #f))))
       (apply p vals)))
   
   ;; kick it.
