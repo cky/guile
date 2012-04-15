@@ -62,9 +62,9 @@
       ((_ all name ...)
        (with-syntax (((n ...) (iota (length #'(name ...)))))
          #'(begin
-             (define name (ash 1 (* n 2)))
+             (define-syntax name (identifier-syntax (ash 1 (* n 2))))
              ...
-             (define all (logior name ...))))))))
+             (define-syntax all (identifier-syntax (logior name ...)))))))))
 
 ;; Here we define the effects, indicating the meaning of the effect.
 ;;
@@ -121,7 +121,7 @@
   ;; subexpression (+ x y).
   &type-check)
 
-(define &no-effects 0)
+(define-syntax &no-effects (identifier-syntax 0))
 
 ;; Definite bailout is an oddball effect.  Since it indicates that an
 ;; expression definitely causes bailout, it's not in the set of effects
@@ -130,15 +130,16 @@
 ;; cause an outer expression to include &definite-bailout in its
 ;; effects.  For that reason we have to treat it specially.
 ;;
-(define &all-effects-but-bailout
-  (logand &all-effects (lognot &definite-bailout)))
+(define-syntax &all-effects-but-bailout
+  (identifier-syntax
+   (logand &all-effects (lognot &definite-bailout))))
 
-(define (cause effect)
+(define-inlinable (cause effect)
   (ash effect 1))
 
-(define (&depends-on a)
+(define-inlinable (&depends-on a)
   (logand a &all-effects))
-(define (&causes a)
+(define-inlinable (&causes a)
   (logand a (cause &all-effects)))
 
 (define (exclude-effects effects exclude)
@@ -148,12 +149,12 @@
 (define (constant? effects)
   (zero? effects))
 
-(define (depends-on-effects? x effects)
+(define-inlinable (depends-on-effects? x effects)
   (not (zero? (logand (&depends-on x) effects))))
-(define (causes-effects? x effects)
+(define-inlinable (causes-effects? x effects)
   (not (zero? (logand (&causes x) (cause effects)))))
 
-(define (effects-commute? a b)
+(define-inlinable (effects-commute? a b)
   (and (not (causes-effects? a (&depends-on b)))
        (not (causes-effects? b (&depends-on a)))))
 
