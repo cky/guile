@@ -193,7 +193,7 @@
     (/ (string-length (symbol->string (struct-layout x))) 2))
 
   (define hash-bits (logcount most-positive-fixnum))
-  (define hash-depth 3)
+  (define hash-depth 4)
   (define hash-width 3)
   (define (hash-expression exp)
     (define (hash-exp exp depth)
