@@ -249,4 +249,11 @@
                           (apply (primitive struct-ref) (lexical x _) (const 1))
                           (apply (primitive 'throw) (const 'foo))))
              (apply (primitive +) (lexical z _)
-                    (apply (primitive struct-ref) (lexical x _) (const 2)))))))))
+                    (apply (primitive struct-ref) (lexical x _) (const 2))))))))
+
+  ;; Replacing named expressions with lexicals.
+  (pass-if-cse
+   (let ((x (car y)))
+     (cons x (car y)))
+   (let (x) (_) ((apply (primitive car) (toplevel y)))
+        (apply (primitive cons) (lexical x _) (lexical x _)))))
