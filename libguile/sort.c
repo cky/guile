@@ -1,4 +1,6 @@
-/* Copyright (C) 1999,2000,2001,2002, 2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1999, 2000, 2001, 2002, 2004, 2006, 2007, 2008, 2009,
+ *   2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -101,9 +103,10 @@ SCM_DEFINE (scm_restricted_vector_sort_x, "restricted-vector-sort!", 4, 0, 0,
  * (not (less? (list-ref list i) (list-ref list (- i 1)))). */
 SCM_DEFINE (scm_sorted_p, "sorted?", 2, 0, 0,
             (SCM items, SCM less),
-	    "Return @code{#t} iff @var{items} is a list or a vector such that\n"
-	    "for all 1 <= i <= m, the predicate @var{less} returns true when\n"
-	    "applied to all elements i - 1 and i")
+	    "Return @code{#t} iff @var{items} is a list or vector such that, "
+	    "for each element @var{x} and the next element @var{y} of "
+	    "@var{items}, @code{(@var{less} @var{y} @var{x})} returns "
+	    "@code{#f}.")
 #define FUNC_NAME s_scm_sorted_p
 {
   long len, j;			/* list/vector length, temp j */
