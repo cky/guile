@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-##   2010, 2011 Software Foundation, Inc.
+##   2010, 2011, 2012 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -165,7 +165,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 
 EXTRA_DIST = \
 	guile-test \
-	lib.scm \
+	test-suite/lib.scm \
 	$(SCM_TESTS) \
 	tests/rnrs-test-a.scm
 	ChangeLog-2008

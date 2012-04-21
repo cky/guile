@@ -16,7 +16,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(define-module (test-suite tests gc)
+(define-module (tests gc)
   #:use-module (ice-9 documentation)
   #:use-module (test-suite lib)
   #:use-module ((system base compile) #:select (compile)))

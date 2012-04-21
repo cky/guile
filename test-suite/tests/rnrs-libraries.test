@@ -1,5 +1,5 @@
 ;;;; rnrs-libraries.test --- test library and import forms    -*- scheme -*-
-;;;; Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -15,7 +15,7 @@
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-(define-module (test-suite tests rnrs-libraries)
+(define-module (tests rnrs-libraries)
   #:use-module (test-suite lib))
 
 ;; First, check that Guile modules are r6rs modules.
@@ -71,7 +71,7 @@
 
   (pass-if "import"
     (eval '(begin
-             (import (test-suite tests rnrs-test-a))
+             (import (tests rnrs-test-a))
              #t)
           (current-module)))
 
@@ -79,18 +79,18 @@
     (not (module-local-variable (current-module) 'double)))
   
   (pass-if "resolve-interface"
-    (module? (resolve-interface '(test-suite tests rnrs-test-a))))
+    (module? (resolve-interface '(tests rnrs-test-a))))
 
-  (set! iface (resolve-interface '(test-suite tests rnrs-test-a)))
+  (set! iface (resolve-interface '(tests rnrs-test-a)))
 
   (pass-if "resolve-interface (2)"
-    (eq? iface (resolve-interface '(test-suite tests rnrs-test-a))))
+    (eq? iface (resolve-interface '(tests rnrs-test-a))))
 
   (pass-if "resolve-r6rs-interface"
-    (eq? iface (resolve-r6rs-interface '(test-suite tests rnrs-test-a))))
+    (eq? iface (resolve-r6rs-interface '(tests rnrs-test-a))))
 
   (pass-if "resolve-r6rs-interface (2)"
-    (eq? iface (resolve-r6rs-interface '(library (test-suite tests rnrs-test-a)))))
+    (eq? iface (resolve-r6rs-interface '(library (tests rnrs-test-a)))))
 
   (pass-if "module uses"
     (and (memq iface (module-uses (current-module))) #t))

@@ -1,6 +1,6 @@
 ;;;; sxml.simple.test --- (sxml simple)  -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -42,4 +42,4 @@
 ;; FIXME: The `xyzpq' variable in there is originally named `x' but using that
 ;; name triggers a psyntax "identifier out of context" error.
 
-(include-from-path "test-suite/tests/sxml-match-tests.ss")
+(include-from-path "tests/sxml-match-tests.ss")

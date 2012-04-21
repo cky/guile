@@ -1,6 +1,6 @@
 #!/bin/sh
 
-#	Copyright (C) 2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation
+#	Copyright (C) 2003, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation
 #
 #   This file is part of GUILE.
 #
@@ -57,12 +57,12 @@ if test "@cross_compiling@" = "no"
 then
     if [ x"$GUILE_LOAD_PATH" = x ]
     then
-	GUILE_LOAD_PATH="${top_srcdir}/module:${top_srcdir}/guile-readline:${top_srcdir}"
+	GUILE_LOAD_PATH="${top_srcdir}/module:${top_srcdir}/guile-readline"
 	if test "${top_srcdir}" != "${top_builddir}"; then
-            GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}/guile-readline:${top_builddir}"
+            GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}/guile-readline"
 	fi
     else
-	for d in "/module" "/guile-readline" ""
+	for d in "/module" "/guile-readline"
 	do
             # This hair prevents double inclusion.
             # The ":" prevents prefix aliasing.
@@ -82,9 +82,9 @@ then
 
     if test "x$GUILE_LOAD_COMPILED_PATH" = "x"
     then
-	GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}/guile-readline:${top_builddir}"
+	GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}/guile-readline"
     else
-	for d in "/module" "/guile-readline" ""
+	for d in "/module" "/guile-readline"
 	do
             # This hair prevents double inclusion.
             # The ":" prevents prefix aliasing.

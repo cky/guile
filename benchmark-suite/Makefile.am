@@ -18,5 +18,6 @@ SCM_BENCHMARKS = benchmarks/0-reference.bm		\
 		 benchmarks/write.bm			\
 		 benchmarks/strings.bm
 
-EXTRA_DIST = guile-benchmark lib.scm $(SCM_BENCHMARKS)	\
+EXTRA_DIST = guile-benchmark benchmark-suite/lib.scm 	\
+	     $(SCM_BENCHMARKS)				\
 	     ChangeLog-2008

@@ -41,6 +41,7 @@ if [ ! -f guile-procedures.txt ] ; then
 fi
 
 exec $guile \
+    -L "$BENCHMARK_SUITE_DIR" \
     -e main -s "$BENCHMARK_SUITE_DIR/guile-benchmark" \
     --benchmark-suite "$BENCHMARK_SUITE_DIR/benchmarks" \
     --log-file benchmark-guile.log "$@"

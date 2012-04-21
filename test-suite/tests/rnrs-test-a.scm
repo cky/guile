@@ -1,6 +1,6 @@
 ;;; test of defining rnrs libraries
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -17,7 +17,7 @@
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-(library (test-suite tests rnrs-test-a)
+(library (tests rnrs-test-a)
   (export double)
   (import (guile))
  

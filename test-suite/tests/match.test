@@ -1,6 +1,6 @@
 ;;;; match.test --- (ice-9 match)  -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -205,4 +205,4 @@
              (test-end   (syntax-rules ()
                            ((_) #t))))
   (with-test-prefix "upstream tests"
-    (include-from-path "test-suite/tests/match.test.upstream")))
+    (include-from-path "tests/match.test.upstream")))

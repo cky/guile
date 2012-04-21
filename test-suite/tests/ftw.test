@@ -90,6 +90,9 @@
 (define %test-dir
   (string-append %top-srcdir "/test-suite"))
 
+(define %test-suite-lib-dir
+  (string-append %top-srcdir "/test-suite/test-suite"))
+
 (define (make-file-tree dir tree)
   "Make file system TREE at DIR."
   (define (touch file)
@@ -152,7 +155,8 @@
     (let ((enter? (lambda (n s r)
                     ;; Enter only `test-suite/tests/'.
                     (if (member `(down ,%test-dir) r)
-                        (string=? (basename n) "tests")
+                        (or (string=? (basename n) "tests")
+                            (string=? (basename n) "test-suite"))
                         (string=? (basename n) "test-suite"))))
           (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
           (down   (lambda (n s r) (cons `(down ,n) r)))
@@ -167,7 +171,7 @@
         ((('down (? (cut string=? <> %test-dir)))
           between ...
           ('up (? (cut string=? <> %test-dir))))
-         (and (any (match-lambda (('leaf (= basename "lib.scm")) #t) (_ #f))
+         (and (any (match-lambda (('down (= basename "test-suite")) #t) (_ #f))
                    between)
               (any (match-lambda (('down (= basename "tests")) #t) (_ #f))
                    between)
@@ -195,7 +199,7 @@
           (up     (lambda (n s r) (cons `(up ,n) r)))
           (skip   (lambda (n s r) (cons `(skip ,n) r)))
           (error  (lambda (n s e r) (cons `(error ,n) r)))
-          (name   (string-append %test-dir "/lib.scm")))
+          (name   (string-append %test-suite-lib-dir "/lib.scm")))
       (equal? (file-system-fold enter? leaf down up skip error '() name)
               `((leaf ,name)))))
 

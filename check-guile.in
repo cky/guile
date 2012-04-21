@@ -43,6 +43,7 @@ fi
 
 exec $guile \
     --debug \
+    -L "$TEST_SUITE_DIR" \
     --no-auto-compile -e main -s "$TEST_SUITE_DIR/guile-test" \
     --test-suite "$TEST_SUITE_DIR/tests" \
     --log-file check-guile.log "$@"
