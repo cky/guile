@@ -705,13 +705,6 @@
            (const 0) (const 1) (const 2) (const 3) (const 4) (const 5)))
 
   (pass-if-peval
-   ;; First order, coalesced, mutability preserved.
-   (cons 0 (cons 1 (cons 2 (list 3 4 5))))
-   ;; This must not be a constant.
-   (apply (primitive list)
-          (const 0) (const 1) (const 2) (const 3) (const 4) (const 5)))
-
-  (pass-if-peval
     ;; First order, coalesced, immutability preserved.
     (cons 0 (cons 1 (cons 2 '(3 4 5))))
     (apply (primitive cons) (const 0)
