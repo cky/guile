@@ -31,7 +31,6 @@
 #include "libguile/bytevectors.h"
 #include "libguile/strings.h"
 #include "libguile/validate.h"
-#include "libguile/ieee-754.h"
 #include "libguile/arrays.h"
 #include "libguile/array-handle.h"
 #include "libguile/uniform.h"
@@ -1567,6 +1566,18 @@ SCM_DEFINE (scm_bytevector_s64_native_set_x, "bytevector-s64-native-set!",
    Section 2.1 of R6RS-lib (in response to
    http://www.r6rs.org/formal-comments/comment-187.txt).  */
 
+union scm_ieee754_float
+{
+  float f;
+  scm_t_uint32 i;
+};
+
+union scm_ieee754_double
+{
+  double d;
+  scm_t_uint64 i;
+};
+
 
 /* Convert to/from a floating-point number with different endianness.  This
    method is probably not the most efficient but it should be portable.  */
@@ -1575,20 +1586,10 @@ static inline void
 float_to_foreign_endianness (union scm_ieee754_float *target,
 			     float source)
 {
-  union scm_ieee754_float src;
+  union scm_ieee754_float input;
 
-  src.f = source;
-
-#ifdef WORDS_BIGENDIAN
-  /* Assuming little endian for both byte and word order.  */
-  target->little_endian.negative = src.big_endian.negative;
-  target->little_endian.exponent = src.big_endian.exponent;
-  target->little_endian.mantissa = src.big_endian.mantissa;
-#else
-  target->big_endian.negative = src.little_endian.negative;
-  target->big_endian.exponent = src.little_endian.exponent;
-  target->big_endian.mantissa = src.little_endian.mantissa;
-#endif
+  input.f = source;
+  target->i = bswap_32 (input.i);
 }
 
 static inline float
@@ -1596,16 +1597,7 @@ float_from_foreign_endianness (const union scm_ieee754_float *source)
 {
   union scm_ieee754_float result;
 
-#ifdef WORDS_BIGENDIAN
-  /* Assuming little endian for both byte and word order.  */
-  result.big_endian.negative = source->little_endian.negative;
-  result.big_endian.exponent = source->little_endian.exponent;
-  result.big_endian.mantissa = source->little_endian.mantissa;
-#else
-  result.little_endian.negative = source->big_endian.negative;
-  result.little_endian.exponent = source->big_endian.exponent;
-  result.little_endian.mantissa = source->big_endian.mantissa;
-#endif
+  result.i = bswap_32 (source->i);
 
   return (result.f);
 }
@@ -1614,22 +1606,10 @@ static inline void
 double_to_foreign_endianness (union scm_ieee754_double *target,
 			      double source)
 {
-  union scm_ieee754_double src;
+  union scm_ieee754_double input;
 
-  src.d = source;
-
-#ifdef WORDS_BIGENDIAN
-  /* Assuming little endian for both byte and word order.  */
-  target->little_little_endian.negative  = src.big_endian.negative;
-  target->little_little_endian.exponent  = src.big_endian.exponent;
-  target->little_little_endian.mantissa0 = src.big_endian.mantissa0;
-  target->little_little_endian.mantissa1 = src.big_endian.mantissa1;
-#else
-  target->big_endian.negative  = src.little_little_endian.negative;
-  target->big_endian.exponent  = src.little_little_endian.exponent;
-  target->big_endian.mantissa0 = src.little_little_endian.mantissa0;
-  target->big_endian.mantissa1 = src.little_little_endian.mantissa1;
-#endif
+  input.d = source;
+  target->i = bswap_64 (input.i);
 }
 
 static inline double
@@ -1637,18 +1617,7 @@ double_from_foreign_endianness (const union scm_ieee754_double *source)
 {
   union scm_ieee754_double result;
 
-#ifdef WORDS_BIGENDIAN
-  /* Assuming little endian for both byte and word order.  */
-  result.big_endian.negative  = source->little_little_endian.negative;
-  result.big_endian.exponent  = source->little_little_endian.exponent;
-  result.big_endian.mantissa0 = source->little_little_endian.mantissa0;
-  result.big_endian.mantissa1 = source->little_little_endian.mantissa1;
-#else
-  result.little_little_endian.negative  = source->big_endian.negative;
-  result.little_little_endian.exponent  = source->big_endian.exponent;
-  result.little_little_endian.mantissa0 = source->big_endian.mantissa0;
-  result.little_little_endian.mantissa1 = source->big_endian.mantissa1;
-#endif
+  result.i = bswap_64 (source->i);
 
   return (result.d);
 }

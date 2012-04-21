@@ -1,6 +1,6 @@
 ;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -325,6 +325,18 @@
 
 (with-test-prefix/c&e "2.8 Operations on IEEE-754 Representations"
 
+  (pass-if "single, little endian"
+    ;; http://bugs.gnu.org/11310
+    (let ((b (make-bytevector 4)))
+      (bytevector-ieee-single-set! b 0 1.0 (endianness little))
+      (equal? #vu8(0 0 128 63) b)))
+
+  (pass-if "single, big endian"
+    ;; http://bugs.gnu.org/11310
+    (let ((b (make-bytevector 4)))
+      (bytevector-ieee-single-set! b 0 1.0 (endianness big))
+      (equal? #vu8(63 128 0 0) b)))
+
   (pass-if "bytevector-ieee-single-native-{ref,set!}"
     (let ((b (make-bytevector 4))
           (number 3.00))
@@ -347,6 +359,18 @@
       (bytevector-ieee-single-set! b 5 number (endianness big))
       (equal? (bytevector-ieee-single-ref b 1 (endianness little))
               (bytevector-ieee-single-ref b 5 (endianness big)))))
+
+  (pass-if "double, little endian"
+    ;; http://bugs.gnu.org/11310
+    (let ((b (make-bytevector 8)))
+      (bytevector-ieee-double-set! b 0 1.0 (endianness little))
+      (equal? #vu8(0 0 0 0 0 0 240 63) b)))
+
+  (pass-if "double, big endian"
+    ;; http://bugs.gnu.org/11310
+    (let ((b (make-bytevector 8)))
+      (bytevector-ieee-double-set! b 0 1.0 (endianness big))
+      (equal? #vu8(63 240 0 0 0 0 0 0) b)))
 
   (pass-if "bytevector-ieee-double-native-{ref,set!}"
     (let ((b (make-bytevector 8))
@@ -653,3 +677,7 @@
   (pass-if "bitvector > 8"
     (let ((bv (uniform-array->bytevector (make-bitvector 9 #t))))
       (= (bytevector-length bv) 2))))
+
+;;; Local Variables:
+;;; eval: (put 'with-test-prefix/c&e 'scheme-indent-function 1)
+;;; End:
