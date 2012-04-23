@@ -985,4 +985,18 @@
 
   (pass-if-peval resolve-primitives
     (car '(1 2))
-    (const 1)))
+    (const 1))
+
+  ;; If we bail out when inlining an identifier because it's too big,
+  ;; but the identifier simply aliases some other identifier, then avoid
+  ;; residualizing a reference to the leaf identifier.  The bailout is
+  ;; driven by the recursive-effort-limit, which is currently 100.  We
+  ;; make sure to trip it with this recursive sum thing.
+  (pass-if-peval resolve-primitives
+    (let ((x (let sum ((n 0) (out 0))
+               (if (< n 10000)
+                   (sum (1+ n) (+ out n))
+                   out))))
+      ((lambda (y) (list y)) x))
+    (let (x) (_) (_)
+         (apply (primitive list) (lexical x _)))))

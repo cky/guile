@@ -289,7 +289,7 @@
 ;; 
 (define-record-type <operand>
   (%make-operand var sym visit source visit-count residualize?
-                 copyable? residual-value constant-value)
+                 copyable? residual-value constant-value alias-value)
   operand?
   (var operand-var)
   (sym operand-sym)
@@ -299,19 +299,27 @@
   (residualize? operand-residualize? set-operand-residualize?!)
   (copyable? operand-copyable? set-operand-copyable?!)
   (residual-value operand-residual-value %set-operand-residual-value!)
-  (constant-value operand-constant-value set-operand-constant-value!))
+  (constant-value operand-constant-value set-operand-constant-value!)
+  (alias-value operand-alias-value set-operand-alias-value!))
 
-(define* (make-operand var sym #:optional source visit)
+(define* (make-operand var sym #:optional source visit alias)
   ;; Bind SYM to VAR, with value SOURCE.  Unassigned bound operands are
   ;; considered copyable until we prove otherwise.  If we have a source
   ;; expression, truncate it to one value.  Copy propagation does not
   ;; work on multiply-valued expressions.
   (let ((source (and=> source truncate-values)))
     (%make-operand var sym visit source 0 #f
-                   (and source (not (var-set? var))) #f #f)))
+                   (and source (not (var-set? var))) #f #f
+                   (and (not (var-set? var)) alias))))
 
-(define (make-bound-operands vars syms sources visit)
-  (map (lambda (x y z) (make-operand x y z visit)) vars syms sources))
+(define* (make-bound-operands vars syms sources visit #:optional aliases)
+  (if aliases
+      (map (lambda (name sym source alias)
+             (make-operand name sym source visit alias))
+           vars syms sources aliases)
+      (map (lambda (name sym source)
+             (make-operand name sym source visit #f))
+           vars syms sources)))
 
 (define (make-unbound-operands vars syms)
   (map make-operand vars syms))
@@ -345,7 +353,12 @@
                 (if (or counter (and (not effort-limit) (not size-limit)))
                     ((%operand-visit op) (operand-source op) counter ctx)
                     (let/ec k
-                      (define (abort) (k #f))
+                      (define (abort)
+                        ;; If we abort when visiting the value in a
+                        ;; fresh context, we won't succeed in any future
+                        ;; attempt, so don't try to copy it again.
+                        (set-operand-copyable?! op #f)
+                        (k #f))
                       ((%operand-visit op)
                        (operand-source op) 
                        (make-top-counter effort-limit size-limit abort op)
@@ -712,6 +725,11 @@ top-level bindings from ENV and return the resulting expression."
           ((eq? ctx 'effect)
            (log 'lexical-for-effect gensym)
            (make-void #f))
+          ((operand-alias-value op)
+           ;; This is an unassigned operand that simply aliases some
+           ;; other operand.  Recurse to avoid residualizing the leaf
+           ;; binding.
+           => for-tail)
           ((eq? ctx 'call)
            ;; Don't propagate copies if we are residualizing a call.
            (log 'residualize-lexical-call gensym op)
@@ -804,11 +822,37 @@ top-level bindings from ENV and return the resulting expression."
                (set-operand-residualize?! op #t)
                (make-lexical-set src name (operand-sym op) (for-value exp))))))
       (($ <let> src names gensyms vals body)
+       (define (compute-alias exp)
+         ;; It's very common for macros to introduce something like:
+         ;;
+         ;;   ((lambda (x y) ...) x-exp y-exp)
+         ;;
+         ;; In that case you might end up trying to inline something like:
+         ;;
+         ;;   (let ((x x-exp) (y y-exp)) ...)
+         ;;
+         ;; But if x-exp is itself a lexical-ref that aliases some much
+         ;; larger expression, perhaps it will fail to inline due to
+         ;; size.  However we don't want to introduce a useless alias
+         ;; (in this case, x).  So if the RHS of a let expression is a
+         ;; lexical-ref, we record that expression.  If we end up having
+         ;; to residualize X, then instead we residualize X-EXP, as long
+         ;; as it isn't assigned.
+         ;;
+         (match exp
+           (($ <lexical-ref> _ _ sym)
+            (let ((op (lookup sym)))
+              (and (not (var-set? (operand-var op)))
+                   (or (operand-alias-value op)
+                       exp))))
+           (_ #f)))
+
        (let* ((vars (map lookup-var gensyms))
               (new (fresh-gensyms vars))
               (ops (make-bound-operands vars new vals
                                         (lambda (exp counter ctx)
-                                          (loop exp env counter ctx))))
+                                          (loop exp env counter ctx))
+                                        (map compute-alias vals)))
               (env (fold extend-env env gensyms ops))
               (body (loop body env counter ctx)))
          (cond
@@ -834,7 +878,9 @@ top-level bindings from ENV and return the resulting expression."
       (($ <letrec> src in-order? names gensyms vals body)
        ;; Note the difference from the `let' case: here we use letrec*
        ;; so that the `visit' procedure for the new operands closes over
-       ;; an environment that includes the operands.
+       ;; an environment that includes the operands.  Also we don't try
+       ;; to elide aliases, because we can't sensibly reduce something
+       ;; like (letrec ((a b) (b a)) a).
        (letrec* ((visit (lambda (exp counter ctx)
                           (loop exp env* counter ctx)))
                  (vars (map lookup-var gensyms))
