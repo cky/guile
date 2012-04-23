@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;; R6RS-specific arithmetic benchmarks
 ;;;
-;;; Copyright (C) 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -24,12 +24,12 @@
 
 (with-benchmark-prefix "fixnum"
 
-  (benchmark "fixnum? [yes]" 1e7
+  (benchmark "fixnum? [yes]" #e1e7
     (fixnum? 10000))
 
   (let ((n (+ most-positive-fixnum 100)))
-    (benchmark "fixnum? [no]" 1e7
+    (benchmark "fixnum? [no]" #e1e7
       (fixnum? n)))
 
-  (benchmark "fxxor [2]" 1e7
+  (benchmark "fxxor [2]" #e1e7
     (fxxor 3 8)))
