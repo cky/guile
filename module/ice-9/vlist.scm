@@ -70,15 +70,15 @@
   (make-fluid 2))
 
 (define-inlinable (make-block base offset size hash-tab?)
-  ;; Return a block (and block descriptor) of SIZE elements pointing to BASE
-  ;; at OFFSET.  If HASH-TAB? is true, a "hash table" is also added.
-  ;; Note: We use `next-free' instead of `last-used' as suggested by Bagwell.
-
-  ;; XXX: We could improve locality here by having a single vector but currently
-  ;; the extra arithmetic outweighs the benefits (!).
-  (vector (make-vector size)
-          base offset size 0
-          (and hash-tab? (make-vector size #f))))
+  ;; Return a block (and block descriptor) of SIZE elements pointing to
+  ;; BASE at OFFSET.  If HASH-TAB? is true, we also reserve space for a
+  ;; "hash table".  Note: We use `next-free' instead of `last-used' as
+  ;; suggested by Bagwell.
+  (if hash-tab?
+      (vector (make-vector (* size 3) #f)
+              base offset size 0)
+      (vector (make-vector size)
+              base offset size 0)))
 
 (define-syntax-rule (define-block-accessor name index)
   (define-inlinable (name block)
@@ -89,7 +89,9 @@
 (define-block-accessor block-offset 2)
 (define-block-accessor block-size 3)
 (define-block-accessor block-next-free 4)
-(define-block-accessor block-hash-table 5)
+
+(define-inlinable (block-hash-table? block)
+  (< (block-size block) (vector-length (block-content block))))
 
 (define-inlinable (set-block-next-free! block next-free)
   (vector-set! block 4 next-free))
@@ -103,20 +105,35 @@
          (vector-set! (block-content block) offset value)
          #t)))
 
-(define-inlinable (block-ref block offset)
-  (vector-ref (block-content block) offset))
+;; Return the item at slot OFFSET.
+(define-inlinable (block-ref content offset)
+  (vector-ref content offset))
 
-(define-inlinable (block-ref* block offset)
-  (let ((v (block-ref block offset)))
-    (if (block-hash-table block)
-        (car v) ;; hide the vhash link
-        v)))
+;; Return the offset of the next item in the hash bucket, after the one
+;; at OFFSET.
+(define-inlinable (block-hash-table-next-offset content size offset)
+  (vector-ref content (+ size size offset)))
 
-(define-inlinable (block-hash-table-ref block offset)
-  (vector-ref (block-hash-table block) offset))
+;; Save the offset of the next item in the hash bucket, after the one
+;; at OFFSET.
+(define-inlinable (block-hash-table-set-next-offset! content size offset
+                                                     next-offset)
+  (vector-set! content (+ size size offset) next-offset))
 
-(define-inlinable (block-hash-table-set! block offset value)
-  (vector-set! (block-hash-table block) offset value))
+;; Returns the index of the last entry stored in CONTENT with
+;; SIZE-modulo hash value KHASH.
+(define-inlinable (block-hash-table-ref content size khash)
+  (vector-ref content (+ size khash)))
+
+(define-inlinable (block-hash-table-set! content size khash offset)
+  (vector-set! content (+ size khash) offset))
+
+;; Add hash table information for the item recently added at OFFSET,
+;; with SIZE-modulo hash KHASH.
+(define-inlinable (block-hash-table-add! content size khash offset)
+  (block-hash-table-set-next-offset! content size offset
+                                     (block-hash-table-ref content size khash))
+  (block-hash-table-set! content size khash offset))
 
 (define block-null
   ;; The null block.
@@ -143,13 +160,10 @@
                           (lambda (vl port)
                             (cond ((vlist-null? vl)
                                    (format port "#<vlist ()>"))
-                                  ((block-hash-table (vlist-base vl))
+                                  ((vhash? vl)
                                    (format port "#<vhash ~x ~a pairs>"
                                            (object-address vl)
-                                           (vhash-fold (lambda (k v r)
-                                                         (+ 1 r))
-                                                       0
-                                                       vl)))
+                                           (vlist-length vl)))
                                   (else
                                    (format port "#<vlist ~a>"
                                            (vlist->list vl))))))
@@ -159,9 +173,19 @@
   ;; The empty vlist.
   (make-vlist block-null 0))
 
+;; Asserting that something is a vlist is actually a win if your next
+;; step is to call record accessors, because that causes CSE to
+;; eliminate the type checks in those accessors.
+;;
+(define-inlinable (assert-vlist val)
+  (unless (vlist? val)
+    (throw 'wrong-type-arg
+           #f
+           "Not a vlist: ~S"
+           (list val)
+           (list val))))
+
 (define-inlinable (block-cons item vlist hash-tab?)
-  (unless (vlist? vlist)
-    (error "Expected a vlist:" vlist))
   (let ((base (vlist-base vlist))
         (offset (1+ (vlist-offset vlist))))
     (cond
@@ -186,21 +210,24 @@
 (define (vlist-cons item vlist)
   "Return a new vlist with @var{item} as its head and @var{vlist} as its
 tail."
-  ;; Note: Calling `vlist-cons' on a vhash will not do the right thing: it
-  ;; doesn't box ITEM so that it can have the hidden "next" link used by
-  ;; vhash items, and it passes `#f' as the HASH-TAB? argument to
-  ;; `block-cons'.  However, inserting all the checks here has an important
-  ;; performance penalty, hence this choice.
+  ;; Note: Although the result of `vlist-cons' on a vhash is a valid
+  ;; vlist, it is not a valid vhash.  The new item does not get a hash
+  ;; table entry.  If we allocate a new block, the new block will not
+  ;; have a hash table.  Perhaps we can do something more sensible here,
+  ;; but this is a hot function, so there are performance impacts.
+  (assert-vlist vlist)
   (block-cons item vlist #f))
 
 (define (vlist-head vlist)
   "Return the head of @var{vlist}."
+  (assert-vlist vlist)
   (let ((base   (vlist-base vlist))
         (offset (vlist-offset vlist)))
-    (block-ref* base offset)))
+    (block-ref (block-content base) offset)))
 
 (define (vlist-tail vlist)
   "Return the tail of @var{vlist}."
+  (assert-vlist vlist)
   (let ((base   (vlist-base vlist))
         (offset (vlist-offset vlist)))
     (if (> offset 0)
@@ -210,6 +237,7 @@ tail."
 
 (define (vlist-null? vlist)
   "Return true if @var{vlist} is empty."
+  (assert-vlist vlist)
   (let ((base (vlist-base vlist)))
     (and (not (block-base base))
          (= 0 (block-size base)))))
@@ -226,6 +254,7 @@ tail."
 (define (vlist-fold proc init vlist)
   "Fold over @var{vlist}, calling @var{proc} for each element."
   ;; FIXME: Handle multiple lists.
+  (assert-vlist vlist)
   (let loop ((base   (vlist-base vlist))
              (offset (vlist-offset vlist))
              (result init))
@@ -235,19 +264,18 @@ tail."
                (done? (< next 0)))
           (loop (if done? (block-base base) base)
                 (if done? (block-offset base) next)
-                (proc (block-ref* base offset) result))))))
+                (proc (block-ref (block-content base) offset) result))))))
 
 (define (vlist-fold-right proc init vlist)
   "Fold over @var{vlist}, calling @var{proc} for each element, starting from
 the last element."
-  (define len (vlist-length vlist))
-
-  (let loop ((index  (1- len))
+  (assert-vlist vlist)
+  (let loop ((index  (1- (vlist-length vlist)))
              (result init))
     (if (< index 0)
         result
         (loop (1- index)
-              (proc (vlist-ref vlist index) result)))))
+          (proc (vlist-ref vlist index) result)))))
 
 (define (vlist-reverse vlist)
   "Return a new @var{vlist} whose content are those of @var{vlist} in reverse
@@ -267,11 +295,12 @@ order."
 
 (define (vlist-ref vlist index)
   "Return the element at index @var{index} in @var{vlist}."
+  (assert-vlist vlist)
   (let loop ((index   index)
              (base    (vlist-base vlist))
              (offset  (vlist-offset vlist)))
     (if (<= index offset)
-        (block-ref* base (- offset index))
+        (block-ref (block-content base) (- offset index))
         (loop (- index offset 1)
               (block-base base)
               (block-offset base)))))
@@ -279,6 +308,7 @@ order."
 (define (vlist-drop vlist count)
   "Return a new vlist that does not contain the @var{count} first elements of
 @var{vlist}."
+  (assert-vlist vlist)
   (let loop ((count  count)
              (base   (vlist-base vlist))
              (offset (vlist-offset vlist)))
@@ -319,6 +349,7 @@ satisfy @var{pred}."
 
 (define (vlist-length vlist)
   "Return the length of @var{vlist}."
+  (assert-vlist vlist)
   (let loop ((base (vlist-base vlist))
              (len  (vlist-offset vlist)))
     (if (eq? base block-null)
@@ -371,98 +402,94 @@ details."
 ;; associated with K1 and K2, respectively.  The resulting layout is a
 ;; follows:
 ;;
-;;     ,--------------------.
-;;     | ,-> (K1 . V1) ---. |
-;;     | |                | |
-;;     | |   (K2 . V2) <--' |
-;;     | |                  |
-;;     +-|------------------+
-;;     | |                  |
-;;     | |                  |
-;;     | `-- O <---------------H
-;;     |                    |
-;;     `--------------------'
+;;             ,--------------------.
+;;            0| ,-> (K1 . V1)      | Vlist array
+;;            1| |                  |
+;;            2| |   (K2 . V2)      |
+;;            3| |                  |
+;;        size +-|------------------+
+;;            0| |                  | Hash table
+;;            1| |                  |
+;;            2| +-- O <------------- H
+;;            3| |                  |
+;;    size * 2 +-|------------------+
+;;            0| `-> 2              | Chain links
+;;            1|                    |
+;;            2|    #f              |
+;;            3|                    |
+;;    size * 3 `--------------------'
 ;;
-;; The bottom part is the "hash table" part of the vhash, as returned by
-;; `block-hash-table'; the other half is the data part.  O is the offset of
-;; the first value associated with a key that hashes to H in the data part.
-;; The (K1 . V1) pair has a "hidden" link to the (K2 . V2) pair; hiding the
-;; link is handled by `block-ref'.
-
-;; This API potentially requires users to repeat which hash function and which
-;; equality predicate to use.  This can lead to unpredictable results if they
-;; are used in consistenly, e.g., between `vhash-cons' and `vhash-assoc', which
-;; is undesirable, as argued in http://savannah.gnu.org/bugs/?22159 .  OTOH, two
-;; arguments can be made in favor of this API:
+;; The backing store for the vhash is partitioned into three areas: the
+;; vlist part, the hash table part, and the chain links part.  In this
+;; example we have a hash H which, when indexed into the hash table
+;; part, indicates that a value with this hash can be found at offset 0
+;; in the vlist part.  The corresponding index (in this case, 0) of the
+;; chain links array holds the index of the next element in this block
+;; with this hash value, or #f if we reached the end of the chain.
+;;
+;; This API potentially requires users to repeat which hash function and
+;; which equality predicate to use.  This can lead to unpredictable
+;; results if they are used in consistenly, e.g., between `vhash-cons'
+;; and `vhash-assoc', which is undesirable, as argued in
+;; http://savannah.gnu.org/bugs/?22159 .  OTOH, two arguments can be
+;; made in favor of this API:
 ;;
 ;;  - It's consistent with how alists are handled in SRFI-1.
 ;;
-;;  - In practice, users will probably consistenly use either the `q', the `v',
-;;    or the plain variant (`vlist-cons' and `vlist-assoc' without any optional
-;;    argument), i.e., they will rarely explicitly pass a hash function or
-;;    equality predicate.
+;;  - In practice, users will probably consistenly use either the `q',
+;;    the `v', or the plain variant (`vlist-cons' and `vlist-assoc'
+;;    without any optional argument), i.e., they will rarely explicitly
+;;    pass a hash function or equality predicate.
 
 (define (vhash? obj)
   "Return true if @var{obj} is a hash list."
   (and (vlist? obj)
-       (let ((base (vlist-base obj)))
-         (and base
-              (vector? (block-hash-table base))))))
+       (block-hash-table? (vlist-base obj))))
 
 (define* (vhash-cons key value vhash #:optional (hash hash))
   "Return a new hash list based on @var{vhash} where @var{key} is associated
 with @var{value}.  Use @var{hash} to compute @var{key}'s hash."
-  (let* ((key+value (cons key value))
-         (entry     (cons key+value #f))
-         (vlist     (block-cons entry vhash #t))
-         (base      (vlist-base vlist))
-         (khash     (hash key (block-size base))))
-
-    (let ((o (block-hash-table-ref base khash)))
-      (if o (set-cdr! entry o)))
-
-    (block-hash-table-set! base khash
-                           (vlist-offset vlist))
-
-    vlist))
+  (assert-vlist vhash)
+  ;; We should also assert that it is a hash table.  Need to check the
+  ;; performance impacts of that.  Also, vlist-null is a valid hash
+  ;; table, which does not pass vhash?.  A bug, perhaps.
+  (let* ((vhash     (block-cons (cons key value) vhash #t))
+         (base      (vlist-base vhash))
+         (offset    (vlist-offset vhash))
+         (size      (block-size base))
+         (khash     (hash key size))
+         (content   (block-content base)))
+    (block-hash-table-add! content size khash offset)
+    vhash))
 
 (define vhash-consq (cut vhash-cons <> <> <> hashq))
 (define vhash-consv (cut vhash-cons <> <> <> hashv))
 
 (define-inlinable (%vhash-fold* proc init key vhash equal? hash)
   ;; Fold over all the values associated with KEY in VHASH.
-  (define khash
-    (let ((size (block-size (vlist-base vhash))))
-      (and (> size 0) (hash key size))))
+  (define (visit-block base max-offset result)
+    (let* ((size (block-size base))
+           (content (block-content base))
+           (khash (hash key size)))
+      (let loop ((offset (block-hash-table-ref content size khash))
+                 (result result))
+        (if offset
+            (loop (block-hash-table-next-offset content size offset)
+                  (if (and (<= offset max-offset)
+                           (equal? key (car (block-ref content offset))))
+                      (proc (cdr (block-ref content offset)) result)
+                      result))
+            (let ((next-block (block-base base)))
+              (if (> (block-size next-block) 0)
+                  (visit-block next-block (block-offset base) result)
+                  result))))))
 
-  (let loop ((base       (vlist-base vhash))
-             (khash      khash)
-             (offset     (and khash
-                              (block-hash-table-ref (vlist-base vhash)
-                                                    khash)))
-             (max-offset (vlist-offset vhash))
-             (result     init))
-
-    (let ((answer (and offset (block-ref base offset))))
-      (cond ((and (pair? answer)
-                  (<= offset max-offset)
-                  (let ((answer-key (caar answer)))
-                    (equal? key answer-key)))
-             (let ((result      (proc (cdar answer) result))
-                   (next-offset (cdr answer)))
-               (loop base khash next-offset max-offset result)))
-            ((and (pair? answer) (cdr answer))
-             =>
-             (lambda (next-offset)
-               (loop base khash next-offset max-offset result)))
-            (else
-             (let ((next-base (block-base base)))
-               (if (and next-base (> (block-size next-base) 0))
-                   (let* ((khash  (hash key (block-size next-base)))
-                          (offset (block-hash-table-ref next-base khash)))
-                     (loop next-base khash offset (block-offset base)
-                           result))
-                   result)))))))
+  (assert-vlist vhash)
+  (if (> (block-size (vlist-base vhash)) 0)
+      (visit-block (vlist-base vhash)
+                   (vlist-offset vhash)
+                   init)
+      init))
 
 (define* (vhash-fold* proc init key vhash
                       #:optional (equal? equal?) (hash hash))
@@ -485,34 +512,24 @@ value of @var{result} for the first call to @var{proc}."
   ;; associated with KEY is found or when the end-of-list is reached.  Inline to
   ;; make sure `vhash-assq' gets to use the `eq?' instruction instead of calling
   ;; the `eq?'  subr.
-  (define khash
-    (let ((size (block-size (vlist-base vhash))))
-      (and (> size 0) (hash key size))))
+  (define (visit-block base max-offset)
+    (let* ((size (block-size base))
+           (content (block-content base))
+           (khash (hash key size)))
+      (let loop ((offset (block-hash-table-ref content size khash)))
+        (if offset
+            (if (and (<= offset max-offset)
+                     (equal? key (car (block-ref content offset))))
+                (block-ref content offset)
+                (loop (block-hash-table-next-offset content size offset)))
+            (let ((next-block (block-base base)))
+              (and (> (block-size next-block) 0)
+                   (visit-block next-block (block-offset base))))))))
 
-  (let loop ((base       (vlist-base vhash))
-             (khash      khash)
-             (offset     (and khash
-                              (block-hash-table-ref (vlist-base vhash)
-                                                    khash)))
-             (max-offset (vlist-offset vhash)))
-    (let ((answer (and offset (block-ref base offset))))
-      (cond ((and (pair? answer)
-                  (<= offset max-offset)
-                  (let ((answer-key (caar answer)))
-                    (equal? key answer-key)))
-             (car answer))
-            ((and (pair? answer) (cdr answer))
-             =>
-             (lambda (next-offset)
-               (loop base khash next-offset max-offset)))
-            (else
-             (let ((next-base (block-base base)))
-               (and next-base
-                    (> (block-size next-base) 0)
-                    (let* ((khash  (hash key (block-size next-base)))
-                           (offset (block-hash-table-ref next-base khash)))
-                      (loop next-base khash offset
-                            (block-offset base))))))))))
+  (assert-vlist vhash)
+  (and (> (block-size (vlist-base vhash)) 0)
+       (visit-block (vlist-base vhash)
+                    (vlist-offset vhash))))
 
 (define* (vhash-assoc key vhash #:optional (equal? equal?) (hash hash))
   "Return the first key/value pair from @var{vhash} whose key is equal to
