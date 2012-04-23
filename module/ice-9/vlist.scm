@@ -91,16 +91,17 @@
 (define-block-accessor block-next-free 4)
 (define-block-accessor block-hash-table 5)
 
-(define-inlinable (increment-block-next-free! block)
-  (vector-set! block 4
-               (+ (block-next-free block) 1)))
+(define-inlinable (set-block-next-free! block next-free)
+  (vector-set! block 4 next-free))
 
-(define-inlinable (block-append! block value)
+(define-inlinable (block-append! block value offset)
   ;; This is not thread-safe.  To fix it, see Section 2.8 of the paper.
-  (let ((offset (block-next-free block)))
-    (increment-block-next-free! block)
-    (vector-set! (block-content block) offset value)
-    #t))
+  (and (< offset (block-size block))
+       (= offset (block-next-free block))
+       (begin
+         (set-block-next-free! block (1+ offset))
+         (vector-set! (block-content block) offset value)
+         #t)))
 
 (define-inlinable (block-ref block offset)
   (vector-ref (block-content block) offset))
@@ -159,22 +160,28 @@
   (make-vlist block-null 0))
 
 (define-inlinable (block-cons item vlist hash-tab?)
-  (let loop ((base   (vlist-base vlist))
-             (offset (+ 1 (vlist-offset vlist))))
-    (if (and (< offset (block-size base))
-             (= offset (block-next-free base))
-             (block-append! base item))
-        (make-vlist base offset)
-        (let ((size (cond ((eq? base block-null) 1)
-                          ((< offset (block-size base))
-                           ;; new vlist head
-                           1)
-                          (else
-                           (* (fluid-ref block-growth-factor)
-                              (block-size base))))))
-          ;; Prepend a new block pointing to BASE.
-          (loop (make-block base (- offset 1) size hash-tab?)
-                0)))))
+  (unless (vlist? vlist)
+    (error "Expected a vlist:" vlist))
+  (let ((base (vlist-base vlist))
+        (offset (1+ (vlist-offset vlist))))
+    (cond
+     ((block-append! base item offset)
+      ;; Fast path: We added the item directly to the block.
+      (make-vlist base offset))
+     (else
+      ;; Slow path: Allocate a new block.
+      (let* ((size (block-size base))
+             (base (make-block
+                    base
+                    (1- offset)
+                    (cond
+                     ((zero? size) 1)
+                     ((< offset size) 1) ;; new vlist head
+                     (else (* (fluid-ref block-growth-factor) size)))
+                    hash-tab?)))
+        (set-block-next-free! base 1)
+        (vector-set! (block-content base) 0 item)
+        (make-vlist base 0))))))
 
 (define (vlist-cons item vlist)
   "Return a new vlist with @var{item} as its head and @var{vlist} as its
