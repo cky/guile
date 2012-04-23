@@ -69,14 +69,7 @@
 (define block-growth-factor
   (make-fluid 2))
 
-(define-syntax-rule (define-inline (name formals ...) body ...)
-  ;; Work around the lack of an inliner.
-  (define-syntax name
-    (syntax-rules ()
-      ((_ formals ...)
-       (begin body ...)))))
-
-(define-inline (make-block base offset size hash-tab?)
+(define-inlinable (make-block base offset size hash-tab?)
   ;; Return a block (and block descriptor) of SIZE elements pointing to BASE
   ;; at OFFSET.  If HASH-TAB? is true, a "hash table" is also added.
   ;; Note: We use `next-free' instead of `last-used' as suggested by Bagwell.
@@ -88,7 +81,7 @@
           (and hash-tab? (make-vector size #f))))
 
 (define-syntax-rule (define-block-accessor name index)
-  (define-inline (name block)
+  (define-inlinable (name block)
     (vector-ref block index)))
 
 (define-block-accessor block-content 0)
@@ -98,30 +91,30 @@
 (define-block-accessor block-next-free 4)
 (define-block-accessor block-hash-table 5)
 
-(define-inline (increment-block-next-free! block)
+(define-inlinable (increment-block-next-free! block)
   (vector-set! block 4
                (+ (block-next-free block) 1)))
 
-(define-inline (block-append! block value)
+(define-inlinable (block-append! block value)
   ;; This is not thread-safe.  To fix it, see Section 2.8 of the paper.
   (let ((offset (block-next-free block)))
     (increment-block-next-free! block)
     (vector-set! (block-content block) offset value)
     #t))
 
-(define-inline (block-ref block offset)
+(define-inlinable (block-ref block offset)
   (vector-ref (block-content block) offset))
 
-(define-inline (block-ref* block offset)
+(define-inlinable (block-ref* block offset)
   (let ((v (block-ref block offset)))
     (if (block-hash-table block)
         (car v) ;; hide the vhash link
         v)))
 
-(define-inline (block-hash-table-ref block offset)
+(define-inlinable (block-hash-table-ref block offset)
   (vector-ref (block-hash-table block) offset))
 
-(define-inline (block-hash-table-set! block offset value)
+(define-inlinable (block-hash-table-set! block offset value)
   (vector-set! (block-hash-table block) offset value))
 
 (define block-null
@@ -165,7 +158,7 @@
   ;; The empty vlist.
   (make-vlist block-null 0))
 
-(define-inline (block-cons item vlist hash-tab?)
+(define-inlinable (block-cons item vlist hash-tab?)
   (let loop ((base   (vlist-base vlist))
              (offset (+ 1 (vlist-offset vlist))))
     (if (and (< offset (block-size base))
@@ -429,7 +422,7 @@ with @var{value}.  Use @var{hash} to compute @var{key}'s hash."
 (define vhash-consq (cut vhash-cons <> <> <> hashq))
 (define vhash-consv (cut vhash-cons <> <> <> hashv))
 
-(define-inline (%vhash-fold* proc init key vhash equal? hash)
+(define-inlinable (%vhash-fold* proc init key vhash equal? hash)
   ;; Fold over all the values associated with KEY in VHASH.
   (define khash
     (let ((size (block-size (vlist-base vhash))))
@@ -480,7 +473,7 @@ value of @var{result} for the first call to @var{proc}."
   "Same as @code{vhash-fold*}, but using @code{hashv} and @code{eqv?}."
   (%vhash-fold* proc init key vhash eqv? hashv))
 
-(define-inline (%vhash-assoc key vhash equal? hash)
+(define-inlinable (%vhash-assoc key vhash equal? hash)
   ;; A specialization of `vhash-fold*' that stops when the first value
   ;; associated with KEY is found or when the end-of-list is reached.  Inline to
   ;; make sure `vhash-assq' gets to use the `eq?' instruction instead of calling
