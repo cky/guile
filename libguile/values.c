@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2006, 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -108,13 +108,25 @@ SCM_DEFINE (scm_values, "values", 0, 0, 1,
   if (n == 1)
     result = SCM_CAR (args);
   else
-    {
-      result = scm_c_make_struct (scm_values_vtable, 0, 1, SCM_UNPACK (args));
-    }
+    result = scm_c_make_struct (scm_values_vtable, 0, 1, SCM_UNPACK (args));
 
   return result;
 }
 #undef FUNC_NAME
+
+SCM
+scm_c_values (SCM *base, size_t nvalues)
+{
+  SCM ret, *walk;
+
+  if (nvalues == 1)
+    return *base;
+
+  for (ret = SCM_EOL, walk = base + nvalues - 1; walk >= base; walk--)
+    ret = scm_cons (*walk, ret);
+
+  return scm_values (ret);
+}
 
 void
 scm_init_values (void)

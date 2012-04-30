@@ -3,7 +3,7 @@
 #ifndef SCM_VALUES_H
 #define SCM_VALUES_H
 
-/* Copyright (C) 2000,2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2000,2001, 2006, 2008, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,6 +33,7 @@ SCM_API SCM scm_values_vtable;
 SCM_INTERNAL void scm_i_extract_values_2 (SCM obj, SCM *p1, SCM *p2);
 
 SCM_API SCM scm_values (SCM args);
+SCM_API SCM scm_c_values (SCM *base, size_t nvalues);
 SCM_API SCM scm_c_value_ref (SCM values, size_t idx);
 SCM_INTERNAL void scm_init_values (void);
 
