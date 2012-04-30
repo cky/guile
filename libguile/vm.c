@@ -370,6 +370,233 @@ scm_i_vm_print (SCM x, SCM port, scm_print_state *pstate)
   scm_puts (">", port);
 }
 
+
+/*
+ * VM Error Handling
+ */
+
+static void vm_error (const char *msg, SCM arg) SCM_NORETURN;
+static void vm_error_bad_instruction (scm_t_uint32 inst) SCM_NORETURN;
+static void vm_error_unbound (SCM proc, SCM sym) SCM_NORETURN;
+static void vm_error_unbound_fluid (SCM proc, SCM fluid) SCM_NORETURN;
+static void vm_error_not_a_variable (const char *func_name, SCM x) SCM_NORETURN;
+static void vm_error_not_a_thunk (const char *func_name, SCM x) SCM_NORETURN;
+static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN;
+static void vm_error_kwargs_length_not_even (SCM proc) SCM_NORETURN;
+static void vm_error_kwargs_invalid_keyword (SCM proc) SCM_NORETURN;
+static void vm_error_kwargs_unrecognized_keyword (SCM proc) SCM_NORETURN;
+static void vm_error_too_many_args (int nargs) SCM_NORETURN;
+static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN;
+static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN;
+static void vm_error_stack_overflow (struct scm_vm *vp) SCM_NORETURN;
+static void vm_error_stack_underflow (void) SCM_NORETURN;
+static void vm_error_improper_list (SCM x) SCM_NORETURN;
+static void vm_error_not_a_pair (const char *subr, SCM x) SCM_NORETURN;
+static void vm_error_not_a_bytevector (const char *subr, SCM x) SCM_NORETURN;
+static void vm_error_not_a_struct (const char *subr, SCM x) SCM_NORETURN;
+static void vm_error_no_values (void) SCM_NORETURN;
+static void vm_error_not_enough_values (void) SCM_NORETURN;
+static void vm_error_continuation_not_rewindable (SCM cont) SCM_NORETURN;
+static void vm_error_bad_wide_string_length (size_t len) SCM_NORETURN;
+#if VM_CHECK_IP
+static void vm_error_invalid_address (void) SCM_NORETURN;
+#endif
+#if VM_CHECK_OBJECT
+static void vm_error_object (void) SCM_NORETURN;
+#endif
+#if VM_CHECK_FREE_VARIABLES
+static void vm_error_free_variable (void) SCM_NORETURN;
+#endif
+
+static void
+vm_error (const char *msg, SCM arg)
+{
+  scm_throw (sym_vm_error,
+             scm_list_3 (sym_vm_run, scm_from_latin1_string (msg),
+                         SCM_UNBNDP (arg) ? SCM_EOL : scm_list_1 (arg)));
+  abort(); /* not reached */
+}
+
+static void
+vm_error_bad_instruction (scm_t_uint32 inst)
+{
+  vm_error ("VM: Bad instruction: ~s", scm_from_uint32 (inst));
+}
+
+static void
+vm_error_unbound (SCM proc, SCM sym)
+{
+  scm_error_scm (scm_misc_error_key, proc,
+                 scm_from_latin1_string ("Unbound variable: ~s"),
+                 scm_list_1 (sym), SCM_BOOL_F);
+}
+
+static void
+vm_error_unbound_fluid (SCM proc, SCM fluid)
+{
+  scm_error_scm (scm_misc_error_key, proc,
+                 scm_from_latin1_string ("Unbound fluid: ~s"),
+                 scm_list_1 (fluid), SCM_BOOL_F);
+}
+
+static void
+vm_error_not_a_variable (const char *func_name, SCM x)
+{
+  scm_error (scm_arg_type_key, func_name, "Not a variable: ~S",
+             scm_list_1 (x), scm_list_1 (x));
+}
+
+static void
+vm_error_not_a_thunk (const char *func_name, SCM x)
+{
+  scm_error (scm_arg_type_key, func_name, "Not a thunk: ~S",
+             scm_list_1 (x), scm_list_1 (x));
+}
+
+static void
+vm_error_apply_to_non_list (SCM x)
+{
+  scm_error (scm_arg_type_key, "apply", "Apply to non-list: ~S",
+             scm_list_1 (x), scm_list_1 (x));
+}
+
+static void
+vm_error_kwargs_length_not_even (SCM proc)
+{
+  scm_error_scm (sym_keyword_argument_error, proc,
+                 scm_from_latin1_string ("Odd length of keyword argument list"),
+                 SCM_EOL, SCM_BOOL_F);
+}
+
+static void
+vm_error_kwargs_invalid_keyword (SCM proc)
+{
+  scm_error_scm (sym_keyword_argument_error, proc,
+                 scm_from_latin1_string ("Invalid keyword"),
+                 SCM_EOL, SCM_BOOL_F);
+}
+
+static void
+vm_error_kwargs_unrecognized_keyword (SCM proc)
+{
+  scm_error_scm (sym_keyword_argument_error, proc,
+                 scm_from_latin1_string ("Unrecognized keyword"),
+                 SCM_EOL, SCM_BOOL_F);
+}
+
+static void
+vm_error_too_many_args (int nargs)
+{
+  vm_error ("VM: Too many arguments", scm_from_int (nargs));
+}
+
+static void
+vm_error_wrong_num_args (SCM proc)
+{
+  scm_wrong_num_args (proc);
+}
+
+static void
+vm_error_wrong_type_apply (SCM proc)
+{
+  scm_error (scm_arg_type_key, NULL, "Wrong type to apply: ~S",
+             scm_list_1 (proc), scm_list_1 (proc));
+}
+
+static void
+vm_error_stack_overflow (struct scm_vm *vp)
+{
+  if (vp->stack_limit < vp->stack_base + vp->stack_size)
+    /* There are VM_STACK_RESERVE_SIZE bytes left.  Make them available so
+       that `throw' below can run on this VM.  */
+    vp->stack_limit = vp->stack_base + vp->stack_size;
+  else
+    /* There is no space left on the stack.  FIXME: Do something more
+       sensible here! */
+    abort ();
+  vm_error ("VM: Stack overflow", SCM_UNDEFINED);
+}
+
+static void
+vm_error_stack_underflow (void)
+{
+  vm_error ("VM: Stack underflow", SCM_UNDEFINED);
+}
+
+static void
+vm_error_improper_list (SCM x)
+{
+  vm_error ("Expected a proper list, but got object with tail ~s", x);
+}
+
+static void
+vm_error_not_a_pair (const char *subr, SCM x)
+{
+  scm_wrong_type_arg_msg (subr, 1, x, "pair");
+}
+
+static void
+vm_error_not_a_bytevector (const char *subr, SCM x)
+{
+  scm_wrong_type_arg_msg (subr, 1, x, "bytevector");
+}
+
+static void
+vm_error_not_a_struct (const char *subr, SCM x)
+{
+  scm_wrong_type_arg_msg (subr, 1, x, "struct");
+}
+
+static void
+vm_error_no_values (void)
+{
+  vm_error ("Zero values returned to single-valued continuation",
+            SCM_UNDEFINED);
+}
+
+static void
+vm_error_not_enough_values (void)
+{
+  vm_error ("Too few values returned to continuation", SCM_UNDEFINED);
+}
+
+static void
+vm_error_continuation_not_rewindable (SCM cont)
+{
+  vm_error ("Unrewindable partial continuation", cont);
+}
+
+static void
+vm_error_bad_wide_string_length (size_t len)
+{
+  vm_error ("VM: Bad wide string length: ~S", scm_from_size_t (len));
+}
+
+#ifdef VM_CHECK_IP
+static void
+vm_error_invalid_address (void)
+{
+  vm_error ("VM: Invalid program address", SCM_UNDEFINED);
+}
+#endif
+
+#if VM_CHECK_OBJECT
+static void
+vm_error_object ()
+{
+  vm_error ("VM: Invalid object table access", SCM_UNDEFINED);
+}
+#endif
+
+#if VM_CHECK_FREE_VARIABLES
+static void
+vm_error_free_variable ()
+{
+  vm_error ("VM: Invalid free variable access", SCM_UNDEFINED);
+}
+#endif
+
+
 static SCM
 really_make_boot_program (long nargs)
 {

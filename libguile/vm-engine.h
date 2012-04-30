@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -103,8 +103,11 @@
  * Cache/Sync
  */
 
+#define VM_ASSERT(condition, handler) \
+  do { if (SCM_UNLIKELY (!(condition))) { SYNC_ALL(); handler; } } while (0)
+
 #ifdef VM_ENABLE_ASSERTIONS
-# define ASSERT(condition) if (SCM_UNLIKELY (!(condition))) abort()
+# define ASSERT(condition) VM_ASSERT (condition, abort())
 #else
 # define ASSERT(condition)
 #endif
@@ -191,18 +194,16 @@
 
 /* Accesses to a program's object table.  */
 #if VM_CHECK_OBJECT
-#define CHECK_OBJECT(_num) \
-  do { if (SCM_UNLIKELY ((_num) >= object_count)) goto vm_error_object; } while (0)
+#define CHECK_OBJECT(_num)                              \
+  VM_ASSERT ((_num) < object_count, vm_error_object ())
 #else
 #define CHECK_OBJECT(_num)
 #endif
 
 #if VM_CHECK_FREE_VARIABLES
-#define CHECK_FREE_VARIABLE(_num)                                       \
-  do {                                                                  \
-    if (SCM_UNLIKELY ((_num) >= SCM_PROGRAM_NUM_FREE_VARIABLES (program))) \
-      goto vm_error_free_variable;                                      \
-  } while (0)
+#define CHECK_FREE_VARIABLE(_num)                               \
+  VM_ASSERT ((_num) < SCM_PROGRAM_NUM_FREE_VARIABLES (program), \
+             vm_error_free_variable ())
 #else
 #define CHECK_FREE_VARIABLE(_num)
 #endif
@@ -276,21 +277,20 @@
 # define NULLSTACK_FOR_NONLOCAL_EXIT()
 #endif
 
-#define CHECK_OVERFLOW()			\
-  if (SCM_UNLIKELY (sp >= stack_limit))         \
-    goto vm_error_stack_overflow
+/* For this check, we don't use VM_ASSERT, because that leads to a
+   per-site SYNC_ALL, which is too much code growth.  The real problem
+   of course is having to check for overflow all the time... */
+#define CHECK_OVERFLOW()                                                \
+  do { if (SCM_UNLIKELY (sp >= stack_limit)) goto handle_overflow; } while (0)
 
 
 #ifdef VM_CHECK_UNDERFLOW
-#define CHECK_UNDERFLOW()                       \
-  if (SCM_UNLIKELY (sp <= SCM_FRAME_UPPER_ADDRESS (fp)))        \
-    goto vm_error_stack_underflow
 #define PRE_CHECK_UNDERFLOW(N)                  \
-  if (SCM_UNLIKELY (sp - N <= SCM_FRAME_UPPER_ADDRESS (fp)))    \
-    goto vm_error_stack_underflow
+  VM_ASSERT (sp - (N) > SCM_FRAME_UPPER_ADDRESS (fp), vm_error_stack_underflow ())
+#define CHECK_UNDERFLOW() PRE_CHECK_UNDERFLOW (0)
 #else
-#define CHECK_UNDERFLOW() /* nop */
 #define PRE_CHECK_UNDERFLOW(N) /* nop */
+#define CHECK_UNDERFLOW() /* nop */
 #endif
 
 
@@ -333,10 +333,7 @@ do						\
 {						\
   for (; scm_is_pair (l); l = SCM_CDR (l))      \
     PUSH (SCM_CAR (l));                         \
-  if (SCM_UNLIKELY (!NILP (l))) {               \
-    finish_args = scm_list_1 (l);               \
-    goto vm_error_improper_list;                \
-  }                                             \
+  VM_ASSERT (NILP (l), vm_error_improper_list (l)); \
 } while (0)
 
 

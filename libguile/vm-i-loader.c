@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009,2010,2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -105,11 +105,8 @@ VM_DEFINE_LOADER (107, load_wide_string, "load-wide-string")
   scm_t_wchar *wbuf;
 
   FETCH_LENGTH (len);
-  if (SCM_UNLIKELY (len % 4))
-    {
-      finish_args = scm_list_1 (scm_from_size_t (len));
-      goto vm_error_bad_wide_string_length;
-    }
+  VM_ASSERT ((len % 4) == 0,
+             vm_error_bad_wide_string_length (len));
 
   SYNC_REGISTER ();
   PUSH (scm_i_make_wide_string (len / 4, &wbuf, 1));

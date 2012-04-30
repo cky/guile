@@ -31,16 +31,20 @@ VM_DEFINE_INSTRUCTION (0, nop, "nop", 0, 0, 0)
 
 VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
 {
+  SCM ret;
+
   nvalues = SCM_I_INUM (*sp--);
   NULLSTACK (1);
+
   if (nvalues == 1)
-    POP (finish_args);
+    POP (ret);
   else
     {
-      POP_LIST (nvalues);
-      POP (finish_args);
       SYNC_REGISTER ();
-      finish_args = scm_values (finish_args);
+      sp -= nvalues;
+      CHECK_UNDERFLOW ();
+      ret = scm_c_values (sp + 1, nvalues);
+      NULLSTACK (nvalues);
     }
     
   {
@@ -58,7 +62,8 @@ VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
     NULLSTACK (old_sp - sp);
   }
   
-  goto vm_done;
+  SYNC_ALL ();
+  return ret;
 }
 
 VM_DEFINE_INSTRUCTION (2, drop, "drop", 0, 1, 0)
@@ -298,20 +303,16 @@ VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 1, 1)
      unlike in top-variable-ref, it really isn't an internal assertion
      that can be optimized out -- the variable could be coming directly
      from the user.  */
-  if (SCM_UNLIKELY (!SCM_VARIABLEP (x)))
-    {
-      func_name = "variable-ref";
-      finish_args = x;
-      goto vm_error_not_a_variable;
-    }
-  else if (SCM_UNLIKELY (!VARIABLE_BOUNDP (x)))
+  VM_ASSERT (SCM_VARIABLEP (x),
+             vm_error_not_a_variable ("variable-ref", x));
+
+  if (SCM_UNLIKELY (!VARIABLE_BOUNDP (x)))
     {
       SCM var_name;
 
       /* Attempt to provide the variable name in the error message.  */
       var_name = scm_module_reverse_lookup (scm_current_module (), x);
-      finish_args = scm_is_true (var_name) ? var_name : x;
-      goto vm_error_unbound;
+      vm_error_unbound (program, scm_is_true (var_name) ? var_name : x);
     }
   else
     {
@@ -326,14 +327,10 @@ VM_DEFINE_INSTRUCTION (26, variable_bound, "variable-bound?", 0, 1, 1)
 {
   SCM x = *sp;
   
-  if (SCM_UNLIKELY (!SCM_VARIABLEP (x)))
-    {
-      func_name = "variable-bound?";
-      finish_args = x;
-      goto vm_error_not_a_variable;
-    }
-  else
-    *sp = scm_from_bool (VARIABLE_BOUNDP (x));
+  VM_ASSERT (SCM_VARIABLEP (x),
+             vm_error_not_a_variable ("variable-bound?", x));
+
+  *sp = scm_from_bool (VARIABLE_BOUNDP (x));
   NEXT;
 }
 
@@ -348,11 +345,7 @@ VM_DEFINE_INSTRUCTION (27, toplevel_ref, "toplevel-ref", 1, 0, 1)
     {
       SYNC_REGISTER ();
       resolved = resolve_variable (what, scm_program_module (program));
-      if (!VARIABLE_BOUNDP (resolved))
-        {
-          finish_args = what;
-          goto vm_error_unbound;
-        }
+      VM_ASSERT (VARIABLE_BOUNDP (resolved), vm_error_unbound (program, what));
       what = resolved;
       OBJECT_SET (objnum, what);
     }
@@ -374,11 +367,8 @@ VM_DEFINE_INSTRUCTION (28, long_toplevel_ref, "long-toplevel-ref", 2, 0, 1)
     {
       SYNC_REGISTER ();
       resolved = resolve_variable (what, scm_program_module (program));
-      if (!VARIABLE_BOUNDP (resolved))
-        {
-          finish_args = what;
-          goto vm_error_unbound;
-        }
+      VM_ASSERT (VARIABLE_BOUNDP (resolved),
+                 vm_error_unbound (program, what));
       what = resolved;
       OBJECT_SET (objnum, what);
     }
@@ -410,12 +400,8 @@ VM_DEFINE_INSTRUCTION (30, long_local_set, "long-local-set", 2, 1, 0)
 
 VM_DEFINE_INSTRUCTION (31, variable_set, "variable-set", 0, 2, 0)
 {
-  if (SCM_UNLIKELY (!SCM_VARIABLEP (sp[0])))
-    {
-      func_name = "variable-set!";
-      finish_args = sp[0];
-      goto vm_error_not_a_variable;
-    }
+  VM_ASSERT (SCM_VARIABLEP (sp[0]),
+             vm_error_not_a_variable ("variable-set!", sp[0]));
   VARIABLE_SET (sp[0], sp[-1]);
   DROPN (2);
   NEXT;
@@ -585,8 +571,8 @@ VM_DEFINE_INSTRUCTION (44, assert_nargs_ee, "assert-nargs-ee", 2, 0, 0)
   scm_t_ptrdiff n;
   n = FETCH () << 8;
   n += FETCH ();
-  if (sp - (fp - 1) != n)
-    goto vm_error_wrong_num_args;
+  VM_ASSERT (sp - (fp - 1) == n,
+             vm_error_wrong_num_args (program));
   NEXT;
 }
 
@@ -595,8 +581,8 @@ VM_DEFINE_INSTRUCTION (45, assert_nargs_ge, "assert-nargs-ge", 2, 0, 0)
   scm_t_ptrdiff n;
   n = FETCH () << 8;
   n += FETCH ();
-  if (sp - (fp - 1) < n)
-    goto vm_error_wrong_num_args;
+  VM_ASSERT (sp - (fp - 1) >= n,
+             vm_error_wrong_num_args (program));
   NEXT;
 }
 
@@ -666,9 +652,9 @@ VM_DEFINE_INSTRUCTION (48, bind_kwargs, "bind-kwargs", 5, 0, 0)
   nkw += FETCH ();
   kw_and_rest_flags = FETCH ();
 
-  if (!(kw_and_rest_flags & F_REST)
-      && ((sp - (fp - 1) - nkw) % 2))
-    goto vm_error_kwargs_length_not_even;
+  VM_ASSERT ((kw_and_rest_flags & F_REST)
+             || ((sp - (fp - 1) - nkw) % 2) == 0,
+             vm_error_kwargs_length_not_even (program))
 
   CHECK_OBJECT (idx);
   kw = OBJECT_REF (idx);
@@ -690,13 +676,14 @@ VM_DEFINE_INSTRUCTION (48, bind_kwargs, "bind-kwargs", 5, 0, 0)
 		  break;
 		}
 	    }
-	  if (!(kw_and_rest_flags & F_ALLOW_OTHER_KEYS) && !scm_is_pair (walk))
-	    goto vm_error_kwargs_unrecognized_keyword;
-
+          VM_ASSERT (scm_is_pair (walk)
+                     || (kw_and_rest_flags & F_ALLOW_OTHER_KEYS),
+                     vm_error_kwargs_unrecognized_keyword (program));
 	  nkw++;
 	}
-      else if (!(kw_and_rest_flags & F_REST))
-        goto vm_error_kwargs_invalid_keyword;
+      else
+        VM_ASSERT (kw_and_rest_flags & F_REST,
+                   vm_error_kwargs_invalid_keyword (program));
     }
 
   NEXT;
@@ -795,7 +782,10 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
           goto vm_call;
         }
       else
-        goto vm_error_wrong_type_apply;
+        {
+          SYNC_ALL();
+          vm_error_wrong_type_apply (program);
+        }
     }
 
   CACHE_PROGRAM ();
@@ -843,7 +833,10 @@ VM_DEFINE_INSTRUCTION (54, tail_call, "tail-call", 1, -1, 1)
           goto vm_tail_call;
         }
       else
-        goto vm_error_wrong_type_apply;
+        {
+          SYNC_ALL();
+          vm_error_wrong_type_apply (program);
+        }
     }
   else
     {
@@ -1035,10 +1028,8 @@ VM_DEFINE_INSTRUCTION (59, partial_cont_call, "partial-cont-call", 0, -1, 0)
   SCM vmcont, intwinds, prevwinds;
   POP2 (intwinds, vmcont);
   SYNC_REGISTER ();
-  if (SCM_UNLIKELY (!SCM_VM_CONT_REWINDABLE_P (vmcont)))
-    { finish_args = vmcont;
-      goto vm_error_continuation_not_rewindable;
-    }
+  VM_ASSERT (SCM_VM_CONT_REWINDABLE_P (vmcont),
+             vm_error_continuation_not_rewindable (vmcont));
   prevwinds = scm_i_dynwinds ();
   vm_reinstate_partial_continuation (vm, vmcont, intwinds, sp + 1 - fp, fp,
                                      vm_cookie);
@@ -1104,7 +1095,10 @@ VM_DEFINE_INSTRUCTION (62, mv_call, "mv-call", 4, -1, 1)
           goto vm_mv_call;
         }
       else
-        goto vm_error_wrong_type_apply;
+        {
+          SYNC_ALL();
+          vm_error_wrong_type_apply (program);
+        }
     }
 
   CACHE_PROGRAM ();
@@ -1138,12 +1132,8 @@ VM_DEFINE_INSTRUCTION (63, apply, "apply", 1, -1, 1)
   ASSERT (nargs >= 2);
 
   len = scm_ilength (ls);
-  if (SCM_UNLIKELY (len < 0))
-    {
-      finish_args = ls;
-      goto vm_error_apply_to_non_list;
-    }
-
+  VM_ASSERT (len >= 0,
+             vm_error_apply_to_non_list (ls));
   PUSH_LIST (ls, SCM_NULL_OR_NIL_P);
 
   nargs += len - 2;
@@ -1160,12 +1150,8 @@ VM_DEFINE_INSTRUCTION (64, tail_apply, "tail-apply", 1, -1, 1)
   ASSERT (nargs >= 2);
 
   len = scm_ilength (ls);
-  if (SCM_UNLIKELY (len < 0))
-    {
-      finish_args = ls;
-      goto vm_error_apply_to_non_list;
-    }
-
+  VM_ASSERT (len >= 0,
+             vm_error_apply_to_non_list (ls));
   PUSH_LIST (ls, SCM_NULL_OR_NIL_P);
 
   nargs += len - 2;
@@ -1330,7 +1316,10 @@ VM_DEFINE_INSTRUCTION (68, return_values, "return/values", 1, -1, -1)
       NULLSTACK (vals + nvalues - sp);
     }
   else
-    goto vm_error_no_values;
+    {
+      SYNC_ALL ();
+      vm_error_no_values ();
+    }
 
   /* Restore the last program */
   program = SCM_FRAME_PROGRAM (fp);
@@ -1354,10 +1343,7 @@ VM_DEFINE_INSTRUCTION (69, return_values_star, "return/values*", 1, -1, -1)
       l = SCM_CDR (l);
       nvalues++;
     }
-  if (SCM_UNLIKELY (!SCM_NULL_OR_NIL_P (l))) {
-    finish_args = scm_list_1 (l);
-    goto vm_error_improper_list;
-  }
+  VM_ASSERT (SCM_NULL_OR_NIL_P (l), vm_error_improper_list (l));
 
   goto vm_return_values;
 }
@@ -1383,8 +1369,7 @@ VM_DEFINE_INSTRUCTION (71, truncate_values, "truncate-values", 2, -1, -1)
   if (rest)
     nbinds--;
 
-  if (nvalues < nbinds)
-    goto vm_error_not_enough_values;
+  VM_ASSERT (nvalues >= nbinds, vm_error_not_enough_values ());
 
   if (rest)
     POP_LIST (nvalues - nbinds);
@@ -1585,16 +1570,8 @@ VM_DEFINE_INSTRUCTION (86, wind, "wind", 0, 2, 0)
   /* Push wind and unwind procedures onto the dynamic stack. Note that neither
      are actually called; the compiler should emit calls to wind and unwind for
      the normal dynamic-wind control flow. */
-  if (SCM_UNLIKELY (scm_is_false (scm_thunk_p (wind))))
-    {
-      finish_args = wind;
-      goto vm_error_not_a_thunk;
-    }
-  if (SCM_UNLIKELY (scm_is_false (scm_thunk_p (unwind))))
-    {
-      finish_args = unwind;
-      goto vm_error_not_a_thunk;
-    }
+  VM_ASSERT (scm_thunk_p (wind), vm_error_not_a_thunk ("dynamic-wind", wind));
+  VM_ASSERT (scm_thunk_p (unwind), vm_error_not_a_thunk ("dynamic-wind", unwind));
   scm_i_set_dynwinds (scm_cons (scm_cons (wind, unwind), scm_i_dynwinds ()));
   NEXT;
 }
@@ -1603,8 +1580,7 @@ VM_DEFINE_INSTRUCTION (87, abort, "abort", 1, -1, -1)
 {
   unsigned n = FETCH ();
   SYNC_REGISTER ();
-  if (sp - n - 2 <= SCM_FRAME_UPPER_ADDRESS (fp))
-    goto vm_error_stack_underflow;
+  PRE_CHECK_UNDERFLOW (n + 2);
   vm_abort (vm, n, vm_cookie);
   /* vm_abort should not return */
   abort ();
@@ -1662,11 +1638,8 @@ VM_DEFINE_INSTRUCTION (91, fluid_ref, "fluid-ref", 0, 1, 1)
       SCM val = SCM_SIMPLE_VECTOR_REF (fluids, num);
       if (scm_is_eq (val, SCM_UNDEFINED))
         val = SCM_I_FLUID_DEFAULT (*sp);
-      if (SCM_UNLIKELY (scm_is_eq (val, SCM_UNDEFINED)))
-        {
-          finish_args = *sp;
-          goto vm_error_unbound_fluid;
-        }
+      VM_ASSERT (!scm_is_eq (val, SCM_UNDEFINED),
+                 vm_error_unbound_fluid (program, *sp));
       *sp = val;
     }
   
@@ -1701,8 +1674,8 @@ VM_DEFINE_INSTRUCTION (93, assert_nargs_ee_locals, "assert-nargs-ee/locals", 1, 
   /* nargs = n & 0x7, nlocs = nargs + (n >> 3) */
   n = FETCH ();
 
-  if (SCM_UNLIKELY (sp - (fp - 1) != (n & 0x7)))
-    goto vm_error_wrong_num_args;
+  VM_ASSERT (sp - (fp - 1) == (n & 0x7),
+             vm_error_wrong_num_args (program));
 
   old_sp = sp;
   sp += (n >> 3);

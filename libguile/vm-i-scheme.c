@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -124,11 +124,7 @@ VM_DEFINE_FUNCTION (140, cons, "cons", 2)
 }
 
 #define VM_VALIDATE_CONS(x, proc)		\
-  if (SCM_UNLIKELY (!scm_is_pair (x)))          \
-    { func_name = proc;                         \
-      finish_args = x;                          \
-      goto vm_error_not_a_pair;                 \
-    }
+  VM_ASSERT (scm_is_pair (x), vm_error_not_a_pair (proc, x))
   
 VM_DEFINE_FUNCTION (141, car, "car", 1)
 {
@@ -503,12 +499,7 @@ VM_DEFINE_INSTRUCTION (165, make_array, "make-array", 3, -1, 1)
  * Structs
  */
 #define VM_VALIDATE_STRUCT(obj, proc)           \
-  if (SCM_UNLIKELY (!SCM_STRUCTP (obj)))	\
-    {						\
-      func_name = proc;                         \
-      finish_args = (obj);			\
-      goto vm_error_not_a_struct;		\
-    }
+  VM_ASSERT (SCM_STRUCTP (obj), vm_error_not_a_pair (proc, obj))
 
 VM_DEFINE_FUNCTION (166, struct_p, "struct?", 1)
 {
@@ -654,16 +645,7 @@ VM_DEFINE_INSTRUCTION (173, slot_set, "slot-set", 0, 3, 0)
  * Bytevectors
  */
 #define VM_VALIDATE_BYTEVECTOR(x, proc)		\
-  do						\
-    {						\
-      if (SCM_UNLIKELY (!SCM_BYTEVECTOR_P (x)))	\
-	{					\
-          func_name = proc;                     \
-	  finish_args = x;			\
-	  goto vm_error_not_a_bytevector;	\
-	}					\
-    }						\
-  while (0)
+  VM_ASSERT (SCM_BYTEVECTOR_P (x), vm_error_not_a_bytevector (proc, x))
 
 #define BV_REF_WITH_ENDIANNESS(stem, fn_stem)                           \
 {                                                                       \
