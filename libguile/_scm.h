@@ -190,6 +190,11 @@
 #define scm_to_off64_t    scm_to_int64
 #define scm_from_off64_t  scm_from_int64
 
+#if (defined __GNUC__)
+# define SCM_NOINLINE __attribute__ ((__noinline__))
+#else
+# define SCM_NOINLINE /* noinline */
+#endif
 
 /* The endianness marker in objcode.  */
 #ifdef WORDS_BIGENDIAN
