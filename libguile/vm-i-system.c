@@ -310,6 +310,7 @@ VM_DEFINE_INSTRUCTION (25, variable_ref, "variable-ref", 0, 1, 1)
     {
       SCM var_name;
 
+      SYNC_ALL ();
       /* Attempt to provide the variable name in the error message.  */
       var_name = scm_module_reverse_lookup (scm_current_module (), x);
       vm_error_unbound (program, scm_is_true (var_name) ? var_name : x);
