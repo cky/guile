@@ -208,8 +208,8 @@ static SCM scm_get_hash_procedure (int);
    fewer than BUF_SIZE bytes, non-zero otherwise. READ will be set the number of
    bytes actually read.  */
 static int
-read_token (SCM port, char *buf, const size_t buf_size, size_t *read)
- {
+read_token (SCM port, char *buf, size_t buf_size, size_t *read)
+{
    *read = 0;
 
    while (*read < buf_size)
@@ -235,20 +235,15 @@ read_token (SCM port, char *buf, const size_t buf_size, size_t *read)
    return 1;
  }
 
-/* Read from PORT until a delimiter (e.g., a whitespace) is read.  Put the
-   result in the pre-allocated buffer BUFFER, if the whole token has fewer than
-   BUFFER_SIZE bytes, or into OVERFLOW_BUFFER, allocated here to be freed by the
-   caller.  Return zero if the token fits in BUFFER, non-zero otherwise. READ
-   will be set the number of bytes actually read.  */
-static int
-read_complete_token (SCM port, char *buffer, const size_t buffer_size,
-                           char **overflow_buffer, size_t *read)
+/* Like `read_token', but return either BUFFER, or a GC-allocated buffer
+   if the token doesn't fit in BUFFER_SIZE bytes.  */
+static char *
+read_complete_token (SCM port, char *buffer, size_t buffer_size,
+		     size_t *read)
 {
   int overflow = 0;
-  size_t bytes_read, overflow_size;
-
-  *overflow_buffer = NULL;
-  overflow_size = 0;
+  size_t bytes_read, overflow_size = 0;
+  char *overflow_buffer = NULL;
 
   do
     {
@@ -259,14 +254,19 @@ read_complete_token (SCM port, char *buffer, const size_t buffer_size,
         {
           if (overflow_size == 0)
             {
-              *overflow_buffer = scm_malloc (bytes_read);
-              memcpy (*overflow_buffer, buffer, bytes_read);
+              overflow_buffer = scm_gc_malloc_pointerless (bytes_read, "read");
+              memcpy (overflow_buffer, buffer, bytes_read);
               overflow_size = bytes_read;
             }
           else
             {
-              *overflow_buffer = scm_realloc (*overflow_buffer, overflow_size + bytes_read);
-              memcpy (*overflow_buffer + overflow_size, buffer, bytes_read);
+	      void *new_buf =
+		scm_gc_malloc_pointerless (overflow_size + bytes_read, "read");
+
+	      memcpy (new_buf, overflow_buffer, overflow_size);
+              memcpy (new_buf + overflow_size, buffer, bytes_read);
+
+	      overflow_buffer = new_buf;
               overflow_size += bytes_read;
             }
         }
@@ -278,7 +278,7 @@ read_complete_token (SCM port, char *buffer, const size_t buffer_size,
   else
     *read = bytes_read;
 
-  return (overflow_size != 0);
+  return (overflow_size > 0 ? overflow_buffer : buffer);
 }
 
 /* Skip whitespace from PORT and return the first non-whitespace character
@@ -594,10 +594,8 @@ static SCM
 scm_read_number (scm_t_wchar chr, SCM port)
 {
   SCM result, str = SCM_EOL;
-  char buffer[READER_BUFFER_SIZE];
-  char *overflow_buffer = NULL;
+  char local_buffer[READER_BUFFER_SIZE], *buffer;
   size_t bytes_read;
-  int overflow;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
   /* Need to capture line and column numbers here. */
@@ -605,14 +603,10 @@ scm_read_number (scm_t_wchar chr, SCM port)
   int column = SCM_COL (port) - 1;
 
   scm_ungetc (chr, port);
-  overflow = read_complete_token (port, buffer, sizeof (buffer),
-                                  &overflow_buffer, &bytes_read);
+  buffer = read_complete_token (port, local_buffer, sizeof local_buffer,
+				&bytes_read);
 
-  if (!overflow)
-    str = scm_from_stringn (buffer, bytes_read, pt->encoding, pt->ilseq_handler);
-  else
-    str = scm_from_stringn (overflow_buffer, bytes_read, pt->encoding,
-                            pt->ilseq_handler);
+  str = scm_from_stringn (buffer, bytes_read, pt->encoding, pt->ilseq_handler);
 
   result = scm_string_to_number (str, SCM_UNDEFINED);
   if (scm_is_false (result))
@@ -625,8 +619,6 @@ scm_read_number (scm_t_wchar chr, SCM port)
   else if (SCM_NIMP (result))
     result = maybe_annotate_source (result, port, line, column);
 
-  if (overflow)
-    free (overflow_buffer);
   SCM_COL (port) += scm_i_string_length (str);
   return result;
 }
@@ -638,29 +630,20 @@ scm_read_mixed_case_symbol (scm_t_wchar chr, SCM port)
   int ends_with_colon = 0;
   size_t bytes_read;
   int postfix = scm_is_eq (SCM_PACK (SCM_KEYWORD_STYLE), scm_keyword_postfix);
-  int overflow;
-  char buffer[READER_BUFFER_SIZE], *overflow_buffer;
+  char local_buffer[READER_BUFFER_SIZE], *buffer;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
   SCM str;
 
   scm_ungetc (chr, port);
-  overflow = read_complete_token (port, buffer, READER_BUFFER_SIZE,
-                                  &overflow_buffer, &bytes_read);
+  buffer = read_complete_token (port, local_buffer, sizeof local_buffer,
+				&bytes_read);
   if (bytes_read > 0)
-    {
-      if (!overflow)
-        ends_with_colon = buffer[bytes_read - 1] == ':';
-      else
-        ends_with_colon = overflow_buffer[bytes_read - 1] == ':';
-    }
+    ends_with_colon = buffer[bytes_read - 1] == ':';
 
   if (postfix && ends_with_colon && (bytes_read > 1))
     {
-      if (!overflow)
-        str = scm_from_stringn (buffer, bytes_read - 1, pt->encoding, pt->ilseq_handler);
-      else
-        str = scm_from_stringn (overflow_buffer, bytes_read - 1, pt->encoding,
-                                pt->ilseq_handler);
+      str = scm_from_stringn (buffer, bytes_read - 1,
+			      pt->encoding, pt->ilseq_handler);
 
       if (SCM_CASE_INSENSITIVE_P)
         str = scm_string_downcase_x (str);
@@ -668,19 +651,14 @@ scm_read_mixed_case_symbol (scm_t_wchar chr, SCM port)
     }
   else
     {
-      if (!overflow)
-        str = scm_from_stringn (buffer, bytes_read, pt->encoding, pt->ilseq_handler);
-      else
-        str = scm_from_stringn (overflow_buffer, bytes_read, pt->encoding,
-                                pt->ilseq_handler);
+      str = scm_from_stringn (buffer, bytes_read,
+			      pt->encoding, pt->ilseq_handler);
 
       if (SCM_CASE_INSENSITIVE_P)
         str = scm_string_downcase_x (str);
       result = scm_string_to_symbol (str);
     }
 
-  if (overflow)
-    free (overflow_buffer);
   SCM_COL (port) += scm_i_string_length (str);
   return result;
 }
@@ -691,8 +669,7 @@ scm_read_number_and_radix (scm_t_wchar chr, SCM port)
 {
   SCM result;
   size_t read;
-  char buffer[READER_BUFFER_SIZE], *overflow_buffer;
-  int overflow;
+  char local_buffer[READER_BUFFER_SIZE], *buffer;
   unsigned int radix;
   SCM str;
   scm_t_port *pt;
@@ -725,20 +702,13 @@ scm_read_number_and_radix (scm_t_wchar chr, SCM port)
       radix = 10;
     }
 
-  overflow = read_complete_token (port, buffer, sizeof (buffer),
-                                  &overflow_buffer, &read);
+  buffer = read_complete_token (port, local_buffer, sizeof local_buffer,
+				&read);
 
   pt = SCM_PTAB_ENTRY (port);
-  if (!overflow)
-    str = scm_from_stringn (buffer, read, pt->encoding, pt->ilseq_handler);
-  else
-    str = scm_from_stringn (overflow_buffer, read, pt->encoding,
-                            pt->ilseq_handler);
+  str = scm_from_stringn (buffer, read, pt->encoding, pt->ilseq_handler);
 
   result = scm_string_to_number (str, scm_from_uint (radix));
-
-  if (overflow)
-    free (overflow_buffer);
 
   SCM_COL (port) += scm_i_string_length (str);
 
