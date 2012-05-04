@@ -1570,8 +1570,10 @@ VM_DEFINE_INSTRUCTION (86, wind, "wind", 0, 2, 0)
   /* Push wind and unwind procedures onto the dynamic stack. Note that neither
      are actually called; the compiler should emit calls to wind and unwind for
      the normal dynamic-wind control flow. */
-  VM_ASSERT (scm_thunk_p (wind), vm_error_not_a_thunk ("dynamic-wind", wind));
-  VM_ASSERT (scm_thunk_p (unwind), vm_error_not_a_thunk ("dynamic-wind", unwind));
+  VM_ASSERT (scm_to_bool (scm_thunk_p (wind)),
+	     vm_error_not_a_thunk ("dynamic-wind", wind));
+  VM_ASSERT (scm_to_bool (scm_thunk_p (unwind)),
+	     vm_error_not_a_thunk ("dynamic-wind", unwind));
   scm_i_set_dynwinds (scm_cons (scm_cons (wind, unwind), scm_i_dynwinds ()));
   NEXT;
 }
