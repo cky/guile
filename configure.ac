@@ -1495,8 +1495,6 @@ case "$GCC" in
     ## We had -Wstrict-prototypes in here for a bit, but Guile does too
     ## much stuff with generic function pointers for that to really be
     ## less than exasperating.
-    ## -Wpointer-arith was here too, but something changed in gcc/glibc
-    ## and it became equally exasperating (gcc 2.95 and/or glibc 2.1.2).
     ## -Wundef was removed because Gnulib prevented it (see
     ## <http://thread.gmane.org/gmane.lisp.guile.bugs/5329>.)
 
@@ -1505,7 +1503,7 @@ case "$GCC" in
     ## <http://lists.gnu.org/archive/html/guile-devel/2012-01/msg00487.html>.
 
     POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
-      -Wdeclaration-after-statement \
+      -Wdeclaration-after-statement -Wpointer-arith \
       -Wswitch-enum -fno-strict-aliasing"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
