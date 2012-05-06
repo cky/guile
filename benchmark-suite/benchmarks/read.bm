@@ -1,6 +1,6 @@
 ;;; read.bm --- Exercise the reader.               -*- Scheme -*-
 ;;;
-;;; Copyright (C) 2008, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2008, 2010, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This program is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public License
@@ -43,6 +43,11 @@
 		      (load-file-with-reader file read buffering))
             %files-to-load))
 
+(define small "\"hello, world!\"")
+(define large (string-append "\"" (make-string 1234 #\A) "\""))
+
+(fluid-set! %default-port-encoding "UTF-8")       ; for string ports
+
 
 (with-benchmark-prefix "read"
 
@@ -59,4 +64,10 @@
     (exercise-read (list _IOFBF 8192)))
 
   (benchmark "_IOFBF 16384" 10
-    (exercise-read (list _IOFBF 16384))))
+    (exercise-read (list _IOFBF 16384)))
+
+  (benchmark "small strings" 100000
+    (call-with-input-string small read))
+
+  (benchmark "large strings" 100000
+    (call-with-input-string large read)))

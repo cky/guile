@@ -161,8 +161,8 @@ scm_i_read_hash_procedures_set_x (SCM value)
 /* Size of the C buffer used to read symbols and numbers.  */
 #define READER_BUFFER_SIZE            128
 
-/* Size of the C buffer used to read strings.  */
-#define READER_STRING_BUFFER_SIZE     512
+/* Number of 32-bit codepoints in the buffer used to read strings.  */
+#define READER_STRING_BUFFER_SIZE     128
 
 /* The maximum size of Scheme character names.  */
 #define READER_CHAR_NAME_MAX_SIZE      50
@@ -493,15 +493,14 @@ scm_read_string (int chr, SCM port)
   /* For strings smaller than C_STR, this function creates only one Scheme
      object (the string returned).  */
 
-  SCM str = SCM_BOOL_F;
-  unsigned c_str_len = 0;
-  scm_t_wchar c;
+  SCM str = SCM_EOL;
+  size_t c_str_len = 0;
+  scm_t_wchar c, c_str[READER_STRING_BUFFER_SIZE];
 
   /* Need to capture line and column numbers here. */
   long line = SCM_LINUM (port);
   int column = SCM_COL (port) - 1;
 
-  str = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL, 0);
   while ('"' != (c = scm_getc (port)))
     {
       if (c == EOF)
@@ -511,12 +510,11 @@ scm_read_string (int chr, SCM port)
                              "end of file in string constant", SCM_EOL);
         }
 
-      if (c_str_len + 1 >= scm_i_string_length (str))
-        {
-          SCM addy = scm_i_make_string (READER_STRING_BUFFER_SIZE, NULL, 0);
-
-          str = scm_string_append (scm_list_2 (str, addy));
-        }
+      if (c_str_len + 1 >= READER_STRING_BUFFER_SIZE)
+	{
+	  str = scm_cons (scm_from_utf32_stringn (c_str, c_str_len), str);
+	  c_str_len = 0;
+	}
 
       if (c == '\\')
         {
@@ -580,12 +578,22 @@ scm_read_string (int chr, SCM port)
                                  scm_list_1 (SCM_MAKE_CHAR (c)));
             }
         }
-      str = scm_i_string_start_writing (str);
-      scm_i_string_set_x (str, c_str_len++, c);
-      scm_i_string_stop_writing ();
+
+      c_str[c_str_len++] = c;
     }
-  return maybe_annotate_source (scm_i_substring_copy (str, 0, c_str_len),
-                                port, line, column);
+
+  if (scm_is_null (str))
+    /* Fast path: we got a string that fits in C_STR.  */
+    str = scm_from_utf32_stringn (c_str, c_str_len);
+  else
+    {
+      if (c_str_len > 0)
+	str = scm_cons (scm_from_utf32_stringn (c_str, c_str_len), str);
+
+      str = scm_string_concatenate_reverse (str, SCM_UNDEFINED, SCM_UNDEFINED);
+    }
+
+  return maybe_annotate_source (str, port, line, column);
 }
 #undef FUNC_NAME
 
