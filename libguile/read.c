@@ -260,7 +260,7 @@ read_complete_token (SCM port, char *buffer, size_t buffer_size,
             }
           else
             {
-	      void *new_buf =
+	      char *new_buf =
 		scm_gc_malloc_pointerless (overflow_size + bytes_read, "read");
 
 	      memcpy (new_buf, overflow_buffer, overflow_size);
