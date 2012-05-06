@@ -4,7 +4,7 @@
 #define SCM_PORTS_H
 
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -288,7 +288,7 @@ SCM_INTERNAL void scm_lfwrite_substr (SCM str, size_t start, size_t end,
 SCM_API void scm_flush (SCM port);
 SCM_API void scm_end_input (SCM port);
 SCM_API int scm_fill_input (SCM port);
-SCM_INTERNAL void scm_unget_byte (int c, SCM port); 
+SCM_API void scm_unget_byte (int c, SCM port);
 SCM_API void scm_ungetc (scm_t_wchar c, SCM port);
 SCM_API void scm_ungets (const char *s, int n, SCM port);
 SCM_API SCM scm_peek_char (SCM port);
