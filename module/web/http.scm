@@ -42,6 +42,7 @@
             header->string
 
             declare-header!
+            declare-opaque-header!
             known-header?
             header-parser
             header-validator
@@ -1145,6 +1146,8 @@ phrase\"."
 ;; emacs: (put 'declare-header! 'scheme-indent-function 1)
 ;; emacs: (put 'declare-opaque!-header 'scheme-indent-function 1)
 (define (declare-opaque-header! name)
+  "Declares a given header as \"opaque\", meaning that its value is not
+treated specially, and is just returned as a plain string."
   (declare-header! name
     parse-opaque-string validate-opaque-string write-opaque-string))
 

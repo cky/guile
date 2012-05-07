@@ -398,6 +398,11 @@ HTTP stack like this:
     (display (inet-ntoa ip) port)))
 @end example
 
+@deffn {Scheme Procedure} declare-opaque-header! name
+A specialised version of @code{declare-header!} for the case in which
+you want a header's value to be returned/written ``as-is''.
+@end deffn
+
 @deffn {Scheme Procedure} valid-header? sym val
 Return a true value iff @var{val} is a valid Scheme value for the header
 with name @var{sym}.
