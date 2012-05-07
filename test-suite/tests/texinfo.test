@@ -1,6 +1,6 @@
 ;;;; texinfo.test                 -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2010, 2011  Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
 ;;;; Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -177,8 +177,9 @@
     (test (string-append "foo bar baz\n@settitle " title "\n" str)
           expected-res))
   (define (test-body str expected-res)
-    (pass-if (equal? expected-res
-                     (cddr (try-with-title "zog" str)))))
+    (pass-if str
+      (equal? expected-res
+              (cddr (try-with-title "zog" str)))))
 
   (define (list-intersperse src-l elem)
     (if (null? src-l) src-l
@@ -218,6 +219,19 @@
              '((para (code "abc " (code)))))
   (test-body "@code{ arg               }"
              '((para (code "arg"))))
+
+  (test-body "@acronym{GNU}"
+             '((para (acronym (% (acronym "GNU"))))))
+
+  (test-body "@acronym{GNU, not unix}"
+             '((para (acronym (% (acronym "GNU")
+                                 (meaning "not unix"))))))
+
+  (test-body "@acronym{GNU, @acronym{GNU}'s Not Unix}"
+             '((para (acronym (% (acronym "GNU")
+                                 (meaning (acronym (% (acronym "GNU")))
+                                          "'s Not Unix"))))))
+
   (test-body "@example\n foo asdf  asd  sadf asd  \n@end example\n"
              '((example " foo asdf  asd  sadf asd  ")))
   (test-body (join-lines

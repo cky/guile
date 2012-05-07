@@ -1,6 +1,6 @@
 ;;;; (texinfo serialize) -- rendering stexinfo as texinfo
 ;;;;
-;;;; 	Copyright (C) 2009  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2012  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -96,6 +96,20 @@
                            (map (lambda (x) (assq-ref args x))
                                 (reverse formals))))
               ","))
+         "{" command "@" accum))
+
+(define (inline-text-args exp lp command type formals args accum)
+  (list* "}"
+         (if (not args) ""
+             (apply
+              append
+              (list-intersperse
+               (map
+                (lambda (x) (append-map (lambda (x) (lp x '())) (reverse x)))
+                (drop-while not
+                            (map (lambda (x) (assq-ref args x))
+                                 (reverse formals))))
+               '(","))))
          "{" command "@" accum))
 
 (define (serialize-text-args lp formals args)
@@ -202,6 +216,7 @@
   `((EMPTY-COMMAND . ,empty-command)
     (INLINE-TEXT . ,inline-text)
     (INLINE-ARGS . ,inline-args)
+    (INLINE-TEXT-ARGS . ,inline-text-args)
     (EOL-TEXT . ,eol-text)
     (EOL-TEXT-ARGS . ,eol-text-args)
     (INDEX . ,eol-text-args)

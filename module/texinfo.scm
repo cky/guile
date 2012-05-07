@@ -1,6 +1,6 @@
 ;;;; (texinfo) -- parsing of texinfo into SXML
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
@@ -128,6 +128,8 @@ Parsed arguments until end of line
 Unparsed arguments ending with @code{#\\@}}
 @item INLINE-TEXT
 Parsed arguments ending with @code{#\\@}}
+@item INLINE-TEXT-ARGS
+Parsed arguments ending with @code{#\\@}}
 @item ENVIRON
 The tag is an environment tag, expect @code{@@end foo}.
 @item TABLE-ENVIRON
@@ -169,7 +171,7 @@ entry.
 @item args
 Named arguments to the command, in the same format as the formals for a
 lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
-@code{ENVIRON}, @code{TABLE-ENVIRON} commands.
+@code{INLINE-TEXT-ARGS}, @code{ENVIRON}, @code{TABLE-ENVIRON} commands.
 @end table"
   '(;; Special commands
     (include            #f) ;; this is a low-level token
@@ -223,6 +225,9 @@ lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
     (copyright          INLINE-ARGS . ())
     (tie                INLINE-ARGS . ())
     (image              INLINE-ARGS . (file #:opt width height alt-text extension))
+
+    ;; Inline parsed args commands
+    (acronym            INLINE-TEXT-ARGS . (acronym #:opt meaning))
 
     ;; EOL args elements
     (node               EOL-ARGS . (name #:opt next previous up))
@@ -383,7 +388,9 @@ Examples:
       (parser-error #f "Unknown command" command)))
 
 (define (inline-content? content)
-  (or (eq? content 'INLINE-TEXT) (eq? content 'INLINE-ARGS)))
+  (case content
+    ((INLINE-TEXT INLINE-ARGS INLINE-TEXT-ARGS) #t)
+    (else #f)))
 
 
 ;;========================================================================
@@ -572,6 +579,7 @@ Examples:
 ;; Content model     Port position
 ;; =============     =============
 ;; INLINE-TEXT       One character after the #\{.
+;; INLINE-TEXT-ARGS  One character after the #\{.
 ;; INLINE-ARGS       The first character after the #\}.
 ;; EOL-TEXT          The first non-whitespace character after the command.
 ;; ENVIRON, TABLE-ENVIRON, EOL-ARGS, EOL-TEXT
@@ -599,7 +607,9 @@ Examples:
                         (car names))))
      (else
       (loop (cdr in) (cdr names) opt?
-            (cons (list (car names) (car in)) out))))))
+            (acons (car names)
+                   (if (list? (car in)) (car in) (list (car in)))
+                   out))))))
 
 (define (parse-table-args command port)
   (let* ((line (string-trim-both (read-text-line port)))
@@ -648,6 +658,9 @@ Examples:
       ((INLINE-ARGS)
        (assert-curr-char '(#\{) "Inline element lacks {" port)
        (values command (get-arguments type arg-names #\}) type))
+      ((INLINE-TEXT-ARGS)
+       (assert-curr-char '(#\{) "Inline element lacks {" port)
+       (values command '() type))
       ((EOL-ARGS)
        (values command (get-arguments type arg-names #\newline) type))
       ((ENVIRON ENTRY INDEX)
@@ -998,15 +1011,48 @@ Examples:
                  (cons (apply string-append strs) result))))
               '() #t)))))))
 
+(define (parse-inline-text-args port spec text)
+  (let lp ((in text) (cur '()) (out '()))
+    (cond
+     ((null? in)
+      (if (and (pair? cur)
+               (string? (car cur))
+               (string-whitespace? (car cur)))
+          (lp in (cdr cur) out)
+          (let ((args (reverse (if (null? cur)
+                                   out
+                                   (cons (reverse cur) out)))))
+            (arguments->attlist port args (cddr spec)))))
+     ((pair? (car in))
+      (lp (cdr in) (cons (car in) cur) out))
+     ((string-index (car in) #\,)
+      (let* ((parts (string-split (car in) #\,))
+             (head (string-trim-right (car parts)))
+             (rev-tail (reverse (cdr parts)))
+             (last (string-trim (car rev-tail))))
+        (lp (cdr in)
+            (if (string-null? last) cur (cons last cur))
+            (append (cdr rev-tail)
+                    (cons (reverse (if (string-null? head) cur (cons head cur)))
+                          out)))))
+     (else
+      (lp (cdr in)
+          (cons (if (null? cur) (string-trim (car in)) (car in)) cur)
+          out)))))
+
 (define (make-dom-parser)
   (make-command-parser
    (lambda (command args content seed)      ; fdown
      '())
    (lambda (command args parent-seed seed)  ; fup
-     (let ((seed (reverse-collect-str-drop-ws seed)))
-       (acons command
-              (if (null? args) seed (acons '% args seed))
-              parent-seed)))
+     (let ((seed (reverse-collect-str-drop-ws seed))
+           (spec (command-spec command)))
+       (if (eq? (cadr spec) 'INLINE-TEXT-ARGS)
+           (cons (list command (cons '% (parse-inline-text-args #f spec seed)))
+                 parent-seed)
+           (acons command
+                  (if (null? args) seed (acons '% args seed))
+                  parent-seed))))
    (lambda (string1 string2 seed)           ; str-handler
      (if (string-null? string2)
          (cons string1 seed)
