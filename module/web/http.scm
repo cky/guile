@@ -34,6 +34,9 @@
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-19)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 q)
+  #:use-module (ice-9 binary-ports)
+  #:use-module (rnrs bytevectors)
   #:use-module (web uri)
   #:export (string->header
             header->string
@@ -59,7 +62,10 @@
             read-request-line
             write-request-line
             read-response-line
-            write-response-line))
+            write-response-line
+
+            make-chunked-input-port
+            make-chunked-output-port))
 
 
 ;;; TODO
@@ -1799,3 +1805,99 @@ phrase\"."
 ;; WWW-Authenticate = 1#challenge
 ;;
 (declare-challenge-list-header! "WWW-Authenticate")
+
+
+;; Chunked Responses
+(define (read-chunk-header port)
+  (let* ((str (read-line port))
+         (extension-start (string-index str (lambda (c) (or (char=? c #\;)
+                                                       (char=? c #\return)))))
+         (size (string->number (if extension-start ; unnecessary?
+                                   (substring str 0 extension-start)
+                                   str)
+                               16)))
+    size))
+
+(define (read-chunk port)
+  (let ((size (read-chunk-header port)))
+    (read-chunk-body port size)))
+
+(define (read-chunk-body port size)
+  (let ((bv (get-bytevector-n port size)))
+    (get-u8 port)                       ; CR
+    (get-u8 port)                       ; LF
+    bv))
+
+(define* (make-chunked-input-port port #:key (keep-alive? #f))
+  "Returns a new port which translates HTTP chunked transfer encoded
+data from @var{port} into a non-encoded format. Returns eof when it has
+read the final chunk from @var{port}. This does not necessarily mean
+that there is no more data on @var{port}. When the returned port is
+closed it will also close @var{port}, unless the KEEP-ALIVE? is true."
+  (define (next-chunk)
+    (read-chunk port))
+  (define finished? #f)
+  (define (close)
+    (unless keep-alive?
+      (close-port port)))
+  (define buffer #vu8())
+  (define buffer-size 0)
+  (define buffer-pointer 0)
+  (define (read! bv idx to-read)
+    (define (loop to-read num-read)
+      (cond ((or finished? (zero? to-read))
+             num-read)
+            ((<= to-read (- buffer-size buffer-pointer))
+             (bytevector-copy! buffer buffer-pointer
+                               bv (+ idx num-read)
+                               to-read)
+             (set! buffer-pointer (+ buffer-pointer to-read))
+             (loop 0 (+ num-read to-read)))
+            (else
+             (let ((n (- buffer-size buffer-pointer)))
+               (bytevector-copy! buffer buffer-pointer
+                                 bv (+ idx num-read)
+                                 n)
+               (set! buffer (next-chunk))
+               (set! buffer-pointer 0)
+               (set! buffer-size (bytevector-length buffer))
+               (set! finished? (= buffer-size 0))
+               (loop (- to-read n)
+                     (+ num-read n))))))
+    (loop to-read 0))
+  (make-custom-binary-input-port "chunked input port" read! #f #f close))
+
+(define* (make-chunked-output-port port #:key (keep-alive? #f))
+  "Returns a new port which translates non-encoded data into a HTTP
+chunked transfer encoded data and writes this to @var{port}. Data
+written to this port is buffered until the port is flushed, at which
+point it is all sent as one chunk. Take care to close the port when
+done, as it will output the remaining data, and encode the final zero
+chunk. When the port is closed it will also close @var{port}, unless
+KEEP-ALIVE? is true."
+  (define (q-for-each f q)
+    (while (not (q-empty? q))
+      (f (deq! q))))
+  (define queue (make-q))
+  (define (put-char c)
+    (enq! queue c))
+  (define (put-string s)
+    (string-for-each (lambda (c) (enq! queue c))
+                     s))
+  (define (flush)
+    ;; It is important that we do _not_ write a chunk if the queue is
+    ;; empty, since it will be treated as the final chunk.
+    (unless (q-empty? queue)
+      (let ((len (q-length queue)))
+        (display (number->string len 16) port)
+        (display "\r\n" port)
+        (q-for-each (lambda (elem) (write-char elem port))
+                    queue)
+        (display "\r\n" port))))
+  (define (close)
+    (flush)
+    (display "0\r\n" port)
+    (force-output port)
+    (unless keep-alive?
+      (close-port port)))
+  (make-soft-port (vector put-char put-string flush #f close) "w"))

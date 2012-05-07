@@ -40,6 +40,19 @@ Content-Type: text/html; charset=utf-8\r
 \r
 abcdefghijklmnopqrstuvwxyz0123456789")
 
+(define example-2
+  "HTTP/1.1 200 OK\r
+Transfer-Encoding: chunked\r
+Content-Type: text/plain
+\r
+1c\r
+Lorem ipsum dolor sit amet, \r
+1d\r
+consectetur adipisicing elit,\r
+43\r
+ sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\r
+0\r\n")
+
 (define (responses-equal? r1 body1 r2 body2)
   (and (equal? (response-version r1) (response-version r2))
        (equal? (response-code r1) (response-code r2))
@@ -100,3 +113,14 @@ abcdefghijklmnopqrstuvwxyz0123456789")
 
     (pass-if "by accessor"
       (equal? (response-content-encoding r) '(gzip)))))
+
+(with-test-prefix "example-2"
+ (let* ((r (read-response (open-input-string example-2)))
+        (b (read-response-body r)))
+   (pass-if (equal? '((chunked))
+                    (response-transfer-encoding r)))
+   (pass-if (equal? b
+                    (string->utf8
+                     (string-append
+                      "Lorem ipsum dolor sit amet, consectetur adipisicing elit,"
+                      " sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."))))))

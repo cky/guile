@@ -37,6 +37,7 @@ back.
 * URIs::                        Universal Resource Identifiers.
 * HTTP::                        The Hyper-Text Transfer Protocol.
 * HTTP Headers::                How Guile represents specific header values.
+* Transfer Codings::            HTTP Transfer Codings.
 * Requests::                    HTTP requests.
 * Responses::                   HTTP responses.
 * Web Client::                  Accessing web resources over HTTP.
@@ -1020,6 +1021,65 @@ A list of challenges to a user, indicating the need for authentication.
 @end example
 @end deftypevr
 
+@node Transfer Codings
+@subsection Transfer Codings
+
+HTTP 1.1 allows for various transfer codings to be applied to message
+bodies. These include various types of compression, and HTTP chunked
+encoding. Currently, only chunked encoding is supported by guile.
+
+Chunked coding is an optional coding that may be applied to message
+bodies, to allow messages whose length is not known beforehand to be
+returned. Such messages can be split into chunks, terminated by a final
+zero length chunk.
+
+In order to make dealing with encodings more simple, guile provides
+procedures to create ports that ``wrap'' existing ports, applying
+transformations transparently under the hood.
+
+@deffn {Scheme Procedure} make-chunked-input-port port [#:keep-alive?=#f]
+Returns a new port, that transparently reads and decodes chunk-encoded
+data from @var{port}. If no more chunk-encoded data is available, it
+returns the end-of-file object. When the port is closed, @var{port} will
+also be closed, unless @var{keep-alive?} is true.
+@end deffn
+
+@example
+(use-modules (ice-9 rdelim))
+
+(define s "5\r\nFirst\r\nA\r\n line\n Sec\r\n8\r\nond line\r\n0\r\n")
+(define p (make-chunked-input-port (open-input-string s)))
+(read-line s)
+@result{} "First line"
+(read-line s)
+@result{} "Second line"
+@end example
+
+@deffn {Scheme Procedure} make-chunked-output-port port [#:keep-alive?=#f]
+Returns a new port, which transparently encodes data as chunk-encoded
+before writing it to @var{port}. Whenever a write occurs on this port,
+it buffers it, until the port is flushed, at which point it writes a
+chunk containing all the data written so far. When the port is closed,
+the data remaining is written to @var{port}, as is the terminating zero
+chunk. It also causes @var{port} to be closed, unless @var{keep-alive?}
+is true.
+
+Note. Forcing a chunked output port when there is no data is buffered
+does not write a zero chunk, as this would cause the data to be
+interpreted incorrectly by the client.
+@end deffn
+
+@example
+(call-with-output-string
+  (lambda (out)
+    (define out* (make-chunked-output-port out #:keep-alive? #t))
+    (display "first chunk" out*)
+    (force-output out*)
+    (force-output out*) ; note this does not write a zero chunk
+    (display "second chunk" out*)
+    (close-port out*)))
+@result{} "b\r\nfirst chunk\r\nc\r\nsecond chunk\r\n0\r\n"
+@end example
 
 @node Requests
 @subsection HTTP Requests

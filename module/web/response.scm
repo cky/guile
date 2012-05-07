@@ -227,13 +227,17 @@ This is true for some response types, like those with code 304."
 (define (read-response-body r)
   "Reads the response body from @var{r}, as a bytevector.  Returns
 @code{#f} if there was no response body."
-  (let ((nbytes (response-content-length r)))
-    (and nbytes
-         (let ((bv (get-bytevector-n (response-port r) nbytes)))
-           (if (= (bytevector-length bv) nbytes)
-               bv
-               (bad-response "EOF while reading response body: ~a bytes of ~a"
-                            (bytevector-length bv) nbytes))))))
+  (if (member '(chunked) (response-transfer-encoding r))
+      (let ((chunk-port (make-chunked-input-port (response-port r)
+                                                 #:keep-alive? #t)))
+        (get-bytevector-all chunk-port))
+      (let ((nbytes (response-content-length r)))
+        (and nbytes
+             (let ((bv (get-bytevector-n (response-port r) nbytes)))
+               (if (= (bytevector-length bv) nbytes)
+                   bv
+                   (bad-response "EOF while reading response body: ~a bytes of ~a"
+                                 (bytevector-length bv) nbytes)))))))
 
 (define (write-response-body r bv)
   "Write @var{bv}, a bytevector, to the port corresponding to the HTTP
