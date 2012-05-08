@@ -97,8 +97,12 @@ a number of generic rules for transforming docbook into texinfo."
     (subsection . ,identity)
     (subsubsection . ,identity)
     (ulink . ,(lambda (tag attrs . body)
-                `(uref (% ,(assq 'url (cdr attrs))
-                          (title ,@body)))))
+                (cond
+                 ((assq 'url (cdr attrs))
+                  => (lambda (url)
+                       `(uref (% ,url (title ,@body)))))
+                 (else
+                  (car body)))))
     (*text* . ,detag-one)
     (*default* . ,(lambda (tag . body)
                     (let ((subst (assq tag tag-replacements)))
