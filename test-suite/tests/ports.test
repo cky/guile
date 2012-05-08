@@ -2,7 +2,7 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;      2011 Free Software Foundation, Inc.
+;;;;      2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1063,6 +1063,29 @@
 		    (procedure)))))
 	    (list read read-char read-line)
 	    '("read" "read-char" "read-line")))
+
+
+
+(with-test-prefix "setvbuf"
+
+  (pass-if "line/column number preserved"
+    ;; In Guile 2.0.5, `setvbuf' would erroneously decrease the port's
+    ;; line and/or column number.
+    (call-with-output-file (test-file)
+      (lambda (p)
+        (display "This is GNU Guile.\nWelcome." p)))
+    (call-with-input-file (test-file)
+      (lambda (p)
+        (and (eq? #\T (read-char p))
+             (let ((line (port-line p))
+                   (col  (port-column p)))
+               (and (= line 0) (= col 1)
+                    (begin
+                      (setvbuf p _IOFBF 777)
+                      (let ((line* (port-line p))
+                            (col*  (port-column p)))
+                        (and (= line line*)
+                             (= col col*)))))))))))
 
 (delete-file (test-file))
 

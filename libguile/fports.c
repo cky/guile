@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -174,7 +174,8 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 {
   int cmode;
   long csize;
-  SCM drained;
+  size_t ndrained;
+  char *drained;
   scm_t_port *pt;
 
   port = SCM_COERCE_OUTPORT (port);
@@ -211,9 +212,21 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
   pt = SCM_PTAB_ENTRY (port);
 
   if (SCM_INPUT_PORT_P (port))
-    drained = scm_drain_input (port);
+    {
+      /* Drain pending input from PORT.  Don't use `scm_drain_input' since
+	 it returns a string, whereas we want binary input here.  */
+      ndrained = pt->read_end - pt->read_pos;
+      if (pt->read_buf == pt->putback_buf)
+	ndrained += pt->saved_read_end - pt->saved_read_pos;
+
+      if (ndrained > 0)
+	{
+	  drained = scm_gc_malloc_pointerless (ndrained, "file port");
+	  scm_take_from_input_buffers (port, drained, ndrained);
+	}
+    }
   else
-    drained = scm_nullstr;
+    ndrained = 0;
 
   if (SCM_OUTPUT_PORT_P (port))
     scm_flush (port);
@@ -232,8 +245,10 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   scm_fport_buffer_add (port, csize, csize);
 
-  if (scm_is_true (drained) && scm_c_string_length (drained))
-    scm_unread_string (drained, port);
+  if (ndrained > 0)
+    /* Put DRAINED back to PORT.  */
+    while (ndrained-- > 0)
+      scm_unget_byte (drained[ndrained], port);
 
   return SCM_UNSPECIFIED;
 }
