@@ -1,6 +1,6 @@
 ;;; Guile VM frame functions
 
-;;; Copyright (C) 2001, 2005, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2005, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -32,8 +32,10 @@
             frame-return-values))
 
 (define (frame-bindings frame)
-  (program-bindings-for-ip (frame-procedure frame)
-                           (frame-instruction-pointer frame)))
+  (let ((p (frame-procedure frame)))
+    (if (program? p)
+        (program-bindings-for-ip p (frame-instruction-pointer frame))
+        '())))
 
 (define (frame-lookup-binding frame var)
   (let lp ((bindings (frame-bindings frame)))
@@ -72,9 +74,11 @@
 
 (define (frame-next-source frame)
   (let ((proc (frame-procedure frame)))
-    (program-source proc
-                    (frame-instruction-pointer frame)
-                    (program-sources-pre-retire proc))))
+    (if (program? proc)
+        (program-source proc
+                        (frame-instruction-pointer frame)
+                        (program-sources-pre-retire proc))
+        '())))
 
 
 ;; Basically there are two cases to deal with here:
@@ -97,7 +101,8 @@
     (cons
      (or (procedure-name p) p)     
      (cond
-      ((program-arguments-alist p (frame-instruction-pointer frame))
+      ((and (program? p)
+            (program-arguments-alist p (frame-instruction-pointer frame)))
        ;; case 1
        => (lambda (arguments)
             (define (binding-ref sym i)

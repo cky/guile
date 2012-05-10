@@ -237,11 +237,16 @@ SCM_DEFINE (scm_frame_instruction_pointer, "frame-instruction-pointer", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_frame_instruction_pointer
 {
+  SCM program;
   const struct scm_objcode *c_objcode;
 
   SCM_VALIDATE_VM_FRAME (1, frame);
+  program = scm_frame_procedure (frame);
 
-  c_objcode = SCM_PROGRAM_DATA (scm_frame_procedure (frame));
+  if (!SCM_PROGRAM_P (program))
+    return SCM_INUM0;
+
+  c_objcode = SCM_PROGRAM_DATA (program);
   return scm_from_unsigned_integer ((SCM_VM_FRAME_IP (frame)
                                      - SCM_C_OBJCODE_BASE (c_objcode)));
 }

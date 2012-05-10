@@ -597,77 +597,13 @@ vm_error_free_variable ()
 #endif
 
 
-static SCM
-really_make_boot_program (long nargs)
-{
-  SCM u8vec;
-  scm_t_uint8 text[] = { scm_op_mv_call, 0, 0, 0, 1,
-                         scm_op_make_int8_1, scm_op_halt };
-  struct scm_objcode *bp;
-  SCM ret;
 
-  if (SCM_UNLIKELY (nargs > 255 || nargs < 0))
-    scm_misc_error ("vm-engine", "too many args when making boot procedure",
-                    scm_list_1 (scm_from_long (nargs)));
-
-  text[1] = (scm_t_uint8)nargs;
-
-  bp = scm_gc_malloc_pointerless (sizeof (struct scm_objcode) + sizeof (text),
-                                  "boot-program");
-  memcpy (SCM_C_OBJCODE_BASE (bp), text, sizeof (text));
-  bp->len = sizeof(text);
-  bp->metalen = 0;
-
-  u8vec = scm_c_take_gc_bytevector ((scm_t_int8*)bp,
-                                    sizeof (struct scm_objcode) + sizeof (text));
-  ret = scm_make_program (scm_bytecode_to_native_objcode (u8vec),
-                          SCM_BOOL_F, SCM_BOOL_F);
-  SCM_SET_CELL_WORD_0 (ret, SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_BOOT);
-
-  return ret;
-}
-#define NUM_BOOT_PROGS 8
-static SCM
-vm_make_boot_program (long nargs)
-{
-  static SCM programs[NUM_BOOT_PROGS] = { SCM_BOOL_F, };
-
-  if (SCM_UNLIKELY (scm_is_false (programs[0])))
-    {
-      int i;
-      for (i = 0; i < NUM_BOOT_PROGS; i++)
-        programs[i] = really_make_boot_program (i);
-    }
-  
-  if (SCM_LIKELY (nargs < NUM_BOOT_PROGS))
-    return programs[nargs];
-  else
-    return really_make_boot_program (nargs);
-}
+static SCM boot_continuation;
 
 
 /*
  * VM
  */
-
-/* We are calling a SMOB.  The calling code pushed the SMOB after the
-   args, and incremented nargs.  That nargs is passed here.  This
-   function's job is to replace the procedure with the trampoline, and
-   shuffle the smob itself to be argument 0.  This function must not
-   allocate or throw, as the VM registers are not synchronized.  */
-static void
-prepare_smob_call (SCM *sp, int nargs, SCM smob)
-{
-  SCM *args = sp - nargs + 1;
-
-  /* Shuffle args up.  */
-  while (nargs--)
-    args[nargs + 1] = args[nargs];
-
-  args[0] = smob;
-  /* apply_trampoline_objcode is actually a program.  */
-  args[-1] = SCM_SMOB_DESCRIPTOR (smob).apply_trampoline_objcode;
-}
 
 static SCM
 resolve_variable (SCM what, SCM program_module)
@@ -1124,6 +1060,33 @@ SCM scm_load_compiled_with_vm (SCM file)
   return scm_c_vm_run (scm_the_vm (), program, NULL, 0);
 }
 
+  
+static SCM
+make_boot_program (void)
+{
+  struct scm_objcode *bp;
+  size_t bp_size;
+  SCM u8vec, ret;
+
+  const scm_t_uint8 text[] = {
+    scm_op_make_int8_1,
+    scm_op_halt
+  };
+
+  bp_size = sizeof (struct scm_objcode) + sizeof (text);
+  bp = scm_gc_malloc_pointerless (bp_size, "boot-program");
+  memcpy (SCM_C_OBJCODE_BASE (bp), text, sizeof (text));
+  bp->len = sizeof(text);
+  bp->metalen = 0;
+
+  u8vec = scm_c_take_gc_bytevector ((scm_t_int8*)bp, bp_size);
+  ret = scm_make_program (scm_bytecode_to_native_objcode (u8vec),
+                          SCM_BOOL_F, SCM_BOOL_F);
+  SCM_SET_CELL_WORD_0 (ret, (SCM_CELL_WORD_0 (ret) | SCM_F_PROGRAM_IS_BOOT));
+
+  return ret;
+}
+
 void
 scm_bootstrap_vm (void)
 {
@@ -1136,6 +1099,8 @@ scm_bootstrap_vm (void)
   sym_keyword_argument_error = scm_from_latin1_symbol ("keyword-argument-error");
   sym_regular = scm_from_latin1_symbol ("regular");
   sym_debug = scm_from_latin1_symbol ("debug");
+
+  boot_continuation = make_boot_program ();
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
   vm_stack_gc_kind =

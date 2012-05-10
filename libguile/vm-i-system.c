@@ -764,32 +764,7 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
   nargs = FETCH ();
 
  vm_call:
-  program = sp[-nargs];
-
   VM_HANDLE_INTERRUPTS;
-
-  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
-    {
-      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
-        {
-          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
-          goto vm_call;
-        }
-      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
-               && SCM_SMOB_APPLICABLE_P (program))
-        {
-          PUSH (program);
-          prepare_smob_call (sp, ++nargs, program);
-          goto vm_call;
-        }
-      else
-        {
-          SYNC_ALL();
-          vm_error_wrong_type_apply (program);
-        }
-    }
-
-  CACHE_PROGRAM ();
 
   {
     SCM *old_fp = fp;
@@ -804,8 +779,16 @@ VM_DEFINE_INSTRUCTION (53, call, "call", 1, -1, 1)
     SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, 0);
   }
   
-  ip = SCM_C_OBJCODE_BASE (bp);
   PUSH_CONTINUATION_HOOK ();
+
+  program = fp[-1];
+
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
+    goto apply;
+
+  CACHE_PROGRAM ();
+  ip = SCM_C_OBJCODE_BASE (bp);
+
   APPLY_HOOK ();
   NEXT;
 }
@@ -815,53 +798,34 @@ VM_DEFINE_INSTRUCTION (54, tail_call, "tail-call", 1, -1, 1)
   nargs = FETCH ();
 
  vm_tail_call:
-  program = sp[-nargs];
-
   VM_HANDLE_INTERRUPTS;
 
-  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
-    {
-      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
-        {
-          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
-          goto vm_tail_call;
-        }
-      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
-               && SCM_SMOB_APPLICABLE_P (program))
-        {
-          PUSH (program);
-          prepare_smob_call (sp, ++nargs, program);
-          goto vm_tail_call;
-        }
-      else
-        {
-          SYNC_ALL();
-          vm_error_wrong_type_apply (program);
-        }
-    }
-  else
-    {
-      int i;
+  {
+    int i;
 #ifdef VM_ENABLE_STACK_NULLING
-      SCM *old_sp = sp;
-      CHECK_STACK_LEAK ();
+    SCM *old_sp = sp;
+    CHECK_STACK_LEAK ();
 #endif
 
-      /* switch programs */
-      CACHE_PROGRAM ();
-      /* shuffle down the program and the arguments */
-      for (i = -1, sp = sp - nargs + 1; i < nargs; i++)
-        SCM_FRAME_STACK_ADDRESS (fp)[i] = sp[i];
+    /* shuffle down the program and the arguments */
+    for (i = -1, sp = sp - nargs + 1; i < nargs; i++)
+      SCM_FRAME_STACK_ADDRESS (fp)[i] = sp[i];
 
-      sp = fp + i - 1;
+    sp = fp + i - 1;
 
-      NULLSTACK (old_sp - sp);
+    NULLSTACK (old_sp - sp);
+  }
 
-      ip = SCM_C_OBJCODE_BASE (bp);
+  program = fp[-1];
 
-      APPLY_HOOK ();
-      NEXT;
-    }
+  if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
+    goto apply;
+
+  CACHE_PROGRAM ();
+  ip = SCM_C_OBJCODE_BASE (bp);
+
+  APPLY_HOOK ();
+  NEXT;
 }
 
 VM_DEFINE_INSTRUCTION (55, subr_call, "subr-call", 1, -1, -1)
@@ -1071,54 +1035,33 @@ VM_DEFINE_INSTRUCTION (62, mv_call, "mv-call", 4, -1, 1)
 {
   scm_t_int32 offset;
   scm_t_uint8 *mvra;
+  SCM *old_fp = fp;
   
   nargs = FETCH ();
   FETCH_OFFSET (offset);
   mvra = ip + offset;
 
- vm_mv_call:
-  program = sp[-nargs];
-
   VM_HANDLE_INTERRUPTS;
 
+  fp = sp - nargs + 1;
+  
+  ASSERT (SCM_FRAME_DYNAMIC_LINK (fp) == 0);
+  ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
+  ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
+  SCM_FRAME_SET_DYNAMIC_LINK (fp, old_fp);
+  SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
+  SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
+  
+  PUSH_CONTINUATION_HOOK ();
+
+  program = fp[-1];
+
   if (SCM_UNLIKELY (!SCM_PROGRAM_P (program)))
-    {
-      if (SCM_STRUCTP (program) && SCM_STRUCT_APPLICABLE_P (program))
-        {
-          sp[-nargs] = SCM_STRUCT_PROCEDURE (program);
-          goto vm_mv_call;
-        }
-      else if (SCM_NIMP (program) && SCM_TYP7 (program) == scm_tc7_smob
-               && SCM_SMOB_APPLICABLE_P (program))
-        {
-          PUSH (program);
-          prepare_smob_call (sp, ++nargs, program);
-          goto vm_mv_call;
-        }
-      else
-        {
-          SYNC_ALL();
-          vm_error_wrong_type_apply (program);
-        }
-    }
+    goto apply;
 
   CACHE_PROGRAM ();
-
-  {
-    SCM *old_fp = fp;
-
-    fp = sp - nargs + 1;
-  
-    ASSERT (SCM_FRAME_DYNAMIC_LINK (fp) == 0);
-    ASSERT (SCM_FRAME_RETURN_ADDRESS (fp) == 0);
-    ASSERT (SCM_FRAME_MV_RETURN_ADDRESS (fp) == 0);
-    SCM_FRAME_SET_DYNAMIC_LINK (fp, old_fp);
-    SCM_FRAME_SET_RETURN_ADDRESS (fp, ip);
-    SCM_FRAME_SET_MV_RETURN_ADDRESS (fp, mvra);
-  }
-  
   ip = SCM_C_OBJCODE_BASE (bp);
-  PUSH_CONTINUATION_HOOK ();
+
   APPLY_HOOK ();
   NEXT;
 }
