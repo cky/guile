@@ -289,19 +289,21 @@ SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-/* move up to read_len chars from port's putback and/or read buffers
-   into memory starting at dest.  returns the number of chars moved.  */
-size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
+/* Move up to READ_LEN bytes from PORT's putback and/or read buffers
+   into memory starting at DEST.  Return the number of bytes moved.
+   PORT's line/column numbers are left unchanged.  */
+size_t
+scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  size_t chars_read = 0;
+  size_t bytes_read = 0;
   size_t from_buf = min (pt->read_end - pt->read_pos, read_len);
 
   if (from_buf > 0)
     {
       memcpy (dest, pt->read_pos, from_buf);
       pt->read_pos += from_buf;
-      chars_read += from_buf;
+      bytes_read += from_buf;
       read_len -= from_buf;
       dest += from_buf;
     }
@@ -314,10 +316,11 @@ size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len)
 	{
 	  memcpy (dest, pt->saved_read_pos, from_buf);
 	  pt->saved_read_pos += from_buf;
-	  chars_read += from_buf;
+	  bytes_read += from_buf;
 	}
     }
-  return chars_read;
+
+  return bytes_read;
 }
 
 /* Clear a port's read buffers, returning the contents.  */

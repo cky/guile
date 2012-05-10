@@ -242,7 +242,8 @@ SCM_API void scm_set_port_truncate (scm_t_bits tc,
 						      scm_t_off length));
 SCM_API void scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM));
 SCM_API SCM scm_char_ready_p (SCM port);
-size_t scm_take_from_input_buffers (SCM port, char *dest, size_t read_len);
+SCM_API size_t scm_take_from_input_buffers (SCM port, char *dest,
+					    size_t read_len);
 SCM_API SCM scm_drain_input (SCM port);
 SCM_API SCM scm_current_input_port (void);
 SCM_API SCM scm_current_output_port (void);
