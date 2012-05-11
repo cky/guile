@@ -1,5 +1,5 @@
 /* A stack holds a frame chain
- * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation
+ * Copyright (C) 1996,1997,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -278,6 +278,7 @@ SCM_DEFINE (scm_make_stack, "make-stack", 1, 0, 1,
 
   /* FIXME: is this even possible? */
   if (scm_is_true (frame)
+      && SCM_PROGRAM_P (scm_frame_procedure (frame))
       && SCM_PROGRAM_IS_BOOT (scm_frame_procedure (frame)))
     frame = scm_frame_previous (frame);
   

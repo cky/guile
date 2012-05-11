@@ -780,7 +780,8 @@ information is unavailable."
               (let ((proc (frame-procedure frame)))
                 (print-location frame port)
                 (format port "In procedure ~a:\n"
-                        (or (procedure-name proc) proc))))
+                        (or (false-if-exception (procedure-name proc))
+                            proc))))
 
           (print-location frame port)
           (catch #t

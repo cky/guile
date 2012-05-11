@@ -99,7 +99,7 @@
 (define (frame-call-representation frame)
   (let ((p (frame-procedure frame)))
     (cons
-     (or (procedure-name p) p)     
+     (or (false-if-exception (procedure-name p)) p)
      (cond
       ((and (program? p)
             (program-arguments-alist p (frame-instruction-pointer frame)))

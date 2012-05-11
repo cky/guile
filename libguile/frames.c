@@ -104,11 +104,18 @@ SCM_DEFINE (scm_frame_source, "frame-source", 1, 0, 0,
 	    "")
 #define FUNC_NAME s_scm_frame_source
 {
+  SCM proc;
+
   SCM_VALIDATE_VM_FRAME (1, frame);
 
-  return scm_program_source (scm_frame_procedure (frame),
-                             scm_frame_instruction_pointer (frame),
-                             SCM_UNDEFINED);
+  proc = scm_frame_procedure (frame);
+
+  if (SCM_PROGRAM_P (proc))
+    return scm_program_source (scm_frame_procedure (frame),
+                               scm_frame_instruction_pointer (frame),
+                               SCM_UNDEFINED);
+
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -296,6 +303,7 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
 #define FUNC_NAME s_scm_frame_previous
 {
   SCM *this_fp, *new_fp, *new_sp;
+  SCM proc;
 
   SCM_VALIDATE_VM_FRAME (1, frame);
 
@@ -303,13 +311,16 @@ SCM_DEFINE (scm_frame_previous, "frame-previous", 1, 0, 0,
   this_fp = SCM_VM_FRAME_FP (frame);
   new_fp = SCM_FRAME_DYNAMIC_LINK (this_fp);
   if (new_fp) 
-    { new_fp = RELOC (frame, new_fp);
+    {
+      new_fp = RELOC (frame, new_fp);
       new_sp = SCM_FRAME_LOWER_ADDRESS (this_fp) - 1;
       frame = scm_c_make_frame (SCM_VM_FRAME_STACK_HOLDER (frame),
                                 new_fp, new_sp,
                                 SCM_FRAME_RETURN_ADDRESS (this_fp),
                                 SCM_VM_FRAME_OFFSET (frame));
-      if (SCM_PROGRAM_IS_BOOT (scm_frame_procedure (frame)))
+      proc = scm_frame_procedure (frame);
+
+      if (SCM_PROGRAM_P (proc) && SCM_PROGRAM_IS_BOOT (proc))
         goto again;
       else
         return frame;
