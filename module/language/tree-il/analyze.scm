@@ -1194,8 +1194,15 @@ accurate information is missing from a given `tree-il' element."
                              (false-if-exception
                               (module-ref env name))))
                       proc)))
-            (if (or (lambda? proc*) (procedure? proc*))
-                (validate-arity proc* application (lambda? proc*)))))
+            (cond ((lambda? proc*)
+                   (validate-arity proc* application #t))
+                  ((struct? proc*)
+                   ;; An applicable struct.
+                   (let ((p (struct-ref proc* 0)))
+                     (and (procedure? p)
+                          (validate-arity p application #f))))
+                  ((procedure? proc*)
+                   (validate-arity proc* application #f)))))
         toplevel-calls)))
 
    (make-arity-info vlist-null vlist-null vlist-null)))

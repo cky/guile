@@ -1103,6 +1103,26 @@
                                   w "wrong number of arguments to"))))
                              w)))))
 
+     (pass-if "top-level applicable struct"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(let ((p current-warning-port))
+                             (p (+ (p) 1))
+                             (p))
+                          #:opts %opts-w-arity
+                          #:to 'assembly)))))
+
+     (pass-if "top-level applicable struct with wrong arguments"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '(let ((p current-warning-port))
+                               (p 1 2 3))
+                            #:opts %opts-w-arity
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "wrong number of arguments to")))))
+
      (pass-if "local toplevel-defines"
        (let ((w (call-with-warnings
                   (lambda ()
