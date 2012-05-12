@@ -1242,6 +1242,22 @@
                           #:opts %opts-w-format
                           #:to 'assembly)))))
 
+     (pass-if "non-literal format string using gettext as module-ref _"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(format #t ((@@ (foo) _) "~A ~A!") "hello" "world")
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "non-literal format string using gettext as lexical _"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(let ((_ (lambda (s)
+                                      (gettext s "my-domain"))))
+                             (format #t (_ "~A ~A!") "hello" "world"))
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
      (pass-if "non-literal format string using ngettext"
        (null? (call-with-warnings
                (lambda ()

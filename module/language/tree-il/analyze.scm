@@ -1359,9 +1359,13 @@ resort, return #t when EXP refers to the global variable SPECIAL-NAME."
     (($ <module-ref> _ module name public?)
      (let* ((mod (if public?
                      (false-if-exception (resolve-interface module))
-                     (resolve-module module #:ensure? #f)))
+                     (resolve-module module #:ensure #f)))
             (var (and mod (module-variable mod name))))
-       (and var (variable-bound? var) (eq? (variable-ref var) proc))))
+       (if var
+           (and (variable-bound? var) (eq? (variable-ref var) proc))
+           (eq? name special-name))))
+    (($ <lexical-ref> _ (? (cut eq? <> special-name)))
+     #t)
     (_ #f)))
 
 (define gettext? (cut proc-ref? <> gettext '_ <>))
