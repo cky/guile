@@ -1357,21 +1357,27 @@ accurate information is missing from a given `tree-il' element."
 (define (proc-ref? exp proc special-name env)
   "Return #t when EXP designates procedure PROC in ENV.  As a last
 resort, return #t when EXP refers to the global variable SPECIAL-NAME."
+
+  (define special?
+    (cut eq? <> special-name))
+
   (match exp
+    (($ <toplevel-ref> _ (? special?))
+     ;; Allow top-levels like: (define _ (cut gettext <> "my-domain")).
+     #t)
     (($ <toplevel-ref> _ name)
      (let ((var (module-variable env name)))
-       (if (and var (variable-bound? var))
-           (eq? (variable-ref var) proc)
-           (eq? name special-name)))) ; special hack to support local aliases
+       (and var (variable-bound? var)
+            (eq? (variable-ref var) proc))))
+    (($ <module-ref> _ _ (? special?))
+     #t)
     (($ <module-ref> _ module name public?)
      (let* ((mod (if public?
                      (false-if-exception (resolve-interface module))
                      (resolve-module module #:ensure #f)))
             (var (and mod (module-variable mod name))))
-       (if var
-           (and (variable-bound? var) (eq? (variable-ref var) proc))
-           (eq? name special-name))))
-    (($ <lexical-ref> _ (? (cut eq? <> special-name)))
+       (and var (variable-bound? var) (eq? (variable-ref var) proc))))
+    (($ <lexical-ref> _ (? special?))
      #t)
     (_ #f)))
 

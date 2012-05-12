@@ -1262,6 +1262,15 @@
                           #:opts %opts-w-format
                           #:to 'assembly)))))
 
+     (pass-if "non-literal format string using gettext as top-level _"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(begin
+                             (define (_ s) (gettext s "my-domain"))
+                             (format #t (_ "~A ~A!") "hello" "world"))
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
      (pass-if "non-literal format string using gettext as module-ref _"
        (null? (call-with-warnings
                (lambda ()
