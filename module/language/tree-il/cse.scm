@@ -177,7 +177,7 @@
       (lambda (sym)
         (vhash-assq sym table))))
 
-  (define compute-effects
+  (define %compute-effects
     (make-effects-analyzer assigned-lexical?))
 
   (define (negate exp ctx)
@@ -201,9 +201,6 @@
        (make-application #f (make-primitive-ref #f 'not) (list exp)))))
 
   
-  (define (bailout? exp)
-    (causes-effects? (compute-effects exp) &definite-bailout))
-
   (define (hasher n)
     (lambda (x size) (modulo n size)))
 
@@ -338,6 +335,16 @@
                                 (make-lexical-ref (tree-il-src exp) name sym)
                                 (lp (1+ n) (- db-len db-len*))))))))))))
 
+  (define (lookup-lexical sym env)
+    (let ((env-len (vlist-length env)))
+      (let lp ((n 0))
+        (and (< n env-len)
+             (match (vlist-ref env n)
+               ((#(exp _ sym* _) . _)
+                (if (eq? sym sym*)
+                    exp
+                    (lp (1+ n)))))))))
+
   (define (intersection db+ db-)
     (vhash-fold-right
      (lambda (k h out)
@@ -364,6 +371,12 @@
               (lambda (x db**)
                 (lp (cdr in) (cons x out) (concat db** db*))))
             (values (reverse out) db*))))
+
+    (define (compute-effects exp)
+      (%compute-effects exp (lambda (sym) (lookup-lexical sym env))))
+
+    (define (bailout? exp)
+      (causes-effects? (compute-effects exp) &definite-bailout))
 
     (define (return exp db*)
       (let ((effects (compute-effects exp)))
