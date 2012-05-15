@@ -997,20 +997,77 @@ top-level bindings from ENV and return the resulting expression."
          ((test) (make-const #f #t))
          (else exp)))
       (($ <conditional> src condition subsequent alternate)
+       (define (call-with-failure-thunk exp proc)
+         (match exp
+           (($ <application> _ _ ()) (proc exp))
+           (($ <const>) (proc exp))
+           (($ <void>) (proc exp))
+           (($ <lexical-ref>) (proc exp))
+           (_
+            (let ((t (gensym "failure-")))
+              (record-new-temporary! 'failure t 2)
+              (make-let
+               src (list 'failure) (list t)
+               (list
+                (make-lambda
+                 #f '()
+                 (make-lambda-case #f '() #f #f #f '() '() exp #f)))
+               (proc (make-application #f (make-lexical-ref #f 'failure t)
+                                       '())))))))
+       (define (simplify-conditional c)
+         (match c
+           ;; Swap the arms of (if (not FOO) A B), to simplify.
+           (($ <conditional> src
+               ($ <application> _ ($ <primitive-ref> _ 'not) (pred))
+               subsequent alternate)
+            (simplify-conditional
+             (make-conditional src pred alternate subsequent)))
+           ;; Special cases for common tests in the predicates of chains
+           ;; of if expressions.
+           (($ <conditional> src
+               ($ <conditional> src* outer-test inner-test ($ <const> _ #f))
+               inner-subsequent
+               alternate)
+            (let lp ((alternate alternate))
+              (match alternate
+                ;; Lift a common repeated test out of a chain of if
+                ;; expressions.
+                (($ <conditional> _ (? (cut tree-il=? outer-test <>))
+                    other-subsequent alternate)
+                 (make-conditional
+                  src outer-test
+                  (make-conditional src* inner-test inner-subsequent
+                                    other-subsequent)
+                  alternate))
+                ;; Likewise, but punching through any surrounding
+                ;; failure continuations.
+                (($ <let> let-src (name) (sym) ((and thunk ($ <lambda>))) body)
+                 (make-let
+                  let-src (list name) (list sym) (list thunk)
+                  (lp body)))
+                ;; Otherwise, rotate AND tests to expose a simple
+                ;; condition in the front.  Although this may result in
+                ;; lexically binding failure thunks, the thunks will be
+                ;; compiled to labels allocation, so there's no actual
+                ;; code growth.
+                (_
+                 (call-with-failure-thunk
+                  alternate
+                  (lambda (failure)
+                    (make-conditional
+                     src outer-test
+                     (make-conditional src* inner-test inner-subsequent failure)
+                     failure)))))))
+           (_ c)))
        (match (for-test condition)
          (($ <const> _ val)
           (if val
               (for-tail subsequent)
               (for-tail alternate)))
-         ;; Swap the arms of (if (not FOO) A B), to simplify.
-         (($ <application> _ ($ <primitive-ref> _ 'not) (c))
-          (make-conditional src c
-                            (for-tail alternate)
-                            (for-tail subsequent)))
          (c
-          (make-conditional src c
-                            (for-tail subsequent)
-                            (for-tail alternate)))))
+          (simplify-conditional
+           (make-conditional src c (for-tail subsequent)
+                             (for-tail alternate))))))
       (($ <application> src
           ($ <primitive-ref> _ '@call-with-values)
           (producer
