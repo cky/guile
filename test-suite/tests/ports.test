@@ -1087,8 +1087,34 @@
                         (and (= line line*)
                              (= col col*)))))))))))
 
+
+
+(define-syntax-rule (with-load-path path body ...)
+  (let ((new path)
+        (old %load-path))
+    (dynamic-wind
+      (lambda ()
+        (set! %load-path new))
+      (lambda ()
+        body ...)
+      (lambda ()
+        (set! %load-path old)))))
+
+(with-test-prefix "%file-port-name-canonicalization"
+
+  (pass-if "absolute file name & empty %load-path entry"
+    ;; In Guile 2.0.5 and earlier, this would return "dev/null" instead
+    ;; of "/dev/null".  See
+    ;; <http://lists.gnu.org/archive/html/guile-devel/2012-05/msg00059.html>
+    ;; for a discussion.
+    (equal? "/dev/null"
+            (with-load-path (cons "" (delete "/" %load-path))
+              (with-fluids ((%file-port-name-canonicalization 'relative))
+                (port-filename (open-input-file "/dev/null")))))))
+
 (delete-file (test-file))
 
 ;;; Local Variables:
 ;;; eval: (put 'test-decoding-error 'scheme-indent-function 3)
+;;; eval: (put 'with-load-path 'scheme-indent-function 1)
 ;;; End:

@@ -1587,32 +1587,40 @@ scm_i_relativize_path (SCM path, SCM in_path)
   scanon = scm_take_locale_string (canon);
 
   for (; scm_is_pair (in_path); in_path = scm_cdr (in_path))
-    if (scm_is_true (scm_string_prefix_p (scm_car (in_path),
-                                          scanon,
-                                          SCM_UNDEFINED, SCM_UNDEFINED,
-                                          SCM_UNDEFINED, SCM_UNDEFINED)))
-      {
-        size_t len = scm_c_string_length (scm_car (in_path));
+    {
+      SCM dir = scm_car (in_path);
+      size_t len = scm_c_string_length (dir);
 
-        /* The path either has a trailing delimiter or doesn't. scanon will be
-           delimited by single delimiters. In the case in which the path does
-           not have a trailing delimiter, add one to the length to strip off the
-           delimiter within scanon. */
-        if (!len
+      /* When DIR is empty, it means "current working directory".  We
+	 could set DIR to (getcwd) in that case, but then the
+	 canonicalization would depend on the current directory, which
+	 is not what we want in the context of `compile-file', for
+	 instance.  */
+      if (len > 0
+	  && scm_is_true (scm_string_prefix_p (dir, scanon,
+					       SCM_UNDEFINED, SCM_UNDEFINED,
+					       SCM_UNDEFINED, SCM_UNDEFINED)))
+	{
+	  /* DIR either has a trailing delimiter or doesn't.  SCANON
+	     will be delimited by single delimiters.  When DIR does not
+	     have a trailing delimiter, add one to the length to strip
+	     off the delimiter within SCANON.  */
+	  if (
 #ifdef __MINGW32__
-            || (scm_i_string_ref (scm_car (in_path), len - 1) != '/'
-                && scm_i_string_ref (scm_car (in_path), len - 1) != '\\')
+	      (scm_i_string_ref (dir, len - 1) != '/'
+	       && scm_i_string_ref (dir, len - 1) != '\\')
 #else
-            || scm_i_string_ref (scm_car (in_path), len - 1) != '/'
+	      scm_i_string_ref (dir, len - 1) != '/'
 #endif
-            )
-          len++;
+	      )
+	    len++;
 
-        if (scm_c_string_length (scanon) > len)
-          return scm_substring (scanon, scm_from_size_t (len), SCM_UNDEFINED);
-        else
-          return SCM_BOOL_F;
-      }
+	  if (scm_c_string_length (scanon) > len)
+	    return scm_substring (scanon, scm_from_size_t (len), SCM_UNDEFINED);
+	  else
+	    return SCM_BOOL_F;
+	}
+    }
 
   return SCM_BOOL_F;
 }
