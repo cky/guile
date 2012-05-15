@@ -1110,7 +1110,25 @@
     (equal? "/dev/null"
             (with-load-path (cons "" (delete "/" %load-path))
               (with-fluids ((%file-port-name-canonicalization 'relative))
-                (port-filename (open-input-file "/dev/null")))))))
+                (port-filename (open-input-file "/dev/null"))))))
+
+  (pass-if "relative canonicalization with /"
+    (equal? "dev/null"
+            (with-load-path (cons "/" %load-path)
+              (with-fluids ((%file-port-name-canonicalization 'relative))
+                (port-filename (open-input-file "/dev/null"))))))
+
+  (pass-if "relative canonicalization from ice-9"
+    (equal? "ice-9/q.scm"
+            (with-fluids ((%file-port-name-canonicalization 'relative))
+              (port-filename
+               (open-input-file (%search-load-path "ice-9/q.scm"))))))
+
+  (pass-if "absolute canonicalization from ice-9"
+    (equal? (string-append (assoc-ref %guile-build-info 'top_srcdir)
+                           "/module/ice-9/q.scm")
+            (with-fluids ((%file-port-name-canonicalization 'absolute))
+              (port-filename (open-input-file (%search-load-path "ice-9/q.scm")))))))
 
 (delete-file (test-file))
 
