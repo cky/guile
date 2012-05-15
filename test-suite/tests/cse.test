@@ -23,7 +23,9 @@
   #:use-module (system base pmatch)
   #:use-module (system base message)
   #:use-module (language tree-il)
+  #:use-module (language tree-il canonicalize)
   #:use-module (language tree-il primitives)
+  #:use-module (language tree-il fix-letrec)
   #:use-module (language tree-il cse)
   #:use-module (language tree-il peval)
   #:use-module (language glil)
@@ -34,12 +36,14 @@
     ((_ in pat)
      (pass-if 'in
        (let ((evaled (unparse-tree-il
-                      (cse
-                       (peval
-                        (expand-primitives!
-                         (resolve-primitives!
-                          (compile 'in #:from 'scheme #:to 'tree-il)
-                          (current-module))))))))
+                      (canonicalize!
+                       (fix-letrec!
+                        (cse
+                         (peval
+                          (expand-primitives!
+                           (resolve-primitives!
+                            (compile 'in #:from 'scheme #:to 'tree-il)
+                            (current-module))))))))))
          (pmatch evaled
            (pat #t)
            (_   (pk 'cse-mismatch)
@@ -216,14 +220,19 @@
      (lambda-case
       (((x y) #f #f #f () (_ _))
        (begin
-         (if (if (apply (primitive struct?) (lexical x _))
-                 (apply (primitive eq?)
-                        (apply (primitive struct-vtable)
-                               (lexical x _))
-                        (toplevel x-vtable))
-                 (const #f))
-             (void)
-             (apply (primitive 'throw) (const 'foo)))
+         (fix (failure) (_)
+              ((lambda _
+                 (lambda-case
+                  ((() #f #f #f () ())
+                   (apply (primitive throw) (const foo))))))
+              (if (apply (primitive struct?) (lexical x _))
+                  (if (apply (primitive eq?)
+                             (apply (primitive struct-vtable)
+                                    (lexical x _))
+                             (toplevel x-vtable))
+                      (void)
+                      (apply (lexical failure _)))
+                  (apply (lexical failure _))))
          (apply (primitive struct-ref) (lexical x _) (lexical y _)))))))
 
   ;; Strict argument evaluation also adds info to the DB.
@@ -240,14 +249,20 @@
     (lambda _
       (lambda-case
        (((x) #f #f #f () (_))
-        (let (z) (_) ((if (if (apply (primitive struct?) (lexical x _))
-                              (apply (primitive eq?)
-                                     (apply (primitive struct-vtable)
-                                            (lexical x _))
-                                     (toplevel x-vtable))
-                              (const #f))
-                          (apply (primitive struct-ref) (lexical x _) (const 1))
-                          (apply (primitive 'throw) (const 'foo))))
+        (let (z) (_)
+             ((fix (failure) (_)
+                   ((lambda _
+                      (lambda-case
+                       ((() #f #f #f () ())
+                        (apply (primitive throw) (const foo))))))
+                   (if (apply (primitive struct?) (lexical x _))
+                       (if (apply (primitive eq?)
+                                  (apply (primitive struct-vtable)
+                                         (lexical x _))
+                                  (toplevel x-vtable))
+                           (apply (primitive struct-ref) (lexical x _) (const 1))
+                           (apply (lexical failure _)))
+                       (apply (lexical failure _)))))
              (apply (primitive +) (lexical z _)
                     (apply (primitive struct-ref) (lexical x _) (const 2))))))))
 
