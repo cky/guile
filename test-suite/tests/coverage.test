@@ -1,6 +1,6 @@
 ;;;; coverage.test --- Code coverage.    -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -215,6 +215,16 @@
         (and (coverage-data? data)
              (= 3 result)
              (not (procedure-execution-count data proc))))))
+
+  (pass-if "applicable struct"
+    (let* ((<box> (make-struct <applicable-struct-vtable> 0 'pw))
+           (proc  (lambda args (length args)))
+           (b     (make-struct <box> 0 proc)))
+      (let-values (((data result)
+                    (with-code-coverage %test-vm b)))
+        (and (coverage-data? data)
+             (= 0 result)
+             (= (procedure-execution-count data proc) 1)))))
 
   (pass-if "called from C"
     ;; The `scm_call_N' functions use the VM returned by `the-vm'.  This
