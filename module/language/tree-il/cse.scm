@@ -154,6 +154,21 @@
     (($ <const> _ (? boolean?)) #t)
     (_ (eq? ctx 'test))))
 
+(define (singly-valued-expression? x ctx)
+  (match x
+    (($ <const>) #t)
+    (($ <lexical-ref>) #t)
+    (($ <void>) #t)
+    (($ <lexical-ref>) #t)
+    (($ <primitive-ref>) #t)
+    (($ <module-ref>) #t)
+    (($ <toplevel-ref>) #t)
+    (($ <application> _
+        ($ <primitive-ref> _ (? singly-valued-primitive?))) #t)
+    (($ <application> _ ($ <primitive-ref> _ 'values) (val)) #t)
+    (($ <lambda>) #t)
+    (_ (eq? ctx 'value))))
+
 (define* (cse exp)
   "Eliminate common subexpressions in EXP."
 
@@ -371,7 +386,7 @@
           => (lambda (exp)
                (log 'propagate-test ctx (unparse-tree-il exp))
                (values exp db*)))
-         ((and (eq? ctx 'value)
+         ((and (singly-valued-expression? exp ctx)
                (find-dominating-lexical exp effects env db))
           => (lambda (exp)
                (log 'propagate-value ctx (unparse-tree-il exp))
