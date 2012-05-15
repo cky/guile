@@ -189,67 +189,12 @@
   (define (bailout? exp)
     (causes-effects? (compute-effects exp) &definite-bailout))
 
-  (define (struct-nfields x)
-    (/ (string-length (symbol->string (struct-layout x))) 2))
-
-  (define hash-bits (logcount most-positive-fixnum))
-  (define hash-depth 4)
-  (define hash-width 3)
-  (define (hash-expression exp)
-    (define (hash-exp exp depth)
-      (define (rotate x bits)
-        (logior (ash x (- bits))
-                (ash (logand x (1- (ash 1 bits))) (- hash-bits bits))))
-      (define (mix h1 h2)
-        (logxor h1 (rotate h2 8)))
-      (define (hash-struct s)
-        (let ((len (struct-nfields s))
-              (h (hashq (struct-vtable s) most-positive-fixnum)))
-          (if (zero? depth)
-              h
-              (let lp ((i (max (- len hash-width) 1)) (h h))
-                (if (< i len)
-                    (lp (1+ i) (mix (hash-exp (struct-ref s i) (1+ depth)) h))
-                    h)))))
-      (define (hash-list l)
-        (let ((h (hashq 'list most-positive-fixnum)))
-          (if (zero? depth)
-              h
-              (let lp ((l l) (width 0) (h h))
-                (if (< width hash-width)
-                    (lp (cdr l) (1+ width)
-                        (mix (hash-exp (car l) (1+ depth)) h))
-                    h)))))
-      (cond
-       ((struct? exp) (hash-struct exp))
-       ((list? exp) (hash-list exp))
-       (else (hash exp most-positive-fixnum))))
-    (hash-exp exp 0))
-
-  (define (expressions-equal? a b)
-    (cond
-     ((struct? a)
-      (and (struct? b)
-           (eq? (struct-vtable a) (struct-vtable b))
-           ;; Assume that all structs are tree-il, so we skip over the
-           ;; src slot.
-           (let lp ((n (1- (struct-nfields a))))
-             (or (zero? n)
-                 (and (expressions-equal? (struct-ref a n) (struct-ref b n))
-                      (lp (1- n)))))))
-     ((pair? a)
-      (and (pair? b)
-           (expressions-equal? (car a) (car b))
-           (expressions-equal? (cdr a) (cdr b))))
-     (else
-      (equal? a b))))
-
   (define (hasher n)
     (lambda (x size) (modulo n size)))
 
   (define (add-to-db exp effects ctx db)
     (let ((v (vector exp effects ctx))
-          (h (hash-expression exp)))
+          (h (tree-il-hash exp)))
       (vhash-cons v h db (hasher h))))
 
   (define (control-flow-boundary db)
@@ -260,12 +205,12 @@
     (define (entry-matches? v1 v2)
       (match (if (vector? v1) v1 v2)
         (#(exp* effects* ctx*)
-         (and (expressions-equal? exp exp*)
+         (and (tree-il=? exp exp*)
               (or (not ctx) (eq? ctx* ctx))))
         (_ #f)))
       
     (let ((len (vlist-length db))
-          (h (hash-expression exp)))
+          (h (tree-il-hash exp)))
       (and (vhash-assoc #t db entry-matches? (hasher h))
            (let lp ((n 0))
              (and (< n len)
@@ -282,7 +227,7 @@
                           (unparse-tree-il exp*) effects* ctx*)
                      (or (and (= h h*)
                               (or (not ctx) (eq? ctx ctx*))
-                              (expressions-equal? exp exp*))
+                              (tree-il=? exp exp*))
                          (and (effects-commute? effects effects*)
                               (lp (1+ n)))))))))))
 
@@ -333,7 +278,7 @@
 
   (define (add-to-env exp name sym db env)
     (let* ((v (vector exp name sym (vlist-length db)))
-           (h (hash-expression exp)))
+           (h (tree-il-hash exp)))
       (vhash-cons v h env (hasher h))))
 
   (define (augment-env env names syms exps db)
@@ -350,7 +295,7 @@
     (define (entry-matches? v1 v2)
       (match (if (vector? v1) v1 v2)
         (#(exp* name sym db)
-         (expressions-equal? exp exp*))
+         (tree-il=? exp exp*))
         (_ #f)))
       
     (define (unroll db base n)
@@ -364,7 +309,7 @@
              (and (effects-commute? effects effects*)
                   (unroll db (1+ base) (1- n)))))))
 
-    (let ((h (hash-expression exp)))
+    (let ((h (tree-il-hash exp)))
       (and (effect-free? (exclude-effects effects &type-check))
            (vhash-assoc exp env entry-matches? (hasher h))
            (let ((env-len (vlist-length env))
@@ -374,7 +319,7 @@
                     (match (vlist-ref env n)
                       ((#(exp* name sym db-len*) . h*)
                        (and (unroll db m (- db-len db-len*))
-                            (if (and (= h h*) (expressions-equal? exp* exp))
+                            (if (and (= h h*) (tree-il=? exp* exp))
                                 (make-lexical-ref (tree-il-src exp) name sym)
                                 (lp (1+ n) (- db-len db-len*))))))))))))
 
