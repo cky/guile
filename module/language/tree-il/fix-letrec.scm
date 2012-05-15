@@ -1,6 +1,6 @@
 ;;; transformation of letrec into simpler forms
 
-;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -181,6 +181,20 @@
                   '())))
     (values unref simple lambda* complex)))
 
+(define (make-sequence* src exps)
+  (let lp ((in exps) (out '()))
+    (if (null? (cdr in))
+        (if (null? out)
+            (car in)
+            (make-sequence src (reverse (cons (car in) out))))
+        (let ((head (car in)))
+          (record-case head
+            ((<lambda>) (lp (cdr in) out))
+            ((<const>) (lp (cdr in) out))
+            ((<lexical-ref>) (lp (cdr in) out))
+            ((<void>) (lp (cdr in) out))
+            (else (lp (cdr in) (cons head out))))))))
+
 (define (fix-letrec! x)
   (let-values (((unref simple lambda* complex) (partition-vars x)))
     (post-order!
@@ -191,7 +205,7 @@
          ;; expression, called for effect.
          ((<lexical-set> gensym exp)
           (if (memq gensym unref)
-              (make-sequence #f (list exp (make-void #f)))
+              (make-sequence* #f (list exp (make-void #f)))
               x))
 
          ((<letrec> src in-order? names gensyms vals body)
@@ -219,7 +233,7 @@
                ;; Bind lambdas using the fixpoint operator.
                (make-fix
                 src (map cadr l) (map car l) (map caddr l)
-                (make-sequence
+                (make-sequence*
                  src
                  (append
                   ;; The right-hand-sides of the unreferenced
@@ -263,7 +277,7 @@
             (let ((u (lookup unref))
                   (l (lookup lambda*))
                   (c (lookup complex)))
-              (make-sequence
+              (make-sequence*
                src
                (append
                 ;; unreferenced bindings, called for effect.
