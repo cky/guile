@@ -1028,4 +1028,31 @@
                                 (toplevel C))
                          (apply (toplevel baz) (toplevel x))
                          (apply (lexical failure _)))))
+             (apply (lexical failure _)))))
+
+  ;; Multiple common tests should get lifted as well.
+  (pass-if-peval resolve-primitives
+    (if (and (struct? x) (eq? (struct-vtable x) A) B)
+        (foo x)
+        (if (and (struct? x) (eq? (struct-vtable x) A) C)
+            (bar x)
+            (if (and (struct? x) (eq? (struct-vtable x) A) D)
+                (baz x)
+                (qux x))))
+    (let (failure) (_) ((lambda _
+                          (lambda-case
+                           ((() #f #f #f () ())
+                            (apply (toplevel qux) (toplevel x))))))
+         (if (apply (primitive struct?) (toplevel x))
+             (if (apply (primitive eq?)
+                        (apply (primitive struct-vtable) (toplevel x))
+                        (toplevel A))
+                 (if (toplevel B)
+                     (apply (toplevel foo) (toplevel x))
+                     (if (toplevel C)
+                         (apply (toplevel bar) (toplevel x))
+                         (if (toplevel D)
+                             (apply (toplevel baz) (toplevel x))
+                             (apply (lexical failure _)))))
+                 (apply (lexical failure _)))
              (apply (lexical failure _))))))

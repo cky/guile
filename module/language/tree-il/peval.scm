@@ -1036,8 +1036,9 @@ top-level bindings from ENV and return the resulting expression."
                     other-subsequent alternate)
                  (make-conditional
                   src outer-test
-                  (make-conditional src* inner-test inner-subsequent
-                                    other-subsequent)
+                  (simplify-conditional
+                   (make-conditional src* inner-test inner-subsequent
+                                     other-subsequent))
                   alternate))
                 ;; Likewise, but punching through any surrounding
                 ;; failure continuations.
@@ -1056,7 +1057,8 @@ top-level bindings from ENV and return the resulting expression."
                   (lambda (failure)
                     (make-conditional
                      src outer-test
-                     (make-conditional src* inner-test inner-subsequent failure)
+                     (simplify-conditional
+                      (make-conditional src* inner-test inner-subsequent failure))
                      failure)))))))
            (_ c)))
        (match (for-test condition)
