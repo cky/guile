@@ -38,6 +38,10 @@ ETAGS_ARGS += ice-9/eval.scm
 SOURCES =					\
   ice-9/psyntax-pp.scm				\
   ice-9/boot-9.scm				\
+  ice-9/vlist.scm                               \
+  srfi/srfi-1.scm                               \
+  language/tree-il/peval.scm                    \
+  language/tree-il/cse.scm                      \
 						\
   language/tree-il.scm				\
   language/glil.scm				\
@@ -95,7 +99,6 @@ SCHEME_LANG_SOURCES =						\
 
 TREE_IL_LANG_SOURCES =						\
   language/tree-il/primitives.scm				\
-  language/tree-il/peval.scm                                 	\
   language/tree-il/effects.scm                                 	\
   language/tree-il/fix-letrec.scm                               \
   language/tree-il/optimize.scm                                 \
@@ -103,7 +106,6 @@ TREE_IL_LANG_SOURCES =						\
   language/tree-il/analyze.scm					\
   language/tree-il/inline.scm 					\
   language/tree-il/compile-glil.scm 				\
-  language/tree-il/cse.scm                                 	\
   language/tree-il/debug.scm 					\
   language/tree-il/spec.scm
 
@@ -245,11 +247,9 @@ ICE_9_SOURCES = \
   ice-9/weak-vector.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
-  ice-9/vlist.scm \
   ice-9/local-eval.scm
 
 SRFI_SOURCES = \
-  srfi/srfi-1.scm \
   srfi/srfi-2.scm \
   srfi/srfi-4.scm \
   srfi/srfi-4/gnu.scm \
