@@ -1008,10 +1008,14 @@ accurate information is missing from a given `tree-il' element."
                                 (arity:allow-other-keys? a)))
                         (program-arities proc))))
           ((procedure? proc)
-           (let ((arity (procedure-minimum-arity proc)))
-             (values (procedure-name proc)
-                     (list (list (car arity) (cadr arity) (caddr arity)
-                                 #f #f)))))
+           (if (struct? proc)
+               ;; An applicable struct.
+               (arities (struct-ref proc 0))
+               ;; An applicable smob.
+               (let ((arity (procedure-minimum-arity proc)))
+                 (values (procedure-name proc)
+                         (list (list (car arity) (cadr arity) (caddr arity)
+                                     #f #f))))))
           (else
            (let loop ((name    #f)
                       (proc    proc)
@@ -1196,11 +1200,6 @@ accurate information is missing from a given `tree-il' element."
                       proc)))
             (cond ((lambda? proc*)
                    (validate-arity proc* application #t))
-                  ((struct? proc*)
-                   ;; An applicable struct.
-                   (let ((p (struct-ref proc* 0)))
-                     (and (procedure? p)
-                          (validate-arity p application #f))))
                   ((procedure? proc*)
                    (validate-arity proc* application #f)))))
         toplevel-calls)))
