@@ -1,4 +1,4 @@
-/* Copyright (C) 2010-2014  Free Software Foundation, Inc.
+/* Copyright (C) 2010-2015  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -547,13 +547,14 @@ SCM_DEFINE (scm_sizeof, "sizeof", 1, 0, 0, (SCM type),
     {
       /* a struct */
       size_t off = 0;
+      size_t align = scm_to_size_t (scm_alignof (type));
       while (scm_is_pair (type))
         {
           off = ROUND_UP (off, scm_to_size_t (scm_alignof (scm_car (type))));
           off += scm_to_size_t (scm_sizeof (scm_car (type)));
           type = scm_cdr (type);
         }
-      return scm_from_size_t (off);
+      return scm_from_size_t (ROUND_UP (off, align));
     }
   else
     scm_wrong_type_arg (FUNC_NAME, 1, type);

@@ -342,6 +342,10 @@
     (= (sizeof (list int8 double))
        (+ (alignof double) (sizeof double))))
 
+  (pass-if "sizeof { double, int8 }"
+    (= (sizeof (list double int8))
+       (+ (alignof double) (sizeof double))))
+
   (pass-if "sizeof { short, int, long, pointer }"
     (let ((layout (list short int long '*)))
       (>= (sizeof layout)
