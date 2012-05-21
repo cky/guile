@@ -610,8 +610,7 @@ resolve_variable (SCM what, SCM program_module)
 {
   if (SCM_LIKELY (scm_is_symbol (what)))
     {
-      if (SCM_LIKELY (scm_module_system_booted_p
-                      && scm_is_true (program_module)))
+      if (SCM_LIKELY (scm_is_true (program_module)))
         /* might longjmp */
         return scm_module_lookup (program_module, what);
       else
