@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -2765,13 +2765,21 @@ SCM_KEYWORD (k_getter, "getter");
 SCM
 scm_ensure_accessor (SCM name)
 {
-  SCM gf = scm_call_2 (SCM_TOP_LEVEL_LOOKUP_CLOSURE, name, SCM_BOOL_F);
+  SCM var, gf;
+
+  var = scm_module_variable (scm_current_module (), name);
+  if (SCM_VARIABLEP (var) && !SCM_UNBNDP (SCM_VARIABLE_REF (var)))
+    gf = SCM_VARIABLE_REF (var);
+  else
+    gf = SCM_BOOL_F;
+
   if (!SCM_IS_A_P (gf, scm_class_accessor))
     {
       gf = scm_make (scm_list_3 (scm_class_generic, k_name, name));
       gf = scm_make (scm_list_5 (scm_class_accessor,
 				 k_name, name, k_setter, gf));
     }
+
   return gf;
 }
 

@@ -236,38 +236,6 @@ scm_c_export (const char *name, ...)
 }
 
 
-/* Environments */
-
-SCM_SYMBOL (sym_module, "module");
-
-SCM
-scm_lookup_closure_module (SCM proc)
-{
-  if (scm_is_false (proc))
-    return scm_the_root_module ();
-  else if (SCM_EVAL_CLOSURE_P (proc))
-    return SCM_PACK (SCM_SMOB_DATA (proc));
-  else
-    {
-      SCM mod;
-
-      /* FIXME: The `module' property is no longer set on eval closures, as it
-	 introduced a circular reference that precludes garbage collection of
-	 modules with the current weak hash table semantics (see
-	 http://lists.gnu.org/archive/html/guile-devel/2009-01/msg00102.html and
-	 http://thread.gmane.org/gmane.comp.programming.garbage-collection.boehmgc/2465
-	 for details). Since it doesn't appear to be used (only in this
-	 function, which has 1 caller), we no longer extend
-	 `set-module-eval-closure!' to set the `module' property. */
-      abort ();
-
-      mod = scm_procedure_property (proc, sym_module);
-      if (scm_is_false (mod))
-	mod = scm_the_root_module ();
-      return mod;
-    }
-}
-
 /*
  * C level implementation of the standard eval closure
  *
@@ -610,24 +578,6 @@ SCM_DEFINE (scm_eval_closure_module,
   return SCM_SMOB_OBJECT (eval_closure);
 }
 #undef FUNC_NAME
-
-SCM
-scm_module_lookup_closure (SCM module)
-{
-  if (scm_is_false (module))
-    return SCM_BOOL_F;
-  else
-    return SCM_MODULE_EVAL_CLOSURE (module);
-}
-
-SCM
-scm_current_module_lookup_closure ()
-{
-  if (scm_module_system_booted_p)
-    return scm_module_lookup_closure (scm_current_module ());
-  else
-    return SCM_BOOL_F;
-}
 
 SCM_SYMBOL (sym_macroexpand, "macroexpand");
 

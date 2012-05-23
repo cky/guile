@@ -3,7 +3,7 @@
 #ifndef SCM_EVAL_H
 #define SCM_EVAL_H
 
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011
+/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -56,10 +56,6 @@ typedef SCM (*scm_t_trampoline_2) (SCM proc, SCM arg1, SCM arg2);
 
 
 #define SCM_EXTEND_ENV scm_acons
-
-/*fixme* This should probably be removed throught the code. */
-
-#define SCM_TOP_LEVEL_LOOKUP_CLOSURE (scm_current_module_lookup_closure())
 
 
 

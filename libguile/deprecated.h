@@ -817,6 +817,16 @@ SCM_DEPRECATED SCM scm_sym2var (SCM sym, SCM thunk, SCM definep);
 
 
 
+/* Eval closure deprecation, 23-05-2012.  */
+#define SCM_TOP_LEVEL_LOOKUP_CLOSURE (scm_current_module_lookup_closure())
+
+SCM_DEPRECATED SCM scm_lookup_closure_module (SCM proc);
+SCM_DEPRECATED SCM scm_module_lookup_closure (SCM module);
+SCM_DEPRECATED SCM scm_current_module_lookup_closure (void);
+
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

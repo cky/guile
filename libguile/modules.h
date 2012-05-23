@@ -119,16 +119,13 @@ SCM_API void scm_c_export (const char *name, ...);
 
 SCM_API SCM scm_module_public_interface (SCM module);
 SCM_API SCM scm_module_import_interface (SCM module, SCM sym);
-SCM_API SCM scm_module_lookup_closure (SCM module);
 SCM_API SCM scm_module_transformer (SCM module);
-SCM_API SCM scm_current_module_lookup_closure (void);
 SCM_API SCM scm_current_module_transformer (void);
 SCM_API SCM scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep);
 SCM_API SCM scm_standard_eval_closure (SCM module);
 SCM_API SCM scm_standard_interface_eval_closure (SCM module);
 SCM_API SCM scm_eval_closure_module (SCM eval_closure); /* deprecated already */
 SCM_API SCM scm_get_pre_modules_obarray (void);
-SCM_API SCM scm_lookup_closure_module (SCM proc);
 
 SCM_INTERNAL void scm_modules_prehistory (void);
 SCM_INTERNAL void scm_init_modules (void);
