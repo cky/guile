@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011 Free Software Foundation, Inc.
+/* Copyright (C) 1998,2000,2001,2002,2003,2004,2006,2007,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -80,9 +80,10 @@ SCM_DEFINE (scm_current_module, "current-module", 0, 0, 0,
 	    "Return the current module.")
 #define FUNC_NAME s_scm_current_module
 {
-  SCM curr = scm_fluid_ref (the_module);
-
-  return scm_is_true (curr) ? curr : scm_the_root_module ();
+  if (scm_module_system_booted_p)
+    return scm_fluid_ref (the_module);
+  else
+    return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 
@@ -519,6 +520,37 @@ SCM_DEFINE (scm_module_variable, "module-variable", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM
+scm_module_ensure_local_variable (SCM module, SCM sym)
+#define FUNC_NAME "module-ensure-local-variable"
+{
+  if (SCM_LIKELY (scm_module_system_booted_p))
+    {
+      SCM_VALIDATE_MODULE (1, module);
+      SCM_VALIDATE_SYMBOL (2, sym);
+
+      return scm_call_2 (SCM_VARIABLE_REF (module_make_local_var_x_var),
+                         module, sym);
+    }
+
+  {
+    SCM handle, var;
+
+    handle = scm_hashq_create_handle_x (scm_pre_modules_obarray,
+                                        sym, SCM_BOOL_F);
+    var = SCM_CDR (handle);
+
+    if (scm_is_false (var))
+      {
+        var = scm_make_variable (SCM_UNDEFINED);
+        SCM_SETCDR (handle, var);
+      }
+
+    return var;
+  }
+}
+#undef FUNC_NAME
+
 scm_t_bits scm_tc16_eval_closure;
 
 #define SCM_F_EVAL_CLOSURE_INTERFACE (1<<0)
@@ -676,61 +708,6 @@ scm_module_public_interface (SCM module)
   return scm_call_1 (SCM_VARIABLE_REF (module_public_interface_var), module);
 }
 
-/* scm_sym2var
- *
- * looks up the variable bound to SYM according to PROC.  PROC should be
- * a `eval closure' of some module.
- *
- * When no binding exists, and DEFINEP is true, create a new binding
- * with a initial value of SCM_UNDEFINED.  Return `#f' when DEFINEP as
- * false and no binding exists.
- *
- * When PROC is `#f', it is ignored and the binding is searched for in
- * the scm_pre_modules_obarray (a `eq' hash table).
- */
-
-SCM 
-scm_sym2var (SCM sym, SCM proc, SCM definep)
-#define FUNC_NAME "scm_sym2var"
-{
-  SCM var;
-
-  if (SCM_NIMP (proc))
-    {
-      if (SCM_EVAL_CLOSURE_P (proc))
-	{
-	  /* Bypass evaluator in the standard case. */
-	  var = scm_eval_closure_lookup (proc, sym, definep);
-	}
-      else
-	var = scm_call_2 (proc, sym, definep);
-    }
-  else
-    {
-      SCM handle;
-
-      if (scm_is_false (definep))
-	var = scm_hashq_ref (scm_pre_modules_obarray, sym, SCM_BOOL_F);
-      else
-	{
-	  handle = scm_hashq_create_handle_x (scm_pre_modules_obarray,
-					      sym, SCM_BOOL_F);
-	  var = SCM_CDR (handle);
-	  if (scm_is_false (var))
-	    {
-	      var = scm_make_variable (SCM_UNDEFINED);
-	      SCM_SETCDR (handle, var);
-	    }
-	}
-    }
-
-  if (scm_is_true (var) && !SCM_VARIABLEP (var))
-    SCM_MISC_ERROR ("~S is not bound to a variable", scm_list_1 (sym));
-
-  return var;
-}
-#undef FUNC_NAME
-
 SCM
 scm_c_module_lookup (SCM module, const char *name)
 {
@@ -742,9 +719,7 @@ scm_module_lookup (SCM module, SCM sym)
 #define FUNC_NAME "module-lookup"
 {
   SCM var;
-  SCM_VALIDATE_MODULE (1, module);
-
-  var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_F);
+  var = scm_module_variable (module, sym);
   if (scm_is_false (var))
     unbound_variable (FUNC_NAME, sym);
   return var;
@@ -760,11 +735,7 @@ scm_c_lookup (const char *name)
 SCM
 scm_lookup (SCM sym)
 {
-  SCM var = 
-    scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_F);
-  if (scm_is_false (var))
-    unbound_variable (NULL, sym);
-  return var;
+  return scm_module_lookup (scm_current_module (), sym);
 }
 
 SCM
@@ -896,10 +867,10 @@ scm_module_define (SCM module, SCM sym, SCM value)
 #define FUNC_NAME "module-define"
 {
   SCM var;
-  SCM_VALIDATE_MODULE (1, module);
 
-  var = scm_sym2var (sym, scm_module_lookup_closure (module), SCM_BOOL_T);
+  var = scm_module_ensure_local_variable (module, sym);
   SCM_VARIABLE_SET (var, value);
+
   return var;
 }
 #undef FUNC_NAME
@@ -917,11 +888,9 @@ SCM_DEFINE (scm_define, "define!", 2, 0, 0,
             "not a macro.")
 #define FUNC_NAME s_scm_define
 {
-  SCM var;
   SCM_VALIDATE_SYMBOL (SCM_ARG1, sym);
-  var = scm_sym2var (sym, scm_current_module_lookup_closure (), SCM_BOOL_T);
-  SCM_VARIABLE_SET (var, value);
-  return var;
+
+  return scm_module_define (scm_current_module (), sym, value);
 }
 #undef FUNC_NAME
 

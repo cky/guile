@@ -1008,6 +1008,17 @@ Like @code{scm_c_define} and @code{scm_define}, but the specified
 module is used instead of the current one.
 @end deftypefn
 
+In some rare cases, you may need to access the variable that
+@code{scm_module_define} would have accessed, without changing the
+binding of the existing variable, if one is present.  In that case, use
+@code{scm_module_ensure_local_variable}:
+
+@deftypefn {C Function} SCM scm_module_ensure_local_variable (SCM @var{module}, SCM @var{sym})
+Like @code{scm_module_define}, but if the @var{sym} is already locally
+bound in that module, the variable's existing binding is not reset.
+Returns a variable.
+@end deftypefn
+
 @deftypefn {C Function} SCM scm_module_reverse_lookup (SCM @var{module}, SCM @var{variable})
 Find the symbol that is bound to @var{variable} in @var{module}.  When no such binding is found, return @code{#f}.
 @end deftypefn

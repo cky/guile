@@ -1,5 +1,5 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009,2011
+ * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009,2011,2012
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -234,8 +234,7 @@ gdb_binding (SCM name, SCM value)
     }
   SCM_BEGIN_FOREIGN_BLOCK;
   {
-    SCM var = scm_sym2var (name, SCM_TOP_LEVEL_LOOKUP_CLOSURE, SCM_BOOL_T);
-    SCM_VARIABLE_SET (var, value);
+    scm_define (name, value);
   }
   SCM_END_FOREIGN_BLOCK;
   return 0;

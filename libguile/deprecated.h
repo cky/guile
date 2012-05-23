@@ -810,6 +810,13 @@ SCM_DEPRECATED scm_t_bits scm_i_deprecated_asrtgo (scm_t_bits condition);
 
 
 
+/* Deprecated 23-05-2012, as as it's undocumented, poorly named, and
+   adequately replaced by scm_module_variable /
+   scm_ensure_module_variable / scm_define / scm_module_define.  */
+SCM_DEPRECATED SCM scm_sym2var (SCM sym, SCM thunk, SCM definep);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

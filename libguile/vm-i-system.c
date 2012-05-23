@@ -1446,9 +1446,7 @@ VM_DEFINE_INSTRUCTION (82, define, "define", 0, 0, 2)
   SCM sym, val;
   POP2 (sym, val);
   SYNC_REGISTER ();
-  VARIABLE_SET (scm_sym2var (sym, scm_current_module_lookup_closure (),
-                             SCM_BOOL_T),
-                val);
+  scm_define (sym, val);
   NEXT;
 }
 

@@ -610,17 +610,10 @@ resolve_variable (SCM what, SCM program_module)
 {
   if (SCM_LIKELY (scm_is_symbol (what)))
     {
-      if (SCM_LIKELY (scm_is_true (program_module)))
-        /* might longjmp */
+      if (scm_is_true (program_module))
         return scm_module_lookup (program_module, what);
       else
-        {
-          SCM v = scm_sym2var (what, SCM_BOOL_F, SCM_BOOL_F);
-          if (scm_is_false (v))
-            scm_misc_error (NULL, "unbound variable: ~S", scm_list_1 (what));
-          else
-            return v;
-        }
+        return scm_module_lookup (scm_the_root_module (), what);
     }
   else
     {

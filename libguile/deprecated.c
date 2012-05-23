@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2635,6 +2635,64 @@ scm_i_deprecated_asrtgo (scm_t_bits condition)
 
   return condition;
 }
+
+
+
+
+
+/* scm_sym2var
+ *
+ * looks up the variable bound to SYM according to PROC.  PROC should be
+ * a `eval closure' of some module.
+ *
+ * When no binding exists, and DEFINEP is true, create a new binding
+ * with a initial value of SCM_UNDEFINED.  Return `#f' when DEFINEP as
+ * false and no binding exists.
+ *
+ * When PROC is `#f', it is ignored and the binding is searched for in
+ * the scm_pre_modules_obarray (a `eq' hash table).
+ */
+
+SCM 
+scm_sym2var (SCM sym, SCM proc, SCM definep)
+#define FUNC_NAME "scm_sym2var"
+{
+  SCM var;
+
+  if (definep)
+    scm_c_issue_deprecation_warning
+      ("scm_sym2var is deprecated. Use scm_define or scm_module_define\n"
+       "to define variables.  In some rare cases you may need\n"
+       "scm_module_ensure_local_variable.");
+  else
+    scm_c_issue_deprecation_warning
+      ("scm_sym2var is deprecated.  Use scm_module_variable to look up\n"
+       "variables.");
+
+  if (SCM_NIMP (proc))
+    {
+      if (SCM_EVAL_CLOSURE_P (proc))
+	{
+	  /* Bypass evaluator in the standard case. */
+	  var = scm_eval_closure_lookup (proc, sym, definep);
+	}
+      else
+	var = scm_call_2 (proc, sym, definep);
+    }
+  else
+    {
+      if (scm_is_false (definep))
+        var = scm_module_variable (scm_the_root_module (), sym);
+      else
+        var = scm_module_ensure_local_variable (scm_the_root_module (), sym);
+    }
+
+  if (scm_is_true (var) && !SCM_VARIABLEP (var))
+    SCM_MISC_ERROR ("~S is not bound to a variable", scm_list_1 (sym));
+
+  return var;
+}
+#undef FUNC_NAME
 
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -92,8 +92,8 @@ SCM_DEFINE (scm_make_syntax_transformer, "make-syntax-transformer", 3, 0, 0,
       SCM existing_var;
       
       SCM_VALIDATE_SYMBOL (1, name);
-      existing_var = scm_sym2var (name, scm_current_module_lookup_closure (),
-                                  SCM_BOOL_F);
+
+      existing_var = scm_module_variable (scm_current_module (), name);
       if (scm_is_true (existing_var)
           && scm_is_true (scm_variable_bound_p (existing_var))
           && SCM_MACROP (SCM_VARIABLE_REF (existing_var)))
