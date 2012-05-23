@@ -69,7 +69,8 @@
             turn-on-debugging
             read-hash-procedures
             process-define-module
-            fluid-let-syntax))
+            fluid-let-syntax
+            set-system-module!))
 
 
 ;;;; Deprecated definitions.
@@ -884,3 +885,14 @@ it.")
   (issue-deprecation-warning
    "`close-io-port' is deprecated.  Use `close-port' instead.")
   (close-port port))
+
+(define (set-system-module! m s)
+  (issue-deprecation-warning
+   "`set-system-module!' is deprecated.  There is no need to use it.")
+  (set-procedure-property! (module-eval-closure m) 'system-module s))
+
+(set! module-eval-closure
+      (lambda (m)
+        (issue-deprecation-warning
+         "`module-eval-closure' is deprecated.  Use module-variable or module-define! instead.")
+        (standard-eval-closure m)))

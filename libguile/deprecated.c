@@ -2743,6 +2743,82 @@ scm_current_module_lookup_closure ()
     return SCM_BOOL_F;
 }
 
+scm_t_bits scm_tc16_eval_closure;
+
+#define SCM_F_EVAL_CLOSURE_INTERFACE (1<<0)
+#define SCM_EVAL_CLOSURE_INTERFACE_P(e) \
+  (SCM_SMOB_FLAGS (e) & SCM_F_EVAL_CLOSURE_INTERFACE)
+
+/* NOTE: This function may be called by a smob application
+   or from another C function directly. */
+SCM
+scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep)
+{
+  SCM module = SCM_PACK (SCM_SMOB_DATA (eclo));
+
+  scm_c_issue_deprecation_warning
+    ("Eval closures are deprecated.  See \"Accessing Modules From C\" in\n"
+     "the manual, for replacements.");
+
+  if (scm_is_true (definep))
+    {
+      if (SCM_EVAL_CLOSURE_INTERFACE_P (eclo))
+	return SCM_BOOL_F;
+      return scm_module_ensure_local_variable (module, sym);
+    }
+  else
+    return scm_module_variable (module, sym);
+}
+
+SCM_DEFINE (scm_standard_eval_closure, "standard-eval-closure", 1, 0, 0,
+	    (SCM module),
+	    "Return an eval closure for the module @var{module}.")
+#define FUNC_NAME s_scm_standard_eval_closure
+{
+  scm_c_issue_deprecation_warning
+    ("Eval closures are deprecated.  See \"Accessing Modules From C\" in\n"
+     "the manual, for replacements.");
+
+  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure, SCM_UNPACK (module));
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_standard_interface_eval_closure,
+	    "standard-interface-eval-closure", 1, 0, 0,
+	    (SCM module),
+	    "Return a interface eval closure for the module @var{module}. "
+	    "Such a closure does not allow new bindings to be added.")
+#define FUNC_NAME s_scm_standard_interface_eval_closure
+{
+  scm_c_issue_deprecation_warning
+    ("Eval closures are deprecated.  See \"Accessing Modules From C\" in\n"
+     "the manual, for replacements.");
+
+  SCM_RETURN_NEWSMOB (scm_tc16_eval_closure | (SCM_F_EVAL_CLOSURE_INTERFACE<<16),
+		      SCM_UNPACK (module));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_eval_closure_module,
+	    "eval-closure-module", 1, 0, 0,
+	    (SCM eval_closure),
+	    "Return the module associated with this eval closure.")
+/* the idea is that eval closures are really not the way to do things, they're
+   superfluous given our module system. this function lets mmacros migrate away
+   from eval closures. */
+#define FUNC_NAME s_scm_eval_closure_module
+{
+  scm_c_issue_deprecation_warning
+    ("Eval closures are deprecated.  See \"Accessing Modules From C\" in\n"
+     "the manual, for replacements.");
+
+  SCM_MAKE_VALIDATE_MSG (SCM_ARG1, eval_closure, EVAL_CLOSURE_P,
+                         "eval-closure");
+  return SCM_SMOB_OBJECT (eval_closure);
+}
+#undef FUNC_NAME
+
 
 
 
@@ -2751,6 +2827,9 @@ scm_i_init_deprecated ()
 {
   properties_whash = scm_make_weak_key_hash_table (SCM_UNDEFINED);
   scm_struct_table = scm_make_hash_table (SCM_UNDEFINED);
+  scm_tc16_eval_closure = scm_make_smob_type ("eval-closure", 0);
+  scm_set_smob_apply (scm_tc16_eval_closure, scm_eval_closure_lookup, 2, 0, 0);
+
 #include "libguile/deprecated.x"
 }
 

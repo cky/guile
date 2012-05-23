@@ -64,10 +64,6 @@ SCM_API scm_t_bits scm_module_tag;
 #define SCM_MODULE_IMPORT_OBARRAY(module) \
   SCM_PACK (SCM_STRUCT_DATA (module)[scm_module_index_import_obarray])
 
-SCM_API scm_t_bits scm_tc16_eval_closure;
-
-#define SCM_EVAL_CLOSURE_P(x)	SCM_TYP16_PREDICATE (scm_tc16_eval_closure, x)
-
 
 
 SCM_API SCM scm_current_module (void);
@@ -121,10 +117,6 @@ SCM_API SCM scm_module_public_interface (SCM module);
 SCM_API SCM scm_module_import_interface (SCM module, SCM sym);
 SCM_API SCM scm_module_transformer (SCM module);
 SCM_API SCM scm_current_module_transformer (void);
-SCM_API SCM scm_eval_closure_lookup (SCM eclo, SCM sym, SCM definep);
-SCM_API SCM scm_standard_eval_closure (SCM module);
-SCM_API SCM scm_standard_interface_eval_closure (SCM module);
-SCM_API SCM scm_eval_closure_module (SCM eval_closure); /* deprecated already */
 SCM_API SCM scm_get_pre_modules_obarray (void);
 
 SCM_INTERNAL void scm_modules_prehistory (void);

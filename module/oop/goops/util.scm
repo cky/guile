@@ -17,7 +17,7 @@
 
 
 (define-module (oop goops util)
-  :export (mapappend find-duplicate top-level-env top-level-env?
+  :export (mapappend find-duplicate
 	   map* for-each* length* improper->proper)
   :use-module (srfi srfi-1)
   :re-export  (any every)
@@ -37,15 +37,18 @@
     ((memv (car l) (cdr l))	(car l))
     (else 			(find-duplicate (cdr l)))))
 
-(define (top-level-env)
-  (let ((mod (current-module)))
-    (if mod
-	(module-eval-closure mod)
-	'())))
+(begin-deprecated
+ (define (top-level-env)
+   (let ((mod (current-module)))
+     (if mod
+         (module-eval-closure mod)
+         '())))
 
-(define (top-level-env? env)
-  (or (null? env)
-      (procedure? (car env))))
+ (define (top-level-env? env)
+   (or (null? env)
+       (procedure? (car env))))
+
+ (export top-level-env? top-level-env))
 
 (define (map* fn . l) 		; A map which accepts dotted lists (arg lists  
   (cond 			; must be "isomorph"

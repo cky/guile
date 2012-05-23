@@ -1524,55 +1524,7 @@ VALUE."
 ;;; Every module object is of the type 'module-type', which is a record
 ;;; consisting of the following members:
 ;;;
-;;; - eval-closure: the function that defines for its module the strategy that
-;;;   shall be followed when looking up symbols in the module.
-;;;
-;;;   An eval-closure is a function taking two arguments: the symbol to be
-;;;   looked up and a boolean value telling whether a binding for the symbol
-;;;   should be created if it does not exist yet.  If the symbol lookup
-;;;   succeeded (either because an existing binding was found or because a new
-;;;   binding was created), a variable object representing the binding is
-;;;   returned.  Otherwise, the value #f is returned.  Note that the eval
-;;;   closure does not take the module to be searched as an argument: During
-;;;   construction of the eval-closure, the eval-closure has to store the
-;;;   module it belongs to in its environment.  This means, that any
-;;;   eval-closure can belong to only one module.
-;;;
-;;;   The eval-closure of a module can be defined arbitrarily.  However, three
-;;;   special cases of eval-closures are to be distinguished: During startup
-;;;   the module system is not yet activated.  In this phase, no modules are
-;;;   defined and all bindings are automatically stored by the system in the
-;;;   pre-modules-obarray.  Since no eval-closures exist at this time, the
-;;;   functions which require an eval-closure as their argument need to be
-;;;   passed the value #f.
-;;;
-;;;   The other two special cases of eval-closures are the
-;;;   standard-eval-closure and the standard-interface-eval-closure.  Both
-;;;   behave equally for the case that no new binding is to be created.  The
-;;;   difference between the two comes in, when the boolean argument to the
-;;;   eval-closure indicates that a new binding shall be created if it is not
-;;;   found.
-;;;
-;;;   Given that no new binding shall be created, both standard eval-closures
-;;;   define the following standard strategy of searching bindings in the
-;;;   module: First, the module's obarray is searched for the symbol.  Second,
-;;;   if no binding for the symbol was found in the module's obarray, the
-;;;   module's binder procedure is exececuted.  If this procedure did not
-;;;   return a binding for the symbol, the modules referenced in the module's
-;;;   uses list are recursively searched for a binding of the symbol.  If the
-;;;   binding can not be found in these modules also, the symbol lookup has
-;;;   failed.
-;;;
-;;;   If a new binding shall be created, the standard-interface-eval-closure
-;;;   immediately returns indicating failure.  That is, it does not even try
-;;;   to look up the symbol.  In contrast, the standard-eval-closure would
-;;;   first search the obarray, and if no binding was found there, would
-;;;   create a new binding in the obarray, therefore not calling the binder
-;;;   procedure or searching the modules in the uses list.
-;;;
-;;;   The explanation of the following members obarray, binder and uses
-;;;   assumes that the symbol lookup follows the strategy that is defined in
-;;;   the standard-eval-closure and the standard-interface-eval-closure.
+;;; - eval-closure: A deprecated field, to be removed in Guile 2.2.
 ;;;
 ;;; - obarray: a hash table that maps symbols to variable objects.  In this
 ;;;   hash table, the definitions are found that are local to the module (that
@@ -1780,7 +1732,6 @@ VALUE."
   ;; NOTE: If you change the set of fields or their order, you also need to
   ;; change the constants in libguile/modules.h.
   ;;
-  ;; NOTE: The getter `module-eval-closure' is used in libguile/modules.c.
   ;; NOTE: The getter `module-transfomer' is defined libguile/modules.c.
   ;; NOTE: The getter `module-name' is defined later, due to boot reasons.
   ;; NOTE: The getter `module-public-interface' is used in libguile/modules.c.
@@ -1824,20 +1775,13 @@ VALUE."
       (error
        "Lazy-binder expected to be a procedure or #f." binder))
 
-  (let ((module (module-constructor (make-hash-table size)
-                                    uses binder #f macroexpand
-                                    #f #f #f
-                                    (make-hash-table %default-import-size)
-                                    '()
-                                    (make-weak-key-hash-table 31) #f
-                                    (make-hash-table 7) #f #f #f)))
-
-    ;; We can't pass this as an argument to module-constructor,
-    ;; because we need it to close over a pointer to the module
-    ;; itself.
-    (set-module-eval-closure! module (standard-eval-closure module))
-
-    module))
+  (module-constructor (make-hash-table size)
+                      uses binder #f macroexpand
+                      #f #f #f
+                      (make-hash-table %default-import-size)
+                      '()
+                      (make-weak-key-hash-table 31) #f
+                      (make-hash-table 7) #f #f #f))
 
 
 
@@ -2431,9 +2375,6 @@ VALUE."
 ;;; better thought of as a root.
 ;;;
 
-(define (set-system-module! m s)
-  (set-procedure-property! (module-eval-closure m) 'system-module s))
-
 ;; The root module uses the pre-modules-obarray as its obarray.  This
 ;; special obarray accumulates all bindings that have been established
 ;; before the module system is fully booted.
@@ -2445,7 +2386,6 @@ VALUE."
   (let ((m (make-module 0)))
     (set-module-obarray! m (%get-pre-modules-obarray))
     (set-module-name! m '(guile))
-    (set-system-module! m #t)
     m))
 
 ;; The root interface is a module that uses the same obarray as the
@@ -2454,10 +2394,8 @@ VALUE."
 (define the-scm-module
   (let ((m (make-module 0)))
     (set-module-obarray! m (%get-pre-modules-obarray))
-    (set-module-eval-closure! m (standard-interface-eval-closure m))
     (set-module-name! m '(guile))
     (set-module-kind! m 'interface)
-    (set-system-module! m #t)
 
     ;; In Guile 1.8 and earlier M was its own public interface.
     (set-module-public-interface! m m)
