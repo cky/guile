@@ -424,6 +424,20 @@
                    encodings)
               encodings)))
 
+  (pass-if "%default-port-conversion-strategy is honored"
+    (let ((strategies '(error substitute escape)))
+      (equal? (map (lambda (s)
+                     (with-fluids ((%default-port-conversion-strategy s))
+                       (call-with-output-string
+                        (lambda (p)
+                          (and (eq? s (port-conversion-strategy p))
+                               (begin
+                                 (set-port-conversion-strategy! p s)
+                                 (display (port-conversion-strategy p)
+                                          p)))))))
+                   strategies)
+              (map symbol->string strategies))))
+
   (pass-if "suitable encoding [latin-1]"
     (let ((str "hello, world"))
       (with-fluids ((%default-port-encoding "ISO-8859-1"))
@@ -440,15 +454,17 @@
                   (lambda ()
                     (display str)))))))
 
-  (pass-if "wrong encoding"
+  (pass-if "wrong encoding, error"
     (let ((str "ĉu bone?"))
       (catch 'encoding-error
         (lambda ()
           ;; Latin-1 cannot represent ‘ĉ’.
-          (with-fluids ((%default-port-encoding "ISO-8859-1"))
+          (with-fluids ((%default-port-encoding "ISO-8859-1")
+                        (%default-port-conversion-strategy 'error))
             (with-output-to-string
               (lambda ()
-                (display str)))))
+                (display str))))
+          #f)                            ; so the test really fails here
         (lambda (key subr message errno port chr)
           (and (eq? chr #\ĉ)
                (string? (strerror errno)))))))

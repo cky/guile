@@ -337,7 +337,6 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
     st_flush (z);
 
-  pt->ilseq_handler = SCM_FAILED_CONVERSION_ERROR;
   return z;
 }
 

@@ -320,9 +320,10 @@ sub-expression, via the @var{breadth-first?} keyword argument."
       (let ((e "…"))
         (catch 'encoding-error
           (lambda ()
-            (with-output-to-string
-              (lambda ()
-                (display e))))
+            (with-fluids ((%default-port-conversion-strategy 'error))
+              (with-output-to-string
+                (lambda ()
+                  (display e)))))
           (lambda (key . args)
             "..."))))
 
