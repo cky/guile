@@ -1577,7 +1577,7 @@ SCM
 scm_from_locale_stringn (const char *str, size_t len)
 {
   return scm_from_stringn (str, len, locale_charset (),
-                           scm_i_get_conversion_strategy (SCM_BOOL_F));
+                           scm_i_default_port_conversion_handler ());
 }
 
 SCM
@@ -1802,9 +1802,9 @@ scm_to_locale_string (SCM str)
 char *
 scm_to_locale_stringn (SCM str, size_t *lenp)
 {
-  return scm_to_stringn (str, lenp, 
+  return scm_to_stringn (str, lenp,
                          locale_charset (),
-                         scm_i_get_conversion_strategy (SCM_BOOL_F));
+                         scm_i_default_port_conversion_handler ());
 }
 
 char *

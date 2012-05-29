@@ -58,6 +58,34 @@
     string))
 
 
+
+(with-test-prefix "%default-port-conversion-strategy"
+
+  (pass-if "initial value"
+    (eq? 'substitute (fluid-ref %default-port-conversion-strategy)))
+
+  (pass-if "file port"
+    (let ((strategies '(error substitute escape)))
+      (equal? (map (lambda (s)
+                     (with-fluids ((%default-port-conversion-strategy s))
+                       (call-with-output-file "/dev/null"
+                         (lambda (p)
+                           (port-conversion-strategy p)))))
+                   strategies)
+              strategies)))
+
+  (pass-if "(set-port-conversion-strategy! #f sym)"
+    (begin
+      (set-port-conversion-strategy! #f 'error)
+      (and (eq? (fluid-ref %default-port-conversion-strategy) 'error)
+           (begin
+             (set-port-conversion-strategy! #f 'substitute)
+             (eq? (fluid-ref %default-port-conversion-strategy)
+                  'substitute)))))
+
+)
+
+
 ;;;; Normal file ports.
 
 ;;; Write out an s-expression, and read it back.

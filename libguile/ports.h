@@ -308,9 +308,12 @@ SCM_INTERNAL void scm_i_set_default_port_encoding (const char *);
 SCM_INTERNAL void scm_i_set_port_encoding_x (SCM port, const char *str);
 SCM_API SCM scm_port_encoding (SCM port);
 SCM_API SCM scm_set_port_encoding_x (SCM port, SCM encoding);
-SCM_INTERNAL scm_t_string_failed_conversion_handler scm_i_get_conversion_strategy (SCM port);
-SCM_INTERNAL void scm_i_set_conversion_strategy_x (SCM port, 
-						   scm_t_string_failed_conversion_handler h);
+SCM_INTERNAL scm_t_string_failed_conversion_handler
+scm_i_default_port_conversion_handler (void);
+/* Use HANDLER as the default conversion strategy for future ports.  */
+SCM_INTERNAL void
+scm_i_set_default_port_conversion_handler (scm_t_string_failed_conversion_handler);
+
 SCM_API SCM scm_port_conversion_strategy (SCM port);
 SCM_API SCM scm_set_port_conversion_strategy_x (SCM port, SCM behavior);
 SCM_API int scm_port_print (SCM exp, SCM port, scm_print_state *);

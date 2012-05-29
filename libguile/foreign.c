@@ -375,7 +375,7 @@ SCM_DEFINE (scm_string_to_pointer, "string->pointer", 1, 1, 0,
 
       ret = scm_from_pointer
         (scm_to_stringn (string, NULL, enc,
-                         scm_i_get_conversion_strategy (SCM_BOOL_F)),
+                         scm_i_default_port_conversion_handler ()),
          free);
 
       scm_dynwind_end ();
@@ -420,7 +420,7 @@ SCM_DEFINE (scm_pointer_to_string, "pointer->string", 1, 2, 0,
       scm_dynwind_free (enc);
 
       ret = scm_from_stringn (SCM_POINTER_VALUE (pointer), len, enc,
-                              scm_i_get_conversion_strategy (SCM_BOOL_F));
+                              scm_i_default_port_conversion_handler ());
 
       scm_dynwind_end ();
 

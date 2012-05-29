@@ -166,6 +166,21 @@ returned.  New ports will have this default behavior when they are
 created.
 @end deffn
 
+@deffn {Scheme Variable} %default-port-conversion-strategy
+The fluid that defines the conversion strategy for newly created ports,
+and for other conversion routines such as @code{scm_to_stringn},
+@code{scm_from_stringn}, @code{string->pointer}, and
+@code{pointer->string}.
+
+Its value must be one of the symbols described above, with the same
+semantics: @code{'error}, @code{'substitute}, or @code{'escape}.
+
+When Guile starts, its value is @code{'substitute}.
+
+Note that @code{(set-port-conversion-strategy! #f @var{sym})} is
+equivalent to @code{(fluid-set! %default-port-conversion-strategy
+@var{sym})}.
+@end deffn
 
 
 @node Reading

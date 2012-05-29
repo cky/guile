@@ -283,7 +283,7 @@
 (define exception:system-error
   (cons 'system-error ".*"))
 (define exception:encoding-error
-  (cons 'encoding-error "(cannot convert to output locale|input (locale conversion|decoding) error)"))
+  (cons 'encoding-error "(cannot convert.* to output locale|input (locale conversion|decoding) error)"))
 (define exception:miscellaneous-error
   (cons 'misc-error "^.*"))
 (define exception:read-error
