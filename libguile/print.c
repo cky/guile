@@ -61,6 +61,9 @@
 
 /* Character printers.  */
 
+#define PORT_CONVERSION_HANDLER(port)		\
+  SCM_PTAB_ENTRY (port)->ilseq_handler
+
 static size_t display_string (const void *, int, size_t, SCM,
 			      scm_t_string_failed_conversion_handler);
 
@@ -393,7 +396,7 @@ print_extended_symbol (SCM sym, SCM port)
   scm_t_string_failed_conversion_handler strategy;
 
   len = scm_i_symbol_length (sym);
-  strategy = scm_i_get_conversion_strategy (port);
+  strategy = PORT_CONVERSION_HANDLER (port);
 
   scm_lfwrite ("#{", 2, port);
 
@@ -500,7 +503,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	  else
 	    {
 	      if (!display_character (SCM_CHAR (exp), port,
-				      scm_i_get_conversion_strategy (port)))
+				      PORT_CONVERSION_HANDLER (port)))
 		scm_encoding_error (__func__, errno,
 				    "cannot convert to output locale",
 				    port, exp);
@@ -586,7 +589,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	      printed = display_string (scm_i_string_data (exp),
 					scm_i_is_narrow_string (exp),
 					len, port,
-					scm_i_get_conversion_strategy (port));
+					PORT_CONVERSION_HANDLER (port));
 	      if (SCM_UNLIKELY (printed < len))
 		scm_encoding_error (__func__, errno,
 				    "cannot convert to output locale",
@@ -1116,7 +1119,7 @@ write_character (scm_t_wchar ch, SCM port, int string_escapes_p)
   int printed = 0;
   scm_t_string_failed_conversion_handler strategy;
 
-  strategy = scm_i_get_conversion_strategy (port);
+  strategy = PORT_CONVERSION_HANDLER (port);
 
   if (string_escapes_p)
     {
@@ -1469,7 +1472,7 @@ SCM_DEFINE (scm_write_char, "write-char", 1, 1, 0,
 
   port = SCM_COERCE_OUTPORT (port);
   if (!display_character (SCM_CHAR (chr), port,
-			  scm_i_get_conversion_strategy (port)))
+			  PORT_CONVERSION_HANDLER (port)))
     scm_encoding_error (__func__, errno,
 			"cannot convert to output locale",
 			port, chr);

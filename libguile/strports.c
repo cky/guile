@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001,2002, 2003, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2005, 2006,
+ *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -336,7 +337,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
     st_flush (z);
 
-  scm_i_set_conversion_strategy_x (z, SCM_FAILED_CONVERSION_ERROR);
+  pt->ilseq_handler = SCM_FAILED_CONVERSION_ERROR;
   return z;
 }
 
