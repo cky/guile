@@ -1,6 +1,6 @@
 ;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -306,10 +306,12 @@
            (bv  (string->utf16 str)))
       (catch 'decoding-error
         (lambda ()
-          (with-fluids ((%default-port-encoding "UTF-32"))
+          (with-fluids ((%default-port-encoding "UTF-32")
+                        (%default-port-conversion-strategy 'error))
             (call-with-output-string
               (lambda (port)
-                (put-bytevector port bv)))))
+                (put-bytevector port bv)))
+            #f))                           ; fail if we reach this point
         (lambda (key subr message errno port)
           (string? (strerror errno)))))))
 
@@ -662,7 +664,8 @@
            (tp (transcoded-port b t)))
       (guard (c ((i/o-decoding-error? c)
                  (eq? (i/o-error-port c) tp)))
-        (get-line tp))))
+        (get-line tp)
+        #f)))                              ; fail if we reach this point
 
   (pass-if "transcoded-port [error handling mode = replace]"
     (let* ((t  (make-transcoder (utf-8-codec) (native-eol-style)
