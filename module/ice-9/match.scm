@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -52,7 +52,7 @@
 ;; `match' doesn't support clauses of the form `(pat => exp)'.
 
 ;; Unmodified public domain code by Alex Shinn retrieved from
-;; the Chibi-Scheme repository, commit 876:528cdab3f818.
+;; the Chibi-Scheme repository, commit 1206:acd808700e91.
 ;;
 ;; Note: Make sure to update `match.test.upstream' when updating this
 ;; file.
