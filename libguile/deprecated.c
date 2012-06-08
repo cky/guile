@@ -2653,13 +2653,13 @@ scm_i_deprecated_asrtgo (scm_t_bits condition)
  * the scm_pre_modules_obarray (a `eq' hash table).
  */
 
-SCM 
+SCM
 scm_sym2var (SCM sym, SCM proc, SCM definep)
 #define FUNC_NAME "scm_sym2var"
 {
   SCM var;
 
-  if (definep)
+  if (scm_is_true (definep))
     scm_c_issue_deprecation_warning
       ("scm_sym2var is deprecated. Use scm_define or scm_module_define\n"
        "to define variables.  In some rare cases you may need\n"
