@@ -92,7 +92,7 @@
   (pdel o (string->symbol p)))
 
 (define-method (has-property? (o <js-object>) p)
-  (if (hashq-get-handle (js-props o) v)
+  (if (hashq-get-handle (js-props o) p)
       #t
       (let ((proto (js-prototype o)))
         (if proto
@@ -176,9 +176,9 @@
         ((boolean? x) (if x 1 0))
         ((null? x) 0)
         ((eq? x *undefined*) +nan.0)
-        ((is-a? x <js-object>) (object->number x))
+        ((is-a? x <js-object>) (object->number x #t))
         ((string? x) (string->number x))
-        (else (throw 'TypeError o '->number))))
+        (else (throw 'TypeError x '->number))))
 
 (define (->integer x)
   (let ((n (->number x)))
