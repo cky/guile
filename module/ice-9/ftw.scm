@@ -538,26 +538,29 @@ of file names is sorted according to ENTRY<?, which defaults to
   (define (enter? dir stat result)
     (and stat (string=? dir name)))
 
-  (define (leaf name stat result)
-    (if (select? name)
-        (and (pair? result)                      ; must have a "." entry
-             (cons (basename name) result))
+  (define (visit basename result)
+    (if (select? basename)
+        (cons basename result)
         result))
 
+  (define (leaf name stat result)
+    (and result
+         (visit (basename name) result)))
+
   (define (down name stat result)
-    (list "."))
+    (visit "." '()))
 
   (define (up name stat result)
-    (cons ".." result))
+    (visit ".." result))
 
   (define (skip name stat result)
     ;; All the sub-directories are skipped.
-    (cons (basename name) result))
+    (visit (basename name) result))
 
   (define (error name* stat errno result)
     (if (string=? name name*)             ; top-level NAME is unreadable
         result
-        (cons (basename name*) result)))
+        (visit (basename name*) result)))
 
   (and=> (file-system-fold enter? leaf down up skip error #f name stat)
          (lambda (files)

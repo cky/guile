@@ -310,14 +310,17 @@
   (pass-if "test-suite"
     (let ((select? (cut string-suffix? ".test" <>)))
       (match (scandir (string-append %test-dir "/tests") select?)
-        (("." ".." "00-initial-env.test" (? select?) ...)
+        (("00-initial-env.test" (? select?) ...)
          #t))))
 
   (pass-if "flat file"
     (not (scandir (string-append %test-dir "/Makefile.am"))))
 
   (pass-if "EACCES"
-    (not (scandir "/.does-not-exist."))))
+    (not (scandir "/.does-not-exist.")))
+
+  (pass-if "no select"
+    (null? (scandir %test-dir (lambda (_) #f)))))
 
 ;;; Local Variables:
 ;;; eval: (put 'with-file-tree 'scheme-indent-function 2)
