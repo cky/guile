@@ -25,6 +25,7 @@
   #:use-module (oop goops)
   #:use-module (oop goops util)
   #:use-module (oop goops compile)
+  #:use-module (system base target)
   #:export (memoize-method!)
   #:no-backtrace)
 
@@ -178,11 +179,15 @@
                      '())
                  (acons gf gf-sym '()))))
   (define (comp exp vals)
-    (let ((p ((@ (system base compile) compile) exp
-              #:env *dispatch-module*
-              #:opts '(#:partial-eval? #f #:cse? #f))))
-      (apply p vals)))
-  
+    ;; When cross-compiling Guile itself, the native Guile must generate
+    ;; code for the host.
+    (with-target %host-type
+      (lambda ()
+        (let ((p ((@ (system base compile) compile) exp
+                  #:env *dispatch-module*
+                  #:opts '(#:partial-eval? #f #:cse? #f))))
+          (apply p vals)))))
+
   ;; kick it.
   (scan))
 
