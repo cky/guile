@@ -1,6 +1,6 @@
 ;;; srfi-6.scm --- Basic String Ports
 
-;; 	Copyright (C) 2001, 2002, 2003, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2001, 2002, 2003, 2006, 2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -23,10 +23,20 @@
 ;;; Code:
 
 (define-module (srfi srfi-6)
-  #:re-export (open-input-string open-output-string get-output-string))
+  #:replace (open-input-string open-output-string)
+  #:re-export (get-output-string))
 
-;; Currently, guile provides these functions by default, so no action
-;; is needed, and this file is just a placeholder.
+;; SRFI-6 says nothing about encodings, and assumes that any character
+;; or string can be written to a string port.  Thus, make all SRFI-6
+;; string ports Unicode capable.  See <http://bugs.gnu.org/11197>.
+
+(define (open-input-string s)
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    ((@ (guile) open-input-string) s)))
+
+(define (open-output-string)
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    ((@ (guile) open-output-string))))
 
 (cond-expand-provide (current-module) '(srfi-6))
 

@@ -1,6 +1,6 @@
 ;;;; srfi-6.test --- test suite for SRFI-6   -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2003, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2003, 2006, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,13 +37,21 @@
 	   (char=? #\y (read-char port))
 	   (char=? #\z (read-char port))
 	   (eof-object? (read-char port)))))
-  
+
+  (pass-if "read-char, Unicode"
+    ;; String ports should always be Unicode-capable.
+    ;; See <http://bugs.gnu.org/11197>.
+    (with-fluids ((%default-port-encoding "ISO-8859-1"))
+      (let ((port (open-input-string "λμ")))
+        (and (char=? #\λ (read-char port))
+             (char=? #\μ (read-char port))))))
+
   (with-test-prefix "unread-char"
     
     (pass-if "one char"
       (let ((port (open-input-string "")))
-	(unread-char #\x port)
-	(and (char=? #\x (read-char port))
+        (unread-char #\x port)
+        (and (char=? #\x (read-char port))
 	     (eof-object? (read-char port)))))
     
     (pass-if "after eof"
@@ -75,7 +83,15 @@
     (let ((port (open-output-string)))
       (display "xyz" port)
       (string=? "xyz" (get-output-string port))))
-  
+
+  (pass-if "λ"
+    ;; Writing to an output string should always work.
+    ;; See <http://bugs.gnu.org/11197>.
+    (with-fluids ((%default-port-encoding "ISO-8859-1"))
+      (let ((port (open-output-string)))
+        (display "λ" port)
+        (string=? "λ" (get-output-string port)))))
+
   (pass-if "seek"
     (let ((port (open-output-string)))
       (display "abcdef" port)
