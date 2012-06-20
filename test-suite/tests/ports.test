@@ -413,6 +413,22 @@
     (pass-if "output check"
 	     (string=? text result)))
 
+  (pass-if "encoding failure leads to exception"
+    ;; Prior to 2.0.6, this would trigger a deadlock in `scm_mkstrport'.
+    ;; See the discussion at <http://bugs.gnu.org/11197>, for details.
+    (catch 'encoding-error
+      (lambda ()
+        (with-fluids ((%default-port-encoding "ISO-8859-1"))
+          (let ((p (open-input-string "λ")))      ; raise an exception
+            #f)))
+      (lambda (key . rest)
+        #t)
+      (lambda (key . rest)
+        ;; At this point, the port-table mutex used to be still held,
+        ;; hence the deadlock.  This situation would occur when trying
+        ;; to print a backtrace, for instance.
+        (input-port? (open-input-string "foo")))))
+
   (pass-if "%default-port-encoding is honored"
     (let ((encodings '("UTF-8" "UTF-16" "ISO-8859-1" "ISO-8859-3")))
       (equal? (map (lambda (e)

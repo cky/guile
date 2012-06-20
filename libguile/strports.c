@@ -288,7 +288,18 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
   scm_i_dynwind_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   z = scm_new_port_table_entry (scm_tc16_strport);
-  pt = SCM_PTAB_ENTRY(z);
+  SCM_SET_CELL_TYPE (z, scm_tc16_strport);
+  pt = SCM_PTAB_ENTRY (z);
+
+  /* Make PT initially empty, and release the port-table mutex
+     immediately.  This is so that if one of the function calls below
+     raises an exception, a pre-unwind catch handler can still create
+     new ports; for instance, `display-backtrace' needs to be able to
+     allocate a new string port.  See <http://bugs.gnu.org/11197>.  */
+  scm_port_non_buffer (pt);
+  SCM_SETSTREAM (z, SCM_UNPACK (scm_null_bytevector));
+
+  scm_dynwind_end ();
 
   if (scm_is_false (str))
     {
@@ -296,10 +307,6 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
       str_len = INITIAL_BUFFER_SIZE;
       buf = scm_c_make_bytevector (str_len);
       c_buf = (char *) SCM_BYTEVECTOR_CONTENTS (buf);
-
-      /* Reset `read_buf_size'.  It will contain the actual number of
-	 bytes written to PT.  */
-      pt->read_buf_size = 0;
       c_pos = 0;
     }
   else
@@ -318,11 +325,20 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
       free (copy);
 
       c_pos = scm_to_unsigned_integer (pos, 0, str_len);
-      pt->read_buf_size = str_len;
     }
+
+  /* Now, finish up the port.  */
+  scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   SCM_SETSTREAM (z, SCM_UNPACK (buf));
   SCM_SET_CELL_TYPE (z, scm_tc16_strport | modes);
+
+  if (scm_is_false (str))
+    /* Reset `read_buf_size'.  It will contain the actual number of
+       bytes written to PT.  */
+    pt->read_buf_size = 0;
+  else
+    pt->read_buf_size = str_len;
 
   pt->write_buf = pt->read_buf = (unsigned char *) c_buf;
   pt->read_pos = pt->write_pos = pt->read_buf + c_pos;
@@ -331,7 +347,7 @@ scm_mkstrport (SCM pos, SCM str, long modes, const char *caller)
 
   pt->rw_random = 1;
 
-  scm_dynwind_end ();
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   /* Ensure WRITE_POS is writable.  */
   if ((modes & SCM_WRTNG) && pt->write_pos == pt->write_end)
