@@ -276,11 +276,11 @@
            #f)))
        (_
         (cond
-         ((find-dominating-expression exp effects #f db)
+         ((find-dominating-expression exp effects 'test db)
           ;; We have an EXP fact, so we infer #t.
           (log 'inferring exp #t)
           (make-const (tree-il-src exp) #t))
-         ((find-dominating-expression (negate exp 'test) effects #f db)
+         ((find-dominating-expression (negate exp 'test) effects 'test db)
           ;; We have a (not EXP) fact, so we infer #f.
           (log 'inferring exp #f)
           (make-const (tree-il-src exp) #f))
