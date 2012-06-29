@@ -178,10 +178,10 @@ URI := scheme ":" ["//" [userinfo "@@"] host [":" port]] path \
 
 For example, in the URI, @indicateurl{http://www.gnu.org/help/}, the
 scheme is @code{http}, the host is @code{www.gnu.org}, the path is
-@code{/help/}, and there is no userinfo, port, query, or path.  All URIs
-have a scheme and a path (though the path might be empty).  Some URIs
-have a host, and some of those have ports and userinfo.  Any URI might
-have a query part or a fragment.
+@code{/help/}, and there is no userinfo, port, query, or fragment.  All
+URIs have a scheme and a path (though the path might be empty).  Some
+URIs have a host, and some of those have ports and userinfo.  Any URI
+might have a query part or a fragment.
 
 Userinfo is something of an abstraction, as some legacy URI schemes
 allowed userinfo of the form @code{@var{username}:@var{passwd}}.  But
