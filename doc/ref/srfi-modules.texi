@@ -1237,6 +1237,12 @@ The following syntax can be obtained with
 (use-modules (srfi srfi-2))
 @end lisp
 
+or alternatively
+
+@lisp
+(use-modules (ice-9 and-let-star))
+@end lisp
+
 @deffn {library syntax} and-let* (clause @dots{}) body @dots{}
 A combination of @code{and} and @code{let*}.
 
