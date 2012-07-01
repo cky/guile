@@ -643,10 +643,8 @@ properties interface.
 
 The first group of procedures in this meta-interface are predicates to
 test whether a Scheme object is a procedure, or a special procedure,
-respectively. @code{procedure?} is the most general predicates, it
-returns @code{#t} for any kind of procedure. @code{closure?} does not
-return @code{#t} for primitive procedures, and @code{thunk?} only
-returns @code{#t} for procedures which do not accept any arguments.
+respectively.  @code{procedure?} is the most general predicates, it
+returns @code{#t} for any kind of procedure.
 
 @rnindex procedure?
 @deffn {Scheme Procedure} procedure? obj
@@ -656,7 +654,8 @@ Return @code{#t} if @var{obj} is a procedure.
 
 @deffn {Scheme Procedure} thunk? obj
 @deffnx {C Function} scm_thunk_p (obj)
-Return @code{#t} if @var{obj} is a thunk.
+Return @code{#t} if @var{obj} is a thunk---a procedure that does
+not accept arguments.
 @end deffn
 
 @cindex procedure properties
