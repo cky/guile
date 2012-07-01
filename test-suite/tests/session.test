@@ -1,7 +1,7 @@
 ;;;; session.test --- test suite for (ice-9 session)   -*- scheme -*-
 ;;;; Jose Antonio Ortega Ruiz <jao@gnu.org> -- August 2010
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 
 (define-module (test-suite session)
   #:use-module (test-suite lib)
+  #:use-module (system base compile)
   #:use-module (ice-9 session))
 
 (define (find-module mod)
@@ -51,3 +52,43 @@
 (with-test-prefix "apropos-fold-exported"
   (pass-if "a child of test-suite" (find-interface '(test-suite lib)))
   (pass-if "a child of ice-9" (find-interface '(ice-9 session))))
+
+(with-test-prefix "procedure-arguments"
+
+  (define-syntax-rule (pass-if-valid-arguments name proc expected)
+    (pass-if name
+      (let ((args (procedure-arguments (compile 'proc #:to 'value))))
+        (or (equal? args 'expected)
+            (pk 'invalid-args args #f)))))
+
+  (pass-if-valid-arguments "lambda"
+    (lambda (a b c) #f)
+    ((required . (a b c)) (optional) (keyword)
+     (allow-other-keys? . #f) (rest . #f)))
+  (pass-if-valid-arguments "lambda with rest"
+    (lambda (a b . r) #f)
+    ((required . (a b)) (optional) (keyword)
+     (allow-other-keys? . #f) (rest . r)))
+  (pass-if-valid-arguments "lambda* with optionals"
+    (lambda* (a b #:optional (p 1) (q 2)) #f)
+    ((required . (a b)) (optional . (p q))
+     (keyword) (allow-other-keys? . #f) (rest . #f)))
+  (pass-if-valid-arguments "lambda* with keywords"
+    (lambda* (a b #:key (k 42) l) #f)
+    ((required . (a b)) (optional)
+     (keyword . ((#:k . 2) (#:l . 3))) (allow-other-keys? . #f)
+     (rest . #f)))
+  (pass-if-valid-arguments "lambda* with keywords and a-o-k"
+    (lambda* (a b #:key (k 42) #:allow-other-keys) #f)
+    ((required . (a b)) (optional)
+     (keyword . ((#:k . 2))) (allow-other-keys? . #t)
+     (rest . #f)))
+  (pass-if-valid-arguments "lambda* with optionals, keys, and rest"
+    (lambda* (a b #:optional o p #:key k l #:rest r) #f)
+    ((required . (a b)) (optional . (o p))
+     (keyword . ((#:k . 5) (#:l . 6))) (allow-other-keys? . #f)
+     (rest . k))))
+
+;;; Local Variables:
+;;; eval: (put 'pass-if-valid-arguments 'scheme-indent-function 1)
+;;; End:
