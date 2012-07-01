@@ -1,7 +1,7 @@
 #ifndef SCM_BDW_GC_H
 #define SCM_BDW_GC_H
 
-/* Copyright (C) 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,12 +45,6 @@
 /* This was needed with `libgc' 6.x.  */
 # include <gc/gc_local_alloc.h>
 #endif
-
-#if (defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR >= 7)
-/* This type was provided by `libgc' 6.x.  */
-typedef void *GC_PTR;
-#endif
-
 
 /* Return true if PTR points to the heap.  */
 #define SCM_I_IS_POINTER_TO_THE_HEAP(ptr)	\
