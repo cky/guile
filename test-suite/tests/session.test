@@ -87,7 +87,14 @@
     (lambda* (a b #:optional o p #:key k l #:rest r) #f)
     ((required . (a b)) (optional . (o p))
      (keyword . ((#:k . 5) (#:l . 6))) (allow-other-keys? . #f)
-     (rest . k))))
+     (rest . k)))
+
+  (pass-if "aok? is preserved"
+    ;; See <http://bugs.gnu.org/10938>.
+    (let* ((proc (compile '(lambda (a b) #f) #:to 'value))
+           (args (procedure-arguments proc)))
+      (set-procedure-property! proc 'arglist (map cdr args))
+      (equal? args (procedure-arguments proc)))))
 
 ;;; Local Variables:
 ;;; eval: (put 'pass-if-valid-arguments 'scheme-indent-function 1)

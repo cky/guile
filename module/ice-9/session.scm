@@ -1,4 +1,5 @@
-;;;; 	Copyright (C) 1997, 2000, 2001, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 1997, 2000, 2001, 2003, 2006, 2009, 2010, 2011,
+;;;;    2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,6 +21,7 @@
   #:use-module (ice-9 documentation)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 match)
   #:export (help
             add-value-help-handler! remove-value-help-handler!
             add-name-help-handler! remove-name-help-handler!
@@ -504,14 +506,16 @@ It is an image under the mapping EXTRACT."
 if the information cannot be obtained.
 
 The alist keys that are currently defined are `required', `optional',
-`keyword', and `rest'."
+`keyword', `allow-other-keys?', and `rest'."
   (cond
    ((procedure-property proc 'arglist)
-    => (lambda (arglist)
-         `((required . ,(car arglist))
-           (optional . ,(cadr arglist))
-           (keyword . ,(caddr arglist))
-           (rest . ,(car (cddddr arglist))))))
+    => (match-lambda
+        ((req opt keyword aok? rest)
+         `((required . ,req)
+           (optional . ,opt)
+           (keyword . ,keyword)
+           (allow-other-keys? . ,aok?)
+           (rest . ,rest)))))
    ((procedure-source proc)
     => cadr)
    (((@ (system vm program) program?) proc)
