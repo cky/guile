@@ -1,5 +1,6 @@
-/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009, 2011,
+ *   2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -104,7 +105,7 @@ guardian_print (SCM guardian, SCM port, scm_print_state *pstate SCM_UNUSED)
 /* Handle finalization of OBJ which is guarded by the guardians listed in
    GUARDIAN_LIST.  */
 static void
-finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
+finalize_guarded (void *ptr, void *finalizer_data)
 {
   SCM cell_pool;
   SCM obj, guardian_list, proxied_finalizer;
@@ -164,7 +165,7 @@ finalize_guarded (GC_PTR ptr, GC_PTR finalizer_data)
       /* Re-register the finalizer that was in place before we installed this
 	 one.  */
       GC_finalization_proc finalizer, prev_finalizer;
-      GC_PTR finalizer_data, prev_finalizer_data;
+      void *finalizer_data, *prev_finalizer_data;
 
       finalizer = (GC_finalization_proc) SCM2PTR (SCM_CAR (proxied_finalizer));
       finalizer_data = SCM2PTR (SCM_CDR (proxied_finalizer));
@@ -204,7 +205,7 @@ scm_i_guard (SCM guardian, SCM obj)
 	 the very beginning of an object's lifetime (e.g., see `SCM_NEWSMOB')
 	 or by this function.  */
       GC_finalization_proc prev_finalizer;
-      GC_PTR prev_data;
+      void *prev_data;
       SCM guardians_for_obj, finalizer_data;
 
       g->live++;

@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010,
+ *   2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -277,9 +278,8 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
       if (SCM_I_WVECTP (v))
 	{
 	  /* Make it a weak pointer.  */
-	  GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (v))[k]);
-	  SCM_I_REGISTER_DISAPPEARING_LINK (link,
-                                            (GC_PTR) SCM2PTR (obj));
+	  SCM *link = & SCM_I_VECTOR_WELTS (v)[k];
+	  SCM_I_REGISTER_DISAPPEARING_LINK ((void **) link, SCM2PTR (obj));
 	}
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
@@ -296,9 +296,8 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	  if (SCM_I_WVECTP (vv))
 	    {
 	      /* Make it a weak pointer.  */
-	      GC_PTR link = (GC_PTR) & ((SCM_I_VECTOR_WELTS (vv))[k]);
-	      SCM_I_REGISTER_DISAPPEARING_LINK (link,
-                                                (GC_PTR) SCM2PTR (obj));
+	      SCM *link = & SCM_I_VECTOR_WELTS (vv)[k];
+	      SCM_I_REGISTER_DISAPPEARING_LINK ((void **) link, SCM2PTR (obj));
 	    }
 	}
       else

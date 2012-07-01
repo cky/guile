@@ -814,10 +814,10 @@ scm_hash_fn_set_x (SCM table, SCM obj, SCM val,
           SCM_SETCDR (pair, val);
 
           if (SCM_NIMP (prev) && !SCM_NIMP (val))
-            GC_unregister_disappearing_link ((GC_PTR) SCM_CDRLOC (pair));
+            GC_unregister_disappearing_link ((void **) SCM_CDRLOC (pair));
           else
-            SCM_I_REGISTER_DISAPPEARING_LINK ((GC_PTR) SCM_CDRLOC (pair),
-                                              (GC_PTR) SCM2PTR (val));
+            SCM_I_REGISTER_DISAPPEARING_LINK ((void **) SCM_CDRLOC (pair),
+                                              SCM2PTR (val));
         }
       else
         SCM_SETCDR (pair, val);

@@ -378,7 +378,7 @@ scm_gc_mark (SCM o)
 
 /* Finalize SMOB by calling its SMOB type's free function, if any.  */
 static void
-finalize_smob (GC_PTR ptr, GC_PTR data)
+finalize_smob (void *ptr, void *data)
 {
   SCM smob;
   size_t (* free_smob) (SCM);

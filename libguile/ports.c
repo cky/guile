@@ -543,7 +543,7 @@ scm_i_pthread_mutex_t scm_i_port_table_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 /* Port finalization.  */
 
 
-static void finalize_port (GC_PTR, GC_PTR);
+static void finalize_port (void *, void *);
 
 /* Register a finalizer for PORT.  */
 static SCM_C_INLINE_KEYWORD void
@@ -556,7 +556,7 @@ register_finalizer_for_port (SCM port)
 
 /* Finalize the object (a port) pointed to by PTR.  */
 static void
-finalize_port (GC_PTR ptr, GC_PTR data)
+finalize_port (void *ptr, void *data)
 {
   long port_type;
   SCM port = PTR2SCM (ptr);

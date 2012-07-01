@@ -99,7 +99,7 @@ register_weak_reference (SCM from, SCM to)
 }
 
 static void
-pointer_finalizer_trampoline (GC_PTR ptr, GC_PTR data)
+pointer_finalizer_trampoline (void *ptr, void *data)
 {
   scm_t_pointer_finalizer finalizer = data;
   finalizer (SCM_POINTER_VALUE (PTR2SCM (ptr)));

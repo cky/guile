@@ -179,7 +179,7 @@ static mpz_t z_negative_one;
 
 /* Clear the `mpz_t' embedded in bignum PTR.  */
 static void
-finalize_bignum (GC_PTR ptr, GC_PTR data)
+finalize_bignum (void *ptr, void *data)
 {
   SCM bignum;
 

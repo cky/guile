@@ -410,7 +410,7 @@ SCM_DEFINE (scm_struct_vtable_p, "struct-vtable?", 1, 0, 0,
 
 /* Finalization: invoke the finalizer of the struct pointed to by PTR.  */
 static void
-struct_finalizer_trampoline (GC_PTR ptr, GC_PTR unused_data)
+struct_finalizer_trampoline (void *ptr, void *unused_data)
 {
   SCM obj = PTR2SCM (ptr);
   scm_t_struct_finalize finalize = SCM_STRUCT_FINALIZER (obj);

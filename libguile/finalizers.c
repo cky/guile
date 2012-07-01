@@ -40,7 +40,7 @@ void
 scm_i_set_finalizer (void *obj, scm_t_finalizer_proc proc, void *data)
 {
   GC_finalization_proc prev;
-  GC_PTR prev_data;
+  void *prev_data;
   GC_REGISTER_FINALIZER_NO_ORDER (obj, proc, data, &prev, &prev_data);
 }
 
