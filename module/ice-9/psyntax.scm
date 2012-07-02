@@ -2815,33 +2815,6 @@
                            (binding (car bindings)))
                #'(let (binding) body))))))))
 
-;; This definition of 'do' is never used, as it is immediately
-;; replaced by the definition in boot-9.scm.
-#;
-(define-syntax do
-   (lambda (orig-x)
-      (syntax-case orig-x ()
-         ((_ ((var init . step) ...) (e0 e1 ...) c ...)
-          (with-syntax (((step ...)
-                         (map (lambda (v s)
-                                (syntax-case s ()
-                                  (() v)
-                                  ((e) #'e)
-                                  (_ (syntax-violation
-                                      'do "bad step expression" 
-                                      orig-x s))))
-                              #'(var ...)
-                              #'(step ...))))
-             (syntax-case #'(e1 ...) ()
-               (() #'(let doloop ((var init) ...)
-                       (if (not e0)
-                           (begin c ... (doloop step ...)))))
-               ((e1 e2 ...)
-                #'(let doloop ((var init) ...)
-                    (if e0
-                        (begin e1 e2 ...)
-                        (begin c ... (doloop step ...)))))))))))
-
 (define-syntax quasiquote
   (let ()
     (define (quasi p lev)
@@ -2990,32 +2963,6 @@
     (syntax-violation 'unquote-splicing
                       "expression not valid outside of quasiquote"
                       x)))
-
-;; This definition of 'case' is never used, as it is immediately
-;; replaced by the definition in boot-9.scm.  This version lacks
-;; R7RS-mandated support for '=>'.
-#;
-(define-syntax case
-  (lambda (x)
-    (syntax-case x ()
-      ((_ e m1 m2 ...)
-       (with-syntax
-           ((body (let f ((clause #'m1) (clauses #'(m2 ...)))
-                    (if (null? clauses)
-                        (syntax-case clause (else)
-                          ((else e1 e2 ...) #'(begin e1 e2 ...))
-                          (((k ...) e1 e2 ...)
-                           #'(if (memv t '(k ...)) (begin e1 e2 ...)))
-                          (_ (syntax-violation 'case "bad clause" x clause)))
-                        (with-syntax ((rest (f (car clauses) (cdr clauses))))
-                          (syntax-case clause (else)
-                            (((k ...) e1 e2 ...)
-                             #'(if (memv t '(k ...))
-                                   (begin e1 e2 ...)
-                                   rest))
-                            (_ (syntax-violation 'case "bad clause" x
-                                                 clause))))))))
-         #'(let ((t e)) body))))))
 
 (define (make-variable-transformer proc)
   (if (procedure? proc)
