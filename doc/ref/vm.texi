@@ -862,13 +862,6 @@ arguments from the stack. Return the resulting value to the calling
 procedure.
 @end deffn
 
-@deffn Instruction smob-call nargs
-Pop off the smob object from the stack (which should have been pushed on
-by the trampoline), and call its descriptor's @code{apply} function with
-the @var{nargs} arguments from the stack. Return the resulting value or
-values to the calling procedure.
-@end deffn
-
 @deffn Instruction continuation-call
 Pop off an internal continuation object (which should have been pushed
 on by the trampoline), and reinstate that continuation. All of the
