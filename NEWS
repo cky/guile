@@ -111,7 +111,7 @@ with regards to formal parameters of functions.  Thanks to Bake Timmons.
 ** (ice-9 format): Add ~h specifier for localized number output.
 ** (web response): New procedure: `response-must-not-include-body?'
 ** New predicate: 'supports-source-properties?'
-** New C helper: `scm_c_values'
+** New C helpers: `scm_c_values', `scm_c_nvalues'
 ** Newly public inline C function: `scm_unget_byte'
 ** (language tree-il): New functions: `tree-il=?', `tree-il-hash'
 ** New fluid: `%default-port-conversion-strategy'
