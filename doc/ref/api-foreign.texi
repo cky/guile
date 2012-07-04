@@ -582,6 +582,22 @@ Unsafely cast @var{pointer} to a Scheme object.
 Cross your fingers!
 @end deffn
 
+Sometimes you want to give C extensions access to the dynamic FFI.  At
+that point, the names get confusing, because ``pointer'' can refer to a
+@code{SCM} object that wraps a pointer, or to a @code{void*} value.  We
+will try to use ``pointer object'' to refer to Scheme objects, and
+``pointer value'' to refer to @code{void *} values.
+
+@deftypefn {C Function} SCM scm_from_pointer (void *ptr, void (*finalizer) (void*))
+Create a pointer object from a pointer value.
+
+If @var{finalizer} is non-null, Guile arranges to call it on the pointer
+value at some point after the pointer object becomes collectable.
+@end deftypefn
+
+@deftypefn {C Function} void* scm_to_pointer (SCM obj)
+Unpack the pointer value from a pointer object.
+@end deftypefn
 
 @node Void Pointers and Byte Access
 @subsubsection Void Pointers and Byte Access
