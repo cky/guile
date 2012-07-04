@@ -67,6 +67,15 @@ print_values (SCM obj, SCM pwps)
   return SCM_UNSPECIFIED;
 }
 
+size_t
+scm_c_nvalues (SCM obj)
+{
+  if (SCM_LIKELY (SCM_VALUESP (obj)))
+    return scm_ilength (scm_struct_ref (obj, SCM_INUM0));
+  else
+    return 1;
+}
+
 SCM
 scm_c_value_ref (SCM obj, size_t idx)
 {

@@ -838,12 +838,27 @@ the current implementation that object shares structure with
 @var{args}, so @var{args} should not be modified subsequently.
 @end deffn
 
-@deffn {C Function} scm_c_value_ref (values, idx)
+@deftypefn {C Function} SCM scm_c_values (SCM *base, size_t n)
+@code{scm_c_values} is an alternative to @code{scm_values}.  It creates
+a new values object, and copies into it the @var{n} values starting from
+@var{base}.
+
+Currently this creates a list and passes it to @code{scm_values}, but we
+expect that in the future we will be able to use more a efficient
+representation.
+@end deftypefn
+
+@deftypefn {C Function} size_t scm_c_nvalues (SCM obj)
+If @var{obj} is a multiple-values object, returns the number of values
+it contains.  Otherwise returns 1.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_c_value_ref (SCM obj, size_t idx)
 Returns the value at the position specified by @var{idx} in
-@var{values}.  Note that @var{values} will ordinarily be a
+@var{obj}.  Note that @var{obj} will ordinarily be a
 multiple-values object, but it need not be.  Any other object
 represents a single value (itself), and is handled appropriately.
-@end deffn
+@end deftypefn
 
 @rnindex call-with-values
 @deffn {Scheme Procedure} call-with-values producer consumer
