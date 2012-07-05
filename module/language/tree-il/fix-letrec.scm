@@ -21,7 +21,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-11)
   #:use-module (language tree-il)
-  #:use-module (language tree-il primitives)
+  #:use-module (language tree-il effects)
   #:export (fix-letrec!))
 
 ;; For a detailed discussion, see "Fixing Letrec: A Faithful Yet
@@ -31,25 +31,24 @@
 (define fix-fold
   (make-tree-il-folder unref ref set simple lambda complex))
 
-(define (simple-expression? x bound-vars simple-primitive?)
+(define (simple-expression? x bound-vars simple-primcall?)
   (record-case x
     ((<void>) #t)
     ((<const>) #t)
     ((<lexical-ref> gensym)
      (not (memq gensym bound-vars)))
     ((<conditional> test consequent alternate)
-     (and (simple-expression? test bound-vars simple-primitive?)
-          (simple-expression? consequent bound-vars simple-primitive?)
-          (simple-expression? alternate bound-vars simple-primitive?)))
+     (and (simple-expression? test bound-vars simple-primcall?)
+          (simple-expression? consequent bound-vars simple-primcall?)
+          (simple-expression? alternate bound-vars simple-primcall?)))
     ((<sequence> exps)
-     (and-map (lambda (x) (simple-expression? x bound-vars simple-primitive?))
+     (and-map (lambda (x) (simple-expression? x bound-vars simple-primcall?))
               exps))
     ((<application> proc args)
      (and (primitive-ref? proc)
-          (simple-primitive? (primitive-ref-name proc))
-          ;; FIXME: check arity?
+          (simple-primcall? x)
           (and-map (lambda (x)
-                     (simple-expression? x bound-vars simple-primitive?))
+                     (simple-expression? x bound-vars simple-primcall?))
                    args)))
     (else #f)))
 
@@ -92,6 +91,17 @@
                   (lambda (x unref ref set simple lambda* complex)
                     (record-case x
                       ((<letrec> in-order? (orig-gensyms gensyms) vals)
+                       (define compute-effects
+                         (make-effects-analyzer (lambda (x) (memq x set))))
+                       (define (effect-free-primcall? x)
+                         (let ((effects (compute-effects x)))
+                           (effect-free?
+                            (exclude-effects effects (logior &allocation
+                                                             &type-check)))))
+                       (define (effect+exception-free-primcall? x)
+                         (let ((effects (compute-effects x)))
+                           (effect-free?
+                            (exclude-effects effects &allocation))))
                        (let lp ((gensyms orig-gensyms) (vals vals)
                                 (s '()) (l '()) (c '()))
                          (cond
@@ -114,7 +124,7 @@
                                     (not (lambda? (car vals)))
                                     (not (simple-expression?
                                           (car vals) orig-gensyms
-                                          effect+exception-free-primitive?)))
+                                          effect+exception-free-primcall?)))
                                (lp (cdr gensyms) (cdr vals)
                                    s l (cons (car gensyms) c))
                                (lp (cdr gensyms) (cdr vals)
@@ -128,8 +138,8 @@
                           ((simple-expression?
                             (car vals) orig-gensyms
                             (if in-order?
-                                effect+exception-free-primitive?
-                                effect-free-primitive?))
+                                effect+exception-free-primcall?
+                                effect-free-primcall?))
                            ;; For letrec*, we can't consider e.g. `car' to be
                            ;; "simple", as it could raise an exception. Hence
                            ;; effect+exception-free-primitive? above.
