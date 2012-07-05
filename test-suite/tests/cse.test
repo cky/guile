@@ -286,4 +286,10 @@
      (apply (primitive car) (toplevel x))
      (if (apply (primitive car) (toplevel x))
          (const one)
-         (const two)))))
+         (const two))))
+
+  (pass-if-cse
+   (begin (cons 1 2 3) 4)
+   (begin
+     (apply (primitive cons) (const 1) (const 2) (const 3))
+     (const 4))))
