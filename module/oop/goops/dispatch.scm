@@ -185,6 +185,7 @@
       (lambda ()
         (let ((p ((@ (system base compile) compile) exp
                   #:env *dispatch-module*
+                  #:from 'scheme
                   #:opts '(#:partial-eval? #f #:cse? #f))))
           (apply p vals)))))
 
