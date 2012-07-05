@@ -959,19 +959,24 @@
    resolve-primitives
    ;; `while' without `break' or `continue' has no prompts and gets its
    ;; condition folded.  Unfortunately the outer `lp' does not yet get
-   ;; elided.
+   ;; elided, and the continuation tag stays around.  (The continue tag
+   ;; stays around because although it is not referenced, recursively
+   ;; visiting the loop in the continue handler manages to visit the tag
+   ;; twice before aborting.  The abort doesn't unroll the recursive
+   ;; reference.)
    (while #t #t)
-   (letrec (lp) (_)
-           ((lambda _
-              (lambda-case
-               ((() #f #f #f () ())
-                (letrec (loop) (_)
-                        ((lambda _
-                           (lambda-case
-                            ((() #f #f #f () ())
-                             (apply (lexical loop _))))))
-                        (apply (lexical loop _)))))))
-           (apply (lexical lp _))))
+   (let (_) (_) ((apply (primitive make-prompt-tag) . _))
+        (letrec (lp) (_)
+                ((lambda _
+                   (lambda-case
+                    ((() #f #f #f () ())
+                     (letrec (loop) (_)
+                             ((lambda _
+                                (lambda-case
+                                 ((() #f #f #f () ())
+                                  (apply (lexical loop _))))))
+                             (apply (lexical loop _)))))))
+                (apply (lexical lp _)))))
 
   (pass-if-peval
    resolve-primitives
@@ -1063,4 +1068,11 @@
 
   (pass-if-peval resolve-primitives
     (apply (lambda (x y) (cons x y)) (list 1 2))
-    (apply (primitive cons) (const 1) (const 2))))
+    (apply (primitive cons) (const 1) (const 2)))
+
+  (pass-if-peval resolve-primitives
+    (let ((t (make-prompt-tag)))
+      (call-with-prompt t
+                        (lambda () (abort-to-prompt t 1 2 3))
+                        (lambda (k x y z) (list x y z))))
+    (apply (primitive 'list) (const 1) (const 2) (const 3))))

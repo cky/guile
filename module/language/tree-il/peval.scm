@@ -288,7 +288,7 @@
 ;; TODO: Record value size in operand structure?
 ;; 
 (define-record-type <operand>
-  (%make-operand var sym visit source visit-count residualize?
+  (%make-operand var sym visit source visit-count use-count
                  copyable? residual-value constant-value alias-value)
   operand?
   (var operand-var)
@@ -296,7 +296,7 @@
   (visit %operand-visit)
   (source operand-source)
   (visit-count operand-visit-count set-operand-visit-count!)
-  (residualize? operand-residualize? set-operand-residualize?!)
+  (use-count operand-use-count set-operand-use-count!)
   (copyable? operand-copyable? set-operand-copyable?!)
   (residual-value operand-residual-value %set-operand-residual-value!)
   (constant-value operand-constant-value set-operand-constant-value!)
@@ -308,7 +308,7 @@
   ;; expression, truncate it to one value.  Copy propagation does not
   ;; work on multiply-valued expressions.
   (let ((source (and=> source truncate-values)))
-    (%make-operand var sym visit source 0 #f
+    (%make-operand var sym visit source 0 0
                    (and source (not (var-set? var))) #f #f
                    (and (not (var-set? var)) alias))))
 
@@ -457,9 +457,18 @@ top-level bindings from ENV and return the resulting expression."
     (let ((x (vhash-assq new store)))
       (if x (cdr x) new)))
 
+  (define (record-operand-use op)
+    (set-operand-use-count! op (1+ (operand-use-count op))))
+
+  (define (unrecord-operand-uses op n)
+    (let ((count (- (operand-use-count op) n)))
+      (when (zero? count)
+        (set-operand-residual-value! op #f))
+      (set-operand-use-count! op count)))
+
   (define* (residualize-lexical op #:optional ctx val)
     (log 'residualize op)
-    (set-operand-residualize?! op #t)
+    (record-operand-use op)
     (if (memq ctx '(value values))
         (set-operand-residual-value! op val))
     (make-lexical-ref #f (var-name (operand-var op)) (operand-sym op)))
@@ -605,7 +614,8 @@ top-level bindings from ENV and return the resulting expression."
       ;; marked as needing residualization.  Here we hack around this
       ;; and treat all bindings as referenced if we are in operator
       ;; context.
-      (or (eq? ctx 'operator) (operand-residualize? op)))
+      (or (eq? ctx 'operator)
+          (not (zero? (operand-use-count op)))))
     
     ;; values := (op ...)
     ;; effects := (op ...)
@@ -819,7 +829,7 @@ top-level bindings from ENV and return the resulting expression."
                    exp
                    (make-sequence src (list exp (make-void #f)))))
              (begin
-               (set-operand-residualize?! op #t)
+               (record-operand-use op)
                (make-lexical-set src name (operand-sym op) (for-value exp))))))
       (($ <let> src names gensyms vals body)
        (define (compute-alias exp)
@@ -1357,25 +1367,80 @@ top-level bindings from ENV and return the resulting expression."
                (else
                 (lp rest (cons head effects)))))))))
       (($ <prompt> src tag body handler)
-       (define (singly-used-definition x)
+       (define (make-prompt-tag? x)
+         (match x
+           (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
+               (or () ((? constant-expression?))))
+            #t)
+           (_ #f)))
+       (define (find-definition x n-aliases)
          (cond
-          ((and (lexical-ref? x)
-                ;; Only fetch definitions with single uses.
-                (= (lexical-refcount (lexical-ref-gensym x)) 1)
-                (lookup (lexical-ref-gensym x)))
-           => (lambda (x)
-                (singly-used-definition (visit-operand x counter 'value 10 10))))
-          (else x)))
-       (match (singly-used-definition tag)
-         (($ <application> _ ($ <primitive-ref> _ 'make-prompt-tag)
-             (or () ((? constant-expression?))))
-          ;; There is no way that an <abort> could know the tag
-          ;; for this <prompt>, so we can elide the <prompt>
-          ;; entirely.
-          (for-tail body))
-         (_
-          (make-prompt src (for-value tag) (for-tail body)
-                       (for-value handler)))))
+          ((lexical-ref? x)
+           (cond
+            ((lookup (lexical-ref-gensym x))
+             => (lambda (op)
+                  (let ((y (or (operand-residual-value op)
+                               (visit-operand op counter 'value 10 10))))
+                    (cond
+                     ((and (lexical-ref? y)
+                           (= (lexical-refcount (lexical-ref-gensym x)) 1))
+                      ;; X is a simple alias for Y.  Recurse, regardless of
+                      ;; the number of aliases we were expecting.
+                      (find-definition y n-aliases))
+                     ((= (lexical-refcount (lexical-ref-gensym x)) n-aliases)
+                      ;; We found a definition that is aliased the right
+                      ;; number of times.  We still recurse in case it is a
+                      ;; lexical.
+                      (values (find-definition y 1)
+                              op))
+                     (else
+                      ;; We can't account for our aliases.
+                      (values #f #f))))))
+            (else
+             ;; A formal parameter.  Can't say anything about that.
+             (values #f #f))))
+          ((= n-aliases 1)
+           ;; Not a lexical: success, but only if we are looking for an
+           ;; unaliased value.
+           (values x #f))
+          (else (values #f #f))))
+
+       (let ((tag (for-value tag))
+             (body (for-tail body)))
+         (cond
+          ((find-definition tag 1)
+           (lambda (val op)
+             (make-prompt-tag? val))
+           => (lambda (val op)
+                ;; There is no way that an <abort> could know the tag
+                ;; for this <prompt>, so we can elide the <prompt>
+                ;; entirely.
+                (unrecord-operand-uses op 1)
+                body))
+          ((find-definition tag 2)
+           (lambda (val op)
+             (and (make-prompt-tag? val)
+                  (abort? body)
+                  (tree-il=? (abort-tag body) tag)))
+           => (lambda (val op)
+                ;; (let ((t (make-prompt-tag)))
+                ;;   (call-with-prompt t
+                ;;     (lambda () (abort-to-prompt t val ...))
+                ;;     (lambda (k arg ...) e ...)))
+                ;; => (let-values (((k arg ...) (values values val ...)))
+                ;;      e ...)
+                (unrecord-operand-uses op 2)
+                (for-tail
+                 (make-let-values
+                  src
+                  (make-application #f (make-primitive-ref #f 'apply)
+                                    `(,(make-primitive-ref #f 'values)
+                                      ,(make-primitive-ref #f 'values)
+                                      ,@(abort-args body)
+                                      ,(abort-tail body)))
+                  (for-value handler)))))
+          (else
+           (make-prompt src tag body (for-value handler))))))
       (($ <abort> src tag args tail)
        (make-abort src (for-value tag) (map for-value args)
                    (for-value tail))))))
