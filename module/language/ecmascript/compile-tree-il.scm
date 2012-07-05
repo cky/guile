@@ -70,6 +70,26 @@
             (set-source-properties! res (location x))))
       res)))
 
+(define current-return-tag (make-parameter #f))
+
+(define (return expr)
+  (-> (abort (or (current-return-tag) (error "return outside function"))
+             (list expr)
+             (-> (const '())))))
+
+(define (with-return-prompt body-thunk)
+  (let ((tag (gensym "return")))
+    (parameterize ((current-return-tag
+                    (-> (lexical 'return tag))))
+      (-> (let '(return) (list tag)
+               (list (-> (apply (-> (primitive 'make-prompt-tag)))))
+               (-> (prompt (current-return-tag)
+                           (body-thunk)
+                           (let ((val (gensym "val")))
+                             (-> (lambda-case
+                                  `(((k val) #f #f #f () (,(gensym) ,val))
+                                    ,(-> (lexical 'val val)))))))))))))
+
 (define (comp x e)
   (let ((l (location x)))
     (define (let1 what proc)
@@ -330,7 +350,9 @@
          `(lambda ()
             (lambda-case
              ((() ,formals #f #f ,(map (lambda (x) (@implv *undefined*)) formals) ,syms)
-              ,(comp-body e body formals syms))))))
+              ,(with-return-prompt
+                (lambda ()
+                  (comp-body e body formals syms))))))))
       ((call/this ,obj ,prop . ,args)
        (@impl call/this*
               obj
@@ -352,8 +374,7 @@
        `(apply ,(comp proc e)                
                ,@(map (lambda (x) (comp x e)) args)))
       ((return ,expr)
-       (-> (apply (-> (primitive 'return))
-                  (comp expr e))))
+       (return (comp expr e)))
       ((array . ,args)
        `(apply ,(@implv new-array)
                ,@(map (lambda (x) (comp x e)) args)))
