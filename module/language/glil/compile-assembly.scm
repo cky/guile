@@ -841,6 +841,7 @@
           (values `(,@car-code ,@cdr-code (cons))
                   (1+ addr)))))
      ((and (vector? x)
+           (<= (vector-length x) #xffff)
            (equal? (array-shape x) (list (list 0 (1- (vector-length x))))))
       (receive (codes addr)
           (vector-fold2 (lambda (x codes addr)
