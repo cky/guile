@@ -1094,6 +1094,17 @@ top-level bindings from ENV and return the resulting expression."
                     (every singly-valued-expression? vals))
                (for-tail (make-sequence src (append (cdr vals) (list (car vals)))))
                (make-application src (make-primitive-ref #f 'values) vals))))))
+      (($ <application> src (and apply ($ <primitive-ref> _ (or 'apply '@apply)))
+          (proc args ... tail))
+       (match (for-value tail)
+         (($ <const> _ (args* ...))
+          (let ((args* (map (lambda (x) (make-const #f x)) args*)))
+            (for-tail (make-application src proc (append args args*)))))
+         (($ <application> _ ($ <primitive-ref> _ 'list) args*)
+          (for-tail (make-application src proc (append args args*))))
+         (tail
+          (let ((args (append (map for-value args) (list tail))))
+            (make-application src apply (cons (for-value proc) args))))))
       (($ <application> src orig-proc orig-args)
        ;; todo: augment the global env with specialized functions
        (let ((proc (visit orig-proc 'operator)))

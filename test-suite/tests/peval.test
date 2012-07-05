@@ -1055,4 +1055,12 @@
                              (apply (toplevel baz) (toplevel x))
                              (apply (lexical failure _)))))
                  (apply (lexical failure _)))
-             (apply (lexical failure _))))))
+             (apply (lexical failure _)))))
+
+  (pass-if-peval resolve-primitives
+    (apply (lambda (x y) (cons x y)) '(1 2))
+    (apply (primitive cons) (const 1) (const 2)))
+
+  (pass-if-peval resolve-primitives
+    (apply (lambda (x y) (cons x y)) (list 1 2))
+    (apply (primitive cons) (const 1) (const 2))))
