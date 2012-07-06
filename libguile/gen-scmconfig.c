@@ -149,18 +149,17 @@ main (int argc, char *argv[])
   pf ("/* limits.h not available */\n");
 #endif
 
-# ifdef TIME_WITH_SYS_TIME
+#if HAVE_SYS_TIME_H
   pf ("#include <sys/time.h>\n");
+#else
+  pf ("/* sys/time.h not available */\n");
+#endif
+
+#if HAVE_TIME_H
   pf ("#include <time.h>\n");
-# else
-#  ifdef HAVE_SYS_TIME_H
-  pf ("#include <sys/time.h>\n");
-#  else
-#   ifdef HAVE_TIME_H
-  pf ("#include <time.h>\n");
-#   endif
-#  endif
-# endif
+#else
+  pf ("/* time.h not available */\n");
+#endif
 
   pf("\n");
 #ifdef STDC_HEADERS
