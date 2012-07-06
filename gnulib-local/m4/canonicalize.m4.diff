@@ -48,3 +48,20 @@ index 69b3f4c..3c4c5ee 100644
 +    esac
    fi
  ])
+
+
+Now, work around a second bug: fix default value when cross-compiling
+for GNU/Hurd.
+
+index 69b3f4c..111ddf8 100644
+--- a/m4/canonicalize.m4
++++ b/m4/canonicalize.m4
+@@ -95,7 +95,7 @@ AC_DEFUN([gl_FUNC_REALPATH_WORKS],
+      [gl_cv_func_realpath_works=no],
+      [case "$host_os" in
+                 # Guess yes on glibc systems.
+-        *-gnu*) gl_cv_func_realpath_works="guessing yes" ;;
++        *gnu*)  gl_cv_func_realpath_works="guessing yes" ;;
+                 # If we don't know, assume the worst.
+         *)      gl_cv_func_realpath_works="guessing no" ;;
+       esac

@@ -107,7 +107,7 @@ AC_DEFUN([gl_FUNC_REALPATH_WORKS],
      [gl_cv_func_realpath_works=no],
      [case "$host_os" in
                 # Guess yes on glibc systems.
-        *-gnu*) gl_cv_func_realpath_works="guessing yes" ;;
+        *gnu*)  gl_cv_func_realpath_works="guessing yes" ;;
                 # If we don't know, assume the worst.
         *)      gl_cv_func_realpath_works="guessing no" ;;
       esac
