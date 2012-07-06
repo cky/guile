@@ -835,6 +835,10 @@ SCM_DEPRECATED SCM scm_eval_closure_module (SCM eval_closure);
 
 
 
+SCM_DEPRECATED SCM scm_struct_vtable_tag (SCM handle);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

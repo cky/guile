@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-@c   2007, 2009, 2010, 2011  Free Software Foundation, Inc.
+@c   2007, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Compound Data Types
@@ -2372,7 +2372,7 @@ to be stored along side usual Scheme @code{SCM} values.
 * Vtable Vtables::              
 @end menu
 
-@node Vtables, Structure Basics, Structures, Structures
+@node Vtables
 @subsubsection Vtables
 
 A vtable is a structure type, specifying its layout, and other
@@ -2460,7 +2460,7 @@ structure.
 @end deffn
 
 
-@node Structure Basics, Vtable Contents, Vtables, Structures
+@node Structure Basics
 @subsubsection Structure Basics
 
 This section describes the basic procedures for working with
@@ -2542,7 +2542,7 @@ This can be used to examine the layout of an unknown structure, see
 @end deffn
 
 
-@node Vtable Contents, Vtable Vtables, Structure Basics, Structures
+@node Vtable Contents
 @subsubsection Vtable Contents
 
 A vtable is itself a structure, with particular fields that hold
@@ -2614,16 +2614,8 @@ from @var{vtable}.
 @end example
 @end deffn
 
-@deffn {Scheme Procedure} struct-vtable-tag vtable
-@deffnx {C Function} scm_struct_vtable_tag (vtable)
-Return the tag of the given @var{vtable}.
-@c
-@c FIXME: what can be said about what this means?
-@c
-@end deffn
 
-
-@node Vtable Vtables,  , Vtable Contents, Structures
+@node Vtable Vtables
 @subsubsection Vtable Vtables
 
 As noted above, a vtable is a structure and that structure is itself

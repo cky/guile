@@ -2822,6 +2822,23 @@ SCM_DEFINE (scm_eval_closure_module,
 
 
 
+SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, 
+            (SCM handle),
+	    "Return the vtable tag of the structure @var{handle}.")
+#define FUNC_NAME s_scm_struct_vtable_tag
+{
+  SCM_VALIDATE_VTABLE (1, handle);
+  scm_c_issue_deprecation_warning
+    ("struct-vtable-tag is deprecated.  What were you doing with it anyway?");
+
+  return scm_from_unsigned_integer
+    (((scm_t_bits)SCM_STRUCT_DATA (handle)) >> 3);
+}
+#undef FUNC_NAME
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

@@ -917,17 +917,6 @@ SCM_DEFINE (scm_struct_vtable, "struct-vtable", 1, 0, 0,
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0, 
-            (SCM handle),
-	    "Return the vtable tag of the structure @var{handle}.")
-#define FUNC_NAME s_scm_struct_vtable_tag
-{
-  SCM_VALIDATE_VTABLE (1, handle);
-  return scm_from_unsigned_integer
-    (((scm_t_bits)SCM_STRUCT_DATA (handle)) >> 3);
-}
-#undef FUNC_NAME
-
 /* {Associating names and classes with vtables}
  *
  * The name of a vtable should probably be stored as a slot.  This is
