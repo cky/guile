@@ -1042,6 +1042,12 @@ In order to make dealing with encodings more simple, guile provides
 procedures to create ports that ``wrap'' existing ports, applying
 transformations transparently under the hood.
 
+These procedures are in the @code{(web http)} module.
+
+@example
+(use-modules (web http))
+@end example
+
 @deffn {Scheme Procedure} make-chunked-input-port port [#:keep-alive?=#f]
 Returns a new port, that transparently reads and decodes chunk-encoded
 data from @var{port}. If no more chunk-encoded data is available, it

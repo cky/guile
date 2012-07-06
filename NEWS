@@ -84,6 +84,10 @@ SMOB that was actually applied.  (There was a weak-key map from SMOB to
 trampoline functions, where the value had a strong reference on the
 key.)  This has been fixed.  There was much rejoicing!
 
+** Support for HTTP/1.1 chunked transfer coding
+
+See "Transfer Codings" in the manual, for more.
+
 ** Micro-optimizations
 
 A pile of micro-optimizations: the `string-trim' function when called
@@ -107,7 +111,7 @@ with regards to formal parameters of functions.  Thanks to Bake Timmons.
 * New interfaces
 
 ** New C function: `scm_to_pointer'
-** New C functions: `scm_new_smob', `scm_new_double_smob'
+** New C inline functions: `scm_new_smob', `scm_new_double_smob'
 ** (ice-9 format): Add ~h specifier for localized number output.
 ** (web response): New procedure: `response-must-not-include-body?'
 ** New predicate: 'supports-source-properties?'
@@ -116,6 +120,8 @@ with regards to formal parameters of functions.  Thanks to Bake Timmons.
 ** (language tree-il): New functions: `tree-il=?', `tree-il-hash'
 ** New fluid: `%default-port-conversion-strategy'
 ** New syntax: `=>' within `case'
+** (web http): `make-chunked-input-port', `make-chunked-output-port'
+** (web http): `declare-opaque-header!'
 
 Search the manual for these identifiers, for more information.
 
