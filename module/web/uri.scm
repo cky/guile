@@ -91,7 +91,7 @@ consistency checks to make sure that the constructed URI is valid."
 (define ipv4-regexp
   (make-regexp "^([0-9.]+)$"))
 (define ipv6-regexp
-  (make-regexp "^\\[([0-9a-fA-F:.]+)\\]$"))
+  (make-regexp "^([0-9a-fA-F:.]+)$"))
 (define domain-label-regexp
   (make-regexp "^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$"))
 (define top-label-regexp
@@ -115,13 +115,15 @@ consistency checks to make sure that the constructed URI is valid."
 (define userinfo-pat
   "[a-zA-Z0-9_.!~*'();:&=+$,-]+")
 (define host-pat
-  "[a-zA-Z0-9.-]+|\\[[0-9a-FA-F:.]+\\]")
+  "[a-zA-Z0-9.-]+")
+(define ipv6-host-pat
+  "[0-9a-fA-F:.]+")
 (define port-pat
   "[0-9]*")
 (define authority-regexp
   (make-regexp
-   (format #f "^//((~a)@)?(~a)(:(~a))?$"
-           userinfo-pat host-pat port-pat)))
+   (format #f "^//((~a)@)?((~a)|(\\[(~a)\\]))(:(~a))?$"
+           userinfo-pat host-pat ipv6-host-pat port-pat)))
 
 (define (parse-authority authority fail)
   (if (equal? authority "//")
@@ -129,10 +131,12 @@ consistency checks to make sure that the constructed URI is valid."
       ;; file:/etc/hosts.
       (values #f #f #f)
       (let ((m (regexp-exec authority-regexp authority)))
-        (if (and m (valid-host? (match:substring m 3)))
+        (if (and m (valid-host? (or (match:substring m 4)
+                                    (match:substring m 6))))
             (values (match:substring m 2)
-                    (match:substring m 3)
-                    (let ((port (match:substring m 5)))
+                    (or (match:substring m 4)
+                        (match:substring m 6))
+                    (let ((port (match:substring m 8)))
                       (and port (not (string-null? port))
                            (string->number port))))
             (fail)))))
@@ -216,7 +220,9 @@ printed."
          (string-append "//"
                         (if userinfo (string-append userinfo "@")
                             "")
-                        host
+                        (if (string-index host #\:)
+                            (string-append "[" host "]")
+                            host)
                         (if (default-port? (uri-scheme uri) port)
                             ""
                             (string-append ":" (number->string port))))
