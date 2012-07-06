@@ -104,7 +104,6 @@
 /* Some more definitions for the native Windows port. */
 #ifdef __MINGW32__
 # define fsync(fd) _commit (fd)
-# define fchmod(fd, mode) (-1)
 #endif /* __MINGW32__ */
 
 
@@ -1335,12 +1334,13 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
 #define FUNC_NAME s_scm_chmod
 {
   int rv;
-  int fdes;
 
   object = SCM_COERCE_OUTPORT (object);
 
+#if HAVE_FCHMOD
   if (scm_is_integer (object) || SCM_OPFPORTP (object))
     {
+      int fdes;
       if (scm_is_integer (object))
 	fdes = scm_to_int (object);
       else
@@ -1348,6 +1348,7 @@ SCM_DEFINE (scm_chmod, "chmod", 2, 0, 0,
       SCM_SYSCALL (rv = fchmod (fdes, scm_to_int (mode)));
     }
   else
+#endif
     {
       STRING_SYSCALL (object, c_object,
 		      rv = chmod (c_object, scm_to_int (mode)));
