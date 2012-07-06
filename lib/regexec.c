@@ -14,8 +14,7 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
+   with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 static reg_errcode_t match_ctx_init (re_match_context_t *cache, int eflags,
 				     Idx n) internal_function;
@@ -51,9 +50,8 @@ static regoff_t re_search_stub (struct re_pattern_buffer *bufp,
 				regoff_t range, Idx stop,
 				struct re_registers *regs,
 				bool ret_len) internal_function;
-static unsigned int re_copy_regs (struct re_registers *regs, regmatch_t *pmatch,
-				  Idx nregs, int regs_allocated)
-     internal_function;
+static unsigned re_copy_regs (struct re_registers *regs, regmatch_t *pmatch,
+                              Idx nregs, int regs_allocated) internal_function;
 static reg_errcode_t prune_impossible_nodes (re_match_context_t *mctx)
      internal_function;
 static Idx check_matching (re_match_context_t *mctx, bool fl_longest_match,
@@ -230,7 +228,7 @@ regexec (preg, string, nmatch, pmatch, eflags)
   reg_errcode_t err;
   Idx start, length;
 #ifdef _LIBC
-  re_dfa_t *dfa = (re_dfa_t *) preg->buffer;
+  re_dfa_t *dfa = preg->buffer;
 #endif
 
   if (eflags & ~(REG_NOTBOL | REG_NOTEOL | REG_STARTEND))
@@ -365,7 +363,6 @@ weak_alias (__re_search_2, re_search_2)
 #endif
 
 static regoff_t
-internal_function
 re_search_2_stub (struct re_pattern_buffer *bufp,
 		  const char *string1, Idx length1,
 		  const char *string2, Idx length2,
@@ -413,7 +410,6 @@ re_search_2_stub (struct re_pattern_buffer *bufp,
    otherwise the position of the match is returned.  */
 
 static regoff_t
-internal_function
 re_search_stub (struct re_pattern_buffer *bufp,
 		const char *string, Idx length,
 		Idx start, regoff_t range, Idx stop, struct re_registers *regs,
@@ -425,7 +421,7 @@ re_search_stub (struct re_pattern_buffer *bufp,
   regoff_t rval;
   int eflags = 0;
 #ifdef _LIBC
-  re_dfa_t *dfa = (re_dfa_t *) bufp->buffer;
+  re_dfa_t *dfa = bufp->buffer;
 #endif
   Idx last_start = start + range;
 
@@ -477,9 +473,9 @@ re_search_stub (struct re_pattern_buffer *bufp,
 
   rval = 0;
 
-  /* I hope we needn't fill ther regs with -1's when no match was found.  */
+  /* I hope we needn't fill their regs with -1's when no match was found.  */
   if (result != REG_NOERROR)
-    rval = -1;
+    rval = result == REG_NOMATCH ? -1 : -2;
   else if (regs != NULL)
     {
       /* If caller wants register contents data back, copy them.  */
@@ -505,8 +501,7 @@ re_search_stub (struct re_pattern_buffer *bufp,
   return rval;
 }
 
-static unsigned int
-internal_function
+static unsigned
 re_copy_regs (struct re_registers *regs, regmatch_t *pmatch, Idx nregs,
 	      int regs_allocated)
 {
@@ -636,7 +631,7 @@ re_exec (s)
    (0 <= LAST_START && LAST_START <= LENGTH)  */
 
 static reg_errcode_t
-internal_function __attribute_warn_unused_result__
+__attribute_warn_unused_result__
 re_search_internal (const regex_t *preg,
 		    const char *string, Idx length,
 		    Idx start, Idx last_start, Idx stop,
@@ -644,7 +639,7 @@ re_search_internal (const regex_t *preg,
 		    int eflags)
 {
   reg_errcode_t err;
-  const re_dfa_t *dfa = (const re_dfa_t *) preg->buffer;
+  const re_dfa_t *dfa = preg->buffer;
   Idx left_lim, right_lim;
   int incr;
   bool fl_longest_match;
@@ -719,7 +714,8 @@ re_search_internal (const regex_t *preg,
   if (nmatch > 1 || dfa->has_mb_node)
     {
       /* Avoid overflow.  */
-      if (BE (SIZE_MAX / sizeof (re_dfastate_t *) <= mctx.input.bufs_len, 0))
+      if (BE ((MIN (IDX_MAX, SIZE_MAX / sizeof (re_dfastate_t *))
+               <= mctx.input.bufs_len), 0))
 	{
 	  err = REG_ESPACE;
 	  goto free_return;
@@ -921,7 +917,7 @@ re_search_internal (const regex_t *preg,
 	    goto free_return;
 	}
 
-      /* At last, add the offset to the each registers, since we slided
+      /* At last, add the offset to each register, since we slid
 	 the buffers so that we could assume that the matching starts
 	 from 0.  */
       for (reg_idx = 0; reg_idx < nmatch; ++reg_idx)
@@ -971,7 +967,7 @@ re_search_internal (const regex_t *preg,
 }
 
 static reg_errcode_t
-internal_function __attribute_warn_unused_result__
+__attribute_warn_unused_result__
 prune_impossible_nodes (re_match_context_t *mctx)
 {
   const re_dfa_t *const dfa = mctx->dfa;
@@ -987,7 +983,7 @@ prune_impossible_nodes (re_match_context_t *mctx)
   halt_node = mctx->last_node;
 
   /* Avoid overflow.  */
-  if (BE (SIZE_MAX / sizeof (re_dfastate_t *) <= match_last, 0))
+  if (BE (MIN (IDX_MAX, SIZE_MAX / sizeof (re_dfastate_t *)) <= match_last, 0))
     return REG_ESPACE;
 
   sifted_states = re_malloc (re_dfastate_t *, match_last + 1);
@@ -1105,7 +1101,7 @@ acquire_init_state_context (reg_errcode_t *err, const re_match_context_t *mctx,
    FL_LONGEST_MATCH means we want the POSIX longest matching.
    If P_MATCH_FIRST is not NULL, and the match fails, it is set to the
    next place where we may want to try matching.
-   Note that the matcher assume that the maching starts from the current
+   Note that the matcher assumes that the matching starts from the current
    index of the buffer.  */
 
 static Idx
@@ -1174,7 +1170,8 @@ check_matching (re_match_context_t *mctx, bool fl_longest_match,
       re_dfastate_t *old_state = cur_state;
       Idx next_char_idx = re_string_cur_idx (&mctx->input) + 1;
 
-      if (BE (next_char_idx >= mctx->input.bufs_len, 0)
+      if ((BE (next_char_idx >= mctx->input.bufs_len, 0)
+	   && mctx->input.bufs_len < mctx->input.len)
 	  || (BE (next_char_idx >= mctx->input.valid_len, 0)
 	      && mctx->input.valid_len < mctx->input.len))
 	{
@@ -1435,7 +1432,7 @@ internal_function __attribute_warn_unused_result__
 set_regs (const regex_t *preg, const re_match_context_t *mctx, size_t nmatch,
 	  regmatch_t *pmatch, bool fl_backtrack)
 {
-  const re_dfa_t *dfa = (const re_dfa_t *) preg->buffer;
+  const re_dfa_t *dfa = preg->buffer;
   Idx idx, cur_node;
   re_node_set eps_via_nodes;
   struct re_fail_stack_t *fs;
@@ -1752,7 +1749,8 @@ clean_state_log_if_needed (re_match_context_t *mctx, Idx next_state_log_idx)
 {
   Idx top = mctx->state_log_top;
 
-  if (next_state_log_idx >= mctx->input.bufs_len
+  if ((next_state_log_idx >= mctx->input.bufs_len
+       && mctx->input.bufs_len < mctx->input.len)
       || (next_state_log_idx >= mctx->input.valid_len
 	  && mctx->input.valid_len < mctx->input.len))
     {
@@ -2456,7 +2454,7 @@ find_recover_state (reg_errcode_t *err, re_match_context_t *mctx)
 /* From the node set CUR_NODES, pick up the nodes whose types are
    OP_OPEN_SUBEXP and which have corresponding back references in the regular
    expression. And register them to use them later for evaluating the
-   correspoding back references.  */
+   corresponding back references.  */
 
 static reg_errcode_t
 internal_function
@@ -2936,9 +2934,12 @@ check_arrival (re_match_context_t *mctx, state_array_t *path, Idx top_node,
     {
       re_dfastate_t **new_array;
       Idx old_alloc = path->alloc;
-      Idx new_alloc = old_alloc + last_str + mctx->max_mb_elem_len + 1;
-      if (BE (new_alloc < old_alloc, 0)
-	  || BE (SIZE_MAX / sizeof (re_dfastate_t *) < new_alloc, 0))
+      Idx incr_alloc = last_str + mctx->max_mb_elem_len + 1;
+      Idx new_alloc;
+      if (BE (IDX_MAX - old_alloc < incr_alloc, 0))
+	return REG_ESPACE;
+      new_alloc = old_alloc + incr_alloc;
+      if (BE (SIZE_MAX / sizeof (re_dfastate_t *) < new_alloc, 0))
 	return REG_ESPACE;
       new_array = re_realloc (path->array, re_dfastate_t *, new_alloc);
       if (BE (new_array == NULL, 0))
@@ -3387,7 +3388,7 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
   dests_node = dests_alloc->dests_node;
   dests_ch = dests_alloc->dests_ch;
 
-  /* Initialize transiton table.  */
+  /* Initialize transition table.  */
   state->word_trtable = state->trtable = NULL;
 
   /* At first, group all nodes belonging to 'state' into several
@@ -3397,6 +3398,7 @@ build_trtable (const re_dfa_t *dfa, re_dfastate_t *state)
     {
       if (dests_node_malloced)
 	free (dests_alloc);
+      /* Return false in case of an error, true otherwise.  */
       if (ndests == 0)
 	{
 	  state->trtable = (re_dfastate_t **)
@@ -3896,7 +3898,6 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 	  const int32_t *table, *indirect;
 	  const unsigned char *weights, *extra;
 	  const char *collseqwc;
-	  int32_t idx;
 	  /* This #include defines a local function!  */
 #  include <locale/weight.h>
 
@@ -3954,7 +3955,7 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 		_NL_CURRENT (LC_COLLATE, _NL_COLLATE_EXTRAMB);
 	      indirect = (const int32_t *)
 		_NL_CURRENT (LC_COLLATE, _NL_COLLATE_INDIRECTMB);
-	      int32_t idx = findidx (&cp);
+	      int32_t idx = findidx (&cp, elem_len);
 	      if (idx > 0)
 		for (i = 0; i < cset->nequiv_classes; ++i)
 		  {
@@ -4066,7 +4067,7 @@ find_collation_sequence_value (const unsigned char *mbs, size_t mbs_len)
 	  /* Skip the collation sequence value.  */
 	  idx += sizeof (uint32_t);
 	  /* Skip the wide char sequence of the collating element.  */
-	  idx = idx + sizeof (uint32_t) * (extra[idx] + 1);
+	  idx = idx + sizeof (uint32_t) * (*(int32_t *) (extra + idx) + 1);
 	  /* If we found the entry, return the sequence value.  */
 	  if (found)
 	    return *(uint32_t *) (extra + idx);
@@ -4140,11 +4141,12 @@ extend_buffers (re_match_context_t *mctx)
   re_string_t *pstr = &mctx->input;
 
   /* Avoid overflow.  */
-  if (BE (SIZE_MAX / 2 / sizeof (re_dfastate_t *) <= pstr->bufs_len, 0))
+  if (BE (MIN (IDX_MAX, SIZE_MAX / sizeof (re_dfastate_t *)) / 2
+          <= pstr->bufs_len, 0))
     return REG_ESPACE;
 
-  /* Double the lengthes of the buffers.  */
-  ret = re_string_realloc_buffers (pstr, pstr->bufs_len * 2);
+  /* Double the lengths of the buffers.  */
+  ret = re_string_realloc_buffers (pstr, MIN (pstr->len, pstr->bufs_len * 2));
   if (BE (ret != REG_NOERROR, 0))
     return ret;
 
@@ -4207,7 +4209,7 @@ match_ctx_init (re_match_context_t *mctx, int eflags, Idx n)
       size_t max_object_size =
 	MAX (sizeof (struct re_backref_cache_entry),
 	     sizeof (re_sub_match_top_t *));
-      if (BE (SIZE_MAX / max_object_size < n, 0))
+      if (BE (MIN (IDX_MAX, SIZE_MAX / max_object_size) < n, 0))
 	return REG_ESPACE;
 
       mctx->bkref_ents = re_malloc (struct re_backref_cache_entry, n);

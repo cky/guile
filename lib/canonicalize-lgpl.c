@@ -156,8 +156,12 @@ __realpath (const char *name, char *resolved)
     {
       rpath[0] = '/';
       dest = rpath + 1;
-      if (DOUBLE_SLASH_IS_DISTINCT_ROOT && name[1] == '/')
-        *dest++ = '/';
+      if (DOUBLE_SLASH_IS_DISTINCT_ROOT)
+        {
+          if (name[1] == '/' && name[2] != '/')
+            *dest++ = '/';
+          *dest = '\0';
+        }
     }
 
   for (start = end = name; *start; start = end)
@@ -187,7 +191,7 @@ __realpath (const char *name, char *resolved)
           if (dest > rpath + 1)
             while ((--dest)[-1] != '/');
           if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
-              && *dest == '/')
+              && *dest == '/' && dest[1] != '/')
             dest++;
         }
       else
@@ -298,8 +302,12 @@ __realpath (const char *name, char *resolved)
               if (buf[0] == '/')
                 {
                   dest = rpath + 1;     /* It's an absolute symlink */
-                  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && buf[1] == '/')
-                    *dest++ = '/';
+                  if (DOUBLE_SLASH_IS_DISTINCT_ROOT)
+                    {
+                      if (buf[1] == '/' && buf[2] != '/')
+                        *dest++ = '/';
+                      *dest = '\0';
+                    }
                 }
               else
                 {
@@ -308,7 +316,7 @@ __realpath (const char *name, char *resolved)
                   if (dest > rpath + 1)
                     while ((--dest)[-1] != '/');
                   if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
-                      && *dest == '/')
+                      && *dest == '/' && dest[1] != '/')
                     dest++;
                 }
             }
@@ -321,7 +329,8 @@ __realpath (const char *name, char *resolved)
     }
   if (dest > rpath + 1 && dest[-1] == '/')
     --dest;
-  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1 && *dest == '/')
+  if (DOUBLE_SLASH_IS_DISTINCT_ROOT && dest == rpath + 1
+      && *dest == '/' && dest[1] != '/')
     dest++;
   *dest = '\0';
 

@@ -3,9 +3,9 @@ information from the environment.  See
 http://lists.gnu.org/archive/html/guile-devel/2011-11/msg00040.html for the
 rationale.
 
---- a/lib/localcharset.c	2011-12-14 23:10:58.000000000 +0100
-+++ b/lib/localcharset.c	2011-12-15 00:45:12.000000000 +0100
-@@ -545,3 +545,74 @@ locale_charset (void)
+--- a/lib/localcharset.c
++++ b/lib/localcharset.c
+@@ -544,3 +544,73 @@ locale_charset (void)
  
    return codeset;
  }

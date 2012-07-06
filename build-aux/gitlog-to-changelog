@@ -3,7 +3,7 @@ eval '(exit $?0)' && eval 'exec perl -wS "$0" ${1+"$@"}'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2012-01-06 07:14'; # UTC
+my $VERSION = '2012-05-22 09:40'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
@@ -64,12 +64,19 @@ OPTIONS:
                   makes a change to SHA1's commit log text or metadata.
    --append-dot append a dot to the first line of each commit message if
                   there is no other punctuation or blank at the end.
+   --no-cluster never cluster commit messages under the same date/author
+                  header; the default is to cluster adjacent commit messages
+                  if their headers are the same and neither commit message
+                  contains multiple paragraphs.
    --since=DATE convert only the logs since DATE;
                   the default is to convert all log entries.
    --format=FMT set format string for commit subject and body;
                   see 'man git-log' for the list of format metacharacters;
                   the default is '%s%n%b%n'
-
+   --strip-tab  remove one additional leading TAB from commit message lines.
+   --strip-cherry-pick  remove data inserted by "git cherry-pick";
+                  this includes the "cherry picked from commit ..." line,
+                  and the possible final "Conflicts:" paragraph.
    --help       display this help and exit
    --version    output version information and exit
 
@@ -190,6 +197,9 @@ sub parse_amend_file($)
   my $format_string = '%s%n%b%n';
   my $amend_file;
   my $append_dot = 0;
+  my $cluster = 1;
+  my $strip_tab = 0;
+  my $strip_cherry_pick = 0;
   GetOptions
     (
      help => sub { usage 0 },
@@ -198,6 +208,9 @@ sub parse_amend_file($)
      'format=s' => \$format_string,
      'amend=s' => \$amend_file,
      'append-dot' => \$append_dot,
+     'cluster!' => \$cluster,
+     'strip-tab' => \$strip_tab,
+     'strip-cherry-pick' => \$strip_cherry_pick,
     ) or usage 1;
 
 
@@ -257,6 +270,13 @@ sub parse_amend_file($)
           $rest = $_;
         }
 
+      # Remove lines inserted by "git cherry-pick".
+      if ($strip_cherry_pick)
+        {
+          $rest =~ s/^\s*Conflicts:\n.*//sm;
+          $rest =~ s/^\s*\(cherry picked from commit [\da-f]+\)\n//m;
+        }
+
       my @line = split "\n", $rest;
       my $author_line = shift @line;
       defined $author_line
@@ -302,13 +322,15 @@ sub parse_amend_file($)
               . substr ($_, 5) . "\n";
         }
 
-      # If this header would be different from the previous date/name/email/
-      # coauthors header, or if this or the previous entry consists of two
-      # or more paragraphs, then print the header.
-      if ($date_line ne $prev_date_line
-          or "@coauthors" ne "@prev_coauthors"
-          or $multi_paragraph
-          or $prev_multi_paragraph)
+      # If clustering of commit messages has been disabled, if this header
+      # would be different from the previous date/name/email/coauthors header,
+      # or if this or the previous entry consists of two or more paragraphs,
+      # then print the header.
+      if ( ! $cluster
+          || $date_line ne $prev_date_line
+          || "@coauthors" ne "@prev_coauthors"
+          || $multi_paragraph
+          || $prev_multi_paragraph)
         {
           $prev_date_line eq ''
             or print "\n";
@@ -338,6 +360,10 @@ sub parse_amend_file($)
                     or $line[0] .= '.';
                 }
             }
+
+          # Remove one additional leading TAB from each line.
+          $strip_tab
+            and map { s/^\t// } @line;
 
           # Prefix each non-empty line with a TAB.
           @line = map { length $_ ? "\t$_" : '' } @line;

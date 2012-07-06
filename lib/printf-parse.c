@@ -12,8 +12,7 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 /* This file can be parametrized with the following macros:
      CHAR_T             The element type of the format string.
@@ -402,7 +401,7 @@ PRINTF_PARSE (const CHAR_T *format, DIRECTIVES *d, arguments *a)
                       cp++;
                     }
 #if defined __APPLE__ && defined __MACH__
-                  /* On MacOS X 10.3, PRIdMAX is defined as "qd".
+                  /* On Mac OS X 10.3, PRIdMAX is defined as "qd".
                      We cannot change it to "lld" because PRIdMAX must also
                      be understood by the system's printf routines.  */
                   else if (*cp == 'q')

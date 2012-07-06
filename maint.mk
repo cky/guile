@@ -178,6 +178,13 @@ syntax-check: $(local-check)
 #     Regular expression (ERE) denoting either a forbidden construct
 #     or a required construct.  Those arguments are exclusive.
 #
+#  exclude
+#
+#     Regular expression (ERE) denoting lines to ignore that matched
+#     a prohibit construct.  For example, this can be used to exclude
+#     comments that mention why the nearby code uses an alternative
+#     construct instead of the simpler prohibited construct.
+#
 #  in_vc_files | in_files
 #
 #     grep-E-style regexp denoting the files to check.  If no files
@@ -212,6 +219,17 @@ syntax-check: $(local-check)
 # when filtering by name via in_files, we explicitly filter out matching
 # names here as well.
 
+# Initialize each, so that envvar settings cannot interfere.
+export require =
+export prohibit =
+export exclude =
+export in_vc_files =
+export in_files =
+export containing =
+export non_containing =
+export halt =
+export with_grep_options =
+
 # By default, _sc_search_regexp does not ignore case.
 export ignore_case =
 _ignore_case = $$(test -n "$$ignore_case" && printf %s -i || :)
@@ -230,6 +248,9 @@ define _sc_search_regexp
           $(_sc_say_and_exit) } || :;					\
    test -z "$$prohibit" && test -z "$$require"				\
      && { msg='Should specify either prohibit or require'		\
+          $(_sc_say_and_exit) } || :;					\
+   test -z "$$prohibit" && test -n "$$exclude"				\
+     && { msg='Use of exclude requires a prohibit pattern'		\
           $(_sc_say_and_exit) } || :;					\
    test -n "$$in_vc_files" && test -n "$$in_files"			\
      && { msg='Cannot specify both in_vc_files and in_files'		\
@@ -258,6 +279,7 @@ define _sc_search_regexp
    if test -n "$$files"; then						\
      if test -n "$$prohibit"; then					\
        grep $$with_grep_options $(_ignore_case) -nE "$$prohibit" $$files \
+         | grep -vE "$${exclude:-^$$}"					\
          && { msg="$$halt" $(_sc_say_and_exit) } || :;			\
      else								\
        grep $$with_grep_options $(_ignore_case) -LE "$$require" $$files \
@@ -276,17 +298,17 @@ sc_avoid_if_before_free:
 	    exit 1; } || :
 
 sc_cast_of_argument_to_free:
-	@prohibit='\<free *\( *\(' halt='don'\''t cast free argument'	\
+	@prohibit='\<free *\( *\(' halt="don't cast free argument"	\
 	  $(_sc_search_regexp)
 
 sc_cast_of_x_alloc_return_value:
 	@prohibit='\*\) *x(m|c|re)alloc\>'				\
-	halt='don'\''t cast x*alloc return value'			\
+	halt="don't cast x*alloc return value"				\
 	  $(_sc_search_regexp)
 
 sc_cast_of_alloca_return_value:
 	@prohibit='\*\) *alloca\>'					\
-	halt='don'\''t cast alloca return value'			\
+	halt="don't cast alloca return value"				\
 	  $(_sc_search_regexp)
 
 sc_space_tab:
@@ -303,12 +325,20 @@ sc_prohibit_atoi_atof:
 	  $(_sc_search_regexp)
 
 # Use STREQ rather than comparing strcmp == 0, or != 0.
+sp_ = strcmp *\(.+\)
 sc_prohibit_strcmp:
-	@grep -nE '! *str''cmp *\(|\<str''cmp *\(.+\) *[!=]='	\
-	    $$($(VC_LIST_EXCEPT))					\
-	  | grep -vE ':# *define STRN?EQ\(' &&				\
-	  { echo '$(ME): replace str''cmp calls above with STREQ/STRNEQ' \
-		1>&2; exit 1; } || :
+	@prohibit='! *strcmp *\(|\<$(sp_) *[!=]=|[!=]= *$(sp_)'		\
+	exclude=':# *define STRN?EQ\('					\
+	halt='$(ME): replace strcmp calls above with STREQ/STRNEQ'	\
+	  $(_sc_search_regexp)
+
+# Really.  You don't want to use this function.
+# It may fail to NUL-terminate the destination,
+# and always NUL-pads out to the specified length.
+sc_prohibit_strncpy:
+	@prohibit='\<strncpy *\('					\
+	halt='do not use strncpy, period'				\
+	  $(_sc_search_regexp)
 
 # Pass EXIT_*, not number, to usage, exit, and error (when exiting)
 # Convert all uses automatically, via these two commands:
@@ -433,7 +463,8 @@ sc_prohibit_quotearg_without_use:
 
 # Don't include quote.h unless you use one of its functions.
 sc_prohibit_quote_without_use:
-	@h='quote.h' re='\<quote(_n)? *\(' $(_sc_header_without_use)
+	@h='quote.h' re='\<quote((_n)? *\(|_quoting_options\>)' \
+	  $(_sc_header_without_use)
 
 # Don't include this header unless you use one of its functions.
 sc_prohibit_long_options_without_use:
@@ -502,7 +533,7 @@ sc_prohibit_same_without_use:
 
 sc_prohibit_hash_pjw_without_use:
 	@h='hash-pjw.h' \
-	re='\<hash_pjw *\(' \
+	re='\<hash_pjw\>' \
 	  $(_sc_header_without_use)
 
 sc_prohibit_safe_read_without_use:
@@ -516,7 +547,7 @@ sc_prohibit_argmatch_without_use:
 
 sc_prohibit_canonicalize_without_use:
 	@h='canonicalize.h' \
-	re='CAN_(EXISTING|ALL_BUT_LAST|MISSING)|canonicalize_(mode_t|filename_mode)' \
+	re='CAN_(EXISTING|ALL_BUT_LAST|MISSING)|canonicalize_(mode_t|filename_mode|file_name)' \
 	  $(_sc_header_without_use)
 
 sc_prohibit_root_dev_ino_without_use:
@@ -708,12 +739,10 @@ _gl_translatable_diag_func_re ?= error
 # Look for diagnostics that aren't marked for translation.
 # This won't find any for which error's format string is on a separate line.
 sc_unmarked_diagnostics:
-	@grep -nE							\
-	    '\<$(_gl_translatable_diag_func_re) *\([^"]*"[^"]*[a-z]{3}' \
-		$$($(VC_LIST_EXCEPT))					\
-	  | grep -Ev '(_|ngettext ?)\(' &&				\
-	  { echo '$(ME): found unmarked diagnostic(s)' 1>&2;		\
-	    exit 1; } || :
+	@prohibit='\<$(_gl_translatable_diag_func_re) *\([^"]*"[^"]*[a-z]{3}' \
+	exclude='(_|ngettext ?)\('					\
+	halt='$(ME): found unmarked diagnostic(s)'			\
+	  $(_sc_search_regexp)
 
 # Avoid useless parentheses like those in this example:
 # #if defined (SYMBOL) || defined (SYM2)
@@ -911,8 +940,15 @@ sc_prohibit_doubled_word:
 # A regular expression matching undesirable combinations of words like
 # "can not"; this matches them even when the two words appear on different
 # lines, but not when there is an intervening delimiter like "#" or "*".
+# Similarly undesirable, "See @xref{...}", since an @xref should start
+# a sentence.  Explicitly prohibit any prefix of "see" or "also".
+# Also prohibit a prefix matching "\w+ +".
+# @pxref gets the same see/also treatment and should be parenthesized;
+# presume it must *not* start a sentence.
+bad_xref_re_ ?= (?:[\w,:;] +|(?:see|also)\s+)\@xref\{
+bad_pxref_re_ ?= (?:[.!?]|(?:see|also))\s+\@pxref\{
 prohibit_undesirable_word_seq_RE_ ?=					\
-  /\bcan\s+not\b/gims
+  /(?:\bcan\s+not\b|$(bad_xref_re_)|$(bad_pxref_re_))/gims
 prohibit_undesirable_word_seq_ =					\
     -e 'while ($(prohibit_undesirable_word_seq_RE_))'			\
     $(perl_filename_lineno_text_)
@@ -974,10 +1010,10 @@ sc_redundant_const:
 	  $(_sc_search_regexp)
 
 sc_const_long_option:
-	@grep '^ *static.*struct option ' $$($(VC_LIST_EXCEPT))		\
-	  | grep -Ev 'const struct option|struct option const' && {	\
-	      echo 1>&2 '$(ME): add "const" to the above declarations'; \
-	      exit 1; } || :
+	@prohibit='^ *static.*struct option '				\
+	exclude='const struct option|struct option const'		\
+	halt='$(ME): add "const" to the above declarations'		\
+	  $(_sc_search_regexp)
 
 NEWS_hash =								\
   $$(sed -n '/^\*.* $(PREV_VERSION_REGEXP) ([0-9-]*)/,$$p'		\
@@ -1015,15 +1051,15 @@ update-NEWS-hash: NEWS
 # setting this to ' && !/PRAGMA_SYSTEM_HEADER/'.
 _makefile_at_at_check_exceptions ?=
 sc_makefile_at_at_check:
-	@perl -ne '/\@[A-Z_0-9]+\@/'					\
-          -e ' && !/([A-Z_0-9]+)\s+=.*\@\1\@$$/'			\
+	@perl -ne '/\@\w+\@/'						\
+          -e ' && !/(\w+)\s+=.*\@\1\@$$/'				\
           -e ''$(_makefile_at_at_check_exceptions)			\
 	  -e 'and (print "$$ARGV:$$.: $$_"), $$m=1; END {exit !$$m}'	\
 	    $$($(VC_LIST_EXCEPT) | grep -E '(^|/)(Makefile\.am|[^/]+\.mk)$$') \
 	  && { echo '$(ME): use $$(...), not @...@' 1>&2; exit 1; } || :
 
 news-check: NEWS
-	if sed -n $(news-check-lines-spec)p $(srcdir)/NEWS		\
+	if sed -n $(news-check-lines-spec)p $<				\
 	    | grep -E $(news-check-regexp) >/dev/null; then		\
 	  :;								\
 	else								\
@@ -1079,7 +1115,7 @@ sc_po_check:
 # Sometimes it is useful to change the PATH environment variable
 # in Makefiles.  When doing so, it's better not to use the Unix-centric
 # path separator of ':', but rather the automake-provided '$(PATH_SEPARATOR)'.
-msg = '$(ME): Do not use '\'':'\'' above; use $$(PATH_SEPARATOR) instead'
+msg = '$(ME): Do not use ":" above; use $$(PATH_SEPARATOR) instead'
 sc_makefile_path_separator_check:
 	@prohibit='PATH[=].*:'						\
 	in_vc_files='akefile|\.mk$$'					\
@@ -1206,7 +1242,7 @@ bootstrap-tools ?= autoconf,automake,gnulib
 gpg_key_ID ?= \
   $$(git cat-file tag v$(VERSION) \
      | gpgv --status-fd 1 --keyring /dev/null - - 2>/dev/null \
-     | sed -n '/^\[GNUPG:\] ERRSIG /{s///;s/ .*//p;q}')
+     | awk '/^\[GNUPG:\] ERRSIG / {print $$3; exit}')
 
 translation_project_ ?= coordinator@translationproject.org
 
@@ -1232,9 +1268,11 @@ announcement: NEWS ChangeLog $(rel-files)
 	    --prev=$(PREV_VERSION)					\
 	    --curr=$(VERSION)						\
 	    --gpg-key-id=$(gpg_key_ID)					\
+	    --srcdir=$(srcdir)						\
 	    --news=$(srcdir)/NEWS					\
 	    --bootstrap-tools=$(bootstrap-tools)			\
-	    --gnulib-version=$(gnulib-version)				\
+	    $$(case ,$(bootstrap-tools), in (*,gnulib,*)		\
+	       echo --gnulib-version=$(gnulib-version);; esac)		\
 	    --no-print-checksums					\
 	    $(addprefix --url-dir=, $(url_dir_list))
 
@@ -1311,7 +1349,7 @@ alpha beta stable: $(local-check) writable-files $(submodule-checks)
 	$(MAKE) vc-diff-check
 	$(MAKE) news-check
 	$(MAKE) distcheck
-	$(MAKE) dist XZ_OPT=-9ev
+	$(MAKE) dist
 	$(MAKE) $(release-prep-hook) RELEASE_TYPE=$@
 	$(MAKE) -s emit_upload_commands RELEASE_TYPE=$@
 
@@ -1330,7 +1368,7 @@ release-prep:
 	fi
 	echo $(VERSION) > $(prev_version_file)
 	$(MAKE) update-NEWS-hash
-	perl -pi -e '$$. == 3 and print "$(gl_noteworthy_news_)\n\n\n"' NEWS
+	perl -pi -e '$$. == 3 and print "$(gl_noteworthy_news_)\n\n\n"' $(srcdir)/NEWS
 	$(emit-commit-log) > .ci-msg
 	$(VC) commit -F .ci-msg -a
 	rm .ci-msg
@@ -1385,7 +1423,7 @@ refresh-po:
 	wget --no-verbose --directory-prefix $(PODIR) --no-directories --recursive --level 1 --accept .po --accept .po.1 $(POURL) && \
 	echo 'en@boldquot' > $(PODIR)/LINGUAS && \
 	echo 'en@quot' >> $(PODIR)/LINGUAS && \
-	ls $(PODIR)/*.po | sed 's/\.po//' | sed 's,$(PODIR)/,,' | sort >> $(PODIR)/LINGUAS
+	ls $(PODIR)/*.po | sed 's/\.po//;s,$(PODIR)/,,' | sort >> $(PODIR)/LINGUAS
 
  # Running indent once is not idempotent, but running it twice is.
 INDENT_SOURCES ?= $(C_SOURCES)

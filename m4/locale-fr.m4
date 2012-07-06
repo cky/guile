@@ -1,4 +1,4 @@
-# locale-fr.m4 serial 14
+# locale-fr.m4 serial 17
 dnl Copyright (C) 2003, 2005-2012 Free Software Foundation, Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -28,7 +28,7 @@ int main () {
 #if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
   /* On native Windows, setlocale(category, "") looks at the system settings,
      not at the environment variables.  Also, when an encoding suffix such
-     as ".65001" or ".54936" is speficied, it succeeds but sets the LC_CTYPE
+     as ".65001" or ".54936" is specified, it succeeds but sets the LC_CTYPE
      category of the locale to "C".  */
   if (setlocale (LC_ALL, getenv ("LC_ALL")) == NULL
       || strcmp (setlocale (LC_CTYPE, NULL), "C") == 0)
@@ -37,7 +37,7 @@ int main () {
   if (setlocale (LC_ALL, "") == NULL) return 1;
 #endif
   /* Check whether nl_langinfo(CODESET) is nonempty and not "ASCII" or "646".
-     On MacOS X 10.3.5 (Darwin 7.5) in the fr_FR locale, nl_langinfo(CODESET)
+     On Mac OS X 10.3.5 (Darwin 7.5) in the fr_FR locale, nl_langinfo(CODESET)
      is empty, and the behaviour of Tcl 8.4 in this locale is not useful.
      On OpenBSD 4.0, when an unsupported locale is specified, setlocale()
      succeeds but then nl_langinfo(CODESET) is "646". In this situation,
@@ -63,10 +63,12 @@ int main () {
      one byte long. This excludes the UTF-8 encoding.  */
   t.tm_year = 1975 - 1900; t.tm_mon = 2 - 1; t.tm_mday = 4;
   if (strftime (buf, sizeof (buf), "%b", &t) < 3 || buf[2] != 'v') return 1;
+#if !defined __BIONIC__ /* Bionic libc's 'struct lconv' is just a dummy.  */
   /* Check whether the decimal separator is a comma.
      On NetBSD 3.0 in the fr_FR.ISO8859-1 locale, localeconv()->decimal_point
      are nl_langinfo(RADIXCHAR) are both ".".  */
   if (localeconv () ->decimal_point[0] != ',') return 1;
+#endif
   return 0;
 }
 changequote([,])dnl
@@ -90,7 +92,7 @@ changequote([,])dnl
           ;;
         *)
           # Setting LC_ALL is not enough. Need to set LC_TIME to empty, because
-          # otherwise on MacOS X 10.3.5 the LC_TIME=C from the beginning of the
+          # otherwise on Mac OS X 10.3.5 the LC_TIME=C from the beginning of the
           # configure script would override the LC_ALL setting. Likewise for
           # LC_CTYPE, which is also set at the beginning of the configure script.
           # Test for the usual locale name.
@@ -154,7 +156,7 @@ int main () {
 # if (defined _WIN32 || defined __WIN32__) && !defined __CYGWIN__
   /* On native Windows, setlocale(category, "") looks at the system settings,
      not at the environment variables.  Also, when an encoding suffix such
-     as ".65001" or ".54936" is speficied, it succeeds but sets the LC_CTYPE
+     as ".65001" or ".54936" is specified, it succeeds but sets the LC_CTYPE
      category of the locale to "C".  */
   if (setlocale (LC_ALL, getenv ("LC_ALL")) == NULL
       || strcmp (setlocale (LC_CTYPE, NULL), "C") == 0)
@@ -163,7 +165,7 @@ int main () {
   if (setlocale (LC_ALL, "") == NULL) return 1;
 # endif
   /* Check whether nl_langinfo(CODESET) is nonempty and not "ASCII" or "646".
-     On MacOS X 10.3.5 (Darwin 7.5) in the fr_FR locale, nl_langinfo(CODESET)
+     On Mac OS X 10.3.5 (Darwin 7.5) in the fr_FR locale, nl_langinfo(CODESET)
      is empty, and the behaviour of Tcl 8.4 in this locale is not useful.
      On OpenBSD 4.0, when an unsupported locale is specified, setlocale()
      succeeds but then nl_langinfo(CODESET) is "646". In this situation,
@@ -189,10 +191,12 @@ int main () {
       || buf[1] != (char) 0xc3 || buf[2] != (char) 0xa9 || buf[3] != 'v')
     return 1;
 #endif
+#if !defined __BIONIC__ /* Bionic libc's 'struct lconv' is just a dummy.  */
   /* Check whether the decimal separator is a comma.
      On NetBSD 3.0 in the fr_FR.ISO8859-1 locale, localeconv()->decimal_point
      are nl_langinfo(RADIXCHAR) are both ".".  */
   if (localeconv () ->decimal_point[0] != ',') return 1;
+#endif
   return 0;
 }
 changequote([,])dnl
@@ -216,7 +220,7 @@ changequote([,])dnl
           ;;
         *)
           # Setting LC_ALL is not enough. Need to set LC_TIME to empty, because
-          # otherwise on MacOS X 10.3.5 the LC_TIME=C from the beginning of the
+          # otherwise on Mac OS X 10.3.5 the LC_TIME=C from the beginning of the
           # configure script would override the LC_ALL setting. Likewise for
           # LC_CTYPE, which is also set at the beginning of the configure script.
           # Test for the usual locale name.

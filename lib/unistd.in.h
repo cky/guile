@@ -12,8 +12,7 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 #if __GNUC__ >= 3
 @PRAGMA_SYSTEM_HEADER@
@@ -108,8 +107,9 @@
 # include <netdb.h>
 #endif
 
-/* MSVC defines off_t in <sys/types.h>.  */
-#if !@HAVE_UNISTD_H@
+/* MSVC defines off_t in <sys/types.h>.
+   May also define off_t to a 64-bit type on native Windows.  */
+#if !@HAVE_UNISTD_H@ || @WINDOWS_64_BIT_OFF_T@
 /* Get off_t.  */
 # include <sys/types.h>
 #endif
@@ -563,10 +563,19 @@ _GL_WARN_ON_USE (fsync, "fsync is unportable - "
    Return 0 if successful, otherwise -1 and errno set.
    See the POSIX:2008 specification
    <http://pubs.opengroup.org/onlinepubs/9699919799/functions/ftruncate.html>.  */
-# if !@HAVE_FTRUNCATE@
+# if @REPLACE_FTRUNCATE@
+#  if !(defined __cplusplus && defined GNULIB_NAMESPACE)
+#   undef ftruncate
+#   define ftruncate rpl_ftruncate
+#  endif
+_GL_FUNCDECL_RPL (ftruncate, int, (int fd, off_t length));
+_GL_CXXALIAS_RPL (ftruncate, int, (int fd, off_t length));
+# else
+#  if !@HAVE_FTRUNCATE@
 _GL_FUNCDECL_SYS (ftruncate, int, (int fd, off_t length));
-# endif
+#  endif
 _GL_CXXALIAS_SYS (ftruncate, int, (int fd, off_t length));
+# endif
 _GL_CXXALIASWARN (ftruncate);
 #elif defined GNULIB_POSIXCHECK
 # undef ftruncate
@@ -1309,7 +1318,7 @@ _GL_WARN_ON_USE (rmdir, "rmdir is unportable - "
 _GL_FUNCDECL_SYS (sethostname, int, (const char *name, size_t len)
                                     _GL_ARG_NONNULL ((1)));
 # endif
-/* Need to cast, because on Solaris 11 2011-10, MacOS X 10.5, IRIX 6.5
+/* Need to cast, because on Solaris 11 2011-10, Mac OS X 10.5, IRIX 6.5
    and FreeBSD 6.4 the second parameter is int.  On Solaris 11
    2011-10, the first parameter is not const.  */
 _GL_CXXALIAS_SYS_CAST (sethostname, int, (const char *name, size_t len));

@@ -480,9 +480,11 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =	\
   $(LIB_CLOCK_GETTIME) 				\
   $(LIBSOCKET)					\
   $(LOG1P_LIBM)					\
+  $(LOG_LIBM)					\
   $(LTLIBICONV)					\
   $(LTLIBINTL)					\
   $(LTLIBUNISTRING)				\
+  $(ROUND_LIBM)					\
   $(SERVENT_LIB)				\
   $(TRUNC_LIBM)					\
   -version-info $(version_info)			\

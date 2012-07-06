@@ -14,8 +14,7 @@
 #   GNU Lesser General Public License for more details.
 #
 #   You should have received a copy of the GNU Lesser General Public License along
-#   with this program; if not, write to the Free Software Foundation,
-#   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#   with this program; if not, see <http://www.gnu.org/licenses/>.
 #
 # The table consists of lines of the form
 #    ALIAS  CANONICAL
@@ -30,7 +29,7 @@
 # The current list of GNU canonical charset names is as follows.
 #
 #       name              MIME?             used by which systems
-#                                    (darwin = MacOS X, woe32 = native Windows)
+#                                    (darwin = Mac OS X, woe32 = native Windows)
 #
 #   ASCII, ANSI_X3.4-1968       glibc solaris freebsd netbsd darwin cygwin
 #   ISO-8859-1              Y   glibc aix hpux irix osf solaris freebsd netbsd openbsd darwin cygwin

@@ -14,13 +14,27 @@ AC_DEFUN([gl_STDALIGN_H],
     [AC_COMPILE_IFELSE(
        [AC_LANG_PROGRAM(
           [[#include <stdalign.h>
-            int align_int = alignof (int) + _Alignof (double);
+            #include <stddef.h>
+
+            /* Test that alignof yields a result consistent with offsetof.
+               This catches GCC bug 52023
+               <http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52023>.  */
+            #ifdef __cplusplus
+               template <class t> struct alignof_helper { char a; t b; };
+            # define ao(type) offsetof (alignof_helper<type>, b)
+            #else
+            # define ao(type) offsetof (struct { char a; type b; }, b)
+            #endif
+            char test_double[ao (double) % _Alignof (double) == 0 ? 1 : -1];
+            char test_long[ao (long int) % _Alignof (long int) == 0 ? 1 : -1];
+            char test_alignof[alignof (double) == _Alignof (double) ? 1 : -1];
 
             /* Test _Alignas only on platforms where gnulib can help.  */
             #if \
                 (__GNUC__ || __IBMC__ || __IBMCPP__ \
                  || 0x5110 <= __SUNPRO_C || 1300 <= _MSC_VER)
               int alignas (8) alignas_int = 1;
+              char test_alignas[_Alignof (alignas_int) == 8 ? 1 : -1];
             #endif
           ]])],
        [gl_cv_header_working_stdalign_h=yes],

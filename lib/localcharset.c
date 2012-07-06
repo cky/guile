@@ -13,8 +13,7 @@
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, write to the Free Software Foundation,
-   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
+   with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
 /* Written by Bruno Haible <bruno@clisp.org>.  */
 
@@ -30,7 +29,7 @@
 #include <stdlib.h>
 
 #if defined __APPLE__ && defined __MACH__ && HAVE_LANGINFO_CODESET
-# define DARWIN7 /* Darwin 7 or newer, i.e. MacOS X 10.3 or newer */
+# define DARWIN7 /* Darwin 7 or newer, i.e. Mac OS X 10.3 or newer */
 #endif
 
 #if defined _WIN32 || defined __WIN32__

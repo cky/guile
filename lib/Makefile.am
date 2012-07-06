@@ -62,9 +62,11 @@ libgnu_la_LDFLAGS += $(ISNANL_LIBM)
 libgnu_la_LDFLAGS += $(LDEXP_LIBM)
 libgnu_la_LDFLAGS += $(LIBSOCKET)
 libgnu_la_LDFLAGS += $(LOG1P_LIBM)
+libgnu_la_LDFLAGS += $(LOG_LIBM)
 libgnu_la_LDFLAGS += $(LTLIBICONV)
 libgnu_la_LDFLAGS += $(LTLIBINTL)
 libgnu_la_LDFLAGS += $(LTLIBUNISTRING)
+libgnu_la_LDFLAGS += $(ROUND_LIBM)
 libgnu_la_LDFLAGS += $(SERVENT_LIB)
 libgnu_la_LDFLAGS += $(TRUNC_LIBM)
 
@@ -279,7 +281,7 @@ configmake.h: Makefile
 	  echo '#define PKGINCLUDEDIR "$(pkgincludedir)"'; \
 	  echo '#define PKGLIBDIR "$(pkglibdir)"'; \
 	  echo '#define PKGLIBEXECDIR "$(pkglibexecdir)"'; \
-	} | sed '/""/d' > $@-t
+	} | sed '/""/d' > $@-t && \
 	mv -f $@-t $@
 
 BUILT_SOURCES += configmake.h
@@ -911,12 +913,15 @@ locale.h: locale.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
 	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
 	      -e 's|@''NEXT_LOCALE_H''@|$(NEXT_LOCALE_H)|g' \
+	      -e 's/@''GNULIB_LOCALECONV''@/$(GNULIB_LOCALECONV)/g' \
 	      -e 's/@''GNULIB_SETLOCALE''@/$(GNULIB_SETLOCALE)/g' \
 	      -e 's/@''GNULIB_DUPLOCALE''@/$(GNULIB_DUPLOCALE)/g' \
 	      -e 's|@''HAVE_DUPLOCALE''@|$(HAVE_DUPLOCALE)|g' \
 	      -e 's|@''HAVE_XLOCALE_H''@|$(HAVE_XLOCALE_H)|g' \
+	      -e 's|@''REPLACE_LOCALECONV''@|$(REPLACE_LOCALECONV)|g' \
 	      -e 's|@''REPLACE_SETLOCALE''@|$(REPLACE_SETLOCALE)|g' \
 	      -e 's|@''REPLACE_DUPLOCALE''@|$(REPLACE_DUPLOCALE)|g' \
+	      -e 's|@''REPLACE_STRUCT_LCONV''@|$(REPLACE_STRUCT_LCONV)|g' \
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
@@ -928,6 +933,33 @@ MOSTLYCLEANFILES += locale.h locale.h-t
 EXTRA_DIST += locale.in.h
 
 ## end   gnulib module locale
+
+## begin gnulib module localeconv
+
+
+EXTRA_DIST += localeconv.c
+
+EXTRA_libgnu_la_SOURCES += localeconv.c
+
+## end   gnulib module localeconv
+
+## begin gnulib module log
+
+
+EXTRA_DIST += log.c
+
+EXTRA_libgnu_la_SOURCES += log.c
+
+## end   gnulib module log
+
+## begin gnulib module log1p
+
+
+EXTRA_DIST += log1p.c
+
+EXTRA_libgnu_la_SOURCES += log1p.c
+
+## end   gnulib module log1p
 
 ## begin gnulib module lstat
 
@@ -991,6 +1023,9 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's/@''GNULIB_ATANF''@/$(GNULIB_ATANF)/g' \
 	      -e 's/@''GNULIB_ATANL''@/$(GNULIB_ATANL)/g' \
 	      -e 's/@''GNULIB_ATAN2F''@/$(GNULIB_ATAN2F)/g' \
+	      -e 's/@''GNULIB_CBRT''@/$(GNULIB_CBRT)/g' \
+	      -e 's/@''GNULIB_CBRTF''@/$(GNULIB_CBRTF)/g' \
+	      -e 's/@''GNULIB_CBRTL''@/$(GNULIB_CBRTL)/g' \
 	      -e 's/@''GNULIB_CEIL''@/$(GNULIB_CEIL)/g' \
 	      -e 's/@''GNULIB_CEILF''@/$(GNULIB_CEILF)/g' \
 	      -e 's/@''GNULIB_CEILL''@/$(GNULIB_CEILL)/g' \
@@ -1002,17 +1037,33 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's/@''GNULIB_COSHF''@/$(GNULIB_COSHF)/g' \
 	      -e 's/@''GNULIB_EXPF''@/$(GNULIB_EXPF)/g' \
 	      -e 's/@''GNULIB_EXPL''@/$(GNULIB_EXPL)/g' \
+	      -e 's/@''GNULIB_EXP2''@/$(GNULIB_EXP2)/g' \
+	      -e 's/@''GNULIB_EXP2F''@/$(GNULIB_EXP2F)/g' \
+	      -e 's/@''GNULIB_EXP2L''@/$(GNULIB_EXP2L)/g' \
+	      -e 's/@''GNULIB_EXPM1''@/$(GNULIB_EXPM1)/g' \
+	      -e 's/@''GNULIB_EXPM1F''@/$(GNULIB_EXPM1F)/g' \
+	      -e 's/@''GNULIB_EXPM1L''@/$(GNULIB_EXPM1L)/g' \
 	      -e 's/@''GNULIB_FABSF''@/$(GNULIB_FABSF)/g' \
+	      -e 's/@''GNULIB_FABSL''@/$(GNULIB_FABSL)/g' \
 	      -e 's/@''GNULIB_FLOOR''@/$(GNULIB_FLOOR)/g' \
 	      -e 's/@''GNULIB_FLOORF''@/$(GNULIB_FLOORF)/g' \
 	      -e 's/@''GNULIB_FLOORL''@/$(GNULIB_FLOORL)/g' \
 	      -e 's/@''GNULIB_FMA''@/$(GNULIB_FMA)/g' \
 	      -e 's/@''GNULIB_FMAF''@/$(GNULIB_FMAF)/g' \
 	      -e 's/@''GNULIB_FMAL''@/$(GNULIB_FMAL)/g' \
+	      -e 's/@''GNULIB_FMOD''@/$(GNULIB_FMOD)/g' \
 	      -e 's/@''GNULIB_FMODF''@/$(GNULIB_FMODF)/g' \
+	      -e 's/@''GNULIB_FMODL''@/$(GNULIB_FMODL)/g' \
 	      -e 's/@''GNULIB_FREXPF''@/$(GNULIB_FREXPF)/g' \
 	      -e 's/@''GNULIB_FREXP''@/$(GNULIB_FREXP)/g' \
 	      -e 's/@''GNULIB_FREXPL''@/$(GNULIB_FREXPL)/g' \
+	      -e 's/@''GNULIB_HYPOT''@/$(GNULIB_HYPOT)/g' \
+	      -e 's/@''GNULIB_HYPOTF''@/$(GNULIB_HYPOTF)/g' \
+	      -e 's/@''GNULIB_HYPOTL''@/$(GNULIB_HYPOTL)/g' \
+	      < $(srcdir)/math.in.h | \
+	  sed -e 's/@''GNULIB_ILOGB''@/$(GNULIB_ILOGB)/g' \
+	      -e 's/@''GNULIB_ILOGBF''@/$(GNULIB_ILOGBF)/g' \
+	      -e 's/@''GNULIB_ILOGBL''@/$(GNULIB_ILOGBL)/g' \
 	      -e 's/@''GNULIB_ISFINITE''@/$(GNULIB_ISFINITE)/g' \
 	      -e 's/@''GNULIB_ISINF''@/$(GNULIB_ISINF)/g' \
 	      -e 's/@''GNULIB_ISNAN''@/$(GNULIB_ISNAN)/g' \
@@ -1021,12 +1072,28 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's/@''GNULIB_ISNANL''@/$(GNULIB_ISNANL)/g' \
 	      -e 's/@''GNULIB_LDEXPF''@/$(GNULIB_LDEXPF)/g' \
 	      -e 's/@''GNULIB_LDEXPL''@/$(GNULIB_LDEXPL)/g' \
-	      -e 's/@''GNULIB_LOGB''@/$(GNULIB_LOGB)/g' \
+	      -e 's/@''GNULIB_LOG''@/$(GNULIB_LOG)/g' \
 	      -e 's/@''GNULIB_LOGF''@/$(GNULIB_LOGF)/g' \
 	      -e 's/@''GNULIB_LOGL''@/$(GNULIB_LOGL)/g' \
+	      -e 's/@''GNULIB_LOG10''@/$(GNULIB_LOG10)/g' \
 	      -e 's/@''GNULIB_LOG10F''@/$(GNULIB_LOG10F)/g' \
+	      -e 's/@''GNULIB_LOG10L''@/$(GNULIB_LOG10L)/g' \
+	      -e 's/@''GNULIB_LOG1P''@/$(GNULIB_LOG1P)/g' \
+	      -e 's/@''GNULIB_LOG1PF''@/$(GNULIB_LOG1PF)/g' \
+	      -e 's/@''GNULIB_LOG1PL''@/$(GNULIB_LOG1PL)/g' \
+	      -e 's/@''GNULIB_LOG2''@/$(GNULIB_LOG2)/g' \
+	      -e 's/@''GNULIB_LOG2F''@/$(GNULIB_LOG2F)/g' \
+	      -e 's/@''GNULIB_LOG2L''@/$(GNULIB_LOG2L)/g' \
+	      -e 's/@''GNULIB_LOGB''@/$(GNULIB_LOGB)/g' \
+	      -e 's/@''GNULIB_LOGBF''@/$(GNULIB_LOGBF)/g' \
+	      -e 's/@''GNULIB_LOGBL''@/$(GNULIB_LOGBL)/g' \
+	      -e 's/@''GNULIB_MODF''@/$(GNULIB_MODF)/g' \
 	      -e 's/@''GNULIB_MODFF''@/$(GNULIB_MODFF)/g' \
+	      -e 's/@''GNULIB_MODFL''@/$(GNULIB_MODFL)/g' \
 	      -e 's/@''GNULIB_POWF''@/$(GNULIB_POWF)/g' \
+	      -e 's/@''GNULIB_REMAINDER''@/$(GNULIB_REMAINDER)/g' \
+	      -e 's/@''GNULIB_REMAINDERF''@/$(GNULIB_REMAINDERF)/g' \
+	      -e 's/@''GNULIB_REMAINDERL''@/$(GNULIB_REMAINDERL)/g' \
 	      -e 's/@''GNULIB_RINT''@/$(GNULIB_RINT)/g' \
 	      -e 's/@''GNULIB_RINTF''@/$(GNULIB_RINTF)/g' \
 	      -e 's/@''GNULIB_RINTL''@/$(GNULIB_RINTL)/g' \
@@ -1045,7 +1112,7 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's/@''GNULIB_TRUNC''@/$(GNULIB_TRUNC)/g' \
 	      -e 's/@''GNULIB_TRUNCF''@/$(GNULIB_TRUNCF)/g' \
 	      -e 's/@''GNULIB_TRUNCL''@/$(GNULIB_TRUNCL)/g' \
-	      < $(srcdir)/math.in.h | \
+	  | \
 	  sed -e 's|@''HAVE_ACOSF''@|$(HAVE_ACOSF)|g' \
 	      -e 's|@''HAVE_ACOSL''@|$(HAVE_ACOSL)|g' \
 	      -e 's|@''HAVE_ASINF''@|$(HAVE_ASINF)|g' \
@@ -1053,20 +1120,31 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''HAVE_ATANF''@|$(HAVE_ATANF)|g' \
 	      -e 's|@''HAVE_ATANL''@|$(HAVE_ATANL)|g' \
 	      -e 's|@''HAVE_ATAN2F''@|$(HAVE_ATAN2F)|g' \
+	      -e 's|@''HAVE_CBRT''@|$(HAVE_CBRT)|g' \
+	      -e 's|@''HAVE_CBRTF''@|$(HAVE_CBRTF)|g' \
+	      -e 's|@''HAVE_CBRTL''@|$(HAVE_CBRTL)|g' \
 	      -e 's|@''HAVE_COPYSIGN''@|$(HAVE_COPYSIGN)|g' \
-	      -e 's|@''HAVE_COPYSIGNF''@|$(HAVE_COPYSIGNF)|g' \
 	      -e 's|@''HAVE_COPYSIGNL''@|$(HAVE_COPYSIGNL)|g' \
 	      -e 's|@''HAVE_COSF''@|$(HAVE_COSF)|g' \
 	      -e 's|@''HAVE_COSL''@|$(HAVE_COSL)|g' \
 	      -e 's|@''HAVE_COSHF''@|$(HAVE_COSHF)|g' \
 	      -e 's|@''HAVE_EXPF''@|$(HAVE_EXPF)|g' \
 	      -e 's|@''HAVE_EXPL''@|$(HAVE_EXPL)|g' \
+	      -e 's|@''HAVE_EXPM1''@|$(HAVE_EXPM1)|g' \
+	      -e 's|@''HAVE_EXPM1F''@|$(HAVE_EXPM1F)|g' \
 	      -e 's|@''HAVE_FABSF''@|$(HAVE_FABSF)|g' \
+	      -e 's|@''HAVE_FABSL''@|$(HAVE_FABSL)|g' \
 	      -e 's|@''HAVE_FMA''@|$(HAVE_FMA)|g' \
 	      -e 's|@''HAVE_FMAF''@|$(HAVE_FMAF)|g' \
 	      -e 's|@''HAVE_FMAL''@|$(HAVE_FMAL)|g' \
 	      -e 's|@''HAVE_FMODF''@|$(HAVE_FMODF)|g' \
+	      -e 's|@''HAVE_FMODL''@|$(HAVE_FMODL)|g' \
 	      -e 's|@''HAVE_FREXPF''@|$(HAVE_FREXPF)|g' \
+	      -e 's|@''HAVE_HYPOTF''@|$(HAVE_HYPOTF)|g' \
+	      -e 's|@''HAVE_HYPOTL''@|$(HAVE_HYPOTL)|g' \
+	      -e 's|@''HAVE_ILOGB''@|$(HAVE_ILOGB)|g' \
+	      -e 's|@''HAVE_ILOGBF''@|$(HAVE_ILOGBF)|g' \
+	      -e 's|@''HAVE_ILOGBL''@|$(HAVE_ILOGBL)|g' \
 	      -e 's|@''HAVE_ISNANF''@|$(HAVE_ISNANF)|g' \
 	      -e 's|@''HAVE_ISNAND''@|$(HAVE_ISNAND)|g' \
 	      -e 's|@''HAVE_ISNANL''@|$(HAVE_ISNANL)|g' \
@@ -1074,10 +1152,18 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''HAVE_LOGF''@|$(HAVE_LOGF)|g' \
 	      -e 's|@''HAVE_LOGL''@|$(HAVE_LOGL)|g' \
 	      -e 's|@''HAVE_LOG10F''@|$(HAVE_LOG10F)|g' \
+	      -e 's|@''HAVE_LOG10L''@|$(HAVE_LOG10L)|g' \
+	      -e 's|@''HAVE_LOG1P''@|$(HAVE_LOG1P)|g' \
+	      -e 's|@''HAVE_LOG1PF''@|$(HAVE_LOG1PF)|g' \
+	      -e 's|@''HAVE_LOG1PL''@|$(HAVE_LOG1PL)|g' \
+	      -e 's|@''HAVE_LOGBF''@|$(HAVE_LOGBF)|g' \
+	      -e 's|@''HAVE_LOGBL''@|$(HAVE_LOGBL)|g' \
 	      -e 's|@''HAVE_MODFF''@|$(HAVE_MODFF)|g' \
+	      -e 's|@''HAVE_MODFL''@|$(HAVE_MODFL)|g' \
 	      -e 's|@''HAVE_POWF''@|$(HAVE_POWF)|g' \
+	      -e 's|@''HAVE_REMAINDER''@|$(HAVE_REMAINDER)|g' \
+	      -e 's|@''HAVE_REMAINDERF''@|$(HAVE_REMAINDERF)|g' \
 	      -e 's|@''HAVE_RINT''@|$(HAVE_RINT)|g' \
-	      -e 's|@''HAVE_RINTF''@|$(HAVE_RINTF)|g' \
 	      -e 's|@''HAVE_RINTL''@|$(HAVE_RINTL)|g' \
 	      -e 's|@''HAVE_SINF''@|$(HAVE_SINF)|g' \
 	      -e 's|@''HAVE_SINL''@|$(HAVE_SINL)|g' \
@@ -1090,16 +1176,30 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''HAVE_DECL_ACOSL''@|$(HAVE_DECL_ACOSL)|g' \
 	      -e 's|@''HAVE_DECL_ASINL''@|$(HAVE_DECL_ASINL)|g' \
 	      -e 's|@''HAVE_DECL_ATANL''@|$(HAVE_DECL_ATANL)|g' \
+	      -e 's|@''HAVE_DECL_CBRTF''@|$(HAVE_DECL_CBRTF)|g' \
+	      -e 's|@''HAVE_DECL_CBRTL''@|$(HAVE_DECL_CBRTL)|g' \
 	      -e 's|@''HAVE_DECL_CEILF''@|$(HAVE_DECL_CEILF)|g' \
 	      -e 's|@''HAVE_DECL_CEILL''@|$(HAVE_DECL_CEILL)|g' \
+	      -e 's|@''HAVE_DECL_COPYSIGNF''@|$(HAVE_DECL_COPYSIGNF)|g' \
 	      -e 's|@''HAVE_DECL_COSL''@|$(HAVE_DECL_COSL)|g' \
 	      -e 's|@''HAVE_DECL_EXPL''@|$(HAVE_DECL_EXPL)|g' \
+	      -e 's|@''HAVE_DECL_EXP2''@|$(HAVE_DECL_EXP2)|g' \
+	      -e 's|@''HAVE_DECL_EXP2F''@|$(HAVE_DECL_EXP2F)|g' \
+	      -e 's|@''HAVE_DECL_EXP2L''@|$(HAVE_DECL_EXP2L)|g' \
+	      -e 's|@''HAVE_DECL_EXPM1L''@|$(HAVE_DECL_EXPM1L)|g' \
 	      -e 's|@''HAVE_DECL_FLOORF''@|$(HAVE_DECL_FLOORF)|g' \
 	      -e 's|@''HAVE_DECL_FLOORL''@|$(HAVE_DECL_FLOORL)|g' \
 	      -e 's|@''HAVE_DECL_FREXPL''@|$(HAVE_DECL_FREXPL)|g' \
 	      -e 's|@''HAVE_DECL_LDEXPL''@|$(HAVE_DECL_LDEXPL)|g' \
-	      -e 's|@''HAVE_DECL_LOGB''@|$(HAVE_DECL_LOGB)|g' \
 	      -e 's|@''HAVE_DECL_LOGL''@|$(HAVE_DECL_LOGL)|g' \
+	      -e 's|@''HAVE_DECL_LOG10L''@|$(HAVE_DECL_LOG10L)|g' \
+	      -e 's|@''HAVE_DECL_LOG2''@|$(HAVE_DECL_LOG2)|g' \
+	      -e 's|@''HAVE_DECL_LOG2F''@|$(HAVE_DECL_LOG2F)|g' \
+	      -e 's|@''HAVE_DECL_LOG2L''@|$(HAVE_DECL_LOG2L)|g' \
+	      -e 's|@''HAVE_DECL_LOGB''@|$(HAVE_DECL_LOGB)|g' \
+	      -e 's|@''HAVE_DECL_REMAINDER''@|$(HAVE_DECL_REMAINDER)|g' \
+	      -e 's|@''HAVE_DECL_REMAINDERL''@|$(HAVE_DECL_REMAINDERL)|g' \
+	      -e 's|@''HAVE_DECL_RINTF''@|$(HAVE_DECL_RINTF)|g' \
 	      -e 's|@''HAVE_DECL_ROUND''@|$(HAVE_DECL_ROUND)|g' \
 	      -e 's|@''HAVE_DECL_ROUNDF''@|$(HAVE_DECL_ROUNDF)|g' \
 	      -e 's|@''HAVE_DECL_ROUNDL''@|$(HAVE_DECL_ROUNDL)|g' \
@@ -1110,30 +1210,67 @@ math.h: math.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) $(
 	      -e 's|@''HAVE_DECL_TRUNCF''@|$(HAVE_DECL_TRUNCF)|g' \
 	      -e 's|@''HAVE_DECL_TRUNCL''@|$(HAVE_DECL_TRUNCL)|g' \
 	  | \
-	  sed -e 's|@''REPLACE_CEIL''@|$(REPLACE_CEIL)|g' \
+	  sed -e 's|@''REPLACE_CBRTF''@|$(REPLACE_CBRTF)|g' \
+	      -e 's|@''REPLACE_CBRTL''@|$(REPLACE_CBRTL)|g' \
+	      -e 's|@''REPLACE_CEIL''@|$(REPLACE_CEIL)|g' \
 	      -e 's|@''REPLACE_CEILF''@|$(REPLACE_CEILF)|g' \
 	      -e 's|@''REPLACE_CEILL''@|$(REPLACE_CEILL)|g' \
+	      -e 's|@''REPLACE_EXPM1''@|$(REPLACE_EXPM1)|g' \
+	      -e 's|@''REPLACE_EXPM1F''@|$(REPLACE_EXPM1F)|g' \
+	      -e 's|@''REPLACE_EXP2''@|$(REPLACE_EXP2)|g' \
+	      -e 's|@''REPLACE_EXP2L''@|$(REPLACE_EXP2L)|g' \
+	      -e 's|@''REPLACE_FABSL''@|$(REPLACE_FABSL)|g' \
 	      -e 's|@''REPLACE_FLOOR''@|$(REPLACE_FLOOR)|g' \
 	      -e 's|@''REPLACE_FLOORF''@|$(REPLACE_FLOORF)|g' \
 	      -e 's|@''REPLACE_FLOORL''@|$(REPLACE_FLOORL)|g' \
 	      -e 's|@''REPLACE_FMA''@|$(REPLACE_FMA)|g' \
 	      -e 's|@''REPLACE_FMAF''@|$(REPLACE_FMAF)|g' \
 	      -e 's|@''REPLACE_FMAL''@|$(REPLACE_FMAL)|g' \
+	      -e 's|@''REPLACE_FMOD''@|$(REPLACE_FMOD)|g' \
+	      -e 's|@''REPLACE_FMODF''@|$(REPLACE_FMODF)|g' \
+	      -e 's|@''REPLACE_FMODL''@|$(REPLACE_FMODL)|g' \
 	      -e 's|@''REPLACE_FREXPF''@|$(REPLACE_FREXPF)|g' \
 	      -e 's|@''REPLACE_FREXP''@|$(REPLACE_FREXP)|g' \
 	      -e 's|@''REPLACE_FREXPL''@|$(REPLACE_FREXPL)|g' \
 	      -e 's|@''REPLACE_HUGE_VAL''@|$(REPLACE_HUGE_VAL)|g' \
+	      -e 's|@''REPLACE_HYPOT''@|$(REPLACE_HYPOT)|g' \
+	      -e 's|@''REPLACE_HYPOTF''@|$(REPLACE_HYPOTF)|g' \
+	      -e 's|@''REPLACE_HYPOTL''@|$(REPLACE_HYPOTL)|g' \
+	      -e 's|@''REPLACE_ILOGB''@|$(REPLACE_ILOGB)|g' \
+	      -e 's|@''REPLACE_ILOGBF''@|$(REPLACE_ILOGBF)|g' \
 	      -e 's|@''REPLACE_ISFINITE''@|$(REPLACE_ISFINITE)|g' \
 	      -e 's|@''REPLACE_ISINF''@|$(REPLACE_ISINF)|g' \
 	      -e 's|@''REPLACE_ISNAN''@|$(REPLACE_ISNAN)|g' \
 	      -e 's|@''REPLACE_ITOLD''@|$(REPLACE_ITOLD)|g' \
 	      -e 's|@''REPLACE_LDEXPL''@|$(REPLACE_LDEXPL)|g' \
+	      -e 's|@''REPLACE_LOG''@|$(REPLACE_LOG)|g' \
+	      -e 's|@''REPLACE_LOGF''@|$(REPLACE_LOGF)|g' \
+	      -e 's|@''REPLACE_LOGL''@|$(REPLACE_LOGL)|g' \
+	      -e 's|@''REPLACE_LOG10''@|$(REPLACE_LOG10)|g' \
+	      -e 's|@''REPLACE_LOG10F''@|$(REPLACE_LOG10F)|g' \
+	      -e 's|@''REPLACE_LOG10L''@|$(REPLACE_LOG10L)|g' \
+	      -e 's|@''REPLACE_LOG1P''@|$(REPLACE_LOG1P)|g' \
+	      -e 's|@''REPLACE_LOG1PF''@|$(REPLACE_LOG1PF)|g' \
+	      -e 's|@''REPLACE_LOG1PL''@|$(REPLACE_LOG1PL)|g' \
+	      -e 's|@''REPLACE_LOG2''@|$(REPLACE_LOG2)|g' \
+	      -e 's|@''REPLACE_LOG2F''@|$(REPLACE_LOG2F)|g' \
+	      -e 's|@''REPLACE_LOG2L''@|$(REPLACE_LOG2L)|g' \
+	      -e 's|@''REPLACE_LOGB''@|$(REPLACE_LOGB)|g' \
+	      -e 's|@''REPLACE_LOGBF''@|$(REPLACE_LOGBF)|g' \
+	      -e 's|@''REPLACE_LOGBL''@|$(REPLACE_LOGBL)|g' \
+	      -e 's|@''REPLACE_MODF''@|$(REPLACE_MODF)|g' \
+	      -e 's|@''REPLACE_MODFF''@|$(REPLACE_MODFF)|g' \
+	      -e 's|@''REPLACE_MODFL''@|$(REPLACE_MODFL)|g' \
 	      -e 's|@''REPLACE_NAN''@|$(REPLACE_NAN)|g' \
+	      -e 's|@''REPLACE_REMAINDER''@|$(REPLACE_REMAINDER)|g' \
+	      -e 's|@''REPLACE_REMAINDERF''@|$(REPLACE_REMAINDERF)|g' \
+	      -e 's|@''REPLACE_REMAINDERL''@|$(REPLACE_REMAINDERL)|g' \
 	      -e 's|@''REPLACE_ROUND''@|$(REPLACE_ROUND)|g' \
 	      -e 's|@''REPLACE_ROUNDF''@|$(REPLACE_ROUNDF)|g' \
 	      -e 's|@''REPLACE_ROUNDL''@|$(REPLACE_ROUNDL)|g' \
 	      -e 's|@''REPLACE_SIGNBIT''@|$(REPLACE_SIGNBIT)|g' \
 	      -e 's|@''REPLACE_SIGNBIT_USING_GCC''@|$(REPLACE_SIGNBIT_USING_GCC)|g' \
+	      -e 's|@''REPLACE_SQRTL''@|$(REPLACE_SQRTL)|g' \
 	      -e 's|@''REPLACE_TRUNC''@|$(REPLACE_TRUNC)|g' \
 	      -e 's|@''REPLACE_TRUNCF''@|$(REPLACE_TRUNCF)|g' \
 	      -e 's|@''REPLACE_TRUNCL''@|$(REPLACE_TRUNCL)|g' \
@@ -1386,6 +1523,15 @@ EXTRA_DIST += rmdir.c
 EXTRA_libgnu_la_SOURCES += rmdir.c
 
 ## end   gnulib module rmdir
+
+## begin gnulib module round
+
+
+EXTRA_DIST += round.c
+
+EXTRA_libgnu_la_SOURCES += round.c
+
+## end   gnulib module round
 
 ## begin gnulib module safe-read
 
@@ -1817,7 +1963,6 @@ stdio.h: stdio.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H) 
 	      -e 's/@''GNULIB_GETCHAR''@/$(GNULIB_GETCHAR)/g' \
 	      -e 's/@''GNULIB_GETDELIM''@/$(GNULIB_GETDELIM)/g' \
 	      -e 's/@''GNULIB_GETLINE''@/$(GNULIB_GETLINE)/g' \
-	      -e 's/@''GNULIB_GETS''@/$(GNULIB_GETS)/g' \
 	      -e 's/@''GNULIB_OBSTACK_PRINTF''@/$(GNULIB_OBSTACK_PRINTF)/g' \
 	      -e 's/@''GNULIB_OBSTACK_PRINTF_POSIX''@/$(GNULIB_OBSTACK_PRINTF_POSIX)/g' \
 	      -e 's/@''GNULIB_PCLOSE''@/$(GNULIB_PCLOSE)/g' \
@@ -2008,15 +2153,6 @@ EXTRA_DIST += stdlib.in.h
 
 ## end   gnulib module stdlib
 
-## begin gnulib module strcase
-
-
-EXTRA_DIST += strcasecmp.c strncasecmp.c
-
-EXTRA_libgnu_la_SOURCES += strcasecmp.c strncasecmp.c
-
-## end   gnulib module strcase
-
 ## begin gnulib module streq
 
 
@@ -2143,37 +2279,6 @@ EXTRA_DIST += string.in.h
 
 ## end   gnulib module string
 
-## begin gnulib module strings
-
-BUILT_SOURCES += strings.h
-
-# We need the following in order to create <strings.h> when the system
-# doesn't have one that works with the given compiler.
-strings.h: strings.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(WARN_ON_USE_H) $(ARG_NONNULL_H)
-	$(AM_V_GEN)rm -f $@-t $@ && \
-	{ echo '/* DO NOT EDIT! GENERATED AUTOMATICALLY! */' && \
-	  sed -e 's|@''GUARD_PREFIX''@|GL|g' \
-	      -e 's|@''HAVE_STRINGS_H''@|$(HAVE_STRINGS_H)|g' \
-	      -e 's|@''INCLUDE_NEXT''@|$(INCLUDE_NEXT)|g' \
-	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
-	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
-	      -e 's|@''NEXT_STRINGS_H''@|$(NEXT_STRINGS_H)|g' \
-	      -e 's|@''GNULIB_FFS''@|$(GNULIB_FFS)|g' \
-	      -e 's|@''HAVE_FFS''@|$(HAVE_FFS)|g' \
-	      -e 's|@''HAVE_STRCASECMP''@|$(HAVE_STRCASECMP)|g' \
-	      -e 's|@''HAVE_DECL_STRNCASECMP''@|$(HAVE_DECL_STRNCASECMP)|g' \
-	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
-	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
-	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
-	      < $(srcdir)/strings.in.h; \
-	} > $@-t && \
-	mv $@-t $@
-MOSTLYCLEANFILES += strings.h strings.h-t
-
-EXTRA_DIST += strings.in.h
-
-## end   gnulib module strings
-
 ## begin gnulib module sys_file
 
 BUILT_SOURCES += sys/file.h
@@ -2269,6 +2374,7 @@ sys/stat.h: sys_stat.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
 	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
 	      -e 's|@''NEXT_SYS_STAT_H''@|$(NEXT_SYS_STAT_H)|g' \
+	      -e 's|@''WINDOWS_64_BIT_ST_SIZE''@|$(WINDOWS_64_BIT_ST_SIZE)|g' \
 	      -e 's/@''GNULIB_FCHMODAT''@/$(GNULIB_FCHMODAT)/g' \
 	      -e 's/@''GNULIB_FSTAT''@/$(GNULIB_FSTAT)/g' \
 	      -e 's/@''GNULIB_FSTATAT''@/$(GNULIB_FSTATAT)/g' \
@@ -2336,6 +2442,7 @@ sys/time.h: sys_time.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNU
 	      -e 's/@''HAVE_GETTIMEOFDAY''@/$(HAVE_GETTIMEOFDAY)/g' \
 	      -e 's/@''HAVE_STRUCT_TIMEVAL''@/$(HAVE_STRUCT_TIMEVAL)/g' \
 	      -e 's/@''REPLACE_GETTIMEOFDAY''@/$(REPLACE_GETTIMEOFDAY)/g' \
+	      -e 's/@''REPLACE_STRUCT_TIMEVAL''@/$(REPLACE_STRUCT_TIMEVAL)/g' \
 	      -e '/definitions of _GL_FUNCDECL_RPL/r $(CXXDEFS_H)' \
 	      -e '/definition of _GL_ARG_NONNULL/r $(ARG_NONNULL_H)' \
 	      -e '/definition of _GL_WARN_ON_USE/r $(WARN_ON_USE_H)' \
@@ -2363,6 +2470,7 @@ sys/types.h: sys_types.in.h $(top_builddir)/config.status
 	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
 	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
 	      -e 's|@''NEXT_SYS_TYPES_H''@|$(NEXT_SYS_TYPES_H)|g' \
+	      -e 's|@''WINDOWS_64_BIT_OFF_T''@|$(WINDOWS_64_BIT_OFF_T)|g' \
 	      < $(srcdir)/sys_types.in.h; \
 	} > $@-t && \
 	mv $@-t $@
@@ -2473,6 +2581,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''PRAGMA_SYSTEM_HEADER''@|@PRAGMA_SYSTEM_HEADER@|g' \
 	      -e 's|@''PRAGMA_COLUMNS''@|@PRAGMA_COLUMNS@|g' \
 	      -e 's|@''NEXT_UNISTD_H''@|$(NEXT_UNISTD_H)|g' \
+	      -e 's|@''WINDOWS_64_BIT_OFF_T''@|$(WINDOWS_64_BIT_OFF_T)|g' \
 	      -e 's/@''GNULIB_CHDIR''@/$(GNULIB_CHDIR)/g' \
 	      -e 's/@''GNULIB_CHOWN''@/$(GNULIB_CHOWN)/g' \
 	      -e 's/@''GNULIB_CLOSE''@/$(GNULIB_CLOSE)/g' \
@@ -2571,6 +2680,7 @@ unistd.h: unistd.in.h $(top_builddir)/config.status $(CXXDEFS_H) $(ARG_NONNULL_H
 	      -e 's|@''REPLACE_DUP''@|$(REPLACE_DUP)|g' \
 	      -e 's|@''REPLACE_DUP2''@|$(REPLACE_DUP2)|g' \
 	      -e 's|@''REPLACE_FCHOWNAT''@|$(REPLACE_FCHOWNAT)|g' \
+	      -e 's|@''REPLACE_FTRUNCATE''@|$(REPLACE_FTRUNCATE)|g' \
 	      -e 's|@''REPLACE_GETCWD''@|$(REPLACE_GETCWD)|g' \
 	      -e 's|@''REPLACE_GETDOMAINNAME''@|$(REPLACE_GETDOMAINNAME)|g' \
 	      -e 's|@''REPLACE_GETLOGIN_R''@|$(REPLACE_GETLOGIN_R)|g' \
