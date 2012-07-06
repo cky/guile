@@ -94,17 +94,18 @@
     (uri=? (build-uri 'http #:host "1.good.host")
            #:scheme 'http #:host "1.good.host" #:path ""))
 
-  (pass-if "http://192.0.2.1"
-    (uri=? (build-uri 'http #:host "192.0.2.1")
-           #:scheme 'http #:host "192.0.2.1" #:path ""))
+  (when (memq 'socket *features*)
+    (pass-if "http://192.0.2.1"
+      (uri=? (build-uri 'http #:host "192.0.2.1")
+             #:scheme 'http #:host "192.0.2.1" #:path ""))
 
-  (pass-if "http://[2001:db8::1]"
-    (uri=? (build-uri 'http #:host "2001:db8::1")
-           #:scheme 'http #:host "2001:db8::1" #:path ""))
+    (pass-if "http://[2001:db8::1]"
+      (uri=? (build-uri 'http #:host "2001:db8::1")
+             #:scheme 'http #:host "2001:db8::1" #:path ""))
 
-  (pass-if "http://[::ffff:192.0.2.1]"
-    (uri=? (build-uri 'http #:host "::ffff:192.0.2.1")
-           #:scheme 'http #:host "::ffff:192.0.2.1" #:path ""))
+    (pass-if "http://[::ffff:192.0.2.1]"
+      (uri=? (build-uri 'http #:host "::ffff:192.0.2.1")
+             #:scheme 'http #:host "::ffff:192.0.2.1" #:path "")))
 
   (pass-if-uri-exception "http://foo:not-a-port"
                          "Expected.*port"
@@ -155,24 +156,25 @@
     (uri=? (string->uri "http://1.good.host")
            #:scheme 'http #:host "1.good.host" #:path ""))
 
-  (pass-if "http://192.0.2.1"
-    (uri=? (string->uri "http://192.0.2.1")
-           #:scheme 'http #:host "192.0.2.1" #:path ""))
+  (when (memq 'socket *features*)
+    (pass-if "http://192.0.2.1"
+      (uri=? (string->uri "http://192.0.2.1")
+             #:scheme 'http #:host "192.0.2.1" #:path ""))
 
-  (pass-if "http://[2001:db8::1]"
-    (uri=? (string->uri "http://[2001:db8::1]")
-           #:scheme 'http #:host "2001:db8::1" #:path ""))
+    (pass-if "http://[2001:db8::1]"
+      (uri=? (string->uri "http://[2001:db8::1]")
+             #:scheme 'http #:host "2001:db8::1" #:path ""))
 
-  (pass-if "http://[2001:db8::1]:80"
-    (uri=? (string->uri "http://[2001:db8::1]:80")
-           #:scheme 'http
-           #:host "2001:db8::1"
-           #:port 80
-           #:path ""))
+    (pass-if "http://[2001:db8::1]:80"
+      (uri=? (string->uri "http://[2001:db8::1]:80")
+             #:scheme 'http
+             #:host "2001:db8::1"
+             #:port 80
+             #:path ""))
 
-  (pass-if "http://[::ffff:192.0.2.1]"
-    (uri=? (string->uri "http://[::ffff:192.0.2.1]")
-           #:scheme 'http #:host "::ffff:192.0.2.1" #:path ""))
+    (pass-if "http://[::ffff:192.0.2.1]"
+      (uri=? (string->uri "http://[::ffff:192.0.2.1]")
+             #:scheme 'http #:host "::ffff:192.0.2.1" #:path "")))
 
   (pass-if "http://foo:"
     (uri=? (string->uri "http://foo:")
@@ -227,17 +229,18 @@
     (equal? "ftp://foo@bar:22/baz"
             (uri->string (string->uri "ftp://foo@bar:22/baz"))))
   
-  (pass-if "http://192.0.2.1"
-    (equal? "http://192.0.2.1"
-            (uri->string (string->uri "http://192.0.2.1"))))
+  (when (memq 'socket *features*)
+    (pass-if "http://192.0.2.1"
+      (equal? "http://192.0.2.1"
+              (uri->string (string->uri "http://192.0.2.1"))))
 
-  (pass-if "http://[2001:db8::1]"
-    (equal? "http://[2001:db8::1]"
-            (uri->string (string->uri "http://[2001:db8::1]"))))
+    (pass-if "http://[2001:db8::1]"
+      (equal? "http://[2001:db8::1]"
+              (uri->string (string->uri "http://[2001:db8::1]"))))
 
-  (pass-if "http://[::ffff:192.0.2.1]"
-    (equal? "http://[::ffff:192.0.2.1]"
-            (uri->string (string->uri "http://[::ffff:192.0.2.1]"))))
+    (pass-if "http://[::ffff:192.0.2.1]"
+      (equal? "http://[::ffff:192.0.2.1]"
+              (uri->string (string->uri "http://[::ffff:192.0.2.1]")))))
 
   (pass-if "http://foo:"
     (equal? "http://foo"
