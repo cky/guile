@@ -238,7 +238,14 @@
       (define (set-procedure-arity! proc)
         (let lp ((alt alt) (nreq nreq) (nopt nopt) (rest? rest?))
           (if (not alt)
-              (set-procedure-minimum-arity! proc nreq nopt rest?)
+              (begin
+                (set-procedure-property! proc 'arglist
+                                         (list nreq
+                                               nopt
+                                               (if kw (cdr kw) '())
+                                               (and kw (car kw))
+                                               (and rest? '_)))
+                (set-procedure-minimum-arity! proc nreq nopt rest?))
               (let* ((nreq* (cadr alt))
                      (rest?* (if (null? (cddr alt)) #f (caddr alt)))
                      (tail (and (pair? (cddr alt)) (pair? (cdddr alt)) (cdddr alt)))

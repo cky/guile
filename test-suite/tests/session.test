@@ -20,6 +20,7 @@
 
 (define-module (test-suite session)
   #:use-module (test-suite lib)
+  #:use-module (ice-9 match)
   #:use-module (system base compile)
   #:use-module (ice-9 session))
 
@@ -94,7 +95,29 @@
     (let* ((proc (compile '(lambda (a b) #f) #:to 'value))
            (args (procedure-arguments proc)))
       (set-procedure-property! proc 'arglist (map cdr args))
-      (equal? args (procedure-arguments proc)))))
+      (equal? args (procedure-arguments proc))))
+
+  (pass-if "interpreted procedures (simple)"
+    (match (procedure-arguments
+            (eval '(lambda (x y) #f) (current-module)))
+      (((required _ _)
+        (optional)
+        (keyword)
+        (allow-other-keys? . #f)
+        (rest . #f))
+       #t)
+      (_ #f)))
+
+  (pass-if "interpreted procedures (complex)"
+    (match (procedure-arguments
+            (eval '(lambda* (a b #:optional c #:key d) #f) (current-module)))
+      (((required _ _)
+        (optional _)
+        (keyword (#:d . 3))
+        (allow-other-keys? . #f)
+        (rest . #f))
+       #t)
+      (_ #f))))
 
 ;;; Local Variables:
 ;;; eval: (put 'pass-if-valid-arguments 'scheme-indent-function 1)
