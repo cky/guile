@@ -103,7 +103,6 @@
 
 /* Some more definitions for the native Windows port. */
 #ifdef __MINGW32__
-# define mkdir(path, mode) mkdir (path)
 # define fsync(fd) _commit (fd)
 # define fchmod(fd, mode) (-1)
 #endif /* __MINGW32__ */
