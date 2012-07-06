@@ -1,0 +1,28 @@
+Remove when clock-gettime is fixed for clock_getcpuclockid.
+
+See <http://lists.gnu.org/archive/html/bug-gnulib/2011-06/msg00227.html>
+for details.
+
+diff --git a/m4/clock_time.m4 b/m4/clock_time.m4
+index 0bec0ef..fb3a17a 100644
+--- a/m4/clock_time.m4
++++ b/m4/clock_time.m4
+@@ -24,8 +24,15 @@ AC_DEFUN([gl_CLOCK_TIME],
+   AC_SUBST([LIB_CLOCK_GETTIME])
+   gl_saved_libs=$LIBS
+     AC_SEARCH_LIBS([clock_gettime], [rt posix4],
+-                   [test "$ac_cv_search_clock_gettime" = "none required" ||
+-                    LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
+-    AC_CHECK_FUNCS([clock_gettime clock_settime])
++                   [if test "$ac_cv_search_clock_gettime" = "none required"; then
++                      AC_SEARCH_LIBS([clock_getcpuclockid], [rt posix4],
++                                     [test "$ac_cv_search_clock_getcpuclockid" = "none required" \
++                                      || LIB_CLOCK_GETTIME=$ac_cv_search_clock_getcpuclockid],
++                                     [test "$ac_cv_search_clock_gettime" = "none required" \
++                                      || LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime])
++                    else
++                      LIB_CLOCK_GETTIME=$ac_cv_search_clock_gettime
++                    fi])
++    AC_CHECK_FUNCS([clock_gettime clock_settime clock_getcpuclockid])
+   LIBS=$gl_saved_libs
+ ])

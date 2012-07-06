@@ -56,6 +56,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module canonicalize-lgpl:
   # Code from module ceil:
   # Code from module chdir:
+  # Code from module clock-time:
   # Code from module close:
   # Code from module configmake:
   # Code from module connect:
@@ -265,6 +266,7 @@ if test $REPLACE_CEIL = 1; then
 fi
 gl_MATH_MODULE_INDICATOR([ceil])
 gl_UNISTD_MODULE_INDICATOR([chdir])
+gl_CLOCK_TIME
 gl_FUNC_CLOSE
 if test $REPLACE_CLOSE = 1; then
   AC_LIBOBJ([close])
@@ -1049,6 +1051,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/canonicalize.m4
   m4/ceil.m4
   m4/check-math-lib.m4
+  m4/clock_time.m4
   m4/close.m4
   m4/codeset.m4
   m4/configmake.m4

@@ -477,8 +477,8 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_LDFLAGS =	\
   $(ISNANF_LIBM)				\
   $(ISNANL_LIBM)				\
   $(LDEXP_LIBM)					\
-  $(LIB_CLOCK_GETTIME) 				\
   $(LIBSOCKET)					\
+  $(LIB_CLOCK_GETTIME)				\
   $(LOG1P_LIBM)					\
   $(LOG_LIBM)					\
   $(LTLIBICONV)					\

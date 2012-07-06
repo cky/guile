@@ -48,7 +48,8 @@ EXTRA_DIST = LICENSE HACKING GUILE-VERSION		\
 	     ChangeLog-2008				\
 	     .version					\
 	     gnulib-local/lib/localcharset.h.diff	\
-	     gnulib-local/lib/localcharset.c.diff
+	     gnulib-local/lib/localcharset.c.diff	\
+	     gnulib-local/m4/clock_time.m4.diff
 
 TESTS = check-guile
 TESTS_ENVIRONMENT = @LOCALCHARSET_TESTS_ENVIRONMENT@
