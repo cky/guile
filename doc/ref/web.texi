@@ -665,7 +665,7 @@ A list of allowed methods on a given resource, as symbols.
 A list of content codings, as symbols.
 @example
 (parse-header 'content-encoding "gzip")
-@result{} (GET HEAD)
+@result{} (gzip)
 @end example
 @end deftypevr
 
