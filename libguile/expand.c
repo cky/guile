@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -49,9 +49,12 @@ static const char* exp_names[SCM_NUM_EXPANDED_TYPES];
 static const char** exp_field_names[SCM_NUM_EXPANDED_TYPES];
 
 
-#define VOID(src) \
+/* The trailing underscores on these first to are to avoid spurious
+   conflicts with macros defined on MinGW.  */
+
+#define VOID_(src) \
   SCM_MAKE_EXPANDED_VOID(src)
-#define CONST(src, exp) \
+#define CONST_(src, exp) \
   SCM_MAKE_EXPANDED_CONST(src, exp)
 #define PRIMITIVE_REF_TYPE(src, name) \
   SCM_MAKE_EXPANDED_PRIMITIVE_REF_TYPE(src, name)
@@ -375,7 +378,7 @@ expand (SCM exp, SCM env)
         return TOPLEVEL_REF (SCM_BOOL_F, exp);
     }
   else
-    return CONST (SCM_BOOL_F, exp);
+    return CONST_ (SCM_BOOL_F, exp);
 }
 
 static SCM
@@ -431,7 +434,7 @@ expand_and (SCM expr, SCM env)
   const SCM cdr_expr = CDR (expr);
 
   if (scm_is_null (cdr_expr))
-    return CONST (SCM_BOOL_F, SCM_BOOL_T);
+    return CONST_ (SCM_BOOL_F, SCM_BOOL_T);
 
   ASSERT_SYNTAX (scm_is_pair (cdr_expr), s_bad_expression, expr);
 
@@ -441,7 +444,7 @@ expand_and (SCM expr, SCM env)
     return CONDITIONAL (scm_source_properties (expr),
                         expand (CAR (cdr_expr), env),
                         expand_and (cdr_expr, env),
-                        CONST (SCM_BOOL_F, SCM_BOOL_F));
+                        CONST_ (SCM_BOOL_F, SCM_BOOL_F));
 }
 
 static SCM
@@ -469,7 +472,7 @@ expand_cond_clauses (SCM clause, SCM rest, int elp, int alp, SCM env)
     }
 
   if (scm_is_null (rest))
-    rest = VOID (SCM_BOOL_F);
+    rest = VOID_ (SCM_BOOL_F);
   else
     rest = expand_cond_clauses (CAR (rest), CDR (rest), elp, alp, env);
 
@@ -586,7 +589,7 @@ expand_eval_when (SCM expr, SCM env)
       || scm_is_true (scm_memq (sym_load, CADR (expr))))
     return expand_sequence (CDDR (expr), env);
   else
-    return VOID (scm_source_properties (expr));
+    return VOID_ (scm_source_properties (expr));
 }
 
 static SCM
@@ -600,7 +603,7 @@ expand_if (SCM expr, SCM env SCM_UNUSED)
                       expand (CADDR (expr), env),
                       ((length == 3)
                        ? expand (CADDDR (expr), env)
-                       : VOID (SCM_BOOL_F)));
+                       : VOID_ (SCM_BOOL_F)));
 }
 
 /* A helper function for expand_lambda to support checking for duplicate
@@ -789,7 +792,7 @@ expand_lambda_star_case (SCM clause, SCM alternate, SCM env)
       vars = scm_cons (scm_gensym (SCM_UNDEFINED), vars);
       env = scm_acons (x, CAR (vars), env);
       if (scm_is_symbol (x))
-        inits = scm_cons (CONST (SCM_BOOL_F, SCM_BOOL_F), inits);
+        inits = scm_cons (CONST_ (SCM_BOOL_F, SCM_BOOL_F), inits);
       else
         {
           ASSERT_SYNTAX (scm_ilength (x) == 2 && scm_is_symbol (CAR (x)),
@@ -1109,7 +1112,7 @@ expand_or (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (length >= 0, s_bad_expression, expr);
 
   if (scm_is_null (CDR (expr)))
-    return CONST (SCM_BOOL_F, SCM_BOOL_F);
+    return CONST_ (SCM_BOOL_F, SCM_BOOL_F);
   else
     {
       SCM tmp = scm_gensym (SCM_UNDEFINED);
@@ -1133,7 +1136,7 @@ expand_quote (SCM expr, SCM env SCM_UNUSED)
   ASSERT_SYNTAX (scm_ilength (cdr_expr) >= 0, s_bad_expression, expr);
   ASSERT_SYNTAX (scm_ilength (cdr_expr) == 1, s_expression, expr);
   quotee = CAR (cdr_expr);
-  return CONST (scm_source_properties (expr), quotee);
+  return CONST_ (scm_source_properties (expr), quotee);
 }
 
 static SCM
