@@ -1,0 +1,62 @@
+This patch is being discussed
+at <http://lists.gnu.org/archive/html/bug-gnulib/2012-07/msg00079.html>.
+Remove when integrated in Gnulib.
+
+--- a/build-aux/git-version-gen	2012-06-12 21:25:48.000000000 +0200
++++ b/build-aux/git-version-gen	2012-07-07 01:52:08.000000000 +0200
+@@ -1,6 +1,6 @@
+ #!/bin/sh
+ # Print a version string.
+-scriptversion=2012-03-18.17; # UTC
++scriptversion=2012-07-06.14; # UTC
+ 
+ # Copyright (C) 2007-2012 Free Software Foundation, Inc.
+ #
+@@ -85,20 +85,25 @@
+ 
+ Options:
+ 
+-   --prefix           prefix of git tags (default 'v')
++   --prefix     prefix of git tags to strip from version (default 'v')
++   --match      pattern for git tags to match (default: '\$prefix*')
+ 
+-   --help             display this help and exit
+-   --version          output version information and exit
++   --help       display this help and exit
++   --version    output version information and exit
+ 
+-Running without arguments will suffice in most cases."
++Running without arguments will suffice in most cases.  If no --match
++argument is given, only match tags that begin with the --prefix."
+ 
+ prefix=v
++unset match
++unset tag_sed_script
+ 
+ while test $# -gt 0; do
+   case $1 in
+     --help) echo "$usage"; exit 0;;
+     --version) echo "$version"; exit 0;;
+     --prefix) shift; prefix="$1";;
++    --match) shift; match="$1";;
+     -*)
+       echo "$0: Unknown option '$1'." >&2
+       echo "$0: Try '--help' for more information." >&2
+@@ -121,6 +126,7 @@
+     exit 1
+ fi
+ 
++match="${match:-$prefix*}"
+ tag_sed_script="${tag_sed_script:-s/x/x/}"
+ 
+ nl='
+@@ -151,8 +157,7 @@
+ # directory, and "git describe" output looks sensible, use that to
+ # derive a version string.
+ elif test "`git log -1 --pretty=format:x . 2>&1`" = x \
+-    && v=`git describe --abbrev=4 --match="$prefix*" HEAD 2>/dev/null \
+-          || git describe --abbrev=4 HEAD 2>/dev/null` \
++    && v=`git describe --abbrev=4 --match="$match" HEAD 2>/dev/null` \
+     && v=`printf '%s\n' "$v" | sed "$tag_sed_script"` \
+     && case $v in
+          $prefix[0-9]*) ;;
