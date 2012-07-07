@@ -18,7 +18,7 @@ common subexpressions with their boolean values (potentially enabling
 dead code elimination), equivalent bound lexicals, or it can elide them
 entirely, depending on the context in which they are executed.  This
 pass is especially useful in removing duplicate type checks, such as
-those produced by SRFi-9 record accessors.
+those produced by SRFI-9 record accessors.
 
 ** Improvements to the partial evaluator
 
@@ -50,8 +50,8 @@ reader will record source information for more kinds of datums.
 
 ** Improved error and warning messages
 
-`syntax-violation' errors now prefer 'subform' for source info, with
-'form' as fallback.  Syntactic errors in `cond' and `case' now produce
+`syntax-violation' errors now prefer `subform' for source info, with
+`form' as fallback.  Syntactic errors in `cond' and `case' now produce
 better errors.  `case' can now warn on duplicate datums, or datums that
 cannot be usefully compared with `eqv?'.  `-Warity-mismatch' now handles
 applicable structs.  `-Wformat' is more robust in the presence of
@@ -61,7 +61,7 @@ define appropriate exception printers.
 ** A few important bug fixes in the HTTP modules.
 
 Guile's web server framework now checks if an application returns a body
-wheree it is not permitted, for example in response to a HEAD request,
+where it is not permitted, for example in response to a HEAD request,
 and warn or truncate the response as appropriate.  Bad requests now
 cause a 400 Bad Request response to be printed before closing the port.
 Finally, some date-printing and URL-parsing bugs were fixed.
