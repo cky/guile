@@ -2257,6 +2257,10 @@ Return a new list whose contents match those of @var{vlist}.
 A @dfn{record type} is a first class object representing a user-defined
 data type.  A @dfn{record} is an instance of a record type.
 
+Note that in many ways, this interface is too low-level for every-day
+use.  Most uses of records are better served by SRFI-9 records.
+@xref{SRFI-9}.
+
 @deffn {Scheme Procedure} record? obj
 Return @code{#t} if @var{obj} is a record of any type and @code{#f}
 otherwise.
@@ -2355,21 +2359,22 @@ created the type represented by @var{rtd}.
 @tpindex Structures
 
 A @dfn{structure} is a first class data type which holds Scheme values
-or C words in fields numbered 0 upwards.  A @dfn{vtable} represents a
-structure type, giving field types and permissions, and an optional
-print function for @code{write} etc.
+or C words in fields numbered 0 upwards.  A @dfn{vtable} is a structure
+that represents a structure type, giving field types and permissions,
+and an optional print function for @code{write} etc.
 
-Structures are lower level than records (@pxref{Records}) but have
-some extra features.  The vtable system allows sets of types be
-constructed, with class data.  The uninterpreted words can
-inter-operate with C code, allowing arbitrary pointers or other values
-to be stored along side usual Scheme @code{SCM} values.
+Structures are lower level than records (@pxref{Records}).  Usually,
+when you need to represent structured data, you just want to use
+records.  But sometimes you need to implement new kinds of structured
+data abstractions, and for that purpose structures are useful.  Indeed,
+records in Guile are implemented with structures.
 
 @menu
 * Vtables::                     
 * Structure Basics::            
 * Vtable Contents::              
 * Vtable Vtables::              
+* Tail Arrays::              
 @end menu
 
 @node Vtables
@@ -2418,24 +2423,15 @@ The second letter for each field is a permission code,
 @code{o} -- opaque, the field can be neither read nor written at the
 Scheme level.  This can be used for fields which should only be used
 from C code.
-@item
-@code{W},@code{R},@code{O} -- a tail array, with permissions for the
-array fields as per @code{w},@code{r},@code{o}.
 @end itemize
 
-A tail array is further fields at the end of a structure.  The last
-field in the layout string might be for instance @samp{pW} to have a
-tail of writable Scheme-valued fields.  The @samp{pW} field itself
-holds the tail size, and the tail fields come after it.
-
-Here are some examples.
+Here are some examples.  @xref{Tail Arrays}, for information on the
+legacy tail array facility.
 
 @example
 (make-vtable "pw")      ;; one writable field
 (make-vtable "prpw")    ;; one read-only and one writable
 (make-vtable "pwuwuw")  ;; one scheme and two uninterpreted
-
-(make-vtable "prpW")    ;; one fixed then a tail array
 @end example
 
 The optional @var{print} argument is a function called by
@@ -2465,22 +2461,24 @@ structure.
 
 This section describes the basic procedures for working with
 structures.  @code{make-struct} creates a structure, and
-@code{struct-ref} and @code{struct-set!} access write fields.
+@code{struct-ref} and @code{struct-set!} access its fields.
 
 @deffn {Scheme Procedure} make-struct vtable tail-size init @dots{}
-@deffnx {C Function} scm_make_struct (vtable, tail_size, init_list)
+@deffnx {Scheme Procedure} make-struct/no-tail vtable init @dots{}
 Create a new structure, with layout per the given @var{vtable}
 (@pxref{Vtables}).
 
-@var{tail-size} is the size of the tail array if @var{vtable}
-specifies a tail array.  @var{tail-size} should be 0 when @var{vtable}
-doesn't specify a tail array.
-
 The optional @var{init}@dots{} arguments are initial values for the
-fields of the structure (and the tail array).  This is the only way to
+fields of the structure.  This is the only way to
 put values in read-only fields.  If there are fewer @var{init}
 arguments than fields then the defaults are @code{#f} for a Scheme
 field (type @code{p}) or 0 for an uninterpreted field (type @code{u}).
+
+Structures also have the ability to allocate a variable number of
+additional cells at the end, at their tails.  However, this legacy
+@dfn{tail array} facilty is confusing and inefficient, and so we do not
+recommend it.  @xref{Tail Arrays}, for more on the legacy tail array
+interface.
 
 Type @code{s} self-reference fields, permission @code{o} opaque
 fields, and the count field of a tail array are all ignored for the
@@ -2498,17 +2496,16 @@ For example,
 (struct-ref s 0) @result{} 123
 (struct-ref s 1) @result{} "abc"
 @end example
-
-@example
-(define v (make-vtable "prpW"))
-(define s (make-struct v 6 "fixed field" 'x 'y))
-(struct-ref s 0) @result{} "fixed field"
-(struct-ref s 1) @result{} 2    ;; tail size
-(struct-ref s 2) @result{} x    ;; tail array ...
-(struct-ref s 3) @result{} y
-(struct-ref s 4) @result{} #f
-@end example
 @end deffn
+
+@deftypefn {C Function} SCM scm_make_struct (SCM vtable, SCM tail_size, SCM init_list)
+@deftypefnx {C Function} SCM scm_c_make_struct (SCM vtable, SCM tail_size, SCM init, ...)
+@deftypefnx {C Function} SCM scm_c_make_structv (SCM vtable, SCM tail_size, size_t n_inits, scm_t_bits init[])
+There are a few ways to make structures from C.  @code{scm_make_struct}
+takes a list, @code{scm_c_make_struct} takes variable arguments
+terminated with SCM_UNDEFINED, and @code{scm_c_make_structv} takes a
+packed array.
+@end deftypefn
 
 @deffn {Scheme Procedure} struct? obj
 @deffnx {C Function} scm_struct_p (obj)
@@ -2535,10 +2532,10 @@ be written because it's @code{r} read-only or @code{o} opaque.
 
 @deffn {Scheme Procedure} struct-vtable struct
 @deffnx {C Function} scm_struct_vtable (struct)
-Return the vtable used by @var{struct}.
+Return the vtable that describes @var{struct}.
 
-This can be used to examine the layout of an unknown structure, see
-@ref{Vtable Contents}.
+The vtable is effectively the type of the structure.  See @ref{Vtable
+Contents}, for more on vtables.
 @end deffn
 
 
@@ -2734,6 +2731,53 @@ which can be changed.
 (define ball (make-ball green 'Nisse))
 ball @result{} #<a green ball owned by Nisse>
 @end lisp
+
+@node Tail Arrays
+@subsubsection Tail Arrays
+
+Guile's structures have a facility whereby each instance of a vtable can
+contain a variable-length tail array of values.  The length of the tail
+array is stored in the structure.  This facility was originally intended
+to allow C code to expose raw C structures with word-sized tail arrays
+to Scheme.
+
+However, the tail array facility is confusing and doesn't work very
+well.  It is very rarely used, but it insinuates itself into all
+invocations of @code{make-struct}.  For this reason the clumsily-named
+@code{make-struct/no-tail} procedure can actually be more elegant in
+actual use, because it doesn't have a random @code{0} argument stuck in
+the middle.
+
+Tail arrays also inhibit optimization by allowing instances to affect
+their shapes.  In the absence of tail arrays, all instances of a given
+vtable have the same number and kinds of fields.  This uniformity can be
+exploited by the runtime and the optimizer.  The presence of tail arrays
+make some of these optimizations more difficult.
+
+Finally, the tail array facility is ad-hoc and does not compose with the
+rest of Guile.  If a Guile user wants an array with user-specified
+length, it's best to use a vector.  It is more clear in the code, and
+the standard optimization techniques will do a good job with it.
+
+That said, we should mention some details about the interface.  A vtable
+that has tail array has upper-case permission descriptors: @code{W},
+@code{R} or @code{O}, correspoding to tail arrays of writable,
+read-only, or opaque elements.  A tail array permission descriptor may
+only appear in the last element of a vtable layout.
+
+For exampple, @samp{pW} indicates a tail of writable Scheme-valued
+fields.  The @samp{pW} field itself holds the tail size, and the tail
+fields come after it.
+
+@example
+(define v (make-vtable "prpW")) ;; one fixed then a tail array
+(define s (make-struct v 6 "fixed field" 'x 'y))
+(struct-ref s 0) @result{} "fixed field"
+(struct-ref s 1) @result{} 2    ;; tail size
+(struct-ref s 2) @result{} x    ;; tail array ...
+(struct-ref s 3) @result{} y
+(struct-ref s 4) @result{} #f
+@end example
 
 
 @node Dictionary Types
