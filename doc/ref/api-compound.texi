@@ -2370,11 +2370,12 @@ data abstractions, and for that purpose structures are useful.  Indeed,
 records in Guile are implemented with structures.
 
 @menu
-* Vtables::                     
-* Structure Basics::            
-* Vtable Contents::              
-* Vtable Vtables::              
-* Tail Arrays::              
+* Vtables::
+* Structure Basics::
+* Vtable Contents::
+* Meta-Vtables::
+* Vtable Example::
+* Tail Arrays::
 @end menu
 
 @node Vtables
@@ -2447,11 +2448,9 @@ structure.
 @example
 (make-vtable "prpw"
              (lambda (struct port)
-               (display "#<" port)
-               (display (struct-ref struct 0) port)
-               (display " and " port)
-               (display (struct-ref struct 1) port)
-               (display ">" port)))
+               (format port "#<~a and ~a>"
+                       (struct-ref struct 0)
+                       (struct-ref struct 1))))
 @end example
 @end deffn
 
@@ -2542,26 +2541,24 @@ Contents}, for more on vtables.
 @node Vtable Contents
 @subsubsection Vtable Contents
 
-A vtable is itself a structure, with particular fields that hold
-information about the structures to be created.  These include the
-fields of those structures, and the print function for them.  The
-variables below allow access to those fields.
+A vtable is itself a structure.  It has a specific set of fields
+describing various aspects of its @dfn{instances}: the structures
+created from a vtable.  Some of the fields are internal to Guile, some
+of them are part of the public interface, and there may be additional
+fields added on by the user.
 
-@deffn {Scheme Procedure} struct-vtable? obj
-@deffnx {C Function} scm_struct_vtable_p (obj)
-Return @code{#t} if @var{obj} is a vtable structure.
-
-Note that because vtables are simply structures with a particular
-layout, @code{struct-vtable?} can potentially return true on an
-application structure which merely happens to look like a vtable.
-@end deffn
+Every vtable has a field for the layout of their instances, a field for
+the procedure used to print its instances, and a field for the name of
+the vtable itself.  Access to the layout and printer is exposed directly
+via field indexes.  Access to the vtable name is exposed via accessor
+procedures.
 
 @defvr {Scheme Variable} vtable-index-layout
 @defvrx {C Macro} scm_vtable_index_layout
 The field number of the layout specification in a vtable.  The layout
 specification is a symbol like @code{pwpw} formed from the fields
 string passed to @code{make-vtable}, or created by
-@code{make-struct-layout} (@pxref{Vtable Vtables}).
+@code{make-struct-layout} (@pxref{Meta-Vtables}).
 
 @example
 (define v (make-vtable "pwpw" 0))
@@ -2570,12 +2567,6 @@ string passed to @code{make-vtable}, or created by
 
 This field is read-only, since the layout of structures using a vtable
 cannot be changed.
-@end defvr
-
-@defvr {Scheme Variable} vtable-index-vtable
-@defvrx {C Macro} scm_vtable_index_vtable
-A self-reference to the vtable, ie.@: a type @code{s} field.  This is
-used by C code within Guile and has no use at the Scheme level.
 @end defvr
 
 @defvr {Scheme Variable} vtable-index-printer
@@ -2612,125 +2603,217 @@ from @var{vtable}.
 @end deffn
 
 
-@node Vtable Vtables
-@subsubsection Vtable Vtables
+@node Meta-Vtables
+@subsubsection Meta-Vtables
 
-As noted above, a vtable is a structure and that structure is itself
-described by a vtable.  Such a ``vtable of a vtable'' can be created
-with @code{make-vtable-vtable} below.  This can be used to build sets
-of related vtables, possibly with extra application fields.
+As a structure, a vtable also has a vtable, which is also a structure.
+Structures, their vtables, the vtables of the vtables, and so on form a
+tree of structures.  Making a new structure adds a leaf to the tree, and
+if that structure is a vtable, it may be used to create other leaves.
 
-This second level of vtable can be a little confusing.  The ball
-example below is a typical use, adding a ``class data'' field to the
-vtables, from which instance structures are created.  The current
-implementation of Guile's own records (@pxref{Records}) does something
-similar, a record type descriptor is a vtable with room to hold the
-field names of the records to be created from it.
-
-@deffn {Scheme Procedure} make-vtable-vtable user-fields tail-size [print]
-@deffnx {C Function} scm_make_vtable_vtable (user_fields, tail_size, print_and_init_list)
-Create a ``vtable-vtable'' which can be used to create vtables.  This
-vtable-vtable is also a vtable, and is self-describing, meaning its
-vtable is itself.  The following is a simple usage.
+If you traverse up the tree of vtables, via calling
+@code{struct-vtable}, eventually you reach a root which is the vtable of
+itself:
 
 @example
-(define vt-vt (make-vtable-vtable "" 0))
-(define vt    (make-struct vt-vt 0
-                           (make-struct-layout "pwpw"))
-(define s     (make-struct vt 0 123 456))
-
-(struct-ref s 0) @result{} 123
+scheme@@(guile-user)> (current-module)
+$1 = #<directory (guile-user) 221b090>
+scheme@@(guile-user)> (struct-vtable $1)
+$2 = #<record-type module>
+scheme@@(guile-user)> (struct-vtable $2)
+$3 = #<<standard-vtable> 12c30a0>
+scheme@@(guile-user)> (struct-vtable $3)
+$4 = #<<standard-vtable> 12c3fa0>
+scheme@@(guile-user)> (struct-vtable $4)
+$5 = #<<standard-vtable> 12c3fa0>
+scheme@@(guile-user)> <standard-vtable>
+$6 = #<<standard-vtable> 12c3fa0>
 @end example
 
-@code{make-struct} is used to create a vtable from the vtable-vtable.
-The first initializer is a layout object (field
-@code{vtable-index-layout}), usually obtained from
-@code{make-struct-layout} (below).  An optional second initializer is
-a printer function (field @code{vtable-index-printer}), used as
-described under @code{make-vtable} (@pxref{Vtables}).
+In this example, we can say that @code{$1} is an instance of @code{$2},
+@code{$2} is an instance of @code{$3}, @code{$3} is an instance of
+@code{$4}, and @code{$4}, strangely enough, is an instance of itself.
+The value bound to @code{$4} in this console session also bound to
+@code{<standard-vtable>} in the default environment.
 
-@sp 1
-@var{user-fields} is a layout string giving extra fields to have in
-the vtables.  A vtable starts with some base fields as per @ref{Vtable
-Contents}, and @var{user-fields} is appended.  The @var{user-fields}
-start at field number @code{vtable-offset-user} (below), and exist in
-both the vtable-vtable and in the vtables created from it.  Such
-fields provide space for ``class data''.  For example,
+@defvr {Scheme Variable} <standard-vtable>
+A meta-vtable, useful for making new vtables.
+@end defvr
 
-@example
-(define vt-of-vt (make-vtable-vtable "pw" 0))
-(define vt       (make-struct vt-of-vt 0))
-(struct-set! vt vtable-offset-user "my class data")
-@end example
+All of these values are structures.  All but @code{$1} are vtables.  As
+@code{$2} is an instance of @code{$3}, and @code{$3} is a vtable, we can
+say that @code{$3} is a @dfn{meta-vtable}: a vtable that can create
+vtables.
 
-@var{tail-size} is the size of the tail array in the vtable-vtable
-itself, if @var{user-fields} specifies a tail array.  This should be 0
-if nothing extra is required or the format has no tail array.  The
-tail array field such as @samp{pW} holds the tail array size, as
-usual, and is followed by the extra space.
+With this definition, we can specify more precisely what a vtable is: a
+vtable is a structure made from a meta-vtable.  Making a structure from
+a meta-vtable runs some special checks to ensure that the first field of
+the structure is a valid layout.  Additionally, if these checks see that
+the layout of the child vtable contains all the required fields of a
+vtable, in the correct order, then the child vtable will also be a
+meta-table, inheriting a magical bit from the parent.
 
-@example
-(define vt-vt (make-vtable-vtable "pW" 20))
-(define my-vt-tail-start (1+ vtable-offset-user))
-(struct-set! vt-vt (+ 3 my-vt-tail-start) "data in tail")
-@end example
-
-The optional @var{print} argument is used by @code{display} and
-@code{write} (etc) to print the vtable-vtable and any vtables created
-from it.  It's called as @code{(@var{print} vtable port)} and should
-look at @var{vtable} and write to @var{port}.  The default is the
-usual structure print function, which just gives machine addresses.
+@deffn {Scheme Procedure} struct-vtable? obj
+@deffnx {C Function} scm_struct_vtable_p (obj)
+Return @code{#t} if @var{obj} is a vtable structure: an instance of a
+meta-vtable.
 @end deffn
+
+@code{<standard-vtable>} is a root of the vtable tree.  (Normally there
+is only one root in a given Guile process, but due to some legacy
+interfaces there may be more than one.)
+
+The set of required fields of a vtable is the set of fields in the
+@code{<standard-vtable>}, and is bound to @code{standard-vtable-fields}
+in the default environment.  It is possible to create a meta-vtable that
+with additional fields in its layout, which can be used to create
+vtables with additional data:
+
+@example
+scheme@@(guile-user)> (struct-ref $3 vtable-index-layout)
+$6 = pruhsruhpwphuhuhprprpw
+scheme@@(guile-user)> (struct-ref $4 vtable-index-layout)
+$7 = pruhsruhpwphuhuh
+scheme@@(guile-user)> standard-vtable-fields 
+$8 = "pruhsruhpwphuhuh"
+scheme@@(guile-user)> (struct-ref $2 vtable-offset-user)
+$9 = module
+@end example
+
+In this continuation of our earlier example, @code{$2} is a vtable that
+has extra fields, because its vtable, @code{$3}, was made from a
+meta-vtable with an extended layout.  @code{vtable-offset-user} is a
+convenient definition that indicates the number of fields in
+@code{standard-vtable-fields}.
+
+@defvr {Scheme Variable} standard-vtable-fields
+A string containing the orderedq set of fields that a vtable must have.
+@end defvr
+
+@defvr {Scheme Variable} vtable-offset-user
+The first index in a vtable that is available for a user.
+@end defvr
 
 @deffn {Scheme Procedure} make-struct-layout fields
 @deffnx {C Function} scm_make_struct_layout (fields)
 Return a structure layout symbol, from a @var{fields} string.
 @var{fields} is as described under @code{make-vtable}
 (@pxref{Vtables}).  An invalid @var{fields} string is an error.
-
-@example
-(make-struct-layout "prpW") @result{} prpW
-(make-struct-layout "blah") @result{} ERROR
-@end example
 @end deffn
 
-@defvr {Scheme Variable} vtable-offset-user
-@defvrx {C Macro} scm_vtable_offset_user
-The first field in a vtable which is available for application use.
-Such fields only exist when specified by @var{user-fields} in
-@code{make-vtable-vtable} above.
-@end defvr
+With these definitions, one can define @code{make-vtable} in this way:
 
-@sp 1
-Here's an extended vtable-vtable example, creating classes of
-``balls''.  Each class has a ``colour'', which is fixed.  Instances of
-those classes are created, and such each such ball has an ``owner'',
-which can be changed.
+@example
+(define* (make-vtable fields #:optional printer)
+  (make-struct/no-tail <standard-vtable>
+    (make-struct-layout fields)
+    printer))
+@end example
 
-@lisp
-(define ball-root (make-vtable-vtable "pr" 0))
 
-(define (make-ball-type ball-color)
-  (make-struct ball-root 0
-	       (make-struct-layout "pw")
-               (lambda (ball port)
-                 (format port "#<a ~A ball owned by ~A>"
-                         (color ball)
-                         (owner ball)))
-               ball-color))
-(define (color ball)
-  (struct-ref (struct-vtable ball) vtable-offset-user))
-(define (owner ball)
-  (struct-ref ball 0))
+@node Vtable Example
+@subsubsection Vtable Example
 
-(define red (make-ball-type 'red))
-(define green (make-ball-type 'green))
+Let us bring these points together with an example.  Consider a simple
+object system with single inheritance.  Objects will be normal
+structures, and classes will be vtables with three extra class fields:
+the name of the class, the parent class, and the list of fields.
 
-(define (make-ball type owner) (make-struct type 0 owner))
+So, first we need a meta-vtable that allocates instances with these
+extra class fields.
 
-(define ball (make-ball green 'Nisse))
-ball @result{} #<a green ball owned by Nisse>
-@end lisp
+@example
+(define <class>
+  (make-vtable
+   (string-append standard-vtable-fields "pwpwpw")
+   (lambda (x port)
+     (format port "<<class> ~a>" (class-name x)))))
+
+(define (class? x)
+  (and (struct? x)
+       (eq? (struct-vtable x) <class>)))
+@end example
+
+To make a structure with a specific meta-vtable, we will use
+@code{make-struct/no-tail}, passing it the computed instance layout and
+printer, as with @code{make-vtable}, and additionally the extra three
+class fields.
+
+@example
+(define (make-class name parent fields)
+  (let* ((fields (compute-fields parent fields))
+         (layout (compute-layout fields)))
+    (make-struct/no-tail <class>
+      layout 
+      (lambda (x port)
+        (print-instance x port))
+      name
+      parent
+      fields)))
+@end example
+
+Instances will store their associated data in slots in the structure: as
+many slots as there are fields.  The @code{compute-layout} procedure
+below can compute a layout, and @code{field-index} returns the slot
+corresponding to a field.
+
+@example
+(define-syntax-rule (define-accessor name n)
+  (define (name obj)
+    (struct-ref obj n)))
+
+;; Accessors for classes
+(define-accessor class-name (+ vtable-offset-user 0))
+(define-accessor class-parent (+ vtable-offset-user 1))
+(define-accessor class-fields (+ vtable-offset-user 2))
+
+(define (compute-fields parent fields)
+  (if parent
+      (append (class-fields parent) fields)
+      fields))
+
+(define (compute-layout fields)
+  (make-struct-layout
+   (string-concatenate (make-list (length fields) "pw"))))
+
+(define (field-index class field)
+  (list-index (class-fields class) field))
+
+(define (print-instance x port)
+  (format port "<~a" (class-name (struct-vtable x)))
+  (for-each (lambda (field idx)
+              (format port " ~a: ~a" field (struct-ref x idx)))
+            (class-fields (struct-vtable x))
+            (iota (length (class-fields (struct-vtable x)))))
+  (format port ">"))
+@end example
+
+So, at this point we can actually make a few classes:
+
+@example
+(define-syntax-rule (define-class name parent field ...)
+  (define name (make-class 'name parent '(field ...))))
+
+(define-class <surface> #f
+  width height)
+
+(define-class <window> <surface>
+  x y)
+@end example
+
+And finally, make an instance:
+
+@example
+(make-struct/no-tail <window> 400 300 10 20)
+@result{} <<window> width: 400 height: 300 x: 10 y: 20>
+@end example
+
+And that's that.  Note that there are many possible optimizations and
+feature enhancements that can be made to this object system, and the
+included GOOPS system does make most of them.  For more simple use
+cases, the records facility is usually sufficient.  But sometimes you
+need to make new kinds of data abstractions, and for that purpose,
+structs are here.
 
 @node Tail Arrays
 @subsubsection Tail Arrays
