@@ -1,7 +1,7 @@
 ;;;; structs.test --- Structures.      -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>, 2006-06-12.
 ;;;;
-;;;; Copyright (C) 2006, 2007, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -26,7 +26,8 @@
 ;;; Struct example taken from the reference manual (by Tom Lord).
 ;;;
 
-(define ball-root (make-vtable-vtable "pr" 0))
+(define ball-root
+  (make-vtable (string-append standard-vtable-fields "pr") 0))
 
 (define (make-ball-type ball-color)
   (make-struct ball-root 0
@@ -63,9 +64,10 @@
      (and (eq? (struct-vtable red) ball-root)
 	  (eq? (struct-vtable green) ball-root)
 	  (eq? (struct-vtable (make-ball red "Bob")) red)
+          (eq? (struct-vtable ball-root) <standard-vtable>)
 
 	  ;; end of the vtable tower
-	  (eq? (struct-vtable ball-root) ball-root)))
+	  (eq? (struct-vtable <standard-vtable>) <standard-vtable>)))
 
   (pass-if-exception "write-access denied"
      exception:struct-set!-denied
@@ -139,7 +141,7 @@
   ;; the program
   ;;
   (pass-if-exception "wrong type for `u' field" exception:wrong-type-arg
-    (let* ((vv (make-vtable-vtable "" 0))
+    (let* ((vv (make-vtable standard-vtable-fields))
 	   (v  (make-struct vv 0 (make-struct-layout "uw"))))
       (make-struct v 0 'x)))
 
@@ -150,7 +152,7 @@
   ;; SCM can cause a segv).
   ;;
   (pass-if-exception "no R/W/O for tail array" exception:bad-tail
-    (let* ((vv (make-vtable-vtable "" 0))
+    (let* ((vv (make-vtable standard-vtable-fields))
 	   (v  (make-struct vv 0 (make-struct-layout "pw"))))
       (make-struct v 123 'x))))
 
