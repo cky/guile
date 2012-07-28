@@ -1001,6 +1001,8 @@ scm_print_struct (SCM exp, SCM port, scm_print_state *pstate)
 void
 scm_init_struct ()
 {
+  SCM name;
+
   /* The first word of a struct is equal to `SCM_STRUCT_DATA (vtable) +
      scm_tc3_struct', and `SCM_STRUCT_DATA (vtable)' is 2 words after VTABLE by
      default.  */
@@ -1017,21 +1019,27 @@ scm_init_struct ()
   required_applicable_with_setter_fields = scm_from_locale_string (SCM_APPLICABLE_WITH_SETTER_BASE_LAYOUT);
 
   scm_standard_vtable_vtable = scm_i_make_vtable_vtable (scm_nullstr);
-  scm_c_define ("<standard-vtable>", scm_standard_vtable_vtable);
+  name = scm_from_utf8_symbol ("<standard-vtable>");
+  scm_set_struct_vtable_name_x (scm_standard_vtable_vtable, name);
+  scm_define (name, scm_standard_vtable_vtable);
 
   scm_applicable_struct_vtable_vtable =
     scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
                      scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
+  name = scm_from_utf8_symbol ("<applicable-struct-vtable>");
   SCM_SET_VTABLE_FLAGS (scm_applicable_struct_vtable_vtable,
                         SCM_VTABLE_FLAG_APPLICABLE_VTABLE);
-  scm_c_define ("<applicable-struct-vtable>", scm_applicable_struct_vtable_vtable);
+  scm_set_struct_vtable_name_x (scm_applicable_struct_vtable_vtable, name);
+  scm_define (name, scm_applicable_struct_vtable_vtable);
 
   scm_applicable_struct_with_setter_vtable_vtable =
     scm_make_struct (scm_standard_vtable_vtable, SCM_INUM0,
                      scm_list_1 (scm_make_struct_layout (required_vtable_fields)));
+  name = scm_from_utf8_symbol ("<applicable-struct-with-setter-vtable>");
+  scm_set_struct_vtable_name_x (scm_applicable_struct_with_setter_vtable_vtable, name);
   SCM_SET_VTABLE_FLAGS (scm_applicable_struct_with_setter_vtable_vtable,
                         SCM_VTABLE_FLAG_APPLICABLE_VTABLE | SCM_VTABLE_FLAG_SETTER_VTABLE);
-  scm_c_define ("<applicable-struct-with-setter-vtable>", scm_applicable_struct_with_setter_vtable_vtable);
+  scm_define (name, scm_applicable_struct_with_setter_vtable_vtable);
 
   scm_c_define ("vtable-index-layout", scm_from_int (scm_vtable_index_layout));
   scm_c_define ("vtable-index-printer",
