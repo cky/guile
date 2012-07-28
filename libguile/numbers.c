@@ -8901,7 +8901,8 @@ SCM_PRIMITIVE_GENERIC (scm_angle, "angle", 1, 0, 0,
     }
   else if (SCM_REALP (z))
     {
-      if (SCM_REAL_VALUE (z) >= 0)
+      double x = SCM_REAL_VALUE (z);
+      if (x > 0.0 || double_is_non_negative_zero (x))
         return flo0;
       else
         return scm_from_double (atan2 (0.0, -1.0));
