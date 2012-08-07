@@ -9593,13 +9593,13 @@ SCM_PRIMITIVE_GENERIC (scm_exp, "exp", 1, 0, 0,
 {
   if (SCM_COMPLEXP (z))
     {
-      /* Unfortunately we cannot use cexp() here, because both C99 and
-         C11 specify behavior for cexp() that is mathematically
-         incorrect.  In particular, they specify in annex G.6.3.1
-         that cexp(+inf.0+inf.0i) and cexp(+inf.0+nan.0i) return
-         +inf.0+nan.0i or -inf.0+nan.0i. */
+#if defined HAVE_COMPLEX_DOUBLE && defined HAVE_CEXP \
+  && defined (SCM_COMPLEX_VALUE)
+      return scm_from_complex_double (cexp (SCM_COMPLEX_VALUE (z)));
+#else
       return scm_c_make_polar (exp (SCM_COMPLEX_REAL (z)),
                                SCM_COMPLEX_IMAG (z));
+#endif
     }
   else if (SCM_NUMBERP (z))
     {
