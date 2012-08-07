@@ -332,16 +332,7 @@
     (eqv-loosely? 1.0 (exp 0+6.28318i)))
 
   (pass-if "exp(2-pi*i) = -e^2"
-    (eqv-loosely? (- const-e^2) (exp 2.0-3.14159i)))
-
-  (pass-if "exp(+inf.0i) = nan.0+nan.0i"
-    (complex-nan? (exp +inf.0i)))
-  (pass-if "exp(+nan.0i) = nan.0+nan.0i"
-    (complex-nan? (exp +nan.0i)))
-  (pass-if "exp(inf.0+inf.0i) = nan.0+nan.0i"
-    (complex-nan? (exp +inf.0+inf.0i)))
-  (pass-if "exp(inf.0-inf.0i) = nan.0+nan.0i"
-    (complex-nan? (exp +inf.0-inf.0i))))
+    (eqv-loosely? (- const-e^2) (exp 2.0-3.14159i))))
 
 ;;;
 ;;; odd?
@@ -4030,7 +4021,6 @@
   (pass-if (real-nan? (expt 0 -1.0)))
   (pass-if (real-nan? (expt 0.0 -1)))
   (pass-if (real-nan? (expt 0.0 -1.0)))
-  (pass-if (complex-nan? (expt 0.0 -1.0+1.0i)))
   (pass-if (eqv? 0 (expt 0 3)))
   (pass-if (= 0 (expt 0 4.0)))
   (pass-if (eqv? 0.0 (expt 0.0 5)))
