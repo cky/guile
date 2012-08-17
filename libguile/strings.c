@@ -1922,7 +1922,10 @@ u32_u8_length_in_bytes (const scm_t_uint32 *str, size_t len)
 
 char *
 scm_to_utf8_stringn (SCM str, size_t *lenp)
+#define FUNC_NAME "scm_to_utf8_stringn"
 {
+  SCM_VALIDATE_STRING (1, str);
+
   if (scm_i_is_narrow_string (str))
     return (char *) latin1_to_u8 ((scm_t_uint8 *) scm_i_string_chars (str),
                                   scm_i_string_length (str),
@@ -1969,6 +1972,7 @@ scm_to_utf8_stringn (SCM str, size_t *lenp)
       }
     }
 }
+#undef FUNC_NAME
 
 scm_t_wchar *
 scm_to_utf32_string (SCM str)
