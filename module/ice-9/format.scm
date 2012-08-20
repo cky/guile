@@ -427,15 +427,15 @@
                      (case modifier
                        ((at)
                         (format:out-str
-                         (with-output-to-string 
-                           (lambda ()
-                             (truncated-print (next-arg)
+                         (call-with-output-string
+                           (lambda (p)
+                             (truncated-print (next-arg) p
                                               #:width width)))))
                        ((colon-at)
                         (format:out-str
-                         (with-output-to-string 
-                           (lambda ()
-                             (truncated-print (next-arg)
+                         (call-with-output-string
+                           (lambda (p)
+                             (truncated-print (next-arg) p
                                               #:width
                                               (max (- width
                                                       output-col)
@@ -779,7 +779,7 @@
     (define (format:obj->str obj slashify)
       (let ((res (if slashify
                      (object->string obj)
-                     (with-output-to-string (lambda () (display obj))))))
+                     (call-with-output-string (lambda (p) (display obj p))))))
         (if (and format:read-proof (string-prefix? "#<" res))
             (object->string res)
             res)))
