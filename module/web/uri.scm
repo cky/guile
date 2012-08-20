@@ -377,6 +377,8 @@ the byte."
                     (if (< i len)
                         (let ((byte (bytevector-u8-ref bv i)))
                           (display #\% port)
+                          (when (< byte 16)
+                            (display #\0 port))
                           (display (number->string byte 16) port)
                           (lp (1+ i))))))))
           str)))

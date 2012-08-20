@@ -258,4 +258,5 @@
     (equal? "foo bar" (uri-decode "foo+bar"))))
 
 (with-test-prefix "encode"
-  (pass-if (equal? "foo%20bar" (uri-encode "foo bar"))))
+  (pass-if (equal? "foo%20bar" (uri-encode "foo bar")))
+  (pass-if (equal? "foo%0a%00bar" (uri-encode "foo\n\x00bar"))))
