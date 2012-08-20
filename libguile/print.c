@@ -1167,6 +1167,29 @@ write_character (scm_t_wchar ch, SCM port, int string_escapes_p)
     write_character_escaped (ch, string_escapes_p, port);
 }
 
+/* Display STR to PORT from START inclusive to END exclusive.  */
+void
+scm_i_display_substring (SCM str, size_t start, size_t end, SCM port)
+{
+  int narrow_p;
+  const char *buf;
+  size_t len, printed;
+
+  buf = scm_i_string_data (str);
+  len = end - start;
+  narrow_p = scm_i_is_narrow_string (str);
+  buf += start * (narrow_p ? sizeof (char) : sizeof (scm_t_wchar));
+
+  printed = display_string (buf, narrow_p, end - start, port,
+			    PORT_CONVERSION_HANDLER (port));
+
+  if (SCM_UNLIKELY (printed < len))
+    scm_encoding_error (__func__, errno,
+			"cannot convert to output locale",
+			port, scm_c_string_ref (str, printed + start));
+}
+
+
 /* Print an integer.
  */
 
