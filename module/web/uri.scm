@@ -364,7 +364,9 @@ Percent-encoding first writes out the given character to a bytevector
 within the given @var{encoding}, then encodes each byte as
 @code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
 the byte."
-  (if (string-index str unescaped-chars)
+  (define (needs-escaped? ch)
+    (not (char-set-contains? unescaped-chars ch)))
+  (if (string-index str needs-escaped?)
       (call-with-output-string*
        (lambda (port)
          (string-for-each
