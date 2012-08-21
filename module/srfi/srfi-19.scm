@@ -1113,13 +1113,13 @@
    (cons #\1 (lambda (date pad-with port)
                (display (date->string date "~Y-~m-~d") port)))
    (cons #\2 (lambda (date pad-with port)
-               (display (date->string date "~k:~M:~S~z") port)))
+               (display (date->string date "~H:~M:~S~z") port)))
    (cons #\3 (lambda (date pad-with port)
-               (display (date->string date "~k:~M:~S") port)))
+               (display (date->string date "~H:~M:~S") port)))
    (cons #\4 (lambda (date pad-with port)
-               (display (date->string date "~Y-~m-~dT~k:~M:~S~z") port)))
+               (display (date->string date "~Y-~m-~dT~H:~M:~S~z") port)))
    (cons #\5 (lambda (date pad-with port)
-               (display (date->string date "~Y-~m-~dT~k:~M:~S") port)))))
+               (display (date->string date "~Y-~m-~dT~H:~M:~S") port)))))
 
 
 (define (get-formatter char)

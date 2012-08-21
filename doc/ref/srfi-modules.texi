@@ -3003,10 +3003,10 @@ with locale decimal point, eg.@: @samp{5.2}
 @item @nicode{~z} @tab time zone, RFC-822 style
 @item @nicode{~Z} @tab time zone symbol (not currently implemented)
 @item @nicode{~1} @tab ISO-8601 date, @samp{~Y-~m-~d}
-@item @nicode{~2} @tab ISO-8601 time+zone, @samp{~k:~M:~S~z}
-@item @nicode{~3} @tab ISO-8601 time, @samp{~k:~M:~S}
-@item @nicode{~4} @tab ISO-8601 date/time+zone, @samp{~Y-~m-~dT~k:~M:~S~z}
-@item @nicode{~5} @tab ISO-8601 date/time, @samp{~Y-~m-~dT~k:~M:~S}
+@item @nicode{~2} @tab ISO-8601 time+zone, @samp{~H:~M:~S~z}
+@item @nicode{~3} @tab ISO-8601 time, @samp{~H:~M:~S}
+@item @nicode{~4} @tab ISO-8601 date/time+zone, @samp{~Y-~m-~dT~H:~M:~S~z}
+@item @nicode{~5} @tab ISO-8601 date/time, @samp{~Y-~m-~dT~H:~M:~S}
 @end multitable
 @end defun
 
