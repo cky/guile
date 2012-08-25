@@ -384,8 +384,14 @@ Examples:
 
 ;; Like a DTD for texinfo
 (define (command-spec command)
-  (or (assq command texi-command-specs)
-      (parser-error #f "Unknown command" command)))
+  (let ((spec (assq command texi-command-specs)))
+    (cond
+     ((not spec)
+      (parser-error #f "Unknown command" command))
+     ((eq? (cadr spec) 'ALIAS)
+      (command-spec (cddr spec)))
+     (else
+      spec))))
 
 (define (inline-content? content)
   (case content
@@ -647,11 +653,10 @@ Examples:
     (arguments->attlist port (read-arguments port stop-char) arg-names))
 
   (let* ((spec (command-spec command))
+         (command (car spec))
          (type (cadr spec))
          (arg-names (cddr spec)))
     (case type
-      ((ALIAS)
-       (complete-start-command arg-names port))
       ((INLINE-TEXT)
        (assert-curr-char '(#\{) "Inline element lacks {" port)
        (values command '() type))
@@ -954,7 +959,9 @@ Examples:
                          (loop port expect-eof? end-para need-break? seed)))
                       ((START)          ; Start of an @-command
                        (let* ((head (token-head token))
-                              (type (cadr (command-spec head)))
+                              (spec (command-spec head))
+                              (head (car spec))
+                              (type (cadr spec))
                               (inline? (inline-content? type))
                               (seed ((if (and inline? (not need-break?))
                                          identity end-para) seed))
@@ -1045,8 +1052,9 @@ Examples:
    (lambda (command args content seed)      ; fdown
      '())
    (lambda (command args parent-seed seed)  ; fup
-     (let ((seed (reverse-collect-str-drop-ws seed))
-           (spec (command-spec command)))
+     (let* ((seed (reverse-collect-str-drop-ws seed))
+            (spec (command-spec command))
+            (command (car spec)))
        (if (eq? (cadr spec) 'INLINE-TEXT-ARGS)
            (cons (list command (cons '% (parse-inline-text-args #f spec seed)))
                  parent-seed)
@@ -1062,8 +1070,10 @@ Examples:
   (let ((parser (make-dom-parser)))
     ;; duplicate arguments->attlist to avoid unnecessary splitting
     (lambda (command port)
-      (let ((args (cdar (parser '*ENVIRON-ARGS* port '())))
-            (arg-names (cddr (command-spec command))))
+      (let* ((args (cdar (parser '*ENVIRON-ARGS* port '())))
+             (spec (command-spec command))
+             (command (car spec))
+             (arg-names (cddr spec)))
         (cond
          ((not arg-names)
           (if (null? args) '()
