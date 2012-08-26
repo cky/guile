@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010, 2012
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -54,11 +54,12 @@ Zero bytes (@code{#\nul}) cannot be used in regex patterns or input
 strings, since the underlying C functions treat that as the end of
 string.  If there's a zero byte an error is thrown.
 
-Patterns and input strings are treated as being in the locale
-character set if @code{setlocale} has been called (@pxref{Locales}),
-and in a multibyte locale this includes treating multi-byte sequences
-as a single character.  (Guile strings are currently merely bytes,
-though this may change in the future, @xref{Conversion to/from C}.)
+Internally, patterns and input strings are converted to the current
+locale's encoding, and then passed to the C library's regular expression
+routines (@pxref{Regular Expressions,,, libc, The GNU C Library
+Reference Manual}).  The returned match structures always point to
+characters in the strings, not to individual bytes, even in the case of
+multi-byte encodings.
 
 @deffn {Scheme Procedure} string-match pattern str [start]
 Compile the string @var{pattern} into a regular expression and compare
