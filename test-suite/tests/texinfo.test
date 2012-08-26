@@ -208,9 +208,8 @@
 
   (test-body "@code{arg}"
              '((para (code "arg"))))
-  ;; FIXME: Why no enclosing para here?  Probably a bug.
   (test-body "@url{arg}"
-             '((uref (% (url "arg")))))
+             '((para (uref (% (url "arg"))))))
   (test-body "@code{     }"
              '((para (code))))
   (test-body "@code{ @code{}    }"
