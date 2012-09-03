@@ -28,7 +28,7 @@ EXTRA_DIST= \
   guild.in guile-config.in
 
 # What we now call `guild' used to be known as `guile-tools'.
-install-data-hook:
+install-exec-hook:
 	guild="`echo $(ECHO_N) guild				\
 	   | $(SED) -e '$(program_transform_name)'`$(EXEEXT)" ;	\
 	guile_tools="`echo $(ECHO_N) guile-tools		\
