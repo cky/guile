@@ -36,7 +36,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
 
 dnl `AM_SUBST_NOTMAKE' was introduced in Automake 1.11.
-AM_INIT_AUTOMAKE([1.11 gnu no-define -Wall -Wno-override dist-xz])
+AM_INIT_AUTOMAKE([1.11 gnu no-define -Wall -Wno-override color-tests dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])], [AC_SUBST([AM_DEFAULT_VERBOSITY],1)])
 
 AC_COPYRIGHT(GUILE_CONFIGURE_COPYRIGHT)
