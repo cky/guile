@@ -16,7 +16,8 @@
 
 (define-module (ice-9 curried-definitions)
   #:replace ((cdefine . define)
-             (cdefine* . define*)))
+             (cdefine* . define*)
+             define-public))
 
 (define-syntax cdefine
   (syntax-rules ()
@@ -39,3 +40,14 @@
        (lambda* rest body body* ...)))
     ((_ . rest)
      (define* . rest))))
+
+(define-syntax define-public
+  (syntax-rules ()
+    ((_ (name . args) . body)
+     (begin
+       (cdefine (name . args) . body)
+       (export name)))
+    ((_ name val)
+     (begin
+       (define name val)
+       (export name)))))

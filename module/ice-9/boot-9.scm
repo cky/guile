@@ -3321,7 +3321,9 @@ module '(ice-9 q) '(make-q q-length))}."
 (define-syntax define-public
   (syntax-rules ()
     ((_ (name . args) . body)
-     (define-public name (lambda args . body)))
+     (begin
+       (define name (lambda args . body))
+       (export name)))
     ((_ name val)
      (begin
        (define name val)
