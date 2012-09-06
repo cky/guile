@@ -370,6 +370,7 @@ available through both Scheme and C interfaces.
 * Expect::			Controlling interactive programs with Guile.
 * sxml-match::                  Pattern matching of SXML.
 * The Scheme shell (scsh)::     Using scsh interfaces in Guile.
+* Curried Definitions::         Extended @code{define} syntax.
 @end menu
 
 @include slib.texi
@@ -387,6 +388,7 @@ available through both Scheme and C interfaces.
 @include sxml-match.texi
 
 @include scsh.texi
+@include curried.texi
 
 @node Standard Library
 @chapter Standard Library

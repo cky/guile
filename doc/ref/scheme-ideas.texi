@@ -476,6 +476,11 @@ The corresponding forms of the alternative @code{define} syntax are:
 @noindent
 For details on how these forms work, see @xref{Lambda}.
 
+Prior to Guile 2.0, Guile provided an extension to @code{define} syntax
+that allowed you to nest the previous extension up to an arbitrary
+depth. These are no longer provided by default, and instead have been
+moved to @ref{Curried Definitions}
+
 (It could be argued that the alternative @code{define} forms are rather
 confusing, especially for newcomers to the Scheme language, as they hide
 both the role of @code{lambda} and the fact that procedures are values

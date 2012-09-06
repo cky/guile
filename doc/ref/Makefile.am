@@ -62,6 +62,7 @@ guile_TEXINFOS = preface.texi			\
 		 web.texi			\
 		 expect.texi			\
 		 scsh.texi			\
+		 curried.texi			\
 		 sxml-match.texi		\
 		 scheme-scripts.texi		\
 		 api-overview.texi		\

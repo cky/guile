@@ -1,0 +1,56 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C) 2012 Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Curried Definitions
+@section Curried Definitions
+
+The macros in this section are provided by
+@lisp
+(use-modules (ice-9 curried-definitions))
+@end lisp
+@noindent
+and replace those provided by default.
+
+Prior to Guile 2.0, Guile provided a type of definition known colloquially
+as a ``curried definition''. The idea is to extend the syntax of
+@code{define} so that you can conveniently define procedures that return
+procedures, up to any desired depth.
+
+For example,
+@example
+(define ((foo x) y)
+  (list x y))
+@end example
+is a convenience form of
+@example
+(define foo
+  (lambda (x)
+    (lambda (y)
+      (list x y))))
+@end example
+
+@deffn {Scheme Syntax} define (@dots{} (name args @dots{}) @dots{}) body @dots{}
+@deffnx {Scheme Syntax} define* (@dots{} (name args @dots{}) @dots{}) body @dots{}
+@deffnx {Scheme Syntax} define-public (@dots{} (name args @dots{}) @dots{}) body @dots{}
+
+Create a top level variable @var{name} bound to the procedure with
+parameter list @var{args}. If @var{name} is itself a formal parameter
+list, then a higher order procedure is created using that
+formal-parameter list, and returning a procedure that has parameter list
+@var{args}. This nesting may occur to arbitrary depth.
+
+@code{define*} is similar but the formal parameter lists take additional
+options as described in @ref{lambda* and define*}. For example,
+@example
+(define* ((foo #:keys (bar 'baz) (quux 'zot)) frotz #:rest rest)
+  (list bar quux frotz rest))
+
+((foo #:quux 'foo) 1 2 3 4 5)
+@result{} (baz foo 1 (2 3 4 5))
+@end example
+
+@code{define-public} is similar to @code{define} but it also adds
+@var{name} to the list of exported bindings of the current module.
+@end deffn
