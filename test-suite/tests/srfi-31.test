@@ -1,6 +1,6 @@
 ;;;; srfi-31.test --- Test suite for Guile's SRFI-31 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2006, 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,9 +22,10 @@
 
 (with-test-prefix "rec special form"
 
-  (pass-if-exception "bogus variable" '(misc-error . ".*")
+  (pass-if-exception "bogus variable"
+    exception:syntax-pattern-unmatched
     (eval '(rec #:foo) (current-module)))
-  
+
   (pass-if "rec expressions"
     (let ((ones-list (rec ones (cons 1 (delay ones)))))
       (and (= 1 (car ones-list))

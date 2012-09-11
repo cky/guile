@@ -1,6 +1,6 @@
 ;;; srfi-31.scm --- special form for recursive evaluation
 
-;; 	Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+;; 	Copyright (C) 2004, 2006, 2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -19,17 +19,15 @@
 ;;; Original author: Rob Browning <rlb@defaultvalue.org>
 
 (define-module (srfi srfi-31)
-  :export-syntax (rec))
+  #:export (rec))
 
-(define-macro (rec arg-form . body)
-  (cond
-   ((and (symbol? arg-form) (= 1 (length body)))
-    ;; (rec S (cons 1 (delay S)))
-    `(letrec ((,arg-form ,(car body)))
-       ,arg-form))
-   ;; (rec (f x) (+ x 1))
-   ((list? arg-form)
-    `(letrec ((,(car arg-form) (lambda ,(cdr arg-form) ,@body)))
-       ,(car arg-form)))
-   (else
-    (error "syntax error in rec form" `(rec ,arg-form ,@body)))))
+(define-syntax rec
+  (syntax-rules ()
+    "Return the given object, defined in a lexical environment where
+NAME is bound to itself."
+    ((_ (name . formals) body ...)                ; procedure
+     (letrec ((name (lambda formals body ...)))
+       name))
+    ((_ name expr)                                ; arbitrary object
+     (letrec ((name expr))
+       name))))
