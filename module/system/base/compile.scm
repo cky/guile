@@ -1,6 +1,6 @@
 ;;; High-level compiler interface
 
-;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -72,7 +72,7 @@
 ;; before the check, so that we avoid races (possibly due to parallel
 ;; compilation).
 ;;
-(define (ensure-writable-dir dir)
+(define (ensure-directory dir)
   (catch 'system-error
     (lambda ()
       (mkdir dir))
@@ -80,13 +80,12 @@
       (let ((errno (and (pair? rest) (car rest))))
         (cond
          ((eqv? errno EEXIST)
-          (let ((st (stat dir)))
-            (if (or (not (eq? (stat:type st) 'directory))
-                    (not (access? dir W_OK)))
-                (error "directory not writable" dir))))
+          ;; Assume it's a writable directory, to avoid TOCTOU errors,
+          ;; as well as UID/EUID mismatches that occur with access(2).
+          #t)
          ((eqv? errno ENOENT)
-          (ensure-writable-dir (dirname dir))
-          (ensure-writable-dir dir))
+          (ensure-directory (dirname dir))
+          (ensure-directory dir))
          (else
           (throw k subr fmt args rest)))))))
 
@@ -125,7 +124,7 @@
                  %compile-fallback-path
                  (canonical->suffix (canonicalize-path file))
                  (compiled-extension))))
-         (and (false-if-exception (ensure-writable-dir (dirname f)))
+         (and (false-if-exception (ensure-directory (dirname f)))
               f))))
 
 (define* (compile-file file #:key
@@ -144,7 +143,7 @@
       ;; Choose the input encoding deterministically.
       (set-port-encoding! in (or enc "UTF-8"))
 
-      (ensure-writable-dir (dirname comp))
+      (ensure-directory (dirname comp))
       (call-with-output-file/atomic comp
         (lambda (port)
           ((language-printer (ensure-language to))
