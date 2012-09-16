@@ -132,7 +132,14 @@
                    (lambda (match result)
                      (cons (match:substring match)
                            result))
-                   (logior regexp/notbol regexp/noteol)))))
+                   (logior regexp/notbol regexp/noteol))))
+
+  (pass-if "regexp/notbol is set correctly"
+    (equal? '("foo")
+            (fold-matches "^foo" "foofoofoofoo" '()
+                          (lambda (match result)
+                            (cons (match:substring match)
+                                  result))))))
 
 
 ;;;

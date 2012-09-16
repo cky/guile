@@ -172,8 +172,9 @@
     (let loop ((start 0)
                (value init)
                (abuts #f))              ; True if start abuts a previous match.
+      (define bol (if (zero? start) 0 regexp/notbol))
       (let ((m (if (> start (string-length string)) #f
-                   (regexp-exec regexp string start flags))))
+                   (regexp-exec regexp string start (logior flags bol)))))
         (cond
          ((not m) value)
          ((and (= (match:start m) (match:end m)) abuts)
