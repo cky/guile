@@ -1,6 +1,6 @@
 ;;; Parsing Guile's command-line
 
-;;; Copyright (C) 1994-1998, 2000-2011 Free Software Foundation, Inc.
+;;; Copyright (C) 1994-1998, 2000-2011, 2012 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -325,7 +325,7 @@ If FILE begins with `-' the -s switch is mandatory.
 
            ((string=? arg "--listen")   ; start a repl server
             (parse args
-                (cons '(@@ (system repl server) (spawn-server)) out)))
+                   (cons '((@@ (system repl server) spawn-server)) out)))
            
            ((string-prefix? "--listen=" arg) ; start a repl server
             (parse
@@ -336,14 +336,12 @@ If FILE begins with `-' the -s switch is mandatory.
                  ((string->number where) ; --listen=PORT
                   => (lambda (port)
                        (if (and (integer? port) (exact? port) (>= port 0))
-                           `(@@ (system repl server)
-                                (spawn-server
-                                 (make-tcp-server-socket #:port ,port)))
+                           `((@@ (system repl server) spawn-server)
+                             ((@@ (system repl server) make-tcp-server-socket) #:port ,port))
                            (error "invalid port for --listen"))))
                  ((string-prefix? "/" where) ; --listen=/PATH/TO/SOCKET
-                  `(@@ (system repl server)
-                       (spawn-server
-                        (make-unix-domain-server-socket #:path ,where))))
+                  `((@@ (system repl server) spawn-server)
+                    ((@@ (system repl server) make-unix-domain-server-socket) #:path ,where)))
                  (else
                   (error "unknown argument to --listen"))))
               out)))
