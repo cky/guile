@@ -457,7 +457,7 @@ show a short error printout.
 Default values for REPL options may be set using
 @code{repl-default-option-set!} from @code{(system repl common)}:
 
-@deffn {Scheme Procedure} repl-set-default-option! key value
+@deffn {Scheme Procedure} repl-default-option-set! key value
 Set the default value of a REPL option.  This function is particularly
 useful in a user's init file.  @xref{Init File}.
 @end deffn
