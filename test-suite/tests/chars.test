@@ -45,18 +45,18 @@
     (pass-if "char=? #\\A #\\A"
       (char=? #\A #\A))
 
-    (expect-fail "char=? #\\A #\\a"
-      (char=? #\A #\a))
+    (pass-if "char=? #\\A #\\a"
+      (not (char=? #\A #\a)))
 
-    (expect-fail "char=? #\\A #\\B"
-      (char=? #\A #\B))
+    (pass-if "char=? #\\A #\\B"
+      (not (char=? #\A #\B)))
 
-    (expect-fail "char=? #\\B #\\A"
-      (char=? #\A #\B))
+    (pass-if "char=? #\\B #\\A"
+      (not (char=? #\A #\B)))
 
     ;; char<?
-    (expect-fail "char<? #\\A #\\A"
-      (char<? #\A #\A))
+    (pass-if "char<? #\\A #\\A"
+      (not (char<? #\A #\A)))
 
     (pass-if "char<? #\\A #\\a"
       (char<? #\A #\a))
@@ -64,8 +64,8 @@
     (pass-if "char<? #\\A #\\B"
       (char<? #\A #\B))
 
-    (expect-fail "char<? #\\B #\\A"
-      (char<? #\B #\A))
+    (pass-if "char<? #\\B #\\A"
+      (not (char<? #\B #\A)))
 
     ;; char<=?
     (pass-if "char<=? #\\A #\\A"
@@ -77,18 +77,18 @@
     (pass-if "char<=? #\\A #\\B"
       (char<=? #\A #\B))
 
-    (expect-fail "char<=? #\\B #\\A"
-      (char<=? #\B #\A))
+    (pass-if "char<=? #\\B #\\A"
+      (not (char<=? #\B #\A)))
 
     ;; char>?
-    (expect-fail "char>? #\\A #\\A"
-      (char>? #\A #\A))
+    (pass-if "char>? #\\A #\\A"
+      (not (char>? #\A #\A)))
 
-    (expect-fail "char>? #\\A #\\a"
-      (char>? #\A #\a))
+    (pass-if "char>? #\\A #\\a"
+      (not (char>? #\A #\a)))
 
-    (expect-fail "char>? #\\A #\\B"
-      (char>? #\A #\B))
+    (pass-if "char>? #\\A #\\B"
+      (not (char>? #\A #\B)))
 
     (pass-if "char>? #\\B #\\A"
       (char>? #\B #\A))
@@ -97,11 +97,11 @@
     (pass-if "char>=? #\\A #\\A"
       (char>=? #\A #\A))
 
-    (expect-fail "char>=? #\\A #\\a"
-      (char>=? #\A #\a))
+    (pass-if "char>=? #\\A #\\a"
+      (not (char>=? #\A #\a)))
 
-    (expect-fail "char>=? #\\A #\\B"
-      (char>=? #\A #\B))
+    (pass-if "char>=? #\\A #\\B"
+      (not (char>=? #\A #\B)))
 
     (pass-if "char>=? #\\B #\\A"
       (char>=? #\B #\A))
@@ -113,24 +113,24 @@
     (pass-if "char-ci=? #\\A #\\a"
       (char-ci=? #\A #\a))
 
-    (expect-fail "char-ci=? #\\A #\\B"
-      (char-ci=? #\A #\B))
+    (pass-if "char-ci=? #\\A #\\B"
+      (not (char-ci=? #\A #\B)))
 
-    (expect-fail "char-ci=? #\\B #\\A"
-      (char-ci=? #\A #\B))
+    (pass-if "char-ci=? #\\B #\\A"
+      (not (char-ci=? #\A #\B)))
 
     ;; char-ci<?
-    (expect-fail "char-ci<? #\\A #\\A"
-      (char-ci<? #\A #\A))
+    (pass-if "char-ci<? #\\A #\\A"
+      (not (char-ci<? #\A #\A)))
 
-    (expect-fail "char-ci<? #\\A #\\a"
-      (char-ci<? #\A #\a))
+    (pass-if "char-ci<? #\\A #\\a"
+      (not (char-ci<? #\A #\a)))
 
     (pass-if "char-ci<? #\\A #\\B"
       (char-ci<? #\A #\B))
 
-    (expect-fail "char-ci<? #\\B #\\A"
-      (char-ci<? #\B #\A))
+    (pass-if "char-ci<? #\\B #\\A"
+      (not (char-ci<? #\B #\A)))
 
     ;; char-ci<=?
     (pass-if "char-ci<=? #\\A #\\A"
@@ -142,18 +142,18 @@
     (pass-if "char-ci<=? #\\A #\\B"
       (char-ci<=? #\A #\B))
 
-    (expect-fail "char-ci<=? #\\B #\\A"
-      (char-ci<=? #\B #\A))
+    (pass-if "char-ci<=? #\\B #\\A"
+      (not (char-ci<=? #\B #\A)))
 
     ;; char-ci>?
-    (expect-fail "char-ci>? #\\A #\\A"
-      (char-ci>? #\A #\A))
+    (pass-if "char-ci>? #\\A #\\A"
+      (not (char-ci>? #\A #\A)))
 
-    (expect-fail "char-ci>? #\\A #\\a"
-      (char-ci>? #\A #\a))
+    (pass-if "char-ci>? #\\A #\\a"
+      (not (char-ci>? #\A #\a)))
 
-    (expect-fail "char-ci>? #\\A #\\B"
-      (char-ci>? #\A #\B))
+    (pass-if "char-ci>? #\\A #\\B"
+      (not (char-ci>? #\A #\B)))
 
     (pass-if "char-ci>? #\\B #\\A"
       (char-ci>? #\B #\A))
@@ -165,8 +165,8 @@
     (pass-if "char-ci>=? #\\A #\\a"
       (char-ci>=? #\A #\a))
 
-    (expect-fail "char-ci>=? #\\A #\\B"
-      (char-ci>=? #\A #\B))
+    (pass-if "char-ci>=? #\\A #\\B"
+      (not (char-ci>=? #\A #\B)))
 
     (pass-if "char-ci>=? #\\B #\\A"
       (char-ci>=? #\B #\A)))
