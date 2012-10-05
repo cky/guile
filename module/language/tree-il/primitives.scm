@@ -491,6 +491,33 @@
   (bytevector-ieee-double-native-set! vec (* i 8) x))
 
 (hashq-set! *primitive-expand-table*
+            'equal?
+            (case-lambda
+              ((src a b)
+               ;; Simplify cases where either A or B is constant.
+               (define (maybe-simplify a b)
+                 (and (const? a)
+                      (let ((v (const-exp a)))
+                        (cond
+                         ((eq? #f v)
+                          (make-application src (make-primitive-ref #f 'not)
+                                            (list b)))
+                         ((eq? '() v)
+                          (make-application src (make-primitive-ref #f 'null?)
+                                            (list b)))
+                         ((or (eq? #t v)
+                              (eq? #nil v)
+                              (symbol? v)
+                              (and (integer? v)
+                                   (<= v most-positive-fixnum)
+                                   (>= v most-negative-fixnum)))
+                          (make-application src (make-primitive-ref #f 'eq?)
+                                            (list a b)))
+                         (else #f)))))
+               (or (maybe-simplify a b) (maybe-simplify b a)))
+              (else #f)))
+
+(hashq-set! *primitive-expand-table*
             'dynamic-wind
             (case-lambda
               ((src pre thunk post)

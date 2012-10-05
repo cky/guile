@@ -58,6 +58,20 @@
      (assert-tree-il->glil with-partial-evaluation
                            in pat test ...))))
 
+(define-syntax-rule (pass-if-primitives-resolved in expected)
+  (pass-if (format #f "primitives-resolved in ~s" 'in)
+    (let* ((module   (let ((m (make-module)))
+                       (beautify-user-module! m)
+                       m))
+           (orig     (parse-tree-il 'in))
+           (resolved (expand-primitives! (resolve-primitives! orig module))))
+      (or (equal? (unparse-tree-il resolved) 'expected)
+          (begin
+            (format (current-error-port)
+                    "primitive test failed: got ~s, expected ~s"
+                    resolved 'expected)
+            #f)))))
+
 (define-syntax pass-if-tree-il->scheme
   (syntax-rules ()
     ((_ in pat)
@@ -68,6 +82,33 @@
                 (compile 'in #:from 'scheme #:to 'tree-il))
          (pat (guard guard-exp) #t)
          (_ #f))))))
+
+
+(with-test-prefix "primitives"
+
+  (pass-if-primitives-resolved
+   (apply (primitive equal?) (toplevel x) (const #f))
+   (apply (primitive not) (toplevel x)))
+
+  (pass-if-primitives-resolved
+   (apply (primitive equal?) (toplevel x) (const ()))
+   (apply (primitive null?) (toplevel x)))
+
+  (pass-if-primitives-resolved
+   (apply (primitive equal?) (const #t) (lexical x y))
+   (apply (primitive eq?) (const #t) (lexical x y)))
+
+  (pass-if-primitives-resolved
+   (apply (primitive equal?) (const this-is-a-symbol) (toplevel x))
+   (apply (primitive eq?) (const this-is-a-symbol) (toplevel x)))
+
+  (pass-if-primitives-resolved
+   (apply (primitive equal?) (const 42) (toplevel x))
+   (apply (primitive eq?) (const 42) (toplevel x)))
+
+  (pass-if-primitives-resolved
+   (apply (primitive equal?) (const #nil) (toplevel x))
+   (apply (primitive eq?) (const #nil) (toplevel x))))
 
 
 (with-test-prefix "tree-il->scheme"
@@ -1704,3 +1745,8 @@
                               #:to 'assembly)))))
            (and (= (length w) 1)
                 (number? (string-contains (car w) "unsupported format option"))))))))
+
+;; Local Variables:
+;; eval: (put 'pass-if-primitives-resolved 'scheme-indent-function 1)
+;; eval: (put 'pass-if-tree-il->scheme 'scheme-indent-function 1)
+;; End:
