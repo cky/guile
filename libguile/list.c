@@ -267,7 +267,7 @@ SCM_DEFINE (scm_append, "append", 0, 0, 1,
 
 
 SCM_DEFINE (scm_append_x, "append!", 0, 0, 1, 
-            (SCM lists),
+            (SCM args),
 	    "A destructive version of @code{append} (@pxref{Pairs and\n"
 	    "Lists,,,r5rs, The Revised^5 Report on Scheme}).  The cdr field\n"
 	    "of each list's final pair is changed to point to the head of\n"
@@ -276,26 +276,29 @@ SCM_DEFINE (scm_append_x, "append!", 0, 0, 1,
 #define FUNC_NAME s_scm_append_x
 {
   SCM ret, *loc;
-  SCM_VALIDATE_REST_ARGUMENT (lists);
+  int argnum = 1;
+  SCM_VALIDATE_REST_ARGUMENT (args);
 
-  if (scm_is_null (lists))
+  if (scm_is_null (args))
     return SCM_EOL;
 
   loc = &ret;
   for (;;)
     {
-      SCM arg = SCM_CAR (lists);
+      SCM arg = SCM_CAR (args);
       *loc = arg;
 
-      lists = SCM_CDR (lists);
-      if (scm_is_null (lists))
+      args = SCM_CDR (args);
+      if (scm_is_null (args))
         return ret;
 
       if (!SCM_NULL_OR_NIL_P (arg))
         {
-          SCM_VALIDATE_CONS (SCM_ARG1, arg);
+          SCM_VALIDATE_CONS (argnum, arg);
           loc = SCM_CDRLOC (scm_last_pair (arg));
+          SCM_VALIDATE_NULL_OR_NIL (argnum, *loc);
         }
+      argnum++;
     }
 }
 #undef FUNC_NAME
