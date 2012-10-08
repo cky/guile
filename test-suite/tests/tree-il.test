@@ -86,33 +86,65 @@
 
 (with-test-prefix "primitives"
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const #f) (toplevel x))
-   (apply (primitive eq?) (const #f) (toplevel x)))
+  (with-test-prefix "eqv?"
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const ()) (toplevel x))
-   (apply (primitive eq?) (const ()) (toplevel x)))
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const #f) (toplevel x))
+      (apply (primitive eq?) (const #f) (toplevel x)))
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const #t) (lexical x y))
-   (apply (primitive eq?) (const #t) (lexical x y)))
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const ()) (toplevel x))
+      (apply (primitive eq?) (const ()) (toplevel x)))
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const this-is-a-symbol) (toplevel x))
-   (apply (primitive eq?) (const this-is-a-symbol) (toplevel x)))
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const #t) (lexical x y))
+      (apply (primitive eq?) (const #t) (lexical x y)))
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const 42) (toplevel x))
-   (apply (primitive eq?) (const 42) (toplevel x)))
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const this-is-a-symbol) (toplevel x))
+      (apply (primitive eq?) (const this-is-a-symbol) (toplevel x)))
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const 42.0) (toplevel x))
-   (apply (primitive equal?) (const 42.0) (toplevel x)))
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const 42) (toplevel x))
+      (apply (primitive eq?) (const 42) (toplevel x)))
 
-  (pass-if-primitives-resolved
-   (apply (primitive equal?) (const #nil) (toplevel x))
-   (apply (primitive eq?) (const #nil) (toplevel x))))
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const 42.0) (toplevel x))
+      (apply (primitive eqv?) (const 42.0) (toplevel x)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive eqv?) (const #nil) (toplevel x))
+      (apply (primitive eq?) (const #nil) (toplevel x))))
+
+  (with-test-prefix "equal?"
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const #f) (toplevel x))
+      (apply (primitive eq?) (const #f) (toplevel x)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const ()) (toplevel x))
+      (apply (primitive eq?) (const ()) (toplevel x)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const #t) (lexical x y))
+      (apply (primitive eq?) (const #t) (lexical x y)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const this-is-a-symbol) (toplevel x))
+      (apply (primitive eq?) (const this-is-a-symbol) (toplevel x)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const 42) (toplevel x))
+      (apply (primitive eq?) (const 42) (toplevel x)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const 42.0) (toplevel x))
+      (apply (primitive equal?) (const 42.0) (toplevel x)))
+
+    (pass-if-primitives-resolved
+        (apply (primitive equal?) (const #nil) (toplevel x))
+      (apply (primitive eq?) (const #nil) (toplevel x)))))
 
 
 (with-test-prefix "tree-il->scheme"
