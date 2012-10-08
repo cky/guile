@@ -2551,12 +2551,13 @@
                            (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
                                  (cons '#(syntax-object x ((top)) (hygiene guile))
                                        (cons k
-                                             (map (lambda (tmp-1 tmp)
-                                                    (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) tmp)
+                                             (map (lambda (tmp-2 tmp-1 tmp)
+                                                    (list (cons tmp tmp-1)
                                                           (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                                                tmp-1)))
+                                                                tmp-2)))
                                                   template
-                                                  pattern))))))
+                                                  pattern
+                                                  keyword))))))
                    tmp)
             (let ((tmp ($sc-dispatch tmp-1 '(_ each-any any . #(each ((any . any) any))))))
               (if (if tmp
@@ -2576,12 +2577,13 @@
                                (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
                                      (cons '#(syntax-object x ((top)) (hygiene guile))
                                            (cons k
-                                                 (map (lambda (tmp-1 tmp)
-                                                        (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) tmp)
+                                                 (map (lambda (tmp-2 tmp-1 tmp)
+                                                        (list (cons tmp tmp-1)
                                                               (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                                                    tmp-1)))
+                                                                    tmp-2)))
                                                       template
-                                                      pattern))))))
+                                                      pattern
+                                                      keyword))))))
                        tmp)
                 (syntax-violation
                   #f
@@ -2601,8 +2603,7 @@
                            name
                            (list '#(syntax-object syntax-rules ((top)) (hygiene guile))
                                  '()
-                                 (list (cons '#(syntax-object _ ((top)) (hygiene guile)) pattern)
-                                       template))))
+                                 (list (cons name pattern) template))))
                    tmp)
             (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any any))))
               (if (if tmp
@@ -2616,8 +2617,7 @@
                                (list '#(syntax-object syntax-rules ((top)) (hygiene guile))
                                      '()
                                      docstring
-                                     (list (cons '#(syntax-object _ ((top)) (hygiene guile)) pattern)
-                                           template))))
+                                     (list (cons name pattern) template))))
                        tmp)
                 (syntax-violation
                   #f
