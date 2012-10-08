@@ -557,7 +557,67 @@
   (pass-if "char 255"
     (equal? '("a" "b")
 	    (string-split (string #\a (integer->char 255) #\b)
-			  (integer->char 255)))))
+			  (integer->char 255))))
+
+  (pass-if "empty string - char"
+    (equal? '("")
+            (string-split "" #\:)))
+
+  (pass-if "non-empty - char - no delimiters"
+    (equal? '("foobarfrob")
+            (string-split "foobarfrob" #\:)))
+
+  (pass-if "non-empty - char - delimiters"
+    (equal? '("foo" "bar" "frob")
+            (string-split "foo:bar:frob" #\:)))
+
+  (pass-if "non-empty - char - leading delimiters"
+    (equal? '("" "" "foo" "bar" "frob")
+            (string-split "::foo:bar:frob" #\:)))
+
+  (pass-if "non-empty - char - trailing delimiters"
+    (equal? '("foo" "bar" "frob" "" "")
+            (string-split "foo:bar:frob::" #\:)))
+
+  (pass-if "empty string - charset"
+    (equal? '("")
+            (string-split "" (char-set #\:))))
+
+  (pass-if "non-empty - charset - no delimiters"
+    (equal? '("foobarfrob")
+            (string-split "foobarfrob" (char-set #\:))))
+
+  (pass-if "non-empty - charset - delimiters"
+    (equal? '("foo" "bar" "frob")
+            (string-split "foo:bar:frob" (char-set #\:))))
+
+  (pass-if "non-empty - charset - leading delimiters"
+    (equal? '("" "" "foo" "bar" "frob")
+            (string-split "::foo:bar:frob" (char-set #\:))))
+
+  (pass-if "non-empty - charset - trailing delimiters"
+    (equal? '("foo" "bar" "frob" "" "")
+            (string-split "foo:bar:frob::" (char-set #\:))))
+
+  (pass-if "empty string - pred"
+    (equal? '("")
+            (string-split "" (negate char-alphabetic?))))
+
+  (pass-if "non-empty - pred - no delimiters"
+    (equal? '("foobarfrob")
+            (string-split "foobarfrob" (negate char-alphabetic?))))
+
+  (pass-if "non-empty - pred - delimiters"
+    (equal? '("foo" "bar" "frob")
+            (string-split "foo:bar:frob" (negate char-alphabetic?))))
+
+  (pass-if "non-empty - pred - leading delimiters"
+    (equal? '("" "" "foo" "bar" "frob")
+            (string-split "::foo:bar:frob" (negate char-alphabetic?))))
+
+  (pass-if "non-empty - pred - trailing delimiters"
+    (equal? '("foo" "bar" "frob" "" "")
+            (string-split "foo:bar:frob::" (negate char-alphabetic?)))))
 
 (with-test-prefix "substring-move!"
 

@@ -3152,12 +3152,24 @@ These procedures are useful for similar tasks.
 Convert the string @var{str} into a list of characters.
 @end deffn
 
-@deffn {Scheme Procedure} string-split str chr
-@deffnx {C Function} scm_string_split (str, chr)
+@deffn {Scheme Procedure} string-split str char_pred
+@deffnx {C Function} scm_string_split (str, char_pred)
 Split the string @var{str} into a list of substrings delimited
-by appearances of the character @var{chr}.  Note that an empty substring
-between separator characters will result in an empty string in the
-result list.
+by appearances of characters that
+
+@itemize @bullet
+@item
+equal @var{char_pred}, if it is a character,
+
+@item
+satisfy the predicate @var{char_pred}, if it is a procedure,
+
+@item
+are in the set @var{char_pred}, if it is a character set.
+@end itemize
+
+Note that an empty substring between separator characters will result in
+an empty string in the result list.
 
 @lisp
 (string-split "root:x:0:0:root:/root:/bin/bash" #\:)

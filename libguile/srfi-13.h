@@ -110,7 +110,7 @@ SCM_API SCM scm_xsubstring (SCM s, SCM from, SCM to, SCM start, SCM end);
 SCM_API SCM scm_string_xcopy_x (SCM target, SCM tstart, SCM s, SCM sfrom, SCM sto, SCM start, SCM end);
 SCM_API SCM scm_string_replace (SCM s1, SCM s2, SCM start1, SCM end1, SCM start2, SCM end2);
 SCM_API SCM scm_string_tokenize (SCM s, SCM token_char, SCM start, SCM end);
-SCM_API SCM scm_string_split (SCM s, SCM chr);
+SCM_API SCM scm_string_split (SCM s, SCM char_pred);
 SCM_API SCM scm_string_filter (SCM char_pred, SCM s, SCM start, SCM end);
 SCM_API SCM scm_string_delete (SCM char_pred, SCM s, SCM start, SCM end);
 

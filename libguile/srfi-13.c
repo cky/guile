@@ -2993,11 +2993,22 @@ SCM_DEFINE (scm_string_tokenize, "string-tokenize", 1, 3, 0,
 #undef FUNC_NAME
 
 SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
-	    (SCM str, SCM chr),
+	    (SCM str, SCM char_pred),
 	    "Split the string @var{str} into a list of the substrings delimited\n"
-	    "by appearances of the character @var{chr}.  Note that an empty substring\n"
-	    "between separator characters will result in an empty string in the\n"
-	    "result list.\n"
+            "by appearances of characters that\n"
+            "\n"
+            "@itemize @bullet\n"
+            "@item\n"
+            "equal @var{char_pred}, if it is a character,\n"
+            "\n"
+            "@item\n"
+            "satisfy the predicate @var{char_pred}, if it is a procedure,\n"
+            "\n"
+            "@item\n"
+            "are in the set @var{char_pred}, if it is a character set.\n"
+            "@end itemize\n\n"
+            "Note that an empty substring between separator characters\n"
+            "will result in an empty string in the result list.\n"
 	    "\n"
 	    "@lisp\n"
 	    "(string-split \"root:x:0:0:root:/root:/bin/bash\" #\\:)\n"
@@ -3014,47 +3025,73 @@ SCM_DEFINE (scm_string_split, "string-split", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_string_split
 {
-  long idx, last_idx;
-  int narrow;
   SCM res = SCM_EOL;
 
   SCM_VALIDATE_STRING (1, str);
-  SCM_VALIDATE_CHAR (2, chr);
   
-  /* This is explicit wide/narrow logic (instead of using
-     scm_i_string_ref) is a speed optimization.  */
-  idx = scm_i_string_length (str);
-  narrow = scm_i_is_narrow_string (str);
-  if (narrow)
+  if (SCM_CHARP (char_pred))
     {
-      const char *buf = scm_i_string_chars (str);
-      while (idx >= 0)
+      long idx, last_idx;
+      int narrow;
+
+      /* This is explicit wide/narrow logic (instead of using
+         scm_i_string_ref) is a speed optimization.  */
+      idx = scm_i_string_length (str);
+      narrow = scm_i_is_narrow_string (str);
+      if (narrow)
         {
-          last_idx = idx;
-          while (idx > 0 && buf[idx-1] != (char) SCM_CHAR(chr))
-            idx--;
-          if (idx >= 0)
+          const char *buf = scm_i_string_chars (str);
+          while (idx >= 0)
             {
-              res = scm_cons (scm_i_substring (str, idx, last_idx), res);
-              idx--;
+              last_idx = idx;
+              while (idx > 0 && buf[idx-1] != (char) SCM_CHAR(char_pred))
+                idx--;
+              if (idx >= 0)
+                {
+                  res = scm_cons (scm_i_substring (str, idx, last_idx), res);
+                  idx--;
+                }
+            }
+        }
+      else
+        {
+          const scm_t_wchar *buf = scm_i_string_wide_chars (str);
+          while (idx >= 0)
+            {
+              last_idx = idx;
+              while (idx > 0 && buf[idx-1] != SCM_CHAR(char_pred))
+                idx--;
+              if (idx >= 0)
+                {
+                  res = scm_cons (scm_i_substring (str, idx, last_idx), res);
+                  idx--;
+                }
             }
         }
     }
   else
     {
-      const scm_t_wchar *buf = scm_i_string_wide_chars (str);
-      while (idx >= 0)
+      SCM sidx, slast_idx;
+
+      if (!SCM_CHARSETP (char_pred))
+        SCM_ASSERT (scm_is_true (scm_procedure_p (char_pred)),
+                    char_pred, SCM_ARG2, FUNC_NAME);
+
+      /* Supporting predicates and character sets involves handling SCM
+         values so there is less chance to optimize. */
+      slast_idx = scm_string_length (str);
+      for (;;)
         {
-          last_idx = idx;
-          while (idx > 0 && buf[idx-1] != SCM_CHAR(chr))
-            idx--;
-          if (idx >= 0)
-            {
-              res = scm_cons (scm_i_substring (str, idx, last_idx), res);
-              idx--;
-            }
+          sidx = scm_string_index_right (str, char_pred, SCM_INUM0, slast_idx);
+          if (scm_is_false (sidx))
+            break;
+          res = scm_cons (scm_substring (str, scm_oneplus (sidx), slast_idx), res);
+          slast_idx = sidx;
         }
+
+      res = scm_cons (scm_substring (str, SCM_INUM0, slast_idx), res);
     }
+
   scm_remember_upto_here_1 (str);
   return res;
 }
