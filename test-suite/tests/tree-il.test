@@ -107,6 +107,10 @@
    (apply (primitive eq?) (const 42) (toplevel x)))
 
   (pass-if-primitives-resolved
+   (apply (primitive equal?) (const 42.0) (toplevel x))
+   (apply (primitive equal?) (const 42.0) (toplevel x)))
+
+  (pass-if-primitives-resolved
    (apply (primitive equal?) (const #nil) (toplevel x))
    (apply (primitive eq?) (const #nil) (toplevel x))))
 

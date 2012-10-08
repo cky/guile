@@ -509,6 +509,7 @@
                               (eq? #nil v)
                               (symbol? v)
                               (and (integer? v)
+                                   (exact? v)
                                    (<= v most-positive-fixnum)
                                    (>= v most-negative-fixnum)))
                           (make-application src (make-primitive-ref #f 'eq?)
