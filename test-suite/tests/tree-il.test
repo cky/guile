@@ -87,12 +87,12 @@
 (with-test-prefix "primitives"
 
   (pass-if-primitives-resolved
-   (apply (primitive equal?) (toplevel x) (const #f))
-   (apply (primitive not) (toplevel x)))
+   (apply (primitive equal?) (const #f) (toplevel x))
+   (apply (primitive eq?) (const #f) (toplevel x)))
 
   (pass-if-primitives-resolved
-   (apply (primitive equal?) (toplevel x) (const ()))
-   (apply (primitive null?) (toplevel x)))
+   (apply (primitive equal?) (const ()) (toplevel x))
+   (apply (primitive eq?) (const ()) (toplevel x)))
 
   (pass-if-primitives-resolved
    (apply (primitive equal?) (const #t) (lexical x y))
