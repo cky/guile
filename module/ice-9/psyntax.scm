@@ -2789,7 +2789,7 @@
            #((macro-type . syntax-rules)
              (patterns pattern ...))
            (syntax-case x (k ...)
-             ((keyword . pattern) #'template)
+             ((dummy . pattern) #'template)
              ...)))
       ((_ (k ...) docstring ((keyword . pattern) template) ...)
        (string? (syntax->datum #'docstring))
@@ -2799,7 +2799,7 @@
            #((macro-type . syntax-rules)
              (patterns pattern ...))
            (syntax-case x (k ...)
-             ((keyword . pattern) #'template)
+             ((dummy . pattern) #'template)
              ...))))))
 
 (define-syntax define-syntax-rule
@@ -2808,13 +2808,13 @@
       ((_ (name . pattern) template)
        #'(define-syntax name
            (syntax-rules ()
-             ((name . pattern) template))))
+             ((_ . pattern) template))))
       ((_ (name . pattern) docstring template)
        (string? (syntax->datum #'docstring))
        #'(define-syntax name
            (syntax-rules ()
              docstring
-             ((name . pattern) template)))))))
+             ((_ . pattern) template)))))))
 
 (define-syntax let*
   (lambda (x)
