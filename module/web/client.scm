@@ -44,10 +44,13 @@
 (define (open-socket-for-uri uri)
   "Return an open input/output port for a connection to URI."
   (define addresses
-    (getaddrinfo (uri-host uri)
-                 (cond
-                  ((uri-port uri) => number->string)
-                  (else (symbol->string (uri-scheme uri))))))
+    (let ((port (uri-port uri)))
+      (getaddrinfo (uri-host uri)
+                   (cond (port => number->string)
+                         (else (symbol->string (uri-scheme uri))))
+                   (if port
+                       AI_NUMERICSERV
+                       0))))
 
   (let loop ((addresses addresses))
     (let* ((ai (car addresses))
