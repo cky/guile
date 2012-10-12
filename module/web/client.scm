@@ -1,6 +1,6 @@
 ;;; Web client
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -42,19 +42,35 @@
             http-get))
 
 (define (open-socket-for-uri uri)
-  (let* ((ai (car (getaddrinfo (uri-host uri)
-                               (cond
-                                ((uri-port uri) => number->string)
-                                (else (symbol->string (uri-scheme uri)))))))
-         (s  (socket (addrinfo:fam ai) (addrinfo:socktype ai)
-                     (addrinfo:protocol ai))))
-    (set-port-encoding! s "ISO-8859-1")
-    (connect s (addrinfo:addr ai))
-    ;; Buffer input and output on this port.
-    (setvbuf s _IOFBF)
-    ;; Enlarge the receive buffer.
-    (setsockopt s SOL_SOCKET SO_RCVBUF (* 12 1024))
-    s))
+  "Return an open input/output port for a connection to URI."
+  (define addresses
+    (getaddrinfo (uri-host uri)
+                 (cond
+                  ((uri-port uri) => number->string)
+                  (else (symbol->string (uri-scheme uri))))))
+
+  (let loop ((addresses addresses))
+    (let* ((ai (car addresses))
+           (s  (socket (addrinfo:fam ai) (addrinfo:socktype ai)
+                       (addrinfo:protocol ai))))
+      (set-port-encoding! s "ISO-8859-1")
+
+      (catch 'system-error
+        (lambda ()
+          (connect s (addrinfo:addr ai))
+
+          ;; Buffer input and output on this port.
+          (setvbuf s _IOFBF)
+          ;; Enlarge the receive buffer.
+          (setsockopt s SOL_SOCKET SO_RCVBUF (* 12 1024))
+          s)
+        (lambda args
+          ;; Connection failed, so try one of the other addresses.
+          (if (null? addresses)
+              (apply throw args)
+              (begin
+                (close s)
+                (loop (cdr addresses)))))))))
 
 (define (decode-string bv encoding)
   (if (string-ci=? encoding "utf-8")
