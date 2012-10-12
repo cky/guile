@@ -922,6 +922,55 @@ scm_struct_ihashq (SCM obj, unsigned long n, void *closure)
   return SCM_UNPACK (obj) % n;
 }
 
+/* Return the hash of struct OBJ, modulo N.  Traverse OBJ's fields to
+   compute the result, unless DEPTH is zero.  */
+unsigned long
+scm_i_struct_hash (SCM obj, unsigned long n, size_t depth)
+#define FUNC_NAME "hash"
+{
+  SCM layout;
+  scm_t_bits *data;
+  size_t struct_size, field_num;
+  unsigned long hash;
+
+  SCM_VALIDATE_STRUCT (1, obj);
+
+  layout = SCM_STRUCT_LAYOUT (obj);
+  struct_size = scm_i_symbol_length (layout) / 2;
+  data = SCM_STRUCT_DATA (obj);
+
+  hash = SCM_UNPACK (SCM_STRUCT_VTABLE (obj)) % n;
+  if (depth > 0)
+    for (field_num = 0; field_num < struct_size; field_num++)
+      {
+	int protection;
+
+	protection = scm_i_symbol_ref (layout, field_num * 2 + 1);
+	if (protection != 'h' && protection != 'o')
+	  {
+	    int type;
+	    type = scm_i_symbol_ref (layout, field_num * 2);
+	    switch (type)
+	      {
+	      case 'p':
+		hash ^= scm_hasher (SCM_PACK (data[field_num]), n,
+				    depth / 2);
+		break;
+	      case 'u':
+		hash ^= data[field_num] % n;
+		break;
+	      default:
+		/* Ignore 's' fields.  */;
+	      }
+	  }
+      }
+
+  /* FIXME: Tail elements should be taken into account.  */
+
+  return hash % n;
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_struct_vtable_name, "struct-vtable-name", 1, 0, 0, 
             (SCM vtable),
 	    "Return the name of the vtable @var{vtable}.")

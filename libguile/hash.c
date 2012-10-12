@@ -1,5 +1,6 @@
-/*	Copyright (C) 1995,1996,1997, 2000, 2001, 2003, 2004, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 2000, 2001, 2003, 2004, 2006, 2008,
+ *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -223,6 +224,8 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
 	significant_bits = (scm_t_uintptr) SCM_POINTER_VALUE (obj) >> 4UL;
 	return (size_t) significant_bits  % n;
       }
+    case scm_tcs_struct:
+      return scm_i_struct_hash (obj, n, d);
     case scm_tc7_wvect:
     case scm_tc7_vector:
       {

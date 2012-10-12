@@ -126,7 +126,49 @@
      (not (or (equal? (make-ball red "Bob") (make-ball green "Bob"))
 	      (equal? (make-ball red "Bob") (make-ball red "Bill"))))))
 
+
+(with-test-prefix "hash"
 
+  (pass-if "simple structs"
+    (let* ((v  (make-vtable "pr"))
+           (s1 (make-struct v 0 "hello"))
+           (s2 (make-struct v 0 "hello")))
+      (= (hash s1 7777) (hash s2 7777))))
+
+  (pass-if "different structs"
+    (let* ((v  (make-vtable "pr"))
+           (s1 (make-struct v 0 "hello"))
+           (s2 (make-struct v 0 "world")))
+      (or (not (= (hash s1 7777) (hash s2 7777)))
+          (throw 'unresolved))))
+
+  (pass-if "different struct types"
+    (let* ((v1 (make-vtable "pr"))
+           (v2 (make-vtable "pr"))
+           (s1 (make-struct v1 0 "hello"))
+           (s2 (make-struct v2 0 "hello")))
+      (or (not (= (hash s1 7777) (hash s2 7777)))
+          (throw 'unresolved))))
+
+  (pass-if "more complex structs"
+    (let ((s1 (make-ball red (string-copy "Bob")))
+          (s2 (make-ball red (string-copy "Bob"))))
+      (= (hash s1 7777) (hash s2 7777))))
+
+  (pass-if "struct with weird fields"
+    (let* ((v  (make-vtable "prurph"))
+           (s1 (make-struct v 0 "hello" 123 "invisible-secret1"))
+           (s2 (make-struct v 0 "hello" 123 "invisible-secret2")))
+      (= (hash s1 7777) (hash s2 7777))))
+
+  (pass-if "cyclic structs"
+    (let* ((v (make-vtable "pw"))
+           (a (make-struct v 0 #f))
+           (b (make-struct v 0 a)))
+      (struct-set! a 0 b)
+      (and (hash a 7777) (hash b 7777) #t))))
+
+
 ;;
 ;; make-struct
 ;;
