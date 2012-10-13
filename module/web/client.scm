@@ -69,11 +69,10 @@
           s)
         (lambda args
           ;; Connection failed, so try one of the other addresses.
+          (close s)
           (if (null? addresses)
               (apply throw args)
-              (begin
-                (close s)
-                (loop (cdr addresses)))))))))
+              (loop (cdr addresses))))))))
 
 (define (decode-string bv encoding)
   (if (string-ci=? encoding "utf-8")
