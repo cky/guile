@@ -533,7 +533,8 @@ scm_i_dynwind_current_load_port (SCM port)
 
 /*
   We need a global registry of ports to flush them all at exit, and to
-  get all the ports matching a file descriptor.
+  get all the ports matching a file descriptor.  The associated values
+  are alists, where additional information can be associated with ports.
  */
 SCM scm_i_port_weak_hash;
 
@@ -633,7 +634,7 @@ scm_new_port_table_entry (scm_t_bits tag)
   SCM_SET_CELL_TYPE (z, tag);
   SCM_SETPTAB_ENTRY (z, entry);
 
-  scm_hashq_set_x (scm_i_port_weak_hash, z, SCM_BOOL_F);
+  scm_hashq_set_x (scm_i_port_weak_hash, z, SCM_EOL);
 
   /* For each new port, register a finalizer so that it port type's free
      function can be invoked eventually.  */
