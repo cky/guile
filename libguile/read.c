@@ -82,15 +82,18 @@ scm_t_option scm_read_opts[] = {
 };
  
 /* Internal read options structure.  This is initialized by 'scm_read'
-   from the global read options, and a pointer is passed down to all
-   helper functions. */
-enum t_keyword_style {
-  KEYWORD_STYLE_HASH_PREFIX,
-  KEYWORD_STYLE_PREFIX,
-  KEYWORD_STYLE_POSTFIX
-};
+   from the global and per-port read options, and a pointer is passed
+   down to all helper functions. */
 
-struct t_read_opts {
+enum t_keyword_style
+  {
+    KEYWORD_STYLE_HASH_PREFIX,
+    KEYWORD_STYLE_PREFIX,
+    KEYWORD_STYLE_POSTFIX
+  };
+
+struct t_read_opts
+{
   enum t_keyword_style keyword_style;
   unsigned int copy_source_p        : 1;
   unsigned int record_positions_p   : 1;
@@ -101,35 +104,6 @@ struct t_read_opts {
 };
 
 typedef struct t_read_opts scm_t_read_opts;
-
-/* Initialize OPTS from the global read options. */
-static void
-init_read_options (scm_t_read_opts *opts)
-{
-  SCM val;
-  int x;
-
-  val = SCM_PACK (SCM_KEYWORD_STYLE);
-  if (scm_is_eq (val, scm_keyword_prefix))
-    x = KEYWORD_STYLE_PREFIX;
-  else if (scm_is_eq (val, scm_keyword_postfix))
-    x = KEYWORD_STYLE_POSTFIX;
-  else
-    x = KEYWORD_STYLE_HASH_PREFIX;
-  opts->keyword_style = x;
-
-#define RESOLVE_BOOLEAN_OPTION(NAME, name)      \
-  (opts->name = !!SCM_ ## NAME)
-
-  RESOLVE_BOOLEAN_OPTION (COPY_SOURCE_P,        copy_source_p);
-  RESOLVE_BOOLEAN_OPTION (RECORD_POSITIONS_P,   record_positions_p);
-  RESOLVE_BOOLEAN_OPTION (CASE_INSENSITIVE_P,   case_insensitive_p);
-  RESOLVE_BOOLEAN_OPTION (R6RS_ESCAPES_P,       r6rs_escapes_p);
-  RESOLVE_BOOLEAN_OPTION (SQUARE_BRACKETS_P,    square_brackets_p);
-  RESOLVE_BOOLEAN_OPTION (HUNGRY_EOL_ESCAPES_P, hungry_eol_escapes_p);
-
-#undef RESOLVE_BOOLEAN_OPTION
-}
 
 
 /*
@@ -1692,6 +1666,8 @@ scm_read_expression (SCM port, scm_t_read_opts *opts)
 
 /* Actual reader.  */
 
+static void init_read_options (SCM port, scm_t_read_opts *opts);
+
 SCM_DEFINE (scm_read, "read", 0, 1, 0, 
             (SCM port),
 	    "Read an s-expression from the input port @var{port}, or from\n"
@@ -1706,7 +1682,7 @@ SCM_DEFINE (scm_read, "read", 0, 1, 0,
     port = scm_current_input_port ();
   SCM_VALIDATE_OPINPORT (1, port);
 
-  init_read_options (&opts);
+  init_read_options (port, &opts);
 
   c = flush_ws (port, &opts, (char *) NULL);
   if (EOF == c)
@@ -1969,6 +1945,115 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
   return SCM_BOOL_F;
 }
 #undef FUNC_NAME
+
+
+/* Per-port read options.
+
+   We store per-port read options in the 'port-read-options' key of the
+   port's alist, which is stored in 'scm_i_port_weak_hash'.  The value
+   stored in the alist is a single integer that contains a two-bit field
+   for each read option.
+
+   If a bit field contains READ_OPTION_INHERIT (3), that indicates that
+   the applicable value should be inherited from the corresponding
+   global read option.  Otherwise, the bit field contains the value of
+   the read option.  For boolean read options that have been set
+   per-port, the possible values are 0 or 1.  If the 'keyword_style'
+   read option has been set per-port, its possible values are those in
+   'enum t_keyword_style'. */
+
+/* Key to read options in per-port alists. */
+SCM_SYMBOL (sym_port_read_options, "port-read-options");
+
+/* Offsets of bit fields for each per-port override */
+#define READ_OPTION_COPY_SOURCE_P          0
+#define READ_OPTION_RECORD_POSITIONS_P     2
+#define READ_OPTION_CASE_INSENSITIVE_P     4
+#define READ_OPTION_KEYWORD_STYLE          6
+#define READ_OPTION_R6RS_ESCAPES_P         8
+#define READ_OPTION_SQUARE_BRACKETS_P     10
+#define READ_OPTION_HUNGRY_EOL_ESCAPES_P  12
+
+#define READ_OPTIONS_NUM_BITS             14
+
+#define READ_OPTIONS_INHERIT_ALL  ((1UL << READ_OPTIONS_NUM_BITS) - 1)
+#define READ_OPTIONS_MAX_VALUE    READ_OPTIONS_INHERIT_ALL
+
+#define READ_OPTION_MASK     3
+#define READ_OPTION_INHERIT  3
+
+static void
+set_port_read_option (SCM port, int option, int new_value)
+{
+  SCM alist, scm_read_options;
+  unsigned int read_options;
+
+  new_value &= READ_OPTION_MASK;
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
+  alist = scm_hashq_ref (scm_i_port_weak_hash, port, SCM_BOOL_F);
+  scm_read_options = scm_assq_ref (alist, sym_port_read_options);
+  if (scm_is_unsigned_integer (scm_read_options, 0, READ_OPTIONS_MAX_VALUE))
+    read_options = scm_to_uint (scm_read_options);
+  else
+    read_options = READ_OPTIONS_INHERIT_ALL;
+  read_options &= ~(READ_OPTION_MASK << option);
+  read_options |= new_value << option;
+  scm_read_options = scm_from_uint (read_options);
+  alist = scm_assq_set_x (alist, sym_port_read_options, scm_read_options);
+  scm_hashq_set_x (scm_i_port_weak_hash, port, alist);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+}
+
+/* Initialize OPTS based on PORT's read options and the global read
+   options. */
+static void
+init_read_options (SCM port, scm_t_read_opts *opts)
+{
+  SCM alist, val, scm_read_options;
+  unsigned int read_options, x;
+
+  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
+  alist = scm_hashq_ref (scm_i_port_weak_hash, port, SCM_BOOL_F);
+  scm_read_options = scm_assq_ref (alist, sym_port_read_options);
+  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+
+  if (scm_is_unsigned_integer (scm_read_options, 0, READ_OPTIONS_MAX_VALUE))
+    read_options = scm_to_uint (scm_read_options);
+  else
+    read_options = READ_OPTIONS_INHERIT_ALL;
+
+  x = READ_OPTION_MASK & (read_options >> READ_OPTION_KEYWORD_STYLE);
+  if (x == READ_OPTION_INHERIT)
+    {
+      val = SCM_PACK (SCM_KEYWORD_STYLE);
+      if (scm_is_eq (val, scm_keyword_prefix))
+        x = KEYWORD_STYLE_PREFIX;
+      else if (scm_is_eq (val, scm_keyword_postfix))
+        x = KEYWORD_STYLE_POSTFIX;
+      else
+        x = KEYWORD_STYLE_HASH_PREFIX;
+    }
+  opts->keyword_style = x;
+
+#define RESOLVE_BOOLEAN_OPTION(NAME, name)                              \
+  do                                                                    \
+    {                                                                   \
+      x = READ_OPTION_MASK & (read_options >> READ_OPTION_ ## NAME);    \
+      if (x == READ_OPTION_INHERIT)                                     \
+        x = !!SCM_ ## NAME;                                             \
+          opts->name = x;                                               \
+    }                                                                   \
+  while (0)
+
+  RESOLVE_BOOLEAN_OPTION (COPY_SOURCE_P,        copy_source_p);
+  RESOLVE_BOOLEAN_OPTION (RECORD_POSITIONS_P,   record_positions_p);
+  RESOLVE_BOOLEAN_OPTION (CASE_INSENSITIVE_P,   case_insensitive_p);
+  RESOLVE_BOOLEAN_OPTION (R6RS_ESCAPES_P,       r6rs_escapes_p);
+  RESOLVE_BOOLEAN_OPTION (SQUARE_BRACKETS_P,    square_brackets_p);
+  RESOLVE_BOOLEAN_OPTION (HUNGRY_EOL_ESCAPES_P, hungry_eol_escapes_p);
+
+#undef RESOLVE_BOOLEAN_OPTION
+}
 
 void
 scm_init_read ()
