@@ -1500,7 +1500,8 @@ scm_read_sharp_extension (int chr, SCM port, scm_t_read_opts *opts)
 
       got = scm_call_2 (proc, SCM_MAKE_CHAR (chr), port);
 
-      if (scm_is_pair (got) && !scm_i_has_source_properties (got))
+      if (opts->record_positions_p && SCM_NIMP (got)
+          && !scm_i_has_source_properties (got))
         scm_i_set_source_properties_x (got, line, column, SCM_FILENAME (port));
       
       return got;
