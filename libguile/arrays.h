@@ -3,7 +3,8 @@
 #ifndef SCM_ARRAY_H
 #define SCM_ARRAY_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009,
+ *   2010, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -73,7 +74,6 @@ typedef struct scm_i_t_array
 
 SCM_INTERNAL SCM scm_i_make_array (int ndim);
 SCM_INTERNAL int scm_i_print_array (SCM array, SCM port, scm_print_state *pstate);
-SCM_INTERNAL SCM scm_i_read_array (SCM port, int c);
 
 SCM_INTERNAL void scm_init_arrays (void);
 

@@ -1002,14 +1002,163 @@ scm_read_vector (int chr, SCM port, long line, int column)
                                 port, line, column);
 }
 
-static SCM
-scm_read_array (int chr, SCM port, long line, int column)
+/* Helper used by scm_read_array */
+static int
+read_decimal_integer (SCM port, int c, ssize_t *resp)
 {
-  SCM result = scm_i_read_array (port, chr);
-  if (scm_is_false (result))
-    return result;
+  ssize_t sign = 1;
+  ssize_t res = 0;
+  int got_it = 0;
+
+  if (c == '-')
+    {
+      sign = -1;
+      c = scm_getc (port);
+    }
+
+  while ('0' <= c && c <= '9')
+    {
+      res = 10*res + c-'0';
+      got_it = 1;
+      c = scm_getc (port);
+    }
+
+  if (got_it)
+    *resp = sign * res;
+  return c;
+}
+
+/* Read an array.  This function can also read vectors and uniform
+   vectors.  Also, the conflict between '#f' and '#f32' and '#f64' is
+   handled here.
+
+   C is the first character read after the '#'. */
+static SCM
+scm_read_array (int c, SCM port, long line, int column)
+{
+  ssize_t rank;
+  scm_t_wchar tag_buf[8];
+  int tag_len;
+
+  SCM tag, shape = SCM_BOOL_F, elements, array;
+
+  /* XXX - shortcut for ordinary vectors.  Shouldn't be necessary but
+     the array code can not deal with zero-length dimensions yet, and
+     we want to allow zero-length vectors, of course. */
+  if (c == '(')
+    return scm_read_vector (c, port, line, column);
+
+  /* Disambiguate between '#f' and uniform floating point vectors. */
+  if (c == 'f')
+    {
+      c = scm_getc (port);
+      if (c != '3' && c != '6')
+	{
+	  if (c != EOF)
+	    scm_ungetc (c, port);
+	  return SCM_BOOL_F;
+	}
+      rank = 1;
+      tag_buf[0] = 'f';
+      tag_len = 1;
+      goto continue_reading_tag;
+    }
+
+  /* Read rank. */
+  rank = 1;
+  c = read_decimal_integer (port, c, &rank);
+  if (rank < 0)
+    scm_i_input_error (NULL, port, "array rank must be non-negative",
+		       SCM_EOL);
+
+  /* Read tag. */
+  tag_len = 0;
+ continue_reading_tag:
+  while (c != EOF && c != '(' && c != '@' && c != ':'
+         && tag_len < sizeof tag_buf / sizeof tag_buf[0])
+    {
+      tag_buf[tag_len++] = c;
+      c = scm_getc (port);
+    }
+  if (tag_len == 0)
+    tag = SCM_BOOL_T;
   else
-    return maybe_annotate_source (result, port, line, column);
+    {
+      tag = scm_string_to_symbol (scm_from_utf32_stringn (tag_buf, tag_len));
+      if (tag_len == sizeof tag_buf / sizeof tag_buf[0])
+        scm_i_input_error (NULL, port, "invalid array tag, starting with: ~a",
+                           scm_list_1 (tag));
+    }
+
+  /* Read shape. */
+  if (c == '@' || c == ':')
+    {
+      shape = SCM_EOL;
+
+      do
+	{
+	  ssize_t lbnd = 0, len = 0;
+	  SCM s;
+
+	  if (c == '@')
+	    {
+	      c = scm_getc (port);
+	      c = read_decimal_integer (port, c, &lbnd);
+	    }
+
+	  s = scm_from_ssize_t (lbnd);
+
+	  if (c == ':')
+	    {
+	      c = scm_getc (port);
+	      c = read_decimal_integer (port, c, &len);
+	      if (len < 0)
+		scm_i_input_error (NULL, port,
+				   "array length must be non-negative",
+				   SCM_EOL);
+
+	      s = scm_list_2 (s, scm_from_ssize_t (lbnd+len-1));
+	    }
+
+	  shape = scm_cons (s, shape);
+	} while (c == '@' || c == ':');
+
+      shape = scm_reverse_x (shape, SCM_EOL);
+    }
+
+  /* Read nested lists of elements. */
+  if (c != '(')
+    scm_i_input_error (NULL, port,
+		       "missing '(' in vector or array literal",
+		       SCM_EOL);
+  elements = scm_read_sexp (c, port);
+
+  if (scm_is_false (shape))
+    shape = scm_from_ssize_t (rank);
+  else if (scm_ilength (shape) != rank)
+    scm_i_input_error
+      (NULL, port,
+       "the number of shape specifications must match the array rank",
+       SCM_EOL);
+
+  /* Handle special print syntax of rank zero arrays; see
+     scm_i_print_array for a rationale. */
+  if (rank == 0)
+    {
+      if (!scm_is_pair (elements))
+	scm_i_input_error (NULL, port,
+			   "too few elements in array literal, need 1",
+			   SCM_EOL);
+      if (!scm_is_null (SCM_CDR (elements)))
+	scm_i_input_error (NULL, port,
+			   "too many elements in array literal, want 1",
+			   SCM_EOL);
+      elements = SCM_CAR (elements);
+    }
+
+  /* Construct array, annotate with source location, and return. */
+  array = scm_list_to_typed_array (tag, shape, elements);
+  return maybe_annotate_source (array, port, line, column);
 }
 
 static SCM
