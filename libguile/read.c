@@ -185,10 +185,11 @@ scm_i_read_hash_procedures_set_x (SCM value)
    structure'').  */
 #define CHAR_IS_R5RS_DELIMITER(c)				\
   (CHAR_IS_BLANK (c)						\
-   || (c == ')') || (c == '(') || (c == ';') || (c == '"')      \
-   || (SCM_SQUARE_BRACKETS_P && ((c == '[') || (c == ']'))))
+   || (c) == ')' || (c) == '(' || (c) == ';' || (c) == '"')
 
-#define CHAR_IS_DELIMITER  CHAR_IS_R5RS_DELIMITER
+#define CHAR_IS_DELIMITER(c)                                    \
+  (CHAR_IS_R5RS_DELIMITER (c)                                   \
+   || (((c) == ']' || (c) == '[') && SCM_SQUARE_BRACKETS_P))
 
 /* Exponent markers, as defined in section 7.1.1 of R5RS, ``Lexical
    Structure''.  */
@@ -405,7 +406,7 @@ scm_read_sexp (scm_t_wchar chr, SCM port)
     {
       SCM new_tail;
 
-      if (c == ')' || (SCM_SQUARE_BRACKETS_P && c == ']'))
+      if (c == ')' || (c == ']' && SCM_SQUARE_BRACKETS_P))
         scm_i_input_error (FUNC_NAME, port,
                            "in pair: mismatched close paren: ~A",
                            scm_list_1 (SCM_MAKE_CHAR (c)));
