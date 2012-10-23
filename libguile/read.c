@@ -218,6 +218,9 @@ scm_i_read_hash_procedures_set_x (SCM value)
 /* The maximum size of Scheme character names.  */
 #define READER_CHAR_NAME_MAX_SIZE      50
 
+/* The maximum size of reader directive names.  */
+#define READER_DIRECTIVE_NAME_MAX_SIZE 50
+
 
 /* `isblank' is only in C99.  */
 #define CHAR_IS_BLANK_(_chr)					\
@@ -1305,35 +1308,33 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 static SCM
 scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
 {
-  int c = 0;
-  if ((c = scm_get_byte_or_eof (port)) != 'r')
+  char name[READER_DIRECTIVE_NAME_MAX_SIZE + 1];
+  int c;
+  int i = 0;
+
+  while (i <= READER_DIRECTIVE_NAME_MAX_SIZE)
     {
-      scm_ungetc (c, port);
-      return scm_read_scsh_block_comment (chr, port);
+      c = scm_getc (port);
+      if (c == EOF)
+	scm_i_input_error ("skip_block_comment", port,
+			   "unterminated `#! ... !#' comment", SCM_EOL);
+      else if (('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || c == '-')
+        name[i++] = c;
+      else if (CHAR_IS_DELIMITER (c))
+        {
+          scm_ungetc (c, port);
+          name[i] = '\0';
+          if (0 == strcmp ("r6rs", name))
+            ;  /* Silently ignore */
+          else
+            break;
+
+          return SCM_UNSPECIFIED;
+        }
     }
-  if ((c = scm_get_byte_or_eof (port)) != '6')
-    {
-      scm_ungetc (c, port);
-      scm_ungetc ('r', port);
-      return scm_read_scsh_block_comment (chr, port);
-    }
-  if ((c = scm_get_byte_or_eof (port)) != 'r')
-    {
-      scm_ungetc (c, port);
-      scm_ungetc ('6', port);
-      scm_ungetc ('r', port);
-      return scm_read_scsh_block_comment (chr, port);
-    }
-  if ((c = scm_get_byte_or_eof (port)) != 's')
-    {
-      scm_ungetc (c, port);
-      scm_ungetc ('r', port);
-      scm_ungetc ('6', port);
-      scm_ungetc ('r', port);
-      return scm_read_scsh_block_comment (chr, port);
-    }
-  
-  return SCM_UNSPECIFIED;
+  while (i > 0)
+    scm_ungetc (name[--i], port);
+  return scm_read_scsh_block_comment (chr, port);
 }
 
 static SCM
