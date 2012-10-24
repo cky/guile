@@ -254,6 +254,8 @@ Encoding of Source Files}.
 
 @node Case Sensitivity
 @subsubsection Case Sensitivity
+@cindex fold-case
+@cindex no-fold-case
 
 @c FIXME::martin: Review me!
 
@@ -275,9 +277,9 @@ options, @xref{Scheme Read}.
 (read-enable 'case-insensitive)
 @end lisp
 
-Note that this is seldom a problem, because Scheme programmers tend not
-to use uppercase letters in their identifiers anyway.
-
+It is also possible to disable (or enable) case sensitivity within a
+single file by placing the reader directives @code{#!fold-case} (or
+@code{#!no-fold-case}) within the file itself.
 
 @node Keyword Syntax
 @subsubsection Keyword Syntax
@@ -315,10 +317,10 @@ its read options.
 @cindex options - read
 @cindex read options
 @deffn {Scheme Procedure} read-options [setting]
-Display the current settings of the read options.  If @var{setting} is
-omitted, only a short form of the current read options is printed.
-Otherwise if @var{setting} is the symbol @code{help}, a complete options
-description is displayed.
+Display the current settings of the global read options.  If
+@var{setting} is omitted, only a short form of the current read options
+is printed.  Otherwise if @var{setting} is the symbol @code{help}, a
+complete options description is displayed.
 @end deffn
 
 The set of available options, and their default values, may be had by
@@ -337,6 +339,12 @@ square-brackets   yes   Treat `[' and `]' as parentheses, for R6RS compatibility
 hungry-eol-escapes no   In strings, consume leading whitespace after an
                         escaped end-of-line.
 @end smalllisp
+
+Note that Guile also includes a preliminary mechanism for setting read
+options on a per-port basis.  For instance, the @code{case-insensitive}
+read option is set (or unset) on the port when the reader encounters the
+@code{#!fold-case} or @code{#!no-fold-case} reader directives.  There is
+currently no other way to access or set the per-port read options.
 
 The boolean options may be toggled with @code{read-enable} and
 @code{read-disable}. The non-boolean @code{keywords} option must be set

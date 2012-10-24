@@ -401,6 +401,19 @@
         (lambda ()
           (read-disable 'hungry-eol-escapes))))))
 
+(with-test-prefix "per-port-read-options"
+  (pass-if "case-sensitive"
+    (equal? '(guile GuiLe gUIle)
+            (with-read-options '(case-insensitive)
+              (lambda ()
+                (with-input-from-string "GUIle #!no-fold-case GuiLe gUIle"
+                  (lambda ()
+                    (list (read) (read) (read))))))))
+  (pass-if "case-insensitive"
+    (equal? '(GUIle guile guile)
+            (with-input-from-string "GUIle #!fold-case GuiLe gUIle"
+              (lambda ()
+                (list (read) (read) (read)))))))
 
 (with-test-prefix "#;"
   (for-each

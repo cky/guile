@@ -1279,6 +1279,9 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
   return SCM_UNSPECIFIED;
 }
 
+static void set_port_case_insensitive_p (SCM port, scm_t_read_opts *opts,
+                                         int value);
+
 static SCM
 scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
 {
@@ -1300,6 +1303,10 @@ scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
           name[i] = '\0';
           if (0 == strcmp ("r6rs", name))
             ;  /* Silently ignore */
+          else if (0 == strcmp ("fold-case", name))
+            set_port_case_insensitive_p (port, opts, 1);
+          else if (0 == strcmp ("no-fold-case", name))
+            set_port_case_insensitive_p (port, opts, 0);
           else
             break;
 
@@ -2002,6 +2009,15 @@ set_port_read_option (SCM port, int option, int new_value)
   alist = scm_assq_set_x (alist, sym_port_read_options, scm_read_options);
   scm_hashq_set_x (scm_i_port_weak_hash, port, alist);
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+}
+
+/* Set OPTS and PORT's case-insensitivity according to VALUE. */
+static void
+set_port_case_insensitive_p (SCM port, scm_t_read_opts *opts, int value)
+{
+  value = !!value;
+  opts->case_insensitive_p = value;
+  set_port_read_option (port, READ_OPTION_CASE_INSENSITIVE_P, value);
 }
 
 /* Initialize OPTS based on PORT's read options and the global read
