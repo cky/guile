@@ -338,12 +338,17 @@ r6rs-hex-escapes  no    Use R6RS variable-length character and string hex escape
 square-brackets   yes   Treat `[' and `]' as parentheses, for R6RS compatibility.
 hungry-eol-escapes no   In strings, consume leading whitespace after an
                         escaped end-of-line.
+curly-infix       no    Support SRFI-105 curly infix expressions.
 @end smalllisp
 
 Note that Guile also includes a preliminary mechanism for setting read
 options on a per-port basis.  For instance, the @code{case-insensitive}
 read option is set (or unset) on the port when the reader encounters the
-@code{#!fold-case} or @code{#!no-fold-case} reader directives.  There is
+@code{#!fold-case} or @code{#!no-fold-case} reader directives.
+Similarly, the @code{#!curly-infix} reader directive sets the
+@code{curly-infix} read option on the port, and
+@code{#!curly-infix-and-bracket-lists} sets @code{curly-infix} and
+unsets @code{square-brackets} on the port (@pxref{SRFI-105}).  There is
 currently no other way to access or set the per-port read options.
 
 The boolean options may be toggled with @code{read-enable} and

@@ -3716,7 +3716,7 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;;
 ;;; Currently, the following feature identifiers are supported:
 ;;;
-;;;   guile r5rs srfi-0 srfi-4 srfi-6 srfi-13 srfi-14 srfi-55 srfi-61
+;;;   guile r5rs srfi-0 srfi-4 srfi-6 srfi-13 srfi-14 srfi-55 srfi-61 srfi-105
 ;;;
 ;;; Remember to update the features list when adding more SRFIs.
 ;;;
@@ -3735,6 +3735,7 @@ module '(ice-9 q) '(make-q q-length))}."
     srfi-39  ;; parameterize
     srfi-55  ;; require-extension
     srfi-61  ;; general cond clause
+    srfi-105 ;; curly infix expressions
     ))
 
 ;; This table maps module public interfaces to the list of features.

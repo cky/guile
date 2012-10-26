@@ -1,0 +1,240 @@
+;;;; srfi-105.test --- Test suite for Guile's SRFI-105 reader. -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2012 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-srfi-105)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1))
+
+(define (read-string s)
+  (with-fluids ((%default-port-encoding #f))
+    (with-input-from-string s read)))
+
+(define (with-read-options opts thunk)
+  (let ((saved-options (read-options)))
+    (dynamic-wind
+        (lambda ()
+          (read-options opts))
+        thunk
+        (lambda ()
+          (read-options saved-options)))))
+
+;; Verify that curly braces are allowed in identifiers and that neoteric
+;; expressions are not recognized by default.
+(with-test-prefix "no-curly-infix"
+  (pass-if (equal? '({f(x) + g[y] + h{z} + [a]})
+                   `(,(string->symbol "{f")
+                     (x) + g [y] +
+                     ,(string->symbol "h{z}")
+                     + [a]
+                     ,(string->symbol "}")))))
+
+#!curly-infix
+
+(with-test-prefix "curly-infix"
+  (pass-if (equal? '{n <= 5}                '(<= n 5)))
+  (pass-if (equal? '{x + 1}                 '(+ x 1)))
+  (pass-if (equal? '{a + b + c}             '(+ a b c)))
+  (pass-if (equal? '{x ,op y ,op z}         '(,op x y z)))
+  (pass-if (equal? '{x eqv? `a}             '(eqv? x `a)))
+  (pass-if (equal? '{'a eq? b}              '(eq? 'a b)))
+  (pass-if (equal? '{n-1 + n-2}             '(+ n-1 n-2)))
+  (pass-if (equal? '{a * {b + c}}           '(* a (+ b c))))
+  (pass-if (equal? '{a + {b - c}}           '(+ a (- b c))))
+  (pass-if (equal? '{{a + b} - c}           '(- (+ a b) c)))
+  (pass-if (equal? '{{a > 0} and {b >= 1}}  '(and (> a 0) (>= b 1))))
+  (pass-if (equal? '{}                      '()))
+  (pass-if (equal? '{5}                     '5))
+  (pass-if (equal? '{- x}                   '(- x)))
+  (pass-if (equal? '{length(x) >= 6}        '(>= (length x) 6)))
+  (pass-if (equal? '{f(x) + g(y) + h(z)}    '(+ (f x) (g y) (h z))))
+  (pass-if (equal? '{(f a b) + (g h)}       '(+ (f a b) (g h))))
+  (pass-if (equal? '{f(a b) + g(h)}         '(+ (f a b) (g h))))
+  (pass-if (equal? '{a + f(b) + x}          '(+ a (f b) x)))
+  (pass-if (equal? '{(- a) / b}             '(/ (- a) b)))
+  (pass-if (equal? '{-(a) / b}              '(/ (- a) b)))
+  (pass-if (equal? '{cos(q)}                '(cos q)))
+  (pass-if (equal? '{e{}}                   '(e)))
+  (pass-if (equal? '{pi{}}                  '(pi)))
+  (pass-if (equal? '{'f(x)}                 '(quote (f x))))
+
+  (pass-if (equal? '{ (f (g h(x))) }        '(f (g (h x)))))
+  (pass-if (equal? '{#(1 2 f(a) 4)}         '#(1 2 (f a) 4)))
+  (pass-if (equal? '{ (f #;g(x) h(x)) }     '(f (h x))))
+  (pass-if (equal? '{ (f #; g(x)[y] h(x)) } '(f (h x))))
+  (pass-if (equal? '{ (f #; g[x]{y} h(x)) } '(f (h x))))
+
+  (pass-if (equal? '{ (f #(g h(x))) }       '(f #(g (h x)))))
+  (pass-if (equal? '{ (f '(g h(x))) }       '(f '(g (h x)))))
+  (pass-if (equal? '{ (f `(g h(x))) }       '(f `(g (h x)))))
+  (pass-if (equal? '{ (f #'(g h(x))) }      '(f #'(g (h x)))))
+  (pass-if (equal? '{ (f #2((g) (h(x)))) }  '(f #2((g) ((h x))))))
+
+  (pass-if (equal? '{(map - ns)}            '(map - ns)))
+  (pass-if (equal? '{map(- ns)}             '(map - ns)))
+  (pass-if (equal? '{n * factorial{n - 1}}  '(* n (factorial (- n 1)))))
+  (pass-if (equal? '{2 * sin{- x}}          '(* 2 (sin (- x)))))
+
+  (pass-if (equal? '{3 + 4 +}               '($nfx$ 3 + 4 +)))
+  (pass-if (equal? '{3 + 4 + 5 +}           '($nfx$ 3 + 4 + 5 +)))
+  (pass-if (equal? '{a . z}                 '($nfx$ a . z)))
+  (pass-if (equal? '{a + b - c}             '($nfx$ a + b - c)))
+
+  (pass-if (equal? '{read(. options)}       '(read . options)))
+
+  (pass-if (equal? '{a(x)(y)}               '((a x) y)))
+  (pass-if (equal? '{x[a]}                  '($bracket-apply$ x a)))
+  (pass-if (equal? '{y[a b]}                '($bracket-apply$ y a b)))
+
+  (pass-if (equal? '{f(g(x))}               '(f (g x))))
+  (pass-if (equal? '{f(g(x) h(x))}          '(f (g x) (h x))))
+
+
+  (pass-if (equal? '{}                      '()))
+  (pass-if (equal? '{e}                     'e))
+  (pass-if (equal? '{e1 e2}                 '(e1 e2)))
+
+  (pass-if (equal? '{a . t}                 '($nfx$ a . t)))
+  (pass-if (equal? '{a b . t}               '($nfx$ a b . t)))
+  (pass-if (equal? '{a b c . t}             '($nfx$ a b c . t)))
+  (pass-if (equal? '{a b c d . t}           '($nfx$ a b c d . t)))
+  (pass-if (equal? '{a + b +}               '($nfx$ a + b +)))
+  (pass-if (equal? '{a + b + c +}           '($nfx$ a + b + c +)))
+  (pass-if (equal? '{q + r * s}             '($nfx$ q + r * s)))
+
+  ;; The following two tests will become relevant when Guile's reader
+  ;; supports datum labels, specified in SRFI-38 (External
+  ;; Representation for Data With Shared Structure).
+
+  ;;(pass-if (equal? '#1=f(#1#)               '#1=(f #1#)))
+  ;;(pass-if (equal? '#1={a + . #1#}          '($nfx$ . #1=(a + . #1#))))
+
+  (pass-if (equal? '{e()}                   '(e)))
+  (pass-if (equal? '{e{}}                   '(e)))
+  (pass-if (equal? '{e(1)}                  '(e 1)))
+  (pass-if (equal? '{e{1}}                  '(e 1)))
+  (pass-if (equal? '{e(1 2)}                '(e 1 2)))
+  (pass-if (equal? '{e{1 2}}                '(e (1 2))))
+  (pass-if (equal? '{f{n - 1}}              '(f (- n 1))))
+  (pass-if (equal? '{f{n - 1}(x)}           '((f (- n 1)) x)))
+  (pass-if (equal? '{f{n - 1}{y - 1}}       '((f (- n 1)) (- y 1))))
+  (pass-if (equal? '{f{- x}[y]}             '($bracket-apply$ (f (- x)) y)))
+  (pass-if (equal? '{g{- x}}                '(g (- x))))
+  (pass-if (equal? '{( . e)}                'e))
+
+  (pass-if (equal? '{e[]}                   '($bracket-apply$ e)))
+  (pass-if (equal? '{e[1 2]}                '($bracket-apply$ e 1 2)))
+  (pass-if (equal? '{e[1 . 2]}              '($bracket-apply$ e 1 . 2)))
+
+  ;; Verify that source position information is not recorded if not
+  ;; asked for.
+  (with-test-prefix "no positions"
+    (pass-if "simple curly-infix list"
+      (let ((sexp (with-read-options '(curly-infix)
+                    (lambda ()
+                      (read-string " {1 + 2 + 3}")))))
+        (and (not (source-property sexp 'line))
+             (not (source-property sexp 'column)))))
+    (pass-if "mixed curly-infix list"
+      (let ((sexp (with-read-options '(curly-infix)
+                    (lambda ()
+                      (read-string " {1 + 2 * 3}")))))
+        (and (not (source-property sexp 'line))
+             (not (source-property sexp 'column)))))
+    (pass-if "singleton curly-infix list"
+      (let ((sexp (with-read-options '(curly-infix)
+                    (lambda ()
+                      (read-string " { 1.0 }")))))
+        (and (not (source-property sexp 'line))
+             (not (source-property sexp 'column)))))
+    (pass-if "neoteric expression"
+      (let ((sexp (with-read-options '(curly-infix)
+                    (lambda ()
+                      (read-string " { f(x) }")))))
+        (and (not (source-property sexp 'line))
+             (not (source-property sexp 'column))))))
+
+  ;; Verify that source position information is properly recorded.
+  (with-test-prefix "positions"
+    (pass-if "simple curly-infix list"
+      (let ((sexp (with-read-options '(curly-infix positions)
+                    (lambda ()
+                      (read-string " {1 + 2 + 3}")))))
+        (and (equal? (source-property sexp 'line) 0)
+             (equal? (source-property sexp 'column) 1))))
+    (pass-if "mixed curly-infix list"
+      (let ((sexp (with-read-options '(curly-infix positions)
+                    (lambda ()
+                      (read-string " {1 + 2 * 3}")))))
+        (and (equal? (source-property sexp 'line) 0)
+             (equal? (source-property sexp 'column) 1))))
+    (pass-if "singleton curly-infix list"
+      (let ((sexp (with-read-options '(curly-infix positions)
+                    (lambda ()
+                      (read-string " { 1.0 }")))))
+        (and (equal? (source-property sexp 'line) 0)
+             (equal? (source-property sexp 'column) 3))))
+    (pass-if "neoteric expression"
+      (let ((sexp (with-read-options '(curly-infix positions)
+                    (lambda ()
+                      (read-string " { f(x) }")))))
+        (and (equal? (source-property sexp 'line) 0)
+             (equal? (source-property sexp 'column) 3)))))
+
+  ;; Verify that neoteric expressions are recognized only within curly braces.
+  (pass-if (equal? '(a(x)(y))               '(a (x) (y))))
+  (pass-if (equal? '(x[a])                  '(x [a])))
+  (pass-if (equal? '(y[a b])                '(y [a b])))
+  (pass-if (equal? '(a f{n - 1})            '(a f (- n 1))))
+  (pass-if (equal? '(a f{n - 1}(x))         '(a f (- n 1) (x))))
+  (pass-if (equal? '(a f{n - 1}[x])         '(a f (- n 1) [x])))
+  (pass-if (equal? '(a f{n - 1}{y - 1})     '(a f (- n 1) (- y 1))))
+
+  ;; Verify that bracket lists are not recognized by default.
+  (pass-if (equal? '{[]}                    '()))
+  (pass-if (equal? '{[a]}                   '(a)))
+  (pass-if (equal? '{[a b]}                 '(a b)))
+  (pass-if (equal? '{[a . b]}               '(a . b)))
+  (pass-if (equal? '[]                      '()))
+  (pass-if (equal? '[a]                     '(a)))
+  (pass-if (equal? '[a b]                   '(a b)))
+  (pass-if (equal? '[a . b]                 '(a . b))))
+
+
+#!curly-infix-and-bracket-lists
+
+(with-test-prefix "curly-infix-and-bracket-lists"
+  ;; Verify that these neoteric expressions still work properly
+  ;; when the 'square-brackets' read option is unset (which is done by
+  ;; the '#!curly-infix-and-bracket-lists' reader directive above).
+  (pass-if (equal? '{e[]}                   '($bracket-apply$ e)))
+  (pass-if (equal? '{e[1 2]}                '($bracket-apply$ e 1 2)))
+  (pass-if (equal? '{e[1 . 2]}              '($bracket-apply$ e 1 . 2)))
+
+  ;; The following expressions are not actually part of SRFI-105, but
+  ;; they are handled when the 'curly-infix' read option is set and the
+  ;; 'square-brackets' read option is unset.  This is a non-standard
+  ;; extension of SRFI-105, and follows the convention of GNU Kawa.
+  (pass-if (equal? '{[]}                    '($bracket-list$)))
+  (pass-if (equal? '{[a]}                   '($bracket-list$ a)))
+  (pass-if (equal? '{[a b]}                 '($bracket-list$ a b)))
+  (pass-if (equal? '{[a . b]}               '($bracket-list$ a . b)))
+
+  (pass-if (equal? '[]                      '($bracket-list$)))
+  (pass-if (equal? '[a]                     '($bracket-list$ a)))
+  (pass-if (equal? '[a b]                   '($bracket-list$ a b)))
+  (pass-if (equal? '[a . b]                 '($bracket-list$ a . b))))

@@ -54,6 +54,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-69::                     Basic hash tables.
 * SRFI-88::                     Keyword objects.
 * SRFI-98::                     Accessing environment variables.
+* SRFI-105::                    Curly-infix expressions.
 @end menu
 
 
@@ -4468,6 +4469,56 @@ environment variable is not found.  This is equivalent to
 Returns the names and values of all the environment variables as an
 association list in which both the keys and the values are strings.
 @end deffn
+
+@node SRFI-105
+@subsection SRFI-105 Curly-infix expressions.
+@cindex SRFI-105
+@cindex curly-infix
+@cindex curly-infix-and-bracket-lists
+
+Guile's built-in reader includes support for SRFI-105 curly-infix
+expressions.  See @uref{http://srfi.schemers.org/srfi-105/srfi-105.html,
+the specification of SRFI-105}.  Some examples:
+
+@example
+@{n <= 5@}                @result{}  (<= n 5)
+@{a + b + c@}             @result{}  (+ a b c)
+@{a * @{b + c@}@}           @result{}  (* a (+ b c))
+@{(- a) / b@}             @result{}  (/ (- a) b)
+@{-(a) / b@}              @result{}  (/ (- a) b) as well
+@{(f a b) + (g h)@}       @result{}  (+ (f a b) (g h))
+@{f(a b) + g(h)@}         @result{}  (+ (f a b) (g h)) as well
+@{f[a b] + g(h)@}         @result{}  (+ ($bracket-apply$ f a b) (g h))
+'@{a + f(b) + x@}         @result{}  '(+ a (f b) x)
+@{length(x) >= 6@}        @result{}  (>= (length x) 6)
+@{n-1 + n-2@}             @result{}  (+ n-1 n-2)
+@{n * factorial@{n - 1@}@}  @result{}  (* n (factorial (- n 1)))
+@{@{a > 0@} and @{b >= 1@}@}  @result{}  (and (> a 0) (>= b 1))
+@{f@{n - 1@}(x)@}           @result{}  ((f (- n 1)) x)
+@{a . z@}                 @result{}  ($nfx$ a . z)
+@{a + b - c@}             @result{}  ($nfx$ a + b - c)
+@end example
+
+To enable curly-infix expressions within a file, place the reader
+directive @code{#!curly-infix} before the first use of curly-infix
+notation.  To globally enable curly-infix expressions in Guile's reader,
+set the @code{curly-infix} read option.
+
+Guile also implements the following non-standard extension to SRFI-105:
+if @code{curly-infix} is enabled and there is no other meaning assigned
+to square brackets (i.e. the @code{square-brackets} read option is
+turned off), then lists within square brackets are read as normal lists
+but with the special symbol @code{$bracket-list$} added to the front.
+To enable this combination of read options within a file, use the reader
+directive @code{#!curly-infix-and-bracket-lists}.  For example:
+
+@example
+[a b]    @result{}  ($bracket-list$ a b)
+[a . b]  @result{}  ($bracket-list$ a . b)
+@end example
+
+
+For more information on reader options, @xref{Scheme Read}.
 
 @c srfi-modules.texi ends here
 

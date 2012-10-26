@@ -63,23 +63,31 @@ SCM_SYMBOL (scm_keyword_prefix, "prefix");
 SCM_SYMBOL (scm_keyword_postfix, "postfix");
 SCM_SYMBOL (sym_nil, "nil");
 
-scm_t_option scm_read_opts[] = {
-  { SCM_OPTION_BOOLEAN, "copy", 0,
-    "Copy source code expressions." },
-  { SCM_OPTION_BOOLEAN, "positions", 1,
-    "Record positions of source code expressions." },
-  { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
-    "Convert symbols to lower case."},
-  { SCM_OPTION_SCM, "keywords", (scm_t_bits) SCM_BOOL_F_BITS,
-    "Style of keyword recognition: #f, 'prefix or 'postfix."},
-  { SCM_OPTION_BOOLEAN, "r6rs-hex-escapes", 0,
-    "Use R6RS variable-length character and string hex escapes."},
-  { SCM_OPTION_BOOLEAN, "square-brackets", 1,
-    "Treat `[' and `]' as parentheses, for R6RS compatibility."},
-  { SCM_OPTION_BOOLEAN, "hungry-eol-escapes", 0,
-    "In strings, consume leading whitespace after an escaped end-of-line."},
-  { 0, },
-};
+/* SRFI-105 curly infix expression support */
+SCM_SYMBOL (sym_nfx, "$nfx$");
+SCM_SYMBOL (sym_bracket_list, "$bracket-list$");
+SCM_SYMBOL (sym_bracket_apply, "$bracket-apply$");
+
+scm_t_option scm_read_opts[] =
+  {
+    { SCM_OPTION_BOOLEAN, "copy", 0,
+      "Copy source code expressions." },
+    { SCM_OPTION_BOOLEAN, "positions", 1,
+      "Record positions of source code expressions." },
+    { SCM_OPTION_BOOLEAN, "case-insensitive", 0,
+      "Convert symbols to lower case."},
+    { SCM_OPTION_SCM, "keywords", (scm_t_bits) SCM_BOOL_F_BITS,
+      "Style of keyword recognition: #f, 'prefix or 'postfix."},
+    { SCM_OPTION_BOOLEAN, "r6rs-hex-escapes", 0,
+      "Use R6RS variable-length character and string hex escapes."},
+    { SCM_OPTION_BOOLEAN, "square-brackets", 1,
+      "Treat `[' and `]' as parentheses, for R6RS compatibility."},
+    { SCM_OPTION_BOOLEAN, "hungry-eol-escapes", 0,
+      "In strings, consume leading whitespace after an escaped end-of-line."},
+    { SCM_OPTION_BOOLEAN, "curly-infix", 0,
+      "Support SRFI-105 curly infix expressions."},
+    { 0, },
+  };
  
 /* Internal read options structure.  This is initialized by 'scm_read'
    from the global and per-port read options, and a pointer is passed
@@ -101,6 +109,8 @@ struct t_read_opts
   unsigned int r6rs_escapes_p       : 1;
   unsigned int square_brackets_p    : 1;
   unsigned int hungry_eol_escapes_p : 1;
+  unsigned int curly_infix_p        : 1;
+  unsigned int neoteric_p           : 1;
 };
 
 typedef struct t_read_opts scm_t_read_opts;
@@ -217,7 +227,9 @@ scm_i_read_hash_procedures_set_x (SCM value)
 
 #define CHAR_IS_DELIMITER(c)                                    \
   (CHAR_IS_R5RS_DELIMITER (c)                                   \
-   || (((c) == ']' || (c) == '[') && opts->square_brackets_p))
+   || (((c) == ']' || (c) == '[') && (opts->square_brackets_p   \
+                                      || opts->curly_infix_p))  \
+   || (((c) == '}' || (c) == '{') && opts->curly_infix_p))
 
 /* Exponent markers, as defined in section 7.1.1 of R5RS, ``Lexical
    Structure''.  */
@@ -405,7 +417,10 @@ scm_read_sexp (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
 {
   int c;
   SCM tmp, tl, ans = SCM_EOL;
-  const int terminating_char = ((chr == '[') ? ']' : ')');
+  const int curly_list_p = (chr == '{') && opts->curly_infix_p;
+  const int terminating_char = ((chr == '{') ? '}'
+                                : ((chr == '[') ? ']'
+                                   : ')'));
 
   /* Need to capture line and column numbers here. */
   long line = SCM_LINUM (port);
@@ -437,7 +452,8 @@ scm_read_sexp (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
     {
       SCM new_tail;
 
-      if (c == ')' || (c == ']' && opts->square_brackets_p))
+      if (c == ')' || (c == ']' && opts->square_brackets_p)
+          || ((c == '}' || c == ']') && opts->curly_infix_p))
         scm_i_input_error (FUNC_NAME, port,
                            "in pair: mismatched close paren: ~A",
                            scm_list_1 (SCM_MAKE_CHAR (c)));
@@ -454,7 +470,7 @@ scm_read_sexp (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
 	  if (terminating_char != c)
 	    scm_i_input_error (FUNC_NAME, port,
 			       "in pair: missing close paren", SCM_EOL);
-	  goto exit;
+	  break;
 	}
 
       new_tail = scm_cons (tmp, SCM_EOL);
@@ -462,7 +478,59 @@ scm_read_sexp (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
       tl = new_tail;
     }
 
- exit:
+  if (curly_list_p)
+    {
+      /* In addition to finding the length, 'scm_ilength' checks for
+         improper or circular lists, in which case it returns -1. */
+      int len = scm_ilength (ans);
+
+      /* The (len == 0) case is handled above */
+      if (len == 1)
+        /* Return directly to avoid re-annotating the element's source
+           location with the position of the outer brace.  Also, it
+           might not be possible to annotate the element. */
+        return scm_car (ans);  /* {e} => e */
+      else if (len == 2)
+        ;  /* Leave the list unchanged: {e1 e2} => (e1 e2) */
+      else if (len >= 3 && (len & 1))
+        {
+          /* It's a proper list whose length is odd and at least 3.  If
+             the elements at odd indices (the infix operator positions)
+             are all 'equal?', then it's a simple curly-infix list.
+             Otherwise it's a mixed curly-infix list. */
+          SCM op = scm_cadr (ans);
+
+          /* Check to see if the elements at odd indices are 'equal?' */
+          for (tl = scm_cdddr (ans); ; tl = scm_cddr (tl))
+            {
+              if (scm_is_null (tl))
+                {
+                  /* Convert simple curly-infix list to prefix:
+                     {a <op> b <op> ...} => (<op> a b ...) */
+                  tl = ans;
+                  while (scm_is_pair (scm_cdr (tl)))
+                    {
+                      tmp = scm_cddr (tl);
+                      SCM_SETCDR (tl, tmp);
+                      tl = tmp;
+                    }
+                  ans = scm_cons (op, ans);
+                  break;
+                }
+              else if (scm_is_false (scm_equal_p (op, scm_car (tl))))
+                {
+                  /* Mixed curly-infix list: {e ...} => ($nfx$ e ...) */
+                  ans = scm_cons (sym_nfx, ans);
+                  break;
+                }
+            }
+        }
+      else
+        /* Mixed curly-infix (possibly improper) list:
+           {e . tail} => ($nfx$ e . tail) */
+        ans = scm_cons (sym_nfx, ans);
+    }
+
   return maybe_annotate_source (ans, port, opts, line, column);
 }
 #undef FUNC_NAME
@@ -1281,6 +1349,10 @@ scm_read_scsh_block_comment (scm_t_wchar chr, SCM port)
 
 static void set_port_case_insensitive_p (SCM port, scm_t_read_opts *opts,
                                          int value);
+static void set_port_square_brackets_p (SCM port, scm_t_read_opts *opts,
+                                        int value);
+static void set_port_curly_infix_p (SCM port, scm_t_read_opts *opts,
+                                    int value);
 
 static SCM
 scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
@@ -1307,6 +1379,13 @@ scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
             set_port_case_insensitive_p (port, opts, 1);
           else if (0 == strcmp ("no-fold-case", name))
             set_port_case_insensitive_p (port, opts, 0);
+          else if (0 == strcmp ("curly-infix", name))
+            set_port_curly_infix_p (port, opts, 1);
+          else if (0 == strcmp ("curly-infix-and-bracket-lists", name))
+            {
+              set_port_curly_infix_p (port, opts, 1);
+              set_port_square_brackets_p (port, opts, 0);
+            }
           else
             break;
 
@@ -1603,8 +1682,8 @@ scm_read_sharp (scm_t_wchar chr, SCM port, scm_t_read_opts *opts,
 #undef FUNC_NAME
 
 static SCM
-scm_read_expression (SCM port, scm_t_read_opts *opts)
-#define FUNC_NAME "scm_read_expression"
+read_inner_expression (SCM port, scm_t_read_opts *opts)
+#define FUNC_NAME "read_inner_expression"
 {
   while (1)
     {
@@ -1620,10 +1699,42 @@ scm_read_expression (SCM port, scm_t_read_opts *opts)
 	case ';':
 	  (void) scm_read_semicolon_comment (chr, port);
 	  break;
+        case '{':
+          if (opts->curly_infix_p)
+            {
+              if (opts->neoteric_p)
+                return scm_read_sexp (chr, port, opts);
+              else
+                {
+                  SCM expr;
+
+                  /* Enable neoteric expressions within curly braces */
+                  opts->neoteric_p = 1;
+                  expr = scm_read_sexp (chr, port, opts);
+                  opts->neoteric_p = 0;
+                  return expr;
+                }
+            }
+          else
+            return scm_read_mixed_case_symbol (chr, port, opts);
 	case '[':
-          if (!opts->square_brackets_p)
-            return (scm_read_mixed_case_symbol (chr, port, opts));
-          /* otherwise fall through */
+          if (opts->square_brackets_p)
+            return scm_read_sexp (chr, port, opts);
+          else if (opts->curly_infix_p)
+            {
+              /* The syntax of neoteric expressions requires that '[' be
+                 a delimiter when curly-infix is enabled, so it cannot
+                 be part of an unescaped symbol.  We might as well do
+                 something useful with it, so we adopt Kawa's convention:
+                 [...] => ($bracket-list$ ...) */
+              long line = SCM_LINUM (port);
+              int column = SCM_COL (port) - 1;
+              return maybe_annotate_source
+                (scm_cons (sym_bracket_list, scm_read_sexp (chr, port, opts)),
+                 port, opts, line, column);
+            }
+          else
+            return scm_read_mixed_case_symbol (chr, port, opts);
 	case '(':
 	  return (scm_read_sexp (chr, port, opts));
 	case '"':
@@ -1646,6 +1757,11 @@ scm_read_expression (SCM port, scm_t_read_opts *opts)
 	case ')':
 	  scm_i_input_error (FUNC_NAME, port, "unexpected \")\"", SCM_EOL);
 	  break;
+        case '}':
+          if (opts->curly_infix_p)
+            scm_i_input_error (FUNC_NAME, port, "unexpected \"}\"", SCM_EOL);
+          else
+            return scm_read_mixed_case_symbol (chr, port, opts);
 	case ']':
           if (opts->square_brackets_p)
             scm_i_input_error (FUNC_NAME, port, "unexpected \"]\"", SCM_EOL);
@@ -1666,6 +1782,74 @@ scm_read_expression (SCM port, scm_t_read_opts *opts)
 	      return (scm_read_mixed_case_symbol (chr, port, opts));
 	  }
 	}
+    }
+}
+#undef FUNC_NAME
+
+static SCM
+scm_read_expression (SCM port, scm_t_read_opts *opts)
+#define FUNC_NAME "scm_read_expression"
+{
+  if (!opts->neoteric_p)
+    return read_inner_expression (port, opts);
+  else
+    {
+      long line = 0;
+      int column = 0;
+      SCM expr;
+
+      if (opts->record_positions_p)
+        {
+          /* We need to get the position of the first non-whitespace
+             character in order to correctly annotate neoteric
+             expressions.  For example, for the expression 'f(x)', the
+             first call to 'read_inner_expression' reads the 'f' (which
+             cannot be annotated), and then we later read the '(x)' and
+             use it to construct the new list (f x). */
+          int c = flush_ws (port, opts, (char *) NULL);
+          if (c == EOF)
+            return SCM_EOF_VAL;
+          scm_ungetc (c, port);
+          line = SCM_LINUM (port);
+          column = SCM_COL (port);
+        }
+
+      expr = read_inner_expression (port, opts);
+
+      /* 'expr' is the first component of the neoteric expression.  Now
+         we loop, and as long as the next character is '(', '[', or '{',
+         (without any intervening whitespace), we use it to construct a
+         new expression.  For example, f{n - 1}(x) => ((f (- n 1)) x). */
+      for (;;)
+        {
+          int chr = scm_getc (port);
+
+          if (chr == '(')
+            /* e(...) => (e ...) */
+            expr = scm_cons (expr, scm_read_sexp (chr, port, opts));
+          else if (chr == '[')
+            /* e[...] => ($bracket-apply$ e ...) */
+            expr = scm_cons (sym_bracket_apply,
+                             scm_cons (expr,
+                                       scm_read_sexp (chr, port, opts)));
+          else if (chr == '{')
+            {
+              SCM arg = scm_read_sexp (chr, port, opts);
+
+              if (scm_is_null (arg))
+                expr = scm_list_1 (expr);       /* e{} => (e) */
+              else
+                expr = scm_list_2 (expr, arg);  /* e{...} => (e {...}) */
+            }
+          else
+            {
+              if (chr != EOF)
+                scm_ungetc (chr, port);
+              break;
+            }
+          maybe_annotate_source (expr, port, opts, line, column);
+        }
+      return expr;
     }
 }
 #undef FUNC_NAME
@@ -1980,8 +2164,10 @@ SCM_SYMBOL (sym_port_read_options, "port-read-options");
 #define READ_OPTION_R6RS_ESCAPES_P         8
 #define READ_OPTION_SQUARE_BRACKETS_P     10
 #define READ_OPTION_HUNGRY_EOL_ESCAPES_P  12
+#define READ_OPTION_CURLY_INFIX_P         14
 
-#define READ_OPTIONS_NUM_BITS             14
+/* The total width in bits of the per-port overrides */
+#define READ_OPTIONS_NUM_BITS             16
 
 #define READ_OPTIONS_INHERIT_ALL  ((1UL << READ_OPTIONS_NUM_BITS) - 1)
 #define READ_OPTIONS_MAX_VALUE    READ_OPTIONS_INHERIT_ALL
@@ -2018,6 +2204,24 @@ set_port_case_insensitive_p (SCM port, scm_t_read_opts *opts, int value)
   value = !!value;
   opts->case_insensitive_p = value;
   set_port_read_option (port, READ_OPTION_CASE_INSENSITIVE_P, value);
+}
+
+/* Set OPTS and PORT's square_brackets_p option according to VALUE. */
+static void
+set_port_square_brackets_p (SCM port, scm_t_read_opts *opts, int value)
+{
+  value = !!value;
+  opts->square_brackets_p = value;
+  set_port_read_option (port, READ_OPTION_SQUARE_BRACKETS_P, value);
+}
+
+/* Set OPTS and PORT's curly_infix_p option according to VALUE. */
+static void
+set_port_curly_infix_p (SCM port, scm_t_read_opts *opts, int value)
+{
+  value = !!value;
+  opts->curly_infix_p = value;
+  set_port_read_option (port, READ_OPTION_CURLY_INFIX_P, value);
 }
 
 /* Initialize OPTS based on PORT's read options and the global read
@@ -2067,8 +2271,11 @@ init_read_options (SCM port, scm_t_read_opts *opts)
   RESOLVE_BOOLEAN_OPTION (R6RS_ESCAPES_P,       r6rs_escapes_p);
   RESOLVE_BOOLEAN_OPTION (SQUARE_BRACKETS_P,    square_brackets_p);
   RESOLVE_BOOLEAN_OPTION (HUNGRY_EOL_ESCAPES_P, hungry_eol_escapes_p);
+  RESOLVE_BOOLEAN_OPTION (CURLY_INFIX_P,        curly_infix_p);
 
 #undef RESOLVE_BOOLEAN_OPTION
+
+  opts->neoteric_p = 0;
 }
 
 void

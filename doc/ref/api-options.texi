@@ -390,6 +390,7 @@ r6rs-hex-escapes  no    Use R6RS variable-length character and string hex escape
 square-brackets   yes   Treat `[' and `]' as parentheses, for R6RS compatibility.
 hungry-eol-escapes no   In strings, consume leading whitespace after an
                         escaped end-of-line.
+curly-infix       no    Support SRFI-105 curly infix expressions.
 scheme@@(guile-user) [1]> (read-enable 'case-insensitive)
 $2 = (square-brackets keywords #f case-insensitive positions)
 scheme@@(guile-user) [1]> ,q
