@@ -64,7 +64,7 @@
   (pass-if (equal? '{f(x) + g(y) + h(z)}    '(+ (f x) (g y) (h z))))
   (pass-if (equal? '{(f a b) + (g h)}       '(+ (f a b) (g h))))
   (pass-if (equal? '{f(a b) + g(h)}         '(+ (f a b) (g h))))
-  (pass-if (equal? '{a + f(b) + x}          '(+ a (f b) x)))
+  (pass-if (equal? ''{a + f(b) + x}         ''(+ a (f b) x)))
   (pass-if (equal? '{(- a) / b}             '(/ (- a) b)))
   (pass-if (equal? '{-(a) / b}              '(/ (- a) b)))
   (pass-if (equal? '{cos(q)}                '(cos q)))
@@ -120,7 +120,7 @@
   ;; supports datum labels, specified in SRFI-38 (External
   ;; Representation for Data With Shared Structure).
 
-  ;;(pass-if (equal? '#1=f(#1#)               '#1=(f #1#)))
+  ;;(pass-if (equal? '{#1=f(#1#)}             '#1=(f #1#)))
   ;;(pass-if (equal? '#1={a + . #1#}          '($nfx$ . #1=(a + . #1#))))
 
   (pass-if (equal? '{e()}                   '(e)))
