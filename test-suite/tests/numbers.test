@@ -4845,7 +4845,7 @@
                     (test+/- n d))))))
 
     (with-test-prefix "divide by zero"
-      (for `((0 0.0 +0.0))  ;; denominators
+      (for `((0 0.0 -0.0))  ;; denominators
            (lambda (d)
              (for `((15 ,(* 3/2 big) 18.0 33/7
                         0 0.0 -0.0 +inf.0 -inf.0 +nan.0))  ;; numerators
