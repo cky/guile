@@ -182,26 +182,26 @@
               (any (match-lambda (('skip (= basename "vm")) #t) (_ #f))
                    between))))))
 
-  (pass-if "test-suite (never enter)"
+  (pass-if-equal "test-suite (never enter)"
+      `((skip ,%test-dir))
     (let ((enter? (lambda (n s r) #f))
           (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
           (down   (lambda (n s r) (cons `(down ,n) r)))
           (up     (lambda (n s r) (cons `(up ,n) r)))
           (skip   (lambda (n s r) (cons `(skip ,n) r)))
           (error  (lambda (n s e r) (cons `(error ,n) r))))
-      (equal? (file-system-fold enter? leaf down up skip error '() %test-dir)
-              `((skip , %test-dir)))))
+      (file-system-fold enter? leaf down up skip error '() %test-dir)))
 
-  (pass-if "test-suite/lib.scm (flat file)"
-    (let ((enter? (lambda (n s r) #t))
-          (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
-          (down   (lambda (n s r) (cons `(down ,n) r)))
-          (up     (lambda (n s r) (cons `(up ,n) r)))
-          (skip   (lambda (n s r) (cons `(skip ,n) r)))
-          (error  (lambda (n s e r) (cons `(error ,n) r)))
-          (name   (string-append %test-suite-lib-dir "/lib.scm")))
-      (equal? (file-system-fold enter? leaf down up skip error '() name)
-              `((leaf ,name)))))
+  (let ((name   (string-append %test-suite-lib-dir "/lib.scm")))
+    (pass-if-equal "test-suite/lib.scm (flat file)"
+        `((leaf ,name))
+      (let ((enter? (lambda (n s r) #t))
+            (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+            (down   (lambda (n s r) (cons `(down ,n) r)))
+            (up     (lambda (n s r) (cons `(up ,n) r)))
+            (skip   (lambda (n s r) (cons `(skip ,n) r)))
+            (error  (lambda (n s e r) (cons `(error ,n) r))))
+        (file-system-fold enter? leaf down up skip error '() name))))
 
   (pass-if "ENOENT"
     (let ((enter? (lambda (n s r) #t))
