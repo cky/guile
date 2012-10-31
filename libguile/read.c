@@ -1134,8 +1134,7 @@ read_decimal_integer (SCM port, int c, ssize_t *resp)
    vectors.  Also, the conflict between '#f' and '#f32' and '#f64' is
    handled here.
 
-   C is the first character read after the '#'.
-*/
+   C is the first character read after the '#'. */
 static SCM
 scm_read_array (int c, SCM port, scm_t_read_opts *opts, long line, int column)
 {
@@ -1147,13 +1146,11 @@ scm_read_array (int c, SCM port, scm_t_read_opts *opts, long line, int column)
 
   /* XXX - shortcut for ordinary vectors.  Shouldn't be necessary but
      the array code can not deal with zero-length dimensions yet, and
-     we want to allow zero-length vectors, of course.
-  */
+     we want to allow zero-length vectors, of course. */
   if (c == '(')
     return scm_read_vector (c, port, opts, line, column);
 
-  /* Disambiguate between '#f' and uniform floating point vectors.
-   */
+  /* Disambiguate between '#f' and uniform floating point vectors. */
   if (c == 'f')
     {
       c = scm_getc (port);
