@@ -320,7 +320,17 @@
     (not (scandir "/.does-not-exist.")))
 
   (pass-if "no select"
-    (null? (scandir %test-dir (lambda (_) #f)))))
+    (null? (scandir %test-dir (lambda (_) #f))))
+
+  ;; In Guile up to 2.0.6, this would return ("." ".." "link-to-dir").
+  (pass-if-equal "symlink to directory"
+      '("." ".." "link-to-dir" "subdir")
+    (with-file-tree %top-builddir '(directory "test-scandir-symlink"
+                                              (("link-to-dir" -> "subdir")
+                                               (directory "subdir"
+                                                          (("a")))))
+      (let ((name (string-append %top-builddir "/test-scandir-symlink")))
+        (scandir name)))))
 
 ;;; Local Variables:
 ;;; eval: (put 'with-file-tree 'scheme-indent-function 2)

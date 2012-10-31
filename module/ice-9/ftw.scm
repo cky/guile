@@ -562,7 +562,7 @@ of file names is sorted according to ENTRY<?, which defaults to
         result
         (visit (basename name*) result)))
 
-  (and=> (file-system-fold enter? leaf down up skip error #f name stat)
+  (and=> (file-system-fold enter? leaf down up skip error #f name lstat)
          (lambda (files)
            (sort files entry<?))))
 
