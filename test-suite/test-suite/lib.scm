@@ -44,6 +44,7 @@
  ;; Reporting passes and failures.
  run-test
  pass-if expect-fail
+ pass-if-equal
  pass-if-exception expect-fail-exception
 
  ;; Naming groups of tests in a regular fashion.
@@ -332,7 +333,11 @@
                   ((pass)
                    (report (if expect-pass 'pass 'upass) test-name))
                   ((fail)
-                   (report (if expect-pass 'fail 'xfail) test-name))
+                   ;; ARGS may contain extra info about the failure,
+                   ;; such as the expected and actual value.
+                   (apply report (if expect-pass 'fail 'xfail)
+                          test-name
+                          args))
                   ((unresolved untested unsupported)
                    (report key test-name))
                   ((quit)
@@ -351,6 +356,18 @@
      (run-test 'name #t (lambda () name)))
     ((_ name rest ...)
      (run-test name #t (lambda () rest ...)))))
+
+(define-syntax pass-if-equal
+  (syntax-rules ()
+    "Succeed if and only if BODY's return value is equal? to EXPECTED."
+    ((_ name expected body ...)
+     (run-test 'name #t
+               (lambda ()
+                 (let ((result (begin body ...)))
+                   (or (equal? expected result)
+                       (throw 'fail
+                              'expected-value expected
+                              'actual-value result))))))))
 
 ;;; A short form for tests that are expected to fail, taken from Greg.
 (define-syntax expect-fail
