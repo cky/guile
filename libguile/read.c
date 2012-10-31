@@ -1391,6 +1391,11 @@ scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
 
           return SCM_UNSPECIFIED;
         }
+      else
+        {
+          scm_ungetc (c, port);
+          break;
+        }
     }
   while (i > 0)
     scm_ungetc (name[--i], port);
