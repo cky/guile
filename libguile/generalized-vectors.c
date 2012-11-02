@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004,
+ *   2005, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -178,14 +179,21 @@ SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
 	    "generalized vector @var{v}.")
 #define FUNC_NAME s_scm_generalized_vector_to_list
 {
+  /* FIXME: This duplicates `array_to_list'.  */
   SCM ret = SCM_EOL;
-  ssize_t pos, i = 0;
+  long inc;
+  ssize_t pos, i;
   scm_t_array_handle h;
+
   scm_generalized_vector_get_handle (v, &h);
-  for (pos = h.dims[0].ubnd, i = (h.dims[0].ubnd - h.dims[0].lbnd);
-       i >= 0;
-       pos -= h.dims[0].inc, i--)
-    ret = scm_cons (h.impl->vref (&h, pos), ret);
+
+  i = h.dims[0].ubnd - h.dims[0].lbnd + 1;
+  inc = h.dims[0].inc;
+  pos = (i - 1) * inc;
+
+  for (; i > 0; i--, pos -= inc)
+    ret = scm_cons (h.impl->vref (&h, h.base + pos), ret);
+
   scm_array_handle_release (&h);
   return ret;
 }
