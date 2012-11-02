@@ -360,8 +360,10 @@
 (define-syntax pass-if-equal
   (syntax-rules ()
     "Succeed if and only if BODY's return value is equal? to EXPECTED."
+    ((_ expected body)
+     (pass-if-equal 'body expected body))
     ((_ name expected body ...)
-     (run-test 'name #t
+     (run-test name #t
                (lambda ()
                  (let ((result (begin body ...)))
                    (or (equal? expected result)
