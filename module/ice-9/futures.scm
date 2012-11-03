@@ -93,8 +93,10 @@ touched."
   ;; Wait for futures to be available and process them.
   (lock-mutex %futures-mutex)
   (let loop ()
-    (wait-condition-variable %futures-available
-                             %futures-mutex)
+    (when (q-empty? %futures)
+      (wait-condition-variable %futures-available
+                               %futures-mutex))
+
     (or (q-empty? %futures)
         (let ((future (deq! %futures)))
           (lock-mutex (future-mutex future))
