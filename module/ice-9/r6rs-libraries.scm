@@ -29,7 +29,7 @@
   (define (sym? x) (symbol? (syntax->datum x)))
 
   (syntax-case import-spec (library only except prefix rename srfi)
-    ;; (srfi :n ...) -> (srfi srfi-n)
+    ;; (srfi :n ...) -> (srfi srfi-n ...)
     ((library (srfi colon-n rest ... (version ...)))
      (and (and-map sym? #'(srfi rest ...))
           (symbol? (syntax->datum #'colon-n))
@@ -40,7 +40,7 @@
                      (substring (symbol->string (syntax->datum #'colon-n))
                                 1)))))
        (resolve-r6rs-interface
-        #`(library (srfi #,srfi-n (version ...))))))
+        #`(library (srfi #,srfi-n rest ... (version ...))))))
     
     ((library (name name* ... (version ...)))
      (and-map sym? #'(name name* ...))
