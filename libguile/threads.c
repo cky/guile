@@ -696,10 +696,11 @@ do_thread_exit (void *v)
 
 	  scm_i_pthread_mutex_lock (&m->lock);
 
-	  /* Since MUTEX is in `t->mutexes', T must be its owner.  */
-	  assert (scm_is_eq (m->owner, t->handle));
-
-	  unblock_from_queue (m->waiting);
+	  /* Check whether T owns MUTEX.  This is usually the case, unless
+	     T abandoned MUTEX; in that case, T is no longer its owner (see
+	     `fat_mutex_lock') but MUTEX is still in `t->mutexes'.  */
+	  if (scm_is_eq (m->owner, t->handle))
+	    unblock_from_queue (m->waiting);
 
 	  scm_i_pthread_mutex_unlock (&m->lock);
 	}
