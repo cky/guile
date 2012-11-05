@@ -3,7 +3,8 @@
 #ifndef SCM_VALIDATE_H
 #define SCM_VALIDATE_H
 
-/* Copyright (C) 1999,2000,2001, 2002, 2004, 2006, 2007, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1999, 2000, 2001, 2002, 2004, 2006, 2007, 2009,
+ *   2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -91,11 +92,9 @@
 #define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
   (SCM_UNBNDP (arg) ? def : scm_to_ulong_long (arg))
 
-#define SCM_NUM2FLOAT(pos, arg) \
-  (scm_num2float (arg, pos, FUNC_NAME))
+#define SCM_NUM2FLOAT(pos, arg) ((float) scm_to_double (arg))
 
-#define SCM_NUM2DOUBLE(pos, arg) \
-  (scm_num2double (arg, pos, FUNC_NAME))
+#define SCM_NUM2DOUBLE(pos, arg) (scm_to_double (arg))
 
 #define SCM_OUT_OF_RANGE(pos, arg) \
   do { scm_out_of_range_pos (FUNC_NAME, arg, scm_from_int (pos)); } while (0)
