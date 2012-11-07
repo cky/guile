@@ -19,6 +19,7 @@
 (define-module (ice-9 futures)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
+  #:use-module (ice-9 threads)
   #:use-module (ice-9 q)
   #:export (future make-future future? touch))
 
@@ -157,15 +158,20 @@ touched."
 (define %workers '())
 
 (define (%create-workers!)
-  (lock-mutex %futures-mutex)
-  (set! %workers
-        (unfold (lambda (i) (>= i %worker-count))
-                (lambda (i)
-                  (call-with-new-thread process-futures))
-                1+
-                0))
-  (set! create-workers! (lambda () #t))
-  (unlock-mutex %futures-mutex))
+  (with-mutex
+   %futures-mutex
+   ;; Setting 'create-workers!' to a no-op is an optimization, but it is
+   ;; still possible for '%create-workers!' to be called more than once
+   ;; from different threads.  Therefore, to avoid creating %workers more
+   ;; than once (and thus creating too many threads), we check to make
+   ;; sure %workers is empty within the critical section.
+   (when (null? %workers)
+     (set! %workers
+           (unfold (lambda (i) (>= i %worker-count))
+                   (lambda (i) (call-with-new-thread process-futures))
+                   1+
+                   0))
+     (set! create-workers! (lambda () #t)))))
 
 (define create-workers!
   (lambda () (%create-workers!)))
