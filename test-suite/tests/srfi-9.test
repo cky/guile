@@ -20,19 +20,24 @@
 (define-module (test-suite test-numbers)
   #:use-module (test-suite lib)
   #:use-module ((system base compile) #:select (compile))
-  #:use-module (srfi srfi-9))
+  #:use-module (srfi srfi-26)
+  #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu))
 
 
 (define-record-type :qux (make-qux) qux?)
 
-(define-record-type :foo (make-foo x) foo? 
-  (x get-x) (y get-y set-y!))
+(define-record-type :foo (make-foo x) foo?
+  (x foo-x)
+  (y foo-y set-foo-y!)
+  (z foo-z set-foo-z!))
 
-(define-record-type :bar (make-bar i j) bar? 
-  (i get-i) (i get-j set-j!))
+(define-record-type :bar (make-bar i j) bar?
+  (i bar-i)
+  (j bar-j set-bar-j!))
 
 (define f (make-foo 1))
-(set-y! f 2)
+(set-foo-y! f 2)
 
 (define b (make-bar 123 456))
 
@@ -63,36 +68,169 @@
   (pass-if "fail number"
      (eq? #f (foo? 123))))
 
-(with-test-prefix "accessor"
+(with-test-prefix "getter"
 
-  (pass-if "get-x"
-     (= 1 (get-x f)))
-  (pass-if "get-y"
-     (= 2 (get-y f)))
+  (pass-if "foo-x"
+     (= 1 (foo-x f)))
+  (pass-if "foo-y"
+     (= 2 (foo-y f)))
 
-  (pass-if-exception "get-x on number" exception:wrong-type-arg
-     (get-x 999))
-  (pass-if-exception "get-y on number" exception:wrong-type-arg
-     (get-y 999))
-
-  ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
-  (pass-if-exception "get-x on bar" exception:wrong-type-arg
-     (get-x b))
-  (pass-if-exception "get-y on bar" exception:wrong-type-arg
-     (get-y b)))
-
-(with-test-prefix "modifier"
-
-  (pass-if "set-y!"
-     (set-y! f #t)
-     (eq? #t (get-y f)))
-
-  (pass-if-exception "set-y! on number" exception:wrong-type-arg
-     (set-y! 999 #t))
+  (pass-if-exception "foo-x on number" exception:wrong-type-arg
+     (foo-x 999))
+  (pass-if-exception "foo-y on number" exception:wrong-type-arg
+     (foo-y 999))
 
   ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
-  (pass-if-exception "set-y! on bar" exception:wrong-type-arg
-     (set-y! b 99)))
+  (pass-if-exception "foo-x on bar" exception:wrong-type-arg
+     (foo-x b))
+  (pass-if-exception "foo-y on bar" exception:wrong-type-arg
+     (foo-y b)))
+
+(with-test-prefix "setter"
+
+  (pass-if "set-foo-y!"
+     (set-foo-y! f #t)
+     (eq? #t (foo-y f)))
+
+  (pass-if-exception "set-foo-y! on number" exception:wrong-type-arg
+     (set-foo-y! 999 #t))
+
+  ;; prior to guile 1.6.9 and 1.8.1 this wan't enforced
+  (pass-if-exception "set-foo-y! on bar" exception:wrong-type-arg
+     (set-foo-y! b 99)))
+
+(with-test-prefix "functional setters"
+
+  (pass-if "set-field"
+    (let ((s (make-foo (make-bar 1 2))))
+      (and (equal? (set-field (foo-x bar-j) s 3)
+                   (make-foo (make-bar 1 3)))
+           (equal? (set-field (foo-z) s 'bar)
+                   (let ((s2 (make-foo (make-bar 1 2))))
+                     (set-foo-z! s2 'bar)
+                     s2))
+           (equal? s (make-foo (make-bar 1 2))))))
+
+  (pass-if-exception "set-field on wrong struct type" exception:wrong-type-arg
+    (let ((s (make-bar (make-foo 5) 2)))
+      (set-field (foo-x bar-j) s 3)))
+
+  (pass-if-exception "set-field on number" exception:wrong-type-arg
+    (set-field (foo-x bar-j) 4 3))
+
+  (pass-if "set-field with unknown first getter"
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(let ((s (make-bar (make-foo 5) 2)))
+                    (set-field (blah) s 3))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (equal? (list key whom what form subform)
+                '(syntax-error set-fields "unknown getter"
+                               (set-field (blah) s 3)
+                               blah)))))
+
+  (pass-if "set-field with unknown second getter"
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(let ((s (make-bar (make-foo 5) 2)))
+                    (set-field (bar-j blah) s 3))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (equal? (list key whom what form subform)
+                '(syntax-error set-fields "unknown getter"
+                               (set-field (bar-j blah) s 3)
+                               blah)))))
+
+  (pass-if "set-fields"
+    (let ((s (make-foo (make-bar 1 2))))
+      (and (equal? (set-field (foo-x bar-j) s 3)
+                   (make-foo (make-bar 1 3)))
+           (equal? (set-fields s
+                     ((foo-x bar-j) 3)
+                     ((foo-z) 'bar))
+                   (let ((s2 (make-foo (make-bar 1 3))))
+                     (set-foo-z! s2 'bar)
+                     s2))
+           (equal? s (make-foo (make-bar 1 2))))))
+
+  (pass-if-exception "set-fields on wrong struct type" exception:wrong-type-arg
+    (let ((s (make-bar (make-foo 5) 2)))
+      (set-fields 4
+        ((foo-x bar-j) 3)
+        ((foo-y) 'bar))))
+
+  (pass-if-exception "set-fields on number" exception:wrong-type-arg
+    (set-fields 4
+      ((foo-x bar-j) 3)
+      ((foo-z) 'bar)))
+
+  (pass-if "set-fields with unknown first getter"
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(let ((s (make-bar (make-foo 5) 2)))
+                    (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (equal? (list key whom what form subform)
+                '(syntax-error set-fields "unknown getter"
+                               (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                               blah)))))
+
+  (pass-if "set-fields with unknown second getter"
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(let ((s (make-bar (make-foo 5) 2)))
+                    (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (equal? (list key whom what form subform)
+                '(syntax-error set-fields "unknown getter"
+                               (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                               blah)))))
+
+  (pass-if "set-fields with duplicate field path"
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(let ((s (make-bar (make-foo 5) 2)))
+                    (set-fields s
+                      ((bar-i foo-x) 1)
+                      ((bar-i foo-z) 2)
+                      ((bar-i foo-x) 3)))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (equal? (list key whom what form subform)
+                '(syntax-error set-fields "duplicate field path"
+                               (set-fields s
+                                 ((bar-i foo-x) 1)
+                                 ((bar-i foo-z) 2)
+                                 ((bar-i foo-x) 3))
+                               (bar-i foo-x))))))
+
+  (pass-if "set-fields with one path as a prefix of another"
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(let ((s (make-bar (make-foo 5) 2)))
+                    (set-fields s
+                      ((bar-i foo-x) 1)
+                      ((bar-i foo-z) 2)
+                      ((bar-i) 3)))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (equal? (list key whom what form subform)
+                '(syntax-error set-fields
+                               "one field path is a prefix of another"
+                               (set-fields s
+                                 ((bar-i foo-x) 1)
+                                 ((bar-i foo-z) 2)
+                                 ((bar-i) 3))
+                               (bar-i)))))))
 
 (with-test-prefix "side-effecting arguments"
 
@@ -109,7 +247,352 @@
   (pass-if "construction"
     (let ((frotz (make-frotz 1 2)))
       (and (= (frotz-a frotz) 1)
-           (= (frotz-b frotz) 2)))))
+           (= (frotz-b frotz) 2))))
+
+  (with-test-prefix "functional setters"
+    (let ()
+      (define-record-type foo (make-foo x) foo?
+        (x foo-x)
+        (y foo-y set-foo-y!)
+        (z foo-z set-foo-z!))
+
+      (define-record-type :bar (make-bar i j) bar?
+        (i bar-i)
+        (j bar-j set-bar-j!))
+
+      (pass-if "set-field"
+        (let ((s (make-foo (make-bar 1 2))))
+          (and (equal? (set-field (foo-x bar-j) s 3)
+                       (make-foo (make-bar 1 3)))
+               (equal? (set-field (foo-z) s 'bar)
+                       (let ((s2 (make-foo (make-bar 1 2))))
+                         (set-foo-z! s2 'bar)
+                         s2))
+               (equal? s (make-foo (make-bar 1 2)))))))
+
+    (pass-if "set-fields"
+
+      (let ((s (make-foo (make-bar 1 2))))
+        (and (equal? (set-field (foo-x bar-j) s 3)
+                     (make-foo (make-bar 1 3)))
+             (equal? (set-fields s
+                       ((foo-x bar-j) 3)
+                       ((foo-z) 'bar))
+                     (let ((s2 (make-foo (make-bar 1 3))))
+                       (set-foo-z! s2 'bar)
+                       s2))
+             (equal? s (make-foo (make-bar 1 2))))))))
+
+
+(define-immutable-record-type :baz
+  (make-baz x y z)
+  baz?
+  (x baz-x set-baz-x)
+  (y baz-y set-baz-y)
+  (z baz-z set-baz-z))
+
+(define-immutable-record-type :address
+  (make-address street city country)
+  address?
+  (street  address-street)
+  (city    address-city)
+  (country address-country))
+
+(define-immutable-record-type :person
+  (make-person age email address)
+  person?
+  (age     person-age)
+  (email   person-email)
+  (address person-address))
+
+(with-test-prefix "define-immutable-record-type"
+
+  (pass-if "get"
+    (let ((b (make-baz 1 2 3)))
+      (and (= (baz-x b) 1)
+           (= (baz-y b) 2)
+           (= (baz-z b) 3))))
+
+  (pass-if "get non-inlined"
+    (let ((b (make-baz 1 2 3)))
+      (equal? (map (cute apply <> (list b))
+                   (list baz-x baz-y baz-z))
+              '(1 2 3))))
+
+  (pass-if "set"
+    (let* ((b0 (make-baz 1 2 3))
+           (b1 (set-baz-x b0 11))
+           (b2 (set-baz-y b1 22))
+           (b3 (set-baz-z b2 33)))
+      (and (= (baz-x b0) 1)
+           (= (baz-x b1) 11) (= (baz-x b2) 11) (= (baz-x b3) 11)
+           (= (baz-y b0) 2) (= (baz-y b1) 2)
+           (= (baz-y b2) 22) (= (baz-y b3) 22)
+           (= (baz-z b0) 3) (= (baz-z b1) 3) (= (baz-z b2) 3)
+           (= (baz-z b3) 33))))
+
+  (pass-if "set non-inlined"
+    (let ((set (compose (cut set-baz-x <> 1)
+                        (cut set-baz-y <> 2)
+                        (cut set-baz-z <> 3))))
+      (equal? (set (make-baz 0 0 0)) (make-baz 1 2 3))))
+
+  (pass-if "set-field"
+    (let ((p (make-person 30 "foo@example.com"
+                          (make-address "Foo" "Paris" "France"))))
+      (and (equal? (set-field (person-address address-street) p "Bar")
+                   (make-person 30 "foo@example.com"
+                                (make-address "Bar" "Paris" "France")))
+           (equal? (set-field (person-email) p "bar@example.com")
+                   (make-person 30 "bar@example.com"
+                                (make-address "Foo" "Paris" "France")))
+           (equal? p (make-person 30 "foo@example.com"
+                                  (make-address "Foo" "Paris" "France"))))))
+
+  (pass-if "set-fields"
+    (let ((p (make-person 30 "foo@example.com"
+                          (make-address "Foo" "Paris" "France"))))
+      (and (equal? (set-fields p
+                     ((person-email) "bar@example.com")
+                     ((person-address address-country) "Catalonia")
+                     ((person-address address-city) "Barcelona"))
+                   (make-person 30 "bar@example.com"
+                                (make-address "Foo" "Barcelona" "Catalonia")))
+           (equal? (set-fields p
+                     ((person-email) "bar@example.com")
+                     ((person-age) 20))
+                   (make-person 20 "bar@example.com"
+                                (make-address "Foo" "Paris" "France")))
+           (equal? p (make-person 30 "foo@example.com"
+                                  (make-address "Foo" "Paris" "France"))))))
+
+  (with-test-prefix "non-toplevel"
+
+    (pass-if "get"
+      (let ()
+        (define-immutable-record-type bar
+          (make-bar x y z)
+          bar?
+          (x bar-x)
+          (y bar-y)
+          (z bar-z set-bar-z))
+
+        (let ((b (make-bar 1 2 3)))
+          (and (= (bar-x b) 1)
+               (= (bar-y b) 2)
+               (= (bar-z b) 3)))))
+
+    (pass-if "get non-inlined"
+      (let ()
+        (define-immutable-record-type bar
+          (make-bar x y z)
+          bar?
+          (x bar-x)
+          (y bar-y)
+          (z bar-z set-bar-z))
+
+        (let ((b (make-bar 1 2 3)))
+          (equal? (map (cute apply <> (list b))
+                       (list bar-x bar-y bar-z))
+                  '(1 2 3)))))
+
+    (pass-if "set"
+      (let ()
+        (define-immutable-record-type bar
+          (make-bar x y z)
+          bar?
+          (x bar-x set-bar-x)
+          (y bar-y set-bar-y)
+          (z bar-z set-bar-z))
+
+        (let* ((b0 (make-bar 1 2 3))
+               (b1 (set-bar-x b0 11))
+               (b2 (set-bar-y b1 22))
+               (b3 (set-bar-z b2 33)))
+          (and (= (bar-x b0) 1)
+               (= (bar-x b1) 11) (= (bar-x b2) 11) (= (bar-x b3) 11)
+               (= (bar-y b0) 2) (= (bar-y b1) 2)
+               (= (bar-y b2) 22) (= (bar-y b3) 22)
+               (= (bar-z b0) 3) (= (bar-z b1) 3) (= (bar-z b2) 3)
+               (= (bar-z b3) 33)))))
+
+    (pass-if "set non-inlined"
+      (let ()
+        (define-immutable-record-type bar
+          (make-bar x y z)
+          bar?
+          (x bar-x set-bar-x)
+          (y bar-y set-bar-y)
+          (z bar-z set-bar-z))
+
+        (let ((set (compose (cut set-bar-x <> 1)
+                            (cut set-bar-y <> 2)
+                            (cut set-bar-z <> 3))))
+          (equal? (set (make-bar 0 0 0)) (make-bar 1 2 3)))))
+
+    (pass-if "set-field"
+      (let ()
+        (define-immutable-record-type address
+          (make-address street city country)
+          address?
+          (street  address-street)
+          (city    address-city)
+          (country address-country))
+
+        (define-immutable-record-type :person
+          (make-person age email address)
+          person?
+          (age     person-age)
+          (email   person-email)
+          (address person-address))
+
+        (let ((p (make-person 30 "foo@example.com"
+                              (make-address "Foo" "Paris" "France"))))
+          (and (equal? (set-field (person-address address-street) p "Bar")
+                       (make-person 30 "foo@example.com"
+                                    (make-address "Bar" "Paris" "France")))
+               (equal? (set-field (person-email) p "bar@example.com")
+                       (make-person 30 "bar@example.com"
+                                    (make-address "Foo" "Paris" "France")))
+               (equal? p (make-person 30 "foo@example.com"
+                                      (make-address "Foo" "Paris" "France")))))))
+
+    (pass-if "set-fields"
+      (let ()
+        (define-immutable-record-type address
+          (make-address street city country)
+          address?
+          (street  address-street)
+          (city    address-city)
+          (country address-country))
+
+        (define-immutable-record-type :person
+          (make-person age email address)
+          person?
+          (age     person-age)
+          (email   person-email)
+          (address person-address))
+
+        (let ((p (make-person 30 "foo@example.com"
+                              (make-address "Foo" "Paris" "France"))))
+          (and (equal? (set-fields p
+                         ((person-email) "bar@example.com")
+                         ((person-address address-country) "Catalonia")
+                         ((person-address address-city) "Barcelona"))
+                       (make-person 30 "bar@example.com"
+                                    (make-address "Foo" "Barcelona" "Catalonia")))
+               (equal? (set-fields p
+                         ((person-email) "bar@example.com")
+                         ((person-age) 20))
+                       (make-person 20 "bar@example.com"
+                                    (make-address "Foo" "Paris" "France")))
+               (equal? p (make-person 30 "foo@example.com"
+                                      (make-address "Foo" "Paris" "France")))))))
+
+    (pass-if "set-fields with unknown first getter"
+      (let ()
+        (define-immutable-record-type foo (make-foo x) foo?
+          (x foo-x)
+          (y foo-y set-foo-y)
+          (z foo-z set-foo-z))
+
+        (define-immutable-record-type :bar (make-bar i j) bar?
+          (i bar-i)
+          (j bar-j set-bar-j))
+
+        (catch 'syntax-error
+         (lambda ()
+           (compile '(let ((s (make-bar (make-foo 5) 2)))
+                       (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
+                    #:env (current-module))
+           #f)
+         (lambda (key whom what src form subform)
+           (equal? (list key whom what form subform)
+                   '(syntax-error set-fields "unknown getter"
+                                  (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                                  blah))))))
+
+    (pass-if "set-fields with unknown second getter"
+      (let ()
+        (define-immutable-record-type foo (make-foo x) foo?
+          (x foo-x)
+          (y foo-y set-foo-y)
+          (z foo-z set-foo-z))
+
+        (define-immutable-record-type :bar (make-bar i j) bar?
+          (i bar-i)
+          (j bar-j set-bar-j))
+
+        (catch 'syntax-error
+         (lambda ()
+           (compile '(let ((s (make-bar (make-foo 5) 2)))
+                       (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
+                    #:env (current-module))
+           #f)
+         (lambda (key whom what src form subform)
+           (equal? (list key whom what form subform)
+                   '(syntax-error set-fields "unknown getter"
+                                  (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                                  blah))))))
+
+    (pass-if "set-fields with duplicate field path"
+      (let ()
+        (define-immutable-record-type foo (make-foo x) foo?
+          (x foo-x)
+          (y foo-y set-foo-y)
+          (z foo-z set-foo-z))
+
+        (define-immutable-record-type :bar (make-bar i j) bar?
+          (i bar-i)
+          (j bar-j set-bar-j))
+
+        (catch 'syntax-error
+         (lambda ()
+           (compile '(let ((s (make-bar (make-foo 5) 2)))
+                       (set-fields s
+                         ((bar-i foo-x) 1)
+                         ((bar-i foo-z) 2)
+                         ((bar-i foo-x) 3)))
+                    #:env (current-module))
+           #f)
+         (lambda (key whom what src form subform)
+           (equal? (list key whom what form subform)
+                   '(syntax-error set-fields "duplicate field path"
+                                  (set-fields s
+                                    ((bar-i foo-x) 1)
+                                    ((bar-i foo-z) 2)
+                                    ((bar-i foo-x) 3))
+                                  (bar-i foo-x)))))))
+
+    (pass-if "set-fields with one path as a prefix of another"
+      (let ()
+        (define-immutable-record-type foo (make-foo x) foo?
+          (x foo-x)
+          (y foo-y set-foo-y)
+          (z foo-z set-foo-z))
+
+        (define-immutable-record-type :bar (make-bar i j) bar?
+          (i bar-i)
+          (j bar-j set-bar-j))
+
+        (catch 'syntax-error
+         (lambda ()
+           (compile '(let ((s (make-bar (make-foo 5) 2)))
+                       (set-fields s
+                         ((bar-i foo-x) 1)
+                         ((bar-i foo-z) 2)
+                         ((bar-i) 3)))
+                    #:env (current-module))
+           #f)
+         (lambda (key whom what src form subform)
+           (equal? (list key whom what form subform)
+                   '(syntax-error set-fields
+                                  "one field path is a prefix of another"
+                                  (set-fields s
+                                    ((bar-i foo-x) 1)
+                                    ((bar-i foo-z) 2)
+                                    ((bar-i) 3))
+                                  (bar-i)))))))))
 
 (with-test-prefix "record compatibility"
 
@@ -119,3 +602,8 @@
   (pass-if "record-constructor"
     (equal? ((record-constructor :foo) 1)
             (make-foo 1))))
+
+;;; Local Variables:
+;;; mode: scheme
+;;; eval: (put 'set-fields 'scheme-indent-function 1)
+;;; End:

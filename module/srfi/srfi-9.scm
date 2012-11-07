@@ -29,8 +29,8 @@
 ;;         <predicate name>
 ;;         <field spec> ...)
 ;;
-;;  <field spec> -> (<field tag> <accessor name>)
-;;               -> (<field tag> <accessor name> <modifier name>)
+;;  <field spec> -> (<field tag> <getter name>)
+;;               -> (<field tag> <getter name> <setter name>)
 ;;
 ;;  <field tag> -> <identifier>
 ;;  <... name>  -> <identifier>
@@ -68,8 +68,31 @@
 ;; because the public one has a different `make-procedure-name', so
 ;; using it would require users to recompile code that uses SRFI-9.  See
 ;; <http://lists.gnu.org/archive/html/guile-devel/2011-04/msg00111.html>.
+;;
 
-(define-syntax define-inlinable
+(define-syntax-rule (define-inlinable (name formals ...) body ...)
+  (define-tagged-inlinable () (name formals ...) body ...))
+
+;; 'define-tagged-inlinable' has an additional feature: it stores a map
+;; of keys to values that can be retrieved at expansion time.  This is
+;; currently used to retrieve the rtd id, field index, and record copier
+;; macro for an arbitrary getter.
+
+(define-syntax-rule (%%on-error err) err)
+
+(define %%type #f)   ; a private syntax literal
+(define-syntax-rule (getter-type getter err)
+  (getter (%%on-error err) %%type))
+
+(define %%index #f)  ; a private syntax literal
+(define-syntax-rule (getter-index getter err)
+  (getter (%%on-error err) %%index))
+
+(define %%copier #f) ; a private syntax literal
+(define-syntax-rule (getter-copier getter err)
+  (getter (%%on-error err) %%copier))
+
+(define-syntax define-tagged-inlinable
   (lambda (x)
     (define (make-procedure-name name)
       (datum->syntax name
@@ -77,7 +100,7 @@
                                     '-procedure)))
 
     (syntax-case x ()
-      ((_ (name formals ...) body ...)
+      ((_ ((key value) ...) (name formals ...) body ...)
        (identifier? #'name)
        (with-syntax ((proc-name  (make-procedure-name #'name))
                      ((args ...) (generate-temporaries #'(formals ...))))
@@ -86,7 +109,8 @@
                body ...)
              (define-syntax name
                (lambda (x)
-                 (syntax-case x ()
+                 (syntax-case x (%%on-error key ...)
+                   ((_ (%%on-error err) key) #'value) ...
                    ((_ args ...)
                     #'((lambda (formals ...)
                          body ...)
@@ -109,90 +133,149 @@
       (loop (cdr fields) (+ 1 off)))))
   (display ">" p))
 
-(define-syntax define-record-type
+(define (throw-bad-struct s who)
+  (throw 'wrong-type-arg who
+         "Wrong type argument: ~S" (list s)
+         (list s)))
+
+(define (make-copier-id type-name)
+  (datum->syntax type-name
+                 (symbol-append '%% (syntax->datum type-name)
+                                '-set-fields)))
+
+(define-syntax %%set-fields
+  (lambda (x)
+    (syntax-case x ()
+      ((_ type-name (getter-id ...) check? s (getter expr) ...)
+       (every identifier? #'(getter ...))
+       (let ((copier-name (syntax->datum (make-copier-id #'type-name)))
+             (getter+exprs #'((getter expr) ...)))
+         (define (lookup id default-expr)
+           (let ((results
+                  (filter (lambda (g+e)
+                            (free-identifier=? id (car g+e)))
+                          getter+exprs)))
+             (case (length results)
+               ((0) default-expr)
+               ((1) (cadar results))
+               (else (syntax-violation
+                      copier-name "duplicate getter" x id)))))
+         (for-each (lambda (id)
+                     (or (find (lambda (getter-id)
+                                 (free-identifier=? id getter-id))
+                               #'(getter-id ...))
+                         (syntax-violation
+                          copier-name "unknown getter" x id)))
+                   #'(getter ...))
+         (with-syntax ((unsafe-expr
+                        #`(make-struct
+                           type-name 0
+                           #,@(map (lambda (getter index)
+                                     (lookup getter #`(struct-ref s #,index)))
+                                   #'(getter-id ...)
+                                   (iota (length #'(getter-id ...)))))))
+           (if (syntax->datum #'check?)
+               #`(if (eq? (struct-vtable s) type-name)
+                     unsafe-expr
+                     (throw-bad-struct
+                      s '#,(datum->syntax #'here copier-name)))
+               #'unsafe-expr)))))))
+
+(define-syntax %define-record-type
   (lambda (x)
     (define (field-identifiers field-specs)
-      (syntax-case field-specs ()
-        (()
-         '())
-        ((field-spec)
-         (syntax-case #'field-spec ()
-           ((name accessor) #'(name))
-           ((name accessor modifier) #'(name))))
-        ((field-spec rest ...)
-         (append (field-identifiers #'(field-spec))
-                 (field-identifiers #'(rest ...))))))
+      (map (lambda (field-spec)
+             (syntax-case field-spec ()
+               ((name getter) #'name)
+               ((name getter setter) #'name)))
+           field-specs))
 
-    (define (field-indices fields)
-      (fold (lambda (field result)
-              (let ((i (if (null? result)
-                           0
-                           (+ 1 (cdar result)))))
-                (alist-cons field i result)))
-            '()
-            fields))
+    (define (getter-identifiers field-specs)
+      (map (lambda (field-spec)
+             (syntax-case field-spec ()
+               ((name getter) #'getter)
+               ((name getter setter) #'getter)))
+           field-specs))
 
-    (define (constructor type-name constructor-spec indices)
+    (define (constructor form type-name constructor-spec field-names)
       (syntax-case constructor-spec ()
         ((ctor field ...)
-         (let ((field-count (length indices))
-               (ctor-args   (map (lambda (field)
-                                   (cons (syntax->datum field) field))
-                                 #'(field ...))))
+         (every identifier? #'(field ...))
+         (let ((ctor-args (map (lambda (field)
+                                 (let ((name (syntax->datum field)))
+                                   (or (memq name field-names)
+                                       (syntax-violation
+                                        'define-record-type
+                                        "unknown field in constructor-spec"
+                                        form field))
+                                   (cons name field)))
+                               #'(field ...))))
            #`(define-inlinable #,constructor-spec
                (make-struct #,type-name 0
-                            #,@(unfold
-                                (lambda (field-num)
-                                  (>= field-num field-count))
-                                (lambda (field-num)
-                                  (let* ((name
-                                          (car (find (lambda (f+i)
-                                                       (= (cdr f+i) field-num))
-                                                     indices)))
-                                         (arg (assq name ctor-args)))
-                                    (if (pair? arg)
-                                        (cdr arg)
-                                        #'#f)))
-                                1+
-                                0)))))))
+                            #,@(map (lambda (name)
+                                      (assq-ref ctor-args name))
+                                    field-names)))))))
 
-    (define (accessors type-name field-specs indices)
-      (syntax-case field-specs ()
-        (()
-         #'())
-        ((field-spec)
-         (syntax-case #'field-spec ()
-           ((name accessor)
-            (with-syntax ((index (assoc-ref indices (syntax->datum #'name))))
-              #`((define-inlinable (accessor s)
-                   (if (eq? (struct-vtable s) #,type-name)
-                       (struct-ref s index)
-                       (throw 'wrong-type-arg 'accessor
-                              "Wrong type argument: ~S" (list s)
-                              (list s)))))))
-           ((name accessor modifier)
-            (with-syntax ((index (assoc-ref indices (syntax->datum #'name))))
-              #`(#,@(accessors type-name #'((name accessor)) indices)
-                 (define-inlinable (modifier s val)
-                   (if (eq? (struct-vtable s) #,type-name)
-                       (struct-set! s index val)
-                       (throw 'wrong-type-arg 'modifier
-                              "Wrong type argument: ~S" (list s)
-                              (list s)))))))))
-        ((field-spec rest ...)
-         #`(#,@(accessors type-name #'(field-spec) indices)
-            #,@(accessors type-name #'(rest ...) indices)))))
+    (define (getters type-name getter-ids copier-id)
+      (map (lambda (getter index)
+             #`(define-tagged-inlinable
+                 ((%%type   #,type-name)
+                  (%%index  #,index)
+                  (%%copier #,copier-id))
+                 (#,getter s)
+                 (if (eq? (struct-vtable s) #,type-name)
+                     (struct-ref s #,index)
+                     (throw-bad-struct s '#,getter))))
+           getter-ids
+           (iota (length getter-ids))))
+
+    (define (copier type-name getter-ids copier-id)
+      #`(define-syntax-rule
+          (#,copier-id check? s (getter expr) (... ...))
+          (%%set-fields #,type-name #,getter-ids
+                        check? s (getter expr) (... ...))))
+
+    (define (setters type-name field-specs)
+      (filter-map (lambda (field-spec index)
+                    (syntax-case field-spec ()
+                      ((name getter) #f)
+                      ((name getter setter)
+                       #`(define-inlinable (setter s val)
+                           (if (eq? (struct-vtable s) #,type-name)
+                               (struct-set! s #,index val)
+                               (throw-bad-struct s 'setter))))))
+                  field-specs
+                  (iota (length field-specs))))
+
+    (define (functional-setters copier-id field-specs)
+      (filter-map (lambda (field-spec index)
+                    (syntax-case field-spec ()
+                      ((name getter) #f)
+                      ((name getter setter)
+                       #`(define-inlinable (setter s val)
+                           (#,copier-id #t s (getter val))))))
+                  field-specs
+                  (iota (length field-specs))))
+
+    (define (record-layout immutable? count)
+      (let ((desc (if immutable? "pr" "pw")))
+        (string-concatenate (make-list count desc))))
 
     (syntax-case x ()
-      ((_ type-name constructor-spec predicate-name field-spec ...)
-       (let* ((fields      (field-identifiers #'(field-spec ...)))
-              (field-count (length fields))
-              (layout      (string-concatenate (make-list field-count "pw")))
-              (indices     (field-indices (map syntax->datum fields)))
+      ((_ immutable? type-name constructor-spec predicate-name
+          field-spec ...)
+       (boolean? (syntax->datum #'immutable?))
+       (let* ((field-ids   (field-identifiers  #'(field-spec ...)))
+              (getter-ids  (getter-identifiers #'(field-spec ...)))
+              (field-count (length field-ids))
+              (immutable?  (syntax->datum #'immutable?))
+              (layout      (record-layout immutable? field-count))
+              (field-names (map syntax->datum field-ids))
               (ctor-name   (syntax-case #'constructor-spec ()
-                             ((ctor args ...) #'ctor))))
+                             ((ctor args ...) #'ctor)))
+              (copier-id   (make-copier-id #'type-name)))
          #`(begin
-             #,(constructor #'type-name #'constructor-spec indices)
+             #,(constructor x #'type-name #'constructor-spec field-names)
 
              (define type-name
                (let ((rtd (make-struct/no-tail
@@ -200,7 +283,7 @@
                            '#,(datum->syntax #'here (make-struct-layout layout))
                            default-record-printer
                            'type-name
-                           '#,fields)))
+                           '#,field-ids)))
                  (set-struct-vtable-name! rtd 'type-name)
                  (struct-set! rtd (+ 2 vtable-offset-user) #,ctor-name)
                  rtd))
@@ -209,6 +292,13 @@
                (and (struct? obj)
                     (eq? (struct-vtable obj) type-name)))
 
-             #,@(accessors #'type-name #'(field-spec ...) indices)))))))
+             #,@(getters #'type-name getter-ids copier-id)
+             #,(copier #'type-name getter-ids copier-id)
+             #,@(if immutable?
+                    (functional-setters copier-id #'(field-spec ...))
+                    (setters #'type-name #'(field-spec ...)))))))))
+
+(define-syntax-rule (define-record-type name ctor pred fields ...)
+  (%define-record-type #f name ctor pred fields ...))
 
 ;;; srfi-9.scm ends here

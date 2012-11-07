@@ -1,6 +1,6 @@
 ;;; Extensions to SRFI-9
 
-;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;; 	Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,104 @@
 ;;; Code:
 
 (define-module (srfi srfi-9 gnu)
-  #:export (set-record-type-printer!))
+  #:use-module (srfi srfi-1)
+  #:export (set-record-type-printer!
+            define-immutable-record-type
+            set-field
+            set-fields))
 
 (define (set-record-type-printer! type thunk)
   "Set a custom printer THUNK for TYPE."
   (struct-set! type vtable-index-printer thunk))
+
+(define-syntax-rule (define-immutable-record-type name ctor pred fields ...)
+  ((@@ (srfi srfi-9) %define-record-type) #t name ctor pred fields ...))
+
+(define-syntax-rule (set-field (getter ...) s expr)
+  (%set-fields #t (set-field (getter ...) s expr) ()
+               s ((getter ...) expr)))
+
+(define-syntax-rule (set-fields s . rest)
+  (%set-fields #t (set-fields s . rest) ()
+               s . rest))
+
+;;
+;; collate-set-field-specs is a helper for %set-fields
+;; thats combines all specs with the same head together.
+;;
+;; For example:
+;;
+;;   SPECS:  (((a b c) expr1)
+;;            ((a d)   expr2)
+;;            ((b c)   expr3)
+;;            ((c)     expr4))
+;;
+;;  RESULT:  ((a ((b c) expr1)
+;;               ((d)   expr2))
+;;            (b ((c)   expr3))
+;;            (c (()    expr4)))
+;;
+(define (collate-set-field-specs specs)
+  (define (insert head tail expr result)
+    (cond ((find (lambda (tree)
+                   (free-identifier=? head (car tree)))
+                 result)
+           => (lambda (tree)
+                `((,head (,tail ,expr)
+                         ,@(cdr tree))
+                  ,@(delq tree result))))
+          (else `((,head (,tail ,expr))
+                  ,@result))))
+  (with-syntax (((((head . tail) expr) ...) specs))
+    (fold insert '() #'(head ...) #'(tail ...) #'(expr ...))))
+
+(define-syntax %set-fields-unknown-getter
+  (lambda (x)
+    (syntax-case x ()
+      ((_ orig-form getter)
+       (syntax-violation 'set-fields "unknown getter" #'orig-form #'getter)))))
+
+(define-syntax %set-fields
+  (lambda (x)
+    (with-syntax ((getter-type   #'(@@ (srfi srfi-9) getter-type))
+                  (getter-index  #'(@@ (srfi srfi-9) getter-index))
+                  (getter-copier #'(@@ (srfi srfi-9) getter-copier)))
+      (syntax-case x ()
+        ((_ check? orig-form (path-so-far ...)
+            s)
+         #'s)
+        ((_ check? orig-form (path-so-far ...)
+            s (() e))
+         #'e)
+        ((_ check? orig-form (path-so-far ...)
+            struct-expr ((head . tail) expr) ...)
+         (let ((collated-specs (collate-set-field-specs
+                                #'(((head . tail) expr) ...))))
+           (with-syntax ((getter (caar collated-specs)))
+             (with-syntax ((err #'(%set-fields-unknown-getter
+                                   orig-form getter)))
+               #`(let ((s struct-expr))
+                   ((getter-copier getter err)
+                    check?
+                    s
+                    #,@(map (lambda (spec)
+                              (with-syntax (((head (tail expr) ...) spec))
+                                (with-syntax ((err #'(%set-fields-unknown-getter
+                                                      orig-form head)))
+                                 #'(head (%set-fields
+                                          check?
+                                          orig-form
+                                          (path-so-far ... head)
+                                          (struct-ref s (getter-index head err))
+                                          (tail expr) ...)))))
+                            collated-specs)))))))
+        ((_ check? orig-form (path-so-far ...)
+            s (() e) (() e*) ...)
+         (syntax-violation 'set-fields "duplicate field path"
+                           #'orig-form #'(path-so-far ...)))
+        ((_ check? orig-form (path-so-far ...)
+            s ((getter ...) expr) ...)
+         (syntax-violation 'set-fields "one field path is a prefix of another"
+                           #'orig-form #'(path-so-far ...)))
+        ((_ check? orig-form . rest)
+         (syntax-violation 'set-fields "invalid syntax" #'orig-form))))))
