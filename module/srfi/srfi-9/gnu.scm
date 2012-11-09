@@ -24,6 +24,7 @@
 
 (define-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-1)
+  #:use-module (system base ck)
   #:export (set-record-type-printer!
             define-immutable-record-type
             set-field
@@ -76,11 +77,40 @@
   (with-syntax (((((head . tail) expr) ...) specs))
     (fold insert '() #'(head ...) #'(tail ...) #'(expr ...))))
 
-(define-syntax %set-fields-unknown-getter
+(define-syntax unknown-getter
   (lambda (x)
     (syntax-case x ()
       ((_ orig-form getter)
        (syntax-violation 'set-fields "unknown getter" #'orig-form #'getter)))))
+
+(define-syntax c-list
+  (lambda (x)
+    (syntax-case x (quote)
+      ((_ s 'v ...)
+       #'(ck s '(v ...))))))
+
+(define-syntax c-same-type-check
+  (lambda (x)
+    (syntax-case x (quote)
+      ((_ s 'orig-form '(path ...)
+          '(getter0 getter ...)
+          '(type0 type ...)
+          'on-success)
+       (every (lambda (t g)
+                (or (free-identifier=? t #'type0)
+                    (syntax-violation
+                     'set-fields
+                     (format #f
+                             "\
+field paths ~a and ~a require one object to belong to two different record types (~a and ~a)"
+                             (syntax->datum #`(path ... #,g))
+                             (syntax->datum #'(path ... getter0))
+                             (syntax->datum t)
+                             (syntax->datum #'type0))
+                     #'orig-form)))
+              #'(type ...)
+              #'(getter ...))
+       #'(ck s 'on-success)))))
 
 (define-syntax %set-fields
   (lambda (x)
@@ -98,24 +128,34 @@
             struct-expr ((head . tail) expr) ...)
          (let ((collated-specs (collate-set-field-specs
                                 #'(((head . tail) expr) ...))))
-           (with-syntax ((getter (caar collated-specs)))
-             (with-syntax ((err #'(%set-fields-unknown-getter
-                                   orig-form getter)))
-               #`(let ((s struct-expr))
-                   ((getter-copier getter err)
-                    check?
-                    s
-                    #,@(map (lambda (spec)
-                              (with-syntax (((head (tail expr) ...) spec))
-                                (with-syntax ((err #'(%set-fields-unknown-getter
-                                                      orig-form head)))
-                                 #'(head (%set-fields
-                                          check?
-                                          orig-form
-                                          (path-so-far ... head)
-                                          (struct-ref s (getter-index head err))
-                                          (tail expr) ...)))))
-                            collated-specs)))))))
+           (with-syntax (((getter0 getter ...)
+                          (map car collated-specs)))
+             (with-syntax ((err #'(unknown-getter
+                                   orig-form getter0)))
+               #`(ck
+                  ()
+                  (c-same-type-check
+                   'orig-form
+                   '(path-so-far ...)
+                   '(getter0 getter ...)
+                   (c-list (getter-type 'getter0 'err)
+                           (getter-type 'getter 'err) ...)
+                   '(let ((s struct-expr))
+                      ((ck () (getter-copier 'getter0 'err))
+                       check?
+                       s
+                       #,@(map (lambda (spec)
+                                 (with-syntax (((head (tail expr) ...) spec))
+                                   (with-syntax ((err #'(unknown-getter
+                                                         orig-form head)))
+                                     #'(head (%set-fields
+                                              check?
+                                              orig-form
+                                              (path-so-far ... head)
+                                              (struct-ref s (ck () (getter-index
+                                                                    'head 'err)))
+                                              (tail expr) ...)))))
+                               collated-specs)))))))))
         ((_ check? orig-form (path-so-far ...)
             s (() e) (() e*) ...)
          (syntax-violation 'set-fields "duplicate field path"

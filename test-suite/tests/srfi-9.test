@@ -608,6 +608,42 @@
                    #:env (current-module))
           #f)
         (lambda (key whom what src form subform)
+          (list key whom what form subform))))
+
+    (pass-if-equal "incompatible field paths"
+        '(syntax-error set-fields
+                       "\
+field paths (bar-i bar-j) and (bar-i foo-x) require one object \
+to belong to two different record types (:bar and foo)"
+                       (set-fields s
+                         ((bar-i foo-x) 1)
+                         ((bar-i bar-j) 2)
+                         ((bar-j) 3))
+                       #f)
+      (catch 'syntax-error
+        (lambda ()
+          (compile '(let ()
+                      (define-immutable-record-type foo
+                        (make-foo x)
+                        foo?
+                        (x foo-x)
+                        (y foo-y set-foo-y)
+                        (z foo-z set-foo-z))
+
+                      (define-immutable-record-type :bar
+                        (make-bar i j)
+                        bar?
+                        (i bar-i)
+                        (j bar-j set-bar-j))
+
+                      (let ((s (make-bar (make-foo 5) 2)))
+                        (set-fields s
+                          ((bar-i foo-x) 1)
+                          ((bar-i bar-j) 2)
+                          ((bar-j) 3))))
+                   #:env (current-module))
+          #f)
+        (lambda (key whom what src form subform)
           (list key whom what form subform))))))
 
 

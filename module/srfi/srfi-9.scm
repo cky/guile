@@ -60,6 +60,7 @@
 
 (define-module (srfi srfi-9)
   #:use-module (srfi srfi-1)
+  #:use-module (system base ck)
   #:export (define-record-type))
 
 (cond-expand-provide (current-module) '(srfi-9))
@@ -81,16 +82,22 @@
 (define-syntax-rule (%%on-error err) err)
 
 (define %%type #f)   ; a private syntax literal
-(define-syntax-rule (getter-type getter err)
-  (getter (%%on-error err) %%type))
+(define-syntax getter-type
+  (syntax-rules (quote)
+    ((_ s 'getter 'err)
+     (getter (%%on-error err) %%type s))))
 
 (define %%index #f)  ; a private syntax literal
-(define-syntax-rule (getter-index getter err)
-  (getter (%%on-error err) %%index))
+(define-syntax getter-index
+  (syntax-rules (quote)
+   ((_ s 'getter 'err)
+    (getter (%%on-error err) %%index s))))
 
 (define %%copier #f) ; a private syntax literal
-(define-syntax-rule (getter-copier getter err)
-  (getter (%%on-error err) %%copier))
+(define-syntax getter-copier
+  (syntax-rules (quote)
+   ((_ s 'getter 'err)
+    (getter (%%on-error err) %%copier s))))
 
 (define-syntax define-tagged-inlinable
   (lambda (x)
@@ -110,7 +117,7 @@
              (define-syntax name
                (lambda (x)
                  (syntax-case x (%%on-error key ...)
-                   ((_ (%%on-error err) key) #'value) ...
+                   ((_ (%%on-error err) key s) #'(ck s 'value)) ...
                    ((_ args ...)
                     #'((lambda (formals ...)
                          body ...)
