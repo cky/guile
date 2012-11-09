@@ -175,8 +175,7 @@
   (exit 1))
 
 (define-record-type option-spec
-  (%make-option-spec name value required? single-char predicate
-                     value-policy)
+  (%make-option-spec name required? option-spec->single-char predicate value-policy)
   option-spec?
   (name
    option-spec->name set-option-spec-name!)
@@ -190,7 +189,7 @@
    option-spec->value-policy set-option-spec-value-policy!))
 
 (define (make-option-spec name)
-  (%make-option-spec name #f #f #f #f #f))
+  (%make-option-spec name #f #f #f #f))
 
 (define (parse-option-spec desc)
   (let ((spec (make-option-spec (symbol->string (car desc)))))
