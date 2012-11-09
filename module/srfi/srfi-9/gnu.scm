@@ -34,7 +34,9 @@
   (struct-set! type vtable-index-printer thunk))
 
 (define-syntax-rule (define-immutable-record-type name ctor pred fields ...)
-  ((@@ (srfi srfi-9) %define-record-type) #t name ctor pred fields ...))
+  ((@@ (srfi srfi-9) %define-record-type)
+   #t (define-immutable-record-type name ctor pred fields ...)
+   name ctor pred fields ...))
 
 (define-syntax-rule (set-field (getter ...) s expr)
   (%set-fields #t (set-field (getter ...) s expr) ()

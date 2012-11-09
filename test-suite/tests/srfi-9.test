@@ -610,6 +610,112 @@
         (lambda (key whom what src form subform)
           (list key whom what form subform))))))
 
+
+(with-test-prefix "record type definition error reporting"
+
+  (pass-if-equal "invalid type name"
+      '(syntax-error define-immutable-record-type
+                     "expected type name"
+                     (define-immutable-record-type
+                       (foobar x y)
+                       foobar?
+                       (x foobar-x)
+                       (y foobar-y))
+                     (foobar x y))
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(define-immutable-record-type
+                    (foobar x y)
+                    foobar?
+                    (x foobar-x)
+                    (y foobar-y))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (list key whom what form subform))))
+
+  (pass-if-equal "invalid constructor spec"
+      '(syntax-error define-immutable-record-type
+                     "invalid constructor spec"
+                     (define-immutable-record-type :foobar
+                       (make-foobar x y 3)
+                       foobar?
+                       (x foobar-x)
+                       (y foobar-y))
+                     (make-foobar x y 3))
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(define-immutable-record-type :foobar
+                    (make-foobar x y 3)
+                    foobar?
+                    (x foobar-x)
+                    (y foobar-y))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (list key whom what form subform))))
+
+  (pass-if-equal "invalid predicate name"
+      '(syntax-error define-immutable-record-type
+                     "expected predicate name"
+                     (define-immutable-record-type :foobar
+                       (foobar x y)
+                       (x foobar-x)
+                       (y foobar-y))
+                     (x foobar-x))
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(define-immutable-record-type :foobar
+                    (foobar x y)
+                    (x foobar-x)
+                    (y foobar-y))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (list key whom what form subform))))
+
+  (pass-if-equal "invalid field spec"
+      '(syntax-error define-record-type
+                     "invalid field spec"
+                     (define-record-type :foobar
+                       (make-foobar x y)
+                       foobar?
+                       (x)
+                       (y foobar-y))
+                     (x))
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(define-record-type :foobar
+                    (make-foobar x y)
+                    foobar?
+                    (x)
+                    (y foobar-y))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (list key whom what form subform))))
+
+    (pass-if-equal "unknown field in constructor spec"
+      '(syntax-error define-record-type
+                     "unknown field in constructor spec"
+                     (define-record-type :foobar
+                       (make-foobar x z)
+                       foobar?
+                       (x foobar-x)
+                       (y foobar-y))
+                     z)
+    (catch 'syntax-error
+      (lambda ()
+        (compile '(define-record-type :foobar
+                    (make-foobar x z)
+                    foobar?
+                    (x foobar-x)
+                    (y foobar-y))
+                 #:env (current-module))
+        #f)
+      (lambda (key whom what src form subform)
+        (list key whom what form subform)))))
+
 (with-test-prefix "record compatibility"
 
   (pass-if "record?"

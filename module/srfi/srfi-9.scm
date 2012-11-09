@@ -205,8 +205,10 @@
                                  (let ((name (syntax->datum field)))
                                    (or (memq name field-names)
                                        (syntax-violation
-                                        'define-record-type
-                                        "unknown field in constructor-spec"
+                                        (syntax-case form ()
+                                          ((macro . args)
+                                           (syntax->datum #'macro)))
+                                        "unknown field in constructor spec"
                                         form field))
                                    (cons name field)))
                                #'(field ...))))
@@ -262,9 +264,30 @@
         (string-concatenate (make-list count desc))))
 
     (syntax-case x ()
-      ((_ immutable? type-name constructor-spec predicate-name
+      ((_ immutable? form type-name constructor-spec predicate-name
           field-spec ...)
-       (boolean? (syntax->datum #'immutable?))
+       (let ()
+         (define (syntax-error message subform)
+           (syntax-violation (syntax-case #'form ()
+                               ((macro . args) (syntax->datum #'macro)))
+                             message #'form subform))
+         (and (boolean? (syntax->datum #'immutable?))
+              (or (identifier? #'type-name)
+                  (syntax-error "expected type name" #'type-name))
+              (syntax-case #'constructor-spec ()
+                ((ctor args ...)
+                 (every identifier? #'(ctor args ...))
+                 #t)
+                (_ (syntax-error "invalid constructor spec"
+                                 #'constructor-spec)))
+              (or (identifier? #'predicate-name)
+                  (syntax-error "expected predicate name" #'predicate-name))
+              (every (lambda (spec)
+                       (syntax-case spec ()
+                         ((field getter) #t)
+                         ((field getter setter) #t)
+                         (_ (syntax-error "invalid field spec" spec))))
+                     #'(field-spec ...))))
        (let* ((field-ids   (field-identifiers  #'(field-spec ...)))
               (getter-ids  (getter-identifiers #'(field-spec ...)))
               (field-count (length field-ids))
@@ -275,7 +298,7 @@
                              ((ctor args ...) #'ctor)))
               (copier-id   (make-copier-id #'type-name)))
          #`(begin
-             #,(constructor x #'type-name #'constructor-spec field-names)
+             #,(constructor #'form #'type-name #'constructor-spec field-names)
 
              (define type-name
                (let ((rtd (make-struct/no-tail
@@ -296,9 +319,16 @@
              #,(copier #'type-name getter-ids copier-id)
              #,@(if immutable?
                     (functional-setters copier-id #'(field-spec ...))
-                    (setters #'type-name #'(field-spec ...)))))))))
+                    (setters #'type-name #'(field-spec ...))))))
+      ((_ immutable? form . rest)
+       (syntax-violation
+        (syntax-case #'form ()
+          ((macro . args) (syntax->datum #'macro)))
+        "invalid record definition syntax"
+        #'form)))))
 
 (define-syntax-rule (define-record-type name ctor pred fields ...)
-  (%define-record-type #f name ctor pred fields ...))
+  (%define-record-type #f (define-record-type name ctor pred fields ...)
+                       name ctor pred fields ...))
 
 ;;; srfi-9.scm ends here
