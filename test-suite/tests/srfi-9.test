@@ -118,7 +118,10 @@
   (pass-if-exception "set-field on number" exception:wrong-type-arg
     (set-field (foo-x bar-j) 4 3))
 
-  (pass-if "set-field with unknown first getter"
+  (pass-if-equal "set-field with unknown first getter"
+      '(syntax-error set-fields "unknown getter"
+                     (set-field (blah) s 3)
+                     blah)
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
@@ -126,12 +129,12 @@
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
-        (equal? (list key whom what form subform)
-                '(syntax-error set-fields "unknown getter"
-                               (set-field (blah) s 3)
-                               blah)))))
+        (list key whom what form subform))))
 
-  (pass-if "set-field with unknown second getter"
+  (pass-if-equal "set-field with unknown second getter"
+      '(syntax-error set-fields "unknown getter"
+                     (set-field (bar-j blah) s 3)
+                     blah)
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
@@ -139,10 +142,7 @@
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
-        (equal? (list key whom what form subform)
-                '(syntax-error set-fields "unknown getter"
-                               (set-field (bar-j blah) s 3)
-                               blah)))))
+        (list key whom what form subform))))
 
   (pass-if "set-fields"
     (let ((s (make-foo (make-bar 1 2))))
@@ -167,7 +167,10 @@
       ((foo-x bar-j) 3)
       ((foo-z) 'bar)))
 
-  (pass-if "set-fields with unknown first getter"
+  (pass-if-equal "set-fields with unknown first getter"
+      '(syntax-error set-fields "unknown getter"
+                     (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                     blah)
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
@@ -175,12 +178,12 @@
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
-        (equal? (list key whom what form subform)
-                '(syntax-error set-fields "unknown getter"
-                               (set-fields s ((bar-i foo-x) 1) ((blah) 3))
-                               blah)))))
+        (list key whom what form subform))))
 
-  (pass-if "set-fields with unknown second getter"
+  (pass-if-equal "set-fields with unknown second getter"
+      '(syntax-error set-fields "unknown getter"
+                     (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                     blah)
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
@@ -188,12 +191,15 @@
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
-        (equal? (list key whom what form subform)
-                '(syntax-error set-fields "unknown getter"
-                               (set-fields s ((bar-i foo-x) 1) ((blah) 3))
-                               blah)))))
+        (list key whom what form subform))))
 
-  (pass-if "set-fields with duplicate field path"
+  (pass-if-equal "set-fields with duplicate field path"
+      '(syntax-error set-fields "duplicate field path"
+                     (set-fields s
+                       ((bar-i foo-x) 1)
+                       ((bar-i foo-z) 2)
+                       ((bar-i foo-x) 3))
+                     (bar-i foo-x))
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
@@ -204,15 +210,16 @@
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
-        (equal? (list key whom what form subform)
-                '(syntax-error set-fields "duplicate field path"
-                               (set-fields s
-                                 ((bar-i foo-x) 1)
-                                 ((bar-i foo-z) 2)
-                                 ((bar-i foo-x) 3))
-                               (bar-i foo-x))))))
+        (list key whom what form subform))))
 
-  (pass-if "set-fields with one path as a prefix of another"
+  (pass-if-equal "set-fields with one path as a prefix of another"
+      '(syntax-error set-fields
+                     "one field path is a prefix of another"
+                     (set-fields s
+                       ((bar-i foo-x) 1)
+                       ((bar-i foo-z) 2)
+                       ((bar-i) 3))
+                     (bar-i))
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
@@ -223,14 +230,7 @@
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
-        (equal? (list key whom what form subform)
-                '(syntax-error set-fields
-                               "one field path is a prefix of another"
-                               (set-fields s
-                                 ((bar-i foo-x) 1)
-                                 ((bar-i foo-z) 2)
-                                 ((bar-i) 3))
-                               (bar-i)))))))
+        (list key whom what form subform)))))
 
 (with-test-prefix "side-effecting arguments"
 
@@ -489,7 +489,10 @@
                (equal? p (make-person 30 "foo@example.com"
                                       (make-address "Foo" "Paris" "France")))))))
 
-    (pass-if "set-fields with unknown first getter"
+    (pass-if-equal "set-fields with unknown first getter"
+        '(syntax-error set-fields "unknown getter"
+                       (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                       blah)
       (let ()
         (define-immutable-record-type foo (make-foo x) foo?
           (x foo-x)
@@ -501,18 +504,18 @@
           (j bar-j set-bar-j))
 
         (catch 'syntax-error
-         (lambda ()
-           (compile '(let ((s (make-bar (make-foo 5) 2)))
-                       (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
-                    #:env (current-module))
-           #f)
-         (lambda (key whom what src form subform)
-           (equal? (list key whom what form subform)
-                   '(syntax-error set-fields "unknown getter"
-                                  (set-fields s ((bar-i foo-x) 1) ((blah) 3))
-                                  blah))))))
+          (lambda ()
+            (compile '(let ((s (make-bar (make-foo 5) 2)))
+                        (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
+                     #:env (current-module))
+            #f)
+          (lambda (key whom what src form subform)
+            (list key whom what form subform)))))
 
-    (pass-if "set-fields with unknown second getter"
+    (pass-if-equal "set-fields with unknown second getter"
+        '(syntax-error set-fields "unknown getter"
+                       (set-fields s ((bar-i foo-x) 1) ((blah) 3))
+                       blah)
       (let ()
         (define-immutable-record-type foo (make-foo x) foo?
           (x foo-x)
@@ -524,47 +527,21 @@
           (j bar-j set-bar-j))
 
         (catch 'syntax-error
-         (lambda ()
-           (compile '(let ((s (make-bar (make-foo 5) 2)))
-                       (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
-                    #:env (current-module))
-           #f)
-         (lambda (key whom what src form subform)
-           (equal? (list key whom what form subform)
-                   '(syntax-error set-fields "unknown getter"
-                                  (set-fields s ((bar-i foo-x) 1) ((blah) 3))
-                                  blah))))))
+          (lambda ()
+            (compile '(let ((s (make-bar (make-foo 5) 2)))
+                        (set-fields s ((bar-i foo-x) 1) ((blah) 3)))
+                     #:env (current-module))
+            #f)
+          (lambda (key whom what src form subform)
+            (list key whom what form subform)))))
 
-    (pass-if "set-fields with duplicate field path"
-      (let ()
-        (define-immutable-record-type foo (make-foo x) foo?
-          (x foo-x)
-          (y foo-y set-foo-y)
-          (z foo-z set-foo-z))
-
-        (define-immutable-record-type :bar (make-bar i j) bar?
-          (i bar-i)
-          (j bar-j set-bar-j))
-
-        (catch 'syntax-error
-         (lambda ()
-           (compile '(let ((s (make-bar (make-foo 5) 2)))
+    (pass-if-equal "set-fields with duplicate field path"
+        '(syntax-error set-fields "duplicate field path"
                        (set-fields s
                          ((bar-i foo-x) 1)
                          ((bar-i foo-z) 2)
-                         ((bar-i foo-x) 3)))
-                    #:env (current-module))
-           #f)
-         (lambda (key whom what src form subform)
-           (equal? (list key whom what form subform)
-                   '(syntax-error set-fields "duplicate field path"
-                                  (set-fields s
-                                    ((bar-i foo-x) 1)
-                                    ((bar-i foo-z) 2)
-                                    ((bar-i foo-x) 3))
-                                  (bar-i foo-x)))))))
-
-    (pass-if "set-fields with one path as a prefix of another"
+                         ((bar-i foo-x) 3))
+                       (bar-i foo-x))
       (let ()
         (define-immutable-record-type foo (make-foo x) foo?
           (x foo-x)
@@ -576,23 +553,46 @@
           (j bar-j set-bar-j))
 
         (catch 'syntax-error
-         (lambda ()
-           (compile '(let ((s (make-bar (make-foo 5) 2)))
+          (lambda ()
+            (compile '(let ((s (make-bar (make-foo 5) 2)))
+                        (set-fields s
+                          ((bar-i foo-x) 1)
+                          ((bar-i foo-z) 2)
+                          ((bar-i foo-x) 3)))
+                     #:env (current-module))
+            #f)
+          (lambda (key whom what src form subform)
+            (list key whom what form subform)))))
+
+    (pass-if-equal "set-fields with one path as a prefix of another"
+        '(syntax-error set-fields
+                       "one field path is a prefix of another"
                        (set-fields s
                          ((bar-i foo-x) 1)
                          ((bar-i foo-z) 2)
-                         ((bar-i) 3)))
-                    #:env (current-module))
-           #f)
-         (lambda (key whom what src form subform)
-           (equal? (list key whom what form subform)
-                   '(syntax-error set-fields
-                                  "one field path is a prefix of another"
-                                  (set-fields s
-                                    ((bar-i foo-x) 1)
-                                    ((bar-i foo-z) 2)
-                                    ((bar-i) 3))
-                                  (bar-i)))))))))
+                         ((bar-i) 3))
+                       (bar-i))
+      (let ()
+        (define-immutable-record-type foo (make-foo x) foo?
+          (x foo-x)
+          (y foo-y set-foo-y)
+          (z foo-z set-foo-z))
+
+        (define-immutable-record-type :bar (make-bar i j) bar?
+          (i bar-i)
+          (j bar-j set-bar-j))
+
+        (catch 'syntax-error
+          (lambda ()
+            (compile '(let ((s (make-bar (make-foo 5) 2)))
+                        (set-fields s
+                          ((bar-i foo-x) 1)
+                          ((bar-i foo-z) 2)
+                          ((bar-i) 3)))
+                     #:env (current-module))
+            #f)
+          (lambda (key whom what src form subform)
+            (list key whom what form subform)))))))
 
 (with-test-prefix "record compatibility"
 
