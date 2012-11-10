@@ -2398,6 +2398,107 @@ This example prints the employee's name in brackets, for instance @code{[Fred]}.
     (write-char #\] port)))
 @end example
 
+@unnumberedsubsubsec Functional ``Setters''
+
+@cindex functional setters
+
+When writing code in a functional style, it is desirable to never alter
+the contents of records.  For such code, a simple way to return new
+record instances based on existing ones is highly desirable.
+
+The @code{(srfi srfi-9 gnu)} module extends SRFI-9 with facilities to
+return new record instances based on existing ones, only with one or
+more field values changed---@dfn{functional setters}.  First, the
+@code{define-immutable-record-type} works like
+@code{define-record-type}, except that fields are immutable and setters
+are defined as functional setters.
+
+@deffn {Scheme Syntax} define-immutable-record-type type @* (constructor fieldname @dots{}) @* predicate @* (fieldname accessor [modifier]) @dots{}
+Define @var{type} as a new record type, like @code{define-record-type}.
+However, the record type is made @emph{immutable} (records may not be
+mutated, even with @code{struct-set!}), and any @var{modifier} is
+defined to be a functional setter---a procedure that returns a new
+record instance with the specified field changed, and leaves the
+original unchanged (see example below.)
+@end deffn
+
+@noindent
+In addition, the generic @code{set-field} and @code{set-fields} macros
+may be applied to any SRFI-9 record.
+
+@deffn {Scheme Syntax} set-field (field sub-fields ...) record value
+Return a new record of @var{record}'s type whose fields are equal to
+the corresponding fields of @var{record} except for the one specified by
+@var{field}.
+
+@var{field} must be the name of the getter corresponding to the field of
+@var{record} being ``set''.  Subsequent @var{sub-fields} must be record
+getters designating sub-fields within that field value to be set (see
+example below.)
+@end deffn
+
+@deffn {Scheme Syntax} set-fields record ((field sub-fields ...) value) ...
+Like @code{set-field}, but can be used to set more than one field at a
+time.  This expands to code that is more efficient than a series of
+single @code{set-field} calls.
+@end deffn
+
+To illustrate the use of functional setters, let's assume these two
+record type definitions:
+
+@example
+(define-record-type <address>
+  (address street city country)
+  address?
+  (street  address-street)
+  (city    address-city)
+  (country address-country))
+
+(define-immutable-record-type <person>
+  (person age email address)
+  person?
+  (age     person-age set-person-age)
+  (email   person-email set-person-email)
+  (address person-address set-person-address))
+@end example
+
+@noindent
+First, note that the @code{<person>} record type definition introduces
+named functional setters.  These may be used like this:
+
+@example
+(define fsf-address
+  (address "Franklin Street" "Boston" "USA"))
+
+(define rms
+  (person 30 "rms@@gnu.org" fsf-address))
+
+(and (equal? (set-person-age rms 60)
+             (person 60 "rms@@gnu.org" fsf-address))
+     (= (person-age rms) 30))
+@result{} #t
+@end example
+
+@noindent
+Here, the original @code{<person>} record, to which @var{rms} is bound,
+is left unchanged.
+
+Now, suppose we want to change both the street and age of @var{rms}.
+This can be achieved using @code{set-fields}:
+
+@example
+(set-fields rms
+  ((person-age) 60)
+  ((person-address address-street) "Temple Place"))
+@result{} #<<person> age: 60 email: "rms@@gnu.org"
+  address: #<<address> street: "Temple Place" city: "Boston" country: "USA">>
+@end example
+
+@noindent
+Notice how the above changed two fields of @var{rms}, including the
+@code{street} field of its @code{address} field, in a concise way.  Also
+note that @code{set-fields} works equally well for types defined with
+just @code{define-record-type}.
 
 @node Records
 @subsection Records
