@@ -103,9 +103,9 @@
 
   (pass-if "set-field"
     (let ((s (make-foo (make-bar 1 2))))
-      (and (equal? (set-field (foo-x bar-j) s 3)
+      (and (equal? (set-field s (foo-x bar-j) 3)
                    (make-foo (make-bar 1 3)))
-           (equal? (set-field (foo-z) s 'bar)
+           (equal? (set-field s (foo-z) 'bar)
                    (let ((s2 (make-foo (make-bar 1 2))))
                      (set-foo-z! s2 'bar)
                      s2))
@@ -113,19 +113,19 @@
 
   (pass-if-exception "set-field on wrong struct type" exception:wrong-type-arg
     (let ((s (make-bar (make-foo 5) 2)))
-      (set-field (foo-x bar-j) s 3)))
+      (set-field s (foo-x bar-j) 3)))
 
   (pass-if-exception "set-field on number" exception:wrong-type-arg
-    (set-field (foo-x bar-j) 4 3))
+    (set-field 4 (foo-x bar-j) 3))
 
   (pass-if-equal "set-field with unknown first getter"
       '(syntax-error set-fields "unknown getter"
-                     (set-field (blah) s 3)
+                     (set-field s (blah) 3)
                      blah)
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
-                    (set-field (blah) s 3))
+                    (set-field s (blah) 3))
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
@@ -133,12 +133,12 @@
 
   (pass-if-equal "set-field with unknown second getter"
       '(syntax-error set-fields "unknown getter"
-                     (set-field (bar-j blah) s 3)
+                     (set-field s (bar-j blah) 3)
                      blah)
     (catch 'syntax-error
       (lambda ()
         (compile '(let ((s (make-bar (make-foo 5) 2)))
-                    (set-field (bar-j blah) s 3))
+                    (set-field s (bar-j blah) 3))
                  #:env (current-module))
         #f)
       (lambda (key whom what src form subform)
@@ -146,7 +146,7 @@
 
   (pass-if "set-fields"
     (let ((s (make-foo (make-bar 1 2))))
-      (and (equal? (set-field (foo-x bar-j) s 3)
+      (and (equal? (set-field s (foo-x bar-j) 3)
                    (make-foo (make-bar 1 3)))
            (equal? (set-fields s
                      ((foo-x bar-j) 3)
@@ -262,18 +262,18 @@
 
       (pass-if "set-field"
         (let ((s (make-foo (make-bar 1 2))))
-          (and (equal? (set-field (foo-x bar-j) s 3)
+          (and (equal? (set-field s (foo-x bar-j) 3)
                        (make-foo (make-bar 1 3)))
-               (equal? (set-field (foo-z) s 'bar)
+               (equal? (set-field s (foo-z) 'bar)
                        (let ((s2 (make-foo (make-bar 1 2))))
                          (set-foo-z! s2 'bar)
                          s2))
                (equal? s (make-foo (make-bar 1 2)))))))
 
-    (pass-if "set-fields"
+    (pass-if "set-fieldss "
 
       (let ((s (make-foo (make-bar 1 2))))
-        (and (equal? (set-field (foo-x bar-j) s 3)
+        (and (equal? (set-field s (foo-x bar-j) 3)
                      (make-foo (make-bar 1 3)))
              (equal? (set-fields s
                        ((foo-x bar-j) 3)
@@ -340,10 +340,10 @@
   (pass-if "set-field"
     (let ((p (make-person 30 "foo@example.com"
                           (make-address "Foo" "Paris" "France"))))
-      (and (equal? (set-field (person-address address-street) p "Bar")
+      (and (equal? (set-field p (person-address address-street) "Bar")
                    (make-person 30 "foo@example.com"
                                 (make-address "Bar" "Paris" "France")))
-           (equal? (set-field (person-email) p "bar@example.com")
+           (equal? (set-field p (person-email) "bar@example.com")
                    (make-person 30 "bar@example.com"
                                 (make-address "Foo" "Paris" "France")))
            (equal? p (make-person 30 "foo@example.com"
@@ -448,10 +448,10 @@
 
         (let ((p (make-person 30 "foo@example.com"
                               (make-address "Foo" "Paris" "France"))))
-          (and (equal? (set-field (person-address address-street) p "Bar")
+          (and (equal? (set-field p (person-address address-street) "Bar")
                        (make-person 30 "foo@example.com"
                                     (make-address "Bar" "Paris" "France")))
-               (equal? (set-field (person-email) p "bar@example.com")
+               (equal? (set-field p (person-email) "bar@example.com")
                        (make-person 30 "bar@example.com"
                                     (make-address "Foo" "Paris" "France")))
                (equal? p (make-person 30 "foo@example.com"

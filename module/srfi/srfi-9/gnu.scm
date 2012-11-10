@@ -39,8 +39,8 @@
    #t (define-immutable-record-type name ctor pred fields ...)
    name ctor pred fields ...))
 
-(define-syntax-rule (set-field (getter ...) s expr)
-  (%set-fields #t (set-field (getter ...) s expr) ()
+(define-syntax-rule (set-field s (getter ...) expr)
+  (%set-fields #t (set-field s (getter ...) expr) ()
                s ((getter ...) expr)))
 
 (define-syntax-rule (set-fields s . rest)
