@@ -1862,110 +1862,12 @@ procedures easier.  It is documented in @xref{Multiple Values}.
 
 @node SRFI-9
 @subsection SRFI-9 - define-record-type
-@cindex SRFI-9
-@cindex record
 
 This SRFI is a syntax for defining new record types and creating
-predicate, constructor, and field getter and setter functions.  In
-Guile this is simply an alternate interface to the core record
-functionality (@pxref{Records}).  It can be used with,
+predicate, constructor, and field getter and setter functions.  It is
+documented in the ``Compound Data Types'' section of the manual
+(@pxref{SRFI-9 Records}).
 
-@example
-(use-modules (srfi srfi-9))
-@end example
-
-@deffn {library syntax} define-record-type type @* (constructor fieldname @dots{}) @* predicate @* (fieldname accessor [modifier]) @dots{}
-@sp 1
-Create a new record type, and make various @code{define}s for using
-it.  This syntax can only occur at the top-level, not nested within
-some other form.
-
-@var{type} is bound to the record type, which is as per the return
-from the core @code{make-record-type}.  @var{type} also provides the
-name for the record, as per @code{record-type-name}.
-
-@var{constructor} is bound to a function to be called as
-@code{(@var{constructor} fieldval @dots{})} to create a new record of
-this type.  The arguments are initial values for the fields, one
-argument for each field, in the order they appear in the
-@code{define-record-type} form.
-
-The @var{fieldname}s provide the names for the record fields, as per
-the core @code{record-type-fields} etc, and are referred to in the
-subsequent accessor/modifier forms.
-
-@var{predicate} is bound to a function to be called as
-@code{(@var{predicate} obj)}.  It returns @code{#t} or @code{#f}
-according to whether @var{obj} is a record of this type.
-
-Each @var{accessor} is bound to a function to be called
-@code{(@var{accessor} record)} to retrieve the respective field from a
-@var{record}.  Similarly each @var{modifier} is bound to a function to
-be called @code{(@var{modifier} record val)} to set the respective
-field in a @var{record}.
-@end deffn
-
-@noindent
-An example will illustrate typical usage,
-
-@example
-(define-record-type employee-type
-  (make-employee name age salary)
-  employee?
-  (name    get-employee-name)
-  (age     get-employee-age    set-employee-age)
-  (salary  get-employee-salary set-employee-salary))
-@end example
-
-This creates a new employee data type, with name, age and salary
-fields.  Accessor functions are created for each field, but no
-modifier function for the name (the intention in this example being
-that it's established only when an employee object is created).  These
-can all then be used as for example,
-
-@example
-employee-type @result{} #<record-type employee-type>
-
-(define fred (make-employee "Fred" 45 20000.00))
-
-(employee? fred)        @result{} #t
-(get-employee-age fred) @result{} 45
-(set-employee-salary fred 25000.00)  ;; pay rise
-@end example
-
-The functions created by @code{define-record-type} are ordinary
-top-level @code{define}s.  They can be redefined or @code{set!} as
-desired, exported from a module, etc.
-
-@unnumberedsubsubsec Non-toplevel Record Definitions
-
-The SRFI-9 specification explicitly disallows record definitions in a
-non-toplevel context, such as inside @code{lambda} body or inside a
-@var{let} block.  However, Guile's implementation does not enforce that
-restriction.
-
-@unnumberedsubsubsec Custom Printers
-
-You may use @code{set-record-type-printer!} to customize the default printing
-behavior of records.  This is a Guile extension and is not part of SRFI-9.  It
-is located in the @nicode{(srfi srfi-9 gnu)} module.
-
-@deffn {Scheme Syntax} set-record-type-printer! name thunk
-Where @var{type} corresponds to the first argument of @code{define-record-type},
-and @var{thunk} is a procedure accepting two arguments, the record to print, and
-an output port.
-@end deffn
-
-@noindent
-This example prints the employee's name in brackets, for instance @code{[Fred]}.
-
-@example
-(set-record-type-printer! employee-type
-  (lambda (record port)
-    (write-char #\[ port)
-    (display (get-employee-name record) port)
-    (write-char #\] port)))
-@end example
 
 @node SRFI-10
 @subsection SRFI-10 - Hash-Comma Reader Extension

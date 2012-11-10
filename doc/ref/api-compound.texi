@@ -25,8 +25,10 @@ values can be looked up within them.
 * Generalized Vectors::         Treating all vector-like things uniformly.
 * Arrays::                      Matrices, etc.
 * VLists::                      Vector-like lists.
-* Records::                     
-* Structures::                  
+* Record Overview::             Walking through the maze of record APIs.
+* SRFI-9 Records::              The standard, recommended record API.
+* Records::                     Guile's historical record API.
+* Structures::                  Low-level record representation.
 * Dictionary Types::            About dictionary types in general.
 * Association Lists::           List-based dictionaries.
 * VHashes::                     VList-based dictionaries.   
@@ -2249,6 +2251,152 @@ Return a new vlist whose contents correspond to @var{lst}.
 Return a new list whose contents match those of @var{vlist}.
 @end deffn
 
+@node Record Overview
+@subsection Record Overview
+
+@cindex record
+@cindex structure
+
+@dfn{Records}, also called @dfn{structures}, are Scheme's primary
+mechanism to define new disjoint types.  A @dfn{record type} defines a
+list of @dfn{fields} that instances of the type consist of.  This is like
+C's @code{struct}.
+
+Historically, Guile has offered several different ways to define record
+types and to create records, offering different features, and making
+different trade-offs.  Over the years, each ``standard'' has also come
+with its own new record interface, leading to a maze of record APIs.
+
+At the highest level is SRFI-9, a high-level record interface
+implemented by most Scheme implementations (@pxref{SRFI-9}).  It defines
+a simple and efficient syntactic abstraction of record types and their
+associated type predicate, fields, and field accessors.  SRFI-9 is
+suitable for most uses, and this is the recommended way to create record
+types in Guile.  Similar high-level record APIs include SRFI-35
+(@pxref{SRFI-35}) and R6RS records (@pxref{rnrs records syntactic}).
+
+Then comes Guile's historical ``records'' API (@pxref{Records}).  Record
+types defined this way are first-class objects.  Introspection
+facilities are available, allowing users to query the list of fields or
+the value of a specific field at run-time, without prior knowledge of
+the type.
+
+Finally, the common denominator of these interfaces is Guile's
+@dfn{structure} API (@pxref{Structures}).  Guile's structures are the
+low-level building block for all other record APIs.  Application writers
+will normally not need to use it.
+
+Records created with these APIs may all be pattern-matched using Guile's
+standard pattern matcher (@pxref{Pattern Matching}).
+
+
+@node SRFI-9 Records
+@subsection SRFI-9 Records
+
+@cindex SRFI-9
+@cindex record
+
+SRFI-9 standardizes a syntax for defining new record types and creating
+predicate, constructor, and field getter and setter functions.  In Guile
+this is the recommended option to create new record types (@pxref{Record
+Overview}).  It can be used with:
+
+@example
+(use-modules (srfi srfi-9))
+@end example
+
+@deffn {library syntax} define-record-type type @* (constructor fieldname @dots{}) @* predicate @* (fieldname accessor [modifier]) @dots{}
+@sp 1
+Create a new record type, and make various @code{define}s for using
+it.  This syntax can only occur at the top-level, not nested within
+some other form.
+
+@var{type} is bound to the record type, which is as per the return
+from the core @code{make-record-type}.  @var{type} also provides the
+name for the record, as per @code{record-type-name}.
+
+@var{constructor} is bound to a function to be called as
+@code{(@var{constructor} fieldval @dots{})} to create a new record of
+this type.  The arguments are initial values for the fields, one
+argument for each field, in the order they appear in the
+@code{define-record-type} form.
+
+The @var{fieldname}s provide the names for the record fields, as per
+the core @code{record-type-fields} etc, and are referred to in the
+subsequent accessor/modifier forms.
+
+@var{predicate} is bound to a function to be called as
+@code{(@var{predicate} obj)}.  It returns @code{#t} or @code{#f}
+according to whether @var{obj} is a record of this type.
+
+Each @var{accessor} is bound to a function to be called
+@code{(@var{accessor} record)} to retrieve the respective field from a
+@var{record}.  Similarly each @var{modifier} is bound to a function to
+be called @code{(@var{modifier} record val)} to set the respective
+field in a @var{record}.
+@end deffn
+
+@noindent
+An example will illustrate typical usage,
+
+@example
+(define-record-type employee-type
+  (make-employee name age salary)
+  employee?
+  (name    get-employee-name)
+  (age     get-employee-age    set-employee-age)
+  (salary  get-employee-salary set-employee-salary))
+@end example
+
+This creates a new employee data type, with name, age and salary
+fields.  Accessor functions are created for each field, but no
+modifier function for the name (the intention in this example being
+that it's established only when an employee object is created).  These
+can all then be used as for example,
+
+@example
+employee-type @result{} #<record-type employee-type>
+
+(define fred (make-employee "Fred" 45 20000.00))
+
+(employee? fred)        @result{} #t
+(get-employee-age fred) @result{} 45
+(set-employee-salary fred 25000.00)  ;; pay rise
+@end example
+
+The functions created by @code{define-record-type} are ordinary
+top-level @code{define}s.  They can be redefined or @code{set!} as
+desired, exported from a module, etc.
+
+@unnumberedsubsubsec Non-toplevel Record Definitions
+
+The SRFI-9 specification explicitly disallows record definitions in a
+non-toplevel context, such as inside @code{lambda} body or inside a
+@var{let} block.  However, Guile's implementation does not enforce that
+restriction.
+
+@unnumberedsubsubsec Custom Printers
+
+You may use @code{set-record-type-printer!} to customize the default printing
+behavior of records.  This is a Guile extension and is not part of SRFI-9.  It
+is located in the @nicode{(srfi srfi-9 gnu)} module.
+
+@deffn {Scheme Syntax} set-record-type-printer! name thunk
+Where @var{type} corresponds to the first argument of @code{define-record-type},
+and @var{thunk} is a procedure accepting two arguments, the record to print, and
+an output port.
+@end deffn
+
+@noindent
+This example prints the employee's name in brackets, for instance @code{[Fred]}.
+
+@example
+(set-record-type-printer! employee-type
+  (lambda (record port)
+    (write-char #\[ port)
+    (display (get-employee-name record) port)
+    (write-char #\] port)))
+@end example
 
 
 @node Records
