@@ -2426,7 +2426,7 @@ original unchanged (see example below.)
 In addition, the generic @code{set-field} and @code{set-fields} macros
 may be applied to any SRFI-9 record.
 
-@deffn {Scheme Syntax} set-field (field sub-fields ...) record value
+@deffn {Scheme Syntax} set-field record (field sub-fields ...) value
 Return a new record of @var{record}'s type whose fields are equal to
 the corresponding fields of @var{record} except for the one specified by
 @var{field}.
