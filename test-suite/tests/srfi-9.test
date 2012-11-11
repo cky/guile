@@ -614,7 +614,7 @@
         '(syntax-error set-fields
                        "\
 field paths (bar-i bar-j) and (bar-i foo-x) require one object \
-to belong to two different record types (:bar and foo)"
+to belong to two different record types (bar and foo)"
                        (set-fields s
                          ((bar-i foo-x) 1)
                          ((bar-i bar-j) 2)
@@ -630,7 +630,7 @@ to belong to two different record types (:bar and foo)"
                         (y foo-y set-foo-y)
                         (z foo-z set-foo-z))
 
-                      (define-immutable-record-type :bar
+                      (define-immutable-record-type bar
                         (make-bar i j)
                         bar?
                         (i bar-i)
