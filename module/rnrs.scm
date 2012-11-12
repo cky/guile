@@ -180,7 +180,7 @@
           call-with-bytevector-output-port
           call-with-string-output-port
           latin-1-codec utf-8-codec utf-16-codec
-          open-file-input-port open-file-output-port
+          open-file-input-port open-file-output-port open-file-input/output-port
           make-custom-textual-output-port
           call-with-string-output-port
 	  flush-output-port put-string

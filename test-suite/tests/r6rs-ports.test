@@ -316,24 +316,27 @@
           (string? (strerror errno)))))))
 
 
-(with-test-prefix "7.2.7 Input Ports"
-
-  (let ((filename (test-file))
-        (contents (string->utf8 "GNU λ")))
-    
+(define (test-input-file-opener open filename)
+  (let ((contents (string->utf8 "GNU λ")))
     ;; Create file
     (call-with-output-file filename
       (lambda (port) (put-bytevector port contents)))
   
-    (pass-if "open-file-input-port [opens binary port]"
+    (pass-if "opens binary input port with correct contents"
       (with-fluids ((%default-port-encoding "UTF-8"))
-          (call-with-port (open-file-input-port filename)
-            (lambda (port)
-              (and (binary-port? port)
-                   (bytevector=? contents (get-bytevector-all port)))))))
-
-    (delete-file filename))
+        (call-with-port (open-file-input-port filename)
+          (lambda (port)
+            (and (binary-port? port)
+                 (input-port? port)
+                 (bytevector=? contents (get-bytevector-all port))))))))
   
+  (delete-file filename))
+
+(with-test-prefix "7.2.7 Input Ports"
+
+  (with-test-prefix "open-file-input-port"
+    (test-input-file-opener open-file-input-port (test-file)))
+
   ;; This section appears here so that it can use the binary input
   ;; primitives.
 
@@ -478,39 +481,42 @@
       (binary-port? (standard-input-port)))))
 
 
+(define (test-output-file-opener open filename)
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    (pass-if "opens binary output port"
+             (call-with-port (open filename)
+               (lambda (port)
+                 (put-bytevector port '#vu8(1 2 3))
+                 (and (binary-port? port)
+                      (output-port? port))))))
+
+  (pass-if-condition "exception: already-exists"
+                     i/o-file-already-exists-error?
+                     (open filename))
+
+  (pass-if "no-fail no-truncate"
+           (and
+             (call-with-port (open filename (file-options no-fail no-truncate))
+               (lambda (port)
+                 (= 0 (port-position port))))
+             (= 3 (stat:size (stat filename)))))
+
+  (pass-if "no-fail"
+           (and
+             (call-with-port (open filename (file-options no-fail))
+               binary-port?)
+             (= 0 (stat:size (stat filename)))))
+    
+  (delete-file filename)
+    
+  (pass-if-condition "exception: does-not-exist"
+                     i/o-file-does-not-exist-error?
+                     (open filename (file-options no-create))))
+
 (with-test-prefix "8.2.10 Output ports"
 
-  (let ((filename (test-file)))
-    (with-fluids ((%default-port-encoding "UTF-8"))
-      (pass-if "open-file-output-port [opens binary port]"
-        (call-with-port (open-file-output-port filename)
-          (lambda (port)
-            (put-bytevector port '#vu8(1 2 3))
-            (binary-port? port)))))
-    
-    (pass-if-condition "open-file-output-port [exception: already-exists]"
-        i/o-file-already-exists-error?
-      (open-file-output-port filename))
-    
-    (pass-if "open-file-output-port [no-fail no-truncate]"
-      (and
-        (call-with-port (open-file-output-port filename
-                                               (file-options no-fail no-truncate))
-          (lambda (port)
-            (= 0 (port-position port))))
-        (= 3 (stat:size (stat filename)))))
-
-    (pass-if "open-file-output-port [no-fail]"
-      (and
-        (call-with-port (open-file-output-port filename (file-options no-fail))
-          binary-port?)
-        (= 0 (stat:size (stat filename)))))
-    
-    (delete-file filename)
-    
-    (pass-if-condition "open-file-output-port [exception: does-not-exist]"
-        i/o-file-does-not-exist-error?
-      (open-file-output-port filename (file-options no-create))))
+  (with-test-prefix "open-file-output-port"
+    (test-output-file-opener open-file-output-port (test-file)))
   
   (pass-if "open-bytevector-output-port"
     (let-values (((port get-content)
@@ -800,6 +806,12 @@
       (call-with-output-file filename
         values))
     (delete-file filename)))
+
+(with-test-prefix "8.2.13 Input/output ports"
+  (with-test-prefix "open-file-input/output-port [output]"
+    (test-output-file-opener open-file-input/output-port (test-file)))
+  (with-test-prefix "open-file-input/output-port [input]"
+    (test-input-file-opener open-file-input/output-port (test-file))))
 
 ;;; Local Variables:
 ;;; mode: scheme

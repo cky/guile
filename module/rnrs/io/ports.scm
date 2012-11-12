@@ -64,7 +64,10 @@
           call-with-string-output-port
           make-custom-textual-output-port
           flush-output-port
-           
+
+          ;; input/output ports
+          open-file-input/output-port
+
           ;; binary output
           put-u8 put-bytevector
 
@@ -305,18 +308,45 @@ read from/written to in @var{port}."
   (with-fluids ((%default-port-encoding "UTF-8"))
     (open-input-string str)))
 
+(define (r6rs-open filename mode buffer-mode transcoder)
+  (let ((port (with-i/o-filename-conditions filename
+                (lambda ()
+                  (with-fluids ((%default-port-encoding #f))
+                    (open filename mode))))))
+    (cond (transcoder
+           (set-port-encoding! port (transcoder-codec transcoder))))
+    port))
+
+(define (file-options->mode file-options base-mode)
+  (logior base-mode
+          (if (enum-set-member? 'no-create file-options)
+              0
+              O_CREAT)
+          (if (enum-set-member? 'no-truncate file-options)
+              0
+              O_TRUNC)
+          (if (enum-set-member? 'no-fail file-options)
+              0
+              O_EXCL)))
+
 (define* (open-file-input-port filename
                                #:optional
                                (file-options (file-options))
                                (buffer-mode (buffer-mode block))
-                               maybe-transcoder)
-  (let ((port (with-i/o-filename-conditions filename
-                (lambda ()
-                  (with-fluids ((%default-port-encoding #f))
-                    (open filename O_RDONLY))))))
-    (cond (maybe-transcoder
-           (set-port-encoding! port (transcoder-codec maybe-transcoder))))
-    port))
+                               transcoder)
+  "Return an input port for reading from @var{filename}."
+  (r6rs-open filename O_RDONLY buffer-mode transcoder))
+
+(define* (open-file-input/output-port filename
+                                      #:optional
+                                      (file-options (file-options))
+                                      (buffer-mode (buffer-mode block))
+                                      transcoder)
+  "Return a port for reading from and writing to @var{filename}."
+  (r6rs-open filename
+             (file-options->mode file-options O_RDWR)
+             buffer-mode
+             transcoder))
 
 (define (open-string-output-port)
   "Return two values: an output port that will collect characters written to it
@@ -331,23 +361,11 @@ as a string, and a thunk to retrieve the characters associated with that port."
                                 (file-options (file-options))
                                 (buffer-mode (buffer-mode block))
                                 maybe-transcoder)
-  (let* ((flags (logior O_WRONLY
-                        (if (enum-set-member? 'no-create file-options)
-                            0
-                            O_CREAT)
-                        (if (enum-set-member? 'no-truncate file-options)
-                            0
-                            O_TRUNC)
-                        (if (enum-set-member? 'no-fail file-options)
-                            0
-                            O_EXCL)))
-         (port (with-i/o-filename-conditions filename
-                 (lambda ()
-                   (with-fluids ((%default-port-encoding #f))
-                     (open filename flags))))))
-    (cond (maybe-transcoder
-           (set-port-encoding! port (transcoder-codec maybe-transcoder))))
-    port))
+  "Return an output port for writing to @var{filename}."
+  (r6rs-open filename
+             (file-options->mode file-options O_WRONLY)
+             buffer-mode
+             maybe-transcoder))
 
 (define (call-with-string-output-port proc)
   "Call @var{proc}, passing it a string output port. When @var{proc} returns,
