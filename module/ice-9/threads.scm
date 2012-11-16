@@ -1,4 +1,5 @@
-;;;; 	Copyright (C) 1996, 1998, 2001, 2002, 2003, 2006, 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 1998, 2001, 2002, 2003, 2006, 2010, 2011,
+;;;;      2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -33,6 +34,7 @@
 
 (define-module (ice-9 threads)
   #:use-module (ice-9 futures)
+  #:use-module (ice-9 match)
   #:export (begin-thread
             parallel
             letpar
@@ -87,16 +89,19 @@
   (with-mutex (make-mutex)
     first rest ...))
 
-(define (par-mapper mapper)
-  (lambda (proc . arglists)
-    (mapper touch
-            (apply map
-                   (lambda args
-                     (future (apply proc args)))
-                   arglists))))
+(define (par-mapper mapper cons)
+  (lambda (proc . lists)
+    (let loop ((lists lists))
+      (match lists
+        (((heads tails ...) ...)
+         (let ((tail (future (loop tails)))
+               (head (apply proc heads)))
+           (cons head (touch tail))))
+        (_
+         '())))))
 
-(define par-map (par-mapper map))
-(define par-for-each (par-mapper for-each))
+(define par-map (par-mapper map cons))
+(define par-for-each (par-mapper for-each (const *unspecified*)))
 
 (define (n-par-map n proc . arglists)
   (let* ((m (make-mutex))
