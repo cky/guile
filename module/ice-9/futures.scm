@@ -19,6 +19,7 @@
 (define-module (ice-9 futures)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:use-module (ice-9 threads)
   #:use-module (ice-9 q)
   #:export (future make-future future? touch))
@@ -51,6 +52,14 @@
   (result       future-result set-future-result!)
   (mutex        future-mutex)
   (completion   future-completion))               ; completion cond. var.
+
+(set-record-type-printer!
+ <future>
+ (lambda (future port)
+   (simple-format port "#<future ~a ~a ~s>"
+                  (number->string (object-address future) 16)
+                  (future-state future)
+                  (future-thunk future))))
 
 (define (make-future thunk)
   "Return a new future for THUNK.  Execution may start at any point
