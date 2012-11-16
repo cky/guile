@@ -2,7 +2,7 @@
 ;;;;
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,8 @@
   #:use-module (test-suite lib)
   #:use-module (ice-9 futures)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-26))
+  #:use-module (srfi srfi-26)
+  #:use-module (system base compile))
 
 (define specific-exception-key (gensym))
 
@@ -90,3 +91,18 @@
   (pass-if-exception "exception"
     specific-exception
     (touch (future (throw specific-exception-key 'test "thrown!")))))
+
+(with-test-prefix "nested futures"
+
+  (pass-if-equal "simple" 2
+    (touch (future (1+ (touch (future (1+ (touch (future 0)))))))))
+
+  (pass-if-equal "loop" (map - (iota 1000))
+    ;; Compile to avoid stack overflows.
+    (compile '(let loop ((list (iota 1000)))
+                (if (null? list)
+                    '()
+                    (cons (- (car list))
+                          (touch (future (loop (cdr list)))))))
+             #:to 'value
+             #:env (current-module))))
