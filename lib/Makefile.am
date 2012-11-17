@@ -155,7 +155,7 @@ EXTRA_DIST += arpa_inet.in.h
 
 ## begin gnulib module binary-io
 
-libgnu_la_SOURCES += binary-io.h
+libgnu_la_SOURCES += binary-io.h binary-io.c
 
 ## end   gnulib module binary-io
 
@@ -614,7 +614,7 @@ EXTRA_DIST += $(top_srcdir)/build-aux/gnu-web-doc-update
 
 distclean-local: clean-GNUmakefile
 clean-GNUmakefile:
-	test x'$(VPATH)' != x && rm -f $(top_builddir)/GNUmakefile || :
+	test '$(srcdir)' = . || rm -f $(top_builddir)/GNUmakefile
 
 EXTRA_DIST += $(top_srcdir)/GNUmakefile
 
@@ -1795,6 +1795,7 @@ EXTRA_libgnu_la_SOURCES += stat.c
 
 ## begin gnulib module stat-time
 
+libgnu_la_SOURCES += stat-time.c
 
 EXTRA_DIST += stat-time.h
 
@@ -2133,6 +2134,7 @@ stdlib.h: stdlib.in.h $(top_builddir)/config.status $(CXXDEFS_H) \
 	      -e 's|@''REPLACE_MALLOC''@|$(REPLACE_MALLOC)|g' \
 	      -e 's|@''REPLACE_MBTOWC''@|$(REPLACE_MBTOWC)|g' \
 	      -e 's|@''REPLACE_MKSTEMP''@|$(REPLACE_MKSTEMP)|g' \
+	      -e 's|@''REPLACE_PTSNAME''@|$(REPLACE_PTSNAME)|g' \
 	      -e 's|@''REPLACE_PTSNAME_R''@|$(REPLACE_PTSNAME_R)|g' \
 	      -e 's|@''REPLACE_PUTENV''@|$(REPLACE_PUTENV)|g' \
 	      -e 's|@''REPLACE_RANDOM_R''@|$(REPLACE_RANDOM_R)|g' \
@@ -3008,7 +3010,7 @@ EXTRA_libgnu_la_SOURCES += write.c
 
 ## begin gnulib module xsize
 
-libgnu_la_SOURCES += xsize.h
+libgnu_la_SOURCES += xsize.h xsize.c
 
 ## end   gnulib module xsize
 

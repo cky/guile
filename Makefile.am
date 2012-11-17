@@ -50,7 +50,6 @@ EXTRA_DIST = LICENSE HACKING GUILE-VERSION			\
 	     gnulib-local/lib/localcharset.h.diff		\
 	     gnulib-local/lib/localcharset.c.diff		\
 	     gnulib-local/m4/clock_time.m4.diff			\
-	     gnulib-local/m4/canonicalize.m4.diff		\
 	     gnulib-local/build-aux/git-version-gen.diff
 
 TESTS = check-guile
