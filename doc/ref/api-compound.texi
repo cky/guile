@@ -105,10 +105,14 @@ Return 1 when @var{x} is a pair; otherwise return 0.
 The two parts of a pair are traditionally called @dfn{car} and
 @dfn{cdr}.  They can be retrieved with procedures of the same name
 (@code{car} and @code{cdr}), and can be modified with the procedures
-@code{set-car!} and @code{set-cdr!}.  Since a very common operation in
-Scheme programs is to access the car of a car of a pair, or the car of
-the cdr of a pair, etc., the procedures called @code{caar},
-@code{cadr} and so on are also predefined.
+@code{set-car!} and @code{set-cdr!}.
+
+Since a very common operation in Scheme programs is to access the car of
+a car of a pair, or the car of the cdr of a pair, etc., the procedures
+called @code{caar}, @code{cadr} and so on are also predefined.  However,
+using these procedures is often detrimental to readability, and
+error-prone.  Thus, accessing the contents of a list is usually better
+achieved using pattern matching techniques (@pxref{Pattern Matching}).
 
 @rnindex car
 @rnindex cdr
