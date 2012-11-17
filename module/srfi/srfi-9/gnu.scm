@@ -30,9 +30,9 @@
             set-field
             set-fields))
 
-(define (set-record-type-printer! type thunk)
-  "Set a custom printer THUNK for TYPE."
-  (struct-set! type vtable-index-printer thunk))
+(define (set-record-type-printer! type proc)
+  "Set PROC as the custom printer for TYPE."
+  (struct-set! type vtable-index-printer proc))
 
 (define-syntax-rule (define-immutable-record-type name ctor pred fields ...)
   ((@@ (srfi srfi-9) %define-record-type)
