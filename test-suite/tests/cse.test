@@ -292,4 +292,21 @@
    (begin (cons 1 2 3) 4)
    (begin
      (apply (primitive cons) (const 1) (const 2) (const 3))
-     (const 4))))
+     (const 4)))
+
+  (pass-if "http://bugs.gnu.org/12883"
+    ;; In 2.0.6, compiling this code would trigger an out-of-bounds
+    ;; vlist access in CSE's traversal of its "database".
+    (glil-program?
+     (compile '(define (proc v)
+                 (let ((failure (lambda () (bail-out 'match))))
+                   (if (and (pair? v)
+                            (null? (cdr v)))
+                       (let ((w foo)
+                             (x (cdr w)))
+                         (if (and (pair? x) (null? w))
+                             #t
+                             (failure)))
+                       (failure))))
+              #:from 'scheme
+              #:to 'glil))))
