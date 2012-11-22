@@ -73,7 +73,7 @@
 	  let-syntax letrec-syntax
 
 	  syntax-rules identifier-syntax)
-  (import (rename (except (guile) error raise map)
+  (import (rename (except (guile) error raise map string-for-each)
                   (log log-internal)
                   (euclidean-quotient div)
                   (euclidean-remainder mod)
@@ -85,6 +85,43 @@
                   (exact->inexact inexact)
                   (inexact->exact exact))
           (srfi srfi-11))
+
+ (define string-for-each
+   (case-lambda
+     ((proc string)
+      (let ((end (string-length string)))
+        (let loop ((i 0))
+          (unless (= i end)
+            (proc (string-ref string i))
+            (loop (+ i 1))))))
+     ((proc string1 string2)
+      (let ((end1 (string-length string1))
+            (end2 (string-length string2)))
+        (unless (= end1 end2)
+          (assertion-violation 'string-for-each
+                               "string arguments must all have the same length"
+                               string1 string2))
+        (let loop ((i 0))
+          (unless (= i end1)
+            (proc (string-ref string1 i)
+                  (string-ref string2 i))
+            (loop (+ i 1))))))
+     ((proc string . strings)
+      (let ((end (string-length string))
+            (ends (map string-length strings)))
+        (for-each (lambda (x)
+                    (unless (= end x)
+                      (apply assertion-violation
+                             'string-for-each
+                             "string arguments must all have the same length"
+                             string strings)))
+                  ends)
+        (let loop ((i 0))
+          (unless (= i end)
+            (apply proc
+                   (string-ref string i)
+                   (map (lambda (s) (string-ref s i)) strings))
+            (loop (+ i 1))))))))
 
  (define map
    (case-lambda

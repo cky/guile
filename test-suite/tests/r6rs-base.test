@@ -196,3 +196,43 @@
     (guard (condition ((assertion-violation? condition) #t))
       (assert #f)
       #f)))
+
+(with-test-prefix "string-for-each"
+  (pass-if "reverse string"
+    (let ((s "reverse me") (l '()))
+      (string-for-each (lambda (x) (set! l (cons x l))) s)
+      (equal? "em esrever" (list->string l))))
+  (pass-if "two strings good"
+    (let ((s1 "two legs good")
+          (s2 "four legs bad")
+          (c '()))
+      (string-for-each (lambda (c1 c2)
+                         (set! c (cons* c2 c1 c)))
+                       s1 s2)
+      (equal? (list->string c)
+              "ddaobo gs gsegle lr uoowft")))
+  (pass-if "two strings bad"
+    (let ((s1 "frotz")
+          (s2 "veeblefetzer"))
+      (guard (condition ((assertion-violation? condition) #t))
+        (string-for-each (lambda (s1 s2) #f) s1 s2)
+        #f)))
+  (pass-if "many strings good"
+    (let ((s1 "foo")
+          (s2 "bar")
+          (s3 "baz")
+          (s4 "zot")
+          (c '()))
+      (string-for-each (lambda (c1 c2 c3 c4)
+                         (set! c (cons* c4 c3 c2 c1 c)))
+                       s1 s2 s3 s4)
+      (equal? (list->string c)
+              "tzrooaaozbbf")))
+  (pass-if "many strings bad"
+    (let ((s1 "foo")
+          (s2 "bar")
+          (s3 "baz")
+          (s4 "quux"))
+      (guard (condition ((assertion-violation? condition) #t))
+        (string-for-each (lambda _ #f) s1 s2 s3 s4)
+        #f))))
