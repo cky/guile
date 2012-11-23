@@ -661,7 +661,8 @@ name is as for @code{compile-file} (see below).
 Emit warnings of type @var{warning}; use @code{--warn=help} for a list
 of available warnings and their description.  Currently recognized
 warnings include @code{unused-variable}, @code{unused-toplevel},
-@code{unbound-variable}, @code{arity-mismatch}, and @code{format}.
+@code{unbound-variable}, @code{arity-mismatch}, @code{format},
+@code{duplicate-case-datum}, and @code{bad-case-datum}.
 
 @item -f @var{lang}
 @itemx --from=@var{lang}
