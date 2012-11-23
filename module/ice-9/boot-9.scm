@@ -3565,7 +3565,8 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define %auto-compilation-options
   ;; Default `compile-file' option when auto-compiling.
-  '(#:warnings (unbound-variable arity-mismatch format)))
+  '(#:warnings (unbound-variable arity-mismatch format
+                duplicate-case-datum bad-case-datum)))
 
 (define* (load-in-vicinity dir path #:optional reader)
   (define (canonical->suffix canon)
