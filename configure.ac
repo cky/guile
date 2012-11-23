@@ -748,10 +748,13 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   isblank - available as a GNU extension or in C99
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
+#   fork - unavailable on Windows
 #   utimensat: posix.1-2008
 #   sched_getaffinity, sched_setaffinity: GNU extensions (glibc)
 #
 AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown fchmod getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe poll readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale utimensat sched_getaffinity sched_setaffinity])
+
+AM_CONDITIONAL([HAVE_FORK], [test "x$ac_cv_func_fork" = "xyes"])
 
 # Reasons for testing:
 #   netdb.h - not in mingw

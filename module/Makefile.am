@@ -220,7 +220,6 @@ ICE_9_SOURCES = \
   ice-9/optargs.scm \
   ice-9/poe.scm \
   ice-9/poll.scm \
-  ice-9/popen.scm \
   ice-9/posix.scm \
   ice-9/q.scm \
   ice-9/rdelim.scm \
@@ -251,6 +250,13 @@ ICE_9_SOURCES = \
   ice-9/list.scm \
   ice-9/serialize.scm \
   ice-9/local-eval.scm
+
+if HAVE_FORK
+
+# This functionality is missing on systems without `fork'---i.e., Windows.
+ICE_9_SOURCES += ice-9/popen.scm
+
+endif HAVE_FORK
 
 SRFI_SOURCES = \
   srfi/srfi-2.scm \
