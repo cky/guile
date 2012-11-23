@@ -776,6 +776,12 @@
 (define %opts-w-format
   '(#:warnings (format)))
 
+(define %opts-w-duplicate-case-datum
+  '(#:warnings (duplicate-case-datum)))
+
+(define %opts-w-bad-case-datum
+  '(#:warnings (bad-case-datum)))
+
 
 (with-test-prefix "warnings"
 
@@ -1780,7 +1786,71 @@
                               #:opts %opts-w-format
                               #:to 'assembly)))))
            (and (= (length w) 1)
-                (number? (string-contains (car w) "unsupported format option"))))))))
+                (number? (string-contains (car w) "unsupported format option")))))))
+
+   (with-test-prefix "duplicate-case-datum"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(case x ((1) 'one) ((2) 'two))
+                           #:opts %opts-w-duplicate-case-datum
+                           #:to 'assembly)))))
+
+     (pass-if "one duplicate"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(case x
+                                ((1) 'one)
+                                ((2) 'two)
+                                ((1) 'one-again))
+                             #:opts %opts-w-duplicate-case-datum
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w) "duplicate")))))
+
+     (pass-if "one duplicate"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(case x
+                                ((1 2 3) 'a)
+                                ((1)     'one))
+                             #:opts %opts-w-duplicate-case-datum
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w) "duplicate"))))))
+
+   (with-test-prefix "bad-case-datum"
+
+     (pass-if "quiet"
+       (null? (call-with-warnings
+                (lambda ()
+                  (compile '(case x ((1) 'one) ((2) 'two))
+                           #:opts %opts-w-bad-case-datum
+                           #:to 'assembly)))))
+
+     (pass-if "not eqv?"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(case x
+                                ((1)     'one)
+                                (("bad") 'bad))
+                             #:opts %opts-w-bad-case-datum
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "cannot be meaningfully compared")))))
+
+     (pass-if "one clause element not eqv?"
+       (let ((w (call-with-warnings
+                  (lambda ()
+                    (compile '(case x
+                                ((1 (2) 3) 'a))
+                             #:opts %opts-w-duplicate-case-datum
+                             #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "cannot be meaningfully compared")))))))
 
 ;; Local Variables:
 ;; eval: (put 'pass-if-primitives-resolved 'scheme-indent-function 1)
