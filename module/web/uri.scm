@@ -79,8 +79,10 @@
 
 (define* (build-uri scheme #:key userinfo host port (path "") query fragment
                     (validate? #t))
-  "Construct a URI object. If @var{validate?} is true, also run some
-consistency checks to make sure that the constructed URI is valid."
+  "Construct a URI object.  SCHEME should be a symbol, and the rest
+of the fields are either strings or ‘#f’.  If VALIDATE? is
+true, also run some consistency checks to make sure that the constructed
+URI is valid."
   (if validate?
       (validate-uri scheme userinfo host port path query fragment))
   (make-uri scheme userinfo host port path query fragment))
@@ -168,7 +170,7 @@ consistency checks to make sure that the constructed URI is valid."
   (make-regexp uri-pat))
 
 (define (string->uri string)
-  "Parse @var{string} into a URI object. Returns @code{#f} if the string
+  "Parse STRING into a URI object.  Return ‘#f’ if the string
 could not be parsed."
   (% (let ((m (regexp-exec uri-regexp string)))
        (if (not m) (abort))
@@ -191,10 +193,7 @@ could not be parsed."
 (define *default-ports* (make-hash-table))
 
 (define (declare-default-port! scheme port)
-  "Declare a default port for the given URI scheme.
-
-Default ports are for printing URI objects: a default port is not
-printed."
+  "Declare a default port for the given URI scheme."
   (hashq-set! *default-ports* scheme port))
 
 (define (default-port? scheme port)
@@ -205,7 +204,9 @@ printed."
 (declare-default-port! 'https 443)
 
 (define (uri->string uri)
-  "Serialize @var{uri} to a string."
+  "Serialize URI to a string.  If the URI has a port that is the
+default port for its scheme, the port is not included in the
+serialization."
   (let* ((scheme-str (string-append
                       (symbol->string (uri-scheme uri)) ":"))
          (userinfo (uri-userinfo uri))
@@ -285,26 +286,32 @@ printed."
 ;; characters in other character sets.
 ;;
 
-;; Return a new string made from uri-decoding @var{str}.  Specifically,
-;; turn @code{+} into space, and hex-encoded @code{%XX} strings into
+;; Return a new string made from uri-decoding STR.  Specifically,
+;; turn ‘+’ into space, and hex-encoded ‘%XX’ strings into
 ;; their eight-bit characters.
 ;;
 (define hex-chars
   (string->char-set "0123456789abcdefABCDEF"))
 
 (define* (uri-decode str #:key (encoding "utf-8"))
-  "Percent-decode the given @var{str}, according to @var{encoding}.
+  "Percent-decode the given STR, according to ENCODING,
+which should be the name of a character encoding.
 
 Note that this function should not generally be applied to a full URI
 string. For paths, use split-and-decode-uri-path instead. For query
-strings, split the query on @code{&} and @code{=} boundaries, and decode
+strings, split the query on ‘&’ and ‘=’ boundaries, and decode
 the components separately.
 
-Note that percent-encoded strings encode @emph{bytes}, not characters.
-There is no guarantee that a given byte sequence is a valid string
-encoding. Therefore this routine may signal an error if the decoded
-bytes are not valid for the given encoding. Pass @code{#f} for
-@var{encoding} if you want decoded bytes as a bytevector directly."
+Note also that percent-encoded strings encode @emph{bytes}, not
+characters.  There is no guarantee that a given byte sequence is a valid
+string encoding. Therefore this routine may signal an error if the
+decoded bytes are not valid for the given encoding. Pass ‘#f’ for
+ENCODING if you want decoded bytes as a bytevector directly.
+@xref{Ports, ‘set-port-encoding!’}, for more information on
+character encodings.
+
+Returns a string of the decoded characters, or a bytevector if
+ENCODING was ‘#f’."
   (let* ((len (string-length str))
          (bv
           (call-with-output-bytevector*
@@ -353,16 +360,19 @@ bytes are not valid for the given encoding. Pass @code{#f} for
   (char-set-union ascii-alnum-chars
                   (string->char-set "-._~")))
 
-;; Return a new string made from uri-encoding @var{str}, unconditionally
-;; transforming any characters not in @var{unescaped-chars}.
+;; Return a new string made from uri-encoding STR, unconditionally
+;; transforming any characters not in UNESCAPED-CHARS.
 ;;
 (define* (uri-encode str #:key (encoding "utf-8")
                      (unescaped-chars unreserved-chars))
-  "Percent-encode any character not in the character set, @var{unescaped-chars}.
+  "Percent-encode any character not in the character set,
+UNESCAPED-CHARS.
 
-Percent-encoding first writes out the given character to a bytevector
-within the given @var{encoding}, then encodes each byte as
-@code{%@var{HH}}, where @var{HH} is the hexadecimal representation of
+The default character set includes alphanumerics from ASCII, as well as
+the special characters @samp{-}, @samp{.}, @samp{_}, and @samp{~}.  Any
+other character will be percent-encoded, by writing out the character to
+a bytevector within the given ENCODING, then encoding each byte as
+‘%HH’, where HH is the hexadecimal representation of
 the byte."
   (define (needs-escaped? ch)
     (not (char-set-contains? unescaped-chars ch)))
@@ -387,15 +397,18 @@ the byte."
       str))
 
 (define (split-and-decode-uri-path path)
-  "Split @var{path} into its components, and decode each
-component, removing empty components.
+  "Split PATH into its components, and decode each component,
+removing empty components.
 
-For example, @code{\"/foo/bar/\"} decodes to the two-element list,
-@code{(\"foo\" \"bar\")}."
+For example, ‘\"/foo/bar%20baz/\"’ decodes to the two-element list,
+‘(\"foo\" \"bar baz\")’."
   (filter (lambda (x) (not (string-null? x)))
           (map uri-decode (string-split path #\/))))
 
 (define (encode-and-join-uri-path parts)
-  "URI-encode each element of @var{parts}, which should be a list of
-strings, and join the parts together with @code{/} as a delimiter."
+  "URI-encode each element of PARTS, which should be a list of
+strings, and join the parts together with ‘/’ as a delimiter.
+
+For example, the list ‘(\"scrambled eggs\" \"biscuits&gravy\")’
+encodes as ‘\"scrambled%20eggs/biscuits%26gravy\"’."
   (string-join (map uri-encode parts) "/"))

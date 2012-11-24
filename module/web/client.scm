@@ -115,6 +115,15 @@
 (define* (http-get uri #:key (port (open-socket-for-uri uri))
                    (version '(1 . 1)) (keep-alive? #f) (extra-headers '())
                    (decode-body? #t))
+  "Connect to the server corresponding to URI and ask for the
+resource, using the ‘GET’ method.  If you already have a port open,
+pass it as PORT.  The port will be closed at the end of the
+request unless KEEP-ALIVE? is true.  Any extra headers in the
+alist EXTRA-HEADERS will be added to the request.
+
+If DECODE-BODY? is true, as is the default, the body of the
+response will be decoded to string, if it is a textual content-type.
+Otherwise it will be returned as a bytevector."
   (let ((req (build-request uri #:version version
                             #:headers (if keep-alive?
                                           extra-headers

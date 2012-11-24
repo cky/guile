@@ -107,7 +107,7 @@
 
 (define* (build-response #:key (version '(1 . 1)) (code 200) reason-phrase
                          (headers '()) port (validate-headers? #t))
-  "Construct an HTTP response object. If @var{validate-headers?} is true,
+  "Construct an HTTP response object. If VALIDATE-HEADERS? is true,
 the headers are each run through their respective validators."
   (cond
    ((not (and (pair? version)
@@ -170,15 +170,15 @@ the headers are each run through their respective validators."
       "(Unknown)"))
 
 (define (response-reason-phrase response)
-  "Return the reason phrase given in @var{response}, or the standard
+  "Return the reason phrase given in RESPONSE, or the standard
 reason phrase for the response's code."
   (or (%response-reason-phrase response)
       (code->reason-phrase (response-code response))))
 
 (define (read-response port)
-  "Read an HTTP response from @var{port}.
+  "Read an HTTP response from PORT.
 
-As a side effect, sets the encoding on @var{port} to
+As a side effect, sets the encoding on PORT to
 ISO-8859-1 (latin-1), so that reading one character reads one byte.  See
 the discussion of character sets in \"HTTP Responses\" in the manual,
 for more information."
@@ -202,10 +202,10 @@ the version field."
                   #:port (response-port response)))
 
 (define (write-response r port)
-  "Write the given HTTP response to @var{port}.
+  "Write the given HTTP response to PORT.
 
-Returns a new response, whose @code{response-port} will continue writing
-on @var{port}, perhaps using some transfer encoding."
+Returns a new response, whose ‘response-port’ will continue writing
+on PORT, perhaps using some transfer encoding."
   (write-response-line (response-version r) (response-code r)
                        (response-reason-phrase r) port)
   (write-headers (response-headers r) port)
@@ -216,7 +216,7 @@ on @var{port}, perhaps using some transfer encoding."
                      (response-reason-phrase r) (response-headers r) port)))
 
 (define (response-must-not-include-body? r)
-  "Returns @code{#t} if the response @var{r} is not permitted to have a body.
+  "Returns ‘#t’ if the response R is not permitted to have a body.
 
 This is true for some response types, like those with code 304."
   ;; RFC 2616, section 4.3.
@@ -225,8 +225,8 @@ This is true for some response types, like those with code 304."
       (= (response-code r) 304)))
 
 (define (read-response-body r)
-  "Reads the response body from @var{r}, as a bytevector.  Returns
-@code{#f} if there was no response body."
+  "Reads the response body from R, as a bytevector.  Returns
+‘#f’ if there was no response body."
   (if (member '(chunked) (response-transfer-encoding r))
       (let ((chunk-port (make-chunked-input-port (response-port r)
                                                  #:keep-alive? #t)))
@@ -240,8 +240,8 @@ This is true for some response types, like those with code 304."
                                  (bytevector-length bv) nbytes)))))))
 
 (define (write-response-body r bv)
-  "Write @var{bv}, a bytevector, to the port corresponding to the HTTP
-response @var{r}."
+  "Write BV, a bytevector, to the port corresponding to the HTTP
+response R."
   (put-bytevector (response-port r) bv))
 
 (define-syntax define-response-accessor

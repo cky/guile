@@ -431,8 +431,8 @@ from @code{header-writer}.
 @end deffn
 
 @deffn {Scheme Procedure} read-headers port
-Read the headers of an HTTP message from @var{port}, returning the
-headers as an ordered alist.
+Read the headers of an HTTP message from @var{port}, returning them
+as an ordered alist.
 @end deffn
 
 @deffn {Scheme Procedure} write-headers headers port
@@ -1368,6 +1368,7 @@ Return the given response header, or @var{default} if none was present.
 the lower-level HTTP, request, and response modules.
 
 @deffn {Scheme Procedure} open-socket-for-uri uri
+Return an open input/output port for a connection to URI.
 @end deffn
 
 @deffn {Scheme Procedure} http-get uri [#:port=(open-socket-for-uri uri)] [#:version='(1 . 1)] [#:keep-alive?=#f] [#:extra-headers='()] [#:decode-body?=#t]
@@ -1470,17 +1471,17 @@ the server socket.
 
 A user may define a server implementation with the following form:
 
-@deffn {Scheme Procedure} define-server-impl name open read write close
+@deffn {Scheme Syntax} define-server-impl name open read write close
 Make a @code{<server-impl>} object with the hooks @var{open},
 @var{read}, @var{write}, and @var{close}, and bind it to the symbol
 @var{name} in the current module.
 @end deffn
 
 @deffn {Scheme Procedure} lookup-server-impl impl
-Look up a server implementation. If @var{impl} is a server
-implementation already, it is returned directly. If it is a symbol, the
+Look up a server implementation.  If @var{impl} is a server
+implementation already, it is returned directly.  If it is a symbol, the
 binding named @var{impl} in the @code{(web server @var{impl})} module is
-looked up. Otherwise an error is signaled.
+looked up.  Otherwise an error is signaled.
 
 Currently a server implementation is a somewhat opaque type, useful only
 for passing to other procedures in this module, like @code{read-client}.
@@ -1494,7 +1495,7 @@ any access to the impl objects.
 
 @deffn {Scheme Procedure} open-server impl open-params
 Open a server for the given implementation.  Return one value, the new
-server object. The implementation's @code{open} procedure is applied to
+server object.  The implementation's @code{open} procedure is applied to
 @var{open-params}, which should be a list.
 @end deffn
 
@@ -1502,7 +1503,7 @@ server object. The implementation's @code{open} procedure is applied to
 Read a new client from @var{server}, by applying the implementation's
 @code{read} procedure to the server.  If successful, return three
 values: an object corresponding to the client, a request object, and the
-request body. If any exception occurs, return @code{#f} for all three
+request body.  If any exception occurs, return @code{#f} for all three
 values.
 @end deffn
 
@@ -1513,9 +1514,9 @@ The response and response body are produced by calling the given
 @var{handler} with @var{request} and @var{body} as arguments.
 
 The elements of @var{state} are also passed to @var{handler} as
-arguments, and may be returned as additional values. The new
+arguments, and may be returned as additional values.  The new
 @var{state}, collected from the @var{handler}'s return values, is then
-returned as a list. The idea is that a server loop receives a handler
+returned as a list.  The idea is that a server loop receives a handler
 from the user, along with whatever state values the user is interested
 in, allowing the user's handler to explicitly manage its state.
 @end deffn
@@ -1526,20 +1527,20 @@ given request.
 
 As a convenience to web handler authors, @var{response} may be given as
 an alist of headers, in which case it is used to construct a default
-response. Ensures that the response version corresponds to the request
-version. If @var{body} is a string, encodes the string to a bytevector,
-in an encoding appropriate for @var{response}. Adds a
+response.  Ensures that the response version corresponds to the request
+version.  If @var{body} is a string, encodes the string to a bytevector,
+in an encoding appropriate for @var{response}.  Adds a
 @code{content-length} and @code{content-type} header, as necessary.
 
 If @var{body} is a procedure, it is called with a port as an argument,
-and the output collected as a bytevector. In the future we might try to
+and the output collected as a bytevector.  In the future we might try to
 instead use a compressing, chunk-encoded port, and call this procedure
-later, in the write-client procedure. Authors are advised not to rely on
+later, in the write-client procedure.  Authors are advised not to rely on
 the procedure being called at any particular time.
 @end deffn
 
 @deffn {Scheme Procedure} write-client impl server client response body
-Write an HTTP response and body to @var{client}. If the server and
+Write an HTTP response and body to @var{client}.  If the server and
 client support persistent connections, it is the implementation's
 responsibility to keep track of the client thereafter, presumably by
 attaching it to the @var{server} argument somehow.
@@ -1572,7 +1573,7 @@ before sending back to the client.
 
 Additional arguments to @var{handler} are taken from @var{state}.
 Additional return values are accumulated into a new @var{state}, which
-will be used for subsequent requests. In this way a handler can
+will be used for subsequent requests.  In this way a handler can
 explicitly manage its state.
 @end deffn
 

@@ -160,7 +160,7 @@
 (define* (build-request uri #:key (method 'GET) (version '(1 . 1))
                         (headers '()) port (meta '())
                         (validate-headers? #t))
-  "Construct an HTTP request object. If @var{validate-headers?} is true,
+  "Construct an HTTP request object. If VALIDATE-HEADERS? is true,
 the headers are each run through their respective validators."
   (let ((needs-host? (and (equal? version '(1 . 1))
                           (not (assq-ref headers 'host)))))
@@ -189,13 +189,17 @@ the headers are each run through their respective validators."
                   meta port)))
 
 (define* (read-request port #:optional (meta '()))
-  "Read an HTTP request from @var{port}, optionally attaching the given
-metadata, @var{meta}.
+  "Read an HTTP request from PORT, optionally attaching the given
+metadata, META.
 
-As a side effect, sets the encoding on @var{port} to
+As a side effect, sets the encoding on PORT to
 ISO-8859-1 (latin-1), so that reading one character reads one byte.  See
 the discussion of character sets in \"HTTP Requests\" in the manual, for
-more information."
+more information.
+
+Note that the body is not part of the request.  Once you have read a
+request, you may read the body separately, and likewise for writing
+requests."
   (set-port-encoding! port "ISO-8859-1")
   (call-with-values (lambda () (read-request-line port))
     (lambda (method uri version)
@@ -203,10 +207,10 @@ more information."
 
 ;; FIXME: really return a new request?
 (define (write-request r port)
-  "Write the given HTTP request to @var{port}.
+  "Write the given HTTP request to PORT.
 
-Returns a new request, whose @code{request-port} will continue writing
-on @var{port}, perhaps using some transfer encoding."
+Return a new request, whose ‘request-port’ will continue writing
+on PORT, perhaps using some transfer encoding."
   (write-request-line (request-method r) (request-uri r)
                       (request-version r) port)
   (write-headers (request-headers r) port)
@@ -217,8 +221,8 @@ on @var{port}, perhaps using some transfer encoding."
                     (request-headers r) (request-meta r) port)))
 
 (define (read-request-body r)
-  "Reads the request body from @var{r}, as a bytevector.  Returns
-@code{#f} if there was no request body."
+  "Reads the request body from R, as a bytevector.  Return ‘#f’
+if there was no request body."
   (let ((nbytes (request-content-length r)))
     (and nbytes
          (let ((bv (get-bytevector-n (request-port r) nbytes)))
@@ -228,8 +232,8 @@ on @var{port}, perhaps using some transfer encoding."
                             (bytevector-length bv) nbytes))))))
 
 (define (write-request-body r bv)
-  "Write @var{bv}, a bytevector, to the port corresponding to the HTTP
-request @var{r}."
+  "Write BV, a bytevector, to the port corresponding to the HTTP
+request R."
   (put-bytevector (request-port r) bv))
 
 (define-syntax define-request-accessor
@@ -297,6 +301,8 @@ request @var{r}."
 
 ;; Misc accessors
 (define* (request-absolute-uri r #:optional default-host default-port)
+  "A helper routine to determine the absolute URI of a request, using the
+‘host’ header and the default host and port."
   (let ((uri (request-uri r)))
     (if (uri-host uri)
         uri

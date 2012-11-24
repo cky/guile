@@ -123,14 +123,14 @@
     (make-server-impl 'name open read write close)))
 
 (define (lookup-server-impl impl)
-  "Look up a server implementation.  If @var{impl} is a server
+  "Look up a server implementation.  If IMPL is a server
 implementation already, it is returned directly.  If it is a symbol, the
-binding named @var{impl} in the @code{(web server @var{impl})} module is
+binding named IMPL in the ‘(web server IMPL)’ module is
 looked up.  Otherwise an error is signaled.
 
 Currently a server implementation is a somewhat opaque type, useful only
 for passing to other procedures in this module, like
-@code{read-client}."
+‘read-client’."
   (cond
    ((server-impl? impl) impl)
    ((symbol? impl)
@@ -143,17 +143,17 @@ for passing to other procedures in this module, like
 
 ;; -> server
 (define (open-server impl open-params)
-  "Open a server for the given implementation.  Returns one value, the
-new server object.  The implementation's @code{open} procedure is
-applied to @var{open-params}, which should be a list."
+  "Open a server for the given implementation.  Return one value, the
+new server object.  The implementation's ‘open’ procedure is
+applied to OPEN-PARAMS, which should be a list."
   (apply (server-impl-open impl) open-params))
 
 ;; -> (client request body | #f #f #f)
 (define (read-client impl server)
-  "Read a new client from @var{server}, by applying the implementation's
-@code{read} procedure to the server.  If successful, returns three
+  "Read a new client from SERVER, by applying the implementation's
+‘read’ procedure to the server.  If successful, return three
 values: an object corresponding to the client, a request object, and the
-request body.  If any exception occurs, returns @code{#f} for all three
+request body.  If any exception occurs, return ‘#f’ for all three
 values."
   (call-with-error-handling
    (lambda ()
@@ -213,14 +213,14 @@ values."
   "\"Sanitize\" the given response and body, making them appropriate for
 the given request.
 
-As a convenience to web handler authors, @var{response} may be given as
+As a convenience to web handler authors, RESPONSE may be given as
 an alist of headers, in which case it is used to construct a default
 response.  Ensures that the response version corresponds to the request
-version.  If @var{body} is a string, encodes the string to a bytevector,
-in an encoding appropriate for @var{response}.  Adds a
-@code{content-length} and @code{content-type} header, as necessary.
+version.  If BODY is a string, encodes the string to a bytevector,
+in an encoding appropriate for RESPONSE.  Adds a
+‘content-length’ and ‘content-type’ header, as necessary.
 
-If @var{body} is a procedure, it is called with a port as an argument,
+If BODY is a procedure, it is called with a port as an argument,
 and the output collected as a bytevector.  In the future we might try to
 instead use a compressing, chunk-encoded port, and call this procedure
 later, in the write-client procedure.  Authors are advised not to rely
@@ -290,11 +290,11 @@ on the procedure being called at any particular time."
   "Handle a given request, returning the response and body.
 
 The response and response body are produced by calling the given
-@var{handler} with @var{request} and @var{body} as arguments.
+HANDLER with REQUEST and BODY as arguments.
 
-The elements of @var{state} are also passed to @var{handler} as
+The elements of STATE are also passed to HANDLER as
 arguments, and may be returned as additional values.  The new
-@var{state}, collected from the @var{handler}'s return values, is then
+STATE, collected from the HANDLER's return values, is then
 returned as a list.  The idea is that a server loop receives a handler
 from the user, along with whatever state values the user is interested
 in, allowing the user's handler to explicitly manage its state."
@@ -318,10 +318,10 @@ in, allowing the user's handler to explicitly manage its state."
 
 ;; -> unspecified values
 (define (write-client impl server client response body)
-  "Write an HTTP response and body to @var{client}.  If the server and
+  "Write an HTTP response and body to CLIENT.  If the server and
 client support persistent connections, it is the implementation's
 responsibility to keep track of the client thereafter, presumably by
-attaching it to the @var{server} argument somehow."
+attaching it to the SERVER argument somehow."
   (call-with-error-handling
    (lambda ()
      ((server-impl-write impl) server client response body))
@@ -332,7 +332,7 @@ attaching it to the @var{server} argument somehow."
 ;; -> unspecified values
 (define (close-server impl server)
   "Release resources allocated by a previous invocation of
-@code{open-server}."
+‘open-server’."
   ((server-impl-close impl) server))
 
 (define call-with-sigint
@@ -363,8 +363,8 @@ attaching it to the @var{server} argument somehow."
   
 ;; -> new-state
 (define (serve-one-client handler impl server state)
-  "Read one request from @var{server}, call @var{handler} on the request
-and body, and write the response to the client.  Returns the new state
+  "Read one request from SERVER, call HANDLER on the request
+and body, and write the response to the client.  Return the new state
 produced by the handler procedure."
   (debug-elapsed 'serve-again)
   (call-with-values
@@ -387,7 +387,7 @@ produced by the handler procedure."
                      . state)
   "Run Guile's built-in web server.
 
-@var{handler} should be a procedure that takes two or more arguments,
+HANDLER should be a procedure that takes two or more arguments,
 the HTTP request and request body, and returns two or more values, the
 response and response body.
 
@@ -400,16 +400,16 @@ For example, here is a simple \"Hello, World!\" server:
  (run-server handler)
 @end example
 
-The response and body will be run through @code{sanitize-response}
+The response and body will be run through ‘sanitize-response’
 before sending back to the client.
 
-Additional arguments to @var{handler} are taken from
-@var{state}. Additional return values are accumulated into a new
-@var{state}, which will be used for subsequent requests.  In this way a
+Additional arguments to HANDLER are taken from
+STATE.  Additional return values are accumulated into a new
+STATE, which will be used for subsequent requests.  In this way a
 handler can explicitly manage its state.
 
-The default server implementation is @code{http}, which accepts
-@var{open-params} like @code{(#:port 8081)}, among others.  See \"Web
+The default server implementation is ‘http’, which accepts
+OPEN-PARAMS like ‘(#:port 8081)’, among others.  See \"Web
 Server\" in the manual, for more information."
   (let* ((impl (lookup-server-impl impl))
          (server (open-server impl open-params)))
