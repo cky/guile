@@ -79,10 +79,11 @@
 
 (define* (build-uri scheme #:key userinfo host port (path "") query fragment
                     (validate? #t))
-  "Construct a URI object.  SCHEME should be a symbol, and the rest
-of the fields are either strings or ‘#f’.  If VALIDATE? is
-true, also run some consistency checks to make sure that the constructed
-URI is valid."
+  "Construct a URI object.  SCHEME should be a symbol, PORT
+either a positive, exact integer or ‘#f’, and the rest of the
+fields are either strings or ‘#f’.  If VALIDATE? is true,
+also run some consistency checks to make sure that the constructed URI
+is valid."
   (if validate?
       (validate-uri scheme userinfo host port path query fragment))
   (make-uri scheme userinfo host port path query fragment))

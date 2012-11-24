@@ -209,10 +209,11 @@ access to them.
 @deffn {Scheme Procedure} build-uri scheme [#:userinfo=@code{#f}] [#:host=@code{#f}] @
        [#:port=@code{#f}] [#:path=@code{""}] [#:query=@code{#f}] @
        [#:fragment=@code{#f}] [#:validate?=@code{#t}]
-Construct a URI object.  @var{scheme} should be a symbol, and the rest
-of the fields are either strings or @code{#f}.  If @var{validate?} is
-true, also run some consistency checks to make sure that the constructed
-URI is valid.
+Construct a URI object.  @var{scheme} should be a symbol, @var{port}
+either a positive, exact integer or @code{#f}, and the rest of the
+fields are either strings or @code{#f}.  If @var{validate?} is true,
+also run some consistency checks to make sure that the constructed URI
+is valid.
 @end deffn
 
 @deffn {Scheme Procedure} uri? x
@@ -224,8 +225,8 @@ URI is valid.
 @deffnx {Scheme Procedure} uri-query uri
 @deffnx {Scheme Procedure} uri-fragment uri
 A predicate and field accessors for the URI record type.  The URI scheme
-will be a symbol, and the rest either strings or @code{#f} if not
-present.
+will be a symbol, the port either a positive, exact integer or @code{#f},
+and the rest either strings or @code{#f} if not present.
 @end deffn
 
 @deffn {Scheme Procedure} string->uri string
