@@ -40,7 +40,13 @@
                      (substring (symbol->string (syntax->datum #'colon-n))
                                 1)))))
        (resolve-r6rs-interface
-        #`(library (srfi #,srfi-n rest ... (version ...))))))
+        (syntax-case #'(rest ...) ()
+          (()
+           #`(library (srfi #,srfi-n (version ...))))
+          ((name rest ...)
+           ;; SRFI 97 says that the first identifier after the colon-n
+           ;; is used for the libraries name, so it must be ignored.
+           #`(library (srfi #,srfi-n rest ... (version ...))))))))
     
     ((library (name name* ... (version ...)))
      (and-map sym? #'(name name* ...))

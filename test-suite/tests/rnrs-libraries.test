@@ -183,7 +183,9 @@
   (with-test-prefix "srfi"
     (pass-if "renaming works"
       (eq? (resolve-interface '(srfi srfi-1))
-           (resolve-r6rs-interface '(srfi :1)))))
+           (resolve-r6rs-interface '(srfi :1)))
+      (eq? (resolve-interface '(srfi srfi-1))
+           (resolve-r6rs-interface '(srfi :1 lists)))))
 
   (with-test-prefix "macro"
     (pass-if "multiple clauses"
