@@ -2101,8 +2101,8 @@ immutable.
 @deffn {Scheme Procedure} hashtable-copy hashtable
 @deffnx {Scheme Procedure} hashtable-copy hashtable mutable
 Returns a copy of the hash table @var{hashtable}.  If the optional
-argument @var{mutable} is a true value, the new hash table will be
-immutable.
+argument @var{mutable} is provided and is a true value, the new hash
+table will be mutable.
 @end deffn
 
 @deffn {Scheme Procedure} hashtable-clear! hashtable
