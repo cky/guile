@@ -3635,14 +3635,13 @@ reading PATH with READER."
   ;; (system base compile) to be loaded up. For that reason compiled-file-name
   ;; partially duplicates functionality from (system base compile).
 
-  (define (fresh-compiled-file-name name go-path)
+  (define (fresh-compiled-file-name name scmstat go-path)
     ;; Return GO-PATH after making sure that it contains a freshly compiled
-    ;; version of source file NAME; return #f on failure.
+    ;; version of source file NAME with stat SCMSTAT; return #f on failure.
     (catch #t
       (lambda ()
-        (let* ((scmstat (stat name))
-               (gostat  (and (not %fresh-auto-compile)
-                             (stat go-path #f))))
+        (let ((gostat (and (not %fresh-auto-compile)
+                           (stat go-path #f))))
           (if (and gostat (more-recent? gostat scmstat))
               go-path
               (begin
@@ -3667,20 +3666,47 @@ reading PATH with READER."
   (define (absolute-path? path)
     (string-prefix? "/" path))
 
+  (define (sans-extension file)
+    (let ((dot (string-rindex file #\.)))
+      (if dot
+          (substring file 0 dot)
+          file)))
+
   (define (load-absolute abs-path)
-    (let ((cfn (let ((canon (false-if-exception (canonicalize-path abs-path))))
-                 (and canon
-                      (let ((go-path (fallback-file-name canon)))
-                        (and go-path
-                             (fresh-compiled-file-name abs-path go-path)))))))
-      (if cfn
+    ;; Load from ABS-PATH, using a compiled file or auto-compiling if needed.
+    (define scmstat
+      (catch #t
+        (lambda ()
+          (stat abs-path))
+        (lambda (key . args)
+          (warn-about-exception key args)
+          #f)))
+
+    (define (pre-compiled)
+      (let ((go-path (search-path %load-compiled-path (sans-extension path)
+                                  %load-compiled-extensions #t)))
+        (and go-path
+             (let ((gostat (stat go-path #f)))
+               (and gostat (more-recent? gostat scmstat)
+                    go-path)))))
+
+    (define (fallback)
+      (let ((canon (false-if-exception (canonicalize-path abs-path))))
+        (and canon
+             (let ((go-path (fallback-file-name canon)))
+               (and go-path
+                    (fresh-compiled-file-name abs-path scmstat go-path))))))
+
+    (let ((compiled (and scmstat
+                         (or (pre-compiled) (fallback)))))
+      (if compiled
           (begin
             (if %load-hook
                 (%load-hook abs-path))
-            (load-compiled cfn))
+            (load-compiled compiled))
           (start-stack 'load-stack
                        (primitive-load abs-path)))))
-  
+
   (save-module-excursion
    (lambda ()
      (with-fluids ((current-reader reader)
