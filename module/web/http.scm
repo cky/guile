@@ -1185,6 +1185,21 @@ treated specially, and is just returned as a plain string."
     uri?
     write-uri))
 
+;; emacs: (put 'declare-relative-uri-header! 'scheme-indent-function 1)
+(define (declare-relative-uri-header! name)
+  (declare-header! name
+    (lambda (str)
+      ;; XXX: Attempt to build an absolute URI, and fall back to a URI
+      ;; with no scheme to represent a relative URI.
+      ;; See <http://bugs.gnu.org/12827> for ideas to fully support
+      ;; relative URIs (aka. "URI references").
+      (or (string->uri str)                       ; absolute URI
+          (build-uri #f                           ; relative URI
+                     #:path str
+                     #:validate? #f)))
+    uri?
+    write-uri))
+
 ;; emacs: (put 'declare-quality-list-header! 'scheme-indent-function 1)
 (define (declare-quality-list-header! name)
   (declare-header! name
@@ -1437,7 +1452,7 @@ treated specially, and is just returned as a plain string."
 
 ;; Content-Location = ( absoluteURI | relativeURI )
 ;;
-(declare-uri-header! "Content-Location")
+(declare-relative-uri-header! "Content-Location")
 
 ;; Content-MD5 = <base64 of 128 bit MD5 digest as per RFC 1864>
 ;;
@@ -1726,7 +1741,7 @@ treated specially, and is just returned as a plain string."
 
 ;; Referer = ( absoluteURI | relativeURI )
 ;;
-(declare-uri-header! "Referer")
+(declare-relative-uri-header! "Referer")
 
 ;; TE = #( t-codings )
 ;; t-codings = "trailers" | ( transfer-extension [ accept-params ] )
