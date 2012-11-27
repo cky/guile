@@ -1182,21 +1182,15 @@ treated specially, and is just returned as a plain string."
 (define (declare-uri-header! name)
   (declare-header! name
     (lambda (str) (or (string->uri str) (bad-header-component 'uri str)))
-    uri?
+    (@@ (web uri) absolute-uri?)
     write-uri))
 
 ;; emacs: (put 'declare-relative-uri-header! 'scheme-indent-function 1)
 (define (declare-relative-uri-header! name)
   (declare-header! name
     (lambda (str)
-      ;; XXX: Attempt to build an absolute URI, and fall back to a URI
-      ;; with no scheme to represent a relative URI.
-      ;; See <http://bugs.gnu.org/12827> for ideas to fully support
-      ;; relative URIs (aka. "URI references").
-      (or (string->uri str)                       ; absolute URI
-          (build-uri #f                           ; relative URI
-                     #:path str
-                     #:validate? #f)))
+      (or ((@@ (web uri) string->uri*) str)
+          (bad-header-component 'uri str)))
     uri?
     write-uri))
 

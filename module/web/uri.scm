@@ -53,6 +53,9 @@
   (query uri-query)
   (fragment uri-fragment))
 
+(define (absolute-uri? x)
+  (and (uri? x) (uri-scheme x) #t))
+
 (define (uri-error message . args)
   (throw 'uri-error message args))
 
@@ -165,21 +168,21 @@ is valid."
 (define fragment-pat
   ".*")
 (define uri-pat
-  (format #f "^(~a):(//~a)?(~a)(\\?(~a))?(#(~a))?$"
+  (format #f "^((~a):)?(//~a)?(~a)(\\?(~a))?(#(~a))?$"
           scheme-pat authority-pat path-pat query-pat fragment-pat))
 (define uri-regexp
   (make-regexp uri-pat))
 
-(define (string->uri string)
+(define (string->uri* string)
   "Parse STRING into a URI object.  Return ‘#f’ if the string
 could not be parsed."
   (% (let ((m (regexp-exec uri-regexp string)))
        (if (not m) (abort))
-       (let ((scheme (string->symbol
-                      (string-downcase (match:substring m 1))))
-             (authority (match:substring m 2))
-             (path (match:substring m 3))
-             (query (match:substring m 5))
+       (let ((scheme (let ((str (match:substring m 2)))
+                       (and str (string->symbol (string-downcase str)))))
+             (authority (match:substring m 3))
+             (path (match:substring m 4))
+             (query (match:substring m 6))
              (fragment (match:substring m 7)))
          (call-with-values
              (lambda ()
@@ -190,6 +193,12 @@ could not be parsed."
              (make-uri scheme userinfo host port path query fragment)))))
      (lambda (k)
        #f)))
+
+(define (string->uri string)
+  "Parse STRING into a URI object.  Return ‘#f’ if the string
+could not be parsed."
+  (let ((uri (string->uri* string)))
+    (and uri (uri-scheme uri) uri)))
 
 (define *default-ports* (make-hash-table))
 
@@ -208,8 +217,7 @@ could not be parsed."
   "Serialize URI to a string.  If the URI has a port that is the
 default port for its scheme, the port is not included in the
 serialization."
-  (let* ((scheme-str (string-append
-                      (symbol->string (uri-scheme uri)) ":"))
+  (let* ((scheme (uri-scheme uri))
          (userinfo (uri-userinfo uri))
          (host (uri-host uri))
          (port (uri-port uri))
@@ -217,7 +225,9 @@ serialization."
          (query (uri-query uri))
          (fragment (uri-fragment uri)))
     (string-append
-     scheme-str
+     (if scheme
+         (string-append (symbol->string scheme) ":")
+         "")
      (if host
          (string-append "//"
                         (if userinfo (string-append userinfo "@")
