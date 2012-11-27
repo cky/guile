@@ -26,6 +26,7 @@
 #endif
 
 #include <alloca.h>
+#include <string.h>
 
 /* "dynl.c" dynamically link&load object files.
    Author: Aubrey Jaffer
@@ -61,6 +62,7 @@ maybe_drag_in_eprintf ()
 #include "libguile/validate.h"
 #include "libguile/dynwind.h"
 #include "libguile/foreign.h"
+#include "libguile/gc.h"
 
 #include <ltdl.h>
 
@@ -75,18 +77,78 @@ maybe_drag_in_eprintf ()
 */
 /* njrev: not threadsafe, protection needed as described above */
 
+
+/* LT_PATH_SEP-separated extension library search path, searched last */
+static char *system_extensions_path;
+
 static void *
 sysdep_dynl_link (const char *fname, const char *subr)
 {
   lt_dlhandle handle;
 
-  if (fname != NULL)
-    handle = lt_dlopenext (fname);
-  else
+  if (fname == NULL)
     /* Return a handle for the program as a whole.  */
     handle = lt_dlopen (NULL);
+  else
+    {
+      handle = lt_dlopenext (fname);
 
-  if (NULL == handle)
+      if (handle == NULL
+#ifdef LT_DIRSEP_CHAR
+          && strchr (fname, LT_DIRSEP_CHAR) == NULL
+#endif
+          && strchr (fname, '/') == NULL)
+        {
+          /* FNAME contains no directory separators and was not in the
+             usual library search paths, so now we search for it in
+             SYSTEM_EXTENSIONS_PATH. */
+          char *fname_attempt
+            = scm_gc_malloc_pointerless (strlen (system_extensions_path)
+                                         + strlen (fname) + 2,
+                                         "dynl fname_attempt");
+          char *path;  /* remaining path to search */
+          char *end;   /* end of current path component */
+          char *s;
+
+          /* Iterate over the components of SYSTEM_EXTENSIONS_PATH */
+          for (path = system_extensions_path;
+               *path != '\0';
+               path = (*end == '\0') ? end : (end + 1))
+            {
+              /* Find end of path component */
+              end = strchr (path, LT_PATHSEP_CHAR);
+              if (end == NULL)
+                end = strchr (path, '\0');
+
+              /* Skip empty path components */
+              if (path == end)
+                continue;
+
+              /* Construct FNAME_ATTEMPT, starting with path component */
+              s = fname_attempt;
+              memcpy (s, path, end - path);
+              s += end - path;
+
+              /* Append directory separator, but avoid duplicates */
+              if (s[-1] != '/'
+#ifdef LT_DIRSEP_CHAR
+                  && s[-1] != LT_DIRSEP_CHAR
+#endif
+                  )
+                *s++ = '/';
+
+              /* Finally, append FNAME (including null terminator) */
+              strcpy (s, fname);
+
+              /* Try to load it, and terminate the search if successful */
+              handle = lt_dlopenext (fname_attempt);
+              if (handle != NULL)
+                break;
+            }
+        }
+    }
+
+  if (handle == NULL)
     {
       SCM fn;
       SCM msg;
@@ -120,30 +182,6 @@ sysdep_dynl_value (const char *symb, void *handle, const char *subr)
   return fptr;
 }
 
-/* Augment environment variable VARIABLE with VALUE, assuming VARIABLE
-   is a path kind of variable.  */
-static void
-augment_env (const char *variable, const char *value)
-{
-  const char *env;
-
-  env = getenv (variable);
-  if (env != NULL)
-    {
-      char *new_value;
-      static const char path_sep[] = { LT_PATHSEP_CHAR, 0 };
-
-      new_value = alloca (strlen (env) + strlen (value) + 2);
-      strcpy (new_value, env);
-      strcat (new_value, path_sep);
-      strcat (new_value, value);
-
-      setenv (variable, new_value, 1);
-    }
-  else
-    setenv (variable, value, 1);
-}
-
 static void
 sysdep_dynl_init ()
 {
@@ -151,26 +189,32 @@ sysdep_dynl_init ()
 
   lt_dlinit ();
 
+  /* Initialize 'system_extensions_path' from
+     $GUILE_SYSTEM_EXTENSIONS_PATH, or if that's not set:
+     <SCM_LIB_DIR> <LT_PATHSEP_CHAR> <SCM_EXTENSIONS_DIR>.
+
+     'lt_dladdsearchdir' can't be used because it is searched before
+     the system-dependent search path, which is the one 'libtool
+     --mode=execute -dlopen' fiddles with (info "(libtool) Libltdl
+     Interface").  See
+     <http://lists.gnu.org/archive/html/guile-devel/2010-11/msg00095.html>.
+
+     The environment variables $LTDL_LIBRARY_PATH and $LD_LIBRARY_PATH
+     can't be used because they would be propagated to subprocesses
+     which may cause problems for other programs.  See
+     <http://lists.gnu.org/archive/html/guile-devel/2012-09/msg00037.html> */
+
   env = getenv ("GUILE_SYSTEM_EXTENSIONS_PATH");
-  if (env && strcmp (env, "") == 0)
-    /* special-case interpret system-ltdl-path=="" as meaning no system path,
-       which is the case during the build */
-    ;
-  else if (env)
-    /* FIXME: should this be a colon-separated path? Or is the only point to
-       allow the build system to turn off the installed extensions path? */
-    lt_dladdsearchdir (env);
+  if (env)
+    system_extensions_path = env;
   else
     {
-      /* Add SCM_LIB_DIR and SCM_EXTENSIONS_DIR to the loader's search
-	 path.  `lt_dladdsearchdir' and $LTDL_LIBRARY_PATH can't be used
-	 for that because they are searched before the system-dependent
-	 search path, which is the one `libtool --mode=execute -dlopen'
-	 fiddles with (info "(libtool) Libltdl Interface").  See
-	 <http://lists.gnu.org/archive/html/guile-devel/2010-11/msg00095.html>
-	 for details.  */
-      augment_env (SHARED_LIBRARY_PATH_VARIABLE, SCM_LIB_DIR);
-      augment_env (SHARED_LIBRARY_PATH_VARIABLE, SCM_EXTENSIONS_DIR);
+      system_extensions_path
+        = scm_gc_malloc_pointerless (strlen (SCM_LIB_DIR)
+                                     + strlen (SCM_EXTENSIONS_DIR) + 2,
+                                     "system_extensions_path");
+      sprintf (system_extensions_path, "%s%c%s",
+               SCM_LIB_DIR, LT_PATHSEP_CHAR, SCM_EXTENSIONS_DIR);
     }
 }
 
