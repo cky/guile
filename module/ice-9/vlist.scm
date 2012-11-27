@@ -208,7 +208,7 @@
         (make-vlist base 0))))))
 
 (define (vlist-cons item vlist)
-  "Return a new vlist with @var{item} as its head and @var{vlist} as its
+  "Return a new vlist with ITEM as its head and VLIST as its
 tail."
   ;; Note: Although the result of `vlist-cons' on a vhash is a valid
   ;; vlist, it is not a valid vhash.  The new item does not get a hash
@@ -219,14 +219,14 @@ tail."
   (block-cons item vlist #f))
 
 (define (vlist-head vlist)
-  "Return the head of @var{vlist}."
+  "Return the head of VLIST."
   (assert-vlist vlist)
   (let ((base   (vlist-base vlist))
         (offset (vlist-offset vlist)))
     (block-ref (block-content base) offset)))
 
 (define (vlist-tail vlist)
-  "Return the tail of @var{vlist}."
+  "Return the tail of VLIST."
   (assert-vlist vlist)
   (let ((base   (vlist-base vlist))
         (offset (vlist-offset vlist)))
@@ -236,7 +236,7 @@ tail."
                     (block-offset base)))))
 
 (define (vlist-null? vlist)
-  "Return true if @var{vlist} is empty."
+  "Return true if VLIST is empty."
   (assert-vlist vlist)
   (let ((base (vlist-base vlist)))
     (and (not (block-base base))
@@ -248,11 +248,11 @@ tail."
 ;;;
 
 (define (list->vlist lst)
-  "Return a new vlist whose contents correspond to @var{lst}."
+  "Return a new vlist whose contents correspond to LST."
   (vlist-reverse (fold vlist-cons vlist-null lst)))
 
 (define (vlist-fold proc init vlist)
-  "Fold over @var{vlist}, calling @var{proc} for each element."
+  "Fold over VLIST, calling PROC for each element."
   ;; FIXME: Handle multiple lists.
   (assert-vlist vlist)
   (let loop ((base   (vlist-base vlist))
@@ -267,7 +267,7 @@ tail."
                 (proc (block-ref (block-content base) offset) result))))))
 
 (define (vlist-fold-right proc init vlist)
-  "Fold over @var{vlist}, calling @var{proc} for each element, starting from
+  "Fold over VLIST, calling PROC for each element, starting from
 the last element."
   (assert-vlist vlist)
   (let loop ((index  (1- (vlist-length vlist)))
@@ -278,23 +278,23 @@ the last element."
           (proc (vlist-ref vlist index) result)))))
 
 (define (vlist-reverse vlist)
-  "Return a new @var{vlist} whose content are those of @var{vlist} in reverse
+  "Return a new VLIST whose content are those of VLIST in reverse
 order."
   (vlist-fold vlist-cons vlist-null vlist))
 
 (define (vlist-map proc vlist)
-  "Map @var{proc} over the elements of @var{vlist} and return a new vlist."
+  "Map PROC over the elements of VLIST and return a new vlist."
   (vlist-fold (lambda (item result)
                 (vlist-cons (proc item) result))
               vlist-null
               (vlist-reverse vlist)))
 
 (define (vlist->list vlist)
-  "Return a new list whose contents match those of @var{vlist}."
+  "Return a new list whose contents match those of VLIST."
   (vlist-fold-right cons '() vlist))
 
 (define (vlist-ref vlist index)
-  "Return the element at index @var{index} in @var{vlist}."
+  "Return the element at index INDEX in VLIST."
   (assert-vlist vlist)
   (let loop ((index   index)
              (base    (vlist-base vlist))
@@ -306,8 +306,8 @@ order."
               (block-offset base)))))
 
 (define (vlist-drop vlist count)
-  "Return a new vlist that does not contain the @var{count} first elements of
-@var{vlist}."
+  "Return a new vlist that does not contain the COUNT first elements of
+VLIST."
   (assert-vlist vlist)
   (let loop ((count  count)
              (base   (vlist-base vlist))
@@ -319,8 +319,8 @@ order."
               (block-offset base)))))
 
 (define (vlist-take vlist count)
-  "Return a new vlist that contains only the @var{count} first elements of
-@var{vlist}."
+  "Return a new vlist that contains only the COUNT first elements of
+VLIST."
   (let loop ((count  count)
              (vlist  vlist)
              (result vlist-null))
@@ -331,8 +331,8 @@ order."
               (vlist-cons (vlist-head vlist) result)))))
 
 (define (vlist-filter pred vlist)
-  "Return a new vlist containing all the elements from @var{vlist} that
-satisfy @var{pred}."
+  "Return a new vlist containing all the elements from VLIST that
+satisfy PRED."
   (vlist-fold-right (lambda (e v)
                       (if (pred e)
                           (vlist-cons e v)
@@ -341,14 +341,14 @@ satisfy @var{pred}."
                     vlist))
 
 (define* (vlist-delete x vlist #:optional (equal? equal?))
-  "Return a new vlist corresponding to @var{vlist} without the elements
-@var{equal?} to @var{x}."
+  "Return a new vlist corresponding to VLIST without the elements
+EQUAL? to X."
   (vlist-filter (lambda (e)
                   (not (equal? e x)))
                 vlist))
 
 (define (vlist-length vlist)
-  "Return the length of @var{vlist}."
+  "Return the length of VLIST."
   (assert-vlist vlist)
   (let loop ((base (vlist-base vlist))
              (len  (vlist-offset vlist)))
@@ -387,7 +387,7 @@ details."
                   vlists)))
 
 (define (vlist-for-each proc vlist)
-  "Call @var{proc} on each element of @var{vlist}.  The result is unspecified."
+  "Call PROC on each element of VLIST.  The result is unspecified."
   (vlist-fold (lambda (item x)
                 (proc item))
               (if #f #f)
@@ -442,13 +442,13 @@ details."
 ;;    pass a hash function or equality predicate.
 
 (define (vhash? obj)
-  "Return true if @var{obj} is a hash list."
+  "Return true if OBJ is a hash list."
   (and (vlist? obj)
        (block-hash-table? (vlist-base obj))))
 
 (define* (vhash-cons key value vhash #:optional (hash hash))
-  "Return a new hash list based on @var{vhash} where @var{key} is associated
-with @var{value}.  Use @var{hash} to compute @var{key}'s hash."
+  "Return a new hash list based on VHASH where KEY is associated
+with VALUE.  Use HASH to compute KEY's hash."
   (assert-vlist vhash)
   ;; We should also assert that it is a hash table.  Need to check the
   ;; performance impacts of that.  Also, vlist-null is a valid hash
@@ -493,18 +493,18 @@ with @var{value}.  Use @var{hash} to compute @var{key}'s hash."
 
 (define* (vhash-fold* proc init key vhash
                       #:optional (equal? equal?) (hash hash))
-  "Fold over all the values associated with @var{key} in @var{vhash}, with each
-call to @var{proc} having the form @code{(proc value result)}, where
-@var{result} is the result of the previous call to @var{proc} and @var{init} the
-value of @var{result} for the first call to @var{proc}."
+  "Fold over all the values associated with KEY in VHASH, with each
+call to PROC having the form ‘(proc value result)’, where
+RESULT is the result of the previous call to PROC and INIT the
+value of RESULT for the first call to PROC."
   (%vhash-fold* proc init key vhash equal? hash))
 
 (define (vhash-foldq* proc init key vhash)
-  "Same as @code{vhash-fold*}, but using @code{hashq} and @code{eq?}."
+  "Same as ‘vhash-fold*’, but using ‘hashq’ and ‘eq?’."
   (%vhash-fold* proc init key vhash eq? hashq))
 
 (define (vhash-foldv* proc init key vhash)
-  "Same as @code{vhash-fold*}, but using @code{hashv} and @code{eqv?}."
+  "Same as ‘vhash-fold*’, but using ‘hashv’ and ‘eqv?’."
   (%vhash-fold* proc init key vhash eqv? hashv))
 
 (define-inlinable (%vhash-assoc key vhash equal? hash)
@@ -532,23 +532,23 @@ value of @var{result} for the first call to @var{proc}."
                     (vlist-offset vhash))))
 
 (define* (vhash-assoc key vhash #:optional (equal? equal?) (hash hash))
-  "Return the first key/value pair from @var{vhash} whose key is equal to
-@var{key} according to the @var{equal?} equality predicate."
+  "Return the first key/value pair from VHASH whose key is equal to
+KEY according to the EQUAL? equality predicate."
   (%vhash-assoc key vhash equal? hash))
 
 (define (vhash-assq key vhash)
-  "Return the first key/value pair from @var{vhash} whose key is @code{eq?} to
-@var{key}."
+  "Return the first key/value pair from VHASH whose key is ‘eq?’ to
+KEY."
   (%vhash-assoc key vhash eq? hashq))
 
 (define (vhash-assv key vhash)
-  "Return the first key/value pair from @var{vhash} whose key is @code{eqv?} to
-@var{key}."
+  "Return the first key/value pair from VHASH whose key is ‘eqv?’ to
+KEY."
   (%vhash-assoc key vhash eqv? hashv))
 
 (define* (vhash-delete key vhash #:optional (equal? equal?) (hash hash))
-  "Remove all associations from @var{vhash} with @var{key}, comparing keys
-with @var{equal?}."
+  "Remove all associations from VHASH with KEY, comparing keys
+with EQUAL?."
   (if (vhash-assoc key vhash equal? hash)
       (vlist-fold (lambda (k+v result)
                     (let ((k (car k+v))
@@ -564,10 +564,10 @@ with @var{equal?}."
 (define vhash-delv (cut vhash-delete <> <> eqv? hashv))
 
 (define (vhash-fold proc init vhash)
-  "Fold over the key/pair elements of @var{vhash} from left to right, with
-each call to @var{proc} having the form @code{(@var{proc} key value result)},
-where @var{result} is the result of the previous call to @var{proc} and
-@var{init} the value of @var{result} for the first call to @var{proc}."
+  "Fold over the key/pair elements of VHASH from left to right, with
+each call to PROC having the form ‘(PROC key value result)’,
+where RESULT is the result of the previous call to PROC and
+INIT the value of RESULT for the first call to PROC."
   (vlist-fold (lambda (key+value result)
                 (proc (car key+value) (cdr key+value)
                       result))
@@ -575,10 +575,10 @@ where @var{result} is the result of the previous call to @var{proc} and
               vhash))
 
 (define (vhash-fold-right proc init vhash)
-  "Fold over the key/pair elements of @var{vhash} from right to left, with
-each call to @var{proc} having the form @code{(@var{proc} key value result)},
-where @var{result} is the result of the previous call to @var{proc} and
-@var{init} the value of @var{result} for the first call to @var{proc}."
+  "Fold over the key/pair elements of VHASH from right to left, with
+each call to PROC having the form ‘(PROC key value result)’,
+where RESULT is the result of the previous call to PROC and
+INIT the value of RESULT for the first call to PROC."
   (vlist-fold-right (lambda (key+value result)
                       (proc (car key+value) (cdr key+value)
                             result))
@@ -586,7 +586,7 @@ where @var{result} is the result of the previous call to @var{proc} and
                     vhash))
 
 (define* (alist->vhash alist #:optional (hash hash))
-  "Return the vhash corresponding to @var{alist}, an association list."
+  "Return the vhash corresponding to ALIST, an association list."
   (fold-right (lambda (pair result)
                 (vhash-cons (car pair) (cdr pair) result hash))
               vlist-null
