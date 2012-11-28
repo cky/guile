@@ -83,12 +83,6 @@
           (close-port p)
           res))))
 
-(define (text-type? type)
-  (let ((type (symbol->string type)))
-    (or (string-prefix? "text/" type)
-        (string-suffix? "/xml" type)
-        (string-suffix? "+xml" type))))
-
 ;; Logically the inverse of (web server)'s `sanitize-response'.
 ;;
 (define (decode-response-body response body)
@@ -104,7 +98,7 @@
        ((response-content-type response)
         => (lambda (type)
              (cond
-              ((text-type? (car type))
+              ((text-content-type? (car type))
                (decode-string body (or (assq-ref (cdr type) 'charset)
                                        "iso-8859-1")))
               (else body))))

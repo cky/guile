@@ -62,6 +62,7 @@
             response-content-md5
             response-content-range
             response-content-type
+            text-content-type?
             response-expires
             response-last-modified
 
@@ -174,6 +175,14 @@ the headers are each run through their respective validators."
 reason phrase for the response's code."
   (or (%response-reason-phrase response)
       (code->reason-phrase (response-code response))))
+
+(define (text-content-type? type)
+  "Return #t if TYPE, a symbol as returned by `response-content-type',
+represents a textual type such as `text/plain'."
+  (let ((type (symbol->string type)))
+    (or (string-prefix? "text/" type)
+        (string-suffix? "/xml" type)
+        (string-suffix? "+xml" type))))
 
 (define (read-response port)
   "Read an HTTP response from PORT.

@@ -1361,6 +1361,12 @@ headers.
 Return the given response header, or @var{default} if none was present.
 @end deffn
 
+@deffn {Scheme Procedure} text-content-type? @var{type}
+Return @code{#t} if @var{type}, a symbol as returned by
+@code{response-content-type}, represents a textual type such as
+@code{text/plain}.
+@end deffn
+
 
 @node Web Client
 @subsection Web Client
