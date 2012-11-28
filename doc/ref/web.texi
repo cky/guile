@@ -1400,6 +1400,13 @@ response will be decoded to string, if it is a textual content-type.
 Otherwise it will be returned as a bytevector.
 @end deffn
 
+@deffn {Scheme Procedure} http-get* uri [#:port=(open-socket-for-uri uri)] [#:version='(1 . 1)] [#:keep-alive?=#f] [#:extra-headers='()] [#:decode-body?=#t]
+Like @code{http-get}, but return an input port from which to read.  When
+@var{decode-body?} is true, as is the default, the returned port has its
+encoding set appropriately if the data at @var{uri} is textual.  Closing the
+returned port closes @var{port}, unless @var{keep-alive?} is true.
+@end deffn
+
 @code{http-get} is useful for making one-off requests to web sites.  If
 you are writing a web spider or some other client that needs to handle a
 number of requests in parallel, it's better to build an event-driven URL

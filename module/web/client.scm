@@ -39,7 +39,8 @@
   #:use-module (web response)
   #:use-module (web uri)
   #:export (open-socket-for-uri
-            http-get))
+            http-get
+            http-get*))
 
 (define (open-socket-for-uri uri)
   "Return an open input/output port for a connection to URI."
@@ -135,3 +136,25 @@ Otherwise it will be returned as a bytevector."
               (if decode-body?
                   (decode-response-body res body)
                   body)))))
+
+(define* (http-get* uri #:key (port (open-socket-for-uri uri))
+                    (version '(1 . 1)) (keep-alive? #f) (extra-headers '())
+                    (decode-body? #t))
+  "Like ‘http-get’, but return an input port from which to read.  When
+DECODE-BODY? is true, as is the default, the returned port has its
+encoding set appropriately if the data at URI is textual.  Closing the
+returned port closes PORT, unless KEEP-ALIVE? is true."
+  (let ((req (build-request uri #:version version
+                            #:headers (if keep-alive?
+                                          extra-headers
+                                          (cons '(connection close)
+                                                extra-headers)))))
+    (write-request req port)
+    (force-output port)
+    (unless keep-alive?
+      (shutdown port 1))
+    (let* ((res (read-response port))
+           (body (response-body-port res
+                                     #:keep-alive? keep-alive?
+                                     #:decode? decode-body?)))
+      (values res body))))
