@@ -1,6 +1,6 @@
 ;;;; web-response.test --- HTTP responses       -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;;   Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -66,37 +66,33 @@ consectetur adipisicing elit,\r
       (begin
         (set! r (read-response (open-input-string example-1)))
         (response? r)))
-    
+
     (pass-if "read-response-body"
       (begin
         (set! body (read-response-body r))
         #t))
-    
-    (pass-if (equal? (response-version r) '(1 . 1)))
-    
-    (pass-if (equal? (response-code r) 200))
-    
-    (pass-if (equal? (response-reason-phrase r) "OK"))
-    
-    (pass-if (equal? body 
-                     (string->utf8
-                      "abcdefghijklmnopqrstuvwxyz0123456789")))
-    
-    (pass-if "checking all headers"
-      (equal?
-       (response-headers r)
-       `((date . ,(string->date "Wed, 03 Nov 2010 22:27:07 +0000"
-                                "~a, ~d ~b ~Y ~H:~M:~S ~z"))
-         (server . "Apache/2.0.55")
-         (accept-ranges . (bytes))
-         (cache-control . ((max-age . 543234)))
-         (expires . ,(string->date "Thu, 28 Oct 2010 15:33:13 GMT +0000"
-                                   "~a, ~d ~b ~Y ~H:~M:~S ~z"))
-         (vary . (accept-encoding))
-         (content-encoding . (gzip))
-         (content-length . 36)
-         (content-type . (text/html (charset . "utf-8"))))))
-    
+
+    (pass-if-equal '(1 . 1) (response-version r))
+    (pass-if-equal 200 (response-code r))
+    (pass-if-equal "OK" (response-reason-phrase r))
+
+    (pass-if-equal (string->utf8 "abcdefghijklmnopqrstuvwxyz0123456789")
+        body)
+
+    (pass-if-equal "checking all headers"
+        `((date . ,(string->date "Wed, 03 Nov 2010 22:27:07 +0000"
+                                 "~a, ~d ~b ~Y ~H:~M:~S ~z"))
+          (server . "Apache/2.0.55")
+          (accept-ranges . (bytes))
+          (cache-control . ((max-age . 543234)))
+          (expires . ,(string->date "Thu, 28 Oct 2010 15:33:13 GMT +0000"
+                                    "~a, ~d ~b ~Y ~H:~M:~S ~z"))
+          (vary . (accept-encoding))
+          (content-encoding . (gzip))
+          (content-length . 36)
+          (content-type . (text/html (charset . "utf-8"))))
+      (response-headers r))
+
     (pass-if "write then read"
       (call-with-values
           (lambda ()
@@ -111,16 +107,18 @@ consectetur adipisicing elit,\r
         (lambda (r* body*)
           (responses-equal? r body r* body*))))
 
-    (pass-if "by accessor"
-      (equal? (response-content-encoding r) '(gzip)))))
+    (pass-if-equal "by accessor"
+        '(gzip)
+      (response-content-encoding r))))
 
 (with-test-prefix "example-2"
- (let* ((r (read-response (open-input-string example-2)))
-        (b (read-response-body r)))
-   (pass-if (equal? '((chunked))
-                    (response-transfer-encoding r)))
-   (pass-if (equal? b
-                    (string->utf8
-                     (string-append
-                      "Lorem ipsum dolor sit amet, consectetur adipisicing elit,"
-                      " sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."))))))
+  (let* ((r (read-response (open-input-string example-2)))
+         (b (read-response-body r)))
+    (pass-if-equal '((chunked))
+        (response-transfer-encoding r))
+    (pass-if-equal
+        (string->utf8
+         (string-append
+          "Lorem ipsum dolor sit amet, consectetur adipisicing elit,"
+          " sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."))
+        b)))
