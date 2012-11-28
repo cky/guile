@@ -79,10 +79,6 @@ AC_PROG_LIBTOOL
 
 AM_CONDITIONAL([HAVE_SHARED_LIBRARIES], [test "x$enable_shared" = "xyes"])
 
-AC_DEFINE_UNQUOTED([SHARED_LIBRARY_PATH_VARIABLE], ["$shlibpath_var"],
-  [Name of the environment variable that tells the dynamic linker where
-to find shared libraries.])
-
 dnl Check for libltdl.
 AC_LIB_HAVE_LINKFLAGS([ltdl], [], [#include <ltdl.h>],
   [lt_dlopenext ("foo");])
