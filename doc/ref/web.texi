@@ -1315,6 +1315,16 @@ Note also, though, that responses to @code{HEAD} requests must also not
 have a body.
 @end deffn
 
+@deffn {Scheme Procedure} response-body-port r [#:decode?=#t] [#:keep-alive?=#t]
+Return an input port from which the body of @var{r} can be read.  The encoding
+of the returned port is set according to @var{r}'s @code{content-type} header,
+when it's textual, except if @var{decode?} is @code{#f}.  Return @code{#f}
+when no body is available.
+
+When @var{keep-alive?} is @code{#f}, closing the returned port also closes
+@var{r}'s response port.
+@end deffn
+
 @deffn {Scheme Procedure} read-response-body r
 Read the response body from @var{r}, as a bytevector.  Returns @code{#f}
 if there was no response body.

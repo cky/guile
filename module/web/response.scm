@@ -23,6 +23,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 binary-ports)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-9)
   #:use-module (web http)
   #:export (response?
@@ -37,6 +38,7 @@
             write-response
 
             response-must-not-include-body?
+            response-body-port
             read-response-body
             write-response-body
 
@@ -233,20 +235,66 @@ This is true for some response types, like those with code 304."
       (= (response-code r) 204)
       (= (response-code r) 304)))
 
+(define (make-delimited-input-port port len keep-alive?)
+  "Return an input port that reads from PORT, and makes sure that
+exactly LEN bytes are available from PORT.  Closing the returned port
+closes PORT, unless KEEP-ALIVE? is true."
+  (define bytes-read 0)
+
+  (define (fail)
+    (bad-response "EOF while reading response body: ~a bytes of ~a"
+                  bytes-read len))
+
+  (define (read! bv start count)
+    (let ((ret (get-bytevector-n! port bv start count)))
+      (if (eof-object? ret)
+          (if (= bytes-read len)
+              0
+              (fail))
+          (begin
+            (set! bytes-read (+ bytes-read ret))
+            (if (> bytes-read len)
+                (fail)
+                ret)))))
+
+  (define close
+    (and (not keep-alive?)
+         (lambda ()
+           (close port))))
+
+  (make-custom-binary-input-port "delimited input port" read! #f #f close))
+
+(define* (response-body-port r #:key (decode? #t) (keep-alive? #t))
+  "Return an input port from which the body of R can be read.  The
+encoding of the returned port is set according to R's ‘content-type’
+header, when it's textual, except if DECODE? is #f.  Return #f when no
+body is available.
+
+When KEEP-ALIVE? is #f, closing the returned port also closes R's
+response port."
+  (define port
+    (if (member '(chunked) (response-transfer-encoding r))
+        (make-chunked-input-port (response-port r)
+                                 #:keep-alive? keep-alive?)
+        (let ((len (response-content-length r)))
+          (and len
+               (make-delimited-input-port (response-port r)
+                                          len keep-alive?)))))
+
+  (when (and decode? port)
+    (match (response-content-type r)
+      (((? text-content-type?) . props)
+       (set-port-encoding! port
+                           (or (assq-ref props 'charset)
+                               "ISO-8859-1")))
+      (_ #f)))
+
+  port)
+
 (define (read-response-body r)
   "Reads the response body from R, as a bytevector.  Returns
 ‘#f’ if there was no response body."
-  (if (member '(chunked) (response-transfer-encoding r))
-      (let ((chunk-port (make-chunked-input-port (response-port r)
-                                                 #:keep-alive? #t)))
-        (get-bytevector-all chunk-port))
-      (let ((nbytes (response-content-length r)))
-        (and nbytes
-             (let ((bv (get-bytevector-n (response-port r) nbytes)))
-               (if (= (bytevector-length bv) nbytes)
-                   bv
-                   (bad-response "EOF while reading response body: ~a bytes of ~a"
-                                 (bytevector-length bv) nbytes)))))))
+  (and=> (response-body-port r #:decode? #f) get-bytevector-all))
 
 (define (write-response-body r bv)
   "Write BV, a bytevector, to the port corresponding to the HTTP

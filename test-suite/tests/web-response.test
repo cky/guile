@@ -21,6 +21,7 @@
   #:use-module (web uri)
   #:use-module (web response)
   #:use-module (rnrs bytevectors)
+  #:use-module (rnrs io ports)
   #:use-module (srfi srfi-19)
   #:use-module (test-suite lib))
 
@@ -109,7 +110,14 @@ consectetur adipisicing elit,\r
 
     (pass-if-equal "by accessor"
         '(gzip)
-      (response-content-encoding r))))
+      (response-content-encoding r))
+
+    (pass-if-equal "response-body-port"
+        `("utf-8" ,body)
+      (with-fluids ((%default-port-encoding #f))
+        (let* ((r (read-response (open-input-string example-1)))
+               (p (response-body-port r)))
+          (list (port-encoding p) (get-bytevector-all p)))))))
 
 (with-test-prefix "example-2"
   (let* ((r (read-response (open-input-string example-2)))
@@ -121,4 +129,10 @@ consectetur adipisicing elit,\r
          (string-append
           "Lorem ipsum dolor sit amet, consectetur adipisicing elit,"
           " sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."))
-        b)))
+        b)
+    (pass-if-equal "response-body-port"
+        `("ISO-8859-1" ,(utf8->string b)) ; no `charset', hence ISO-8859-1
+      (with-fluids ((%default-port-encoding #f))
+        (let* ((r (read-response (open-input-string example-2)))
+               (p (response-body-port r)))
+          (list (port-encoding p) (get-string-all p)))))))
