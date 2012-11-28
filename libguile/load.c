@@ -221,6 +221,9 @@ static SCM *scm_loc_fresh_auto_compile;
 /* The fallback path for auto-compilation */
 static SCM *scm_loc_compile_fallback_path;
 
+/* Ellipsis: "..." */
+static SCM scm_ellipsis;
+
 SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0, 
             (SCM path, SCM tail),
 	    "Parse @var{path}, which is expected to be a colon-separated\n"
@@ -240,6 +243,32 @@ SCM_DEFINE (scm_parse_path, "parse-path", 1, 1, 0,
   return (scm_is_false (path)
 	  ? tail
 	  : scm_append_x (scm_list_2 (scm_string_split (path, sep), tail)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_parse_path_with_ellipsis, "parse-path-with-ellipsis", 2, 0, 0,
+            (SCM path, SCM base),
+	    "Parse @var{path}, which is expected to be a colon-separated\n"
+	    "string, into a list and return the resulting list with\n"
+	    "@var{base} (a list) spliced in place of the @code{...} path\n"
+            "component, if present, or else @var{base} is added to the end.\n"
+            "If @var{path} is @code{#f}, @var{base} is returned.")
+#define FUNC_NAME s_scm_parse_path_with_ellipsis
+{
+  SCM lst = scm_parse_path (path, SCM_EOL);
+  SCM walk = lst;
+  SCM *prev = &lst;
+
+  while (!scm_is_null (walk) &&
+         scm_is_false (scm_equal_p (scm_car (walk), scm_ellipsis)))
+    {
+      prev = SCM_CDRLOC (walk);
+      walk = *prev;
+    }
+  *prev = scm_is_null (walk)
+    ? base
+    : scm_append (scm_list_2 (base, scm_cdr (walk)));
+  return lst;
 }
 #undef FUNC_NAME
 
@@ -316,11 +345,11 @@ scm_init_load_path ()
 
   env = getenv ("GUILE_LOAD_PATH");
   if (env)
-    path = scm_parse_path (scm_from_locale_string (env), path);
+    path = scm_parse_path_with_ellipsis (scm_from_locale_string (env), path);
 
   env = getenv ("GUILE_LOAD_COMPILED_PATH");
   if (env)
-    cpath = scm_parse_path (scm_from_locale_string (env), cpath);
+    cpath = scm_parse_path_with_ellipsis (scm_from_locale_string (env), cpath);
 
   *scm_loc_load_path = path;
   *scm_loc_load_compiled_path = cpath;
@@ -1046,6 +1075,8 @@ scm_init_load ()
     = SCM_VARIABLE_LOC (scm_c_define ("%load-should-auto-compile", SCM_BOOL_F));
   scm_loc_fresh_auto_compile
     = SCM_VARIABLE_LOC (scm_c_define ("%fresh-auto-compile", SCM_BOOL_F));
+
+  scm_ellipsis = scm_from_latin1_string ("...");
 
   the_reader = scm_make_fluid_with_default (SCM_BOOL_F);
   scm_c_define("current-reader", the_reader);

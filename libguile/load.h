@@ -27,6 +27,7 @@
 
 
 SCM_API SCM scm_parse_path (SCM path, SCM tail);
+SCM_API SCM scm_parse_path_with_ellipsis (SCM path, SCM base);
 SCM_API SCM scm_primitive_load (SCM filename);
 SCM_API SCM scm_c_primitive_load (const char *filename);
 SCM_API SCM scm_sys_package_data_dir (void);

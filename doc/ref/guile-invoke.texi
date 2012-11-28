@@ -295,8 +295,10 @@ variable.  By default, the history file is @file{$HOME/.guile_history}.
 @vindex GUILE_LOAD_COMPILED_PATH
 This variable may be used to augment the path that is searched for
 compiled Scheme files (@file{.go} files) when loading.  Its value should
-be a colon-separated list of directories, which will be prefixed to the
-value of the default search path stored in @code{%load-compiled-path}.
+be a colon-separated list of directories.  If it contains the special
+path component @code{...} (ellipsis), then the default path is put in
+place of the ellipsis, otherwise the default path is placed at the end.
+The result is stored in @code{%load-compiled-path} (@pxref{Load Paths}).
 
 Here is an example using the Bash shell that adds the current directory,
 @file{.}, and the relative directory @file{../my-library} to
@@ -312,18 +314,23 @@ $ guile -c '(display %load-compiled-path) (newline)'
 @vindex GUILE_LOAD_PATH
 This variable may be used to augment the path that is searched for
 Scheme files when loading.  Its value should be a colon-separated list
-of directories, which will be prefixed to the value of the default
-search path stored in @code{%load-path}.
+of directories.  If it contains the special path component @code{...}
+(ellipsis), then the default path is put in place of the ellipsis,
+otherwise the default path is placed at the end.  The result is stored
+in @code{%load-path} (@pxref{Load Paths}).
 
-Here is an example using the Bash shell that adds the current directory
-and the parent of the current directory to @code{%load-path}:
+Here is an example using the Bash shell that prepends the current
+directory to @code{%load-path}, and adds the relative directory
+@file{../srfi} to the end:
 
 @example
-$ env GUILE_LOAD_PATH=".:.." \
+$ env GUILE_LOAD_PATH=".:...:../srfi" \
 guile -c '(display %load-path) (newline)'
-(. .. /usr/local/share/guile/2.0 \
+(. /usr/local/share/guile/2.0 \
 /usr/local/share/guile/site/2.0 \
-/usr/local/share/guile/site /usr/local/share/guile)
+/usr/local/share/guile/site \
+/usr/local/share/guile \
+../srfi)
 @end example
 
 (Note: The line breaks, above, are for documentation purposes only, and

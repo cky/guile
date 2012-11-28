@@ -838,14 +838,16 @@ The procedure in the previous section look for Scheme code in the file
 system at specific location.  Guile also has some procedures to search
 the load path for code.
 
-@cindex @env{GUILE_LOAD_PATH}
 @defvar %load-path
 List of directories which should be searched for Scheme modules and
-libraries.  @code{%load-path} is initialized when Guile starts up to
-@code{(list (%site-dir) (%library-dir) (%package-data-dir))}, prepended
-with the contents of the @env{GUILE_LOAD_PATH} environment variable, if
-it is set.  @xref{Build Config}, for more on @code{%site-dir} and
-related procedures.
+libraries.  When Guile starts up, @code{%load-path} is initialized to
+the default load path @code{(list (%library-dir) (%site-dir)
+(%global-site-dir) (%package-data-dir))}.  The @env{GUILE_LOAD_PATH}
+environment variable can be used to prepend or append additional
+directories (@pxref{Environment Variables}).
+
+@xref{Build Config}, for more on @code{%site-dir} and related
+procedures.
 @end defvar
 
 @deffn {Scheme Procedure} load-from-path filename
@@ -913,7 +915,9 @@ using @code{load-compiled}.
 @defvar %load-compiled-path
 Like @code{%load-path}, but for compiled files.  By default, this path
 has two entries: one for compiled files from Guile itself, and one for
-site packages.
+site packages.  The @env{GUILE_LOAD_COMPILED_PATH} environment variable
+can be used to prepend or append additional directories
+(@pxref{Environment Variables}).
 @end defvar
 
 When @code{primitive-load-path} searches the @code{%load-compiled-path}
@@ -941,6 +945,15 @@ manipulation.
 Parse @var{path}, which is expected to be a colon-separated string, into
 a list and return the resulting list with @var{tail} appended. If
 @var{path} is @code{#f}, @var{tail} is returned.
+@end deffn
+
+@deffn {Scheme Procedure} parse-path-with-ellipsis path base
+@deffnx {C Function} scm_parse_path_with_ellipsis (path, base)
+Parse @var{path}, which is expected to be a colon-separated string, into
+a list and return the resulting list with @var{base} (a list) spliced in
+place of the @code{...} path component, if present, or else @var{base}
+is added to the end.  If @var{path} is @code{#f}, @var{base} is
+returned.
 @end deffn
 
 @deffn {Scheme Procedure} search-path path filename [extensions [require-exts?]]
