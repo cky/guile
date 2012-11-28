@@ -50,16 +50,15 @@
 
 (define (mapping-get-handle map key)
   ((mapping-hooks-get-handle (mapping-hooks map)) map key))
-(define (mapping-create-handle! map key . opts)
-  (apply (mapping-hooks-create-handle (mapping-hooks map)) map key opts))
+(define (mapping-create-handle! map key init)
+  ((mapping-hooks-create-handle (mapping-hooks map)) map key init))
 (define (mapping-remove! map key)
   ((mapping-hooks-remove (mapping-hooks map)) map key))
 
-(define (mapping-ref map key . dflt)
+(define* (mapping-ref map key #:optional dflt)
   (cond
-   ((mapping-get-handle map key)	=> cdr)
-   (dflt				=> car)
-   (else				#f)))
+   ((mapping-get-handle map key) => cdr)
+   (else dflt)))
 
 (define (mapping-set! map key val)
   (set-cdr! (mapping-create-handle! map key #f) val))
@@ -70,18 +69,18 @@
   (let ((wrap (lambda (proc) (lambda (1st . rest) (apply proc (mapping-data 1st) rest)))))
 
     (perfect-funcq 17
-		   (lambda (hash-proc assoc-proc delete-proc)
-		     (let ((procs (list hash-proc assoc-proc delete-proc)))
+		   (lambda (hash-proc assoc-proc)
+		     (let ((procs (list hash-proc assoc-proc)))
 		       (cond
-			((equal? procs `(,hashq ,assq ,delq!))
+			((equal? procs `(,hashq ,assq))
 			 (make-mapping-hooks (wrap hashq-get-handle)
 					     (wrap hashq-create-handle!)
 					     (wrap hashq-remove!)))
-			((equal? procs `(,hashv ,assv ,delv!))
+			((equal? procs `(,hashv ,assv))
 			 (make-mapping-hooks (wrap hashv-get-handle)
 					     (wrap hashv-create-handle!)
 					     (wrap hashv-remove!)))
-			((equal? procs `(,hash ,assoc ,delete!))
+			((equal? procs `(,hash ,assoc))
 			 (make-mapping-hooks (wrap hash-get-handle)
 					     (wrap hash-create-handle!)
 					     (wrap hash-remove!)))
@@ -90,39 +89,27 @@
 					      (lambda (table key)
 						(hashx-get-handle hash-proc assoc-proc table key)))
 					     (wrap
-					      (lambda (table key)
-						(hashx-create-handle hash-proc assoc-proc table key)))
+					      (lambda (table key init)
+						(hashx-create-handle! hash-proc assoc-proc table key init)))
 					     (wrap
 					      (lambda (table key)
-						(hashx-get-handle hash-proc assoc-proc delete-proc table key)))))))))))
+						(hashx-remove! hash-proc assoc-proc table key)))))))))))
 
-(define (make-hash-table-mapping table hash-proc assoc-proc delete-proc)
-  (make-mapping (hash-table-mapping-hooks hash-proc assoc-proc delete-proc) table))
+(define (make-hash-table-mapping table hash-proc assoc-proc)
+  (make-mapping (hash-table-mapping-hooks hash-proc assoc-proc) table))
 
-(define (hash-table-mapping . options)
-  (let* ((size (or (and options (number? (car options)) (car options))
-		   71))
-	 (hash-proc (or (kw-arg-ref options #:hash-proc) hash))
-	 (assoc-proc (or (kw-arg-ref options #:assoc-proc)
-			 (cond
-			  ((eq? hash-proc hash) assoc)
-			  ((eq? hash-proc hashv) assv)
-			  ((eq? hash-proc hashq) assq)
-			  (else (error 'hash-table-mapping
-				       "Hash-procedure specified with no known assoc function."
-				       hash-proc)))))
-	 (delete-proc (or (kw-arg-ref options #:delete-proc)
-			  (cond
-			   ((eq? hash-proc hash) delete!)
-			   ((eq? hash-proc hashv) delv!)
-			   ((eq? hash-proc hashq) delq!)
-			   (else (error 'hash-table-mapping
-					"Hash-procedure specified with no known delete function."
-					hash-proc)))))
-	 (table-constructor (or (kw-arg-ref options #:table-constructor)
-				(lambda (len) (make-vector len '())))))
-    (make-hash-table-mapping (table-constructor size)
-			     hash-proc
-			     assoc-proc
-			     delete-proc)))
-
+(define* (hash-table-mapping #:optional (size 71) #:key
+                             (hash-proc hash)
+                             (assoc-proc
+                              (or (assq-ref `((,hashq . ,assq)
+                                              (,hashv . ,assv)
+                                              (,hash . ,assoc))
+                                            hash-proc)
+                                  (error 'hash-table-mapping
+                                         "Hash-procedure specified with no known assoc function."
+                                         hash-proc)))
+                             (table-constructor
+                              (lambda (len) (make-vector len '()))))
+  (make-hash-table-mapping (table-constructor size)
+                           hash-proc
+                           assoc-proc))
