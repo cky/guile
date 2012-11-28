@@ -428,6 +428,36 @@
       (call-with-vm vm thunk))))
 
 ;;;
+;;; docstrings
+;;;
+
+(with-test-prefix "docstrings"
+
+  (pass-if-equal "fixed closure"
+      '("hello" "world")
+    (map procedure-documentation
+         (list (eval '(lambda (a b) "hello" (+ a b))
+                     (current-module))
+               (eval '(lambda (a b) "world" (- a b))
+                     (current-module)))))
+
+  (pass-if-equal "fixed closure with many args"
+      "So many args."
+    (procedure-documentation
+     (eval '(lambda (a b c d e f g h i j k)
+              "So many args."
+              (+ a b))
+           (current-module))))
+
+  (pass-if-equal "general closure"
+      "How general."
+    (procedure-documentation
+     (eval '(lambda* (a b #:key k #:rest r)
+              "How general."
+              (+ a b))
+           (current-module)))))
+
+;;;
 ;;; local-eval
 ;;;
 

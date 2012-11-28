@@ -1,7 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 2009, 2010
-;;;; Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2012 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -65,7 +64,7 @@
       (define (make-formals n)
         (map (lambda (i)
                (datum->syntax
-                x 
+                x
                 (string->symbol
                  (string (integer->char (+ (char->integer #\a) i))))))
              (iota n)))
@@ -225,11 +224,12 @@
     ;; multiple arities, as with case-lambda.
     (define (make-general-closure env body nreq rest? nopt kw inits alt)
       (define alt-proc
-        (and alt
+        (and alt                             ; (body docstring nreq ...)
              (let* ((body (car alt))
-                    (nreq (cadr alt))
-                    (rest (if (null? (cddr alt)) #f (caddr alt)))
-                    (tail (and (pair? (cddr alt)) (pair? (cdddr alt)) (cdddr alt)))
+                    (spec (cddr alt))
+                    (nreq (car spec))
+                    (rest (if (null? (cdr spec)) #f (cadr spec)))
+                    (tail (and (pair? (cdr spec)) (pair? (cddr spec)) (cddr spec)))
                     (nopt (if tail (car tail) 0))
                     (kw (and tail (cadr tail)))
                     (inits (if tail (caddr tail) '()))
@@ -246,9 +246,10 @@
                                                (and kw (car kw))
                                                (and rest? '_)))
                 (set-procedure-minimum-arity! proc nreq nopt rest?))
-              (let* ((nreq* (cadr alt))
-                     (rest?* (if (null? (cddr alt)) #f (caddr alt)))
-                     (tail (and (pair? (cddr alt)) (pair? (cdddr alt)) (cdddr alt)))
+              (let* ((spec (cddr alt))
+                     (nreq* (car spec))
+                     (rest?* (if (null? (cdr spec)) #f (cadr spec)))
+                     (tail (and (pair? (cdr spec)) (pair? (cddr spec)) (cddr spec)))
                      (nopt* (if tail (car tail) 0))
                      (alt* (and tail (cadddr tail))))
                 (if (or (< nreq* nreq)
@@ -397,14 +398,20 @@
                (eval body new-env)
                (lp (cdr inits)
                    (cons (eval (car inits) env) new-env)))))
-      
-        (('lambda (body nreq . tail))
-         (if (null? tail)
-             (make-fixed-closure eval nreq body (capture-env env))
-             (if (null? (cdr tail))
-                 (make-general-closure (capture-env env) body nreq (car tail)
-                                       0 #f '() #f)
-                 (apply make-general-closure (capture-env env) body nreq tail))))
+
+        (('lambda (body docstring nreq . tail))
+         (let ((proc
+                (if (null? tail)
+                    (make-fixed-closure eval nreq body (capture-env env))
+                    (if (null? (cdr tail))
+                        (make-general-closure (capture-env env) body
+                                              nreq (car tail)
+                                              0 #f '() #f)
+                        (apply make-general-closure (capture-env env)
+                               body nreq tail)))))
+           (when docstring
+             (set-procedure-property! proc 'documentation docstring))
+           proc))
 
         (('begin (first . rest))
          (let lp ((first first) (rest rest))

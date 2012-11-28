@@ -109,16 +109,16 @@ static scm_t_bits scm_tc16_boot_closure;
 #define BOOT_CLOSURE_CODE(x) SCM_SMOB_OBJECT (x)
 #define BOOT_CLOSURE_ENV(x) SCM_SMOB_OBJECT_2 (x)
 #define BOOT_CLOSURE_BODY(x) CAR (BOOT_CLOSURE_CODE (x))
-#define BOOT_CLOSURE_NUM_REQUIRED_ARGS(x) SCM_I_INUM (CADR (BOOT_CLOSURE_CODE (x)))
-#define BOOT_CLOSURE_IS_FIXED(x) scm_is_null (CDDR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_NUM_REQUIRED_ARGS(x) (SCM_I_INUM (CADDR (BOOT_CLOSURE_CODE (x))))
+#define BOOT_CLOSURE_IS_FIXED(x)  (scm_is_null (CDDDR (BOOT_CLOSURE_CODE (x))))
 /* NB: One may only call the following accessors if the closure is not FIXED. */
-#define BOOT_CLOSURE_HAS_REST_ARGS(x) scm_is_true (CADDR (BOOT_CLOSURE_CODE (x)))
-#define BOOT_CLOSURE_IS_REST(x) scm_is_null (CDDDR (BOOT_CLOSURE_CODE (x)))
+#define BOOT_CLOSURE_HAS_REST_ARGS(x) scm_is_true (CADDR (SCM_CDR (BOOT_CLOSURE_CODE (x))))
+#define BOOT_CLOSURE_IS_REST(x) scm_is_null (SCM_CDR (CDDDR (BOOT_CLOSURE_CODE (x))))
 /* NB: One may only call the following accessors if the closure is not REST. */
 #define BOOT_CLOSURE_IS_FULL(x) (1)
 #define BOOT_CLOSURE_PARSE_FULL(fu_,body,nargs,rest,nopt,kw,inits,alt)    \
   do { SCM fu = fu_;                                            \
-    body = CAR (fu); fu = CDR (fu);                             \
+    body = CAR (fu); fu = CDDR (fu);                            \
                                                                 \
     rest = kw = alt = SCM_BOOL_F;                               \
     inits = SCM_EOL;                                            \

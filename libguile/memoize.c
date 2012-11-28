@@ -1,6 +1,7 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
- * Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+ *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ *   Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -78,8 +79,9 @@ scm_t_bits scm_tc16_memoized;
 #define FULL_ARITY(nreq, rest, nopt, kw, inits, alt) \
   scm_list_n (SCM_I_MAKINUM (nreq), rest, SCM_I_MAKINUM (nopt), kw, inits, \
               alt, SCM_UNDEFINED)
-#define MAKMEMO_LAMBDA(body, arity) \
-  MAKMEMO (SCM_M_LAMBDA, (scm_cons (body, arity)))
+#define MAKMEMO_LAMBDA(body, arity, docstring)			\
+  MAKMEMO (SCM_M_LAMBDA,					\
+	   scm_cons (body, scm_cons (docstring, arity)))
 #define MAKMEMO_LET(inits, body) \
   MAKMEMO (SCM_M_LET, scm_cons (inits, body))
 #define MAKMEMO_QUOTE(exp) \
@@ -268,7 +270,21 @@ memoize (SCM exp, SCM env)
 
     case SCM_EXPANDED_LAMBDA:
       /* The body will be a lambda-case. */
-      return memoize (REF (exp, LAMBDA, BODY), env);
+      {
+	SCM meta, docstring, proc;
+
+	meta = REF (exp, LAMBDA, META);
+	docstring = scm_assoc_ref (meta, scm_sym_documentation);
+
+	proc = memoize (REF (exp, LAMBDA, BODY), env);
+	if (scm_is_string (docstring))
+	  {
+	    SCM args = SCM_MEMOIZED_ARGS (proc);
+	    SCM_SETCAR (SCM_CDR (args), docstring);
+	  }
+
+	return proc;
+      }
 
     case SCM_EXPANDED_LAMBDA_CASE:
       {
@@ -350,7 +366,8 @@ memoize (SCM exp, SCM env)
         else
           arity = FULL_ARITY (nreq, rest, nopt, kw, minits, SCM_BOOL_F);
 
-        return MAKMEMO_LAMBDA (memoize (body, new_env), arity);
+        return MAKMEMO_LAMBDA (memoize (body, new_env), arity,
+			       SCM_BOOL_F /* docstring */);
       }
 
     case SCM_EXPANDED_LET:
@@ -640,39 +657,43 @@ unmemoize (const SCM expr)
       return scm_list_4 (scm_sym_if, unmemoize (scm_car (args)),
                          unmemoize (scm_cadr (args)), unmemoize (scm_cddr (args)));
     case SCM_M_LAMBDA:
-      if (scm_is_null (CDDR (args)))
-        return scm_list_3 (scm_sym_lambda,
-                           scm_make_list (CADR (args), sym_placeholder),
-                           unmemoize (CAR (args)));
-      else if (scm_is_null (CDDDR (args)))
-        {
-          SCM formals = scm_make_list (CADR (args), sym_placeholder);
-          return scm_list_3 (scm_sym_lambda,
-                             scm_is_true (CADDR (args))
-                             ? scm_cons_star (sym_placeholder, formals)
-                             : formals,
-                             unmemoize (CAR (args)));
-        }
-      else
-        {
-          SCM body = CAR (args), spec = CDR (args), alt, tail;
-          
-          alt = CADDR (CDDDR (spec));
-          if (scm_is_true (alt))
-            tail = CDR (unmemoize (alt));
-          else
-            tail = SCM_EOL;
-          
-          return scm_cons
-            (sym_case_lambda_star,
-             scm_cons (scm_list_2 (scm_list_5 (CAR (spec),
-                                               CADR (spec),
-                                               CADDR (spec),
-                                               CADDDR (spec),
-                                               unmemoize_exprs (CADR (CDDDR (spec)))),
-                                   unmemoize (body)),
-                       tail));
-        }
+      {
+	SCM body = CAR (args), spec = CDDR (args);
+
+	if (scm_is_null (CDR (spec)))
+	  return scm_list_3 (scm_sym_lambda,
+			     scm_make_list (CAR (spec), sym_placeholder),
+			     unmemoize (CAR (args)));
+	else if (scm_is_null (SCM_CDDR (spec)))
+	  {
+	    SCM formals = scm_make_list (CAR (spec), sym_placeholder);
+	    return scm_list_3 (scm_sym_lambda,
+			       scm_is_true (CADR (spec))
+			       ? scm_cons_star (sym_placeholder, formals)
+			       : formals,
+			       unmemoize (CAR (args)));
+	  }
+	else
+	  {
+	    SCM alt, tail;
+
+	    alt = CADDR (CDDDR (spec));
+	    if (scm_is_true (alt))
+	      tail = CDR (unmemoize (alt));
+	    else
+	      tail = SCM_EOL;
+
+	    return scm_cons
+	      (sym_case_lambda_star,
+	       scm_cons (scm_list_2 (scm_list_5 (CAR (spec),
+						 CADR (spec),
+						 CADDR (spec),
+						 CADDDR (spec),
+						 unmemoize_exprs (CADR (CDDDR (spec)))),
+				     unmemoize (body)),
+			 tail));
+	  }
+      }
     case SCM_M_LET:
       return scm_list_3 (scm_sym_let,
                          unmemoize_bindings (CAR (args)),
