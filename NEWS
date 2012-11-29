@@ -140,10 +140,12 @@ See the manual for details.
 The `string-split' procedure can now be given a SRFI-14 character set or
 a predicate, instead of just a character.
 
-** R6RS SRFI support --- FIXME
+** R6RS SRFI support
 
-5d7c55b R6RS srfi library names should ignore first identifier after the :n
-acc1d8e Preserve additional R6RS library name components after srfi :n
+Previously, in R6RS modules, Guile incorrectly ignored components of
+SRFI module names after the SRFI number, making it impossible to specify
+sub-libraries.  This release corrects this, bringing us into accordance
+with SRFI 97.
 
 ** `define-public' is no a longer curried definition by default
 
