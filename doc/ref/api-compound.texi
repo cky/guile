@@ -3750,13 +3750,6 @@ h
 @result{}
 #<hash-table 0/31>
 
-;; We can also use a vector of alists.
-(define h (make-vector 7 '()))
-
-h
-@result{}
-#(() () () () () () ())
-
 ;; Inserting into a hash table can be done with hashq-set!
 (hashq-set! h 'foo "bar")
 @result{}
@@ -3770,17 +3763,6 @@ h
 (hashq-create-handle! h 'frob #f)
 @result{}
 (frob . #f)
-
-;; The vector now contains three elements in the alists and the frob
-;; entry is at index (hashq 'frob).
-h
-@result{}
-#(((braz . "zonk")) ((foo . "bar")) () () () () ((frob . #f)))
-
-(hashq 'frob 7)
-@result{}
-6
-
 @end lisp
 
 You can get the value for a given key with the procedure
