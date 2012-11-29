@@ -21,7 +21,6 @@
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-11)
-  #:use-module (ice-9 threads)
   #:use-module (ice-9 q)
   #:use-module (ice-9 match)
   #:export (future make-future future? touch))
