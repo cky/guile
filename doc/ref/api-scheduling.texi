@@ -982,6 +982,24 @@ machine, though, the computation of @code{(find prime? lst2)} may be
 done in parallel with that of the other @code{find} call, which can
 reduce the execution time of @code{find-prime}.
 
+Futures may be nested: a future can itself spawn and then @code{touch}
+other futures, leading to a directed acyclic graph of futures.  Using
+this facility, a parallel @code{map} procedure can be defined along
+these lines:
+
+@lisp
+(use-modules (ice-9 futures) (ice-9 match))
+
+(define (par-map proc lst)
+  (match lst
+    (()
+     '())
+    ((head tail ...)
+     (let ((tail (future (par-map proc tail)))
+           (head (proc head)))
+       (cons head (touch tail))))))
+@end lisp
+
 Note that futures are intended for the evaluation of purely functional
 expressions.  Expressions that have side-effects or rely on I/O may
 require additional care, such as explicit synchronization
@@ -994,6 +1012,15 @@ to another thread doesn't incur thread creation costs.  By default, the
 pool contains one thread per available CPU core, minus one, to account
 for the main thread.  The number of available CPU cores is determined
 using @code{current-processor-count} (@pxref{Processes}).
+
+When a thread touches a future that has not completed yet, it processes
+any pending future while waiting for it to complete, or just waits if
+there are no pending futures.  When @code{touch} is called from within a
+future, the execution of the calling future is suspended, allowing its
+host thread to process other futures, and resumed when the touched
+future has completed.  This suspend/resume is achieved by capturing the
+calling future's continuation, and later reinstating it (@pxref{Prompts,
+delimited continuations}).
 
 @deffn {Scheme Syntax} future exp
 Return a future for expression @var{exp}.  This is equivalent to:
@@ -1024,7 +1051,8 @@ Return the result of the expression embedded in future @var{f}.
 
 If the result was already computed in parallel, @code{touch} returns
 instantaneously.  Otherwise, it waits for the computation to complete,
-if it already started, or initiates it.
+if it already started, or initiates it.  In the former case, the calling
+thread may process other futures in the meantime.
 @end deffn
 
 
