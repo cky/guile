@@ -44,6 +44,15 @@ details.)
 Consequently, `par-map' and `par-for-each' have been rewritten and can
 now use all cores.
 
+** `GUILE_LOAD_PATH' et al can now add directories to the end of the path
+
+`GUILE_LOAD_PATH' and `GUILE_LOAD_COMPILED_PATH' can now be used to add
+directories to both ends of the load path.  If the special path
+component `...' (ellipsis) is present in these environment variables,
+then the default path is put in place of the ellipsis, otherwise the
+default path is placed at the end.  See "Environment Variables" in the
+manual for details.
+
 ** `load-in-vicinity' search for `.go' files in `%load-compiled-path'
 
 Previously, `load-in-vicinity' would look for compiled files in the
