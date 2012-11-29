@@ -61,10 +61,10 @@ ways.
 First, the `LD_LIBRARY_PATH' modification would be visible to
 sub-processes, and would also affect future calls to `dlopen', which
 could lead to subtle bugs in the application or sub-processes.  Second,
-when the installation prefix is /usr/local, the `LD_LIBRARY_PATH'
-modification would typically end up inserting /usr/lib before
-/usr/local/lib in the search path, which is often the opposite of
-system-wide settings such as `ld.so.conf'.
+when the installation prefix is /usr, the `LD_LIBRARY_PATH' modification
+would typically end up inserting /usr/lib before /usr/local/lib in the
+search path, which is often the opposite of system-wide settings such as
+`ld.so.conf'.
 
 Both issues have now been fixed.
 
@@ -77,10 +77,10 @@ Programs should instead use `make-vtable' and `<standard-vtable>'.
 These recently introduced warnings have been documented and are now
 enabled by default when auto-compiling.
 
-** Optimize calls to `equal?' with a constant argument
+** Optimize calls to `equal?' or `eqv?' with a constant argument
 
-The compiler simplifies calls to `equal?' with a constant argument to
-use `eq?' or `eqv?' instead, when applicable.
+The compiler simplifies calls to `equal?' or `eqv?' with a constant
+argument to use `eq?' instead, when applicable.
 
 * Manual updates
 
