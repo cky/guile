@@ -41,7 +41,8 @@ future to completed.  This allows all threads to be kept busy, and was
 made possible by the use of delimited continuations (see the manual for
 details.)
 
-Consequently, `par-map' has been rewritten and can now use all cores.
+Consequently, `par-map' and `par-for-each' have been rewritten and can
+now use all cores.
 
 ** `load-in-vicinity' search for `.go' files in `%load-compiled-path'
 
