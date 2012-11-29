@@ -5,6 +5,182 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.7 (since 2.0.6):
+
+* Notable changes
+
+** SRFI-105 curly infix expressions are supported
+
+Curly infix expressions as described at
+http://srfi.schemers.org/srfi-105/srfi-105.html are now supported by
+Guile's reader.  This allows users to write things like {a * {b + c}}
+instead of (* a (+ b c)).  SRFI-105 support is enabled by using the
+`#!curly-infix' directive in source code, or the `curly-infix' reader
+option.  See the manual for details.
+
+** Reader options may now be per-port
+
+Historically, `read-options' and related procedures would manipulate
+global options, affecting the `read' procedure for all threads, and all
+current uses of `read'.
+
+Guile can now associate `read' options with specific ports, allowing
+different ports to use different options.  For instance, the
+`#!fold-case' and `#!no-fold-case' reader directives have been
+implemented, and their effect is to modify the current read options of
+the current port only; similarly for `#!curly-infix'.  Thus, it is
+possible, for instance, to have one port reading case-sensitive code,
+while another port reads case-insensitive code.
+
+** Futures may now be nested
+
+Futures may now be nested: a future can itself spawn and then `touch'
+other futures.  In addition, any thread that touches a future that has
+not completed now processes other futures while waiting for the touched
+future to completed.  This allows all threads to be kept busy, and was
+made possible by the use of delimited continuations (see the manual for
+details.)
+
+Consequently, `par-map' has been rewritten and can now use all cores.
+
+** `load-in-vicinity' search for `.go' files in `%load-compiled-path'
+
+Previously, `load-in-vicinity' would look for compiled files in the
+auto-compilation cache, but not in `%load-compiled-path'.  This is now
+fixed.  This affects `load', and the `-l' command-line flag.  See
+<http://bugs.gnu.org/12519> for details.
+
+** Extension search order fixed, and LD_LIBRARY_PATH preserved
+
+Up to 2.0.6, Guile would modify the `LD_LIBRARY_PATH' environment
+variable (or whichever is relevant for the host OS) to insert its own
+default extension directories in the search path (using GNU libltdl
+facilities was not possible here.)  This approach was problematic in two
+ways.
+
+First, the `LD_LIBRARY_PATH' modification would be visible to
+sub-processes, and would also affect future calls to `dlopen', which
+could lead to subtle bugs in the application or sub-processes.  Second,
+when the installation prefix is /usr/local, the `LD_LIBRARY_PATH'
+modification would typically end up inserting /usr/lib before
+/usr/local/lib in the search path, which is often the opposite of
+system-wide settings such as `ld.so.conf'.
+
+Both issues have now been fixed.
+
+** `make-vtable-vtable' is now deprecated
+
+Programs should instead use `make-vtable' and `<standard-vtable>'.
+
+** The `-Wduplicate-case-datum' and `-Wbad-case-datum' are enabled
+
+These recently introduced warnings have been documented and are now
+enabled by default when auto-compiling.
+
+** Optimize calls to `equal?' with a constant argument
+
+The compiler simplifies calls to `equal?' with a constant argument to
+use `eq?' or `eqv?' instead, when applicable.
+
+* Manual updates
+
+** SRFI-9 records now documented under "Compound Data Types"
+
+The documentation of SRFI-9 record types has been moved in the "Compound
+Data Types", next to Guile's other record APIs.  A new section
+introduces the various record APIs, and describes the trade-offs they
+make.  These changes were made in an attempt to better guide users
+through the maze of records API, and to recommend SRFI-9 as the main
+API.
+
+The documentation of Guile's raw `struct' API has also been improved.
+
+** (ice-9 and-let-star) and (ice-9 curried-definitions) now documented
+
+These modules were missing from the manual.
+
+* New interfaces
+
+** New "functional record setters" as a GNU extension of SRFI-9
+
+The (srfi srfi-9 gnu) module now provides three new macros to deal with
+"updates" of immutable records: `define-immutable-record-type',
+`set-field', and `set-fields'.
+
+The first one allows record type "functional setters" to be defined;
+such setters keep the record unchanged, and instead return a new record
+with only one different field.  The remaining macros provide the same
+functionality, and also optimize updates of multiple or nested fields.
+See the manual for details.
+
+** web: New `http-get*', `response-body-port', and `text-content-type?'
+   procedures
+
+These procedures return a port from which to read the response's body.
+Unlike `http-get' and `read-response-body', they allow the body to be
+processed incrementally instead of being stored entirely in memory.
+
+The `text-content-type?' predicate allows users to determine whether the
+content type of a response is textual.
+
+See the manual for details.
+
+** `string-split' accepts character sets and predicates
+
+The `string-split' procedure can now be given a SRFI-14 character set or
+a predicate, instead of just a character.
+
+** R6RS SRFI support --- FIXME
+
+5d7c55b R6RS srfi library names should ignore first identifier after the :n
+acc1d8e Preserve additional R6RS library name components after srfi :n
+
+** `define-public' is no a longer curried definition by default
+
+The (ice-9 curried-definitions) should be used for such uses.  See the
+manual for details.
+
+* Build fixes
+
+** Remove reference to `scm_init_popen' when `fork' is unavailable
+
+This fixes a MinGW build issue (http://bugs.gnu.org/12477).
+
+** Fix race between installing `guild' and the `guile-tools' symlink
+
+* Bug fixes
+
+** Procedures returned by `eval' now have docstrings
+   (http://bugs.gnu.org/12173)
+** web client: correctly handle uri-query, etc. in relative URI headers
+   (http://bugs.gnu.org/12827)
+** Fix docs for R6RS `hashtable-copy'
+** R6RS `string-for-each' now accepts multiple string arguments
+** Fix out-of-range error in the compiler's CSE pass
+   (http://bugs.gnu.org/12883)
+** Add missing R6RS `open-file-input/output-port' procedure
+** Futures: Avoid creating the worker pool more than once
+** Fix invalid assertion about mutex ownership in threads.c
+   (http://bugs.gnu.org/12719)
+** Have `SCM_NUM2FLOAT' and `SCM_NUM2DOUBLE' use `scm_to_double'
+** The `scandir' procedure now uses `lstat' instead of `stat'
+** Fix `generalized-vector->list' indexing bug with shared arrays
+   (http://bugs.gnu.org/12465)
+** web: Change `http-get' to try all the addresses for the given URI
+** Implement `hash' for structs
+   (http://lists.gnu.org/archive/html/guile-devel/2012-10/msg00031.html)
+** `read' now adds source properties for data types beyond pairs
+** Improve error reporting in `append!'
+** In fold-matches, set regexp/notbol unless matching string start
+** Don't stat(2) and access(2) the .go location before using it
+** SRFI-19: use zero padding for hours in ISO 8601 format, not blanks
+** web: Fix uri-encoding for strings with no unreserved chars, and octets 0-15
+** More robust texinfo alias handling
+** Optimize `format' and `simple-format'
+   (http://bugs.gnu.org/12033)
+** Angle of -0.0 is pi, not zero
+
+
 Changes in 2.0.6 (since 2.0.5):
 
 * Notable changes
