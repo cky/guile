@@ -3721,12 +3721,6 @@ search in constant time.  The drawback is that hash tables require a
 little bit more memory, and that you can not use the normal list
 procedures (@pxref{Lists}) for working with them.
 
-Guile provides two types of hashtables.  One is an abstract data type
-that can only be manipulated with the functions in this section.  The
-other type is concrete: it uses a normal vector with alists as
-elements.  The advantage of the abstract hash tables is that they will
-be automatically resized when they become too full or too empty.
-
 @menu
 * Hash Table Examples::         Demonstration of hash table usage.
 * Hash Table Reference::        Hash table procedure descriptions.
@@ -3831,19 +3825,12 @@ Hash tables are implemented as a vector indexed by a hash value formed
 from the key, with an association list of key/value pairs for each
 bucket in case distinct keys hash together.  Direct access to the
 pairs in those lists is provided by the @code{-handle-} functions.
-The abstract kind of hash tables hide the vector in an opaque object
-that represents the hash table, while for the concrete kind the vector
-@emph{is} the hashtable.
 
-When the number of table entries in an abstract hash table goes above
-a threshold, the vector is made larger and the entries are rehashed,
-to prevent the bucket lists from becoming too long and slowing down
-accesses.  When the number of entries goes below a threshold, the
-vector is shrunk to save space.
-
-A abstract hash table is created with @code{make-hash-table}.  To
-create a vector that is suitable as a hash table, use
-@code{(make-vector @var{size} '())}, for example.
+When the number of entries in a hash table goes above a threshold, the
+vector is made larger and the entries are rehashed, to prevent the
+bucket lists from becoming too long and slowing down accesses.  When the
+number of entries goes below a threshold, the vector is shrunk to save
+space.
 
 For the @code{hashx-} ``extended'' routines, an application supplies a
 @var{hash} function producing an integer index like @code{hashq} etc
@@ -3878,7 +3865,7 @@ addition to @code{hashq} etc below, include @code{symbol-hash}
 
 @sp 1
 @deffn {Scheme Procedure} make-hash-table [size]
-Create a new abstract hash table object, with an optional minimum
+Create a new hash table object, with an optional minimum
 vector @var{size}.
 
 When @var{size} is given, the table vector will still grow and shrink
