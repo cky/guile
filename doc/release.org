@@ -76,7 +76,7 @@ However, this has not been done for Guile <= 2.0.2.
 
 Create a signed Git tag, like this:
 
-  $ git tag -s u MY-KEY -m "GNU Guile 2.0.X." v2.0.X
+  $ git tag -s -u MY-KEY -m "GNU Guile 2.0.X." v2.0.X
 
 The tag *must* be `v2.0.X'.  For the sake of consistency, always use
 "GNU Guile 2.0.X." as the tag comment.
@@ -115,8 +115,11 @@ to check the authenticity and integrity of the tarball.
 Make sure the file was uploaded and is available for download as
 expected:
 
-  $ mkdir t && cd t && wget ftp.gnu.org/gnu/guile/guile-2.0.X.tar.gz
+  $ mkdir t && cd t && \
+    wget ftp.gnu.org/gnu/guile/guile-2.0.X.tar.gz && \
+    wget ftp.gnu.org/gnu/guile/guile-2.0.X.tar.xz
   $ diff guile-2.0.X.tar.gz ../guile-2.0.X.tar.gz
+  $ diff guile-2.0.X.tar.xz ../guile-2.0.X.tar.xz
 
 You're almost done!
 
@@ -133,8 +136,10 @@ Announcements").
 
 ** Update the on-line copy of the manual
 
-  - Use `build-aux/gendocs', add to the manual/ directory of the web
-    site.
+Use `build-aux/gendocs', add to the manual/ directory of the web site.
+
+  $ cd doc/ref
+  $ ../../build-aux/gendocs.sh guile "GNU Guile 2.0.X Reference Manual"
 
 ** Prepare the email announcement
 
@@ -156,18 +161,20 @@ entirety (don't call it a change log since that's not what it is.)
 
 ** Send the email announcement
 
+Send to these places, preferably in the morning on a working day (UTC):
+
   - guile-user@gnu.org, guile-devel@gnu.org, guile-sources@gnu.org
   - info-gnu@gnu.org (for stable releases only!)
   - comp.lang.scheme
 
-** Post a news on [[http://sv.gnu.org/p/guile/][Savannah]]
+** Post a news item on [[http://sv.gnu.org/p/guile/][Savannah]]
 
 The news will end up on planet.gnu.org.  The text can be shorter and
 more informal, with a link to the email announcement for details.
 
 
 
-Copyright © 2011 Free Software Foundation, Inc.
+Copyright © 2011, 2012 Free Software Foundation, Inc.
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright
