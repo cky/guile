@@ -119,6 +119,11 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
                     ((thunk? prompt) (lambda (repl) (prompt)))
                     ((procedure? prompt) prompt)
                     (else (error "Invalid prompt" prompt)))))
+     (print #f ,(lambda (print)
+                  (cond
+                   ((not print) #f)
+                   ((procedure? print) print)
+                   (else (error "Invalid print procedure" print)))))
      (value-history
       ,(value-history-enabled?)
       ,(lambda (x)
@@ -209,12 +214,16 @@ See <http://www.gnu.org/licenses/lgpl.html>, for more details.")
   (if (not (eq? val *unspecified*))
       (begin
         (run-hook before-print-hook val)
-        ;; The result of an evaluation is representable in scheme, and
-        ;; should be printed with the generic printer, `write'. The
-        ;; language-printer is something else: it prints expressions of
-        ;; a given language, not the result of evaluation.
-	(write val)
-	(newline))))
+        (cond
+         ((repl-option-ref repl 'print)
+          => (lambda (print) (print repl val)))
+         (else
+          ;; The result of an evaluation is representable in scheme, and
+          ;; should be printed with the generic printer, `write'. The
+          ;; language-printer is something else: it prints expressions of
+          ;; a given language, not the result of evaluation.
+          (write val)
+          (newline))))))
 
 (define (repl-option-ref repl key)
   (cadr (or (assq key (repl-options repl))

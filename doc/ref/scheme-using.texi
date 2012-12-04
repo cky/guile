@@ -445,6 +445,10 @@ choice is available.  Off by default (indicating compilation).
 @item prompt
 A customized REPL prompt.  @code{#f} by default, indicating the default
 prompt.
+@item print
+A procedure of two arguments used to print the result of evaluating each
+expression.  The arguments are the current REPL and the value to print.
+By default, @code{#f}, to use the default procedure.
 @item value-history
 Whether value history is on or not.  @xref{Value History}.
 @item on-error
