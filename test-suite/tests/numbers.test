@@ -3070,6 +3070,16 @@
     (pass-if (eqv?   fixnum-min (* (* fixnum-min -1) -1)))
     (pass-if (equal? fixnum-min (* (* fixnum-min -1) -1))))
 
+  (with-test-prefix "signed fixnum overflow"
+    (pass-if (eqv? (* 65536 65536) 4294967296))
+    (pass-if (eqv? (* -65536 65536) -4294967296))
+    (pass-if (eqv? (* 65536 -65536) -4294967296))
+    (pass-if (eqv? (* -65536 -65536) 4294967296))
+    (pass-if (eqv? (* 4294967296 4294967296) 18446744073709551616))
+    (pass-if (eqv? (* -4294967296 4294967296) -18446744073709551616))
+    (pass-if (eqv? (* 4294967296 -4294967296) -18446744073709551616))
+    (pass-if (eqv? (* -4294967296 -4294967296) 18446744073709551616)))
+
   (with-test-prefix "signed zeroes"
     (pass-if (eqv? +0.0 (* +0.0 +0.0)))
     (pass-if (eqv? -0.0 (* -0.0 +0.0)))

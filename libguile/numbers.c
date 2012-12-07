@@ -7640,10 +7640,16 @@ scm_product (SCM x, SCM y)
       if (SCM_LIKELY (SCM_I_INUMP (y)))
 	{
 	  scm_t_inum yy = SCM_I_INUM (y);
-	  scm_t_inum kk = xx * yy;
-	  SCM k = SCM_I_MAKINUM (kk);
-	  if ((kk == SCM_I_INUM (k)) && (kk / xx == yy))
-	    return k;
+#if SCM_I_FIXNUM_BIT < 32 && SCM_HAVE_T_INT64
+          scm_t_int64 kk = xx * (scm_t_int64) yy;
+          if (SCM_FIXABLE (kk))
+            return SCM_I_MAKINUM (kk);
+#else
+          scm_t_inum axx = (xx > 0) ? xx : -xx;
+          scm_t_inum ayy = (yy > 0) ? yy : -yy;
+          if (SCM_MOST_POSITIVE_FIXNUM / axx >= ayy)
+            return SCM_I_MAKINUM (xx * yy);
+#endif
 	  else
 	    {
 	      SCM result = scm_i_inum2big (xx);
