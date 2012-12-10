@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
- *   2006, 2007, 2009, 2011 Free Software Foundation, Inc.
+ *   2006, 2007, 2009, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <gmp.h>
+#include <verify.h>
 
 #include "libguile/_scm.h"
 #include "libguile/arrays.h"
@@ -741,6 +742,11 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+/* Our documentation hard-codes this mapping, so make sure it holds.  */
+verify (SHUT_RD == 0);
+verify (SHUT_WR == 1);
+verify (SHUT_RDWR == 2);
 
 SCM_DEFINE (scm_shutdown, "shutdown", 2, 0, 0,
           (SCM sock, SCM how),
