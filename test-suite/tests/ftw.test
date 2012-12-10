@@ -214,18 +214,22 @@
       (equal? (file-system-fold enter? leaf down up skip error '() name)
               `((error ,name ,ENOENT)))))
 
-  (pass-if "EACCES"
-    (with-file-tree %top-builddir '(directory "test-EACCES" #o000
-                                              (("a") ("b")))
-      (let ((enter? (lambda (n s r) #t))
-            (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
-            (down   (lambda (n s r) (cons `(down ,n) r)))
-            (up     (lambda (n s r) (cons `(up ,n) r)))
-            (skip   (lambda (n s r) (cons `(skip ,n) r)))
-            (error  (lambda (n s e r) (cons `(error ,n ,e) r)))
-            (name   (string-append %top-builddir "/test-EACCES")))
-        (equal? (file-system-fold enter? leaf down up skip error '() name)
-                `((error ,name ,EACCES))))))
+  (let ((name (string-append %top-builddir "/test-EACCES")))
+    (pass-if-equal "EACCES"
+        `((error ,name ,EACCES))
+      (if (zero? (getuid))
+          ;; When run as root, this test would fail because root can
+          ;; list the contents of #o000 directories.
+          (throw 'unresolved)
+          (with-file-tree %top-builddir '(directory "test-EACCES" #o000
+                                                    (("a") ("b")))
+            (let ((enter? (lambda (n s r) #t))
+                  (leaf   (lambda (n s r) (cons `(leaf ,n) r)))
+                  (down   (lambda (n s r) (cons `(down ,n) r)))
+                  (up     (lambda (n s r) (cons `(up ,n) r)))
+                  (skip   (lambda (n s r) (cons `(skip ,n) r)))
+                  (error  (lambda (n s e r) (cons `(error ,n ,e) r))))
+              (file-system-fold enter? leaf down up skip error '() name))))))
 
   (pass-if "dangling symlink and lstat"
     (with-file-tree %top-builddir '(directory "test-dangling"
