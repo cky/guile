@@ -50,8 +50,8 @@ builds on 11 architectures).  It also has FreeBSD and NetBSD boxes.
 *** Use porter boxes
 
 If you're still in a good mood, you may also want to check on porter
-boxes for other OSes.  The GNU/Hurd people have [[http://www.gnu.org/software/hurd/public_hurd_boxen.html][porter boxes]], so does
-the [[http://www.opencsw.org/standards/build_farm][OpenCSW Solaris Team]].
+boxes for other OSes.  The GNU/Hurd people have [[http://www.gnu.org/software/hurd/public_hurd_boxen.html][porter boxes]], and so do
+the [[http://www.opencsw.org/standards/build_farm][OpenCSW Solaris Team]] and the [[http://lists.gnu.org/archive/html/autoconf/2012-11/msg00039.html][Snakebite]] project.
 
 
 *** Post a pre-release announcement to `platform-testers@gnu.org'
