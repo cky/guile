@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,8 @@
 #include "objcodes.h"
 #include "programs.h"
 #include "vm.h"
+
+#include "private-gc.h" /* scm_getenv_int */
 
 static int vm_default_engine = SCM_VM_REGULAR_ENGINE;
 
@@ -633,7 +635,17 @@ resolve_variable (SCM what, SCM program_module)
     }
 }
   
+#define VM_MIN_STACK_SIZE	(1024)
 #define VM_DEFAULT_STACK_SIZE	(64 * 1024)
+static size_t vm_stack_size = VM_DEFAULT_STACK_SIZE;
+
+static void
+initialize_default_stack_size (void)
+{
+  int size = scm_getenv_int ("GUILE_STACK_SIZE", vm_stack_size);
+  if (size >= VM_MIN_STACK_SIZE)
+    vm_stack_size = size;
+}
 
 #define VM_NAME   vm_regular_engine
 #define FUNC_NAME "vm-regular-engine"
@@ -670,7 +682,7 @@ make_vm (void)
 
   vp = scm_gc_malloc (sizeof (struct scm_vm), "vm");
 
-  vp->stack_size  = VM_DEFAULT_STACK_SIZE;
+  vp->stack_size= vm_stack_size;
 
 #ifdef VM_ENABLE_PRECISE_STACK_GC_SCAN
   vp->stack_base = (SCM *)
@@ -1085,6 +1097,8 @@ scm_bootstrap_vm (void)
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_vm",
                             (scm_t_extension_init_func)scm_init_vm, NULL);
+
+  initialize_default_stack_size ();
 
   sym_vm_run = scm_from_latin1_symbol ("vm-run");
   sym_vm_error = scm_from_latin1_symbol ("vm-error");
