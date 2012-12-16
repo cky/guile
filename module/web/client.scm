@@ -38,6 +38,7 @@
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
+  #:use-module (srfi srfi-1)
   #:export (open-socket-for-uri
             http-get
             http-get*))
@@ -46,19 +47,21 @@
   "Return an open input/output port for a connection to URI."
   (define addresses
     (let ((port (uri-port uri)))
-      (getaddrinfo (uri-host uri)
-                   (cond (port => number->string)
-                         (else (symbol->string (uri-scheme uri))))
-                   (if port
-                       AI_NUMERICSERV
-                       0))))
+      (delete-duplicates
+       (getaddrinfo (uri-host uri)
+                    (cond (port => number->string)
+                          (else (symbol->string (uri-scheme uri))))
+                    (if port
+                        AI_NUMERICSERV
+                        0))
+       (lambda (ai1 ai2)
+         (equal? (addrinfo:addr ai1) (addrinfo:addr ai2))))))
 
   (let loop ((addresses addresses))
     (let* ((ai (car addresses))
-           (s  (socket (addrinfo:fam ai) (addrinfo:socktype ai)
-                       (addrinfo:protocol ai))))
-      (set-port-encoding! s "ISO-8859-1")
-
+           (s  (with-fluids ((%default-port-encoding #f))
+                 ;; Restrict ourselves to TCP.
+                 (socket (addrinfo:fam ai) SOCK_STREAM IPPROTO_IP))))
       (catch 'system-error
         (lambda ()
           (connect s (addrinfo:addr ai))
@@ -71,7 +74,7 @@
         (lambda args
           ;; Connection failed, so try one of the other addresses.
           (close s)
-          (if (null? addresses)
+          (if (null? (cdr addresses))
               (apply throw args)
               (loop (cdr addresses))))))))
 
