@@ -1,6 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2003, 2004, 2009, 2010 Free Software
- * Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2003, 2004, 2009,
+ *   2010, 2012 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <signal.h>  /* for SIG constants */
 #include <stdlib.h>  /* for getenv */
+#include <stdio.h>
 
 #include "libguile/_scm.h"
 
@@ -137,10 +138,17 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       if (pid == 0)
         {
           /* child */
-          execvp (execargv[0], execargv);
-          SCM_SYSERROR;
-          /* not reached.  */
-          return SCM_BOOL_F;
+	  execvp (execargv[0], execargv);
+
+	  /* Something went wrong.  */
+	  fprintf (stderr, "In execvp of %s: %s\n",
+		   execargv[0], strerror (errno));
+
+	  /* Exit directly instead of throwing, because otherwise this
+	     process may keep on running.  Use exit status 127, like
+	     shells in this case, as per POSIX
+	     <http://pubs.opengroup.org/onlinepubs/007904875/utilities/xcu_chap02.html#tag_02_09_01_01>.  */
+	  _exit (127);
         }
       else
         {
