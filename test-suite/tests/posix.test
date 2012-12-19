@@ -209,5 +209,5 @@
     ;; With Guile up to 2.0.7 included, the child process launched by
     ;; `system*' would remain alive after an `execvp' failure.
     (let ((me (getpid)))
-      (and (not (zero? (pk (system* "something-that-does-not-exist"))))
+      (and (not (zero? (system* "something-that-does-not-exist")))
            (= me (getpid))))))
