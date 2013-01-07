@@ -129,8 +129,6 @@ Otherwise it will be returned as a bytevector."
                                                 extra-headers)))))
     (write-request req port)
     (force-output port)
-    (if (not keep-alive?)
-        (shutdown port 1))
     (let* ((res (read-response port))
            (body (read-response-body res)))
       (if (not keep-alive?)
