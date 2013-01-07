@@ -274,7 +274,9 @@ sense at certain points in the program, delimited by these
 Return an association list describing the arguments that @var{program} accepts, or
 @code{#f} if the information cannot be obtained.
 
-For example:
+The alist keys that are currently defined are `required', `optional',
+`keyword', `allow-other-keys?', and `rest'.  For example:
+
 @example
 (program-arguments-alist
  (lambda* (a b #:optional c #:key (d 1) #:rest e)
@@ -285,17 +287,19 @@ For example:
  (allow-other-keys? . #f)
  (rest . d))
 @end example
+@end deffn
 
-The alist keys that are currently defined are `required', `optional',
-`keyword', `allow-other-keys?', and `rest'.
+@deffn {Scheme Procedure} program-lambda-list program [ip]
+Return a representation of the arguments of @var{program} as a lambda
+list, or @code{#f} if this information is not available.
 
-@deffnx {Scheme Procedure} program-lambda-list program [ip]
-Accessors for a representation of the arguments of a program, with both
-names and types (ie. either required, optional or keywords)
+For example:
 
-@code{program-arguments-alist} returns this information in the form of
-an association list while @code{program-lambda-list} returns the same
-information in a form similar to a lambda definition.
+@example
+(program-lambda-alist
+ (lambda* (a b #:optional c #:key (d 1) #:rest e)
+   #t)) @result{}
+@end example
 @end deffn
 
 @node Optional Arguments
