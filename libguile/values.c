@@ -97,8 +97,8 @@ scm_c_value_ref (SCM obj, size_t idx)
   scm_error (scm_out_of_range_key,
 	     "scm_c_value_ref",
 	     "Too few values in ~S to access index ~S",
-             scm_list_2 (obj, scm_from_unsigned_integer (idx)),
-             scm_list_1 (scm_from_unsigned_integer (idx)));
+             scm_list_2 (obj, scm_from_size_t (idx)),
+             scm_list_1 (scm_from_size_t (idx)));
 }
 
 SCM_DEFINE (scm_values, "values", 0, 0, 1,
