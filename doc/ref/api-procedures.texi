@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010,
-@c   2011, 2012  Free Software Foundation, Inc.
+@c   2011, 2012, 2013  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Procedures
@@ -271,7 +271,25 @@ sense at certain points in the program, delimited by these
 @end deffn
 
 @deffn {Scheme Procedure} program-arguments-alist program [ip]
-@deffnx {Scheme Procedure} program-lambda-list [ip]
+Return an association list describing the arguments that @var{program} accepts, or
+@code{#f} if the information cannot be obtained.
+
+For example:
+@example
+(program-arguments-alist
+ (lambda* (a b #:optional c #:key (d 1) #:rest e)
+   #t)) @result{}
+((required . (a b))
+ (optional . (c))
+ (keyword . ((#:d . 4)))
+ (allow-other-keys? . #f)
+ (rest . d))
+@end example
+
+The alist keys that are currently defined are `required', `optional',
+`keyword', `allow-other-keys?', and `rest'.
+
+@deffnx {Scheme Procedure} program-lambda-list program [ip]
 Accessors for a representation of the arguments of a program, with both
 names and types (ie. either required, optional or keywords)
 

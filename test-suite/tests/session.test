@@ -1,7 +1,7 @@
 ;;;; session.test --- test suite for (ice-9 session)   -*- scheme -*-
 ;;;; Jose Antonio Ortega Ruiz <jao@gnu.org> -- August 2010
 ;;;;
-;;;; 	Copyright (C) 2010, 2012 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -88,7 +88,7 @@
     (lambda* (a b #:optional o p #:key k l #:rest r) #f)
     ((required . (a b)) (optional . (o p))
      (keyword . ((#:k . 5) (#:l . 6))) (allow-other-keys? . #f)
-     (rest . k)))
+     (rest . r)))
 
   (pass-if "aok? is preserved"
     ;; See <http://bugs.gnu.org/10938>.

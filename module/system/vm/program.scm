@@ -1,6 +1,6 @@
 ;;; Guile VM program functions
 
-;;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;;; Copyright (C) 2001, 2009, 2010, 2013 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -227,7 +227,7 @@
           rest? rest (1+ n)))
      (rest?
       (lp nreq req nopt opt
-          #f (var-by-index n)
+          #f (var-by-index (+ n (length (arity:kw arity))))
           (1+ n)))
      (else
       `((required . ,(reverse req))
