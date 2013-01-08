@@ -1,6 +1,6 @@
 ;; popen emulation, for non-stdio based ports.
 
-;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2006, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -49,11 +49,17 @@ A port to the process (based on pipes) is created and returned.
 @var{mode} specifies whether an input, an output or an input-output
 port to the process is created: it should be the value of
 @code{OPEN_READ}, @code{OPEN_WRITE} or @code{OPEN_BOTH}."
-  (let* ((port/pid (apply open-process mode command args))
-	 (port (car port/pid)))
-    (pipe-guardian port)
-    (hashq-set! port/pid-table port (cdr port/pid))
-    port))
+  (call-with-values (lambda ()
+                      (apply open-process mode command args))
+    (lambda (read-port write-port pid)
+      (let ((port (or (and read-port write-port
+                           (make-rw-port read-port write-port))
+                      read-port
+                      write-port
+                      (%make-void-port mode))))
+        (pipe-guardian port)
+        (hashq-set! port/pid-table port pid)
+        port))))
 
 (define (open-pipe command mode)
   "Executes the shell command @var{command} (a string) in a subprocess.

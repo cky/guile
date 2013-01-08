@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1351,7 +1351,7 @@ scm_open_process (SCM mode, SCM prog, SCM args)
   if (pid)
     /* Parent. */
     {
-      SCM read_port = SCM_BOOL_F, write_port = SCM_BOOL_F, port;
+      SCM read_port = SCM_BOOL_F, write_port = SCM_BOOL_F;
 
       /* There is no sense in catching errors on close().  */
       if (reading) 
@@ -1367,25 +1367,8 @@ scm_open_process (SCM mode, SCM prog, SCM args)
           scm_setvbuf (write_port, scm_from_int (_IONBF), SCM_UNDEFINED);
         }
       
-      if (reading && writing)
-        {
-          static SCM make_rw_port = SCM_BOOL_F;
-
-          if (scm_is_false (make_rw_port))
-            make_rw_port = scm_c_private_variable ("ice-9 popen",
-                                                   "make-rw-port");
-
-          port = scm_call_2 (scm_variable_ref (make_rw_port),
-                             read_port, write_port);
-        }
-      else if (reading)
-        port = read_port;
-      else if (writing)
-        port = write_port;
-      else
-        port = scm_sys_make_void_port (mode);
-
-      return scm_cons (port, scm_from_int (pid));
+      return scm_values
+        (scm_list_3 (read_port, write_port, scm_from_int (pid)));
     }
   
   /* The child.  */
