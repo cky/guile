@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+##  	Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -210,6 +210,7 @@ ICE_9_SOURCES = \
   ice-9/getopt-long.scm \
   ice-9/hcons.scm \
   ice-9/i18n.scm \
+  ice-9/iconv.scm \
   ice-9/lineio.scm \
   ice-9/ls.scm \
   ice-9/mapping.scm \

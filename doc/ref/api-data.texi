@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -2881,6 +2881,7 @@ Guile provides all procedures of SRFI-13 and a few more.
 * Reversing and Appending Strings:: Appending strings to form a new string.
 * Mapping Folding and Unfolding::   Iterating over strings.
 * Miscellaneous String Operations:: Replicating, insertion, parsing, ...
+* Representing Strings as Bytes::   Encoding and decoding strings.
 * Conversion to/from C::
 * String Internals::                The storage strategy for strings.
 @end menu
@@ -4163,6 +4164,70 @@ a predicate, if it is a character, it is tested for equality and if it
 is a character set, it is tested for membership.
 @end deffn
 
+@node Representing Strings as Bytes
+@subsubsection Representing Strings as Bytes
+
+Out in the cold world outside of Guile, not all strings are treated in
+the same way.  Out there there are only bytes, and there are many ways
+of representing a strings (sequences of characters) as binary data
+(sequences of bytes).
+
+As a user, usually you don't have to think about this very much.  When
+you type on your keyboard, your system encodes your keystrokes as bytes
+according to the locale that you have configured on your computer.
+Guile uses the locale to decode those bytes back into characters --
+hopefully the same characters that you typed in.
+
+All is not so clear when dealing with a system with multiple users, such
+as a web server.  Your web server might get a request from one user for
+data encoded in the ISO-8859-1 character set, and then another request
+from a different user for UTF-8 data.
+
+@cindex iconv
+@cindex character encoding
+Guile provides an @dfn{iconv} module for converting between strings and
+sequences of bytes.  @xref{Bytevectors}, for more on how Guile
+represents raw byte sequences.  This module gets its name from the
+common @sc{unix} command of the same name.
+
+Unlike the rest of the procedures in this section, you have to load the
+@code{iconv} module before having access to these procedures:
+
+@example
+(use-modules (ice-9 iconv))
+@end example
+
+@deffn string->bytevector string encoding [#:conversion-strategy='error]
+Encode @var{string} as a sequence of bytes.
+
+The string will be encoded in the character set specified by the
+@var{encoding} string.  If the string has characters that cannot be
+represented in the encoding, by default this procedure raises an
+@code{encoding-error}, though the @code{#:conversion-strategy} keyword
+can specify other behaviors.
+
+The return value is a bytevector.  @xref{Bytevectors}, for more on
+bytevectors.  @xref{Ports}, for more on character encodings and
+conversion strategies.
+@end deffn
+
+@deffn bytevector->string bytevector encoding 
+Decode @var{bytevector} into a string.
+
+The bytes will be decoded from the character set by the @var{encoding}
+string.  If the bytes do not form a valid encoding, by default this
+procedure raises an @code{decoding-error}, though that may be overridden
+with the @code{#:conversion-strategy} keyword.  @xref{Ports}, for more
+on character encodings and conversion strategies.
+@end deffn
+
+@deffn call-with-output-encoded-string encoding proc [#:conversion-strategy='error]
+Like @code{call-with-output-string}, but instead of returning a string,
+returns a encoding of the string according to @var{encoding}, as a
+bytevector.  This procedure can be more efficient than collecting a
+string and then converting it via @code{string->bytevector}.
+@end deffn
+
 @node Conversion to/from C
 @subsubsection Conversion to/from C
 
@@ -4172,9 +4237,9 @@ important.
 
 In C, a string is just a sequence of bytes, and the character encoding
 describes the relation between these bytes and the actual characters
-that make up the string.  For Scheme strings, character encoding is
-not an issue (most of the time), since in Scheme you never get to see
-the bytes, only the characters.
+that make up the string.  For Scheme strings, character encoding is not
+an issue (most of the time), since in Scheme you usually treat strings
+as character sequences, not byte sequences.
 
 Converting to C and converting from C each have their own challenges.
 
@@ -4305,6 +4370,9 @@ into @var{encoding}.
 If @var{lenp} is @code{NULL}, this function will return a null-terminated C
 string.  It will throw an error if the string contains a null
 character.
+
+The Scheme interface to this function is @code{encode-string}, from the
+@code{ice-9 iconv} module.  @xref{Representing Strings as Bytes}.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_from_stringn (const char *str, size_t len, const char *encoding, scm_t_string_failed_conversion_handler handler)
@@ -4313,6 +4381,9 @@ length in bytes of the C string is input as @var{len}.  The encoding of the C
 string is passed as the ASCII, null-terminated C string @code{encoding}.
 The @var{handler} parameters suggests a strategy for dealing with
 unconvertable characters.
+
+The Scheme interface to this function is @code{decode-string}.
+@xref{Representing Strings as Bytes}.
 @end deftypefn
 
 The following conversion functions are provided as a convenience for the
@@ -4810,6 +4881,7 @@ the host's native endianness.
 
 Bytevector contents can also be interpreted as Unicode strings encoded
 in one of the most commonly available encoding formats.
+@xref{Representing Strings as Bytes}, for a more generic interface.
 
 @lisp
 (utf8->string (u8-list->bytevector '(99 97 102 101)))

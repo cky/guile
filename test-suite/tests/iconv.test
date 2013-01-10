@@ -1,0 +1,115 @@
+;;;; iconv.test --- Exercise the iconv API.  -*- coding: utf-8; mode: scheme; -*-
+;;;;
+;;;; Copyright (C) 2013 Free Software Foundation, Inc.
+;;;; Andy Wingo
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;; 
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-suite iconv)
+  #:use-module (ice-9 iconv)
+  #:use-module (rnrs bytevectors)
+  #:use-module (test-suite lib))
+
+
+(define exception:encoding-error
+  '(encoding-error . ""))
+
+(define exception:decoding-error
+  '(decoding-error . ""))
+
+
+(with-test-prefix "ascii string"
+  (let ((s "Hello, World!"))
+    ;; For ASCII, all of these encodings should be the same.
+
+    (pass-if "to ascii bytevector"
+      (equal? (string->bytevector s "ASCII")
+              #vu8(72 101 108 108 111 44 32 87 111 114 108 100 33)))
+  
+    (pass-if "to ascii bytevector (length check)"
+      (equal? (string-length s)
+              (bytevector-length (string->bytevector s "ascii"))))
+  
+    (pass-if "from ascii bytevector"
+      (equal? s
+              (bytevector->string (string->bytevector s "ascii") "ascii")))
+  
+    (pass-if "to utf-8 bytevector"
+      (equal? (string->bytevector s "ASCII")
+              (string->bytevector s "utf-8")))
+  
+    (pass-if "to UTF-8 bytevector (testing encoding case sensitivity)"
+      (equal? (string->bytevector s "ascii")
+              (string->bytevector s "UTF-8")))
+  
+    (pass-if "from utf-8 bytevector"
+      (equal? s
+              (bytevector->string (string->bytevector s "utf-8") "utf-8")))
+  
+    (pass-if "to latin1 bytevector"
+      (equal? (string->bytevector s "ASCII")
+              (string->bytevector s "latin1")))
+
+    (pass-if "from latin1 bytevector"
+      (equal? s
+              (bytevector->string (string->bytevector s "utf-8") "utf-8")))))
+
+(with-test-prefix "narrow non-ascii string"
+  (let ((s "été"))
+    (pass-if "to latin1 bytevector"
+      (equal? (string->bytevector s "latin1")
+              #vu8(233 116 233)))
+  
+    (pass-if "to latin1 bytevector (length check)"
+      (equal? (string-length s)
+              (bytevector-length (string->bytevector s "latin1"))))
+  
+    (pass-if "from latin1 bytevector"
+      (equal? s
+              (bytevector->string (string->bytevector s "latin1") "latin1")))
+  
+    (pass-if "to utf-8 bytevector"
+      (equal? (string->bytevector s "utf-8")
+              #vu8(195 169 116 195 169)))
+
+    (pass-if "from utf-8 bytevector"
+      (equal? s
+              (bytevector->string (string->bytevector s "utf-8") "utf-8")))
+
+    (pass-if-exception "encode latin1 as ascii" exception:encoding-error
+      (string->bytevector s "ascii"))
+
+    (pass-if-exception "misparse latin1 as utf8" exception:decoding-error
+      (bytevector->string (string->bytevector s "latin1") "utf-8"))
+
+    (pass-if-exception "misparse latin1 as ascii" exception:decoding-error
+      (bytevector->string (string->bytevector s "latin1") "ascii"))))
+
+
+(with-test-prefix "wide non-ascii string"
+  (let ((s "ΧΑΟΣ"))
+    (pass-if "to utf-8 bytevector"
+      (equal? (string->bytevector s "utf-8")
+              #vu8(206 167 206 145 206 159 206 163) ))
+
+    (pass-if "from utf-8 bytevector"
+      (equal? s
+              (bytevector->string (string->bytevector s "utf-8") "utf-8")))
+
+    (pass-if-exception "encode as ascii" exception:encoding-error
+      (string->bytevector s "ascii"))
+
+    (pass-if-exception "encode as latin1" exception:encoding-error
+      (string->bytevector s "latin1"))))
