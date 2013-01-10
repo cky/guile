@@ -466,7 +466,6 @@
 (char-ci=? (groups Scheme) (scan-data "#<primitive-procedure char-ci=?>"))
 (char-ci>=? (groups Scheme) (scan-data "#<primitive-procedure char-ci>=?>"))
 (char-ci>? (groups Scheme) (scan-data "#<primitive-procedure char-ci>?>"))
-(char-code-limit (groups Scheme) (scan-data ""))
 (char-downcase (groups Scheme) (scan-data "#<primitive-procedure char-downcase>"))
 (char-is-both? (groups Scheme) (scan-data "#<primitive-procedure char-is-both?>"))
 (char-lower-case? (groups Scheme) (scan-data "#<primitive-procedure char-lower-case?>"))

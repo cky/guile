@@ -2,7 +2,7 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- September 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2004, 2006, 2007, 2008, 2009, 2010,
-;;;;      2012 Free Software Foundation, Inc.
+;;;;      2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -171,10 +171,10 @@
 
   (let ((lst `((regexp/basic    ,regexp/basic)
 	       (regexp/extended ,regexp/extended)))
-	;; string of all characters, except #\nul which doesn't work because
-	;; it's the usual end-of-string for the underlying C regexec()
-	(allchars (list->string (map integer->char
-				     (cdr (iota char-code-limit))))))
+	;; String of all latin-1 characters, except #\nul which doesn't
+	;; work because it's the usual end-of-string for the underlying
+	;; C regexec().
+	(allchars (list->string (map integer->char (cdr (iota 256))))))
     (for-each
      (lambda (elem)
        (let ((name (car  elem))
@@ -182,9 +182,9 @@
 
 	 (with-test-prefix name
 
-	   ;; try on each individual character, except #\nul
+	   ;; Try on each individual latin-1 character, except #\nul.
 	   (do ((i 1 (1+ i)))
-	       ((>= i char-code-limit))
+	       ((>= i 256))
              (let* ((c (integer->char i))
                     (s (string c)))
                (pass-if (list "char" i (format #f "~s ~s" c s))
@@ -194,11 +194,12 @@
                     (and (= 0 (match:start m))
                          (= 1 (match:end m))))))))
 
-	   ;; try on pattern "aX" where X is each character, except #\nul
-	   ;; this exposes things like "?" which are special only when they
-	   ;; follow a pattern to repeat or whatever ("a" in this case)
+	   ;; Try on pattern "aX" where X is each latin-1 character,
+	   ;; except #\nul.  This exposes things like "?" which are
+	   ;; special only when they follow a pattern to repeat or
+	   ;; whatever ("a" in this case).
 	   (do ((i 1 (1+ i)))
-	       ((>= i char-code-limit))
+	       ((>= i 256))
              (let* ((c (integer->char i))
                     (s (string #\a c))
                     (q (with-unicode (regexp-quote s))))

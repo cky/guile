@@ -70,7 +70,8 @@
             read-hash-procedures
             process-define-module
             fluid-let-syntax
-            set-system-module!))
+            set-system-module!
+            char-code-limit))
 
 
 ;;;; Deprecated definitions.
@@ -896,3 +897,7 @@ it.")
         (issue-deprecation-warning
          "`module-eval-closure' is deprecated.  Use module-variable or module-define! instead.")
         (standard-eval-closure m)))
+
+;; Legacy definition.  We can't make it identifier-syntax yet though,
+;; because compiled code might rely on it.
+(define char-code-limit 256)

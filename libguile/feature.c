@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
- *   2006, 2007, 2009, 2011 Free Software Foundation, Inc.
+ *   2006, 2007, 2009, 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -122,8 +122,6 @@ scm_init_feature()
 #if SCM_USE_PTHREAD_THREADS
   scm_add_feature ("threads");
 #endif
-
-  scm_c_define ("char-code-limit", scm_from_int (SCM_CHAR_CODE_LIMIT));
 
 #include "libguile/feature.x"
 }

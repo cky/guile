@@ -4,7 +4,7 @@
 #define SCM___SCM_H
 
 /* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2002, 2003, 2006,
- *   2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -434,12 +434,6 @@
 # define SCM_LONG_BIT LONG_BIT
 #else
 # define SCM_LONG_BIT (SCM_CHAR_BIT * sizeof (long) / sizeof (char))
-#endif
-
-#ifdef UCHAR_MAX
-# define SCM_CHAR_CODE_LIMIT (UCHAR_MAX + 1L)
-#else
-# define SCM_CHAR_CODE_LIMIT 256L
 #endif
 
 #define SCM_I_UTYPE_MAX(type)      ((type)-1)
