@@ -69,13 +69,6 @@
             make-chunked-output-port))
 
 
-;;; TODO
-;;;
-;;; Look at quality lists with more insight.
-;;; Think about `accept' a bit more.
-;;; 
-
-
 (define (string->header name)
   "Parse NAME to a symbolic header name."
   (string->symbol (string-downcase name)))
