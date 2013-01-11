@@ -112,4 +112,9 @@
       (string->bytevector s "ascii"))
 
     (pass-if-exception "encode as latin1" exception:encoding-error
-      (string->bytevector s "latin1"))))
+      (string->bytevector s "latin1"))
+
+    (pass-if "encode as ascii with substitutions"
+      (equal? (make-string (string-length s) #\?)
+              (bytevector->string (string->bytevector s "ascii" 'substitute)
+                                  "ascii")))))

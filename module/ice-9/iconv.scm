@@ -43,7 +43,8 @@
         bv))))
 
 (define* (call-with-encoded-output-string encoding proc
-                                          #:key (conversion-strategy 'error))
+                                          #:optional
+                                          (conversion-strategy 'error))
   (if (string-ci=? encoding "utf-8")
       ;; I don't know why, but this appears to be faster; at least for
       ;; serving examples/debug-sxml.scm (1464 reqs/s versus 850
@@ -59,16 +60,18 @@
 ;; TODO: Provide C implementations that call scm_from_stringn and
 ;; friends?
 
-(define* (string->bytevector str encoding #:key (conversion-strategy 'error))
+(define* (string->bytevector str encoding
+                             #:optional (conversion-strategy 'error))
   (if (string-ci=? encoding "utf-8")
       (string->utf8 str)
       (call-with-encoded-output-string
        encoding
        (lambda (port)
          (display str port))
-       #:conversion-strategy conversion-strategy)))
+       conversion-strategy)))
 
-(define* (bytevector->string bv encoding #:key (conversion-strategy 'error))
+(define* (bytevector->string bv encoding
+                             #:optional (conversion-strategy 'error))
   (if (string-ci=? encoding "utf-8")
       (utf8->string bv)
       (let ((p (open-bytevector-input-port bv)))

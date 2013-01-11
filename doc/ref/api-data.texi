@@ -4190,6 +4190,11 @@ sequences of bytes.  @xref{Bytevectors}, for more on how Guile
 represents raw byte sequences.  This module gets its name from the
 common @sc{unix} command of the same name.
 
+Note that often it is sufficient to just read and write strings from
+ports instead of using these functions.  To do this, specify the port
+encoding using @code{set-port-encoding!}.  @xref{Ports}, for more on
+ports and character encodings.
+
 Unlike the rest of the procedures in this section, you have to load the
 @code{iconv} module before having access to these procedures:
 
@@ -4197,31 +4202,32 @@ Unlike the rest of the procedures in this section, you have to load the
 (use-modules (ice-9 iconv))
 @end example
 
-@deffn string->bytevector string encoding [#:conversion-strategy='error]
+@deffn string->bytevector string encoding [conversion-strategy]
 Encode @var{string} as a sequence of bytes.
 
 The string will be encoded in the character set specified by the
 @var{encoding} string.  If the string has characters that cannot be
 represented in the encoding, by default this procedure raises an
-@code{encoding-error}, though the @code{#:conversion-strategy} keyword
-can specify other behaviors.
+@code{encoding-error}.  Pass a @var{conversion-strategy} argument to
+specify other behaviors.
 
 The return value is a bytevector.  @xref{Bytevectors}, for more on
 bytevectors.  @xref{Ports}, for more on character encodings and
 conversion strategies.
 @end deffn
 
-@deffn bytevector->string bytevector encoding 
+@deffn bytevector->string bytevector encoding [conversion-strategy]
 Decode @var{bytevector} into a string.
 
 The bytes will be decoded from the character set by the @var{encoding}
 string.  If the bytes do not form a valid encoding, by default this
-procedure raises an @code{decoding-error}, though that may be overridden
-with the @code{#:conversion-strategy} keyword.  @xref{Ports}, for more
-on character encodings and conversion strategies.
+procedure raises an @code{decoding-error}.  As with
+@code{string->bytevector}, pass the optional @var{conversion-strategy}
+argument to modify this behavior.  @xref{Ports}, for more on character
+encodings and conversion strategies.
 @end deffn
 
-@deffn call-with-output-encoded-string encoding proc [#:conversion-strategy='error]
+@deffn call-with-output-encoded-string encoding proc [conversion-strategy]
 Like @code{call-with-output-string}, but instead of returning a string,
 returns a encoding of the string according to @var{encoding}, as a
 bytevector.  This procedure can be more efficient than collecting a
@@ -4371,7 +4377,7 @@ If @var{lenp} is @code{NULL}, this function will return a null-terminated C
 string.  It will throw an error if the string contains a null
 character.
 
-The Scheme interface to this function is @code{encode-string}, from the
+The Scheme interface to this function is @code{string->bytevector}, from the
 @code{ice-9 iconv} module.  @xref{Representing Strings as Bytes}.
 @end deftypefn
 
@@ -4382,7 +4388,7 @@ string is passed as the ASCII, null-terminated C string @code{encoding}.
 The @var{handler} parameters suggests a strategy for dealing with
 unconvertable characters.
 
-The Scheme interface to this function is @code{decode-string}.
+The Scheme interface to this function is @code{bytevector->string}.
 @xref{Representing Strings as Bytes}.
 @end deftypefn
 
