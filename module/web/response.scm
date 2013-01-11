@@ -1,6 +1,6 @@
 ;;; HTTP response objects
 
-;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -294,7 +294,13 @@ response port."
 (define (read-response-body r)
   "Reads the response body from R, as a bytevector.  Returns
 ‘#f’ if there was no response body."
-  (and=> (response-body-port r #:decode? #f) get-bytevector-all))
+  (let ((body (and=> (response-body-port r #:decode? #f)
+                     get-bytevector-all)))
+    ;; Reading a body of length 0 will result in get-bytevector-all
+    ;; returning the EOF object.
+    (if (eof-object? body)
+        #vu8()
+        body)))
 
 (define (write-response-body r bv)
   "Write BV, a bytevector, to the port corresponding to the HTTP
