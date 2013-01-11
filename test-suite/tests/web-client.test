@@ -1,0 +1,577 @@
+;;;; web-client.test --- HTTP client       -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2013 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+(define-module (test-suite web-client)
+  #:use-module (web client)
+  #:use-module (web request)
+  #:use-module (web response)
+  #:use-module (ice-9 iconv)
+  #:use-module (ice-9 binary-ports)
+  #:use-module (test-suite lib))
+
+
+(define get-request-headers:www.gnu.org/software/guile/
+  "GET /software/guile/ HTTP/1.1
+Host: www.gnu.org
+Connection: close
+
+")
+
+(define get-response-headers:www.gnu.org/software/guile/
+  "HTTP/1.1 200 OK
+Date: Fri, 11 Jan 2013 10:59:11 GMT
+Server: Apache/2.2.14
+Accept-Ranges: bytes
+Cache-Control: max-age=0
+Expires: Fri, 11 Jan 2013 10:59:11 GMT
+Vary: Accept-Encoding
+Content-Length: 8077
+Connection: close
+Content-Type: text/html
+Content-Language: en
+
+")
+
+(define get-response-body:www.gnu.org/software/guile/
+  "<!DOCTYPE html PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
+<html>
+<head>
+  <title>GNU Guile (About Guile)</title>
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"/gnu.css\">
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"/software/guile/guile.css\">
+  <link rev=\"made\" href=\"mailto:bug-guile@gnu.org\">
+</head>
+
+<!-- If you edit these html pages directly, you're not doing yourself any 
+     favors - these pages get updated programaticly from a pair of files. Edit 
+     the files under the template directory instead -->
+
+<!-- Text black on white, unvisited links blue, visited links navy,
+     active links red -->
+
+<body bgcolor=\"#ffffff\" text=\"#000000\" link=\"#1f00ff\" alink=\"#ff0000\" vlink=\"#000080\">
+  <a name=\"top\"></a>
+  <table cellpadding=\"10\">
+    <tr>
+      <td>
+\t<a href=\"/software/guile/\">
+\t  <img src=\"/software/guile/graphics/guile-banner.small.png\" alt=\"Guile\">
+\t</a>
+      </td>
+      <td valign=\"bottom\">
+\t<h4 align=\"right\">The GNU extension language</h4>
+\t<h4 align=\"right\">About Guile</h4>
+      </td>
+    </tr>
+  </table>
+  <br />
+  <table border=\"0\">
+
+    <!-- Table with 2 columns.  One along the left (navbar) and one along the 
+\t right (body). On the main page, the left links to anchors on the right,
+\t or to other pages.  The left has 2 sections. Top is global navigation,
+\t the bottom is local nav. -->
+
+    <tr>
+      <td class=\"sidebar\">
+\t<table cellpadding=\"4\">
+\t  <tr>
+\t    <!-- Global Nav -->
+
+\t    <td nowrap=\"\">
+\t      <p><b>About Guile</b><br />
+\t\t<a href=\"/software/guile/guile.html\">What is Guile?</a><br />
+\t\t<a href=\"/software/guile/news.html\">News</a><br />
+\t\t<a href=\"/software/guile/community.html\">Community</a><br />
+\t      </p>
+\t      
+\t      <p><b>Documentation</b><br />
+\t\t<a href=\"/software/guile/docs/docs.html\">Manuals</a><br />
+\t\t<a href=\"/software/guile/docs/faq/guile-faq.html\">FAQ's</a><br />
+\t      </p>
+
+\t      <p><b>Download</b><br />
+\t\t<a href=\"/software/guile/download.html#releases\">Releases</a><br />
+\t\t<a href=\"/software/guile/download.html#git\">Repository</a><br />
+\t\t<a href=\"/software/guile/download.html#snapshots\">Snapshots</a><br />
+\t      </p>
+
+\t      <p><b>Projects</b><br />
+\t\t<a href=\"/software/guile/gnu-guile-projects.html#Core\">Core</a><br />
+\t\t<a href=\"/software/guile/gnu-guile-projects.html#GUI\">GUI</a><br />
+\t\t<a href=\"/software/guile/gnu-guile-projects.html#File-Formats\">File Formats</a><br />
+\t\t<a href=\"/software/guile/gnu-guile-projects.html#Networking\">Networking</a><br />
+\t\t<a href=\"/software/guile/gnu-guile-projects.html#Tools\">Tools</a><br />
+\t\t<a href=\"/software/guile/gnu-guile-projects.html#Applications\">Applications</a><br />
+\t      </p>
+\t      
+\t      <p><b>Development</b><br />
+\t\t<a href=\"http://savannah.gnu.org/projects/guile/\">Project summary</a><br />
+\t\t<a href=\"/software/guile/developers.html\">Helping out</a><br />
+\t\t<a href=\"/software/guile/ideas.html\">Cool ideas</a><br />
+\t      </p>
+
+\t      <p><b>Resources</b><br>
+\t\t<a href=\"/software/guile/resources.html#guile_resources\">Guile Resources</a><br />
+\t\t<a href=\"/software/guile/resources.html##scheme_resources\">Scheme Resources</a><br />
+\t      </p>
+\t    </td>
+\t  </tr>
+\t  <tr>
+
+\t    <!-- Global Nav End -->
+\t    
+  <tr>
+    <td>
+      <p><a href=\"http://www.gnu.org/\">GNU Project home page</a></p>
+      <p><a href=\"#whatisit\">What is Guile?</a></p>
+      <p><a href=\"#get\">Getting Guile</a></p>
+    </td>
+  </tr>
+
+
+\t  </tr>
+\t</table>
+      </td>
+      
+      <td class=\"rhs-body\">
+
+\t
+  <a name=\"whatisit\"><h3 align=\"left\">What is Guile? What can it do for you?</h3></a>
+  <p>
+    Guile is the <em>GNU Ubiquitous Intelligent Language for Extensions</em>, 
+    the official extension language for the 
+    <a href=\"http://www.gnu.org/\">GNU operating system</a>.
+  </p>
+
+  <p>
+    Guile is a library designed to help programmers create flexible
+    applications.  Using Guile in an application allows the application's
+    functionality to be <em>extended</em> by users or other programmers with 
+    plug-ins, modules, or scripts.  Guile provides what might be described as
+    \"practical software freedom,\" making it possible for users to customize an 
+    application to meet their needs without digging into the application's 
+    internals.
+  </p>
+
+  <p>
+    There is a long list of proven applications that employ extension languages.
+    Successful and long-lived examples of Free Software projects that use
+    Guile are <a href=\"http://www.texmacs.org/\">TeXmacs</a>, 
+    <a href=\"http://lilypond.org/\">LilyPond</a>, and 
+    <a href=\"http://www.gnucash.org/\">GnuCash</a>.
+  </p>
+
+  <h3>Guile is a programming language</h3>
+
+  <p>
+    Guile is an interpreter and compiler for
+    the <a href=\"http://schemers.org/\">Scheme</a> programming language, a clean
+    and elegant dialect of Lisp.  Guile is up to date with recent Scheme
+    standards, supporting the 
+    <a href=\"http://www.schemers.org/Documents/Standards/R5RS/\">Revised<sup>5</sup></a> 
+    and most of the <a href=\"http://www.r6rs.org/\">Revised<sup>6</sup></a> language
+    reports (including hygienic macros), as well as many 
+    <a href=\"http://srfi.schemers.org/\">SRFIs</a>.  It also comes with a library
+    of modules that offer additional features, like an HTTP server and client, 
+    XML parsing, and object-oriented programming.
+  </p>
+
+  <h3>Guile is an extension language platform</h3>
+
+  <p>
+    Guile is an efficient virtual machine that executes a portable instruction 
+    set generated by its optimizing compiler, and integrates very easily with C
+    and C++ application code.  In addition to Scheme, Guile includes compiler 
+    front-ends for 
+    <a href=\"http://www.ecma-international.org/publications/standards/Ecma-262.htm\">ECMAScript</a> 
+    and <a href=\"http://www.emacswiki.org/cgi-bin/wiki?EmacsLisp\">Emacs Lisp</a>
+    (support for <a href=\"http://www.lua.org/\">Lua</a> is underway), which means
+    your application can be extended in the language (or languages) most 
+    appropriate for your user base.  And Guile's tools for parsing and compiling
+    are exposed as part of its standard module set, so support for additional 
+    languages can be added without writing a single line of C.
+  </p>
+
+  <h3>Guile gives your programs more power</h3>
+
+  <p>
+    Using Guile with your program makes it more usable.  Users don't
+    need to learn the plumbing of your application to customize it; they just
+    need to understand Guile, and the access you've provided.  They can easily 
+    trade and share features by downloading and creating scripts, instead of 
+    trading complex patches and recompiling their applications.  They don't need
+    to coordinate with you or anyone else.  Using Guile, your application has a
+    full-featured scripting language right from the beginning, so you can focus
+    on the novel and attention-getting parts of your application.
+  </p>
+
+  <a name=\"get\"><h2 align=\"center\">How do I get Guile?</h2></a>
+
+  <ul>
+    <li>The current <em>stable</em> release is 
+      <a href=\"ftp://ftp.gnu.org/gnu/guile/guile-2.0.7.tar.gz\">2.0.7</a>.
+    </li>
+  </ul>
+  
+  <p>
+    See the <a href=\"download.html\">Download</a> page for additional ways of
+    getting Guile.
+  </p>
+
+
+
+      </td>
+    </tr>
+  </table>  
+  
+  <br />
+  <div class=\"copyright\">
+
+    <p>
+      Please send FSF &amp; GNU inquiries &amp; questions to 
+      <a href=\"mailto:gnu@gnu.org\"><em>gnu@gnu.org</em></a>. There are also 
+      <a href=\"/home.html#ContactInfo\">other ways to contact</a> the FSF.
+    </p>
+
+    <p>
+      Please send comments on these web pages to
+      <a href=\"mailto:bug-guile@gnu.org\"><em>bug-guile@gnu.org</em></a>, send 
+      other questions to <a href=\"mailto:gnu@gnu.org\"><em>gnu@gnu.org</em></a>.
+    </p>
+
+    <p>
+      Copyright (C) 2012  Free Software Foundation, Inc.
+    </p>
+
+    <p>
+      Verbatim copying and distribution of this entire web page is
+      permitted in any medium, provided this notice is preserved.<P>
+      Updated:
+      
+      <!-- timestamp start -->
+      $Date: 2012/11/30 00:16:15 $ $Author: civodul $
+      <!-- timestamp end -->
+    </p>
+
+  </div>
+  
+</body>
+</html>
+")
+
+(define head-request-headers:www.gnu.org/software/guile/
+  "HEAD /software/guile/ HTTP/1.1
+Host: www.gnu.org
+Connection: close
+
+")
+
+(define head-response-headers:www.gnu.org/software/guile/
+  "HTTP/1.1 200 OK
+Date: Fri, 11 Jan 2013 11:03:14 GMT
+Server: Apache/2.2.14
+Accept-Ranges: bytes
+Cache-Control: max-age=0
+Expires: Fri, 11 Jan 2013 11:03:14 GMT
+Vary: Accept-Encoding
+Content-Length: 8077
+Connection: close
+Content-Type: text/html
+Content-Language: en
+
+")
+
+;; Unfortunately, POST to http://www.gnu.org/software/guile/ succeeds!
+(define post-request-headers:www.apache.org/
+  "POST / HTTP/1.1
+Host: www.apache.org
+Connection: close
+
+")
+
+(define post-response-headers:www.apache.org/
+  "HTTP/1.1 405 Method Not Allowed
+Date: Fri, 11 Jan 2013 11:04:34 GMT
+Server: Apache/2.4.3 (Unix) OpenSSL/1.0.0g
+Allow: TRACE
+Content-Length: 314
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+
+")
+
+(define post-response-body:www.apache.org/
+"<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
+<html><head>
+<title>405 Method Not Allowed</title>
+</head><body>
+<h1>Method Not Allowed</h1>
+<p>The requested method POST is not allowed for the URL /.</p>
+<hr>
+<address>Apache/2.4.3 (Unix) OpenSSL/1.0.0g Server at www.apache.org Port 80</address>
+</body></html>
+")
+
+(define put-request-headers:www.apache.org/
+  "PUT / HTTP/1.1
+Host: www.apache.org
+Connection: close
+
+")
+
+(define put-response-headers:www.apache.org/
+  "HTTP/1.1 405 Method Not Allowed
+Date: Fri, 11 Jan 2013 11:04:34 GMT
+Server: Apache/2.4.3 (Unix) OpenSSL/1.0.0g
+Allow: TRACE
+Content-Length: 313
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+
+")
+
+(define put-response-body:www.apache.org/
+  "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
+<html><head>
+<title>405 Method Not Allowed</title>
+</head><body>
+<h1>Method Not Allowed</h1>
+<p>The requested method PUT is not allowed for the URL /.</p>
+<hr>
+<address>Apache/2.4.3 (Unix) OpenSSL/1.0.0g Server at www.apache.org Port 80</address>
+</body></html>
+")
+
+(define delete-request-headers:www.apache.org/
+  "DELETE / HTTP/1.1
+Host: www.apache.org
+Connection: close
+
+")
+
+(define delete-response-headers:www.apache.org/
+  "HTTP/1.1 405 Method Not Allowed
+Date: Fri, 11 Jan 2013 11:07:19 GMT
+Server: Apache/2.4.3 (Unix) OpenSSL/1.0.0g
+Allow: TRACE
+Content-Length: 316
+Connection: close
+Content-Type: text/html; charset=iso-8859-1
+
+")
+
+
+
+(define delete-response-body:www.apache.org/
+  "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">
+<html><head>
+<title>405 Method Not Allowed</title>
+</head><body>
+<h1>Method Not Allowed</h1>
+<p>The requested method DELETE is not allowed for the URL /.</p>
+<hr>
+<address>Apache/2.4.3 (Unix) OpenSSL/1.0.0g Server at www.apache.org Port 80</address>
+</body></html>
+")
+
+(define options-request-headers:www.apache.org/
+  "OPTIONS / HTTP/1.1
+Host: www.apache.org
+Connection: close
+
+")
+
+(define options-response-headers:www.apache.org/
+  "HTTP/1.1 200 OK
+Date: Fri, 11 Jan 2013 11:08:31 GMT
+Server: Apache/2.4.3 (Unix) OpenSSL/1.0.0g
+Allow: OPTIONS,GET,HEAD,POST,TRACE
+Cache-Control: max-age=3600
+Expires: Fri, 11 Jan 2013 12:08:31 GMT
+Content-Length: 0
+Connection: close
+Content-Type: text/html; charset=utf-8
+
+")
+
+;; This depends on the exact request that we send.  I copied this off
+;; the console with an "nc" session, so it doesn't include the CR bytes.
+;; But that's OK -- we just have to decode the body as an HTTP request
+;; and check that it's the same.
+(define trace-request-headers:www.apache.org/
+  "TRACE / HTTP/1.1\r
+Host: www.apache.org\r
+Connection: close\r
+\r
+")
+
+(define trace-response-headers:www.apache.org/
+  "HTTP/1.1 200 OK\r
+Date: Fri, 11 Jan 2013 12:36:13 GMT\r
+Server: Apache/2.4.3 (Unix) OpenSSL/1.0.0g\r
+Connection: close\r
+Transfer-Encoding: chunked\r
+Content-Type: message/http\r
+\r
+")
+
+(define trace-response-body:www.apache.org/
+  "3d\r
+TRACE / HTTP/1.1\r
+Host: www.apache.org\r
+Connection: close\r
+\r
+\r
+0\r
+\r
+")
+
+(define (requests-equal? r1 r2)
+  (and (equal? (request-method r1) (request-method r2))
+       (equal? (request-uri r1) (request-uri r2))
+       (equal? (request-version r1) (request-version r2))
+       (equal? (request-headers r1) (request-headers r2))))
+
+(define (responses-equal? r1 r2)
+  (and (equal? (response-code r1) (response-code r2))
+       (equal? (response-version r1) (response-version r2))
+       (equal? (response-headers r1) (response-headers r2))))
+
+(define* (run-with-http-transcript
+          expected-request expected-request-body request-body-encoding
+          response response-body response-body-encoding
+          proc)
+  (let ((reading? #f)
+        (writing? #t)
+        (response-port (open-input-string response))
+        (response-body-port (open-bytevector-input-port
+                             (string->bytevector response-body
+                                                 response-body-encoding))))
+    (call-with-values (lambda () (open-bytevector-output-port))
+      (lambda (request-port get-bytevector)
+        (define (put-char c)
+          (unless writing?
+            (error "Port closed for writing"))
+          (put-u8 request-port (char->integer c)))
+        (define (put-string s)
+          (string-for-each put-char s))
+        (define (flush)
+          (set! writing? #f)
+          (set! reading? #t)
+          (let* ((p (open-bytevector-input-port (get-bytevector)))
+                 (actual-request (read-request p))
+                 (actual-body (read-request-body actual-request)))
+            (pass-if "requests equal"
+              (requests-equal? actual-request
+                               (call-with-input-string expected-request
+                                                       read-request)))
+            (pass-if "request bodies equal"
+              (equal? (or actual-body #vu8())
+                      (string->bytevector expected-request-body
+                                          request-body-encoding)))))
+        (define (get-char)
+          (unless reading?
+            (error "Port closed for reading"))
+          (let ((c (read-char response-port)))
+            (if (char? c)
+                c
+                (let ((u8 (get-u8 response-body-port)))
+                  (if (eof-object? u8)
+                      u8
+                      (integer->char u8))))))
+        (define (close)
+          (when writing?
+            (unless (eof-object? (get-u8 response-body-port))
+              (error "Failed to consume all of body"))))
+        (proc (make-soft-port (vector put-char put-string flush get-char close)
+                              "rw"))))))
+
+(define* (check-transaction method uri
+                            request-headers request-body request-body-encoding
+                            response-headers response-body response-body-encoding
+                            proc
+                            #:key (response-body-comparison response-body))
+  (with-test-prefix (string-append method " " uri)
+    (run-with-http-transcript
+     request-headers request-body request-body-encoding
+     response-headers response-body response-body-encoding
+     (lambda (port)
+       (call-with-values (lambda ()
+                           (proc uri #:port port))
+         (lambda (response body)
+           (pass-if "response equal"
+             (responses-equal?
+              response
+              (call-with-input-string response-headers read-response)))
+           (pass-if "response body equal"
+             (equal? (or body "") response-body-comparison))))))))
+
+(check-transaction
+ "GET" "http://www.gnu.org/software/guile/"
+ get-request-headers:www.gnu.org/software/guile/ "" "iso-8859-1"
+ get-response-headers:www.gnu.org/software/guile/
+ get-response-body:www.gnu.org/software/guile/ "iso-8859-1"
+ http-get)
+
+(check-transaction
+ "HEAD" "http://www.gnu.org/software/guile/"
+ head-request-headers:www.gnu.org/software/guile/ "" "iso-8859-1"
+ head-response-headers:www.gnu.org/software/guile/ "" "iso-8859-1"
+ http-head)
+
+(check-transaction
+ "POST" "http://www.apache.org/"
+ post-request-headers:www.apache.org/ "" "iso-8859-1"
+ post-response-headers:www.apache.org/
+ post-response-body:www.apache.org/ "iso-8859-1"
+ http-post)
+
+(check-transaction
+ "PUT" "http://www.apache.org/"
+ put-request-headers:www.apache.org/ "" "iso-8859-1"
+ put-response-headers:www.apache.org/
+ put-response-body:www.apache.org/ "iso-8859-1"
+ http-put)
+
+(check-transaction
+ "DELETE" "http://www.apache.org/"
+ delete-request-headers:www.apache.org/ "" "iso-8859-1"
+ delete-response-headers:www.apache.org/
+ delete-response-body:www.apache.org/ "iso-8859-1"
+ http-delete)
+
+(check-transaction
+ "OPTIONS" "http://www.apache.org/"
+ options-request-headers:www.apache.org/ "" "utf-8"
+ options-response-headers:www.apache.org/ "" "utf-8"
+ http-options)
+
+(check-transaction
+ "TRACE" "http://www.apache.org/"
+ trace-request-headers:www.apache.org/ "" "iso-8859-1"
+ trace-response-headers:www.apache.org/
+ trace-response-body:www.apache.org/ "iso-8859-1"
+ http-trace
+ #:response-body-comparison
+ ;; The body will be message/http, which is logically a sequence of
+ ;; bytes, not characters.  It happens that iso-8859-1 can encode our
+ ;; body and is compatible with the headers as well.
+ (string->bytevector trace-request-headers:www.apache.org/
+                     "iso-8859-1"))
