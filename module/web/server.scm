@@ -1,6 +1,6 @@
 ;;; Web server
 
-;; Copyright (C)  2010, 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,7 @@
   #:use-module (web response)
   #:use-module (system repl error-handling)
   #:use-module (ice-9 control)
+  #:use-module (ice-9 iconv)
   #:export (define-server-impl
             lookup-server-impl
             open-server
@@ -162,41 +163,6 @@ values."
    #:on-error (if (batch-mode?) 'backtrace 'debug)
    #:post-error (lambda _ (values #f #f #f))))
 
-;; like call-with-output-string, but actually closes the port (doh)
-(define (call-with-output-string* proc)
-  (let ((port (open-output-string)))
-    (proc port)
-    (let ((str (get-output-string port)))
-      (close-port port)
-      str)))
-
-(define (call-with-output-bytevector* proc)
-  (call-with-values
-      (lambda ()
-        (open-bytevector-output-port))
-    (lambda (port get-bytevector)
-      (proc port)
-      (let ((bv (get-bytevector)))
-        (close-port port)
-        bv))))
-
-(define (call-with-encoded-output-string charset proc)
-  (if (string-ci=? charset "utf-8")
-      ;; I don't know why, but this appears to be faster; at least for
-      ;; examples/debug-sxml.scm (1464 reqs/s versus 850 reqs/s).
-      (string->utf8 (call-with-output-string* proc))
-      (call-with-output-bytevector*
-       (lambda (port)
-         (set-port-encoding! port charset)
-         (proc port)))))
-
-(define (encode-string str charset)
-  (if (string-ci=? charset "utf-8")
-      (string->utf8 str)
-      (call-with-encoded-output-string charset
-                                       (lambda (port)
-                                         (display str port)))))
-
 (define (extend-response r k v . additional)
   (let ((r (build-response #:version (response-version r)
                            #:code (response-code r)
@@ -249,7 +215,7 @@ on the procedure being called at any particular time."
            response
            (extend-response response 'content-type
                             `(,@type (charset . ,charset))))
-       (encode-string body charset))))
+       (string->bytevector body charset))))
    ((procedure? body)
     (let* ((type (response-content-type response
                                         '(text/plain)))
