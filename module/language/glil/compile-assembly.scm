@@ -1,6 +1,6 @@
 ;;; Guile VM assembler
 
-;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -486,13 +486,18 @@
                                     ,(modulo nreq 256)))))
             (ntotal (apply max (+ nreq nopt) (map 1+ (map cdr kw))))
             (bind-optionals-and-shuffle
-             `((bind-optionals/shuffle
+             `((,(if (and else-label (not rest))
+                     'bind-optionals/shuffle-or-br
+                     'bind-optionals/shuffle)
                 ,(quotient nreq 256)
                 ,(modulo nreq 256)
                 ,(quotient (+ nreq nopt) 256)
                 ,(modulo (+ nreq nopt) 256)
                 ,(quotient ntotal 256)
-                ,(modulo ntotal 256))))
+                ,(modulo ntotal 256)
+                ,@(if (and else-label (not rest))
+                      `(,else-label)
+                      '()))))
             (bind-kw
              ;; when this code gets called, all optionals are filled
              ;; in, space has been made for kwargs, and the kwargs

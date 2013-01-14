@@ -599,12 +599,61 @@ A @code{case-lambda*} clause matches if the arguments fill the
 required arguments, but are not too many for the optional and/or rest
 arguments.
 
-Keyword arguments are possible with @code{case-lambda*}, but they do
-not contribute to the ``matching'' behavior. That is to say,
-@code{case-lambda*} matches only on required, optional, and rest
-arguments, and on the predicate; keyword arguments may be present but
-do not contribute to the ``success'' of a match. In fact a bad keyword
-argument list may cause an error to be raised.
+Keyword arguments are possible with @code{case-lambda*} as well, but
+they do not contribute to the ``matching'' behavior, and their
+interactions with required, optional, and rest arguments can be
+surprising.
+
+For the purposes of @code{case-lambda*} (and of @code{case-lambda}, as a
+special case), a clause @dfn{matches} if it has enough required
+arguments, and not too many positional arguments.  The required
+arguments are any arguments before the @code{#:optional}, @code{#:key},
+and @code{#:rest} arguments.  @dfn{Positional} arguments are the
+required arguments, together with the optional arguments.
+
+In the absence of @code{#:key} or @code{#:rest} arguments, it's easy to
+see how there could be too many positional arguments: you pass 5
+arguments to a function that only takes 4 arguments, including optional
+arguments.  If there is a @code{#:rest} argument, there can never be too
+many positional arguments: any application with enough required
+arguments for a clause will match that clause, even if there are also
+@code{#:key} arguments.
+
+Otherwise, for applications to a clause with @code{#:key} arguments (and
+without a @code{#:rest} argument), a clause will match there only if
+there are enough required arguments and if the next argument after
+binding required and optional arguments, if any, is a keyword.  For
+efficiency reasons, Guile is currently unable to include keyword
+arguments in the matching algorithm.  Clauses match on positional
+arguments only, not by comparing a given keyword to the available set of
+keyword arguments that a function has.
+
+Some examples follow.
+
+@example
+(define f
+  (case-lambda*
+    ((a #:optional b) 'clause-1)
+    ((a #:optional b #:key c) 'clause-2)
+    ((a #:key d) 'clause-3)
+    ((#:key e #:rest f) 'clause-4)))
+
+(f) @result{} clause-4
+(f 1) @result{} clause-1
+(f) @result{} clause-4
+(f #:e 10) clause-1
+(f 1 #:foo) clause-1
+(f 1 #:c 2) clause-2
+(f #:a #:b #:c #:d #:e) clause-4
+
+;; clause-2 will match anything that clause-3 would match.
+(f 1 #:d 2) @result{} error: bad keyword args in clause 2
+@end example
+
+Don't forget that the clauses are matched in order, and the first
+matching clause will be taken.  This can result in a keyword being bound
+to a required argument, as in the case of @code{f #:e 10}.
+
 
 @node Higher-Order Functions
 @subsection Higher-Order Functions

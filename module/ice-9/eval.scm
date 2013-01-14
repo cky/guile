@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;;;; Copyright (C) 2009, 2010, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -298,72 +298,83 @@
                                  (1- nopt) args (cdr inits))
                              (lp (cons (car args) env)
                                  (1- nopt) (cdr args) (cdr inits)))))
-                   ;; With keywords, we stop binding optionals at the first
-                   ;; keyword.
                    (let lp ((env env)
                             (nopt* nopt)
                             (args args)
                             (inits inits))
-                     (if (> nopt* 0)
-                         (if (or (null? args) (keyword? (car args)))
-                             (lp (cons (eval (car inits) env) env)
-                                 (1- nopt*) args (cdr inits))
-                             (lp (cons (car args) env)
-                                 (1- nopt*) (cdr args) (cdr inits)))
-                         ;; Finished with optionals.
-                         (let* ((aok (car kw))
-                                (kw (cdr kw))
-                                (kw-base (+ nopt nreq (if rest? 1 0)))
-                                (imax (let lp ((imax (1- kw-base)) (kw kw))
-                                        (if (null? kw)
-                                            imax
-                                            (lp (max (cdar kw) imax)
-                                                (cdr kw)))))
-                                ;; Fill in kwargs  with "undefined" vals.
-                                (env (let lp ((i kw-base)
-                                              ;; Also, here we bind the rest
-                                              ;; arg, if any.
-                                              (env (if rest? (cons args env) env)))
-                                       (if (<= i imax)
-                                           (lp (1+ i) (cons unbound-arg env))
-                                           env))))
-                           ;; Now scan args for keywords.
-                           (let lp ((args args))
-                             (if (and (pair? args) (pair? (cdr args))
-                                      (keyword? (car args)))
-                                 (let ((kw-pair (assq (car args) kw))
-                                       (v (cadr args)))
-                                   (if kw-pair
-                                       ;; Found a known keyword; set its value.
-                                       (list-set! env (- imax (cdr kw-pair)) v)
-                                       ;; Unknown keyword.
-                                       (if (not aok)
-                                           (scm-error 'keyword-argument-error
-                                                      "eval" "Unrecognized keyword"
-                                                      '() #f)))
-                                   (lp (cddr args)))
-                                 (if (pair? args)
-                                     (if rest?
-                                         ;; Be lenient parsing rest args.
-                                         (lp (cdr args))
-                                         (scm-error 'keyword-argument-error
-                                                    "eval" "Invalid keyword"
-                                                    '() #f))
-                                     ;; Finished parsing keywords. Fill in
-                                     ;; uninitialized kwargs by evalling init
-                                     ;; expressions in their appropriate
-                                     ;; environment.
-                                     (let lp ((i (- imax kw-base))
-                                              (inits inits))
-                                       (if (pair? inits)
-                                           (let ((tail (list-tail env i)))
-                                             (if (eq? (car tail) unbound-arg)
-                                                 (set-car! tail
-                                                           (eval (car inits)
-                                                                 (cdr tail))))
-                                             (lp (1- i) (cdr inits)))
-                                           ;; Finally, eval the body.
-                                           (eval body env)))))))))))))))
+                     (cond
+                      ;; With keywords, we stop binding optionals at the
+                      ;; first keyword.
+                      ((> nopt* 0)
+                       (if (or (null? args) (keyword? (car args)))
+                           (lp (cons (eval (car inits) env) env)
+                               (1- nopt*) args (cdr inits))
+                           (lp (cons (car args) env)
+                               (1- nopt*) (cdr args) (cdr inits))))
+                      ;; Finished with optionals.
+                      ((and alt (pair? args) (not (keyword? (car args)))
+                            (not rest?))
+                       ;; Too many positional args, no #:rest arg,
+                       ;; and we have an alternate.
+                       (apply alt-proc %args))
+                      (else
+                       (let* ((aok (car kw))
+                              (kw (cdr kw))
+                              (kw-base (+ nopt nreq (if rest? 1 0)))
+                              (imax (let lp ((imax (1- kw-base)) (kw kw))
+                                      (if (null? kw)
+                                          imax
+                                          (lp (max (cdar kw) imax)
+                                              (cdr kw)))))
+                              ;; Fill in kwargs  with "undefined" vals.
+                              (env (let lp ((i kw-base)
+                                            ;; Also, here we bind the rest
+                                            ;; arg, if any.
+                                            (env (if rest?
+                                                     (cons args env)
+                                                     env)))
+                                     (if (<= i imax)
+                                         (lp (1+ i) (cons unbound-arg env))
+                                         env))))
+                         ;; Now scan args for keywords.
+                         (let lp ((args args))
+                           (if (and (pair? args) (pair? (cdr args))
+                                    (keyword? (car args)))
+                               (let ((kw-pair (assq (car args) kw))
+                                     (v (cadr args)))
+                                 (if kw-pair
+                                     ;; Found a known keyword; set its value.
+                                     (list-set! env
+                                                (- imax (cdr kw-pair)) v)
+                                     ;; Unknown keyword.
+                                     (if (not aok)
+                                         (scm-error
+                                          'keyword-argument-error
+                                          "eval" "Unrecognized keyword"
+                                          '() #f)))
+                                 (lp (cddr args)))
+                               (if (pair? args)
+                                   (if rest?
+                                       ;; Be lenient parsing rest args.
+                                       (lp (cdr args))
+                                       (scm-error 'keyword-argument-error
+                                                  "eval" "Invalid keyword"
+                                                  '() #f))
+                                   ;; Finished parsing keywords. Fill in
+                                   ;; uninitialized kwargs by evalling init
+                                   ;; expressions in their appropriate
+                                   ;; environment.
+                                   (let lp ((i (- imax kw-base))
+                                            (inits inits))
+                                     (if (pair? inits)
+                                         (let ((tail (list-tail env i)))
+                                           (if (eq? (car tail) unbound-arg)
+                                               (set-car! tail
+                                                         (eval (car inits)
+                                                               (cdr tail))))
+                                           (lp (1- i) (cdr inits)))
+                                         ;; Finally, eval the body.
+                                         (eval body env))))))))))))))))
 
     ;; The "engine". EXP is a memoized expression.
     (define (eval exp env)

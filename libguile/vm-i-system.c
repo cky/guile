@@ -1,4 +1,4 @@
-/* Copyright (C) 2001,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
+/* Copyright (C) 2001,2008,2009,2010,2011,2012,2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -633,6 +633,8 @@ VM_DEFINE_INSTRUCTION (47, bind_optionals_shuffle, "bind-optionals/shuffle", 6, 
 
   NEXT;
 }
+
+/* See also bind-optionals/shuffle-or-br below.  */
 
 /* Flags that determine whether other keywords are allowed, and whether a
    rest argument is expected.  These values must match those used by the
@@ -1627,6 +1629,60 @@ VM_DEFINE_INSTRUCTION (93, assert_nargs_ee_locals, "assert-nargs-ee/locals", 1, 
   while (old_sp < sp)
     *++old_sp = SCM_UNDEFINED;
   
+  NEXT;
+}
+
+/* Like bind-optionals/shuffle, but if there are too many positional
+   arguments, jumps to the next case-lambda clause.  */
+VM_DEFINE_INSTRUCTION (94, bind_optionals_shuffle_or_br, "bind-optionals/shuffle-or-br", 9, -1, -1)
+{
+  SCM *walk;
+  scm_t_ptrdiff nreq, nreq_and_opt, ntotal;
+  scm_t_int32 offset;
+  nreq = FETCH () << 8;
+  nreq += FETCH ();
+  nreq_and_opt = FETCH () << 8;
+  nreq_and_opt += FETCH ();
+  ntotal = FETCH () << 8;
+  ntotal += FETCH ();
+  FETCH_OFFSET (offset);
+
+  /* look in optionals for first keyword or last positional */
+  /* starting after the last required positional arg */
+  walk = fp + nreq;
+  while (/* while we have args */
+         walk <= sp
+         /* and we still have positionals to fill */
+         && walk - fp < nreq_and_opt
+         /* and we haven't reached a keyword yet */
+         && !scm_is_keyword (*walk))
+    /* bind this optional arg (by leaving it in place) */
+    walk++;
+  if (/* If we have filled all the positionals */
+      walk - fp == nreq_and_opt
+      /* and there are still more arguments */
+      && walk <= sp
+      /* and the next argument is not a keyword, */
+      && !scm_is_keyword (*walk))
+    {
+      /* Jump to the next case-lambda* clause. */
+      ip += offset;
+    }
+  else
+    {
+      /* Otherwise, finish as in bind-optionals/shuffle: shuffle up,
+         from walk to ntotal */
+      scm_t_ptrdiff nshuf = sp - walk + 1, i;
+      sp = (fp - 1) + ntotal + nshuf;
+      CHECK_OVERFLOW ();
+      for (i = 0; i < nshuf; i++)
+        sp[-i] = walk[nshuf-i-1];
+
+      /* and fill optionals & keyword args with SCM_UNDEFINED */
+      while (walk <= (fp - 1) + ntotal)
+        *walk++ = SCM_UNDEFINED;
+    }
+
   NEXT;
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2013
  * Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -845,6 +845,14 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
             {
               env = scm_cons (args, env);
               i++;
+            }
+          else if (scm_is_true (alt)
+                   && scm_is_pair (args) && !scm_is_keyword (CAR (args)))
+            {
+              /* Too many positional args, no rest arg, and we have an
+                 alternate clause.  */
+              mx = alt;
+              goto loop;
             }
 
           /* Now fill in env with unbound values, limn the rest of the args for

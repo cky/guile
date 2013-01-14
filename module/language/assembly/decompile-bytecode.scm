@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -43,7 +43,7 @@
 (define (br-instruction? x)
   (memq x '(br br-if br-if-not br-if-eq br-if-not-eq br-if-null br-if-not-null)))
 (define (br-nargs-instruction? x)
-  (memq x '(br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt)))
+  (memq x '(br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt br-if-nargs-lt/non-kw)))
 
 (define (bytes->s24 a b c)
   (let ((x (+ (ash a 16) (ash b 8) c)))
@@ -88,6 +88,16 @@
                   (lp (cons `(,br ,(ensure-label rel1 rel2 rel3)) out)))
                  ((,br ,hi ,lo ,rel1 ,rel2 ,rel3) (guard (br-nargs-instruction? br))
                   (lp (cons `(,br ,hi ,lo ,(ensure-label rel1 rel2 rel3)) out)))
+                 ((bind-optionals/shuffle-or-br ,nreq-hi ,nreq-lo
+                                                ,nreq-and-nopt-hi ,nreq-and-nopt-lo
+                                                ,ntotal-hi ,ntotal-lo
+                                                ,rel1 ,rel2 ,rel3)
+                  (lp (cons `(bind-optionals/shuffle-or-br
+                              ,nreq-hi ,nreq-lo
+                              ,nreq-and-nopt-hi ,nreq-and-nopt-lo
+                              ,ntotal-hi ,ntotal-lo
+                              ,(ensure-label rel1 rel2 rel3))
+                            out)))
                  ((mv-call ,n ,rel1 ,rel2 ,rel3)
                   (lp (cons `(mv-call ,n ,(ensure-label rel1 rel2 rel3)) out)))
                  ((prompt ,n0 ,rel1 ,rel2 ,rel3)

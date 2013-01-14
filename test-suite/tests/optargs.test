@@ -1,7 +1,7 @@
 ;;;; optargs.test --- test suite for optional arg processing -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; 	Copyright (C) 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2009, 2010, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,6 +21,9 @@
   #:use-module (test-suite lib)
   #:use-module (system base compile)
   #:use-module (ice-9 optargs))
+
+(define exception:invalid-keyword
+  '(keyword-argument-error . "Invalid keyword"))
 
 (define exception:unrecognized-keyword
   '(keyword-argument-error . "Unrecognized keyword"))
@@ -217,3 +220,70 @@
   (pass-if "default arg"
     (equal? (transmogrify quote)
             10)))
+
+(with-test-prefix/c&e "case-lambda*"
+  (pass-if "unambiguous"
+    ((case-lambda*
+      ((a b) #t)
+      ((a) #f))
+     1 2))
+
+  (pass-if "unambiguous (reversed)"
+    ((case-lambda*
+      ((a) #f)
+      ((a b) #t))
+     1 2))
+
+  (pass-if "optionals (order disambiguates)"
+    ((case-lambda*
+      ((a #:optional b) #t)
+      ((a b) #f))
+     1 2))
+
+  (pass-if "optionals (order disambiguates (2))"
+    ((case-lambda*
+      ((a b) #t)
+      ((a #:optional b) #f))
+     1 2))
+
+  (pass-if "optionals (one arg)"
+    ((case-lambda*
+      ((a b) #f)
+      ((a #:optional b) #t))
+     1))
+
+  (pass-if "optionals (one arg (2))"
+    ((case-lambda*
+      ((a #:optional b) #t)
+      ((a b) #f))
+     1))
+
+  (pass-if "keywords without keyword"
+    ((case-lambda*
+      ((a #:key c) #t)
+      ((a b) #f))
+     1))
+
+  (pass-if "keywords with keyword"
+    ((case-lambda*
+      ((a #:key c) #t)
+      ((a b) #f))
+     1 #:c 2))
+
+  (pass-if "keywords (too many positionals)"
+    ((case-lambda*
+      ((a #:key c) #f)
+      ((a b) #t))
+     1 2))
+
+  (pass-if "keywords (order disambiguates)"
+    ((case-lambda*
+      ((a #:key c) #t)
+      ((a b c) #f))
+     1 #:c 2))
+
+  (pass-if "keywords (order disambiguates (2))"
+    ((case-lambda*
+      ((a b c) #t)
+      ((a #:key c) #f))
+     1 #:c 2)))

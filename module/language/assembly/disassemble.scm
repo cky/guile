@@ -1,6 +1,6 @@
 ;;; Guile VM code converters
 
-;; Copyright (C) 2001, 2009, 2010, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2012, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -129,6 +129,8 @@
        (list "-> ~A" (assq-ref labels (car args))))
       ((br-if-nargs-ne br-if-nargs-lt br-if-nargs-gt)
        (list "-> ~A" (assq-ref labels (caddr args))))
+      ((bind-optionals/shuffle-or-br)
+       (list "-> ~A" (assq-ref labels (car (last-pair args)))))
       ((object-ref)
        (and objs (list "~s" (vector-ref objs (car args)))))
       ((local-ref local-boxed-ref local-set local-boxed-set)
