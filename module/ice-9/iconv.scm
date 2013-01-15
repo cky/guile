@@ -47,7 +47,8 @@
                                           (conversion-strategy 'error))
   "Call PROC on a fresh port.  Encode the resulting string as a
 bytevector according to ENCODING, and return the bytevector."
-  (if (string-ci=? encoding "utf-8")
+  (if (and (string-ci=? encoding "utf-8")
+           (eq? conversion-strategy 'error))
       ;; I don't know why, but this appears to be faster; at least for
       ;; serving examples/debug-sxml.scm (1464 reqs/s versus 850
       ;; reqs/s).
@@ -66,7 +67,8 @@ bytevector according to ENCODING, and return the bytevector."
                              #:optional (conversion-strategy 'error))
   "Encode STRING according to ENCODING, which should be a string naming
 a character encoding, like \"utf-8\"."
-  (if (string-ci=? encoding "utf-8")
+  (if (and (string-ci=? encoding "utf-8")
+           (eq? conversion-strategy 'error))
       (string->utf8 str)
       (call-with-encoded-output-string
        encoding
@@ -79,7 +81,8 @@ a character encoding, like \"utf-8\"."
   "Decode the string represented by BV.  The bytes in the bytevector
 will be interpreted according to ENCODING, which should be a string
 naming a character encoding, like \"utf-8\"."
-  (if (string-ci=? encoding "utf-8")
+  (if (and (string-ci=? encoding "utf-8")
+           (eq? conversion-strategy 'error))
       (utf8->string bv)
       (let ((p (open-bytevector-input-port bv)))
         (set-port-encoding! p encoding)
