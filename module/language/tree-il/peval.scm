@@ -1,6 +1,6 @@
 ;;; Tree-IL partial evaluator
 
-;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -432,7 +432,7 @@ top-level bindings from ENV and return the resulting expression."
   (define (fresh-gensyms vars)
     (map (lambda (var)
            (let ((new (gensym (string-append (symbol->string (var-name var))
-                                             "-"))))
+                                             " "))))
              (set! store (vhash-consq new var store))
              new))
          vars))
