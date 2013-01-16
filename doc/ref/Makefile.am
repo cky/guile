@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
 ##   Copyright (C) 1998, 2004, 2006, 2008, 2009, 2010,
-##     2011 Free Software Foundation, Inc.
+##     2011, 2013 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -21,8 +21,6 @@
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
 AUTOMAKE_OPTIONS = gnu
-
-BUILT_SOURCES = standard-library.texi
 
 info_TEXINFOS = guile.texi
 
@@ -90,6 +88,9 @@ guile_TEXINFOS = preface.texi			\
 	 	 libguile-extensions.texi	\
 		 api-init.texi			\
 		 mod-getopt-long.texi		\
+		 statprof.texi			\
+		 sxml.texi			\
+		 texinfo.texi			\
 		 goops.texi			\
 		 goops-tutorial.texi		\
 		 guile-invoke.texi		\
@@ -122,35 +123,6 @@ autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
 	  > $(srcdir)/$@
 
 MAINTAINERCLEANFILES = autoconf-macros.texi
-
-# Support for snarfing docs out of Scheme modules.
-snarf_doc = standard-library
-
-$(snarf_doc).am: $(snarf_doc).scm
-	GUILE_AUTO_COMPILE=0 ;							\
-	variable="`echo $(snarf_doc) | tr - _`_scm_files" ;			\
-	"$(top_builddir_absolute)/meta/guile" -l "$(srcdir)/$(snarf_doc).scm"   \
-	 -c "			 						\
-	 (format #t \"# Automatically generated, do not edit.~%\")		\
-	 (format #t \"$$variable = \")						\
-	 (for-each (lambda (m)							\
-		     (format #t \"$$""(top_srcdir)/module/~a.scm \"		\
-			     (string-join (map symbol->string m) \"/\")))	\
-		   (map car *modules*))" > "$@.tmp"
-	mv "$@.tmp" "$@"
-
-# The following line leads to the definition of $(standard_library_scm_files).
-include standard-library.am
-
-$(snarf_doc).texi: $(standard_library_scm_files)
-	GUILE_AUTO_COMPILE=0				\
-	"$(top_builddir_absolute)/meta/guile" "$(srcdir)/make-texinfo.scm"	\
-	  "$(abs_srcdir)/$(snarf_doc).scm" > "$@.tmp"
-	mv "$@.tmp" "$@"
-
-DISTCLEANFILES = $(snarf_doc).texi
-EXTRA_DIST += $(snarf_doc).scm make-texinfo.scm $(snarf_doc).texi $(snarf_doc).am
-
 
 www-commit: html
 	cd guile.html; \

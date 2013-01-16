@@ -1,0 +1,733 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C) 2013 Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node SXML
+@section SXML
+
+@menu
+* sxml apply-templates::  A more XSLT-like approach to SXML transformations
+* sxml fold::            Fold-based SXML transformation operators
+* sxml simple::          Convenient XML parsing and serializing
+* sxml ssax::            Functional-style XML parsing for Scheme
+* sxml ssax input-parse::  The SSAX tokenizer, optimized for Guile
+* sxml transform::       A higher-order SXML transformation operator, @code{pre-post-order}
+* sxml xpath::           XPath for SXML
+@end menu
+
+@node sxml apply-templates
+@subsection (sxml apply-templates)
+@subsubsection Overview
+Pre-order traversal of a tree and creation of a new tree:
+
+@smallexample 
+	apply-templates:: tree x <templates> -> <new-tree>
+@end smallexample
+
+where
+
+@smallexample 
+ <templates> ::= (<template> ...)
+ <template>  ::= (<node-test> <node-test> ... <node-test> . <handler>)
+ <node-test> ::= an argument to node-typeof? above
+ <handler>   ::= <tree> -> <new-tree>
+@end smallexample
+
+This procedure does a @emph{normal}, pre-order traversal of an SXML
+tree. It walks the tree, checking at each node against the list of
+matching templates.
+
+If the match is found (which must be unique, i.e., unambiguous), the
+corresponding handler is invoked and given the current node as an
+argument. The result from the handler, which must be a @code{<tree>},
+takes place of the current node in the resulting tree. The name of the
+function is not accidental: it resembles rather closely an
+@code{apply-templates} function of XSLT.
+
+@subsubsection Usage
+@anchor{sxml apply-templates apply-templates}@defun apply-templates tree templates
+@end defun
+
+@node sxml fold
+@subsection (sxml fold)
+@subsubsection Overview
+@code{(sxml fold)} defines a number of variants of the @dfn{fold}
+algorithm for use in transforming SXML trees. Additionally it defines
+the layout operator, @code{fold-layout}, which might be described as a
+context-passing variant of SSAX's @code{pre-post-order}.
+
+@subsubsection Usage
+@anchor{sxml fold foldt}@defun foldt fup fhere tree
+The standard multithreaded tree fold.
+
+@var{fup} is of type [a] -> a. @var{fhere} is of type object -> a.
+
+@end defun
+
+@anchor{sxml fold foldts}@defun foldts fdown fup fhere seed tree
+The single-threaded tree fold originally defined in SSAX. @xref{sxml
+ssax,,(sxml ssax)}, for more information.
+
+@end defun
+
+@anchor{sxml fold foldts*}@defun foldts* fdown fup fhere seed tree
+A variant of @ref{sxml fold foldts,,foldts} that allows pre-order tree
+rewrites. Originally defined in Andy Wingo's 2007 paper,
+@emph{Applications of fold to XML transformation}.
+
+@end defun
+
+@anchor{sxml fold fold-values}@defun fold-values proc list . seeds
+A variant of @ref{SRFI-1 Fold and Map,fold} that allows multi-valued
+seeds. Note that the order of the arguments differs from that of
+@code{fold}.
+
+@end defun
+
+@anchor{sxml fold foldts*-values}@defun foldts*-values fdown fup fhere tree . seeds
+A variant of @ref{sxml fold foldts*,,foldts*} that allows multi-valued
+seeds. Originally defined in Andy Wingo's 2007 paper, @emph{Applications
+of fold to XML transformation}.
+
+@end defun
+
+@anchor{sxml fold fold-layout}@defun fold-layout tree bindings params layout stylesheet
+A traversal combinator in the spirit of SSAX's @ref{sxml transform
+pre-post-order,,pre-post-order}.
+
+@code{fold-layout} was originally presented in Andy Wingo's 2007 paper,
+@emph{Applications of fold to XML transformation}.
+
+@example 
+bindings := (<binding>...)
+binding  := (<tag> <bandler-pair>...)
+          | (*default* . <post-handler>)
+          | (*text* . <text-handler>)
+tag      := <symbol>
+handler-pair := (pre-layout . <pre-layout-handler>)
+          | (post . <post-handler>)
+          | (bindings . <bindings>)
+          | (pre . <pre-handler>)
+          | (macro . <macro-handler>)
+@end example
+
+@table @var
+@item pre-layout-handler
+A function of three arguments:
+
+@table @var
+@item kids
+the kids of the current node, before traversal
+
+@item params
+the params of the current node
+
+@item layout
+the layout coming into this node
+
+@end table
+
+@var{pre-layout-handler} is expected to use this information to return a
+layout to pass to the kids. The default implementation returns the
+layout given in the arguments.
+
+@item post-handler
+A function of five arguments:
+
+@table @var
+@item tag
+the current tag being processed
+
+@item params
+the params of the current node
+
+@item layout
+the layout coming into the current node, before any kids were processed
+
+@item klayout
+the layout after processing all of the children
+
+@item kids
+the already-processed child nodes
+
+@end table
+
+@var{post-handler} should return two values, the layout to pass to the
+next node and the final tree.
+
+@item text-handler
+@var{text-handler} is a function of three arguments:
+
+@table @var
+@item text
+the string
+
+@item params
+the current params
+
+@item layout
+the current layout
+
+@end table
+
+@var{text-handler} should return two values, the layout to pass to the
+next node and the value to which the string should transform.
+
+@end table
+
+@end defun
+
+@node sxml simple
+@subsection (sxml simple)
+@subsubsection Overview
+A simple interface to XML parsing and serialization.
+
+@subsubsection Usage
+@anchor{sxml simple xml->sxml}@defun xml->sxml [port]
+Use SSAX to parse an XML document into SXML. Takes one optional
+argument, @var{port}, which defaults to the current input port.
+
+@end defun
+
+@anchor{sxml simple sxml->xml}@defun sxml->xml tree [port]
+Serialize the sxml tree @var{tree} as XML. The output will be written to
+the current output port, unless the optional argument @var{port} is
+present.
+
+@end defun
+
+@anchor{sxml simple sxml->string}@defun sxml->string sxml
+Detag an sxml tree @var{sxml} into a string. Does not perform any
+formatting.
+
+@end defun
+
+@node sxml ssax
+@subsection (sxml ssax)
+@subsubsection Overview
+@subheading Functional XML parsing framework
+@subsubheading SAX/DOM and SXML parsers with support for XML Namespaces and validation
+This is a package of low-to-high level lexing and parsing procedures
+that can be combined to yield a SAX, a DOM, a validating parser, or a
+parser intended for a particular document type. The procedures in the
+package can be used separately to tokenize or parse various pieces of
+XML documents. The package supports XML Namespaces, internal and
+external parsed entities, user-controlled handling of whitespace, and
+validation. This module therefore is intended to be a framework, a set
+of "Lego blocks" you can use to build a parser following any discipline
+and performing validation to any degree. As an example of the parser
+construction, this file includes a semi-validating SXML parser.
+
+The present XML framework has a "sequential" feel of SAX yet a
+"functional style" of DOM. Like a SAX parser, the framework scans the
+document only once and permits incremental processing. An application
+that handles document elements in order can run as efficiently as
+possible. @emph{Unlike} a SAX parser, the framework does not require an
+application register stateful callbacks and surrender control to the
+parser. Rather, it is the application that can drive the framework --
+calling its functions to get the current lexical or syntax element.
+These functions do not maintain or mutate any state save the input port.
+Therefore, the framework permits parsing of XML in a pure functional
+style, with the input port being a monad (or a linear, read-once
+parameter).
+
+Besides the @var{port}, there is another monad -- @var{seed}. Most of
+the middle- and high-level parsers are single-threaded through the
+@var{seed}. The functions of this framework do not process or affect the
+@var{seed} in any way: they simply pass it around as an instance of an
+opaque datatype. User functions, on the other hand, can use the seed to
+maintain user's state, to accumulate parsing results, etc. A user can
+freely mix his own functions with those of the framework. On the other
+hand, the user may wish to instantiate a high-level parser:
+@code{SSAX:make-elem-parser} or @code{SSAX:make-parser}. In the latter
+case, the user must provide functions of specific signatures, which are
+called at predictable moments during the parsing: to handle character
+data, element data, or processing instructions (PI). The functions are
+always given the @var{seed}, among other parameters, and must return the
+new @var{seed}.
+
+From a functional point of view, XML parsing is a combined
+pre-post-order traversal of a "tree" that is the XML document itself.
+This down-and-up traversal tells the user about an element when its
+start tag is encountered. The user is notified about the element once
+more, after all element's children have been handled. The process of XML
+parsing therefore is a fold over the raw XML document. Unlike a fold
+over trees defined in [1], the parser is necessarily single-threaded --
+obviously as elements in a text XML document are laid down sequentially.
+The parser therefore is a tree fold that has been transformed to accept
+an accumulating parameter [1,2].
+
+Formally, the denotational semantics of the parser can be expressed as
+
+@smallexample 
+ parser:: (Start-tag -> Seed -> Seed) ->
+	   (Start-tag -> Seed -> Seed -> Seed) ->
+	   (Char-Data -> Seed -> Seed) ->
+	   XML-text-fragment -> Seed -> Seed
+ parser fdown fup fchar "<elem attrs> content </elem>" seed
+  = fup "<elem attrs>" seed
+	(parser fdown fup fchar "content" (fdown "<elem attrs>" seed))
+
+ parser fdown fup fchar "char-data content" seed
+  = parser fdown fup fchar "content" (fchar "char-data" seed)
+
+ parser fdown fup fchar "elem-content content" seed
+  = parser fdown fup fchar "content" (
+	parser fdown fup fchar "elem-content" seed)
+@end smallexample
+
+Compare the last two equations with the left fold
+
+@smallexample 
+ fold-left kons elem:list seed = fold-left kons list (kons elem seed)
+@end smallexample
+
+The real parser created by @code{SSAX:make-parser} is slightly more
+complicated, to account for processing instructions, entity references,
+namespaces, processing of document type declaration, etc.
+
+The XML standard document referred to in this module
+is@uref{http://www.w3.org/TR/1998/REC-xml-19980210.html}
+
+The present file also defines a procedure that parses the text of an XML
+document or of a separate element into SXML, an S-expression-based model
+of an XML Information Set. SXML is also an Abstract Syntax Tree of an
+XML document. SXML is similar but not identical to DOM; SXML is
+particularly suitable for Scheme-based XML/HTML authoring, SXPath
+queries, and tree transformations. See SXML.html for more details. SXML
+is a term implementation of evaluation of the XML document [3]. The
+other implementation is context-passing.
+
+The present frameworks fully supports the XML Namespaces
+Recommendation:@uref{http://www.w3.org/TR/REC-xml-names/} Other links:
+
+@table @asis
+@item [1]
+Jeremy Gibbons, Geraint Jones, "The Under-appreciated Unfold," Proc.
+ICFP'98, 1998, pp. 273-279.
+
+@item [2]
+Richard S. Bird, The promotion and accumulation strategies in
+transformational programming, ACM Trans. Progr. Lang. Systems,
+6(4):487-504, October 1984.
+
+@item [3]
+Ralf Hinze, "Deriving Backtracking Monad Transformers," Functional
+Pearl. Proc ICFP'00, pp. 186-197.
+
+@end table
+
+@subsubsection Usage
+@anchor{sxml ssax current-ssax-error-port}@defun current-ssax-error-port 
+@end defun
+
+@anchor{sxml ssax with-ssax-error-to-port}@defun with-ssax-error-to-port port thunk
+@end defun
+
+@anchor{sxml ssax xml-token?}@defun xml-token? _
+@verbatim 
+ -- Scheme Procedure: pair? x
+     Return `#t' if X is a pair; otherwise return `#f'.
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml ssax xml-token-kind}@defspec xml-token-kind token
+@end defspec
+
+@anchor{sxml ssax xml-token-head}@defspec xml-token-head token
+@end defspec
+
+@anchor{sxml ssax make-empty-attlist}@defun make-empty-attlist 
+@end defun
+
+@anchor{sxml ssax attlist-add}@defun attlist-add attlist name-value
+@end defun
+
+@anchor{sxml ssax attlist-null?}@defun attlist-null? _
+@verbatim 
+ -- Scheme Procedure: null? x
+     Return `#t' iff X is the empty list, else `#f'.
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml ssax attlist-remove-top}@defun attlist-remove-top attlist
+@end defun
+
+@anchor{sxml ssax attlist->alist}@defun attlist->alist attlist
+@end defun
+
+@anchor{sxml ssax attlist-fold}@defun attlist-fold kons knil lis1
+@end defun
+
+@anchor{sxml ssax define-parsed-entity!}@defun define-parsed-entity! entity str
+Define a new parsed entity. @var{entity} should be a symbol.
+
+Instances of &@var{entity}; in XML text will be replaced with the string
+@var{str}, which will then be parsed.
+
+@end defun
+
+@anchor{sxml ssax reset-parsed-entity-definitions!}@defun reset-parsed-entity-definitions! 
+Restore the set of parsed entity definitions to its initial state.
+
+@end defun
+
+@anchor{sxml ssax ssax:uri-string->symbol}@defun ssax:uri-string->symbol uri-str
+@end defun
+
+@anchor{sxml ssax ssax:skip-internal-dtd}@defun ssax:skip-internal-dtd port
+@end defun
+
+@anchor{sxml ssax ssax:read-pi-body-as-string}@defun ssax:read-pi-body-as-string port
+@end defun
+
+@anchor{sxml ssax ssax:reverse-collect-str-drop-ws}@defun ssax:reverse-collect-str-drop-ws fragments
+@end defun
+
+@anchor{sxml ssax ssax:read-markup-token}@defun ssax:read-markup-token port
+@end defun
+
+@anchor{sxml ssax ssax:read-cdata-body}@defun ssax:read-cdata-body port str-handler seed
+@end defun
+
+@anchor{sxml ssax ssax:read-char-ref}@defun ssax:read-char-ref port
+@end defun
+
+@anchor{sxml ssax ssax:read-attributes}@defun ssax:read-attributes port entities
+@end defun
+
+@anchor{sxml ssax ssax:complete-start-tag}@defun ssax:complete-start-tag tag-head port elems entities namespaces
+@end defun
+
+@anchor{sxml ssax ssax:read-external-id}@defun ssax:read-external-id port
+@end defun
+
+@anchor{sxml ssax ssax:read-char-data}@defun ssax:read-char-data port expect-eof? str-handler seed
+@end defun
+
+@anchor{sxml ssax ssax:xml->sxml}@defun ssax:xml->sxml port namespace-prefix-assig
+@end defun
+
+@anchor{sxml ssax ssax:make-parser}@defspec ssax:make-parser  . kw-val-pairs
+@end defspec
+
+@anchor{sxml ssax ssax:make-pi-parser}@defspec ssax:make-pi-parser orig-handlers
+@end defspec
+
+@anchor{sxml ssax ssax:make-elem-parser}@defspec ssax:make-elem-parser my-new-level-seed my-finish-element my-char-data-handler my-pi-handlers
+@end defspec
+
+@node sxml ssax input-parse
+@subsection (sxml ssax input-parse)
+@subsubsection Overview
+A simple lexer.
+
+The procedures in this module surprisingly often suffice to parse an
+input stream. They either skip, or build and return tokens, according to
+inclusion or delimiting semantics. The list of characters to expect,
+include, or to break at may vary from one invocation of a function to
+another. This allows the functions to easily parse even
+context-sensitive languages.
+
+EOF is generally frowned on, and thrown up upon if encountered.
+Exceptions are mentioned specifically. The list of expected characters
+(characters to skip until, or break-characters) may include an EOF
+"character", which is to be coded as the symbol, @code{*eof*}.
+
+The input stream to parse is specified as a @dfn{port}, which is usually
+the last (and optional) argument. It defaults to the current input port
+if omitted.
+
+If the parser encounters an error, it will throw an exception to the key
+@code{parser-error}. The arguments will be of the form @code{(@var{port}
+@var{message} @var{specialising-msg}*)}.
+
+The first argument is a port, which typically points to the offending
+character or its neighborhood. You can then use @code{port-column} and
+@code{port-line} to query the current position. @var{message} is the
+description of the error. Other arguments supply more details about the
+problem.
+
+@subsubsection Usage
+@anchor{sxml ssax input-parse peek-next-char}@defun peek-next-char [port]
+@end defun
+
+@anchor{sxml ssax input-parse assert-curr-char}@defun assert-curr-char expected-chars comment [port]
+@end defun
+
+@anchor{sxml ssax input-parse skip-until}@defun skip-until arg [port]
+@end defun
+
+@anchor{sxml ssax input-parse skip-while}@defun skip-while skip-chars [port]
+@end defun
+
+@anchor{sxml ssax input-parse next-token}@defun next-token prefix-skipped-chars break-chars [comment] [port]
+@end defun
+
+@anchor{sxml ssax input-parse next-token-of}@defun next-token-of incl-list/pred [port]
+@end defun
+
+@anchor{sxml ssax input-parse read-text-line}@defun read-text-line [port]
+@end defun
+
+@anchor{sxml ssax input-parse read-string}@defun read-string n [port]
+@end defun
+
+@anchor{sxml ssax input-parse find-string-from-port?}@defun find-string-from-port? _ _ . _
+Looks for @var{str} in @var{<input-port>}, optionally within the first
+@var{max-no-char} characters.
+
+@end defun
+
+@node sxml transform
+@subsection (sxml transform)
+@subsubsection Overview
+@heading SXML expression tree transformers
+@subheading Pre-Post-order traversal of a tree and creation of a new tree
+@smallexample 
+pre-post-order:: <tree> x <bindings> -> <new-tree>
+@end smallexample
+
+where
+
+@smallexample 
+ <bindings> ::= (<binding> ...)
+ <binding> ::= (<trigger-symbol> *preorder* . <handler>) |
+               (<trigger-symbol> *macro* . <handler>) |
+		(<trigger-symbol> <new-bindings> . <handler>) |
+		(<trigger-symbol> . <handler>)
+ <trigger-symbol> ::= XMLname | *text* | *default*
+ <handler> :: <trigger-symbol> x [<tree>] -> <new-tree>
+@end smallexample
+
+The pre-post-order function visits the nodes and nodelists
+pre-post-order (depth-first). For each @code{<Node>} of the form
+@code{(@var{name} <Node> ...)}, it looks up an association with the
+given @var{name} among its @var{<bindings>}. If failed,
+@code{pre-post-order} tries to locate a @code{*default*} binding. It's
+an error if the latter attempt fails as well. Having found a binding,
+the @code{pre-post-order} function first checks to see if the binding is
+of the form
+
+@smallexample 
+	(<trigger-symbol> *preorder* . <handler>)
+@end smallexample
+
+If it is, the handler is 'applied' to the current node. Otherwise, the
+pre-post-order function first calls itself recursively for each child of
+the current node, with @var{<new-bindings>} prepended to the
+@var{<bindings>} in effect. The result of these calls is passed to the
+@var{<handler>} (along with the head of the current @var{<Node>}). To be
+more precise, the handler is _applied_ to the head of the current node
+and its processed children. The result of the handler, which should also
+be a @code{<tree>}, replaces the current @var{<Node>}. If the current
+@var{<Node>} is a text string or other atom, a special binding with a
+symbol @code{*text*} is looked up.
+
+A binding can also be of a form
+
+@smallexample 
+	(<trigger-symbol> *macro* . <handler>)
+@end smallexample
+
+This is equivalent to @code{*preorder*} described above. However, the
+result is re-processed again, with the current stylesheet.
+
+@subsubsection Usage
+@anchor{sxml transform SRV:send-reply}@defun SRV:send-reply . fragments
+Output the @var{fragments} to the current output port.
+
+The fragments are a list of strings, characters, numbers, thunks,
+@code{#f}, @code{#t} -- and other fragments. The function traverses the
+tree depth-first, writes out strings and characters, executes thunks,
+and ignores @code{#f} and @code{'()}. The function returns @code{#t} if
+anything was written at all; otherwise the result is @code{#f} If
+@code{#t} occurs among the fragments, it is not written out but causes
+the result of @code{SRV:send-reply} to be @code{#t}.
+
+@end defun
+
+@anchor{sxml transform foldts}@defun foldts fdown fup fhere seed tree
+@end defun
+
+@anchor{sxml transform post-order}@defun post-order tree bindings
+@end defun
+
+@anchor{sxml transform pre-post-order}@defun pre-post-order tree bindings
+@end defun
+
+@anchor{sxml transform replace-range}@defun replace-range beg-pred end-pred forest
+@end defun
+
+@node sxml xpath
+@subsection (sxml xpath)
+@subsubsection Overview
+@heading SXPath: SXML Query Language
+SXPath is a query language for SXML, an instance of XML Information set
+(Infoset) in the form of s-expressions. See @code{(sxml ssax)} for the
+definition of SXML and more details. SXPath is also a translation into
+Scheme of an XML Path Language, @uref{http://www.w3.org/TR/xpath,XPath}.
+XPath and SXPath describe means of selecting a set of Infoset's items or
+their properties.
+
+To facilitate queries, XPath maps the XML Infoset into an explicit tree,
+and introduces important notions of a location path and a current,
+context node. A location path denotes a selection of a set of nodes
+relative to a context node. Any XPath tree has a distinguished, root
+node -- which serves as the context node for absolute location paths.
+Location path is recursively defined as a location step joined with a
+location path. A location step is a simple query of the database
+relative to a context node. A step may include expressions that further
+filter the selected set. Each node in the resulting set is used as a
+context node for the adjoining location path. The result of the step is
+a union of the sets returned by the latter location paths.
+
+The SXML representation of the XML Infoset (see SSAX.scm) is rather
+suitable for querying as it is. Bowing to the XPath specification, we
+will refer to SXML information items as 'Nodes':
+
+@example 
+ 	<Node> ::= <Element> | <attributes-coll> | <attrib>
+ 		   | "text string" | <PI>
+@end example
+
+This production can also be described as
+
+@example 
+	<Node> ::= (name . <Nodeset>) | "text string"
+@end example
+
+An (ordered) set of nodes is just a list of the constituent nodes:
+
+@example 
+ 	<Nodeset> ::= (<Node> ...)
+@end example
+
+Nodesets, and Nodes other than text strings are both lists. A <Nodeset>
+however is either an empty list, or a list whose head is not a symbol. A
+symbol at the head of a node is either an XML name (in which case it's a
+tag of an XML element), or an administrative name such as '@@'. This
+uniform list representation makes processing rather simple and elegant,
+while avoiding confusion. The multi-branch tree structure formed by the
+mutually-recursive datatypes <Node> and <Nodeset> lends itself well to
+processing by functional languages.
+
+A location path is in fact a composite query over an XPath tree or its
+branch. A singe step is a combination of a projection, selection or a
+transitive closure. Multiple steps are combined via join and union
+operations. This insight allows us to @emph{elegantly} implement XPath
+as a sequence of projection and filtering primitives -- converters --
+joined by @dfn{combinators}. Each converter takes a node and returns a
+nodeset which is the result of the corresponding query relative to that
+node. A converter can also be called on a set of nodes. In that case it
+returns a union of the corresponding queries over each node in the set.
+The union is easily implemented as a list append operation as all nodes
+in a SXML tree are considered distinct, by XPath conventions. We also
+preserve the order of the members in the union. Query combinators are
+high-order functions: they take converter(s) (which is a Node|Nodeset ->
+Nodeset function) and compose or otherwise combine them. We will be
+concerned with only relative location paths [XPath]: an absolute
+location path is a relative path applied to the root node.
+
+Similarly to XPath, SXPath defines full and abbreviated notations for
+location paths. In both cases, the abbreviated notation can be
+mechanically expanded into the full form by simple rewriting rules. In
+case of SXPath the corresponding rules are given as comments to a sxpath
+function, below. The regression test suite at the end of this file shows
+a representative sample of SXPaths in both notations, juxtaposed with
+the corresponding XPath expressions. Most of the samples are borrowed
+literally from the XPath specification, while the others are adjusted
+for our running example, tree1.
+
+@subsubsection Usage
+@anchor{sxml xpath nodeset?}@defun nodeset? x
+@end defun
+
+@anchor{sxml xpath node-typeof?}@defun node-typeof? crit
+@end defun
+
+@anchor{sxml xpath node-eq?}@defun node-eq? other
+@end defun
+
+@anchor{sxml xpath node-equal?}@defun node-equal? other
+@end defun
+
+@anchor{sxml xpath node-pos}@defun node-pos n
+@end defun
+
+@anchor{sxml xpath filter}@defun filter pred?
+@verbatim 
+ -- Scheme Procedure: filter pred list
+     Return all the elements of 2nd arg LIST that satisfy predicate
+     PRED.  The list is not disordered - elements that appear in the
+     result list occur in the same order as they occur in the argument
+     list. The returned list may share a common tail with the argument
+     list. The dynamic order in which the various applications of pred
+     are made is not specified.
+
+          (filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml xpath take-until}@defun take-until pred?
+@end defun
+
+@anchor{sxml xpath take-after}@defun take-after pred?
+@end defun
+
+@anchor{sxml xpath map-union}@defun map-union proc lst
+@end defun
+
+@anchor{sxml xpath node-reverse}@defun node-reverse node-or-nodeset
+@end defun
+
+@anchor{sxml xpath node-trace}@defun node-trace title
+@end defun
+
+@anchor{sxml xpath select-kids}@defun select-kids test-pred?
+@end defun
+
+@anchor{sxml xpath node-self}@defun node-self pred?
+@verbatim 
+ -- Scheme Procedure: filter pred list
+     Return all the elements of 2nd arg LIST that satisfy predicate
+     PRED.  The list is not disordered - elements that appear in the
+     result list occur in the same order as they occur in the argument
+     list. The returned list may share a common tail with the argument
+     list. The dynamic order in which the various applications of pred
+     are made is not specified.
+
+          (filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
+
+ 
+@end verbatim
+
+@end defun
+
+@anchor{sxml xpath node-join}@defun node-join . selectors
+@end defun
+
+@anchor{sxml xpath node-reduce}@defun node-reduce . converters
+@end defun
+
+@anchor{sxml xpath node-or}@defun node-or . converters
+@end defun
+
+@anchor{sxml xpath node-closure}@defun node-closure test-pred?
+@end defun
+
+@anchor{sxml xpath node-parent}@defun node-parent rootnode
+@end defun
+
+@anchor{sxml xpath sxpath}@defun sxpath path
+@end defun
