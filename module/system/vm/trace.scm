@@ -1,6 +1,6 @@
 ;;; Guile VM tracer
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2013 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -36,61 +36,66 @@
 ;; FIXME: this constant needs to go in system vm objcode
 (define *objcode-header-len* 8)
 
-(define (print-application frame depth width prefix)
-  (format (current-error-port) "~a~a~v:@y\n"
-          prefix
-          (let lp ((depth depth) (s ""))
-            (if (zero? depth)
-                s
-                (lp (1- depth) (string-append "|  " s))))
-          (max (- width (* 3 depth)) 1)
-          (frame-call-representation frame)))
-
-(define (print-return frame depth width prefix)
-  (let* ((len (frame-num-locals frame))
-         (nvalues (frame-local-ref frame (1- len))))
+(define (build-prefix prefix depth infix numeric-format max-indent)
+  (let lp ((indent "") (n 0))
     (cond
-     ((= nvalues 1)
-      (format (current-error-port) "~a~a~v:@y\n"
-              prefix
-              (let lp ((depth depth) (s ""))
-                (if (zero? depth)
-                    s
-                    (lp (1- depth) (string-append "|  " s))))
-              width (frame-local-ref frame (- len 2))))
+     ((= n depth)
+      (string-append prefix indent))
+     ((< (+ (string-length indent) (string-length infix)) max-indent)
+      (lp (string-append indent infix) (1+ n)))
      (else
-      ;; this should work, but there appears to be a bug
-      ;; "~a~d values:~:{ ~v:@y~}\n"
-      (format (current-error-port) "~a~a~d values:~{ ~a~}\n"
-              prefix
-              (let lp ((depth depth) (s ""))
-                (if (zero? depth)
-                    s
-                    (lp (1- depth) (string-append "|  " s))))
-              nvalues
-              (map (lambda (val)
-                     (format #f "~v:@y" width val))
-                   (frame-return-values frame)))))))
+      (string-append prefix indent (format #f numeric-format depth))))))
+
+(define (print-application frame depth width prefix max-indent)
+  (let ((prefix (build-prefix prefix depth "|  " "~d> " max-indent)))
+    (format (current-error-port) "~a~v:@y\n"
+            prefix
+            width
+            (frame-call-representation frame))))
+
+(define* (print-return frame depth width prefix max-indent)
+  (let* ((len (frame-num-locals frame))
+         (nvalues (frame-local-ref frame (1- len)))
+         (prefix (build-prefix prefix depth "|  " "~d< "max-indent)))
+    (case nvalues
+      ((0)
+       (format (current-error-port) "~ano values\n" prefix))
+      ((1)
+       (format (current-error-port) "~a~v:@y\n"
+               prefix
+               width
+               (frame-local-ref frame (- len 2))))
+      (else
+       ;; this should work, but there appears to be a bug
+       ;; "~a~d values:~:{ ~v:@y~}\n"
+       (format (current-error-port) "~a~d values:~{ ~a~}\n"
+               prefix nvalues
+               (map (lambda (val)
+                      (format #f "~v:@y" width val))
+                    (frame-return-values frame)))))))
   
 (define* (trace-calls-to-procedure proc #:key (width 80) (vm (the-vm))
-                                   (prefix "trace: "))
+                                   (prefix "trace: ")
+                                   (max-indent (- width 40)))
   (define (apply-handler frame depth)
-    (print-application frame depth width prefix))
+    (print-application frame depth width prefix max-indent))
   (define (return-handler frame depth)
-    (print-return frame depth width prefix))
+    (print-return frame depth width prefix max-indent))
   (trap-calls-to-procedure proc apply-handler return-handler
                            #:vm vm))
 
 (define* (trace-calls-in-procedure proc #:key (width 80) (vm (the-vm))
-                                   (prefix "trace: "))
+                                   (prefix "trace: ")
+                                   (max-indent (- width 40)))
   (define (apply-handler frame depth)
-    (print-application frame depth width prefix))
+    (print-application frame depth width prefix max-indent))
   (define (return-handler frame depth)
-    (print-return frame depth width prefix))
+    (print-return frame depth width prefix max-indent))
   (trap-calls-in-dynamic-extent proc apply-handler return-handler
                                 #:vm vm))
 
-(define* (trace-instructions-in-procedure proc #:key (width 80) (vm (the-vm)))
+(define* (trace-instructions-in-procedure proc #:key (width 80) (vm (the-vm))
+                                          (max-indent (- width 40)))
   (define (trace-next frame)
     (let* ((ip (frame-instruction-pointer frame))
            (objcode (program-objcode (frame-procedure frame)))
@@ -104,17 +109,20 @@
 ;; Note that because this procedure manipulates the VM trace level
 ;; directly, it doesn't compose well with traps at the REPL.
 ;;
-(define* (call-with-trace thunk #:key (calls? #t) (instructions? #f) (width 80) (vm (the-vm)))
+(define* (call-with-trace thunk #:key (calls? #t) (instructions? #f) 
+                          (width 80) (vm (the-vm)) (max-indent (- width 40)))
   (let ((call-trap #f)
         (inst-trap #f))
     (dynamic-wind
       (lambda ()
         (if calls?
             (set! call-trap
-                  (trace-calls-in-procedure thunk #:vm vm #:width width)))
+                  (trace-calls-in-procedure thunk #:vm vm #:width width
+                                            #:max-indent max-indent)))
         (if instructions?
             (set! inst-trap
-                  (trace-instructions-in-procedure thunk #:vm vm #:width width)))
+                  (trace-instructions-in-procedure thunk #:vm vm #:width width 
+                                                   #:max-indent max-indent)))
         (set-vm-trace-level! vm (1+ (vm-trace-level vm))))
       thunk
       (lambda ()
