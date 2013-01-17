@@ -23,6 +23,7 @@
 SUBDIRS = standalone vm
 
 SCM_TESTS = tests/00-initial-env.test		\
+	    tests/00-socket.test		\
             tests/alist.test			\
 	    tests/and-let-star.test		\
 	    tests/arbiters.test			\
@@ -114,7 +115,6 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/regexp.test			\
 	    tests/session.test			\
 	    tests/signals.test			\
-	    tests/socket.test			\
 	    tests/srcprop.test			\
 	    tests/srfi-1.test			\
 	    tests/srfi-6.test			\
