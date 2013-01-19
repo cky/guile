@@ -1259,11 +1259,11 @@ accurate information is missing from a given `tree-il' element."
         (case state
           ((tilde)
            (case (car chars)
-             ((#\~ #\% #\& #\t #\_ #\newline #\( #\))
+             ((#\~ #\% #\& #\t #\T #\_ #\newline #\( #\) #\! #\| #\/ #\q #\Q)
                         (loop (cdr chars) 'literal '()
                               conditions end-group
                               min-count max-count))
-             ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\, #\: #\@)
+             ((#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9 #\, #\: #\@ #\+ #\- #\#)
                         (loop (cdr chars)
                               'tilde (cons (car chars) params)
                               conditions end-group
@@ -1330,16 +1330,23 @@ accurate information is missing from a given `tree-il' element."
                                      min-count)
                                   (+ (or (previous-number params) 1)
                                      max-count))))
-             ((#\? #\k)
+             ((#\? #\k #\K)
               ;; We don't have enough info to determine the exact number
               ;; of args, but we could determine a lower bound (TODO).
               (values 'any 'any))
+             ((#\^)
+              (values min-count 'any))
              ((#\h #\H)
                         (let ((argc (if (memq #\: params) 2 1)))
                           (loop (cdr chars) 'literal '()
                                 conditions end-group
                                 (+ argc min-count)
                                 (+ argc max-count))))
+             ((#\')
+              (if (null? (cdr chars))
+                  (throw &syntax-error 'unexpected-termination)
+                  (loop (cddr chars) 'tilde (cons (cadr chars) params)
+                        conditions end-group min-count max-count)))
              (else      (loop (cdr chars) 'literal '()
                               conditions end-group
                               (+ 1 min-count) (+ 1 max-count)))))

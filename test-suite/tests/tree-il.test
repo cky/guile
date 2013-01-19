@@ -1415,11 +1415,11 @@
               (number? (string-contains (car w)
                                         "wrong number of arguments")))))
 
-     (pass-if "~%, ~~, ~&, ~t, ~_, and ~\\n"
+     (pass-if "~%, ~~, ~&, ~t, ~_, ~!, ~|, ~/, ~q and ~\\n"
        (null? (call-with-warnings
                (lambda ()
                  (compile '((@ (ice-9 format) format) some-port
-                            "~&~3_~~ ~\n~12they~%")
+                            "~&~3_~~ ~\n~12they~% ~!~|~/~q")
                           #:opts %opts-w-format
                           #:to 'assembly)))))
 
@@ -1684,6 +1684,31 @@
        (null? (call-with-warnings
                (lambda ()
                  (compile '((@ (ice-9 format) format) #f "~?" "~d ~d" '(1 2))
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "~^"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '((@ (ice-9 format) format) #f "~a ~^ ~a" 0 1)
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "~^, too few args"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #f "~a ~^ ~a")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected at least 1, got 0")))))
+
+     (pass-if "parameters: +,-,#, and '"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '((@ (ice-9 format) format) some-port
+                            "~#~ ~,,-2f ~,,+2f ~'A~" 1234 1234)
                           #:opts %opts-w-format
                           #:to 'assembly)))))
 
