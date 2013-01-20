@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
 ;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+;;;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 ;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -2593,8 +2593,8 @@ VALUE."
                             version)
   (let* ((module (resolve-module name #t version #:ensure #f))
          (public-i (and module (module-public-interface module))))
-    (and (or (not module) (not public-i))
-         (error "no code for module" name))
+    (unless public-i
+      (error "no code for module" name))
     (if (and (not select) (null? hide) (eq? renamer identity))
         public-i
         (let ((selection (or select (module-map (lambda (sym var) sym)
@@ -2765,10 +2765,13 @@ module '(ice-9 q) '(make-q q-length))}."
 
 (define autoloads-in-progress '())
 
-;; This function is called from "modules.c".  If you change it, be
-;; sure to update "modules.c" as well.
-
+;; This function is called from scm_load_scheme_module in
+;; "deprecated.c".  Please do not change its interface.
+;;
 (define* (try-module-autoload module-name #:optional version)
+  "Try to load a module of the given name.  If it is not found, return
+#f.  Otherwise return #t.  May raise an exception if a file is found,
+but it fails to load."
   (let* ((reverse-name (reverse module-name))
          (name (symbol->string (car reverse-name)))
          (dir-hint-module-name (reverse (cdr reverse-name)))
@@ -2785,6 +2788,13 @@ module '(ice-9 q) '(make-q q-length))}."
               (with-fluids ((current-reader #f))
                 (save-module-excursion
                  (lambda () 
+                   (define (call/ec proc)
+                     (let ((tag (make-prompt-tag)))
+                       (call-with-prompt
+                        tag
+                        (lambda ()
+                          (proc (lambda () (abort-to-prompt tag))))
+                        (lambda (k) (values)))))
                    ;; The initial environment when loading a module is a fresh
                    ;; user module.
                    (set-current-module (make-fresh-user-module))
@@ -2794,8 +2804,11 @@ module '(ice-9 q) '(make-q q-length))}."
                    ;; out how to locate the compiled file, do auto-compilation,
                    ;; etc. Punt for now, and don't use versions when locating
                    ;; the file.
-                   (primitive-load-path (in-vicinity dir-hint name) #f)
-                   (set! didit #t)))))
+                   (call/ec
+                    (lambda (abort)
+                      (primitive-load-path (in-vicinity dir-hint name)
+                                           abort)
+                      (set! didit #t)))))))
             (lambda () (set-autoloaded! dir-hint name didit)))
            didit))))
 

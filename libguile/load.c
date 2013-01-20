@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -846,11 +846,13 @@ canonical_suffix (SCM fname)
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
 	    (SCM args),
 	    "Search @var{%load-path} for the file named @var{filename} and\n"
-	    "load it into the top-level environment.  If @var{filename} is a\n"
-	    "relative pathname and is not found in the list of search paths,\n"
-	    "an error is signalled, unless the optional argument\n"
-            "@var{exception_on_not_found} is @code{#f}, in which case\n"
-            "@code{#f} is returned instead.")
+	    "load it into the top-level environment.\n\n"
+            "If @var{filename} is a relative pathname and is not found in\n"
+            "the list of search paths, one of three things may happen,\n"
+            "depending on the optional second argument,\n"
+            "@var{exception_on_not_found}.  If it is @code{#f}, @code{#f}\n"
+            "will be returned.  If it is a procedure, it will be called\n"
+            "with no arguments.  Otherwise an error is signalled.")
 #define FUNC_NAME s_scm_primitive_load_path
 {
   SCM filename, exception_on_not_found;
@@ -924,11 +926,13 @@ SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
   
   if (scm_is_false (full_filename) && scm_is_false (compiled_filename))
     {
-      if (scm_is_true (exception_on_not_found))
+      if (scm_is_true (scm_procedure_p (exception_on_not_found)))
+        return scm_call_0 (exception_on_not_found);
+      else if (scm_is_false (exception_on_not_found))
+        return SCM_BOOL_F;
+      else
         SCM_MISC_ERROR ("Unable to find file ~S in load path",
                         scm_list_1 (filename));
-      else
-        return SCM_BOOL_F;
     }
 
   if (!scm_is_false (hook))

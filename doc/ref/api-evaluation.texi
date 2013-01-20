@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2009, 2010, 2011, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -878,15 +878,20 @@ of modifying the path both at compile-time and at run-time.
 Search @code{%load-path} for the file named @var{filename} and
 load it into the top-level environment.  If @var{filename} is a
 relative pathname and is not found in the list of search paths,
-an error is signalled. Preferentially loads a compiled version of the
+an error is signalled.  Preferentially loads a compiled version of the
 file, if it is available and up-to-date.
 
-By default or if @var{exception-on-not-found} is true, an exception is
-raised if @var{filename} is not found.  If @var{exception-on-not-found}
-is @code{#f} and @var{filename} is not found, no exception is raised and
-@code{#f} is returned.  For compatibility with Guile 1.8 and earlier,
-the C function takes only one argument, which can be either a string
-(the file name) or an argument list.
+If @var{filename} is a relative pathname and is not found in the list of
+search paths, one of three things may happen, depending on the optional
+second argument, @var{exception-on-not-found}.  If it is @code{#f},
+@code{#f} will be returned.  If it is a procedure, it will be called
+with no arguments.  (This allows a distinction to be made between
+exceptions raised by loading a file, and exceptions related to the
+loader itself.)  Otherwise an error is signalled.
+
+For compatibility with Guile 1.8 and earlier, the C function takes only
+one argument, which can be either a string (the file name) or an
+argument list.
 @end deffn
 
 @deffn {Scheme Procedure} %search-load-path filename
