@@ -1,7 +1,7 @@
 ;;;; -*-scheme-*-
 ;;;;
 ;;;; Copyright (C) 2001, 2003, 2006, 2009, 2010, 2011,
-;;;;   2012 Free Software Foundation, Inc.
+;;;;   2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -2935,9 +2935,15 @@
 
 (define-syntax include
   (lambda (x)
+    (define (absolute-path? path)
+      (string-prefix? "/" path))
+
     (define read-file
-      (lambda (fn k)
-        (let ((p (open-input-file fn)))
+      (lambda (fn dir k)
+        (let ((p (open-input-file
+                  (if (absolute-path? fn)
+                      fn
+                      (in-vicinity dir fn)))))
           (let f ((x (read p))
                   (result '()))
             (if (eof-object? x)
@@ -2946,11 +2952,14 @@
                   (reverse result))
                 (f (read p)
                    (cons (datum->syntax k x) result)))))))
-    (syntax-case x ()
-      ((k filename)
-       (let ((fn (syntax->datum #'filename)))
-         (with-syntax (((exp ...) (read-file fn #'filename)))
-           #'(begin exp ...)))))))
+    (let* ((src (syntax-source x))
+           (file (and src (assq-ref src 'filename)))
+           (dir (and (string? file) (dirname file))))
+      (syntax-case x ()
+        ((k filename)
+         (let ((fn (syntax->datum #'filename)))
+           (with-syntax (((exp ...) (read-file fn dir #'filename)))
+             #'(begin exp ...))))))))
 
 (define-syntax include-from-path
   (lambda (x)
