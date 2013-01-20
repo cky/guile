@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 2000,2001,2002, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2000,2001,2002, 2006, 2009, 2010, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -122,8 +122,10 @@
 (define (readable-expression obj)
   `(readable ,(hashq-ref readables obj)))
 
+;; FIXME: if obj is nil or false, this can return a false value.  OTOH
+;; usually this is only for non-immediates.
 (define (readable? obj)
-  (hashq-get-handle readables obj))
+  (hashq-ref readables obj))
 
 ;;;
 ;;; Strings
