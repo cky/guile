@@ -1,6 +1,6 @@
 ;;; Parsing Guile's command-line
 
-;;; Copyright (C) 1994-1998, 2000-2011, 2012 Free Software Foundation, Inc.
+;;; Copyright (C) 1994-1998, 2000-2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -106,10 +106,10 @@ There is NO WARRANTY, to the extent permitted by law."))
           (_ "General help using GNU software: <http://www.gnu.org/gethelp/>\n")))
 
 (define *usage*
-  (_ "Evaluate Scheme code, interactively or from a script.
+  (_ "Evaluate code with Guile, interactively or from a script.
 
-  [-s] FILE      load Scheme source code from FILE, and exit
-  -c EXPR        evalute Scheme expression EXPR, and exit
+  [-s] FILE      load source code from FILE, and exit
+  -c EXPR        evalute expression EXPR, and exit
   --             stop scanning arguments; run interactively
 
 The above switches stop argument processing, and pass all
@@ -118,21 +118,22 @@ If FILE begins with `-' the -s switch is mandatory.
 
   -L DIRECTORY   add DIRECTORY to the front of the module load path
   -x EXTENSION   add EXTENSION to the front of the load extensions
-  -l FILE        load Scheme source code from FILE
+  -l FILE        load source code from FILE
   -e FUNCTION    after reading script, apply FUNCTION to
                  command line arguments
+  --language=LANG  change language; default: scheme
   -ds            do -s script at this point
   --debug        start with the \"debugging\" VM engine
-  --no-debug     start with the normal VM engine, which also supports debugging
-                 Default is to enable debugging for interactive
+  --no-debug     start with the normal VM engine (backtraces but
+                 no breakpoints); default is --debug for interactive
                  use, but not for `-s' and `-c'.
   --auto-compile compile source files automatically
   --fresh-auto-compile  invalidate auto-compilation cache
-  --no-auto-compile  disable automatic source file compilation
-                 Default is to enable auto-compilation of source
+  --no-auto-compile  disable automatic source file compilation;
+                 default is to enable auto-compilation of source
                  files.
-  --listen[=P]   Listen on a local port or a path for REPL clients.
-                 If P is not given, the default is local port 37146.
+  --listen[=P]   listen on a local port or a path for REPL clients;
+                 if P is not given, the default is local port 37146
   -q             inhibit loading of user init file
   --use-srfi=LS  load SRFI modules for the SRFIs in LS,
                  which is a list of numbers like \"2,13,14\"
@@ -163,20 +164,34 @@ If FILE begins with `-' the -s switch is mandatory.
     (if fatal?
         (exit 1))))
 
-(define (eval-string str)
-  (call-with-input-string
-   str
-   (lambda (port)
-     (let lp ()
-       (let ((exp (read port)))
-         (if (not (eof-object? exp))
-             (begin
-               (eval exp (current-module))
-               (lp))))))))
+;; Try to avoid loading (ice-9 eval-string) and (system base compile) if
+;; possible.
+(define (eval-string/lang str)
+  (case (current-language)
+    ((scheme)
+     (call-with-input-string
+      str
+      (lambda (port)
+        (let lp ()
+          (let ((exp (read port)))
+            (if (not (eof-object? exp))
+                (begin
+                  (eval exp (current-module))
+                  (lp))))))))
+    (else
+     ((module-ref (resolve-module '(ice-9 eval-string)) 'eval-string) str))))
+
+(define (load/lang f)
+  (case (current-language)
+    ((scheme)
+     (load f))
+    (else
+     ((module-ref (resolve-module '(system base compile)) 'compile-file)
+      f #:to 'value))))
 
 (define* (compile-shell-switches args #:optional (usage-name "guile"))
   (let ((arg0 "guile")
-        (do-script '())
+        (script-cell #f)
         (entry-point #f)
         (user-load-path '())
         (user-extensions '())
@@ -197,36 +212,39 @@ If FILE begins with `-' the -s switch is mandatory.
               (args (cdr args)))
           (cond
            ((not (string-prefix? "-" arg)) ; foo
-            ;; If we specified the -ds option, do-script is the cdr of
+            ;; If we specified the -ds option, script-cell is the cdr of
             ;; an expression like (load #f).  We replace the car (i.e.,
             ;; the #f) with the script name.
             (set! arg0 arg)
             (set! interactive? #f)
-            (if (pair? do-script)
+            (if script-cell
                 (begin
-                  (set-car! do-script arg0)
+                  (set-car! script-cell arg0)
                   (finish args out))
-                (finish args (cons `(load ,arg0) out))))
+                (finish args
+                        (cons `((@@ (ice-9 command-line) load/lang) ,arg0)
+                              out))))
 
            ((string=? arg "-s")         ; foo
             (if (null? args)
                 (error "missing argument to `-s' switch"))
             (set! arg0 (car args))
             (set! interactive? #f)
-            (if (pair? do-script)
+            (if script-cell
                 (begin
-                  (set-car! do-script arg0)
+                  (set-car! script-cell arg0)
                   (finish (cdr args) out))
-                (finish (cdr args) (cons `(load ,arg0) out))))
+                (finish (cdr args)
+                        (cons `((@@ (ice-9 command-line) load/lang) ,arg0)
+                              out))))
            
            ((string=? arg "-c")         ; evaluate expr
             (if (null? args)
                 (error "missing argument to `-c' switch"))
             (set! interactive? #f)
             (finish (cdr args)
-                    ;; Use our own eval-string to avoid loading (ice-9
-                    ;; eval-string), which loads the compiler.
-                    (cons `((@@ (ice-9 command-line) eval-string) ,(car args))
+                    (cons `((@@ (ice-9 command-line) eval-string/lang)
+                            ,(car args))
                           out)))
 
            ((string=? arg "--")         ; end args go interactive
@@ -236,7 +254,8 @@ If FILE begins with `-' the -s switch is mandatory.
             (if (null? args)
                 (error "missing argument to `-l' switch"))
             (parse (cdr args)
-                   (cons `(load ,(car args)) out)))
+                   (cons `((@@ (ice-9 command-line) load/lang) ,arg0)
+                         out)))
 
            ((string=? arg "-L")         ; add to %load-path
             (if (null? args)
@@ -273,14 +292,30 @@ If FILE begins with `-' the -s switch is mandatory.
             (parse (cdr args)
                    out))
 
+           ((string-prefix? "--language=" arg) ; language
+            (parse args
+                   (cons `(current-language
+                           ',(string->symbol
+                              (substring arg (string-length "--language="))))
+                         out)))
+
+           ((string=? "--language" arg) ; language
+            (when (null? args)
+              (error "missing argument to `--language' option"))
+            (parse (cdr args)
+                   (cons `(current-language ',(string->symbol (car args)))
+                         out)))
+
            ((string=? arg "-ds")        ; do script here
             ;; We put a dummy "load" expression, and let the -s put the
             ;; filename in.
-            (if (pair? do-script)
-                (error "the -ds switch may only be specified once")
-                (set! do-script (list #f)))
+            (when script-cell
+              (error "the -ds switch may only be specified once"))
+            (set! script-cell (list #f))
             (parse args
-                   (cons `(load . ,do-script) out)))
+                   (acons '(@@ (ice-9 command-line) load/lang)
+                          script-cell
+                          out)))
 
            ((string=? arg "--debug")
             (set! turn-on-debugging? #t)
@@ -364,8 +399,8 @@ If FILE begins with `-' the -s switch is mandatory.
 
     (define (finish args out)
       ;; Check to make sure the -ds got a -s.
-      (if (and (pair? do-script) (not (car do-script)))
-          (error "the `-ds' switch requires the use of `-s' as well"))
+      (when (and script-cell (not (car script-cell)))
+        (error "the `-ds' switch requires the use of `-s' as well"))
 
       ;; Make any remaining arguments available to the
       ;; script/command/whatever.
