@@ -1,6 +1,6 @@
 ;;; High-level compiler interface
 
-;; Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -200,6 +200,7 @@
           (let ((x ((language-reader (current-language)) port cenv)))
             (cond
              ((eof-object? x)
+              (close-port port)
               (compile ((language-joiner joint) (reverse exps) env)
                        #:from joint #:to to
                        ;; env can be false if no expressions were read.
