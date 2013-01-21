@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1770,8 +1770,8 @@ Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
 C}), but returns a pointer to the elements of a uniform numeric vector.
 @end deftypefn
 
-Unless you really need to the limited generality of these functions, it is best
-to use the type-specific functions, or the generalized vector accessors.
+Unless you really need to the limited generality of these functions, it
+is best to use the type-specific functions, or the array accessors.
 
 @node SRFI-4 and Bytevectors
 @subsubsection SRFI-4 - Relation to bytevectors

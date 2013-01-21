@@ -3,7 +3,7 @@
 #ifndef SCM_GENERALIZED_VECTORS_H
 #define SCM_GENERALIZED_VECTORS_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,12 +29,6 @@
 
 
 /* Generalized vectors */
-
-SCM_API SCM scm_generalized_vector_p (SCM v);
-SCM_API SCM scm_generalized_vector_length (SCM v);
-SCM_API SCM scm_generalized_vector_ref (SCM v, SCM idx);
-SCM_API SCM scm_generalized_vector_set_x (SCM v, SCM idx, SCM val);
-SCM_API SCM scm_generalized_vector_to_list (SCM v);
 
 SCM_API int scm_is_generalized_vector (SCM obj);
 SCM_API size_t scm_c_generalized_vector_length (SCM v);

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-@c   2007, 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
+@c   2007, 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Compound Data Types
@@ -22,7 +22,6 @@ values can be looked up within them.
 * Lists::                       Special list functions supported by Guile.
 * Vectors::                     One-dimensional arrays of Scheme objects.
 * Bit Vectors::                 Vectors of bits.
-* Generalized Vectors::         Treating all vector-like things uniformly.
 * Arrays::                      Matrices, etc.
 * VLists::                      Vector-like lists.
 * Record Overview::             Walking through the maze of record APIs.
@@ -993,9 +992,8 @@ are displayed as a sequence of @code{0}s and @code{1}s prefixed by
 #*00000000
 @end example
 
-Bit vectors are also generalized vectors, @xref{Generalized
-Vectors}, and can thus be used with the array procedures, @xref{Arrays}.
-Bit vectors are the special case of one dimensional bit arrays.
+Bit vectors are the special case of one dimensional bit arrays, and can
+thus be used with the array procedures, @xref{Arrays}.
 
 @deffn {Scheme Procedure} bitvector? obj
 @deffnx {C Function} scm_bitvector_p (obj)
@@ -1163,74 +1161,6 @@ Like @code{scm_bitvector_elements}, but the pointer is good for reading
 and writing.
 @end deftypefn
 
-@node Generalized Vectors
-@subsection Generalized Vectors
-
-Guile has a number of data types that are generally vector-like:
-strings, uniform numeric vectors, bytevectors, bitvectors, and of course
-ordinary vectors of arbitrary Scheme values.  These types are disjoint:
-a Scheme value belongs to at most one of the five types listed above.
-
-If you want to gloss over this distinction and want to treat all four
-types with common code, you can use the procedures in this section.
-They work with the @emph{generalized vector} type, which is the union
-of the five vector-like types.
-
-@deffn {Scheme Procedure} generalized-vector? obj
-@deffnx {C Function} scm_generalized_vector_p (obj)
-Return @code{#t} if @var{obj} is a vector, bytevector, string,
-bitvector, or uniform numeric vector.
-@end deffn
-
-@deffn {Scheme Procedure} generalized-vector-length v
-@deffnx {C Function} scm_generalized_vector_length (v)
-Return the length of the generalized vector @var{v}.
-@end deffn
-
-@deffn {Scheme Procedure} generalized-vector-ref v idx
-@deffnx {C Function} scm_generalized_vector_ref (v, idx)
-Return the element at index @var{idx} of the
-generalized vector @var{v}.
-@end deffn
-
-@deffn {Scheme Procedure} generalized-vector-set! v idx val
-@deffnx {C Function} scm_generalized_vector_set_x (v, idx, val)
-Set the element at index @var{idx} of the
-generalized vector @var{v} to @var{val}.
-@end deffn
-
-@deffn {Scheme Procedure} generalized-vector->list v
-@deffnx {C Function} scm_generalized_vector_to_list (v)
-Return a new list whose elements are the elements of the
-generalized vector @var{v}.
-@end deffn
-
-@deftypefn {C Function} int scm_is_generalized_vector (SCM obj)
-Return @code{1} if @var{obj} is a vector, string,
-bitvector, or uniform numeric vector; else return @code{0}.
-@end deftypefn
-
-@deftypefn {C Function} size_t scm_c_generalized_vector_length (SCM v)
-Return the length of the generalized vector @var{v}.
-@end deftypefn
-
-@deftypefn {C Function} SCM scm_c_generalized_vector_ref (SCM v, size_t idx)
-Return the element at index @var{idx} of the generalized vector @var{v}.
-@end deftypefn
-
-@deftypefn {C Function} void scm_c_generalized_vector_set_x (SCM v, size_t idx, SCM val)
-Set the element at index @var{idx} of the generalized vector @var{v}
-to @var{val}.
-@end deftypefn
-
-@deftypefn {C Function} void scm_generalized_vector_get_handle (SCM v, scm_t_array_handle *handle)
-Like @code{scm_array_get_handle} but an error is signalled when @var{v}
-is not of rank one.  You can use @code{scm_array_handle_ref} and
-@code{scm_array_handle_set} to read and write the elements of @var{v},
-or you can use functions like @code{scm_array_handle_<foo>_elements} to
-deal with specific types of vectors.
-@end deftypefn
-
 @node Arrays
 @subsection Arrays
 @tpindex Arrays
@@ -1239,13 +1169,13 @@ deal with specific types of vectors.
 number of dimensions.  Each cell can be accessed in constant time by
 supplying an index for each dimension.
 
-In the current implementation, an array uses a generalized vector for
-the actual storage of its elements.  Any kind of generalized vector
-will do, so you can have arrays of uniform numeric values, arrays of
-characters, arrays of bits, and of course, arrays of arbitrary Scheme
-values.  For example, arrays with an underlying @code{c64vector} might
-be nice for digital signal processing, while arrays made from a
-@code{u8vector} might be used to hold gray-scale images.
+In the current implementation, an array uses a vector of some kind for
+the actual storage of its elements.  Any kind of vector will do, so you
+can have arrays of uniform numeric values, arrays of characters, arrays
+of bits, and of course, arrays of arbitrary Scheme values.  For example,
+arrays with an underlying @code{c64vector} might be nice for digital
+signal processing, while arrays made from a @code{u8vector} might be
+used to hold gray-scale images.
 
 The number of dimensions of an array is called its @dfn{rank}.  Thus,
 a matrix is an array of rank 2, while a vector has rank 1.  When
@@ -1267,9 +1197,9 @@ matrix with zero columns and 3 rows is different from a matrix with 3
 columns and zero rows, which again is different from a vector of
 length zero.
 
-Generalized vectors, such as strings, uniform numeric vectors,
-bytevectors, bit vectors and ordinary vectors, are the special case of
-one dimensional arrays.
+The array procedures are all polymorphic, treating strings, uniform
+numeric vectors, bytevectors, bit vectors and ordinary vectors as one
+dimensional arrays.
 
 @menu
 * Array Syntax::                

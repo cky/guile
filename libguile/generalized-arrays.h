@@ -44,6 +44,9 @@ SCM_API SCM scm_typed_array_p (SCM v, SCM type);
 SCM_API size_t scm_c_array_rank (SCM ra);
 SCM_API SCM scm_array_rank (SCM ra);
 
+SCM_API size_t scm_c_array_length (SCM ra);
+SCM_API SCM scm_array_length (SCM ra);
+
 SCM_API SCM scm_array_dimensions (SCM ra);
 SCM_API SCM scm_array_type (SCM ra);
 SCM_API SCM scm_array_in_bounds_p (SCM v, SCM args);

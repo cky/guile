@@ -113,6 +113,36 @@ SCM_DEFINE (scm_array_rank, "array-rank", 1, 0, 0,
 #undef FUNC_NAME
 
 
+size_t
+scm_c_array_length (SCM array)
+{
+  scm_t_array_handle handle;
+  size_t res;
+
+  scm_array_get_handle (array, &handle);
+  if (scm_array_handle_rank (&handle) < 1)
+    {
+      scm_array_handle_release (&handle);
+      scm_wrong_type_arg_msg (NULL, 0, array, "array of nonzero rank");
+    }
+  res = handle.dims[0].ubnd - handle.dims[0].lbnd + 1;
+  scm_array_handle_release (&handle);
+
+  return res;
+}
+
+SCM_DEFINE (scm_array_length, "array-length", 1, 0, 0, 
+           (SCM array),
+	    "Return the length of an array: the dimension of its first\n"
+            "dimension.  It is an error to ask for the length of an\n"
+            "array of rank 0.")
+#define FUNC_NAME s_scm_array_rank
+{
+  return scm_from_size_t (scm_c_array_length (array));
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (scm_array_dimensions, "array-dimensions", 1, 0, 0, 
            (SCM ra),
 	    "@code{array-dimensions} is similar to @code{array-shape} but replaces\n"

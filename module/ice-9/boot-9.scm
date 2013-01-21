@@ -532,12 +532,10 @@ If there is no handler at all, Guile prints an error and then exits."
                                          datum
                                          (syntax->datum clause)
                                          (syntax->datum whole-expr)))
-                                      (if (memv datum seen)
-                                          (warn-datum 'duplicate-case-datum))
-                                      (if (or (pair? datum)
-                                              (array? datum)
-                                              (generalized-vector? datum))
-                                          (warn-datum 'bad-case-datum))
+                                      (when (memv datum seen)
+                                        (warn-datum 'duplicate-case-datum))
+                                      (when (or (pair? datum) (array? datum))
+                                        (warn-datum 'bad-case-datum))
                                       (cons datum seen))
                                     seen
                                     (map syntax->datum #'(datums ...)))))

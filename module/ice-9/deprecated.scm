@@ -1,4 +1,4 @@
-;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2005, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -71,7 +71,12 @@
             process-define-module
             fluid-let-syntax
             set-system-module!
-            char-code-limit))
+            char-code-limit
+            generalized-vector?
+            generalized-vector-length
+            generalized-vector-ref
+            generalized-vector-set!
+            generalized-vector->list))
 
 
 ;;;; Deprecated definitions.

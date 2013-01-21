@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2833,6 +2833,88 @@ SCM_DEFINE (scm_struct_vtable_tag, "struct-vtable-tag", 1, 0, 0,
 
   return scm_from_unsigned_integer
     (((scm_t_bits)SCM_STRUCT_DATA (handle)) >> 3);
+}
+#undef FUNC_NAME
+
+
+
+
+SCM_DEFINE (scm_generalized_vector_p, "generalized-vector?", 1, 0, 0,
+	    (SCM obj),
+	    "Return @code{#t} if @var{obj} is a vector, string,\n"
+	    "bitvector, or uniform numeric vector.")
+#define FUNC_NAME s_scm_generalized_vector_p
+{
+  scm_c_issue_deprecation_warning
+    ("generalized-vector? is deprecated.  Use array? and check the "
+     "array-rank instead.");
+  return scm_from_bool (scm_is_generalized_vector (obj));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_generalized_vector_length, "generalized-vector-length", 1, 0, 0,
+	    (SCM v),
+	    "Return the length of the generalized vector @var{v}.")
+#define FUNC_NAME s_scm_generalized_vector_length
+{
+  scm_c_issue_deprecation_warning
+    ("generalized-vector-length is deprecated.  Use array-length instead.");
+  return scm_from_size_t (scm_c_generalized_vector_length (v));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_generalized_vector_ref, "generalized-vector-ref", 2, 0, 0,
+	    (SCM v, SCM idx),
+	    "Return the element at index @var{idx} of the\n"
+	    "generalized vector @var{v}.")
+#define FUNC_NAME s_scm_generalized_vector_ref
+{
+  scm_c_issue_deprecation_warning
+    ("generalized-vector-ref is deprecated.  Use array-ref instead.");
+  return scm_c_generalized_vector_ref (v, scm_to_size_t (idx));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_generalized_vector_set_x, "generalized-vector-set!", 3, 0, 0,
+	    (SCM v, SCM idx, SCM val),
+	    "Set the element at index @var{idx} of the\n"
+	    "generalized vector @var{v} to @var{val}.")
+#define FUNC_NAME s_scm_generalized_vector_set_x
+{
+  scm_c_issue_deprecation_warning
+    ("generalized-vector-set! is deprecated.  Use array-set! instead.  "
+     "Note the change in argument order!");
+  scm_c_generalized_vector_set_x (v, scm_to_size_t (idx), val);
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
+	    (SCM v),
+	    "Return a new list whose elements are the elements of the\n"
+	    "generalized vector @var{v}.")
+#define FUNC_NAME s_scm_generalized_vector_to_list
+{
+  /* FIXME: This duplicates `array_to_list'.  */
+  SCM ret = SCM_EOL;
+  long inc;
+  ssize_t pos, i;
+  scm_t_array_handle h;
+
+  scm_c_issue_deprecation_warning
+    ("generalized-vector->list is deprecated.  Use array->list instead.");
+
+  scm_generalized_vector_get_handle (v, &h);
+
+  i = h.dims[0].ubnd - h.dims[0].lbnd + 1;
+  inc = h.dims[0].inc;
+  pos = (i - 1) * inc;
+
+  for (; i > 0; i--, pos -= inc)
+    ret = scm_cons (h.impl->vref (&h, h.base + pos), ret);
+
+  scm_array_handle_release (&h);
+  return ret;
 }
 #undef FUNC_NAME
 

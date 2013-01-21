@@ -1,6 +1,6 @@
 ;;;; bitvectors.test --- tests guile's bitvectors     -*- scheme -*-
 ;;;;
-;;;; Copyright 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,6 @@
 
 (with-test-prefix "predicates"
   (pass-if (bitvector? #*1010101010))
-  (pass-if (generalized-vector? #*1010101010))
   (pass-if (uniform-vector? #*1010101010))
   (pass-if (array? #*1010101010)))
 

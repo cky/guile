@@ -847,6 +847,14 @@ SCM_DEPRECATED SCM scm_struct_vtable_tag (SCM handle);
 
 
 
+SCM_DEPRECATED SCM scm_generalized_vector_p (SCM v);
+SCM_DEPRECATED SCM scm_generalized_vector_length (SCM v);
+SCM_DEPRECATED SCM scm_generalized_vector_ref (SCM v, SCM idx);
+SCM_DEPRECATED SCM scm_generalized_vector_set_x (SCM v, SCM idx, SCM val);
+SCM_DEPRECATED SCM scm_generalized_vector_to_list (SCM v);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

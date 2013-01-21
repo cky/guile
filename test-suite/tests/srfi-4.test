@@ -1,7 +1,7 @@
 ;;;; srfi-4.test --- Test suite for Guile's SRFI-4 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-06-26
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -438,24 +438,24 @@
   (pass-if "+inf.0, -inf.0, +nan.0 in c32vector"
     (c32vector? #c32(+inf.0 -inf.0 +nan.0)))
 
-  (pass-if "generalized-vector-ref"
+  (pass-if "array-ref"
     (let ((v (c32vector 1+1i)))
       (= (c32vector-ref v 0)
-         (generalized-vector-ref v 0))))
+         (array-ref v 0))))
 
-  (pass-if "generalized-vector-set!"
+  (pass-if "array-set!"
     (let ((x 1+1i)
           (v (c32vector 0)))
-      (generalized-vector-set! v 0 x)
-      (= x (generalized-vector-ref v 0))))
+      (array-set! v x 0)
+      (= x (array-ref v 0))))
 
-  (pass-if-exception "generalized-vector-ref, out-of-range"
+  (pass-if-exception "array-ref, out-of-range"
     exception:out-of-range
-    (generalized-vector-ref (c32vector 1.0) 1))
+    (array-ref (c32vector 1.0) 1))
 
-  (pass-if-exception "generalized-vector-set!, out-of-range"
+  (pass-if-exception "array-set!, out-of-range"
     exception:out-of-range
-    (generalized-vector-set! (c32vector 1.0) 1 2.0)))
+    (array-set! (c32vector 1.0) 2.0 1)))
 
 (with-test-prefix "c64 vectors"
 
@@ -497,24 +497,24 @@
   (pass-if "+inf.0, -inf.0, +nan.0 in c64vector"
     (c64vector? #c64(+inf.0 -inf.0 +nan.0)))
 
-  (pass-if "generalized-vector-ref"
+  (pass-if "array-ref"
     (let ((v (c64vector 1+1i)))
       (= (c64vector-ref v 0)
-         (generalized-vector-ref v 0))))
+         (array-ref v 0))))
 
-  (pass-if "generalized-vector-set!"
+  (pass-if "array-set!"
     (let ((x 1+1i)
           (v (c64vector 0)))
-      (generalized-vector-set! v 0 x)
-      (= x (generalized-vector-ref v 0))))
+      (array-set! v x 0)
+      (= x (array-ref v 0))))
 
-  (pass-if-exception "generalized-vector-ref, out-of-range"
+  (pass-if-exception "array-ref, out-of-range"
     exception:out-of-range
-    (generalized-vector-ref (c64vector 1.0) 1))
+    (array-ref (c64vector 1.0) 1))
 
-  (pass-if-exception "generalized-vector-set!, out-of-range"
+  (pass-if-exception "array-set!, out-of-range"
     exception:out-of-range
-    (generalized-vector-set! (c64vector 1.0) 1 2.0)))
+    (array-set! (c64vector 1.0) 2.0 1)))
 
 (with-test-prefix "accessing uniform vectors of different types"
 

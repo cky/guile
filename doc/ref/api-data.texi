@@ -4537,7 +4537,7 @@ R6RS (@pxref{R6RS I/O Ports}).
 * Bytevectors and Integer Lists::  Converting to/from an integer list.
 * Bytevectors as Floats::       Interpreting bytes as real numbers.
 * Bytevectors as Strings::      Interpreting bytes as Unicode strings.
-* Bytevectors as Generalized Vectors::  Guile extension to the bytevector API.
+* Bytevectors as Arrays::       Guile extension to the bytevector API.
 * Bytevectors as Uniform Vectors::  Bytevectors and SRFI-4.
 @end menu
 
@@ -4923,25 +4923,27 @@ or UTF-32-decoded contents of bytevector @var{utf}.  For UTF-16 and UTF-32,
 it defaults to big endian.
 @end deffn
 
-@node Bytevectors as Generalized Vectors
-@subsubsection Accessing Bytevectors with the Generalized Vector API
+@node Bytevectors as Arrays
+@subsubsection Accessing Bytevectors with the Array API
 
 As an extension to the R6RS, Guile allows bytevectors to be manipulated
-with the @dfn{generalized vector} procedures (@pxref{Generalized
-Vectors}).  This also allows bytevectors to be accessed using the
-generic @dfn{array} procedures (@pxref{Array Procedures}).  When using
-these APIs, bytes are accessed one at a time as 8-bit unsigned integers:
+with the @dfn{array} procedures (@pxref{Arrays}).  When using these
+APIs, bytes are accessed one at a time as 8-bit unsigned integers:
 
 @example
 (define bv #vu8(0 1 2 3))
 
-(generalized-vector? bv)
+(array? bv)
 @result{} #t
 
-(generalized-vector-ref bv 2)
+(array-rank bv)
+@result{} 1
+
+(array-ref bv 2)
 @result{} 2
 
-(generalized-vector-set! bv 2 77)
+;; Note the different argument order on array-set!.
+(array-set! bv 77 2)
 (array-ref bv 2)
 @result{} 77
 

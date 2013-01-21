@@ -1,6 +1,6 @@
 ;;; Extensions to SRFI-4
 
-;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -101,14 +101,14 @@
               `(define (,(symbol-append 'any-> tag 'vector) obj)
                  (cond ((,(symbol-append tag 'vector?) obj) obj)
                        ((pair? obj) (,(symbol-append 'list-> tag 'vector) obj))
-                       ((generalized-vector? obj)
-                        (let* ((len (generalized-vector-length obj))
+                       ((and (array? obj) (eqv? 1 (array-rank obj)))
+                        (let* ((len (array-length obj))
                                (v (,(symbol-append 'make- tag 'vector) len)))
                           (let lp ((i 0))
                             (if (< i len)
                                 (begin
                                   (,(symbol-append tag 'vector-set!)
-                                   v i (generalized-vector-ref obj i))
+                                   v i (array-ref obj i))
                                   (lp (1+ i)))
                                 v))))
                        (else (scm-error 'wrong-type-arg #f "" '() (list obj))))))

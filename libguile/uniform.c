@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -193,7 +193,7 @@ SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
 {
   if (!scm_is_uniform_vector (uvec))
     scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, uvec, "uniform vector");
-  return scm_generalized_vector_to_list (uvec);
+  return scm_array_to_list (uvec);
 }
 #undef FUNC_NAME
 

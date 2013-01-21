@@ -1,6 +1,6 @@
 ;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -589,42 +589,42 @@
     (with-input-from-string "#vu8(0 256)" read)))
 
 
-(with-test-prefix "Generalized Vectors"
+(with-test-prefix "Arrays"
 
-  (pass-if "generalized-vector?"
-    (generalized-vector? #vu8(1 2 3)))
+  (pass-if "array?"
+    (array? #vu8(1 2 3)))
 
-  (pass-if "generalized-vector-length"
+  (pass-if "array-length"
     (equal? (iota 16)
-            (map generalized-vector-length
+            (map array-length
                  (map make-bytevector (iota 16)))))
 
-  (pass-if "generalized-vector-ref"
+  (pass-if "array-ref"
     (let ((bv #vu8(255 127)))
-      (and (= 255 (generalized-vector-ref bv 0))
-           (= 127 (generalized-vector-ref bv 1)))))
+      (and (= 255 (array-ref bv 0))
+           (= 127 (array-ref bv 1)))))
 
-  (pass-if-exception "generalized-vector-ref [index out-of-range]"
+  (pass-if-exception "array-ref [index out-of-range]"
     exception:out-of-range
     (let ((bv #vu8(1 2)))
-      (generalized-vector-ref bv 2)))
+      (array-ref bv 2)))
 
-  (pass-if "generalized-vector-set!"
+  (pass-if "array-set!"
     (let ((bv (make-bytevector 2)))
-      (generalized-vector-set! bv 0 255)
-      (generalized-vector-set! bv 1 77)
+      (array-set! bv 255 0)
+      (array-set! bv 77 1)
       (equal? '(255 77)
               (bytevector->u8-list bv))))
 
-  (pass-if-exception "generalized-vector-set! [index out-of-range]"
+  (pass-if-exception "array-set! [index out-of-range]"
     exception:out-of-range
     (let ((bv (make-bytevector 2)))
-      (generalized-vector-set! bv 2 0)))
+      (array-set! bv 0 2)))
 
-  (pass-if-exception "generalized-vector-set! [value out-of-range]"
+  (pass-if-exception "array-set! [value out-of-range]"
     exception:out-of-range
     (let ((bv (make-bytevector 2)))
-      (generalized-vector-set! bv 0 256)))
+      (array-set! bv 256 0)))
 
   (pass-if "array-type"
     (eq? 'vu8 (array-type #vu8())))
