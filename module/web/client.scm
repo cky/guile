@@ -285,10 +285,9 @@ true)."
                     (extra-headers #f) (headers (or extra-headers '()))
                     (decode-body? #t))
   "Deprecated in favor of (http-get #:streaming? #t)."
-  (when extra-headers
-    (issue-deprecation-warning
-     "`http-get*' has been deprecated.  "
-     "Instead, use `http-get' with the #:streaming? #t keyword argument."))
+  (issue-deprecation-warning
+   "`http-get*' has been deprecated.  "
+   "Instead, use `http-get' with the #:streaming? #t keyword argument.")
   (http-get uri #:body body
             #:port port #:version version #:keep-alive? keep-alive?
             #:headers headers #:decode-body? #t #:streaming? #t))
