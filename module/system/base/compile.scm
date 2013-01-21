@@ -152,7 +152,7 @@
         file)
       comp)))
 
-(define* (compile-and-load file #:key (from 'scheme) (to 'value)
+(define* (compile-and-load file #:key (from (current-language)) (to 'value)
                            (env (current-module)) (opts '())
                            (canonicalization 'relative))
   (with-fluids ((%file-port-name-canonicalization canonicalization))

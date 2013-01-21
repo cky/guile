@@ -3047,6 +3047,17 @@ CONV is not applied to the initial value."
 
 
 
+;;;
+;;; Languages.
+;;;
+
+;; The language can be a symbolic name or a <language> object from
+;; (system base language).
+;;
+(define current-language (make-parameter 'scheme))
+
+
+
 
 ;;; {Running Repls}
 ;;;

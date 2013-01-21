@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  2008, 2009, 2010
+@c Copyright (C)  2008, 2009, 2010, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -112,9 +112,10 @@ subsequent calls to @code{define-language}, so it should be quite
 fast.
 @end deffn
 
-There is a notion of a ``current language'', which is maintained in
-the @code{*current-language*} fluid. This language is normally Scheme,
-and may be rebound by the user. The run-time compilation interfaces
+There is a notion of a ``current language'', which is maintained in the
+@code{current-language} parameter, defined in the core @code{(guile)}
+module. This language is normally Scheme, and may be rebound by the
+user. The run-time compilation interfaces
 (@pxref{Read/Load/Eval/Compile}) also allow you to choose other source
 and target languages.
 

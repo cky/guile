@@ -1,6 +1,6 @@
 ;;; Multi-language support
 
-;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,9 @@
             lookup-compilation-order lookup-decompilation-order
             invalidate-compilation-cache! default-environment
 
-            *current-language* current-language))
+            *current-language*)
+
+  #:re-export (current-language))
 
 
 ;;;
@@ -111,7 +113,5 @@
 ;;; Current language
 ;;;
 
-(define *current-language* (make-fluid 'scheme))
-
-(define (current-language)
-  (fluid-ref *current-language*))
+;; Deprecated; use current-language instead.
+(define *current-language* (parameter-fluid current-language))

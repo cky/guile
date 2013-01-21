@@ -1,6 +1,6 @@
 ;;; Evaluating code from users
 
-;;; Copyright (C) 2011 Free Software Foundation, Inc.
+;;; Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -30,7 +30,7 @@
       (lookup-language x)))
 
 (define* (read-and-eval port #:key (lang (current-language)))
-  (with-fluids ((*current-language* (ensure-language lang)))
+  (parameterize ((current-language (ensure-language lang)))
     (define (read)
       ((language-reader (current-language)) port (current-module)))
     (define (eval exp)

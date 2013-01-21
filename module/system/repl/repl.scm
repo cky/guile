@@ -1,6 +1,6 @@
 ;;; Read-Eval-Print Loop
 
-;; Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -132,9 +132,9 @@
 ;;;
 
 (define* (start-repl #:optional (lang (current-language)) #:key debug)
-  ;; ,language at the REPL will fluid-set! the *current-language*.  Make
-  ;; sure that it does so in a new scope.
-  (with-fluids ((*current-language* lang))
+  ;; ,language at the REPL will update the current-language.  Make
+  ;; sure that it does so in a new dynamic scope.
+  (parameterize ((current-language lang))
     (run-repl (make-repl lang debug))))
 
 ;; (put 'abort-on-error 'scheme-indent-function 1)
