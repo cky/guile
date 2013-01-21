@@ -2929,6 +2929,34 @@ but it fails to load."
 (set-struct-vtable-name! <parameter> '<parameter>)
 
 (define* (make-parameter init #:optional (conv (lambda (x) x)))
+  "Make a new parameter.
+
+A parameter is a dynamically bound value, accessed through a procedure.
+To access the current value, apply the procedure with no arguments:
+
+  (define p (make-parameter 10))
+  (p) => 10
+
+To provide a new value for the parameter in a dynamic extent, use
+`parameterize':
+
+  (parameterize ((p 20))
+    (p)) => 20
+  (p) => 10
+
+The value outside of the dynamic extent of the body is unaffected.  To
+update the current value, apply it to one argument:
+
+  (p 20) => 10
+  (p) => 20
+
+As you can see, the call that updates a parameter returns its previous
+value.
+
+All values for the parameter are first run through the CONV procedure,
+including INIT, the initial value.  The default CONV procedure is the
+identity procedure.  CONV is commonly used to ensure some set of
+invariants on the values that a parameter may have."
   (let ((fluid (make-fluid (conv init))))
     (make-struct <parameter> 0
                  (case-lambda
@@ -2937,6 +2965,22 @@ but it fails to load."
                           (fluid-set! fluid (conv x))
                           prev)))
                  fluid conv)))
+
+(define* (fluid->parameter fluid #:optional (conv (lambda (x) x)))
+  "Make a parameter that wraps a fluid.
+
+The value of the parameter will be the same as the value of the fluid.
+If the parameter is rebound in some dynamic extent, perhaps via
+`parameterize', the new value will be run through the optional CONV
+procedure, as with any parameter.  Note that unlike `make-parameter',
+CONV is not applied to the initial value."
+  (make-struct <parameter> 0
+               (case-lambda
+                 (() (fluid-ref fluid))
+                 ((x) (let ((prev (fluid-ref fluid)))
+                        (fluid-set! fluid (conv x))
+                        prev)))
+               fluid conv))
 
 (define (parameter? x)
   (and (struct? x) (eq? (struct-vtable x) <parameter>)))
@@ -2972,15 +3016,7 @@ but it fails to load."
 ;;; Current ports as parameters.
 ;;;
 
-(let ((fluid->parameter
-       (lambda (fluid conv)
-         (make-struct <parameter> 0
-                      (case-lambda
-                        (() (fluid-ref fluid))
-                        ((x) (let ((prev (fluid-ref fluid)))
-                               (fluid-set! fluid (conv x))
-                               prev)))
-                      fluid conv))))
+(let ()
   (define-syntax-rule (port-parameterize! binding fluid predicate msg)
     (begin
       (set! binding (fluid->parameter (module-ref (current-module) 'fluid)

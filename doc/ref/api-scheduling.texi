@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2009, 2010, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -869,7 +869,7 @@ through several layers of calls before reaching the point they should
 affect.  And introducing a new setting to existing code is often easier
 with a parameter object than adding arguments.
 
-@defun make-parameter init [converter]
+@deffn {Scheme Procedure} make-parameter init [converter]
 Return a new parameter object, with initial value @var{init}.
 
 If a @var{converter} is given, then a call @code{(@var{converter}
@@ -888,7 +888,7 @@ canonical form.  For example,
 (my-param 0.75)
 (my-param) @result{} 3/4
 @end example
-@end defun
+@end deffn
 
 @deffn {library syntax} parameterize ((param value) @dots{}) body1 body2 @dots{}
 Establish a new dynamic scope with the given @var{param}s bound to new
@@ -925,6 +925,21 @@ locations.  That includes the separate locations when outside any
 @code{parameterize} form.  When a parameter is created it gets a
 separate initial location in each dynamic state, all initialized to the
 given @var{init} value.
+
+New code should probably just use parameters instead of fluids, because
+the interface is better.  But for migrating old code or otherwise
+providing interoperability, Guile provides the @code{fluid->parameter}
+procedure:
+
+@deffn {Scheme Procedure} fluid->parameter fluid [conv]
+Make a parameter that wraps a fluid.
+
+The value of the parameter will be the same as the value of the fluid.
+If the parameter is rebound in some dynamic extent, perhaps via
+@code{parameterize}, the new value will be run through the optional
+@var{conv} procedure, as with any parameter.  Note that unlike
+@code{make-parameter}, @var{conv} is not applied to the initial value.
+@end deffn
 
 As alluded to above, because each thread usually has a separate dynamic
 state, each thread has its own locations behind parameter objects, and
