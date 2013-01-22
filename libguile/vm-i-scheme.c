@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -499,7 +499,7 @@ VM_DEFINE_INSTRUCTION (165, make_array, "make-array", 3, -1, 1)
  * Structs
  */
 #define VM_VALIDATE_STRUCT(obj, proc)           \
-  VM_ASSERT (SCM_STRUCTP (obj), vm_error_not_a_pair (proc, obj))
+  VM_ASSERT (SCM_STRUCTP (obj), vm_error_not_a_struct (proc, obj))
 
 VM_DEFINE_FUNCTION (166, struct_p, "struct?", 1)
 {
