@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -492,12 +492,12 @@ my_list_to_vector (SCM list)
   SCM vector = scm_make_vector (scm_length (list), SCM_UNDEFINED);
   size_t len, i;
 
-  len = SCM_SIMPLE_VECTOR_LENGTH (vector);
+  len = scm_c_vector_length (vector);
   i = 0;
   while (i < len && scm_is_pair (list))
     @{
-      SCM_SIMPLE_VECTOR_SET (vector, i, SCM_CAR (list));
-      list = SCM_CDR (list);
+      scm_c_vector_set_x (vector, i, scm_car (list));
+      list = scm_cdr (list);
       i++;
     @}
 
@@ -514,22 +514,23 @@ But there is no guarantee that the list referenced by @var{list} is not
 modified in another thread while the loop iterates over it.  Thus, while
 copying its elements into the vector, the list might get longer or
 shorter.  For this reason, the loop must check both that it doesn't
-overrun the vector (@code{SCM_SIMPLE_VECTOR_SET} does no range-checking)
-and that it doesn't overrun the list (@code{SCM_CAR} and @code{SCM_CDR}
-likewise do no type checking).
+overrun the vector and that it doesn't overrun the list.  Otherwise,
+@code{scm_c_vector_set_x} would raise an error if the index is out of
+range, and @code{scm_car} and @code{scm_cdr} would raise an error if the
+value is not a pair.
 
-It is safe to use @code{SCM_CAR} and @code{SCM_CDR} on the local
+It is safe to use @code{scm_car} and @code{scm_cdr} on the local
 variable @var{list} once it is known that the variable contains a pair.
 The contents of the pair might change spontaneously, but it will always
 stay a valid pair (and a local variable will of course not spontaneously
 point to a different Scheme object).
 
-Likewise, a simple vector such as the one returned by
-@code{scm_make_vector} is guaranteed to always stay the same length so
-that it is safe to only use SCM_SIMPLE_VECTOR_LENGTH once and store the
-result.  (In the example, @var{vector} is safe anyway since it is a
-fresh object that no other thread can possibly know about until it is
-returned from @code{my_list_to_vector}.)
+Likewise, a vector such as the one returned by @code{scm_make_vector} is
+guaranteed to always stay the same length so that it is safe to only use
+scm_c_vector_length once and store the result.  (In the example,
+@var{vector} is safe anyway since it is a fresh object that no other
+thread can possibly know about until it is returned from
+@code{my_list_to_vector}.)
 
 Of course the behavior of @code{my_list_to_vector} is suboptimal when
 @var{list} does indeed get asynchronously lengthened or shortened in
@@ -547,11 +548,11 @@ my_pedantic_list_to_vector (SCM list)
   SCM vector = scm_make_vector (scm_length (list), SCM_UNDEFINED);
   size_t len, i;
 
-  len = SCM_SIMPLE_VECTOR_LENGTH (vector);
+  len = scm_c_vector_length (vector);
   i = 0;
   while (i < len)
     @{
-      SCM_SIMPLE_VECTOR_SET (vector, i, scm_car (list));
+      scm_c_vector_set_x (vector, i, scm_car (list));
       list = scm_cdr (list);
       i++;
     @}
@@ -560,12 +561,10 @@ my_pedantic_list_to_vector (SCM list)
 @}
 @end example
 
-This version uses the type-checking and thread-robust functions
-@code{scm_car} and @code{scm_cdr} instead of the faster, but less robust
-macros @code{SCM_CAR} and @code{SCM_CDR}.  When the list is shortened
-(that is, when @var{list} holds a non-pair), @code{scm_car} will throw
-an error.  This might be preferable to just returning a half-initialized
-vector.
+This version relies on the error-checking behavior of @code{scm_car} and
+@code{scm_cdr}.  When the list is shortened (that is, when @var{list}
+holds a non-pair), @code{scm_car} will throw an error.  This might be
+preferable to just returning a half-initialized vector.
 
 The API for accessing vectors and arrays of various kinds from C takes a
 slightly different approach to thread-robustness.  In order to get at
@@ -581,13 +580,13 @@ see, Guile itself is again only concerned about robustness, not about
 correctness: without proper synchronization, your program will likely
 not be correct, but the worst consequence is an error message.
 
-Real thread-safeness often requires that a critical section of code is
+Real thread-safety often requires that a critical section of code is
 executed in a certain restricted manner.  A common requirement is that
 the code section is not entered a second time when it is already being
 executed.  Locking a mutex while in that section ensures that no other
 thread will start executing it, blocking asyncs ensures that no
-asynchronous code enters the section again from the current thread,
-and the error checking of Guile mutexes guarantees that an error is
+asynchronous code enters the section again from the current thread, and
+the error checking of Guile mutexes guarantees that an error is
 signalled when the current thread accidentally reenters the critical
 section via recursive function calls.
 
