@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -129,12 +129,10 @@ Return true iff @var{exp} is a smob instance of the type indicated by
 so it shouldn't contain any side effects.
 @end deftypefn
 
-@deftypefn {C Macro} void SCM_NEWSMOB (SCM value, scm_t_bits tag, void *data)
-@deftypefnx {C Macro} void SCM_NEWSMOB2 (SCM value, scm_t_bits tag, void *data, void *data2)
-@deftypefnx {C Macro} void SCM_NEWSMOB3 (SCM value, scm_t_bits tag, void *data, void *data2, void *data3)
-Make @var{value} contain a smob instance of the type with tag
-@var{tag} and smob data @var{data}, @var{data2}, and @var{data3}, as
-appropriate.
+@deftypefn {C Function} SCM scm_new_smob (scm_t_bits tag, void *data)
+@deftypefnx {C Function} SCM scm_new_double_smob (scm_t_bits tag, void *data, void *data2, void *data3)
+Make a new smob of the type with tag @var{tag} and smob data @var{data},
+@var{data2}, and @var{data3}, as appropriate.
 
 The @var{tag} is what has been returned by @code{scm_make_smob_type}.
 The initial values @var{data}, @var{data2}, and @var{data3} are of
@@ -143,20 +141,6 @@ values, these values need to be converted to a @code{scm_t_bits} first
 by using @code{SCM_UNPACK}.
 
 The flags of the smob instance start out as zero.
-@end deftypefn
-
-Since it is often the case (e.g., in smob constructors) that you will
-create a smob instance and return it, there is also a slightly specialized
-macro for this situation:
-
-@deftypefn {C Macro} {} SCM_RETURN_NEWSMOB (scm_t_bits tag, void *data)
-@deftypefnx {C Macro} {} SCM_RETURN_NEWSMOB2 (scm_t_bits tag, void *data1, void *data2)
-@deftypefnx {C Macro} {} SCM_RETURN_NEWSMOB3 (scm_t_bits tag, void *data1, void *data2, void *data3)
-This macro expands to a block of code that creates a smob instance of
-the type with tag @var{tag} and smob data @var{data}, @var{data2}, and
-@var{data3}, as with @code{SCM_NEWSMOB}, etc., and causes the
-surrounding function to return that @code{SCM} value.  It should be
-the last piece of code in a block.
 @end deftypefn
 
 @deftypefn {C Macro} scm_t_bits SCM_SMOB_FLAGS (SCM obj)

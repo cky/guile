@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -180,7 +180,7 @@ Initialize these fields with @code{SCM_BOOL_F}.
 A valid state is one that can be safely acted upon by the @emph{mark}
 and @emph{free} functions of your smob type.
 @item
-Create the smob using @code{SCM_NEWSMOB}, passing it the initialized
+Create the smob using @code{scm_new_smob}, passing it the initialized
 memory block.  (This step will always succeed.)
 @item
 Complete the initialization of the memory block by, for example,
@@ -223,7 +223,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
 
   /* Step 3: Create the smob.
    */
-  SCM_NEWSMOB (smob, image_tag, image);
+  smob = scm_new_smob (image_tag, image);
 
   /* Step 4: Finish the initialization.
    */
@@ -254,7 +254,7 @@ After it, @var{smob} contains a valid smob that is properly initialized
 and protected, and in turn can properly protect the Scheme values in its
 @var{image} struct.
 
-But before the smob is completely created, @code{SCM_NEWSMOB} might
+But before the smob is completely created, @code{scm_new_smob} might
 cause the garbage collector to run.  During this garbage collection, the
 @code{SCM} values in the @var{image} struct would be invisible to Guile.
 It only gets to know about them via the @code{mark_image} function, but
@@ -530,13 +530,11 @@ four-word cells, which are appropriately called @dfn{double cells}.
 You can use them for @dfn{double smobs} and get two more immediate
 words of type @code{scm_t_bits}.
 
-A double smob is created with @code{SCM_NEWSMOB2} or
-@code{SCM_NEWSMOB3} instead of @code{SCM_NEWSMOB}.  Its immediate
-words can be retrieved as @code{scm_t_bits} with
-@code{SCM_SMOB_DATA_2} and @code{SCM_SMOB_DATA_3} in addition to
-@code{SCM_SMOB_DATA}.  Unsurprisingly, the words can be set to
-@code{scm_t_bits} values with @code{SCM_SET_SMOB_DATA_2} and
-@code{SCM_SET_SMOB_DATA_3}.
+A double smob is created with @code{scm_new_double_smob}.  Its immediate
+words can be retrieved as @code{scm_t_bits} with @code{SCM_SMOB_DATA_2}
+and @code{SCM_SMOB_DATA_3} in addition to @code{SCM_SMOB_DATA}.
+Unsurprisingly, the words can be set to @code{scm_t_bits} values with
+@code{SCM_SET_SMOB_DATA_2} and @code{SCM_SET_SMOB_DATA_3}.
 
 Of course there are also @code{SCM_SMOB_OBJECT_2},
 @code{SCM_SMOB_OBJECT_3}, @code{SCM_SET_SMOB_OBJECT_2}, and
@@ -599,7 +597,7 @@ make_image (SCM name, SCM s_width, SCM s_height)
 
   /* Step 3: Create the smob.
    */
-  SCM_NEWSMOB (smob, image_tag, image);
+  smob = scm_new_smob (image_tag, image);
 
   /* Step 4: Finish the initialization.
    */
