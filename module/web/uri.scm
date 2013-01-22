@@ -1,6 +1,6 @@
 ;;;; (web uri) --- URI manipulation tools
 ;;;;
-;;;; Copyright (C) 1997,2001,2002,2010,2011,2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 1997,2001,2002,2010,2011,2012,2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -286,7 +286,7 @@ serialization."
       (utf8->string bv)
       (let ((p (open-bytevector-input-port bv)))
         (set-port-encoding! p encoding)
-        (let ((res (read-delimited "" p)))
+        (let ((res (read-string p)))
           (close-port p)
           res))))
 

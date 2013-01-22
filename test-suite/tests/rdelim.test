@@ -1,7 +1,7 @@
 ;;;; rdelim.test --- Delimited I/O.      -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -189,7 +189,60 @@
 
     (pass-if "eof, split"
       (eof-object? (read-delimited! ":" (make-string 7)
-                                    (open-input-string ""))))))
+                                    (open-input-string "")))))
+
+  (with-test-prefix "read-string"
+
+    (pass-if "short string"
+      (let* ((s "hello, world!")
+             (p (open-input-string s)))
+        (and (string=? (read-string p) s)
+             (string=? (read-string p) ""))))
+
+    (pass-if "100 chars"
+      (let* ((s (make-string 100 #\space))
+             (p (open-input-string s)))
+        (and (string=? (read-string p) s)
+             (string=? (read-string p) ""))))
+
+    (pass-if "longer than 100 chars"
+      (let* ((s (string-concatenate (make-list 20 "hello, world!")))
+             (p (open-input-string s)))
+        (and (string=? (read-string p) s)
+             (string=? (read-string p) "")))))
+
+  (with-test-prefix "read-string!"
+
+    (pass-if "buf smaller"
+      (let* ((s "hello, world!")
+             (len (1- (string-length s)))
+             (buf (make-string len #\.))
+             (p (open-input-string s)))
+        (and (= (read-string! buf p) len)
+             (string=? buf (substring s 0 len))
+             (= (read-string! buf p) 1)
+             (string=? (substring buf 0 1) (substring s len)))))
+
+    (pass-if "buf right size"
+      (let* ((s "hello, world!")
+             (len (string-length s))
+             (buf (make-string len #\.))
+             (p (open-input-string s)))
+        (and (= (read-string! buf p) len)
+             (string=? buf (substring s 0 len))
+             (= (read-string! buf p) 0)
+             (string=? buf (substring s 0 len)))))
+
+    (pass-if "buf bigger"
+      (let* ((s "hello, world!")
+             (len (string-length s))
+             (buf (make-string (1+ len) #\.))
+             (p (open-input-string s)))
+        (and (= (read-string! buf p) len)
+             (string=? (substring buf 0 len) s)
+             (= (read-string! buf p) 0)
+             (string=? (substring buf 0 len) s)
+             (string=? (substring buf len) "."))))))
 
 ;;; Local Variables:
 ;;; eval: (put 'with-test-prefix 'scheme-indent-function 1)

@@ -1,6 +1,6 @@
 ;;;; ports.scm --- R6RS port API                    -*- coding: utf-8 -*-
 
-;;;;	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;;	Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -461,7 +461,7 @@ return the characters accumulated in that port."
   (with-textual-input-conditions port (read-line port 'trim)))
 
 (define (get-string-all port)
-  (with-textual-input-conditions port (read-delimited "" port 'concat)))
+  (with-textual-input-conditions port (read-string port)))
 
 (define (get-string-n port count)
   "Read up to @var{count} characters from @var{port}.

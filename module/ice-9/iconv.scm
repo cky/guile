@@ -21,7 +21,7 @@
 (define-module (ice-9 iconv)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 binary-ports)
-  #:use-module ((ice-9 rdelim) #:select (read-delimited))
+  #:use-module ((ice-9 rdelim) #:select (read-string))
   #:export (string->bytevector
             bytevector->string
             call-with-encoded-output-string))
@@ -88,7 +88,7 @@ naming a character encoding, like \"utf-8\"."
         (set-port-encoding! p encoding)
         (if conversion-strategy
             (set-port-conversion-strategy! p conversion-strategy))
-        (let ((res (read-delimited "" p)))
+        (let ((res (read-string p)))
           (close-port p)
           (if (eof-object? res)
               ""
