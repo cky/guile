@@ -209,7 +209,7 @@
   (let ((from (ensure-language from))
         (to (ensure-language to)))
     (let ((joint (find-language-joint from to)))
-      (with-fluids ((*current-language* from))
+      (parameterize ((current-language from))
         (let lp ((exps '()) (env #f) (cenv env))
           (let ((x (read-and-parse (current-language) port cenv)))
             (cond
