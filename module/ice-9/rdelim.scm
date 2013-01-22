@@ -150,8 +150,8 @@ left in the port."
 
 (define* (read-string #:optional (port (current-input-port)) (count #f))
   "Read all of the characters out of PORT and return them as a string.
-If the COUNT is present, treat it as a limit to the number of characters
-to read.  By default, there is no limit."
+If the COUNT argument is present, treat it as a limit to the number of
+characters to read.  By default, there is no limit."
   (check-arg (or (not count) (index? count)) "bad count" count)
   (let loop ((substrings '())
              (total-chars 0)
