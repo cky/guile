@@ -976,7 +976,7 @@
              (let ((e (cdar body)) (er (caar body)))
                (call-with-values
                  (lambda ()
-                   (syntax-type e er '(()) (source-annotation er) ribcage mod #f))
+                   (syntax-type e er '(()) (source-annotation e) ribcage mod #f))
                  (lambda (type value form e w s mod)
                    (let ((key type))
                      (cond ((memv key '(define-form))

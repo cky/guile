@@ -1457,7 +1457,7 @@
                 (syntax-violation #f "no expressions in body" outer-form)
                 (let ((e (cdar body)) (er (caar body)))
                   (call-with-values
-                      (lambda () (syntax-type e er empty-wrap (source-annotation er) ribcage mod #f))
+                      (lambda () (syntax-type e er empty-wrap (source-annotation e) ribcage mod #f))
                     (lambda (type value form e w s mod)
                       (case type
                         ((define-form)
