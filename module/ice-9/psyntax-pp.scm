@@ -991,15 +991,17 @@
                                        (cons (cons er (wrap e w mod)) vals)
                                        (cons (cons 'lexical var) bindings)))))
                            ((memv key '(define-syntax-form define-syntax-parameter-form))
-                            (let ((id (wrap value w mod)) (label (gen-label)))
+                            (let ((id (wrap value w mod))
+                                  (label (gen-label))
+                                  (trans-r (macros-only-env er)))
                               (extend-ribcage! ribcage id label)
-                              (parse (cdr body)
-                                     (cons id ids)
-                                     (cons label labels)
-                                     var-ids
-                                     vars
-                                     vals
-                                     (cons (cons 'macro (cons er (wrap e w mod))) bindings))))
+                              (set-cdr!
+                                r
+                                (extend-env
+                                  (list label)
+                                  (list (cons 'macro (eval-local-transformer (expand e trans-r w mod) mod)))
+                                  (cdr r)))
+                              (parse (cdr body) (cons id ids) labels var-ids vars vals bindings)))
                            ((memv key '(begin-form))
                             (let* ((tmp-1 e) (tmp ($sc-dispatch tmp-1 '(_ . each-any))))
                               (if tmp
@@ -1049,17 +1051,6 @@
                                 #f
                                 "invalid or duplicate identifier in definition"
                                 outer-form))
-                            (let loop ((bs bindings) (er-cache #f) (r-cache #f))
-                              (if (not (null? bs))
-                                (let ((b (car bs)))
-                                  (if (eq? (car b) 'macro)
-                                    (let* ((er (cadr b))
-                                           (r-cache (if (eq? er er-cache) r-cache (macros-only-env er))))
-                                      (set-cdr!
-                                        b
-                                        (eval-local-transformer (expand (cddr b) r-cache '(()) mod) mod))
-                                      (loop (cdr bs) er r-cache))
-                                    (loop (cdr bs) er-cache r-cache)))))
                             (set-cdr! r (extend-env labels bindings (cdr r)))
                             (build-letrec
                               #f

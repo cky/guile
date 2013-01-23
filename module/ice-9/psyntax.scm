@@ -1470,13 +1470,22 @@
                                     (cons var vars) (cons (cons er (wrap e w mod)) vals)
                                     (cons (make-binding 'lexical var) bindings)))))
                         ((define-syntax-form define-syntax-parameter-form)
-                         (let ((id (wrap value w mod)) (label (gen-label)))
+                         (let ((id (wrap value w mod))
+                               (label (gen-label))
+                               (trans-r (macros-only-env er)))
                            (extend-ribcage! ribcage id label)
-                           (parse (cdr body)
-                                  (cons id ids) (cons label labels)
-                                  var-ids vars vals
-                                  (cons (make-binding 'macro (cons er (wrap e w mod)))
-                                        bindings))))
+                           ;; As required by R6RS, evaluate the right-hand-sides of internal
+                           ;; syntax definition forms and add their transformers to the
+                           ;; compile-time environment immediately, so that the newly-defined
+                           ;; keywords may be used in definition context within the same
+                           ;; lexical contour.
+                           (set-cdr! r (extend-env (list label)
+                                                   (list (make-binding 'macro
+                                                                       (eval-local-transformer
+                                                                        (expand e trans-r w mod)
+                                                                        mod)))
+                                                   (cdr r)))
+                           (parse (cdr body) (cons id ids) labels var-ids vars vals bindings)))
                         ((begin-form)
                          (syntax-case e ()
                            ((_ e1 ...)
@@ -1507,21 +1516,6 @@
                                    (syntax-violation
                                     #f "invalid or duplicate identifier in definition"
                                     outer-form))
-                               (let loop ((bs bindings) (er-cache #f) (r-cache #f))
-                                 (if (not (null? bs))
-                                     (let* ((b (car bs)))
-                                       (if (eq? (car b) 'macro)
-                                           (let* ((er (cadr b))
-                                                  (r-cache
-                                                   (if (eq? er er-cache)
-                                                       r-cache
-                                                       (macros-only-env er))))
-                                             (set-cdr! b
-                                                       (eval-local-transformer
-                                                        (expand (cddr b) r-cache empty-wrap mod)
-                                                        mod))
-                                             (loop (cdr bs) er r-cache))
-                                           (loop (cdr bs) er-cache r-cache)))))
                                (set-cdr! r (extend-env labels bindings (cdr r)))
                                (build-letrec no-source #t
                                              (reverse (map syntax->datum var-ids))
