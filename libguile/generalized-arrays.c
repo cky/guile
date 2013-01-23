@@ -133,9 +133,8 @@ scm_c_array_length (SCM array)
 
 SCM_DEFINE (scm_array_length, "array-length", 1, 0, 0, 
            (SCM array),
-	    "Return the length of an array: the dimension of its first\n"
-            "dimension.  It is an error to ask for the length of an\n"
-            "array of rank 0.")
+	    "Return the length of an array: its first dimension.\n"
+            "It is an error to ask for the length of an array of rank 0.")
 #define FUNC_NAME s_scm_array_rank
 {
   return scm_from_size_t (scm_c_array_length (array));

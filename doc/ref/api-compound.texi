@@ -1392,6 +1392,7 @@ as elements in the list.
 @end deffn
 
 @deffn {Scheme Procedure} array-type array
+@deffnx {C Function} scm_array_type (array)
 Return the type of @var{array}.  This is the `vectag' used for
 printing @var{array} (or @code{#t} for ordinary arrays) and can be
 used with @code{make-typed-array} to create an array of the same kind
@@ -1399,6 +1400,7 @@ as @var{array}.
 @end deffn
 
 @deffn {Scheme Procedure} array-ref array idx @dots{}
+@deffnx {C Function} scm_array_ref (array, idxlist)
 Return the element at @code{(idx @dots{})} in @var{array}.
 
 @example
@@ -1409,7 +1411,7 @@ Return the element at @code{(idx @dots{})} in @var{array}.
 
 @deffn {Scheme Procedure} array-in-bounds? array idx @dots{}
 @deffnx {C Function} scm_array_in_bounds_p (array, idxlist)
-Return @code{#t} if the given index would be acceptable to
+Return @code{#t} if the given indices would be acceptable to
 @code{array-ref}.
 
 @example
@@ -1448,6 +1450,13 @@ For example,
 (array-shape a)      @result{} ((-1 3) (0 4))
 (array-dimensions a) @result{} ((-1 3) 5)
 @end example
+@end deffn
+
+@deffn {Scheme Procedure} array-length array
+@deffnx {C Function} scm_array_length (array)
+@deffnx {C Function} size_t scm_c_array_length (array)
+Return the length of an array: its first dimension. It is an error to
+ask for the length of an array of rank 0.
 @end deffn
 
 @deffn {Scheme Procedure} array-rank array
