@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008,
-@c   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+@c   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Foreign Function Interface
@@ -156,9 +156,6 @@ is equivalent to
 @smallexample
 (dynamic-call (dynamic-func @var{func} @var{dobj}) #f)
 @end smallexample
-
-Interrupts are deferred while the C function is executing (with
-@code{SCM_DEFER_INTS}/@code{SCM_ALLOW_INTS}).
 @end deffn
 
 @code{dynamic-call} is not very powerful. It is mostly intended to be
