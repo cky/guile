@@ -254,7 +254,7 @@ If FILE begins with `-' the -s switch is mandatory.
             (if (null? args)
                 (error "missing argument to `-l' switch"))
             (parse (cdr args)
-                   (cons `((@@ (ice-9 command-line) load/lang) ,arg0)
+                   (cons `((@@ (ice-9 command-line) load/lang) ,(car args))
                          out)))
 
            ((string=? arg "-L")         ; add to %load-path
