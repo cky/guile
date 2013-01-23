@@ -184,7 +184,7 @@ If FILE begins with `-' the -s switch is mandatory.
 (define (load/lang f)
   (case (current-language)
     ((scheme)
-     (load f))
+     (load-in-vicinity (getcwd) f))
     (else
      ((module-ref (resolve-module '(system base compile)) 'compile-file)
       f #:to 'value))))
