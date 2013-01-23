@@ -128,6 +128,29 @@
   (hashq-ref readables obj))
 
 ;;;
+;;; Writer helpers
+;;;
+
+(define (write-component-procedure o file env)
+  "Return #f if circular reference"
+  (cond ((immediate? o) (write o file) #t)
+	((readable? o) (write (readable-expression o) file) #t)
+	((excluded? o env) (display #f file) #t)
+	(else
+	 (let ((info (object-info o env)))
+	   (cond ((not (binding? info)) (write-readably o file env) #t)
+		 ((not (eq? (visiting info) #:defined)) #f) ;forward reference
+		 (else (display (binding info) file) #t))))))
+
+;;; write-component OBJECT PATCHER FILE ENV
+;;;
+(define-macro (write-component object patcher file env)
+  `(or (write-component-procedure ,object ,file ,env)
+       (begin
+         (display #f ,file)
+         (add-patcher! ,patcher ,env))))
+
+;;;
 ;;; Strings
 ;;;
 
@@ -603,24 +626,6 @@
 	   (pop-ref! env)
 	   (set! (objects env) (cons o (objects env)))))))
 
-(define (write-component-procedure o file env)
-  "Return #f if circular reference"
-  (cond ((immediate? o) (write o file) #t)
-	((readable? o) (write (readable-expression o) file) #t)
-	((excluded? o env) (display #f file) #t)
-	(else
-	 (let ((info (object-info o env)))
-	   (cond ((not (binding? info)) (write-readably o file env) #t)
-		 ((not (eq? (visiting info) #:defined)) #f) ;forward reference
-		 (else (display (binding info) file) #t))))))
-
-;;; write-component OBJECT PATCHER FILE ENV
-;;;
-(define-macro (write-component object patcher file env)
-  `(or (write-component-procedure ,object ,file ,env)
-       (begin
-         (display #f ,file)
-         (add-patcher! ,patcher ,env))))
 
 ;;;
 ;;; Main engine
