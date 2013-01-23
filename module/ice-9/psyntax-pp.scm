@@ -2964,33 +2964,37 @@
     'macro
     (lambda (x)
       (letrec*
-        ((read-file
-           (lambda (fn k)
-             (let ((p (open-input-file fn)))
+        ((absolute-path? (lambda (path) (string-prefix? "/" path)))
+         (read-file
+           (lambda (fn dir k)
+             (let ((p (open-input-file (if (absolute-path? fn) fn (in-vicinity dir fn)))))
                (let f ((x (read p)) (result '()))
                  (if (eof-object? x)
                    (begin (close-input-port p) (reverse result))
                    (f (read p) (cons (datum->syntax k x) result))))))))
-        (let ((tmp-1 x))
-          (let ((tmp ($sc-dispatch tmp-1 '(any any))))
-            (if tmp
-              (apply (lambda (k filename)
-                       (let ((fn (syntax->datum filename)))
-                         (let ((tmp-1 (read-file fn filename)))
-                           (let ((tmp ($sc-dispatch tmp-1 'each-any)))
-                             (if tmp
-                               (apply (lambda (exp)
-                                        (cons '#(syntax-object begin ((top)) (hygiene guile)) exp))
-                                      tmp)
-                               (syntax-violation
-                                 #f
-                                 "source expression failed to match any pattern"
-                                 tmp-1))))))
-                     tmp)
-              (syntax-violation
-                #f
-                "source expression failed to match any pattern"
-                tmp-1))))))))
+        (let ((src (syntax-source x)))
+          (let ((file (if src (assq-ref src 'filename) #f)))
+            (let ((dir (if (string? file) (dirname file) #f)))
+              (let ((tmp-1 x))
+                (let ((tmp ($sc-dispatch tmp-1 '(any any))))
+                  (if tmp
+                    (apply (lambda (k filename)
+                             (let ((fn (syntax->datum filename)))
+                               (let ((tmp-1 (read-file fn dir filename)))
+                                 (let ((tmp ($sc-dispatch tmp-1 'each-any)))
+                                   (if tmp
+                                     (apply (lambda (exp)
+                                              (cons '#(syntax-object begin ((top)) (hygiene guile)) exp))
+                                            tmp)
+                                     (syntax-violation
+                                       #f
+                                       "source expression failed to match any pattern"
+                                       tmp-1))))))
+                           tmp)
+                    (syntax-violation
+                      #f
+                      "source expression failed to match any pattern"
+                      tmp-1)))))))))))
 
 (define include-from-path
   (make-syntax-transformer
