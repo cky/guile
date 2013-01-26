@@ -1,6 +1,6 @@
 ;;; ECMAScript for Guile
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -168,7 +168,8 @@
       x))
 
 (define (->boolean x)
-  (not (or (not x) (null? x) (eq? x *undefined*) (zero? x) (nan? x)
+  (not (or (not x) (null? x) (eq? x *undefined*)
+           (and (number? x) (or (zero? x) (nan? x)))
            (and (string? x) (= (string-length x) 0)))))
 
 (define (->number x)
