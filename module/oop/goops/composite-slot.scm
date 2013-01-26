@@ -1,28 +1,27 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
-;;;; 
+;;;; Copyright (C) 1999, 2000, 2001, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1993-1998 Erick Gallesio - I3S-CNRS/ESSI <eg@unice.fr>
+;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-;;;; 
+;;;;
 
 
-;;;; This software is a derivative work of other copyrighted softwares; the
-;;;; copyright notices of these softwares are placed in the file COPYRIGHTS
 ;;;;
-;;;; This file is based upon composite-slot.stklos from the STk
-;;;; distribution by Erick Gallesio <eg@unice.fr>.
+;;;; This file was based upon composite-slot.stklos from the STk distribution
+;;;; version 4.0.1 by Erick Gallesio <eg@unice.fr>.
 ;;;;
 
 (define-module (oop goops composite-slot)
