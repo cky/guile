@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-##   2011, 2012 Free Software Foundation, Inc.
+##   2011, 2012, 2013 Free Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -31,6 +31,7 @@ BUILT_SOURCES =
 EXTRA_DIST =
 
 TESTS_ENVIRONMENT =						\
+  top_srcdir="$(top_srcdir)"					\
   srcdir="$(srcdir)"						\
   builddir="$(builddir)"					\
   @LOCALCHARSET_TESTS_ENVIRONMENT@				\
@@ -87,6 +88,10 @@ TESTS += test-command-line-encoding
 
 check_SCRIPTS += test-command-line-encoding2
 TESTS += test-command-line-encoding2
+
+check_SCRIPTS += test-language
+TESTS += test-language
+EXTRA_DIST += test-language.el test-language.js
 
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c

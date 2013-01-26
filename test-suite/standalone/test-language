@@ -1,0 +1,25 @@
+#!/bin/sh
+
+set -e
+
+# Make sure that code passed as `-c' or `-l' is evaluted using the
+# right language.
+
+# The default language in effect until `--language' is encountered is
+# Scheme.
+guile -c "(exit (= 3 (apply + '(1 2))))" --language=elisp
+! guile -c "(= (funcall (symbol-function '+) 1 2) 3)" 2> /dev/null
+
+guile --language=elisp -c "(= (funcall (symbol-function '+) 1 2) 3)"
+guile --language=ecmascript -c '(function (x) { return x * x; })(2);'
+
+# Same with `-l'.
+guile --no-auto-compile -l "$top_srcdir/module/ice-9/q.scm" -c 1
+guile --no-auto-compile				\
+      -l "$top_srcdir/module/ice-9/q.scm"	\
+      --language=elisp				\
+      -l "$srcdir/test-language.el"		\
+      --language=ecmascript			\
+      -l "$srcdir/test-language.js"		\
+      --language=scheme				\
+      -c 1
