@@ -1,6 +1,6 @@
 ;;;; (sxml simple) -- a simple interface to the SSAX parser
 ;;;;
-;;;; 	Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2013  Free Software Foundation, Inc.
 ;;;;    Modified 2004 by Andy Wingo <wingo at pobox dot com>.
 ;;;;    Originally written by Oleg Kiselyov <oleg at pobox dot com> as SXML-to-HTML.scm.
 ;;;; 
@@ -28,14 +28,157 @@
 (define-module (sxml simple)
   #:use-module (sxml ssax)
   #:use-module (sxml transform)
-  #:use-module (ice-9 optargs)
+  #:use-module (ice-9 match)
   #:use-module (srfi srfi-13)
   #:export (xml->sxml sxml->xml sxml->string))
 
-(define* (xml->sxml #:optional (port (current-input-port)))
+;; Helpers from upstream/SSAX.scm.
+;;
+
+(define (ssax:warn port msg . args)
+  (format (current-ssax-error-port)
+          ";;; SSAX warning: ~a ~a\n" msg args))
+
+;     ssax:reverse-collect-str LIST-OF-FRAGS -> LIST-OF-FRAGS
+; given the list of fragments (some of which are text strings)
+; reverse the list and concatenate adjacent text strings.
+; We can prove from the general case below that if LIST-OF-FRAGS
+; has zero or one element, the result of the procedure is equal?
+; to its argument. This fact justifies the shortcut evaluation below.
+(define (ssax:reverse-collect-str fragments)
+  (cond
+    ((null? fragments) '())	; a shortcut
+    ((null? (cdr fragments)) fragments) ; see the comment above
+    (else
+      (let loop ((fragments fragments) (result '()) (strs '()))
+	(cond
+	  ((null? fragments)
+	    (if (null? strs) result
+	      (cons (string-concatenate/shared strs) result)))
+	  ((string? (car fragments))
+	    (loop (cdr fragments) result (cons (car fragments) strs)))
+	  (else
+	    (loop (cdr fragments)
+	      (cons
+		(car fragments)
+		(if (null? strs) result
+		  (cons (string-concatenate/shared strs) result)))
+	      '())))))))
+
+;; Ideas for the future for this interface:
+;;
+;;  * Allow doctypes to provide parsed entities
+;;
+;;  * Allow validation (the ELEMENTS value from the DOCTYPE handler
+;;    below)
+;;
+;;  * Parse internal DTDs
+;;
+;;  * Parse external DTDs
+;;
+(define* (xml->sxml #:optional (port (current-input-port)) #:key
+                    (namespaces '())
+                    (declare-namespaces? #t)
+                    (trim-whitespace? #f)
+                    (entities '())
+                    (default-entity-handler #f))
   "Use SSAX to parse an XML document into SXML. Takes one optional
 argument, @var{port}, which defaults to the current input port."
-  (ssax:xml->sxml port '()))
+  ;; NAMESPACES: alist of PREFIX -> URI.  Specifies the symbol prefix
+  ;; that the user wants on elements of a given namespace in the
+  ;; resulting SXML, regardless of the abbreviated namespaces defined in
+  ;; the document by xmlns attributes.  If DECLARE-NAMESPACES? is true,
+  ;; these namespaces are treated as if they were declared in the DTD.
+
+  ;; ENTITIES: alist of SYMBOL -> STRING.
+
+  ;; NAMESPACES: list of (DOC-PREFIX . (USER-PREFIX . URI)).
+  ;; A DOC-PREFIX of #f indicates that it comes from the user.
+  ;; Otherwise, prefixes are symbols.
+  (define (user-namespaces)
+    (map (lambda (el)
+           (match el
+             ((prefix . uri-string)
+              (cons* (and declare-namespaces? prefix)
+                     prefix
+                     (ssax:uri-string->symbol uri-string)))))
+         namespaces))
+
+  (define (user-entities)
+    (if (and default-entity-handler
+             (not (assq '*DEFAULT* entities)))
+        (acons '*DEFAULT* default-entity-handler entities)
+        entities))
+
+  (define (name->sxml name)
+    (match name
+      ((prefix . local-part)
+       (symbol-append prefix (string->symbol ":") local-part))
+      (_ name)))
+
+  ;; The SEED in this parser is the SXML: initialized to '() at each new
+  ;; level by the fdown handlers; built in reverse by the fhere parsers;
+  ;; and reverse-collected by the fup handlers.
+  (define parser
+    (ssax:make-parser
+     NEW-LEVEL-SEED ; fdown
+     (lambda (elem-gi attributes namespaces expected-content seed)
+       '())
+   
+     FINISH-ELEMENT ; fup
+     (lambda (elem-gi attributes namespaces parent-seed seed)
+       (let ((seed (if trim-whitespace?
+                       (ssax:reverse-collect-str-drop-ws seed)
+                       (ssax:reverse-collect-str seed)))
+             (attrs (attlist-fold
+                     (lambda (attr accum)
+                       (cons (list (name->sxml (car attr)) (cdr attr))
+                             accum))
+                     '() attributes)))
+         (acons (name->sxml elem-gi)
+                (if (null? attrs)
+                    seed
+                    (cons (cons '@ attrs) seed))
+                parent-seed)))
+
+     CHAR-DATA-HANDLER ; fhere
+     (lambda (string1 string2 seed)
+       (if (string-null? string2)
+           (cons string1 seed)
+           (cons* string2 string1 seed)))
+
+     DOCTYPE
+     ;; -> ELEMS ENTITIES NAMESPACES SEED
+     ;;
+     ;; ELEMS is for validation and currently unused.
+     ;;
+     ;; ENTITIES is an alist of parsed entities (symbol -> string).
+     ;;
+     ;; NAMESPACES is as above.
+     ;;
+     ;; SEED builds up the content.
+     (lambda (port docname systemid internal-subset? seed)
+       (when internal-subset?
+         (ssax:warn port "Internal DTD subset is not currently handled ")
+         (ssax:skip-internal-dtd port))
+       (ssax:warn port "DOCTYPE DECL " docname " "
+                  systemid " found and skipped")
+       (values #f (user-entities) (user-namespaces) seed))
+
+     UNDECL-ROOT
+     ;; This is like the DOCTYPE handler, but for documents that do not
+     ;; have a <!DOCTYPE!> entry.
+     (lambda (elem-gi seed)
+       (values #f (user-entities) (user-namespaces) seed))
+
+     PI
+     ((*DEFAULT*
+       . (lambda (port pi-tag seed)
+           (cons
+            (list '*PI* pi-tag (ssax:read-pi-body-as-string port))
+            seed))))))
+
+  `(*TOP* ,@(reverse (parser port '()))))
 
 (define check-name
   (let ((*good-cache* (make-hash-table)))

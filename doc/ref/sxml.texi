@@ -55,10 +55,116 @@ to text.
 (use-modules (sxml simple))
 @end example
 
-@deffn {Scheme Procedure} xml->sxml [port]
+@deffn {Scheme Procedure} xml->sxml [port] [#:namespaces='()] @
+       [#:declare-namespaces?=#t] [#:trim-whitespace?=#f] @
+       [#:entities='()] [#:default-entity-handler=#f]
 Use SSAX to parse an XML document into SXML. Takes one optional
-argument, @var{port}, which defaults to the current input port.
+argument, @var{port}, which defaults to the current input port.  Returns
+the resulting SXML document, and leaves @var{port} pointing at the next
+available character in the port.
 @end deffn
+
+As is normal in SXML, XML elements parse as tagged lists.  Attributes,
+if any, are placed after the tag, within an @code{@@} element.  The root
+of the resulting XML will be contained in a special tag, @code{*TOP*}.
+This tag will contain the root element of the XML, but also any prior
+processing instructions.
+
+@example
+(xml->sxml (open-input-string "<foo/>"))
+@result{} (*TOP* (foo))
+(xml->sxml (open-input-string "<foo>text</foo>"))
+@result{} (*TOP* (foo "text"))
+(xml->sxml (open-input-string "<foo kind=\"bar\">text</foo>"))
+@result{} (*TOP* (foo (@@ (kind "bar")) "text"))
+(xml->sxml (open-input-string "<?xml version=\"1.0\"?><foo/>"))
+@result{} (*TOP* (*PI* xml "version=\"1.0\"") (foo))
+@end example
+
+All namespaces in the XML document must be declared, via @code{xmlns}
+attributes.  SXML elements built from non-default namespaces will have
+their tags prefixed with their URI.  Users can specify custom prefixes
+for certain namespaces with the @code{#:namespaces} keyword argument to
+@code{xml->sxml}.
+
+@example
+(xml->sxml
+ (open-input-string
+  "<foo xmlns=\"http://example.org/ns1\">text</foo>"))
+@result{} (*TOP* (http://example.org/ns1:foo "text"))
+(xml->sxml
+ (open-input-string
+  "<foo xmlns=\"http://example.org/ns1\">text</foo>")
+ #:namespaces '((ns1 . "http://example.org/ns1")))
+@result{} (*TOP* (ns1:foo "text"))
+(xml->sxml
+ (open-input-string
+  "<foo xmlns:bar=\"http://example.org/ns2\"><bar:baz/></foo>")
+ #:namespaces '((ns2 . "http://example.org/ns2")))
+@result{} (*TOP* (foo (ns2:baz)))
+@end example
+
+Passing a true @code{#:declare-namespaces?} argument will cause the
+user-given @code{#:namespaces} to be treated as if they were declared on
+the root element.
+
+@example
+(xml->sxml (open-input-string "<foo><ns2:baz/></foo>")
+           #:namespaces '((ns2 . "http://example.org/ns2")))
+@result{} error: undeclared namespace: `bar'
+(xml->sxml (open-input-string "<foo><ns2:baz/></foo>")
+           #:namespaces '((ns2 . "http://example.org/ns2"))
+           #:declare-namespaces? #t)
+@result{} (*TOP* (foo (ns2:baz)))
+@end example
+
+By default, all whitespace in XML is significant.  Passing the
+@code{#:trim-whitespace?} keyword argument to @code{xml->sxml} will trim
+whitespace in front, behind and between elements, treating it as
+``unsignificant''.  Whitespace in text fragments is left alone.
+
+@example
+(xml->sxml (open-input-string
+            "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>"))
+@result{} (*TOP* (foo "\n" (bar " Alfie the parrot! ") "\n")
+(xml->sxml (open-input-string
+            "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>")
+           #:trim-whitespace? #t)
+@result{} (*TOP* (foo (bar " Alfie the parrot! "))
+@end example
+
+Parsed entities may be declared with the @code{#:entities} keyword
+argument, or handled with the @code{#:default-entity-handler}.  By
+default, only the standard @code{&lt;}, @code{&gt;}, @code{&amp;},
+@code{&apos;} and @code{&quot;} entities are defined, as well as the
+@code{&#@var{N};} and @code{&#x@var{N};} (decimal and hexadecimal)
+numeric character entities.
+
+@example
+(xml->sxml (open-input-string "<foo>&amp;</foo>"))
+@result{} (*TOP* (foo "&"))
+(xml->sxml (open-input-string "<foo>&nbsp;</foo>"))
+@result{} error: undefined entity: nbsp
+(xml->sxml (open-input-string "<foo>&#xA0;</foo>"))
+@result{} (*TOP* (foo "\xa0"))
+(xml->sxml (open-input-string "<foo>&nbsp;</foo>")
+           #:entities '((nbsp . "\xa0")))
+@result{} (*TOP* (foo "\xa0"))
+(xml->sxml (open-input-string "<foo>&nbsp; &foo;</foo>")
+           #:default-entity-handler
+           (lambda (port name)
+             (case name
+               ((nbsp) "\xa0")
+               (else
+                (format (current-warning-port)
+                        "~a:~a:~a: undefined entitity: ~a\n"
+                        (or (port-filename port) "<unknown file>")
+                        (port-line port) (port-column port)
+                        name)
+                (symbol->string name)))))
+@print{} <unknown file>:0:17: undefined entitity: foo
+@result{} (*TOP* (foo "\xa0 foo"))
+@end example
 
 @deffn {Scheme Procedure} sxml->xml tree [port]
 Serialize the SXML tree @var{tree} as XML. The output will be written to
