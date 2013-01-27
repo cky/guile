@@ -442,6 +442,11 @@
 ;	named-entity-name is currently being expanded. A reference to
 ;	this named-entity-name will be an error: violation of the
 ;	WFC nonrecursion.
+;
+;       As an extension to the original SSAX, Guile allows a
+;       named-entity-name of *DEFAULT* to indicate a fallback procedure,
+;       called as (FALLBACK PORT NAME).  The procedure should return a
+;       string.
 
 ; XML-TOKEN -- a record
 
@@ -1095,10 +1100,20 @@
 	     (close-input-port port))))
 	 (else
 	  (parser-error port "[norecursion] broken for " name))))))
-    ((assq name ssax:predefined-parsed-entities)
-     => (lambda (decl-entity)
-	  (str-handler (cdr decl-entity) "" seed)))
-    (else (parser-error port "[wf-entdeclared] broken for " name))))
+   ((assq name ssax:predefined-parsed-entities)
+    => (lambda (decl-entity)
+         (str-handler (cdr decl-entity) "" seed)))
+   ((assq '*DEFAULT* entities) =>
+    (lambda (decl-entity)
+      (let ((fallback (cdr decl-entity))
+	    (new-entities (cons (cons name #f) entities)))
+	(cond
+	 ((procedure? fallback)
+          (call-with-input-string (fallback port name)
+	     (lambda (port) (content-handler port new-entities seed))))
+	 (else
+	  (parser-error port "[norecursion] broken for " name))))))
+   (else (parser-error port "[wf-entdeclared] broken for " name))))
 
 
 
@@ -1265,6 +1280,14 @@
 	    (,(string->symbol "Next") . "12\"xx'34")))
     (test "%tAbc='&lt;&amp;&gt;&#x0A;'%nNext='12&ent;34' />" 
 	  '((ent . "&lt;&ent1;T;&gt;") (ent1 . "&amp;"))
+	  `((,(string->symbol "Abc") . ,(unesc-string "<&>%n"))
+	    (,(string->symbol "Next") . "12<&T;>34")))
+    (test "%tAbc='&lt;&amp;&gt;&#x0A;'%nNext='12&ent;34' />" 
+	  `((*DEFAULT* . ,(lambda (port name)
+                            (case name
+                              ((ent) "&lt;&ent1;T;&gt;")
+                              ((ent1) "&amp;")
+                              (else (error "unrecognized" name))))))
 	  `((,(string->symbol "Abc") . ,(unesc-string "<&>%n"))
 	    (,(string->symbol "Next") . "12<&T;>34")))
     (assert (failed?
