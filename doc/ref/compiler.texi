@@ -55,7 +55,8 @@ They are registered with the @code{define-language} form.
 @deffn {Scheme Syntax} define-language @
 name title reader printer @
 [parser=#f] [compilers='()] [decompilers='()] [evaluator=#f] @
-[joiner=#f] [make-default-environment=make-fresh-user-module]
+[joiner=#f] [for-humans?=#t] @
+[make-default-environment=make-fresh-user-module]
 Define a language.
 
 This syntax defines a @code{#<language>} object, bound to @var{name}

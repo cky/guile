@@ -1,6 +1,6 @@
 ;;; Tree Intermediate Language
 
-;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -42,4 +42,5 @@
   #:parser      parse-tree-il
   #:joiner      join
   #:compilers   `((glil . ,compile-glil))
+  #:for-humans? #f
   )

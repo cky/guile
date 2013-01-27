@@ -1,6 +1,6 @@
 ;;; Guile Lowlevel Intermediate Language
 
-;; Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -37,4 +37,6 @@
   #:printer	write-glil
   #:parser      parse-glil
   #:compilers   `((assembly . ,compile-asm))
-  #:decompilers `((assembly . ,decompile-assembly)))
+  #:decompilers `((assembly . ,decompile-assembly))
+  #:for-humans? #f
+  )

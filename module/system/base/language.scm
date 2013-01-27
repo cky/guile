@@ -25,7 +25,8 @@
             language-name language-title language-reader
             language-printer language-parser 
             language-compilers language-decompilers language-evaluator
-            language-joiner language-make-default-environment
+            language-joiner language-for-humans?
+            language-make-default-environment
 
             lookup-compilation-order lookup-decompilation-order
             invalidate-compilation-cache! default-environment
@@ -49,6 +50,7 @@
   (decompilers '())
   (evaluator #f)
   (joiner #f)
+  (for-humans? #t)
   (make-default-environment make-fresh-user-module))
 
 (define-macro (define-language name . spec)
