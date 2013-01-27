@@ -1,6 +1,6 @@
 ;;;; (sxml ssax) -- the SSAX parser
 ;;;;
-;;;; 	Copyright (C) 2009, 2010,2012  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010,2012,2013  Free Software Foundation, Inc.
 ;;;;    Modified 2004 by Andy Wingo <wingo at pobox dot com>.
 ;;;;    Written 2001,2002,2003,2004 by Oleg Kiselyov <oleg at pobox dot com> as SSAX.scm.
 ;;;; 
@@ -170,12 +170,14 @@
 (define ascii->char integer->char)
 (define char->ascii char->integer)
 
-(define *current-ssax-error-port* (make-fluid))
-(define (current-ssax-error-port)
-  (fluid-ref *current-ssax-error-port*))
+(define current-ssax-error-port
+  (make-parameter (current-error-port)))
+
+(define *current-ssax-error-port*
+  (parameter-fluid current-ssax-error-port))
 
 (define (with-ssax-error-to-port port thunk)
-  (with-fluids ((*current-ssax-error-port* port))
+  (parameterize ((current-ssax-error-port port))
     (thunk)))
 
 (define (ssax:warn port msg . args)
