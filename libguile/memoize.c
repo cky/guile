@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012
+ *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
  *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -883,7 +883,6 @@ void
 scm_init_memoize ()
 {
   scm_tc16_memoized = scm_make_smob_type ("%memoized", 0);
-  scm_set_smob_mark (scm_tc16_memoized, scm_markcdr);
   scm_set_smob_print (scm_tc16_memoized, scm_print_memoized);
 
   scm_tc16_memoizer = scm_make_smob_type ("memoizer", 0);
