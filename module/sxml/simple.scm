@@ -76,14 +76,15 @@
 ;;
 ;;  * Parse external DTDs
 ;;
-(define* (xml->sxml #:optional (port (current-input-port)) #:key
+(define* (xml->sxml #:optional (string-or-port (current-input-port)) #:key
                     (namespaces '())
                     (declare-namespaces? #t)
                     (trim-whitespace? #f)
                     (entities '())
                     (default-entity-handler #f))
   "Use SSAX to parse an XML document into SXML. Takes one optional
-argument, @var{port}, which defaults to the current input port."
+argument, @var{string-or-port}, which defaults to the current input
+port."
   ;; NAMESPACES: alist of PREFIX -> URI.  Specifies the symbol prefix
   ;; that the user wants on elements of a given namespace in the
   ;; resulting SXML, regardless of the abbreviated namespaces defined in
@@ -178,7 +179,11 @@ argument, @var{port}, which defaults to the current input port."
             (list '*PI* pi-tag (ssax:read-pi-body-as-string port))
             seed))))))
 
-  `(*TOP* ,@(reverse (parser port '()))))
+  (let* ((port (if (string? string-or-port)
+                   (open-input-string string-or-port)
+                   string-or-port))
+         (elements (reverse (parser port '()))))
+    `(*TOP* ,@elements)))
 
 (define check-name
   (let ((*good-cache* (make-hash-table)))

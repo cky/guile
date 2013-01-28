@@ -55,13 +55,14 @@ to text.
 (use-modules (sxml simple))
 @end example
 
-@deffn {Scheme Procedure} xml->sxml [port] [#:namespaces='()] @
+@deffn {Scheme Procedure} xml->sxml [string-or-port] [#:namespaces='()] @
        [#:declare-namespaces?=#t] [#:trim-whitespace?=#f] @
        [#:entities='()] [#:default-entity-handler=#f]
 Use SSAX to parse an XML document into SXML. Takes one optional
-argument, @var{port}, which defaults to the current input port.  Returns
-the resulting SXML document, and leaves @var{port} pointing at the next
-available character in the port.
+argument, @var{string-or-port}, which defaults to the current input
+port.  Returns the resulting SXML document.  If @var{string-or-port} is
+a port, it will be left pointing at the next available character in the
+port.
 @end deffn
 
 As is normal in SXML, XML elements parse as tagged lists.  Attributes,
@@ -71,13 +72,13 @@ This tag will contain the root element of the XML, but also any prior
 processing instructions.
 
 @example
-(xml->sxml (open-input-string "<foo/>"))
+(xml->sxml "<foo/>")
 @result{} (*TOP* (foo))
-(xml->sxml (open-input-string "<foo>text</foo>"))
+(xml->sxml "<foo>text</foo>")
 @result{} (*TOP* (foo "text"))
-(xml->sxml (open-input-string "<foo kind=\"bar\">text</foo>"))
+(xml->sxml "<foo kind=\"bar\">text</foo>")
 @result{} (*TOP* (foo (@@ (kind "bar")) "text"))
-(xml->sxml (open-input-string "<?xml version=\"1.0\"?><foo/>"))
+(xml->sxml "<?xml version=\"1.0\"?><foo/>")
 @result{} (*TOP* (*PI* xml "version=\"1.0\"") (foo))
 @end example
 
@@ -88,19 +89,13 @@ for certain namespaces with the @code{#:namespaces} keyword argument to
 @code{xml->sxml}.
 
 @example
-(xml->sxml
- (open-input-string
-  "<foo xmlns=\"http://example.org/ns1\">text</foo>"))
+(xml->sxml "<foo xmlns=\"http://example.org/ns1\">text</foo>")
 @result{} (*TOP* (http://example.org/ns1:foo "text"))
-(xml->sxml
- (open-input-string
-  "<foo xmlns=\"http://example.org/ns1\">text</foo>")
- #:namespaces '((ns1 . "http://example.org/ns1")))
+(xml->sxml "<foo xmlns=\"http://example.org/ns1\">text</foo>"
+           #:namespaces '((ns1 . "http://example.org/ns1")))
 @result{} (*TOP* (ns1:foo "text"))
-(xml->sxml
- (open-input-string
-  "<foo xmlns:bar=\"http://example.org/ns2\"><bar:baz/></foo>")
- #:namespaces '((ns2 . "http://example.org/ns2")))
+(xml->sxml "<foo xmlns:bar=\"http://example.org/ns2\"><bar:baz/></foo>"
+           #:namespaces '((ns2 . "http://example.org/ns2")))
 @result{} (*TOP* (foo (ns2:baz)))
 @end example
 
@@ -109,10 +104,10 @@ user-given @code{#:namespaces} to be treated as if they were declared on
 the root element.
 
 @example
-(xml->sxml (open-input-string "<foo><ns2:baz/></foo>")
+(xml->sxml "<foo><ns2:baz/></foo>"
            #:namespaces '((ns2 . "http://example.org/ns2")))
 @result{} error: undeclared namespace: `bar'
-(xml->sxml (open-input-string "<foo><ns2:baz/></foo>")
+(xml->sxml "<foo><ns2:baz/></foo>"
            #:namespaces '((ns2 . "http://example.org/ns2"))
            #:declare-namespaces? #t)
 @result{} (*TOP* (foo (ns2:baz)))
@@ -124,11 +119,9 @@ whitespace in front, behind and between elements, treating it as
 ``unsignificant''.  Whitespace in text fragments is left alone.
 
 @example
-(xml->sxml (open-input-string
-            "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>"))
+(xml->sxml "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>")
 @result{} (*TOP* (foo "\n" (bar " Alfie the parrot! ") "\n")
-(xml->sxml (open-input-string
-            "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>")
+(xml->sxml "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>"
            #:trim-whitespace? #t)
 @result{} (*TOP* (foo (bar " Alfie the parrot! "))
 @end example
@@ -141,16 +134,16 @@ default, only the standard @code{&lt;}, @code{&gt;}, @code{&amp;},
 numeric character entities.
 
 @example
-(xml->sxml (open-input-string "<foo>&amp;</foo>"))
+(xml->sxml "<foo>&amp;</foo>")
 @result{} (*TOP* (foo "&"))
-(xml->sxml (open-input-string "<foo>&nbsp;</foo>"))
+(xml->sxml "<foo>&nbsp;</foo>")
 @result{} error: undefined entity: nbsp
-(xml->sxml (open-input-string "<foo>&#xA0;</foo>"))
+(xml->sxml "<foo>&#xA0;</foo>")
 @result{} (*TOP* (foo "\xa0"))
-(xml->sxml (open-input-string "<foo>&nbsp;</foo>")
+(xml->sxml "<foo>&nbsp;</foo>"
            #:entities '((nbsp . "\xa0")))
 @result{} (*TOP* (foo "\xa0"))
-(xml->sxml (open-input-string "<foo>&nbsp; &foo;</foo>")
+(xml->sxml "<foo>&nbsp; &foo;</foo>"
            #:default-entity-handler
            (lambda (port name)
              (case name
