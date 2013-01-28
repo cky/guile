@@ -5,7 +5,7 @@ dnl
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
 Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -36,7 +36,10 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
 
 dnl `AM_PROG_AR' was introduced in Automake 1.11.2.
-AM_INIT_AUTOMAKE([1.11.2 gnu no-define -Wall -Wno-override color-tests dist-xz])
+dnl Use `serial-tests' so the output `check-guile' is not hidden
+dnl (`parallel-tests' is the default in Automake 1.13.)
+AM_INIT_AUTOMAKE([1.11.2 gnu no-define -Wall -Wno-override \
+  serial-tests color-tests dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])], [AC_SUBST([AM_DEFAULT_VERBOSITY],1)])
 
 AC_COPYRIGHT(GUILE_CONFIGURE_COPYRIGHT)

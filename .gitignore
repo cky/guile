@@ -150,3 +150,5 @@ INSTALL
 /lib/dirent.h
 /lib/langinfo.h
 /lib/wctype.h
+/build-aux/ar-lib
+/build-aux/test-driver
