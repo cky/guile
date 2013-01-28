@@ -127,8 +127,8 @@ basic idea is that HTML is either text, represented by a string, or an
 element, represented as a tagged list.  So @samp{foo} becomes
 @samp{"foo"}, and @samp{<b>foo</b>} becomes @samp{(b "foo")}.
 Attributes, if present, go in a tagged list headed by @samp{@@}, like
-@samp{(img (@@ (src "http://example.com/foo.png")))}.  @xref{sxml
-simple}, for more information.
+@samp{(img (@@ (src "http://example.com/foo.png")))}.  @xref{SXML}, for
+more information.
 
 The good thing about SXML is that HTML elements cannot be confused with
 text.  Let's make a new definition of @code{para}:
@@ -1769,7 +1769,7 @@ message body is long enough.)
 The web handler interface is a common baseline that all kinds of Guile
 web applications can use.  You will usually want to build something on
 top of it, however, especially when producing HTML.  Here is a simple
-example that builds up HTML output using SXML (@pxref{sxml simple}).
+example that builds up HTML output using SXML (@pxref{SXML}).
 
 First, load up the modules:
 

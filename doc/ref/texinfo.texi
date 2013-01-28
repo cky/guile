@@ -152,8 +152,8 @@ interested in @code{replace-titles} and @code{filter-empty-elements}.
 @xref{texinfo docbook replace-titles,,replace-titles}, and @ref{texinfo
 docbook filter-empty-elements,,filter-empty-elements}.
 
-Returns a nodeset, as described in @ref{sxml xpath}. That is to say,
-this function returns an untagged list of stexi elements.
+Returns a nodeset; that is to say, an untagged list of stexi elements.
+@xref{SXPath}, for the definition of a nodeset.
 
 @end defun
 
@@ -184,10 +184,12 @@ For example:
 This module implements transformation from @code{stexi} to HTML. Note
 that the output of @code{stexi->shtml} is actually SXML with the HTML
 vocabulary. This means that the output can be further processed, and
-that it must eventually be serialized by @ref{sxml simple
-sxml->xml,sxml->xml}. References (i.e., the @code{@@ref} family of
-commands) are resolved by a @dfn{ref-resolver}. @xref{texinfo html
-add-ref-resolver!,add-ref-resolver!}, for more information.
+that it must eventually be serialized by @code{sxml->xml}.
+@xref{Reading and Writing XML}.
+
+References (i.e., the @code{@@ref} family of commands) are resolved by a
+@dfn{ref-resolver}.  @xref{texinfo html
+add-ref-resolver!,add-ref-resolver!}.
 
 @subsubsection Usage
 @anchor{texinfo html add-ref-resolver!}@defun add-ref-resolver! proc

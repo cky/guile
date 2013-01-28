@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2010  Free Software Foundation, Inc.
+@c Copyright (C) 2010, 2013  Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 @c
 @c Based on the documentation at
@@ -16,10 +16,10 @@
 @cindex pattern matching (SXML)
 @cindex SXML pattern matching
 
-The @code{(sxml match)} module provides syntactic forms for pattern matching of
-SXML trees, in a ``by example'' style reminiscent of the pattern matching of the
-@code{syntax-rules} and @code{syntax-case} macro systems.  @xref{sxml simple,
-the @code{(sxml simple)} module}, for more information on SXML.
+The @code{(sxml match)} module provides syntactic forms for pattern
+matching of SXML trees, in a ``by example'' style reminiscent of the
+pattern matching of the @code{syntax-rules} and @code{syntax-case} macro
+systems.  @xref{SXML}, for more information on SXML.
 
 The following example@footnote{This example is taken from a paper by
 Krishnamurthi et al.  Their paper was the first to show the usefulness of the
