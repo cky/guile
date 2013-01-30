@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *   2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2150,89 +2150,6 @@ SCM_DEFINE (scm_set_port_filename_x, "set-port-filename!", 2, 0, 0,
   /* We allow the user to set the filename to whatever he likes.  */
   SCM_SET_FILENAME (port, filename);
   return SCM_UNSPECIFIED;
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_consume_byte_order_mark, "consume-byte-order-mark", 1, 0, 0,
-            (SCM port),
-            "Peek ahead in @var{port} for a byte-order mark (\\uFEFF) encoded\n"
-            "in UTF-8 or in UTF-16.  If found, consume the byte-order mark\n"
-            "and set the port to the indicated encoding.\n"
-            "\n"
-            "As a special case, if the port's encoding is already UTF-16LE\n"
-            "or UTF-16BE (as opposed to UTF-16), we consider that the user\n"
-            "has already asked for an explicit byte order.  In this case no\n"
-            "scan is performed, and the byte-order mark (if any) is left in\n"
-            "the port.\n"
-            "\n"
-            "Return @code{#t} if a byte-order mark was consumed, and\n"
-            "@code{#f} otherwise.")
-#define FUNC_NAME s_scm_consume_byte_order_mark
-{
-  scm_t_port *pt;
-  const char *enc;
-
-  SCM_VALIDATE_PORT (1, port);
-
-  pt = SCM_PTAB_ENTRY (port);
-  enc = pt->encoding;
-
-  if (enc && strcasecmp (enc, "UTF-16BE") == 0)
-    return SCM_BOOL_F;
-
-  if (enc && strcasecmp (enc, "UTF-16LE") == 0)
-    return SCM_BOOL_F;
-
-  switch (scm_peek_byte_or_eof (port))
-    {
-    case 0xEF:
-      scm_get_byte_or_eof (port);
-      switch (scm_peek_byte_or_eof (port))
-        {
-        case 0xBB:
-          scm_get_byte_or_eof (port);
-          switch (scm_peek_byte_or_eof (port))
-            {
-            case 0xBF:
-              scm_get_byte_or_eof (port);
-              scm_i_set_port_encoding_x (port, "UTF-8");
-              return SCM_BOOL_T;
-            default:
-              scm_unget_byte (0xBB, port);
-              scm_unget_byte (0xEF, port);
-              return SCM_BOOL_F;
-            }
-        default:
-          scm_unget_byte (0xEF, port);
-          return SCM_BOOL_F;
-        }
-    case 0xFE:
-      scm_get_byte_or_eof (port);
-      switch (scm_peek_byte_or_eof (port))
-        {
-        case 0xFF:
-          scm_get_byte_or_eof (port);
-          scm_i_set_port_encoding_x (port, "UTF-16BE");
-          return SCM_BOOL_T;
-        default:
-          scm_unget_byte (0xFE, port);
-          return SCM_BOOL_F;
-        }
-    case 0xFF:
-      scm_get_byte_or_eof (port);
-      switch (scm_peek_byte_or_eof (port))
-        {
-        case 0xFE:
-          scm_get_byte_or_eof (port);
-          scm_i_set_port_encoding_x (port, "UTF-16LE");
-          return SCM_BOOL_T;
-        default:
-          scm_unget_byte (0xFF, port);
-          return SCM_BOOL_F;
-        }
-    default:
-      return SCM_BOOL_F;
-    }
 }
 #undef FUNC_NAME
 

@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -399,7 +399,7 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 #define FUNC_NAME s_scm_open_file
 {
   SCM port;
-  int fdes, flags = 0, scan_for_encoding = 0, consume_bom = 0, binary = 0;
+  int fdes, flags = 0, use_encoding = 1;
   unsigned int retries;
   char *file, *md, *ptr;
 
@@ -415,8 +415,6 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
     {
     case 'r':
       flags |= O_RDONLY;
-      consume_bom = 1;
-      scan_for_encoding = 1;
       break;
     case 'w':
       flags |= O_WRONLY | O_CREAT | O_TRUNC;
@@ -434,12 +432,9 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 	{
 	case '+':
 	  flags = (flags & ~(O_RDONLY | O_WRONLY)) | O_RDWR;
-          consume_bom = 0;
 	  break;
 	case 'b':
-	  scan_for_encoding = 0;
-          consume_bom = 0;
-          binary = 1;
+	  use_encoding = 0;
 #if defined (O_BINARY)
 	  flags |= O_BINARY;
 #endif
@@ -478,21 +473,21 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
   port = scm_i_fdes_to_port (fdes, scm_i_mode_bits (mode),
                              fport_canonicalize_filename (filename));
 
-  if (consume_bom) 
-    scm_consume_byte_order_mark (port);
-
-  if (binary)
+  if (use_encoding)
+    {
+      /* If this file has a coding declaration, use that as the port
+	 encoding.  */
+      if (SCM_INPUT_PORT_P (port))
+	{
+	  char *enc = scm_i_scan_for_encoding (port);
+	  if (enc != NULL)
+	    scm_i_set_port_encoding_x (port, enc);
+	}
+    }
+  else
     /* If this is a binary file, use the binary-friendly ISO-8859-1
        encoding.  */
     scm_i_set_port_encoding_x (port, NULL);
-  else if (scan_for_encoding)
-    /* If this is an input port and the file has a coding declaration,
-       use that as the port encoding.  */
-    {
-      char *enc = scm_i_scan_for_encoding (port);
-      if (enc != NULL)
-        scm_i_set_port_encoding_x (port, enc);
-    }
 
   scm_dynwind_end ();
 

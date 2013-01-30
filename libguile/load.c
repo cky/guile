@@ -106,9 +106,6 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
 
-    /* FIXME: For better or for worse, scm_open_file already scans the
-       file for an encoding.  This scans again; necessary for this
-       logic, but unnecessary overall.  */
     encoding = scm_i_scan_for_encoding (port);
     if (encoding)
       scm_i_set_port_encoding_x (port, encoding);

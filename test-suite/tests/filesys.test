@@ -1,6 +1,6 @@
 ;;;; filesys.test --- test file system functions -*- scheme -*-
 ;;;; 
-;;;; Copyright (C) 2004, 2006, 2013 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2006 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,6 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-filesys)
-  #:use-module (ice-9 rdelim)
-  #:use-module (ice-9 binary-ports)
   #:use-module (test-suite lib)
   #:use-module (test-suite guile-test))
 
@@ -129,58 +127,3 @@
 
 (delete-file (test-file))
 (delete-file (test-symlink))
-
-(let ((s "\ufeffHello, world!"))
-  (define* (test-encoding encoding #:optional (ambient "ISO-8859-1"))
-    (with-fluids ((%default-port-encoding ambient))
-      (let* ((bytes (catch 'misc-error
-                      (lambda ()
-                        (call-with-values open-bytevector-output-port
-                          (lambda (port get-bytevector)
-                            (set-port-encoding! port encoding)
-                            (display s port)
-                            (get-bytevector))))
-                      (lambda args
-                        (throw 'unresolved))))
-             (name (string-copy "myfile-XXXXXX"))
-             (port (mkstemp! name)))
-        (put-bytevector port bytes)
-        (close-port port)
-        (let ((contents (call-with-input-file name read-string)))
-          (delete-file name)
-          contents))))
-
-  (pass-if "UTF-8"
-    (equal? (test-encoding "UTF-8")
-            "Hello, world!"))
-
-  (pass-if "UTF-16BE"
-    (equal? (test-encoding "UTF-16BE")
-            "Hello, world!"))
-
-  (pass-if "UTF-16LE"
-    (equal? (test-encoding "UTF-16LE")
-            "Hello, world!"))
-
-  (pass-if "UTF-8 (ambient)"
-    (equal? (test-encoding "UTF-8" "UTF-8")
-            "Hello, world!"))
-
-  (pass-if "UTF-8 (UTF-16 ambient)"
-    (equal? (test-encoding "UTF-8" "UTF-16")
-            "Hello, world!"))
-
-  ;; Unicode 6.2 section 16.8:
-  ;;
-  ;; For compatibility with versions of the Unicode Standard prior to
-  ;; Version 3.2, the code point U+FEFF has the word-joining semantics
-  ;; of zero width no-break space when it is not used as a BOM.  [...]
-  ;;
-  ;; Where the byte order is explicitly specified, such as in UTF-16BE
-  ;; or UTF-16LE, then all U+FEFF characters -- even at the very
-  ;; beginning of the text -- are to be interpreted as zero width
-  ;; no-break spaces.
-  ;;
-  (pass-if "UTF-16LE (ambient)"
-    (equal? (test-encoding "UTF-16LE" "UTF-16LE")
-            "\ufeffHello, world!")))
