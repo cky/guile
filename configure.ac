@@ -35,10 +35,10 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_SRCDIR(GUILE-VERSION)
 
-dnl `AM_PROG_AR' was introduced in Automake 1.11.2.
 dnl Use `serial-tests' so the output `check-guile' is not hidden
 dnl (`parallel-tests' is the default in Automake 1.13.)
-AM_INIT_AUTOMAKE([1.11.2 gnu no-define -Wall -Wno-override \
+dnl `serial-tests' was introduced in Automake 1.12.
+AM_INIT_AUTOMAKE([1.12 gnu no-define -Wall -Wno-override \
   serial-tests color-tests dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])], [AC_SUBST([AM_DEFAULT_VERBOSITY],1)])
 
