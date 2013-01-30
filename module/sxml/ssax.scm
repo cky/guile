@@ -182,9 +182,10 @@
 
 (define (ssax:warn port . args)
   (with-output-to-port (current-ssax-error-port)
-    (display ";;; SSAX warning: ")
-    (for-each display args)
-    (newline)))
+    (lambda ()
+      (display ";;; SSAX warning: ")
+      (for-each display args)
+      (newline))))
 
 (define (ucscode->string codepoint)
   (string (integer->char codepoint)))
