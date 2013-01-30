@@ -2945,10 +2945,15 @@
   (lambda (x)
     (define read-file
       (lambda (fn dir k)
-        (let ((p (open-input-file
-                  (if (absolute-file-name? fn)
-                      fn
-                      (in-vicinity dir fn)))))
+        (let* ((p (open-input-file
+                   (if (absolute-file-name? fn)
+                       fn
+                       (in-vicinity dir fn))))
+               (enc (file-encoding p)))
+
+          ;; Choose the input encoding deterministically.
+          (set-port-encoding! p (or enc "UTF-8"))
+
           (let f ((x (read p))
                   (result '()))
             (if (eof-object? x)

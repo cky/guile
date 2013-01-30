@@ -885,8 +885,8 @@ Use binary mode, ensuring that each byte in the file will be read as one
 Scheme character.
 
 To provide this property, the file will be opened with the 8-bit
-character encoding "ISO-8859-1", ignoring any coding declaration or port
-encoding.  @xref{Ports}, for more information on port encodings.
+character encoding "ISO-8859-1", ignoring the default port encoding.
+@xref{Ports}, for more information on port encodings.
 
 Note that while it is possible to read and write binary data as
 characters or strings, it is usually better to treat bytes as octets,
@@ -903,12 +903,20 @@ because of its port encoding ramifications.
 If a file cannot be opened with the access
 requested, @code{open-file} throws an exception.
 
-When the file is opened, this procedure will scan for a coding
-declaration (@pxref{Character Encoding of Source Files}). If a coding
-declaration is found, it will be used to interpret the file.  Otherwise,
-the port's encoding will be used.  To suppress this behavior, open the
-file in binary mode and then set the port encoding explicitly using
-@code{set-port-encoding!}.
+When the file is opened, its encoding is set to the current
+@code{%default-port-encoding}, unless the @code{b} flag was supplied.
+Sometimes it is desirable to honor Emacs-style coding declarations in
+files@footnote{Guile 2.0.0 to 2.0.7 would do this by default.  This
+behavior was deemed inappropriate and disabled starting from Guile
+2.0.8.}.  When that is the case, the @code{file-encoding} procedure can
+be used as follows (@pxref{Character Encoding of Source Files,
+@code{file-encoding}}):
+
+@example
+(let* ((port     (open-input-file file))
+       (encoding (file-encoding port)))
+  (set-port-encoding! port (or encoding (port-encoding port))))
+@end example
 
 In theory we could create read/write ports which were buffered
 in one direction only.  However this isn't included in the

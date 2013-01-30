@@ -270,13 +270,12 @@
                    (delete-file filename)
                    (string=? line2 binary-test-string)))))
 
-;; open-file honors file coding declarations
-(pass-if "file: open-file honors coding declarations"
+;; open-file ignores file coding declaration
+(pass-if "file: open-file ignores coding declarations"
   (with-fluids ((%default-port-encoding "UTF-8"))
                (let* ((filename (test-file))
                       (port (open-output-file filename))
                       (test-string "€100"))
-                 (set-port-encoding! port "ISO-8859-15")
                  (write-line ";; coding: iso-8859-15" port)
                  (write-line test-string port)
                  (close-port port)
