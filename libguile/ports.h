@@ -4,7 +4,7 @@
 #define SCM_PORTS_H
 
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2006, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -303,6 +303,7 @@ SCM_API SCM scm_port_column (SCM port);
 SCM_API SCM scm_set_port_column_x (SCM port, SCM line);
 SCM_API SCM scm_port_filename (SCM port);
 SCM_API SCM scm_set_port_filename_x (SCM port, SCM filename);
+SCM_API SCM scm_consume_byte_order_mark (SCM port);
 SCM_INTERNAL const char *scm_i_default_port_encoding (void);
 SCM_INTERNAL void scm_i_set_default_port_encoding (const char *);
 SCM_INTERNAL void scm_i_set_port_encoding_x (SCM port, const char *str);
