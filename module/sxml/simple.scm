@@ -26,6 +26,7 @@
 ;;; Code:
 
 (define-module (sxml simple)
+  #:use-module (sxml ssax input-parse)
   #:use-module (sxml ssax)
   #:use-module (sxml transform)
   #:use-module (ice-9 match)
@@ -34,10 +35,6 @@
 
 ;; Helpers from upstream/SSAX.scm.
 ;;
-
-(define (ssax:warn port msg . args)
-  (format (current-ssax-error-port)
-          ";;; SSAX warning: ~a ~a\n" msg args))
 
 ;     ssax:reverse-collect-str LIST-OF-FRAGS -> LIST-OF-FRAGS
 ; given the list of fragments (some of which are text strings)
@@ -65,6 +62,17 @@
 		  (cons (string-concatenate/shared strs) result)))
 	      '())))))))
 
+(define (read-internal-doctype-as-string port)
+  (string-concatenate/shared
+    (let loop ()
+      (let ((fragment
+	     (next-token '() '(#\]) "reading internal DOCTYPE" port)))
+	(if (eqv? #\> (peek-next-char port))
+	    (begin
+	      (read-char port)
+	      (cons fragment '()))
+	    (cons* fragment "]" (loop)))))))
+
 ;; Ideas for the future for this interface:
 ;;
 ;;  * Allow doctypes to provide parsed entities
@@ -81,7 +89,8 @@
                     (declare-namespaces? #t)
                     (trim-whitespace? #f)
                     (entities '())
-                    (default-entity-handler #f))
+                    (default-entity-handler #f)
+                    (doctype-handler #f))
   "Use SSAX to parse an XML document into SXML. Takes one optional
 argument, @var{string-or-port}, which defaults to the current input
 port."
@@ -96,7 +105,7 @@ port."
   ;; NAMESPACES: list of (DOC-PREFIX . (USER-PREFIX . URI)).
   ;; A DOC-PREFIX of #f indicates that it comes from the user.
   ;; Otherwise, prefixes are symbols.
-  (define (user-namespaces)
+  (define (munge-namespaces namespaces)
     (map (lambda (el)
            (match el
              ((prefix . uri-string)
@@ -104,6 +113,9 @@ port."
                      prefix
                      (ssax:uri-string->symbol uri-string)))))
          namespaces))
+
+  (define (user-namespaces)
+    (munge-namespaces namespaces))
 
   (define (user-entities)
     (if (and default-entity-handler
@@ -116,6 +128,13 @@ port."
       ((prefix . local-part)
        (symbol-append prefix (string->symbol ":") local-part))
       (_ name)))
+
+  (define (doctype-continuation seed)
+    (lambda* (#:key (entities '()) (namespaces '()))
+      (values #f
+              (append entities (user-entities))
+              (append (munge-namespaces namespaces) (user-namespaces))
+              seed)))
 
   ;; The SEED in this parser is the SXML: initialized to '() at each new
   ;; level by the fdown handlers; built in reverse by the fhere parsers;
@@ -159,18 +178,29 @@ port."
      ;;
      ;; SEED builds up the content.
      (lambda (port docname systemid internal-subset? seed)
-       (when internal-subset?
-         (ssax:warn port "Internal DTD subset is not currently handled ")
-         (ssax:skip-internal-dtd port))
-       (ssax:warn port "DOCTYPE DECL " docname " "
-                  systemid " found and skipped")
-       (values #f (user-entities) (user-namespaces) seed))
+       (call-with-values
+           (lambda ()
+             (cond
+              (doctype-handler
+               (doctype-handler docname systemid
+                                (and internal-subset?
+                                     (read-internal-doctype-as-string port))))
+              (else
+               (when internal-subset?
+                 (ssax:skip-internal-dtd port))
+               (values))))
+         (doctype-continuation seed)))
 
      UNDECL-ROOT
      ;; This is like the DOCTYPE handler, but for documents that do not
      ;; have a <!DOCTYPE!> entry.
      (lambda (elem-gi seed)
-       (values #f (user-entities) (user-namespaces) seed))
+       (call-with-values
+           (lambda ()
+             (if doctype-handler
+                 (doctype-handler #f #f #f)
+                 (values)))
+        (doctype-continuation seed)))
 
      PI
      ((*DEFAULT*

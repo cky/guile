@@ -57,7 +57,8 @@ to text.
 
 @deffn {Scheme Procedure} xml->sxml [string-or-port] [#:namespaces='()] @
        [#:declare-namespaces?=#t] [#:trim-whitespace?=#f] @
-       [#:entities='()] [#:default-entity-handler=#f]
+       [#:entities='()] [#:default-entity-handler=#f] @
+       [#:doctype-handler=#f]
 Use SSAX to parse an XML document into SXML. Takes one optional
 argument, @var{string-or-port}, which defaults to the current input
 port.  Returns the resulting SXML document.  If @var{string-or-port} is
@@ -99,18 +100,19 @@ for certain namespaces with the @code{#:namespaces} keyword argument to
 @result{} (*TOP* (foo (ns2:baz)))
 @end example
 
-Passing a true @code{#:declare-namespaces?} argument will cause the
-user-given @code{#:namespaces} to be treated as if they were declared on
-the root element.
+By default, namespaces passed to @code{xml->sxml} are treated as if they
+were declared on the root element.  Passing a false
+@code{#:declare-namespaces?} argument will disable this behavior,
+requiring in-document declarations of namespaces before use..
 
 @example
 (xml->sxml "<foo><ns2:baz/></foo>"
            #:namespaces '((ns2 . "http://example.org/ns2")))
-@result{} error: undeclared namespace: `bar'
+@result{} (*TOP* (foo (ns2:baz)))
 (xml->sxml "<foo><ns2:baz/></foo>"
            #:namespaces '((ns2 . "http://example.org/ns2"))
-           #:declare-namespaces? #t)
-@result{} (*TOP* (foo (ns2:baz)))
+           #:declare-namespaces? #f)
+@result{} error: undeclared namespace: `bar'
 @end example
 
 By default, all whitespace in XML is significant.  Passing the
@@ -120,10 +122,10 @@ whitespace in front, behind and between elements, treating it as
 
 @example
 (xml->sxml "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>")
-@result{} (*TOP* (foo "\n" (bar " Alfie the parrot! ") "\n")
+@result{} (*TOP* (foo "\n" (bar " Alfie the parrot! ") "\n"))
 (xml->sxml "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>"
            #:trim-whitespace? #t)
-@result{} (*TOP* (foo (bar " Alfie the parrot! "))
+@result{} (*TOP* (foo (bar " Alfie the parrot! ")))
 @end example
 
 Parsed entities may be declared with the @code{#:entities} keyword
@@ -158,6 +160,38 @@ numeric character entities.
 @print{} <unknown file>:0:17: undefined entitity: foo
 @result{} (*TOP* (foo "\xa0 foo"))
 @end example
+
+By default, @code{xml->sxml} skips over the @code{<!DOCTYPE>}
+declaration, if any.  This behavior can be overridden with the
+@code{#:doctype-handler} argument, which should be a procedure of three
+arguments: the @dfn{docname} (a symbol), @dfn{systemid} (a string), and
+the internal doctype subset (as a string or @code{#f} if not present).
+
+The handler should return keyword arguments as multiple values, as if it
+were calling its continuation with keyword arguments.  The continuation
+accepts the @code{#:entities} and @code{#:namespaces} keyword arguments,
+in the same format that @code{xml->sxml} itself takes.  These entities
+and namespaces will be prepended to those given to the @code{xml->sxml}
+invocation.
+
+@example
+(define (handle-foo docname systemid internal-subset)
+  (case docname
+    ((foo)
+     (values #:entities '((greets . "<i>Hello, world!</i>"))))
+    (else
+     (values))))
+
+(xml->sxml "<!DOCTYPE foo><p>&greets;</p>"
+           #:doctype-handler handle-foo)
+@result{} (*TOP* (p (i "Hello, world!")))
+@end example
+
+If the document has no doctype declaration, the @var{doctype-handler} is
+invoked with @code{#f} for the three arguments.
+
+In the future, the continuation may accept other keyword arguments, for
+example to validate the parsed SXML against the doctype.
 
 @deffn {Scheme Procedure} sxml->xml tree [port]
 Serialize the SXML tree @var{tree} as XML. The output will be written to

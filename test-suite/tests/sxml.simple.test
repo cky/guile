@@ -1,6 +1,6 @@
 ;;;; sxml.simple.test --- (sxml simple)  -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,8 @@
 (define-module (test-sxml-simple)
   #:use-module (test-suite lib)
   #:use-module (sxml simple))
+
+(define parser-error '(parser-error . ""))
 
 (define %xml-sample
   ;; An XML sample without any space in between tags, to make it easier.
@@ -50,3 +52,84 @@
                 (lambda ()
                   (sxml->xml
                    (xml->sxml (open-input-string %xml-sample))))))))))
+
+(with-test-prefix "namespaces"
+  (pass-if-equal
+      (xml->sxml "<foo xmlns=\"http://example.org/ns1\">text</foo>")
+      '(*TOP* (http://example.org/ns1:foo "text")))
+
+  (pass-if-equal
+      (xml->sxml "<foo xmlns=\"http://example.org/ns1\">text</foo>"
+                 #:namespaces '((ns1 . "http://example.org/ns1")))
+      '(*TOP* (ns1:foo "text")))
+
+  (pass-if-equal
+      (xml->sxml "<foo xmlns:bar=\"http://example.org/ns2\"><bar:baz/></foo>"
+                 #:namespaces '((ns2 . "http://example.org/ns2")))
+      '(*TOP* (foo (ns2:baz))))
+
+  (pass-if-equal
+      (xml->sxml "<foo><ns2:baz/></foo>"
+                 #:namespaces '((ns2 . "http://example.org/ns2")))
+      '(*TOP* (foo (ns2:baz))))
+
+  (pass-if-exception "namespace undeclared" parser-error
+    (xml->sxml "<foo><ns2:baz/></foo>"
+               #:namespaces '((ns2 . "http://example.org/ns2"))
+               #:declare-namespaces? #f)))
+
+(with-test-prefix "whitespace"
+  (pass-if-equal
+      (xml->sxml "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>")
+      '(*TOP* (foo "\n" (bar " Alfie the parrot! ") "\n")))
+
+  (pass-if-equal
+      (xml->sxml "<foo>\n<bar> Alfie the parrot! </bar>\n</foo>"
+                 #:trim-whitespace? #t)
+      '(*TOP* (foo (bar " Alfie the parrot! ")))))
+
+(with-test-prefix "parsed entities"
+  (pass-if-equal
+      '(*TOP* (foo "&"))
+      (xml->sxml "<foo>&amp;</foo>"))
+
+  (pass-if-exception "nbsp undefined" parser-error
+    (xml->sxml "<foo>&nbsp;</foo>"))
+
+  (pass-if-equal
+      '(*TOP* (foo "\xA0"))
+      (xml->sxml "<foo>&nbsp;</foo>"
+                 #:entities '((nbsp . "\xA0"))))
+
+  (pass-if-equal
+      '(*TOP* (foo "\xA0"))
+      (xml->sxml "<foo>&#xA0;</foo>"))
+
+  (let ((ents '()))
+    (pass-if-equal
+        (xml->sxml "<foo>&nbsp; &foo;</foo>"
+                   #:default-entity-handler
+                   (lambda (port name)
+                     (case name
+                       ((nbsp) "\xa0")
+                       (else
+                        (set! ents (cons name ents))
+                        "qux"))))
+        '(*TOP* (foo "\xa0 qux")))
+
+    (pass-if-equal
+        ents
+        '(foo))))
+
+(with-test-prefix "doctype handlers"
+  (define (handle-foo docname systemid internal-subset)
+    (case docname
+      ((foo)
+       (values #:entities '((greets . "<i>Hello, world!</i>"))))
+      (else
+       (values))))
+
+  (pass-if-equal
+      (xml->sxml "<!DOCTYPE foo><p>&greets;</p>"
+                 #:doctype-handler handle-foo)
+      '(*TOP* (p (i "Hello, world!")))))
