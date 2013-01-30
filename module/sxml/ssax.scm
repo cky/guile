@@ -180,9 +180,11 @@
   (parameterize ((current-ssax-error-port port))
     (thunk)))
 
-(define (ssax:warn port msg . args)
-  (format (current-ssax-error-port)
-          ";;; SSAX warning: ~a ~a\n" msg args))
+(define (ssax:warn port . args)
+  (with-output-to-port (current-ssax-error-port)
+    (display ";;; SSAX warning: ")
+    (for-each display args)
+    (newline)))
 
 (define (ucscode->string codepoint)
   (string (integer->char codepoint)))
