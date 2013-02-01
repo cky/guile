@@ -1,6 +1,6 @@
 ;;;; foreign.test --- FFI.           -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -69,14 +69,19 @@
 
   (pass-if "equal? modulo finalizer"
     (let ((finalizer (dynamic-func "scm_is_pair" (dynamic-link))))
-      (equal? (make-pointer 123)
-              (make-pointer 123 finalizer))))
+      (if (not finalizer)
+          (throw 'unresolved)                     ; probably Windows
+          (equal? (make-pointer 123)
+                  (make-pointer 123 finalizer)))))
 
   (pass-if "equal? modulo finalizer (set-pointer-finalizer!)"
     (let ((finalizer (dynamic-func "scm_is_pair" (dynamic-link)))
           (ptr       (make-pointer 123)))
-      (set-pointer-finalizer! ptr finalizer)
-      (equal? (make-pointer 123) ptr)))
+      (if (not finalizer)
+          (throw 'unresolved)                     ; probably Windows
+          (begin
+            (set-pointer-finalizer! ptr finalizer)
+            (equal? (make-pointer 123) ptr)))))
 
   (pass-if "not equal?"
     (not (equal? (make-pointer 123) (make-pointer 456)))))
