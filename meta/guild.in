@@ -8,7 +8,7 @@ exec ${GUILE:-@bindir@/@guile_program_name@} $GUILE_FLAGS -e '(@@ (guild) main)'
 ;;;; guild --- running scripts bundled with Guile
 ;;;; Andy Wingo <wingo@pobox.com> --- April 2009
 ;;;; 
-;;;; 	Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -51,7 +51,13 @@ exec ${GUILE:-@bindir@/@guile_program_name@} $GUILE_FLAGS -e '(@@ (guild) main)'
 
 (define (main args)
   (if (defined? 'setlocale)
-      (setlocale LC_ALL ""))
+      (catch 'system-error
+        (lambda ()
+          (setlocale LC_ALL ""))
+        (lambda args
+          (format (current-error-port)
+                  "warning: failed to install locale: ~a~%"
+                  (strerror (system-error-errno args))))))
 
   (let* ((options (getopt-long args *option-grammar*
                                #:stop-at-first-non-option #t))
