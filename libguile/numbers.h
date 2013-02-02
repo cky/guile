@@ -3,7 +3,8 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006,
+ *   2008, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -498,6 +499,18 @@ SCM_API SCM  scm_from_mpz (mpz_t rop);
 #define scm_from_size_t   scm_from_uint64
 #else
 #error sizeof(size_t) is not 4 or 8.
+#endif
+#endif
+
+#if SCM_SIZEOF_SCM_T_PTRDIFF == 4
+#define scm_to_ptrdiff_t    scm_to_int32
+#define scm_from_ptrdiff_t  scm_from_int32
+#else
+#if SCM_SIZEOF_SCM_T_PTRDIFF == 8
+#define scm_to_ptrdiff_t    scm_to_int64
+#define scm_from_ptrdiff_t  scm_from_int64
+#else
+#error sizeof(scm_t_ptrdiff) is not 4 or 8.
 #endif
 #endif
 
