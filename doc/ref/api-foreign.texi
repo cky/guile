@@ -489,6 +489,8 @@ platform-dependent size:
 @defvrx {Scheme Variable} long
 @defvrx {Scheme Variable} unsigned-long
 @defvrx {Scheme Variable} size_t
+@defvrx {Scheme Variable} ssize_t
+@defvrx {Scheme Variable} ptrdiff_t
 Values exported by the @code{(system foreign)} module, representing C
 numeric types. For example, @code{long} may be @code{equal?} to
 @code{int64} on a 64-bit platform.

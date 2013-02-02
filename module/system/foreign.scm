@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
             float double
             short
             unsigned-short
-            int unsigned-int long unsigned-long size_t
+            int unsigned-int long unsigned-long size_t ssize_t ptrdiff_t
             int8 uint8
             uint16 int16
             uint32 int32

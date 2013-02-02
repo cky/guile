@@ -1,4 +1,4 @@
-/* Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -53,6 +53,8 @@ SCM_SYMBOL (sym_unsigned_short, "unsigned-short");
 SCM_SYMBOL (sym_unsigned_int, "unsigned-int");
 SCM_SYMBOL (sym_unsigned_long, "unsigned-long");
 SCM_SYMBOL (sym_size_t, "size_t");
+SCM_SYMBOL (sym_ssize_t, "ssize_t");
+SCM_SYMBOL (sym_ptrdiff_t, "ptrdiff_t");
 
 /* that's for pointers, you know. */
 SCM_SYMBOL (sym_asterisk, "*");
@@ -1281,6 +1283,26 @@ scm_init_foreign (void)
 	      scm_from_uint8 (SCM_FOREIGN_TYPE_UINT32)
 #else
 # error unsupported sizeof (size_t)
+#endif
+	      );
+
+  scm_define (sym_ssize_t,
+#if SIZEOF_SIZE_T == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT64)
+#elif SIZEOF_SIZE_T == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
+#else
+# error unsupported sizeof (ssize_t)
+#endif
+	      );
+
+  scm_define (sym_ptrdiff_t,
+#if SCM_SIZEOF_SCM_T_PTRDIFF == 8
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT64)
+#elif SCM_SIZEOF_SCM_T_PTRDIFF == 4
+	      scm_from_uint8 (SCM_FOREIGN_TYPE_INT32)
+#else
+# error unsupported sizeof (scm_t_ptrdiff)
 #endif
 	      );
 
