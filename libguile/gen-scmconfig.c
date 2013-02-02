@@ -268,7 +268,7 @@ main (int argc, char *argv[])
   pf ("typedef %s scm_t_uint64;\n", SCM_I_GSC_T_UINT64);
 
   pf ("\n");
-  pf ("/* scm_t_ptrdiff_t and size, always defined -- defined to long if\n"
+  pf ("/* scm_t_ptrdiff and size, always defined -- defined to long if\n"
       "   platform doesn't have ptrdiff_t. */\n");
   pf ("typedef %s scm_t_ptrdiff;\n", SCM_I_GSC_T_PTRDIFF);
   if (0 == strcmp ("long", SCM_I_GSC_T_PTRDIFF))
