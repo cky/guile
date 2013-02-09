@@ -135,7 +135,7 @@ each other. @xref{texinfo docbook sdocbook-flatten,,sdocbook-flatten},
 for more information." 
   '(para programlisting informalexample indexterm variablelist
     orderedlist refsect1 refsect2 refsect3 refsect4 title example
-    note itemizedlist))
+    note itemizedlist informaltable))
 
 (define (inline-command? command)
   (not (memq command *sdocbook-block-commands*)))
