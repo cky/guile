@@ -1,6 +1,6 @@
 ;;;; (texinfo plain-text) -- rendering stexinfo as plain text
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2013  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -238,6 +238,7 @@
     (sample       ,code)
     (samp         ,code)
     (code         ,code)
+    (math         ,passthrough)
     (kbd          ,code)
     (key          ,key)
     (var          ,var)
