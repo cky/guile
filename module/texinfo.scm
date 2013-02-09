@@ -1,6 +1,6 @@
 ;;;; (texinfo) -- parsing of texinfo into SXML
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011, 2012  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
@@ -187,6 +187,7 @@ lambda. Only present for @code{INLINE-ARGS}, @code{EOL-ARGS},
     (sample             INLINE-TEXT)
     (samp               INLINE-TEXT)
     (code               INLINE-TEXT)
+    (math               INLINE-TEXT)
     (kbd                INLINE-TEXT)
     (key                INLINE-TEXT)
     (var                INLINE-TEXT)
