@@ -1,6 +1,6 @@
 ;;;; (texinfo serialize) -- rendering stexinfo as texinfo
 ;;;;
-;;;; 	Copyright (C) 2009, 2012  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2012, 2013  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003,2004,2009  Andy Wingo <wingo at pobox dot com>
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -185,7 +185,8 @@
 
 (define (wrap strings)
   (fill-string (string-concatenate strings)
-               #:line-width 72))
+               #:line-width 72
+               #:break-long-words? #f))
 
 (define (paragraph exp lp command type formals args accum)
   (list* "\n\n"
