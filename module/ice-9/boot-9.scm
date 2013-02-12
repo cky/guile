@@ -871,6 +871,8 @@ information is unavailable."
        #'(define-macro macro doc (lambda args body1 body ...)))
       ((_ (macro . args) body ...)
        #'(define-macro macro #f (lambda args body ...)))
+      ((_ macro transformer)
+       #'(define-macro macro #f transformer))
       ((_ macro doc transformer)
        (or (string? (syntax->datum #'doc))
            (not (syntax->datum #'doc)))
