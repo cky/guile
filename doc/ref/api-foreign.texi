@@ -803,8 +803,8 @@ int64_t a; uint8_t b; @}}:
 @end example
 
 As yet, Guile only has convenience routines to support
-conventionally-packed structs. But given the @code{bytevector->foreign}
-and @code{foreign->bytevector} routines, one can create and parse
+conventionally-packed structs. But given the @code{bytevector->pointer}
+and @code{pointer->bytevector} routines, one can create and parse
 tightly packed structs and unions by hand. See the code for
 @code{(system foreign)} for details.
 
