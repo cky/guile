@@ -1,7 +1,7 @@
 ;;;; tree-il.test --- test suite for compiling tree-il   -*- scheme -*-
 ;;;; Andy Wingo <wingo@pobox.com> --- May 2009
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -830,6 +830,18 @@
              (((x) #f #f #f () (_))
               (apply (toplevel top) (lexical x _)))))))
   
+  (pass-if-peval resolve-primitives
+    ;; The inliner sees through a `let'.
+    ((let ((a 10)) (lambda (b) (* b 2))) 30)
+    (const 60))
+
+  (pass-if-peval
+      ((lambda ()
+         (define (const x) (lambda (_) x))
+         (let ((v #f))
+           ((const #t) v))))
+    (const #t))
+
   (pass-if-peval
    ;; Constant folding: cons of #nil does not make list
    (cons 1 #nil)

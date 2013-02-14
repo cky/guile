@@ -1117,7 +1117,7 @@ top-level bindings from ENV and return the resulting expression."
             (make-application src apply (cons (for-value proc) args))))))
       (($ <application> src orig-proc orig-args)
        ;; todo: augment the global env with specialized functions
-       (let ((proc (visit orig-proc 'operator)))
+       (let revisit-proc ((proc (visit orig-proc 'operator)))
          (match proc
            (($ <primitive-ref> _ (? constructor-primitive? name))
             (cond
@@ -1305,6 +1305,31 @@ top-level bindings from ENV and return the resulting expression."
 
                   (log 'inline-end result exp)
                   result)))))
+           (($ <let> _ _ _ vals _)
+            ;; Attempt to inline `let' in the operator position.
+            ;;
+            ;; We have to re-visit the proc in value mode, since the
+            ;; `let' bindings might have been introduced or renamed,
+            ;; whereas the lambda (if any) in operator position has not
+            ;; been renamed.
+            (if (or (and-map constant-expression? vals)
+                    (and-map constant-expression? orig-args))
+                ;; The arguments and the let-bound values commute.
+                (match (for-value orig-proc)
+                  (($ <let> lsrc names syms vals body)
+                   (log 'inline-let orig-proc)
+                   (for-tail
+                    (make-let lsrc names syms vals
+                              (make-application src body orig-args))))
+                  ;; It's possible for a `let' to go away after the
+                  ;; visit due to the fact that visiting a procedure in
+                  ;; value context will prune unused bindings, whereas
+                  ;; visiting in operator mode can't because it doesn't
+                  ;; traverse through lambdas.  In that case re-visit
+                  ;; the procedure.
+                  (proc (revisit-proc proc)))
+                (make-application src (for-call orig-proc)
+                                  (map for-value orig-args))))
            (_
             (make-application src (for-call orig-proc)
                               (map for-value orig-args))))))
