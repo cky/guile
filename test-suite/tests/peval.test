@@ -850,6 +850,35 @@
     (let (z) (_) ((apply (primitive list) (const 3) (const 4)))
          (apply (primitive list) (const 1) (const 2) (lexical z _))))
 
+  (pass-if-peval resolve-primitives
+    ;; Unmutated lists can get inlined.
+    (let ((args (list 2 3)))
+      (apply (lambda (x y z w)
+               (list x y z w))
+             0 1 args))
+    (apply (primitive list) (const 0) (const 1) (const 2) (const 3)))
+
+  (pass-if-peval resolve-primitives
+    ;; However if the list might have been mutated, it doesn't propagate.
+    (let ((args (list 2 3)))
+      (foo! args)
+      (apply (lambda (x y z w)
+               (list x y z w))
+             0 1 args))
+    (let (args) (_) ((apply (primitive list) (const 2) (const 3)))
+         (begin
+           (apply (toplevel foo!) (lexical args _))
+           (apply (primitive @apply)
+                  (lambda ()
+                    (lambda-case
+                     (((x y z w) #f #f #f () (_ _ _ _))
+                      (apply (primitive list)
+                             (lexical x _) (lexical y _)
+                             (lexical z _) (lexical w _)))))
+                  (const 0)
+                  (const 1)
+                  (lexical args _)))))
+
   (pass-if-peval
    ;; Constant folding: cons of #nil does not make list
    (cons 1 #nil)

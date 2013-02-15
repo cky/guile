@@ -703,6 +703,47 @@ top-level bindings from ENV and return the resulting expression."
        ((vhash-assq var env) => cdr)
        (else (error "unbound var" var))))
 
+    ;; Find a value referenced a specific number of times.  This is a hack
+    ;; that's used for propagating fresh data structures like rest lists and
+    ;; prompt tags.  Usually we wouldn't copy consed data, but we can do so in
+    ;; some special cases like `apply' or prompts if we can account
+    ;; for all of its uses.
+    ;;
+    ;; You don't want to use this in general because it doesn't run the full
+    ;; partial evaluator, so it doesn't fold constant expressions, etc.
+    ;;
+    (define (find-definition x n-aliases)
+      (cond
+       ((lexical-ref? x)
+        (cond
+         ((lookup (lexical-ref-gensym x))
+          => (lambda (op)
+               (let ((y (or (operand-residual-value op)
+                            (visit-operand op counter 'value 10 10))))
+                 (cond
+                  ((and (lexical-ref? y)
+                        (= (lexical-refcount (lexical-ref-gensym x)) 1))
+                   ;; X is a simple alias for Y.  Recurse, regardless of
+                   ;; the number of aliases we were expecting.
+                   (find-definition y n-aliases))
+                  ((= (lexical-refcount (lexical-ref-gensym x)) n-aliases)
+                   ;; We found a definition that is aliased the right
+                   ;; number of times.  We still recurse in case it is a
+                   ;; lexical.
+                   (values (find-definition y 1)
+                           op))
+                  (else
+                   ;; We can't account for our aliases.
+                   (values #f #f))))))
+         (else
+          ;; A formal parameter.  Can't say anything about that.
+          (values #f #f))))
+       ((= n-aliases 1)
+        ;; Not a lexical: success, but only if we are looking for an
+        ;; unaliased value.
+        (values x #f))
+       (else (values #f #f))))
+
     (define (visit exp ctx)
       (loop exp env counter ctx))
 
@@ -1106,15 +1147,23 @@ top-level bindings from ENV and return the resulting expression."
                (make-application src (make-primitive-ref #f 'values) vals))))))
       (($ <application> src (and apply ($ <primitive-ref> _ (or 'apply '@apply)))
           (proc args ... tail))
-       (match (for-value tail)
-         (($ <const> _ (args* ...))
-          (let ((args* (map (lambda (x) (make-const #f x)) args*)))
-            (for-tail (make-application src proc (append args args*)))))
-         (($ <application> _ ($ <primitive-ref> _ 'list) args*)
-          (for-tail (make-application src proc (append args args*))))
-         (tail
-          (let ((args (append (map for-value args) (list tail))))
-            (make-application src apply (cons (for-value proc) args))))))
+       (let lp ((tail* (find-definition tail 1)) (speculative? #t))
+         (match tail*
+           (($ <const> _ (args* ...))
+            (let ((args* (map (cut make-const #f <>) args*)))
+              (for-tail (make-application src proc (append args args*)))))
+           (($ <application> _ ($ <primitive-ref> _ 'cons) (head tail))
+            (for-tail (make-application src apply
+                                        (cons proc
+                                              (append args (list head tail))))))
+           (($ <application> _ ($ <primitive-ref> _ 'list) args*)
+            (for-tail (make-application src proc (append args args*))))
+           (tail*
+            (if speculative?
+                (lp (for-value tail) #f)
+                (let ((args (append (map for-value args) (list tail*))))
+                  (make-application src apply
+                                    (cons (for-value proc) args))))))))
       (($ <application> src orig-proc orig-args)
        ;; todo: augment the global env with specialized functions
        (let revisit-proc ((proc (visit orig-proc 'operator)))
@@ -1408,37 +1457,6 @@ top-level bindings from ENV and return the resulting expression."
                (or () ((? constant-expression?))))
             #t)
            (_ #f)))
-       (define (find-definition x n-aliases)
-         (cond
-          ((lexical-ref? x)
-           (cond
-            ((lookup (lexical-ref-gensym x))
-             => (lambda (op)
-                  (let ((y (or (operand-residual-value op)
-                               (visit-operand op counter 'value 10 10))))
-                    (cond
-                     ((and (lexical-ref? y)
-                           (= (lexical-refcount (lexical-ref-gensym x)) 1))
-                      ;; X is a simple alias for Y.  Recurse, regardless of
-                      ;; the number of aliases we were expecting.
-                      (find-definition y n-aliases))
-                     ((= (lexical-refcount (lexical-ref-gensym x)) n-aliases)
-                      ;; We found a definition that is aliased the right
-                      ;; number of times.  We still recurse in case it is a
-                      ;; lexical.
-                      (values (find-definition y 1)
-                              op))
-                     (else
-                      ;; We can't account for our aliases.
-                      (values #f #f))))))
-            (else
-             ;; A formal parameter.  Can't say anything about that.
-             (values #f #f))))
-          ((= n-aliases 1)
-           ;; Not a lexical: success, but only if we are looking for an
-           ;; unaliased value.
-           (values x #f))
-          (else (values #f #f))))
 
        (let ((tag (for-value tag))
              (body (for-tail body)))
