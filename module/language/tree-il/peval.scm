@@ -709,8 +709,9 @@ top-level bindings from ENV and return the resulting expression."
     ;; some special cases like `apply' or prompts if we can account
     ;; for all of its uses.
     ;;
-    ;; You don't want to use this in general because it doesn't run the full
-    ;; partial evaluator, so it doesn't fold constant expressions, etc.
+    ;; You don't want to use this in general because it introduces a slight
+    ;; nonlinearity by running peval again (though with a small effort and size
+    ;; counter).
     ;;
     (define (find-definition x n-aliases)
       (cond
@@ -719,7 +720,8 @@ top-level bindings from ENV and return the resulting expression."
          ((lookup (lexical-ref-gensym x))
           => (lambda (op)
                (let ((y (or (operand-residual-value op)
-                            (visit-operand op counter 'value 10 10))))
+                            (visit-operand op counter 'value 10 10)
+                            (operand-source op))))
                  (cond
                   ((and (lexical-ref? y)
                         (= (lexical-refcount (lexical-ref-gensym x)) 1))
@@ -1148,15 +1150,22 @@ top-level bindings from ENV and return the resulting expression."
       (($ <application> src (and apply ($ <primitive-ref> _ (or 'apply '@apply)))
           (proc args ... tail))
        (let lp ((tail* (find-definition tail 1)) (speculative? #t))
+         (define (copyable? x)
+           ;; Inlining a result from find-definition effectively copies it,
+           ;; relying on the let-pruning to remove its original binding.  We
+           ;; shouldn't copy non-constant expressions.
+           (or (not speculative?) (constant-expression? x)))
          (match tail*
            (($ <const> _ (args* ...))
             (let ((args* (map (cut make-const #f <>) args*)))
               (for-tail (make-application src proc (append args args*)))))
-           (($ <application> _ ($ <primitive-ref> _ 'cons) (head tail))
+           (($ <application> _ ($ <primitive-ref> _ 'cons)
+               ((and head (? copyable?)) (and tail (? copyable?))))
             (for-tail (make-application src apply
                                         (cons proc
                                               (append args (list head tail))))))
-           (($ <application> _ ($ <primitive-ref> _ 'list) args*)
+           (($ <application> _ ($ <primitive-ref> _ 'list)
+               (and args* ((? copyable?) ...)))
             (for-tail (make-application src proc (append args args*))))
            (tail*
             (if speculative?

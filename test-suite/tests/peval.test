@@ -25,6 +25,7 @@
   #:use-module (language tree-il)
   #:use-module (language tree-il primitives)
   #:use-module (language glil)
+  #:use-module (rnrs bytevectors) ;; for the bytevector primitives
   #:use-module (srfi srfi-13))
 
 (define peval
@@ -878,6 +879,76 @@
                   (const 0)
                   (const 1)
                   (lexical args _)))))
+
+  (pass-if-peval resolve-primitives
+    ;; Here the `args' that gets built by the application of the lambda
+    ;; takes more than effort "10" to visit.  Test that we fall back to
+    ;; the source expression of the operand, which is still a call to
+    ;; `list', so the inlining still happens.
+    (lambda (bv offset n)
+      (let ((x (bytevector-ieee-single-native-ref
+                bv
+                (+ offset 0)))
+            (y (bytevector-ieee-single-native-ref
+                bv
+                (+ offset 4))))
+        (let ((args (list x y)))
+          (@apply
+           (lambda (bv offset x y)
+             (bytevector-ieee-single-native-set!
+              bv
+              (+ offset 0)
+              x)
+             (bytevector-ieee-single-native-set!
+              bv
+              (+ offset 4)
+              y))
+           bv
+           offset
+           args))))
+    (lambda ()
+      (lambda-case
+       (((bv offset n) #f #f #f () (_ _ _))
+        (let (x y) (_ _) ((apply (primitive bytevector-ieee-single-native-ref)
+                                 (lexical bv _)
+                                 (apply (primitive +)
+                                        (lexical offset _) (const 0)))
+                          (apply (primitive bytevector-ieee-single-native-ref)
+                                 (lexical bv _)
+                                 (apply (primitive +)
+                                        (lexical offset _) (const 4))))
+             (begin
+               (apply (primitive bytevector-ieee-single-native-set!)
+                     (lexical bv _)
+                     (apply (primitive +)
+                            (lexical offset _) (const 0))
+                     (lexical x _))
+               (apply (primitive bytevector-ieee-single-native-set!)
+                      (lexical bv _)
+                      (apply (primitive +)
+                             (lexical offset _) (const 4))
+                      (lexical y _))))))))
+
+  (pass-if-peval resolve-primitives
+    ;; Here we ensure that non-constant expressions are not copied.
+    (lambda ()
+      (let ((args (list (foo!))))
+        (@apply
+         (lambda (z x)
+           (list z x))
+         ;; This toplevel ref might raise an unbound variable exception.
+         ;; The effects of `(foo!)' must be visible before this effect.
+         z
+         args)))
+    (lambda ()
+      (lambda-case
+       ((() #f #f #f () ())
+        (let (args) (_)
+             ((apply (primitive list) (apply (toplevel foo!))))
+             (apply (primitive @apply)
+                    (lambda . _)
+                    (toplevel z)
+                    (lexical args _)))))))
 
   (pass-if-peval
    ;; Constant folding: cons of #nil does not make list
