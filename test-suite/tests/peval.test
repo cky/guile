@@ -943,12 +943,33 @@
     (lambda ()
       (lambda-case
        ((() #f #f #f () ())
+        (let (_) (_) ((apply (toplevel foo!)))
+             (let (z) (_) ((toplevel z))
+                  (apply (primitive 'list)
+                         (lexical z _)
+                         (lexical _ _))))))))
+
+  (pass-if-peval resolve-primitives
+    ;; Rest args referenced more than once are not destructured.
+    (lambda ()
+      (let ((args (list 'foo)))
+        (set-car! args 'bar)
+        (@apply
+         (lambda (z x)
+           (list z x))
+         z
+         args)))
+    (lambda ()
+      (lambda-case
+       ((() #f #f #f () ())
         (let (args) (_)
-             ((apply (primitive list) (apply (toplevel foo!))))
-             (apply (primitive @apply)
-                    (lambda . _)
-                    (toplevel z)
-                    (lexical args _)))))))
+             ((apply (primitive list) (const foo)))
+             (begin
+               (apply (primitive set-car!) (lexical args _) (const bar))
+               (apply (primitive @apply)
+                     (lambda . _)
+                     (toplevel z)
+                     (lexical args _))))))))
 
   (pass-if-peval resolve-primitives
     ;; Let-values inlining, even with consumers with rest args.

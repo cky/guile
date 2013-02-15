@@ -437,6 +437,13 @@ top-level bindings from ENV and return the resulting expression."
              new))
          vars))
 
+  (define (fresh-temporaries ls)
+    (map (lambda (elt)
+           (let ((new (gensym "tmp ")))
+             (record-new-temporary! 'tmp new 1)
+             new))
+         ls))
+
   (define (assigned-lexical? sym)
     (var-set? (lookup-var sym)))
 
@@ -872,6 +879,31 @@ top-level bindings from ENV and return the resulting expression."
              (begin
                (record-operand-use op)
                (make-lexical-set src name (operand-sym op) (for-value exp))))))
+      (($ <let> src
+          (names ... rest)
+          (gensyms ... rest-sym)
+          (vals ... ($ <application> _ ($ <primitive-ref> _ 'list) rest-args))
+          ($ <application> asrc
+             ($ <primitive-ref> _ (or 'apply '@apply))
+             (proc args ...
+                   ($ <lexical-ref> _
+                      (? (cut eq? <> rest))
+                      (? (lambda (sym)
+                           (and (eq? sym rest-sym)
+                                (= (lexical-refcount sym) 1))))))))
+       (let* ((tmps (make-list (length rest-args) 'tmp))
+              (tmp-syms (fresh-temporaries tmps)))
+         (for-tail
+          (make-let src
+                    (append names tmps)
+                    (append gensyms tmp-syms)
+                    (append vals rest-args)
+                    (make-application
+                     asrc
+                     proc
+                     (append args
+                             (map (cut make-lexical-ref #f <> <>)
+                                  tmps tmp-syms)))))))
       (($ <let> src names gensyms vals body)
        (define (compute-alias exp)
          ;; It's very common for macros to introduce something like:
