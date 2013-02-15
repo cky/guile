@@ -516,7 +516,7 @@ top-level bindings from ENV and return the resulting expression."
      (else
       (residualize-call))))
 
-  (define (inline-values exp src names gensyms body)
+  (define (inline-values src exp nmin nmax consumer)
     (let loop ((exp exp))
       (match exp
         ;; Some expression types are always singly-valued.
@@ -532,18 +532,16 @@ top-level bindings from ENV and return the resulting expression."
              ($ <toplevel-set>)         ; could return zero values in
              ($ <toplevel-define>)      ; the future
              ($ <module-set>)           ;
-             ($ <dynset>))              ; 
-         (and (= (length names) 1)
-              (make-let src names gensyms (list exp) body)))
-        (($ <application> src
-            ($ <primitive-ref> _ (? singly-valued-primitive? name)))
-         (and (= (length names) 1)
-              (make-let src names gensyms (list exp) body)))
+             ($ <dynset>)               ;
+             ($ <application> src
+                ($ <primitive-ref> _ (? singly-valued-primitive?))))
+         (and (<= nmin 1) (or (not nmax) (>= nmax 1))
+              (make-application src (make-lambda #f '() consumer) (list exp))))
 
         ;; Statically-known number of values.
         (($ <application> src ($ <primitive-ref> _ 'values) vals)
-         (and (= (length names) (length vals))
-              (make-let src names gensyms vals body)))
+         (and (<= nmin (length vals)) (or (not nmax) (>= nmax (length vals)))
+              (make-application src (make-lambda #f '() consumer) vals)))
 
         ;; Not going to copy code into both branches.
         (($ <conditional>) #f)
@@ -969,11 +967,13 @@ top-level bindings from ENV and return the resulting expression."
        ;; reconstruct the let-values, pevaling the consumer.
        (let ((producer (for-values producer)))
          (or (match consumer
-               (($ <lambda-case> src req #f #f #f () gensyms body #f)
-                (cond
-                 ((inline-values producer src req gensyms body)
-                  => for-tail)
-                 (else #f)))
+               (($ <lambda-case> src req opt rest #f inits gensyms body #f)
+                (let* ((nmin (length req))
+                       (nmax (and (not rest) (+ nmin (if opt (length opt) 0)))))
+                  (cond
+                   ((inline-values lv-src producer nmin nmax consumer)
+                    => for-tail)
+                   (else #f))))
                (_ #f))
              (make-let-values lv-src producer (for-tail consumer)))))
       (($ <dynwind> src winder body unwinder)

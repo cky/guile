@@ -950,6 +950,13 @@
                     (toplevel z)
                     (lexical args _)))))))
 
+  (pass-if-peval resolve-primitives
+    ;; Let-values inlining, even with consumers with rest args.
+    (call-with-values (lambda () (values 1 2))
+      (lambda args
+        (apply list args)))
+    (apply (primitive list) (const 1) (const 2)))
+
   (pass-if-peval
    ;; Constant folding: cons of #nil does not make list
    (cons 1 #nil)
