@@ -1221,15 +1221,35 @@ top-level bindings from ENV and return the resulting expression."
               (or (fold-constants src name args ctx)
                   (make-application src proc args))))
            (($ <lambda> _ _
-               ($ <lambda-case> _ req opt #f #f inits gensyms body #f))
-            ;; Simple case: no rest, no keyword arguments.
+               ($ <lambda-case> _ req opt rest #f inits gensyms body #f))
+            ;; Simple case: no keyword arguments.
             ;; todo: handle the more complex cases
             (let* ((nargs (length orig-args))
                    (nreq (length req))
                    (nopt (if opt (length opt) 0))
                    (key (source-expression proc)))
+              (define (inlined-application)
+                (make-let src
+                          (append req
+                                  (or opt '())
+                                  (if rest (list rest) '()))
+                          gensyms
+                          (if (> nargs (+ nreq nopt))
+                              (append (list-head orig-args (+ nreq nopt))
+                                      (list
+                                       (make-application
+                                        #f
+                                        (make-primitive-ref #f 'list)
+                                        (drop orig-args (+ nreq nopt)))))
+                              (append orig-args
+                                      (drop inits (- nargs nreq))
+                                      (if rest
+                                          (list (make-const #f '()))
+                                          '())))
+                          body))
+
               (cond
-               ((or (< nargs nreq) (> nargs (+ nreq nopt)))
+               ((or (< nargs nreq) (and (not rest) (> nargs (+ nreq nopt))))
                 ;; An error, or effecting arguments.
                 (make-application src (for-call orig-proc)
                                   (map for-value orig-args)))
@@ -1254,12 +1274,7 @@ top-level bindings from ENV and return the resulting expression."
                               (lp (counter-prev counter)))))))
 
                 (log 'inline-recurse key)
-                (loop (make-let src (append req (or opt '()))
-                                gensyms
-                                (append orig-args
-                                        (drop inits (- nargs nreq)))
-                                body)
-                  env counter ctx))
+                (loop (inlined-application) env counter ctx))
                (else
                 ;; An integration at the top-level, the first
                 ;; recursion of a recursive procedure, or a nested
@@ -1290,12 +1305,7 @@ top-level bindings from ENV and return the resulting expression."
                       (make-top-counter effort-limit operand-size-limit
                                         abort key))))
                   (define result
-                    (loop (make-let src (append req (or opt '()))
-                                    gensyms
-                                    (append orig-args
-                                            (drop inits (- nargs nreq)))
-                                    body)
-                      env new-counter ctx))
+                    (loop (inlined-application) env new-counter ctx))
                       
                   (if counter
                       ;; The nested inlining attempt succeeded.

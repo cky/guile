@@ -843,6 +843,14 @@
     (const #t))
 
   (pass-if-peval
+      ;; Applications of procedures with rest arguments can get inlined.
+      ((lambda (x y . z)
+         (list x y z))
+       1 2 3 4)
+    (let (z) (_) ((apply (primitive list) (const 3) (const 4)))
+         (apply (primitive list) (const 1) (const 2) (lexical z _))))
+
+  (pass-if-peval
    ;; Constant folding: cons of #nil does not make list
    (cons 1 #nil)
    (apply (primitive cons) (const 1) (const '#nil)))
