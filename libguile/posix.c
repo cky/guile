@@ -265,8 +265,10 @@ SCM_DEFINE (scm_getgroups, "getgroups", 0, 0, 0,
   GETGROUPS_T *groups;
 
   ngroups = getgroups (0, NULL);
-  if (ngroups <= 0)
+  if (ngroups < 0)
     SCM_SYSERROR;
+  else if (ngroups == 0)
+    return scm_c_make_vector (0, SCM_BOOL_F);
 
   size = ngroups * sizeof (GETGROUPS_T);
   groups = scm_malloc (size);
