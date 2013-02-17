@@ -584,6 +584,7 @@ SCM_DEFINE (scm_doubly_weak_hash_table_p, "doubly-weak-hash-table?", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+
 
 /* Accessing hash table entries.  */
 
@@ -1368,6 +1369,33 @@ SCM_DEFINE (scm_hash_map_to_list, "hash-map->list", 2, 0, 0,
 				 (void *) SCM_UNPACK (proc),
 				 SCM_EOL,
 				 table);
+}
+#undef FUNC_NAME
+
+static SCM
+count_proc (void *pred, SCM key, SCM data, SCM value)
+{
+  if (scm_is_false (scm_call_2 (SCM_PACK (pred), key, data)))
+    return value;
+  else
+    return scm_oneplus(value);
+}
+
+SCM_DEFINE (scm_hash_count, "hash-count", 2, 0, 0,
+            (SCM pred, SCM table),
+            "Return the number of elements in the given hash TABLE that\n"
+            "cause `(PRED KEY VALUE)' to return true.  To quickly determine\n"
+            "the total number of elements, use `(const #t)' for PRED.")
+#define FUNC_NAME s_scm_hash_count
+{
+  SCM init;
+
+  SCM_VALIDATE_PROC (1, pred);
+  SCM_VALIDATE_HASHTABLE (2, table);
+
+  init = scm_from_int (0);
+  return scm_internal_hash_fold ((scm_t_hash_fold_fn) count_proc,
+				 (void *) SCM_UNPACK (pred), init, table);
 }
 #undef FUNC_NAME
 

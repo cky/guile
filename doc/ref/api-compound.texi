@@ -3796,11 +3796,30 @@ key is not found.
 #f
 @end lisp
 
-There is no procedure for calculating the number of key/value-pairs in
-a hash table, but @code{hash-fold} can be used for doing exactly that.
+Interesting results can be computed by using @code{hash-fold} to work
+through each element.  This example will count the total number of
+elements:
 
 @lisp
 (hash-fold (lambda (key value seed) (+ 1 seed)) 0 h)
+@result{}
+3
+@end lisp
+
+The same thing can be done with the procedure @code{hash-count}, which
+can also count the number of elements matching a particular predicate.
+For example, count the number of elements with string values:
+
+@lisp
+(hash-count (lambda (key value) (string? value)) h)
+@result{}
+2
+@end lisp
+
+Counting all the elements is a simple task using @code{const}:
+
+@lisp
+(hash-count (const #t) h)
 @result{}
 3
 @end lisp
@@ -4032,6 +4051,13 @@ For example, the following returns a count of how many keys in
 @end example
 @end deffn
 
+@deffn {Scheme Procedure} hash-count pred table
+@deffnx {C Function} scm_hash_count (pred, table)
+Return the number of elements in the given hash @var{table} that cause
+@code{(@var{pred} @var{key} @var{value})} to return true.  To quickly
+determine the total number of elements, use @code{(const #t)} for
+@var{pred}.
+@end deffn
 
 @c Local Variables:
 @c TeX-master: "guile.texi"

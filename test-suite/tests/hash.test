@@ -292,3 +292,19 @@
    exception:wrong-type-arg
    (hashx-set! (lambda (k s) 1) (lambda (k al) #t) (make-hash-table) 'foo 'bar))
   )
+
+
+;;;
+;;; hash-count
+;;;
+
+(with-test-prefix "hash-count"
+  (let ((table (make-hash-table)))
+    (hashq-set! table 'foo "bar")
+    (hashq-set! table 'braz "zonk")
+    (hashq-create-handle! table 'frob #f)
+
+    (pass-if (equal? 3 (hash-count (const #t) table)))
+
+    (pass-if (equal? 2 (hash-count (lambda (k v)
+                                     (string? v)) table)))))

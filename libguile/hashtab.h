@@ -164,6 +164,7 @@ SCM_API SCM scm_hash_fold (SCM proc, SCM init, SCM hash);
 SCM_API SCM scm_hash_for_each (SCM proc, SCM hash);
 SCM_API SCM scm_hash_for_each_handle (SCM proc, SCM hash);
 SCM_API SCM scm_hash_map_to_list (SCM proc, SCM hash);
+SCM_API SCM scm_hash_count (SCM hash, SCM pred);
 SCM_INTERNAL void scm_i_hashtable_print (SCM exp, SCM port, scm_print_state *pstate);
 SCM_INTERNAL void scm_init_hashtab (void);
 
