@@ -197,10 +197,12 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_socket:
   # Code from module sys_stat:
   # Code from module sys_time:
+  # Code from module sys_times:
   # Code from module sys_types:
   # Code from module sys_uio:
   # Code from module time:
   # Code from module time_r:
+  # Code from module times:
   # Code from module trunc:
   # Code from module unistd:
   # Code from module unistr/base:
@@ -685,6 +687,8 @@ AC_SUBST([LTALLOCA])
   AC_PROG_MKDIR_P
   gl_HEADER_SYS_TIME_H
   AC_PROG_MKDIR_P
+  gl_SYS_TIMES_H
+  AC_PROG_MKDIR_P
   gl_SYS_TYPES_H
   AC_PROG_MKDIR_P
   gl_HEADER_SYS_UIO
@@ -696,6 +700,11 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_TIME_R
   fi
   gl_TIME_MODULE_INDICATOR([time_r])
+  gl_FUNC_TIMES
+  if test $HAVE_TIMES = 0; then
+    AC_LIBOBJ([times])
+  fi
+  gl_SYS_TIMES_MODULE_INDICATOR([times])
   gl_FUNC_TRUNC
   if test $HAVE_DECL_TRUNC = 0 || test $REPLACE_TRUNC = 1; then
     AC_LIBOBJ([trunc])
@@ -1046,10 +1055,12 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_socket.in.h
   lib/sys_stat.in.h
   lib/sys_time.in.h
+  lib/sys_times.in.h
   lib/sys_types.in.h
   lib/sys_uio.in.h
   lib/time.in.h
   lib/time_r.c
+  lib/times.c
   lib/trunc.c
   lib/unistd.c
   lib/unistd.in.h
@@ -1211,10 +1222,12 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_socket_h.m4
   m4/sys_stat_h.m4
   m4/sys_time_h.m4
+  m4/sys_times_h.m4
   m4/sys_types_h.m4
   m4/sys_uio_h.m4
   m4/time_h.m4
   m4/time_r.m4
+  m4/times.m4
   m4/tm_gmtoff.m4
   m4/trunc.m4
   m4/unistd_h.m4
