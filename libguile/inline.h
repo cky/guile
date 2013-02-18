@@ -4,7 +4,7 @@
 #define SCM_INLINE_H
 
 /* Copyright (C) 2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010,
- *   2011 Free Software Foundation, Inc.
+ *   2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -41,9 +41,6 @@
 #include "libguile/error.h"
 
 
-SCM_INLINE SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
-SCM_INLINE void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
-
 SCM_INLINE int scm_is_pair (SCM x);
 SCM_INLINE int scm_is_string (SCM x);
 
@@ -60,26 +57,6 @@ SCM_INLINE SCM scm_words (scm_t_bits car, scm_t_uint16 n_words);
 
 #if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
 /* Either inlining, or being included from inline.c.  */
-
-SCM_INLINE_IMPLEMENTATION SCM
-scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
-{
-  if (SCM_UNLIKELY (p < 0 && ((size_t)-p) > h->base))
-    /* catch overflow */
-    scm_out_of_range (NULL, scm_from_ssize_t (p));
-  /* perhaps should catch overflow here too */
-  return h->impl->vref (h, h->base + p);
-}
-
-SCM_INLINE_IMPLEMENTATION void
-scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
-{
-  if (SCM_UNLIKELY (p < 0 && ((size_t)-p) > h->base))
-    /* catch overflow */
-    scm_out_of_range (NULL, scm_from_ssize_t (p));
-  /* perhaps should catch overflow here too */
-  h->impl->vset (h, h->base + p, v);
-}
 
 SCM_INLINE_IMPLEMENTATION int
 scm_is_pair (SCM x)

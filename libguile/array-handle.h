@@ -4,7 +4,7 @@
 #define SCM_ARRAY_HANDLE_H
 
 /* Copyright (C) 1995, 1996, 1997, 1999, 2000, 2001, 2004, 2006,
- *   2008, 2009, 2011 Free Software Foundation, Inc.
+ *   2008, 2009, 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -25,6 +25,8 @@
 
 
 #include "libguile/__scm.h"
+#include "libguile/error.h"
+#include "libguile/numbers.h"
 
 
 
@@ -117,7 +119,35 @@ SCM_API void scm_array_handle_release (scm_t_array_handle *h);
 SCM_API const SCM* scm_array_handle_elements (scm_t_array_handle *h);
 SCM_API SCM* scm_array_handle_writable_elements (scm_t_array_handle *h);
 
-/* See inline.h for scm_array_handle_ref and scm_array_handle_set */
+
+SCM_INLINE SCM scm_array_handle_ref (scm_t_array_handle *h, ssize_t pos);
+SCM_INLINE void scm_array_handle_set (scm_t_array_handle *h, ssize_t pos, SCM val);
+
+#if SCM_CAN_INLINE || defined SCM_INLINE_C_IMPLEMENTING_INLINES
+/* Either inlining, or being included from inline.c.  */
+
+SCM_INLINE_IMPLEMENTATION SCM
+scm_array_handle_ref (scm_t_array_handle *h, ssize_t p)
+{
+  if (SCM_UNLIKELY (p < 0 && ((size_t)-p) > h->base))
+    /* catch overflow */
+    scm_out_of_range (NULL, scm_from_ssize_t (p));
+  /* perhaps should catch overflow here too */
+  return h->impl->vref (h, h->base + p);
+}
+
+SCM_INLINE_IMPLEMENTATION void
+scm_array_handle_set (scm_t_array_handle *h, ssize_t p, SCM v)
+{
+  if (SCM_UNLIKELY (p < 0 && ((size_t)-p) > h->base))
+    /* catch overflow */
+    scm_out_of_range (NULL, scm_from_ssize_t (p));
+  /* perhaps should catch overflow here too */
+  h->impl->vset (h, h->base + p, v);
+}
+
+#endif
+
 
 SCM_INTERNAL void scm_init_array_handle (void);
 
