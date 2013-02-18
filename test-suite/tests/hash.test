@@ -148,7 +148,7 @@
 		    (hashq-set! table 1 'foo)
 		    (hashq-ref table 1))))
 
- ;; 1/2 and 2/4 are equal? and eqv? but not eq?
+ ;; 1/2 and 2/4 are equal? and eqv? (but not necessarily eq?)
  (pass-if (equal? 'foo
 		  (let ((table (make-hash-table)))
 		    (hash-set! table 1/2 'foo)
@@ -157,10 +157,6 @@
 		  (let ((table (make-hash-table)))
 		    (hashv-set! table 1/2 'foo)
 		    (hashv-ref table 2/4))))
- (pass-if (equal? #f
-		  (let ((table (make-hash-table)))
-		    (hashq-set! table 1/2 'foo)
-		    (hashq-ref table 2/4))))
 
  ;; (list 1 2) is equal? but not eqv? or eq? to another (list 1 2)
  (pass-if (equal? 'foo
