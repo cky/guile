@@ -41,6 +41,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([AM_PROG_CC_C_O])
   # Code from module accept:
   # Code from module alignof:
+  # Code from module alloca:
   # Code from module alloca-opt:
   # Code from module announce-gen:
   # Code from module arpa_inet:
@@ -65,6 +66,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module dirname-lgpl:
   # Code from module dosname:
   # Code from module double-slash-root:
+  # Code from module dup2:
   # Code from module duplocale:
   # Code from module environ:
   # Code from module errno:
@@ -158,6 +160,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module safe-read:
   # Code from module safe-write:
   # Code from module same-inode:
+  # Code from module select:
   # Code from module send:
   # Code from module sendto:
   # Code from module servent:
@@ -190,6 +193,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module striconveh:
   # Code from module string:
   # Code from module sys_file:
+  # Code from module sys_select:
   # Code from module sys_socket:
   # Code from module sys_stat:
   # Code from module sys_time:
@@ -238,6 +242,10 @@ AC_DEFUN([gl_INIT],
     AC_LIBOBJ([accept])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([accept])
+changequote(,)dnl
+LTALLOCA=`echo "$ALLOCA" | sed -e 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
+changequote([, ])dnl
+AC_SUBST([LTALLOCA])
   gl_FUNC_ALLOCA
   gl_HEADER_ARPA_INET
   AC_PROG_MKDIR_P
@@ -287,6 +295,12 @@ AC_DEFUN([gl_INIT],
   gl_DIRENT_MODULE_INDICATOR([dirfd])
   gl_DIRNAME_LGPL
   gl_DOUBLE_SLASH_ROOT
+  gl_FUNC_DUP2
+  if test $HAVE_DUP2 = 0 || test $REPLACE_DUP2 = 1; then
+    AC_LIBOBJ([dup2])
+    gl_PREREQ_DUP2
+  fi
+  gl_UNISTD_MODULE_INDICATOR([dup2])
   gl_FUNC_DUPLOCALE
   if test $REPLACE_DUPLOCALE = 1; then
     AC_LIBOBJ([duplocale])
@@ -587,6 +601,11 @@ AC_DEFUN([gl_INIT],
   gl_MATH_MODULE_INDICATOR([round])
   gl_PREREQ_SAFE_READ
   gl_PREREQ_SAFE_WRITE
+  gl_FUNC_SELECT
+  if test $REPLACE_SELECT = 1; then
+    AC_LIBOBJ([select])
+  fi
+  gl_SYS_SELECT_MODULE_INDICATOR([select])
   AC_REQUIRE([gl_HEADER_SYS_SOCKET])
   if test "$ac_cv_header_winsock2_h" = yes; then
     AC_LIBOBJ([send])
@@ -657,6 +676,8 @@ AC_DEFUN([gl_INIT],
   fi
   gl_HEADER_STRING_H
   gl_HEADER_SYS_FILE_H
+  AC_PROG_MKDIR_P
+  gl_HEADER_SYS_SELECT
   AC_PROG_MKDIR_P
   gl_HEADER_SYS_SOCKET
   AC_PROG_MKDIR_P
@@ -863,6 +884,7 @@ AC_DEFUN([gl_FILE_LIST], [
   doc/gendocs_template
   lib/accept.c
   lib/alignof.h
+  lib/alloca.c
   lib/alloca.in.h
   lib/arpa_inet.in.h
   lib/asnprintf.c
@@ -888,6 +910,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/dirname-lgpl.c
   lib/dirname.h
   lib/dosname.h
+  lib/dup2.c
   lib/duplocale.c
   lib/errno.in.h
   lib/fcntl.in.h
@@ -989,6 +1012,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.c
   lib/safe-write.h
   lib/same-inode.h
+  lib/select.c
   lib/send.c
   lib/sendto.c
   lib/setenv.c
@@ -1017,6 +1041,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/string.in.h
   lib/stripslash.c
   lib/sys_file.in.h
+  lib/sys_select.in.h
   lib/sys_socket.c
   lib/sys_socket.in.h
   lib/sys_stat.in.h
@@ -1068,6 +1093,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/dirfd.m4
   m4/dirname.m4
   m4/double-slash-root.m4
+  m4/dup2.m4
   m4/duplocale.m4
   m4/eealloc.m4
   m4/environ.m4
@@ -1158,6 +1184,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/round.m4
   m4/safe-read.m4
   m4/safe-write.m4
+  m4/select.m4
   m4/servent.m4
   m4/setenv.m4
   m4/signal_h.m4
@@ -1180,6 +1207,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/strftime.m4
   m4/string_h.m4
   m4/sys_file_h.m4
+  m4/sys_select_h.m4
   m4/sys_socket_h.m4
   m4/sys_stat_h.m4
   m4/sys_time_h.m4
