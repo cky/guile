@@ -14,7 +14,8 @@ FLOQUAL		(f|F|l|L)
 INTQUAL		(l|L|ll|LL|lL|Ll|u|U)
 
 %{
-    
+#include <config.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
