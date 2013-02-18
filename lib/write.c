@@ -1,5 +1,5 @@
 /* POSIX compatible write() function.
-   Copyright (C) 2008-2012 Free Software Foundation, Inc.
+   Copyright (C) 2008-2013 Free Software Foundation, Inc.
    Written by Bruno Haible <bruno@clisp.org>, 2008.
 
    This program is free software: you can redistribute it and/or modify
@@ -40,7 +40,7 @@
 # undef write
 
 # if HAVE_MSVC_INVALID_PARAMETER_HANDLER
-static inline ssize_t
+static ssize_t
 write_nothrow (int fd, const void *buf, size_t count)
 {
   ssize_t result;

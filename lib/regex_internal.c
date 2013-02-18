@@ -1,20 +1,21 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2012 Free Software Foundation, Inc.
+   Copyright (C) 2002-2013 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <http://www.gnu.org/licenses/>.  */
 
 static void re_string_construct_common (const char *str, Idx len,
 					re_string_t *pstr,
@@ -973,7 +974,7 @@ re_node_set_alloc (re_node_set *set, Idx size)
   set->alloc = size;
   set->nelem = 0;
   set->elems = re_malloc (Idx, size);
-  if (BE (set->elems == NULL, 0))
+  if (BE (set->elems == NULL, 0) && (MALLOC_0_IS_NONNULL || size != 0))
     return REG_ESPACE;
   return REG_NOERROR;
 }
@@ -1442,11 +1443,9 @@ re_dfa_add_node (re_dfa_t *dfa, re_token_t token)
   dfa->nodes[dfa->nodes_len] = token;
   dfa->nodes[dfa->nodes_len].constraint = 0;
 #ifdef RE_ENABLE_I18N
-  {
-  int type = token.type;
   dfa->nodes[dfa->nodes_len].accept_mb =
-    (type == OP_PERIOD && dfa->mb_cur_max > 1) || type == COMPLEX_BRACKET;
-  }
+    ((token.type == OP_PERIOD && dfa->mb_cur_max > 1)
+     || token.type == COMPLEX_BRACKET);
 #endif
   dfa->nexts[dfa->nodes_len] = REG_MISSING;
   re_node_set_init_empty (dfa->edests + dfa->nodes_len);
@@ -1454,7 +1453,7 @@ re_dfa_add_node (re_dfa_t *dfa, re_token_t token)
   return dfa->nodes_len++;
 }
 
-static inline re_hashval_t
+static re_hashval_t
 internal_function
 calc_state_hash (const re_node_set *nodes, unsigned int context)
 {

@@ -1,20 +1,21 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2012 Free Software Foundation, Inc.
+   Copyright (C) 2002-2013 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <http://www.gnu.org/licenses/>.  */
 
 #ifndef _REGEX_INTERNAL_H
 #define _REGEX_INTERNAL_H 1
@@ -26,9 +27,6 @@
 #include <string.h>
 
 #include <langinfo.h>
-#ifndef _LIBC
-# include "localcharset.h"
-#endif
 #include <locale.h>
 #include <wchar.h>
 #include <wctype.h>
@@ -37,7 +35,6 @@
 #if defined _LIBC
 # include <bits/libc-lock.h>
 #else
-# define __libc_lock_define(CLASS,NAME)
 # define __libc_lock_init(NAME) do { } while (0)
 # define __libc_lock_lock(NAME) do { } while (0)
 # define __libc_lock_unlock(NAME) do { } while (0)
@@ -63,7 +60,7 @@
 # ifdef _LIBC
 #  undef gettext
 #  define gettext(msgid) \
-  INTUSE(__dcgettext) (_libc_intl_domainname, msgid, LC_MESSAGES)
+  __dcgettext (_libc_intl_domainname, msgid, LC_MESSAGES)
 # endif
 #else
 # define gettext(msgid) (msgid)
@@ -83,9 +80,6 @@
 # define BE(expr, val) __builtin_expect (expr, val)
 #else
 # define BE(expr, val) (expr)
-# ifdef _LIBC
-#  define inline
-# endif
 #endif
 
 /* Number of ASCII characters.  */
@@ -102,6 +96,8 @@
 
 /* Rename to standard API for using out of glibc.  */
 #ifndef _LIBC
+# undef __wctype
+# undef __iswctype
 # define __wctype wctype
 # define __iswctype iswctype
 # define __btowc btowc
@@ -449,7 +445,9 @@ static unsigned int re_string_context_at (const re_string_t *input, Idx idx,
 #define re_string_skip_bytes(pstr,idx) ((pstr)->cur_idx += (idx))
 #define re_string_set_index(pstr,idx) ((pstr)->cur_idx = (idx))
 
-#include <alloca.h>
+#if defined _LIBC || HAVE_ALLOCA
+# include <alloca.h>
+#endif
 
 #ifndef _LIBC
 # if HAVE_ALLOCA
@@ -464,6 +462,12 @@ static unsigned int re_string_context_at (const re_string_t *input, Idx idx,
 #  undef alloca
 #  define alloca(n) malloc (n)
 # endif
+#endif
+
+#ifdef _LIBC
+# define MALLOC_0_IS_NONNULL 1
+#elif !defined MALLOC_0_IS_NONNULL
+# define MALLOC_0_IS_NONNULL 0
 #endif
 
 #ifndef MAX
@@ -696,7 +700,9 @@ struct re_dfa_t
 #ifdef DEBUG
   char* re_str;
 #endif
+#ifdef _LIBC
   __libc_lock_define (, lock)
+#endif
 };
 
 #define re_node_set_init_empty(set) memset (set, '\0', sizeof (re_node_set))
@@ -727,33 +733,33 @@ typedef struct
 } bracket_elem_t;
 
 
-/* Inline functions for bitset_t operation.  */
+/* Functions for bitset_t operation.  */
 
-static inline void
+static void
 bitset_set (bitset_t set, Idx i)
 {
   set[i / BITSET_WORD_BITS] |= (bitset_word_t) 1 << i % BITSET_WORD_BITS;
 }
 
-static inline void
+static void
 bitset_clear (bitset_t set, Idx i)
 {
   set[i / BITSET_WORD_BITS] &= ~ ((bitset_word_t) 1 << i % BITSET_WORD_BITS);
 }
 
-static inline bool
+static bool
 bitset_contain (const bitset_t set, Idx i)
 {
   return (set[i / BITSET_WORD_BITS] >> i % BITSET_WORD_BITS) & 1;
 }
 
-static inline void
+static void
 bitset_empty (bitset_t set)
 {
   memset (set, '\0', sizeof (bitset_t));
 }
 
-static inline void
+static void
 bitset_set_all (bitset_t set)
 {
   memset (set, -1, sizeof (bitset_word_t) * (SBC_MAX / BITSET_WORD_BITS));
@@ -762,13 +768,13 @@ bitset_set_all (bitset_t set)
       ((bitset_word_t) 1 << SBC_MAX % BITSET_WORD_BITS) - 1;
 }
 
-static inline void
+static void
 bitset_copy (bitset_t dest, const bitset_t src)
 {
   memcpy (dest, src, sizeof (bitset_t));
 }
 
-static inline void
+static void
 bitset_not (bitset_t set)
 {
   int bitset_i;
@@ -780,7 +786,7 @@ bitset_not (bitset_t set)
        & ~set[BITSET_WORDS - 1]);
 }
 
-static inline void
+static void
 bitset_merge (bitset_t dest, const bitset_t src)
 {
   int bitset_i;
@@ -788,7 +794,7 @@ bitset_merge (bitset_t dest, const bitset_t src)
     dest[bitset_i] |= src[bitset_i];
 }
 
-static inline void
+static void
 bitset_mask (bitset_t dest, const bitset_t src)
 {
   int bitset_i;
@@ -797,8 +803,8 @@ bitset_mask (bitset_t dest, const bitset_t src)
 }
 
 #ifdef RE_ENABLE_I18N
-/* Inline functions for re_string.  */
-static inline int
+/* Functions for re_string.  */
+static int
 internal_function __attribute ((pure))
 re_string_char_size_at (const re_string_t *pstr, Idx idx)
 {
@@ -811,7 +817,7 @@ re_string_char_size_at (const re_string_t *pstr, Idx idx)
   return byte_idx;
 }
 
-static inline wint_t
+static wint_t
 internal_function __attribute ((pure))
 re_string_wchar_at (const re_string_t *pstr, Idx idx)
 {

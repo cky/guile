@@ -1,6 +1,6 @@
 /* Provide a non-threads replacement for the POSIX raise function.
 
-   Copyright (C) 2002-2003, 2005-2006, 2009-2012 Free Software Foundation, Inc.
+   Copyright (C) 2002-2003, 2005-2006, 2009-2013 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@
 # undef raise
 
 # if HAVE_MSVC_INVALID_PARAMETER_HANDLER
-static inline int
+static int
 raise_nothrow (int sig)
 {
   int result;

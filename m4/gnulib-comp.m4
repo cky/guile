@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2012 Free Software Foundation, Inc.
+# Copyright (C) 2002-2013 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -534,6 +534,7 @@ AC_DEFUN([gl_INIT],
   gl_FUNC_PUTENV
   if test $REPLACE_PUTENV = 1; then
     AC_LIBOBJ([putenv])
+    gl_PREREQ_PUTENV
   fi
   gl_STDLIB_MODULE_INDICATOR([putenv])
   gl_FUNC_RAISE
@@ -942,6 +943,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/malloca.c
   lib/malloca.h
   lib/malloca.valgrind
+  lib/math.c
   lib/math.in.h
   lib/mbrtowc.c
   lib/mbsinit.c
@@ -1015,6 +1017,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/string.in.h
   lib/stripslash.c
   lib/sys_file.in.h
+  lib/sys_socket.c
   lib/sys_socket.in.h
   lib/sys_stat.in.h
   lib/sys_time.in.h
@@ -1023,6 +1026,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/time.in.h
   lib/time_r.c
   lib/trunc.c
+  lib/unistd.c
   lib/unistd.in.h
   lib/unistr.in.h
   lib/unistr/u8-mbtouc-aux.c
@@ -1041,6 +1045,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/w32sock.h
   lib/wchar.in.h
   lib/wcrtomb.c
+  lib/wctype-h.c
   lib/wctype.in.h
   lib/write.c
   lib/xsize.c

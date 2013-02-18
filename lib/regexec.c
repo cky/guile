@@ -1,20 +1,21 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2012 Free Software Foundation, Inc.
+   Copyright (C) 2002-2013 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <http://www.gnu.org/licenses/>.  */
 
 static reg_errcode_t match_ctx_init (re_match_context_t *cache, int eflags,
 				     Idx n) internal_function;
@@ -198,7 +199,7 @@ static Idx group_nodes_into_DFAstates (const re_dfa_t *dfa,
 static bool check_node_accept (const re_match_context_t *mctx,
 			       const re_token_t *node, Idx idx)
      internal_function;
-static reg_errcode_t extend_buffers (re_match_context_t *mctx)
+static reg_errcode_t extend_buffers (re_match_context_t *mctx, int min_len)
      internal_function;
 
 /* Entry point for POSIX code.  */
@@ -1175,7 +1176,7 @@ check_matching (re_match_context_t *mctx, bool fl_longest_match,
 	  || (BE (next_char_idx >= mctx->input.valid_len, 0)
 	      && mctx->input.valid_len < mctx->input.len))
 	{
-	  err = extend_buffers (mctx);
+	  err = extend_buffers (mctx, next_char_idx + 1);
 	  if (BE (err != REG_NOERROR, 0))
 	    {
 	      assert (err == REG_ESPACE);
@@ -1755,7 +1756,7 @@ clean_state_log_if_needed (re_match_context_t *mctx, Idx next_state_log_idx)
 	  && mctx->input.valid_len < mctx->input.len))
     {
       reg_errcode_t err;
-      err = extend_buffers (mctx);
+      err = extend_buffers (mctx, next_state_log_idx + 1);
       if (BE (err != REG_NOERROR, 0))
 	return err;
     }
@@ -2812,7 +2813,7 @@ get_subexp (re_match_context_t *mctx, Idx bkref_node, Idx bkref_str_idx)
 		  if (bkref_str_off >= mctx->input.len)
 		    break;
 
-		  err = extend_buffers (mctx);
+		  err = extend_buffers (mctx, bkref_str_off + 1);
 		  if (BE (err != REG_NOERROR, 0))
 		    return err;
 
@@ -3935,6 +3936,7 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 		in_collseq = find_collation_sequence_value (pin, elem_len);
 	    }
 	  /* match with range expression?  */
+	  /* FIXME: Implement rational ranges here, too.  */
 	  for (i = 0; i < cset->nranges; ++i)
 	    if (cset->range_starts[i] <= in_collseq
 		&& in_collseq <= cset->range_ends[i])
@@ -3986,18 +3988,9 @@ check_node_accept_bytes (const re_dfa_t *dfa, Idx node_idx,
 # endif /* _LIBC */
 	{
 	  /* match with range expression?  */
-#if __GNUC__ >= 2 && ! (__STDC_VERSION__ < 199901L && defined __STRICT_ANSI__)
-	  wchar_t cmp_buf[] = {L'\0', L'\0', wc, L'\0', L'\0', L'\0'};
-#else
-	  wchar_t cmp_buf[] = {L'\0', L'\0', L'\0', L'\0', L'\0', L'\0'};
-	  cmp_buf[2] = wc;
-#endif
 	  for (i = 0; i < cset->nranges; ++i)
 	    {
-	      cmp_buf[0] = cset->range_starts[i];
-	      cmp_buf[4] = cset->range_ends[i];
-	      if (wcscoll (cmp_buf, cmp_buf + 2) <= 0
-		  && wcscoll (cmp_buf + 2, cmp_buf + 4) <= 0)
+	      if (cset->range_starts[i] <= wc && wc <= cset->range_ends[i])
 		{
 		  match_len = char_len;
 		  goto check_node_accept_bytes_match;
@@ -4135,7 +4128,7 @@ check_node_accept (const re_match_context_t *mctx, const re_token_t *node,
 
 static reg_errcode_t
 internal_function __attribute_warn_unused_result__
-extend_buffers (re_match_context_t *mctx)
+extend_buffers (re_match_context_t *mctx, int min_len)
 {
   reg_errcode_t ret;
   re_string_t *pstr = &mctx->input;
@@ -4145,8 +4138,10 @@ extend_buffers (re_match_context_t *mctx)
           <= pstr->bufs_len, 0))
     return REG_ESPACE;
 
-  /* Double the lengths of the buffers.  */
-  ret = re_string_realloc_buffers (pstr, MIN (pstr->len, pstr->bufs_len * 2));
+  /* Double the lengths of the buffers, but allocate at least MIN_LEN.  */
+  ret = re_string_realloc_buffers (pstr,
+				   MAX (min_len,
+					MIN (pstr->len, pstr->bufs_len * 2)));
   if (BE (ret != REG_NOERROR, 0))
     return ret;
 

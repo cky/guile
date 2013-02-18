@@ -1,20 +1,21 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2012 Free Software Foundation, Inc.
+   Copyright (C) 2002-2013 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
-   This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
-   the Free Software Foundation; either version 2, or (at your option)
-   any later version.
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
-   This program is distributed in the hope that it will be useful,
+   The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Lesser General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Lesser General Public License along
-   with this program; if not, see <http://www.gnu.org/licenses/>.  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <http://www.gnu.org/licenses/>.  */
 
 static reg_errcode_t re_compile_internal (regex_t *preg, const char * pattern,
 					  size_t length, reg_syntax_t syntax);
@@ -93,20 +94,20 @@ static reg_errcode_t build_charclass (RE_TRANSLATE_TYPE trans,
 				      bitset_t sbcset,
 				      re_charset_t *mbcset,
 				      Idx *char_class_alloc,
-				      const unsigned char *class_name,
+				      const char *class_name,
 				      reg_syntax_t syntax);
 #else  /* not RE_ENABLE_I18N */
 static reg_errcode_t build_equiv_class (bitset_t sbcset,
 					const unsigned char *name);
 static reg_errcode_t build_charclass (RE_TRANSLATE_TYPE trans,
 				      bitset_t sbcset,
-				      const unsigned char *class_name,
+				      const char *class_name,
 				      reg_syntax_t syntax);
 #endif /* not RE_ENABLE_I18N */
 static bin_tree_t *build_charclass_op (re_dfa_t *dfa,
 				       RE_TRANSLATE_TYPE trans,
-				       const unsigned char *class_name,
-				       const unsigned char *extra,
+				       const char *class_name,
+				       const char *extra,
 				       bool non_match, reg_errcode_t *err);
 static bin_tree_t *create_tree (re_dfa_t *dfa,
 				bin_tree_t *left, bin_tree_t *right,
@@ -952,10 +953,10 @@ static void
 internal_function
 init_word_char (re_dfa_t *dfa)
 {
-  dfa->word_ops_used = 1;
   int i = 0;
   int j;
   int ch = 0;
+  dfa->word_ops_used = 1;
   if (BE (dfa->map_notascii == 0, 1))
     {
       bitset_word_t bits0 = 0x00000000;
@@ -2421,8 +2422,8 @@ parse_expression (re_string_t *regexp, regex_t *preg, re_token_t *token,
     case OP_WORD:
     case OP_NOTWORD:
       tree = build_charclass_op (dfa, regexp->trans,
-				 (const unsigned char *) "alnum",
-				 (const unsigned char *) "_",
+				 "alnum",
+				 "_",
 				 token->type == OP_NOTWORD, err);
       if (BE (*err != REG_NOERROR && tree == NULL, 0))
 	return NULL;
@@ -2430,8 +2431,8 @@ parse_expression (re_string_t *regexp, regex_t *preg, re_token_t *token,
     case OP_SPACE:
     case OP_NOTSPACE:
       tree = build_charclass_op (dfa, regexp->trans,
-				 (const unsigned char *) "space",
-				 (const unsigned char *) "",
+				 "space",
+				 "",
 				 token->type == OP_NOTSPACE, err);
       if (BE (*err != REG_NOERROR && tree == NULL, 0))
 	return NULL;
@@ -2711,7 +2712,6 @@ build_range_exp (const reg_syntax_t syntax,
     wchar_t wc;
     wint_t start_wc;
     wint_t end_wc;
-    wchar_t cmp_buf[6] = {L'\0', L'\0', L'\0', L'\0', L'\0', L'\0'};
 
     start_ch = ((start_elem->type == SB_CHAR) ? start_elem->opr.ch
 		: ((start_elem->type == COLL_SYM) ? start_elem->opr.name[0]
@@ -2725,11 +2725,7 @@ build_range_exp (const reg_syntax_t syntax,
 	      ? __btowc (end_ch) : end_elem->opr.wch);
     if (start_wc == WEOF || end_wc == WEOF)
       return REG_ECOLLATE;
-    cmp_buf[0] = start_wc;
-    cmp_buf[4] = end_wc;
-
-    if (BE ((syntax & RE_NO_EMPTY_RANGES)
-            && wcscoll (cmp_buf, cmp_buf + 4) > 0, 0))
+    else if (BE ((syntax & RE_NO_EMPTY_RANGES) && start_wc > end_wc, 0))
       return REG_ERANGE;
 
     /* Got valid collation sequence values, add them as a new entry.
@@ -2770,9 +2766,7 @@ build_range_exp (const reg_syntax_t syntax,
     /* Build the table for single byte characters.  */
     for (wc = 0; wc < SBC_MAX; ++wc)
       {
-	cmp_buf[2] = wc;
-	if (wcscoll (cmp_buf, cmp_buf + 2) <= 0
-	    && wcscoll (cmp_buf + 2, cmp_buf + 4) <= 0)
+	if (start_wc <= wc && wc <= end_wc)
 	  bitset_set (sbcset, wc);
       }
   }
@@ -2969,6 +2963,7 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 	      0))
 	return REG_ERANGE;
 
+      /* FIXME: Implement rational ranges here, too.  */
       start_collseq = lookup_collation_sequence_value (start_elem);
       end_collseq = lookup_collation_sequence_value (end_elem);
       /* Check start/end collation sequence values.  */
@@ -3296,7 +3291,8 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 #ifdef RE_ENABLE_I18N
 				      mbcset, &char_class_alloc,
 #endif /* RE_ENABLE_I18N */
-				      start_elem.opr.name, syntax);
+				      (const char *) start_elem.opr.name,
+				      syntax);
 	      if (BE (*err != REG_NOERROR, 0))
 	       goto parse_bracket_exp_free_return;
 	      break;
@@ -3576,14 +3572,14 @@ static reg_errcode_t
 #ifdef RE_ENABLE_I18N
 build_charclass (RE_TRANSLATE_TYPE trans, bitset_t sbcset,
 		 re_charset_t *mbcset, Idx *char_class_alloc,
-		 const unsigned char *class_name, reg_syntax_t syntax)
+		 const char *class_name, reg_syntax_t syntax)
 #else /* not RE_ENABLE_I18N */
 build_charclass (RE_TRANSLATE_TYPE trans, bitset_t sbcset,
-		 const unsigned char *class_name, reg_syntax_t syntax)
+		 const char *class_name, reg_syntax_t syntax)
 #endif /* not RE_ENABLE_I18N */
 {
   int i;
-  const char *name = (const char *) class_name;
+  const char *name = class_name;
 
   /* In case of REG_ICASE "upper" and "lower" match the both of
      upper and lower cases.  */
@@ -3657,8 +3653,8 @@ build_charclass (RE_TRANSLATE_TYPE trans, bitset_t sbcset,
 
 static bin_tree_t *
 build_charclass_op (re_dfa_t *dfa, RE_TRANSLATE_TYPE trans,
-		    const unsigned char *class_name,
-		    const unsigned char *extra, bool non_match,
+		    const char *class_name,
+		    const char *extra, bool non_match,
 		    reg_errcode_t *err)
 {
   re_bitset_ptr_t sbcset;
