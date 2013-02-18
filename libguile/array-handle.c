@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -95,6 +95,47 @@ scm_array_handle_pos (scm_t_array_handle *h, SCM indices)
     scm_misc_error (NULL, "wrong number of indices, expecting ~a",
 		    scm_list_1 (scm_from_size_t (scm_array_handle_rank (h))));
   return pos;
+}
+
+static void
+check_array_index_bounds (scm_t_array_dim *dim, ssize_t idx)
+{
+  if (idx < dim->lbnd || idx > dim->ubnd)
+    scm_error (scm_out_of_range_key, NULL, "Value out of range ~S to ~S: ~S",
+               scm_list_3 (scm_from_ssize_t (dim->lbnd),
+                           scm_from_ssize_t (dim->ubnd),
+                           scm_from_ssize_t (idx)),
+               scm_list_1 (scm_from_ssize_t (idx)));
+}
+
+ssize_t
+scm_array_handle_pos_1 (scm_t_array_handle *h, ssize_t idx0)
+{
+  scm_t_array_dim *dim = scm_array_handle_dims (h);
+
+  if (scm_array_handle_rank (h) != 1)
+    scm_misc_error (NULL, "wrong number of indices, expecting ~A",
+		    scm_list_1 (scm_from_size_t (scm_array_handle_rank (h))));
+
+  check_array_index_bounds (&dim[0], idx0);
+
+  return (idx0 - dim[0].lbnd) * dim[0].inc;
+}
+
+ssize_t
+scm_array_handle_pos_2 (scm_t_array_handle *h, ssize_t idx0, ssize_t idx1)
+{
+  scm_t_array_dim *dim = scm_array_handle_dims (h);
+
+  if (scm_array_handle_rank (h) != 2)
+    scm_misc_error (NULL, "wrong number of indices, expecting ~A",
+		    scm_list_1 (scm_from_size_t (scm_array_handle_rank (h))));
+
+  check_array_index_bounds (&dim[0], idx0);
+  check_array_index_bounds (&dim[1], idx1);
+
+  return ((idx0 - dim[0].lbnd) * dim[0].inc
+          + (idx1 - dim[1].lbnd) * dim[1].inc);
 }
 
 SCM

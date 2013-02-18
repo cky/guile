@@ -114,6 +114,8 @@ typedef struct scm_t_array_handle {
 
 SCM_API void scm_array_get_handle (SCM array, scm_t_array_handle *h);
 SCM_API ssize_t scm_array_handle_pos (scm_t_array_handle *h, SCM indices);
+SCM_API ssize_t scm_array_handle_pos_1 (scm_t_array_handle *h, ssize_t idx0);
+SCM_API ssize_t scm_array_handle_pos_2 (scm_t_array_handle *h, ssize_t idx0, ssize_t idx1);
 SCM_API SCM scm_array_handle_element_type (scm_t_array_handle *h);
 SCM_API void scm_array_handle_release (scm_t_array_handle *h);
 SCM_API const SCM* scm_array_handle_elements (scm_t_array_handle *h);

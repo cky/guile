@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,6 +31,12 @@
 #include "libguile/__scm.h"
 #include "libguile/array-handle.h"
 #include "libguile/generalized-arrays.h"
+
+
+SCM_INTERNAL SCM scm_i_array_ref (SCM v,
+                                  SCM idx0, SCM idx1, SCM idxN);
+SCM_INTERNAL SCM scm_i_array_set_x (SCM v, SCM obj,
+                                    SCM idx0, SCM idx1, SCM idxN);
 
 
 int
@@ -195,11 +201,35 @@ SCM_DEFINE (scm_array_in_bounds_p, "array-in-bounds?", 1, 0, 1,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
-           (SCM v, SCM args),
-	    "Return the element at the @code{(index1, index2)} element in\n"
-	    "array @var{v}.")
-#define FUNC_NAME s_scm_array_ref
+
+SCM
+scm_c_array_ref_1 (SCM array, ssize_t idx0)
+{
+  scm_t_array_handle handle;
+  SCM res;
+
+  scm_array_get_handle (array, &handle);
+  res = scm_array_handle_ref (&handle, scm_array_handle_pos_1 (&handle, idx0));
+  scm_array_handle_release (&handle);
+  return res;
+}
+
+
+SCM
+scm_c_array_ref_2 (SCM array, ssize_t idx0, ssize_t idx1)
+{
+  scm_t_array_handle handle;
+  SCM res;
+
+  scm_array_get_handle (array, &handle);
+  res = scm_array_handle_ref (&handle, scm_array_handle_pos_2 (&handle, idx0, idx1));
+  scm_array_handle_release (&handle);
+  return res;
+}
+
+
+SCM
+scm_array_ref (SCM v, SCM args)
 {
   scm_t_array_handle handle;
   SCM res;
@@ -209,15 +239,34 @@ SCM_DEFINE (scm_array_ref, "array-ref", 1, 0, 1,
   scm_array_handle_release (&handle);
   return res;
 }
-#undef FUNC_NAME
 
 
-SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1, 
-           (SCM v, SCM obj, SCM args),
-	    "Set the element at the @code{(index1, index2)} element in array\n"
-	    "@var{v} to @var{obj}.  The value returned by @code{array-set!}\n"
-	    "is unspecified.")
-#define FUNC_NAME s_scm_array_set_x           
+void
+scm_c_array_set_1_x (SCM array, SCM obj, ssize_t idx0)
+{
+  scm_t_array_handle handle;
+
+  scm_array_get_handle (array, &handle);
+  scm_array_handle_set (&handle, scm_array_handle_pos_1 (&handle, idx0),
+                        obj);
+  scm_array_handle_release (&handle);
+}
+
+
+void
+scm_c_array_set_2_x (SCM array, SCM obj, ssize_t idx0, ssize_t idx1)
+{
+  scm_t_array_handle handle;
+
+  scm_array_get_handle (array, &handle);
+  scm_array_handle_set (&handle, scm_array_handle_pos_2 (&handle, idx0, idx1),
+                        obj);
+  scm_array_handle_release (&handle);
+}
+
+
+SCM
+scm_array_set_x (SCM v, SCM obj, SCM args)
 {
   scm_t_array_handle handle;
 
@@ -226,7 +275,46 @@ SCM_DEFINE (scm_array_set_x, "array-set!", 2, 0, 1,
   scm_array_handle_release (&handle);
   return SCM_UNSPECIFIED;
 }
+
+
+SCM_DEFINE (scm_i_array_ref, "array-ref", 1, 2, 1,
+            (SCM v, SCM idx0, SCM idx1, SCM idxN),
+	    "Return the element at the @code{(idx0, idx1, idxN...)}\n"
+            "position in array @var{v}.")
+#define FUNC_NAME s_scm_i_array_ref
+{
+  if (SCM_UNBNDP (idx0))
+    return scm_array_ref (v, SCM_EOL);
+  else if (SCM_UNBNDP (idx1))
+    return scm_c_array_ref_1 (v, scm_to_ssize_t (idx0));
+  else if (scm_is_null (idxN))
+    return scm_c_array_ref_2 (v, scm_to_ssize_t (idx0), scm_to_ssize_t (idx1));
+  else
+    return scm_array_ref (v, scm_cons (idx0, scm_cons (idx1, idxN)));
+}
 #undef FUNC_NAME
+
+
+SCM_DEFINE (scm_i_array_set_x, "array-set!", 2, 2, 1,
+            (SCM v, SCM obj, SCM idx0, SCM idx1, SCM idxN),
+	    "Set the element at the @code{(idx0, idx1, idxN...)} position\n"
+	    "in the array @var{v} to @var{obj}.  The value returned by\n"
+            "@code{array-set!} is unspecified.")
+#define FUNC_NAME s_scm_i_array_set_x
+{
+  if (SCM_UNBNDP (idx0))
+    scm_array_set_x (v, obj, SCM_EOL);
+  else if (SCM_UNBNDP (idx1))
+    scm_c_array_set_1_x (v, obj, scm_to_ssize_t (idx0));
+  else if (scm_is_null (idxN))
+    scm_c_array_set_2_x (v, obj, scm_to_ssize_t (idx0), scm_to_ssize_t (idx1));
+  else
+    scm_array_set_x (v, obj, scm_cons (idx0, scm_cons (idx1, idxN)));
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 
 static SCM 
 array_to_list (scm_t_array_handle *h, size_t dim, unsigned long pos)

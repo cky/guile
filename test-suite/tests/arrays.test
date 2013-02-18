@@ -1,6 +1,6 @@
 ;;;; unif.test --- tests guile's uniform arrays     -*- scheme -*-
 ;;;;
-;;;; Copyright 2004, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright 2004, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -451,7 +451,7 @@
 	(array-set! a 'y 2))
       (pass-if-exception "end+1" exception:out-of-range
 	(array-set! a 'y 6))
-      (pass-if-exception "two indexes" exception:out-of-range
+      (pass-if-exception "two indexes" exception:wrong-num-indices
 	(array-set! a 'y 6 7))))
 
   (with-test-prefix "two dim"
