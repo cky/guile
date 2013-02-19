@@ -220,7 +220,9 @@ make_objcode_from_file (int fd)
         int errno_save = errno;
         (void) close (fd);
         errno = errno_save;
-        SCM_SYSERROR;
+        if (errno)
+          SCM_SYSERROR;
+        scm_misc_error (FUNC_NAME, "file truncated while reading", SCM_EOL);
       }
 
     (void) close (fd);
