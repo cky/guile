@@ -1454,7 +1454,8 @@ VALUE."
      (define (absolute-file-name? file-name)
        (define (unc-file-name?)
          ;; Universal Naming Convention (UNC) file-names start with \\,
-         ;; and are always absolute.
+         ;; and are always absolute.  See:
+         ;;   http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#fully_qualified_vs._relative_paths
          (string-prefix? "\\\\" file-name))
        (define (has-drive-specifier?)
          (and (>= (string-length file-name) 2)
