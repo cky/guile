@@ -296,6 +296,12 @@ If there is no handler at all, Guile prints an error and then exits."
              (apply f (car l1) (map car rest))
              (lp (cdr l1) (map cdr rest))))))))
 
+;; Temporary definition used in the include-from-path expansion;
+;; replaced later.
+
+(define (absolute-file-name? file-name)
+  #t)
+
 ;;; {and-map and or-map}
 ;;;
 ;;; (and-map fn lst) is like (and (fn (car lst)) (fn (cadr lst)) (fn...) ...)
@@ -1411,16 +1417,68 @@ VALUE."
 ;;; {Load Paths}
 ;;;
 
+(let-syntax ((compile-time-case
+              (lambda (stx)
+                (syntax-case stx ()
+                  ((_ exp clauses ...)
+                   (let ((val (primitive-eval (syntax->datum #'exp))))
+                     (let next-clause ((clauses #'(clauses ...)))
+                       (syntax-case clauses (else)
+                         (()
+                          (syntax-violation 'compile-time-case
+                                            "all clauses failed to match" stx))
+                         (((else form ...))
+                          #'(begin form ...))
+                         ((((k ...) form ...) clauses ...)
+                          (if (memv val (syntax->datum #'(k ...)))
+                              #'(begin form ...)
+                              (next-clause #'(clauses ...))))))))))))
+  ;; emacs: (put 'compile-time-case 'scheme-indent-function 1)
+  (compile-time-case (system-file-name-convention)
+    ((posix)
+     (define (file-name-separator? c)
+       (char=? c #\/))
+
+     (define file-name-separator-string "/")
+
+     (define (absolute-file-name? file-name)
+       (string-prefix? "/" file-name)))
+
+    ((windows)
+     (define (file-name-separator? c)
+       (or (char=? c #\/)
+           (char=? c #\\)))
+
+     (define file-name-separator-string "\\")
+
+     (define (absolute-file-name? file-name)
+       (define (unc-file-name?)
+         ;; Universal Naming Convention (UNC) file-names start with \\,
+         ;; and are always absolute.
+         (string-prefix? "\\\\" file-name))
+       (define (has-drive-specifier?)
+         (and (>= (string-length file-name) 2)
+              (let ((drive (string-ref file-name 0)))
+                (or (char<=? #\a drive #\z)
+                    (char<=? #\A drive #\Z)))
+              (eqv? (string-ref file-name 1) #\:)))
+       (define (file-name-separator-at-index? idx)
+         (and (> (string-length file-name) idx)
+              (file-name-separator? (string-ref file-name idx))))
+       (or (unc-file-name?)
+           (if (has-drive-specifier?)
+               (file-name-separator-at-index? 2)
+               (file-name-separator-at-index? 0)))))))
+
 (define (in-vicinity vicinity file)
   (let ((tail (let ((len (string-length vicinity)))
                 (if (zero? len)
                     #f
                     (string-ref vicinity (- len 1))))))
     (string-append vicinity
-                   (if (or (not tail)
-                           (eq? tail #\/))
+                   (if (or (not tail) (file-name-separator? tail))
                        ""
-                       "/")
+                       file-name-separator-string)
                    file)))
 
 
@@ -1440,7 +1498,7 @@ VALUE."
 (define (load-user-init)
   (let* ((home (or (getenv "HOME")
                    (false-if-exception (passwd:dir (getpwuid (getuid))))
-                   "/"))  ;; fallback for cygwin etc.
+                   file-name-separator-string))  ;; fallback for cygwin etc.
          (init-file (in-vicinity home ".guile")))
     (if (file-exists? init-file)
         (primitive-load init-file))))
@@ -2777,7 +2835,8 @@ but it fails to load."
          (dir-hint-module-name (reverse (cdr reverse-name)))
          (dir-hint (apply string-append
                           (map (lambda (elt)
-                                 (string-append (symbol->string elt) "/"))
+                                 (string-append (symbol->string elt)
+                                                file-name-separator-string))
                                dir-hint-module-name))))
     (resolve-module dir-hint-module-name #f)
     (and (not (autoload-done-or-in-progress? dir-hint name))
@@ -3606,16 +3665,17 @@ CONV is not applied to the initial value."
 
 ;;; {`load'.}
 ;;;
-;;; Load is tricky when combined with relative paths, compilation, and
-;;; the file system.  If a path is relative, what is it relative to?  The
-;;; path of the source file at the time it was compiled?  The path of
-;;; the compiled file?  What if both or either were installed?  And how
-;;; do you get that information?  Tricky, I say.
+;;; Load is tricky when combined with relative file names, compilation,
+;;; and the file system.  If a file name is relative, what is it
+;;; relative to?  The name of the source file at the time it was
+;;; compiled?  The name of the compiled file?  What if both or either
+;;; were installed?  And how do you get that information?  Tricky, I
+;;; say.
 ;;;
 ;;; To get around all of this, we're going to do something nasty, and
-;;; turn `load' into a macro.  That way it can know the path of the
+;;; turn `load' into a macro.  That way it can know the name of the
 ;;; source file with respect to which it was invoked, so it can resolve
-;;; relative paths with respect to the original source path.
+;;; relative file names with respect to the original source file.
 ;;;
 ;;; There is an exception, and that is that if the source file was in
 ;;; the load path when it was compiled, instead of looking up against
@@ -3628,18 +3688,24 @@ CONV is not applied to the initial value."
   '(#:warnings (unbound-variable arity-mismatch format
                 duplicate-case-datum bad-case-datum)))
 
-(define* (load-in-vicinity dir path #:optional reader)
-  "Load source file PATH in vicinity of directory DIR.  Use a pre-compiled
-version of PATH when available, and auto-compile one when none is available,
-reading PATH with READER."
+(define* (load-in-vicinity dir file-name #:optional reader)
+  "Load source file FILE-NAME in vicinity of directory DIR.  Use a
+pre-compiled version of FILE-NAME when available, and auto-compile one
+when none is available, reading FILE-NAME with READER."
 
   (define (canonical->suffix canon)
     (cond
-     ((string-prefix? "/" canon) canon)
-     ((and (> (string-length canon) 2)
-           (eqv? (string-ref canon 1) #\:))
-      ;; Paths like C:... transform to /C...
-      (string-append "/" (substring canon 0 1) (substring canon 2)))
+     ((and (not (string-null? canon))
+           (file-name-separator? (string-ref canon 0)))
+      canon)
+     ((and (eq? (system-file-name-convention) 'windows)
+           (absolute-file-name? canon))
+      ;; An absolute file name that doesn't start with a separator
+      ;; starts with a drive component.  Transform the drive component
+      ;; to a file name element:  c:\foo -> \c\foo.
+      (string-append file-name-separator-string
+                     (substring canon 0 1)
+                     (substring canon 2)))
      (else canon)))
 
   (define compiled-extension
@@ -3658,14 +3724,16 @@ reading PATH with READER."
              (>= (stat:mtimensec stat1)
                  (stat:mtimensec stat2)))))
 
-  (define (fallback-file-name canon-path)
-    ;; Return the in-cache compiled file name for source file CANON-PATH.
+  (define (fallback-file-name canon-file-name)
+    ;; Return the in-cache compiled file name for source file
+    ;; CANON-FILE-NAME.
 
-    ;; FIXME: would probably be better just to append SHA1(canon-path)
-    ;; to the %compile-fallback-path, to avoid deep directory stats.
+    ;; FIXME: would probably be better just to append
+    ;; SHA1(canon-file-name) to the %compile-fallback-path, to avoid
+    ;; deep directory stats.
     (and %compile-fallback-path
          (string-append %compile-fallback-path
-                        (canonical->suffix canon-path)
+                        (canonical->suffix canon-file-name)
                         compiled-extension)))
 
   (define (compile file)
@@ -3685,30 +3753,33 @@ reading PATH with READER."
                 (lambda (port) (print-exception port #f key args)))
                #\newline)))
 
-  ;; Returns the .go file corresponding to `name'. Does not search load
-  ;; paths, only the fallback path. If the .go file is missing or out of
-  ;; date, and auto-compilation is enabled, will try auto-compilation, just
-  ;; as primitive-load-path does internally. primitive-load is
-  ;; unaffected. Returns #f if auto-compilation failed or was disabled.
+  ;; Returns the .go file corresponding to `name'.  Does not search load
+  ;; paths, only the fallback path.  If the .go file is missing or out
+  ;; of date, and auto-compilation is enabled, will try
+  ;; auto-compilation, just as primitive-load-path does internally.
+  ;; primitive-load is unaffected.  Returns #f if auto-compilation
+  ;; failed or was disabled.
   ;;
-  ;; NB: Unless we need to compile the file, this function should not cause
-  ;; (system base compile) to be loaded up. For that reason compiled-file-name
-  ;; partially duplicates functionality from (system base compile).
+  ;; NB: Unless we need to compile the file, this function should not
+  ;; cause (system base compile) to be loaded up.  For that reason
+  ;; compiled-file-name partially duplicates functionality from (system
+  ;; base compile).
 
-  (define (fresh-compiled-file-name name scmstat go-path)
-    ;; Return GO-PATH after making sure that it contains a freshly compiled
-    ;; version of source file NAME with stat SCMSTAT; return #f on failure.
+  (define (fresh-compiled-file-name name scmstat go-file-name)
+    ;; Return GO-FILE-NAME after making sure that it contains a freshly
+    ;; compiled version of source file NAME with stat SCMSTAT; return #f
+    ;; on failure.
     (catch #t
       (lambda ()
         (let ((gostat (and (not %fresh-auto-compile)
-                           (stat go-path #f))))
+                           (stat go-file-name #f))))
           (if (and gostat (more-recent? gostat scmstat))
-              go-path
+              go-file-name
               (begin
                 (if gostat
                     (format (current-warning-port)
                             ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                            name go-path))
+                            name go-file-name))
                 (cond
                  (%load-should-auto-compile
                   (%warn-auto-compilation-enabled)
@@ -3723,61 +3794,60 @@ reading PATH with READER."
         (warn-about-exception k args)
         #f)))
 
-  (define (absolute-path? path)
-    (string-prefix? "/" path))
-
   (define (sans-extension file)
     (let ((dot (string-rindex file #\.)))
       (if dot
           (substring file 0 dot)
           file)))
 
-  (define (load-absolute abs-path)
-    ;; Load from ABS-PATH, using a compiled file or auto-compiling if needed.
+  (define (load-absolute abs-file-name)
+    ;; Load from ABS-FILE-NAME, using a compiled file or auto-compiling
+    ;; if needed.
     (define scmstat
       (catch #t
         (lambda ()
-          (stat abs-path))
+          (stat abs-file-name))
         (lambda (key . args)
           (warn-about-exception key args)
           #f)))
 
     (define (pre-compiled)
-      (let ((go-path (search-path %load-compiled-path (sans-extension path)
-                                  %load-compiled-extensions #t)))
-        (and go-path
-             (let ((gostat (stat go-path #f)))
-               (and gostat (more-recent? gostat scmstat)
-                    go-path)))))
+      (and=> (search-path %load-compiled-path (sans-extension file-name)
+                          %load-compiled-extensions #t)
+             (lambda (go-file-name)
+               (let ((gostat (stat go-file-name #f)))
+                 (and gostat (more-recent? gostat scmstat)
+                      go-file-name)))))
 
     (define (fallback)
-      (let ((canon (false-if-exception (canonicalize-path abs-path))))
-        (and canon
-             (let ((go-path (fallback-file-name canon)))
-               (and go-path
-                    (fresh-compiled-file-name abs-path scmstat go-path))))))
+      (and=> (false-if-exception (canonicalize-path abs-file-name))
+             (lambda (canon)
+               (and=> (fallback-file-name canon)
+                      (lambda (go-file-name)
+                        (fresh-compiled-file-name abs-file-name
+                                                  scmstat
+                                                  go-file-name))))))
 
-    (let ((compiled (and scmstat
-                         (or (pre-compiled) (fallback)))))
+    (let ((compiled (and scmstat (or (pre-compiled) (fallback)))))
       (if compiled
           (begin
             (if %load-hook
-                (%load-hook abs-path))
+                (%load-hook abs-file-name))
             (load-compiled compiled))
           (start-stack 'load-stack
-                       (primitive-load abs-path)))))
+                       (primitive-load abs-file-name)))))
 
   (save-module-excursion
    (lambda ()
      (with-fluids ((current-reader reader)
                    (%file-port-name-canonicalization 'relative))
        (cond
-        ((absolute-path? path)
-         (load-absolute path))
-        ((absolute-path? dir)
-         (load-absolute (in-vicinity dir path)))
+        ((absolute-file-name? file-name)
+         (load-absolute file-name))
+        ((absolute-file-name? dir)
+         (load-absolute (in-vicinity dir file-name)))
         (else
-         (load-from-path (in-vicinity dir path))))))))
+         (load-from-path (in-vicinity dir file-name))))))))
 
 (define-syntax load
   (make-variable-transformer

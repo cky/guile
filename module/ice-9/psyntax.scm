@@ -2929,13 +2929,10 @@
 
 (define-syntax include
   (lambda (x)
-    (define (absolute-path? path)
-      (string-prefix? "/" path))
-
     (define read-file
       (lambda (fn dir k)
         (let ((p (open-input-file
-                  (if (absolute-path? fn)
+                  (if (absolute-file-name? fn)
                       fn
                       (in-vicinity dir fn)))))
           (let f ((x (read p))

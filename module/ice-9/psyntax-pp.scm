@@ -2955,10 +2955,10 @@
     'macro
     (lambda (x)
       (letrec*
-        ((absolute-path? (lambda (path) (string-prefix? "/" path)))
-         (read-file
+        ((read-file
            (lambda (fn dir k)
-             (let ((p (open-input-file (if (absolute-path? fn) fn (in-vicinity dir fn)))))
+             (let ((p (open-input-file
+                        (if (absolute-file-name? fn) fn (in-vicinity dir fn)))))
                (let f ((x (read p)) (result '()))
                  (if (eof-object? x)
                    (begin (close-input-port p) (reverse result))

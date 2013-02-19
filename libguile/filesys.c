@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
- *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1433,6 +1433,24 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 /* Filename manipulation */
 
 SCM scm_dot_string;
+
+#ifdef __MINGW32__
+SCM_SYMBOL (sym_file_name_convention, "windows");
+#else
+SCM_SYMBOL (sym_file_name_convention, "posix");
+#endif
+
+SCM_INTERNAL SCM scm_system_file_name_convention (void);
+
+SCM_DEFINE (scm_system_file_name_convention,
+            "system-file-name-convention", 0, 0, 0, (void),
+	    "Return either @code{posix} or @code{windows}, depending on\n"
+            "what kind of system this Guile is running on.")
+#define FUNC_NAME s_scm_system_file_name_convention
+{
+  return sym_file_name_convention;
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0, 
             (SCM filename),
