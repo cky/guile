@@ -48,7 +48,7 @@
         thunk
         (lambda () #t))))
 
-;; (put 'call-with-output-file/atomic 'scheme-indent-function 1)
+;; emacs: (put 'call-with-output-file/atomic 'scheme-indent-function 1)
 (define* (call-with-output-file/atomic filename proc #:optional reference)
   (let* ((template (string-append filename ".XXXXXX"))
          (tmp (mkstemp! template)))
@@ -61,6 +61,7 @@
            (close-port tmp)
            (rename-file template filename))
          (lambda args
+           (close-port tmp)
            (delete-file template)))))))
 
 (define (ensure-language x)
