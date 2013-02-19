@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -363,7 +363,7 @@ SCM_DEFINE (scm_load_objcode, "load-objcode", 1, 0, 0,
   SCM_VALIDATE_STRING (1, file);
 
   c_file = scm_to_locale_string (file);
-  fd = open (c_file, O_RDONLY | O_CLOEXEC);
+  fd = open (c_file, O_RDONLY | O_BINARY | O_CLOEXEC);
   free (c_file);
   if (fd < 0) SCM_SYSERROR;
 

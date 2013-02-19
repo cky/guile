@@ -1095,7 +1095,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   c_newfile = scm_to_locale_string (newfile);
   scm_dynwind_free (c_newfile);
 
-  oldfd = open_or_open64 (c_oldfile, O_RDONLY);
+  oldfd = open_or_open64 (c_oldfile, O_RDONLY | O_BINARY);
   if (oldfd == -1)
     SCM_SYSERROR;
 
