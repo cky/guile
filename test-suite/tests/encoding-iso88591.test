@@ -106,16 +106,16 @@
 (with-test-prefix "string length"
 
   (pass-if "última"
-	   (eq? (string-length s1) 6))
+	   (eqv? (string-length s1) 6))
     
   (pass-if "cédula"
-	   (eq? (string-length s2) 6))
+	   (eqv? (string-length s2) 6))
 
   (pass-if "años"
-	   (eq? (string-length s3) 4))
+	   (eqv? (string-length s3) 4))
 
   (pass-if "¿Cómo?"
-	   (eq? (string-length s4) 6)))
+	   (eqv? (string-length s4) 6)))
 
 (with-test-prefix "internal encoding"
 
@@ -168,7 +168,7 @@
   (pass-if "1"
 	   (let ((á 1)
 		 (ñ 2))
-	     (eq? (+ á ñ) 3))))
+	     (eqv? (+ á ñ) 3))))
 
 (with-test-prefix "output errors"
 

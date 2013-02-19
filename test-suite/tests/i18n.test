@@ -255,30 +255,30 @@
 (with-test-prefix "character mapping"
 
   (pass-if "char-locale-downcase"
-    (and (eq? #\a (char-locale-downcase #\A))
-         (eq? #\a (char-locale-downcase #\A (make-locale LC_ALL "C")))))
+    (and (eqv? #\a (char-locale-downcase #\A))
+         (eqv? #\a (char-locale-downcase #\A (make-locale LC_ALL "C")))))
 
   (pass-if "char-locale-upcase"
-    (and (eq? #\Z (char-locale-upcase #\z))
-         (eq? #\Z (char-locale-upcase #\z (make-locale LC_ALL "C")))))
+    (and (eqv? #\Z (char-locale-upcase #\z))
+         (eqv? #\Z (char-locale-upcase #\z (make-locale LC_ALL "C")))))
 
   (pass-if "char-locale-titlecase"
-    (and (eq? #\T (char-locale-titlecase #\t))
-	 (eq? #\T (char-locale-titlecase #\t (make-locale LC_ALL "C")))))
+    (and (eqv? #\T (char-locale-titlecase #\t))
+	 (eqv? #\T (char-locale-titlecase #\t (make-locale LC_ALL "C")))))
 
   (pass-if "char-locale-titlecase Dž"
-    (and (eq? #\762 (char-locale-titlecase #\763))
-	 (eq? #\762 (char-locale-titlecase #\763 (make-locale LC_ALL "C")))))
+    (and (eqv? #\762 (char-locale-titlecase #\763))
+	 (eqv? #\762 (char-locale-titlecase #\763 (make-locale LC_ALL "C")))))
 
   (pass-if "char-locale-upcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
-       (eq? #\İ (char-locale-upcase #\i %turkish-utf8-locale)))))
+       (eqv? #\İ (char-locale-upcase #\i %turkish-utf8-locale)))))
 
   (pass-if "char-locale-downcase Turkish"
     (under-turkish-utf8-locale-or-unresolved
      (lambda ()
-       (eq? #\i (char-locale-downcase #\İ %turkish-utf8-locale))))))
+       (eqv? #\i (char-locale-downcase #\İ %turkish-utf8-locale))))))
 
 
 (with-test-prefix "string mapping"

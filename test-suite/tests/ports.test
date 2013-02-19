@@ -482,7 +482,7 @@
                 (display str))))
           #f)                            ; so the test really fails here
         (lambda (key subr message errno port chr)
-          (and (eq? chr #\ĉ)
+          (and (eqv? chr #\ĉ)
                (string? (strerror errno)))))))
 
   (pass-if "wrong encoding, substitute"
@@ -548,12 +548,12 @@
                      ((_ port (proc -> error))
                       (if (eq? 'substitute
                                (port-conversion-strategy port))
-                          (eq? (proc port) #\?)
+                          (eqv? (proc port) #\?)
                           (decoding-error? port (proc port))))
                      ((_ port (proc -> eof))
                       (eof-object? (proc port)))
                      ((_ port (proc -> char))
-                      (eq? (proc port) char))))
+                      (eqv? (proc port) char))))
                   (make-checks
                    (syntax-rules ()
                      ((_ port check ...)
@@ -1136,7 +1136,7 @@
         (display "This is GNU Guile.\nWelcome." p)))
     (call-with-input-file (test-file)
       (lambda (p)
-        (and (eq? #\T (read-char p))
+        (and (eqv? #\T (read-char p))
              (let ((line (port-line p))
                    (col  (port-column p)))
                (and (= line 0) (= col 1)

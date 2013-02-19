@@ -124,8 +124,8 @@
   (pass-if "assoc-ref"
 	   (let ((x (assoc-ref b "one")))
 	     (and (list? x)
-		  (eq? (car x) 2)
-		  (eq? (cadr x) 3))))
+		  (eqv? (car x) 2)
+		  (eqv? (cadr x) 3))))
 
 
   (pass-if-not "assoc-ref not" (assoc-ref a 'testing))

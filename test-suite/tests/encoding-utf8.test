@@ -126,16 +126,16 @@
 (with-test-prefix "string length"
 
   (pass-if "última"
-	   (eq? (string-length s1) 6))
+	   (eqv? (string-length s1) 6))
     
   (pass-if "cédula"
-	   (eq? (string-length s2) 6))
+	   (eqv? (string-length s2) 6))
 
   (pass-if "años"
-	   (eq? (string-length s3) 4))
+	   (eqv? (string-length s3) 4))
 
   (pass-if "羅生門"
-	   (eq? (string-length s4) 3)))
+	   (eqv? (string-length s4) 3)))
 
 (with-test-prefix "internal encoding"
 
@@ -188,7 +188,7 @@
   (pass-if "1"
 	   (let ((芥川龍之介  1)
 		 (ñ 2))
-	     (eq? (+  芥川龍之介 ñ) 3))))
+	     (eqv? (+  芥川龍之介 ñ) 3))))
 
 (if (defined? 'setlocale)
     (setlocale LC_ALL oldlocale))

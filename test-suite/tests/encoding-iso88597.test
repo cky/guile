@@ -95,16 +95,16 @@
 (with-test-prefix "string length"
 
   (pass-if "s1"
-	   (eq? (string-length s1) 4))
+	   (eqv? (string-length s1) 4))
   
   (pass-if "s2"
-	   (eq? (string-length s2) 3))
+	   (eqv? (string-length s2) 3))
   
   (pass-if "s3"
-	   (eq? (string-length s3) 8))
+	   (eqv? (string-length s3) 8))
   
   (pass-if "s4" 
-	   (eq? (string-length s4) 3)))
+	   (eqv? (string-length s4) 3)))
 
 (with-test-prefix "internal encoding"
 
@@ -157,7 +157,7 @@
   (pass-if "1"
 	   (let ((á 1)
 		 (ñ 2))
-	     (eq? (+ á ñ) 3))))
+	     (eqv? (+ á ñ) 3))))
 
 (with-test-prefix "output errors"
 

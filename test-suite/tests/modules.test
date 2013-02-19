@@ -345,7 +345,7 @@
       (set-module-binder! m (lambda args (set! invoked? #t) #f))
       (module-define! m 'something 2)
       (and invoked?
-           (eq? (module-ref m 'something) 2))))
+           (eqv? (module-ref m 'something) 2))))
 
   (pass-if "honored (ref)"
     (let ((m (make-module))

@@ -134,7 +134,7 @@
                                  (with-output-to-string
                                    (lambda () (write table)))))))
 
- ;; 1 and 1 are equal? and eqv? and eq?
+ ;; 1 and 1 are equal? and eqv? (but not necessarily eq?)
  (pass-if (equal? 'foo
 		  (let ((table (make-hash-table)))
 		    (hash-set! table 1 'foo)
@@ -143,10 +143,6 @@
 		  (let ((table (make-hash-table)))
 		    (hashv-set! table 1 'foo)
 		    (hashv-ref table 1))))
- (pass-if (equal? 'foo
-		  (let ((table (make-hash-table)))
-		    (hashq-set! table 1 'foo)
-		    (hashq-ref table 1))))
 
  ;; 1/2 and 2/4 are equal? and eqv? (but not necessarily eq?)
  (pass-if (equal? 'foo

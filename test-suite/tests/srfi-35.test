@@ -65,17 +65,17 @@
   (pass-if "condition-ref"
     (let* ((ct (make-condition-type 'chbouib &condition '(a b)))
            (c  (make-condition ct 'b 1 'a 0)))
-      (and (eq? (condition-ref c 'a) 0)
-           (eq? (condition-ref c 'b) 1))))
+      (and (eqv? (condition-ref c 'a) 0)
+           (eqv? (condition-ref c 'b) 1))))
 
   (pass-if "condition-ref with inheritance"
     (let* ((top (make-condition-type 'foo &condition '(a b)))
            (ct  (make-condition-type 'bar top '(c d)))
            (c   (make-condition ct 'b 1 'a 0 'd 3 'c 2)))
-      (and (eq? (condition-ref c 'a) 0)
-           (eq? (condition-ref c 'b) 1)
-           (eq? (condition-ref c 'c) 2)
-           (eq? (condition-ref c 'd) 3))))
+      (and (eqv? (condition-ref c 'a) 0)
+           (eqv? (condition-ref c 'b) 1)
+           (eqv? (condition-ref c 'c) 2)
+           (eqv? (condition-ref c 'd) 3))))
 
   (pass-if "extract-condition"
     (let* ((ct (make-condition-type 'chbouib &condition '(a b)))
@@ -149,8 +149,8 @@
                   (let ((c (make-condition &chbouib 'one 1 'two 2)))
                     (and (condition? c)
                          (chbouib? c)
-                         (eq? (chbouib-one c) 1)
-                         (eq? (chbouib-two c) 2))))
+                         (eqv? (chbouib-one c) 1)
+                         (eqv? (chbouib-two c) 2))))
             m)))
 
   (pass-if "condition"

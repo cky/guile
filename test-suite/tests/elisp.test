@@ -124,8 +124,8 @@
         (with-fluids* (cons f (cons g #nil))
                       '(3 4)
                       (lambda ()
-                        (and (eq? (fluid-ref f) 3)
-                             (eq? (fluid-ref g) 4))))))
+                        (and (eqv? (fluid-ref f) 3)
+                             (eqv? (fluid-ref g) 4))))))
 
     (pass-if "append!"
       (let ((a (copy-tree '(1 2 3)))
@@ -150,11 +150,11 @@
               '(5 4 3 2 1)))            ; Ditto.
 
     (pass-if "list-ref"
-      (eq? (list-ref '(0 1 2 3 4 . #nil) 4) 4))
+      (eqv? (list-ref '(0 1 2 3 4 . #nil) 4) 4))
 
     (pass-if-exception "list-ref"
                        exception:out-of-range
-                       (eq? (list-ref '(0 1 2 3 4 . #nil) 6) 6))
+                       (eqv? (list-ref '(0 1 2 3 4 . #nil) 6) 6))
 
     (pass-if "list-set!"
       (let ((l (copy-tree '(0 1 2 3 4 . #nil))))

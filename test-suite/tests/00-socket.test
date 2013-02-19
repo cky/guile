@@ -336,7 +336,7 @@
 	  (if (not server-pid)
 	      (throw 'unresolved)
 	      (let ((status (cdr (waitpid server-pid))))
-		(eq? 0 (status:exit-val status)))))
+		(eqv? 0 (status:exit-val status)))))
 
 	(false-if-exception (delete-file path))
 
@@ -409,7 +409,7 @@
           (if (not server-pid)
               (throw 'unresolved)
               (let ((status (cdr (waitpid server-pid))))
-                (eq? 0 (status:exit-val status)))))
+                (eqv? 0 (status:exit-val status)))))
 
         (false-if-exception (delete-file path))
 
@@ -505,7 +505,7 @@
 	  (if (not server-pid)
 	      (throw 'unresolved)
 	      (let ((status (cdr (waitpid server-pid))))
-		(eq? 0 (status:exit-val status)))))
+		(eqv? 0 (status:exit-val status)))))
 
 	#t)))
 

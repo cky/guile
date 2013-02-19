@@ -287,12 +287,12 @@
     ;; using the supplied hash procedure, which could lead to
     ;; inconsistencies.
     (let* ((s  "hello")
-           (vh (fold vhash-consq
-                     (vhash-consq s "world" vlist-null)
+           (vh (fold vhash-consv
+                     (vhash-consv s "world" vlist-null)
                      (iota 300)
                      (iota 300))))
-      (and (vhash-assq s vh)
-           (pair? (vhash-assq s (vhash-delete 123 vh eq? hashq))))))
+      (and (vhash-assv s vh)
+           (pair? (vhash-assv s (vhash-delete 123 vh eqv? hashv))))))
 
   (pass-if "vhash-fold"
     (let* ((keys   '(a b c d e f g d h i))
