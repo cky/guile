@@ -4790,7 +4790,7 @@ scm_t_char_range cs_graphic_ranges[] = {
   ,
   {0x2090, 0x209c}
   ,
-  {0x20a0, 0x20b9}
+  {0x20a0, 0x20ba}
   ,
   {0x20d0, 0x20f0}
   ,
@@ -5906,7 +5906,7 @@ scm_t_char_range cs_printing_ranges[] = {
   ,
   {0x2090, 0x209c}
   ,
-  {0x20a0, 0x20b9}
+  {0x20a0, 0x20ba}
   ,
   {0x20d0, 0x20f0}
   ,
@@ -6897,7 +6897,7 @@ scm_t_char_range cs_symbol_ranges[] = {
   ,
   {0x208a, 0x208c}
   ,
-  {0x20a0, 0x20b9}
+  {0x20a0, 0x20ba}
   ,
   {0x2100, 0x2101}
   ,
@@ -7728,7 +7728,7 @@ scm_t_char_range cs_designated_ranges[] = {
   ,
   {0x2090, 0x209c}
   ,
-  {0x20a0, 0x20b9}
+  {0x20a0, 0x20ba}
   ,
   {0x20d0, 0x20f0}
   ,
