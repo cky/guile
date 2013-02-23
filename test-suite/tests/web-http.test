@@ -85,6 +85,113 @@
                #t
                (error "unexpected exception" component arg))))))))
 
+(define-syntax pass-if-read-request-line
+  (syntax-rules ()
+    ((_ str expected-method expected-uri expected-version)
+     (pass-if str
+       (equal? (call-with-values
+                   (lambda ()
+                     (read-request-line (open-input-string
+                                         (string-append str "\r\n"))))
+                 list)
+               (list 'expected-method
+                     expected-uri
+                     'expected-version))))))
+
+(define-syntax pass-if-write-request-line
+  (syntax-rules ()
+    ((_ expected-str method uri version)
+     (pass-if expected-str
+       (equal? (string-append expected-str "\r\n")
+               (call-with-output-string
+                (lambda (port)
+                  (write-request-line 'method uri 'version port))))))))
+
+(define-syntax pass-if-read-response-line
+  (syntax-rules ()
+    ((_ str expected-version expected-code expected-phrase)
+     (pass-if str
+       (equal? (call-with-values
+                   (lambda ()
+                     (read-response-line (open-input-string
+                                          (string-append str "\r\n"))))
+                 list)
+               (list 'expected-version
+                     expected-code
+                     expected-phrase))))))
+
+(define-syntax pass-if-write-response-line
+  (syntax-rules ()
+    ((_ expected-str version code phrase)
+     (pass-if expected-str
+       (equal? (string-append expected-str "\r\n")
+               (call-with-output-string
+                (lambda (port)
+                  (write-response-line 'version code phrase port))))))))
+
+(with-test-prefix "read-request-line"
+  (pass-if-read-request-line "GET / HTTP/1.1"
+                             GET
+                             (build-uri 'http
+                                        #:path "/")
+                             (1 . 1))
+  (pass-if-read-request-line "GET http://www.w3.org/pub/WWW/TheProject.html HTTP/1.1"
+                             GET
+                             (build-uri 'http
+                                        #:host "www.w3.org"
+                                        #:path "/pub/WWW/TheProject.html")
+                             (1 . 1))
+  (pass-if-read-request-line "GET /pub/WWW/TheProject.html HTTP/1.1"
+                             GET
+                             (build-uri 'http
+                                        #:path "/pub/WWW/TheProject.html")
+                             (1 . 1))
+  (pass-if-read-request-line "HEAD /etc/hosts?foo=bar HTTP/1.1"
+                             HEAD
+                             (build-uri 'http
+                                        #:path "/etc/hosts"
+                                        #:query "foo=bar")
+                             (1 . 1)))
+
+(with-test-prefix "write-request-line"
+  (pass-if-write-request-line "GET / HTTP/1.1"
+                              GET
+                              (build-uri 'http
+                                         #:path "/")
+                              (1 . 1))
+  ;;; FIXME: Test fails due to scheme, host always being removed.
+  ;;; However, it should be supported to request these be present, and
+  ;;; that is possible with absolute/relative URI support.
+  ;; (pass-if-write-request-line "GET http://www.w3.org/pub/WWW/TheProject.html HTTP/1.1"
+  ;;                             GET
+  ;;                             (build-uri 'http
+  ;;                                        #:host "www.w3.org"
+  ;;                                        #:path "/pub/WWW/TheProject.html")
+  ;;                             (1 . 1))
+  (pass-if-write-request-line "GET /pub/WWW/TheProject.html HTTP/1.1"
+                              GET
+                              (build-uri 'http
+                                         #:path "/pub/WWW/TheProject.html")
+                              (1 . 1))
+  (pass-if-write-request-line "HEAD /etc/hosts?foo=bar HTTP/1.1"
+                              HEAD
+                              (build-uri 'http
+                                         #:path "/etc/hosts"
+                                         #:query "foo=bar")
+                              (1 . 1)))
+
+(with-test-prefix "read-response-line"
+  (pass-if-read-response-line "HTTP/1.0 404 Not Found"
+                              (1 . 0) 404 "Not Found")
+  (pass-if-read-response-line "HTTP/1.1 200 OK"
+                              (1 . 1) 200 "OK"))
+
+(with-test-prefix "write-response-line"
+  (pass-if-write-response-line "HTTP/1.0 404 Not Found"
+                               (1 . 0) 404 "Not Found")
+  (pass-if-write-response-line "HTTP/1.1 200 OK"
+                               (1 . 1) 200 "OK"))
+
 (with-test-prefix "general headers"
 
   (pass-if-parse cache-control "no-transform" '(no-transform))
