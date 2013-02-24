@@ -112,8 +112,7 @@ TREE_IL_LANG_SOURCES =						\
   language/tree-il/spec.scm
 
 GLIL_LANG_SOURCES =						\
-  language/glil/spec.scm language/glil/compile-assembly.scm 	\
-  language/glil/decompile-assembly.scm
+  language/glil/spec.scm language/glil/compile-assembly.scm
 
 ASSEMBLY_LANG_SOURCES =				\
   language/assembly/spec.scm			\
