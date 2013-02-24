@@ -447,6 +447,58 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
   return 0;
 }
 
+#ifdef __MINGW32__
+#define FILE_NAME_SEPARATOR_STRING "\\"
+#else
+#define FILE_NAME_SEPARATOR_STRING "/"
+#endif
+
+static int
+is_file_name_separator (SCM c)
+{
+  if (c == SCM_MAKE_CHAR ('/'))
+    return 1;
+#ifdef __MINGW32__
+  if (c == SCM_MAKE_CHAR ('\\'))
+    return 1;
+#endif
+  return 0;
+}
+
+static int
+is_drive_letter (SCM c)
+{
+#ifdef __MINGW32__
+  if (SCM_CHAR (c) >= 'a' && SCM_CHAR (c) <= 'z')
+    return 1;
+  else if (SCM_CHAR (c) >= 'A' && SCM_CHAR (c) <= 'Z')
+    return 1;
+#endif
+  return 0;
+}
+
+static int
+is_absolute_file_name (const char *filename_chars, size_t filename_len)
+{
+  if (filename_len >= 1
+      && is_file_name_separator (SCM_MAKE_CHAR (filename_chars[0]))
+#ifdef __MINGW32__
+      /* On Windows, one initial separator indicates a drive-relative
+         path.  Two separators indicate a Universal Naming Convention
+         (UNC) path.  UNC paths are always absolute.  */
+      && filename_len >= 2
+      && is_file_name_separator (SCM_MAKE_CHAR (filename_chars[1]))
+#endif
+      )
+    return 1;
+  if (filename_len >= 3
+      && is_drive_letter (SCM_MAKE_CHAR (filename_chars[0]))
+      && filename_chars[1] == ':'
+      && is_file_name_separator (SCM_MAKE_CHAR (filename_chars[2])))
+    return 1;
+  return 0;
+}
+
 /* Search PATH for a directory containing a file named FILENAME.
    The file must be readable, and not a directory.
    If we find one, return its full pathname; otherwise, return #f.
@@ -477,16 +529,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   scm_dynwind_free (filename_chars);
 
   /* If FILENAME is absolute and is still valid, return it unchanged.  */
-#ifdef __MINGW32__
-  if (((filename_len >= 1) && 
-       (filename_chars[0] == '/' || filename_chars[0] == '\\')) ||
-      ((filename_len >= 3) && filename_chars[1] == ':' &&
-       ((filename_chars[0] >= 'a' && filename_chars[0] <= 'z') ||
-	(filename_chars[0] >= 'A' && filename_chars[0] <= 'Z')) &&
-       (filename_chars[2] == '/' || filename_chars[2] == '\\')))
-#else
-  if (filename_len >= 1 && filename_chars[0] == '/')
-#endif
+  if (is_absolute_file_name (filename_chars, filename_len))
     {
       if ((scm_is_false (require_exts) ||
            scm_c_string_has_an_ext (filename_chars, filename_len,
@@ -520,11 +563,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
 	    extensions = SCM_EOL;
 	    break;
 	  }
-#ifdef __MINGW32__
-	else if (*endp == '/' || *endp == '\\')
-#else
-	else if (*endp == '/')
-#endif
+	else if (is_file_name_separator (SCM_MAKE_CHAR (*endp)))
 	  /* This filename has no extension, so keep the current list
              of extensions.  */
 	  break;
@@ -553,12 +592,9 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
 	
       /* Concatenate the path name and the filename. */
       
-#ifdef __MINGW32__
-      if ((buf.ptr > buf.buf) && (buf.ptr[-1] != '/') && (buf.ptr[-1] != '\\'))
-#else
-      if ((buf.ptr > buf.buf) && (buf.ptr[-1] != '/'))
-#endif
-	stringbuf_cat (&buf, "/");
+      if (buf.ptr > buf.buf
+          && !is_file_name_separator (SCM_MAKE_CHAR (buf.ptr[-1])))
+	stringbuf_cat (&buf, FILE_NAME_SEPARATOR_STRING);
 
       stringbuf_cat (&buf, filename_chars);
       sans_ext_len = buf.ptr - buf.buf;
@@ -823,24 +859,36 @@ scm_try_auto_compile (SCM source)
                       NULL, NULL);
 }
 
-/* See also (system base compile):compiled-file-name. */
+/* The auto-compilation code will residualize a .go file in the cache
+   dir: by default, $HOME/.cache/guile/2.0/ccache/PATH.go.  This
+   function determines the PATH to use as a key into the compilation
+   cache.  See also (system base compile):compiled-file-name. */
 static SCM
 canonical_suffix (SCM fname)
 {
   SCM canon;
-  size_t len;
 
+  /* CANON should be absolute.  */
   canon = scm_canonicalize_path (fname);
-  len = scm_c_string_length (canon);
   
-  if (len > 1 && scm_is_eq (scm_c_string_ref (canon, 0), SCM_MAKE_CHAR ('/')))
-    return canon;
-  else if (len > 2 && scm_is_eq (scm_c_string_ref (canon, 1), SCM_MAKE_CHAR (':')))
-    return scm_string_append (scm_list_3 (scm_from_latin1_string ("/"),
-                                          scm_c_substring (canon, 0, 1),
-                                          scm_c_substring (canon, 2, len)));
-  else
-    return canon;
+#ifdef __MINGW32__
+  {
+    size_t len = scm_c_string_length (canon);
+
+    /* On Windows, an absolute file name that doesn't start with a
+       separator starts with a drive component.  Transform the drive
+       component to a file name element: c:\foo -> \c\foo. */
+    if (len >= 2
+        && is_absolute_file_name (canon)
+        && !is_file_name_separator (scm_c_string_ref (canon, 0)))
+      return scm_string_append
+        (scm_list_3 (scm_from_latin1_string (FILE_NAME_SEPARATOR_STRING),
+                     scm_c_substring (canon, 0, 1),
+                     scm_c_substring (canon, 2, len)));
+  }
+#endif
+
+  return canon;
 }
 
 SCM_DEFINE (scm_primitive_load_path, "primitive-load-path", 0, 0, 1,
