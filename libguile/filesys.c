@@ -541,12 +541,6 @@ SCM_DEFINE (scm_stat, "stat", 1, 1, 0,
   else if (scm_is_string (object))
     {
       char *file = scm_to_locale_string (object);
-#ifdef __MINGW32__
-      char *p;
-      p = file + strlen (file) - 1;
-      while (p > file && (*p == '/' || *p == '\\'))
-	*p-- = '\0';
-#endif
       SCM_SYSCALL (rv = stat_or_stat64 (file, &stat_temp));
       free (file);
     }
