@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; 	Copyright (C) 1996, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1996, 2001, 2006, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,9 @@
 	   mapping-get-handle mapping-create-handle! mapping-remove!
 	   mapping-ref mapping-set!  hash-table-mapping-hooks
 	   make-hash-table-mapping hash-table-mapping))
+
+(issue-deprecation-warning
+ "(ice-9 mapping) is deprecated.  Use srfi-69 or rnrs hash tables instead.")
 
 (define mapping-hooks-type (make-record-type 'mapping-hooks '(get-handle
 							      create-handle
