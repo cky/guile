@@ -460,6 +460,18 @@ static int fstat_Win32 (int fdes, struct stat *buf)
 }
 #endif /* __MINGW32__ */
 
+static int
+is_file_name_separator (SCM c)
+{
+  if (c == SCM_MAKE_CHAR ('/'))
+    return 1;
+#ifdef __MINGW32__
+  if (c == SCM_MAKE_CHAR ('\\'))
+    return 1;
+#endif
+  return 0;
+}
+
 SCM_DEFINE (scm_stat, "stat", 1, 1, 0, 
             (SCM object, SCM exception_on_error),
 	    "Return an object containing various information about the file\n"
@@ -1461,32 +1473,17 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
   len = scm_i_string_length (filename);
 
   i = len - 1;
-#ifdef __MINGW32__
-  while (i >= 0 && (scm_i_string_ref (filename, i) == '/'
-		    || scm_i_string_ref (filename, i) == '\\')) 
+
+  while (i >= 0 && is_file_name_separator (scm_c_string_ref (filename, i)))
     --i;
-  while (i >= 0 && (scm_i_string_ref (filename, i) != '/'
-		    && scm_i_string_ref (filename, i) != '\\')) 
+  while (i >= 0 && !is_file_name_separator (scm_c_string_ref (filename, i)))
     --i;
-  while (i >= 0 && (scm_i_string_ref (filename, i) == '/'
-		    || scm_i_string_ref (filename, i) == '\\')) 
+  while (i >= 0 && is_file_name_separator (scm_c_string_ref (filename, i)))
     --i;
-#else
-  while (i >= 0 && scm_i_string_ref (filename, i) == '/') 
-    --i;
-  while (i >= 0 && scm_i_string_ref (filename, i) != '/') 
-    --i;
-  while (i >= 0 && scm_i_string_ref (filename, i) == '/') 
-    --i;
-#endif /* ndef __MINGW32__ */
+
   if (i < 0)
     {
-#ifdef __MINGW32__
-      if (len > 0 && (scm_i_string_ref (filename, 0) == '/'
-		      || scm_i_string_ref (filename, 0) == '\\'))
-#else
-      if (len > 0 && scm_i_string_ref (filename, 0) == '/')
-#endif /* ndef __MINGW32__ */
+      if (len > 0 && is_file_name_separator (scm_c_string_ref (filename, 0)))
 	return scm_c_substring (filename, 0, 1);
       else
 	return scm_dot_string;
@@ -1517,14 +1514,8 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
       j = scm_i_string_length (suffix) - 1;
     }
   i = len - 1;
-#ifdef __MINGW32__
-  while (i >= 0 && (scm_i_string_ref (filename, i) == '/'
-		    || scm_i_string_ref (filename, i) ==  '\\'))
+  while (i >= 0 && is_file_name_separator (scm_c_string_ref (filename, i)))
     --i;
-#else
-  while (i >= 0 && scm_i_string_ref (filename, i) == '/')
-    --i;
-#endif /* ndef __MINGW32__ */
   end = i;
   while (i >= 0 && j >= 0 
 	 && (scm_i_string_ref (filename, i)
@@ -1535,22 +1526,11 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
     }
   if (j == -1)
     end = i;
-#ifdef __MINGW32__
-  while (i >= 0 && (scm_i_string_ref (filename, i) != '/'
-		    && scm_i_string_ref (filename, i) != '\\'))
+  while (i >= 0 && !is_file_name_separator (scm_c_string_ref (filename, i)))
     --i;
-#else
-  while (i >= 0 && scm_i_string_ref (filename, i) != '/')
-    --i;
-#endif /* ndef __MINGW32__ */
   if (i == end)
     {
-#ifdef __MINGW32__
-      if (len > 0 && (scm_i_string_ref (filename, 0) ==  '/'
-		      || scm_i_string_ref (filename, 0) ==  '\\'))
-#else
-      if (len > 0 && scm_i_string_ref (filename, 0) == '/')
-#endif /* ndef __MINGW32__ */
+      if (len > 0 && is_file_name_separator (scm_c_string_ref (filename, 0)))
         return scm_c_substring (filename, 0, 1);
       else
 	return scm_dot_string;
@@ -1617,14 +1597,7 @@ scm_i_relativize_path (SCM path, SCM in_path)
 	     will be delimited by single delimiters.  When DIR does not
 	     have a trailing delimiter, add one to the length to strip
 	     off the delimiter within SCANON.  */
-	  if (
-#ifdef __MINGW32__
-	      (scm_i_string_ref (dir, len - 1) != '/'
-	       && scm_i_string_ref (dir, len - 1) != '\\')
-#else
-	      scm_i_string_ref (dir, len - 1) != '/'
-#endif
-	      )
+	  if (!is_file_name_separator (scm_c_string_ref (dir, len - 1)))
 	    len++;
 
 	  if (scm_c_string_length (scanon) > len)
