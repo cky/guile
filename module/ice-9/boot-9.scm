@@ -1452,20 +1452,21 @@ VALUE."
      (define file-name-separator-string "\\")
 
      (define (absolute-file-name? file-name)
+       (define (file-name-separator-at-index? idx)
+         (and (> (string-length file-name) idx)
+              (file-name-separator? (string-ref file-name idx))))
        (define (unc-file-name?)
          ;; Universal Naming Convention (UNC) file-names start with \\,
          ;; and are always absolute.  See:
          ;;   http://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx#fully_qualified_vs._relative_paths
-         (string-prefix? "\\\\" file-name))
+         (and (file-name-separator-at-index? 0)
+              (file-name-separator-at-index? 1)))
        (define (has-drive-specifier?)
          (and (>= (string-length file-name) 2)
               (let ((drive (string-ref file-name 0)))
                 (or (char<=? #\a drive #\z)
                     (char<=? #\A drive #\Z)))
               (eqv? (string-ref file-name 1) #\:)))
-       (define (file-name-separator-at-index? idx)
-         (and (> (string-length file-name) idx)
-              (file-name-separator? (string-ref file-name idx))))
        (or (unc-file-name?)
            (if (has-drive-specifier?)
                (file-name-separator-at-index? 2)
@@ -3694,6 +3695,10 @@ CONV is not applied to the initial value."
 pre-compiled version of FILE-NAME when available, and auto-compile one
 when none is available, reading FILE-NAME with READER."
 
+  ;; The auto-compilation code will residualize a .go file in the cache
+  ;; dir: by default, $HOME/.cache/guile/2.0/ccache/PATH.go.  This
+  ;; function determines the PATH to use as a key into the compilation
+  ;; cache.
   (define (canonical->suffix canon)
     (cond
      ((and (not (string-null? canon))
