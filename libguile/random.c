@@ -17,7 +17,7 @@
 
 
 
-/* Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
+/* Original Author: Mikael Djurfeldt <djurfeldt@nada.kth.se> */
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
@@ -29,6 +29,12 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <sys/types.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
 #include "libguile/smob.h"
 #include "libguile/numbers.h"
 #include "libguile/feature.h"
@@ -665,7 +671,8 @@ random_state_of_last_resort (void)
   SCM time_of_day = scm_gettimeofday ();
   SCM sources = scm_list_n
     (scm_from_unsigned_integer (SCM_UNPACK (time_of_day)),  /* heap addr */
-     scm_getpid (),         /* process ID */
+     /* Avoid scm_getpid, since it depends on HAVE_POSIX. */
+     scm_from_unsigned_integer (getpid ()),                 /* process ID */
      scm_get_internal_real_time (), /* high-resolution process timer */
      scm_from_unsigned_integer ((scm_t_bits) &time_of_day), /* stack addr */
      scm_car (time_of_day), /* seconds since midnight 1970-01-01 UTC */
