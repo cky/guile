@@ -1,4 +1,4 @@
-/* Copyright (C) 1999,2000,2001, 2003, 2005, 2006, 2009, 2010, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1999,2000,2001, 2003, 2005, 2006, 2009, 2010 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -665,18 +665,15 @@ random_state_of_last_resort (void)
   SCM time_of_day = scm_gettimeofday ();
   SCM sources = scm_list_n
     (scm_from_unsigned_integer (SCM_UNPACK (time_of_day)),  /* heap addr */
+     scm_getpid (),         /* process ID */
      scm_get_internal_real_time (), /* high-resolution process timer */
      scm_from_unsigned_integer ((scm_t_bits) &time_of_day), /* stack addr */
      scm_car (time_of_day), /* seconds since midnight 1970-01-01 UTC */
      scm_cdr (time_of_day), /* microsecond component of the above clock */
      SCM_UNDEFINED);
-  SCM seed = SCM_INUM0;
-
-#ifdef HAVE_POSIX
-  sources = scm_cons (scm_getpid (), sources); /* process ID */
-#endif
 
   /* Concatenate the sources bitwise to form the seed */
+  SCM seed = SCM_INUM0;
   while (scm_is_pair (sources))
     {
       seed = scm_logxor (seed, scm_ash (scm_car (sources),
