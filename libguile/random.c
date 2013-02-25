@@ -653,11 +653,11 @@ SCM_DEFINE (scm_random_exp, "random:exp", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-/* Return a new random-state seeded from the time, date, process ID (if
-   scm_getpid is present), an address from a freshly allocated heap
-   cell, an address from the local stack frame, and a high-resolution
-   timer if available.  This is only to be used as a last resort, when
-   no better source of entropy is available. */
+/* Return a new random-state seeded from the time, date, process ID, an
+   address from a freshly allocated heap cell, an address from the local
+   stack frame, and a high-resolution timer if available.  This is only
+   to be used as a last resort, when no better source of entropy is
+   available. */
 static SCM
 random_state_of_last_resort (void)
 {
@@ -665,15 +665,16 @@ random_state_of_last_resort (void)
   SCM time_of_day = scm_gettimeofday ();
   SCM sources = scm_list_n
     (scm_from_unsigned_integer (SCM_UNPACK (time_of_day)),  /* heap addr */
-#ifdef HAVE_POSIX
-     scm_getpid (),         /* process ID */
-#endif
      scm_get_internal_real_time (), /* high-resolution process timer */
      scm_from_unsigned_integer ((scm_t_bits) &time_of_day), /* stack addr */
      scm_car (time_of_day), /* seconds since midnight 1970-01-01 UTC */
      scm_cdr (time_of_day), /* microsecond component of the above clock */
      SCM_UNDEFINED);
   SCM seed = SCM_INUM0;
+
+#ifdef HAVE_POSIX
+  sources = scm_cons (scm_getpid (), sources); /* process ID */
+#endif
 
   /* Concatenate the sources bitwise to form the seed */
   while (scm_is_pair (sources))

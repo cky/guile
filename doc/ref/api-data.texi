@@ -1872,9 +1872,9 @@ read back with the Scheme reader.
 Construct a new random state seeded from a platform-specific source of
 entropy, appropriate for use in non-security-critical applications.
 Currently @file{/dev/urandom} is tried first, or else the seed is based
-on the time, date, process ID (if scm_getpid is present), an address
-from a freshly allocated heap cell, an address from the local stack
-frame, and a high-resolution timer if available.
+on the time, date, process ID, an address from a freshly allocated heap
+cell, an address from the local stack frame, and a high-resolution timer
+if available.
 @end deffn
 
 @defvar *random-state*
