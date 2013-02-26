@@ -170,6 +170,21 @@ exec guile -q -s "$0" "$@"
       (+ -1 2000 -30000 40000000000))
 
 ;;
+;; More than ten arguments
+;;
+(define f-sum-many
+  (pointer->procedure int64 (dynamic-func "test_ffi_sum_many" lib)
+                      (list uint8 uint16 uint32 uint64
+                            int8 int16 int32 int64
+                            int8 int16 int32 int64)))
+(test (f-sum-many 255 65535 4294967295 1844674407370955161
+                  -1 2000 -30000 40000000000
+                  5 -6000 70000 -80000000000)
+      (+ 255 65535 4294967295 1844674407370955161
+                  -1 2000 -30000 40000000000
+                  5 -6000 70000 -80000000000))
+
+;;
 ;; Structs
 ;;
 (define f-sum-struct

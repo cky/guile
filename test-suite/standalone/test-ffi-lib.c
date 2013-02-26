@@ -194,6 +194,23 @@ scm_t_int64 test_ffi_sum (scm_t_int8 a, scm_t_int16 b,
 }
 
 
+scm_t_int64 test_ffi_sum_many (scm_t_uint8 a, scm_t_uint16 b,
+                               scm_t_uint32 c, scm_t_uint64 d,
+                               scm_t_int8 e, scm_t_int16 f,
+                               scm_t_int32 g, scm_t_int64 h,
+                               scm_t_int8 i, scm_t_int16 j,
+                               scm_t_int32 k, scm_t_int64 l);
+scm_t_int64 test_ffi_sum_many (scm_t_uint8 a, scm_t_uint16 b,
+                               scm_t_uint32 c, scm_t_uint64 d,
+                               scm_t_int8 e, scm_t_int16 f,
+                               scm_t_int32 g, scm_t_int64 h,
+                               scm_t_int8 i, scm_t_int16 j,
+                               scm_t_int32 k, scm_t_int64 l)
+{
+  return l + k + j + i + h + g + f + e + d + c + b + a;
+}
+
+
 struct foo
 {
   scm_t_int8 a;
