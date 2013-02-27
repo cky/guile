@@ -1,6 +1,6 @@
 ;;; Compilation targets
 
-;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -80,6 +80,11 @@
   (if (string=? cpu (triplet-cpu %host-type))
       %native-word-size
       (cond ((string-match "^i[0-9]86$" cpu) 4)
+
+            ;; See <http://www.linux-mips.org/wiki/WhatsWrongWithO32N32N64>
+            ;; for details on the MIPS ABIs.
+            ((string-match "^mips64" cpu) 4)      ; n32 or o32
+
             ((string-match "64$" cpu) 8)
             ((string-match "64[lbe][lbe]$" cpu) 8)
             ((member cpu '("sparc" "powerpc" "mips" "mipsel")) 4)
