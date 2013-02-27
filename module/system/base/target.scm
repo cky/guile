@@ -55,7 +55,7 @@
   (let ((cpu (triplet-cpu target)))
     (with-fluids ((%target-type target)
                   (%target-endianness (cpu-endianness cpu))
-                  (%target-word-size (cpu-word-size cpu)))
+                  (%target-word-size (triplet-pointer-size target)))
       (thunk))))
 
 (define (cpu-endianness cpu)
@@ -75,21 +75,28 @@
             (else
              (error "unknown CPU endianness" cpu)))))
 
-(define (cpu-word-size cpu)
-  "Return the word size for CPU."
-  (if (string=? cpu (triplet-cpu %host-type))
-      %native-word-size
-      (cond ((string-match "^i[0-9]86$" cpu) 4)
+(define (triplet-pointer-size triplet)
+  "Return the size of pointers in bytes for TRIPLET."
+  (let ((cpu (triplet-cpu triplet)))
+    (cond ((and (string=? cpu (triplet-cpu %host-type))
+                (string=? (triplet-os triplet) (triplet-os %host-type)))
+           %native-word-size)
 
-            ;; See <http://www.linux-mips.org/wiki/WhatsWrongWithO32N32N64>
-            ;; for details on the MIPS ABIs.
-            ((string-match "^mips64" cpu) 4)      ; n32 or o32
+          ((string-match "^i[0-9]86$" cpu) 4)
 
-            ((string-match "64$" cpu) 8)
-            ((string-match "64[lbe][lbe]$" cpu) 8)
-            ((member cpu '("sparc" "powerpc" "mips" "mipsel")) 4)
-            ((string-match "^arm.*" cpu) 4)
-            (else (error "unknown CPU word size" cpu)))))
+          ;; Although GNU config.guess doesn't yet recognize them,
+          ;; Debian (ab)uses the OS part to denote the specific ABI
+          ;; being used: <http://wiki.debian.org/Multiarch/Tuples>.
+          ;; See <http://www.linux-mips.org/wiki/WhatsWrongWithO32N32N64>
+          ;; for details on the MIPS ABIs.
+          ((string-match "^mips64.*-gnuabi64" triplet) 8) ; n64 ABI
+          ((string-match "^mips64" cpu) 4)                ; n32 or o32
+
+          ((string-match "64$" cpu) 8)
+          ((string-match "64[lbe][lbe]$" cpu) 8)
+          ((member cpu '("sparc" "powerpc" "mips" "mipsel")) 4)
+          ((string-match "^arm.*" cpu) 4)
+          (else (error "unknown CPU word size" cpu)))))
 
 (define (triplet-cpu t)
   (substring t 0 (string-index t #\-)))

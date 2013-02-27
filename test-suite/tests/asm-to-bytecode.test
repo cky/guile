@@ -196,6 +196,8 @@
 
   (test-target "mips64el-unknown-linux-gnu"       ; n32 or o32 ABI
                (endianness little) 4)
+  (test-target "mips64el-unknown-linux-gnuabi64"  ; n64 ABI (Debian tuplet)
+               (endianness little) 8)
 
   (pass-if-exception "unknown target"
     exception:miscellaneous-error
