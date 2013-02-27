@@ -93,7 +93,7 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 c-tokenize.$(OBJEXT): c-tokenize.c
 	$(AM_V_GEN) \
 	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) -c -o $@ $<; \
+		$(CC_FOR_BUILD) -I$(top_builddir) -c -o $@ $<; \
 	else \
 		$(COMPILE) -c -o $@ $<; \
 	fi
