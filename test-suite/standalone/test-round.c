@@ -25,7 +25,16 @@
 #include <stdio.h>
 
 #if HAVE_FENV_H
-#include <fenv.h>
+# if defined __GNUC__ && defined __GLIBC__
+/* In Glibc 2.17, <bits/fenv.h> defines `feraiseexcept' as an inline
+   without declaring it first, so ignore the warning.  */
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wmissing-prototypes"
+# endif
+# include <fenv.h>
+# if defined __GNUC__ && defined __GLIBC__
+#   pragma GCC diagnostic pop
+# endif
 #elif defined HAVE_MACHINE_FPU_H
 /* On Tru64 5.1b, the declaration of fesetround(3) is in <machine/fpu.h>.
    On NetBSD, this header has to be included along with <sys/types.h>.  */
