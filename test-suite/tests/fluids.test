@@ -85,15 +85,17 @@
 
   (pass-if "last value wins"
     (compile '(with-fluids ((a 1)
-                            (a 2))
-                (eqv? (fluid-ref a) 2))
+                            (a 2)
+                            (a 3))
+                (eqv? (fluid-ref a) 3))
              #:env (current-module)))
   
   (pass-if "remove the duplicate, not the last binding"
     (compile '(with-fluids ((a 1)
                             (a 2)
-                            (b 3))
-                (eqv? (fluid-ref b) 3))
+                            (a 3)
+                            (b 4))
+                (eqv? (fluid-ref b) 4))
              #:env (current-module)))
 
   (pass-if "original value restored"

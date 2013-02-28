@@ -319,10 +319,10 @@ scm_i_make_with_fluids (size_t n, SCM *fluids, SCM *vals)
   /* Ensure that there are no duplicates in the fluids set -- an N^2 operation,
      but N will usually be small, so perhaps that's OK. */
   {
-    size_t i, j = n;
+    size_t i, j;
 
-    while (j--)
-      for (i = 0; i < j; i++)
+    for (j = n; j--;)
+      for (i = j; i--;)
         if (scm_is_eq (fluids[i], fluids[j]))
           {
             vals[i] = vals[j]; /* later bindings win */
