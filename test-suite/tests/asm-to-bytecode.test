@@ -132,6 +132,9 @@
 (define (native-cpu)
   (with-target %host-type target-cpu))
 
+(define (native-os)
+  (with-target %host-type target-os))
+
 (define (native-word-size)
   ((@ (system foreign) sizeof) '*))
 
@@ -152,7 +155,8 @@
                    ;; actually has a 32-bit user-land, for instance (see
                    ;; <http://www.debian.org/ports/sparc/#sparc64bit>
                    ;; for details.)
-                   (if (string=? (native-cpu) (target-cpu))
+                   (if (and (string=? (native-cpu) (target-cpu))
+                            (string=? (native-os) (target-os)))
                        (native-word-size)
                        word-size))
                   (b (compile-bytecode

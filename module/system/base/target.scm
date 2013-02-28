@@ -92,7 +92,7 @@
           ((string-match "^mips64.*-gnuabi64" triplet) 8) ; n64 ABI
           ((string-match "^mips64" cpu) 4)                ; n32 or o32
 
-          ((string-match "^x64_64-.*-gnux32" triplet) 4)  ; x32
+          ((string-match "^x86_64-.*-gnux32" triplet) 4)  ; x32
 
           ((string-match "64$" cpu) 8)
           ((string-match "64[lbe][lbe]$" cpu) 8)
