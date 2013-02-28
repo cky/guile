@@ -534,13 +534,16 @@ SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0,
             "procedure returns.")
 #define FUNC_NAME s_scm_eval_string_in_module
 {
-  static SCM eval_string = SCM_BOOL_F, k_module = SCM_BOOL_F;
+  static SCM eval_string = SCM_UNDEFINED, k_module = SCM_UNDEFINED;
+  static scm_i_pthread_mutex_t init_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-  if (scm_is_false (eval_string))
+  scm_i_scm_pthread_mutex_lock (&init_mutex);
+  if (SCM_UNBNDP (eval_string))
     {
-      eval_string = scm_c_public_lookup ("ice-9 eval-string", "eval-string");
+      eval_string = scm_c_public_variable ("ice-9 eval-string", "eval-string");
       k_module = scm_from_locale_keyword ("module");
     }
+  scm_i_pthread_mutex_unlock (&init_mutex);
   
   if (SCM_UNBNDP (module))
     module = scm_current_module ();

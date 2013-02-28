@@ -418,10 +418,14 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 SCM
 scm_current_warning_port (void)
 {
-  static SCM cwp_var = SCM_BOOL_F;
+  static SCM cwp_var = SCM_UNDEFINED;
+  static scm_i_pthread_mutex_t cwp_var_mutex
+    = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
-  if (scm_is_false (cwp_var))
-    cwp_var = scm_c_private_lookup ("guile", "current-warning-port");
+  scm_i_scm_pthread_mutex_lock (&cwp_var_mutex);
+  if (SCM_UNBNDP (cwp_var))
+    cwp_var = scm_c_private_variable ("guile", "current-warning-port");
+  scm_i_pthread_mutex_unlock (&cwp_var_mutex);
   
   return scm_call_0 (scm_variable_ref (cwp_var));
 }
