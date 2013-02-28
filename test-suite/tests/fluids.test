@@ -18,7 +18,8 @@
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 (define-module (test-suite test-fluids)
-  :use-module (test-suite lib))
+  :use-module (test-suite lib)
+  :use-module (system base compile))
 
 
 (define exception:syntax-error
@@ -78,16 +79,29 @@
         (not (fluid-ref a))))))
 
 (with-test-prefix "with-fluids with duplicate fluid"
+  ;; These tests must be compiled, because the evaluator
+  ;; effectively transforms (with-fluids ((a 1) (b 2)) ...)
+  ;; into (with-fluids ((a 1)) (with-fluids ((b 2)) ...))
+
   (pass-if "last value wins"
-    (with-fluids ((a 1)
-                  (a 2))
-      (eqv? (fluid-ref a) 2)))
+    (compile '(with-fluids ((a 1)
+                            (a 2))
+                (eqv? (fluid-ref a) 2))
+             #:env (current-module)))
   
+  (pass-if "remove the duplicate, not the last binding"
+    (compile '(with-fluids ((a 1)
+                            (a 2)
+                            (b 3))
+                (eqv? (fluid-ref b) 3))
+             #:env (current-module)))
+
   (pass-if "original value restored"
-    (and (with-fluids ((a 1)
-                       (a 2))
-           (eqv? (fluid-ref a) 2))
-         (eqv? (fluid-ref a) #f))))
+    (compile '(and (with-fluids ((a 1)
+                                 (a 2))
+                     (eqv? (fluid-ref a) 2))
+                   (eqv? (fluid-ref a) #f))
+             #:env (current-module))))
 
 (pass-if "fluid values are thread-local"
   (if (provided? 'threads)
