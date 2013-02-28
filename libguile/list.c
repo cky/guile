@@ -377,8 +377,6 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
   SCM_VALIDATE_LIST (1, lst);
   if (SCM_UNBNDP (new_tail))
     new_tail = SCM_EOL;
-  else
-    SCM_VALIDATE_LIST (2, new_tail);
 
   while (!SCM_NULL_OR_NIL_P (lst))
     {
