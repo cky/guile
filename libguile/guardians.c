@@ -1,5 +1,5 @@
 /* Copyright (C) 1998,1999,2000,2001, 2006, 2008, 2009, 2011,
- *   2012 Free Software Foundation, Inc.
+ *   2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -351,7 +351,13 @@ void
 scm_init_guardians ()
 {
   /* We use unordered finalization `a la Java.  */
+#ifdef HAVE_GC_SET_JAVA_FINALIZATION
+  /* This function was added in 7.2alpha2 (June 2009).  */
+  GC_set_java_finalization (1);
+#else
+  /* This symbol is deprecated as of 7.3.  */
   GC_java_finalization = 1;
+#endif
 
   tc16_guardian = scm_make_smob_type ("guardian", 0);
 

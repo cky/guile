@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2003, 2006,
+ *   2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -317,7 +318,13 @@ SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
 
   GC_get_heap_usage_safe (&heap_size, &free_bytes, &unmapped_bytes,
                           &bytes_since_gc, &total_bytes);
+#ifdef HAVE_GC_GET_GC_NO
+  /* This function was added in 7.2alpha2 (June 2009).  */
+  gc_times = GC_get_gc_no ();
+#else
+  /* This symbol is deprecated as of 7.3.  */
   gc_times = GC_gc_no;
+#endif
 
   answer =
     scm_list_n (scm_cons (sym_gc_time_taken, scm_from_long (gc_time_taken)),
@@ -629,7 +636,14 @@ GC_set_finalize_on_demand (int foo)
 void
 scm_storage_prehistory ()
 {
+#ifdef HAVE_GC_SET_ALL_INTERIOR_POINTERS
+  /* This function was added in 7.2alpha2 (June 2009).  */
+  GC_set_all_interior_pointers (0);
+#else
+  /* This symbol is deprecated in 7.3.  */
   GC_all_interior_pointers = 0;
+#endif
+
   free_space_divisor = scm_getenv_int ("GC_FREE_SPACE_DIVISOR", 3);
   minimum_free_space_divisor = free_space_divisor;
   target_free_space_divisor = free_space_divisor;
