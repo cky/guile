@@ -3,7 +3,8 @@
 #ifndef SCM_THREADS_H
 #define SCM_THREADS_H
 
-/* Copyright (C) 1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2006,
+ *   2007, 2008, 2009, 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -71,8 +72,8 @@ typedef struct scm_i_thread {
   scm_i_pthread_cond_t sleep_cond;
   int sleep_fd, sleep_pipe[2];
 
-  /* Information about the Boehm-GC mark stack during the mark phase.  This
-     is used by `scm_gc_mark ()'.  */
+  /* XXX: These two fields used to hold information about the BDW-GC
+     mark stack during the mark phase.  They are no longer used.  */
   void *current_mark_stack_ptr;
   void *current_mark_stack_limit;
 

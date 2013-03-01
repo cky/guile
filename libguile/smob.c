@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
+ *   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -284,6 +285,10 @@ scm_make_smob (scm_t_bits tc)
 /* The GC kind used for SMOB types that provide a custom mark procedure.  */
 static int smob_gc_kind;
 
+/* Mark stack pointer and limit, used by `scm_gc_mark'.  */
+static scm_i_pthread_key_t current_mark_stack_pointer;
+static scm_i_pthread_key_t current_mark_stack_limit;
+
 
 /* The generic SMOB mark procedure that gets called for SMOBs allocated
    with smob_gc_kind.  */
@@ -322,14 +327,14 @@ smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
     {
       SCM obj;
 
-      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
-      SCM_I_CURRENT_THREAD->current_mark_stack_limit = mark_stack_limit;
+      scm_i_pthread_setspecific (current_mark_stack_pointer, mark_stack_ptr);
+      scm_i_pthread_setspecific (current_mark_stack_limit, mark_stack_limit);
 
       /* Invoke the SMOB's mark procedure, which will in turn invoke
-	 `scm_gc_mark ()', which may modify `current_mark_stack_ptr'.  */
+	 `scm_gc_mark', which may modify `current_mark_stack_pointer'.  */
       obj = scm_smobs[smobnum].mark (cell);
 
-      mark_stack_ptr = SCM_I_CURRENT_THREAD->current_mark_stack_ptr;
+      mark_stack_ptr = scm_i_pthread_getspecific (current_mark_stack_pointer);
 
       if (SCM_NIMP (obj))
 	/* Mark the returned object.  */
@@ -337,42 +342,35 @@ smob_mark (GC_word *addr, struct GC_ms_entry *mark_stack_ptr,
 					   mark_stack_ptr,
 					   mark_stack_limit, NULL);
 
-      SCM_I_CURRENT_THREAD->current_mark_stack_limit = NULL;
-      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = NULL;
+      scm_i_pthread_setspecific (current_mark_stack_pointer, NULL);
+      scm_i_pthread_setspecific (current_mark_stack_limit, NULL);
     }
 
   return mark_stack_ptr;
 
 }
 
-/* Mark object O.  We assume that this function is only called during the
-   mark phase, i.e., from within `smob_mark ()' or one of its
-   descendents.  */
+/* Mark object O.  We assume that this function is only called during the mark
+   phase, i.e., from within `smob_mark' or one of its descendants.  */
 void
 scm_gc_mark (SCM o)
 {
-#define CURRENT_MARK_PTR						 \
-  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_ptr))
-#define CURRENT_MARK_LIMIT						   \
-  ((struct GC_ms_entry *)(SCM_I_CURRENT_THREAD->current_mark_stack_limit))
-
   if (SCM_NIMP (o))
     {
-      /* At this point, the `current_mark_*' fields of the current thread
-	 must be defined (they are set in `smob_mark ()').  */
-      register struct GC_ms_entry *mark_stack_ptr;
+      void *mark_stack_ptr, *mark_stack_limit;
 
-      if (!CURRENT_MARK_PTR)
+      mark_stack_ptr = scm_i_pthread_getspecific (current_mark_stack_pointer);
+      mark_stack_limit = scm_i_pthread_getspecific (current_mark_stack_limit);
+
+      if (mark_stack_ptr == NULL)
 	/* The function was not called from a mark procedure.  */
 	abort ();
 
       mark_stack_ptr = GC_MARK_AND_PUSH (SCM2PTR (o),
-					 CURRENT_MARK_PTR, CURRENT_MARK_LIMIT,
+					 mark_stack_ptr, mark_stack_limit,
 					 NULL);
-      SCM_I_CURRENT_THREAD->current_mark_stack_ptr = mark_stack_ptr;
+      scm_i_pthread_setspecific (current_mark_stack_pointer, mark_stack_ptr);
     }
-#undef CURRENT_MARK_PTR
-#undef CURRENT_MARK_LIMIT
 }
 
 
@@ -472,6 +470,9 @@ void
 scm_smob_prehistory ()
 {
   long i;
+
+  scm_i_pthread_key_create (&current_mark_stack_pointer, NULL);
+  scm_i_pthread_key_create (&current_mark_stack_limit, NULL);
 
   smob_gc_kind = GC_new_kind (GC_new_free_list (),
 			      GC_MAKE_PROC (GC_new_proc (smob_mark), 0),
