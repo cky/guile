@@ -333,7 +333,11 @@ cheaply, without allocating a rest list.
 @code{lambda*} is like @code{lambda}, except with some extensions to
 allow optional and keyword arguments.
 
-@deffn {library syntax} lambda* ([var@dots{}] @* [#:optional vardef@dots{}] @* [#:key  vardef@dots{} [#:allow-other-keys]] @* [#:rest var | . var]) @* body
+@deffn {library syntax} lambda* ([var@dots{}] @* @
+                        [#:optional vardef@dots{}] @* @
+                        [#:key  vardef@dots{} [#:allow-other-keys]] @* @
+                        [#:rest var | . var]) @* @
+                        body1 body2 @dots{}
 @sp 1
 Create a procedure which takes optional and/or keyword arguments
 specified with @code{#:optional} and @code{#:key}.  For example,

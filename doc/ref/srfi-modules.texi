@@ -3429,9 +3429,10 @@ Note that all fields of @var{type} and its supertypes must be specified.
 @end deffn
 
 @deffn {Scheme Procedure} make-compound-condition condition1 condition2 @dots{}
-Return a new compound condition composed of @var{conditions}.  The
-returned condition has the type of each condition of @var{conditions}
-(per @code{condition-has-type?}).
+Return a new compound condition composed of @var{condition1}
+@var{condition2} @enddots{}.  The returned condition has the type of
+each condition of condition1 condition2 @dots{} (per
+@code{condition-has-type?}).
 @end deffn
 
 @deffn {Scheme Procedure} condition-has-type? c type

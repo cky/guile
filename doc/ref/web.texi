@@ -1615,7 +1615,9 @@ and body, and write the response to the client.  Return the new state
 produced by the handler procedure.
 @end deffn
 
-@deffn {Scheme Procedure} run-server handler [impl='http] [open-params='()] . state
+@deffn {Scheme Procedure} run-server handler @
+                          [impl='http] [open-params='()] @
+                          arg @dots{}
 Run Guile's built-in web server.
 
 @var{handler} should be a procedure that takes two or more arguments,
@@ -1627,16 +1629,20 @@ For examples, skip ahead to the next section, @ref{Web Examples}.
 The response and body will be run through @code{sanitize-response}
 before sending back to the client.
 
-Additional arguments to @var{handler} are taken from @var{state}.
-Additional return values are accumulated into a new @var{state}, which
-will be used for subsequent requests.  In this way a handler can
-explicitly manage its state.
+Additional arguments to @var{handler} are taken from @var{arg}
+@enddots{}.  These arguments comprise a @dfn{state}.  Additional return
+values are accumulated into a new state, which will be used for
+subsequent requests.  In this way a handler can explicitly manage its
+state.
 @end deffn
 
 The default web server implementation is @code{http}, which binds to a
 socket, listening for request on that port.
 
-@deffn {HTTP Implementation} http [#:host=#f] [#:family=AF_INET] [#:addr=INADDR_LOOPBACK] [#:port 8080] [#:socket]
+@deffn {HTTP Implementation} http [#:host=#f] @
+                             [#:family=AF_INET] @
+                             [#:addr=INADDR_LOOPBACK] @
+                             [#:port 8080] [#:socket]
 The default HTTP implementation.  We document it as a function with
 keyword arguments, because that is precisely the way that it is -- all
 of the @var{open-params} to @code{run-server} get passed to the

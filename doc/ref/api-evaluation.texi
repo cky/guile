@@ -488,7 +488,10 @@ procedure in the default environment, but you really want the one from
 (use-modules (ice-9 eval-string))
 @end example
 
-@deffn {Scheme Procedure} eval-string string [module=#f] [file=#f] [line=#f] [column=#f] [lang=(current-language)] [compile?=#f]
+@deffn {Scheme Procedure} eval-string string [#:module=#f] [#:file=#f] @
+                          [#:line=#f] [#:column=#f] @
+                          [#:lang=(current-language)] @
+                          [#:compile?=#f]
 Parse @var{string} according to the current language, normally Scheme.
 Evaluate or compile the expressions it contains, in order, returning the
 last expression.
@@ -691,7 +694,9 @@ coding declaration as recognized by @code{file-encoding}
 The compiler can also be invoked directly by Scheme code using the procedures
 below:
 
-@deffn {Scheme Procedure} compile exp [env=#f] [from=(current-language)] [to=value] [opts=()]
+@deffn {Scheme Procedure} compile exp [#:env=#f] @
+                          [#:from=(current-language)] @
+                          [#:to=value] [#:opts=()]
 Compile the expression @var{exp} in the environment @var{env}. If
 @var{exp} is a procedure, the result will be a compiled procedure;
 otherwise @code{compile} is mostly equivalent to @code{eval}.
@@ -700,10 +705,11 @@ For a discussion of languages and compiler options, @xref{Compiling to
 the Virtual Machine}.
 @end deffn
 
-@deffn {Scheme Procedure} compile-file file [output-file=#f] @
-  [from=(current-language)] [to='objcode] @
-  [env=(default-environment from)] [opts='()] @
-  [canonicalization 'relative]
+@deffn {Scheme Procedure} compile-file file [#:output-file=#f] @
+                          [#:from=(current-language)] [#:to='objcode] @
+                          [#:env=(default-environment from)] @
+                          [#:opts='()] @
+                          [#:canonicalization='relative]
 Compile the file named @var{file}.
 
 Output will be written to a @var{output-file}.   If you do not supply an

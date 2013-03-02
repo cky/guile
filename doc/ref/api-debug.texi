@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -1175,7 +1175,9 @@ calls to @var{proc}.
 In addition, Guile defines a procedure to call a thunk, tracing all
 procedure calls and returns within the thunk.
 
-@deffn {Scheme Procedure} call-with-trace thunk  #:key (calls? #t) (instructions? #f) (width 80) (vm (the-vm))
+@deffn {Scheme Procedure} call-with-trace thunk [#:calls?=#t] @
+                          [#:instructions?=#f] @
+                          [#:width=80] [#:vm=(the-vm)]
 Call @var{thunk}, tracing all execution within its dynamic extent.
 
 If @var{calls?} is true, Guile will print a brief report at each
