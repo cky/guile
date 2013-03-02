@@ -1,6 +1,6 @@
 ;;; Tree-il canonicalizer
 
-;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -54,6 +54,21 @@
         body)
        (($ <dynlet> src () () body)
         body)
+       (($ <lambda> src meta #f)
+        ;; Give a body to case-lambda with no clauses.
+        (make-lambda
+         src meta
+         (make-lambda-case
+          #f '() #f #f #f '() '()
+          (make-application
+           #f
+           (make-primitive-ref #f 'throw)
+           (list (make-const #f 'wrong-number-of-args)
+                 (make-const #f #f)
+                 (make-const #f "Wrong number of arguments")
+                 (make-const #f '())
+                 (make-const #f #f)))
+          #f)))
        (($ <prompt> src tag body handler)
         (define (escape-only? handler)
           (match handler

@@ -1,4 +1,4 @@
-;;;; 	Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -287,7 +287,9 @@
      `(define ,name ,(unparse-tree-il exp)))
 
     ((<lambda> meta body)
-     `(lambda ,meta ,(unparse-tree-il body)))
+     (if body
+         `(lambda ,meta ,(unparse-tree-il body))
+         `(lambda ,meta (lambda-case))))
 
     ((<lambda-case> req opt rest kw inits gensyms body alternate)
      `(lambda-case ((,req ,opt ,rest ,kw ,(map unparse-tree-il inits) ,gensyms)
@@ -370,7 +372,11 @@ This is an implementation of `foldts' as described by Andy Wingo in
           ((<sequence> exps)
            (up tree (loop exps (down tree result))))
           ((<lambda> body)
-           (up tree (loop body (down tree result))))
+           (let ((result (down tree result)))
+             (up tree
+                 (if body
+                     (loop body result)
+                     result))))
           ((<lambda-case> inits body alternate)
            (up tree (if alternate
                         (loop alternate
@@ -442,7 +448,9 @@ This is an implementation of `foldts' as described by Andy Wingo in
               ((<sequence> exps)
                (fold-values foldts exps seed ...))
               ((<lambda> body)
-               (foldts body seed ...))
+               (if body
+                   (foldts body seed ...)
+                   (values seed ...)))
               ((<lambda-case> inits body alternate)
                (let-values (((seed ...) (fold-values foldts inits seed ...)))
                  (if alternate
@@ -511,7 +519,8 @@ This is an implementation of `foldts' as described by Andy Wingo in
        (set! (toplevel-define-exp x) (lp exp)))
 
       ((<lambda> body)
-       (set! (lambda-body x) (lp body)))
+       (if body
+           (set! (lambda-body x) (lp body))))
 
       ((<lambda-case> inits body alternate)
        (set! inits (map lp inits))
@@ -595,7 +604,8 @@ This is an implementation of `foldts' as described by Andy Wingo in
          (set! (toplevel-define-exp x) (lp exp)))
 
         ((<lambda> body)
-         (set! (lambda-body x) (lp body)))
+         (if body
+             (set! (lambda-body x) (lp body))))
 
         ((<lambda-case> inits body alternate)
          (set! inits (map lp inits))

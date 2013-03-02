@@ -1,6 +1,6 @@
 ;;; Common Subexpression Elimination (CSE) on Tree-IL
 
-;; Copyright (C) 2011, 2012 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -535,8 +535,10 @@
          (return (make-application src proc args)
                  (concat db** db*))))
       (($ <lambda> src meta body)
-       (let*-values (((body _) (visit body (control-flow-boundary db)
-                                      env 'values)))
+       (let*-values (((body _) (if body
+                                   (visit body (control-flow-boundary db)
+                                          env 'values)
+                                   (values #f #f))))
          (return (make-lambda src meta body)
                  vlist-null)))
       (($ <lambda-case> src req opt rest kw inits gensyms body alt)

@@ -1440,14 +1440,14 @@ top-level bindings from ENV and return the resulting expression."
          ((operator) exp)
          (else (record-source-expression!
                 exp
-                (make-lambda src meta (for-values body))))))
+                (make-lambda src meta (and body (for-values body)))))))
       (($ <lambda-case> src req opt rest kw inits gensyms body alt)
        (define (lift-applied-lambda body gensyms)
          (and (not opt) rest (not kw)
               (match body
                 (($ <application> _
                     ($ <primitive-ref> _ '@apply)
-                    (($ <lambda> _ _ lcase)
+                    (($ <lambda> _ _ (and lcase ($ <lambda-case>)))
                      ($ <lexical-ref> _ _ sym)
                      ...))
                  (and (equal? sym gensyms)

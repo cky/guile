@@ -2076,12 +2076,12 @@
     (global-extend 'core 'case-lambda
                    (lambda (e r w s mod)
                      (syntax-case e ()
-                       ((_ (args e1 e2 ...) (args* e1* e2* ...) ...)
+                       ((_ (args e1 e2 ...) ...)
                         (call-with-values
                             (lambda ()
                               (expand-lambda-case e r w s mod
                                                   lambda-formals
-                                                  #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
+                                                  #'((args e1 e2 ...) ...)))
                           (lambda (meta lcase)
                             (build-case-lambda s meta lcase))))
                        (_ (syntax-violation 'case-lambda "bad case-lambda" e)))))
@@ -2089,12 +2089,12 @@
     (global-extend 'core 'case-lambda*
                    (lambda (e r w s mod)
                      (syntax-case e ()
-                       ((_ (args e1 e2 ...) (args* e1* e2* ...) ...)
+                       ((_ (args e1 e2 ...) ...)
                         (call-with-values
                             (lambda ()
                               (expand-lambda-case e r w s mod
                                                   lambda*-formals
-                                                  #'((args e1 e2 ...) (args* e1* e2* ...) ...)))
+                                                  #'((args e1 e2 ...) ...)))
                           (lambda (meta lcase)
                             (build-case-lambda s meta lcase))))
                        (_ (syntax-violation 'case-lambda "bad case-lambda*" e)))))

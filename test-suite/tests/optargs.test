@@ -221,7 +221,20 @@
     (equal? (transmogrify quote)
             10)))
 
+(with-test-prefix/c&e "case-lambda"
+  (pass-if-exception "no clauses, no args" exception:wrong-num-args
+    ((case-lambda)))
+
+  (pass-if-exception "no clauses, args" exception:wrong-num-args
+    ((case-lambda) 1)))
+
 (with-test-prefix/c&e "case-lambda*"
+  (pass-if-exception "no clauses, no args" exception:wrong-num-args
+    ((case-lambda*)))
+
+  (pass-if-exception "no clauses, args" exception:wrong-num-args
+    ((case-lambda*) 1))
+
   (pass-if "unambiguous"
     ((case-lambda*
       ((a b) #t)

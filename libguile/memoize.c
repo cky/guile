@@ -269,14 +269,33 @@ memoize (SCM exp, SCM env)
       return MAKMEMO_BEGIN (memoize_exps (REF (exp, SEQUENCE, EXPS), env));
 
     case SCM_EXPANDED_LAMBDA:
-      /* The body will be a lambda-case. */
+      /* The body will be a lambda-case or #f. */
       {
-	SCM meta, docstring, proc;
+	SCM meta, docstring, body, proc;
 
 	meta = REF (exp, LAMBDA, META);
 	docstring = scm_assoc_ref (meta, scm_sym_documentation);
 
-	proc = memoize (REF (exp, LAMBDA, BODY), env);
+        body = REF (exp, LAMBDA, BODY);
+        if (scm_is_false (body))
+          /* Give a body to case-lambda with no clauses.  */
+          proc = MAKMEMO_LAMBDA
+            (MAKMEMO_CALL
+             (MAKMEMO_MOD_REF (list_of_guile,
+                               scm_from_latin1_symbol ("throw"),
+                               SCM_BOOL_F),
+              5,
+              scm_list_5 (MAKMEMO_QUOTE (scm_args_number_key),
+                          MAKMEMO_QUOTE (SCM_BOOL_F),
+                          MAKMEMO_QUOTE (scm_from_latin1_string
+                                         ("Wrong number of arguments")),
+                          MAKMEMO_QUOTE (SCM_EOL),
+                          MAKMEMO_QUOTE (SCM_BOOL_F))),
+             FIXED_ARITY (0),
+             SCM_BOOL_F /* docstring */);
+        else
+          proc = memoize (body, env);
+
 	if (scm_is_string (docstring))
 	  {
 	    SCM args = SCM_MEMOIZED_ARGS (proc);

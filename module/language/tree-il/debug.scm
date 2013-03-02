@@ -1,6 +1,6 @@
 ;;; Tree-IL verifier
 
-;; Copyright (C) 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -115,10 +115,11 @@
        (cond
         ((and meta (not (and (list? meta) (and-map pair? meta))))
          (error "meta should be alist" meta))
-        ((not (lambda-case? body))
+        ((and body (not (lambda-case? body)))
          (error "lambda body should be lambda-case" exp))
         (else
-         (visit body env))))
+         (if body
+             (visit body env)))))
       (($ <let> src names gensyms vals body)
        (cond
         ((not (and (list? names) (and-map symbol? names)))
