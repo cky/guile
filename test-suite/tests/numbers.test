@@ -3858,21 +3858,17 @@
 ;;;
 
 (with-test-prefix "exact->inexact"
-  
+
+  ;; Test "(exact->inexact n)", expect "want".
+  (define (test name n want)
+    (with-test-prefix name
+      (pass-if-equal "pos" want (exact->inexact n))
+      (pass-if-equal "neg" (- want) (exact->inexact (- n)))))
+
   ;; Test "(exact->inexact n)", expect "want".
   ;; "i" is a index, for diagnostic purposes.
   (define (try-i i n want)
-    (with-test-prefix (list i n want)
-      (with-test-prefix "pos"
-	(let ((got (exact->inexact n)))
-	  (pass-if "inexact?" (inexact? got))
-	  (pass-if (list "=" got) (= want got))))
-      (set! n    (- n))
-      (set! want (- want))
-      (with-test-prefix "neg"
-	(let ((got (exact->inexact n)))
-	  (pass-if "inexact?" (inexact? got))
-	  (pass-if (list "=" got) (= want got))))))
+    (test (list i n want) n want))
   
   (with-test-prefix "2^i, no round"
     (do ((i    0   (1+ i))
@@ -3945,7 +3941,42 @@
   ;; convert the num and den to doubles, resulting in infs.
   (pass-if "frac big/big, exceeding double"
     (let ((big (ash 1 4096)))
-      (= 1.0 (exact->inexact (/ (1+ big) big))))))
+      (= 1.0 (exact->inexact (/ (1+ big) big)))))
+
+  (test "round up to odd"
+        ;; =====================================================
+        ;; 11111111111111111111111111111111111111111111111111000101 ->
+        ;; 11111111111111111111111111111111111111111111111111001000
+        (+ (expt 2   (+ dbl-mant-dig 3)) -64 #b000101)
+        (+ (expt 2.0 (+ dbl-mant-dig 3)) -64 #b001000))
+
+  (test "round down to odd"
+        ;; =====================================================
+        ;; 11111111111111111111111111111111111111111111111111001011 ->
+        ;; 11111111111111111111111111111111111111111111111111001000
+        (+ (expt 2   (+ dbl-mant-dig 3)) -64 #b001011)
+        (+ (expt 2.0 (+ dbl-mant-dig 3)) -64 #b001000))
+
+  (test "round tie up to even"
+        ;; =====================================================
+        ;; 11111111111111111111111111111111111111111111111111011100 ->
+        ;; 11111111111111111111111111111111111111111111111111100000
+        (+ (expt 2   (+ dbl-mant-dig 3)) -64 #b011100)
+        (+ (expt 2.0 (+ dbl-mant-dig 3)) -64 #b100000))
+
+  (test "round tie down to even"
+        ;; =====================================================
+        ;; 11111111111111111111111111111111111111111111111111000100 ->
+        ;; 11111111111111111111111111111111111111111111111111000000
+        (+ (expt 2   (+ dbl-mant-dig 3)) -64 #b000100)
+        (+ (expt 2.0 (+ dbl-mant-dig 3)) -64 #b000000))
+
+  (test "round tie up to next power of two"
+        ;;  =====================================================
+        ;;  11111111111111111111111111111111111111111111111111111100 ->
+        ;; 100000000000000000000000000000000000000000000000000000000
+        (+ (expt 2 (+ dbl-mant-dig 3)) -64 #b111100)
+        (expt 2.0 (+ dbl-mant-dig 3))))
 
 ;;;
 ;;; expt

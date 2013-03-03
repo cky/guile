@@ -330,81 +330,52 @@ scm_i_dbl2num (double u)
     return scm_i_dbl2big (u);
 }
 
-/* scm_i_big2dbl() rounds to the closest representable double, in accordance
-   with R5RS exact->inexact.
+static SCM round_right_shift_exact_integer (SCM n, long count);
 
-   The approach is to use mpz_get_d to pick out the high DBL_MANT_DIG bits
-   (ie. truncate towards zero), then adjust to get the closest double by
-   examining the next lower bit and adding 1 (to the absolute value) if
-   necessary.
+/* scm_i_big2dbl_2exp() is like frexp for bignums: it converts the
+   bignum b into a normalized significand and exponent such that
+   b = significand * 2^exponent and 1/2 <= abs(significand) < 1.
+   The return value is the significand rounded to the closest
+   representable double, and the exponent is placed into *expon_p.
+   If b is zero, then the returned exponent and significand are both
+   zero. */
 
-   Bignums exactly half way between representable doubles are rounded to the
-   next higher absolute value (ie. away from zero).  This seems like an
-   adequate interpretation of R5RS "numerically closest", and it's easier
-   and faster than a full "nearest-even" style.
-
-   The bit test must be done on the absolute value of the mpz_t, which means
-   we need to use mpz_getlimbn.  mpz_tstbit is not right, it treats
-   negatives as twos complement.
-
-   In GMP before 4.2, mpz_get_d rounding was unspecified.  It ended up
-   following the hardware rounding mode, but applied to the absolute
-   value of the mpz_t operand.  This is not what we want so we put the
-   high DBL_MANT_DIG bits into a temporary.  Starting with GMP 4.2
-   (released in March 2006) mpz_get_d now always truncates towards zero.
-
-   ENHANCE-ME: The temporary init+clear to force the rounding in GMP
-   before 4.2 is a slowdown.  It'd be faster to pick out the relevant
-   high bits with mpz_getlimbn.  */
-
-double
-scm_i_big2dbl (SCM b)
+static double
+scm_i_big2dbl_2exp (SCM b, long *expon_p)
 {
-  double result;
-  size_t bits;
-
-  bits = mpz_sizeinbase (SCM_I_BIG_MPZ (b), 2);
-
-#if 1
-  {
-    /* For GMP earlier than 4.2, force truncation towards zero */
-
-    /* FIXME: DBL_MANT_DIG is the number of base-`FLT_RADIX' digits,
-       _not_ the number of bits, so this code will break badly on a
-       system with non-binary doubles.  */
-
-    mpz_t  tmp;
-    if (bits > DBL_MANT_DIG)
-      {
-        size_t  shift = bits - DBL_MANT_DIG;
-        mpz_init2 (tmp, DBL_MANT_DIG);
-        mpz_tdiv_q_2exp (tmp, SCM_I_BIG_MPZ (b), shift);
-        result = ldexp (mpz_get_d (tmp), shift);
-        mpz_clear (tmp);
-      }
-    else
-      {
-        result = mpz_get_d (SCM_I_BIG_MPZ (b));
-      }
-  }
-#else
-  /* GMP 4.2 or later */
-  result = mpz_get_d (SCM_I_BIG_MPZ (b));
-#endif
+  size_t bits = mpz_sizeinbase (SCM_I_BIG_MPZ (b), 2);
+  size_t shift = 0;
 
   if (bits > DBL_MANT_DIG)
     {
-      unsigned long  pos = bits - DBL_MANT_DIG - 1;
-      /* test bit number "pos" in absolute value */
-      if (mpz_getlimbn (SCM_I_BIG_MPZ (b), pos / GMP_NUMB_BITS)
-          & ((mp_limb_t) 1 << (pos % GMP_NUMB_BITS)))
+      shift = bits - DBL_MANT_DIG;
+      b = round_right_shift_exact_integer (b, shift);
+      if (SCM_I_INUMP (b))
         {
-          result += ldexp ((double) mpz_sgn (SCM_I_BIG_MPZ (b)), pos + 1);
+          int expon;
+          double signif = frexp (SCM_I_INUM (b), &expon);
+          *expon_p = expon + shift;
+          return signif;
         }
     }
 
-  scm_remember_upto_here_1 (b);
-  return result;
+  {
+    long expon;
+    double signif = mpz_get_d_2exp (&expon, SCM_I_BIG_MPZ (b));
+    scm_remember_upto_here_1 (b);
+    *expon_p = expon + shift;
+    return signif;
+  }
+}
+
+/* scm_i_big2dbl() rounds to the closest representable double,
+   in accordance with R5RS exact->inexact.  */
+double
+scm_i_big2dbl (SCM b)
+{
+  long expon;
+  double signif = scm_i_big2dbl_2exp (b, &expon);
+  return ldexp (signif, expon);
 }
 
 SCM
