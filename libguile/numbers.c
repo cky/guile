@@ -4791,19 +4791,119 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+/* Efficiently compute (N * 2^COUNT),
+   where N is an exact integer, and COUNT > 0. */
+static SCM
+left_shift_exact_integer (SCM n, long count)
+{
+  if (SCM_I_INUMP (n))
+    {
+      scm_t_inum nn = SCM_I_INUM (n);
+
+      /* Left shift of count >= SCM_I_FIXNUM_BIT-1 will always
+         overflow a non-zero fixnum.  For smaller shifts we check the
+         bits going into positions above SCM_I_FIXNUM_BIT-1.  If they're
+         all 0s for nn>=0, or all 1s for nn<0 then there's no overflow.
+         Those bits are "nn >> (SCM_I_FIXNUM_BIT-1 - count)".  */
+
+      if (nn == 0)
+        return n;
+      else if (count < SCM_I_FIXNUM_BIT-1 &&
+               ((scm_t_bits) (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - count)) + 1)
+                <= 1))
+        return SCM_I_MAKINUM (nn << count);
+      else
+        {
+          SCM result = scm_i_inum2big (nn);
+          mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
+                        count);
+          return result;
+        }
+    }
+  else if (SCM_BIGP (n))
+    {
+      SCM result = scm_i_mkbig ();
+      mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n), count);
+      scm_remember_upto_here_1 (n);
+      return result;
+    }
+  else
+    scm_syserror ("left_shift_exact_integer");
+}
+
+/* Efficiently compute floor (N / 2^COUNT),
+   where N is an exact integer and COUNT > 0. */
+static SCM
+floor_right_shift_exact_integer (SCM n, long count)
+{
+  if (SCM_I_INUMP (n))
+    {
+      scm_t_inum nn = SCM_I_INUM (n);
+
+      if (count >= SCM_I_FIXNUM_BIT)
+        return (nn >= 0 ? SCM_INUM0 : SCM_I_MAKINUM (-1));
+      else
+        return SCM_I_MAKINUM (SCM_SRS (nn, count));
+    }
+  else if (SCM_BIGP (n))
+    {
+      SCM result = scm_i_mkbig ();
+      mpz_fdiv_q_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n),
+                       count);
+      scm_remember_upto_here_1 (n);
+      return scm_i_normbig (result);
+    }
+  else
+    scm_syserror ("floor_right_shift_exact_integer");
+}
+
+/* Efficiently compute round (N / 2^COUNT),
+   where N is an exact integer and COUNT > 0. */
+static SCM
+round_right_shift_exact_integer (SCM n, long count)
+{
+  if (SCM_I_INUMP (n))
+    {
+      if (count >= SCM_I_FIXNUM_BIT)
+        return SCM_INUM0;
+      else
+        {
+          scm_t_inum nn = SCM_I_INUM (n);
+          scm_t_inum qq = SCM_SRS (nn, count);
+
+          if (0 == (nn & (1L << (count-1))))
+            return SCM_I_MAKINUM (qq);                /* round down */
+          else if (nn & ((1L << (count-1)) - 1))
+            return SCM_I_MAKINUM (qq + 1);            /* round up */
+          else
+            return SCM_I_MAKINUM ((~1L) & (qq + 1));  /* round to even */
+        }
+    }
+  else if (SCM_BIGP (n))
+    {
+      SCM q = scm_i_mkbig ();
+
+      mpz_fdiv_q_2exp (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (n), count);
+      if (mpz_tstbit (SCM_I_BIG_MPZ (n), count-1)
+          && (mpz_odd_p (SCM_I_BIG_MPZ (q))
+              || (mpz_scan1 (SCM_I_BIG_MPZ (n), 0) < count-1)))
+        mpz_add_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q), 1);
+      scm_remember_upto_here_1 (n);
+      return scm_i_normbig (q);
+    }
+  else
+    scm_syserror ("round_right_shift_exact_integer");
+}
+
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
-            (SCM n, SCM cnt),
-	    "Return @var{n} shifted left by @var{cnt} bits, or shifted right\n"
-	    "if @var{cnt} is negative.  This is an ``arithmetic'' shift.\n"
+            (SCM n, SCM count),
+	    "Return @math{floor(@var{n} * 2^@var{count})}.\n"
+	    "@var{n} and @var{count} must be exact integers.\n"
 	    "\n"
-	    "This is effectively a multiplication by 2^@var{cnt}, and when\n"
-	    "@var{cnt} is negative it's a division, rounded towards negative\n"
-	    "infinity.  (Note that this is not the same rounding as\n"
-	    "@code{quotient} does.)\n"
-	    "\n"
-	    "With @var{n} viewed as an infinite precision twos complement,\n"
-	    "@code{ash} means a left shift introducing zero bits, or a right\n"
-	    "shift dropping bits.\n"
+	    "With @var{n} viewed as an infinite-precision twos-complement\n"
+	    "integer, @code{ash} means a left shift introducing zero bits\n"
+	    "when @var{count} is positive, or a right shift dropping bits\n"
+	    "when @var{count} is negative.  This is an ``arithmetic'' shift.\n"
 	    "\n"
 	    "@lisp\n"
 	    "(number->string (ash #b1 3) 2)     @result{} \"1000\"\n"
@@ -4814,79 +4914,57 @@ SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
 	    "@end lisp")
 #define FUNC_NAME s_scm_ash
 {
-  long bits_to_shift;
-  bits_to_shift = scm_to_long (cnt);
-
-  if (SCM_I_INUMP (n))
+  if (SCM_I_INUMP (n) || SCM_BIGP (n))
     {
-      scm_t_inum nn = SCM_I_INUM (n);
+      long bits_to_shift = scm_to_long (count);
 
       if (bits_to_shift > 0)
-        {
-          /* Left shift of bits_to_shift >= SCM_I_FIXNUM_BIT-1 will always
-             overflow a non-zero fixnum.  For smaller shifts we check the
-             bits going into positions above SCM_I_FIXNUM_BIT-1.  If they're
-             all 0s for nn>=0, or all 1s for nn<0 then there's no overflow.
-             Those bits are "nn >> (SCM_I_FIXNUM_BIT-1 -
-             bits_to_shift)".  */
-
-          if (nn == 0)
-            return n;
-
-          if (bits_to_shift < SCM_I_FIXNUM_BIT-1
-              && ((scm_t_bits)
-                  (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - bits_to_shift)) + 1)
-                  <= 1))
-            {
-              return SCM_I_MAKINUM (nn << bits_to_shift);
-            }
-          else
-            {
-              SCM result = scm_i_inum2big (nn);
-              mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
-                            bits_to_shift);
-              return result;
-            }
-        }
+        return left_shift_exact_integer (n, bits_to_shift);
+      else if (SCM_LIKELY (bits_to_shift < 0))
+        return floor_right_shift_exact_integer (n, -bits_to_shift);
       else
-        {
-          bits_to_shift = -bits_to_shift;
-          if (bits_to_shift >= SCM_LONG_BIT)
-            return (nn >= 0 ? SCM_INUM0 : SCM_I_MAKINUM(-1));
-          else
-            return SCM_I_MAKINUM (SCM_SRS (nn, bits_to_shift));
-        }
-
-    }
-  else if (SCM_BIGP (n))
-    {
-      SCM result;
-
-      if (bits_to_shift == 0)
         return n;
-
-      result = scm_i_mkbig ();
-      if (bits_to_shift >= 0)
-        {
-          mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n),
-                        bits_to_shift);
-          return result;
-        }
-      else
-        {
-          /* GMP doesn't have an fdiv_q_2exp variant returning just a long, so
-             we have to allocate a bignum even if the result is going to be a
-             fixnum.  */
-          mpz_fdiv_q_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (n),
-                           -bits_to_shift);
-          return scm_i_normbig (result);
-        }
-
     }
   else
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_round_ash, "round-ash", 2, 0, 0,
+            (SCM n, SCM count),
+	    "Return @math{round(@var{n} * 2^@var{count})}.\n"
+	    "@var{n} and @var{count} must be exact integers.\n"
+	    "\n"
+	    "With @var{n} viewed as an infinite-precision twos-complement\n"
+	    "integer, @code{round-ash} means a left shift introducing zero\n"
+	    "bits when @var{count} is positive, or a right shift rounding\n"
+	    "to the nearest integer (with ties going to the nearest even\n"
+	    "integer) when @var{count} is negative.  This is a rounded\n"
+	    "``arithmetic'' shift.\n"
+	    "\n"
+	    "@lisp\n"
+	    "(number->string (round-ash #b1 3) 2)     @result{} \"1000\"\n"
+	    "(number->string (round-ash #b1010 -1) 2) @result{} \"101\"\n"
+	    "(number->string (round-ash #b1010 -2) 2) @result{} \"10\"\n"
+	    "(number->string (round-ash #b1011 -2) 2) @result{} \"11\"\n"
+	    "(number->string (round-ash #b1101 -2) 2) @result{} \"11\"\n"
+	    "(number->string (round-ash #b1110 -2) 2) @result{} \"100\"\n"
+	    "@end lisp")
+#define FUNC_NAME s_scm_round_ash
+{
+  if (SCM_I_INUMP (n) || SCM_BIGP (n))
     {
-      SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
+      long bits_to_shift = scm_to_long (count);
+
+      if (bits_to_shift > 0)
+        return left_shift_exact_integer (n, bits_to_shift);
+      else if (SCM_LIKELY (bits_to_shift < 0))
+        return round_right_shift_exact_integer (n, -bits_to_shift);
+      else
+        return n;
     }
+  else
+    SCM_WRONG_TYPE_ARG (SCM_ARG1, n);
 }
 #undef FUNC_NAME
 

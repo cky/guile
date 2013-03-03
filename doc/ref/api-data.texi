@@ -1686,19 +1686,15 @@ starts from 0 for the least significant bit.
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} ash n cnt
-@deffnx {C Function} scm_ash (n, cnt)
-Return @var{n} shifted left by @var{cnt} bits, or shifted right if
-@var{cnt} is negative.  This is an ``arithmetic'' shift.
+@deffn {Scheme Procedure} ash n count
+@deffnx {C Function} scm_ash (n, count)
+Return @math{floor(@var{n} * 2^@var{count})}.
+@var{n} and @var{count} must be exact integers.
 
-This is effectively a multiplication by @m{2^{cnt}, 2^@var{cnt}}, and
-when @var{cnt} is negative it's a division, rounded towards negative
-infinity.  (Note that this is not the same rounding as @code{quotient}
-does.)
-
-With @var{n} viewed as an infinite precision twos complement,
-@code{ash} means a left shift introducing zero bits, or a right shift
-dropping bits.
+With @var{n} viewed as an infinite-precision twos-complement
+integer, @code{ash} means a left shift introducing zero bits
+when @var{count} is positive, or a right shift dropping bits
+when @var{count} is negative.  This is an ``arithmetic'' shift.
 
 @lisp
 (number->string (ash #b1 3) 2)     @result{} "1000"
@@ -1706,6 +1702,28 @@ dropping bits.
 
 ;; -23 is bits ...11101001, -6 is bits ...111010
 (ash -23 -2) @result{} -6
+@end lisp
+@end deffn
+
+@deffn {Scheme Procedure} round-ash n count
+@deffnx {C Function} scm_round_ash (n, count)
+Return @math{round(@var{n} * 2^@var{count})}.
+@var{n} and @var{count} must be exact integers.
+
+With @var{n} viewed as an infinite-precision twos-complement
+integer, @code{round-ash} means a left shift introducing zero
+bits when @var{count} is positive, or a right shift rounding
+to the nearest integer (with ties going to the nearest even
+integer) when @var{count} is negative.  This is a rounded
+``arithmetic'' shift.
+
+@lisp
+(number->string (round-ash #b1 3) 2)     @result{} \"1000\"
+(number->string (round-ash #b1010 -1) 2) @result{} \"101\"
+(number->string (round-ash #b1010 -2) 2) @result{} \"10\"
+(number->string (round-ash #b1011 -2) 2) @result{} \"11\"
+(number->string (round-ash #b1101 -2) 2) @result{} \"11\"
+(number->string (round-ash #b1110 -2) 2) @result{} \"100\"
 @end lisp
 @end deffn
 
