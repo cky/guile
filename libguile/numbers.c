@@ -442,96 +442,56 @@ scm_i_mpz2num (mpz_t b)
 /* this is needed when we want scm_divide to make a float, not a ratio, even if passed two ints */
 static SCM scm_divide2real (SCM x, SCM y);
 
+/* Make the ratio NUMERATOR/DENOMINATOR, where:
+    1. NUMERATOR and DENOMINATOR are exact integers
+    2. NUMERATOR and DENOMINATOR are reduced to lowest terms: gcd(n,d) == 1 */
+static SCM
+scm_i_make_ratio_already_reduced (SCM numerator, SCM denominator)
+{
+  /* Flip signs so that the denominator is positive. */
+  if (scm_is_false (scm_positive_p (denominator)))
+    {
+      if (SCM_UNLIKELY (scm_is_eq (denominator, SCM_INUM0)))
+	scm_num_overflow ("make-ratio");
+      else
+	{
+	  numerator = scm_difference (numerator, SCM_UNDEFINED);
+	  denominator = scm_difference (denominator, SCM_UNDEFINED);
+	}
+    }
+
+  /* Check for the integer case */
+  if (scm_is_eq (denominator, SCM_INUM1))
+    return numerator;
+
+  return scm_double_cell (scm_tc16_fraction,
+			  SCM_UNPACK (numerator),
+			  SCM_UNPACK (denominator), 0);
+}
+
+static SCM scm_exact_integer_quotient (SCM x, SCM y);
+
+/* Make the ratio NUMERATOR/DENOMINATOR */
 static SCM
 scm_i_make_ratio (SCM numerator, SCM denominator)
 #define FUNC_NAME "make-ratio"
 {
-  /* First make sure the arguments are proper.
-   */
-  if (SCM_I_INUMP (denominator))
-    {
-      if (scm_is_eq (denominator, SCM_INUM0))
-	scm_num_overflow ("make-ratio");
-      if (scm_is_eq (denominator, SCM_INUM1))
-	return numerator;
-    }
-  else 
-    {
-      if (!(SCM_BIGP(denominator)))
-	SCM_WRONG_TYPE_ARG (2, denominator);
-    }
-  if (!SCM_I_INUMP (numerator) && !SCM_BIGP (numerator))
+  /* Make sure the arguments are proper */
+  if (!SCM_LIKELY (SCM_I_INUMP (numerator) || SCM_BIGP (numerator)))
     SCM_WRONG_TYPE_ARG (1, numerator);
-
-  /* Then flip signs so that the denominator is positive.
-   */
-  if (scm_is_true (scm_negative_p (denominator)))
+  else if (!SCM_LIKELY (SCM_I_INUMP (denominator) || SCM_BIGP (denominator)))
+    SCM_WRONG_TYPE_ARG (2, denominator);
+  else
     {
-      numerator = scm_difference (numerator, SCM_UNDEFINED);
-      denominator = scm_difference (denominator, SCM_UNDEFINED);
-    }
-
-  /* Now consider for each of the four fixnum/bignum combinations
-     whether the rational number is really an integer.
-  */
-  if (SCM_I_INUMP (numerator))
-    {
-      scm_t_inum x = SCM_I_INUM (numerator);
-      if (scm_is_eq (numerator, SCM_INUM0))
-	return SCM_INUM0;
-      if (SCM_I_INUMP (denominator))
+      SCM the_gcd = scm_gcd (numerator, denominator);
+      if (!(scm_is_eq (the_gcd, SCM_INUM1)))
 	{
-	  scm_t_inum y;
-	  y = SCM_I_INUM (denominator);
-	  if (x == y)
-	    return SCM_INUM1;
-	  if ((x % y) == 0)
-	    return SCM_I_MAKINUM (x / y);
+	  /* Reduce to lowest terms */
+	  numerator = scm_exact_integer_quotient (numerator, the_gcd);
+	  denominator = scm_exact_integer_quotient (denominator, the_gcd);
 	}
-      else
-        {
-          /* When x == SCM_MOST_NEGATIVE_FIXNUM we could have the negative
-             of that value for the denominator, as a bignum.  Apart from
-             that case, abs(bignum) > abs(inum) so inum/bignum is not an
-             integer.  */
-          if (x == SCM_MOST_NEGATIVE_FIXNUM
-              && mpz_cmp_ui (SCM_I_BIG_MPZ (denominator),
-                             - SCM_MOST_NEGATIVE_FIXNUM) == 0)
-	    return SCM_I_MAKINUM(-1);
-        }
+      return scm_i_make_ratio_already_reduced (numerator, denominator);
     }
-  else if (SCM_BIGP (numerator))
-    {
-      if (SCM_I_INUMP (denominator))
-	{
-	  scm_t_inum yy = SCM_I_INUM (denominator);
-	  if (mpz_divisible_ui_p (SCM_I_BIG_MPZ (numerator), yy))
-	    return scm_divide (numerator, denominator);
-	}
-      else
-	{
-	  if (scm_is_eq (numerator, denominator))
-	    return SCM_INUM1;
-	  if (mpz_divisible_p (SCM_I_BIG_MPZ (numerator),
-			       SCM_I_BIG_MPZ (denominator)))
-	    return scm_divide(numerator, denominator);
-	}
-    }
-
-  /* No, it's a proper fraction.
-   */
-  {
-    SCM divisor = scm_gcd (numerator, denominator);
-    if (!(scm_is_eq (divisor, SCM_INUM1)))
-      {
-	numerator = scm_divide (numerator, divisor);
-	denominator = scm_divide (denominator, divisor);
-      }
-      
-    return scm_double_cell (scm_tc16_fraction,
-			    SCM_UNPACK (numerator),
-			    SCM_UNPACK (denominator), 0);
-  }
 }
 #undef FUNC_NAME
 
@@ -823,8 +783,9 @@ SCM_PRIMITIVE_GENERIC (scm_abs, "abs", 1, 0, 0,
     {
       if (scm_is_false (scm_negative_p (SCM_FRACTION_NUMERATOR (x))))
 	return x;
-      return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
-			     SCM_FRACTION_DENOMINATOR (x));
+      return scm_i_make_ratio_already_reduced
+	(scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
+	 SCM_FRACTION_DENOMINATOR (x));
     }
   else
     SCM_WTA_DISPATCH_1 (g_scm_abs, x, 1, s_scm_abs);
@@ -889,6 +850,84 @@ SCM_PRIMITIVE_GENERIC (scm_modulo, "modulo", 2, 0, 0,
     }
   else
     SCM_WTA_DISPATCH_2 (g_scm_modulo, x, y, SCM_ARG1, s_scm_modulo);
+}
+#undef FUNC_NAME
+
+/* Return the exact integer q such that n = q*d, for exact integers n
+   and d, where d is known in advance to divide n evenly (with zero
+   remainder).  For large integers, this can be computed more
+   efficiently than when the remainder is unknown. */
+static SCM
+scm_exact_integer_quotient (SCM n, SCM d)
+#define FUNC_NAME "exact-integer-quotient"
+{
+  if (SCM_LIKELY (SCM_I_INUMP (n)))
+    {
+      scm_t_inum nn = SCM_I_INUM (n);
+      if (SCM_LIKELY (SCM_I_INUMP (d)))
+	{
+	  scm_t_inum dd = SCM_I_INUM (d);
+	  if (SCM_UNLIKELY (dd == 0))
+	    scm_num_overflow ("exact-integer-quotient");
+	  else
+	    {
+	      scm_t_inum qq = nn / dd;
+	      if (SCM_LIKELY (SCM_FIXABLE (qq)))
+		return SCM_I_MAKINUM (qq);
+	      else
+		return scm_i_inum2big (qq);
+	    }
+	}
+      else if (SCM_LIKELY (SCM_BIGP (d)))
+	{
+	  /* n is an inum and d is a bignum.  Given that d is known to
+	     divide n evenly, there are only two possibilities: n is 0,
+	     or else n is fixnum-min and d is abs(fixnum-min). */
+	  if (nn == 0)
+	    return SCM_INUM0;
+	  else
+	    return SCM_I_MAKINUM (-1);
+	}
+      else
+	SCM_WRONG_TYPE_ARG (2, d);
+    }
+  else if (SCM_LIKELY (SCM_BIGP (n)))
+    {
+      if (SCM_LIKELY (SCM_I_INUMP (d)))
+	{
+	  scm_t_inum dd = SCM_I_INUM (d);
+	  if (SCM_UNLIKELY (dd == 0))
+	    scm_num_overflow ("exact-integer-quotient");
+	  else if (SCM_UNLIKELY (dd == 1))
+	    return n;
+	  else
+	    {
+	      SCM q = scm_i_mkbig ();
+	      if (dd > 0)
+		mpz_divexact_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (n), dd);
+	      else
+		{
+		  mpz_divexact_ui (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (n), -dd);
+		  mpz_neg (SCM_I_BIG_MPZ (q), SCM_I_BIG_MPZ (q));
+		}
+	      scm_remember_upto_here_1 (n);
+	      return scm_i_normbig (q);
+	    }
+	}
+      else if (SCM_LIKELY (SCM_BIGP (d)))
+	{
+	  SCM q = scm_i_mkbig ();
+	  mpz_divexact (SCM_I_BIG_MPZ (q),
+			SCM_I_BIG_MPZ (n),
+			SCM_I_BIG_MPZ (d));
+	  scm_remember_upto_here_2 (n, d);
+	  return scm_i_normbig (q);
+	}
+      else
+	SCM_WRONG_TYPE_ARG (2, d);
+    }
+  else
+    SCM_WRONG_TYPE_ARG (1, n);
 }
 #undef FUNC_NAME
 
@@ -4675,6 +4714,26 @@ SCM_DEFINE (scm_integer_expt, "integer-expt", 2, 0, 0,
       else  /* return NaN for (0 ^ k) for negative k per R6RS */
 	return scm_nan ();
     }
+  else if (SCM_FRACTIONP (n))
+    {
+      /* Optimize the fraction case by (a/b)^k ==> (a^k)/(b^k), to avoid
+         needless reduction of intermediate products to lowest terms.
+         If a and b have no common factors, then a^k and b^k have no
+         common factors.  Use 'scm_i_make_ratio_already_reduced' to
+         construct the final result, so that no gcd computations are
+         needed to exponentiate a fraction.  */
+      if (scm_is_true (scm_positive_p (k)))
+	return scm_i_make_ratio_already_reduced
+	  (scm_integer_expt (SCM_FRACTION_NUMERATOR (n), k),
+	   scm_integer_expt (SCM_FRACTION_DENOMINATOR (n), k));
+      else
+	{
+	  k = scm_difference (k, SCM_UNDEFINED);
+	  return scm_i_make_ratio_already_reduced
+	    (scm_integer_expt (SCM_FRACTION_DENOMINATOR (n), k),
+	     scm_integer_expt (SCM_FRACTION_NUMERATOR (n), k));
+	}
+    }
 
   if (SCM_I_INUMP (k))
     i2 = SCM_I_INUM (k);
@@ -7354,8 +7413,9 @@ scm_difference (SCM x, SCM y)
           return scm_c_make_rectangular (-SCM_COMPLEX_REAL (x),
                                    -SCM_COMPLEX_IMAG (x));
 	else if (SCM_FRACTIONP (x))
-	  return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
-				 SCM_FRACTION_DENOMINATOR (x));
+	  return scm_i_make_ratio_already_reduced
+	    (scm_difference (SCM_FRACTION_NUMERATOR (x), SCM_UNDEFINED),
+	     SCM_FRACTION_DENOMINATOR (x));
         else
           SCM_WTA_DISPATCH_1 (g_difference, x, SCM_ARG1, s_difference);
     }
@@ -7903,14 +7963,14 @@ do_divide (SCM x, SCM y, int inexact)
 	    {
 	      if (inexact)
 		return scm_from_double (1.0 / (double) xx);
-	      else return scm_i_make_ratio (SCM_INUM1, x);
+	      else return scm_i_make_ratio_already_reduced (SCM_INUM1, x);
 	    }
 	}
       else if (SCM_BIGP (x))
 	{
 	  if (inexact)
 	    return scm_from_double (1.0 / scm_i_big2dbl (x));
-	  else return scm_i_make_ratio (SCM_INUM1, x);
+	  else return scm_i_make_ratio_already_reduced (SCM_INUM1, x);
 	}
       else if (SCM_REALP (x))
 	{
@@ -7940,8 +8000,8 @@ do_divide (SCM x, SCM y, int inexact)
 	    }
 	}
       else if (SCM_FRACTIONP (x))
-	return scm_i_make_ratio (SCM_FRACTION_DENOMINATOR (x),
-			       SCM_FRACTION_NUMERATOR (x));
+	return scm_i_make_ratio_already_reduced (SCM_FRACTION_DENOMINATOR (x),
+						 SCM_FRACTION_NUMERATOR (x));
       else
 	SCM_WTA_DISPATCH_1 (g_divide, x, SCM_ARG1, s_divide);
     }
@@ -8904,8 +8964,9 @@ SCM_PRIMITIVE_GENERIC (scm_magnitude, "magnitude", 1, 0, 0,
     {
       if (scm_is_false (scm_negative_p (SCM_FRACTION_NUMERATOR (z))))
 	return z;
-      return scm_i_make_ratio (scm_difference (SCM_FRACTION_NUMERATOR (z), SCM_UNDEFINED),
-			     SCM_FRACTION_DENOMINATOR (z));
+      return scm_i_make_ratio_already_reduced
+	(scm_difference (SCM_FRACTION_NUMERATOR (z), SCM_UNDEFINED),
+	 SCM_FRACTION_DENOMINATOR (z));
     }
   else
     SCM_WTA_DISPATCH_1 (g_scm_magnitude, z, SCM_ARG1, s_scm_magnitude);
@@ -9006,8 +9067,9 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 	  
 	  mpq_init (frac);
 	  mpq_set_d (frac, val);
-	  q = scm_i_make_ratio (scm_i_mpz2num (mpq_numref (frac)),
-				scm_i_mpz2num (mpq_denref (frac)));
+	  q = scm_i_make_ratio_already_reduced
+	    (scm_i_mpz2num (mpq_numref (frac)),
+	     scm_i_mpz2num (mpq_denref (frac)));
 
 	  /* When scm_i_make_ratio throws, we leak the memory allocated
 	     for frac...

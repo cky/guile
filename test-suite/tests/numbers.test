@@ -4054,6 +4054,9 @@
   (pass-if (eqv? -0.125 (expt -2 -3.0)))
   (pass-if (eqv? -0.125 (expt -2.0 -3.0)))
   (pass-if (eqv? 0.25 (expt 2.0 -2.0)))
+  (pass-if (eqv? 32/243 (expt 2/3 5)))
+  (pass-if (eqv? 243/32 (expt 2/3 -5)))
+  (pass-if (eqv? 32 (expt 1/2 -5)))
   (pass-if (test-eqv? (* -1.0+0.0i 12398 12398) (expt +12398i 2.0)))
   (pass-if (eqv-loosely? +i (expt -1 0.5)))
   (pass-if (eqv-loosely? +i (expt -1 1/2)))
@@ -4327,6 +4330,9 @@
   (pass-if (eqv? -1/8 (integer-expt -2 -3)))
   (pass-if (eqv? -0.125 (integer-expt -2.0 -3)))
   (pass-if (eqv? 0.25 (integer-expt 2.0 -2)))
+  (pass-if (eqv? 32/243 (integer-expt 2/3 5)))
+  (pass-if (eqv? 243/32 (integer-expt 2/3 -5)))
+  (pass-if (eqv? 32 (integer-expt 1/2 -5)))
   (pass-if (test-eqv? (* -1.0+0.0i 12398 12398) (integer-expt +12398.0i 2))))
 
 
