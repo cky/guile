@@ -9600,26 +9600,20 @@ log_of_shifted_double (double x, long shift)
     return scm_c_make_rectangular (ans, M_PI);
 }
 
-/* Returns log(n), for exact integer n of integer-length size */
-static SCM
-log_of_exact_integer_with_size (SCM n, long size)
-{
-  long shift = size - 2 * scm_dblprec[0];
-
-  if (shift > 0)
-    return log_of_shifted_double
-      (scm_to_double (scm_ash (n, scm_from_long(-shift))),
-       shift);
-  else
-    return log_of_shifted_double (scm_to_double (n), 0);
-}
-
 /* Returns log(n), for exact integer n */
 static SCM
 log_of_exact_integer (SCM n)
 {
-  return log_of_exact_integer_with_size
-    (n, scm_to_long (scm_integer_length (n)));
+  if (SCM_I_INUMP (n))
+    return log_of_shifted_double (SCM_I_INUM (n), 0);
+  else if (SCM_BIGP (n))
+    {
+      long expon;
+      double signif = scm_i_big2dbl_2exp (n, &expon);
+      return log_of_shifted_double (signif, expon);
+    }
+  else
+    scm_wrong_type_arg ("log_of_exact_integer", SCM_ARG1, n);
 }
 
 /* Returns log(n/d), for exact non-zero integers n and d */
@@ -9630,8 +9624,8 @@ log_of_fraction (SCM n, SCM d)
   long d_size = scm_to_long (scm_integer_length (d));
 
   if (abs (n_size - d_size) > 1)
-    return (scm_difference (log_of_exact_integer_with_size (n, n_size),
-			    log_of_exact_integer_with_size (d, d_size)));
+    return (scm_difference (log_of_exact_integer (n),
+			    log_of_exact_integer (d)));
   else if (scm_is_false (scm_negative_p (n)))
     return scm_from_double
       (log1p (scm_to_double (scm_divide2real (scm_difference (n, d), d))));
