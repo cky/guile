@@ -3889,52 +3889,58 @@ SCM_PRIMITIVE_GENERIC (scm_i_gcd, "gcd", 0, 2, 1,
 SCM
 scm_gcd (SCM x, SCM y)
 {
-  if (SCM_UNBNDP (y))
+  if (SCM_UNLIKELY (SCM_UNBNDP (y)))
     return SCM_UNBNDP (x) ? SCM_INUM0 : scm_abs (x);
   
-  if (SCM_I_INUMP (x))
+  if (SCM_LIKELY (SCM_I_INUMP (x)))
     {
-      if (SCM_I_INUMP (y))
+      if (SCM_LIKELY (SCM_I_INUMP (y)))
         {
           scm_t_inum xx = SCM_I_INUM (x);
           scm_t_inum yy = SCM_I_INUM (y);
           scm_t_inum u = xx < 0 ? -xx : xx;
           scm_t_inum v = yy < 0 ? -yy : yy;
           scm_t_inum result;
-          if (xx == 0)
+          if (SCM_UNLIKELY (xx == 0))
 	    result = v;
-	  else if (yy == 0)
+	  else if (SCM_UNLIKELY (yy == 0))
 	    result = u;
 	  else
 	    {
-	      scm_t_inum k = 1;
-	      scm_t_inum t;
+	      int k = 0;
 	      /* Determine a common factor 2^k */
-	      while (!(1 & (u | v)))
+	      while (((u | v) & 1) == 0)
 		{
-		  k <<= 1;
+		  k++;
 		  u >>= 1;
 		  v >>= 1;
 		}
 	      /* Now, any factor 2^n can be eliminated */
-	      if (u & 1)
-		t = -v;
+	      if ((u & 1) == 0)
+		while ((u & 1) == 0)
+		  u >>= 1;
 	      else
+		while ((v & 1) == 0)
+		  v >>= 1;
+	      /* Both u and v are now odd.  Subtract the smaller one
+		 from the larger one to produce an even number, remove
+		 more factors of two, and repeat. */
+	      while (u != v)
 		{
-		  t = u;
-		b3:
-		  t = SCM_SRS (t, 1);
+		  if (u > v)
+		    {
+		      u -= v;
+		      while ((u & 1) == 0)
+			u >>= 1;
+		    }
+		  else
+		    {
+		      v -= u;
+		      while ((v & 1) == 0)
+			v >>= 1;
+		    }
 		}
-	      if (!(1 & t))
-		goto b3;
-	      if (t > 0)
-		u = t;
-	      else
-		v = -t;
-	      t = u - v;
-	      if (t != 0)
-		goto b3;
-	      result = u * k;
+	      result = u << k;
 	    }
           return (SCM_POSFIXABLE (result)
 		  ? SCM_I_MAKINUM (result)
