@@ -46,15 +46,24 @@
 ;; the usual 53.
 ;;
 (define dbl-mant-dig
-  (let more ((i 1)
-	     (d 2.0))
-    (if (> i 1024)
-	(error "Oops, cannot determine number of bits in mantissa of inexact"))
-    (let* ((sum  (+ 1.0 d))
-	   (diff (- sum d)))
-      (if (= diff 1.0)
-	  (more (1+ i) (* 2.0 d))
-	  i))))
+  (do ((prec 0 (+ prec 1))
+       (eps 1.0 (/ eps 2.0)))
+      ((begin (when (> prec 1000000)
+                (error "Unable to determine dbl-mant-dig"))
+              (= 1.0 (+ 1.0 eps)))
+       prec)))
+
+(define dbl-epsilon
+  (expt 0.5 (- dbl-mant-dig 1)))
+
+(define dbl-min-exp
+  (do ((x 1.0 (/ x 2.0))
+       (y (+ 1.0 dbl-epsilon) (/ y 2.0))
+       (e 2 (- e 1)))
+      ((begin (when (< e -100000000)
+                (error "Unable to determine dbl-min-exp"))
+              (= x y))
+       e)))
 
 ;; like ash, but working on a flonum
 (define (ash-flo x n)
@@ -4251,6 +4260,13 @@
 ;;;
 
 (with-test-prefix "inexact->exact"
+
+  ;; Test "(inexact->exact f)", expect "want".
+  (define (test name f want)
+    (with-test-prefix name
+      (pass-if-equal "pos" want (inexact->exact f))
+      (pass-if-equal "neg" (- want) (inexact->exact (- f)))))
+
   (pass-if (documented? inexact->exact))
 
   (pass-if-exception "+inf" exception:out-of-range
@@ -4261,13 +4277,49 @@
   
   (pass-if-exception "nan" exception:out-of-range
     (inexact->exact +nan.0))
-  
-  (with-test-prefix "2.0**i to exact and back"
+
+  (test "0.0" 0.0 0)
+  (test "small even integer" 72.0 72)
+  (test "small odd integer"  73.0 73)
+
+  (test "largest inexact odd integer"
+        (- (expt 2.0 dbl-mant-dig) 1)
+        (- (expt 2   dbl-mant-dig) 1))
+
+  (test "largest inexact odd integer - 1"
+        (- (expt 2.0 dbl-mant-dig) 2)
+        (- (expt 2   dbl-mant-dig) 2))
+
+  (test "largest inexact odd integer + 3"
+        (+ (expt 2.0 dbl-mant-dig) 2)
+        (+ (expt 2   dbl-mant-dig) 2))
+
+  (test "largest inexact odd integer * 2^48"
+        (* (expt 2.0 48) (- (expt 2.0 dbl-mant-dig) 1))
+        (* (expt 2   48) (- (expt 2   dbl-mant-dig) 1)))
+
+  (test "largest inexact odd integer / 2^48"
+        (* (expt 0.5 48) (- (expt 2.0 dbl-mant-dig) 1))
+        (* (expt 1/2 48) (- (expt 2   dbl-mant-dig) 1)))
+
+  (test "smallest inexact"
+        (expt 2.0 (- dbl-min-exp dbl-mant-dig))
+        (expt 2   (- dbl-min-exp dbl-mant-dig)))
+
+  (test "smallest inexact * 2"
+        (* 2.0 (expt 2.0 (- dbl-min-exp dbl-mant-dig)))
+        (* 2   (expt 2   (- dbl-min-exp dbl-mant-dig))))
+
+  (test "smallest inexact * 3"
+        (* 3.0 (expt 2.0 (- dbl-min-exp dbl-mant-dig)))
+        (* 3   (expt 2   (- dbl-min-exp dbl-mant-dig))))
+
+  (with-test-prefix "2.0**i to exact"
     (do ((i 0   (1+ i))
-	 (n 1.0 (* 2.0 n)))
+         (n 1   (* 2 n))
+	 (f 1.0 (* 2.0 f)))
 	((> i 100))
-      (pass-if (list i n)
-	(= n (inexact->exact (exact->inexact n)))))))
+      (test (list i n) f n))))
 
 ;;;
 ;;; integer-expt

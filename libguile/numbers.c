@@ -9109,22 +9109,35 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
 
       if (!SCM_LIKELY (DOUBLE_IS_FINITE (val)))
 	SCM_OUT_OF_RANGE (1, z);
+      else if (val == 0.0)
+        return SCM_INUM0;
       else
 	{
-	  mpq_t frac;
-	  SCM q;
-	  
-	  mpq_init (frac);
-	  mpq_set_d (frac, val);
-	  q = scm_i_make_ratio_already_reduced
-	    (scm_i_mpz2num (mpq_numref (frac)),
-	     scm_i_mpz2num (mpq_denref (frac)));
+          int expon;
+          SCM numerator;
 
-	  /* When scm_i_make_ratio throws, we leak the memory allocated
-	     for frac...
-	   */
-	  mpq_clear (frac);
-	  return q;
+          numerator = scm_i_dbl2big (ldexp (frexp (val, &expon),
+                                            DBL_MANT_DIG));
+          expon -= DBL_MANT_DIG;
+          if (expon < 0)
+            {
+              int shift = mpz_scan1 (SCM_I_BIG_MPZ (numerator), 0);
+
+              if (shift > -expon)
+                shift = -expon;
+              mpz_fdiv_q_2exp (SCM_I_BIG_MPZ (numerator),
+                               SCM_I_BIG_MPZ (numerator),
+                               shift);
+              expon += shift;
+            }
+          numerator = scm_i_normbig (numerator);
+          if (expon < 0)
+            return scm_i_make_ratio_already_reduced
+              (numerator, left_shift_exact_integer (SCM_INUM1, -expon));
+          else if (expon > 0)
+            return left_shift_exact_integer (numerator, expon);
+          else
+            return numerator;
 	}
     }
 }
