@@ -372,7 +372,7 @@ available through both Scheme and C interfaces.
 * Curried Definitions::         Extended @code{define} syntax.
 * Statprof::                    An easy-to-use statistical profiler.
 * SXML::                        Parsing, transforming, and serializing XML.
-* Texinfo::                     Munging documents written in Texinfo.
+* Texinfo Processing::          Munging documents written in Texinfo.
 @end menu
 
 @include slib.texi
