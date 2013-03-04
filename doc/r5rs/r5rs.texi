@@ -106,7 +106,6 @@
 @author C. H@sc{ANSON} 
 @author K. M. P@sc{ITMAN} 
 @author M. W@sc{AND} 
-@author 
 
 
 @c  {\it Dedicated to the Memory of ALGOL 60}
@@ -116,7 +115,7 @@
 
 
 
-@unnumbered Summary
+@majorheading Summary
 
 
 The report gives a defining description of the programming language
