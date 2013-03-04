@@ -410,9 +410,6 @@ scm_i_mpz2num (mpz_t b)
   }
 }
 
-/* this is needed when we want scm_divide to make a float, not a ratio, even if passed two ints */
-static SCM scm_divide2real (SCM x, SCM y);
-
 /* Make the ratio NUMERATOR/DENOMINATOR, where:
     1. NUMERATOR and DENOMINATOR are exact integers
     2. NUMERATOR and DENOMINATOR are reduced to lowest terms: gcd(n,d) == 1 */
@@ -466,11 +463,149 @@ scm_i_make_ratio (SCM numerator, SCM denominator)
 }
 #undef FUNC_NAME
 
+static mpz_t scm_i_divide2double_lo2b;
+
+/* Return the double that is closest to the exact rational N/D, with
+   ties rounded toward even mantissas.  N and D must be exact
+   integers. */
+static double
+scm_i_divide2double (SCM n, SCM d)
+{
+  int neg;
+  mpz_t nn, dd, lo, hi, x;
+  ssize_t e;
+
+  if (SCM_I_INUMP (d))
+    {
+      if (SCM_UNLIKELY (scm_is_eq (d, SCM_INUM0)))
+        {
+          if (scm_is_true (scm_positive_p (n)))
+            return 1.0 / 0.0;
+          else if (scm_is_true (scm_negative_p (n)))
+            return -1.0 / 0.0;
+          else
+            return 0.0 / 0.0;
+        }
+      mpz_init_set_si (dd, SCM_I_INUM (d));
+    }
+  else
+    mpz_init_set (dd, SCM_I_BIG_MPZ (d));
+
+  if (SCM_I_INUMP (n))
+    mpz_init_set_si (nn, SCM_I_INUM (n));
+  else
+    mpz_init_set (nn, SCM_I_BIG_MPZ (n));
+
+  neg = (mpz_sgn (nn) < 0) ^ (mpz_sgn (dd) < 0);
+  mpz_abs (nn, nn);
+  mpz_abs (dd, dd);
+
+  /* Now we need to find the value of e such that:
+ 
+     For e <= 0:
+          b^{p-1} - 1/2b  <=      b^-e n / d  <  b^p - 1/2            [1A]
+             (2 b^p - 1)  <=  2 b b^-e n / d  <  (2 b^p - 1) b        [2A]
+           (2 b^p - 1) d  <=  2 b b^-e n      <  (2 b^p - 1) d b      [3A]
+
+     For e >= 0:
+          b^{p-1} - 1/2b  <=      n / b^e d   <  b^p - 1/2            [1B]
+             (2 b^p - 1)  <=  2 b n / b^e d   <  (2 b^p - 1) b        [2B]
+       (2 b^p - 1) d b^e  <=  2 b n           <  (2 b^p - 1) d b b^e  [3B]
+
+         where:  p = DBL_MANT_DIG
+                 b = FLT_RADIX  (here assumed to be 2)
+
+     After rounding, the mantissa must be an integer between b^{p-1} and
+     (b^p - 1), except for subnormal numbers.  In the inequations [1A]
+     and [1B], the middle expression represents the mantissa *before*
+     rounding, and therefore is bounded by the range of values that will
+     round to a floating-point number with the exponent e.  The upper
+     bound is (b^p - 1 + 1/2) = (b^p - 1/2), and is exclusive because
+     ties will round up to the next power of b.  The lower bound is
+     (b^{p-1} - 1/2b), and is inclusive because ties will round toward
+     this power of b.  Here we subtract 1/2b instead of 1/2 because it
+     is in the range of the next smaller exponent, where the
+     representable numbers are closer together by a factor of b.
+
+     Inequations [2A] and [2B] are derived from [1A] and [1B] by
+     multiplying by 2b, and in [3A] and [3B] we multiply by the
+     denominator of the middle value to obtain integer expressions.
+
+     In the code below, we refer to the three expressions in [3A] or
+     [3B] as lo, x, and hi.  If the number is normalizable, we will
+     achieve the goal: lo <= x < hi */
+
+  /* Make an initial guess for e */
+  e = mpz_sizeinbase (nn, 2) - mpz_sizeinbase (dd, 2) - (DBL_MANT_DIG-1);
+  if (e < DBL_MIN_EXP - DBL_MANT_DIG)
+    e = DBL_MIN_EXP - DBL_MANT_DIG;
+
+  /* Compute the initial values of lo, x, and hi
+     based on the initial guess of e */
+  mpz_inits (lo, hi, x, NULL);
+  mpz_mul_2exp (x, nn, 2 + ((e < 0) ? -e : 0));
+  mpz_mul (lo, dd, scm_i_divide2double_lo2b);
+  if (e > 0)
+    mpz_mul_2exp (lo, lo, e);
+  mpz_mul_2exp (hi, lo, 1);
+
+  /* Adjust e as needed to satisfy the inequality lo <= x < hi,
+     (but without making e less then the minimum exponent) */
+  while (mpz_cmp (x, lo) < 0 && e > DBL_MIN_EXP - DBL_MANT_DIG)
+    {
+      mpz_mul_2exp (x, x, 1);
+      e--;
+    }
+  while (mpz_cmp (x, hi) >= 0)
+    {
+      /* If we ever used lo's value again,
+         we would need to double lo here. */
+      mpz_mul_2exp (hi, hi, 1);
+      e++;
+    }
+
+  /* Now compute the rounded mantissa:
+     n / b^e d   (if e >= 0)
+     n b^-e / d  (if e <= 0) */
+  {
+    int cmp;
+    double result;
+
+    if (e < 0)
+      mpz_mul_2exp (nn, nn, -e);
+    else
+      mpz_mul_2exp (dd, dd, e);
+
+    /* mpz does not directly support rounded right
+       shifts, so we have to do it the hard way.
+       For efficiency, we reuse lo and hi.
+       hi == quotient, lo == remainder */
+    mpz_fdiv_qr (hi, lo, nn, dd);
+
+    /* The fractional part of the unrounded mantissa would be
+       remainder/dividend, i.e. lo/dd.  So we have a tie if
+       lo/dd = 1/2.  Multiplying both sides by 2*dd yields the
+       integer expression 2*lo = dd.  Here we do that comparison
+       to decide whether to round up or down. */
+    mpz_mul_2exp (lo, lo, 1);
+    cmp = mpz_cmp (lo, dd);
+    if (cmp > 0 || (cmp == 0 && mpz_odd_p (hi)))
+      mpz_add_ui (hi, hi, 1);
+
+    result = ldexp (mpz_get_d (hi), e);
+    if (neg)
+      result = -result;
+
+    mpz_clears (nn, dd, lo, hi, x, NULL);
+    return result;
+  }
+}
+
 double
 scm_i_fraction2double (SCM z)
 {
-  return scm_to_double (scm_divide2real (SCM_FRACTION_NUMERATOR (z), 
-					 SCM_FRACTION_DENOMINATOR (z)));
+  return scm_i_divide2double (SCM_FRACTION_NUMERATOR (z),
+                              SCM_FRACTION_DENOMINATOR (z));
 }
 
 static int
@@ -7989,8 +8124,8 @@ SCM_PRIMITIVE_GENERIC (scm_i_divide, "/", 0, 2, 1,
 #define s_divide s_scm_i_divide
 #define g_divide g_scm_i_divide
 
-static SCM
-do_divide (SCM x, SCM y, int inexact)
+SCM
+scm_divide (SCM x, SCM y)
 #define FUNC_NAME s_divide
 {
   double a;
@@ -8009,18 +8144,10 @@ do_divide (SCM x, SCM y, int inexact)
 	    scm_num_overflow (s_divide);
 #endif
 	  else
-	    {
-	      if (inexact)
-		return scm_from_double (1.0 / (double) xx);
-	      else return scm_i_make_ratio_already_reduced (SCM_INUM1, x);
-	    }
+	    return scm_i_make_ratio_already_reduced (SCM_INUM1, x);
 	}
       else if (SCM_BIGP (x))
-	{
-	  if (inexact)
-	    return scm_from_double (1.0 / scm_i_big2dbl (x));
-	  else return scm_i_make_ratio_already_reduced (SCM_INUM1, x);
-	}
+	return scm_i_make_ratio_already_reduced (SCM_INUM1, x);
       else if (SCM_REALP (x))
 	{
 	  double xx = SCM_REAL_VALUE (x);
@@ -8070,11 +8197,7 @@ do_divide (SCM x, SCM y, int inexact)
 #endif
 	    }
 	  else if (xx % yy != 0)
-	    {
-	      if (inexact)
-		return scm_from_double ((double) xx / (double) yy);
-	      else return scm_i_make_ratio (x, y);
-	    }
+	    return scm_i_make_ratio (x, y);
 	  else
 	    {
 	      scm_t_inum z = xx / yy;
@@ -8085,11 +8208,7 @@ do_divide (SCM x, SCM y, int inexact)
 	    }
 	}
       else if (SCM_BIGP (y))
-	{
-	  if (inexact)
-	    return scm_from_double ((double) xx / scm_i_big2dbl (y));
-	  else return scm_i_make_ratio (x, y);
-	}
+	return scm_i_make_ratio (x, y);
       else if (SCM_REALP (y))
 	{
 	  double yy = SCM_REAL_VALUE (y);
@@ -8098,6 +8217,9 @@ do_divide (SCM x, SCM y, int inexact)
 	    scm_num_overflow (s_divide);
 	  else
 #endif
+            /* FIXME: Precision may be lost here due to:
+               (1) The cast from 'scm_t_inum' to 'double'
+               (2) Double rounding */
 	    return scm_from_double ((double) xx / yy);
 	}
       else if (SCM_COMPLEXP (y))
@@ -8124,7 +8246,7 @@ do_divide (SCM x, SCM y, int inexact)
       else if (SCM_FRACTIONP (y))
 	/* a / b/c = ac / b */
 	return scm_i_make_ratio (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
-			       SCM_FRACTION_NUMERATOR (y));
+                                 SCM_FRACTION_NUMERATOR (y));
       else
 	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
@@ -8168,43 +8290,24 @@ do_divide (SCM x, SCM y, int inexact)
 		  return scm_i_normbig (result);
 		}
 	      else
-		{
-		  if (inexact)
-		    return scm_from_double (scm_i_big2dbl (x) / (double) yy);
-		  else return scm_i_make_ratio (x, y);
-		}
+		return scm_i_make_ratio (x, y);
 	    }
 	}
       else if (SCM_BIGP (y))
 	{
-	  /* big_x / big_y */
-	  if (inexact)
-	    {
-	      /* It's easily possible for the ratio x/y to fit a double
-		 but one or both x and y be too big to fit a double,
-		 hence the use of mpq_get_d rather than converting and
-		 dividing.  */
-	      mpq_t q;
-	      *mpq_numref(q) = *SCM_I_BIG_MPZ (x);
-	      *mpq_denref(q) = *SCM_I_BIG_MPZ (y);
-	      return scm_from_double (mpq_get_d (q));
-	    }
-	  else
-	    {
-	      int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
-						 SCM_I_BIG_MPZ (y));
-	      if (divisible_p)
-		{
-		  SCM result = scm_i_mkbig ();
-		  mpz_divexact (SCM_I_BIG_MPZ (result),
-				SCM_I_BIG_MPZ (x),
-				SCM_I_BIG_MPZ (y));
-		  scm_remember_upto_here_2 (x, y);
-		  return scm_i_normbig (result);
-		}
-	      else
-		return scm_i_make_ratio (x, y);
-	    }
+          int divisible_p = mpz_divisible_p (SCM_I_BIG_MPZ (x),
+                                             SCM_I_BIG_MPZ (y));
+          if (divisible_p)
+            {
+              SCM result = scm_i_mkbig ();
+              mpz_divexact (SCM_I_BIG_MPZ (result),
+                            SCM_I_BIG_MPZ (x),
+                            SCM_I_BIG_MPZ (y));
+              scm_remember_upto_here_2 (x, y);
+              return scm_i_normbig (result);
+            }
+          else
+            return scm_i_make_ratio (x, y);
 	}
       else if (SCM_REALP (y))
 	{
@@ -8214,6 +8317,8 @@ do_divide (SCM x, SCM y, int inexact)
 	    scm_num_overflow (s_divide);
 	  else
 #endif
+            /* FIXME: Precision may be lost here due to:
+               (1) scm_i_big2dbl (2) Double rounding */
 	    return scm_from_double (scm_i_big2dbl (x) / yy);
 	}
       else if (SCM_COMPLEXP (y))
@@ -8223,7 +8328,7 @@ do_divide (SCM x, SCM y, int inexact)
 	}
       else if (SCM_FRACTIONP (y))
 	return scm_i_make_ratio (scm_product (x, SCM_FRACTION_DENOMINATOR (y)),
-			       SCM_FRACTION_NUMERATOR (y));
+                                 SCM_FRACTION_NUMERATOR (y));
       else
 	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
@@ -8238,10 +8343,16 @@ do_divide (SCM x, SCM y, int inexact)
 	    scm_num_overflow (s_divide);
 	  else
 #endif
+            /* FIXME: Precision may be lost here due to:
+               (1) The cast from 'scm_t_inum' to 'double'
+               (2) Double rounding */
 	    return scm_from_double (rx / (double) yy);
 	}
       else if (SCM_BIGP (y))
 	{
+          /* FIXME: Precision may be lost here due to:
+             (1) The conversion from bignum to double
+             (2) Double rounding */
 	  double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
 	  scm_remember_upto_here_1 (y);
 	  return scm_from_double (rx / dby);
@@ -8279,12 +8390,18 @@ do_divide (SCM x, SCM y, int inexact)
 	  else
 #endif
 	    {
+              /* FIXME: Precision may be lost here due to:
+                 (1) The conversion from 'scm_t_inum' to double
+                 (2) Double rounding */
 	      double d = yy;
 	      return scm_c_make_rectangular (rx / d, ix / d);
 	    }
 	}
       else if (SCM_BIGP (y))
 	{
+          /* FIXME: Precision may be lost here due to:
+             (1) The conversion from bignum to double
+             (2) Double rounding */
 	  double dby = mpz_get_d (SCM_I_BIG_MPZ (y));
 	  scm_remember_upto_here_1 (y);
 	  return scm_c_make_rectangular (rx / dby, ix / dby);
@@ -8318,6 +8435,9 @@ do_divide (SCM x, SCM y, int inexact)
 	}
       else if (SCM_FRACTIONP (y))
 	{
+          /* FIXME: Precision may be lost here due to:
+             (1) The conversion from fraction to double
+             (2) Double rounding */
 	  double yy = scm_i_fraction2double (y);
 	  return scm_c_make_rectangular (rx / yy, ix / yy);
 	}
@@ -8335,12 +8455,12 @@ do_divide (SCM x, SCM y, int inexact)
 	  else
 #endif
 	    return scm_i_make_ratio (SCM_FRACTION_NUMERATOR (x),
-				   scm_product (SCM_FRACTION_DENOMINATOR (x), y));
+                                     scm_product (SCM_FRACTION_DENOMINATOR (x), y));
 	} 
       else if (SCM_BIGP (y)) 
 	{
 	  return scm_i_make_ratio (SCM_FRACTION_NUMERATOR (x),
-				 scm_product (SCM_FRACTION_DENOMINATOR (x), y));
+                                   scm_product (SCM_FRACTION_DENOMINATOR (x), y));
 	} 
       else if (SCM_REALP (y)) 
 	{
@@ -8350,32 +8470,27 @@ do_divide (SCM x, SCM y, int inexact)
 	    scm_num_overflow (s_divide);
 	  else
 #endif
+            /* FIXME: Precision may be lost here due to:
+               (1) The conversion from fraction to double
+               (2) Double rounding */
 	    return scm_from_double (scm_i_fraction2double (x) / yy);
 	}
       else if (SCM_COMPLEXP (y)) 
 	{
+          /* FIXME: Precision may be lost here due to:
+             (1) The conversion from fraction to double
+             (2) Double rounding */
 	  a = scm_i_fraction2double (x);
 	  goto complex_div;
 	} 
       else if (SCM_FRACTIONP (y))
 	return scm_i_make_ratio (scm_product (SCM_FRACTION_NUMERATOR (x), SCM_FRACTION_DENOMINATOR (y)),
-			       scm_product (SCM_FRACTION_NUMERATOR (y), SCM_FRACTION_DENOMINATOR (x)));
+                                 scm_product (SCM_FRACTION_NUMERATOR (y), SCM_FRACTION_DENOMINATOR (x)));
       else 
 	SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARGn, s_divide);
     }
   else
     SCM_WTA_DISPATCH_2 (g_divide, x, y, SCM_ARG1, s_divide);
-}
-
-SCM
-scm_divide (SCM x, SCM y)
-{
-  return do_divide (x, y, 0);
-}
-
-static SCM scm_divide2real (SCM x, SCM y)
-{
-  return do_divide (x, y, 1);
 }
 #undef FUNC_NAME
 
@@ -9641,12 +9756,11 @@ log_of_fraction (SCM n, SCM d)
 			    log_of_exact_integer (d)));
   else if (scm_is_false (scm_negative_p (n)))
     return scm_from_double
-      (log1p (scm_to_double (scm_divide2real (scm_difference (n, d), d))));
+      (log1p (scm_i_divide2double (scm_difference (n, d), d)));
   else
     return scm_c_make_rectangular
-      (log1p (scm_to_double (scm_divide2real
-			     (scm_difference (scm_abs (n), d),
-			      d))),
+      (log1p (scm_i_divide2double (scm_difference (scm_abs (n), d),
+                                   d)),
        M_PI);
 }
 
@@ -9914,6 +10028,16 @@ scm_init_numbers ()
 #endif
 
   exactly_one_half = scm_divide (SCM_INUM1, SCM_I_MAKINUM (2));
+
+  {
+    /* Set scm_i_divide2double_lo2b to (2 b^p - 1) */
+    mpz_init_set_ui (scm_i_divide2double_lo2b, 1);
+    mpz_mul_2exp (scm_i_divide2double_lo2b,
+                  scm_i_divide2double_lo2b,
+                  DBL_MANT_DIG + 1); /* 2 b^p */
+    mpz_sub_ui (scm_i_divide2double_lo2b, scm_i_divide2double_lo2b, 1);
+  }
+
 #include "libguile/numbers.x"
 }
 
