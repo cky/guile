@@ -463,10 +463,10 @@ static int fstat_Win32 (int fdes, struct stat *buf)
 static int
 is_file_name_separator (SCM c)
 {
-  if (c == SCM_MAKE_CHAR ('/'))
+  if (scm_is_eq (c, SCM_MAKE_CHAR ('/')))
     return 1;
 #ifdef __MINGW32__
-  if (c == SCM_MAKE_CHAR ('\\'))
+  if (scm_is_eq (c, SCM_MAKE_CHAR ('\\')))
     return 1;
 #endif
   return 0;
