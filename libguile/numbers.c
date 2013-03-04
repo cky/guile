@@ -81,6 +81,9 @@
 #define M_PI       3.14159265358979323846
 #endif
 
+/* FIXME: We assume that FLT_RADIX is 2 */
+verify (FLT_RADIX == 2);
+
 typedef scm_t_signed_bits scm_t_inum;
 #define scm_from_inum(x) (scm_from_signed_integer (x))
 
