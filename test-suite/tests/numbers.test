@@ -1383,21 +1383,39 @@
          (lambda (n radix)
            (string->number (number->string n radix) radix))))
 
+    (define (test num)
+      (pass-if-equal (list num 'pos)
+          num
+        (num->str->num num 10))
+      (pass-if-equal (list num 'neg)
+          (- num)
+        (num->str->num (- num) 10)))
+
     (pass-if (documented? number->string))
     (pass-if (string=? (number->string 0) "0"))
     (pass-if (string=? (number->string 171) "171"))
     (pass-if (= (+ fixnum-max 1) (num->str->num (+ fixnum-max 1) 10)))
     (pass-if (= (- fixnum-min 1) (num->str->num (- fixnum-min 1) 10)))
-    (pass-if (= (inf) (num->str->num (inf) 10)))
-    (pass-if (= 1.3 (num->str->num 1.3 10)))
 
-    ;; XXX - some results depend on whether Guile is compiled optimzed
-    ;; or not.  It is clearly undesirable to have number->string to be
-    ;; influenced by this.
+    (test (inf))
+    (test 1.3)
+    (test (acos -1))  ; pi
+    (test (exp 1))    ; e
+    (test (/ 3.0))
+    (test (/ 7.0))
+    (test 2.2250738585072011e-308)
+    (test 2.2250738585072012e-308)
+
+    ;; Largest finite inexact
+    (test (* (- (expt 2.0 dbl-mant-dig) 1)
+             (expt 2.0 (- dbl-max-exp dbl-mant-dig))))
+
+    (pass-if (string=? "0.0" (number->string 0.0)))
+    (pass-if (or (eqv? 0.0 -0.0)
+                 (string=? "-0.0" (number->string -0.0))))
 
     (pass-if (string=? (number->string 35.25 36) "z.9"))
-    (pass-if (or (string=? (number->string 0.25 2) "0.01")
-		 (string=? (number->string 0.25 2) "0.010")))
+    (pass-if (string=? (number->string 0.25 2) "0.01"))
     (pass-if (string=? (number->string 255.0625 16) "ff.1"))
     (pass-if (string=? (number->string (/ 1 3) 3) "1/10"))
 
@@ -1411,26 +1429,61 @@
     (pass-if (string=? (number->string 35 36) "z"))
     (pass-if (= (num->str->num 35 36) 35))
 
+    (with-test-prefix "powers of radix"
+      (for-each
+       (lambda (radix)
+         (for-each (lambda (k)
+                     (let ((val (exact->inexact (expt radix k)))
+                           (str (if (<= -3 k 6)
+                                    (assoc-ref '((-3 . "0.001")
+                                                 (-2 . "0.01")
+                                                 (-1 . "0.1")
+                                                 ( 0 . "1.0")
+                                                 ( 1 . "10.0")
+                                                 ( 2 . "100.0")
+                                                 ( 3 . "1000.0")
+                                                 ( 4 . "10000.0")
+                                                 ( 5 . "100000.0")
+                                                 ( 6 . "1000000.0"))
+                                               k)
+                                    (string-append "1.0e"
+                                                   (number->string k radix)))))
+                       (pass-if-equal (list radix k 'pos)
+                           str
+                         (number->string val radix))
+                       (pass-if-equal (list radix k 'neg)
+                           (string-append "-" str)
+                         (number->string (- val) radix))))
+                   (iota 41 -20)))
+       (iota 35 2)))
+
+    (with-test-prefix "multiples of smallest inexact"
+      (for-each (lambda (k)
+                  (let ((val (* k (expt 2.0 (- dbl-min-exp dbl-mant-dig)))))
+                    (test val)))
+                (iota 40 1)))
+
+    (with-test-prefix "one plus multiples of epsilon"
+      (for-each (lambda (k)
+                  (let ((val (+ 1.0 (* k dbl-epsilon))))
+                    (test val)))
+                (iota 40 1)))
+
+    (with-test-prefix "one minus multiples of 1/2 epsilon"
+      (for-each (lambda (k)
+                  (let ((val (- 1.0 (* k 1/2 dbl-epsilon))))
+                    (test val)))
+                (iota 40 1)))
+
     ;; Before Guile 2.0.1, even in the presence of a #e forced exactness
     ;; specifier, negative exponents were applied inexactly and then
     ;; later coerced to exact, yielding an incorrect fraction.
     (pass-if (eqv? (string->number "#e1e-10") 1/10000000000))
 
-    ;; Numeric conversion from decimal is not precise, in its current
-    ;; implementation, so 11.333... and 1.324... can't be expected to
-    ;; reliably come out to precise values.  These tests did actually work
-    ;; for a while, but something in gcc changed, affecting the conversion
-    ;; code.
-    ;;
-    ;; (pass-if (or (string=? (number->string 11.33333333333333333 12)
-    ;;                        "B.4")
-    ;;              (string=? (number->string 11.33333333333333333 12)
-    ;;                        "B.400000000000009")))
-    ;; (pass-if (or (string=? (number->string 1.324e44 16)
-    ;;                        "5.EFE0A14FAFEe24")
-    ;;              (string=? (number->string 1.324e44 16)
-    ;;                        "5.EFE0A14FAFDF8e24")))
-    ))
+    (pass-if (string=? (number->string 11.33333333333333333 12)
+                       "b.4"))
+    (pass-if (string=? (number->string 1.324e44 16)
+                       "5.efe0a14fafdf8e24"))))
   
 ;;;
 ;;; string->number

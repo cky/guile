@@ -5250,229 +5250,201 @@ SCM_DEFINE (scm_integer_length, "integer-length", 1, 0, 0,
 #undef FUNC_NAME
 
 /*** NUMBERS -> STRINGS ***/
-#define SCM_MAX_DBL_PREC  60
 #define SCM_MAX_DBL_RADIX 36
-
-/* this is an array starting with radix 2, and ending with radix SCM_MAX_DBL_RADIX */
-static int scm_dblprec[SCM_MAX_DBL_RADIX - 1];
-static double fx_per_radix[SCM_MAX_DBL_RADIX - 1][SCM_MAX_DBL_PREC];
-
-static
-void init_dblprec(int *prec, int radix) {
-   /* determine floating point precision by adding successively
-      smaller increments to 1.0 until it is considered == 1.0 */
-   double f = ((double)1.0)/radix;
-   double fsum = 1.0 + f;
-
-   *prec = 0;
-   while (fsum != 1.0)
-   {
-      if (++(*prec) > SCM_MAX_DBL_PREC)
-         fsum = 1.0;
-      else
-      {
-         f /= radix;
-         fsum = f + 1.0;
-      }
-   }
-   (*prec) -= 1;
-}
-
-static
-void init_fx_radix(double *fx_list, int radix)
-{
-  /* initialize a per-radix list of tolerances.  When added
-     to a number < 1.0, we can determine if we should raund
-     up and quit converting a number to a string. */
-   int i;
-   fx_list[0] = 0.0;
-   fx_list[1] = 0.5;
-   for( i = 2 ; i < SCM_MAX_DBL_PREC; ++i ) 
-     fx_list[i] = (fx_list[i-1] / radix);
-}
 
 /* use this array as a way to generate a single digit */
 static const char number_chars[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
+static mpz_t dbl_minimum_normal_mantissa;
+
 static size_t
-idbl2str (double f, char *a, int radix)
+idbl2str (double dbl, char *a, int radix)
 {
-   int efmt, dpt, d, i, wp;
-   double *fx;
-#ifdef DBL_MIN_10_EXP
-   double f_cpy;
-   int exp_cpy;
-#endif /* DBL_MIN_10_EXP */
-   size_t ch = 0;
-   int exp = 0;
+  int ch = 0;
 
-   if(radix < 2 || 
-      radix > SCM_MAX_DBL_RADIX)
-   {
-      /* revert to existing behavior */
-      radix = 10;
-   }
+  if (radix < 2 || radix > SCM_MAX_DBL_RADIX)
+    /* revert to existing behavior */
+    radix = 10;
 
-   wp = scm_dblprec[radix-2];
-   fx = fx_per_radix[radix-2];
-
-  if (f == 0.0)
+  if (isinf (dbl))
     {
-#ifdef HAVE_COPYSIGN
-      double sgn = copysign (1.0, f);
-
-      if (sgn < 0.0)
-	a[ch++] = '-';
-#endif
-      goto zero;	/*{a[0]='0'; a[1]='.'; a[2]='0'; return 3;} */
+      strcpy (a, (dbl > 0.0) ? "+inf.0" : "-inf.0");
+      return 6;
     }
-
-  if (isinf (f))
+  else if (dbl > 0.0)
+    ;
+  else if (dbl < 0.0)
     {
-      if (f < 0)
-	strcpy (a, "-inf.0");
-      else
-	strcpy (a, "+inf.0");
-      return ch+6;
-    }
-  else if (isnan (f))
-    {
-      strcpy (a, "+nan.0");
-      return ch+6;
-    }
-
-  if (f < 0.0)
-    {
-      f = -f;
+      dbl = -dbl;
       a[ch++] = '-';
     }
-
-#ifdef DBL_MIN_10_EXP  /* Prevent unnormalized values, as from 
-			  make-uniform-vector, from causing infinite loops. */
-  /* just do the checking...if it passes, we do the conversion for our
-     radix again below */
-  f_cpy = f;
-  exp_cpy = exp;
-
-  while (f_cpy < 1.0)
+  else if (dbl == 0.0)
     {
-      f_cpy *= 10.0;
-      if (exp_cpy-- < DBL_MIN_10_EXP)
-	{
-	  a[ch++] = '#';
-	  a[ch++] = '.';
-	  a[ch++] = '#';
-	  return ch;
-	}
+      if (!double_is_non_negative_zero (dbl))
+        a[ch++] = '-';
+      strcpy (a + ch, "0.0");
+      return ch + 3;
     }
-  while (f_cpy > 10.0)
+  else if (isnan (dbl))
     {
-      f_cpy *= 0.10;
-      if (exp_cpy++ > DBL_MAX_10_EXP)
-	{
-	  a[ch++] = '#';
-	  a[ch++] = '.';
-	  a[ch++] = '#';
-	  return ch;
-	}
-    }
-#endif
-
-  while (f < 1.0)
-    {
-      f *= radix;
-      exp--;
-    }
-  while (f > radix)
-    {
-      f /= radix;
-      exp++;
+      strcpy (a, "+nan.0");
+      return 6;
     }
 
-  if (f + fx[wp] >= radix)
-    {
-      f = 1.0;
-      exp++;
-    }
- zero:
-#ifdef ENGNOT 
-  /* adding 9999 makes this equivalent to abs(x) % 3 */
-  dpt = (exp + 9999) % 3;
-  exp -= dpt++;
-  efmt = 1;
-#else
-  efmt = (exp < -3) || (exp > wp + 2);
-  if (!efmt)
-    {
-      if (exp < 0)
-	{
-	  a[ch++] = '0';
-	  a[ch++] = '.';
-	  dpt = exp;
-	  while (++dpt)
-	    a[ch++] = '0';
-	}
-      else
-	dpt = exp + 1;
-    }
-  else
-    dpt = 1;
-#endif
+  /* Algorithm taken from "Printing Floating-Point Numbers Quickly and
+     Accurately" by Robert G. Burger and R. Kent Dybvig */
+  {
+    int e, k;
+    mpz_t f, r, s, mplus, mminus, hi, digit;
+    int f_is_even, f_is_odd;
+    int show_exp = 0;
 
-  do
-    {
-      d = f;
-      f -= d;
-      a[ch++] = number_chars[d];
-      if (f < fx[wp])
-	break;
-      if (f + fx[wp] >= 1.0)
-	{
-          a[ch - 1] = number_chars[d+1]; 
-	  break;
-	}
-      f *= radix;
-      if (!(--dpt))
-	a[ch++] = '.';
-    }
-  while (wp--);
+    mpz_inits (f, r, s, mplus, mminus, hi, digit, NULL);
+    mpz_set_d (f, ldexp (frexp (dbl, &e), DBL_MANT_DIG));
+    if (e < DBL_MIN_EXP)
+      {
+        mpz_tdiv_q_2exp (f, f, DBL_MIN_EXP - e);
+        e = DBL_MIN_EXP;
+      }
+    e -= DBL_MANT_DIG;
 
-  if (dpt > 0)
+    f_is_even = !mpz_odd_p (f);
+    f_is_odd = !f_is_even;
+
+    /* Initialize r, s, mplus, and mminus according
+       to Table 1 from the paper. */
+    if (e < 0)
+      {
+        mpz_set_ui (mminus, 1);
+        if (mpz_cmp (f, dbl_minimum_normal_mantissa) != 0
+            || e == DBL_MIN_EXP - DBL_MANT_DIG)
+          {
+            mpz_set_ui (mplus, 1);
+            mpz_mul_2exp (r, f, 1);
+            mpz_mul_2exp (s, mminus, 1 - e);
+          }
+        else
+          {
+            mpz_set_ui (mplus, 2);
+            mpz_mul_2exp (r, f, 2);
+            mpz_mul_2exp (s, mminus, 2 - e);
+          }
+      }
+    else
+      {
+        mpz_set_ui (mminus, 1);
+        mpz_mul_2exp (mminus, mminus, e);
+        if (mpz_cmp (f, dbl_minimum_normal_mantissa) != 0)
+          {
+            mpz_set (mplus, mminus);
+            mpz_mul_2exp (r, f, 1 + e);
+            mpz_set_ui (s, 2);
+          }
+        else
+          {
+            mpz_mul_2exp (mplus, mminus, 1);
+            mpz_mul_2exp (r, f, 2 + e);
+            mpz_set_ui (s, 4);
+          }
+      }
+
+    /* Find the smallest k such that:
+         (r + mplus) / s <  radix^k  (if f is even)
+         (r + mplus) / s <= radix^k  (if f is odd) */
     {
-#ifndef ENGNOT
-      if ((dpt > 4) && (exp > 6))
-	{
-	  d = (a[0] == '-' ? 2 : 1);
-	  for (i = ch++; i > d; i--)
-	    a[i] = a[i - 1];
-	  a[d] = '.';
-	  efmt = 1;
-	}
-      else
-#endif
-	{
-	  while (--dpt)
-	    a[ch++] = '0';
-	  a[ch++] = '.';
-	}
+      /* IMPROVE-ME: Make an initial guess to speed this up */
+      mpz_add (hi, r, mplus);
+      k = 0;
+      while (mpz_cmp (hi, s) >= f_is_odd)
+        {
+          mpz_mul_ui (s, s, radix);
+          k++;
+        }
+      if (k == 0)
+        {
+          mpz_mul_ui (hi, hi, radix);
+          while (mpz_cmp (hi, s) < f_is_odd)
+            {
+              mpz_mul_ui (r, r, radix);
+              mpz_mul_ui (mplus, mplus, radix);
+              mpz_mul_ui (mminus, mminus, radix);
+              mpz_mul_ui (hi, hi, radix);
+              k--;
+            }
+        }
     }
-  if (a[ch - 1] == '.')
-    a[ch++] = '0';		/* trailing zero */
-  if (efmt && exp)
-    {
-      a[ch++] = 'e';
-      if (exp < 0)
-	{
-	  exp = -exp;
-	  a[ch++] = '-';
-	}
-      for (i = radix; i <= exp; i *= radix);
-      for (i /= radix; i; i /= radix)
-	{
-          a[ch++] = number_chars[exp / i];
-	  exp %= i;
-	}
-    }
+
+    if (k >= 8 || k <= -3)
+      {
+        /* Use scientific notation */
+        show_exp = k - 1;
+        k = 1;
+      }
+    else if (k <= 0)
+      {
+        int i;
+
+        /* Print leading zeroes */
+        a[ch++] = '0';
+        a[ch++] = '.';
+        for (i = 0; i > k; i--)
+          a[ch++] = '0';
+      }
+
+    for (;;)
+      {
+        int end_1_p, end_2_p;
+        int d;
+
+        mpz_mul_ui (mplus, mplus, radix);
+        mpz_mul_ui (mminus, mminus, radix);
+        mpz_mul_ui (r, r, radix);
+        mpz_fdiv_qr (digit, r, r, s);
+        d = mpz_get_ui (digit);
+
+        mpz_add (hi, r, mplus);
+        end_1_p = (mpz_cmp (r, mminus) < f_is_even);
+        end_2_p = (mpz_cmp (s, hi) < f_is_even);
+        if (end_1_p || end_2_p)
+          {
+            mpz_mul_2exp (r, r, 1);
+            if (!end_2_p)
+              ;
+            else if (!end_1_p)
+              d++;
+            else if (mpz_cmp (r, s) >= !(d & 1))
+              d++;
+            a[ch++] = number_chars[d];
+            if (--k == 0)
+              a[ch++] = '.';
+            break;
+          }
+        else
+          {
+            a[ch++] = number_chars[d];
+            if (--k == 0)
+              a[ch++] = '.';
+          }
+      }
+
+    if (k > 0)
+      {
+        for (; k > 0; k--)
+          a[ch++] = '0';
+        a[ch++] = '.';
+      }
+
+    if (k == 0)
+      a[ch++] = '0';
+
+    if (show_exp)
+      {
+        a[ch++] = 'e';
+        ch += scm_iint2str (show_exp, radix, a + ch);
+      }
+
+    mpz_clears (f, r, s, mplus, mminus, hi, digit, NULL);
+  }
   return ch;
 }
 
@@ -5956,7 +5928,7 @@ mem2decimal_from_point (SCM result, SCM mem,
 		break;
 	    }
 
-	  if (exponent > SCM_MAXEXP)
+	  if (exponent > ((sign == 1) ? SCM_MAXEXP : SCM_MAXEXP + DBL_DIG + 1))
 	    {
 	      size_t exp_len = idx - start;
 	      SCM exp_string = scm_i_substring_copy (mem, start, start + exp_len);
@@ -9993,8 +9965,6 @@ SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
 void
 scm_init_numbers ()
 {
-  int i;
-
   if (scm_install_gmp_memory_functions)
     mp_set_memory_functions (custom_gmp_malloc,
                              custom_gmp_realloc,
@@ -10016,17 +9986,6 @@ scm_init_numbers ()
   flo0 = scm_from_double (0.0);
   flo_log10e = scm_from_double (M_LOG10E);
 
-  /* determine floating point precision */
-  for (i=2; i <= SCM_MAX_DBL_RADIX; ++i)
-    {
-      init_dblprec(&scm_dblprec[i-2],i);
-      init_fx_radix(fx_per_radix[i-2],i);
-    }
-#ifdef DBL_DIG
-  /* hard code precision for base 10 if the preprocessor tells us to... */
-  scm_dblprec[10-2] = (DBL_DIG > 20) ? 20 : DBL_DIG;
-#endif
-
   exactly_one_half = scm_divide (SCM_INUM1, SCM_I_MAKINUM (2));
 
   {
@@ -10036,6 +9995,14 @@ scm_init_numbers ()
                   scm_i_divide2double_lo2b,
                   DBL_MANT_DIG + 1); /* 2 b^p */
     mpz_sub_ui (scm_i_divide2double_lo2b, scm_i_divide2double_lo2b, 1);
+  }
+
+  {
+    /* Set dbl_minimum_normal_mantissa to b^{p-1} */
+    mpz_init_set_ui (dbl_minimum_normal_mantissa, 1);
+    mpz_mul_2exp (dbl_minimum_normal_mantissa,
+                  dbl_minimum_normal_mantissa,
+                  DBL_MANT_DIG - 1);
   }
 
 #include "libguile/numbers.x"
