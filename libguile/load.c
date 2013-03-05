@@ -478,23 +478,25 @@ is_drive_letter (SCM c)
 }
 
 static int
-is_absolute_file_name (const char *filename_chars, size_t filename_len)
+is_absolute_file_name (SCM filename)
 {
+  size_t filename_len = scm_c_string_length (filename);
+
   if (filename_len >= 1
-      && is_file_name_separator (SCM_MAKE_CHAR (filename_chars[0]))
+      && is_file_name_separator (scm_c_string_ref (filename, 0))
 #ifdef __MINGW32__
       /* On Windows, one initial separator indicates a drive-relative
          path.  Two separators indicate a Universal Naming Convention
          (UNC) path.  UNC paths are always absolute.  */
       && filename_len >= 2
-      && is_file_name_separator (SCM_MAKE_CHAR (filename_chars[1]))
+      && is_file_name_separator (scm_c_string_ref (filename, 1))
 #endif
       )
     return 1;
   if (filename_len >= 3
-      && is_drive_letter (SCM_MAKE_CHAR (filename_chars[0]))
-      && filename_chars[1] == ':'
-      && is_file_name_separator (SCM_MAKE_CHAR (filename_chars[2])))
+      && is_drive_letter (scm_c_string_ref (filename, 0))
+      && scm_is_eq (scm_c_string_ref (filename, 1), SCM_MAKE_CHAR (':'))
+      && is_file_name_separator (scm_c_string_ref (filename, 2)))
     return 1;
   return 0;
 }
@@ -529,7 +531,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   scm_dynwind_free (filename_chars);
 
   /* If FILENAME is absolute and is still valid, return it unchanged.  */
-  if (is_absolute_file_name (filename_chars, filename_len))
+  if (is_absolute_file_name (filename))
     {
       if ((scm_is_false (require_exts) ||
            scm_c_string_has_an_ext (filename_chars, filename_len,
