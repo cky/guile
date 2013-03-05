@@ -3,7 +3,7 @@
 #ifndef SCM_STRUCT_H
 #define SCM_STRUCT_H
 
-/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1997,1999,2000,2001, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -108,8 +108,8 @@
 #define SCM_VTABLE_FLAG_APPLICABLE (1L << 3) /* instances of this vtable are applicable? */
 #define SCM_VTABLE_FLAG_SETTER_VTABLE (1L << 4) /* instances of this vtable are applicable-with-setter vtables? */
 #define SCM_VTABLE_FLAG_SETTER (1L << 5) /* instances of this vtable are applicable-with-setters? */
-#define SCM_VTABLE_FLAG_SIMPLE (1L << 6) /* instances of this vtable have only "p" fields */
-#define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 7) /* instances of this vtable have only "pw" fields */
+#define SCM_VTABLE_FLAG_SIMPLE (1L << 6) /* instances of this vtable have only "p" fields and no tail array*/
+#define SCM_VTABLE_FLAG_SIMPLE_RW (1L << 7) /* instances of this vtable have only "pw" fields and no tail array */
 #define SCM_VTABLE_FLAG_RESERVED_0 (1L << 8)
 #define SCM_VTABLE_FLAG_RESERVED_1 (1L << 9)
 #define SCM_VTABLE_FLAG_RESERVED_2 (1L << 10)

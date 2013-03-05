@@ -1,4 +1,4 @@
-/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -153,8 +153,9 @@ SCM_DEFINE (scm_make_struct_layout, "make-struct-layout", 1, 0, 0,
 #undef FUNC_NAME
 
 
-/* Check whether VTABLE instances have a simple layout (i.e., either only "pr"
-   or only "pw" fields) and update its flags accordingly.  */
+/* Check whether VTABLE instances have a simple layout (i.e., either
+   only "pr" or only "pw" fields and no tail array) and update its flags
+   accordingly.  */
 static void
 set_vtable_layout_flags (SCM vtable)
 {
@@ -180,13 +181,11 @@ set_vtable_layout_flags (SCM vtable)
 	switch (c_layout[field + 1])
 	  {
 	  case 'w':
-	  case 'W':
 	    if (field == 0)
 	      flags |= SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
 
 	  case 'r':
-	  case 'R':
 	    flags &= ~SCM_VTABLE_FLAG_SIMPLE_RW;
 	    break;
 
