@@ -5749,7 +5749,8 @@ mem2decimal_from_point (SCM result, SCM mem,
 
 static SCM
 mem2ureal (SCM mem, unsigned int *p_idx,
-	   unsigned int radix, enum t_exactness forced_x)
+	   unsigned int radix, enum t_exactness forced_x,
+           int allow_inf_or_nan)
 {
   unsigned int idx = *p_idx;
   SCM result;
@@ -5762,30 +5763,53 @@ mem2ureal (SCM mem, unsigned int *p_idx,
   if (idx == len)
     return SCM_BOOL_F;
 
-  if (idx+5 <= len && !scm_i_string_strcmp (mem, idx, "inf.0"))
-    {
-      *p_idx = idx+5;
-      return scm_inf ();
-    }
-
-  if (idx+4 < len && !scm_i_string_strcmp (mem, idx, "nan."))
-    {
-      /* Cobble up the fractional part.  We might want to set the
-	 NaN's mantissa from it. */
-      idx += 4;
-      if (!scm_is_eq (mem2uinteger (mem, &idx, 10, &implicit_x), SCM_INUM0))
-        {
+  if (allow_inf_or_nan && forced_x != EXACT && idx+5 <= len)
+    switch (scm_i_string_ref (mem, idx))
+      {
+      case 'i': case 'I':
+        switch (scm_i_string_ref (mem, idx + 1))
+          {
+          case 'n': case 'N':
+            switch (scm_i_string_ref (mem, idx + 2))
+              {
+              case 'f': case 'F':
+                if (scm_i_string_ref (mem, idx + 3) == '.'
+                    && scm_i_string_ref (mem, idx + 4) == '0')
+                  {
+                    *p_idx = idx+5;
+                    return scm_inf ();
+                  }
+              }
+          }
+      case 'n': case 'N':
+        switch (scm_i_string_ref (mem, idx + 1))
+          {
+          case 'a': case 'A':
+            switch (scm_i_string_ref (mem, idx + 2))
+              {
+              case 'n': case 'N':
+                if (scm_i_string_ref (mem, idx + 3) == '.')
+                  {
+                    /* Cobble up the fractional part.  We might want to
+                       set the NaN's mantissa from it. */
+                    idx += 4;
+                    if (!scm_is_eq (mem2uinteger (mem, &idx, 10, &implicit_x),
+                                    SCM_INUM0))
+                      {
 #if SCM_ENABLE_DEPRECATED == 1
-          scm_c_issue_deprecation_warning
-            ("Non-zero suffixes to `+nan.' are deprecated.  Use `+nan.0'.");
+                        scm_c_issue_deprecation_warning
+                          ("Non-zero suffixes to `+nan.' are deprecated.  Use `+nan.0'.");
 #else
-          return SCM_BOOL_F;
+                        return SCM_BOOL_F;
 #endif
-        }
+                      }
           
-      *p_idx = idx;
-      return scm_nan ();
-    }
+                    *p_idx = idx;
+                    return scm_nan ();
+                  }
+              }
+          }
+      }
 
   if (scm_i_string_ref (mem, idx) == '.')
     {
@@ -5818,7 +5842,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
             return SCM_BOOL_F;
 
 	  divisor = mem2uinteger (mem, &idx, radix, &implicit_x);
-	  if (scm_is_false (divisor))
+	  if (scm_is_false (divisor) || scm_is_eq (divisor, SCM_INUM0))
 	    return SCM_BOOL_F;
 
 	  /* both are int/big here, I assume */
@@ -5894,7 +5918,7 @@ mem2complex (SCM mem, unsigned int idx,
   if (idx == len)
     return SCM_BOOL_F;
 
-  ureal = mem2ureal (mem, &idx, radix, forced_x);
+  ureal = mem2ureal (mem, &idx, radix, forced_x, sign != 0);
   if (scm_is_false (ureal))
     {
       /* input must be either +i or -i */
@@ -5963,9 +5987,9 @@ mem2complex (SCM mem, unsigned int idx,
 		  sign = -1;
 		}
 	      else
-		sign = 1;
+		sign = 0;
 
-	      angle = mem2ureal (mem, &idx, radix, forced_x);
+	      angle = mem2ureal (mem, &idx, radix, forced_x, sign != 0);
 	      if (scm_is_false (angle))
 		return SCM_BOOL_F;
 	      if (idx != len)
@@ -5987,7 +6011,7 @@ mem2complex (SCM mem, unsigned int idx,
 	  else
 	    {
 	      int sign = (c == '+') ? 1 : -1;
-	      SCM imag = mem2ureal (mem, &idx, radix, forced_x);
+	      SCM imag = mem2ureal (mem, &idx, radix, forced_x, sign != 0);
 
 	      if (scm_is_false (imag))
 		imag = SCM_I_MAKINUM (sign);
