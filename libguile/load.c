@@ -456,10 +456,10 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
 static int
 is_file_name_separator (SCM c)
 {
-  if (c == SCM_MAKE_CHAR ('/'))
+  if (scm_is_eq (c, SCM_MAKE_CHAR ('/')))
     return 1;
 #ifdef __MINGW32__
-  if (c == SCM_MAKE_CHAR ('\\'))
+  if (scm_is_eq (c, SCM_MAKE_CHAR ('\\')))
     return 1;
 #endif
   return 0;
