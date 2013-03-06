@@ -433,7 +433,7 @@
 #ifdef LONG_BIT
 # define SCM_LONG_BIT LONG_BIT
 #else
-# define SCM_LONG_BIT (SCM_CHAR_BIT * sizeof (long) / sizeof (char))
+# define SCM_LONG_BIT (SCM_SIZEOF_LONG * 8)
 #endif
 
 #define SCM_I_UTYPE_MAX(type)      ((type)-1)
