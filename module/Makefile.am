@@ -80,14 +80,15 @@ ETAGS_ARGS +=					\
   ice-9/ChangeLog-2008
 
 ice-9/psyntax-pp.scm.gen:
-	$(top_builddir_absolute)/meta/guile --no-auto-compile -s $(srcdir)/ice-9/compile-psyntax.scm \
+	GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0 \
+	$(top_builddir_absolute)/meta/guile -s $(srcdir)/ice-9/compile-psyntax.scm \
 		$(srcdir)/ice-9/psyntax.scm $(srcdir)/ice-9/psyntax-pp.scm
 
 .PHONY: ice-9/psyntax-pp.scm.gen
 
 # Keep this rule in sync with that in `am/guilec'.
 ice-9/psyntax-pp.go: ice-9/psyntax.scm ice-9/psyntax-pp.scm
-	$(AM_V_GUILEC)GUILE_AUTO_COMPILE=0				\
+	$(AM_V_GUILEC)GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0	\
 	$(top_builddir)/meta/uninstalled-env				\
 	guild compile --target="$(host)" $(GUILE_WARNINGS)		\
 	  -L "$(abs_srcdir)" -L "$(abs_builddir)"			\

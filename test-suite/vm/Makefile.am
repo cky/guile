@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-## Copyright 2005, 2006, 2008, 2009, 2010 Software Foundation, Inc.
+## Copyright 2005, 2006, 2008, 2009, 2010, 2013 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -20,6 +20,7 @@
 ##   Fifth Floor, Boston, MA 02110-1301 USA
 
 TESTS_ENVIRONMENT = \
+	GUILE_INSTALL_LOCALE=1 \
 	$(top_builddir)/meta/guile \
 	-l $(srcdir)/run-vm-tests.scm -e run-vm-tests
 
