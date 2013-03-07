@@ -351,18 +351,20 @@ Show description/documentation."
   (newline))
 
 (define-meta-command (option repl . args)
-  "option [KEY VALUE]
+  "option [NAME] [EXP]
 List/show/set options."
   (pmatch args
     (()
      (for-each (lambda (spec)
 		 (format #t "  ~A~24t~A\n" (car spec) (cadr spec)))
 	       (repl-options repl)))
-    ((,key)
-     (display (repl-option-ref repl key))
+    ((,name)
+     (display (repl-option-ref repl name))
      (newline))
-    ((,key ,val)
-     (repl-option-set! repl key val))))
+    ((,name ,exp)
+     ;; Would be nice to evaluate in the current language, but the REPL
+     ;; option parser doesn't permit that, currently.
+     (repl-option-set! repl name (eval exp (current-module))))))
 
 (define-meta-command (quit repl)
   "quit

@@ -430,8 +430,11 @@ Garbage collection.
 Display statistics.
 @end deffn
 
-@deffn {REPL Command} option [key value]
-List/show/set options.
+@deffn {REPL Command} option [name] [exp]
+With no arguments, lists all options.  With one argument, shows the
+current value of the @var{name} option.  With two arguments, sets the
+@var{name} option to the result of evaluating the Scheme expression
+@var{exp}.
 @end deffn
 
 @deffn {REPL Command} quit
