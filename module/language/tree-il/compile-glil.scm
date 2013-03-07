@@ -1,6 +1,6 @@
 ;;; TREE-IL -> GLIL compiler
 
-;; Copyright (C) 2001,2008,2009,2010,2011,2012 Free Software Foundation, Inc.
+;; Copyright (C) 2001,2008,2009,2010,2011,2012,2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -527,9 +527,20 @@
          (for-each comp-push args)
          (let ((len (length args)))
            (case context
-             ((tail) (emit-code src (make-glil-call 'tail-call len)))
-             ((push) (emit-code src (make-glil-call 'call len))
+             ((tail) (if (<= len #xff)
+                         (emit-code src (make-glil-call 'tail-call len))
+                         (begin
+                           (comp-push (make-const #f len))
+                           (emit-code src (make-glil-call 'tail-call/nargs 0)))))
+             ((push) (if (<= len #xff)
+                         (emit-code src (make-glil-call 'call len))
+                         (begin
+                           (comp-push (make-const #f len))
+                           (emit-code src (make-glil-call 'call/nargs 0))))
                      (maybe-emit-return))
+             ;; FIXME: mv-call doesn't have a /nargs variant, so it is
+             ;; limited to 255 args.  Can work around it with a
+             ;; trampoline and tail-call/nargs, but it's not so nice.
              ((vals) (emit-code src (make-glil-mv-call len MVRA))
                      (maybe-emit-return))
              ((drop) (let ((MV (make-label)) (POST (make-label)))
