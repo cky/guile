@@ -45,7 +45,6 @@
 #include "libguile/feature.h"
 #include "libguile/fports.h"
 #include "libguile/private-gc.h"  /* for SCM_MAX */
-#include "libguile/iselect.h"
 #include "libguile/strings.h"
 #include "libguile/vectors.h"
 #include "libguile/dynwind.h"
@@ -81,9 +80,7 @@
 #include <libc.h>
 #endif
 
-#ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
-#endif
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -435,31 +432,6 @@ scm_stat2scm (struct stat_or_stat64 *stat_temp)
   return ans;
 }
 
-#ifdef __MINGW32__
-/*
- * Try getting the appropiate stat buffer for a given file descriptor
- * under Windows. It differentiates between file, pipe and socket 
- * descriptors.
- */
-static int fstat_Win32 (int fdes, struct stat *buf)
-{
-  int error, optlen = sizeof (int);
-
-  memset (buf, 0, sizeof (struct stat));
-
-  /* Is this a socket ? */
-  if (getsockopt (fdes, SOL_SOCKET, SO_ERROR, (void *) &error, &optlen) >= 0)
-    {
-      buf->st_mode = _S_IREAD | _S_IWRITE | _S_IEXEC;
-      buf->st_nlink = 1;
-      buf->st_atime = buf->st_ctime = buf->st_mtime = time (NULL);
-      return 0;
-    }
-  /* Maybe a regular file or pipe ? */
-  return fstat (fdes, buf);
-}
-#endif /* __MINGW32__ */
-
 static int
 is_file_name_separator (SCM c)
 {
@@ -544,11 +516,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 1, 0,
 
   if (scm_is_integer (object))
     {
-#ifdef __MINGW32__
-      SCM_SYSCALL (rv = fstat_Win32 (scm_to_int (object), &stat_temp));
-#else
       SCM_SYSCALL (rv = fstat_or_fstat64 (scm_to_int (object), &stat_temp));
-#endif
     }
   else if (scm_is_string (object))
     {
@@ -561,11 +529,7 @@ SCM_DEFINE (scm_stat, "stat", 1, 1, 0,
       object = SCM_COERCE_OUTPORT (object);
       SCM_VALIDATE_OPFPORT (1, object);
       fdes = SCM_FPORT_FDES (object);
-#ifdef __MINGW32__
-      SCM_SYSCALL (rv = fstat_Win32 (fdes, &stat_temp));
-#else
       SCM_SYSCALL (rv = fstat_or_fstat64 (fdes, &stat_temp));
-#endif
     }
 
   if (rv == -1)
@@ -659,15 +623,13 @@ SCM_DEFINE (scm_chdir, "chdir", 1, 0, 0,
 
 
 
-#ifdef HAVE_SELECT
-
 /* check that element is a port or file descriptor.  if it's a port
    and its buffer is ready for use, add it to the ports_ready list.
    otherwise add its file descriptor to *set.  the type of list can be
    determined from pos: SCM_ARG1 for reads, SCM_ARG2 for writes,
    SCM_ARG3 for excepts.  */
 static int
-set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
+set_element (fd_set *set, SCM *ports_ready, SCM element, int pos)
 {
   int fd;
 
@@ -713,7 +675,7 @@ set_element (SELECT_TYPE *set, SCM *ports_ready, SCM element, int pos)
    determined from pos: SCM_ARG1 for reads, SCM_ARG2 for writes,
    SCM_ARG3 for excepts.  */
 static int
-fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
+fill_select_type (fd_set *set, SCM *ports_ready, SCM list_or_vec, int pos)
 {
   int max_fd = 0;
 
@@ -748,7 +710,7 @@ fill_select_type (SELECT_TYPE *set, SCM *ports_ready, SCM list_or_vec, int pos)
 /* if element (a file descriptor or port) appears in *set, cons it to
    list.  return list.  */
 static SCM
-get_element (SELECT_TYPE *set, SCM element, SCM list)
+get_element (fd_set *set, SCM element, SCM list)
 {
   int fd;
 
@@ -774,7 +736,7 @@ get_element (SELECT_TYPE *set, SCM element, SCM list)
    *set and appending them to ports_ready.  result is converted to a
    vector if list_or_vec is a vector.  */
 static SCM 
-retrieve_select_type (SELECT_TYPE *set, SCM ports_ready, SCM list_or_vec)
+retrieve_select_type (fd_set *set, SCM ports_ready, SCM list_or_vec)
 {
   SCM answer_list = ports_ready;
 
@@ -835,9 +797,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 {
   struct timeval timeout;
   struct timeval * time_ptr;
-  SELECT_TYPE read_set;
-  SELECT_TYPE write_set;
-  SELECT_TYPE except_set;
+  fd_set read_set;
+  fd_set write_set;
+  fd_set except_set;
   int read_count;
   int write_count;
   int except_count;
@@ -928,9 +890,9 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
     }
 
   {
-    int rv = scm_std_select (max_fd + 1,
-			     &read_set, &write_set, &except_set,
-			     time_ptr);
+    int rv = select (max_fd + 1,
+                     &read_set, &write_set, &except_set,
+                     time_ptr);
     if (rv < 0)
       SCM_SYSERROR;
   }
@@ -939,7 +901,6 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 		     retrieve_select_type (&except_set, SCM_EOL, excepts));
 }
 #undef FUNC_NAME
-#endif /* HAVE_SELECT */
 
 
 
@@ -1105,11 +1066,7 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
   if (oldfd == -1)
     SCM_SYSERROR;
 
-#ifdef __MINGW32__
-  SCM_SYSCALL (rv = fstat_Win32 (oldfd, &oldstat));
-#else
   SCM_SYSCALL (rv = fstat_or_fstat64 (oldfd, &oldstat));
-#endif
   if (rv == -1)
     goto err_close_oldfd;
 
