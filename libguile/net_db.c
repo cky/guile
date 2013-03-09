@@ -55,22 +55,14 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#ifdef __MINGW32__
-#include "win32-socket.h"
-#endif
 
-#if !defined (HAVE_H_ERRNO) && !defined (__MINGW32__) && !defined (__CYGWIN__)
-/* h_errno not found in netdb.h, maybe this will help.  */
-extern int h_errno;
-#endif
+#if defined (HAVE_H_ERRNO)
+/* Only wrap gethostbyname / gethostbyaddr if h_errno is available.  */
 
-#if defined HAVE_HSTRERROR && !HAVE_DECL_HSTRERROR	\
-  && !defined __MINGW32__ && !defined __CYGWIN__
+#if defined HAVE_HSTRERROR && !HAVE_DECL_HSTRERROR
 /* Some OSes, such as Tru64 5.1b, lack a declaration for hstrerror(3).  */
 extern const char *hstrerror (int);
 #endif
-
-
 
 SCM_SYMBOL (scm_host_not_found_key, "host-not-found");
 SCM_SYMBOL (scm_try_again_key, "try-again");
@@ -200,6 +192,8 @@ SCM_DEFINE (scm_gethost, "gethost", 0, 1, 0,
 }
 #undef FUNC_NAME
 
+#endif /* HAVE_H_ERRNO */
+
 
 /* In all subsequent getMUMBLE functions, when we're called with no
    arguments, we're supposed to traverse the tables entry by entry.
@@ -263,7 +257,7 @@ SCM_DEFINE (scm_getnet, "getnet", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#if defined (HAVE_GETPROTOENT) || defined (__MINGW32__)
+#if defined (HAVE_GETPROTOENT)
 SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0, 
             (SCM protocol),
 	    "@deffnx {Scheme Procedure} getprotobyname name\n"
@@ -314,7 +308,7 @@ SCM_DEFINE (scm_getproto, "getproto", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#if defined (HAVE_GETSERVENT) || defined (__MINGW32__)
+#if defined (HAVE_GETSERVENT)
 static SCM
 scm_return_entry (struct servent *entry)
 {
@@ -416,7 +410,7 @@ SCM_DEFINE (scm_setnet, "setnet", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#if defined (HAVE_SETPROTOENT) && defined (HAVE_ENDPROTOENT) || defined (__MINGW32__)
+#if defined (HAVE_SETPROTOENT) && defined (HAVE_ENDPROTOENT)
 SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0, 
             (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endprotoent}.\n"
@@ -432,7 +426,7 @@ SCM_DEFINE (scm_setproto, "setproto", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
-#if defined (HAVE_SETSERVENT) && defined (HAVE_ENDSERVENT) || defined (__MINGW32__)
+#if defined (HAVE_SETSERVENT) && defined (HAVE_ENDSERVENT)
 SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0, 
             (SCM stayopen),
 	    "If @var{stayopen} is omitted, this is equivalent to @code{endservent}.\n"

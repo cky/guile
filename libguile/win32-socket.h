@@ -3,7 +3,7 @@
 #ifndef SCM_WIN32_SOCKET_H
 #define SCM_WIN32_SOCKET_H
 
-/* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -31,12 +31,5 @@ int scm_i_socket_errno (void);
 char * scm_i_socket_strerror (int error);
 void scm_i_init_socket_Win32 (void);
 char * scm_i_socket_filename (char *file);
-
-struct servent * getservent (void);
-void setservent (int stayopen);
-void endservent (void);
-struct protoent * getprotoent (void);
-void setprotoent (int stayopen);
-void endprotoent (void);
 
 #endif /* SCM_WIN32_SOCKET_H */
