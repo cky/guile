@@ -87,6 +87,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module func:
   # Code from module gendocs:
   # Code from module getaddrinfo:
+  # Code from module getlogin:
   # Code from module getpeername:
   # Code from module getsockname:
   # Code from module getsockopt:
@@ -353,6 +354,11 @@ AC_SUBST([LTALLOCA])
     AC_LIBOBJ([gai_strerror])
   fi
   gl_NETDB_MODULE_INDICATOR([getaddrinfo])
+  gl_FUNC_GETLOGIN
+  if test $HAVE_GETLOGIN = 0; then
+    AC_LIBOBJ([getlogin])
+  fi
+  gl_UNISTD_MODULE_INDICATOR([getlogin])
   AC_REQUIRE([gl_HEADER_SYS_SOCKET])
   if test "$ac_cv_header_winsock2_h" = yes; then
     AC_LIBOBJ([getpeername])
@@ -944,6 +950,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/full-write.h
   lib/gai_strerror.c
   lib/getaddrinfo.c
+  lib/getlogin.c
   lib/getpeername.c
   lib/getsockname.c
   lib/getsockopt.c
@@ -1131,6 +1138,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fstat.m4
   m4/func.m4
   m4/getaddrinfo.m4
+  m4/getlogin.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
   m4/hostent.m4
