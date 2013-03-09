@@ -32,23 +32,6 @@
 # include <sched.h>
 #endif
 
-#include "libguile/_scm.h"
-#include "libguile/dynwind.h"
-#include "libguile/fports.h"
-#include "libguile/scmsigs.h"
-#include "libguile/feature.h"
-#include "libguile/strings.h"
-#include "libguile/srfi-13.h"
-#include "libguile/srfi-14.h"
-#include "libguile/vectors.h"
-#include "libguile/values.h"
-
-#include "libguile/validate.h"
-#include "libguile/posix.h"
-#include "libguile/gettext.h"
-#include "libguile/threads.h"
-
-
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -65,10 +48,6 @@
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#else
-#ifndef ttyname
-extern char *ttyname();
-#endif
 #endif
 
 #ifdef LIBC_H_WITH_UNISTD_H
@@ -85,15 +64,23 @@ extern char *ttyname();
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#endif
 
-#ifdef __MINGW32__
-/* Some defines for Windows here. */
-# include <process.h>
-# define pipe(fd) _pipe (fd, 256, O_BINARY)
-#endif /* __MINGW32__ */
+#include "libguile/_scm.h"
+#include "libguile/dynwind.h"
+#include "libguile/fports.h"
+#include "libguile/scmsigs.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
+#include "libguile/srfi-13.h"
+#include "libguile/srfi-14.h"
+#include "libguile/vectors.h"
+#include "libguile/values.h"
+
+#include "libguile/validate.h"
+#include "libguile/posix.h"
+#include "libguile/gettext.h"
+#include "libguile/threads.h"
+
 
 #if HAVE_SYS_WAIT_H
 # include <sys/wait.h>
@@ -1922,21 +1909,7 @@ SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0,
 #endif /* HAVE_CHROOT */
 
 
-#ifdef __MINGW32__
-/* Wrapper function to supplying `getlogin()' under Windows.  */
-static char * getlogin (void)
-{
-  static char user[256];
-  static unsigned long len = 256;
-
-  if (!GetUserName (user, &len))
-    return NULL;
-  return user;
-}
-#endif /* __MINGW32__ */
-
-
-#if defined (HAVE_GETLOGIN) || defined (__MINGW32__)
+#if defined (HAVE_GETLOGIN)
 SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0, 
             (void),
 	    "Return a string containing the name of the user logged in on\n"
