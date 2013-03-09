@@ -742,11 +742,13 @@ SCM_DEPRECATED SCM scm_c_make_keyword (const char *s);
 
 SCM_DEPRECATED unsigned int scm_thread_sleep (unsigned int);
 SCM_DEPRECATED unsigned long scm_thread_usleep (unsigned long);
+#if SCM_HAVE_SYS_SELECT_H
 SCM_DEPRECATED int scm_internal_select (int fds,
-                                        SELECT_TYPE *rfds,
-                                        SELECT_TYPE *wfds,
-                                        SELECT_TYPE *efds,
+                                        fd_set *rfds,
+                                        fd_set *wfds,
+                                        fd_set *efds,
                                         struct timeval *timeout);
+#endif
 
 /* Deprecated because the cuserid call is deprecated.
  */

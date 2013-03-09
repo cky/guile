@@ -3,7 +3,7 @@
 #ifndef SCM_ISELECT_H
 #define SCM_ISELECT_H
 
-/* Copyright (C) 1997,1998,2000,2001, 2002, 2006 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1998,2000,2001, 2002, 2006, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -29,35 +29,18 @@
 #include <sys/types.h>
 
 #if SCM_HAVE_SYS_SELECT_H
-# include <sys/select.h>
-#endif
 
-#if SCM_HAVE_WINSOCK2_H
-# include <winsock2.h>
-#endif
-
-#ifdef FD_SET
-
-#define SELECT_TYPE fd_set
-#define SELECT_SET_SIZE FD_SETSIZE
-
-#else /* no FD_SET */
-
-/* Define the macros to access a single-int bitmap of descriptors.  */
-#define SELECT_SET_SIZE 32
-#define SELECT_TYPE int
-#define FD_SET(n, p) (*(p) |= (1 << (n)))
-#define FD_CLR(n, p) (*(p) &= ~(1 << (n)))
-#define FD_ISSET(n, p) (*(p) & (1 << (n)))
-#define FD_ZERO(p) (*(p) = 0)
-
-#endif /* no FD_SET */
+#include <sys/select.h>
 
 SCM_API int scm_std_select (int fds,
-			    SELECT_TYPE *rfds,
-			    SELECT_TYPE *wfds,
-			    SELECT_TYPE *efds,
+			    fd_set *rfds,
+			    fd_set *wfds,
+			    fd_set *efds,
 			    struct timeval *timeout);
+
+#define SELECT_TYPE fd_set
+
+#endif /* SCM_HAVE_SYS_SELECT_H */
 
 #endif  /* SCM_ISELECT_H */
 

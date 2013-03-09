@@ -45,6 +45,8 @@
 # include <pthread_np.h>
 #endif
 
+#include <sys/select.h>
+
 #include <assert.h>
 #include <fcntl.h>
 #include <nproc.h>
@@ -1851,9 +1853,9 @@ SCM_DEFINE (scm_condition_variable_p, "condition-variable?", 1, 0, 0,
 struct select_args
 {
   int             nfds;
-  SELECT_TYPE    *read_fds;
-  SELECT_TYPE    *write_fds;
-  SELECT_TYPE    *except_fds;
+  fd_set         *read_fds;
+  fd_set         *write_fds;
+  fd_set         *except_fds;
   struct timeval *timeout;
 
   int             result;
@@ -1876,11 +1878,19 @@ do_std_select (void *args)
   return NULL;
 }
 
+#if !SCM_HAVE_SYS_SELECT_H
+static int scm_std_select (int nfds,
+                           fd_set *readfds,
+                           fd_set *writefds,
+                           fd_set *exceptfds,
+                           struct timeval *timeout);
+#endif
+
 int
 scm_std_select (int nfds,
-		SELECT_TYPE *readfds,
-		SELECT_TYPE *writefds,
-		SELECT_TYPE *exceptfds,
+		fd_set *readfds,
+		fd_set *writefds,
+		fd_set *exceptfds,
 		struct timeval *timeout)
 {
   fd_set my_readfds;

@@ -24,6 +24,12 @@
 # include <config.h>
 #endif
 
+#include <math.h>
+#include <stdio.h>
+#include <string.h>
+
+#include <arpa/inet.h>
+
 #define SCM_BUILDING_DEPRECATED_CODE
 
 #include "libguile/_scm.h"
@@ -60,11 +66,6 @@
 #include "libguile/feature.h"
 #include "libguile/uniform.h"
 
-#include <math.h>
-#include <stdio.h>
-#include <string.h>
-
-#include <arpa/inet.h>
 
 #if (SCM_ENABLE_DEPRECATED == 1)
 
@@ -2356,16 +2357,18 @@ scm_thread_usleep (unsigned long t)
   return scm_std_usleep (t);
 }
 
+#ifdef HAVE_SYS_SELECT_H
 int scm_internal_select (int fds,
-                         SELECT_TYPE *rfds,
-                         SELECT_TYPE *wfds,
-                         SELECT_TYPE *efds,
+                         fd_set *rfds,
+                         fd_set *wfds,
+                         fd_set *efds,
                          struct timeval *timeout)
 {
   scm_c_issue_deprecation_warning
     ("`scm_internal_select' is deprecated. Use scm_std_select instead.");
   return scm_std_select (fds, rfds, wfds, efds, timeout);
 }
+#endif /* HAVE_SYS_SELECT_H */
 
 
 
