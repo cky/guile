@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008, 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2002, 2004, 2006, 2007, 2008, 2009, 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -28,17 +28,6 @@
 #include <stdio.h>
 #include <errno.h>
 
-#include "libguile/_scm.h"
-
-#include "libguile/async.h"
-#include "libguile/eval.h"
-#include "libguile/root.h"
-#include "libguile/vectors.h"
-#include "libguile/threads.h"
-
-#include "libguile/validate.h"
-#include "libguile/scmsigs.h"
-
 #ifdef HAVE_PROCESS_H
 #include <process.h>    /* for mingw */
 #endif
@@ -51,15 +40,18 @@
 #include <sys/time.h>
 #endif
 
-#ifdef __MINGW32__
-#include <windows.h>
-#define alarm(sec) (0)
-/* This weird comma expression is because Sleep is void under Windows. */
-#define sleep(sec) (Sleep ((sec) * 1000), 0)
-#define usleep(usec) (Sleep ((usec) / 1000), 0)
-#endif
-
 #include <full-write.h>
+
+#include "libguile/_scm.h"
+
+#include "libguile/async.h"
+#include "libguile/eval.h"
+#include "libguile/root.h"
+#include "libguile/vectors.h"
+#include "libguile/threads.h"
+
+#include "libguile/validate.h"
+#include "libguile/scmsigs.h"
 
 
 
@@ -499,6 +491,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+#if defined HAVE_ALARM && HAVE_DECL_ALARM
 SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
            (SCM i),
 	    "Set a timer to raise a @code{SIGALRM} signal after the specified\n"
@@ -514,6 +507,7 @@ SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
   return scm_from_uint (alarm (scm_to_uint (i)));
 }
 #undef FUNC_NAME
+#endif /* HAVE_ALARM */
 
 #ifdef HAVE_SETITIMER
 SCM_DEFINE (scm_setitimer, "setitimer", 5, 0, 0,
