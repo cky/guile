@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
- *   2006, 2007, 2009, 2011, 2012 Free Software Foundation, Inc.
+ *   2006, 2007, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,11 +44,6 @@
 # include "libguile/deprecation.h"
 #endif
 
-#ifdef __MINGW32__
-#include "win32-socket.h"
-#include <netdb.h>
-#endif
-
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -59,9 +54,6 @@
 #include <unistd.h>
 #endif
 #include <sys/types.h>
-#ifdef HAVE_WINSOCK2_H
-#include <winsock2.h>
-#else
 #include <sys/socket.h>
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS
 #include <sys/un.h>
@@ -69,7 +61,7 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
-#endif
+
 
 #if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
 #define SUN_LEN(ptr) ((size_t) (((struct sockaddr_un *) 0)->sun_path) \
@@ -1875,10 +1867,6 @@ scm_init_socket ()
 #endif
 #ifdef MSG_DONTROUTE
   scm_c_define ("MSG_DONTROUTE", scm_from_int (MSG_DONTROUTE));
-#endif
-
-#ifdef __MINGW32__
-  scm_i_init_socket_Win32 ();
 #endif
 
 #ifdef IP_ADD_MEMBERSHIP

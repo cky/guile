@@ -55,31 +55,11 @@
 #endif
 #include <errno.h>
 #include <sys/types.h>
-
-#include <full-write.h>
+#include <sys/stat.h>
 
 #include "libguile/iselect.h"
 
-/* Some defines for Windows (native port, not Cygwin). */
-#ifdef __MINGW32__
-# include <sys/stat.h>
-# include <winsock2.h>
-#endif /* __MINGW32__ */
-
 #include <full-write.h>
-
-/* Mingw (version 3.4.5, circa 2006) has ftruncate as an alias for chsize
-   already, but have this code here in case that wasn't so in past versions,
-   or perhaps to help other minimal DOS environments.
-
-   gnulib ftruncate.c has code using fcntl F_CHSIZE and F_FREESP, which
-   might be possibilities if we've got other systems without ftruncate.  */
-
-#if defined HAVE_CHSIZE && ! defined HAVE_FTRUNCATE
-# define ftruncate(fd, size) chsize (fd, size)
-# undef HAVE_FTRUNCATE
-# define HAVE_FTRUNCATE 1
-#endif
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX
@@ -496,48 +476,6 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
 #undef FUNC_NAME
 
 
-#ifdef __MINGW32__
-/*
- * Try getting the appropiate file flags for a given file descriptor
- * under Windows. This incorporates some fancy operations because Windows
- * differentiates between file, pipe and socket descriptors.
- */
-#ifndef O_ACCMODE
-# define O_ACCMODE 0x0003
-#endif
-
-static int getflags (int fdes)
-{
-  int flags = 0;
-  struct stat buf;
-  int error, optlen = sizeof (int);
-
-  /* Is this a socket ? */
-  if (getsockopt (fdes, SOL_SOCKET, SO_ERROR, (void *) &error, &optlen) >= 0)
-    flags = O_RDWR;
-  /* Maybe a regular file ? */
-  else if (fstat (fdes, &buf) < 0)
-    flags = -1;
-  else
-    {
-      /* Or an anonymous pipe handle ? */
-      if (buf.st_mode & _S_IFIFO)
-	flags = PeekNamedPipe ((HANDLE) _get_osfhandle (fdes), NULL, 0, 
-			       NULL, NULL, NULL) ? O_RDONLY : O_WRONLY;
-      /* stdin ? */
-      else if (fdes == fileno (stdin) && isatty (fdes))
-	flags = O_RDONLY;
-      /* stdout / stderr ? */
-      else if ((fdes == fileno (stdout) || fdes == fileno (stderr)) && 
-	       isatty (fdes))
-	flags = O_WRONLY;
-      else
-	flags = buf.st_mode;
-    }
-  return flags;
-}
-#endif /* __MINGW32__ */
-
 /* Building Guile ports from a file descriptor.  */
 
 /* Build a Scheme port from an open file descriptor `fdes'.
@@ -551,14 +489,10 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
 {
   SCM port;
   scm_t_port *pt;
-  int flags;
 
-  /* test that fdes is valid.  */
-#ifdef __MINGW32__
-  flags = getflags (fdes);
-#else
-  flags = fcntl (fdes, F_GETFL, 0);
-#endif
+  /* Test that fdes is valid.  */
+#ifdef F_GETFL
+  int flags = fcntl (fdes, F_GETFL, 0);
   if (flags == -1)
     SCM_SYSERROR;
   flags &= O_ACCMODE;
@@ -568,6 +502,13 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
     {
       SCM_MISC_ERROR ("requested file mode not available on fdes", SCM_EOL);
     }
+#else
+  /* If we don't have F_GETFL, as on mingw, at least we can test that
+     it is a valid file descriptor.  */
+  struct stat st;
+  if (fstat (fdes, &st) != 0)
+    SCM_SYSERROR;
+#endif
 
   scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
 
@@ -639,8 +580,6 @@ fport_input_waiting (SCM port)
   return FD_ISSET (fdes, &read_set) ? 1 : 0;
 
 #elif HAVE_IOCTL && defined (FIONREAD)
-  /* Note: cannot test just defined(FIONREAD) here, since mingw has FIONREAD
-     (for use with winsock ioctlsocket()) but not ioctl().  */
   int fdes = SCM_FSTREAM (port)->fdes;
   int remir;
   ioctl(fdes, FIONREAD, &remir);

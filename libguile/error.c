@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2004, 2006, 2010,
- *   2012 Free Software Foundation, Inc.
+ *   2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -100,17 +100,6 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 }
 #undef FUNC_NAME
 
-#if defined __MINGW32__ && defined HAVE_NETWORKING
-# include "win32-socket.h"
-# define SCM_I_STRERROR(err) \
-    ((err >= WSABASEERR) ? scm_i_socket_strerror (err) : strerror (err))
-# define SCM_I_ERRNO() \
-    (errno ? errno : scm_i_socket_errno ())
-#else
-# define SCM_I_STRERROR(err) strerror (err)
-# define SCM_I_ERRNO() errno
-#endif /* __MINGW32__ */
-
 /* strerror may not be thread safe, for instance in glibc (version 2.3.2) an
    error number not among the known values results in a string like "Unknown
    error 9999" formed in a static buffer, which will be overwritten by a
@@ -136,7 +125,7 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
   scm_dynwind_begin (0);
   scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
-  ret = scm_from_locale_string (SCM_I_STRERROR (scm_to_int (err)));
+  ret = scm_from_locale_string (strerror (scm_to_int (err)));
 
   scm_dynwind_end ();
   return ret;
@@ -147,7 +136,7 @@ SCM_GLOBAL_SYMBOL (scm_system_error_key, "system-error");
 void
 scm_syserror (const char *subr)
 {
-  SCM err = scm_from_int (SCM_I_ERRNO ());
+  SCM err = scm_from_int (errno);
 
   /* It could be that we're getting here because the syscall was
      interrupted by a signal.  In that case a signal handler might have

@@ -707,9 +707,6 @@ case $host in
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
     AC_LIBOBJ([win32-uname])
-    if test "$enable_networking" = yes ; then
-      AC_LIBOBJ([win32-socket])
-    fi
     if test "$enable_shared" = yes ; then
       EXTRA_DEFS="-DSCM_IMPORT"
       AC_DEFINE([USE_DLL_IMPORT], 1,
