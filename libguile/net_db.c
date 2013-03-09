@@ -34,16 +34,6 @@
 #include <verify.h>
 #include <errno.h>
 
-#include "libguile/_scm.h"
-#include "libguile/feature.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/dynwind.h"
-
-#include "libguile/validate.h"
-#include "libguile/net_db.h"
-#include "libguile/socket.h"
-
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
@@ -54,6 +44,16 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#include "libguile/_scm.h"
+#include "libguile/feature.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
+#include "libguile/dynwind.h"
+
+#include "libguile/validate.h"
+#include "libguile/net_db.h"
+#include "libguile/socket.h"
 
 
 #if defined (HAVE_H_ERRNO)
