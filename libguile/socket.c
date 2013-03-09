@@ -25,24 +25,7 @@
 #endif
 
 #include <errno.h>
-#include <gmp.h>
 #include <verify.h>
-
-#include "libguile/_scm.h"
-#include "libguile/arrays.h"
-#include "libguile/feature.h"
-#include "libguile/fports.h"
-#include "libguile/strings.h"
-#include "libguile/vectors.h"
-#include "libguile/dynwind.h"
-#include "libguile/srfi-13.h"
-
-#include "libguile/validate.h"
-#include "libguile/socket.h"
-
-#if SCM_ENABLE_DEPRECATED == 1
-# include "libguile/deprecation.h"
-#endif
 
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
@@ -61,6 +44,25 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+
+#include <gmp.h>
+
+#include "libguile/_scm.h"
+#include "libguile/arrays.h"
+#include "libguile/feature.h"
+#include "libguile/fports.h"
+#include "libguile/strings.h"
+#include "libguile/vectors.h"
+#include "libguile/dynwind.h"
+#include "libguile/srfi-13.h"
+
+#include "libguile/validate.h"
+#include "libguile/socket.h"
+
+#if SCM_ENABLE_DEPRECATED == 1
+# include "libguile/deprecation.h"
+#endif
+
 
 
 #if defined (HAVE_UNIX_DOMAIN_SOCKETS) && !defined (SUN_LEN)
