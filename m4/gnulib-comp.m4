@@ -146,6 +146,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module nproc:
   # Code from module open:
   # Code from module pathmax:
+  # Code from module pipe-posix:
   # Code from module pipe2:
   # Code from module putenv:
   # Code from module raise:
@@ -545,6 +546,11 @@ AC_SUBST([LTALLOCA])
   fi
   gl_FCNTL_MODULE_INDICATOR([open])
   gl_PATHMAX
+  gl_FUNC_PIPE
+  if test $HAVE_PIPE = 0; then
+    AC_LIBOBJ([pipe])
+  fi
+  gl_UNISTD_MODULE_INDICATOR([pipe])
   gl_FUNC_PIPE2
   gl_UNISTD_MODULE_INDICATOR([pipe2])
   gl_FUNC_PUTENV
@@ -994,6 +1000,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/nproc.h
   lib/open.c
   lib/pathmax.h
+  lib/pipe.c
   lib/pipe2.c
   lib/printf-args.c
   lib/printf-args.h
@@ -1183,6 +1190,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/off_t.m4
   m4/open.m4
   m4/pathmax.m4
+  m4/pipe.m4
   m4/pipe2.m4
   m4/printf.m4
   m4/putenv.m4
