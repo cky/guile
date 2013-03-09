@@ -1,6 +1,6 @@
 /* readline.c --- line editing support for Guile */
 
-/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1997,1999,2000,2001, 2002, 2003, 2006, 2007, 2008, 2009, 2010, 2013 Free Software Foundation, Inc.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,19 +27,13 @@
 
 #ifdef HAVE_RL_GETC_FUNCTION
 #include "libguile.h"
-#include "libguile/iselect.h"
 
 #include <stdio.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <readline/readline.h>
 #include <readline/history.h>
-#ifndef __MINGW32__
 #include <sys/time.h>
-#else
-#include <io.h>
-#endif
+#include <sys/select.h>
 #include <signal.h>
 
 #include "libguile/validate.h"
@@ -207,10 +201,8 @@ SCM_DEFINE (scm_readline, "%readline", 0, 4, 0,
 
   scm_dynwind_end ();
 
-#ifndef __MINGW32__
   fclose (rl_instream);
   fclose (rl_outstream);
-#endif
 
   --in_readline;
   return ans;
@@ -240,10 +232,8 @@ unwind_readline (void *unused)
   rl_free_line_state ();
   rl_cleanup_after_signal ();
   fputc ('\n', rl_outstream); /* We don't want next output on this line */
-#ifndef __MINGW32__
   fclose (rl_instream);
   fclose (rl_outstream);
-#endif
   --in_readline;
 }
 
@@ -319,10 +309,8 @@ scm_readline_init_ports (SCM inp, SCM outp)
 
   input_port = inp;
   output_port = outp;
-#ifndef __MINGW32__
   rl_instream = stream_from_fport (inp, "r", s_scm_readline);
   rl_outstream = stream_from_fport (outp, "w", s_scm_readline);
-#endif
 }
 
 
@@ -494,11 +482,9 @@ static int
 match_paren (int x, int k)
 {
   int tmp;
-#ifndef __MINGW32__
   int fno;
-  SELECT_TYPE readset;
+  fd_set readset;
   struct timeval timeout;
-#endif
 
   rl_insert (x, k);
   if (!SCM_READLINE_BOUNCE_PARENS)
@@ -509,14 +495,12 @@ match_paren (int x, int k)
       && rl_line_buffer[rl_point - 2] == '\\')
     return 0;
 
-#ifndef __MINGW32__
   tmp = 1000 * SCM_READLINE_BOUNCE_PARENS;
   timeout.tv_sec = tmp / 1000000;
   timeout.tv_usec = tmp % 1000000;
   FD_ZERO (&readset);
   fno = fileno (rl_instream);
   FD_SET (fno, &readset);
-#endif
 
   if (rl_point > 1)
     {
@@ -525,12 +509,7 @@ match_paren (int x, int k)
       if (rl_point > -1)
 	{
 	  rl_redisplay ();
-#ifndef __MINGW32__
-	  scm_std_select (fno + 1, &readset, NULL, NULL, &timeout);
-#else
-	  WaitForSingleObject (GetStdHandle(STD_INPUT_HANDLE),
-			       SCM_READLINE_BOUNCE_PARENS); 
-#endif
+	  select (fno + 1, &readset, NULL, NULL, &timeout);
 	}
       rl_point = tmp;
     }
@@ -547,9 +526,7 @@ scm_init_readline ()
 #include "guile-readline/readline.x"
   scm_readline_completion_function_var
     = scm_c_define ("*readline-completion-function*", SCM_BOOL_F);
-#ifndef __MINGW32__
   rl_getc_function = current_input_getc;
-#endif
 #if defined (_RL_FUNCTION_TYPEDEF)
   rl_completion_entry_function = (rl_compentry_func_t*) completion_function;
 #else  
