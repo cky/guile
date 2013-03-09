@@ -28,15 +28,6 @@
 
 #include <stdio.h>
 #include <fcntl.h>
-#include "libguile/_scm.h"
-#include "libguile/strings.h"
-#include "libguile/validate.h"
-#include "libguile/gc.h"
-#include "libguile/posix.h"
-#include "libguile/dynwind.h"
-#include "libguile/hashtab.h"
-
-#include "libguile/fports.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -56,10 +47,19 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#include "libguile/iselect.h"
+#include <sys/select.h>
 
 #include <full-write.h>
+
+#include "libguile/_scm.h"
+#include "libguile/strings.h"
+#include "libguile/validate.h"
+#include "libguile/gc.h"
+#include "libguile/posix.h"
+#include "libguile/dynwind.h"
+#include "libguile/hashtab.h"
+
+#include "libguile/fports.h"
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX
@@ -558,37 +558,29 @@ fport_input_waiting (SCM port)
 
   return pollfd.revents & POLLIN ? 1 : 0;
 
-#elif defined(HAVE_SELECT)
+#else
   struct timeval timeout;
-  SELECT_TYPE read_set;
-  SELECT_TYPE write_set;
-  SELECT_TYPE except_set;
+  fd_set read_set;
+  fd_set write_set;
+  fd_set except_set;
 
   FD_ZERO (&read_set);
   FD_ZERO (&write_set);
   FD_ZERO (&except_set);
 
-  FD_SET (fdes, &read_set);
-  
+  if (fdes < FD_SETSIZE)
+    FD_SET (fdes, &read_set);
+  else
+    scm_out_of_range ("fport_input_waiting", scm_from_int (fdes));
+
   timeout.tv_sec = 0;
   timeout.tv_usec = 0;
 
-  if (select (SELECT_SET_SIZE,
+  if (select (fdes + 1,
 	      &read_set, &write_set, &except_set, &timeout)
       < 0)
     scm_syserror ("fport_input_waiting");
   return FD_ISSET (fdes, &read_set) ? 1 : 0;
-
-#elif HAVE_IOCTL && defined (FIONREAD)
-  int fdes = SCM_FSTREAM (port)->fdes;
-  int remir;
-  ioctl(fdes, FIONREAD, &remir);
-  return remir;
-
-#else    
-  scm_misc_error ("fport_input_waiting",
-		  "Not fully implemented on this platform",
-		  SCM_EOL);
 #endif
 }
 
