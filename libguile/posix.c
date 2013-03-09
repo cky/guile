@@ -1135,12 +1135,7 @@ SCM_DEFINE (scm_execl, "execl", 1, 0, 1,
 
   exec_argv = scm_i_allocate_string_pointers (args);
 
-  execv (exec_file,
-#ifdef __MINGW32__
-         /* extra "const" in mingw formals, provokes warning from gcc */
-         (const char * const *)
-#endif
-         exec_argv);
+  execv (exec_file, exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -1169,12 +1164,7 @@ SCM_DEFINE (scm_execlp, "execlp", 1, 0, 1,
 
   exec_argv = scm_i_allocate_string_pointers (args);
 
-  execvp (exec_file,
-#ifdef __MINGW32__
-          /* extra "const" in mingw formals, provokes warning from gcc */
-          (const char * const *)
-#endif
-          exec_argv);
+  execvp (exec_file, exec_argv);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -1208,17 +1198,7 @@ SCM_DEFINE (scm_execle, "execle", 2, 0, 1,
   exec_argv = scm_i_allocate_string_pointers (args);
   exec_env = scm_i_allocate_string_pointers (env);
 
-  execve (exec_file,
-#ifdef __MINGW32__
-          /* extra "const" in mingw formals, provokes warning from gcc */
-          (const char * const *)
-#endif
-          exec_argv,
-#ifdef __MINGW32__
-          /* extra "const" in mingw formals, provokes warning from gcc */
-          (const char * const *)
-#endif
-          exec_env);
+  execve (exec_file, exec_argv, exec_env);
   SCM_SYSERROR;
 
   /* not reached.  */
@@ -1418,12 +1398,7 @@ scm_open_process (SCM mode, SCM prog, SCM args)
       close (err);
     }
 
-  execvp (exec_file,
-#ifdef __MINGW32__
-          /* extra "const" in mingw formals, provokes warning from gcc */
-          (const char * const *)
-#endif
-          exec_argv);
+  execvp (exec_file, exec_argv);
 
   /* The exec failed!  There is nothing sensible to do.  */
   if (err > 0)
@@ -1624,6 +1599,12 @@ SCM_DEFINE (scm_utime, "utime", 1, 5, 0,
     struct utimbuf utm;
     utm.actime = atim_sec;
     utm.modtime = mtim_sec;
+    /* Silence warnings.  */
+    (void) atim_nsec;
+    (void) mtim_nsec;
+
+    if (f != 0)
+      scm_out_of_range(FUNC_NAME, flags);
 
     STRING_SYSCALL (pathname, c_pathname,
                     rv = utime (c_pathname, &utm));
@@ -1908,8 +1889,6 @@ SCM_DEFINE (scm_chroot, "chroot", 1, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_CHROOT */
 
-
-#if defined (HAVE_GETLOGIN)
 SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0, 
             (void),
 	    "Return a string containing the name of the user logged in on\n"
@@ -1925,7 +1904,6 @@ SCM_DEFINE (scm_getlogin, "getlogin", 0, 0, 0,
   return scm_from_locale_string (p);
 }
 #undef FUNC_NAME
-#endif /* HAVE_GETLOGIN */
 
 #if HAVE_GETPRIORITY
 SCM_DEFINE (scm_getpriority, "getpriority", 2, 0, 0, 
