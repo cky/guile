@@ -1,4 +1,4 @@
-/* Copyright (C) 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -73,7 +73,7 @@
    If timeout is given and is non-negative, the poll will return after that
    number of milliseconds if no fd became active.
    */
-#ifdef HAVE_POLL
+#if defined(HAVE_POLL) && defined(HAVE_STRUCT_POLLFD)
 static SCM
 scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
 #define FUNC_NAME "primitive-poll"
@@ -174,7 +174,7 @@ scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
-#endif /* HAVE_POLL */
+#endif /* HAVE_POLL && HAVE_STRUCT_POLLFD */
 
 
 
@@ -182,7 +182,7 @@ scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
 static void
 scm_init_poll (void)
 {
-#if HAVE_POLL
+#if defined(HAVE_POLL) && defined(HAVE_STRUCT_POLLFD)
   scm_c_define_gsubr ("primitive-poll", 4, 0, 0, scm_primitive_poll);
   scm_c_define ("%sizeof-struct-pollfd", scm_from_size_t (sizeof (struct pollfd)));
 #else
