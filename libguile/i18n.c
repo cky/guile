@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -685,6 +685,8 @@ SCM_DEFINE (scm_make_locale, "make-locale", 2, 1, 0,
       }
   }
 
+  /* silence gcc's unused variable warning */
+  (void) c_base_locale;
 #endif
 
   return locale;
