@@ -919,7 +919,7 @@ AC_DEFUN([GUILE_FUNC_DECLARED], [
 GUILE_FUNC_DECLARED(sleep, unistd.h)
 GUILE_FUNC_DECLARED(usleep, unistd.h)
 
-AC_CHECK_DECLS([alarm])
+AC_CHECK_DECLS([getlogin alarm])
 
 AC_CHECK_DECLS([strptime],,,
 [#define _GNU_SOURCE /* ask glibc to give strptime prototype */

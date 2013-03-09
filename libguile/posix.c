@@ -155,6 +155,13 @@
 int sethostname (char *name, size_t namelen);
 #endif
 
+#if defined HAVE_GETLOGIN && !HAVE_DECL_GETLOGIN
+/* MinGW doesn't supply this decl; see
+   http://lists.gnu.org/archive/html/bug-gnulib/2013-03/msg00030.html for more
+   details.  */
+char *getlogin (void);
+#endif
+
 /* On NextStep, <utime.h> doesn't define struct utime, unless we
    #define _POSIX_SOURCE before #including it.  I think this is less
    of a kludge than defining struct utimbuf ourselves.  */
