@@ -1,7 +1,7 @@
 #ifndef SCM_BDW_GC_H
 #define SCM_BDW_GC_H
 
-/* Copyright (C) 2006, 2008, 2009, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -36,6 +36,11 @@
    Instead we will be careful inside Guile to use the GC_pthread
    routines.  */
 # define GC_NO_THREAD_REDIRECTS 1
+
+#ifdef __MINGW32__
+/* Rely on pthreads-w32.  */
+#define GC_WIN32_PTHREADS
+#endif
 
 #endif
 
