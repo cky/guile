@@ -149,6 +149,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module pathmax:
   # Code from module pipe-posix:
   # Code from module pipe2:
+  # Code from module poll:
+  # Code from module poll-h:
   # Code from module putenv:
   # Code from module raise:
   # Code from module read:
@@ -559,6 +561,13 @@ AC_SUBST([LTALLOCA])
   gl_UNISTD_MODULE_INDICATOR([pipe])
   gl_FUNC_PIPE2
   gl_UNISTD_MODULE_INDICATOR([pipe2])
+  gl_FUNC_POLL
+  if test $HAVE_POLL = 0 || test $REPLACE_POLL = 1; then
+    AC_LIBOBJ([poll])
+    gl_PREREQ_POLL
+  fi
+  gl_POLL_MODULE_INDICATOR([poll])
+  gl_POLL_H
   gl_FUNC_PUTENV
   if test $REPLACE_PUTENV = 1; then
     AC_LIBOBJ([putenv])
@@ -1009,6 +1018,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/pathmax.h
   lib/pipe.c
   lib/pipe2.c
+  lib/poll.c
+  lib/poll.in.h
   lib/printf-args.c
   lib/printf-args.h
   lib/printf-parse.c
@@ -1200,6 +1211,8 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/pathmax.m4
   m4/pipe.m4
   m4/pipe2.m4
+  m4/poll.m4
+  m4/poll_h.m4
   m4/printf.m4
   m4/putenv.m4
   m4/raise.m4
