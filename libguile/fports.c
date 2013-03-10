@@ -41,9 +41,7 @@
 #ifdef HAVE_STRUCT_STAT_ST_BLKSIZE
 #include <sys/stat.h>
 #endif
-#ifdef HAVE_POLL_H
 #include <poll.h>
-#endif
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -546,42 +544,12 @@ fport_input_waiting (SCM port)
 {
   int fdes = SCM_FSTREAM (port)->fdes;
 
-  /* `FD_SETSIZE', which is 1024 on GNU systems, effectively limits the
-     highest numerical value of file descriptors that can be monitored.
-     Thus, use poll(2) whenever that is possible.  */
-
-#if defined(HAVE_POLL) && defined(HAVE_STRUCT_POLLFD)
   struct pollfd pollfd = { fdes, POLLIN, 0 };
 
   if (poll (&pollfd, 1, 0) < 0)
     scm_syserror ("fport_input_waiting");
 
   return pollfd.revents & POLLIN ? 1 : 0;
-
-#else
-  struct timeval timeout;
-  fd_set read_set;
-  fd_set write_set;
-  fd_set except_set;
-
-  FD_ZERO (&read_set);
-  FD_ZERO (&write_set);
-  FD_ZERO (&except_set);
-
-  if (fdes < FD_SETSIZE)
-    FD_SET (fdes, &read_set);
-  else
-    scm_out_of_range ("fport_input_waiting", scm_from_int (fdes));
-
-  timeout.tv_sec = 0;
-  timeout.tv_usec = 0;
-
-  if (select (fdes + 1,
-	      &read_set, &write_set, &except_set, &timeout)
-      < 0)
-    scm_syserror ("fport_input_waiting");
-  return FD_ISSET (fdes, &read_set) ? 1 : 0;
-#endif
 }
 
 

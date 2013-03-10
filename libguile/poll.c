@@ -25,6 +25,8 @@
 #  include <config.h>
 #endif
 
+#include <poll.h>
+
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
 #include "libguile/numbers.h"
@@ -32,11 +34,6 @@
 #include "libguile/validate.h"
 
 #include "libguile/poll.h"
-
-
-#ifdef HAVE_POLL_H
-#include <poll.h>
-#endif
 
 
 
@@ -73,7 +70,6 @@
    If timeout is given and is non-negative, the poll will return after that
    number of milliseconds if no fd became active.
    */
-#if defined(HAVE_POLL) && defined(HAVE_STRUCT_POLLFD)
 static SCM
 scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
 #define FUNC_NAME "primitive-poll"
@@ -174,7 +170,6 @@ scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
   return scm_from_int (rv);
 }
 #undef FUNC_NAME
-#endif /* HAVE_POLL && HAVE_STRUCT_POLLFD */
 
 
 
@@ -182,12 +177,8 @@ scm_primitive_poll (SCM pollfds, SCM nfds, SCM ports, SCM timeout)
 static void
 scm_init_poll (void)
 {
-#if defined(HAVE_POLL) && defined(HAVE_STRUCT_POLLFD)
   scm_c_define_gsubr ("primitive-poll", 4, 0, 0, scm_primitive_poll);
   scm_c_define ("%sizeof-struct-pollfd", scm_from_size_t (sizeof (struct pollfd)));
-#else
-  scm_misc_error ("%init-poll", "`poll' unavailable on this platform", SCM_EOL);
-#endif
 
 #ifdef POLLIN
   scm_c_define ("POLLIN", scm_from_int (POLLIN));
