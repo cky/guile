@@ -759,8 +759,8 @@ Return a variable initialized to value @var{init}.
 
 @deffn {Scheme Procedure} variable-bound? var
 @deffnx {C Function} scm_variable_bound_p (var)
-Return @code{#t} iff @var{var} is bound to a value.
-Throws an error if @var{var} is not a variable object.
+Return @code{#t} if @var{var} is bound to a value, or @code{#f}
+otherwise.  Throws an error if @var{var} is not a variable object.
 @end deffn
 
 @deffn {Scheme Procedure} variable-ref var
@@ -784,8 +784,8 @@ Unset the value of the variable @var{var}, leaving @var{var} unbound.
 
 @deffn {Scheme Procedure} variable? obj
 @deffnx {C Function} scm_variable_p (obj)
-Return @code{#t} iff @var{obj} is a variable object, else
-return @code{#f}.
+Return @code{#t} if @var{obj} is a variable object, else return
+@code{#f}.
 @end deffn
 
 

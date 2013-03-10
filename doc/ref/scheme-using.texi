@@ -125,7 +125,7 @@ The programmatic interface to value history is in a module:
 @end lisp
 
 @deffn {Scheme Procedure} value-history-enabled?
-Return true iff value history is enabled.
+Return true if value history is enabled, or false otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} enable-value-history!

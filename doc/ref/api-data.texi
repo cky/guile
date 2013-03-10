@@ -2049,7 +2049,7 @@ number of one to eight digits.
 @rnindex char?
 @deffn {Scheme Procedure} char? x
 @deffnx {C Function} scm_char_p (x)
-Return @code{#t} iff @var{x} is a character, else @code{#f}.
+Return @code{#t} if @var{x} is a character, else @code{#f}.
 @end deffn
 
 Fundamentally, the character comparison operations below are
@@ -2057,31 +2057,31 @@ numeric comparisons of the character's code points.
 
 @rnindex char=?
 @deffn {Scheme Procedure} char=? x y
-Return @code{#t} iff code point of @var{x} is equal to the code point
+Return @code{#t} if code point of @var{x} is equal to the code point
 of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<?
 @deffn {Scheme Procedure} char<? x y
-Return @code{#t} iff the code point of @var{x} is less than the code
+Return @code{#t} if the code point of @var{x} is less than the code
 point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char<=?
 @deffn {Scheme Procedure} char<=? x y
-Return @code{#t} iff the code point of @var{x} is less than or equal
+Return @code{#t} if the code point of @var{x} is less than or equal
 to the code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char>?
 @deffn {Scheme Procedure} char>? x y
-Return @code{#t} iff the code point of @var{x} is greater than the
+Return @code{#t} if the code point of @var{x} is greater than the
 code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char>=?
 @deffn {Scheme Procedure} char>=? x y
-Return @code{#t} iff the code point of @var{x} is greater than or
+Return @code{#t} if the code point of @var{x} is greater than or
 equal to the code point of @var{y}, else @code{#f}.
 @end deffn
 
@@ -2099,32 +2099,32 @@ it cannot cover all cases for all languages.
 
 @rnindex char-ci=?
 @deffn {Scheme Procedure} char-ci=? x y
-Return @code{#t} iff the case-folded code point of @var{x} is the same
+Return @code{#t} if the case-folded code point of @var{x} is the same
 as the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<?
 @deffn {Scheme Procedure} char-ci<? x y
-Return @code{#t} iff the case-folded code point of @var{x} is less
+Return @code{#t} if the case-folded code point of @var{x} is less
 than the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci<=?
 @deffn {Scheme Procedure} char-ci<=? x y
-Return @code{#t} iff the case-folded code point of @var{x} is less
+Return @code{#t} if the case-folded code point of @var{x} is less
 than or equal to the case-folded code point of @var{y}, else
 @code{#f}.
 @end deffn
 
 @rnindex char-ci>?
 @deffn {Scheme Procedure} char-ci>? x y
-Return @code{#t} iff the case-folded code point of @var{x} is greater
+Return @code{#t} if the case-folded code point of @var{x} is greater
 than the case-folded code point of @var{y}, else @code{#f}.
 @end deffn
 
 @rnindex char-ci>=?
 @deffn {Scheme Procedure} char-ci>=? x y
-Return @code{#t} iff the case-folded code point of @var{x} is greater
+Return @code{#t} if the case-folded code point of @var{x} is greater
 than or equal to the case-folded code point of @var{y}, else
 @code{#f}.
 @end deffn
@@ -2132,36 +2132,36 @@ than or equal to the case-folded code point of @var{y}, else
 @rnindex char-alphabetic?
 @deffn {Scheme Procedure} char-alphabetic? chr
 @deffnx {C Function} scm_char_alphabetic_p (chr)
-Return @code{#t} iff @var{chr} is alphabetic, else @code{#f}.
+Return @code{#t} if @var{chr} is alphabetic, else @code{#f}.
 @end deffn
 
 @rnindex char-numeric?
 @deffn {Scheme Procedure} char-numeric? chr
 @deffnx {C Function} scm_char_numeric_p (chr)
-Return @code{#t} iff @var{chr} is numeric, else @code{#f}.
+Return @code{#t} if @var{chr} is numeric, else @code{#f}.
 @end deffn
 
 @rnindex char-whitespace?
 @deffn {Scheme Procedure} char-whitespace? chr
 @deffnx {C Function} scm_char_whitespace_p (chr)
-Return @code{#t} iff @var{chr} is whitespace, else @code{#f}.
+Return @code{#t} if @var{chr} is whitespace, else @code{#f}.
 @end deffn
 
 @rnindex char-upper-case?
 @deffn {Scheme Procedure} char-upper-case? chr
 @deffnx {C Function} scm_char_upper_case_p (chr)
-Return @code{#t} iff @var{chr} is uppercase, else @code{#f}.
+Return @code{#t} if @var{chr} is uppercase, else @code{#f}.
 @end deffn
 
 @rnindex char-lower-case?
 @deffn {Scheme Procedure} char-lower-case? chr
 @deffnx {C Function} scm_char_lower_case_p (chr)
-Return @code{#t} iff @var{chr} is lowercase, else @code{#f}.
+Return @code{#t} if @var{chr} is lowercase, else @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} char-is-both? chr
 @deffnx {C Function} scm_char_is_both_p (chr)
-Return @code{#t} iff @var{chr} is either uppercase or lowercase, else
+Return @code{#t} if @var{chr} is either uppercase or lowercase, else
 @code{#f}.
 @end deffn
 
@@ -2583,8 +2583,8 @@ string is not defined.
 
 @deffn {Scheme Procedure} char-set-contains? cs ch
 @deffnx {C Function} scm_char_set_contains_p (cs, ch)
-Return @code{#t} iff the character @var{ch} is contained in the
-character set @var{cs}.
+Return @code{#t} if the character @var{ch} is contained in the
+character set @var{cs}, or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} char-set-every pred cs

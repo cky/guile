@@ -157,7 +157,8 @@ appropriate module first, though:
 
 @deffn {Scheme Procedure} program? obj
 @deffnx {C Function} scm_program_p (obj)
-Returns @code{#t} iff @var{obj} is a compiled procedure.
+Returns @code{#t} if @var{obj} is a compiled procedure, or @code{#f}
+otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} program-objcode program

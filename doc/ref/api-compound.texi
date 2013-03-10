@@ -300,7 +300,7 @@ depending on the datatype of their arguments.
 @rnindex list?
 @deffn {Scheme Procedure} list? x
 @deffnx {C Function} scm_list_p (x)
-Return @code{#t} iff @var{x} is a proper list, else @code{#f}.
+Return @code{#t} if @var{x} is a proper list, else @code{#f}.
 @end deffn
 
 The predicate @code{null?} is often used in list-processing code to
@@ -311,7 +311,7 @@ somehow deals with the elements of a list until the list satisfies
 @rnindex null?
 @deffn {Scheme Procedure} null? x
 @deffnx {C Function} scm_null_p (x)
-Return @code{#t} iff @var{x} is the empty list, else @code{#f}.
+Return @code{#t} if @var{x} is the empty list, else @code{#f}.
 @end deffn
 
 @deftypefn {C Function} int scm_is_null (SCM x)

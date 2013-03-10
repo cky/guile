@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2010, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2010, 2011, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -288,21 +288,6 @@ classes, multiple inheritance and generic functions.
 @node Typographical Conventions
 @section Typographical Conventions
 
-We use some conventions in this manual.
-
-@itemize @bullet
-
-@item
-For some procedures, notably type predicates, we use ``iff'' to mean
-``if and only if''.  The construct is usually something like: `Return
-@var{val} iff @var{condition}', where @var{val} is usually
-``@nicode{#t}'' or ``non-@nicode{#f}''.  This typically means that
-@var{val} is returned if @var{condition} holds, and that @samp{#f} is
-returned otherwise.  To clarify: @var{val} will @strong{only} be
-returned when @var{condition} is true.
-@cindex iff
-
-@item
 In examples and procedure descriptions and all other places where the
 evaluation of Scheme expression is shown, we use some notation for
 denoting the output and evaluation results of expressions.
@@ -327,10 +312,6 @@ is denoted by the symbol @samp{@print{}}.
 As you can see, this code prints @samp{1} (denoted by
 @samp{@print{}}), and returns @code{hooray} (denoted by
 @samp{@result{}}).
-
-@c Add other conventions here.
-
-@end itemize
 
 
 @c Local Variables:

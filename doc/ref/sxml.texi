@@ -381,13 +381,8 @@ Pearl. Proc ICFP'00, pp. 186-197.
 @deffn {Scheme Procedure} attlist-add attlist name-value
 @end deffn
 
-@deffn {Scheme Procedure} attlist-null? _
-@verbatim 
- -- Scheme Procedure: null? x
-     Return `#t' iff X is the empty list, else `#f'.
-
- 
-@end verbatim
+@deffn {Scheme Procedure} attlist-null? x
+Return @code{#t} if @var{x} is the empty list, else @code{#f}.
 @end deffn
 
 @deffn {Scheme Procedure} attlist-remove-top attlist

@@ -124,9 +124,9 @@ Else, signal an error.
 @end deftypefn
 
 @deftypefn {C Macro} int SCM_SMOB_PREDICATE (scm_t_bits tag, SCM exp)
-Return true iff @var{exp} is a smob instance of the type indicated by
-@var{tag}.  The expression @var{exp} can be evaluated more than once,
-so it shouldn't contain any side effects.
+Return true if @var{exp} is a smob instance of the type indicated by
+@var{tag}, or false otherwise.  The expression @var{exp} can be
+evaluated more than once, so it shouldn't contain any side effects.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_new_smob (scm_t_bits tag, void *data)

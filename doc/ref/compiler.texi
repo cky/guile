@@ -580,9 +580,9 @@ variables. @var{vars} is a list of @code{(@var{name} @var{type}
 program's metadata and do not form part of a program's code path.
 @end deftp
 @deftp {Scheme Variable} <glil-mv-bind> vars rest
-A multiple-value binding of the values on the stack to @var{vars}. Iff
-@var{rest} is true, the last element of @var{vars} will be treated as
-a rest argument.
+A multiple-value binding of the values on the stack to @var{vars}.  If
+@var{rest} is true, the last element of @var{vars} will be treated as a
+rest argument.
 
 In addition to pushing a binding annotation on the stack, like
 @code{<glil-bind>}, an expression is emitted at compilation time to
@@ -789,7 +789,7 @@ objcode)} module.
 
 @deffn {Scheme Procedure} objcode? obj
 @deffnx {C Function} scm_objcode_p (obj)
-Returns @code{#f} iff @var{obj} is object code, @code{#f} otherwise.
+Returns @code{#f} if @var{obj} is object code, @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} bytecode->objcode bytecode

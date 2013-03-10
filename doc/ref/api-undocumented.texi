@@ -188,8 +188,8 @@ would modify regular hash tables. (@pxref{Hash Tables})
 @end deffn
 
 @deffn {Scheme Procedure} include-deprecated-features
-Return @code{#t} iff deprecated features should be included
-in public interfaces.
+Return @code{#t} if deprecated features should be included in public
+interfaces, or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} issue-deprecation-warning . msgs
@@ -202,7 +202,7 @@ they are printed in turn, each one followed by a newline.
 
 @deffn {Scheme Procedure} valid-object-procedure? proc
 @deffnx {C Function} scm_valid_object_procedure_p (proc)
-Return @code{#t} iff @var{proc} is a procedure that can be used with @code{set-object-procedure}.  It is always valid to use a closure constructed by @code{lambda}.
+Return @code{#t} ff @var{proc} is a procedure that can be used with @code{set-object-procedure}.  It is always valid to use a closure constructed by @code{lambda}.
 @end deffn
 
 @deffn {Scheme Procedure} %get-pre-modules-obarray

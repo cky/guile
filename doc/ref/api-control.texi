@@ -200,7 +200,7 @@ For this clause type, @var{test} may return multiple values, and
 @code{cond} ignores its boolean state; instead, @code{cond} evaluates
 @var{guard} and applies the resulting procedure to the value(s) of
 @var{test}, as if @var{guard} were the @var{consumer} argument of
-@code{call-with-values}.  Iff the result of that procedure call is a
+@code{call-with-values}.  If the result of that procedure call is a
 true value, it evaluates @var{expression} and applies the resulting
 procedure to the value(s) of @var{test}, in the same manner as the
 @var{guard} was called.

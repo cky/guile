@@ -351,8 +351,8 @@ parsing and serialization procedures.  If a header is unknown, its
 string name is simply its symbol name in title-case.
 
 @deffn {Scheme Procedure} known-header? sym
-Return @code{#t} iff @var{sym} is a known header, with associated
-parsers and serialization procedures.
+Return @code{#t} if @var{sym} is a known header, with associated
+parsers and serialization procedures, or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} header-parser sym
@@ -405,8 +405,8 @@ you want a header's value to be returned/written ``as-is''.
 @end deffn
 
 @deffn {Scheme Procedure} valid-header? sym val
-Return a true value iff @var{val} is a valid Scheme value for the header
-with name @var{sym}.
+Return a true value if @var{val} is a valid Scheme value for the header
+with name @var{sym}, or @code{#f} otherwise.
 @end deffn
 
 Now that we have a generic interface for reading and writing headers, we

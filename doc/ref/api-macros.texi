@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -520,7 +520,8 @@ is impossible with @code{syntax-rules}, given the datum matching forms. But with
 @code{syntax-case} it is easy:
 
 @deffn {Scheme Procedure} identifier? syntax-object
-Returns @code{#t} iff @var{syntax-object} is an identifier.
+Returns @code{#t} if @var{syntax-object} is an identifier, or @code{#f}
+otherwise.
 @end deffn
 
 @example
@@ -690,13 +691,13 @@ macros can use to compare, generate, and query objects of this data
 type.
 
 @deffn {Scheme Procedure} bound-identifier=? a b
-Return @code{#t} iff the syntax objects @var{a} and @var{b} refer to the
-same lexically-bound identifier.
+Return @code{#t} if the syntax objects @var{a} and @var{b} refer to the
+same lexically-bound identifier, or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} free-identifier=? a b
-Return @code{#t} iff the syntax objects @var{a} and @var{b} refer to the
-same free identifier.
+Return @code{#t} if the syntax objects @var{a} and @var{b} refer to the
+same free identifier, or @code{#f} otherwise.
 @end deffn
 
 @deffn {Scheme Procedure} generate-temporaries ls
@@ -935,7 +936,7 @@ left-hand side of a @code{set!} expression, as in the following:
 (set! foo @var{val})
 ;; expands via
 (foo-transformer #'(set! foo @var{val}))
-;; iff foo-transformer is a "variable transformer"
+;; if foo-transformer is a "variable transformer"
 @end example
 
 As the example notes, the transformer procedure must be explicitly
@@ -1125,7 +1126,8 @@ for syntax-case.
 
 @deffn {Scheme Procedure} macro? obj
 @deffnx {C Function} scm_macro_p (obj)
-Return @code{#t} iff @var{obj} is a syntax transformer.
+Return @code{#t} if @var{obj} is a syntax transformer, or @code{#f}
+otherwise.
 
 Note that it's a bit difficult to actually get a macro as a first-class object;
 simply naming it (like @code{case}) will produce a syntax error. But it is

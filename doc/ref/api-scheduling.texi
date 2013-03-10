@@ -247,7 +247,7 @@ Once @var{body} or @var{handler} returns, the return value is made the
 
 @deffn {Scheme Procedure} thread? obj
 @deffnx {C Function} scm_thread_p (obj)
-Return @code{#t} iff @var{obj} is a thread; otherwise, return
+Return @code{#t} ff @var{obj} is a thread; otherwise, return
 @code{#f}.
 @end deffn
 
@@ -267,7 +267,7 @@ specified; @code{#f} is returned otherwise).
 
 @deffn {Scheme Procedure} thread-exited? thread
 @deffnx {C Function} scm_thread_exited_p (thread)
-Return @code{#t} iff @var{thread} has exited.
+Return @code{#t} if @var{thread} has exited, or @code{#f} otherwise.
 @end deffn
 
 @c begin (texi-doc-string "guile" "yield")
@@ -376,7 +376,7 @@ The returned mutex will be recursive.
 
 @deffn {Scheme Procedure} mutex? obj
 @deffnx {C Function} scm_mutex_p (obj)
-Return @code{#t} iff @var{obj} is a mutex; otherwise, return
+Return @code{#t} if @var{obj} is a mutex; otherwise, return
 @code{#f}.
 @end deffn
 
@@ -481,7 +481,7 @@ Return a new condition variable.
 
 @deffn {Scheme Procedure} condition-variable? obj
 @deffnx {C Function} scm_condition_variable_p (obj)
-Return @code{#t} iff @var{obj} is a condition variable; otherwise,
+Return @code{#t} if @var{obj} is a condition variable; otherwise,
 return @code{#f}.
 @end deffn
 
@@ -702,7 +702,7 @@ implicitly bound to some definite value).
 
 @deffn {Scheme Procedure} fluid? obj
 @deffnx {C Function} scm_fluid_p (obj)
-Return @code{#t} iff @var{obj} is a fluid; otherwise, return
+Return @code{#t} if @var{obj} is a fluid; otherwise, return
 @code{#f}.
 @end deffn
 
@@ -726,7 +726,7 @@ Disassociate the given fluid from any value, making it unbound.
 
 @deffn {Scheme Procedure} fluid-bound? fluid
 @deffnx {C Function} scm_fluid_bound_p (fluid)
-Returns @code{#t} iff the given fluid is bound to a value, otherwise
+Returns @code{#t} if the given fluid is bound to a value, otherwise
 @code{#f}.
 @end deffn
 
