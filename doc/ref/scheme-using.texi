@@ -752,6 +752,7 @@ list}, or simply @code{guild}.
 @cindex site path
 @cindex load path
 @findex %site-dir
+@findex %site-ccache-dir
 
 At some point, you will probably want to share your code with other
 people.  To do so effectively, it is important to follow a set of common
@@ -783,11 +784,11 @@ find them.
 As with Scheme files, Guile searches a path to find compiled @code{.go}
 files, the @code{%load-compiled-path}.  By default, this path has two
 entries: a path for Guile's files, and a path for site packages.  You
-should install your @code{.go} files into the latter.  Currently there
-is no procedure to get at this path, which is probably a bug.  As in the
-previous example, if Guile @value{EFFECTIVE-VERSION} is installed on
-your system in @code{/usr/}, then the place to put compiled files for
-site packages will be
+should install your @code{.go} files into the latter directory, whose
+value is returned by invoking the @code{%site-ccache-dir} procedure.  As
+in the previous example, if Guile @value{EFFECTIVE-VERSION} is installed
+on your system in @code{/usr/}, then @code{(%site-ccache-dir)} site
+packages will be
 @code{/usr/lib/guile/@value{EFFECTIVE-VERSION}/site-ccache}.
 
 Note that a @code{.go} file will only be loaded in preference to a

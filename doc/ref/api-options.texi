@@ -96,6 +96,13 @@ your site should be installed.  On Unix-like systems, this is usually
 @file{/usr/local/share/guile/site} or @file{/usr/share/guile/site}.
 @end deffn
 
+@deffn {Scheme Procedure} %site-ccache-dir
+@deffnx {C Function} scm_sys_site_ccache_dir ()
+Return the directory where users should install compiled @code{.go}
+files for use with this version of Guile.  Might look something like
+@file{/usr/lib/guile/@value{EFFECTIVE-VERSION}/site-ccache}.
+@end deffn
+
 @defvar %guile-build-info
 Alist of information collected during the building of a particular
 Guile.  Entries can be grouped into one of several categories:

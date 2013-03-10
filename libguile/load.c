@@ -198,6 +198,19 @@ SCM_DEFINE (scm_sys_global_site_dir, "%global-site-dir", 0,0,0,
 #undef FUNC_NAME
 #endif /* SCM_GLOBAL_SITE_DIR */
 
+#ifdef SCM_SITE_CCACHE_DIR
+SCM_DEFINE (scm_sys_site_ccache_dir, "%site-ccache-dir", 0,0,0,
+            (),
+	    "Return the directory where users should install compiled\n"
+            "@code{.go} files for use with this version of Guile.\n\n"
+	    "E.g., may return \"/usr/lib/guile/" SCM_EFFECTIVE_VERSION "/site-ccache\".")
+#define FUNC_NAME s_scm_sys_site_ccache_dir
+{
+  return scm_from_locale_string (SCM_SITE_CCACHE_DIR);
+}
+#undef FUNC_NAME
+#endif /* SCM_SITE_CCACHE_DIR */
+
 
 
 /* Initializing the load path, and searching it.  */
