@@ -57,7 +57,9 @@
        (with-throw-handler #t
          (lambda ()
            (proc tmp)
-           (chmod tmp (logand #o0666 (lognot (umask))))
+           ;; Chmodding by name instead of by port allows this chmod to
+           ;; work on systems without fchmod, like MinGW.
+           (chmod template (logand #o0666 (lognot (umask))))
            (close-port tmp)
            (rename-file template filename))
          (lambda args
