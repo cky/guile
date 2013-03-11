@@ -251,4 +251,10 @@ EXTRA_DIST += test-with-guile-module.c test-scm-with-guile.c
 
 endif
 
+test_smob_mark_SOURCES = test-smob-mark.c
+test_smob_mark_CFLAGS = ${test_cflags}
+test_smob_mark_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-smob-mark
+TESTS += test-smob-mark
+
 EXTRA_DIST += ${check_SCRIPTS}
