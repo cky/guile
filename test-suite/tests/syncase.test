@@ -1,6 +1,6 @@
 ;;;; syncase.test --- test suite for (ice-9 syncase)            -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2001, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2001, 2006, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -239,3 +239,13 @@
                  ((odd? x) (not (even? x)))))
              (even? 10))
           (current-module))))
+
+(define-module (test-suite test-syncase-3)
+  #:autoload (test-syncase-3-does-not-exist) (baz))
+
+(define-module (test-suite test-syncase)) ;; back to main module
+
+(pass-if "missing autoloads do not foil psyntax"
+  (parameterize ((current-warning-port (%make-void-port "w")))
+    (eval '(if #f (baz) #t)
+          (resolve-module '(test-suite test-syncase-3)))))

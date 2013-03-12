@@ -947,10 +947,26 @@ VALUE."
 (define (and=> value procedure) (and value (procedure value)))
 (define call/cc call-with-current-continuation)
 
-(define-syntax-rule (false-if-exception expr)
-  (catch #t
-    (lambda () expr)
-    (lambda (k . args) #f)))
+(define-syntax false-if-exception
+  (syntax-rules ()
+    ((false-if-exception expr)
+     (catch #t
+       (lambda () expr)
+       (lambda args #f)))
+    ((false-if-exception expr #:warning template arg ...)
+     (catch #t
+       (lambda () expr)
+       (lambda (key . args)
+         (for-each (lambda (s)
+                     (if (not (string-null? s))
+                         (format (current-warning-port) ";;; ~a\n" s)))
+                   (string-split
+                    (call-with-output-string
+                     (lambda (port)
+                       (format port template arg ...)
+                       (print-exception port #f key args)))
+                    #\newline))
+         #f)))))
 
 
 
@@ -2786,16 +2802,18 @@ VALUE."
 
 (define (make-autoload-interface module name bindings)
   (let ((b (lambda (a sym definep)
-             (and (memq sym bindings)
-                  (let ((i (module-public-interface (resolve-module name))))
-                    (if (not i)
-                        (error "missing interface for module" name))
-                    (let ((autoload (memq a (module-uses module))))
-                      ;; Replace autoload-interface with actual interface if
-                      ;; that has not happened yet.
-                      (if (pair? autoload)
-                          (set-car! autoload i)))
-                    (module-local-variable i sym))))))
+             (false-if-exception
+              (and (memq sym bindings)
+                   (let ((i (module-public-interface (resolve-module name))))
+                     (if (not i)
+                         (error "missing interface for module" name))
+                     (let ((autoload (memq a (module-uses module))))
+                       ;; Replace autoload-interface with actual interface if
+                       ;; that has not happened yet.
+                       (if (pair? autoload)
+                           (set-car! autoload i)))
+                     (module-local-variable i sym)))
+              #:warning "Failed to autoload ~a in ~a:\n" sym name))))
     (module-constructor (make-hash-table 0) '() b #f #f name 'autoload #f
                         (make-hash-table 0) '() (make-weak-value-hash-table 31) #f
                         (make-hash-table 0) #f #f #f)))
@@ -3750,15 +3768,6 @@ when none is available, reading FILE-NAME with READER."
      #:opts %auto-compilation-options
      #:env (current-module)))
 
-  (define (warn-about-exception key args)
-    (for-each (lambda (s)
-                (if (not (string-null? s))
-                    (format (current-warning-port) ";;; ~a\n" s)))
-              (string-split
-               (call-with-output-string
-                (lambda (port) (print-exception port #f key args)))
-               #\newline)))
-
   ;; Returns the .go file corresponding to `name'.  Does not search load
   ;; paths, only the fallback path.  If the .go file is missing or out
   ;; of date, and auto-compilation is enabled, will try
@@ -3775,30 +3784,25 @@ when none is available, reading FILE-NAME with READER."
     ;; Return GO-FILE-NAME after making sure that it contains a freshly
     ;; compiled version of source file NAME with stat SCMSTAT; return #f
     ;; on failure.
-    (catch #t
-      (lambda ()
-        (let ((gostat (and (not %fresh-auto-compile)
-                           (stat go-file-name #f))))
-          (if (and gostat (more-recent? gostat scmstat))
-              go-file-name
-              (begin
-                (if gostat
-                    (format (current-warning-port)
-                            ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                            name go-file-name))
-                (cond
-                 (%load-should-auto-compile
-                  (%warn-auto-compilation-enabled)
-                  (format (current-warning-port) ";;; compiling ~a\n" name)
-                  (let ((cfn (compile name)))
-                    (format (current-warning-port) ";;; compiled ~a\n" cfn)
-                    cfn))
-                 (else #f))))))
-      (lambda (k . args)
-        (format (current-warning-port)
-                ";;; WARNING: compilation of ~a failed:\n" name)
-        (warn-about-exception k args)
-        #f)))
+    (false-if-exception
+     (let ((gostat (and (not %fresh-auto-compile)
+                        (stat go-file-name #f))))
+       (if (and gostat (more-recent? gostat scmstat))
+           go-file-name
+           (begin
+             (if gostat
+                 (format (current-warning-port)
+                         ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
+                         name go-file-name))
+             (cond
+              (%load-should-auto-compile
+               (%warn-auto-compilation-enabled)
+               (format (current-warning-port) ";;; compiling ~a\n" name)
+               (let ((cfn (compile name)))
+                 (format (current-warning-port) ";;; compiled ~a\n" cfn)
+                 cfn))
+              (else #f)))))
+     #:warning "WARNING: compilation of ~a failed:\n" name))
 
   (define (sans-extension file)
     (let ((dot (string-rindex file #\.)))
@@ -3810,12 +3814,9 @@ when none is available, reading FILE-NAME with READER."
     ;; Load from ABS-FILE-NAME, using a compiled file or auto-compiling
     ;; if needed.
     (define scmstat
-      (catch #t
-        (lambda ()
-          (stat abs-file-name))
-        (lambda (key . args)
-          (warn-about-exception key args)
-          #f)))
+      (false-if-exception
+       (stat abs-file-name)
+       #:warning "Stat of ~a failed:\n" abs-file-name))
 
     (define (pre-compiled)
       (and=> (search-path %load-compiled-path (sans-extension file-name)
