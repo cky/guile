@@ -13,114 +13,143 @@ Reorder points in order of importance and make comprehensible
 
 Assemble thanks
 
+file name docs
+
+gnulib version
+
 * Notable changes
 
-** guile.m4 allows selection of guile 2.0, 1.8, etc.
+** New guile.m4
 
-Also GUILE_PKG; see "Autoconf Macros" in manual
+The `guile.m4' autoconf macros have been rewritten to use `guild' and
+`pkg-config' instead of the deprecated `guile-config' (which itself
+calls pkg-config).
 
-** more efficient scm_gcd of inums
+There is also a new macro, `GUILE_PKG', which allows packages to select
+the version of Guile that they want to compile against.  See "Autoconf
+Macros" in the manual, for more information.
 
-    Optimize and simplify fractions code.
-    
-    Simplify and improve scm_i_big2dbl
-    
-    Optimize logarithms
+** Better Windows support
 
-    Reimplement 'inexact->exact' to avoid mpq functions.
+Guile now correctly identifies absolute paths on Windows (MinGW), and
+creates files on that platform according to its path conventions.  See
+XXX in the manual, for all details.
 
-** mingw
+In addition, the new Gnulib imports provide `select' and `poll' on
+Windows builds.
 
-many, many bugs.
+As an incompatible change, systems that are missing <sys/select.h> were
+previously provided a public `scm_std_select' C function that defined a
+version of `select', but unhappily it also provided its own incompatible
+definitions for FD_SET, FD_ZERO, and other system interface.  Guile
+should not be setting these macros in public API, so this interface was
+removed on those plaforms (basically only MinGW).
 
-remove special ifdefs, given gnulib
+** Gnulib update
 
-windows file names handled correctly
+Guile's copy of Gnulib was updated to XXX.  The following modules were
+imported from Gnulib: select, times, pipe-posix, fstat, getlogin, and
+poll.
 
-don't provide scm_std_select on mingw and similar platforms
-    
-If we do not have sys/select.h, don't provide scm_std_select,
-SELECT_TYPE, FD_SET, FD_ZERO, FD_ISSET, or FD_CLR.  Guile should not be
-setting these macros in public API.  This is an incompatible change on
-mingw, but oh well.
+** Optimizations
 
-** gnulib imports
+There were a number of improvements to the partial evaluator, allowing
+complete reduction of forms like:
 
-select, times, pipe-posix, fstat, getlogin, poll
+  ((let ((_ 10)) (lambda () _)))
 
-** optimize access to arrays of rank 1 or 2
+  ((lambda _ _))
 
-** peval improvements
+  (apply (lambda _) 1 2 3 4)
 
-inlining of ((let ((_ 10)) (lambda () _)))
+  (call-with-values (lambda () (values 1 2)) (lambda _ _))
 
-inlining of ((lambda _ _))
+A number (ahem) of numeric operations on have been made faster, among
+them GCD and logarithms.
 
-inlining of (apply (lambda _) 1 2 3 4)
+Finally, `array-ref' and `array-set!' on arrays of rank 1 or 2 is now
+faster, because it avoids building a rest list.
 
-inlining of (call-with-values (lambda () (values 1 2)) (lambda _ _))
+** `include' relative file names relative to including file
 
-** `include' relative paths relative to including file
+Given a relative file name, `include' will look for it relative to the
+directory of the including file.  This harmonizes the behavior of
+`include' with that of `load'.
 
-Local Inclusion
+** SLIB compatibility restored
 
-** slib compatibility
+Guile 2.0.8 is now compatible with SLIB.  You will have to use a
+development version of SLIB, however, until a new version of SLIB is
+released.
 
-** warn on multithreaded fork
+** Better ,trace REPL command
 
-** trace: limit length of "| | | "... prefix
-
-see docs for ",trace"
+Sometimes the ,trace output for nested function calls could overflow the
+terminal width, which wasn't useful.  Now there is a limit to the amount
+of space the prefix will take.  See the documentation for ",trace" for
+more information.
 
 ** Update predefined character sets to Unicode 6.2
 
 * Manual updates
 
-** excise use of "iff" in the manual
+** Better SXML documentation
 
-** Improve keyword notation of Texinfo function definitions.
+The documentation for SXML modules was much improved, though there is
+still far to go.  See "SXML" in manual.
 
-** arrays
+** Style updates
 
-Document scm_array_type(), scm_array_ref(), array-length,
-scm_array_length(), scm_c_array_length().
+Use of "iff" was replaced with standard English.  Keyword arguments are
+now documented consistently, along with their default values.
 
-Fix wording of documentation for array-in-bounds?
+** An end to the generated-documentation experiment
 
-** better sxml docs
+When Guile 2.0 imported some modules from Guile-Lib, they came with a
+system that generated documentation from docstrings and module
+commentaries.  This produced terrible documentation.  We finally bit the
+bullet and incorporated these modules into the main text, and will be
+improving them manually over time, as is the case with SXML.  Help is
+appreciated.
 
-"SXML" in manual
+** New documentation
 
-** updates
-
-scm_new_smob instead of SCM_NEWSMOB / SCM_RETURN_NEWSMOB.
-procedural interface to vectors (scm_c_vector_ref et al).
-
-replace old foreign->bytevector and bytevector->foreign with the new
-procedure names using pointer.
-
-** an end to the generated-documentation experiment
-
-** document program-arguments-alist and program-lambda-list
-
-** update GOOPS class hierarchy diagram in web and pdf
+There is now documentation for `scm_array_type', and `scm_array_ref', as
+well as for the new `array-length' / 'scm_c_array_length' /
+`scm_array_length' functions.  `array-in-bounds?' has better
+documentation as well.  The `program-arguments-alist' and
+`program-lambda-list' functions are now documented.  Finally, the GOOPS
+class hierarchy diagram has been regenerated for the web and print
+output formats.
 
 * New deprecations
 
-** (ice-9 mapping)
-
 ** Deprecate generalized vector interface
 
-scm_generalized_vector_p, scm_generalized_vector_length,
-scm_generalized_vector_ref, scm_generalized_vector_set_x,
-scm_generalized_vector_to_list
+The generalized vector interface, introduced in 1.8.0, is simply a
+redundant, verbose interface to arrays of rank 1.  `array-ref' and
+similar functions are entirely sufficient.  Thus,
+`scm_generalized_vector_p', `scm_generalized_vector_length',
+`scm_generalized_vector_ref', `scm_generalized_vector_set_x', and
+`scm_generalized_vector_to_list' are now deprecated.
 
-** deprecate SCM_CHAR_CODE_LIMIT and char-code-limit
+** Deprecate SCM_CHAR_CODE_LIMIT and char-code-limit
 
-** deprecate http-get*
+These constants were defined to 256, which is not the highest codepoint
+supported by Guile.  Given that they were useless and incorrect, they
+have been deprecated.
 
-The #:streaming? argument subsumes the functionality of http-get*.  Also
-deprecate #:extra-headers argument in favor of #:headers.
+** Deprecate `http-get*'
+
+The new `#:streaming?' argument to `http-get' subsumes the functionality
+of `http-get*'.  Also, the `#:extra-headers' argument is deprecated in
+favor of `#:headers'.
+
+** Deprecate (ice-9 mapping)
+
+This module, present in Guile since 1996 but never used or documented,
+has never worked in Guile 2.0.  It has now been deprecated and will be
+removed in Guile 2.2.
 
 * New interfaces
 
@@ -200,15 +229,17 @@ Line/Delimited in manual
 
 * Build fixes
 
-** Use accessors instead of symbols deprecated in libgc 7.3.
+** Fix compilation against libgc 7.3.
 ** Fix cross-compilation of `c-tokenize.o'.
-** tests: Avoid missing missing-prototype warning with <fenv.h> on glibc 2.17.
-** doc: Fix build with Texinfo 5.0.
-** GUILE_INSTALL_LOCALE=1 during build
-   (http://bugs.gnu.org/12887)
-** if we have threads on windows, we have pthreads; inform bdw-gc of that
+** Fix warning when compiling against glibc 2.17.
+** Fix documentation build against Texinfo 5.0.
+** Fix building Guile from a directory with non-ASCII characters
+** Fix native MinGW build
+** Fix MinGW builds with networking, POSIX, and thread support
 
 * Bug fixes
+
+** warn on multithreaded fork
 
 ** allow for spurious wakeups from pthread_cond_wait
    (http://bugs.gnu.org/10641)
