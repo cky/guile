@@ -1688,7 +1688,7 @@ starts from 0 for the least significant bit.
 
 @deffn {Scheme Procedure} ash n count
 @deffnx {C Function} scm_ash (n, count)
-Return @math{floor(@var{n} * 2^@var{count})}.
+Return @math{floor(n * 2^count)}.
 @var{n} and @var{count} must be exact integers.
 
 With @var{n} viewed as an infinite-precision twos-complement
@@ -1707,7 +1707,7 @@ when @var{count} is negative.  This is an ``arithmetic'' shift.
 
 @deffn {Scheme Procedure} round-ash n count
 @deffnx {C Function} scm_round_ash (n, count)
-Return @math{round(@var{n} * 2^@var{count})}.
+Return @math{round(n * 2^count)}.
 @var{n} and @var{count} must be exact integers.
 
 With @var{n} viewed as an infinite-precision twos-complement

@@ -215,7 +215,7 @@ including ellipsizing and tail patterns.
     ((_ #((var val) ...) exp exp* ...)
      (let ((var val) ...) exp exp* ...))))
 (letv #((foo 'bar)) foo)
-@result{} foo
+@result{} bar
 @end example
 
 Literals are used to match specific datums in an expression, like the use of
