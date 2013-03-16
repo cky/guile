@@ -267,10 +267,10 @@ closes PORT, unless KEEP-ALIVE? is true."
 (define* (response-body-port r #:key (decode? #t) (keep-alive? #t))
   "Return an input port from which the body of R can be read.  The
 encoding of the returned port is set according to R's ‘content-type’
-header, when it's textual, except if DECODE? is #f.  Return #f when no
-body is available.
+header, when it's textual, except if DECODE? is ‘#f’.  Return #f when
+no body is available.
 
-When KEEP-ALIVE? is #f, closing the returned port also closes R's
+When KEEP-ALIVE? is ‘#f’, closing the returned port also closes R's
 response port."
   (define port
     (cond

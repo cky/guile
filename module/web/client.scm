@@ -248,10 +248,10 @@ pass it as PORT.  The port will be closed at the end of the
 request unless KEEP-ALIVE? is true.  Any extra headers in the
 alist HEADERS will be added to the request.
 
-If BODY is not #f, a message body will also be sent with the HTTP
+If BODY is not ‘#f’, a message body will also be sent with the HTTP
 request.  If BODY is a string, it is encoded according to the
 content-type in HEADERS, defaulting to UTF-8.  Otherwise BODY should be
-a bytevector, or #f for no body.  Although it's allowed to send a
+a bytevector, or ‘#f’ for no body.  Although it's allowed to send a
 message body along with any request, usually only POST and PUT requests
 have bodies.  See ‘http-put’ and ‘http-post’ documentation, for more.
 
@@ -317,7 +317,7 @@ This function is similar to ‘http-get’, except it uses the \"HEAD\"
 method.  See ‘http-get’ for full documentation on the various keyword
 arguments that are accepted by this function.
 
-Returns two values: the resulting response, and #f.  Responses to HEAD
+Returns two values: the resulting response, and ‘#f’.  Responses to HEAD
 requests do not have a body.  The second value is only returned so that
 other procedures can treat all of the http-foo verbs identically.")
 

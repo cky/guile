@@ -53,8 +53,8 @@
   (query uri-query)
   (fragment uri-fragment))
 
-(define (absolute-uri? x)
-  (and (uri? x) (uri-scheme x) #t))
+(define (absolute-uri? obj)
+  (and (uri? obj) (uri-scheme obj) #t))
 
 (define (uri-error message . args)
   (throw 'uri-error message args))
@@ -309,17 +309,16 @@ serialization."
 which should be the name of a character encoding.
 
 Note that this function should not generally be applied to a full URI
-string. For paths, use split-and-decode-uri-path instead. For query
+string. For paths, use ‘split-and-decode-uri-path’ instead. For query
 strings, split the query on ‘&’ and ‘=’ boundaries, and decode
 the components separately.
 
-Note also that percent-encoded strings encode @emph{bytes}, not
-characters.  There is no guarantee that a given byte sequence is a valid
-string encoding. Therefore this routine may signal an error if the
-decoded bytes are not valid for the given encoding. Pass ‘#f’ for
-ENCODING if you want decoded bytes as a bytevector directly.
-@xref{Ports, ‘set-port-encoding!’}, for more information on
-character encodings.
+Note also that percent-encoded strings encode _bytes_, not characters.
+There is no guarantee that a given byte sequence is a valid string
+encoding. Therefore this routine may signal an error if the decoded
+bytes are not valid for the given encoding. Pass ‘#f’ for ENCODING if
+you want decoded bytes as a bytevector directly.  ‘set-port-encoding!’,
+for more information on character encodings.
 
 Returns a string of the decoded characters, or a bytevector if
 ENCODING was ‘#f’."
@@ -380,11 +379,10 @@ ENCODING was ‘#f’."
 UNESCAPED-CHARS.
 
 The default character set includes alphanumerics from ASCII, as well as
-the special characters @samp{-}, @samp{.}, @samp{_}, and @samp{~}.  Any
-other character will be percent-encoded, by writing out the character to
-a bytevector within the given ENCODING, then encoding each byte as
-‘%HH’, where HH is the hexadecimal representation of
-the byte."
+the special characters ‘-’, ‘.’, ‘_’, and ‘~’.  Any other character will
+be percent-encoded, by writing out the character to a bytevector within
+the given ENCODING, then encoding each byte as ‘%HH’, where HH is the
+hexadecimal representation of the byte."
   (define (needs-escaped? ch)
     (not (char-set-contains? unescaped-chars ch)))
   (if (string-index str needs-escaped?)

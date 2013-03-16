@@ -167,7 +167,7 @@ The default writer is ‘display’."
 (define *eof* (call-with-input-string "" read))
 
 (define (read-header port)
-  "Reads one HTTP header from PORT. Returns two values: the header
+  "Read one HTTP header from PORT. Return two values: the header
 name and the parsed Scheme value. May raise an exception if the header
 was known but the value was invalid.
 
@@ -220,7 +220,7 @@ as an ordered alist."
 
 (define (write-headers headers port)
   "Write the given header alist to PORT.  Doesn't write the final
-@samp{\\r\\n}, as the user might want to add another header."
+‘\\r\\n’, as the user might want to add another header."
   (let lp ((headers headers))
     (if (pair? headers)
         (begin
@@ -971,7 +971,7 @@ as an ordered alist."
 (define *known-versions* '())
 
 (define* (parse-http-version str #:optional (start 0) (end (string-length str)))
-  "Parse an HTTP version from STR, returning it as a major-minor
+  "Parse an HTTP version from STR, returning it as a major–minor
 pair. For example, ‘HTTP/1.1’ parses as the pair of integers,
 ‘(1 . 1)’."
   (or (let lp ((known *known-versions*))

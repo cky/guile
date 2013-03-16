@@ -10,7 +10,7 @@
 @cindex HTTP
 
 It has always been possible to connect computers together and share
-information between them, but the rise of the World-Wide Web over the
+information between them, but the rise of the World Wide Web over the
 last couple of decades has made it much easier to do so.  The result is
 a richly connected network of computation, in which Guile forms a part.
 
@@ -206,9 +206,10 @@ The following procedures can be found in the @code{(web uri)}
 module. Load it into your Guile, using a form like the above, to have
 access to them.
 
-@deffn {Scheme Procedure} build-uri scheme [#:userinfo=@code{#f}] [#:host=@code{#f}] @
-       [#:port=@code{#f}] [#:path=@code{""}] [#:query=@code{#f}] @
-       [#:fragment=@code{#f}] [#:validate?=@code{#t}]
+@deffn {Scheme Procedure} build-uri scheme @
+       [#:userinfo=@code{#f}] [#:host=@code{#f}] [#:port=@code{#f}] @
+       [#:path=@code{""}] [#:query=@code{#f}] [#:fragment=@code{#f}] @
+       [#:validate?=@code{#t}]
 Construct a URI object.  @var{scheme} should be a symbol, @var{port}
 either a positive, exact integer or @code{#f}, and the rest of the
 fields are either strings or @code{#f}.  If @var{validate?} is true,
@@ -216,7 +217,7 @@ also run some consistency checks to make sure that the constructed URI
 is valid.
 @end deffn
 
-@deffn {Scheme Procedure} uri? x
+@deffn {Scheme Procedure} uri? obj
 @deffnx {Scheme Procedure} uri-scheme uri
 @deffnx {Scheme Procedure} uri-userinfo uri
 @deffnx {Scheme Procedure} uri-host uri
@@ -249,9 +250,9 @@ Percent-decode the given @var{str}, according to @var{encoding}, which
 should be the name of a character encoding.
 
 Note that this function should not generally be applied to a full URI
-string. For paths, use split-and-decode-uri-path instead. For query
-strings, split the query on @code{&} and @code{=} boundaries, and decode
-the components separately.
+string. For paths, use @code{split-and-decode-uri-path} instead. For
+query strings, split the query on @code{&} and @code{=} boundaries, and
+decode the components separately.
 
 Note also that percent-encoded strings encode @emph{bytes}, not
 characters.  There is no guarantee that a given byte sequence is a valid
@@ -378,7 +379,8 @@ For more on the set of headers that Guile knows about out of the box,
 @pxref{HTTP Headers}.  To add your own, use the @code{declare-header!}
 procedure:
 
-@deffn {Scheme Procedure} declare-header! name parser validator writer [#:multiple?=@code{#f}]
+@deffn {Scheme Procedure} declare-header! name parser validator writer @
+       [#:multiple?=@code{#f}]
 Declare a parser, validator, and writer for a given header.
 @end deffn
 
@@ -450,7 +452,7 @@ like @code{GET}.
 @end deffn
 
 @deffn {Scheme Procedure} parse-http-version str [start] [end]
-Parse an HTTP version from @var{str}, returning it as a major-minor
+Parse an HTTP version from @var{str}, returning it as a major--minor
 pair. For example, @code{HTTP/1.1} parses as the pair of integers,
 @code{(1 . 1)}.
 @end deffn
@@ -471,7 +473,7 @@ Write the first line of an HTTP request to @var{port}.
 
 @deffn {Scheme Procedure} read-response-line port
 Read the first line of an HTTP response from @var{port}, returning three
-values: the HTTP version, the response code, and the "reason phrase".
+values: the HTTP version, the response code, and the ``reason phrase''.
 @end deffn
 
 @deffn {Scheme Procedure} write-response-line version code reason-phrase port
@@ -1130,13 +1132,13 @@ any loss of generality.
 
 @subsubsection Request API
 
-@deffn {Scheme Procedure} request? 
-@deffnx {Scheme Procedure} request-method 
-@deffnx {Scheme Procedure} request-uri 
-@deffnx {Scheme Procedure} request-version 
-@deffnx {Scheme Procedure} request-headers 
-@deffnx {Scheme Procedure} request-meta 
-@deffnx {Scheme Procedure} request-port 
+@deffn {Scheme Procedure} request? obj 
+@deffnx {Scheme Procedure} request-method request
+@deffnx {Scheme Procedure} request-uri request
+@deffnx {Scheme Procedure} request-version request
+@deffnx {Scheme Procedure} request-headers request
+@deffnx {Scheme Procedure} request-meta request
+@deffnx {Scheme Procedure} request-port request
 A predicate and field accessors for the request type.  The fields are as
 follows:
 @table @code
@@ -1170,7 +1172,9 @@ request, you may read the body separately, and likewise for writing
 requests.
 @end deffn
 
-@deffn {Scheme Procedure} build-request uri [#:method='GET] [#:version='(1 . 1)] [#:headers='()] [#:port=#f] [#:meta='()] [#:validate-headers?=#t]
+@deffn {Scheme Procedure} build-request uri [#:method='GET] @
+       [#:version='(1 . 1)] [#:headers='()] [#:port=#f] [#:meta='()] @
+       [#:validate-headers?=#t]
 Construct an HTTP request object. If @var{validate-headers?} is true,
 the headers are each run through their respective validators.
 @end deffn
@@ -1253,12 +1257,12 @@ A helper routine to determine the absolute URI of a request, using the
 As with requests (@pxref{Requests}), Guile offers a data type for HTTP
 responses.  Again, the body is represented separately from the request.
 
-@deffn {Scheme Procedure} response? 
-@deffnx {Scheme Procedure} response-version 
-@deffnx {Scheme Procedure} response-code 
+@deffn {Scheme Procedure} response? obj
+@deffnx {Scheme Procedure} response-version response
+@deffnx {Scheme Procedure} response-code response
 @deffnx {Scheme Procedure} response-reason-phrase response
-@deffnx {Scheme Procedure} response-headers 
-@deffnx {Scheme Procedure} response-port 
+@deffnx {Scheme Procedure} response-headers response
+@deffnx {Scheme Procedure} response-port response
 A predicate and field accessors for the response type.  The fields are as
 follows:
 @table @code
@@ -1384,6 +1388,10 @@ Return @code{#t} if @var{type}, a symbol as returned by
 @code{(web client)} provides a simple, synchronous HTTP client, built on
 the lower-level HTTP, request, and response modules.
 
+@example
+(use-modules (web client))
+@end example
+
 @deffn {Scheme Procedure} open-socket-for-uri uri
 Return an open input/output port for a connection to URI.
 @end deffn
@@ -1419,9 +1427,9 @@ If you already have a port open, pass it as @var{port}.  Otherwise, a
 connection will be opened to the server corresponding to @var{uri}.  Any
 extra headers in the alist @var{headers} will be added to the request.
 
-If @var{body} is not #f, a message body will also be sent with the HTTP
-request.  If @var{body} is a string, it is encoded according to the
-content-type in @var{headers}, defaulting to UTF-8.  Otherwise
+If @var{body} is not @code{#f}, a message body will also be sent with
+the HTTP request.  If @var{body} is a string, it is encoded according to
+the content-type in @var{headers}, defaulting to UTF-8.  Otherwise
 @var{body} should be a bytevector, or @code{#f} for no body.  Although a
 message body may be sent with any request, usually only @code{POST} and
 @code{PUT} requests have bodies.
@@ -1480,8 +1488,8 @@ The life cycle of a server goes as follows:
 
 @enumerate
 @item
-The @code{open} hook is called, to open the server. @code{open} takes 0 or
-more arguments, depending on the backend, and returns an opaque
+The @code{open} hook is called, to open the server. @code{open} takes
+zero or more arguments, depending on the backend, and returns an opaque
 server socket object, or signals an error.
 
 @item
@@ -1578,8 +1586,8 @@ in, allowing the user's handler to explicitly manage its state.
 @end deffn
 
 @deffn {Scheme Procedure} sanitize-response request response body
-"Sanitize" the given response and body, making them appropriate for the
-given request.
+``Sanitize'' the given response and body, making them appropriate for
+the given request.
 
 As a convenience to web handler authors, @var{response} may be given as
 an alist of headers, in which case it is used to construct a default
