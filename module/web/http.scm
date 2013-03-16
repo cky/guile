@@ -1628,18 +1628,32 @@ treated specially, and is just returned as a plain string."
 ;; 
 (declare-header! "Host"
   (lambda (str)
-    (let ((colon (string-index str #\:)))
-      (if colon
-          (cons (substring str 0 colon)
-                (parse-non-negative-integer str (1+ colon)))
-          (cons str #f))))
+    (let* ((rbracket (string-index str #\]))
+           (colon (string-index str #\: (or rbracket 0)))
+           (host (cond
+                  (rbracket
+                   (unless (eqv? (string-ref str 0) #\[)
+                     (bad-header 'host str))
+                   (substring str 1 rbracket))
+                  (colon
+                   (substring str 0 colon))
+                  (else
+                   str)))
+           (port (and colon
+                      (parse-non-negative-integer str (1+ colon)))))
+      (cons host port)))
   (lambda (val)
     (and (pair? val)
          (string? (car val))
          (or (not (cdr val))
              (non-negative-integer? (cdr val)))))
   (lambda (val port)
-    (display (car val) port)
+    (if (string-index (car val) #\:)
+        (begin
+          (display #\[ port)
+          (display (car val) port)
+          (display #\] port))
+        (display (car val) port))
     (if (cdr val)
         (begin
           (display #\: port)

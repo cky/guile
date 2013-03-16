@@ -287,6 +287,10 @@
   (pass-if-parse from "foo@bar" "foo@bar")
   (pass-if-parse host "qux" '("qux" . #f))
   (pass-if-parse host "qux:80" '("qux" . 80))
+  (pass-if-parse host "[2001:db8::1]" '("2001:db8::1" . #f))
+  (pass-if-parse host "[2001:db8::1]:80" '("2001:db8::1" . 80))
+  (pass-if-parse host "[::ffff:192.0.2.1]" '("::ffff:192.0.2.1" . #f))
+  (pass-if-round-trip "Host: [2001:db8::1]\r\n")
   (pass-if-parse if-match "\"xyzzy\", W/\"qux\""
                  '(("xyzzy" . #t) ("qux" . #f)))
   (pass-if-parse if-match "*" '*)
