@@ -22,6 +22,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Delayed Evaluation::          Postponing evaluation until it is needed.
 * Local Evaluation::            Evaluation in a local lexical environment.
 * Local Inclusion::             Compile-time inclusion of one file in another.
+* REPL Servers::                Serving a REPL over a socket.
 @end menu
 
 
@@ -1219,6 +1220,52 @@ the @code{%load-path}.
 the source files for a package (as you should!).  It makes it possible
 to evaluate an installed file from source, instead of relying on the
 @code{.go} file being up to date.
+
+@node REPL Servers
+@subsection REPL Servers
+
+@cindex REPL server
+
+The procedures in this section are provided by
+@lisp
+(use-modules (system repl server))
+@end lisp
+
+When an application is written in Guile, it is often convenient to
+allow the user to be able to interact with it by evaluating Scheme
+expressions in a REPL.
+
+The procedures of this module allow you to spawn a @dfn{REPL server},
+which permits interaction over a local or TCP connection.  Guile itself
+uses them internally to implement the @option{--listen} switch,
+@ref{Command-line Options}.
+
+@deffn {Scheme Procedure} make-tcp-server-socket [#:host=#f] @
+                          [#:addr] [#:port=37146]
+Return a stream socket bound to a given address @var{addr} and port
+number @var{port}. If the @var{host} is given, and @var{addr} is not,
+then the @var{host} string is converted to an address.  If neither is
+given, we use the loopback address.
+@end deffn
+
+@deffn {Scheme Procedure} make-unix-domain-server-socket [#:path="/tmp/guile-socket"]
+Return a UNIX domain socket, bound to a given @var{path}.
+@end deffn
+
+@deffn {Scheme Procedure} run-server [server-socket]
+@deffnx {Scheme Procedure} spawn-server [server-socket]
+Create and run a REPL, making it available over the given
+@var{server-socket}.  If @var{server-socket} is not provided, it
+defaults to the socket created by calling @code{make-tcp-server-socket}
+with no arguments.
+
+@code{run-server} runs the server in the current thread, whereas
+@code{spawn-server} runs the server in a new thread.
+@end deffn
+
+@deffn {Scheme Procedure} stop-server-and-clients!
+Closes the connection on all running server sockets.
+@end deffn
 
 @c Local Variables:
 @c TeX-master: "guile.texi"
