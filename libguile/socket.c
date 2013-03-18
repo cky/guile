@@ -510,6 +510,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 	    "@defvarx SO_OOBINLINE\n"
 	    "@defvarx SO_NO_CHECK\n"
 	    "@defvarx SO_PRIORITY\n"
+	    "@defvarx SO_REUSEPORT\n"
 	    "The value returned is an integer.\n"
 	    "@end defvar\n"
 	    "\n"
@@ -608,6 +609,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	    "@defvarx SO_OOBINLINE\n"
 	    "@defvarx SO_NO_CHECK\n"
 	    "@defvarx SO_PRIORITY\n"
+	    "@defvarx SO_REUSEPORT\n"
 	    "@var{value} is an integer.\n"
 	    "@end defvar\n"
 	    "\n"
@@ -1855,6 +1857,9 @@ scm_init_socket ()
 #endif
 #ifdef SO_LINGER
   scm_c_define ("SO_LINGER", scm_from_int (SO_LINGER));
+#endif
+#ifdef SO_REUSEPORT				  /* new in Linux 3.9 */
+  scm_c_define ("SO_REUSEPORT", scm_from_int (SO_REUSEPORT));
 #endif
 
   /* recv/send options.  */

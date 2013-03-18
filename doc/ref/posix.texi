@@ -3051,6 +3051,7 @@ Manual}, or @command{man 7 socket}.
 @defvarx SO_OOBINLINE
 @defvarx SO_NO_CHECK
 @defvarx SO_PRIORITY
+@defvarx SO_REUSEPORT
 The @var{value} taken or returned is an integer.
 @end defvar
 
