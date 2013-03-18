@@ -1635,7 +1635,6 @@ AC_CONFIG_FILES([
 
 AC_CONFIG_FILES([meta/guile-2.0.pc])
 AC_CONFIG_FILES([meta/guile-2.0-uninstalled.pc])
-AC_CONFIG_FILES([doc/ref/effective-version.texi])
 
 GUILE_CONFIG_SCRIPT([check-guile])
 GUILE_CONFIG_SCRIPT([benchmark-guile])

@@ -123,6 +123,13 @@ autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
 	  snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
 	  > $(srcdir)/$@
 
+# Build that file from here rather than at the user's site to avoid
+# triggering a rebuild of `guile.info'.  Note that `GUILE-VERSION' is
+# among $(CONFIG_STATUS_DEPENDENCIES); thus, when it's updated, this
+# Makefile is rebuilt, and $(GUILE_EFFECTIVE_VERSION) is up-to-date.
+$(srcdir)/effective-version.texi: $(top_srcdir)/GUILE-VERSION
+	echo "@set EFFECTIVE-VERSION $(GUILE_EFFECTIVE_VERSION)" > $@
+
 MAINTAINERCLEANFILES = autoconf-macros.texi
 
 www-commit: html
