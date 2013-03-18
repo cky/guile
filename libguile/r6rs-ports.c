@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -498,7 +498,7 @@ SCM_DEFINE (scm_get_bytevector_n, "get-bytevector-n", 2, 0, 0,
 
   if ((c_read == 0) && (c_count > 0))
     {
-      if (SCM_EOF_OBJECT_P (scm_peek_char (port)))
+      if (scm_peek_byte_or_eof (port) == EOF)
 	result = SCM_EOF_VAL;
       else
 	result = scm_null_bytevector;
@@ -545,7 +545,7 @@ SCM_DEFINE (scm_get_bytevector_n_x, "get-bytevector-n!", 4, 0, 0,
 
   if ((c_read == 0) && (c_count > 0))
     {
-      if (SCM_EOF_OBJECT_P (scm_peek_char (port)))
+      if (scm_peek_byte_or_eof (port) == EOF)
 	result = SCM_EOF_VAL;
       else
 	result = SCM_I_MAKINUM (0);
@@ -593,15 +593,17 @@ SCM_DEFINE (scm_get_bytevector_some, "get-bytevector-some", 1, 0, 0,
 	}
 
       /* We can't use `scm_c_read ()' since it blocks.  */
-      c_chr = scm_getc (port);
+      c_chr = scm_get_byte_or_eof (port);
       if (c_chr != EOF)
 	{
 	  c_bv[c_total] = (char) c_chr;
 	  c_total++;
 	}
     }
-  while ((scm_is_true (scm_char_ready_p (port)))
-	 && (!SCM_EOF_OBJECT_P (scm_peek_char (port))));
+  /* XXX: We want to check for the availability of a byte, but that's
+     what `scm_char_ready_p' actually does.  */
+  while (scm_is_true (scm_char_ready_p (port))
+	 && (scm_peek_byte_or_eof (port) != EOF));
 
   if (c_total == 0)
     {
@@ -660,7 +662,7 @@ SCM_DEFINE (scm_get_bytevector_all, "get-bytevector-all", 1, 0, 0,
       c_read = scm_c_read (port, c_bv + c_total, c_count);
       c_total += c_read, c_count -= c_read;
     }
-  while (!SCM_EOF_OBJECT_P (scm_peek_char (port)));
+  while (scm_peek_byte_or_eof (port) != EOF);
 
   if (c_total == 0)
     {
