@@ -9988,11 +9988,70 @@ SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
     }
   else if (SCM_NUMBERP (z))
     {
-      double xx = scm_to_double (z);
-      if (xx < 0)
-        return scm_c_make_rectangular (0.0, sqrt (-xx));
-      else
-        return scm_from_double (sqrt (xx));
+      if (SCM_I_INUMP (z))
+        {
+          if (SCM_I_INUM (z) >= 0)
+            {
+              if (SCM_I_FIXNUM_BIT < DBL_MANT_DIG
+                  || SCM_I_INUM (z) < (1L << (DBL_MANT_DIG - 1)))
+                {
+                  double root = sqrt (SCM_I_INUM (z));
+
+                  /* If 0 <= x < 2^(DBL_MANT_DIG-1) and sqrt(x) is an
+                     integer, then the result is exact. */
+                  if (root == floor (root))
+                    return SCM_I_MAKINUM ((scm_t_inum) root);
+                  else
+                    return scm_from_double (root);
+                }
+              else
+                {
+                  mpz_t x;
+                  scm_t_inum root;
+
+                  mpz_init_set_ui (x, SCM_I_INUM (z));
+                  if (mpz_perfect_square_p (x))
+                    {
+                      mpz_sqrt (x, x);
+                      root = mpz_get_ui (x);
+                      mpz_clear (x);
+                      return SCM_I_MAKINUM (root);
+                    }
+                  else
+                    mpz_clear (x);
+                }
+            }
+        }
+      else if (SCM_BIGP (z))
+        {
+          /* IMPROVE-ME: Handle square roots of very large integers
+             better: (1) integers too large to fit in a double, and
+             (2) integers so large that the roundoff of the original
+             number would significantly reduce precision. */
+
+          if (mpz_sgn (SCM_I_BIG_MPZ (z)) >= 0
+              && mpz_perfect_square_p (SCM_I_BIG_MPZ (z)))
+            {
+              SCM root = scm_i_mkbig ();
+
+              mpz_sqrt (SCM_I_BIG_MPZ (root), SCM_I_BIG_MPZ (z));
+              scm_remember_upto_here_1 (z);
+              return scm_i_normbig (root);
+            }
+        }
+      else if (SCM_FRACTIONP (z))
+        /* FIXME: This loses precision due to double rounding. */
+        return scm_divide (scm_sqrt (SCM_FRACTION_NUMERATOR (z)),
+                           scm_sqrt (SCM_FRACTION_DENOMINATOR (z)));
+
+      /* Fallback method, when the cases above do not apply. */
+      {
+        double xx = scm_to_double (z);
+        if (xx < 0)
+          return scm_c_make_rectangular (0.0, sqrt (-xx));
+        else
+          return scm_from_double (sqrt (xx));
+      }
     }
   else
     SCM_WTA_DISPATCH_1 (g_scm_sqrt, z, 1, s_scm_sqrt);

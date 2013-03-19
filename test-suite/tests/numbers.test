@@ -4840,7 +4840,45 @@
   (pass-if-exception "two args" exception:wrong-num-args
     (sqrt 123 456))
 
-  (pass-if (eqv? 0.0 (sqrt 0)))
+  (pass-if (eqv? 0 (sqrt 0)))
+  (pass-if (eqv? 1 (sqrt 1)))
+  (pass-if (eqv? 2 (sqrt 4)))
+  (pass-if (eqv? 3 (sqrt 9)))
+  (pass-if (eqv? 4 (sqrt 16)))
+  (pass-if (eqv? fixnum-max (sqrt (expt fixnum-max 2))))
+  (pass-if (eqv? (+ 1 fixnum-max) (sqrt (expt (+ 1 fixnum-max) 2))))
+  (pass-if (eqv? (expt 10 400) (sqrt (expt 10 800))))
+  (pass-if (eqv? (/ (expt 10 1000)
+                    (expt 13 1000))
+                 (sqrt (/ (expt 10 2000)
+                          (expt 13 2000)))))
+
+  (with-test-prefix "exact sqrt"
+
+    (define (test root)
+      (pass-if (list root 'exact)
+        (eqv? root (sqrt (expt root 2))))
+      (pass-if (list root '-1)
+        (let ((r (sqrt (- (expt root 2) 1))))
+          (and (inexact? r)
+               (eqv-loosely? root r))))
+      (pass-if (list root '+1)
+        (let ((r (sqrt (+ (expt root 2) 1))))
+          (and (inexact? r)
+               (eqv-loosely? root r))))
+      (pass-if (list root 'negative)
+        (eqv-loosely? (* +i root) (sqrt (- (expt root 2))))))
+
+    (test (exact-integer-sqrt (+ -1 (expt 2 (+  2 dbl-mant-dig)))))
+    (test (exact-integer-sqrt (+ -1 (expt 2 (+  1 dbl-mant-dig)))))
+    (test (exact-integer-sqrt (+ -1 (expt 2 (+  0 dbl-mant-dig)))))
+    (test (exact-integer-sqrt (+ -1 (expt 2 (+ -1 dbl-mant-dig)))))
+    (test (exact-integer-sqrt (+ -1 (expt 2 (+ -2 dbl-mant-dig))))))
+
+  (pass-if (eqv? +4i (sqrt -16)))
+  (pass-if (eqv-loosely? +1.0e150i (sqrt #e-1e300)))
+  (pass-if (eqv-loosely? +0.7071i (sqrt -1/2)))
+
   (pass-if (eqv? 0.0 (sqrt 0.0)))
   (pass-if (eqv? 1.0 (sqrt 1.0)))
   (pass-if (eqv-loosely? 2.0   (sqrt 4.0)))
