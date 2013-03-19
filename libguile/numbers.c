@@ -5297,6 +5297,7 @@ idbl2str (double dbl, char *a, int radix)
     int e, k;
     mpz_t f, r, s, mplus, mminus, hi, digit;
     int f_is_even, f_is_odd;
+    int expon;
     int show_exp = 0;
 
     mpz_inits (f, r, s, mplus, mminus, hi, digit, NULL);
@@ -5374,21 +5375,25 @@ idbl2str (double dbl, char *a, int radix)
         }
     }
 
-    if (k >= 8 || k <= -3)
+    expon = k - 1;
+    if (k <= 0)
       {
-        /* Use scientific notation */
-        show_exp = k - 1;
-        k = 1;
-      }
-    else if (k <= 0)
-      {
-        int i;
+        if (k <= -3)
+          {
+            /* Use scientific notation */
+            show_exp = 1;
+            k = 1;
+          }
+        else
+          {
+            int i;
 
-        /* Print leading zeroes */
-        a[ch++] = '0';
-        a[ch++] = '.';
-        for (i = 0; i > k; i--)
-          a[ch++] = '0';
+            /* Print leading zeroes */
+            a[ch++] = '0';
+            a[ch++] = '.';
+            for (i = 0; i > k; i--)
+              a[ch++] = '0';
+          }
       }
 
     for (;;)
@@ -5429,9 +5434,33 @@ idbl2str (double dbl, char *a, int radix)
 
     if (k > 0)
       {
-        for (; k > 0; k--)
-          a[ch++] = '0';
-        a[ch++] = '.';
+        if (expon >= 7 && k >= 4 && expon >= k)
+          {
+            /* Here we would have to print more than three zeroes
+               followed by a decimal point and another zero.  It
+               makes more sense to use scientific notation. */
+
+            /* Adjust k to what it would have been if we had chosen
+               scientific notation from the beginning. */
+            k -= expon;
+
+            /* k will now be <= 0, with magnitude equal to the number of
+               digits that we printed which should now be put after the
+               decimal point. */
+
+            /* Insert a decimal point */
+            memmove (a + ch + k + 1, a + ch + k, -k);
+            a[ch + k] = '.';
+            ch++;
+
+            show_exp = 1;
+          }
+        else
+          {
+            for (; k > 0; k--)
+              a[ch++] = '0';
+            a[ch++] = '.';
+          }
       }
 
     if (k == 0)
@@ -5440,7 +5469,7 @@ idbl2str (double dbl, char *a, int radix)
     if (show_exp)
       {
         a[ch++] = 'e';
-        ch += scm_iint2str (show_exp, radix, a + ch);
+        ch += scm_iint2str (expon, radix, a + ch);
       }
 
     mpz_clears (f, r, s, mplus, mminus, hi, digit, NULL);

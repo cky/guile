@@ -1429,6 +1429,10 @@
     (pass-if (string=? (number->string 35 36) "z"))
     (pass-if (= (num->str->num 35 36) 35))
 
+    (pass-if (string=? (number->string 12342342340000.0) "1.234234234e13"))
+    (pass-if (string=? (number->string 1234234234000.0) "1234234234000.0"))
+    (pass-if (string=? (number->string 1240000.0) "1240000.0"))
+
     (with-test-prefix "powers of radix"
       (for-each
        (lambda (radix)
