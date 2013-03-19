@@ -1,6 +1,6 @@
 ;;; srfi-45.scm -- Primitives for Expressing Iterative Lazy Algorithms
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 ;; Copyright (C) 2003 André van Tonder. All Rights Reserved.
 
 ;; Permission is hereby granted, free of charge, to any person
@@ -25,8 +25,8 @@
 
 ;;; Commentary:
 
-;; This is the code of the reference implementation of SRFI-45, slightly
-;; modified to use SRFI-9.
+;; This is the code of the reference implementation of SRFI-45,
+;; modified to use SRFI-9 and to support multiple values.
 
 ;; This module is documented in the Guile Reference Manual.
 
@@ -36,8 +36,9 @@
   #:export (delay
              lazy
              force
-             eager)
-  #:replace (delay force)
+             eager
+             promise?)
+  #:replace (delay force promise?)
   #:use-module (srfi srfi-9))
 
 (define-record-type promise (make-promise val) promise?
@@ -50,16 +51,18 @@
 (define-syntax-rule (lazy exp)
   (make-promise (make-value 'lazy (lambda () exp))))
 
-(define (eager x)
-  (make-promise (make-value 'eager x)))
+(define (eager . xs)
+  (make-promise (make-value 'eager xs)))
 
 (define-syntax-rule (delay exp)
-  (lazy (eager exp)))
+  (lazy (call-with-values
+            (lambda () exp)
+          eager)))
 
 (define (force promise)
   (let ((content (promise-val promise)))
     (case (value-tag content)
-      ((eager) (value-proc content))
+      ((eager) (apply values (value-proc content)))
       ((lazy)  (let* ((promise* ((value-proc content)))
                       (content  (promise-val promise)))        ; *
                  (if (not (eqv? (value-tag content) 'eager))   ; *

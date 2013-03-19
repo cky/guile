@@ -3833,44 +3833,57 @@ words, no program that uses the R5RS definitions of delay and force will
 break if those definition are replaced by the SRFI-45 definitions of
 delay and force.
 
+Guile compatibly extends SRFI-45 to support multiple values.  It also
+adds @code{promise?} to the list of exports.
+
+@deffn {Scheme Procedure} promise? obj
+Return true if @var{obj} is an SRFI-45 promise, otherwise return false.
+@end deffn
+
 @deffn {Scheme Syntax} delay expression
-Takes an expression of arbitrary type @var{a} and returns a promise of
-type @code{(Promise @var{a})} which at some point in the future may be
-asked (by the @code{force} procedure) to evaluate the expression and
-deliver the resulting value.
+Takes an expression and returns a promise which at some point in the
+future may be asked (by the @code{force} procedure) to evaluate the
+expression and deliver the resulting value(s).
 @end deffn
 
 @deffn {Scheme Syntax} lazy expression
-Takes an expression of type @code{(Promise @var{a})} and returns a
-promise of type @code{(Promise @var{a})} which at some point in the
-future may be asked (by the @code{force} procedure) to evaluate the
-expression and deliver the resulting promise.
+Takes an expression (which must evaluate to a promise) and returns a
+promise which at some point in the future may be asked (by the
+@code{force} procedure) to evaluate the expression and deliver the
+resulting promise.
 @end deffn
 
-@deffn {Scheme Procedure} force expression
-Takes an argument of type @code{(Promise @var{a})} and returns a value
-of type @var{a} as follows: If a value of type @var{a} has been computed
-for the promise, this value is returned.  Otherwise, the promise is
-first evaluated, then overwritten by the obtained promise or value, and
-then force is again applied (iteratively) to the promise.
+@deffn {Scheme Procedure} force promise
+Takes a promise and returns the associated value(s) as follows: If
+value(s) have been computed for the promise, these value(s) are
+returned.  Otherwise, the promise is first evaluated, then overwritten
+by the obtained promise or value(s), and then force is again applied
+(iteratively) to the promise.
 @end deffn
 
-@deffn {Scheme Procedure} eager expression
-Takes an argument of type @var{a} and returns a value of type
-@code{(Promise @var{a})}.  As opposed to @code{delay}, the argument is
-evaluated eagerly. Semantically, writing @code{(eager expression)} is
-equivalent to writing
+@deffn {Scheme Procedure} eager obj ...
+Takes any number of argument(s) and returns a promise.  As opposed to
+@code{delay}, the argument(s) are evaluated eagerly.  Semantically,
+writing @code{(eager expression)} is equivalent to writing
 
 @lisp
 (let ((value expression)) (delay value)).
 @end lisp
 
 However, the former is more efficient since it does not require
-unnecessary creation and evaluation of thunks. We also have the
-equivalence
+unnecessary creation and evaluation of thunks.  For expressions that
+return a single value, we also have the equivalence
 
 @lisp
 (delay expression) = (lazy (eager expression))
+@end lisp
+
+More generally, the following equivalence holds:
+
+@lisp
+(delay expression) = (lazy (call-with-values
+                               (lambda () expression)
+                             eager))
 @end lisp
 @end deffn
 
@@ -3881,7 +3894,7 @@ usage semantics specified above:
 @lisp
 (force (delay expression)) -> expression
 (force (lazy  expression)) -> (force expression)
-(force (eager value))      -> value
+(force (eager obj ...))    -> (values obj ...)
 @end lisp
 
 @subsubheading Correct usage

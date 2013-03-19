@@ -1,6 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;; Copyright André van Tonder. All Rights Reserved.
+;; Copyright (C) 2010, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003 André van Tonder. All Rights Reserved.
 ;;
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -258,3 +259,43 @@
 ;; Commented out since it takes too long
 #;
 (test-equal 300000000 (force (times3 100000000)))    ;==> bounded space
+
+
+;======================================================================
+; Test promise? predicate (non-standard Guile extension)
+
+(pass-if "promise? predicate"
+  (promise? (delay 1)))
+
+;======================================================================
+; Test memoization of multiple values (non-standard Guile extension)
+
+(with-test-prefix "Multiple values (non-standard)"
+
+ (let ((promise (delay (values 1 2 3))))
+   (pass-if-equal "Multiple values delay"
+       '(1 2 3)
+     (call-with-values
+         (lambda () (force promise))
+       list)))
+
+ (let ((promise (eager 1 2 3)))
+   (pass-if-equal "Multiple values eager"
+       '(1 2 3)
+     (call-with-values
+         (lambda () (force promise))
+       list)))
+
+ (let ((promise (delay (values))))
+   (pass-if-equal "Zero values delay"
+       '()
+     (call-with-values
+         (lambda () (force promise))
+       list)))
+
+ (let ((promise (eager)))
+   (pass-if-equal "Zero values eager"
+       '()
+     (call-with-values
+         (lambda () (force promise))
+       list))))
