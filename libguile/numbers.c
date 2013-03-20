@@ -9950,6 +9950,56 @@ scm_exact_integer_sqrt (SCM k, SCM *sp, SCM *rp)
 			    "exact non-negative integer");
 }
 
+/* Return true iff K is a perfect square.
+   K must be an exact integer. */
+static int
+exact_integer_is_perfect_square (SCM k)
+{
+  int result;
+
+  if (SCM_LIKELY (SCM_I_INUMP (k)))
+    {
+      mpz_t kk;
+
+      mpz_init_set_si (kk, SCM_I_INUM (k));
+      result = mpz_perfect_square_p (kk);
+      mpz_clear (kk);
+    }
+  else
+    {
+      result = mpz_perfect_square_p (SCM_I_BIG_MPZ (k));
+      scm_remember_upto_here_1 (k);
+    }
+  return result;
+}
+
+/* Return the floor of the square root of K.
+   K must be an exact integer. */
+static SCM
+exact_integer_floor_square_root (SCM k)
+{
+  if (SCM_LIKELY (SCM_I_INUMP (k)))
+    {
+      mpz_t kk;
+      scm_t_inum ss;
+
+      mpz_init_set_ui (kk, SCM_I_INUM (k));
+      mpz_sqrt (kk, kk);
+      ss = mpz_get_ui (kk);
+      mpz_clear (kk);
+      return SCM_I_MAKINUM (ss);
+    }
+  else
+    {
+      SCM s;
+
+      s = scm_i_mkbig ();
+      mpz_sqrt (SCM_I_BIG_MPZ (s), SCM_I_BIG_MPZ (k));
+      scm_remember_upto_here_1 (k);
+      return scm_i_normbig (s);
+    }
+}
+
 
 SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
 		       (SCM z),
@@ -9982,12 +10032,14 @@ SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
     {
       if (SCM_I_INUMP (z))
         {
-          if (SCM_I_INUM (z) >= 0)
+          scm_t_inum x = SCM_I_INUM (z);
+
+          if (SCM_LIKELY (x >= 0))
             {
-              if (SCM_I_FIXNUM_BIT < DBL_MANT_DIG
-                  || SCM_I_INUM (z) < (1L << (DBL_MANT_DIG - 1)))
+              if (SCM_LIKELY (SCM_I_FIXNUM_BIT < DBL_MANT_DIG
+                              || x < (1L << (DBL_MANT_DIG - 1))))
                 {
-                  double root = sqrt (SCM_I_INUM (z));
+                  double root = sqrt (x);
 
                   /* If 0 <= x < 2^(DBL_MANT_DIG-1) and sqrt(x) is an
                      integer, then the result is exact. */
@@ -9998,31 +10050,25 @@ SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
                 }
               else
                 {
-                  mpz_t x;
+                  mpz_t xx;
                   scm_t_inum root;
 
-                  mpz_init_set_ui (x, SCM_I_INUM (z));
-                  if (mpz_perfect_square_p (x))
+                  mpz_init_set_ui (xx, x);
+                  if (mpz_perfect_square_p (xx))
                     {
-                      mpz_sqrt (x, x);
-                      root = mpz_get_ui (x);
-                      mpz_clear (x);
+                      mpz_sqrt (xx, xx);
+                      root = mpz_get_ui (xx);
+                      mpz_clear (xx);
                       return SCM_I_MAKINUM (root);
                     }
                   else
-                    mpz_clear (x);
+                    mpz_clear (xx);
                 }
             }
         }
       else if (SCM_BIGP (z))
         {
-          /* IMPROVE-ME: Handle square roots of very large integers
-             better: (1) integers too large to fit in a double, and
-             (2) integers so large that the roundoff of the original
-             number would significantly reduce precision. */
-
-          if (mpz_sgn (SCM_I_BIG_MPZ (z)) >= 0
-              && mpz_perfect_square_p (SCM_I_BIG_MPZ (z)))
+          if (mpz_perfect_square_p (SCM_I_BIG_MPZ (z)))
             {
               SCM root = scm_i_mkbig ();
 
@@ -10030,11 +10076,56 @@ SCM_PRIMITIVE_GENERIC (scm_sqrt, "sqrt", 1, 0, 0,
               scm_remember_upto_here_1 (z);
               return scm_i_normbig (root);
             }
+          else
+            {
+              long expon;
+              double signif = scm_i_big2dbl_2exp (z, &expon);
+
+              if (expon & 1)
+                {
+                  signif *= 2;
+                  expon--;
+                }
+              if (signif < 0)
+                return scm_c_make_rectangular
+                  (0.0, ldexp (sqrt (-signif), expon / 2));
+              else
+                return scm_from_double (ldexp (sqrt (signif), expon / 2));
+            }
         }
       else if (SCM_FRACTIONP (z))
-        /* FIXME: This loses precision due to double rounding. */
-        return scm_divide (scm_sqrt (SCM_FRACTION_NUMERATOR (z)),
-                           scm_sqrt (SCM_FRACTION_DENOMINATOR (z)));
+        {
+          SCM n = SCM_FRACTION_NUMERATOR (z);
+          SCM d = SCM_FRACTION_DENOMINATOR (z);
+
+          if (exact_integer_is_perfect_square (n)
+              && exact_integer_is_perfect_square (d))
+            return scm_i_make_ratio_already_reduced
+              (exact_integer_floor_square_root (n),
+               exact_integer_floor_square_root (d));
+          else
+            {
+              double xx = scm_i_divide2double (n, d);
+              double abs_xx = fabs (xx);
+              long shift = 0;
+
+              if (SCM_UNLIKELY (abs_xx > DBL_MAX || abs_xx < DBL_MIN))
+                {
+                  shift = (scm_to_long (scm_integer_length (n))
+                           - scm_to_long (scm_integer_length (d))) / 2;
+                  if (shift > 0)
+                    d = left_shift_exact_integer (d, 2 * shift);
+                  else
+                    n = left_shift_exact_integer (n, -2 * shift);
+                  xx = scm_i_divide2double (n, d);
+                }
+
+              if (xx < 0)
+                return scm_c_make_rectangular (0.0, ldexp (sqrt (-xx), shift));
+              else
+                return scm_from_double (ldexp (sqrt (xx), shift));
+            }
+        }
 
       /* Fallback method, when the cases above do not apply. */
       {

@@ -4858,6 +4858,10 @@
     (define (test root)
       (pass-if (list root 'exact)
         (eqv? root (sqrt (expt root 2))))
+      (pass-if (list root '*2)
+        (let ((r (sqrt (* 2 (expt root 2)))))
+          (and (inexact? r)
+               (eqv-loosely? (* (sqrt 2) root) r))))
       (pass-if (list root '-1)
         (let ((r (sqrt (- (expt root 2) 1))))
           (and (inexact? r)
@@ -4873,7 +4877,38 @@
     (test (exact-integer-sqrt (+ -1 (expt 2 (+  1 dbl-mant-dig)))))
     (test (exact-integer-sqrt (+ -1 (expt 2 (+  0 dbl-mant-dig)))))
     (test (exact-integer-sqrt (+ -1 (expt 2 (+ -1 dbl-mant-dig)))))
-    (test (exact-integer-sqrt (+ -1 (expt 2 (+ -2 dbl-mant-dig))))))
+    (test (exact-integer-sqrt (+ -1 (expt 2 (+ -2 dbl-mant-dig)))))
+
+    ;; largest finite inexact
+    (test (* (- (expt 2 dbl-mant-dig) 1)
+             (expt 2 (- dbl-max-exp dbl-mant-dig)))))
+
+  (pass-if-equal "smallest inexact"
+      (expt 2.0 (- dbl-min-exp dbl-mant-dig))
+    (sqrt (/ (+ -1 (expt 2 (* 2 (- dbl-mant-dig dbl-min-exp)))))))
+
+  (with-test-prefix "extreme ratios"
+    (define-syntax-rule (test want x)
+      (pass-if 'x
+        (let ((got (sqrt x)))
+          (and (inexact? got)
+               (test-eqv? 1.0 (/ want got))))))
+    (test 1.511139943175573e176   (/ (expt 3 2001) (expt 2 2001)))
+    (test 2.1370746022826034e176  (/ (expt 3 2001) (expt 2 2000)))
+    (test 8.724570529756128e175   (/ (expt 3 2000) (expt 2 2001)))
+    (test 6.6175207962444435e-177 (/ (expt 2 2001) (expt 3 2001)))
+    (test 1.1461882239239027e-176 (/ (expt 2 2001) (expt 3 2000)))
+    (test 4.679293829667447e-177  (/ (expt 2 2000) (expt 3 2001))))
+
+  (pass-if (eqv? (/ (expt 2 1000)
+                    (expt 3 1000))
+                 (sqrt (/ (expt 2 2000)
+                          (expt 3 2000)))))
+
+  (pass-if (eqv? (/ (expt 3 1000)
+                    (expt 2 1000))
+                 (sqrt (/ (expt 3 2000)
+                          (expt 2 2000)))))
 
   (pass-if (eqv? +4i (sqrt -16)))
   (pass-if (eqv-loosely? +1.0e150i (sqrt #e-1e300)))
