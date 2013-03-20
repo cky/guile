@@ -475,8 +475,17 @@ scm_i_divide2double (SCM n, SCM d)
   mpz_t nn, dd, lo, hi, x;
   ssize_t e;
 
-  if (SCM_I_INUMP (d))
+  if (SCM_LIKELY (SCM_I_INUMP (d)))
     {
+      if (SCM_LIKELY (SCM_I_INUMP (n)
+                      && (SCM_I_FIXNUM_BIT-1 <= DBL_MANT_DIG
+                          || (SCM_I_INUM (n) < (1L << DBL_MANT_DIG)
+                              && SCM_I_INUM (d) < (1L << DBL_MANT_DIG)))))
+        /* If both N and D can be losslessly converted to doubles, then
+           we can rely on IEEE floating point to do proper rounding much
+           faster than we can. */
+        return ((double) SCM_I_INUM (n)) / ((double) SCM_I_INUM (d));
+
       if (SCM_UNLIKELY (scm_is_eq (d, SCM_INUM0)))
         {
           if (scm_is_true (scm_positive_p (n)))
@@ -486,6 +495,7 @@ scm_i_divide2double (SCM n, SCM d)
           else
             return 0.0 / 0.0;
         }
+
       mpz_init_set_si (dd, SCM_I_INUM (d));
     }
   else
