@@ -9919,25 +9919,17 @@ scm_exact_integer_sqrt (SCM k, SCM *sp, SCM *rp)
 {
   if (SCM_LIKELY (SCM_I_INUMP (k)))
     {
-      scm_t_inum kk = SCM_I_INUM (k);
-      scm_t_inum uu = kk;
-      scm_t_inum ss;
+      mpz_t kk, ss, rr;
 
-      if (SCM_LIKELY (kk > 0))
-	{
-	  do
-	    {
-	      ss = uu;
-	      uu = (ss + kk/ss) / 2;
-	    } while (uu < ss);
-	  *sp = SCM_I_MAKINUM (ss);
-	  *rp = SCM_I_MAKINUM (kk - ss*ss);
-	}
-      else if (SCM_LIKELY (kk == 0))
-	*sp = *rp = SCM_INUM0;
-      else
+      if (SCM_I_INUM (k) < 0)
 	scm_wrong_type_arg_msg ("exact-integer-sqrt", SCM_ARG1, k,
 				"exact non-negative integer");
+      mpz_init_set_ui (kk, SCM_I_INUM (k));
+      mpz_inits (ss, rr, NULL);
+      mpz_sqrtrem (ss, rr, kk);
+      *sp = SCM_I_MAKINUM (mpz_get_ui (ss));
+      *rp = SCM_I_MAKINUM (mpz_get_ui (rr));
+      mpz_clears (kk, ss, rr, NULL);
     }
   else if (SCM_LIKELY (SCM_BIGP (k)))
     {
