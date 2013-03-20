@@ -98,6 +98,18 @@
 
 #define NAMLEN(dirent)  strlen ((dirent)->d_name)
 
+#ifdef HAVE_SYS_SENDFILE_H
+# include <sys/sendfile.h>
+#endif
+
+/* Glibc's `sendfile' function.  */
+#define sendfile_or_sendfile64			\
+  CHOOSE_LARGEFILE (sendfile, sendfile64)
+
+#include <full-read.h>
+#include <full-write.h>
+
+
 /* Some more definitions for the native Windows port. */
 #ifdef __MINGW32__
 # define fsync(fd) _commit (fd)
@@ -1093,6 +1105,85 @@ SCM_DEFINE (scm_copy_file, "copy-file", 2, 0, 0,
 
   scm_dynwind_end ();
   return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_sendfile, "sendfile", 3, 1, 0,
+	    (SCM out, SCM in, SCM count, SCM offset),
+	    "Send @var{count} bytes from @var{in} to @var{out}, both of which "
+	    "are either open file ports or file descriptors.  When "
+	    "@var{offset} is omitted, start reading from @var{in}'s current "
+	    "position; otherwise, start reading at @var{offset}.")
+#define FUNC_NAME s_scm_sendfile
+{
+#define VALIDATE_FD_OR_PORT(cvar, svar, pos)	\
+  if (scm_is_integer (svar))			\
+    cvar = scm_to_int (svar);			\
+  else						\
+    {						\
+      SCM_VALIDATE_OPFPORT (pos, svar);		\
+      scm_flush (svar);				\
+      cvar = SCM_FPORT_FDES (svar);		\
+    }
+
+  size_t c_count;
+  scm_t_off c_offset;
+  ssize_t result;
+  int in_fd, out_fd;
+
+  VALIDATE_FD_OR_PORT (out_fd, out, 1);
+  VALIDATE_FD_OR_PORT (in_fd, in, 2);
+  c_count = scm_to_size_t (count);
+  c_offset = SCM_UNBNDP (offset) ? 0 : scm_to_off_t (offset);
+
+#ifdef HAVE_SENDFILE
+  result = sendfile_or_sendfile64 (out_fd, in_fd,
+				   SCM_UNBNDP (offset) ? NULL : &c_offset,
+				   c_count);
+
+  /* Quoting the Linux man page: "In Linux kernels before 2.6.33, out_fd
+     must refer to a socket.  Since Linux 2.6.33 it can be any file."
+     Fall back to read(2) and write(2) when such an error occurs.  */
+  if (result < 0 && errno != EINVAL && errno != ENOSYS)
+    SCM_SYSERROR;
+  else if (result < 0)
+#endif
+  {
+    char buf[8192];
+    size_t result, left;
+
+    if (!SCM_UNBNDP (offset))
+      {
+	if (SCM_PORTP (in))
+	  scm_seek (in, offset, scm_from_int (SEEK_SET));
+	else
+	  lseek_or_lseek64 (in_fd, c_offset, SEEK_SET);
+      }
+
+    for (result = 0, left = c_count; result < c_count; )
+      {
+	size_t asked, obtained;
+
+	asked = SCM_MIN (sizeof buf, left);
+	obtained = full_read (in_fd, buf, asked);
+	if (obtained < asked)
+	  SCM_SYSERROR;
+
+	left -= obtained;
+
+	obtained = full_write (out_fd, buf, asked);
+	if (obtained < asked)
+	  SCM_SYSERROR;
+
+	result += obtained;
+      }
+
+    return scm_from_size_t (result);
+  }
+
+  return scm_from_ssize_t (result);
+
+#undef VALIDATE_FD_OR_PORT
 }
 #undef FUNC_NAME
 

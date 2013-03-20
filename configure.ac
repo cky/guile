@@ -647,12 +647,13 @@ AC_SUBST([SCM_I_GSC_HAVE_STRUCT_DIRENT64])
 #     this file instead of <fenv.h>
 #   process.h - mingw specific
 #   sched.h - missing on MinGW
+#   sys/sendfile.h - non-POSIX, found in glibc
 #
 AC_CHECK_HEADERS([complex.h fenv.h io.h libc.h limits.h memory.h process.h string.h \
 sys/dir.h sys/ioctl.h sys/select.h \
 sys/time.h sys/timeb.h sys/times.h sys/stdtypes.h sys/types.h \
 sys/utime.h time.h unistd.h utime.h pwd.h grp.h sys/utsname.h \
-direct.h machine/fpu.h sched.h])
+direct.h machine/fpu.h sched.h sys/sendfile.h])
 
 # "complex double" is new in C99, and "complex" is only a keyword if
 # <complex.h> is included
@@ -744,10 +745,21 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale - GNU extensions (glibc), also available on Darwin
 #   fork - unavailable on Windows
-#   utimensat: posix.1-2008
-#   sched_getaffinity, sched_setaffinity: GNU extensions (glibc)
+#   utimensat - posix.1-2008
+#   sched_getaffinity, sched_setaffinity - GNU extensions (glibc)
+#   sendfile - non-POSIX, found in glibc
 #
-AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid fesetround ftime ftruncate fchown fchmod getcwd geteuid getsid gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe readdir_r readdir64_r readlink rename rmdir select setegid seteuid setlocale setpgid setsid sigaction siginterrupt stat64 strftime strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid strdup system usleep atexit on_exit chown link fcntl ttyname getpwent getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron strcoll strcoll_l newlocale utimensat sched_getaffinity sched_setaffinity])
+AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
+  fesetround ftime ftruncate fchown fchmod getcwd geteuid getsid	\
+  gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe		\
+  readdir_r readdir64_r readlink rename rmdir select setegid seteuid	\
+  setlocale setpgid setsid sigaction siginterrupt stat64 strftime	\
+  strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid	\
+  strdup system usleep atexit on_exit chown link fcntl ttyname getpwent	\
+  getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp	\
+  index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron	\
+  strcoll strcoll_l newlocale utimensat sched_getaffinity		\
+  sched_setaffinity sendfile])
 
 AM_CONDITIONAL([HAVE_FORK], [test "x$ac_cv_func_fork" = "xyes"])
 

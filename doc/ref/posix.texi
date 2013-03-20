@@ -803,6 +803,29 @@ Copy the file specified by @var{oldfile} to @var{newfile}.
 The return value is unspecified.
 @end deffn
 
+@deffn {Scheme Procedure} sendfile out in count [offset]
+@deffnx {C Function} scm_sendfile (out, in, count, offset)
+Send @var{count} bytes from @var{in} to @var{out}, both of which
+are either open file ports or file descriptors.  When
+@var{offset} is omitted, start reading from @var{in}'s current
+position; otherwise, start reading at @var{offset}.
+
+When @var{in} is a port, it is often preferable to specify @var{offset},
+because @var{in}'s offset as a port may be different from the offset of
+its underlying file descriptor.
+
+On systems that support it, such as GNU/Linux, this procedure uses the
+@code{sendfile} libc function, which usually corresponds to a system
+call.  This is faster than doing a series of @code{read} and
+@code{write} system calls.  A typical application is to send a file over
+a socket.
+
+In some cases, the @code{sendfile} libc function may return
+@code{EINVAL} or @code{ENOSYS}.  In that case, Guile's @code{sendfile}
+procedure automatically falls back to doing a series of @code{read} and
+@code{write} calls.
+@end deffn
+
 @findex rename
 @deffn {Scheme Procedure} rename-file oldname newname
 @deffnx {C Function} scm_rename (oldname, newname)

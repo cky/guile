@@ -1,6 +1,6 @@
 ;;;; filesys.test --- test file system functions -*- scheme -*-
 ;;;; 
-;;;; Copyright (C) 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2006, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -18,7 +18,10 @@
 
 (define-module (test-suite test-filesys)
   #:use-module (test-suite lib)
-  #:use-module (test-suite guile-test))
+  #:use-module (test-suite guile-test)
+  #:use-module (ice-9 match)
+  #:use-module (rnrs io ports)
+  #:use-module (rnrs bytevectors))
 
 (define (test-file)
   (data-file-name "filesys-test.tmp"))
@@ -124,6 +127,69 @@
 	     (st   (stat port)))
 	(close-port port)
 	(eqv? 5 (stat:size st))))))
+
+(with-test-prefix "sendfile"
+
+  (pass-if "file"
+    (let ((file (search-path %load-path "ice-9/boot-9.scm")))
+      (call-with-input-file file
+        (lambda (input)
+          (let ((len (stat:size (stat input))))
+            (call-with-output-file (test-file)
+              (lambda (output)
+                (sendfile output input len 0))))))
+      (let ((ref (call-with-input-file file get-bytevector-all))
+            (out (call-with-input-file (test-file) get-bytevector-all)))
+        (bytevector=? ref out))))
+
+  (pass-if "file with offset"
+    (let ((file (search-path %load-path "ice-9/boot-9.scm")))
+      (call-with-input-file file
+        (lambda (input)
+          (let ((len (stat:size (stat input))))
+            (call-with-output-file (test-file)
+              (lambda (output)
+                (sendfile output input (- len 777) 777))))))
+      (let ((ref (call-with-input-file file
+                   (lambda (input)
+                     (seek input 777 SEEK_SET)
+                     (get-bytevector-all input))))
+            (out (call-with-input-file (test-file) get-bytevector-all)))
+        (bytevector=? ref out))))
+
+  (pass-if "pipe"
+    (let* ((file   (search-path %load-path "ice-9/boot-9.scm"))
+           (in+out (pipe))
+           (child  (call-with-new-thread
+                    (lambda ()
+                      (call-with-input-file file
+                        (lambda (input)
+                          (let ((len (stat:size (stat input))))
+                            (sendfile (cdr in+out) (fileno input) len 0)
+                            (close-port (cdr in+out)))))))))
+      (let ((ref (call-with-input-file file get-bytevector-all))
+            (out (get-bytevector-all (car in+out))))
+        (close-port (car in+out))
+        (bytevector=? ref out))))
+
+  (pass-if "pipe with offset"
+    (let* ((file   (search-path %load-path "ice-9/boot-9.scm"))
+           (in+out (pipe))
+           (child  (call-with-new-thread
+                    (lambda ()
+                      (call-with-input-file file
+                        (lambda (input)
+                          (let ((len (stat:size (stat input))))
+                            (sendfile (cdr in+out) (fileno input)
+                                      (- len 777) 777)
+                            (close-port (cdr in+out)))))))))
+      (let ((ref (call-with-input-file file
+                   (lambda (input)
+                     (seek input 777 SEEK_SET)
+                     (get-bytevector-all input))))
+            (out (get-bytevector-all (car in+out))))
+        (close-port (car in+out))
+        (bytevector=? ref out)))))
 
 (delete-file (test-file))
 (delete-file (test-symlink))
