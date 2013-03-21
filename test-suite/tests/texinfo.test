@@ -416,4 +416,7 @@
                           (name "foo")
                           (arguments "bar " (code "baz"))))
                (para "text that should be in a para")))
+  (test-body "@pxref{Locales, @code{setlocale}}"
+             '((para (pxref (% (node "Locales")
+                               (name (code "setlocale")))))))
   )
