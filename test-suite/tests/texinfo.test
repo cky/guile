@@ -419,4 +419,6 @@
   (test-body "@pxref{Locales, @code{setlocale}}"
              '((para (pxref (% (node "Locales")
                                (name (code "setlocale")))))))
+  (test-body "Like this---e.g.@:, at colon."
+             ((para "Like this---e.g.:, at colon.")))
   )

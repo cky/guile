@@ -485,7 +485,7 @@ Examples:
   (assert-curr-char '(#\@) "start of the command" port)
   (let ((peeked (peek-char port)))
     (cond
-     ((memq peeked '(#\! #\. #\? #\@ #\\ #\{ #\}))
+     ((memq peeked '(#\! #\: #\. #\? #\@ #\\ #\{ #\}))
       ;; @-commands that escape characters
       (make-token 'STRING (string (read-char port))))
      (else
