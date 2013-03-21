@@ -1521,9 +1521,9 @@ This procedure is identical to the one provided by Guile's core library.
 @xref{Runtime Environment}, for documentation.
 @end deffn
 
-@deffn {Scheme Procedure} exit
-@deffnx {Scheme Procedure} exit obj
-This procedure is identical to the one provided by Guile's core library.
+@deffn {Scheme Procedure} exit [status]
+This procedure is identical to the one provided by Guile's core
+library. @xref{Processes}, for documentation.
 @end deffn
 
 @node rnrs arithmetic fixnums

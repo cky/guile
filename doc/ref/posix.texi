@@ -1718,6 +1718,18 @@ interpretation is not required.
 Example: (system* "echo" "foo" "bar")
 @end deffn
 
+@deffn {Scheme Procedure} quit [status]
+@deffnx {Scheme Procedure} exit [status]
+Terminate the current process with proper unwinding of the Scheme stack.
+The exit status zero if @var{status} is not supplied.  If @var{status}
+is supplied, and it is an integer, that integer is used as the exit
+status.  If @var{status} is @code{#t} or @code{#f}, the exit status is 0
+or 1, respectively.
+
+The procedure @code{exit} is an alias of @code{quit}.  They have the
+same functionality.
+@end deffn
+
 @deffn {Scheme Procedure} primitive-exit [status]
 @deffnx {Scheme Procedure} primitive-_exit [status]
 @deffnx {C Function} scm_primitive_exit (status)
