@@ -713,24 +713,8 @@ guile.texi: $(alldotdocfiles) guile$(EXEEXT)
 guile-procedures.texi: $(alldotdocfiles) guile$(EXEEXT)
 	$(AM_V_GEN)$(dotdoc2texi)          > $@ || { rm $@; false; }
 
-if HAVE_MAKEINFO
-
-guile-procedures.txt: guile-procedures.texi
-	rm -f $@
-	makeinfo --force -o $@ guile-procedures.texi || test -f $@
-
-else
-
-guile-procedures.txt: guile-procedures.texi
-	cp guile-procedures.texi $@
-
-endif
-
 c-tokenize.c: c-tokenize.lex
 	flex -t $(srcdir)/c-tokenize.lex > $@ || { rm $@; false; }
-
-schemelibdir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
-schemelib_DATA = guile-procedures.txt
 
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = gcc -M -MG $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)

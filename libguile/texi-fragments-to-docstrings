@@ -1,0 +1,55 @@
+;;; -*- mode: scheme; coding: utf-8; -*-
+;;;
+;;; Copyright (C) 2013 Free Software Foundation, Inc.
+;;;
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
+;;;
+;;; This library is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+
+;;;
+;;; Read Texinfo fragments from stdin (docstrings of Guile's primitives
+;;; in the format of `guile-procedures.texi'), and write to stdout a
+;;; textual rendering thereof.  The output preserves page breaks (^L)
+;;; found in the input, as per the Guile Documentation Format
+;;; version 2---see (ice-9 documentation).
+;;;
+
+(use-modules (texinfo)
+             (texinfo plain-text)
+             (srfi srfi-1)
+             (ice-9 match)
+             (rnrs io ports))
+
+(define (docstring-fragments->strings str)
+  "Return the list resulting from the split of STR at each page
+break (^L)"
+  (string-tokenize str (char-set-complement (char-set #\page))))
+
+(match (command-line)
+  ((_ texi-file)
+   (let* ((fragments (remove (compose string-null? string-trim-both)
+                             (call-with-input-file texi-file
+                               (compose docstring-fragments->strings
+                                        get-string-all))))
+          (stexi     (map texi-fragment->stexi fragments)))
+     (format #t "Produced by GNU Guile ~a from `~a'.~%~%"
+             (version) texi-file)
+     (for-each (lambda (stexi)
+                 (display #\page)
+                 (display (stexi->plain-text stexi)))
+               stexi)))
+  ((command args ...)
+   (format (current-error-port) "invalid arguments: ~s~%" args)
+   (format (current-error-port) "Usage: ~a TEXINFO-FILE~%" command)
+   (exit 1)))
