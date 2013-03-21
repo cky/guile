@@ -429,6 +429,10 @@ BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h \
     scmconfig.h \
     $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
+# Force the generation of `guile-procedures.texi' because the top-level
+# Makefile expects it to be built.
+all-local: guile-procedures.texi
+
 EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     memmove.c strerror.c			\
     dynl.c regex-posix.c			\

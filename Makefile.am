@@ -52,7 +52,8 @@ libguile/guile-procedures.txt: libguile/guile-procedures.texi
 	$(top_builddir)/meta/guile --no-auto-compile		\
 	  "$(srcdir)/libguile/texi-fragments-to-docstrings"	\
 	  "$(builddir)/libguile/guile-procedures.texi"		\
-	  > libguile/guile-procedures.txt
+	  > $@.tmp
+	@mv $@.tmp $@
 
 EXTRA_DIST = LICENSE HACKING GUILE-VERSION			\
 	     m4/ChangeLog-2008					\
@@ -70,6 +71,7 @@ TESTS_ENVIRONMENT = @LOCALCHARSET_TESTS_ENVIRONMENT@
 
 ACLOCAL_AMFLAGS = -I m4
 
+CLEANFILES = libguile/guile-procedures.txt
 DISTCLEANFILES = check-guile.log
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-error-on-warning
