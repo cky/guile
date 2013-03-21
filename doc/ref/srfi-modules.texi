@@ -76,13 +76,13 @@ check for the Scheme implementation, that is, before she can know that
 it is safe to use @code{use-modules} to load SRFI support modules.  The
 second reason is that some features defined in SRFIs had been
 implemented in Guile before the developers started to add SRFI
-implementations as modules (for example SRFI-6 (@pxref{SRFI-6})).  In
+implementations as modules (for example SRFI-13 (@pxref{SRFI-13})).  In
 the future, it is possible that SRFIs in the core library might be
 factored out into separate modules, requiring explicit module loading
 when they are needed.  So you should be prepared to have to use
-@code{use-modules} someday in the future to access SRFI-6 bindings.  If
+@code{use-modules} someday in the future to access SRFI-13 bindings.  If
 you want, you can do that already.  We have included the module
-@code{(srfi srfi-6)} in the distribution, which currently does nothing,
+@code{(srfi srfi-13)} in the distribution, which currently does nothing,
 but ensures that you can write future-safe code.
 
 Generally, support for a specific SRFI is made available by using
@@ -1846,11 +1846,19 @@ uniform numeric vector, it is returned unchanged.
 @cindex SRFI-6
 
 SRFI-6 defines the procedures @code{open-input-string},
-@code{open-output-string} and @code{get-output-string}.  These
-procedures are included in the Guile core, so using this module does not
-make any difference at the moment.  But it is possible that support for
-SRFI-6 will be factored out of the core library in the future, so using
-this module does not hurt, after all.
+@code{open-output-string} and @code{get-output-string}.
+
+Note that although versions of these procedures are included in the
+Guile core, the core versions are not fully conformant with SRFI-6:
+attempts to read or write characters that are not supported by the
+current @code{%default-port-encoding} will fail.
+
+We therefore recommend that you import this module, which supports all
+characters:
+
+@example
+(use-modules (srfi srfi-6))
+@end example
 
 @node SRFI-8
 @subsection SRFI-8 - receive
