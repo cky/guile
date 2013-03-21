@@ -1,6 +1,6 @@
 ;;;; texinfo.test                 -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
 ;;;; Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -56,24 +56,24 @@
       str
       (lambda (port) (texinfo:read-verbatim-body port consumer '())))))
 
-  (pass-if (equal? '()
-                   (read-verbatim-body-from-string "@end verbatim\n")))
+  (pass-if-equal '()
+      (read-verbatim-body-from-string "@end verbatim\n"))
 
   ;; after @verbatim, the current position will always directly after
   ;; the newline.
   (pass-if-exception "@end verbatim needs a newline"
                      exception:eof-while-reading-token
                      (read-verbatim-body-from-string "@end verbatim"))
-                     
-  (pass-if (equal? '("@@end verbatim" " NL\n")
-                   (read-verbatim-body-from-string "@@end verbatim\n@end verbatim\n")))
 
-  (pass-if (equal? '("@@@@faosfasf adsfas " " NL\n" " asf @foo{asdf}" " NL\n")
-                   (read-verbatim-body-from-string
-                    "@@@@faosfasf adsfas \n asf @foo{asdf}\n@end verbatim\n")))
+  (pass-if-equal '("@@end verbatim" " NL\n")
+      (read-verbatim-body-from-string "@@end verbatim\n@end verbatim\n"))
 
-  (pass-if (equal? '("@end verbatim " " NL\n")
-                   (read-verbatim-body-from-string "@end verbatim \n@end verbatim\n"))))
+  (pass-if-equal '("@@@@faosfasf adsfas " " NL\n" " asf @foo{asdf}" " NL\n")
+      (read-verbatim-body-from-string
+       "@@@@faosfasf adsfas \n asf @foo{asdf}\n@end verbatim\n"))
+
+  (pass-if-equal '("@end verbatim " " NL\n")
+      (read-verbatim-body-from-string "@end verbatim \n@end verbatim\n")))
 
 (define texinfo:read-arguments
   (@@ (texinfo) read-arguments))
@@ -84,8 +84,8 @@
      (lambda (port) (texinfo:read-arguments port #\}))))
 
   (define (test str expected-res)
-    (pass-if (equal? expected-res
-                     (read-arguments-from-string str))))
+    (pass-if-equal expected-res
+        (read-arguments-from-string str)))
 
   (test "}" '())
   (test "foo}" '("foo"))
@@ -111,20 +111,20 @@
              (texinfo:complete-start-command command port))
          list))))
 
-  (pass-if (equal? '(section () EOL-TEXT)
-                   (test 'section "foo bar baz bonzerts")))
-  (pass-if (equal? '(deffnx ((category "Function") (name "foo") (arguments)) EOL-TEXT-ARGS)
-                   (test 'deffnx "Function foo")))
+  (pass-if-equal '(section () EOL-TEXT)
+      (test 'section "foo bar baz bonzerts"))
+  (pass-if-equal '(deffnx ((category "Function") (name "foo") (arguments)) EOL-TEXT-ARGS)
+      (test 'deffnx "Function foo"))
   (pass-if-exception "@emph missing a start brace"
                      exception:wrong-character
                      (test 'emph "no brace here"))
-  (pass-if (equal? '(emph () INLINE-TEXT)
-                   (test 'emph "{foo bar baz bonzerts")))
-  (pass-if (equal? '(ref ((node "foo bar") (section "baz") (info-file "bonzerts"))
-                         INLINE-ARGS)
-                   (test 'ref "{ foo bar ,,  baz, bonzerts}")))
-  (pass-if (equal? '(node ((name "referenced node")) EOL-ARGS)
-                   (test 'node " referenced node\n"))))
+  (pass-if-equal '(emph () INLINE-TEXT)
+      (test 'emph "{foo bar baz bonzerts"))
+  (pass-if-equal '(ref ((node "foo bar") (section "baz") (info-file "bonzerts"))
+                       INLINE-ARGS)
+      (test 'ref "{ foo bar ,,  baz, bonzerts}"))
+  (pass-if-equal '(node ((name "referenced node")) EOL-ARGS)
+      (test 'node " referenced node\n")))
 
 (define texinfo:read-char-data
   (@@ (texinfo) read-char-data))
@@ -149,8 +149,8 @@
                 port expect-eof? preserve-ws? str-handler '()))))
         (lambda (seed token)
           (let ((result (reverse seed)))
-            (pass-if (equal? expected-data result))
-            (pass-if (equal? expected-token token))))))
+            (pass-if-equal expected-data result)
+            (pass-if-equal expected-token token)))))
 
     ;; add some newline-related tests here
     (test "" #t #f '() eof-object)
@@ -167,8 +167,8 @@
 
 (with-test-prefix "test-texinfo->stexinfo"
   (define (test str expected-res)
-    (pass-if (equal? expected-res
-                     (call-with-input-string str texi->stexi))))
+    (pass-if-equal expected-res
+        (call-with-input-string str texi->stexi)))
   (define (try-with-title title str)
     (call-with-input-string
      (string-append "foo bar baz\n@settitle " title "\n" str)
@@ -177,9 +177,8 @@
     (test (string-append "foo bar baz\n@settitle " title "\n" str)
           expected-res))
   (define (test-body str expected-res)
-    (pass-if str
-      (equal? expected-res
-              (cddr (try-with-title "zog" str)))))
+    (pass-if-equal str expected-res
+      (cddr (try-with-title "zog" str))))
 
   (define (list-intersperse src-l elem)
     (if (null? src-l) src-l
