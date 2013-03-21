@@ -255,6 +255,7 @@
     (sc           ,var)
     (copyright    ,(lambda args "(C)"))
     (result       ,(lambda args "==>"))
+    (dots         ,(lambda args "..."))
     (xref         ,ref)
     (ref          ,ref)
     (pxref        ,ref)
