@@ -41,6 +41,8 @@
                parameterize
                current-input-port current-output-port current-error-port))
 
+(cond-expand-provide (current-module) '(srfi-39))
+
 (define (with-parameters* params values thunk)
   (let more ((params params)
 	     (values values)

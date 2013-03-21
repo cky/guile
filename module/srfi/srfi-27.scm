@@ -36,6 +36,8 @@
             random-source-make-reals)
   #:use-module (srfi srfi-9))
 
+(cond-expand-provide (current-module) '(srfi-27))
+
 (define-record-type :random-source
   (%make-random-source state)
   random-source?

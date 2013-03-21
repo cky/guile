@@ -69,6 +69,7 @@
             f64vector? make-f64vector f64vector f64vector-length f64vector-ref
             f64vector-set! f64vector->list list->f64vector))
 
+(cond-expand-provide (current-module) '(srfi-4))
 
 ;; Need quasisyntax to do this effectively using syntax-case
 (define-macro (define-bytevector-type tag infix size)

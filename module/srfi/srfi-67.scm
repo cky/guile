@@ -83,4 +83,6 @@
   #:replace (string-compare string-compare-ci)
   #:use-module (srfi srfi-27))
 
+(cond-expand-provide (current-module) '(srfi-67))
+
 (include-from-path "srfi/srfi-67/compare.scm")

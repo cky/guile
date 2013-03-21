@@ -145,9 +145,13 @@ guile-2  ;; starting from Guile 2.x
 r5rs
 srfi-0
 srfi-4
-srfi-6
 srfi-13
 srfi-14
+srfi-23
+srfi-39
+srfi-55
+srfi-61
+srfi-105
 @end example
 
 Other SRFI feature symbols are defined once their code has been loaded

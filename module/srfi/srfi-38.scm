@@ -32,6 +32,7 @@
   #:use-module (srfi srfi-69)
   #:use-module (system vm trap-state))
 
+(cond-expand-provide (current-module) '(srfi-38))
 
 ;; A printer that shows all sharing of substructures.  Uses the Common
 ;; Lisp print-circle notation: #n# refers to a previous substructure

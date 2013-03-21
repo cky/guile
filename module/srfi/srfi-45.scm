@@ -41,6 +41,8 @@
   #:replace (delay force promise?)
   #:use-module (srfi srfi-9))
 
+(cond-expand-provide (current-module) '(srfi-45))
+
 (define-record-type promise (make-promise val) promise?
   (val promise-val promise-val-set!))
 

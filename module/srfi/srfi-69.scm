@@ -88,7 +88,7 @@
   #:re-export (string-hash)
   #:replace (hash make-hash-table hash-table?))
 
-(cond-expand-provide (current-module) '(srfi-37))
+(cond-expand-provide (current-module) '(srfi-69))
 
 ;;;; Internal helper macros
 

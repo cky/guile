@@ -21,6 +21,8 @@
 (define-module (srfi srfi-31)
   #:export (rec))
 
+(cond-expand-provide (current-module) '(srfi-31))
+
 (define-syntax rec
   (syntax-rules ()
     "Return the given object, defined in a lexical environment where

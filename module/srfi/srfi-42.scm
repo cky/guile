@@ -61,4 +61,6 @@
             vector-ec
             vector-of-length-ec))
 
+(cond-expand-provide (current-module) '(srfi-42))
+
 (include-from-path "srfi/srfi-42/ec.scm")

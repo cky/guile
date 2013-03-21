@@ -3897,21 +3897,21 @@ when none is available, reading FILE-NAME with READER."
 ;;; <feature-identifier>s `guile' and `r5rs', so that programs can
 ;;; determine the implementation type and the supported standard.
 ;;;
-;;; Currently, the following feature identifiers are supported:
-;;;
-;;;   guile r5rs srfi-0 srfi-4 srfi-6 srfi-13 srfi-14 srfi-55 srfi-61 srfi-105
-;;;
 ;;; Remember to update the features list when adding more SRFIs.
 ;;;
 
 (define %cond-expand-features
-  ;; Adjust the above comment when changing this.
+  ;; This should contain only features that are present in core Guile,
+  ;; before loading any modules.  Modular features are handled by
+  ;; placing 'cond-expand-provide' in the relevant module.
   '(guile
     guile-2
     r5rs
     srfi-0   ;; cond-expand itself
-    srfi-4   ;; homogenous numeric vectors
-    srfi-6   ;; open-input-string etc, in the guile core
+    srfi-4   ;; homogeneous numeric vectors
+    ;; We omit srfi-6 because the 'open-input-string' etc in Guile
+    ;; core are not conformant with SRFI-6; they expose details
+    ;; of the binary I/O model and may fail to support some characters.
     srfi-13  ;; string library
     srfi-14  ;; character sets
     srfi-23  ;; `error` procedure
