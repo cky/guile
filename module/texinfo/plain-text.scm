@@ -31,6 +31,7 @@
   #:use-module (sxml transform)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-13)
+  #:use-module (ice-9 match)
   #:export (stexi->plain-text))
 
 ;; The return value is a string.
@@ -95,13 +96,6 @@
         (string-append "`" url "'"))))
 
 (define (def tag args . body)
-  (define (list/spaces . elts)
-    (let lp ((in elts) (out '()))
-      (cond ((null? in) (reverse! out))
-            ((null? (car in)) (lp (cdr in) out))
-            (else (lp (cdr in)
-                      (cons (car in)
-                            (if (null? out) out (cons " " out))))))))
   (define (first-line)
     (string-join
      (filter identity
@@ -297,18 +291,18 @@
 
 (define (stexi->plain-text tree)
   "Transform @var{tree} into plain text. Returns a string."
-  (cond
-   ((null? tree) "")
-   ((string? tree) tree)
-   ((pair? tree)
-    (cond
-     ((symbol? (car tree))
-      (let ((handler (and (not (ignored? (car tree)))
-                          (or (and=> (assq (car tree) tag-handlers) cadr)
-                              para))))
-        (if handler (apply handler tree) "")))
-     (else
-      (string-concatenate (map-in-order stexi->plain-text tree)))))
-   (else "")))
+  (match tree
+    (() "")
+    ((? string?) tree)
+    (((? symbol? tag) body ...)
+     (let ((handler (and (not (ignored? tag))
+                         (or (and=> (assq tag tag-handlers) cadr)
+                             para))))
+       (if handler
+           (apply handler tree)
+           "")))
+    ((tree ...)
+     (string-concatenate (map-in-order stexi->plain-text tree)))
+    (_ "")))
 
 ;;; arch-tag: f966c3f6-3b46-4790-bbf9-3ad27e4917c2
