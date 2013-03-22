@@ -1,6 +1,6 @@
 ;;;; (texinfo string-utils) -- text filling and wrapping 
 ;;;;
-;;;;    Copyright (C) 2009  Free Software Foundation, Inc.
+;;;;    Copyright (C) 2009, 2013  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2003  Richard Todd
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
@@ -262,6 +262,13 @@ the default value for @var{num} is 1.
           ;; did not find non-ws... only ws at end of the string...
           (reverse ans))))))
 
+(define (end-of-sentence? str)
+  "Return #t when STR likely denotes the end of sentence."
+  (let ((len (string-length str)))
+    (and (> len 1)
+         (eqv? #\. (string-ref str (- len 1)))
+         (not (eqv? #\. (string-ref str (- len 2)))))))
+
 (define* (make-text-wrapper #:key
                             (line-width 80)
                             (expand-tabs? #t)
@@ -352,7 +359,11 @@ returns a list of strings, where each element of the list is one line."
                   length-left)
               (loop ans
                     (cdr words)
-                    (string-append line next-word)
+                    (if (and collapse-whitespace?
+                             (end-of-sentence? line))
+                        ;; Add an extra space after the period.
+                        (string-append line " " next-word)
+                        (string-append line next-word))
                     (+ count 1)))
 
              ;; ok, it didn't fit...is there already at least one word on the line?

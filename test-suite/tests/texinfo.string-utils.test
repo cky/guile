@@ -1,6 +1,6 @@
 ;;;; texinfo.string-utils.test                 -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2003, 2009, 2010  Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2009, 2010, 2013  Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU General Public License as
@@ -108,6 +108,13 @@ to using the function `set-language-environment'.
                      "The last language environment specified with  `set-language-environment'.   This
 variable should be  set only with M-x customize, which is equivalent to using
 the function `set-language-environment'.")))
+
+  (with-test-prefix "two spaces after end of sentence"
+    (pass-if-equal "This is a sentence.  There should be two spaces before."
+        (fill-string "This is a sentence. There should be two spaces before."))
+
+    (pass-if-equal "This is version 2.0..."
+        (fill-string "This is version 2.0...")))
 
   (with-test-prefix "test-no-word-break"
     (pass-if (equal? "thisisalongword
