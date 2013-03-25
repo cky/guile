@@ -158,38 +158,42 @@
         (bytevector=? ref out))))
 
   (pass-if "pipe"
-    (let* ((file   (search-path %load-path "ice-9/boot-9.scm"))
-           (in+out (pipe))
-           (child  (call-with-new-thread
-                    (lambda ()
-                      (call-with-input-file file
-                        (lambda (input)
-                          (let ((len (stat:size (stat input))))
-                            (sendfile (cdr in+out) (fileno input) len 0)
-                            (close-port (cdr in+out)))))))))
-      (let ((ref (call-with-input-file file get-bytevector-all))
-            (out (get-bytevector-all (car in+out))))
-        (close-port (car in+out))
-        (bytevector=? ref out))))
+    (if (provided? 'threads)
+        (let* ((file   (search-path %load-path "ice-9/boot-9.scm"))
+               (in+out (pipe))
+               (child  (call-with-new-thread
+                        (lambda ()
+                          (call-with-input-file file
+                            (lambda (input)
+                              (let ((len (stat:size (stat input))))
+                                (sendfile (cdr in+out) (fileno input) len 0)
+                                (close-port (cdr in+out)))))))))
+          (let ((ref (call-with-input-file file get-bytevector-all))
+                (out (get-bytevector-all (car in+out))))
+            (close-port (car in+out))
+            (bytevector=? ref out)))
+        (throw 'unresolved)))
 
   (pass-if "pipe with offset"
-    (let* ((file   (search-path %load-path "ice-9/boot-9.scm"))
-           (in+out (pipe))
-           (child  (call-with-new-thread
-                    (lambda ()
-                      (call-with-input-file file
-                        (lambda (input)
-                          (let ((len (stat:size (stat input))))
-                            (sendfile (cdr in+out) (fileno input)
-                                      (- len 777) 777)
-                            (close-port (cdr in+out)))))))))
-      (let ((ref (call-with-input-file file
-                   (lambda (input)
-                     (seek input 777 SEEK_SET)
-                     (get-bytevector-all input))))
-            (out (get-bytevector-all (car in+out))))
-        (close-port (car in+out))
-        (bytevector=? ref out)))))
+    (if (provided? 'threads)
+        (let* ((file   (search-path %load-path "ice-9/boot-9.scm"))
+               (in+out (pipe))
+               (child  (call-with-new-thread
+                        (lambda ()
+                          (call-with-input-file file
+                            (lambda (input)
+                              (let ((len (stat:size (stat input))))
+                                (sendfile (cdr in+out) (fileno input)
+                                          (- len 777) 777)
+                                (close-port (cdr in+out)))))))))
+          (let ((ref (call-with-input-file file
+                       (lambda (input)
+                         (seek input 777 SEEK_SET)
+                         (get-bytevector-all input))))
+                (out (get-bytevector-all (car in+out))))
+            (close-port (car in+out))
+            (bytevector=? ref out)))
+        (throw 'unresolved))))
 
 (delete-file (test-file))
 (delete-file (test-symlink))
