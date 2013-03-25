@@ -595,8 +595,10 @@ SCM_DEFINE (scm_getaddrinfo, "getaddrinfo", 1, 5, 0,
 	    "@item EAI_SOCKTYPE\n"
 	    "@var{hint_socktype} was not recognized.\n\n"
 	    "@item EAI_SYSTEM\n"
-	    "A system error occurred; the error code can be found in "
-	    "@code{errno}.\n"
+	    "A system error occurred.  In C, the error code can be found in "
+	    "@code{errno}; this value is not accessible from Scheme, but in\n"
+	    "practice it provides little information about the actual error "
+	    "cause.\n\n"	  /* see <http://bugs.gnu.org/13958>. */
 	    "@end table\n"
 	    "\n"
 	    "Users are encouraged to read the "

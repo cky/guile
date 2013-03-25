@@ -2562,8 +2562,11 @@ code should be prepared to handle it when it is defined.
 @var{hint_socktype} was not recognized.
 
 @item EAI_SYSTEM
-A system error occurred; the error code can be found in
-@code{errno}.
+A system error occurred.  In C, the error code can be found in
+@code{errno}; this value is not accessible from Scheme, but in
+practice it provides little information about the actual error
+cause.
+@c See <http://bugs.gnu.org/13958>.
 @end table
 
 Users are encouraged to read the
