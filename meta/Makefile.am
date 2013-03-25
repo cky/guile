@@ -2,7 +2,7 @@
 ## Jim Blandy <jimb@red-bean.com> --- September 1997
 ##
 ##  	Copyright (C) 1998, 1999, 2001, 2006, 2007, 2008, 2009, 2011,
-##        2012 Free Software Foundation, Inc.
+##        2012, 2013 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -46,10 +46,10 @@ aclocal_DATA = guile.m4
 
 guile-config: $(srcdir)/guile-config.in $(top_builddir)/config.status
 	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-	cat $(srcdir)/guile-config.in							\
-	| $(SED) -e "s,@pkgconfigdir@,$(pkgconfigdir),g ;			\
-		     s,@""PKG_CONFIG@,$(PKG_CONFIG),g ;				\
-		     s,@installed_guile@,$$guile,g"				\
+	cat $(srcdir)/guile-config.in						\
+	| $(SED) -e "s,@pkgconfigdir@,$(pkgconfigdir),g"			\
+		 -e "s,@""PKG_CONFIG@,$(PKG_CONFIG),g"				\
+		 -e "s,@installed_guile@,$$guile,g"				\
 	> guile-config.out
 	mv guile-config.out guile-config
 	chmod +x guile-config
