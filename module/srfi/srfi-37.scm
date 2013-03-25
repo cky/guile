@@ -1,6 +1,6 @@
 ;;; srfi-37.scm --- args-fold
 
-;; 	Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+;; 	Copyright (C) 2007, 2008, 2013 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -145,6 +145,9 @@ program-arguments in ARGS, as decided by the OPTIONS'
 	     (let ((result (cadr args)))
 	       (set! args (cddr args))
 	       result))
+            ((pair? args)
+             (set! args (cdr args))
+             #f)
 	    (else #f)))
 
     ;; Interpret the short-option at index POSITION in (car ARGS),

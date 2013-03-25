@@ -1,6 +1,6 @@
 ;;;; srfi-37.test --- Test suite for SRFI 37 -*- scheme -*-
 ;;;;
-;;;; 	Copyright (C) 2007, 2008 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2007, 2008, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -104,5 +104,27 @@
 			 (lambda (opt name arg k) #f)
 			 (lambda (opt name arg k) #f)
 			 '()))))
+
+  (pass-if-equal "short option with optional argument omitted" 'good
+    ;; This would trigger an infinite loop in Guile up to 2.0.7.
+    ;; See <http://bugs.gnu.org/13176>.
+    (args-fold '("-I")
+               (list (option '(#\I) #f #t
+                             (lambda (opt name arg value)
+                               (and (eqv? name #\I) (not arg)
+                                    'good))))
+               (lambda _ (error "unrecognized"))
+               (const #f)
+               #f))
+
+  (pass-if-equal "short option with optional argument provided"
+      "the-argument"
+    (args-fold '("-I" "the-argument")
+               (list (option '(#\I) #f #t
+                             (lambda (opt name arg result)
+                               (and (eqv? name #\I) arg))))
+               (lambda _ (error "unrecognized"))
+               (const #f)
+               #f))
 
 )
