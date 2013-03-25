@@ -1157,7 +1157,10 @@ SCM_DEFINE (scm_sendfile, "sendfile", 3, 1, 0,
 	if (SCM_PORTP (in))
 	  scm_seek (in, offset, scm_from_int (SEEK_SET));
 	else
-	  lseek_or_lseek64 (in_fd, c_offset, SEEK_SET);
+	  {
+	    if (lseek_or_lseek64 (in_fd, c_offset, SEEK_SET) < 0)
+	      SCM_SYSERROR;
+	  }
       }
 
     for (result = 0, left = c_count; result < c_count; )
