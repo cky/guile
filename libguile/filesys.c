@@ -1136,7 +1136,9 @@ SCM_DEFINE (scm_sendfile, "sendfile", 3, 1, 0,
   c_count = scm_to_size_t (count);
   c_offset = SCM_UNBNDP (offset) ? 0 : scm_to_off_t (offset);
 
-#ifdef HAVE_SENDFILE
+#if defined HAVE_SYS_SENDFILE_H && defined HAVE_SENDFILE
+  /* The Linux-style sendfile(2), which is different from the BSD-style.  */
+
   result = sendfile_or_sendfile64 (out_fd, in_fd,
 				   SCM_UNBNDP (offset) ? NULL : &c_offset,
 				   c_count);
