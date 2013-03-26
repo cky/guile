@@ -2248,7 +2248,7 @@ Overview}).  It can be used with:
 (use-modules (srfi srfi-9))
 @end example
 
-@deffn {library syntax} define-record-type type @* (constructor fieldname @dots{}) @* predicate @* (fieldname accessor [modifier]) @dots{}
+@deffn {Scheme Syntax} define-record-type type @* (constructor fieldname @dots{}) @* predicate @* (fieldname accessor [modifier]) @dots{}
 @sp 1
 Create a new record type, and make various @code{define}s for using
 it.  This syntax can only occur at the top-level, not nested within
@@ -2283,12 +2283,12 @@ field in a @var{record}.
 An example will illustrate typical usage,
 
 @example
-(define-record-type employee-type
+(define-record-type <employee>
   (make-employee name age salary)
   employee?
-  (name    get-employee-name)
-  (age     get-employee-age    set-employee-age)
-  (salary  get-employee-salary set-employee-salary))
+  (name    employee-name)
+  (age     employee-age    set-employee-age!)
+  (salary  employee-salary set-employee-salary!))
 @end example
 
 This creates a new employee data type, with name, age and salary
@@ -2298,13 +2298,13 @@ that it's established only when an employee object is created).  These
 can all then be used as for example,
 
 @example
-employee-type @result{} #<record-type employee-type>
+<employee> @result{} #<record-type <employee>>
 
 (define fred (make-employee "Fred" 45 20000.00))
 
 (employee? fred)        @result{} #t
-(get-employee-age fred) @result{} 45
-(set-employee-salary fred 25000.00)  ;; pay rise
+(employee-age fred)     @result{} 45
+(set-employee-salary! fred 25000.00)  ;; pay rise
 @end example
 
 The functions created by @code{define-record-type} are ordinary
@@ -2334,10 +2334,10 @@ an output port.
 This example prints the employee's name in brackets, for instance @code{[Fred]}.
 
 @example
-(set-record-type-printer! employee-type
+(set-record-type-printer! <employee>
   (lambda (record port)
     (write-char #\[ port)
-    (display (get-employee-name record) port)
+    (display (employee-name record) port)
     (write-char #\] port)))
 @end example
 
