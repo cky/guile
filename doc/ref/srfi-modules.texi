@@ -45,6 +45,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-37::                     args-fold program argument processor
 * SRFI-38::                     External Representation for Data With Shared Structure
 * SRFI-39::                     Parameter objects
+* SRFI-41::                     Streams.
 * SRFI-42::                     Eager comprehensions
 * SRFI-45::                     Primitives for expressing iterative lazy algorithms
 * SRFI-55::                     Requiring Features.
@@ -3787,6 +3788,13 @@ taking parameters from @var{param-list} and corresponding values from
 scope and the result from that @var{thunk} is the return from
 @code{with-parameters*}.
 @end defun
+
+@node SRFI-41
+@subsection SRFI-41 - Streams
+@cindex SRFI-41
+
+See @uref{http://srfi.schemers.org/srfi-41/srfi-41.html, the
+specification of SRFI-41}.
 
 @node SRFI-42
 @subsection SRFI-42 - Eager Comprehensions
