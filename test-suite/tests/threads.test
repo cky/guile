@@ -1,6 +1,6 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -86,7 +86,12 @@
                       (equal? (par-map fibo (iota 13))
                               (map fibo (iota 13))))
                    #:to 'value
-                   #:env (current-module))))
+                   #:env (current-module)))
+
+        (pass-if-equal "long list" (map 1+ (iota 10000))
+          ;; In Guile 2.0.7, this would trigger a stack overflow.
+          ;; See <http://bugs.gnu.org/13188>.
+          (par-map 1+ (iota 10000))))
 
       ;;
       ;; par-for-each

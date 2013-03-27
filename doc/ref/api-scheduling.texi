@@ -1037,6 +1037,13 @@ future has completed.  This suspend/resume is achieved by capturing the
 calling future's continuation, and later reinstating it (@pxref{Prompts,
 delimited continuations}).
 
+Note that @code{par-map} above is not tail-recursive.  This could lead
+to stack overflows when @var{lst} is large compared to
+@code{(current-processor-count)}.  To address that, @code{touch} uses
+the suspend mechanism described above to limit the number of nested
+futures executing on the same stack.  Thus, the above code should never
+run into stack overflows.
+
 @deffn {Scheme Syntax} future exp
 Return a future for expression @var{exp}.  This is equivalent to:
 
