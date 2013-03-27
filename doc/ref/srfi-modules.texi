@@ -3844,7 +3844,7 @@ again.  SRFI-41 can be made available with:
 
 SRFI-41 Streams are based on two mutually-recursive abstract data types:
 An object of the @code{stream} abstract data type is a promise that,
-when forced, is either @code{stream-null} or is an object of type
+when forced, is either @var{stream-null} or is an object of type
 @code{stream-pair}.  An object of the @code{stream-pair} abstract data
 type contains a @code{stream-car} and a @code{stream-cdr}, which must be
 a @code{stream}.  The essential feature of streams is the systematic
@@ -3862,16 +3862,16 @@ stream, and is only forced on demand.
 @subsubsection SRFI-41 Stream Primitives
 
 This library provides eight operators: constructors for
-@code{stream-null} and @code{stream-pair}s, type predicates for streams
+@var{stream-null} and @code{stream-pair}s, type predicates for streams
 and the two kinds of streams, accessors for both fields of a
 @code{stream-pair}, and a lambda that creates procedures that return
 streams.
 
-@deffn {Scheme Variable} stream-null
+@defvr {Scheme Variable} stream-null
 A promise that, when forced, is a single object, distinguishable from
-all other objects, that represents the null stream.  @code{stream-null}
+all other objects, that represents the null stream.  @var{stream-null}
 is immutable and unique.
-@end deffn
+@end defvr
 
 @deffn {Scheme Syntax} stream-cons object-expr stream-expr
 Creates a newly-allocated stream containing a promise that, when forced,
@@ -4003,7 +4003,7 @@ Returns a newly-allocated stream containing the elements from
 Returns a newly-allocated stream containing in its elements the
 characters on the port.  If @var{port} is not given it defaults to the
 current input port.  The returned stream has finite length and is
-terminated by @code{stream-null}.
+terminated by @var{stream-null}.
 
 It looks like one use of @code{port->stream} would be this:
 
