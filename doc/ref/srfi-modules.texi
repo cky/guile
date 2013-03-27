@@ -3845,6 +3845,13 @@ words, no program that uses the R5RS definitions of delay and force will
 break if those definition are replaced by the SRFI-45 definitions of
 delay and force.
 
+Guile also adds @code{promise?} to the list of exports, which is not
+part of the official SRFI-45.
+
+@deffn {Scheme Procedure} promise? obj
+Return true if @var{obj} is an SRFI-45 promise, otherwise return false.
+@end deffn
+
 @deffn {Scheme Syntax} delay expression
 Takes an expression of arbitrary type @var{a} and returns a promise of
 type @code{(Promise @var{a})} which at some point in the future may be

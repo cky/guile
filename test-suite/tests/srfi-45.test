@@ -1,6 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
-;; Copyright André van Tonder. All Rights Reserved.
+;; Copyright (C) 2010, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2003 André van Tonder. All Rights Reserved.
 ;;
 ;; Permission is hereby granted, free of charge, to any person
 ;; obtaining a copy of this software and associated documentation
@@ -258,3 +259,10 @@
 ;; Commented out since it takes too long
 #;
 (test-equal 300000000 (force (times3 100000000)))    ;==> bounded space
+
+
+;======================================================================
+; Test promise? predicate (non-standard Guile extension)
+
+(pass-if "promise? predicate"
+  (promise? (delay 1)))
