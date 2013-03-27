@@ -1573,6 +1573,9 @@ modifies the queue @var{list} then it must either maintain
 @section Streams
 @cindex streams
 
+This section documents Guile's legacy stream module.  For a more
+complete and portable stream library, @pxref{SRFI-41}.
+
 A stream represents a sequence of values, each of which is calculated
 only when required.  This allows large or even infinite sequences to
 be represented and manipulated with familiar operations like ``car'',

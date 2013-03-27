@@ -3793,8 +3793,707 @@ scope and the result from that @var{thunk} is the return from
 @subsection SRFI-41 - Streams
 @cindex SRFI-41
 
-See @uref{http://srfi.schemers.org/srfi-41/srfi-41.html, the
-specification of SRFI-41}.
+This subsection is based on the
+@uref{http://srfi.schemers.org/srfi-41/srfi-41.html, specification of
+SRFI-41} by Philip L.@: Bewig.
+
+@c The copyright notice and license text of the SRFI-41 specification is
+@c reproduced below:
+
+@c Copyright (C) Philip L. Bewig (2007). All Rights Reserved.
+
+@c Permission is hereby granted, free of charge, to any person obtaining a
+@c copy of this software and associated documentation files (the
+@c "Software"), to deal in the Software without restriction, including
+@c without limitation the rights to use, copy, modify, merge, publish,
+@c distribute, sublicense, and/or sell copies of the Software, and to
+@c permit persons to whom the Software is furnished to do so, subject to
+@c the following conditions:
+
+@c The above copyright notice and this permission notice shall be included
+@c in all copies or substantial portions of the Software.
+
+@c THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+@c OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+@c MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+@c NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+@c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+@c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+@c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@noindent
+This SRFI implements streams, sometimes called lazy lists, a sequential
+data structure containing elements computed only on demand.  A stream is
+either null or is a pair with a stream in its cdr.  Since elements of a
+stream are computed only when accessed, streams can be infinite.  Once
+computed, the value of a stream element is cached in case it is needed
+again.  SRFI-41 can be made available with:
+
+@example
+(use-modules (srfi srfi-41))
+@end example
+
+@menu
+* SRFI-41 Stream Fundamentals::
+* SRFI-41 Stream Primitives::
+* SRFI-41 Stream Library::
+@end menu
+
+@node SRFI-41 Stream Fundamentals
+@subsubsection SRFI-41 Stream Fundamentals
+
+SRFI-41 Streams are based on two mutually-recursive abstract data types:
+An object of the @code{stream} abstract data type is a promise that,
+when forced, is either @code{stream-null} or is an object of type
+@code{stream-pair}.  An object of the @code{stream-pair} abstract data
+type contains a @code{stream-car} and a @code{stream-cdr}, which must be
+a @code{stream}.  The essential feature of streams is the systematic
+suspensions of the recursive promises between the two data types.
+
+The object stored in the @code{stream-car} of a @code{stream-pair} is a
+promise that is forced the first time the @code{stream-car} is accessed;
+its value is cached in case it is needed again.  The object may have any
+type, and different stream elements may have different types.  If the
+@code{stream-car} is never accessed, the object stored there is never
+evaluated.  Likewise, the @code{stream-cdr} is a promise to return a
+stream, and is only forced on demand.
+
+@node SRFI-41 Stream Primitives
+@subsubsection SRFI-41 Stream Primitives
+
+This library provides eight operators: constructors for
+@code{stream-null} and @code{stream-pair}s, type predicates for streams
+and the two kinds of streams, accessors for both fields of a
+@code{stream-pair}, and a lambda that creates procedures that return
+streams.
+
+@deffn {Constant} stream-null
+A promise that, when forced, is a single object, distinguishable from
+all other objects, that represents the null stream.  @code{stream-null}
+is immutable and unique.
+@end deffn
+
+@deffn {Scheme Syntax} stream-cons object-expr stream-expr
+Creates a newly-allocated stream containing a promise that, when forced,
+is a @code{stream-pair} with @var{object-expr} in its @code{stream-car}
+and @var{stream-expr} in its @code{stream-cdr}.  Neither
+@var{object-expr} nor @var{stream-expr} is evaluated when
+@code{stream-cons} is called.
+
+Once created, a @code{stream-pair} is immutable; there is no
+@code{stream-set-car!}  or @code{stream-set-cdr!} that modifies an
+existing stream-pair.  There is no dotted-pair or improper stream as
+with lists.
+@end deffn
+
+@deffn {Scheme Procedure} stream? object
+Returns true if @var{object} is a stream, otherwise returns false.  If
+@var{object} is a stream, its promise will not be forced.  If
+@code{(stream? obj)} returns true, then one of @code{(stream-null? obj)}
+or @code{(stream-pair? obj)} will return true and the other will return
+false.
+@end deffn
+
+@deffn {Scheme Procedure} stream-null? object
+Returns true if @var{object} is the distinguished null stream, otherwise
+returns false.  If @var{object} is a stream, its promise will be forced.
+@end deffn
+
+@deffn {Scheme Procedure} stream-pair? object
+Returns true if @var{object} is a @code{stream-pair} constructed by
+@code{stream-cons}, otherwise returns false.  If @var{object} is a
+stream, its promise will be forced.
+@end deffn
+
+@deffn {Scheme Procedure} stream-car stream
+Returns the object stored in the @code{stream-car} of @var{stream}.  An
+error is signalled if the argument is not a @code{stream-pair}.  This
+causes the @var{object-expr} passed to @code{stream-cons} to be
+evaluated if it had not yet been; the value is cached in case it is
+needed again.
+@end deffn
+
+@deffn {Scheme Procedure} stream-cdr stream
+Returns the stream stored in the @code{stream-cdr} of @var{stream}.  An
+error is signalled if the argument is not a @code{stream-pair}.
+@end deffn
+
+@deffn {Scheme Syntax} stream-lambda formals body @dots{}
+Creates a procedure that returns a promise to evaluate the @var{body} of
+the procedure.  The last @var{body} expression to be evaluated must
+yield a stream.  As with normal @code{lambda}, @var{formals} may be a
+single variable name, in which case all the formal arguments are
+collected into a single list, or a list of variable names, which may be
+null if there are no arguments, proper if there are an exact number of
+arguments, or dotted if a fixed number of arguments is to be followed by
+zero or more arguments collected into a list.  @var{Body} must contain
+at least one expression, and may contain internal definitions preceding
+any expressions to be evaluated.
+@end deffn
+
+@example
+(define strm123
+  (stream-cons 1
+    (stream-cons 2
+      (stream-cons 3
+        stream-null))))
+
+(stream-car strm123) @result{} 1
+(stream-car (stream-cdr strm123) @result{} 2
+
+(stream-pair?
+  (stream-cdr
+    (stream-cons (/ 1 0) stream-null))) @result{} #f
+
+(stream? (list 1 2 3)) @result{} #f
+
+(define iter
+  (stream-lambda (f x)
+    (stream-cons x (iter f (f x)))))
+
+(define nats (iter (lambda (x) (+ x 1)) 0))
+
+(stream-car (stream-cdr nats)) @result{} 1
+
+(define stream-add
+  (stream-lambda (s1 s2)
+    (stream-cons
+      (+ (stream-car s1) (stream-car s2))
+      (stream-add (stream-cdr s1)
+                  (stream-cdr s2)))))
+
+(define evens (stream-add nats nats))
+
+(stream-car evens) @result{} 0
+(stream-car (stream-cdr evens)) @result{} 2
+(stream-car (stream-cdr (stream-cdr evens))) @result{} 4
+@end example
+
+@node SRFI-41 Stream Library
+@subsubsection SRFI-41 Stream Library
+
+@deffn {Scheme Syntax} define-stream (name args @dots{}) body @dots{}
+Creates a procedure that returns a stream, and may appear anywhere a
+normal @code{define} may appear, including as an internal definition.
+It may contain internal definitions of its own.  The defined procedure
+takes arguments in the same way as @code{stream-lambda}.
+@code{define-stream} is syntactic sugar on @code{stream-lambda}; see
+also @code{stream-let}, which is also a sugaring of
+@code{stream-lambda}.
+
+A simple version of @code{stream-map} that takes only a single input
+stream calls itself recursively:
+
+@example
+(define-stream (stream-map proc strm)
+  (if (stream-null? strm)
+      stream-null
+      (stream-cons
+        (proc (stream-car strm))
+        (stream-map proc (stream-cdr strm))))))
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} list->stream list
+Returns a newly-allocated stream containing the elements from
+@var{list}.
+@end deffn
+
+@deffn {Scheme Procedure} port->stream [port]
+Returns a newly-allocated stream containing in its elements the
+characters on the port.  If @var{port} is not given it defaults to the
+current input port.  The returned stream has finite length and is
+terminated by @code{stream-null}.
+
+It looks like one use of @code{port->stream} would be this:
+
+@example
+(define s ;wrong!
+  (with-input-from-file filename
+    (lambda () (port->stream))))
+@end example
+
+But that fails, because @code{with-input-from-file} is eager, and closes
+the input port prematurely, before the first character is read.  To read
+a file into a stream, say:
+
+@example
+(define-stream (file->stream filename)
+  (let ((p (open-input-file filename)))
+    (stream-let loop ((c (read-char p)))
+      (if (eof-object? c)
+          (begin (close-input-port p)
+                 stream-null)
+          (stream-cons c
+            (loop (read-char p)))))))
+@end example
+@end deffn
+
+@deffn {Scheme Syntax} stream object-expr @dots{}
+Creates a newly-allocated stream containing in its elements the objects,
+in order.  The @var{object-expr}s are evaluated when they are accessed,
+not when the stream is created.  If no objects are given, as in
+(stream), the null stream is returned.  See also @code{list->stream}.
+
+@example
+(define strm123 (stream 1 2 3))
+
+; (/ 1 0) not evaluated when stream is created
+(define s (stream 1 (/ 1 0) -1))
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream->list [n] stream
+Returns a newly-allocated list containing in its elements the first
+@var{n} items in @var{stream}.  If @var{stream} has less than @var{n}
+items, all the items in the stream will be included in the returned
+list.  If @var{n} is not given it defaults to infinity, which means that
+unless @var{stream} is finite @code{stream->list} will never return.
+
+@example
+(stream->list 10
+  (stream-map (lambda (x) (* x x))
+    (stream-from 0)))
+  @result{} (0 1 4 9 16 25 36 49 64 81)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-append stream @dots{}
+Returns a newly-allocated stream containing in its elements those
+elements contained in its input @var{stream}s, in order of input.  If
+any of the input streams is infinite, no elements of any of the
+succeeding input streams will appear in the output stream.  See also
+@code{stream-concat}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-concat stream
+Takes a @var{stream} consisting of one or more streams and returns a
+newly-allocated stream containing all the elements of the input streams.
+If any of the streams in the input @var{stream} is infinite, any
+remaining streams in the input stream will never appear in the output
+stream.  See also @code{stream-append}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-constant object @dots{}
+Returns a newly-allocated stream containing in its elements the
+@var{object}s, repeating in succession forever.
+
+@example
+(stream-constant 1) @result{} 1 1 1 @dots{}
+(stream-constant #t #f) @result{} #t #f #t #f #t #f @dots{}
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-drop n stream
+Returns the suffix of the input @var{stream} that starts at the next
+element after the first @var{n} elements.  The output stream shares
+structure with the input @var{stream}; thus, promises forced in one
+instance of the stream are also forced in the other instance of the
+stream.  If the input @var{stream} has less than @var{n} elements,
+@code{stream-drop} returns the null stream.  See also
+@code{stream-take}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-drop-while pred stream
+Returns the suffix of the input @var{stream} that starts at the first
+element @var{x} for which @code{(pred x)} returns false.  The output
+stream shares structure with the input @var{stream}.  See also
+@code{stream-take-while}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-filter pred stream
+Returns a newly-allocated stream that contains only those elements
+@var{x} of the input @var{stream} which satisfy the predicate
+@code{pred}.
+
+@example
+(stream-filter odd? (stream-from 0))
+   @result{} 1 3 5 7 9 @dots{}
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-fold proc base stream
+Applies a binary procedure @var{proc} to @var{base} and the first
+element of @var{stream} to compute a new @var{base}, then applies the
+procedure to the new @var{base} and the next element of @var{stream} to
+compute a succeeding @var{base}, and so on, accumulating a value that is
+finally returned as the value of @code{stream-fold} when the end of the
+stream is reached.  @var{stream} must be finite, or @code{stream-fold}
+will enter an infinite loop.  See also @code{stream-scan}, which is
+similar to @code{stream-fold}, but useful for infinite streams.  For
+readers familiar with other functional languages, this is a left-fold;
+there is no corresponding right-fold, since right-fold relies on finite
+streams that are fully-evaluated, in which case they may as well be
+converted to a list.
+@end deffn
+
+@deffn {Scheme Procedure} stream-for-each proc stream @dots{}
+Applies @var{proc} element-wise to corresponding elements of the input
+@var{stream}s for side-effects; it returns nothing.
+@code{stream-for-each} stops as soon as any of its input streams is
+exhausted.
+@end deffn
+
+@deffn {Scheme Procedure} stream-from first [step]
+Creates a newly-allocated stream that contains @var{first} as its first
+element and increments each succeeding element by @var{step}.  If
+@var{step} is not given it defaults to 1.  @var{first} and @var{step}
+may be of any numeric type.  @code{stream-from} is frequently useful as
+a generator in @code{stream-of} expressions.  See also
+@code{stream-range} for a similar procedure that creates finite streams.
+@end deffn
+
+@deffn {Scheme Procedure} stream-iterate proc base
+Creates a newly-allocated stream containing @var{base} in its first
+element and applies @var{proc} to each element in turn to determine the
+succeeding element.  See also @code{stream-unfold} and
+@code{stream-unfolds}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-length stream
+Returns the number of elements in the @var{stream}; it does not evaluate
+its elements.  @code{stream-length} may only be used on finite streams;
+it enters an infinite loop with infinite streams.
+@end deffn
+
+@deffn {Scheme Syntax} stream-let tag ((var expr) @dots{}) body @dots{}
+Creates a local scope that binds each variable to the value of its
+corresponding expression.  It additionally binds @var{tag} to a
+procedure which takes the bound variables as arguments and @var{body} as
+its defining expressions, binding the @var{tag} with
+@code{stream-lambda}.  @var{tag} is in scope within body, and may be
+called recursively.  When the expanded expression defined by the
+@code{stream-let} is evaluated, @code{stream-let} evaluates the
+expressions in its @var{body} in an environment containing the
+newly-bound variables, returning the value of the last expression
+evaluated, which must yield a stream.
+
+@code{stream-let} provides syntactic sugar on @code{stream-lambda}, in
+the same manner as normal @code{let} provides syntactic sugar on normal
+@code{lambda}.  However, unlike normal @code{let}, the @var{tag} is
+required, not optional, because unnamed @code{stream-let} is
+meaningless.
+
+For example, @code{stream-member} returns the first @code{stream-pair}
+of the input @var{strm} with a @code{stream-car} @var{x} that satisfies
+@code{(eql? obj x)}, or the null stream if @var{x} is not present in
+@var{strm}.
+
+@example
+(define-stream (stream-member eql? obj strm)
+  (stream-let loop ((strm strm))
+    (cond ((stream-null? strm) strm)
+          ((eql? obj (stream-car strm)) strm)
+          (else (loop (stream-cdr strm))))))
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-map proc stream @dots{}
+Applies @var{proc} element-wise to corresponding elements of the input
+@var{stream}s, returning a newly-allocated stream containing elements
+that are the results of those procedure applications.  The output stream
+has as many elements as the minimum-length input stream, and may be
+infinite.
+@end deffn
+
+@deffn {Scheme Syntax} stream-match stream clause @dots{}
+Provides pattern-matching for streams.  The input @var{stream} is an
+expression that evaluates to a stream.  Clauses are of the form
+@code{(pattern [fender] expression)}, consisting of a @var{pattern} that
+matches a stream of a particular shape, an optional @var{fender} that
+must succeed if the pattern is to match, and an @var{expression} that is
+evaluated if the pattern matches.  There are four types of patterns:
+
+@itemize @bullet
+@item
+() matches the null stream.
+
+@item
+(@var{pat0} @var{pat1} @dots{}) matches a finite stream with length
+exactly equal to the number of pattern elements.
+
+@item
+(@var{pat0} @var{pat1} @dots{} @code{.} @var{pat-rest}) matches an
+infinite stream, or a finite stream with length at least as great as the
+number of pattern elements before the literal dot.
+
+@item
+@var{pat} matches an entire stream.  Should always appear last in the
+list of clauses; it's not an error to appear elsewhere, but subsequent
+clauses could never match.
+@end itemize
+
+Each pattern element may be either:
+
+@itemize @bullet
+@item
+An identifier, which matches any stream element.  Additionally, the
+value of the stream element is bound to the variable named by the
+identifier, which is in scope in the @var{fender} and @var{expression}
+of the corresponding @var{clause}.  Each identifier in a single pattern
+must be unique.
+
+@item
+A literal underscore (@code{_}), which matches any stream element but
+creates no bindings.
+@end itemize
+
+The @var{pattern}s are tested in order, left-to-right, until a matching
+pattern is found; if @var{fender} is present, it must evaluate to a true
+value for the match to be successful.  Pattern variables are bound in
+the corresponding @var{fender} and @var{expression}.  Once the matching
+@var{pattern} is found, the corresponding @var{expression} is evaluated
+and returned as the result of the match.  An error is signaled if no
+pattern matches the input @var{stream}.
+
+@code{stream-match} is often used to distinguish null streams from
+non-null streams, binding @var{head} and @var{tail}:
+
+@example
+(define (len strm)
+  (stream-match strm
+    (() 0)
+    ((head . tail) (+ 1 (len tail)))))
+@end example
+
+Fenders can test the common case where two stream elements must be
+identical; the @code{else} pattern is an identifier bound to the entire
+stream, not a keyword as in @code{cond}.
+
+@example
+(stream-match strm
+  ((x y . _) (equal? x y) 'ok)
+  (else 'error))
+@end example
+
+A more complex example uses two nested matchers to match two different
+stream arguments; @code{(stream-merge lt? . strms)} stably merges two or
+more streams ordered by the @code{lt?} predicate:
+
+@example
+(define-stream (stream-merge lt? . strms)
+  (define-stream (merge xx yy)
+    (stream-match xx (() yy) ((x . xs)
+      (stream-match yy (() xx) ((y . ys)
+        (if (lt? y x)
+            (stream-cons y (merge xx ys))
+            (stream-cons x (merge xs yy))))))))
+  (stream-let loop ((strms strms))
+    (cond ((null? strms) stream-null)
+          ((null? (cdr strms)) (car strms))
+          (else (merge (car strms)
+                       (apply stream-merge lt?
+                         (cdr strms)))))))
+@end example
+@end deffn
+
+@deffn {Scheme Syntax} stream-of expr clause @dots{}
+Provides the syntax of stream comprehensions, which generate streams by
+means of looping expressions.  The result is a stream of objects of the
+type returned by @var{expr}.  There are four types of clauses:
+
+@itemize @bullet
+@item
+(@var{var} @code{in} @var{stream-expr}) loops over the elements of
+@var{stream-expr}, in order from the start of the stream, binding each
+element of the stream in turn to @var{var}.  @code{stream-from} and
+@code{stream-range} are frequently useful as generators for
+@var{stream-expr}.
+
+@item
+(@var{var} @code{is} @var{expr}) binds @var{var} to the value obtained
+by evaluating @var{expr}.
+
+@item
+(@var{pred} @var{expr}) includes in the output stream only those
+elements @var{x} which satisfy the predicate @var{pred}.
+@end itemize
+
+The scope of variables bound in the stream comprehension is the clauses
+to the right of the binding clause (but not the binding clause itself)
+plus the result expression.
+
+When two or more generators are present, the loops are processed as if
+they are nested from left to right; that is, the rightmost generator
+varies fastest.  A consequence of this is that only the first generator
+may be infinite and all subsequent generators must be finite.  If no
+generators are present, the result of a stream comprehension is a stream
+containing the result expression; thus, @samp{(stream-of 1)} produces a
+finite stream containing only the element 1.
+
+@example
+(stream-of (* x x)
+  (x in (stream-range 0 10))
+  (even? x))
+  @result{} 0 4 16 36 64
+
+(stream-of (list a b)
+  (a in (stream-range 1 4))
+  (b in (stream-range 1 3)))
+  @result{} (1 1) (1 2) (2 1) (2 2) (3 1) (3 2)
+
+(stream-of (list i j)
+  (i in (stream-range 1 5))
+  (j in (stream-range (+ i 1) 5)))
+  @result{} (1 2) (1 3) (1 4) (2 3) (2 4) (3 4)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-range first past [step]
+Creates a newly-allocated stream that contains @var{first} as its first
+element and increments each succeeding element by @var{step}.  The
+stream is finite and ends before @var{past}, which is not an element of
+the stream.  If @var{step} is not given it defaults to 1 if @var{first}
+is less than past and -1 otherwise.  @var{first}, @var{past} and
+@var{step} may be of any real numeric type.  @code{stream-range} is
+frequently useful as a generator in @code{stream-of} expressions.  See
+also @code{stream-from} for a similar procedure that creates infinite
+streams.
+
+@example
+(stream-range 0 10) @result{} 0 1 2 3 4 5 6 7 8 9
+(stream-range 0 10 2) @result{} 0 2 4 6 8
+@end example
+
+Successive elements of the stream are calculated by adding @var{step} to
+@var{first}, so if any of @var{first}, @var{past} or @var{step} are
+inexact, the length of the output stream may differ from
+@code{(ceiling (- (/ (- past first) step) 1)}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-ref stream n
+Returns the @var{n}th element of stream, counting from zero.  An error
+is signaled if @var{n} is greater than or equal to the length of stream.
+
+@example
+(define (fact n)
+  (stream-ref
+    (stream-scan * 1 (stream-from 1))
+    n))
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-reverse stream
+Returns a newly-allocated stream containing the elements of the input
+@var{stream} but in reverse order.  @code{stream-reverse} may only be
+used with finite streams; it enters an infinite loop with infinite
+streams.  @code{stream-reverse} does not force evaluation of the
+elements of the stream.
+@end deffn
+
+@deffn {Scheme Procedure} stream-scan proc base stream
+Accumulates the partial folds of an input @var{stream} into a
+newly-allocated output stream.  The output stream is the @var{base}
+followed by @code{(stream-fold proc base (stream-take i stream))} for
+each of the first @var{i} elements of @var{stream}.
+
+@example
+(stream-scan + 0 (stream-from 1))
+  @result{} (stream 0 1 3 6 10 15 @dots{})
+
+(stream-scan * 1 (stream-from 1))
+  @result{} (stream 1 1 2 6 24 120 @dots{})
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-take n stream
+Returns a newly-allocated stream containing the first @var{n} elements
+of the input @var{stream}.  If the input @var{stream} has less than
+@var{n} elements, so does the output stream.  See also
+@code{stream-drop}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-take-while pred stream
+Takes a predicate and a @code{stream} and returns a newly-allocated
+stream containing those elements @code{x} that form the maximal prefix
+of the input stream which satisfy @var{pred}.  See also
+@code{stream-drop-while}.
+@end deffn
+
+@deffn {Scheme Procedure} stream-unfold map pred gen base
+The fundamental recursive stream constructor.  It constructs a stream by
+repeatedly applying @var{gen} to successive values of @var{base}, in the
+manner of @code{stream-iterate}, then applying @var{map} to each of the
+values so generated, appending each of the mapped values to the output
+stream as long as @code{(pred? base)} returns a true value.  See also
+@code{stream-iterate} and @code{stream-unfolds}.
+
+The expression below creates the finite stream @samp{0 1 4 9 16 25 36 49
+64 81}.  Initially the @var{base} is 0, which is less than 10, so
+@var{map} squares the @var{base} and the mapped value becomes the first
+element of the output stream.  Then @var{gen} increments the @var{base}
+by 1, so it becomes 1; this is less than 10, so @var{map} squares the
+new @var{base} and 1 becomes the second element of the output stream.
+And so on, until the base becomes 10, when @var{pred} stops the
+recursion and stream-null ends the output stream.
+
+@example
+(stream-unfold
+  (lambda (x) (expt x 2)) ; map
+  (lambda (x) (< x 10))   ; pred?
+  (lambda (x) (+ x 1))    ; gen
+  0)                      ; base
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-unfolds proc seed
+Returns @var{n} newly-allocated streams containing those elements
+produced by successive calls to the generator @var{proc}, which takes
+the current @var{seed} as its argument and returns @var{n}+1 values
+
+(@var{proc} @var{seed}) @result{} @var{seed} @var{result_0} @dots{} @var{result_n-1}
+
+where the returned @var{seed} is the input @var{seed} to the next call
+to the generator and @var{result_i} indicates how to produce the next
+element of the @var{i}th result stream:
+
+@itemize @bullet
+@item
+(@var{value}): @var{value} is the next car of the result stream.
+
+@item
+@code{#f}: no value produced by this iteration of the generator
+@var{proc} for the result stream.
+
+@item
+(): the end of the result stream.
+@end itemize
+
+It may require multiple calls of @var{proc} to produce the next element
+of any particular result stream.  See also @code{stream-iterate} and
+@code{stream-unfold}.
+
+@example
+(define (stream-partition pred? strm)
+  (stream-unfolds
+    (lambda (s)
+      (if (stream-null? s)
+          (values s '() '())
+          (let ((a (stream-car s))
+                (d (stream-cdr s)))
+            (if (pred? a)
+                (values d (list a) #f)
+                (values d #f (list a))))))
+    strm))
+
+(call-with-values
+  (lambda ()
+    (stream-partition odd?
+      (stream-range 1 6)))
+  (lambda (odds evens)
+    (list (stream->list odds)
+          (stream->list evens))))
+  @result{} ((1 3 5) (2 4))
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} stream-zip stream @dots{}
+Returns a newly-allocated stream in which each element is a list (not a
+stream) of the corresponding elements of the input @var{stream}s.  The
+output stream is as long as the shortest input @var{stream}, if any of
+the input @var{stream}s is finite, or is infinite if all the input
+@var{stream}s are infinite.
+@end deffn
 
 @node SRFI-42
 @subsection SRFI-42 - Eager Comprehensions
