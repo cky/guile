@@ -1067,7 +1067,8 @@ was found, or @code{#f} otherwise.  The port is rewound.
 @cindex promises
 
 Promises are a convenient way to defer a calculation until its result
-is actually needed, and to run such a calculation only once.
+is actually needed, and to run such a calculation only once.  Also
+@pxref{SRFI-45}.
 
 @deffn syntax delay expr
 @rnindex delay
