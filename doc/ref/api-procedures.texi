@@ -717,6 +717,11 @@ compatible arity.
 Return X.
 @end deffn
 
+@deffn {Scheme Procedure} and=> value proc
+When @var{value} is @code{#f}, return @code{#f}.  Otherwise, return
+@code{(@var{proc} @var{value})}.
+@end deffn
+
 @node Procedure Properties
 @subsection Procedure Properties and Meta-information
 

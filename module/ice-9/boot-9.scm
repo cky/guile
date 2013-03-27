@@ -944,7 +944,10 @@ VALUE."
   (lambda _
     value))
 
-(define (and=> value procedure) (and value (procedure value)))
+(define (and=> value procedure)
+  "When VALUE is #f, return #f.  Otherwise, return (PROC VALUE)."
+  (and value (procedure value)))
+
 (define call/cc call-with-current-continuation)
 
 (define-syntax false-if-exception
