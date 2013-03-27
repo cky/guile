@@ -144,8 +144,8 @@ have been deprecated.
 ** Deprecate `http-get*'.
 
 The new `#:streaming?' argument to `http-get' subsumes the functionality
-of `http-get*'.  Also, the `#:extra-headers' argument is deprecated in
-favor of `#:headers'.
+of `http-get*' (introduced in 2.0.7).  Also, the `#:extra-headers'
+argument is deprecated in favor of `#:headers'.
 
 ** Deprecate (ice-9 mapping).
 
@@ -162,6 +162,10 @@ See "Bitwise Operations".
 ** New environment variables: `GUILE_STACK_SIZE', `GUILE_INSTALL_LOCALE'.
 
 See "Environment Variables".
+
+** New procedure `sendfile'.
+
+See "File System".
 
 ** New procedures for dealing with file names.
 
@@ -248,6 +252,12 @@ refer to this variable to describe where users should install their
 
 * Bug fixes
 
+** SRFI-37: Fix infinite loop when parsing optional-argument short options
+   (http://bugs.gnu.org/13176)
+** web: Support non-GMT date headers in the HTTP client
+   (http://bugs.gnu.org/13544)
+** Avoid stack overflows with `par-map' and nested futures in general
+   (http://bugs.gnu.org/13188)
 ** A fork when multiple threads are running will now print a warning.
 ** Allow for spurious wakeups from pthread_cond_wait.
    (http://bugs.gnu.org/10641)
