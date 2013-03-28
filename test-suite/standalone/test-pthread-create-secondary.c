@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,15 +30,20 @@
 #include <gc/gc.h>
 
 
-/* Up to GC 7.2alpha5, calling `GC_INIT' from a secondary thread would
+/* Currently, calling `GC_INIT' from a secondary thread is only
+   supported on some systems, notably Linux-based systems (and not on
+   FreeBSD, for instance.)
+
+   Up to GC 7.2alpha5, calling `GC_INIT' from a secondary thread would
    lead to a segfault.  This was fixed in BDW-GC on 2011-04-16 by Ivan
    Maidanski.  See <http://thread.gmane.org/gmane.lisp.guile.bugs/5340>
    for details.  */
 
-#if (GC_VERSION_MAJOR > 7)					\
-  || ((GC_VERSION_MAJOR == 7) && (GC_VERSION_MINOR > 2))	\
-  || ((GC_VERSION_MAJOR == 7) && (GC_VERSION_MINOR == 2)	\
-      && (GC_ALPHA_VERSION > 5))
+#if defined __linux__						\
+  && (GC_VERSION_MAJOR > 7					\
+      || (GC_VERSION_MAJOR == 7 && GC_VERSION_MINOR > 2)	\
+      || (GC_VERSION_MAJOR == 7 && GC_VERSION_MINOR == 2	\
+	  && GC_ALPHA_VERSION > 5))
 
 static void *
 do_something (void *arg)
@@ -73,7 +78,7 @@ main (int argc, char *argv[])
 }
 
 
-#else /* GC < 7.2 */
+#else /* Linux && GC < 7.2alpha5 */
 
 int
 main (int argc, char *argv[])
