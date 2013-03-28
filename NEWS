@@ -49,9 +49,9 @@ removed on those plaforms (basically only MinGW).
 
 ** Gnulib update.
 
-Guile's copy of Gnulib was updated to XXX.  The following modules were
-imported from Gnulib: select, times, pipe-posix, fstat, getlogin, and
-poll.
+Guile's copy of Gnulib was updated to v0.0-7865-ga828bb2.  The following
+modules were imported from Gnulib: select, times, pipe-posix, fstat,
+getlogin, and poll.
 
 ** New optimizations.
 
