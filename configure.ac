@@ -872,6 +872,14 @@ if test "x$HAVE_LIBGMP" != "xyes"; then
   AC_MSG_ERROR([GNU MP 4.1 or greater not found, see README])
 fi
 
+dnl `mpz_inits' and `mpz_clears' appeared in GMP 5.0.0.
+save_CPPFLAGS="$CPPFLAGS"
+if test "x$LIBGMP_PREFIX" != "x"; then
+   CPPFLAGS="-I$LIBGMP_PREFIX $CPPFLAGS"
+fi
+AC_CHECK_DECLS([mpz_inits], [], [], [[#include <gmp.h>]])
+CPPFLAGS="$save_CPPFLAGS"
+
 dnl GNU libunistring is checked for by Gnulib's `libunistring' module.
 if test "x$LTLIBUNISTRING" = "x"; then
   AC_MSG_ERROR([GNU libunistring is required, please install it.])

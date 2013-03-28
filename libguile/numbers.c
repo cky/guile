@@ -1,4 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+ *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
+ *   2013 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -56,6 +58,8 @@
 #include <complex.h>
 #endif
 
+#include <stdarg.h>
+
 #include "libguile/_scm.h"
 #include "libguile/feature.h"
 #include "libguile/ports.h"
@@ -95,6 +99,31 @@ typedef scm_t_signed_bits scm_t_inum;
    of the infinity, but other platforms return a boolean only. */
 #define DOUBLE_IS_POSITIVE_INFINITY(x) (isinf(x) && ((x) > 0))
 #define DOUBLE_IS_NEGATIVE_INFINITY(x) (isinf(x) && ((x) < 0))
+
+
+#if ! HAVE_DECL_MPZ_INITS
+
+/* GMP < 5.0.0 lacks `mpz_inits' and `mpz_clears'.  Provide them.  */
+
+#define VARARG_MPZ_ITERATOR(func)		\
+  static void					\
+  func ## s (mpz_t x, ...)			\
+  {						\
+    va_list  ap;				\
+						\
+    va_start (ap, x);				\
+    while (x != NULL)				\
+      {						\
+	func (x);				\
+	x = va_arg (ap, mpz_ptr);		\
+      }						\
+    va_end (ap);				\
+  }
+
+VARARG_MPZ_ITERATOR (mpz_init)
+VARARG_MPZ_ITERATOR (mpz_clear)
+
+#endif
 
 
 
