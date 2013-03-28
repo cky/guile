@@ -3867,7 +3867,7 @@ and the two kinds of streams, accessors for both fields of a
 @code{stream-pair}, and a lambda that creates procedures that return
 streams.
 
-@deffn {Constant} stream-null
+@deffn {Scheme Variable} stream-null
 A promise that, when forced, is a single object, distinguishable from
 all other objects, that represents the null stream.  @code{stream-null}
 is immutable and unique.
