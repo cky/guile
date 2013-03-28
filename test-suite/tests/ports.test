@@ -2,7 +2,7 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;      2011, 2012 Free Software Foundation, Inc.
+;;;;      2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1162,33 +1162,35 @@
 
 (with-test-prefix "%file-port-name-canonicalization"
 
-  (pass-if "absolute file name & empty %load-path entry"
+  (pass-if-equal "absolute file name & empty %load-path entry" "/dev/null"
     ;; In Guile 2.0.5 and earlier, this would return "dev/null" instead
     ;; of "/dev/null".  See
     ;; <http://lists.gnu.org/archive/html/guile-devel/2012-05/msg00059.html>
     ;; for a discussion.
-    (equal? "/dev/null"
-            (with-load-path (cons "" (delete "/" %load-path))
-              (with-fluids ((%file-port-name-canonicalization 'relative))
-                (port-filename (open-input-file "/dev/null"))))))
+    (with-load-path (cons "" (delete "/" %load-path))
+      (with-fluids ((%file-port-name-canonicalization 'relative))
+        (port-filename (open-input-file "/dev/null")))))
 
-  (pass-if "relative canonicalization with /"
-    (equal? "dev/null"
-            (with-load-path (cons "/" %load-path)
-              (with-fluids ((%file-port-name-canonicalization 'relative))
-                (port-filename (open-input-file "/dev/null"))))))
+  (pass-if-equal "relative canonicalization with /" "dev/null"
+    (with-load-path (cons "/" %load-path)
+      (with-fluids ((%file-port-name-canonicalization 'relative))
+        (port-filename (open-input-file "/dev/null")))))
 
-  (pass-if "relative canonicalization from ice-9"
-    (equal? "ice-9/q.scm"
-            (with-fluids ((%file-port-name-canonicalization 'relative))
-              (port-filename
-               (open-input-file (%search-load-path "ice-9/q.scm"))))))
+  (pass-if-equal "relative canonicalization from ice-9" "ice-9/q.scm"
+    ;; If an entry in %LOAD-PATH is not canonical, then
+    ;; `scm_i_relativize_path' is unable to do its job.
+    (if (equal? (map canonicalize-path %load-path) %load-path)
+        (with-fluids ((%file-port-name-canonicalization 'relative))
+          (port-filename
+           (open-input-file (%search-load-path "ice-9/q.scm"))))
+        (throw 'unresolved)))
 
-  (pass-if "absolute canonicalization from ice-9"
-    (equal? (string-append (assoc-ref %guile-build-info 'top_srcdir)
-                           "/module/ice-9/q.scm")
-            (with-fluids ((%file-port-name-canonicalization 'absolute))
-              (port-filename (open-input-file (%search-load-path "ice-9/q.scm")))))))
+  (pass-if-equal "absolute canonicalization from ice-9"
+      (canonicalize-path
+       (string-append (assoc-ref %guile-build-info 'top_srcdir)
+                      "/module/ice-9/q.scm"))
+    (with-fluids ((%file-port-name-canonicalization 'absolute))
+      (port-filename (open-input-file (%search-load-path "ice-9/q.scm"))))))
 
 (delete-file (test-file))
 
