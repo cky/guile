@@ -93,6 +93,11 @@ more information.
 
 ** Update predefined character sets to Unicode 6.2.
 
+** GMP 4.2 or later required
+
+Guile used to require GMP at least version 4.1 (released in May 2002),
+and now requires at least version 4.2 (released in March 2006).
+
 * Manual updates
 
 ** Better SXML documentation.

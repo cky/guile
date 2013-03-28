@@ -62,7 +62,7 @@ Required External Packages ================================================
 
 Guile requires the following external packages:
 
-  - GNU MP, at least version 4.1
+  - GNU MP, at least version 4.2
 
     GNU MP is used for bignum arithmetic.  It is available from
     http://gmplib.org/ .
