@@ -117,6 +117,7 @@ remaining arguments as the value of (command-line).
 If FILE begins with `-' the -s switch is mandatory.
 
   -L DIRECTORY   add DIRECTORY to the front of the module load path
+  -C DIRECTORY   like -L, but for compiled files
   -x EXTENSION   add EXTENSION to the front of the load extensions
   -l FILE        load source code from FILE
   -e FUNCTION    after reading script, apply FUNCTION to
@@ -194,6 +195,7 @@ If FILE begins with `-' the -s switch is mandatory.
         (script-cell #f)
         (entry-point #f)
         (user-load-path '())
+        (user-load-compiled-path '())
         (user-extensions '())
         (interactive? #t)
         (inhibit-user-init? #f)
@@ -261,6 +263,14 @@ If FILE begins with `-' the -s switch is mandatory.
             (if (null? args)
                 (error "missing argument to `-L' switch"))
             (set! user-load-path (cons (car args) user-load-path))
+            (parse (cdr args)
+                   out))
+
+           ((string=? arg "-C")         ; add to %load-compiled-path
+            (if (null? args)
+                (error "missing argument to `-C' switch"))
+            (set! user-load-compiled-path
+                  (cons (car args) user-load-compiled-path))
             (parse (cdr args)
                    out))
 
@@ -430,11 +440,15 @@ If FILE begins with `-' the -s switch is mandatory.
                    `(set! %load-extensions (cons ,ext %load-extensions)))
                  user-extensions)
 
-          ;; Add the user-specified load path here, so it won't be in
+          ;; Add the user-specified load paths here, so they won't be in
           ;; effect during the loading of the user's customization file.
           ,@(map (lambda (path)
                    `(set! %load-path (cons ,path %load-path)))
                  user-load-path)
+          ,@(map (lambda (path)
+                   `(set! %load-compiled-path
+                          (cons ,path %load-compiled-path)))
+                 user-load-compiled-path)
 
           ;; Put accumulated actions in their correct order.
           ,@(reverse! out)

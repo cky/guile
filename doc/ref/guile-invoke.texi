@@ -71,6 +71,9 @@ before any directories in the @env{GUILE_LOAD_PATH} environment
 variable.  Paths added here are @emph{not} in effect during execution of
 the user's @file{.guile} file.
 
+@item -C @var{directory}
+Like @option{-L}, but adjusts the load path for @emph{compiled} files.
+
 @item -x @var{extension}
 Add @var{extension} to the front of Guile's load extension list
 (@pxref{Load Paths, @code{%load-extensions}}).  The specified extensions
