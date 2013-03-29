@@ -1301,24 +1301,6 @@ if test $scm_cv_struct_linger = yes; then
            getsockopt and setsockopt system calls.])
 fi
 
-
-# On mingw, struct timespec is in <pthread.h>.
-#
-AC_MSG_CHECKING(for struct timespec)
-AC_CACHE_VAL(scm_cv_struct_timespec,
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-#include <time.h>
-#if HAVE_PTHREAD_H
-#include <pthread.h>
-#endif]], [[struct timespec t;  t.tv_nsec = 100]])],
-          [scm_cv_struct_timespec="yes"],
-          [scm_cv_struct_timespec="no"]))
-AC_MSG_RESULT($scm_cv_struct_timespec)
-if test $scm_cv_struct_timespec = yes; then
-  AC_DEFINE([HAVE_STRUCT_TIMESPEC], 1,
-    [Define this if your system defines struct timespec via either <time.h> or <pthread.h>.])
-fi
-
 #--------------------------------------------------------------------
 #
 # Flags for thread support
