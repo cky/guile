@@ -2336,6 +2336,7 @@ scm_init_posix ()
 #include "libguile/posix.x"
 
 #ifdef HAVE_FORK
+  scm_add_feature ("fork");
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_popen",
 			    (scm_t_extension_init_func) scm_init_popen,

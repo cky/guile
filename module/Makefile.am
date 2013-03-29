@@ -159,7 +159,6 @@ BRAINFUCK_LANG_SOURCES =			\
   language/brainfuck/spec.scm
 
 SCRIPTS_SOURCES =				\
-  scripts/autofrisk.scm				\
   scripts/compile.scm				\
   scripts/disassemble.scm			\
   scripts/display-commentary.scm		\
@@ -175,7 +174,6 @@ SCRIPTS_SOURCES =				\
   scripts/use2dot.scm				\
   scripts/snarf-check-and-output-texi.scm	\
   scripts/summarize-guile-TODO.scm		\
-  scripts/scan-api.scm				\
   scripts/api-diff.scm				\
   scripts/read-rfc822.scm			\
   scripts/snarf-guile-m4-docs.scm
@@ -252,12 +250,17 @@ ICE_9_SOURCES = \
   ice-9/serialize.scm \
   ice-9/local-eval.scm
 
-if HAVE_FORK
+if BUILD_ICE_9_POPEN
 
 # This functionality is missing on systems without `fork'---i.e., Windows.
 ICE_9_SOURCES += ice-9/popen.scm
 
-endif HAVE_FORK
+# These modules rely on (ice-9 popen).
+SCRIPTS_SOURCES +=				\
+  scripts/autofrisk.scm				\
+  scripts/scan-api.scm
+
+endif BUILD_ICE_9_POPEN
 
 SRFI_SOURCES = \
   srfi/srfi-2.scm \

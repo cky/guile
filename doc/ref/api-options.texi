@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2008, 2009, 2010, 2011, 2012
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+@c   2008, 2009, 2010, 2011, 2012, 2013
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -280,6 +281,11 @@ Databases}).
 @item posix
 Indicates support for POSIX functions: @code{pipe}, @code{getgroups},
 @code{kill}, @code{execl} and so on (@pxref{POSIX}).
+
+@item fork
+Indicates support for the POSIX @code{fork} function (@pxref{Processes,
+@code{primitive-fork}}).  This is a prerequisite for the @code{(ice-9
+popen)} module (@pxref{Pipes}).
 
 @item random
 Indicates availability of random number generation functions:

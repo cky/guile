@@ -2188,7 +2188,8 @@ controlling terminal.  The return value is unspecified.
 
 The following procedures are similar to the @code{popen} and
 @code{pclose} system routines.  The code is in a separate ``popen''
-module:
+module@footnote{This module is only available on systems where the
+@code{fork} feature is provided (@pxref{Common Feature Symbols}).}:
 
 @lisp
 (use-modules (ice-9 popen))
