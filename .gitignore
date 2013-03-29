@@ -152,3 +152,7 @@ INSTALL
 /lib/wctype.h
 /build-aux/ar-lib
 /build-aux/test-driver
+*.trs
+/test-suite/standalone/test-smob-mark
+/test-suite/standalone/test-scm-values
+/test-suite/standalone/test-scm-to-latin1-string
