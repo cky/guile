@@ -316,6 +316,8 @@ SCM_API SCM scm_port_column (SCM port);
 SCM_API SCM scm_set_port_column_x (SCM port, SCM line);
 SCM_API SCM scm_port_filename (SCM port);
 SCM_API SCM scm_set_port_filename_x (SCM port, SCM filename);
+SCM_INTERNAL SCM scm_i_port_alist (SCM port);
+SCM_INTERNAL void scm_i_set_port_alist_x (SCM port, SCM alist);
 SCM_INTERNAL const char *scm_i_default_port_encoding (void);
 SCM_INTERNAL void scm_i_set_default_port_encoding (const char *);
 SCM_INTERNAL void scm_i_set_port_encoding_x (SCM port, const char *str);

@@ -2143,9 +2143,9 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
 /* Per-port read options.
 
    We store per-port read options in the 'port-read-options' key of the
-   port's alist, which is stored in 'scm_i_port_weak_hash'.  The value
-   stored in the alist is a single integer that contains a two-bit field
-   for each read option.
+   port's alist, which is stored in the internal port structure.  The
+   value stored in the alist is a single integer that contains a two-bit
+   field for each read option.
 
    If a bit field contains READ_OPTION_INHERIT (3), that indicates that
    the applicable value should be inherited from the corresponding
@@ -2184,8 +2184,7 @@ set_port_read_option (SCM port, int option, int new_value)
   unsigned int read_options;
 
   new_value &= READ_OPTION_MASK;
-  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
-  alist = scm_hashq_ref (scm_i_port_weak_hash, port, SCM_BOOL_F);
+  alist = scm_i_port_alist (port);
   scm_read_options = scm_assq_ref (alist, sym_port_read_options);
   if (scm_is_unsigned_integer (scm_read_options, 0, READ_OPTIONS_MAX_VALUE))
     read_options = scm_to_uint (scm_read_options);
@@ -2195,8 +2194,7 @@ set_port_read_option (SCM port, int option, int new_value)
   read_options |= new_value << option;
   scm_read_options = scm_from_uint (read_options);
   alist = scm_assq_set_x (alist, sym_port_read_options, scm_read_options);
-  scm_hashq_set_x (scm_i_port_weak_hash, port, alist);
-  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
+  scm_i_set_port_alist_x (port, alist);
 }
 
 /* Set OPTS and PORT's case-insensitivity according to VALUE. */
@@ -2234,10 +2232,8 @@ init_read_options (SCM port, scm_t_read_opts *opts)
   SCM alist, val, scm_read_options;
   unsigned int read_options, x;
 
-  scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
-  alist = scm_hashq_ref (scm_i_port_weak_hash, port, SCM_BOOL_F);
+  alist = scm_i_port_alist (port);
   scm_read_options = scm_assq_ref (alist, sym_port_read_options);
-  scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
 
   if (scm_is_unsigned_integer (scm_read_options, 0, READ_OPTIONS_MAX_VALUE))
     read_options = scm_to_uint (scm_read_options);

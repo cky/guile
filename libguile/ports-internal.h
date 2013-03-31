@@ -48,6 +48,7 @@ struct scm_port_internal
 {
   scm_t_port_encoding_mode encoding_mode;
   scm_t_iconv_descriptors *iconv_descriptors;
+  SCM alist;
 };
 
 typedef struct scm_port_internal scm_t_port_internal;

@@ -241,6 +241,18 @@ scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM))
   scm_ptobs[SCM_TC2PTOBNUM (tc)].input_waiting = input_waiting;
 }
 
+SCM
+scm_i_port_alist (SCM port)
+{
+  return SCM_PORT_GET_INTERNAL (port)->alist;
+}
+
+void
+scm_i_set_port_alist_x (SCM port, SCM alist)
+{
+  SCM_PORT_GET_INTERNAL (port)->alist = alist;
+}
+
 
 
 SCM_DEFINE (scm_char_ready_p, "char-ready?", 0, 1, 0, 
@@ -538,8 +550,7 @@ scm_i_dynwind_current_load_port (SCM port)
 
 /*
   We need a global registry of ports to flush them all at exit, and to
-  get all the ports matching a file descriptor.  The associated values
-  are alists, where additional information can be associated with ports.
+  get all the ports matching a file descriptor.
  */
 SCM scm_i_port_weak_hash;
 
@@ -634,10 +645,12 @@ scm_new_port_table_entry (scm_t_bits tag)
   entry->input_cd = pti;   /* XXX pointer to the internal port structure */
   entry->output_cd = NULL; /* XXX unused */
 
+  pti->alist = SCM_EOL;
+
   SCM_SET_CELL_TYPE (z, tag);
   SCM_SETPTAB_ENTRY (z, entry);
 
-  scm_hashq_set_x (scm_i_port_weak_hash, z, SCM_EOL);
+  scm_hashq_set_x (scm_i_port_weak_hash, z, SCM_BOOL_F);
 
   /* For each new port, register a finalizer so that it port type's free
      function can be invoked eventually.  */
