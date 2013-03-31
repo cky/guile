@@ -25,16 +25,36 @@
 #include "libguile/_scm.h"
 #include "libguile/ports.h"
 
-struct scm_port_internal
+enum scm_port_encoding_mode {
+  SCM_PORT_ENCODING_MODE_UTF8,
+  SCM_PORT_ENCODING_MODE_ICONV
+};
+
+typedef enum scm_port_encoding_mode scm_t_port_encoding_mode;
+
+/* This is a separate object so that only those ports that use iconv
+   cause finalizers to be registered (FIXME: although currently in 2.0
+   finalizers are always registered for ports anyway).  */
+struct scm_iconv_descriptors
 {
   /* input/output iconv conversion descriptors */
   void *input_cd;
   void *output_cd;
 };
 
+typedef struct scm_iconv_descriptors scm_t_iconv_descriptors;
+
+struct scm_port_internal
+{
+  scm_t_port_encoding_mode encoding_mode;
+  scm_t_iconv_descriptors *iconv_descriptors;
+};
+
 typedef struct scm_port_internal scm_t_port_internal;
 
 #define SCM_PORT_GET_INTERNAL(x)                                \
   ((scm_t_port_internal *) (SCM_PTAB_ENTRY(x)->input_cd))
+
+SCM_INTERNAL scm_t_iconv_descriptors *scm_i_port_iconv_descriptors (SCM port);
 
 #endif
