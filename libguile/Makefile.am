@@ -1,6 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+##   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007,
+##     2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -455,7 +456,7 @@ noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  srfi-14.i.c					\
                  quicksort.i.c                                  \
                  win32-uname.h					\
-		 private-gc.h private-options.h
+		 private-gc.h private-options.h ports-internal.h
 
 # vm instructions
 noinst_HEADERS += vm-engine.c vm-i-system.c vm-i-scheme.c vm-i-loader.c

@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
+ *   2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -55,6 +55,7 @@
 #include "libguile/mallocs.h"
 #include "libguile/validate.h"
 #include "libguile/ports.h"
+#include "libguile/ports-internal.h"
 #include "libguile/vectors.h"
 #include "libguile/weaks.h"
 #include "libguile/fluids.h"
@@ -576,7 +577,7 @@ finalize_port (void *ptr, void *data)
 	register_finalizer_for_port (port);
       else
 	{
-	  scm_t_port *entry;
+          scm_t_port_internal *pti;
 
 	  port_type = SCM_TC2PTOBNUM (SCM_CELL_TYPE (port));
 	  if (port_type >= scm_numptob)
@@ -587,12 +588,12 @@ finalize_port (void *ptr, void *data)
 	       is for explicit `close-port' by user.  */
 	    scm_ptobs[port_type].free (port);
 
-	  entry = SCM_PTAB_ENTRY (port);
+	  pti = SCM_PORT_GET_INTERNAL (port);
 
-	  if (entry->input_cd != (iconv_t) -1)
-	    iconv_close (entry->input_cd);
-	  if (entry->output_cd != (iconv_t) -1)
-	    iconv_close (entry->output_cd);
+	  if (pti->input_cd != (iconv_t) -1)
+	    iconv_close (pti->input_cd);
+	  if (pti->output_cd != (iconv_t) -1)
+	    iconv_close (pti->output_cd);
 
 	  SCM_SETSTREAM (port, 0);
 	  SCM_CLR_PORT_OPEN_FLAG (port);
@@ -617,7 +618,8 @@ scm_new_port_table_entry (scm_t_bits tag)
    */
   
   SCM z = scm_cons (SCM_EOL, SCM_EOL);
-  scm_t_port *entry = (scm_t_port *) scm_gc_calloc (sizeof (scm_t_port), "port");
+  scm_t_port *entry = scm_gc_typed_calloc (scm_t_port);
+  scm_t_port_internal *pti = scm_gc_typed_calloc (scm_t_port_internal);
   const char *enc;
 
   entry->file_name = SCM_BOOL_F;
@@ -630,10 +632,16 @@ scm_new_port_table_entry (scm_t_bits tag)
   entry->encoding = enc ? scm_gc_strdup (enc, "port") : NULL;
 
   /* The conversion descriptors will be opened lazily.  */
-  entry->input_cd = (iconv_t) -1;
-  entry->output_cd = (iconv_t) -1;
+  pti->input_cd = (iconv_t) -1;
+  pti->output_cd = (iconv_t) -1;
 
   entry->ilseq_handler = scm_i_default_port_conversion_handler ();
+
+  /* XXX These fields are not what they seem.  They have been
+     repurposed, but cannot safely be renamed in 2.0 without breaking
+     ABI compatibility.  This will be cleaned up in 2.2.  */
+  entry->input_cd = pti;   /* XXX pointer to the internal port structure */
+  entry->output_cd = NULL; /* XXX unused */
 
   SCM_SET_CELL_TYPE (z, tag);
   SCM_SETPTAB_ENTRY (z, entry);
@@ -678,24 +686,26 @@ scm_i_remove_port (SCM port)
 #define FUNC_NAME "scm_remove_port"
 {
   scm_t_port *p;
+  scm_t_port_internal *pti;
 
   scm_i_scm_pthread_mutex_lock (&scm_i_port_table_mutex);
 
   p = SCM_PTAB_ENTRY (port);
+  pti = SCM_PORT_GET_INTERNAL (port);
   scm_port_non_buffer (p);
   p->putback_buf = NULL;
   p->putback_buf_size = 0;
 
-  if (p->input_cd != (iconv_t) -1)
+  if (pti->input_cd != (iconv_t) -1)
     {
-      iconv_close (p->input_cd);
-      p->input_cd = (iconv_t) -1;
+      iconv_close (pti->input_cd);
+      pti->input_cd = (iconv_t) -1;
     }
   
-  if (p->output_cd != (iconv_t) -1)
+  if (pti->output_cd != (iconv_t) -1)
     {
-      iconv_close (p->output_cd);
-      p->output_cd = (iconv_t) -1;
+      iconv_close (pti->output_cd);
+      pti->output_cd = (iconv_t) -1;
     }
 
   SCM_SETPTAB_ENTRY (port, 0);
@@ -1296,13 +1306,13 @@ static int
 get_iconv_codepoint (SCM port, scm_t_wchar *codepoint,
 		     char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 {
-  scm_t_port *pt;
+  scm_t_port_internal *pti;
   int err, byte_read;
   size_t bytes_consumed, output_size;
   char *output;
   scm_t_uint8 utf8_buf[SCM_MBCHAR_BUF_SIZE];
 
-  pt = SCM_PTAB_ENTRY (port);
+  pti = SCM_PORT_GET_INTERNAL (port);
 
   for (output_size = 0, output = (char *) utf8_buf,
 	 bytes_consumed = 0, err = 0;
@@ -1332,7 +1342,7 @@ get_iconv_codepoint (SCM port, scm_t_wchar *codepoint,
       input_left = bytes_consumed + 1;
       output_left = sizeof (utf8_buf);
 
-      done = iconv (pt->input_cd, &input, &input_left,
+      done = iconv (pti->input_cd, &input, &input_left,
 		    &output, &output_left);
       if (done == (size_t) -1)
 	{
@@ -1368,13 +1378,14 @@ get_codepoint (SCM port, scm_t_wchar *codepoint,
 {
   int err;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_port_internal *pti = SCM_PORT_GET_INTERNAL (port);
 
-  if (pt->input_cd == (iconv_t) -1)
+  if (pti->input_cd == (iconv_t) -1)
     /* Initialize the conversion descriptors, if needed.  */
     scm_i_set_port_encoding_x (port, pt->encoding);
 
   /* FIXME: In 2.1, add a flag to determine whether a port is UTF-8.  */
-  if (pt->input_cd == (iconv_t) -1)
+  if (pti->input_cd == (iconv_t) -1)
     err = get_utf8_codepoint (port, codepoint, (scm_t_uint8 *) buf, len);
   else
     err = get_iconv_codepoint (port, codepoint, buf, len);
@@ -2208,6 +2219,7 @@ void
 scm_i_set_port_encoding_x (SCM port, const char *encoding)
 {
   scm_t_port *pt;
+  scm_t_port_internal *pti;
   iconv_t new_input_cd, new_output_cd;
 
   new_input_cd = (iconv_t) -1;
@@ -2215,6 +2227,7 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
 
   /* Set the character encoding for this port.  */
   pt = SCM_PTAB_ENTRY (port);
+  pti = SCM_PORT_GET_INTERNAL (port);
 
   if (encoding == NULL)
     encoding = "ISO-8859-1";
@@ -2251,13 +2264,13 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
 	}
     }
 
-  if (pt->input_cd != (iconv_t) -1)
-    iconv_close (pt->input_cd);
-  if (pt->output_cd != (iconv_t) -1)
-    iconv_close (pt->output_cd);
+  if (pti->input_cd != (iconv_t) -1)
+    iconv_close (pti->input_cd);
+  if (pti->output_cd != (iconv_t) -1)
+    iconv_close (pti->output_cd);
 
-  pt->input_cd = new_input_cd;
-  pt->output_cd = new_output_cd;
+  pti->input_cd = new_input_cd;
+  pti->output_cd = new_output_cd;
 
   return;
 

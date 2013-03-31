@@ -1,5 +1,5 @@
 /* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,6 +45,7 @@
 #include "libguile/alist.h"
 #include "libguile/struct.h"
 #include "libguile/ports.h"
+#include "libguile/ports-internal.h"
 #include "libguile/root.h"
 #include "libguile/strings.h"
 #include "libguile/strports.h"
@@ -879,9 +880,9 @@ display_string_using_iconv (const void *str, int narrow_p, size_t len,
 			    scm_t_string_failed_conversion_handler strategy)
 {
   size_t printed;
-  scm_t_port *pt;
+  scm_t_port_internal *pti;
 
-  pt = SCM_PTAB_ENTRY (port);
+  pti = SCM_PORT_GET_INTERNAL (port);
 
   printed = 0;
 
@@ -910,7 +911,7 @@ display_string_using_iconv (const void *str, int narrow_p, size_t len,
       output = encoded_output;
       output_left = sizeof (encoded_output);
 
-      done = iconv (pt->output_cd, &input, &input_left,
+      done = iconv (pti->output_cd, &input, &input_left,
 		    &output, &output_left);
 
       output_len = sizeof (encoded_output) - output_left;
@@ -920,7 +921,7 @@ display_string_using_iconv (const void *str, int narrow_p, size_t len,
           int errno_save = errno;
 
 	  /* Reset the `iconv' state.  */
-	  iconv (pt->output_cd, NULL, NULL, NULL, NULL);
+	  iconv (pti->output_cd, NULL, NULL, NULL, NULL);
 
 	  /* Print the OUTPUT_LEN bytes successfully converted.  */
 	  scm_lfwrite (encoded_output, output_len, port);
@@ -981,15 +982,17 @@ display_string (const void *str, int narrow_p,
 
 {
   scm_t_port *pt;
+  scm_t_port_internal *pti;
 
   pt = SCM_PTAB_ENTRY (port);
+  pti = SCM_PORT_GET_INTERNAL (port);
 
-  if (pt->output_cd == (iconv_t) -1)
+  if (pti->output_cd == (iconv_t) -1)
     /* Initialize the conversion descriptors, if needed.  */
     scm_i_set_port_encoding_x (port, pt->encoding);
 
   /* FIXME: In 2.1, add a flag to determine whether a port is UTF-8.  */
-  if (pt->output_cd == (iconv_t) -1)
+  if (pti->output_cd == (iconv_t) -1)
     return display_string_as_utf8 (str, narrow_p, len, port);
   else
     return display_string_using_iconv (str, narrow_p, len,

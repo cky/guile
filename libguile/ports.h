@@ -3,8 +3,8 @@
 #ifndef SCM_PORTS_H
 #define SCM_PORTS_H
 
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
- *   2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
+ *   2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -112,9 +112,22 @@ typedef struct
   unsigned char *putback_buf;
   size_t putback_buf_size;        /* allocated size of putback_buf.  */
 
-  /* input/output iconv conversion descriptors */
-  void *input_cd;
-  void *output_cd;
+  /* IMPORTANT: 'input_cd' and 'output_cd' used to be pointers to the
+     input and output iconv descriptors, but those have been moved to
+     the internal-only port structure defined in ports-internal.h.
+
+     Given that we must preserve ABI compatibility in 2.0, we cannot
+     safely change this public structure without running afoul of C
+     strict aliasing rules.  We cannot even change the member names.
+
+     To work around this, in this public structure, 'input_cd' has been
+     repurposed to be a pointer to the internal port structure (see
+     ports-internal.h), and 'output_cd' is now unused.
+
+     This will be cleaned up in 2.2.  */
+
+  void *input_cd;   /* XXX actually a pointer to scm_t_port_internal */
+  void *output_cd;  /* XXX actually unused */
 } scm_t_port;
 
 
