@@ -241,6 +241,18 @@ scm_set_port_input_waiting (scm_t_bits tc, int (*input_waiting) (SCM))
   scm_ptobs[SCM_TC2PTOBNUM (tc)].input_waiting = input_waiting;
 }
 
+static void
+scm_i_set_pending_eof (SCM port)
+{
+  SCM_PORT_GET_INTERNAL (port)->pending_eof = 1;
+}
+
+static void
+scm_i_clear_pending_eof (SCM port)
+{
+  SCM_PORT_GET_INTERNAL (port)->pending_eof = 0;
+}
+
 SCM
 scm_i_port_alist (SCM port)
 {
@@ -645,6 +657,7 @@ scm_new_port_table_entry (scm_t_bits tag)
   entry->input_cd = pti;   /* XXX pointer to the internal port structure */
   entry->output_cd = NULL; /* XXX unused */
 
+  pti->pending_eof = 0;
   pti->alist = SCM_EOL;
 
   SCM_SET_CELL_TYPE (z, tag);
@@ -1326,8 +1339,11 @@ get_iconv_codepoint (SCM port, scm_t_wchar *codepoint,
               return 0;
             }
           else
-            /* EOF found in the middle of a multibyte character. */
-            return EILSEQ;
+            {
+              /* EOF found in the middle of a multibyte character. */
+              scm_i_set_pending_eof (port);
+              return EILSEQ;
+            }
 	}
 
       buf[input_size++] = byte_read;
@@ -1431,8 +1447,15 @@ static int
 scm_i_fill_input (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  scm_t_port_internal *pti = SCM_PORT_GET_INTERNAL (port);
 
   assert (pt->read_pos == pt->read_end);
+
+  if (pti->pending_eof)
+    {
+      pti->pending_eof = 0;
+      return EOF;
+    }
 
   if (pt->read_buf == pt->putback_buf)
     {
@@ -1489,7 +1512,10 @@ scm_slow_peek_byte_or_eof (SCM port)
   if (pt->read_pos >= pt->read_end)
     {
       if (SCM_UNLIKELY (scm_i_fill_input (port) == EOF))
-	return EOF;
+        {
+          scm_i_set_pending_eof (port);
+          return EOF;
+        }
     }
 
   return *pt->read_pos;
@@ -1721,6 +1747,7 @@ scm_end_input (SCM port)
   long offset;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
+  scm_i_clear_pending_eof (port);
   if (pt->read_buf == pt->putback_buf)
     {
       offset = pt->read_end - pt->read_pos;
@@ -1744,6 +1771,7 @@ scm_unget_byte (int c, SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
+  scm_i_clear_pending_eof (port);
   if (pt->read_buf == pt->putback_buf)
     /* already using the put-back buffer.  */
     {
@@ -1915,7 +1943,10 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
       result = SCM_BOOL_F;
     }
   else if (c == EOF)
-    result = SCM_EOF_VAL;
+    {
+      scm_i_set_pending_eof (port);
+      result = SCM_EOF_VAL;
+    }
   else
     result = SCM_MAKE_CHAR (c);
 
@@ -2014,7 +2045,10 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 	SCM_MISC_ERROR ("port is not seekable", 
                         scm_cons (fd_port, SCM_EOL));
       else
-	rv = ptob->seek (fd_port, off, how);
+        {
+          scm_i_clear_pending_eof (fd_port);
+          rv = ptob->seek (fd_port, off, how);
+        }
       return scm_from_off_t_or_off64_t (rv);
     }
   else /* file descriptor?.  */
@@ -2103,14 +2137,16 @@ SCM_DEFINE (scm_truncate_file, "truncate-file", 1, 1, 0,
       off_t_or_off64_t c_length = scm_to_off_t_or_off64_t (length);
       scm_t_port *pt = SCM_PTAB_ENTRY (object);
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (object);
-      
+
       if (!ptob->truncate)
 	SCM_MISC_ERROR ("port is not truncatable", SCM_EOL);
+
+      scm_i_clear_pending_eof (object);
       if (pt->rw_active == SCM_PORT_READ)
 	scm_end_input (object);
       else if (pt->rw_active == SCM_PORT_WRITE)
 	ptob->flush (object);
-      
+
       ptob->truncate (object, c_length);
       rv = 0;
     }

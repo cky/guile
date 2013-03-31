@@ -1110,6 +1110,90 @@
 		(char-ready?))))))
 
 
+;;;; pending-eof behavior
+
+(with-test-prefix "pending EOF behavior"
+  ;; Make a test port that will produce the given sequence.  Each
+  ;; element of 'lst' may be either a character or #f (which means EOF).
+  (define (test-soft-port . lst)
+    (make-soft-port
+     (vector (lambda (c) #f)            ; write char
+             (lambda (s) #f)            ; write string
+             (lambda () #f)             ; flush
+             (lambda ()                 ; read char
+               (let ((c (car lst)))
+                 (set! lst (cdr lst))
+                 c))
+             (lambda () #f))            ; close
+     "rw"))
+
+  (define (call-with-port p proc)
+    (dynamic-wind
+      (lambda () #f)
+      (lambda () (proc p))
+      (lambda () (close-port p))))
+
+  (define (call-with-test-file str proc)
+    (let ((filename (test-file)))
+      (dynamic-wind
+        (lambda () (call-with-output-file filename
+                     (lambda (p) (display str p))))
+        (lambda () (call-with-input-file filename proc))
+        (lambda () (delete-file (test-file))))))
+
+  (pass-if "peek-char does not swallow EOF (soft port)"
+    (call-with-port (test-soft-port #\a #f #\b)
+      (lambda (p)
+        (and (char=? #\a  (peek-char p))
+             (char=? #\a  (read-char p))
+             (eof-object? (peek-char p))
+             (eof-object? (read-char p))
+             (char=? #\b  (peek-char p))
+             (char=? #\b  (read-char p))))))
+
+  (pass-if "unread clears pending EOF (soft port)"
+    (call-with-port (test-soft-port #\a #f #\b)
+      (lambda (p)
+        (and (char=? #\a  (read-char p))
+             (eof-object? (peek-char p))
+             (begin (unread-char #\u p)
+                    (char=? #\u  (read-char p)))))))
+
+  (pass-if "unread clears pending EOF (string port)"
+    (call-with-input-string "a"
+      (lambda (p)
+        (and (char=? #\a  (read-char p))
+             (eof-object? (peek-char p))
+             (begin (unread-char #\u p)
+                    (char=? #\u  (read-char p)))))))
+
+  (pass-if "unread clears pending EOF (file port)"
+    (call-with-test-file
+     "a"
+     (lambda (p)
+       (and (char=? #\a  (read-char p))
+            (eof-object? (peek-char p))
+            (begin (unread-char #\u p)
+                   (char=? #\u  (read-char p)))))))
+
+  (pass-if "seek clears pending EOF (string port)"
+    (call-with-input-string "a"
+      (lambda (p)
+        (and (char=? #\a  (read-char p))
+             (eof-object? (peek-char p))
+             (begin (seek p 0 SEEK_SET)
+                    (char=? #\a (read-char p)))))))
+
+  (pass-if "seek clears pending EOF (file port)"
+    (call-with-test-file
+     "a"
+     (lambda (p)
+       (and (char=? #\a  (read-char p))
+            (eof-object? (peek-char p))
+            (begin (seek p 0 SEEK_SET)
+                   (char=? #\a (read-char p))))))))
+
+
 ;;;; Close current-input-port, and make sure everyone can handle it.
 
 (with-test-prefix "closing current-input-port"
