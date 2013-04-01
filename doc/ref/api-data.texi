@@ -3148,7 +3148,7 @@ placed between the strings, and defaults to the symbol
 @item infix
 Insert the separator between list elements.  An empty string
 will produce an empty list.
-@item string-infix
+@item strict-infix
 Like @code{infix}, but will raise an error if given the empty
 list.
 @item suffix

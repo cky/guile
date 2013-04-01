@@ -384,7 +384,7 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
 	    "@item infix\n"
 	    "Insert the separator between list elements.  An empty string\n"
 	    "will produce an empty list.\n"
-	    "@item string-infix\n"
+	    "@item strict-infix\n"
 	    "Like @code{infix}, but will raise an error if given the empty\n"
 	    "list.\n"
 	    "@item suffix\n"
