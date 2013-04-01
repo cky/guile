@@ -163,30 +163,6 @@
            (equal? (bytevector->u8-list bv)
                    (map char->integer (string->list str))))))
 
-  (pass-if "get-bytevector-some [only-some]"
-    (let* ((str   "GNU Guile")
-           (index 0)
-           (port  (make-soft-port
-                   (vector #f #f #f
-                           (lambda ()
-                             (if (>= index (string-length str))
-                                 (eof-object)
-                                 (let ((c (string-ref str index)))
-                                   (set! index (+ index 1))
-                                   c)))
-                           (lambda () #t)
-                           (lambda ()
-                             ;; Number of readily available octets: falls to
-                             ;; zero after 4 octets have been read.
-                             (- 4 (modulo index 5))))
-                   "r"))
-           (bv    (get-bytevector-some port)))
-      (and (bytevector? bv)
-           (= index 4)
-           (= (bytevector-length bv) index)
-           (equal? (bytevector->u8-list bv)
-                   (map char->integer (string->list "GNU "))))))
-
   (pass-if "get-bytevector-all"
     (let* ((str   "GNU Guile")
            (index 0)

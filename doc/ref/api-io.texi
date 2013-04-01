@@ -1833,9 +1833,10 @@ actually read or the end-of-file object.
 
 @deffn {Scheme Procedure} get-bytevector-some port
 @deffnx {C Function} scm_get_bytevector_some (port)
-Read from @var{port}, blocking as necessary, until data are available or
-and end-of-file is reached.  Return either a new bytevector containing
-the data read or the end-of-file object.
+Read from @var{port}, blocking as necessary, until bytes are available
+or an end-of-file is reached.  Return either the end-of-file object or a
+new bytevector containing some of the available bytes (at least one),
+and update the port position to point just past these bytes.
 @end deffn
 
 @deffn {Scheme Procedure} get-bytevector-all port
