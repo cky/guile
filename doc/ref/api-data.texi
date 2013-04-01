@@ -4222,7 +4222,7 @@ Unlike the rest of the procedures in this section, you have to load the
 (use-modules (ice-9 iconv))
 @end example
 
-@deffn string->bytevector string encoding [conversion-strategy]
+@deffn {Scheme Procedure} string->bytevector string encoding [conversion-strategy]
 Encode @var{string} as a sequence of bytes.
 
 The string will be encoded in the character set specified by the
@@ -4236,7 +4236,7 @@ bytevectors.  @xref{Ports}, for more on character encodings and
 conversion strategies.
 @end deffn
 
-@deffn bytevector->string bytevector encoding [conversion-strategy]
+@deffn {Scheme Procedure} bytevector->string bytevector encoding [conversion-strategy]
 Decode @var{bytevector} into a string.
 
 The bytes will be decoded from the character set by the @var{encoding}
@@ -4247,7 +4247,7 @@ argument to modify this behavior.  @xref{Ports}, for more on character
 encodings and conversion strategies.
 @end deffn
 
-@deffn call-with-output-encoded-string encoding proc [conversion-strategy]
+@deffn {Scheme Procedure} call-with-output-encoded-string encoding proc [conversion-strategy]
 Like @code{call-with-output-string}, but instead of returning a string,
 returns a encoding of the string according to @var{encoding}, as a
 bytevector.  This procedure can be more efficient than collecting a
