@@ -1401,7 +1401,8 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
 #define FUNC_NAME s_scm_string_append
 {
   SCM res;
-  size_t len = 0;
+  size_t total = 0;
+  size_t len;
   int wide = 0;
   SCM l, s;
   size_t i;
@@ -1416,15 +1417,18 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
     {
       s = SCM_CAR (l);
       SCM_VALIDATE_STRING (SCM_ARGn, s);
-      len += scm_i_string_length (s);
+      len = scm_i_string_length (s);
+      if (((size_t) -1) - total < len)
+        scm_num_overflow (s_scm_string_append);
+      total += len;
       if (!scm_i_is_narrow_string (s))
         wide = 1;
     }
   data.narrow = NULL;
   if (!wide)
-    res = scm_i_make_string (len, &data.narrow, 0);
+    res = scm_i_make_string (total, &data.narrow, 0);
   else
-    res = scm_i_make_wide_string (len, &data.wide, 0);
+    res = scm_i_make_wide_string (total, &data.wide, 0);
 
   for (l = args; !scm_is_null (l); l = SCM_CDR (l))
     {
@@ -1432,6 +1436,8 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
       s = SCM_CAR (l);
       SCM_VALIDATE_STRING (SCM_ARGn, s);
       len = scm_i_string_length (s);
+      if (len > total)
+        SCM_MISC_ERROR ("list changed during string-append", SCM_EOL);
       if (!wide)
         {
           memcpy (data.narrow, scm_i_string_chars (s), len);
@@ -1441,16 +1447,20 @@ SCM_DEFINE (scm_string_append, "string-append", 0, 0, 1,
         {
           if (scm_i_is_narrow_string (s))
             {
-              for (i = 0; i < scm_i_string_length (s); i++)
-                data.wide[i] = (unsigned char) scm_i_string_chars (s)[i];
+              const char *src = scm_i_string_chars (s);
+              for (i = 0; i < len; i++)
+                data.wide[i] = (unsigned char) src[i];
             }
           else
             u32_cpy ((scm_t_uint32 *) data.wide,
                      (scm_t_uint32 *) scm_i_string_wide_chars (s), len);
           data.wide += len;
         }
+      total -= len;
       scm_remember_upto_here_1 (s);
     }
+  if (total != 0)
+    SCM_MISC_ERROR ("list changed during string-append", SCM_EOL);
   return res;
 }
 #undef FUNC_NAME
