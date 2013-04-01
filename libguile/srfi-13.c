@@ -439,8 +439,9 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
     {
       SCM *last_cdr_p = &append_list;
 
-#define ADD_TO_APPEND_LIST(x) \
-  (last_cdr_p = SCM_CDRLOC (*last_cdr_p = scm_list_1 (x)))
+#define ADD_TO_APPEND_LIST(x)                   \
+      ((*last_cdr_p = scm_list_1 (x)),          \
+       (last_cdr_p = SCM_CDRLOC (*last_cdr_p)))
 
       /* Build a list of strings to pass to 'string-append'.
          Here we assume that 'ls' has at least one element. */
