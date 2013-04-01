@@ -1,5 +1,6 @@
-/* Copyright (C) 1996,1998,2000,2001,2004,2005, 2006, 2008, 2009, 2010, 2012 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1996, 1998, 2000, 2001, 2004, 2005, 2006, 2008, 2009,
+ *   2010, 2012, 2013 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -350,21 +351,29 @@ scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 #undef FUNC_NAME
 
 
-
-static int 
+static int
 racp (SCM src, SCM dst)
 {
   long n = (SCM_I_ARRAY_DIMS (src)->ubnd - SCM_I_ARRAY_DIMS (src)->lbnd + 1);
-  long inc_d, inc_s = SCM_I_ARRAY_DIMS (src)->inc;
-  unsigned long i_d, i_s = SCM_I_ARRAY_BASE (src);
+  scm_t_array_handle h_s, h_d;
+  size_t i_s, i_d;
+  ssize_t inc_s, inc_d;
+
   dst = SCM_CAR (dst);
-  inc_d = SCM_I_ARRAY_DIMS (dst)->inc;
-  i_d = SCM_I_ARRAY_BASE (dst);
-  src = SCM_I_ARRAY_V (src);
-  dst = SCM_I_ARRAY_V (dst);
+  scm_generalized_vector_get_handle (SCM_I_ARRAY_V (src), &h_s);
+  scm_generalized_vector_get_handle (SCM_I_ARRAY_V (dst), &h_d);
+
+  i_s = h_s.base + h_s.dims[0].lbnd + SCM_I_ARRAY_BASE (src) * h_s.dims[0].inc;
+  i_d = h_d.base + h_d.dims[0].lbnd + SCM_I_ARRAY_BASE (dst) * h_d.dims[0].inc;
+  inc_s = SCM_I_ARRAY_DIMS (src)->inc * h_s.dims[0].inc;
+  inc_d = SCM_I_ARRAY_DIMS (dst)->inc * h_d.dims[0].inc;
 
   for (; n-- > 0; i_s += inc_s, i_d += inc_d)
-    GVSET (dst, i_d, GVREF (src, i_s));
+    h_d.impl->vset (&h_d, i_d, h_s.impl->vref (&h_s, i_s));
+
+  scm_array_handle_release (&h_d);
+  scm_array_handle_release (&h_s);
+
   return 1;
 }
 
