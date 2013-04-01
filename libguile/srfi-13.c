@@ -394,91 +394,84 @@ SCM_DEFINE (scm_string_join, "string-join", 1, 2, 0,
 	    "@end table")
 #define FUNC_NAME s_scm_string_join
 {
-#define GRAM_INFIX        0
-#define GRAM_STRICT_INFIX 1
-#define GRAM_SUFFIX       2
-#define GRAM_PREFIX       3
-  SCM tmp;
-  SCM result;
-  int gram = GRAM_INFIX;
-  size_t del_len = 0;
-  long strings = scm_ilength (ls);
+  SCM append_list = SCM_EOL;
+  long list_len = scm_ilength (ls);
+  size_t delimiter_len = 0;
 
   /* Validate the string list.  */
-  if (strings < 0)
+  if (list_len < 0)
     SCM_WRONG_TYPE_ARG (1, ls);
 
   /* Validate the delimiter and record its length.  */
   if (SCM_UNBNDP (delimiter))
     {
       delimiter = scm_from_locale_string (" ");
-      del_len = 1;
+      delimiter_len = 1;
     }
   else
     {
       SCM_VALIDATE_STRING (2, delimiter);
-      del_len = scm_i_string_length (delimiter);
+      delimiter_len = scm_i_string_length (delimiter);
     }
 
-  /* Validate the grammar symbol and remember the grammar.  */
+  /* Validate the grammar symbol.  */
   if (SCM_UNBNDP (grammar))
-    gram = GRAM_INFIX;
-  else if (scm_is_eq (grammar, scm_sym_infix))
-    gram = GRAM_INFIX;
-  else if (scm_is_eq (grammar, scm_sym_strict_infix))
-    gram = GRAM_STRICT_INFIX;
-  else if (scm_is_eq (grammar, scm_sym_suffix))
-    gram = GRAM_SUFFIX;
-  else if (scm_is_eq (grammar, scm_sym_prefix))
-    gram = GRAM_PREFIX;
-  else
+    grammar = scm_sym_infix;
+  else if (!(scm_is_eq (grammar, scm_sym_infix)
+             || scm_is_eq (grammar, scm_sym_strict_infix)
+             || scm_is_eq (grammar, scm_sym_suffix)
+             || scm_is_eq (grammar, scm_sym_prefix)))
     SCM_WRONG_TYPE_ARG (3, grammar);
 
-  /* Check grammar constraints.  */
-  if (strings == 0 && gram == GRAM_STRICT_INFIX)
-    SCM_MISC_ERROR ("strict-infix grammar requires non-empty list",
-		    SCM_EOL);
-
-  result = scm_i_make_string (0, NULL, 0);
-
-  tmp = ls;
-  switch (gram)
+  if (list_len == 0)
     {
-    case GRAM_INFIX:
-    case GRAM_STRICT_INFIX:
-      while (scm_is_pair (tmp))
-	{
-	  result = scm_string_append (scm_list_2 (result, SCM_CAR (tmp)));
-	  if (!scm_is_null (SCM_CDR (tmp)) && del_len > 0)
-	    result = scm_string_append (scm_list_2 (result, delimiter));
-	  tmp = SCM_CDR (tmp);
-	}
-      break;
-    case GRAM_SUFFIX:
-      while (scm_is_pair (tmp))
-	{
-	  result = scm_string_append (scm_list_2 (result, SCM_CAR (tmp)));
-	  if (del_len > 0)
-	    result = scm_string_append (scm_list_2 (result, delimiter));
-	  tmp = SCM_CDR (tmp);
-	}
-      break;
-    case GRAM_PREFIX:
-      while (scm_is_pair (tmp))
-	{
-	  if (del_len > 0)
-	    result = scm_string_append (scm_list_2 (result, delimiter));
-	  result = scm_string_append (scm_list_2 (result, SCM_CAR (tmp)));
-	  tmp = SCM_CDR (tmp);
-	}
-      break;
+      if (scm_is_eq (grammar, scm_sym_strict_infix))
+        SCM_MISC_ERROR ("strict-infix grammar requires non-empty list",
+                        SCM_EOL);
+      else
+        /* Handle empty lists specially */
+        append_list = SCM_EOL;
+    }
+  else if (delimiter_len == 0)
+    /* Handle empty delimiters specially */
+    append_list = ls;
+  else
+    {
+      SCM *last_cdr_p = &append_list;
+
+#define ADD_TO_APPEND_LIST(x) \
+  (last_cdr_p = SCM_CDRLOC (*last_cdr_p = scm_list_1 (x)))
+
+      /* Build a list of strings to pass to 'string-append'.
+         Here we assume that 'ls' has at least one element. */
+
+      /* If using the 'prefix' grammar, start with the delimiter. */
+      if (scm_is_eq (grammar, scm_sym_prefix))
+        ADD_TO_APPEND_LIST (delimiter);
+
+      /* Handle the first element of 'ls' specially, so that in the loop
+         that follows we can unconditionally insert the delimiter before
+         every remaining element. */
+      ADD_TO_APPEND_LIST (SCM_CAR (ls));
+      ls = SCM_CDR (ls);
+
+      /* Insert the delimiter before every remaining element. */
+      while (scm_is_pair (ls))
+        {
+          ADD_TO_APPEND_LIST (delimiter);
+          ADD_TO_APPEND_LIST (SCM_CAR (ls));
+          ls = SCM_CDR (ls);
+        }
+
+      /* If using the 'suffix' grammar, add the delimiter to the end. */
+      if (scm_is_eq (grammar, scm_sym_suffix))
+        ADD_TO_APPEND_LIST (delimiter);
+
+#undef ADD_TO_APPEND_LIST
     }
 
-  return result;
-#undef GRAM_INFIX
-#undef GRAM_STRICT_INFIX
-#undef GRAM_SUFFIX
-#undef GRAM_PREFIX
+  /* Construct the final result. */
+  return scm_string_append (append_list);
 }
 #undef FUNC_NAME
 
