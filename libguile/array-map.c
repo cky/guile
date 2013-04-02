@@ -644,25 +644,31 @@ static int
 ramap (SCM ra0, SCM proc, SCM ras)
 {
   ssize_t i = SCM_I_ARRAY_DIMS (ra0)->lbnd;
+  size_t n = SCM_I_ARRAY_DIMS (ra0)->ubnd - i + 1;
 
-  size_t i0 = SCM_I_ARRAY_BASE (ra0);
-  ssize_t inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
-  size_t n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
-  size_t i0end = i0 + n*inc0;
-  ra0 = SCM_I_ARRAY_V (ra0);
+  scm_t_array_handle h0;
+  size_t i0, i0end;
+  ssize_t inc0;
+  scm_generalized_vector_get_handle (SCM_I_ARRAY_V (ra0), &h0);
+  i0 = h0.base + h0.dims[0].lbnd + SCM_I_ARRAY_BASE (ra0)*h0.dims[0].inc;
+  inc0 = SCM_I_ARRAY_DIMS (ra0)->inc * h0.dims[0].inc;
+  i0end = i0 + n*inc0;
   if (scm_is_null (ras))
     for (; i0 < i0end; i0 += inc0)
-      GVSET (ra0, i0, scm_call_0 (proc));
+      h0.impl->vset (&h0, i0, scm_call_0 (proc));
   else
     {
       SCM ra1 = SCM_CAR (ras);
-      size_t i1 = SCM_I_ARRAY_BASE (ra1);
-      ssize_t inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
-      ra1 = SCM_I_ARRAY_V (ra1);
+      scm_t_array_handle h1;
+      size_t i1;
+      ssize_t inc1;
+      scm_generalized_vector_get_handle (SCM_I_ARRAY_V (ra1), &h1);
+      i1 = h1.base + h1.dims[0].lbnd + SCM_I_ARRAY_BASE (ra1)*h1.dims[0].inc;
+      inc1 = SCM_I_ARRAY_DIMS (ra1)->inc * h1.dims[0].inc;
       ras = SCM_CDR (ras);
-      if (scm_is_null(ras))
+      if (scm_is_null (ras))
           for (; i0 < i0end; i0 += inc0, i1 += inc1)
-            GVSET (ra0, i0, scm_call_1 (proc, GVREF (ra1, i1)));
+            h0.impl->vset (&h0, i0, scm_call_1 (proc, h1.impl->vref (&h1, i1)));
       else
         {
           ras = scm_vector (ras);
@@ -672,10 +678,12 @@ ramap (SCM ra0, SCM proc, SCM ras)
               unsigned long k;
               for (k = scm_c_vector_length (ras); k--;)
                 args = scm_cons (GVREF (scm_c_vector_ref (ras, k), i), args);
-              GVSET (ra0, i0, scm_apply_1 (proc, GVREF (ra1, i1), args));
+              h0.impl->vset (&h0, i0, scm_apply_1 (proc, h1.impl->vref (&h1, i1), args));
             }
         }
+      scm_array_handle_release (&h1);
     }
+  scm_array_handle_release (&h0);
   return 1;
 }
 
