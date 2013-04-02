@@ -102,7 +102,7 @@ scm_get_byte_or_eof (SCM port)
                   && pt->read_pos < pt->read_end))
     return *pt->read_pos++;
   else
-    return scm_i_get_byte_or_eof (port);
+    return scm_slow_get_byte_or_eof (port);
 }
 
 /* Like `scm_get_byte_or_eof' but does not change PORT's `read_pos'.  */
@@ -115,7 +115,7 @@ scm_peek_byte_or_eof (SCM port)
                   && pt->read_pos < pt->read_end))
     return *pt->read_pos;
   else
-    return scm_i_peek_byte_or_eof (port);
+    return scm_slow_peek_byte_or_eof (port);
 }
 
 SCM_INLINE_IMPLEMENTATION void

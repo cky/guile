@@ -1455,7 +1455,7 @@ scm_fill_input (SCM port)
 
 /* Slow-path fallback for 'scm_get_byte_or_eof' in inline.h */
 int
-scm_i_get_byte_or_eof (SCM port)
+scm_slow_get_byte_or_eof (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
@@ -1476,7 +1476,7 @@ scm_i_get_byte_or_eof (SCM port)
 
 /* Slow-path fallback for 'scm_peek_byte_or_eof' in inline.h */
 int
-scm_i_peek_byte_or_eof (SCM port)
+scm_slow_peek_byte_or_eof (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
