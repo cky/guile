@@ -2266,7 +2266,7 @@ scm_i_default_port_encoding (void)
 }
 
 static void
-finalize_iconv_descriptors (GC_PTR ptr, GC_PTR data)
+finalize_iconv_descriptors (void *ptr, void *data)
 {
   close_iconv_descriptors (ptr);
 }
