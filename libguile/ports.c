@@ -1419,8 +1419,8 @@ scm_getc (SCM port)
 /* this should only be called when the read buffer is empty.  it
    tries to refill the read buffer.  it returns the first char from
    the port, which is either EOF or *(pt->read_pos).  */
-int
-scm_fill_input (SCM port)
+static int
+scm_i_fill_input (SCM port)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
@@ -1437,6 +1437,12 @@ scm_fill_input (SCM port)
 	return *(pt->read_pos);
     }
   return scm_ptobs[SCM_PTOBNUM (port)].fill_input (port);
+}
+
+int
+scm_fill_input (SCM port)
+{
+  return scm_i_fill_input (port);
 }
 
 
@@ -1547,8 +1553,8 @@ scm_c_read (SCM port, void *buffer, size_t size)
   if (size == 0)
     return n_read;
 
-  /* Now we will call scm_fill_input repeatedly until we have read the
-     requested number of bytes.  (Note that a single scm_fill_input
+  /* Now we will call scm_i_fill_input repeatedly until we have read the
+     requested number of bytes.  (Note that a single scm_i_fill_input
      call does not guarantee to fill the whole of the port's read
      buffer.) */
   if (pt->read_buf_size <= 1 && pt->encoding == NULL)
@@ -1556,12 +1562,12 @@ scm_c_read (SCM port, void *buffer, size_t size)
       /* The port that we are reading from is unbuffered - i.e. does
 	 not have its own persistent buffer - but we have a buffer,
 	 provided by our caller, that is the right size for the data
-	 that is wanted.  For the following scm_fill_input calls,
+	 that is wanted.  For the following scm_i_fill_input calls,
 	 therefore, we use the buffer in hand as the port's read
 	 buffer.
 
 	 We need to make sure that the port's normal (1 byte) buffer
-	 is reinstated in case one of the scm_fill_input () calls
+	 is reinstated in case one of the scm_i_fill_input () calls
 	 throws an exception; we use the scm_dynwind_* API to achieve
 	 that. 
 
@@ -1578,9 +1584,9 @@ scm_c_read (SCM port, void *buffer, size_t size)
       scm_dynwind_rewind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
       scm_dynwind_unwind_handler (swap_buffer, &psb, SCM_F_WIND_EXPLICITLY);
 
-      /* Call scm_fill_input until we have all the bytes that we need,
+      /* Call scm_i_fill_input until we have all the bytes that we need,
 	 or we hit EOF. */
-      while (pt->read_buf_size && (scm_fill_input (port) != EOF))
+      while (pt->read_buf_size && (scm_i_fill_input (port) != EOF))
 	{
 	  pt->read_buf_size -= (pt->read_end - pt->read_pos);
 	  pt->read_pos = pt->read_buf = pt->read_end;
@@ -1604,7 +1610,7 @@ scm_c_read (SCM port, void *buffer, size_t size)
 	 that a custom port implementation's entry points (in
 	 particular, fill_input) can rely on the buffer always being
 	 the same as they first set up. */
-      while (size && (scm_fill_input (port) != EOF))
+      while (size && (scm_i_fill_input (port) != EOF))
 	{
 	  n_available = min (size, pt->read_end - pt->read_pos);
 	  memcpy (buffer, pt->read_pos, n_available);
