@@ -96,50 +96,26 @@ scm_is_string (SCM x)
 SCM_INLINE_IMPLEMENTATION int
 scm_get_byte_or_eof (SCM port)
 {
-  int c;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
-  if (pt->rw_active == SCM_PORT_WRITE)
-    /* may be marginally faster than calling scm_flush.  */
-    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
-
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_READ;
-
-  if (pt->read_pos >= pt->read_end)
-    {
-      if (SCM_UNLIKELY (scm_fill_input (port) == EOF))
-	return EOF;
-    }
-
-  c = *(pt->read_pos++);
-
-  return c;
+  if (SCM_LIKELY ((pt->rw_active == SCM_PORT_READ || !pt->rw_random)
+                  && pt->read_pos < pt->read_end))
+    return *pt->read_pos++;
+  else
+    return scm_i_get_byte_or_eof (port);
 }
 
 /* Like `scm_get_byte_or_eof' but does not change PORT's `read_pos'.  */
 SCM_INLINE_IMPLEMENTATION int
 scm_peek_byte_or_eof (SCM port)
 {
-  int c;
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
 
-  if (pt->rw_active == SCM_PORT_WRITE)
-    /* may be marginally faster than calling scm_flush.  */
-    scm_ptobs[SCM_PTOBNUM (port)].flush (port);
-
-  if (pt->rw_random)
-    pt->rw_active = SCM_PORT_READ;
-
-  if (pt->read_pos >= pt->read_end)
-    {
-      if (SCM_UNLIKELY (scm_fill_input (port) == EOF))
-	return EOF;
-    }
-
-  c = *pt->read_pos;
-
-  return c;
+  if (SCM_LIKELY ((pt->rw_active == SCM_PORT_READ || !pt->rw_random)
+                  && pt->read_pos < pt->read_end))
+    return *pt->read_pos;
+  else
+    return scm_i_peek_byte_or_eof (port);
 }
 
 SCM_INLINE_IMPLEMENTATION void

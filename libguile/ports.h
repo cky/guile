@@ -328,6 +328,8 @@ scm_i_default_port_conversion_handler (void);
 /* Use HANDLER as the default conversion strategy for future ports.  */
 SCM_INTERNAL void
 scm_i_set_default_port_conversion_handler (scm_t_string_failed_conversion_handler);
+SCM_INTERNAL int scm_i_get_byte_or_eof (SCM port);
+SCM_INTERNAL int scm_i_peek_byte_or_eof (SCM port);
 
 SCM_API SCM scm_port_conversion_strategy (SCM port);
 SCM_API SCM scm_set_port_conversion_strategy_x (SCM port, SCM behavior);

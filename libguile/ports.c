@@ -1445,6 +1445,48 @@ scm_fill_input (SCM port)
   return scm_i_fill_input (port);
 }
 
+/* Slow-path fallback for 'scm_get_byte_or_eof' in inline.h */
+int
+scm_i_get_byte_or_eof (SCM port)
+{
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    scm_flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (SCM_UNLIKELY (scm_i_fill_input (port) == EOF))
+	return EOF;
+    }
+
+  return *pt->read_pos++;
+}
+
+/* Slow-path fallback for 'scm_peek_byte_or_eof' in inline.h */
+int
+scm_i_peek_byte_or_eof (SCM port)
+{
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    scm_flush (port);
+
+  if (pt->rw_random)
+    pt->rw_active = SCM_PORT_READ;
+
+  if (pt->read_pos >= pt->read_end)
+    {
+      if (SCM_UNLIKELY (scm_i_fill_input (port) == EOF))
+	return EOF;
+    }
+
+  return *pt->read_pos;
+}
+
 
 /* scm_lfwrite
  *
