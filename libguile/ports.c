@@ -1306,65 +1306,73 @@ static int
 get_iconv_codepoint (SCM port, scm_t_wchar *codepoint,
 		     char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 {
-  scm_t_iconv_descriptors *id;
-  int err, byte_read;
-  size_t bytes_consumed, output_size;
-  char *output;
+  scm_t_iconv_descriptors *id = scm_i_port_iconv_descriptors (port);
   scm_t_uint8 utf8_buf[SCM_MBCHAR_BUF_SIZE];
+  size_t input_size = 0;
 
-  id = scm_i_port_iconv_descriptors (port);
-
-  for (output_size = 0, output = (char *) utf8_buf,
-	 bytes_consumed = 0, err = 0;
-       err == 0 && output_size == 0
-	 && (bytes_consumed == 0 || byte_read != EOF);
-       bytes_consumed++)
+  for (;;)
     {
-      char *input;
+      int byte_read;
+      char *input, *output;
       size_t input_left, output_left, done;
 
       byte_read = scm_get_byte_or_eof (port);
-      if (byte_read == EOF)
+      if (SCM_UNLIKELY (byte_read == EOF))
 	{
-	  if (bytes_consumed == 0)
-	    {
-	      *codepoint = (scm_t_wchar) EOF;
-	      *len = 0;
-	      return 0;
-	    }
-	  else
-	    continue;
+          if (SCM_LIKELY (input_size == 0))
+            {
+              *codepoint = (scm_t_wchar) EOF;
+              *len = input_size;
+              return 0;
+            }
+          else
+            /* EOF found in the middle of a multibyte character. */
+            return EILSEQ;
 	}
 
-      buf[bytes_consumed] = byte_read;
+      buf[input_size++] = byte_read;
 
       input = buf;
-      input_left = bytes_consumed + 1;
+      input_left = input_size;
+      output = (char *) utf8_buf;
       output_left = sizeof (utf8_buf);
 
       done = iconv (id->input_cd, &input, &input_left, &output, &output_left);
+
       if (done == (size_t) -1)
 	{
-	  err = errno;
-	  if (err == EINVAL)
-	    /* Missing input: keep trying.  */
-	    err = 0;
+	  int err = errno;
+	  if (SCM_LIKELY (err == EINVAL))
+            /* The input byte sequence did not form a complete
+               character.  Read another byte and try again. */
+            continue;
+          else
+            return err;
 	}
       else
-	output_size = sizeof (utf8_buf) - output_left;
+        {
+          size_t output_size = sizeof (utf8_buf) - output_left;
+          if (SCM_LIKELY (output_size > 0))
+            {
+              /* iconv generated output.  Convert the UTF8_BUF sequence
+                 to a Unicode code point.  */
+              *codepoint = utf8_to_codepoint (utf8_buf, output_size);
+              *len = input_size;
+              return 0;
+            }
+          else
+            {
+              /* iconv consumed some bytes without producing any output.
+                 Most likely this means that a Unicode byte-order mark
+                 (BOM) was consumed, which should not be included in the
+                 returned buf.  Shift any remaining bytes to the beginning
+                 of buf, and continue the loop. */
+              memmove (buf, input, input_left);
+              input_size = input_left;
+              continue;
+            }
+        }
     }
-
-  if (SCM_UNLIKELY (output_size == 0))
-    /* An unterminated sequence.  */
-    err = EILSEQ;
-  else if (SCM_LIKELY (err == 0))
-    {
-      /* Convert the UTF8_BUF sequence to a Unicode code point.  */
-      *codepoint = utf8_to_codepoint (utf8_buf, output_size);
-      *len = bytes_consumed;
-    }
-
-  return err;
 }
 
 /* Read a codepoint from PORT and return it in *CODEPOINT.  Fill BUF
