@@ -643,31 +643,38 @@ scm_array_identity (SCM dst, SCM src)
 static int
 ramap (SCM ra0, SCM proc, SCM ras)
 {
-  long i = SCM_I_ARRAY_DIMS (ra0)->lbnd;
-  long inc = SCM_I_ARRAY_DIMS (ra0)->inc;
-  long n = SCM_I_ARRAY_DIMS (ra0)->ubnd;
-  long base = SCM_I_ARRAY_BASE (ra0) - i * inc;
+  ssize_t i = SCM_I_ARRAY_DIMS (ra0)->lbnd;
+
+  size_t i0 = SCM_I_ARRAY_BASE (ra0);
+  ssize_t inc0 = SCM_I_ARRAY_DIMS (ra0)->inc;
+  size_t n = SCM_I_ARRAY_DIMS (ra0)->ubnd - SCM_I_ARRAY_DIMS (ra0)->lbnd + 1;
+  size_t i0end = i0 + n*inc0;
   ra0 = SCM_I_ARRAY_V (ra0);
   if (scm_is_null (ras))
-    for (; i <= n; i++)
-      GVSET (ra0, i*inc+base, scm_call_0 (proc));
+    for (; i0 < i0end; i0 += inc0)
+      GVSET (ra0, i0, scm_call_0 (proc));
   else
     {
       SCM ra1 = SCM_CAR (ras);
-      SCM args;
-      unsigned long k, i1 = SCM_I_ARRAY_BASE (ra1);
-      long inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
+      size_t i1 = SCM_I_ARRAY_BASE (ra1);
+      ssize_t inc1 = SCM_I_ARRAY_DIMS (ra1)->inc;
       ra1 = SCM_I_ARRAY_V (ra1);
-      ras = scm_vector (SCM_CDR (ras));
-      
-      for (; i <= n; i++, i1 += inc1)
-	{
-	  args = SCM_EOL;
-	  for (k = scm_c_vector_length (ras); k--;)
-	    args = scm_cons (GVREF (scm_c_vector_ref (ras, k), i), args);
-	  args = scm_cons (GVREF (ra1, i1), args);
-	  GVSET (ra0, i*inc+base, scm_apply_0 (proc, args));
-	}
+      ras = SCM_CDR (ras);
+      if (scm_is_null(ras))
+          for (; i0 < i0end; i0 += inc0, i1 += inc1)
+            GVSET (ra0, i0, scm_call_1 (proc, GVREF (ra1, i1)));
+      else
+        {
+          ras = scm_vector (ras);
+          for (; i0 < i0end; i0 += inc0, i1 += inc1, ++i)
+            {
+              SCM args = SCM_EOL;
+              unsigned long k;
+              for (k = scm_c_vector_length (ras); k--;)
+                args = scm_cons (GVREF (scm_c_vector_ref (ras, k), i), args);
+              GVSET (ra0, i0, scm_apply_1 (proc, GVREF (ra1, i1), args));
+            }
+        }
     }
   return 1;
 }
