@@ -291,7 +291,15 @@
       (pass-if "0"      (array-fill! a 0)      #t)
       (pass-if "123"    (array-fill! a 123)    #t)
       (pass-if "-123"   (array-fill! a -123)   #t)
-      (pass-if "5/8"    (array-fill! a 5/8)    #t))))
+      (pass-if "5/8"    (array-fill! a 5/8)    #t)))
+
+  (with-test-prefix "noncompact"
+    (let* ((a (make-array 0 3 3))
+           (b (make-shared-array a (lambda (i) (list i i)) 3)))
+      (array-fill! b 9)
+      (pass-if
+        (and (equal? b #(9 9 9))
+             (equal? a #2((9 0 0) (0 9 0) (0 0 9))))))))
 
 ;;;
 ;;; array-copy!

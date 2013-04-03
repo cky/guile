@@ -318,6 +318,23 @@ scm_ramapc (void *cproc_ptr, SCM data, SCM ra0, SCM lra, const char *what)
     }
 }
 
+static int
+rafill (SCM dst, SCM fill)
+{
+  long n = (SCM_I_ARRAY_DIMS (dst)->ubnd - SCM_I_ARRAY_DIMS (dst)->lbnd + 1);
+  scm_t_array_handle h;
+  size_t i;
+  ssize_t inc;
+  scm_generalized_vector_get_handle (SCM_I_ARRAY_V (dst), &h);
+  i = h.base + h.dims[0].lbnd + SCM_I_ARRAY_BASE (dst)*h.dims[0].inc;
+  inc = SCM_I_ARRAY_DIMS (dst)->inc * h.dims[0].inc;
+
+  for (; n-- > 0; i += inc)
+    h.impl->vset (&h, i, fill);
+
+  scm_array_handle_release (&h);
+  return 1;
+}
 
 SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 	    (SCM ra, SCM fill),
@@ -325,14 +342,14 @@ SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 	    "returned is unspecified.")
 #define FUNC_NAME s_scm_array_fill_x
 {
-  scm_ramapc (scm_array_fill_int, fill, ra, SCM_EOL, FUNC_NAME);
+  scm_ramapc (rafill, fill, ra, SCM_EOL, FUNC_NAME);
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
 /* to be used as cproc in scm_ramapc to fill an array dimension with
    "fill". */
-int 
+int
 scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
 #define FUNC_NAME s_scm_array_fill_x
 {
