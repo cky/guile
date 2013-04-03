@@ -347,26 +347,6 @@ SCM_DEFINE (scm_array_fill_x, "array-fill!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* to be used as cproc in scm_ramapc to fill an array dimension with
-   "fill". */
-int
-scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
-#define FUNC_NAME s_scm_array_fill_x
-{
-  unsigned long i;
-  unsigned long n = SCM_I_ARRAY_DIMS (ra)->ubnd - SCM_I_ARRAY_DIMS (ra)->lbnd + 1;
-  long inc = SCM_I_ARRAY_DIMS (ra)->inc;
-  unsigned long base = SCM_I_ARRAY_BASE (ra);
-
-  ra = SCM_I_ARRAY_V (ra);
-
-  for (i = base; n--; i += inc)
-    GVSET (ra, i, fill);
-
-  return 1;
-}
-#undef FUNC_NAME
-
 
 static int
 racp (SCM src, SCM dst)
@@ -411,9 +391,28 @@ SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-/* Functions callable by ARRAY-MAP! */
 
 #if SCM_ENABLE_DEPRECATED == 1
+
+/* to be used as cproc in scm_ramapc to fill an array dimension with
+   "fill". */
+int
+scm_array_fill_int (SCM ra, SCM fill, SCM ignore SCM_UNUSED)
+{
+  unsigned long i;
+  unsigned long n = SCM_I_ARRAY_DIMS (ra)->ubnd - SCM_I_ARRAY_DIMS (ra)->lbnd + 1;
+  long inc = SCM_I_ARRAY_DIMS (ra)->inc;
+  unsigned long base = SCM_I_ARRAY_BASE (ra);
+
+  ra = SCM_I_ARRAY_V (ra);
+
+  for (i = base; n--; i += inc)
+    GVSET (ra, i, fill);
+
+  return 1;
+}
+
+/* Functions callable by ARRAY-MAP! */
 
 int
 scm_ra_eqp (SCM ra0, SCM ras)

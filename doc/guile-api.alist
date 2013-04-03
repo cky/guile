@@ -1359,7 +1359,6 @@
 (scm_array_copy_x (groups scm C) (scan-data T))
 (scm_array_dimensions (groups scm C) (scan-data T))
 (scm_array_equal_p (groups scm C) (scan-data T))
-(scm_array_fill_int (groups scm C) (scan-data T))
 (scm_array_fill_x (groups scm C) (scan-data T))
 (scm_array_for_each (groups scm C) (scan-data T))
 (scm_array_identity (groups scm C) (scan-data T))
