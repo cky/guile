@@ -2385,7 +2385,6 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
      descriptor.  */
   if (strcasecmp (encoding, "UTF-8") == 0)
     {
-      pt->encoding = "UTF-8";
       pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
       pti->iconv_descriptors = NULL;
     }
@@ -2396,9 +2395,9 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
         open_iconv_descriptors (encoding,
                                 SCM_INPUT_PORT_P (port),
                                 SCM_OUTPUT_PORT_P (port));
-      pt->encoding = scm_gc_strdup (encoding, "port");
       pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
     }
+  pt->encoding = scm_gc_strdup (encoding, "port");
 
   if (prev)
     close_iconv_descriptors (prev);
