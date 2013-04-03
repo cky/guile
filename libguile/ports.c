@@ -633,7 +633,7 @@ scm_new_port_table_entry (scm_t_bits tag)
   encoding = scm_i_default_port_encoding ();
   entry->ilseq_handler = scm_i_default_port_conversion_handler ();
   entry->encoding = encoding ? scm_gc_strdup (encoding, "port") : NULL;
-  if (encoding && strcmp (encoding, "UTF-8") == 0)
+  if (encoding && strcasecmp (encoding, "UTF-8") == 0)
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
   else
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
@@ -2235,9 +2235,9 @@ scm_i_set_default_port_encoding (const char *encoding)
 		    SCM_EOL);
 
   if (encoding == NULL
-      || !strcmp (encoding, "ASCII")
-      || !strcmp (encoding, "ANSI_X3.4-1968")
-      || !strcmp (encoding, "ISO-8859-1"))
+      || !strcasecmp (encoding, "ASCII")
+      || !strcasecmp (encoding, "ANSI_X3.4-1968")
+      || !strcasecmp (encoding, "ISO-8859-1"))
     scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
   else
     scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var),
@@ -2383,7 +2383,7 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
   /* If ENCODING is UTF-8, then no conversion descriptor is opened
      because we do I/O ourselves.  This saves 100+ KiB for each
      descriptor.  */
-  if (strcmp (encoding, "UTF-8") == 0)
+  if (strcasecmp (encoding, "UTF-8") == 0)
     {
       pt->encoding = "UTF-8";
       pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;

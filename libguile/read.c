@@ -2102,7 +2102,7 @@ scm_i_scan_for_encoding (SCM port)
     /* This wasn't in a comment */
     return NULL;
 
-  if (utf8_bom && strcmp(encoding, "UTF-8"))
+  if (utf8_bom && strcasecmp(encoding, "UTF-8"))
     scm_misc_error (NULL,
 		    "the port input declares the encoding ~s but is encoded as UTF-8",
 		    scm_list_1 (scm_from_locale_string (encoding)));
