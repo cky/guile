@@ -396,6 +396,7 @@ SCM_DEFINE (scm_array_copy_x, "array-copy!", 2, 0, 0,
 
 /* Functions callable by ARRAY-MAP! */
 
+#if SCM_ENABLE_DEPRECATED == 1
 
 int
 scm_ra_eqp (SCM ra0, SCM ras)
@@ -637,9 +638,9 @@ scm_array_identity (SCM dst, SCM src)
   return racp (SCM_CAR (src), scm_cons (dst, SCM_EOL));
 }
 
+#endif /* SCM_ENABLE_DEPRECATED */
 
-
-static int 
+static int
 ramap (SCM ra0, SCM proc, SCM ras)
 {
   long i = SCM_I_ARRAY_DIMS (ra0)->lbnd;
