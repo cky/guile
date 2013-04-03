@@ -294,6 +294,46 @@
       (pass-if "5/8"    (array-fill! a 5/8)    #t))))
 
 ;;;
+;;; array-copy!
+;;;
+
+(with-test-prefix "array-copy!"
+
+  (pass-if "rank 2"
+    (let ((a #2((1 2) (3 4)))
+          (b (make-array 0 2 2))
+          (c (make-array 0 2 2))
+          (d (make-array 0 2 2))
+          (e (make-array 0 2 2)))
+      (array-copy! a b)
+      (array-copy! a (transpose-array c 1 0))
+      (array-copy! (transpose-array a 1 0) d)
+      (array-copy! (transpose-array a 1 0) (transpose-array e 1 0))
+      (and (equal? a #2((1 2) (3 4)))
+           (equal? b #2((1 2) (3 4)))
+           (equal? c #2((1 3) (2 4)))
+           (equal? d #2((1 3) (2 4)))
+           (equal? e #2((1 2) (3 4))))))
+
+  (pass-if "rank 1"
+    (let* ((a #2((1 2) (3 4)))
+           (b (make-shared-array a (lambda (j) (list 1 j)) 2))
+           (c (make-shared-array a (lambda (i) (list (- 1 i) 1)) 2))
+           (d (make-array 0 2))
+           (e (make-array 0 2)))
+      (array-copy! b d)
+      (array-copy! c e)
+      (and (equal? d #(3 4))
+           (equal? e #(4 2)))))
+
+  (pass-if "rank 0"
+    (let ((a #0(99))
+          (b (make-array 0)))
+      (array-copy! a b)
+      (equal? b #0(99)))))
+
+
+;;;
 ;;; array-in-bounds?
 ;;;
 
