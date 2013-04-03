@@ -227,6 +227,36 @@
 
 (with-test-prefix "array-for-each"
 
+  (with-test-prefix "1 source"
+    (pass-if-equal "noncompact array"
+        '(3 2 1 0)
+      (let* ((a #2((0 1) (2 3)))
+             (l '())
+             (p (lambda (x) (set! l (cons x l)))))
+        (array-for-each p a)
+        l))
+
+    (pass-if-equal "vector"
+        '(3 2 1 0)
+      (let* ((a #(0 1 2 3))
+             (l '())
+             (p (lambda (x) (set! l (cons x l)))))
+        (array-for-each p a)
+        l))
+
+    (pass-if-equal "shared array"
+        '(3 2 1 0)
+      (let* ((a  #2((0 1) (2 3)))
+             (a' (make-shared-array a
+                                    (lambda (x)
+                                      (list (quotient x 4)
+                                            (modulo x 4)))
+                                    4))
+             (l  '())
+             (p  (lambda (x) (set! l (cons x l)))))
+        (array-for-each p a')
+        l)))
+
   (with-test-prefix "3 sources"
     (pass-if-equal "noncompact arrays 1"
         '((3 3 3) (2 2 2))
