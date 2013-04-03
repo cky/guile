@@ -46,6 +46,8 @@ typedef struct scm_iconv_descriptors scm_t_iconv_descriptors;
 
 struct scm_port_internal
 {
+  unsigned at_stream_start_for_bom_read  : 1;
+  unsigned at_stream_start_for_bom_write : 1;
   scm_t_port_encoding_mode encoding_mode;
   scm_t_iconv_descriptors *iconv_descriptors;
   int pending_eof;
@@ -54,9 +56,12 @@ struct scm_port_internal
 
 typedef struct scm_port_internal scm_t_port_internal;
 
+#define SCM_UNICODE_BOM  0xFEFFUL  /* Unicode byte-order mark */
+
 #define SCM_PORT_GET_INTERNAL(x)                                \
   ((scm_t_port_internal *) (SCM_PTAB_ENTRY(x)->input_cd))
 
-SCM_INTERNAL scm_t_iconv_descriptors *scm_i_port_iconv_descriptors (SCM port);
+SCM_INTERNAL scm_t_iconv_descriptors *
+scm_i_port_iconv_descriptors (SCM port, scm_t_port_rw_active mode);
 
 #endif

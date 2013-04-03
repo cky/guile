@@ -651,6 +651,9 @@ scm_new_port_table_entry (scm_t_bits tag)
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
   pti->iconv_descriptors = NULL;
 
+  pti->at_stream_start_for_bom_read  = 1;
+  pti->at_stream_start_for_bom_write = 1;
+
   /* XXX These fields are not what they seem.  They have been
      repurposed, but cannot safely be renamed in 2.0 without breaking
      ABI compatibility.  This will be cleaned up in 2.2.  */
@@ -1319,9 +1322,11 @@ static int
 get_iconv_codepoint (SCM port, scm_t_wchar *codepoint,
 		     char buf[SCM_MBCHAR_BUF_SIZE], size_t *len)
 {
-  scm_t_iconv_descriptors *id = scm_i_port_iconv_descriptors (port);
+  scm_t_iconv_descriptors *id;
   scm_t_uint8 utf8_buf[SCM_MBCHAR_BUF_SIZE];
   size_t input_size = 0;
+
+  id = scm_i_port_iconv_descriptors (port, SCM_PORT_READ);
 
   for (;;)
     {
@@ -1409,7 +1414,25 @@ get_codepoint (SCM port, scm_t_wchar *codepoint,
     err = get_iconv_codepoint (port, codepoint, buf, len);
 
   if (SCM_LIKELY (err == 0))
-    update_port_lf (*codepoint, port);
+    {
+      if (SCM_UNLIKELY (pti->at_stream_start_for_bom_read))
+        {
+          /* Record that we're no longer at stream start. */
+          pti->at_stream_start_for_bom_read = 0;
+          if (pt->rw_random)
+            pti->at_stream_start_for_bom_write = 0;
+
+          /* If we just read a BOM in an encoding that recognizes them,
+             then silently consume it and read another code point. */
+          if (SCM_UNLIKELY
+              (*codepoint == SCM_UNICODE_BOM
+               && (pti->encoding_mode == SCM_PORT_ENCODING_MODE_UTF8
+                   || strcasecmp (pt->encoding, "UTF-16") == 0
+                   || strcasecmp (pt->encoding, "UTF-32") == 0)))
+            return get_codepoint (port, codepoint, buf, len);
+        }
+      update_port_lf (*codepoint, port);
+    }
   else if (pt->ilseq_handler == SCM_ICONVEH_QUESTION_MARK)
     {
       *codepoint = '?';
@@ -2037,6 +2060,7 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 
   if (SCM_OPPORTP (fd_port))
     {
+      scm_t_port_internal *pti = SCM_PORT_GET_INTERNAL (fd_port);
       scm_t_ptob_descriptor *ptob = scm_ptobs + SCM_PTOBNUM (fd_port);
       off_t_or_off64_t off = scm_to_off_t_or_off64_t (offset);
       off_t_or_off64_t rv;
@@ -2045,10 +2069,14 @@ SCM_DEFINE (scm_seek, "seek", 3, 0, 0,
 	SCM_MISC_ERROR ("port is not seekable", 
                         scm_cons (fd_port, SCM_EOL));
       else
-        {
-          scm_i_clear_pending_eof (fd_port);
-          rv = ptob->seek (fd_port, off, how);
-        }
+        rv = ptob->seek (fd_port, off, how);
+
+      /* Set stream-start flags according to new position. */
+      pti->at_stream_start_for_bom_read  = (rv == 0);
+      pti->at_stream_start_for_bom_write = (rv == 0);
+
+      scm_i_clear_pending_eof (fd_port);
+
       return scm_from_off_t_or_off64_t (rv);
     }
   else /* file descriptor?.  */
@@ -2301,6 +2329,69 @@ scm_i_default_port_encoding (void)
     }
 }
 
+/* If the next LEN bytes from PORT are equal to those in BYTES, then
+   return 1, else return 0.  Leave the port position unchanged.  */
+static int
+looking_at_bytes (SCM port, const unsigned char *bytes, int len)
+{
+  scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  int result;
+  int i = 0;
+
+  while (i < len && scm_peek_byte_or_eof (port) == bytes[i])
+    {
+      pt->read_pos++;
+      i++;
+    }
+
+  result = (i == len);
+
+  while (i > 0)
+    scm_unget_byte (bytes[--i], port);
+
+  return result;
+}
+
+static const unsigned char scm_utf8_bom[3]    = {0xEF, 0xBB, 0xBF};
+static const unsigned char scm_utf16be_bom[2] = {0xFE, 0xFF};
+static const unsigned char scm_utf16le_bom[2] = {0xFF, 0xFE};
+static const unsigned char scm_utf32be_bom[4] = {0x00, 0x00, 0xFE, 0xFF};
+static const unsigned char scm_utf32le_bom[4] = {0xFF, 0xFE, 0x00, 0x00};
+
+/* Decide what byte order to use for a UTF-16 port.  Return "UTF-16BE"
+   or "UTF-16LE".  MODE must be either SCM_PORT_READ or SCM_PORT_WRITE,
+   and specifies which operation is about to be done.  The MODE
+   determines how we will decide the byte order.  We deliberately avoid
+   reading from the port unless the user is about to do so.  If the user
+   is about to read, then we look for a BOM, and if present, we use it
+   to determine the byte order.  Otherwise we choose big endian, as
+   recommended by the Unicode Standard.  Note that the BOM (if any) is
+   not consumed here.  */
+static const char *
+decide_utf16_encoding (SCM port, scm_t_port_rw_active mode)
+{
+  if (mode == SCM_PORT_READ
+      && SCM_PORT_GET_INTERNAL (port)->at_stream_start_for_bom_read
+      && looking_at_bytes (port, scm_utf16le_bom, sizeof scm_utf16le_bom))
+    return "UTF-16LE";
+  else
+    return "UTF-16BE";
+}
+
+/* Decide what byte order to use for a UTF-32 port.  Return "UTF-32BE"
+   or "UTF-32LE".  See the comment above 'decide_utf16_encoding' for
+   details.  */
+static const char *
+decide_utf32_encoding (SCM port, scm_t_port_rw_active mode)
+{
+  if (mode == SCM_PORT_READ
+      && SCM_PORT_GET_INTERNAL (port)->at_stream_start_for_bom_read
+      && looking_at_bytes (port, scm_utf32le_bom, sizeof scm_utf32le_bom))
+    return "UTF-32LE";
+  else
+    return "UTF-32BE";
+}
+
 static void
 finalize_iconv_descriptors (void *ptr, void *data)
 {
@@ -2377,23 +2468,36 @@ close_iconv_descriptors (scm_t_iconv_descriptors *id)
   id->output_cd = (void *) -1;
 }
 
+/* Return the iconv_descriptors, initializing them if necessary.  MODE
+   must be either SCM_PORT_READ or SCM_PORT_WRITE, and specifies which
+   operation is about to be done.  We deliberately avoid reading from
+   the port unless the user was about to do so.  */
 scm_t_iconv_descriptors *
-scm_i_port_iconv_descriptors (SCM port)
+scm_i_port_iconv_descriptors (SCM port, scm_t_port_rw_active mode)
 {
-  scm_t_port *pt;
-  scm_t_port_internal *pti;
-
-  pt = SCM_PTAB_ENTRY (port);
-  pti = SCM_PORT_GET_INTERNAL (port);
+  scm_t_port_internal *pti = SCM_PORT_GET_INTERNAL (port);
 
   assert (pti->encoding_mode == SCM_PORT_ENCODING_MODE_ICONV);
 
   if (!pti->iconv_descriptors)
     {
+      scm_t_port *pt = SCM_PTAB_ENTRY (port);
+      const char *precise_encoding;
+
       if (!pt->encoding)
         pt->encoding = "ISO-8859-1";
+
+      /* If the specified encoding is UTF-16 or UTF-32, then make
+         that more precise by deciding what byte order to use. */
+      if (strcasecmp (pt->encoding, "UTF-16") == 0)
+        precise_encoding = decide_utf16_encoding (port, mode);
+      else if (strcasecmp (pt->encoding, "UTF-32") == 0)
+        precise_encoding = decide_utf32_encoding (port, mode);
+      else
+        precise_encoding = pt->encoding;
+
       pti->iconv_descriptors =
-        open_iconv_descriptors (pt->encoding,
+        open_iconv_descriptors (precise_encoding,
                                 SCM_INPUT_PORT_P (port),
                                 SCM_OUTPUT_PORT_P (port));
     }
@@ -2413,28 +2517,27 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
   pti = SCM_PORT_GET_INTERNAL (port);
   prev = pti->iconv_descriptors;
 
+  /* In order to handle cases where the encoding changes mid-stream
+     (e.g. within an HTTP stream, or within a file that is composed of
+     segments with different encodings), we consider this to be "stream
+     start" for purposes of BOM handling, regardless of our actual file
+     position. */
+  pti->at_stream_start_for_bom_read  = 1;
+  pti->at_stream_start_for_bom_write = 1;
+
   if (encoding == NULL)
     encoding = "ISO-8859-1";
 
   /* If ENCODING is UTF-8, then no conversion descriptor is opened
      because we do I/O ourselves.  This saves 100+ KiB for each
      descriptor.  */
-  if (strcasecmp (encoding, "UTF-8") == 0)
-    {
-      pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
-      pti->iconv_descriptors = NULL;
-    }
-  else
-    {
-      /* Open descriptors before mutating the port. */
-      pti->iconv_descriptors =
-        open_iconv_descriptors (encoding,
-                                SCM_INPUT_PORT_P (port),
-                                SCM_OUTPUT_PORT_P (port));
-      pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
-    }
   pt->encoding = scm_gc_strdup (encoding, "port");
+  if (strcasecmp (encoding, "UTF-8") == 0)
+    pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
+  else
+    pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
 
+  pti->iconv_descriptors = NULL;
   if (prev)
     close_iconv_descriptors (prev);
 }

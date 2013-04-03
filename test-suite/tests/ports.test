@@ -24,7 +24,8 @@
   #:use-module (ice-9 popen)
   #:use-module (ice-9 rdelim)
   #:use-module (rnrs bytevectors)
-  #:use-module ((rnrs io ports) #:select (open-bytevector-input-port)))
+  #:use-module ((rnrs io ports) #:select (open-bytevector-input-port
+                                          open-bytevector-output-port)))
 
 (define (display-line . args)
   (for-each display args)
@@ -918,7 +919,9 @@
 
   (pass-if-exception "set-port-encoding!, wrong encoding"
     exception:miscellaneous-error
-    (set-port-encoding! (open-input-string "") "does-not-exist"))
+    (let ((p (open-input-string "")))
+      (set-port-encoding! p "does-not-exist")
+      (read p)))
 
   (pass-if-exception "%default-port-encoding, wrong encoding"
     exception:miscellaneous-error
@@ -1230,6 +1233,283 @@
                             (col*  (port-column p)))
                         (and (= line line*)
                              (= col col*)))))))))))
+
+
+
+(with-test-prefix "unicode byte-order marks (BOMs)"
+
+  (define (bv-read-test* encoding bv proc)
+    (let ((port (open-bytevector-input-port bv)))
+      (set-port-encoding! port encoding)
+      (proc port)))
+
+  (define (bv-read-test encoding bv)
+    (bv-read-test* encoding bv read-string))
+
+  (define (bv-write-test* encoding proc)
+    (call-with-values
+        (lambda () (open-bytevector-output-port))
+      (lambda (port get-bytevector)
+        (set-port-encoding! port encoding)
+        (proc port)
+        (get-bytevector))))
+
+  (define (bv-write-test encoding str)
+    (bv-write-test* encoding
+                    (lambda (p)
+                      (display str p))))
+
+  (pass-if-equal "BOM not discarded from Latin-1 stream"
+      "\xEF\xBB\xBF\x61"
+    (bv-read-test "ISO-8859-1" #vu8(#xEF #xBB #xBF #x61)))
+
+  (pass-if-equal "BOM not discarded from Latin-2 stream"
+      "\u010F\u0165\u017C\x61"
+    (bv-read-test "ISO-8859-2" #vu8(#xEF #xBB #xBF #x61)))
+
+  (pass-if-equal "BOM not discarded from UTF-16BE stream"
+      "\uFEFF\x61"
+    (bv-read-test "UTF-16BE" #vu8(#xFE #xFF #x00 #x61)))
+
+  (pass-if-equal "BOM not discarded from UTF-16LE stream"
+      "\uFEFF\x61"
+    (bv-read-test "UTF-16LE" #vu8(#xFF #xFE #x61 #x00)))
+
+  (pass-if-equal "BOM not discarded from UTF-32BE stream"
+      "\uFEFF\x61"
+    (bv-read-test "UTF-32BE" #vu8(#x00 #x00 #xFE #xFF
+                                       #x00 #x00 #x00 #x61)))
+
+  (pass-if-equal "BOM not discarded from UTF-32LE stream"
+      "\uFEFF\x61"
+    (bv-read-test "UTF-32LE" #vu8(#xFF #xFE #x00 #x00
+                                       #x61 #x00 #x00 #x00)))
+
+  (pass-if-equal "BOM not written to UTF-8 stream"
+      #vu8(#x61)
+    (bv-write-test "UTF-8" "a"))
+
+  (pass-if-equal "BOM not written to UTF-16BE stream"
+      #vu8(#x00 #x61)
+    (bv-write-test "UTF-16BE" "a"))
+
+  (pass-if-equal "BOM not written to UTF-16LE stream"
+      #vu8(#x61 #x00)
+    (bv-write-test "UTF-16LE" "a"))
+
+  (pass-if-equal "BOM not written to UTF-32BE stream"
+      #vu8(#x00 #x00 #x00 #x61)
+    (bv-write-test "UTF-32BE" "a"))
+
+  (pass-if-equal "BOM not written to UTF-32LE stream"
+      #vu8(#x61 #x00 #x00 #x00)
+    (bv-write-test "UTF-32LE" "a"))
+
+  (pass-if "Don't read from the port unless user asks to"
+    (let* ((p (make-soft-port
+               (vector
+                (lambda (c) #f)           ; write char
+                (lambda (s) #f)           ; write string
+                (lambda () #f)            ; flush
+                (lambda () (throw 'fail)) ; read char
+                (lambda () #f))
+               "rw")))
+      (set-port-encoding! p "UTF-16")
+      (display "abc" p)
+      (set-port-encoding! p "UTF-32")
+      (display "def" p)
+      #t))
+
+  ;; TODO: test that input and output streams are independent when
+  ;; appropriate, and linked when appropriate.
+
+  (pass-if-equal "BOM discarded from start of UTF-8 stream"
+      "a"
+    (bv-read-test "Utf-8" #vu8(#xEF #xBB #xBF #x61)))
+
+  (pass-if-equal "BOM discarded from start of UTF-8 stream after seek to 0"
+      '(#\a "a")
+    (bv-read-test* "uTf-8" #vu8(#xEF #xBB #xBF #x61)
+                   (lambda (p)
+                     (let ((c (read-char p)))
+                       (seek p 0 SEEK_SET)
+                       (let ((s (read-string p)))
+                         (list c s))))))
+
+  (pass-if-equal "Only one BOM discarded from start of UTF-8 stream"
+      "\uFEFFa"
+    (bv-read-test "UTF-8" #vu8(#xEF #xBB #xBF #xEF #xBB #xBF #x61)))
+
+  (pass-if-equal "BOM not discarded from UTF-8 stream after seek to > 0"
+      "\uFEFFb"
+    (bv-read-test* "UTF-8" #vu8(#x61 #xEF #xBB #xBF #x62)
+                   (lambda (p)
+                     (seek p 1 SEEK_SET)
+                     (read-string p))))
+
+  (pass-if-equal "BOM not discarded unless at start of UTF-8 stream"
+      "a\uFEFFb"
+    (bv-read-test "UTF-8" #vu8(#x61 #xEF #xBB #xBF #x62)))
+
+  (pass-if-equal "BOM (BE) written to start of UTF-16 stream"
+      #vu8(#xFE #xFF #x00 #x61 #x00 #x62)
+    (bv-write-test "UTF-16" "ab"))
+
+  (pass-if-equal "BOM (BE) written to UTF-16 stream after set-port-encoding!"
+      #vu8(#xFE #xFF #x00 #x61 #x00 #x62 #xFE #xFF #x00 #x63 #x00 #x64)
+    (bv-write-test* "UTF-16"
+                    (lambda (p)
+                      (display "ab" p)
+                      (set-port-encoding! p "UTF-16")
+                      (display "cd" p))))
+
+  (pass-if-equal "BOM discarded from start of UTF-16 stream (BE)"
+      "a"
+    (bv-read-test "UTF-16" #vu8(#xFE #xFF #x00 #x61)))
+
+  (pass-if-equal "BOM discarded from start of UTF-16 stream (BE) after seek to 0"
+      '(#\a "a")
+    (bv-read-test* "utf-16" #vu8(#xFE #xFF #x00 #x61)
+                   (lambda (p)
+                     (let ((c (read-char p)))
+                       (seek p 0 SEEK_SET)
+                       (let ((s (read-string p)))
+                         (list c s))))))
+
+  (pass-if-equal "Only one BOM discarded from start of UTF-16 stream (BE)"
+      "\uFEFFa"
+    (bv-read-test "Utf-16" #vu8(#xFE #xFF #xFE #xFF #x00 #x61)))
+
+  (pass-if-equal "BOM not discarded from UTF-16 stream (BE) after seek to > 0"
+      "\uFEFFa"
+    (bv-read-test* "uTf-16" #vu8(#xFE #xFF #xFE #xFF #x00 #x61)
+                   (lambda (p)
+                     (seek p 2 SEEK_SET)
+                     (read-string p))))
+
+  (pass-if-equal "BOM not discarded unless at start of UTF-16 stream"
+      "a\uFEFFb"
+    (let ((be (bv-read-test "utf-16" #vu8(#x00 #x61 #xFE #xFF #x00 #x62)))
+          (le (bv-read-test "utf-16" #vu8(#x61 #x00 #xFF #xFE #x62 #x00))))
+      (if (char=? #\a (string-ref be 0))
+          be
+          le)))
+
+  (pass-if-equal "BOM discarded from start of UTF-16 stream (LE)"
+      "a"
+    (bv-read-test "UTF-16" #vu8(#xFF #xFE #x61 #x00)))
+
+  (pass-if-equal "BOM discarded from start of UTF-16 stream (LE) after seek to 0"
+      '(#\a "a")
+    (bv-read-test* "Utf-16" #vu8(#xFF #xFE #x61 #x00)
+                   (lambda (p)
+                     (let ((c (read-char p)))
+                       (seek p 0 SEEK_SET)
+                       (let ((s (read-string p)))
+                         (list c s))))))
+
+  (pass-if-equal "Only one BOM discarded from start of UTF-16 stream (LE)"
+      "\uFEFFa"
+    (bv-read-test "UTf-16" #vu8(#xFF #xFE #xFF #xFE #x61 #x00)))
+
+  (pass-if-equal "BOM discarded from start of UTF-32 stream (BE)"
+      "a"
+    (bv-read-test "UTF-32" #vu8(#x00 #x00 #xFE #xFF
+                                     #x00 #x00 #x00 #x61)))
+
+  (pass-if-equal "BOM discarded from start of UTF-32 stream (BE) after seek to 0"
+      '(#\a "a")
+    (bv-read-test* "utF-32" #vu8(#x00 #x00 #xFE #xFF
+                                      #x00 #x00 #x00 #x61)
+                   (lambda (p)
+                     (let ((c (read-char p)))
+                       (seek p 0 SEEK_SET)
+                       (let ((s (read-string p)))
+                         (list c s))))))
+
+  (pass-if-equal "Only one BOM discarded from start of UTF-32 stream (BE)"
+      "\uFEFFa"
+    (bv-read-test "UTF-32" #vu8(#x00 #x00 #xFE #xFF
+                                     #x00 #x00 #xFE #xFF
+                                     #x00 #x00 #x00 #x61)))
+
+  (pass-if-equal "BOM not discarded from UTF-32 stream (BE) after seek to > 0"
+      "\uFEFFa"
+    (bv-read-test* "UtF-32" #vu8(#x00 #x00 #xFE #xFF
+                                      #x00 #x00 #xFE #xFF
+                                      #x00 #x00 #x00 #x61)
+                   (lambda (p)
+                     (seek p 4 SEEK_SET)
+                     (read-string p))))
+
+  (pass-if-equal "BOM discarded within UTF-16 stream (BE) after set-port-encoding!"
+      "ab"
+    (bv-read-test* "UTF-16" #vu8(#x00 #x61 #xFE #xFF #x00 #x62)
+                   (lambda (p)
+                     (let ((a (read-char p)))
+                       (set-port-encoding! p "UTF-16")
+                       (string a (read-char p))))))
+
+  (pass-if-equal "BOM discarded within UTF-16 stream (LE,BE) after set-port-encoding!"
+      "ab"
+    (bv-read-test* "utf-16" #vu8(#x00 #x61 #xFF #xFE #x62 #x00)
+                   (lambda (p)
+                     (let ((a (read-char p)))
+                       (set-port-encoding! p "UTF-16")
+                       (string a (read-char p))))))
+
+  (pass-if-equal "BOM discarded within UTF-32 stream (BE) after set-port-encoding!"
+      "ab"
+    (bv-read-test* "UTF-32" #vu8(#x00 #x00 #x00 #x61
+                                      #x00 #x00 #xFE #xFF
+                                      #x00 #x00 #x00 #x62)
+                   (lambda (p)
+                     (let ((a (read-char p)))
+                       (set-port-encoding! p "UTF-32")
+                       (string a (read-char p))))))
+
+  (pass-if-equal "BOM discarded within UTF-32 stream (LE,BE) after set-port-encoding!"
+      "ab"
+    (bv-read-test* "UTF-32" #vu8(#x00 #x00 #x00 #x61
+                                      #xFF #xFE #x00 #x00
+                                      #x62 #x00 #x00 #x00)
+                   (lambda (p)
+                     (let ((a (read-char p)))
+                       (set-port-encoding! p "UTF-32")
+                       (string a (read-char p))))))
+
+  (pass-if-equal "BOM not discarded unless at start of UTF-32 stream"
+      "a\uFEFFb"
+    (let ((be (bv-read-test "UTF-32" #vu8(#x00 #x00 #x00 #x61
+                                               #x00 #x00 #xFE #xFF
+                                               #x00 #x00 #x00 #x62)))
+          (le (bv-read-test "UTF-32" #vu8(#x61 #x00 #x00 #x00
+                                               #xFF #xFE #x00 #x00
+                                               #x62 #x00 #x00 #x00))))
+      (if (char=? #\a (string-ref be 0))
+          be
+          le)))
+
+  (pass-if-equal "BOM discarded from start of UTF-32 stream (LE)"
+      "a"
+    (bv-read-test "UTF-32" #vu8(#xFF #xFE #x00 #x00
+                                     #x61 #x00 #x00 #x00)))
+
+  (pass-if-equal "BOM discarded from start of UTF-32 stream (LE) after seek to 0"
+      '(#\a "a")
+    (bv-read-test* "UTf-32" #vu8(#xFF #xFE #x00 #x00
+                                      #x61 #x00 #x00 #x00)
+                   (lambda (p)
+                     (let ((c (read-char p)))
+                       (seek p 0 SEEK_SET)
+                       (let ((s (read-string p)))
+                         (list c s))))))
+
+  (pass-if-equal "Only one BOM discarded from start of UTF-32 stream (LE)"
+      "\uFEFFa"
+    (bv-read-test "UTF-32" #vu8(#xFF #xFE #x00 #x00
+                                     #xFF #xFE #x00 #x00
+                                     #x61 #x00 #x00 #x00))))
 
 
 
