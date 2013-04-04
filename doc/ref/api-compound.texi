@@ -2211,9 +2211,9 @@ different trade-offs.  Over the years, each ``standard'' has also come
 with its own new record interface, leading to a maze of record APIs.
 
 At the highest level is SRFI-9, a high-level record interface
-implemented by most Scheme implementations (@pxref{SRFI-9}).  It defines
-a simple and efficient syntactic abstraction of record types and their
-associated type predicate, fields, and field accessors.  SRFI-9 is
+implemented by most Scheme implementations (@pxref{SRFI-9 Records}).  It
+defines a simple and efficient syntactic abstraction of record types and
+their associated type predicate, fields, and field accessors.  SRFI-9 is
 suitable for most uses, and this is the recommended way to create record
 types in Guile.  Similar high-level record APIs include SRFI-35
 (@pxref{SRFI-35}) and R6RS records (@pxref{rnrs records syntactic}).
@@ -2451,7 +2451,7 @@ data type.  A @dfn{record} is an instance of a record type.
 
 Note that in many ways, this interface is too low-level for every-day
 use.  Most uses of records are better served by SRFI-9 records.
-@xref{SRFI-9}.
+@xref{SRFI-9 Records}.
 
 @deffn {Scheme Procedure} record? obj
 Return @code{#t} if @var{obj} is a record of any type and @code{#f}

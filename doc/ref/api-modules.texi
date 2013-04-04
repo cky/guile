@@ -1144,7 +1144,8 @@ Support for some additional string port procedures (@pxref{SRFI-6}).
 Multiple-value handling with @code{receive} (@pxref{SRFI-8}).
 
 @item (srfi srfi-9)
-Record definition with @code{define-record-type} (@pxref{SRFI-9}).
+Record definition with @code{define-record-type} (@pxref{SRFI-9
+Records}).
 
 @item (srfi srfi-10)
 Read hash extension @code{#,()} (@pxref{SRFI-10}).

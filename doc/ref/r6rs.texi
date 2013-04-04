@@ -826,11 +826,11 @@ This form is identical to the one provided by Guile's core library.
 @node R6RS Records
 @subsubsection R6RS Records
 
-The manual sections below describe Guile's implementation of R6RS 
+The manual sections below describe Guile's implementation of R6RS
 records, which provide support for user-defined data types.  The R6RS
 records API provides a superset of the features provided by Guile's
 ``native'' records, as well as those of the SRFI-9 records API;
-@xref{Records}, and @ref{SRFI-9}, for a description of those
+@xref{Records}, and @ref{SRFI-9 Records}, for a description of those
 interfaces.
 
 As with SRFI-9 and Guile's native records, R6RS records are constructed
