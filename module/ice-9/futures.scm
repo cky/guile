@@ -23,6 +23,7 @@
   #:use-module (srfi srfi-11)
   #:use-module (ice-9 q)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 control)
   #:export (future make-future future? touch))
 
 ;;; Author: Ludovic Courtès <ludo@gnu.org>
@@ -104,16 +105,6 @@ touched."
       (lambda () (lock-mutex x))
       (lambda () (begin e0 e1 ...))
       (lambda () (unlock-mutex x)))))
-
-(define-syntax-rule (let/ec k e e* ...)           ; TODO: move to core
-  (let ((tag (make-prompt-tag)))
-    (call-with-prompt
-     tag
-     (lambda ()
-       (let ((k (lambda args (apply abort-to-prompt tag args))))
-         e e* ...))
-     (lambda (_ res) res))))
-
 
 (define %future-prompt
   ;; The prompt futures abort to when they want to wait for another

@@ -1,6 +1,6 @@
 ;;; Beyond call/cc
 
-;; Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,7 +21,9 @@
 (define-module (ice-9 control)
   #:re-export (call-with-prompt abort-to-prompt
                default-prompt-tag make-prompt-tag)
-  #:export (% abort shift reset shift* reset*))
+  #:export (% abort shift reset shift* reset*
+            call-with-escape-continuation call/ec
+            let-escape-continuation let/ec))
 
 (define (abort . args)
   (apply abort-to-prompt (default-prompt-tag) args))
@@ -76,3 +78,29 @@
 
 (define (shift* fc)
   (shift c (fc c)))
+
+(define (call-with-escape-continuation proc)
+  "Call PROC with an escape continuation."
+  (let ((tag (list 'call/ec)))
+    (call-with-prompt tag
+                      (lambda ()
+                        (proc (lambda args
+                                (apply abort-to-prompt tag args))))
+                      (lambda (_ . args)
+                        (apply values args)))))
+
+(define call/ec call-with-escape-continuation)
+
+(define-syntax-rule (let-escape-continuation k body ...)
+  "Bind K to an escape continuation within the lexical extent of BODY."
+  (let ((tag (list 'let/ec)))
+    (call-with-prompt tag
+                      (lambda ()
+                        (let ((k (lambda args
+                                   (apply abort-to-prompt tag args))))
+                          body ...))
+                      (lambda (_ . results)
+                        (apply values results)))))
+
+(define-syntax-rule (let/ec k body ...)
+  (let-escape-continuation k body ...))

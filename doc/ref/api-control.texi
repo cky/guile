@@ -574,8 +574,55 @@ both.
 
 Before moving on, we should mention that if the handler of a prompt is a
 @code{lambda} expression, and the first argument isn't referenced, an abort to
-that prompt will not cause a continuation to be reified. This can be an
+that prompt will not cause a continuation to be reified.  This can be an
 important efficiency consideration to keep in mind.
+
+@cindex continuation, escape
+One example where this optimization matters is @dfn{escape
+continuations}.  Escape continuations are delimited continuations whose
+only use is to make a non-local exit---i.e., to escape from the current
+continuation.  Such continuations are invoked only once, and for this
+reason they are sometimes called @dfn{one-shot continuations}.
+
+The constructs below are syntactic sugar atop prompts to simplify the
+use of escape continuations.
+
+@deffn {Scheme Procedure} call-with-escape-continuation proc
+@deffnx {Scheme Procedure} call/ec proc
+Call @var{proc} with an escape continuation.
+
+In the example below, the @var{return} continuation is used to escape
+the continuation of the call to @code{fold}.
+
+@lisp
+(use-modules (ice-9 control)
+             (srfi srfi-1))
+
+(define (prefix x lst)
+  ;; Return all the elements before the first occurrence
+  ;; of X in LST.
+  (call/ec
+    (lambda (return)
+      (fold (lambda (element prefix)
+              (if (equal? element x)
+                  (return (reverse prefix))  ; escape `fold'
+                  (cons element prefix)))
+            '()
+            lst))))
+
+(prefix 'a '(0 1 2 a 3 4 5))
+@result{} (0 1 2)
+@end lisp
+@end deffn
+
+@deffn {Scheme Syntax} let-escape-continuation k body @dots{}
+@deffnx {Scheme Syntax} let/ec k body @dots{}
+Bind @var{k} within @var{body} to an escape continuation.
+
+This is equivalent to
+@code{(call/ec (lambda (@var{k}) @var{body} @dots{}))}.
+@end deffn
+
 
 @node Shift and Reset
 @subsubsection Shift, Reset, and All That
