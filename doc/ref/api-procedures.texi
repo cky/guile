@@ -575,7 +575,8 @@ with @code{lambda} (@pxref{Lambda}).
 @example
 @group
 <case-lambda>
-   --> (case-lambda <case-lambda-clause>)
+   --> (case-lambda <case-lambda-clause>*)
+   --> (case-lambda <docstring> <case-lambda-clause>*)
 <case-lambda-clause>
    --> (<formals> <definition-or-command>*)
 <formals>
@@ -590,6 +591,7 @@ Rest lists can be useful with @code{case-lambda}:
 @lisp
 (define plus
   (case-lambda
+    "Return the sum of all arguments."
     (() 0)
     ((a) a)
     ((a b) (+ a b))

@@ -226,7 +226,15 @@
     ((case-lambda)))
 
   (pass-if-exception "no clauses, args" exception:wrong-num-args
-    ((case-lambda) 1)))
+    ((case-lambda) 1))
+
+  (pass-if "docstring"
+    (equal? "docstring test"
+            (procedure-documentation
+             (case-lambda
+              "docstring test"
+              (() 0)
+              ((x) 1))))))
 
 (with-test-prefix/c&e "case-lambda*"
   (pass-if-exception "no clauses, no args" exception:wrong-num-args
@@ -234,6 +242,14 @@
 
   (pass-if-exception "no clauses, args" exception:wrong-num-args
     ((case-lambda*) 1))
+
+  (pass-if "docstring"
+    (equal? "docstring test"
+            (procedure-documentation
+             (case-lambda*
+              "docstring test"
+              (() 0)
+              ((x) 1)))))
 
   (pass-if "unambiguous"
     ((case-lambda*

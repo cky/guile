@@ -2075,28 +2075,42 @@
 
     (global-extend 'core 'case-lambda
                    (lambda (e r w s mod)
+                     (define (build-it meta clauses)
+                       (call-with-values
+                           (lambda ()
+                             (expand-lambda-case e r w s mod
+                                                 lambda-formals
+                                                 clauses))
+                         (lambda (meta* lcase)
+                           (build-case-lambda s (append meta meta*) lcase))))
                      (syntax-case e ()
                        ((_ (args e1 e2 ...) ...)
-                        (call-with-values
-                            (lambda ()
-                              (expand-lambda-case e r w s mod
-                                                  lambda-formals
-                                                  #'((args e1 e2 ...) ...)))
-                          (lambda (meta lcase)
-                            (build-case-lambda s meta lcase))))
+                        (build-it '() #'((args e1 e2 ...) ...)))
+                       ((_ docstring (args e1 e2 ...) ...)
+                        (string? (syntax->datum #'docstring))
+                        (build-it `((documentation
+                                     . ,(syntax->datum #'docstring)))
+                                  #'((args e1 e2 ...) ...)))
                        (_ (syntax-violation 'case-lambda "bad case-lambda" e)))))
 
     (global-extend 'core 'case-lambda*
                    (lambda (e r w s mod)
+                     (define (build-it meta clauses)
+                       (call-with-values
+                           (lambda ()
+                             (expand-lambda-case e r w s mod
+                                                 lambda*-formals
+                                                 clauses))
+                         (lambda (meta* lcase)
+                           (build-case-lambda s (append meta meta*) lcase))))
                      (syntax-case e ()
                        ((_ (args e1 e2 ...) ...)
-                        (call-with-values
-                            (lambda ()
-                              (expand-lambda-case e r w s mod
-                                                  lambda*-formals
-                                                  #'((args e1 e2 ...) ...)))
-                          (lambda (meta lcase)
-                            (build-case-lambda s meta lcase))))
+                        (build-it '() #'((args e1 e2 ...) ...)))
+                       ((_ docstring (args e1 e2 ...) ...)
+                        (string? (syntax->datum #'docstring))
+                        (build-it `((documentation
+                                     . ,(syntax->datum #'docstring)))
+                                  #'((args e1 e2 ...) ...)))
                        (_ (syntax-violation 'case-lambda "bad case-lambda*" e)))))
 
     (global-extend 'core 'let
