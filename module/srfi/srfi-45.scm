@@ -39,8 +39,7 @@
              eager
              promise?)
   #:replace (delay force promise?)
-  #:use-module (srfi srfi-9)
-  #:use-module (srfi srfi-9 gnu))
+  #:use-module (srfi srfi-9))
 
 (cond-expand-provide (current-module) '(srfi-45))
 
@@ -77,8 +76,3 @@
 ;; (*) These two lines re-fetch and check the original promise in case
 ;;     the first line of the let* caused it to be forced.  For an example
 ;;     where this happens, see reentrancy test 3 below.
-
-(set-record-type-printer! promise
-  (lambda (promise port)
-    (define content (promise-val promise))
-    (format port "#<~a ~s>" (value-tag content) (value-proc content))))
