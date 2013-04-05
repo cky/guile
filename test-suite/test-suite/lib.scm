@@ -1,6 +1,6 @@
 ;;;; test-suite/lib.scm --- generic support for testing
 ;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;   2011, 2012 Free Software Foundation, Inc.
+;;;;   2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -469,13 +469,18 @@
      (with-test-prefix* prefix (lambda () body ...)))))
 
 (define-syntax c&e
-  (syntax-rules (pass-if pass-if-exception)
+  (syntax-rules (pass-if pass-if-equal pass-if-exception)
     "Run the given tests both with the evaluator and the compiler/VM."
     ((_ (pass-if test-name exp))
      (begin (pass-if (string-append test-name " (eval)")
                      (primitive-eval 'exp))
             (pass-if (string-append test-name " (compile)")
                      (compile 'exp #:to 'value #:env (current-module)))))
+    ((_ (pass-if-equal test-name val exp))
+     (begin (pass-if-equal (string-append test-name " (eval)") val
+              (primitive-eval 'exp))
+            (pass-if-equal (string-append test-name " (compile)") val
+              (compile 'exp #:to 'value #:env (current-module)))))
     ((_ (pass-if-exception test-name exc exp))
      (begin (pass-if-exception (string-append test-name " (eval)")
                                exc (primitive-eval 'exp))
