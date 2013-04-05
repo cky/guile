@@ -1986,7 +1986,6 @@ scm_i_scan_for_encoding (SCM port)
   char header[SCM_ENCODING_SEARCH_SIZE+1];
   size_t bytes_read, encoding_length, i;
   char *encoding = NULL;
-  int utf8_bom = 0;
   char *pos, *encoding_start;
   int in_comment;
 
@@ -2030,10 +2029,6 @@ scm_i_scan_for_encoding (SCM port)
       header[bytes_read] = '\0';
       scm_seek (port, scm_from_int (0), scm_from_int (SEEK_SET));
     }
-
-  if (bytes_read > 3 
-      && header[0] == '\xef' && header[1] == '\xbb' && header[2] == '\xbf')
-    utf8_bom = 1;
 
   /* search past "coding[:=]" */
   pos = header;
@@ -2102,11 +2097,6 @@ scm_i_scan_for_encoding (SCM port)
   if (!in_comment)
     /* This wasn't in a comment */
     return NULL;
-
-  if (utf8_bom && c_strcasecmp(encoding, "UTF-8"))
-    scm_misc_error (NULL,
-		    "the port input declares the encoding ~s but is encoded as UTF-8",
-		    scm_list_1 (scm_from_locale_string (encoding)));
 
   return encoding;
 }
