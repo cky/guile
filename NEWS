@@ -69,8 +69,10 @@ complete reduction of forms such as:
 A number (ahem) of numeric operations on have been made faster, among
 them GCD and logarithms.
 
-Finally, `array-ref' and `array-set!' on arrays of rank 1 or 2 is now
-faster, because it avoids building a rest list.
+Finally, `array-ref', `array-set!' on arrays of rank 1 or 2 is now
+faster, because it avoids building a rest list.  Similarly, the
+one-argument case of `array-for-each' and `array-map!' has been
+optimized, and `array-copy!' and `array-fill!' are faster.
 
 ** `include' resolves relative file names relative to including file.
 
@@ -158,6 +160,14 @@ This module, present in Guile since 1996 but never used or documented,
 has never worked in Guile 2.0.  It has now been deprecated and will be
 removed in Guile 2.2.
 
+** Deprecate undocumented array-related C functions.
+
+These are `scm_array_fill_int', `scm_ra_eqp', `scm_ra_lessp',
+`scm_ra_leqp', `scm_ra_grp', `scm_ra_greqp', `scm_ra_sum',
+`scm_ra_product', `scm_ra_difference', `scm_ra_divide', and
+`scm_array_identity'.
+
+
 * New interfaces
 
 ** `round-ash', a bit-shifting operator that rounds on right-shift.
@@ -177,6 +187,10 @@ See "File System".
 See XXX for documentation on `system-file-name-convention',
 `file-name-separator?', `absolute-file-name?', and
 `file-name-separator-string'.
+
+** Escape continuations with `call/ec' and `let/ec'
+
+See "Prompt Primitives".
 
 ** `array-length', an array's first dimension.
 
