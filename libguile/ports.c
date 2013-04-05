@@ -35,6 +35,7 @@
 #include <uniconv.h>
 #include <unistr.h>
 #include <striconveh.h>
+#include <c-strcase.h>
 
 #include <assert.h>
 
@@ -645,7 +646,7 @@ scm_new_port_table_entry (scm_t_bits tag)
   encoding = scm_i_default_port_encoding ();
   entry->ilseq_handler = scm_i_default_port_conversion_handler ();
   entry->encoding = encoding ? scm_gc_strdup (encoding, "port") : NULL;
-  if (encoding && strcasecmp (encoding, "UTF-8") == 0)
+  if (encoding && c_strcasecmp (encoding, "UTF-8") == 0)
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
   else
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
@@ -1427,8 +1428,8 @@ get_codepoint (SCM port, scm_t_wchar *codepoint,
           if (SCM_UNLIKELY
               (*codepoint == SCM_UNICODE_BOM
                && (pti->encoding_mode == SCM_PORT_ENCODING_MODE_UTF8
-                   || strcasecmp (pt->encoding, "UTF-16") == 0
-                   || strcasecmp (pt->encoding, "UTF-32") == 0)))
+                   || c_strcasecmp (pt->encoding, "UTF-16") == 0
+                   || c_strcasecmp (pt->encoding, "UTF-32") == 0)))
             return get_codepoint (port, codepoint, buf, len);
         }
       update_port_lf (*codepoint, port);
@@ -2299,9 +2300,9 @@ scm_i_set_default_port_encoding (const char *encoding)
 		    SCM_EOL);
 
   if (encoding == NULL
-      || !strcasecmp (encoding, "ASCII")
-      || !strcasecmp (encoding, "ANSI_X3.4-1968")
-      || !strcasecmp (encoding, "ISO-8859-1"))
+      || c_strcasecmp (encoding, "ASCII") == 0
+      || c_strcasecmp (encoding, "ANSI_X3.4-1968") == 0
+      || c_strcasecmp (encoding, "ISO-8859-1") == 0)
     scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var), SCM_BOOL_F);
   else
     scm_fluid_set_x (SCM_VARIABLE_REF (default_port_encoding_var),
@@ -2489,9 +2490,9 @@ scm_i_port_iconv_descriptors (SCM port, scm_t_port_rw_active mode)
 
       /* If the specified encoding is UTF-16 or UTF-32, then make
          that more precise by deciding what byte order to use. */
-      if (strcasecmp (pt->encoding, "UTF-16") == 0)
+      if (c_strcasecmp (pt->encoding, "UTF-16") == 0)
         precise_encoding = decide_utf16_encoding (port, mode);
-      else if (strcasecmp (pt->encoding, "UTF-32") == 0)
+      else if (c_strcasecmp (pt->encoding, "UTF-32") == 0)
         precise_encoding = decide_utf32_encoding (port, mode);
       else
         precise_encoding = pt->encoding;
@@ -2532,7 +2533,7 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
      because we do I/O ourselves.  This saves 100+ KiB for each
      descriptor.  */
   pt->encoding = scm_gc_strdup (encoding, "port");
-  if (strcasecmp (encoding, "UTF-8") == 0)
+  if (c_strcasecmp (encoding, "UTF-8") == 0)
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
   else
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;

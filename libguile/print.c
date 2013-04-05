@@ -30,6 +30,7 @@
 
 #include <uniconv.h>
 #include <unictype.h>
+#include <c-strcase.h>
 
 #include "libguile/_scm.h"
 #include "libguile/chars.h"
@@ -895,8 +896,8 @@ display_string_using_iconv (const void *str, int narrow_p, size_t len,
         pti->at_stream_start_for_bom_read = 0;
 
       /* Write a BOM if appropriate.  */
-      if (SCM_UNLIKELY (strcasecmp(pt->encoding, "UTF-16") == 0
-                        || strcasecmp(pt->encoding, "UTF-32") == 0))
+      if (SCM_UNLIKELY (c_strcasecmp(pt->encoding, "UTF-16") == 0
+                        || c_strcasecmp(pt->encoding, "UTF-32") == 0))
         display_character (SCM_UNICODE_BOM, port, iconveh_error);
     }
 
