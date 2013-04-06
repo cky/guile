@@ -1009,6 +1009,38 @@ Return @code{#t} if the file named @var{filename} exists, @code{#f} if
 not.
 @end deffn
 
+@cindex file name separator
+@cindex absolute file name
+
+Many operating systems, such as GNU, use @code{/} (forward slash) to
+separate the components of a file name; any file name starting with
+@code{/} is considered an @dfn{absolute file name}.  These conventions
+are specified by the POSIX Base Definitions, which refer to conforming
+file names as ``pathnames''.  Some operating systems use a different
+convention; in particular, Windows uses @code{\} (backslash) as the file
+name separator, and also has the notion of @dfn{volume names} like
+@code{C:\} for absolute file names.  The following procedures and
+variables provide support for portable file name manipulations.
+
+@deffn {Scheme Procedure} system-file-name-convention
+Return either @code{posix} or @code{windows}, depending on
+what kind of system this Guile is running on.
+@end deffn
+
+@deffn {Scheme Procedure} file-name-separator? c
+Return true if character @var{c} is a file name separator on the host
+platform.
+@end deffn
+
+@deffn {Scheme Procedure} absolute-file-name? file-name
+Return true if @var{file-name} denotes an absolute file name on the host
+platform.
+@end deffn
+
+@defvr {Scheme Variable} file-name-separator-string
+The standard file name separator.
+@end defvr
+
 
 @node User Information
 @subsection User Information
