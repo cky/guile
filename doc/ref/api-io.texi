@@ -1223,9 +1223,10 @@ possible.
 * R6RS Textual Output::         Textual output.
 @end menu
 
-A subset of the @code{(rnrs io ports)} module is provided by the
-@code{(ice-9 binary-ports)} module.  It contains binary input/output
-procedures and does not rely on R6RS support.
+A subset of the @code{(rnrs io ports)} module, plus one non-standard
+procedure @code{unget-bytevector} (@pxref{R6RS Binary Input}), is
+provided by the @code{(ice-9 binary-ports)} module.  It contains binary
+input/output procedures and does not rely on R6RS support.
 
 @node R6RS File Names
 @subsubsection File Names
@@ -1853,6 +1854,18 @@ and update the port position to point just past these bytes.
 Read from @var{port}, blocking as necessary, until the end-of-file is
 reached.  Return either a new bytevector containing the data read or the
 end-of-file object (if no data were available).
+@end deffn
+
+The @code{(ice-9 binary-ports)} module provides the following procedure
+as an extension to @code{(rnrs io ports)}:
+
+@deffn {Scheme Procedure} unget-bytevector port bv [start [count]]
+@deffnx {C Function} scm_unget_bytevector (port, bv, start, count)
+Place the contents of @var{bv} in @var{port}, optionally starting at
+index @var{start} and limiting to @var{count} octets, so that its bytes
+will be read from left-to-right as the next bytes from @var{port} during
+subsequent read operations.  If called multiple times, the unread bytes
+will be read again in last-in first-out order.
 @end deffn
 
 @node R6RS Textual Input

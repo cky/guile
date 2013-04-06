@@ -1789,52 +1789,25 @@ scm_end_input (SCM port)
 
 
 
-void 
-scm_unget_byte (int c, SCM port)
-#define FUNC_NAME "scm_unget_byte"
+static void
+scm_i_unget_bytes (const unsigned char *buf, size_t len, SCM port)
+#define FUNC_NAME "scm_unget_bytes"
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
+  size_t old_len, new_len;
 
   scm_i_clear_pending_eof (port);
-  if (pt->read_buf == pt->putback_buf)
-    /* already using the put-back buffer.  */
-    {
-      /* enlarge putback_buf if necessary.  */
-      if (pt->read_end == pt->read_buf + pt->read_buf_size
-	  && pt->read_buf == pt->read_pos)
-	{
-	  size_t new_size = pt->read_buf_size * 2;
-	  unsigned char *tmp = (unsigned char *)
-	    scm_gc_realloc (pt->putback_buf, pt->read_buf_size, new_size,
-			    "putback buffer");
 
-	  pt->read_pos = pt->read_buf = pt->putback_buf = tmp;
-	  pt->read_end = pt->read_buf + pt->read_buf_size;
-	  pt->read_buf_size = pt->putback_buf_size = new_size;
-	}
-
-      /* shift any existing bytes to buffer + 1.  */
-      if (pt->read_pos == pt->read_end)
-	pt->read_end = pt->read_buf + 1;
-      else if (pt->read_pos != pt->read_buf + 1)
-	{
-	  int count = pt->read_end - pt->read_pos;
-
-	  memmove (pt->read_buf + 1, pt->read_pos, count);
-	  pt->read_end = pt->read_buf + 1 + count;
-	}
-
-      pt->read_pos = pt->read_buf;
-    }
-  else
+  if (pt->read_buf != pt->putback_buf)
     /* switch to the put-back buffer.  */
     {
       if (pt->putback_buf == NULL)
 	{
+          pt->putback_buf_size = (len > SCM_INITIAL_PUTBACK_BUF_SIZE
+                                  ? len : SCM_INITIAL_PUTBACK_BUF_SIZE);
 	  pt->putback_buf
 	    = (unsigned char *) scm_gc_malloc_pointerless
-	    (SCM_INITIAL_PUTBACK_BUF_SIZE, "putback buffer");
-	  pt->putback_buf_size = SCM_INITIAL_PUTBACK_BUF_SIZE;
+	    (pt->putback_buf_size, "putback buffer");
 	}
 
       pt->saved_read_buf = pt->read_buf;
@@ -1842,17 +1815,79 @@ scm_unget_byte (int c, SCM port)
       pt->saved_read_end = pt->read_end;
       pt->saved_read_buf_size = pt->read_buf_size;
 
-      pt->read_pos = pt->read_buf = pt->putback_buf;
-      pt->read_end = pt->read_buf + 1;
+      /* Put read_pos at the end of the buffer, so that ungets will not
+         have to shift the buffer contents each time.  */
+      pt->read_buf = pt->putback_buf;
+      pt->read_pos = pt->read_end = pt->putback_buf + pt->putback_buf_size;
       pt->read_buf_size = pt->putback_buf_size;
     }
 
-  *pt->read_buf = c;
+  old_len = pt->read_end - pt->read_pos;
+  new_len = old_len + len;
+
+  if (new_len > pt->read_buf_size)
+    /* The putback buffer needs to be enlarged.  */
+    {
+      size_t new_buf_size;
+      unsigned char *new_buf, *new_end, *new_pos;
+
+      new_buf_size = pt->read_buf_size * 2;
+      if (new_buf_size < new_len)
+        new_buf_size = new_len;
+
+      new_buf = (unsigned char *)
+        scm_gc_malloc_pointerless (new_buf_size, "putback buffer");
+
+      /* Put the bytes at the end of the buffer, so that future
+         ungets won't need to shift the buffer.  */
+      new_end = new_buf + new_buf_size;
+      new_pos = new_end - old_len;
+      memcpy (new_pos, pt->read_pos, old_len);
+
+      pt->read_buf = pt->putback_buf = new_buf;
+      pt->read_pos = new_pos;
+      pt->read_end = new_end;
+      pt->read_buf_size = pt->putback_buf_size = new_buf_size;
+    }
+  else if (pt->read_buf + len < pt->read_pos)
+    /* If needed, shift the existing buffer contents up.
+       This should not happen unless some external code
+       manipulates the putback buffer pointers.  */
+    {
+      unsigned char *new_end = pt->read_buf + pt->read_buf_size;
+      unsigned char *new_pos = new_end - old_len;
+
+      memmove (new_pos, pt->read_pos, old_len);
+      pt->read_pos = new_pos;
+      pt->read_end = new_end;
+    }
+
+  /* Move read_pos back and copy the bytes there.  */
+  pt->read_pos -= len;
+  memcpy (pt->read_buf + (pt->read_pos - pt->read_buf), buf, len);
+
+  if (pt->rw_active == SCM_PORT_WRITE)
+    scm_flush (port);
 
   if (pt->rw_random)
     pt->rw_active = SCM_PORT_READ;
 }
 #undef FUNC_NAME
+
+void
+scm_unget_bytes (const unsigned char *buf, size_t len, SCM port)
+{
+  scm_i_unget_bytes (buf, len, port);
+}
+
+void
+scm_unget_byte (int c, SCM port)
+{
+  unsigned char byte;
+
+  byte = c;
+  scm_i_unget_bytes (&byte, 1, port);
+}
 
 void
 scm_ungetc (scm_t_wchar c, SCM port)
@@ -1863,7 +1898,6 @@ scm_ungetc (scm_t_wchar c, SCM port)
   char result_buf[10];
   const char *encoding;
   size_t len;
-  int i;
 
   if (pt->encoding != NULL)
     encoding = pt->encoding;
@@ -1881,8 +1915,7 @@ scm_ungetc (scm_t_wchar c, SCM port)
 			"conversion to port encoding failed",
 			SCM_BOOL_F, SCM_MAKE_CHAR (c));
 
-  for (i = len - 1; i >= 0; i--)
-    scm_unget_byte (result[i], port);
+  scm_i_unget_bytes ((unsigned char *) result, len, port);
 
   if (SCM_UNLIKELY (result != result_buf))
     free (result);
@@ -1941,7 +1974,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
   SCM result;
   scm_t_wchar c;
   char bytes[SCM_MBCHAR_BUF_SIZE];
-  long column, line, i;
+  long column, line;
   size_t len;
 
   if (SCM_UNBNDP (port))
@@ -1953,8 +1986,7 @@ SCM_DEFINE (scm_peek_char, "peek-char", 0, 1, 0,
 
   err = get_codepoint (port, &c, bytes, &len);
 
-  for (i = len - 1; i >= 0; i--)
-    scm_unget_byte (bytes[i], port);
+  scm_i_unget_bytes ((unsigned char *) bytes, len, port);
 
   SCM_COL (port) = column;
   SCM_LINUM (port) = line;
@@ -2336,7 +2368,6 @@ static int
 looking_at_bytes (SCM port, const unsigned char *bytes, int len)
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
-  int result;
   int i = 0;
 
   while (i < len && scm_peek_byte_or_eof (port) == bytes[i])
@@ -2344,13 +2375,8 @@ looking_at_bytes (SCM port, const unsigned char *bytes, int len)
       pt->read_pos++;
       i++;
     }
-
-  result = (i == len);
-
-  while (i > 0)
-    scm_unget_byte (bytes[--i], port);
-
-  return result;
+  scm_i_unget_bytes (bytes, i, port);
+  return (i == len);
 }
 
 static const unsigned char scm_utf8_bom[3]    = {0xEF, 0xBB, 0xBF};

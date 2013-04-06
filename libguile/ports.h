@@ -302,6 +302,7 @@ SCM_INTERNAL void scm_lfwrite_substr (SCM str, size_t start, size_t end,
 SCM_API void scm_flush (SCM port);
 SCM_API void scm_end_input (SCM port);
 SCM_API int scm_fill_input (SCM port);
+SCM_API void scm_unget_bytes (const unsigned char *buf, size_t len, SCM port);
 SCM_API void scm_unget_byte (int c, SCM port);
 SCM_API void scm_ungetc (scm_t_wchar c, SCM port);
 SCM_API void scm_ungets (const char *s, int n, SCM port);

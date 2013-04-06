@@ -714,6 +714,49 @@ SCM_DEFINE (scm_put_bytevector, "put-bytevector", 2, 2, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (scm_unget_bytevector, "unget-bytevector", 2, 2, 0,
+	    (SCM port, SCM bv, SCM start, SCM count),
+	    "Unget the contents of @var{bv} to @var{port}, optionally "
+	    "starting at index @var{start} and limiting to @var{count} "
+	    "octets.")
+#define FUNC_NAME s_scm_unget_bytevector
+{
+  unsigned char *c_bv;
+  size_t c_start, c_count, c_len;
+
+  SCM_VALIDATE_BINARY_INPUT_PORT (1, port);
+  SCM_VALIDATE_BYTEVECTOR (2, bv);
+
+  c_len = SCM_BYTEVECTOR_LENGTH (bv);
+  c_bv = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+
+  if (!scm_is_eq (start, SCM_UNDEFINED))
+    {
+      c_start = scm_to_size_t (start);
+
+      if (!scm_is_eq (count, SCM_UNDEFINED))
+	{
+	  c_count = scm_to_size_t (count);
+	  if (SCM_UNLIKELY (c_start + c_count > c_len))
+	    scm_out_of_range (FUNC_NAME, count);
+	}
+      else
+	{
+	  if (SCM_UNLIKELY (c_start >= c_len))
+	    scm_out_of_range (FUNC_NAME, start);
+	  else
+	    c_count = c_len - c_start;
+	}
+    }
+  else
+    c_start = 0, c_count = c_len;
+
+  scm_unget_bytes (c_bv + c_start, c_count, port);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
 
 
 /* Bytevector output port ("bop" for short).  */

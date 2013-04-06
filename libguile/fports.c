@@ -225,8 +225,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 
   if (ndrained > 0)
     /* Put DRAINED back to PORT.  */
-    while (ndrained-- > 0)
-      scm_unget_byte (drained[ndrained], port);
+    scm_unget_bytes ((unsigned char *) drained, ndrained, port);
 
   return SCM_UNSPECIFIED;
 }
