@@ -208,6 +208,35 @@ Treat the auto-compilation cache as invalid, forcing recompilation.
 @item --no-auto-compile
 Disable automatic source file compilation.
 
+@vnew{2.0.8}
+
+@item --language=@var{lang}
+For the remainder of the command line arguments, assume that files
+mentioned with @code{-l} and expressions passed with @code{-c} are
+written in @var{lang}.  @var{lang} must be the name of one of the
+languages supported by the compiler (@pxref{Compiler Tower}).  When run
+interactively, set the REPL's language to @var{lang} (@pxref{Using Guile
+Interactively}).
+
+The default language is @code{scheme}; other interesting values include
+@code{elisp} (for Emacs Lisp), and @code{ecmascript}.
+
+The example below shows the evaluation of expressions in Scheme, Emacs
+Lisp, and ECMAScript:
+
+@example
+guile -c "(apply + '(1 2))"
+guile --language=elisp -c "(= (funcall (symbol-function '+) 1 2) 3)"
+guile --language=ecmascript -c '(function (x) @{ return x * x; @})(2);'
+@end example
+
+To load a file written in Scheme and one written in Emacs Lisp, and then
+start a Scheme REPL, type:
+
+@example
+guile -l foo.scm --language=elisp -l foo.el --language=scheme
+@end example
+
 @vnew{2.0}
 
 @item -h@r{, }--help
