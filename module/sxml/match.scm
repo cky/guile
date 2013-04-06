@@ -20,7 +20,8 @@
             sxml-match-let
             sxml-match-let*)
   #:use-module (srfi srfi-1)
-  #:use-module (srfi srfi-11))
+  #:use-module (srfi srfi-11)
+  #:use-module (ice-9 control))
 
 
 ;;; Commentary:
@@ -45,22 +46,6 @@
 
 (define-syntax-rule (void)
   *unspecified*)
-
-(define %call/ec-prompt
-  (make-prompt-tag))
-
-(define-syntax-rule (call/ec proc)
-  ;; aka. `call-with-escape-continuation'
-  (call-with-prompt %call/ec-prompt
-                    (lambda ()
-                      (proc (lambda args
-                              (apply abort-to-prompt
-                                     %call/ec-prompt args))))
-                    (lambda (_ . args)
-                      (apply values args))))
-
-(define-syntax-rule (let/ec cont body ...)
-  (call/ec (lambda (cont) body ...)))
 
 (define (raise-syntax-error x msg obj sub)
   (throw 'sxml-match-error x msg obj sub))

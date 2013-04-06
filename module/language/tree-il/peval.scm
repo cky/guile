@@ -26,6 +26,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-11)
   #:use-module (srfi srfi-26)
+  #:use-module (ice-9 control)
   #:export (peval))
 
 ;;;
@@ -72,15 +73,6 @@
     (pp `(log ,event . ,args))
     (newline)
     (values)))
-
-(define-syntax-rule (let/ec k e e* ...)
-  (let ((tag (make-prompt-tag)))
-    (call-with-prompt
-     tag
-     (lambda ()
-       (let ((k (lambda args (apply abort-to-prompt tag args))))
-         e e* ...))
-     (lambda (_ res) res))))
 
 (define (tree-il-any proc exp)
   (let/ec k
