@@ -56,7 +56,7 @@ complete reduction of forms such as:
 
   ((lambda _ _))
 
-  (apply (lambda _) 1 2 3 4)
+  (apply (lambda _ _) 1 2 3 '(4))
 
   (call-with-values (lambda () (values 1 2)) (lambda _ _))
 
@@ -278,7 +278,7 @@ refer to this variable to describe where users should install their
    (http://bugs.gnu.org/12202)
 ** Use chmod portably in (system base compile).
    (http://bugs.gnu.org/10474)
-** Fix response-body-port for responses without content-length.
+** Fix response-body-port for HTTP responses without content-length.
    (http://bugs.gnu.org/13857)
 ** Allow case-lambda expressions with no clauses.
    (http://bugs.gnu.org/9776)
@@ -322,7 +322,7 @@ refer to this variable to describe where users should install their
 ** `http-get': don't shutdown write end of socket.
    (http://bugs.gnu.org/13095)
 ** Avoid signed integer overflow in scm_product.
-** http: read-response-body always returns bytevector or #f (not EOF in one case).
+** http: read-response-body always returns bytevector or #f, never EOF.
 ** web: Correctly detect "No route to host" conditions.
 ** `system*': failure to execvp no longer leaks dangling processes
    (http://bugs.gnu.org/13166)
