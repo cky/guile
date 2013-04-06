@@ -5779,6 +5779,8 @@ For further details on @code{let-keywords}, @code{define*} and other
 facilities provided by the @code{(ice-9 optargs)} module, see
 @ref{Optional Arguments}.
 
+To handle keyword arguments from procedures implemented in C,
+use @code{scm_c_bind_keyword_arguments} (@pxref{Keyword Procedures}).
 
 @node Keyword Read Syntax
 @subsubsection Keyword Read Syntax
@@ -5880,6 +5882,70 @@ Equivalent to @code{scm_symbol_to_keyword (scm_from_latin1_symbol
 (@var{name}))} and @code{scm_symbol_to_keyword (scm_from_utf8_symbol
 (@var{name}))}, respectively.
 @end deftypefn
+
+@deftypefn {C Function} void scm_c_bind_keyword_arguments (const char *subr, @
+                             SCM rest, scm_t_keyword_arguments_flags flags, @
+                             SCM keyword1, SCM *argp1, @
+                             @dots{}, @
+                             SCM keywordN, SCM *argpN, @
+                             @nicode{SCM_UNDEFINED})
+
+Extract the specified keyword arguments from @var{rest}, which is not
+modified.  If the keyword argument @var{keyword1} is present in
+@var{rest} with an associated value, that value is stored in the
+variable pointed to by @var{argp1}, otherwise the variable is left
+unchanged.  Similarly for the other keywords and argument pointers up to
+@var{keywordN} and @var{argpN}.  The argument list to
+@code{scm_c_bind_keyword_arguments} must be terminated by
+@code{SCM_UNDEFINED}.
+
+Note that since the variables pointed to by @var{argp1} through
+@var{argpN} are left unchanged if the associated keyword argument is not
+present, they should be initialized to their default values before
+calling @code{scm_c_bind_keyword_arguments}.  Alternatively, you can
+initialize them to @code{SCM_UNDEFINED} before the call, and then use
+@code{SCM_UNBNDP} after the call to see which ones were provided.
+
+If an unrecognized keyword argument is present in @var{rest} and
+@var{flags} does not contain @code{SCM_ALLOW_OTHER_KEYS}, or if
+non-keyword arguments are present and @var{flags} does not contain
+@code{SCM_ALLOW_NON_KEYWORD_ARGUMENTS}, an exception is raised.
+@var{subr} should be the name of the procedure receiving the keyword
+arguments, for purposes of error reporting.
+
+For example:
+
+@example
+SCM k_delimiter;
+SCM k_grammar;
+SCM sym_infix;
+
+SCM my_string_join (SCM strings, SCM rest)
+@{
+  SCM delimiter = SCM_UNDEFINED;
+  SCM grammar   = sym_infix;
+
+  scm_c_bind_keyword_arguments ("my-string-join", rest, 0,
+                                k_delimiter, &delimiter,
+                                k_grammar, &grammar,
+                                SCM_UNDEFINED);
+
+  if (SCM_UNBNDP (delimiter))
+    delimiter = scm_from_utf8_string (" ");
+
+  return scm_string_join (strings, delimiter, grammar);
+@}
+
+void my_init ()
+@{
+  k_delimiter = scm_from_utf8_keyword ("delimiter");
+  k_grammar   = scm_from_utf8_keyword ("grammar");
+  sym_infix   = scm_from_utf8_symbol  ("infix");
+  scm_c_define_gsubr ("my-string-join", 1, 0, 1, my_string_join);
+@}
+@end example
+@end deftypefn
+
 
 @node Other Types
 @subsection ``Functionality-Centric'' Data Types

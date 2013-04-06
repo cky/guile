@@ -204,6 +204,13 @@ test_scm_values_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-scm-values
 TESTS += test-scm-values
 
+# test-scm-c-bind-keyword-arguments
+test_scm_c_bind_keyword_arguments_SOURCES = test-scm-c-bind-keyword-arguments.c
+test_scm_c_bind_keyword_arguments_CFLAGS = ${test_cflags}
+test_scm_c_bind_keyword_arguments_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-scm-c-bind-keyword-arguments
+TESTS += test-scm-c-bind-keyword-arguments
+
 if HAVE_SHARED_LIBRARIES
 
 # test-extensions

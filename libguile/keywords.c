@@ -23,6 +23,7 @@
 #endif
 
 #include <string.h>
+#include <stdarg.h>
 
 #include "libguile/_scm.h"
 #include "libguile/async.h"
@@ -122,6 +123,72 @@ SCM
 scm_from_utf8_keyword (const char *name)
 {
   return scm_symbol_to_keyword (scm_from_utf8_symbol (name));
+}
+
+SCM_SYMBOL (scm_keyword_argument_error, "keyword-argument-error");
+
+void
+scm_c_bind_keyword_arguments (const char *subr, SCM rest,
+                              scm_t_keyword_arguments_flags flags, ...)
+{
+  va_list va;
+
+  if (SCM_UNLIKELY (!(flags & SCM_ALLOW_NON_KEYWORD_ARGUMENTS)
+                    && scm_ilength (rest) % 2 != 0))
+    scm_error (scm_keyword_argument_error,
+               subr, "Odd length of keyword argument list",
+               SCM_EOL, SCM_BOOL_F);
+
+  while (scm_is_pair (rest))
+    {
+      SCM kw_or_arg = SCM_CAR (rest);
+      SCM tail = SCM_CDR (rest);
+
+      if (scm_is_keyword (kw_or_arg) && scm_is_pair (tail))
+        {
+          SCM kw;
+          SCM *arg_p;
+
+          va_start (va, flags);
+          for (;;)
+            {
+              kw = va_arg (va, SCM);
+              if (SCM_UNBNDP (kw))
+                {
+                  /* KW_OR_ARG is not in the list of expected keywords.  */
+                  if (!(flags & SCM_ALLOW_OTHER_KEYS))
+                    scm_error (scm_keyword_argument_error,
+                               subr, "Unrecognized keyword",
+                               SCM_EOL, SCM_BOOL_F);
+                  break;
+                }
+              arg_p = va_arg (va, SCM *);
+              if (scm_is_eq (kw_or_arg, kw))
+                {
+                  /* We found the matching keyword.  Store the
+                     associated value and break out of the loop.  */
+                  *arg_p = SCM_CAR (tail);
+                  break;
+                }
+            }
+          va_end (va);
+
+          /* Advance REST.  */
+          rest = SCM_CDR (tail);
+        }
+      else
+        {
+          /* The next argument is not a keyword, or is a singleton
+             keyword at the end of REST.  */
+          if (!(flags & SCM_ALLOW_NON_KEYWORD_ARGUMENTS))
+            scm_error (scm_keyword_argument_error,
+                       subr, "Invalid keyword",
+                       SCM_EOL, SCM_BOOL_F);
+
+           /* Advance REST.  */
+           rest = tail;
+        }
+    }
 }
 
 /* njrev: critical sections reviewed so far up to here */

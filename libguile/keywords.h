@@ -41,6 +41,18 @@ SCM_API SCM scm_from_locale_keywordn (const char *name, size_t len);
 SCM_API SCM scm_from_latin1_keyword (const char *name);
 SCM_API SCM scm_from_utf8_keyword (const char *name);
 
+enum scm_keyword_arguments_flags
+{
+  SCM_ALLOW_OTHER_KEYS            = (1U << 0),
+  SCM_ALLOW_NON_KEYWORD_ARGUMENTS = (1U << 1)
+};
+
+typedef enum scm_keyword_arguments_flags scm_t_keyword_arguments_flags;
+
+SCM_API void
+scm_c_bind_keyword_arguments (const char *subr, SCM rest,
+                              scm_t_keyword_arguments_flags flags, ...);
+
 SCM_INTERNAL void scm_init_keywords (void);
 
 #endif  /* SCM_KEYWORDS_H */
