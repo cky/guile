@@ -13,12 +13,6 @@ Reorder points in order of importance and make comprehensible
 
 Assemble thanks
 
-file name docs
-
-gnulib version
-
---language docs
-
 * Notable changes
 
 ** New guile.m4.
@@ -184,7 +178,7 @@ See "File System".
 
 ** New procedures for dealing with file names.
 
-See XXX for documentation on `system-file-name-convention',
+See "File System" for documentation on `system-file-name-convention',
 `file-name-separator?', `absolute-file-name?', and
 `file-name-separator-string'.
 
@@ -215,9 +209,9 @@ parser deals with namespaces, processed entities, doctypes, and literal
 strings.  Incidentally, `current-ssax-error-port' is now a parameter
 object.
 
-** New command-line argument: `--language'
+** New command-line argument: `--language'.
 
-See XXX in the manual.
+See "Command-line Options" in the manual.
 
 ** `current-language' in default environment.
 
