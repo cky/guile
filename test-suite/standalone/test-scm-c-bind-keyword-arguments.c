@@ -65,13 +65,13 @@ test_invalid_keyword (void *data)
   SCM arg_foo, arg_bar;
 
   scm_c_bind_keyword_arguments ("test",
-                     scm_list_n (k_foo, SCM_EOL,
-                                 SCM_INUM0, SCM_INUM1,
-                                 SCM_UNDEFINED),
-                     SCM_ALLOW_OTHER_KEYS,
-                     k_foo, &arg_foo,
-                     k_bar, &arg_bar,
-                     SCM_UNDEFINED);
+                                scm_list_n (k_foo, SCM_EOL,
+                                            SCM_INUM0, SCM_INUM1,
+                                            SCM_UNDEFINED),
+                                SCM_ALLOW_OTHER_KEYS,
+                                k_foo, &arg_foo,
+                                k_bar, &arg_bar,
+                                SCM_UNDEFINED);
   assert (0);
 }
 
