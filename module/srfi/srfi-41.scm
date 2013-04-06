@@ -148,7 +148,7 @@
 
 (define stream? stream-promise?)
 
-(define %stream-null '(stream . null))
+(define %stream-null (cons 'stream 'null))
 (define stream-null (stream-eager %stream-null))
 
 (define (stream-null? obj)
