@@ -9,13 +9,30 @@ Changes in 2.0.8 (since 2.0.7):
 
 * TODO
 
-Reorder points in order of importance and make comprehensible
+** Reorder points in order of importance and make comprehensible
 
-Assemble thanks
+** Document recent improvements to array code
+
+** Possible entries for Bug Fixes
+*** Fixes for Mingw (Andy?)
+*** Fix for FreeBSD with threads(?)
+
+** Assemble thanks
 
 * Notable changes
 
-** New guile.m4.
+** New keyword arguments for procedures that open files
+
+Several procedures that open files now support keyword arguments to
+request binary I/O or to specify the character encoding for text files.
+
+It is also now possible to specify whether Guile should scan files for
+Emacs-style coding declarations.  This scan was done by default in
+versions 2.0.0 through 2.0.7, but now must be explicitly requested.
+
+See "File Ports" in the manual for details.
+
+** New guile.m4
 
 The `guile.m4' autoconf macros have been rewritten to use `guild' and
 `pkg-config' instead of the deprecated `guile-config' (which itself
@@ -25,7 +42,7 @@ There is also a new macro, `GUILE_PKG', which allows packages to select
 the version of Guile that they want to compile against.  See "Autoconf
 Macros" in the manual, for more information.
 
-** Better Windows support.
+** Better Windows support
 
 Guile now correctly identifies absolute paths on Windows (MinGW), and
 creates files on that platform according to its path conventions.  See
@@ -41,13 +58,24 @@ definitions for FD_SET, FD_ZERO, and other system interface.  Guile
 should not be setting these macros in public API, so this interface was
 removed on those plaforms (basically only MinGW).
 
-** Gnulib update.
+** Numerics improvements
 
-Guile's copy of Gnulib was updated to v0.0-7865-ga828bb2.  The following
-modules were imported from Gnulib: select, times, pipe-posix, fstat,
-getlogin, and poll.
+`number->string' now reliably outputs enough digits to produce the same
+number when read back in.  Previously, it mishandled subnormal numbers
+(printing them as "#.#"), and failed to distinguish between some
+distinct inexact numbers, e.g. 1.0 and (+ 1.0 (expt 2.0 -52)).  These
+problems had far-reaching implications, since the compiler uses
+`number->string' to serialize numeric constants into .go files.
 
-** New optimizations.
+`sqrt' now produces exact rational results when possible, and handles
+very large or very small numbers more robustly.
+
+Operations involving exact rationals have been optimized, most notably
+`integer-expt' and `expt'.
+
+`exact->inexact' now guarantees correct IEEE rounding.
+
+** New optimizations
 
 There were a number of improvements to the partial evaluator, allowing
 complete reduction of forms such as:
@@ -60,34 +88,60 @@ complete reduction of forms such as:
 
   (call-with-values (lambda () (values 1 2)) (lambda _ _))
 
-A number (ahem) of numeric operations on have been made faster, among
-them GCD and logarithms.
+`string-join' now handles huge lists efficiently.
+
+`get-bytevector-some' is much faster.
 
 Finally, `array-ref', `array-set!' on arrays of rank 1 or 2 is now
 faster, because it avoids building a rest list.  Similarly, the
 one-argument case of `array-for-each' and `array-map!' has been
 optimized, and `array-copy!' and `array-fill!' are faster.
 
-** `include' resolves relative file names relative to including file.
+** Gnulib update
+
+Guile's copy of Gnulib was updated to v0.0-7865-ga828bb2.  The following
+modules were imported from Gnulib: select, times, pipe-posix, fstat,
+getlogin, poll, and c-strcase.
+
+** `include' resolves relative file names relative to including file
 
 Given a relative file name, `include' will look for it relative to the
 directory of the including file.  This harmonizes the behavior of
 `include' with that of `load'.
 
-** SLIB compatibility restored.
+** SLIB compatibility restored
 
 Guile 2.0.8 is now compatible with SLIB.  You will have to use a
 development version of SLIB, however, until a new version of SLIB is
 released.
 
-** Better ,trace REPL command.
+** Better ,trace REPL command
 
 Sometimes the ,trace output for nested function calls could overflow the
 terminal width, which wasn't useful.  Now there is a limit to the amount
 of space the prefix will take.  See the documentation for ",trace" for
 more information.
 
-** Update predefined character sets to Unicode 6.2.
+** Better docstring syntax supported for `case-lambda'
+
+Docstrings can now be placed immediately after the `case-lambda' or
+`case-lambda*' keyword.  See "Case-lambda" in the manual.
+
+** `get-bytevector-some' much faster; may read less than possible
+
+`get-bytevector-some' has been made much faster, but may now read less
+than possible, in accordance with the R6RS definition.
+
+** SRFI-45 exports `promise?'; promises print more nicely
+
+SRFI-45 now exports a `promise?' procedure that works with its promises,
+and its promises print more nicely.
+
+** Improved handling of Unicode byte order marks
+
+See "BOM Handling" in the manual for details.
+
+** Update predefined character sets to Unicode 6.2
 
 ** GMP 4.2 or later required
 
@@ -96,17 +150,17 @@ and now requires at least version 4.2 (released in March 2006).
 
 * Manual updates
 
-** Better SXML documentation.
+** Better SXML documentation
 
 The documentation for SXML modules was much improved, though there is
 still far to go.  See "SXML" in manual.
 
-** Style updates.
+** Style updates
 
 Use of "iff" was replaced with standard English.  Keyword arguments are
 now documented consistently, along with their default values.
 
-** An end to the generated-documentation experiment.
+** An end to the generated-documentation experiment
 
 When Guile 2.0 imported some modules from Guile-Lib, they came with a
 system that generated documentation from docstrings and module
@@ -115,19 +169,20 @@ bullet and incorporated these modules into the main text, and will be
 improving them manually over time, as is the case with SXML.  Help is
 appreciated.
 
-** New documentation.
+** New documentation
 
 There is now documentation for `scm_array_type', and `scm_array_ref', as
 well as for the new `array-length' / 'scm_c_array_length' /
 `scm_array_length' functions.  `array-in-bounds?' has better
 documentation as well.  The `program-arguments-alist' and
-`program-lambda-list' functions are now documented.  Finally, the GOOPS
-class hierarchy diagram has been regenerated for the web and print
-output formats.
+`program-lambda-list' functions are now documented, as well as `and=>',
+`exit', and `quit'.  The (system repl server) module is now documented
+(see REPL Servers).  Finally, the GOOPS class hierarchy diagram has been
+regenerated for the web and print output formats.
 
 * New deprecations
 
-** Deprecate generalized vector interface.
+** Deprecate generalized vector interface
 
 The generalized vector interface, introduced in 1.8.0, is simply a
 redundant, verbose interface to arrays of rank 1.  `array-ref' and
@@ -136,71 +191,42 @@ similar functions are entirely sufficient.  Thus,
 `scm_generalized_vector_ref', `scm_generalized_vector_set_x', and
 `scm_generalized_vector_to_list' are now deprecated.
 
-** Deprecate SCM_CHAR_CODE_LIMIT and char-code-limit.
+** Deprecate SCM_CHAR_CODE_LIMIT and char-code-limit
 
 These constants were defined to 256, which is not the highest codepoint
 supported by Guile.  Given that they were useless and incorrect, they
 have been deprecated.
 
-** Deprecate `http-get*'.
+** Deprecate `http-get*'
 
 The new `#:streaming?' argument to `http-get' subsumes the functionality
 of `http-get*' (introduced in 2.0.7).  Also, the `#:extra-headers'
 argument is deprecated in favor of `#:headers'.
 
-** Deprecate (ice-9 mapping).
+** Deprecate (ice-9 mapping)
 
 This module, present in Guile since 1996 but never used or documented,
 has never worked in Guile 2.0.  It has now been deprecated and will be
 removed in Guile 2.2.
 
-** Deprecate undocumented array-related C functions.
+** Deprecate undocumented array-related C functions
 
 These are `scm_array_fill_int', `scm_ra_eqp', `scm_ra_lessp',
 `scm_ra_leqp', `scm_ra_grp', `scm_ra_greqp', `scm_ra_sum',
 `scm_ra_product', `scm_ra_difference', `scm_ra_divide', and
 `scm_array_identity'.
 
-
 * New interfaces
 
-** `round-ash', a bit-shifting operator that rounds on right-shift.
+** SRFI-41 Streams
 
-See "Bitwise Operations".
+See "SRFI-41" in the manual.
 
-** New environment variables: `GUILE_STACK_SIZE', `GUILE_INSTALL_LOCALE'.
+** New HTTP client procedures
 
-See "Environment Variables".
-
-** New procedure `sendfile'.
-
-See "File System".
-
-** New procedures for dealing with file names.
-
-See "File System" for documentation on `system-file-name-convention',
-`file-name-separator?', `absolute-file-name?', and
-`file-name-separator-string'.
-
-** Escape continuations with `call/ec' and `let/ec'
-
-See "Prompt Primitives".
-
-** `array-length', an array's first dimension.
-
-See "Array Procedures".
-
-** `hash-count', for hash tables.
-
-See "Hash Tables".
-
-** New foreign types: `ssize_t', `ptrdiff_t'.
-    
-See "Foreign Types".
-
-** New C helpers: `scm_from_ptrdiff_t', `scm_to_ptrdiff_t'.
-
-See "Integers".
+See "Web Client" for documentation on the new `http-head', `http-post',
+`http-put', `http-delete', `http-trace', and `http-options' procedures,
+and also for more options to `http-get'.
 
 ** Much more capable `xml->sxml'
 
@@ -209,11 +235,73 @@ parser deals with namespaces, processed entities, doctypes, and literal
 strings.  Incidentally, `current-ssax-error-port' is now a parameter
 object.
 
-** New command-line argument: `--language'.
+** New procedures for converting strings to and from bytevectors
+
+See "Representing Strings as Bytes" for documention on the new `(ice-9
+iconv)' module and its `bytevector->string' and `string->bytevector'
+procedures.
+
+** Escape continuations with `call/ec' and `let/ec'
+
+See "Prompt Primitives".
+
+** New procedures to read all characters from a port
+
+See "Line/Delimited" in the manual for documentation on `read-string'
+ and `read-string!'.
+
+** New procedure `sendfile'
+
+See "File System".
+
+** New procedure `unget-bytevector'
+
+See "R6RS Binary Input".
+
+** New C helper: `scm_c_bind_keyword_arguments'
+
+See "Keyword Procedures".
+
+** New command-line arguments: `--language' and `-C'
 
 See "Command-line Options" in the manual.
 
-** `current-language' in default environment.
+** New environment variables: `GUILE_STACK_SIZE', `GUILE_INSTALL_LOCALE'
+
+See "Environment Variables".
+
+** New procedures for dealing with file names
+
+See "File System" for documentation on `system-file-name-convention',
+`file-name-separator?', `absolute-file-name?', and
+`file-name-separator-string'.
+
+** `array-length', an array's first dimension
+
+See "Array Procedures".
+
+** `hash-count', for hash tables
+
+See "Hash Tables".
+
+** `round-ash', a bit-shifting operator that rounds on right-shift
+
+See "Bitwise Operations".
+
+** New foreign types: `ssize_t', `ptrdiff_t'
+    
+See "Foreign Types".
+
+** New C helpers: `scm_from_ptrdiff_t', `scm_to_ptrdiff_t'
+
+See "Integers".
+
+** Socket option `SO_REUSEPORT' now available from Scheme
+
+If supported on the platform, `SO_REUSEPORT' is now available from
+Scheme as well.  See "Network Sockets and Communication".
+
+** `current-language' in default environment
 
 Previously defined only in `(system base language)', `current-language'
 is now defined in the default environment, and is used to determine the
@@ -224,29 +312,12 @@ language for the REPL, and for `compile-and-load'.
 See "Parameters", for information on how to convert a fluid to a
 parameter.
 
-** New procedures to read all characters from a port
-
-See "Line/Delimited" in the manual for documentation on `read-string'
- and `read-string!'.
-
-** New HTTP client procedures.
-
-See "Web Client" for documentation on the new `http-head', `http-post',
-`http-put', `http-delete', `http-trace', and `http-options' procedures,
-and also for more options to `http-get'.
-
-** New procedures for converting strings to and from bytevectors.
-
-See "Representing Strings as Bytes" for documention on the new `(ice-9
-iconv)' module and its `bytevector->string' and `string->bytevector'
-procedures.
-
-** New `print' REPL option.
+** New `print' REPL option
 
 See "REPL Commands" in the manual for information on the new
 user-customizable REPL printer.
 
-** New variable: %site-ccache-dir.
+** New variable: %site-ccache-dir
     
 The "Installing Site Packages" and "Build Config" manual sections now
 refer to this variable to describe where users should install their
@@ -265,12 +336,18 @@ refer to this variable to describe where users should install their
 
 * Bug fixes
 
-** SRFI-37: Fix infinite loop when parsing optional-argument short options
+** Fix inexact number printer.
+   (http://bugs.gnu.org/13757)
+** Fix infinite loop when parsing optional-argument short options (SRFI-37).
    (http://bugs.gnu.org/13176)
-** web: Support non-GMT date headers in the HTTP client
+** web: Support non-GMT date headers in the HTTP client.
    (http://bugs.gnu.org/13544)
-** Avoid stack overflows with `par-map' and nested futures in general
+** web: support IP-literal (IPv6 address) in Host header.
+** Avoid stack overflows with `par-map' and nested futures in general.
    (http://bugs.gnu.org/13188)
+** Peek-char no longer consumes EOF.
+   (http://bugs.gnu.org/12216)
+** Avoid swallowing multiple EOFs in R6RS binary-input procedures.
 ** A fork when multiple threads are running will now print a warning.
 ** Allow for spurious wakeups from pthread_cond_wait.
    (http://bugs.gnu.org/10641)
@@ -305,9 +382,13 @@ refer to this variable to describe where users should install their
 ** Recognize the `x86_64.*-gnux32' triplet.
 ** Check whether a triplet's OS part specifies an ABI.
 ** Recognize mips64* as having 32-bit pointers by default.
+** Use portable sed constructs.
+   (http://bugs.gnu.org/14042)
 ** Remove language/glil/decompile-assembly.scm.
    (http://bugs.gnu.org/10622)
 ** Use O_BINARY in `copy-file', `load-objcode', `mkstemp'.
+** Use byte-oriented functions in `get-bytevector*'.
+** Fix abort when iconv swallows BOM from UTF-16 or UTF-32 stream.
 ** Fix compilation of functions with more than 255 local variables.
 ** Fix `getgroups' for when zero supplementary group IDs exist.
 ** Allow (define-macro name (lambda ...)).
@@ -317,6 +398,8 @@ refer to this variable to describe where users should install their
    (http://bugs.gnu.org/13485)
 ** Fix source annotation bug in psyntax 'expand-body'.
 ** Ecmascript: Fix conversion to boolean for non-numbers.
+** Use case-insensitive comparisons for encoding names.
+** Add missing cond-expand feature identifiers.
 ** A failure to find a module's file does not prevent future loading.
 ** Many (oop goops save) fixes.
 ** `http-get': don't shutdown write end of socket.
@@ -324,9 +407,9 @@ refer to this variable to describe where users should install their
 ** Avoid signed integer overflow in scm_product.
 ** http: read-response-body always returns bytevector or #f, never EOF.
 ** web: Correctly detect "No route to host" conditions.
-** `system*': failure to execvp no longer leaks dangling processes
+** `system*': failure to execvp no longer leaks dangling processes.
    (http://bugs.gnu.org/13166)
-** More sensible case-lambda* dispatch
+** More sensible case-lambda* dispatch.
    (http://bugs.gnu.org/12929)
 ** Do not defer expansion of internal define-syntax forms.
    (http://bugs.gnu.org/13509)
