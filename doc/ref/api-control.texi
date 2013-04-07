@@ -582,7 +582,9 @@ One example where this optimization matters is @dfn{escape
 continuations}.  Escape continuations are delimited continuations whose
 only use is to make a non-local exit---i.e., to escape from the current
 continuation.  Such continuations are invoked only once, and for this
-reason they are sometimes called @dfn{one-shot continuations}.
+reason they are sometimes called @dfn{one-shot continuations}.  A common
+use of escape continuations is when throwing an exception
+(@pxref{Exceptions}).
 
 The constructs below are syntactic sugar atop prompts to simplify the
 use of escape continuations.
@@ -1030,6 +1032,11 @@ to avoid the risk of confusion with POSIX signals.
 
 This manual prefers to speak of throwing and catching exceptions, since
 this terminology matches the corresponding Guile primitives.
+
+The exception mechanism described in this section has connections with
+@dfn{delimited continuations} (@pxref{Prompts}).  In particular,
+throwing an exception is akin to invoking an @dfn{escape continuation}
+(@pxref{Prompt Primitives, @code{call/ec}}).
 
 
 @node Catch
