@@ -1038,7 +1038,12 @@ platform.
 @end deffn
 
 @defvr {Scheme Variable} file-name-separator-string
-The standard file name separator.
+The preferred file name separator.
+
+Note that on MinGW builds for Windows, both @code{/} and @code{\} are
+valid separators.  Thus, programs should not assume that
+@code{file-name-separator-string} is the @emph{only} file name
+separator---e.g., when extracting the components of a file name.
 @end defvr
 
 
