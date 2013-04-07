@@ -50,7 +50,6 @@ be used for interacting with the module system.
 * Variables::                   First-class variables.
 * Module System Reflection::    First-class modules.
 * Accessing Modules from C::    How to work with modules with C code.
-* Included Guile Modules::      Which modules come with Guile?
 * provide and require::         The SLIB feature mechanism.
 * Environments::                R5RS top-level environments.
 @end menu
@@ -111,8 +110,7 @@ interface is the one accessed.  For example:
 
 Here, the interface specification is @code{(ice-9 popen)}, and the
 result is that the current module now has access to @code{open-pipe},
-@code{close-pipe}, @code{open-input-pipe}, and so on (@pxref{Included
-Guile Modules}).
+@code{close-pipe}, @code{open-input-pipe}, and so on (@pxref{Pipes}).
 
 Note in the previous example that if the current module had already
 defined @code{open-pipe}, that definition would be overwritten by the
@@ -1060,125 +1058,6 @@ Add the bindings designated by @var{name}, ... to the public interface
 of the current module.  The list of names is terminated by
 @code{NULL}.
 @end deftypefn
-
-
-@node Included Guile Modules
-@subsection Included Guile Modules
-
-Some modules are included in the Guile distribution; here are references
-to the entries in this manual which describe them in more detail:
-
-@table @strong
-@item boot-9
-boot-9 is Guile's initialization module, and it is always loaded when
-Guile starts up.
-
-@item (ice-9 expect)
-Actions based on matching input from a port (@pxref{Expect}).
-
-@item (ice-9 format)
-Formatted output in the style of Common Lisp (@pxref{Formatted
-Output}).
-
-@item (ice-9 ftw)
-File tree walker (@pxref{File Tree Walk}).
-
-@item (ice-9 getopt-long)
-Command line option processing (@pxref{getopt-long}).
-
-@item (ice-9 history)
-Refer to previous interactive expressions (@pxref{Value History}).
-
-@item (ice-9 popen)
-Pipes to and from child processes (@pxref{Pipes}).
-
-@item (ice-9 pretty-print)
-Nicely formatted output of Scheme expressions and objects
-(@pxref{Pretty Printing}).
-
-@item (ice-9 q)
-First-in first-out queues (@pxref{Queues}).
-
-@item (ice-9 rdelim)
-Line- and character-delimited input (@pxref{Line/Delimited}).
-
-@item (ice-9 readline)
-@code{readline} interactive command line editing (@pxref{Readline
-Support}).
-
-@item (ice-9 receive)
-Multiple-value handling with @code{receive} (@pxref{Multiple Values}).
-
-@item (ice-9 regex)
-Regular expression matching (@pxref{Regular Expressions}).
-
-@item (ice-9 rw)
-Block string input/output (@pxref{Block Reading and Writing}).
-
-@item (ice-9 streams)
-Sequence of values calculated on-demand (@pxref{Streams}).
-
-@item (ice-9 syncase)
-R5RS @code{syntax-rules} macro system (@pxref{Syntax Rules}).
-
-@item (ice-9 threads)
-Guile's support for multi threaded execution (@pxref{Scheduling}).
-
-@item (ice-9 documentation)
-Online documentation (REFFIXME).
-
-@item (srfi srfi-1)
-A library providing a lot of useful list and pair processing
-procedures (@pxref{SRFI-1}).
-
-@item (srfi srfi-2)
-Support for @code{and-let*} (@pxref{SRFI-2}).
-
-@item (srfi srfi-4)
-Support for homogeneous numeric vectors (@pxref{SRFI-4}).
-
-@item (srfi srfi-6)
-Support for some additional string port procedures (@pxref{SRFI-6}).
-
-@item (srfi srfi-8)
-Multiple-value handling with @code{receive} (@pxref{SRFI-8}).
-
-@item (srfi srfi-9)
-Record definition with @code{define-record-type} (@pxref{SRFI-9
-Records}).
-
-@item (srfi srfi-10)
-Read hash extension @code{#,()} (@pxref{SRFI-10}).
-
-@item (srfi srfi-11)
-Multiple-value handling with @code{let-values} and @code{let*-values}
-(@pxref{SRFI-11}).
-
-@item (srfi srfi-13)
-String library (@pxref{SRFI-13}).
-
-@item (srfi srfi-14)
-Character-set library (@pxref{SRFI-14}).
-
-@item (srfi srfi-16)
-@code{case-lambda} procedures of variable arity (@pxref{SRFI-16}).
-
-@item (srfi srfi-17)
-Getter-with-setter support (@pxref{SRFI-17}).
-
-@item (srfi srfi-19)
-Time/Date library (@pxref{SRFI-19}).
-
-@item (srfi srfi-26)
-Convenient syntax for partial application (@pxref{SRFI-26})
-
-@item (srfi srfi-31)
-@code{rec} convenient recursive expressions (@pxref{SRFI-31})
-
-@item (ice-9 slib)
-This module contains hooks for using Aubrey Jaffer's portable Scheme
-library SLIB from Guile (@pxref{SLIB}).
-@end table
 
 
 @node provide and require
