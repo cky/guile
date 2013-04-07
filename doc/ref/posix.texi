@@ -806,9 +806,10 @@ The return value is unspecified.
 @deffn {Scheme Procedure} sendfile out in count [offset]
 @deffnx {C Function} scm_sendfile (out, in, count, offset)
 Send @var{count} bytes from @var{in} to @var{out}, both of which
-are either open file ports or file descriptors.  When
+must be either open file ports or file descriptors.  When
 @var{offset} is omitted, start reading from @var{in}'s current
-position; otherwise, start reading at @var{offset}.
+position; otherwise, start reading at @var{offset}.  Return
+the number of bytes actually sent.
 
 When @var{in} is a port, it is often preferable to specify @var{offset},
 because @var{in}'s offset as a port may be different from the offset of
@@ -824,6 +825,12 @@ In some cases, the @code{sendfile} libc function may return
 @code{EINVAL} or @code{ENOSYS}.  In that case, Guile's @code{sendfile}
 procedure automatically falls back to doing a series of @code{read} and
 @code{write} calls.
+
+In other cases, the libc function may send fewer bytes than
+@var{count}---for instance because @var{out} is a slow or limited
+device, such as a pipe.  When that happens, Guile's @code{sendfile}
+automatically retries until exactly @var{count} bytes were sent or an
+error occurs.
 @end deffn
 
 @findex rename
