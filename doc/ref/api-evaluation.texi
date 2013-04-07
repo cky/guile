@@ -991,17 +991,19 @@ three arguments.
 @cindex source file encoding
 @cindex primitive-load
 @cindex load
-Scheme source code files are usually encoded in ASCII, but, the
-built-in reader can interpret other character encodings.  The
-procedure @code{primitive-load}, and by extension the functions that
-call it, such as @code{load}, first scan the top 500 characters of the
-file for a coding declaration.
+Scheme source code files are usually encoded in ASCII or UTF-8, but the
+built-in reader can interpret other character encodings as well.  When
+Guile loads Scheme source code, it uses the @code{file-encoding}
+procedure (described below) to try to guess the encoding of the file.
+In the absence of any hints, UTF-8 is assumed.  One way to provide a
+hint about the encoding of a source file is to place a coding
+declaration in the top 500 characters of the file.
 
 A coding declaration has the form @code{coding: XXXXXX}, where
 @code{XXXXXX} is the name of a character encoding in which the source
 code file has been encoded.  The coding declaration must appear in a
-scheme comment.  It can either be a semicolon-initiated comment or a block
-@code{#!} comment.
+scheme comment.  It can either be a semicolon-initiated comment, or the
+first block @code{#!} comment in the file.
 
 The name of the character encoding in the coding declaration is
 typically lower case and containing only letters, numbers, and hyphens,
@@ -1050,15 +1052,21 @@ the port's character encoding should be set to the encoding returned
 by @code{file-encoding}, if any, again by using
 @code{set-port-encoding!}.  Then the code can be read as normal.
 
+Alternatively, one can use the @code{#:guess-encoding} keyword argument
+of @code{open-file} and related procedures.  @xref{File Ports}.
+
 @deffn {Scheme Procedure} file-encoding port
 @deffnx {C Function} scm_file_encoding (port)
-Scan the port for an Emacs-like character coding declaration near the
-top of the contents of a port with random-accessible contents
-(@pxref{Recognize Coding, how Emacs recognizes file encoding,, emacs,
-The GNU Emacs Reference Manual}).  The coding declaration is of the form
-@code{coding: XXXXX} and must appear in a Scheme comment.  Return a
-string containing the character encoding of the file if a declaration
-was found, or @code{#f} otherwise.  The port is rewound.
+Attempt to scan the first few hundred bytes from the @var{port} for
+hints about its character encoding.  Return a string containing the
+encoding name or @code{#f} if the encoding cannot be determined.  The
+port is rewound.
+
+Currently, the only supported method is to look for an Emacs-like
+character coding declaration (@pxref{Recognize Coding, how Emacs
+recognizes file encoding,, emacs, The GNU Emacs Reference Manual}).  The
+coding declaration is of the form @code{coding: XXXXX} and must appear
+in a Scheme comment.  Additional heuristics may be added in the future.
 @end deffn
 
 
