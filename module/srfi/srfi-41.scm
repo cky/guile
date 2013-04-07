@@ -27,6 +27,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-8)
   #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:use-module (srfi srfi-26)
   #:use-module (ice-9 match)
   #:export (stream-null stream-cons stream? stream-null? stream-pair?
@@ -179,6 +180,28 @@
 
 (define-syntax-rule (stream-lambda formals body0 body1 ...)
   (lambda formals (stream-lazy (begin body0 body1 ...))))
+
+(define* (stream-promise-visit promise #:key on-eager on-lazy)
+  (define content (stream-promise-val promise))
+  (case (stream-value-tag content)
+    ((eager) (on-eager (stream-value-proc content)))
+    ((lazy)  (on-lazy (stream-value-proc content)))))
+
+(set-record-type-printer! stream-promise
+  (lambda (strm port)
+    (display "#<stream" port)
+    (let loop ((strm strm))
+      (stream-promise-visit strm
+        #:on-eager (lambda (pare)
+                     (cond ((eq? pare %stream-null)
+                            (write-char #\> port))
+                           (else
+                            (write-char #\space port)
+                            (stream-promise-visit (stream-kar pare)
+                              #:on-eager (cut write <> port)
+                              #:on-lazy  (lambda (_) (write-char #\? port)))
+                            (loop (stream-kdr pare)))))
+        #:on-lazy (lambda (_) (display " ...>" port))))))
 
 ;;; Derived stream functions and macros: (streams derived)
 
