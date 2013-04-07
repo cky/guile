@@ -843,7 +843,10 @@ Most systems have limits on how many files can be open, so it's
 strongly recommended that file ports be closed explicitly when no
 longer required (@pxref{Ports}).
 
-@deffn {Scheme Procedure} open-file filename mode
+@deffn {Scheme Procedure} open-file filename mode @
+                          [#:guess-encoding=#f] [#:encoding=#f]
+@deffnx {C Function} scm_open_file_with_encoding @
+                     (filename, mode, guess_encoding, encoding)
 @deffnx {C Function} scm_open_file (filename, mode)
 Open the file whose name is @var{filename}, and return a port
 representing that file.  The attributes of the port are
@@ -900,8 +903,18 @@ to the underlying @code{open} call.  Still, the flag is generally useful
 because of its port encoding ramifications.
 @end table
 
-If a file cannot be opened with the access
-requested, @code{open-file} throws an exception.
+Unless binary mode is requested, the character encoding of the new port
+is determined as follows: First, if @var{guess-encoding} is true, the
+@code{file-encoding} procedure is used to guess the encoding of the file
+(@pxref{Character Encoding of Source Files}).  If @var{guess-encoding}
+is false or if @code{file-encoding} fails, @var{encoding} is used unless
+it is also false.  As a last resort, the default port encoding is used.
+@xref{Ports}, for more information on port encodings.  It is an error to
+pass a non-false @var{guess-encoding} or @var{encoding} if binary mode
+is requested.
+
+If a file cannot be opened with the access requested, @code{open-file}
+throws an exception.
 
 When the file is opened, its encoding is set to the current
 @code{%default-port-encoding}, unless the @code{b} flag was supplied.
@@ -924,23 +937,40 @@ current interfaces.
 @end deffn
 
 @rnindex open-input-file
-@deffn {Scheme Procedure} open-input-file filename
-Open @var{filename} for input.  Equivalent to
+@deffn {Scheme Procedure} open-input-file filename @
+       [#:guess-encoding=#f] [#:encoding=#f] [#:binary=#f]
+
+Open @var{filename} for input.  If @var{binary} is true, open the port
+in binary mode, otherwise use text mode.  @var{encoding} and
+@var{guess-encoding} determine the character encoding as described above
+for @code{open-file}.  Equivalent to
 @lisp
-(open-file @var{filename} "r")
+(open-file @var{filename}
+           (if @var{binary} "rb" "r")
+           #:guess-encoding @var{guess-encoding}
+           #:encoding @var{encoding})
 @end lisp
 @end deffn
 
 @rnindex open-output-file
-@deffn {Scheme Procedure} open-output-file filename
-Open @var{filename} for output.  Equivalent to
+@deffn {Scheme Procedure} open-output-file filename @
+       [#:encoding=#f] [#:binary=#f]
+
+Open @var{filename} for output.  If @var{binary} is true, open the port
+in binary mode, otherwise use text mode.  @var{encoding} specifies the
+character encoding as described above for @code{open-file}.  Equivalent
+to
 @lisp
-(open-file @var{filename} "w")
+(open-file @var{filename}
+           (if @var{binary} "wb" "w")
+           #:encoding @var{encoding})
 @end lisp
 @end deffn
 
-@deffn {Scheme Procedure} call-with-input-file filename proc
-@deffnx {Scheme Procedure} call-with-output-file filename proc
+@deffn {Scheme Procedure} call-with-input-file filename proc @
+        [#:guess-encoding=#f] [#:encoding=#f] [#:binary=#f]
+@deffnx {Scheme Procedure} call-with-output-file filename proc @
+        [#:encoding=#f] [#:binary=#f]
 @rnindex call-with-input-file
 @rnindex call-with-output-file
 Open @var{filename} for input or output, and call @code{(@var{proc}
@@ -955,9 +985,12 @@ closed automatically, though it will be garbage collected in the usual
 way if not otherwise referenced.
 @end deffn
 
-@deffn {Scheme Procedure} with-input-from-file filename thunk
-@deffnx {Scheme Procedure} with-output-to-file filename thunk
-@deffnx {Scheme Procedure} with-error-to-file filename thunk
+@deffn {Scheme Procedure} with-input-from-file filename thunk @
+        [#:guess-encoding=#f] [#:encoding=#f] [#:binary=#f]
+@deffnx {Scheme Procedure} with-output-to-file filename thunk @
+        [#:encoding=#f] [#:binary=#f]
+@deffnx {Scheme Procedure} with-error-to-file filename thunk @
+        [#:encoding=#f] [#:binary=#f]
 @rnindex with-input-from-file
 @rnindex with-output-to-file
 Open @var{filename} and call @code{(@var{thunk})} with the new port

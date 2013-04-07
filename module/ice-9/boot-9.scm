@@ -753,6 +753,116 @@ information is unavailable."
 
 
 ;;;
+;;; Enhanced file opening procedures
+;;;
+
+(define* (open-input-file
+          file #:key (binary #f) (encoding #f) (guess-encoding #f))
+  "Takes a string naming an existing file and returns an input port
+capable of delivering characters from the file.  If the file
+cannot be opened, an error is signalled."
+  (open-file file (if binary "rb" "r")
+             #:encoding encoding
+             #:guess-encoding guess-encoding))
+
+(define* (open-output-file file #:key (binary #f) (encoding #f))
+  "Takes a string naming an output file to be created and returns an
+output port capable of writing characters to a new file by that
+name.  If the file cannot be opened, an error is signalled.  If a
+file with the given name already exists, the effect is unspecified."
+  (open-file file (if binary "wb" "w")
+             #:encoding encoding))
+
+(define* (call-with-input-file
+          file proc #:key (binary #f) (encoding #f) (guess-encoding #f))
+  "PROC should be a procedure of one argument, and FILE should be a
+string naming a file.  The file must
+already exist. These procedures call PROC
+with one argument: the port obtained by opening the named file for
+input or output.  If the file cannot be opened, an error is
+signalled.  If the procedure returns, then the port is closed
+automatically and the values yielded by the procedure are returned.
+If the procedure does not return, then the port will not be closed
+automatically unless it is possible to prove that the port will
+never again be used for a read or write operation."
+  (let ((p (open-input-file file
+                            #:binary binary
+                            #:encoding encoding
+                            #:guess-encoding guess-encoding)))
+    (call-with-values
+      (lambda () (proc p))
+      (lambda vals
+        (close-input-port p)
+        (apply values vals)))))
+
+(define* (call-with-output-file file proc #:key (binary #f) (encoding #f))
+  "PROC should be a procedure of one argument, and FILE should be a
+string naming a file.  The behaviour is unspecified if the file
+already exists. These procedures call PROC
+with one argument: the port obtained by opening the named file for
+input or output.  If the file cannot be opened, an error is
+signalled.  If the procedure returns, then the port is closed
+automatically and the values yielded by the procedure are returned.
+If the procedure does not return, then the port will not be closed
+automatically unless it is possible to prove that the port will
+never again be used for a read or write operation."
+  (let ((p (open-output-file file #:binary binary #:encoding encoding)))
+    (call-with-values
+      (lambda () (proc p))
+      (lambda vals
+        (close-output-port p)
+        (apply values vals)))))
+
+(define* (with-input-from-file
+          file thunk #:key (binary #f) (encoding #f) (guess-encoding #f))
+  "THUNK must be a procedure of no arguments, and FILE must be a
+string naming a file.  The file must already exist. The file is opened for
+input, an input port connected to it is made
+the default value returned by `current-input-port',
+and the THUNK is called with no arguments.
+When the THUNK returns, the port is closed and the previous
+default is restored.  Returns the values yielded by THUNK.  If an
+escape procedure is used to escape from the continuation of these
+procedures, their behavior is implementation dependent."
+  (call-with-input-file file
+   (lambda (p) (with-input-from-port p thunk))
+   #:binary binary
+   #:encoding encoding
+   #:guess-encoding guess-encoding))
+
+(define* (with-output-to-file file thunk #:key (binary #f) (encoding #f))
+  "THUNK must be a procedure of no arguments, and FILE must be a
+string naming a file.  The effect is unspecified if the file already exists.
+The file is opened for output, an output port connected to it is made
+the default value returned by `current-output-port',
+and the THUNK is called with no arguments.
+When the THUNK returns, the port is closed and the previous
+default is restored.  Returns the values yielded by THUNK.  If an
+escape procedure is used to escape from the continuation of these
+procedures, their behavior is implementation dependent."
+  (call-with-output-file file
+   (lambda (p) (with-output-to-port p thunk))
+   #:binary binary
+   #:encoding encoding))
+
+(define* (with-error-to-file file thunk #:key (binary #f) (encoding #f))
+  "THUNK must be a procedure of no arguments, and FILE must be a
+string naming a file.  The effect is unspecified if the file already exists.
+The file is opened for output, an output port connected to it is made
+the default value returned by `current-error-port',
+and the THUNK is called with no arguments.
+When the THUNK returns, the port is closed and the previous
+default is restored.  Returns the values yielded by THUNK.  If an
+escape procedure is used to escape from the continuation of these
+procedures, their behavior is implementation dependent."
+  (call-with-output-file file
+   (lambda (p) (with-error-to-port p thunk))
+   #:binary binary
+   #:encoding encoding))
+
+
+
+;;;
 ;;; Extensible exception printing.
 ;;;
 

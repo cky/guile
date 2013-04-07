@@ -51,9 +51,12 @@ SCM_API scm_t_bits scm_tc16_fport;
 SCM_API SCM scm_setbuf0 (SCM port);
 SCM_API SCM scm_setvbuf (SCM port, SCM mode, SCM size);
 SCM_API void scm_evict_ports (int fd);
+SCM_API SCM scm_open_file_with_encoding (SCM filename, SCM modes,
+                                         SCM guess_encoding, SCM encoding);
 SCM_API SCM scm_open_file (SCM filename, SCM modes);
 SCM_API SCM scm_fdes_to_port (int fdes, char *mode, SCM name);
 SCM_API SCM scm_file_port_p (SCM obj);
+SCM_INTERNAL void scm_init_fports_keywords (void);
 SCM_INTERNAL void scm_init_fports (void);
 
 /* internal functions */

@@ -274,8 +274,8 @@
                    (delete-file filename)
                    (string=? line2 binary-test-string)))))
 
-;; open-file ignores file coding declaration
-(pass-if "file: open-file ignores coding declarations"
+;; open-file ignores file coding declaration by default
+(pass-if "file: open-file ignores coding declaration by default"
   (with-fluids ((%default-port-encoding "UTF-8"))
                (let* ((filename (test-file))
                       (port (open-output-file filename))
@@ -289,6 +289,287 @@
                    (close-port in-port)
                    (delete-file filename)
                    (string=? line2 test-string)))))
+
+;; open-input-file with guess-encoding honors coding declaration
+(pass-if "file: open-input-file with guess-encoding honors coding declaration"
+  (with-fluids ((%default-port-encoding "UTF-8"))
+               (let* ((filename (test-file))
+                      (port (open-output-file filename))
+                      (test-string "€100"))
+                 (set-port-encoding! port "iso-8859-15")
+                 (write-line ";; coding: iso-8859-15" port)
+                 (write-line test-string port)
+                 (close-port port)
+                 (let* ((in-port (open-input-file filename
+                                                  #:guess-encoding #t))
+                        (line1 (read-line in-port))
+                        (line2 (read-line in-port)))
+                   (close-port in-port)
+                   (delete-file filename)
+                   (string=? line2 test-string)))))
+
+(with-test-prefix "keyword arguments for file openers"
+  (with-fluids ((%default-port-encoding "UTF-8"))
+    (let ((filename (test-file)))
+
+      (with-test-prefix "write #:encoding"
+
+        (pass-if-equal "open-file"
+            #vu8(116 0 101 0 115 0 116 0)
+            (let ((port (open-file filename "w"
+                                   #:encoding "UTF-16LE")))
+              (display "test" port)
+              (close-port port))
+            (let* ((port (open-file filename "rb"))
+                   (bv (get-bytevector-all port)))
+              (close-port port)
+              bv))
+
+        (pass-if-equal "open-output-file"
+            #vu8(116 0 101 0 115 0 116 0)
+            (let ((port (open-output-file filename
+                                          #:encoding "UTF-16LE")))
+              (display "test" port)
+              (close-port port))
+            (let* ((port (open-file filename "rb"))
+                   (bv (get-bytevector-all port)))
+              (close-port port)
+              bv))
+
+        (pass-if-equal "call-with-output-file"
+            #vu8(116 0 101 0 115 0 116 0)
+            (call-with-output-file filename
+              (lambda (port)
+                (display "test" port))
+              #:encoding "UTF-16LE")
+            (let* ((port (open-file filename "rb"))
+                   (bv (get-bytevector-all port)))
+              (close-port port)
+              bv))
+
+        (pass-if-equal "with-output-to-file"
+            #vu8(116 0 101 0 115 0 116 0)
+            (with-output-to-file filename
+              (lambda ()
+                (display "test"))
+              #:encoding "UTF-16LE")
+            (let* ((port (open-file filename "rb"))
+                   (bv (get-bytevector-all port)))
+              (close-port port)
+              bv))
+
+        (pass-if-equal "with-error-to-file"
+            #vu8(116 0 101 0 115 0 116 0)
+            (with-error-to-file
+             filename
+             (lambda ()
+               (display "test" (current-error-port)))
+             #:encoding "UTF-16LE")
+            (let* ((port (open-file filename "rb"))
+                   (bv (get-bytevector-all port)))
+              (close-port port)
+              bv)))
+
+      (with-test-prefix "write #:binary"
+
+        (pass-if-equal "open-output-file"
+            "ISO-8859-1"
+          (let* ((port (open-output-file filename #:binary #t))
+                 (enc (port-encoding port)))
+            (close-port port)
+            enc))
+
+        (pass-if-equal "call-with-output-file"
+            "ISO-8859-1"
+          (call-with-output-file filename port-encoding #:binary #t))
+
+        (pass-if-equal "with-output-to-file"
+            "ISO-8859-1"
+          (with-output-to-file filename
+            (lambda () (port-encoding (current-output-port)))
+            #:binary #t))
+
+        (pass-if-equal "with-error-to-file"
+            "ISO-8859-1"
+          (with-error-to-file
+           filename
+           (lambda () (port-encoding (current-error-port)))
+           #:binary #t)))
+
+      (with-test-prefix "read #:encoding"
+
+        (pass-if-equal "open-file read #:encoding"
+            "test"
+          (call-with-output-file filename
+            (lambda (port)
+              (put-bytevector port #vu8(116 0 101 0 115 0 116 0))))
+          (let* ((port (open-file filename "r" #:encoding "UTF-16LE"))
+                 (str  (read-string port)))
+            (close-port port)
+            str))
+
+        (pass-if-equal "open-input-file #:encoding"
+            "test"
+          (call-with-output-file filename
+            (lambda (port)
+              (put-bytevector port #vu8(116 0 101 0 115 0 116 0))))
+          (let* ((port (open-input-file filename #:encoding "UTF-16LE"))
+                 (str  (read-string port)))
+            (close-port port)
+            str))
+
+        (pass-if-equal "call-with-input-file #:encoding"
+            "test"
+          (call-with-output-file filename
+            (lambda (port)
+              (put-bytevector port #vu8(116 0 101 0 115 0 116 0))))
+          (call-with-input-file filename
+            read-string
+            #:encoding "UTF-16LE"))
+
+        (pass-if-equal "with-input-from-file #:encoding"
+            "test"
+          (call-with-output-file filename
+            (lambda (port)
+              (put-bytevector port #vu8(116 0 101 0 115 0 116 0))))
+          (with-input-from-file filename
+            read-string
+            #:encoding "UTF-16LE")))
+
+      (with-test-prefix "read #:binary"
+
+        (pass-if-equal "open-input-file"
+            "ISO-8859-1"
+          (let* ((port (open-input-file filename #:binary #t))
+                 (enc (port-encoding port)))
+            (close-port port)
+            enc))
+
+        (pass-if-equal "call-with-input-file"
+            "ISO-8859-1"
+          (call-with-input-file filename port-encoding #:binary #t))
+
+        (pass-if-equal "with-input-from-file"
+            "ISO-8859-1"
+          (with-input-from-file filename
+            (lambda () (port-encoding (current-input-port)))
+            #:binary #t)))
+
+      (with-test-prefix "#:guess-encoding with coding declaration"
+
+        (pass-if-equal "open-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda ()
+              (write-line "test")
+              (write-line "; coding: ISO-8859-15")
+              (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (let* ((port (open-file filename "r"
+                                  #:guess-encoding #t
+                                  #:encoding "UTF-16LE"))
+                 (str (begin (read-line port)
+                             (read-line port)
+                             (read-line port))))
+            (close-port port)
+            str))
+
+        (pass-if-equal "open-input-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda ()
+              (write-line "test")
+              (write-line "; coding: ISO-8859-15")
+              (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (let* ((port (open-input-file filename
+                                        #:guess-encoding #t
+                                        #:encoding "UTF-16LE"))
+                 (str (begin (read-line port)
+                             (read-line port)
+                             (read-line port))))
+            (close-port port)
+            str))
+
+        (pass-if-equal "call-with-input-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda ()
+              (write-line "test")
+              (write-line "; coding: ISO-8859-15")
+              (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (call-with-input-file filename
+            (lambda (port)
+              (read-line port)
+              (read-line port)
+              (read-line port))
+            #:guess-encoding #t
+            #:encoding "UTF-16LE"))
+
+        (pass-if-equal "with-input-from-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda ()
+              (write-line "test")
+              (write-line "; coding: ISO-8859-15")
+              (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (with-input-from-file filename
+            (lambda ()
+              (read-line)
+              (read-line)
+              (read-line))
+            #:guess-encoding #t
+            #:encoding "UTF-16LE")))
+
+      (with-test-prefix "#:guess-encoding without coding declaration"
+
+        (pass-if-equal "open-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda () (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (let* ((port (open-file filename "r"
+                                  #:guess-encoding #t
+                                  #:encoding "ISO-8859-15"))
+                 (str (read-line port)))
+            (close-port port)
+            str))
+
+        (pass-if-equal "open-input-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda () (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (let* ((port (open-input-file filename
+                                        #:guess-encoding #t
+                                        #:encoding "ISO-8859-15"))
+                 (str (read-line port)))
+            (close-port port)
+            str))
+
+        (pass-if-equal "call-with-input-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda () (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (call-with-input-file filename
+            read-line
+            #:guess-encoding #t
+            #:encoding "ISO-8859-15"))
+
+        (pass-if-equal "with-input-from-file"
+            "€100"
+          (with-output-to-file filename
+            (lambda () (write-line "€100"))
+            #:encoding "ISO-8859-15")
+          (with-input-from-file filename
+            read-line
+            #:guess-encoding #t
+            #:encoding "ISO-8859-15")))
+
+      (delete-file filename))))
 
 ;;; ungetting characters and strings.
 (with-input-from-string "walk on the moon\nmoon"

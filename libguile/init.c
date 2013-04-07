@@ -444,6 +444,7 @@ scm_i_init_guile (void *base)
   scm_init_gettext ();
   scm_init_ioext ();
   scm_init_keywords ();    /* Requires smob_prehistory */
+  scm_init_fports_keywords ();
   scm_init_list ();
   scm_init_random ();      /* Requires smob_prehistory */
   scm_init_macros ();      /* Requires smob_prehistory and random */

@@ -315,64 +315,34 @@ fport_canonicalize_filename (SCM filename)
     }
 }
 
+/* scm_open_file_with_encoding
+   Return a new port open on a given file.
 
-/* scm_open_file
- * Return a new port open on a given file.
- *
- * The mode string must match the pattern: [rwa+]** which
- * is interpreted in the usual unix way.
- *
- * Return the new port.
- */
-SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
-	    (SCM filename, SCM mode),
-	    "Open the file whose name is @var{filename}, and return a port\n"
-	    "representing that file.  The attributes of the port are\n"
-	    "determined by the @var{mode} string.  The way in which this is\n"
-	    "interpreted is similar to C stdio.  The first character must be\n"
-	    "one of the following:\n"
-	    "@table @samp\n"
-	    "@item r\n"
-	    "Open an existing file for input.\n"
-	    "@item w\n"
-	    "Open a file for output, creating it if it doesn't already exist\n"
-	    "or removing its contents if it does.\n"
-	    "@item a\n"
-	    "Open a file for output, creating it if it doesn't already\n"
-	    "exist.  All writes to the port will go to the end of the file.\n"
-	    "The \"append mode\" can be turned off while the port is in use\n"
-	    "@pxref{Ports and File Descriptors, fcntl}\n"
-	    "@end table\n"
-	    "The following additional characters can be appended:\n"
-	    "@table @samp\n"
-	    "@item b\n"
-	    "Open the underlying file in binary mode, if supported by the system.\n"
-	    "Also, open the file using the binary-compatible character encoding\n"
-	    "\"ISO-8859-1\", ignoring the default port encoding.\n"
-	    "@item +\n"
-	    "Open the port for both input and output.  E.g., @code{r+}: open\n"
-	    "an existing file for both input and output.\n"
-	    "@item 0\n"
-	    "Create an \"unbuffered\" port.  In this case input and output\n"
-	    "operations are passed directly to the underlying port\n"
-	    "implementation without additional buffering.  This is likely to\n"
-	    "slow down I/O operations.  The buffering mode can be changed\n"
-	    "while a port is in use @pxref{Ports and File Descriptors,\n"
-	    "setvbuf}\n"
-	    "@item l\n"
-	    "Add line-buffering to the port.  The port output buffer will be\n"
-	    "automatically flushed whenever a newline character is written.\n"
-	    "@end table\n"
-	    "In theory we could create read/write ports which were buffered\n"
-	    "in one direction only.  However this isn't included in the\n"
-	    "current interfaces.  If a file cannot be opened with the access\n"
-	    "requested, @code{open-file} throws an exception.")
-#define FUNC_NAME s_scm_open_file
+   The mode string must match the pattern: [rwa+]** which
+   is interpreted in the usual unix way.
+
+   Unless binary mode is requested, the character encoding of the new
+   port is determined as follows: First, if GUESS_ENCODING is true,
+   'file-encoding' is used to guess the encoding of the file.  If
+   GUESS_ENCODING is false or if 'file-encoding' fails, ENCODING is used
+   unless it is also false.  As a last resort, the default port encoding
+   is used.  It is an error to pass a non-false GUESS_ENCODING or
+   ENCODING if binary mode is requested.
+
+   Return the new port. */
+SCM
+scm_open_file_with_encoding (SCM filename, SCM mode,
+                             SCM guess_encoding, SCM encoding)
+#define FUNC_NAME "open-file"
 {
   SCM port;
   int fdes, flags = 0, binary = 0;
   unsigned int retries;
   char *file, *md, *ptr;
+
+  if (SCM_UNLIKELY (!(scm_is_false (encoding) || scm_is_string (encoding))))
+    scm_wrong_type_arg_msg (FUNC_NAME, 0, encoding,
+                            "encoding to be string or false");
 
   scm_dynwind_begin (0);
 
@@ -445,12 +415,116 @@ SCM_DEFINE (scm_open_file, "open-file", 2, 0, 0,
                              fport_canonicalize_filename (filename));
 
   if (binary)
-    /* Use the binary-friendly ISO-8859-1 encoding. */
-    scm_i_set_port_encoding_x (port, NULL);
+    {
+      if (scm_is_true (encoding))
+        scm_misc_error (FUNC_NAME,
+                        "Encoding specified on a binary port",
+                        scm_list_1 (encoding));
+      if (scm_is_true (guess_encoding))
+        scm_misc_error (FUNC_NAME,
+                        "Request to guess encoding on a binary port",
+                        SCM_EOL);
+
+      /* Use the binary-friendly ISO-8859-1 encoding. */
+      scm_i_set_port_encoding_x (port, NULL);
+    }
+  else
+    {
+      char *enc = NULL;
+
+      if (scm_is_true (guess_encoding))
+        {
+          if (SCM_INPUT_PORT_P (port))
+            enc = scm_i_scan_for_encoding (port);
+          else
+            scm_misc_error (FUNC_NAME,
+                            "Request to guess encoding on an output-only port",
+                            SCM_EOL);
+        }
+
+      if (!enc && scm_is_true (encoding))
+        {
+          char *buf = scm_to_latin1_string (encoding);
+          enc = scm_gc_strdup (buf, "encoding");
+          free (buf);
+        }
+
+      if (enc)
+        scm_i_set_port_encoding_x (port, enc);
+    }
 
   scm_dynwind_end ();
 
   return port;
+}
+#undef FUNC_NAME
+
+SCM
+scm_open_file (SCM filename, SCM mode)
+{
+  return scm_open_file_with_encoding (filename, mode, SCM_BOOL_F, SCM_BOOL_F);
+}
+
+/* We can't define these using SCM_KEYWORD, because keywords have not
+   yet been initialized when scm_init_fports is called.  */
+static SCM k_guess_encoding = SCM_UNDEFINED;
+static SCM k_encoding       = SCM_UNDEFINED;
+
+SCM_DEFINE (scm_i_open_file, "open-file", 2, 0, 1,
+	    (SCM filename, SCM mode, SCM keyword_args),
+	    "Open the file whose name is @var{filename}, and return a port\n"
+	    "representing that file.  The attributes of the port are\n"
+	    "determined by the @var{mode} string.  The way in which this is\n"
+	    "interpreted is similar to C stdio.  The first character must be\n"
+	    "one of the following:\n"
+	    "@table @samp\n"
+	    "@item r\n"
+	    "Open an existing file for input.\n"
+	    "@item w\n"
+	    "Open a file for output, creating it if it doesn't already exist\n"
+	    "or removing its contents if it does.\n"
+	    "@item a\n"
+	    "Open a file for output, creating it if it doesn't already\n"
+	    "exist.  All writes to the port will go to the end of the file.\n"
+	    "The \"append mode\" can be turned off while the port is in use\n"
+	    "@pxref{Ports and File Descriptors, fcntl}\n"
+	    "@end table\n"
+	    "The following additional characters can be appended:\n"
+	    "@table @samp\n"
+	    "@item b\n"
+	    "Open the underlying file in binary mode, if supported by the system.\n"
+	    "Also, open the file using the binary-compatible character encoding\n"
+	    "\"ISO-8859-1\", ignoring the default port encoding.\n"
+	    "@item +\n"
+	    "Open the port for both input and output.  E.g., @code{r+}: open\n"
+	    "an existing file for both input and output.\n"
+	    "@item 0\n"
+	    "Create an \"unbuffered\" port.  In this case input and output\n"
+	    "operations are passed directly to the underlying port\n"
+	    "implementation without additional buffering.  This is likely to\n"
+	    "slow down I/O operations.  The buffering mode can be changed\n"
+	    "while a port is in use @pxref{Ports and File Descriptors,\n"
+	    "setvbuf}\n"
+	    "@item l\n"
+	    "Add line-buffering to the port.  The port output buffer will be\n"
+	    "automatically flushed whenever a newline character is written.\n"
+	    "@end table\n"
+	    "In theory we could create read/write ports which were buffered\n"
+	    "in one direction only.  However this isn't included in the\n"
+	    "current interfaces.  If a file cannot be opened with the access\n"
+	    "requested, @code{open-file} throws an exception.")
+#define FUNC_NAME s_scm_i_open_file
+{
+  SCM encoding = SCM_BOOL_F;
+  SCM guess_encoding = SCM_BOOL_F;
+
+  scm_c_bind_keyword_arguments (FUNC_NAME, keyword_args, 0,
+                                k_guess_encoding, &guess_encoding,
+                                k_encoding, &encoding,
+                                SCM_UNDEFINED);
+
+  return scm_open_file_with_encoding (filename, mode,
+                                      guess_encoding, encoding);
 }
 #undef FUNC_NAME
 
@@ -802,6 +876,15 @@ scm_make_fptob ()
   scm_set_port_input_waiting   (tc, fport_input_waiting);
 
   return tc;
+}
+
+/* We can't initialize the keywords from 'scm_init_fports', because
+   keywords haven't yet been initialized at that point.  */
+void
+scm_init_fports_keywords ()
+{
+  k_guess_encoding = scm_from_latin1_keyword ("guess-encoding");
+  k_encoding       = scm_from_latin1_keyword ("encoding");
 }
 
 void
