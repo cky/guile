@@ -97,6 +97,13 @@ faster, because it avoids building a rest list.  Similarly, the
 one-argument case of `array-for-each' and `array-map!' has been
 optimized, and `array-copy!' and `array-fill!' are faster.
 
+** `peek-char' no longer consumes EOF
+
+As required by the R5RS, if `peek-char' returns EOF, then the next read
+will also return EOF.  Previously `peek-char' would consume the EOF.
+This makes a difference for terminal devices where it is possible to
+read past an EOF.
+
 ** Gnulib update
 
 Guile's copy of Gnulib was updated to v0.0-7865-ga828bb2.  The following
