@@ -87,12 +87,9 @@
       (lambda ()
         (let ((ch (flush-leading-whitespace)))
           (cond ((eof-object? ch)
-                 ;; EOF objects are not buffered. It's quite possible
-                 ;; to peek an EOF then read something else. It's
-                 ;; strange but it's how it works.
-                 ch)
+                 (read-char))  ; consume the EOF and return it
                 ((eqv? ch #\,)
-                 (read-char port)
+                 (read-char)
                  meta-command-token)
                 ((read-comment lang port ch)
                  *unspecified*)
