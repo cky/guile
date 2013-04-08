@@ -135,38 +135,52 @@
          (ref  (call-with-input-file file get-bytevector-all)))
 
     (pass-if-equal "file" (cons len ref)
-      (cons (call-with-input-file file
-              (lambda (input)
-                (call-with-output-file (test-file)
-                  (lambda (output)
-                    (sendfile output input len 0)))))
-            (call-with-input-file (test-file) get-bytevector-all)))
+      (let* ((result (call-with-input-file file
+                       (lambda (input)
+                         (call-with-output-file (test-file)
+                           (lambda (output)
+                             (sendfile output input len 0))))))
+             (out (call-with-input-file (test-file) get-bytevector-all)))
+        (cons result out)))
 
     (pass-if-equal "file with offset"
         (cons (- len 777) (call-with-input-file file
                             (lambda (input)
                               (seek input 777 SEEK_SET)
                               (get-bytevector-all input))))
-      (cons (call-with-input-file file
-              (lambda (input)
-                (call-with-output-file (test-file)
-                  (lambda (output)
-                    (sendfile output input (- len 777) 777)))))
-            (call-with-input-file (test-file) get-bytevector-all)))
+      (let* ((result (call-with-input-file file
+                       (lambda (input)
+                         (call-with-output-file (test-file)
+                           (lambda (output)
+                             (sendfile output input (- len 777) 777))))))
+             (out (call-with-input-file (test-file) get-bytevector-all)))
+        (cons result out)))
 
-    (pass-if-equal "file with offset past the end" (- len 777)
-      (call-with-input-file file
-        (lambda (input)
-          (call-with-output-file (test-file)
-            (lambda (output)
-              (sendfile output input len 777))))))
+    (pass-if-equal "file with offset past the end"
+        (cons (- len 777) (call-with-input-file file
+                            (lambda (input)
+                              (seek input 777 SEEK_SET)
+                              (get-bytevector-all input))))
+      (let* ((result (call-with-input-file file
+                       (lambda (input)
+                         (call-with-output-file (test-file)
+                           (lambda (output)
+                             (sendfile output input len 777))))))
+             (out (call-with-input-file (test-file) get-bytevector-all)))
+        (cons result out)))
 
-    (pass-if-equal "file with offset near the end" 77
-      (call-with-input-file file
-        (lambda (input)
-          (call-with-output-file (test-file)
-            (lambda (output)
-              (sendfile output input len (- len 77)))))))
+    (pass-if-equal "file with offset near the end"
+        (cons 77 (call-with-input-file file
+                   (lambda (input)
+                     (seek input (- len 77) SEEK_SET)
+                     (get-bytevector-all input))))
+      (let* ((result (call-with-input-file file
+                       (lambda (input)
+                         (call-with-output-file (test-file)
+                           (lambda (output)
+                             (sendfile output input len (- len 77)))))))
+             (out (call-with-input-file (test-file) get-bytevector-all)))
+        (cons result out)))
 
     (pass-if-equal "pipe" (cons len ref)
       (if (provided? 'threads)

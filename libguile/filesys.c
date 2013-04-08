@@ -1160,7 +1160,7 @@ SCM_DEFINE (scm_sendfile, "sendfile", 3, 1, 0,
 	  total += result;
 	else if (result < 0 && (errno == EINTR || errno == EAGAIN))
 	  /* Keep going.  */
-	  result = 0;
+	  result = 1;
       }
     while (total < c_count && result > 0);
   }
@@ -1175,6 +1175,7 @@ SCM_DEFINE (scm_sendfile, "sendfile", 3, 1, 0,
   {
     char buf[8192];
     size_t left;
+    int reached_eof = 0;
 
     if (!SCM_UNBNDP (offset))
       {
@@ -1187,22 +1188,27 @@ SCM_DEFINE (scm_sendfile, "sendfile", 3, 1, 0,
 	  }
       }
 
-    for (total = 0, left = c_count; total < c_count; )
+    for (total = 0, left = c_count; total < c_count && !reached_eof; )
       {
-	size_t asked, obtained;
+	size_t asked, obtained, written;
 
 	asked = SCM_MIN (sizeof buf, left);
 	obtained = full_read (in_fd, buf, asked);
 	if (obtained < asked)
-	  SCM_SYSERROR;
+          {
+            if (errno == 0)
+              reached_eof = 1;
+            else
+              SCM_SYSERROR;
+          }
 
 	left -= obtained;
 
-	obtained = full_write (out_fd, buf, asked);
-	if (obtained < asked)
+	written = full_write (out_fd, buf, obtained);
+	if (written < obtained)
 	  SCM_SYSERROR;
 
-	total += obtained;
+	total += written;
       }
 
   }
