@@ -11,12 +11,6 @@ Changes in 2.0.8 (since 2.0.7):
 
 ** Reorder points in order of importance and make comprehensible
 
-** Document recent improvements to array code
-
-** Possible entries for Bug Fixes
-*** Fixes for Mingw (Andy?)
-*** Fix for FreeBSD with threads(?)
-
 ** Assemble thanks
 
 * Notable changes
@@ -70,10 +64,10 @@ problems had far-reaching implications, since the compiler uses
 `sqrt' now produces exact rational results when possible, and handles
 very large or very small numbers more robustly.
 
-Operations involving exact rationals have been optimized, most notably
-`integer-expt' and `expt'.
+A number (ahem) of operations involving exact rationals have been
+optimized, most notably `integer-expt' and `expt'.
 
-`exact->inexact' now guarantees correct IEEE rounding.
+`exact->inexact' now performs correct IEEE rounding.
 
 ** New optimizations
 
