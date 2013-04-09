@@ -1,7 +1,9 @@
 Contributors since the last release:
 
+           Greg Benison
         Tristan Colgate-McFarlane
         Ludovic Courtès
+          Jason Earl
           Brian Gough
          Volker Grabsch
          Julian Graham
@@ -10,8 +12,11 @@ Contributors since the last release:
              No Itisnt
            Neil Jerram
         Chris K Jester-Young
+          David Kastrup
          Daniel Kraft
+         Daniel Krueger
            Noah Lavine
+         Daniel Llorens
         Gregory Marton
       Thien-Thi Nguyen
         Han-Wen Nienhuys
@@ -22,11 +27,14 @@ Contributors since the last release:
             Ken Raeburn
         Andreas Rottmann
           Kevin Ryde
+       Stefan I Tampe
              BT Templeton
+           Bake Timmons
          Mark H Weaver
           Göran Weinholt
            Ralf Wildenhues
            Andy Wingo
+            Eli Zaretskii
 
 Authors of free software libraries that have been included into Guile
 since the last release:
