@@ -301,7 +301,7 @@ main (int argc, char *argv[])
 
   pf ("\n");
   pf ("/* same as POSIX \"struct timespec\" -- always defined */\n");
-#ifdef HAVE_STRUCT_TIMESPEC
+#ifdef HAVE_SYSTEM_STRUCT_TIMESPEC
   pf ("typedef struct timespec scm_t_timespec;\n");
 #else
   pf ("/* POSIX.4 structure for a time value.  This is like a `struct timeval'"

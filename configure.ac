@@ -1300,6 +1300,29 @@ if test $scm_cv_struct_linger = yes; then
            getsockopt and setsockopt system calls.])
 fi
 
+
+dnl Check for `struct timespec', for the sake of `gen-scmconfig'.  When
+dnl building Guile, we always have it, thanks to Gnulib; but scmconfig.h
+dnl must tell whether the system has it.
+dnl
+dnl On MinGW, struct timespec is in <pthread.h>.
+AC_MSG_CHECKING(for struct timespec)
+AC_CACHE_VAL(scm_cv_struct_timespec,
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
+#include <time.h>
+#if HAVE_PTHREAD_H
+#include <pthread.h>
+#endif]], [[struct timespec t;  t.tv_nsec = 100]])],
+          [scm_cv_struct_timespec="yes"],
+          [scm_cv_struct_timespec="no"]))
+AC_MSG_RESULT($scm_cv_struct_timespec)
+if test $scm_cv_struct_timespec = yes; then
+  dnl Don't call it `HAVE_STRUCT_TIMESPEC' because pthread-win32's
+  dnl <pthread.h> checks whether that macro is defined.
+  AC_DEFINE([HAVE_SYSTEM_STRUCT_TIMESPEC], 1,
+    [Define this if your system defines struct timespec via either <time.h> or <pthread.h>.])
+fi
+
 #--------------------------------------------------------------------
 #
 # Flags for thread support
