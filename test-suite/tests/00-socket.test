@@ -1,7 +1,7 @@
 ;;;; socket.test --- test socket functions     -*- scheme -*-
 ;;;;
 ;;;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-;;;;   2011 Free Software Foundation, Inc.
+;;;;   2011, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -442,6 +442,14 @@
 	    (lambda args
 	      (let ((errno (system-error-errno args)))
 		(cond ((= errno EADDRINUSE) (throw 'unresolved))
+
+                      ;; On Linux-based systems, when `ipv6' support is
+                      ;; missing (for instance, `ipv6' is loaded and
+                      ;; /proc/sys/net/ipv6/conf/all/disable_ipv6 is set
+                      ;; to 1), the socket call above succeeds but
+                      ;; bind(2) fails like this.
+                      ((= errno EADDRNOTAVAIL) (throw 'unresolved))
+
 		      (else (apply throw args)))))))
 
 	(pass-if "bind/sockaddr"
@@ -456,6 +464,7 @@
 	      (lambda args
 		(let ((errno (system-error-errno args)))
 		  (cond ((= errno EADDRINUSE) (throw 'unresolved))
+                        ((= errno EADDRNOTAVAIL) (throw 'unresolved))
 			(else (apply throw args))))))))
 
 	(pass-if "listen"
