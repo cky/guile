@@ -87,15 +87,14 @@ The tag *must* be `v2.0.X'.  For the sake of consistency, always use
 
 Normally nobody committed in the meantime.  ;-)
 
-** Run "make dist"
+** Run "make distcheck"
 
 This should trigger an `autoreconf', as `build-aux/git-version-gen'
-notices the new tag.  After "make dist", double-check that `./configure
---version' reports the new version number.
+notices the new tag.  Make sure you have configured with all options
+enabled (Readline, --enable-deprecated, etc.)
 
-The reason for running "make dist" instead of "make distcheck" is that
-it's much faster and any distribution issues should have been caught by
-Hydra already.
+After "make distcheck", double-check that `./configure --version'
+reports the new version number.
 
 ** Upload
 
@@ -146,7 +145,7 @@ Use `build-aux/gendocs', add to the manual/ directory of the web site.
   $ build-aux/announce-gen --release-type=stable --package-name=guile \
       --previous-version=2.0.1 --current-version=2.0.2 \
       --gpg-key-id=MY-KEY --url-directory=ftp://ftp.gnu.org/gnu/guile \
-      --bootstrap-tools=autoconf,automake,libtool,gnulib \
+      --bootstrap-tools=autoconf,automake,libtool,gnulib,makeinfo \
       --gnulib-version=$( cd ~/src/gnulib ; git describe )
 
 The subject must be "GNU Guile 2.0.X released".  The text should remain
@@ -174,7 +173,7 @@ more informal, with a link to the email announcement for details.
 
 
 
-Copyright © 2011, 2012 Free Software Foundation, Inc.
+Copyright © 2011, 2012, 2013 Free Software Foundation, Inc.
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright
