@@ -7,18 +7,15 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.0.8 (since 2.0.7):
 
-* TODO
-
-** Reorder points in order of importance and make comprehensible
-
-** Assemble thanks
-
 * Notable changes
 
 ** New keyword arguments for procedures that open files
 
-Several procedures that open files now support keyword arguments to
-request binary I/O or to specify the character encoding for text files.
+The following procedures that open files now support keyword arguments
+to request binary I/O or to specify the character encoding for text
+files: `open-input-file', `open-output-file', `call-with-input-file',
+`call-with-output-file', `with-input-from-file', `with-output-to-file',
+and `with-error-to-file'.
 
 It is also now possible to specify whether Guile should scan files for
 Emacs-style coding declarations.  This scan was done by default in
@@ -26,7 +23,7 @@ versions 2.0.0 through 2.0.7, but now must be explicitly requested.
 
 See "File Ports" in the manual for details.
 
-** New guile.m4
+** Rewritten guile.m4
 
 The `guile.m4' autoconf macros have been rewritten to use `guild' and
 `pkg-config' instead of the deprecated `guile-config' (which itself
@@ -40,7 +37,7 @@ Macros" in the manual, for more information.
 
 Guile now correctly identifies absolute paths on Windows (MinGW), and
 creates files on that platform according to its path conventions.  See
-XXX in the manual, for all details.
+"File System" in the manual, for all details.
 
 In addition, the new Gnulib imports provide `select' and `poll' on
 Windows builds.
@@ -48,7 +45,7 @@ Windows builds.
 As an incompatible change, systems that are missing <sys/select.h> were
 previously provided a public `scm_std_select' C function that defined a
 version of `select', but unhappily it also provided its own incompatible
-definitions for FD_SET, FD_ZERO, and other system interface.  Guile
+definitions for FD_SET, FD_ZERO, and other system interfaces.  Guile
 should not be setting these macros in public API, so this interface was
 removed on those plaforms (basically only MinGW).
 
@@ -84,7 +81,7 @@ complete reduction of forms such as:
 
 `string-join' now handles huge lists efficiently.
 
-`get-bytevector-some' is much faster.
+`get-bytevector-some' now uses buffered input, which is much faster.
 
 Finally, `array-ref', `array-set!' on arrays of rank 1 or 2 is now
 faster, because it avoids building a rest list.  Similarly, the
@@ -127,16 +124,6 @@ more information.
 
 Docstrings can now be placed immediately after the `case-lambda' or
 `case-lambda*' keyword.  See "Case-lambda" in the manual.
-
-** `get-bytevector-some' much faster; may read less than possible
-
-`get-bytevector-some' has been made much faster, but may now read less
-than possible, in accordance with the R6RS definition.
-
-** SRFI-45 exports `promise?'; promises print more nicely
-
-SRFI-45 now exports a `promise?' procedure that works with its promises,
-and its promises print more nicely.
 
 ** Improved handling of Unicode byte order marks
 
@@ -222,6 +209,11 @@ These are `scm_array_fill_int', `scm_ra_eqp', `scm_ra_lessp',
 ** SRFI-41 Streams
 
 See "SRFI-41" in the manual.
+
+** SRFI-45 exports `promise?'
+
+SRFI-45 now exports a `promise?' procedure that works with its promises.
+Also, its promises now print more nicely.
 
 ** New HTTP client procedures
 
