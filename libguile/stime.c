@@ -170,7 +170,6 @@ get_internal_real_time_gettimeofday (void)
 #endif
 
 
-#if defined HAVE_TIMES
 static long ticks_per_second;
 
 static long
@@ -180,15 +179,6 @@ get_internal_run_time_times (void)
   times(&time_buffer);
   return (time_buffer.tms_utime + time_buffer.tms_stime)
     * TIME_UNITS_PER_SECOND / ticks_per_second;
-}
-#endif
-
-static timet fallback_real_time_base;
-static long
-get_internal_real_time_fallback (void)
-{
-  return time_from_seconds_and_nanoseconds
-    ((long) time (NULL) - fallback_real_time_base, 0);
 }
 
 
@@ -203,7 +193,6 @@ SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
 #undef FUNC_NAME
 
 
-#ifdef HAVE_TIMES
 SCM_DEFINE (scm_times, "times", 0, 0, 0,
             (void),
 	    "Return an object with information about real and processor\n"
@@ -254,7 +243,6 @@ SCM_DEFINE (scm_times, "times", 0, 0, 0,
   return result;
 }
 #undef FUNC_NAME
-#endif /* HAVE_TIMES */
 
 long
 scm_c_get_internal_run_time (void)
@@ -869,7 +857,6 @@ scm_init_stime()
 
   /* Init ticks_per_second for scm_times, and use times(2)-based
      run-time timer if needed. */
-#ifdef HAVE_TIMES
 #ifdef _SC_CLK_TCK
   ticks_per_second = sysconf (_SC_CLK_TCK);
 #else
@@ -877,14 +864,6 @@ scm_init_stime()
 #endif
   if (!get_internal_run_time)
     get_internal_run_time = get_internal_run_time_times;
-#endif
-
-  if (!get_internal_real_time)
-    /* No POSIX timers, gettimeofday doesn't work... badness!  */
-    {
-      fallback_real_time_base = time (NULL);
-      get_internal_real_time = get_internal_real_time_fallback;
-    }
 
   /* If we don't have a run-time timer, use real-time.  */
   if (!get_internal_run_time)

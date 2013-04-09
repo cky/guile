@@ -734,8 +734,6 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #               has it as an inline for chsize)
 #   ioctl - not in mingw.
 #   gmtime_r - recent posix, not on old systems
-#   pipe - not in mingw
-#   _pipe - specific to mingw, taking 3 args
 #   readdir_r - recent posix, not on old systems
 #   readdir64_r - not available on HP-UX 11.11
 #   stat64 - SuS largefile stuff, not on old systems
@@ -751,10 +749,10 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #
 AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
   fesetround ftime ftruncate fchown fchmod getcwd geteuid getsid	\
-  gettimeofday gmtime_r ioctl lstat mkdir mknod nice pipe _pipe		\
-  readdir_r readdir64_r readlink rename rmdir select setegid seteuid	\
-  setlocale setpgid setsid sigaction siginterrupt stat64 strftime	\
-  strptime symlink sync sysconf tcgetpgrp tcsetpgrp times uname waitpid	\
+  gettimeofday gmtime_r ioctl lstat mkdir mknod nice			\
+  readdir_r readdir64_r readlink rename rmdir setegid seteuid		\
+  setlocale setpgid setsid sigaction siginterrupt stat64		\
+  strptime symlink sync sysconf tcgetpgrp tcsetpgrp uname waitpid	\
   strdup system usleep atexit on_exit chown link fcntl ttyname getpwent	\
   getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp	\
   index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron	\
