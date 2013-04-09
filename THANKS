@@ -103,6 +103,7 @@ For fixes or providing information which led to a fix:
           David Jaquay
            Paul Jarc
           Steve Juranich
+         Nikita Karetnikov
           David Kastrup
         Richard Kim
           Bruce Korb
@@ -142,10 +143,12 @@ For fixes or providing information which led to a fix:
          Sergey Poznyakoff
             Ken Raeburn
          Juhani Rantanen
+ Lluís Batlle i Rossell
         Andreas Rottmann
            Hugh Sasse
          Werner Scheinast
 	   Bill Schottstaedt
+            Jan Schukat
 	  Frank Schwidom
     John Steele Scott
          Thiemo Seufer
@@ -174,6 +177,7 @@ For fixes or providing information which led to a fix:
          Thomas Wawrzinek
         Mark H. Weaver
           Göran Weinholt
+       David A. Wheeler
            Ralf Wildenhues
             Jon Wilson
            Andy Wingo
