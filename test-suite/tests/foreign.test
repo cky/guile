@@ -68,17 +68,19 @@
     (equal? (make-pointer 123) (make-pointer 123)))
 
   (pass-if "equal? modulo finalizer"
-    (let ((finalizer (dynamic-func "scm_is_pair" (dynamic-link))))
+    (let ((finalizer (false-if-exception
+                      (dynamic-func "scm_is_pair" (dynamic-link)))))
       (if (not finalizer)
-          (throw 'unresolved)                     ; probably Windows
+          (throw 'unresolved)               ;  Windows or a static build
           (equal? (make-pointer 123)
                   (make-pointer 123 finalizer)))))
 
   (pass-if "equal? modulo finalizer (set-pointer-finalizer!)"
-    (let ((finalizer (dynamic-func "scm_is_pair" (dynamic-link)))
+    (let ((finalizer (false-if-exception
+                      (dynamic-func "scm_is_pair" (dynamic-link))))
           (ptr       (make-pointer 123)))
       (if (not finalizer)
-          (throw 'unresolved)                     ; probably Windows
+          (throw 'unresolved)                ; Windows or a static build
           (begin
             (set-pointer-finalizer! ptr finalizer)
             (equal? (make-pointer 123) ptr)))))
