@@ -181,6 +181,14 @@ get_internal_run_time_times (void)
     * TIME_UNITS_PER_SECOND / ticks_per_second;
 }
 
+static timet fallback_real_time_base;
+static long
+get_internal_real_time_fallback (void)
+{
+  return time_from_seconds_and_nanoseconds
+    ((long) time (NULL) - fallback_real_time_base, 0);
+}
+
 
 SCM_DEFINE (scm_get_internal_real_time, "get-internal-real-time", 0, 0, 0,
            (),
@@ -865,9 +873,12 @@ scm_init_stime()
   if (!get_internal_run_time)
     get_internal_run_time = get_internal_run_time_times;
 
-  /* If we don't have a run-time timer, use real-time.  */
-  if (!get_internal_run_time)
-    get_internal_run_time = get_internal_real_time;
+  if (!get_internal_real_time)
+    /* No POSIX timers, gettimeofday doesn't work... badness!  */
+    {
+      fallback_real_time_base = time (NULL);
+      get_internal_real_time = get_internal_real_time_fallback;
+    }
 
   scm_add_feature ("current-time");
 #include "libguile/stime.x"
