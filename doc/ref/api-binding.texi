@@ -218,9 +218,9 @@ variables.
 
 @lisp
 (letrec ((a 42)
-         (b (+ a 10)))
+         (b (+ a 10)))  ;; Illegal access
   (* a b))
-@result{} ;; Error: unbound variable: a
+;; The behavior of the expression above is unspecified
 
 (letrec* ((a 42)
           (b (+ a 10)))
