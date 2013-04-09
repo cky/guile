@@ -5,7 +5,10 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
-Changes in 2.0.8 (since 2.0.7):
+Changes in 2.0.9 (since 2.0.7):
+
+Note: 2.0.8 was a brown paper bag release that was never announced, but
+some mirrors may have picked it up.  Please do not use it.
 
 * Notable changes
 
