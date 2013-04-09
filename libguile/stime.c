@@ -68,17 +68,9 @@
 # include <time.h>
 #endif
 
-#ifdef HAVE_SYS_TYPES_H
-# include <sys/types.h>
-#endif
-
-#ifdef HAVE_STRING_H
+#include <sys/types.h>
 #include <string.h>
-#endif
-
-#ifdef HAVE_SYS_TIMES_H
-# include <sys/times.h>
-#endif
+#include <sys/times.h>
 
 #ifdef HAVE_SYS_TIMEB_H
 # include <sys/timeb.h>
