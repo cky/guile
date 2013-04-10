@@ -72,7 +72,7 @@ Guile requires the following external packages:
     libltdl is used for loading extensions at run-time.  It is
     available from http://www.gnu.org/software/libtool/ .
 
-  - GNU libunistring
+  - GNU libunistring, at least version 0.9.3
 
     libunistring is used for Unicode string operations, such as the
     `utf*->string' procedures.  It is available from
