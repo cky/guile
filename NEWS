@@ -16,9 +16,9 @@ some mirrors may have picked it up.  Please do not use it.
 
 The following procedures that open files now support keyword arguments
 to request binary I/O or to specify the character encoding for text
-files: `open-input-file', `open-output-file', `call-with-input-file',
-`call-with-output-file', `with-input-from-file', `with-output-to-file',
-and `with-error-to-file'.
+files: `open-file', `open-input-file', `open-output-file',
+`call-with-input-file', `call-with-output-file', `with-input-from-file',
+`with-output-to-file', and `with-error-to-file'.
 
 It is also now possible to specify whether Guile should scan files for
 Emacs-style coding declarations.  This scan was done by default in
