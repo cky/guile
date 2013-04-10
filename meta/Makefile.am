@@ -30,9 +30,9 @@ EXTRA_DIST= \
 # What we now call `guild' used to be known as `guile-tools'.
 install-exec-hook:
 	guild="`echo $(ECHO_N) guild				\
-	   | $(SED) -e '$(program_transform_name)'`$(EXEEXT)" ;	\
+	   | $(SED) -e '$(program_transform_name)'`" ;		\
 	guile_tools="`echo $(ECHO_N) guile-tools		\
-	   | $(SED) -e '$(program_transform_name)'`$(EXEEXT)" ;	\
+	   | $(SED) -e '$(program_transform_name)'`" ;		\
 	cd $(DESTDIR)$(bindir) && rm -f "$$guile_tools" &&	\
 	$(LN_S) "$$guild" "$$guile_tools"
 
