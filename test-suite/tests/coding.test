@@ -46,59 +46,59 @@
 
 (with-test-prefix "block comments"
 
-  (pass-if "first line"
-    (equal? (scan-coding "#! coding: iso-8859-1 !#")
-            "ISO-8859-1"))
-  
-  (pass-if "first line no whitespace"
-    (equal? (scan-coding "#!coding:iso-8859-1!#")
-            "ISO-8859-1"))
-  
-  (pass-if "second line"
-    (equal? (scan-coding "#!  \n  coding: iso-8859-1  !#")
-            "ISO-8859-1"))
-  
-  (pass-if "second line no whitespace"
-    (equal? (scan-coding "#!\ncoding:iso-8859-1!#")
-            "ISO-8859-1"))
-  
-  (pass-if "third line"
-    (equal? (scan-coding "#! \n  coding: iso-8859-1  \n  !#")
-            "ISO-8859-1"))
-  
-  (pass-if "third line no whitespace"
-    (equal? (scan-coding "#!\ncoding:iso-8859-1\n!#")
-            "ISO-8859-1")))
+  (pass-if-equal "first line"
+      "ISO-8859-1"
+    (scan-coding "#! coding: iso-8859-1 !#"))
 
-(with-test-prefix "line comments"
-  (pass-if "first line, no whitespace, no nl"
-    (equal? (scan-coding ";coding:iso-8859-1")
-            "ISO-8859-1"))
-  
-  (pass-if "first line, whitespace, no nl"
-    (equal? (scan-coding "; coding: iso-8859-1 ")
-            "ISO-8859-1"))
-  
-  (pass-if "first line, no whitespace, nl"
-    (equal? (scan-coding ";coding:iso-8859-1\n")
-            "ISO-8859-1"))
-  
-  (pass-if "first line, whitespace, nl"
-    (equal? (scan-coding "; coding: iso-8859-1 \n")
-            "ISO-8859-1"))
-  
-  (pass-if "second line, no whitespace, no nl"
-    (equal? (scan-coding "\n;coding:iso-8859-1")
-            "ISO-8859-1"))
-  
-  (pass-if "second line, whitespace, no nl"
-    (equal? (scan-coding "\n; coding: iso-8859-1 ")
-            "ISO-8859-1"))
-  
-  (pass-if "second line, no whitespace, nl"
-    (equal? (scan-coding "\n;coding:iso-8859-1\n")
-            "ISO-8859-1"))
-  
-  (pass-if "second line, whitespace, nl"
-    (equal? (scan-coding "\n; coding: iso-8859-1 \n")
-            "ISO-8859-1")))
+  (pass-if-equal "first line no whitespace"
+      "ISO-8859-1"
+    (scan-coding "#!coding:iso-8859-1!#"))
+
+  (pass-if-equal "second line"
+      "ISO-8859-1"
+    (scan-coding "#!  \n  coding: iso-8859-1  !#"))
+
+  (pass-if-equal "second line no whitespace"
+      "ISO-8859-1"
+    (scan-coding "#!\ncoding:iso-8859-1!#"))
+
+  (pass-if-equal "third line"
+      "ISO-8859-1"
+    (scan-coding "#! \n  coding: iso-8859-1  \n  !#"))
+
+  (pass-if-equal "third line no whitespace"
+      "ISO-8859-1"
+    (scan-coding "#!\ncoding:iso-8859-1\n!#")))
+
+(with-test-prefix "line comment"
+  (pass-if-equal "first line, no whitespace, no nl"
+      "ISO-8859-1"
+    (scan-coding ";coding:iso-8859-1"))
+
+  (pass-if-equal "first line, whitespace, no nl"
+      "ISO-8859-1"
+    (scan-coding "; coding: iso-8859-1 "))
+
+  (pass-if-equal "first line, no whitespace, nl"
+      "ISO-8859-1"
+    (scan-coding ";coding:iso-8859-1\n"))
+
+  (pass-if-equal "first line, whitespace, nl"
+      "ISO-8859-1"
+    (scan-coding "; coding: iso-8859-1 \n"))
+
+  (pass-if-equal "second line, no whitespace, no nl"
+      "ISO-8859-1"
+    (scan-coding "\n;coding:iso-8859-1"))
+
+  (pass-if-equal "second line, whitespace, no nl"
+      "ISO-8859-1"
+    (scan-coding "\n; coding: iso-8859-1 "))
+
+  (pass-if-equal "second line, no whitespace, nl"
+      "ISO-8859-1"
+    (scan-coding "\n;coding:iso-8859-1\n"))
+
+  (pass-if-equal "second line, whitespace, nl"
+      "ISO-8859-1"
+    (scan-coding "\n; coding: iso-8859-1 \n")))
