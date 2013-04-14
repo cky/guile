@@ -1686,11 +1686,7 @@
 
   (pass-if-equal "BOM not discarded unless at start of UTF-16 stream"
       "a\uFEFFb"
-    (let ((be (bv-read-test "utf-16" #vu8(#x00 #x61 #xFE #xFF #x00 #x62)))
-          (le (bv-read-test "utf-16" #vu8(#x61 #x00 #xFF #xFE #x62 #x00))))
-      (if (char=? #\a (string-ref be 0))
-          be
-          le)))
+    (bv-read-test "utf-16" #vu8(#x00 #x61 #xFE #xFF #x00 #x62)))
 
   (pass-if-equal "BOM discarded from start of UTF-16 stream (LE)"
       "a"
@@ -1777,15 +1773,9 @@
 
   (pass-if-equal "BOM not discarded unless at start of UTF-32 stream"
       "a\uFEFFb"
-    (let ((be (bv-read-test "UTF-32" #vu8(#x00 #x00 #x00 #x61
+    (bv-read-test "UTF-32" #vu8(#x00 #x00 #x00 #x61
                                                #x00 #x00 #xFE #xFF
                                                #x00 #x00 #x00 #x62)))
-          (le (bv-read-test "UTF-32" #vu8(#x61 #x00 #x00 #x00
-                                               #xFF #xFE #x00 #x00
-                                               #x62 #x00 #x00 #x00))))
-      (if (char=? #\a (string-ref be 0))
-          be
-          le)))
 
   (pass-if-equal "BOM discarded from start of UTF-32 stream (LE)"
       "a"
