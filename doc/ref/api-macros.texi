@@ -122,8 +122,8 @@ same @var{letrec-syntax}.
                     exp)
                    ((my-or exp rest ...)
                     (let ((t exp))
-                      (if exp
-                          exp
+                      (if t
+                          t
                           (my-or rest ...)))))))
   (my-or #f "rockaway beach"))
 @result{} "rockaway beach"
@@ -323,8 +323,8 @@ Consider the definition of @code{my-or} from the previous section:
      exp)
     ((my-or exp rest ...)
      (let ((t exp))
-       (if exp
-           exp
+       (if t
+           t
            (my-or rest ...))))))
 @end example
 
