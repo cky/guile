@@ -8,7 +8,9 @@ set -e
 # The default language in effect until `--language' is encountered is
 # Scheme.
 guile -c "(exit (= 3 (apply + '(1 2))))" --language=elisp
-! guile -c "(= (funcall (symbol-function '+) 1 2) 3)" 2> /dev/null
+
+if guile -c "(= (funcall (symbol-function '+) 1 2) 3)" 2> /dev/null
+then false; else true; fi
 
 guile --language=elisp -c "(= (funcall (symbol-function '+) 1 2) 3)"
 guile --language=ecmascript -c '(function (x) { return x * x; })(2);'
