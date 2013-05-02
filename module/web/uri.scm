@@ -6,12 +6,12 @@
 ;;;; modify it under the terms of the GNU Lesser General Public
 ;;;; License as published by the Free Software Foundation; either
 ;;;; version 3 of the License, or (at your option) any later version.
-;;;; 
+;;;;
 ;;;; This library is distributed in the hope that it will be useful,
 ;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ;;;; Lesser General Public License for more details.
-;;;; 
+;;;;
 ;;;; You should have received a copy of the GNU Lesser General Public
 ;;;; License along with this library; if not, write to the Free Software
 ;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
@@ -20,7 +20,7 @@
 ;;; Commentary:
 
 ;; A data type for Universal Resource Identifiers, as defined in RFC
-;; 3986. 
+;; 3986.
 
 ;;; Code:
 
@@ -382,7 +382,7 @@ The default character set includes alphanumerics from ASCII, as well as
 the special characters ‘-’, ‘.’, ‘_’, and ‘~’.  Any other character will
 be percent-encoded, by writing out the character to a bytevector within
 the given ENCODING, then encoding each byte as ‘%HH’, where HH is the
-hexadecimal representation of the byte."
+uppercase hexadecimal representation of the byte."
   (define (needs-escaped? ch)
     (not (char-set-contains? unescaped-chars ch)))
   (if (string-index str needs-escaped?)
@@ -400,7 +400,8 @@ hexadecimal representation of the byte."
                           (display #\% port)
                           (when (< byte 16)
                             (display #\0 port))
-                          (display (number->string byte 16) port)
+                          (display (string-upcase (number->string byte 16))
+                                   port)
                           (lp (1+ i))))))))
           str)))
       str))

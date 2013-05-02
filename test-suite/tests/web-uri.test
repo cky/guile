@@ -259,5 +259,5 @@
 
 (with-test-prefix "encode"
   (pass-if (equal? "foo%20bar" (uri-encode "foo bar")))
-  (pass-if (equal? "foo%0a%00bar" (uri-encode "foo\n\x00bar")))
-  (pass-if (equal? "%3c%3e%5c%5e" (uri-encode "<>\\^"))))
+  (pass-if (equal? "foo%0A%00bar" (uri-encode "foo\n\x00bar")))
+  (pass-if (equal? "%3C%3E%5C%5E" (uri-encode "<>\\^"))))
