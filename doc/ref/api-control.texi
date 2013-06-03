@@ -1421,7 +1421,8 @@ Guile) formats using @code{display} and @code{~S} (was
 @code{system-error} then it should be a list containing the
 Unix @code{errno} value; If @var{key} is @code{signal} then it
 should be a list containing the Unix signal number; If
-@var{key} is @code{out-of-range} or @code{wrong-type-arg},
+@var{key} is @code{out-of-range}, @code{wrong-type-arg},
+or @code{keyword-argument-error},
 it is a list containing the bad value; otherwise
 it will usually be @code{#f}.
 @end deffn

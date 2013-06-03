@@ -80,7 +80,8 @@ SCM_DEFINE (scm_error_scm, "scm-error", 5, 0, 0,
 	    "@code{system-error} then it should be a list containing the\n"
 	    "Unix @code{errno} value; If @var{key} is @code{signal} then it\n"
 	    "should be a list containing the Unix signal number; If\n"
-	    "@var{key} is @code{out-of-range} or @code{wrong-type-arg},\n"
+	    "@var{key} is @code{out-of-range}, @code{wrong-type-arg},\n"
+	    "or @code{keyword-argument-error}, "
             "it is a list containing the bad value; otherwise\n"
 	    "it will usually be @code{#f}.")
 #define FUNC_NAME s_scm_error_scm

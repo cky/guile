@@ -385,8 +385,8 @@ static void vm_error_not_a_variable (const char *func_name, SCM x) SCM_NORETURN;
 static void vm_error_not_a_thunk (const char *func_name, SCM x) SCM_NORETURN;
 static void vm_error_apply_to_non_list (SCM x) SCM_NORETURN;
 static void vm_error_kwargs_length_not_even (SCM proc) SCM_NORETURN;
-static void vm_error_kwargs_invalid_keyword (SCM proc) SCM_NORETURN;
-static void vm_error_kwargs_unrecognized_keyword (SCM proc) SCM_NORETURN;
+static void vm_error_kwargs_invalid_keyword (SCM proc, SCM obj) SCM_NORETURN;
+static void vm_error_kwargs_unrecognized_keyword (SCM proc, SCM kw) SCM_NORETURN;
 static void vm_error_too_many_args (int nargs) SCM_NORETURN;
 static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN;
@@ -471,19 +471,19 @@ vm_error_kwargs_length_not_even (SCM proc)
 }
 
 static void
-vm_error_kwargs_invalid_keyword (SCM proc)
+vm_error_kwargs_invalid_keyword (SCM proc, SCM obj)
 {
   scm_error_scm (sym_keyword_argument_error, proc,
                  scm_from_latin1_string ("Invalid keyword"),
-                 SCM_EOL, SCM_BOOL_F);
+                 SCM_EOL, scm_list_1 (obj));
 }
 
 static void
-vm_error_kwargs_unrecognized_keyword (SCM proc)
+vm_error_kwargs_unrecognized_keyword (SCM proc, SCM kw)
 {
   scm_error_scm (sym_keyword_argument_error, proc,
                  scm_from_latin1_string ("Unrecognized keyword"),
-                 SCM_EOL, SCM_BOOL_F);
+                 SCM_EOL, scm_list_1 (kw));
 }
 
 static void

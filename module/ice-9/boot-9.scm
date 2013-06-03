@@ -944,12 +944,17 @@ procedures, their behavior is implementation dependent."
              (_ (default-printer)))
            args))
 
+  (define (keyword-error-printer port key args default-printer)
+    (let ((message (cadr args))
+          (faulty  (car (cadddr args)))) ; I won't do it again, I promise.
+      (format port "~a: ~s" message faulty)))
+
   (define (getaddrinfo-error-printer port key args default-printer)
     (format port "In procedure getaddrinfo: ~a" (gai-strerror (car args))))
 
   (set-exception-printer! 'goops-error scm-error-printer)
   (set-exception-printer! 'host-not-found scm-error-printer)
-  (set-exception-printer! 'keyword-argument-error scm-error-printer)
+  (set-exception-printer! 'keyword-argument-error keyword-error-printer)
   (set-exception-printer! 'misc-error scm-error-printer)
   (set-exception-printer! 'no-data scm-error-printer)
   (set-exception-printer! 'no-recovery scm-error-printer)

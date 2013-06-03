@@ -162,18 +162,18 @@ static void error_used_before_defined (void)
              "Variable used before given a value", SCM_EOL, SCM_BOOL_F);
 }
 
-static void error_invalid_keyword (SCM proc)
+static void error_invalid_keyword (SCM proc, SCM obj)
 {
   scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
                  scm_from_locale_string ("Invalid keyword"), SCM_EOL,
-                 SCM_BOOL_F);
+                 scm_list_1 (obj));
 }
 
-static void error_unrecognized_keyword (SCM proc)
+static void error_unrecognized_keyword (SCM proc, SCM kw)
 {
   scm_error_scm (scm_from_latin1_symbol ("keyword-argument-error"), proc,
                  scm_from_locale_string ("Unrecognized keyword"), SCM_EOL,
-                 SCM_BOOL_F);
+                 scm_list_1 (kw));
 }
 
 
@@ -890,10 +890,10 @@ prepare_boot_closure_env_for_apply (SCM proc, SCM args,
                         break;
                       }
                   if (scm_is_null (walk) && scm_is_false (aok))
-                    error_unrecognized_keyword (proc);
+                    error_unrecognized_keyword (proc, k);
                 }
             if (scm_is_pair (args) && scm_is_false (rest))
-              error_invalid_keyword (proc);
+              error_invalid_keyword (proc, CAR (args));
 
             /* Now fill in unbound values, evaluating init expressions in their
                appropriate environment. */

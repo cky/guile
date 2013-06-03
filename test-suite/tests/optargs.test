@@ -34,25 +34,6 @@
   ;'(keyword-argument-error . ".*")
   '(#t . ".*"))
 
-(define-syntax c&e
-  (syntax-rules (pass-if pass-if-exception)
-    ((_ (pass-if test-name exp))
-     (begin (pass-if (string-append test-name " (eval)")
-                     (primitive-eval 'exp))
-            (pass-if (string-append test-name " (compile)")
-                     (compile 'exp #:to 'value #:env (current-module)))))
-    ((_ (pass-if-exception test-name exc exp))
-     (begin (pass-if-exception (string-append test-name " (eval)")
-                               exc (primitive-eval 'exp))
-            (pass-if-exception (string-append test-name " (compile)")
-                               exc (compile 'exp #:to 'value
-                                            #:env (current-module)))))))
-
-(define-syntax with-test-prefix/c&e
-  (syntax-rules ()
-    ((_ section-name exp ...)
-     (with-test-prefix section-name (c&e exp) ...))))
-
 (with-test-prefix/c&e "optional argument processing"
   (pass-if "local defines work with optional arguments"
     (eval '(begin
@@ -165,10 +146,21 @@
     (let ((f (lambda* (#:key x) x)))
       (f 1 2 #:x 'x)))
 
-  (pass-if-exception "unrecognized keyword"
-    exception:unrecognized-keyword
-    (let ((f (lambda* (#:key x) x)))
-      (f #:y 'not-recognized)))
+  (pass-if-equal "unrecognized keyword" '(#:y)
+    (catch 'keyword-argument-error
+      (lambda ()
+        (let ((f (lambda* (#:key x) x)))
+          (f #:y 'not-recognized)))
+      (lambda (key proc fmt args data)
+        data)))
+
+  (pass-if-equal "invalid keyword" '(not-a-keyword)
+    (catch 'keyword-argument-error
+      (lambda ()
+        (let ((f (lambda* (#:key x) x)))
+          (f 'not-a-keyword 'something)))
+      (lambda (key proc fmt args data)
+        data)))
 
   (pass-if "rest given before keywords"
     ;; Passing the rest argument before the keyword arguments should not
