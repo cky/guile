@@ -169,6 +169,22 @@
       (equal? (f 1 2 3 #:x 'x #:z 'z)
               '(x #f z (1 2 3 #:x x #:z z))))))
 
+(with-test-prefix "scm_c_bind_keyword_arguments"
+
+  (pass-if-equal "unrecognized keyword" '(#:y)
+    (catch 'keyword-argument-error
+      (lambda ()
+        (open-file "/dev/null" "r" #:y 'not-recognized))
+      (lambda (key proc fmt args data)
+        data)))
+
+  (pass-if-equal "invalid keyword" '(not-a-keyword)
+    (catch 'keyword-argument-error
+      (lambda ()
+        (open-file "/dev/null" "r" 'not-a-keyword 'something))
+      (lambda (key proc fmt args data)
+        data))))
+
 (with-test-prefix/c&e "lambda* inits"
   (pass-if "can bind lexicals within inits"
     (begin

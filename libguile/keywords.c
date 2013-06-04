@@ -1,5 +1,6 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004,
+ *   2006, 2008, 2009, 2013 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -157,9 +158,11 @@ scm_c_bind_keyword_arguments (const char *subr, SCM rest,
                 {
                   /* KW_OR_ARG is not in the list of expected keywords.  */
                   if (!(flags & SCM_ALLOW_OTHER_KEYS))
-                    scm_error (scm_keyword_argument_error,
-                               subr, "Unrecognized keyword",
-                               SCM_EOL, SCM_BOOL_F);
+                    scm_error_scm (scm_keyword_argument_error,
+				   scm_from_locale_string (subr),
+				   scm_from_latin1_string
+				   ("Unrecognized keyword"),
+				   SCM_EOL, scm_list_1 (kw_or_arg));
                   break;
                 }
               arg_p = va_arg (va, SCM *);
@@ -181,9 +184,10 @@ scm_c_bind_keyword_arguments (const char *subr, SCM rest,
           /* The next argument is not a keyword, or is a singleton
              keyword at the end of REST.  */
           if (!(flags & SCM_ALLOW_NON_KEYWORD_ARGUMENTS))
-            scm_error (scm_keyword_argument_error,
-                       subr, "Invalid keyword",
-                       SCM_EOL, SCM_BOOL_F);
+            scm_error_scm (scm_keyword_argument_error,
+			   scm_from_locale_string (subr),
+			   scm_from_latin1_string ("Invalid keyword"),
+			   SCM_EOL, scm_list_1 (kw_or_arg));
 
            /* Advance REST.  */
            rest = tail;
