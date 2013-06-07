@@ -39,8 +39,10 @@
   #:use-module (web request)
   #:use-module (web response)
   #:use-module (web uri)
+  #:use-module (web http)
   #:use-module (srfi srfi-1)
-  #:export (open-socket-for-uri
+  #:export (current-http-proxy
+            open-socket-for-uri
             http-get
             http-get*
             http-head
@@ -50,6 +52,11 @@
             http-trace
             http-options))
 
+(define current-http-proxy
+  (make-parameter (let ((proxy (getenv "http_proxy")))
+                    (and (not (equal? proxy ""))
+                         proxy))))
+
 (define (ensure-uri uri-or-string)
   (cond
    ((string? uri-or-string) (string->uri uri-or-string))
@@ -58,7 +65,8 @@
 
 (define (open-socket-for-uri uri-or-string)
   "Return an open input/output port for a connection to URI."
-  (define uri (ensure-uri uri-or-string))
+  (define http-proxy (current-http-proxy))
+  (define uri (ensure-uri (or http-proxy uri-or-string)))
   (define addresses
     (let ((port (uri-port uri)))
       (delete-duplicates
@@ -84,6 +92,8 @@
           (setvbuf s _IOFBF)
           ;; Enlarge the receive buffer.
           (setsockopt s SOL_SOCKET SO_RCVBUF (* 12 1024))
+          ;; If we're using a proxy, make a note of that.
+          (when http-proxy (set-http-proxy-port?! s #t))
           s)
         (lambda args
           ;; Connection failed, so try one of the other addresses.

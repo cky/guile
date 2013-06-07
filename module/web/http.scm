@@ -66,7 +66,10 @@
             write-response-line
 
             make-chunked-input-port
-            make-chunked-output-port))
+            make-chunked-output-port
+
+            http-proxy-port?
+            set-http-proxy-port?!))
 
 
 (define (string->header name)
@@ -1117,6 +1120,21 @@ three values: the method, the URI, and the version."
   "Write the first line of an HTTP request to PORT."
   (display method port)
   (display #\space port)
+  (when (http-proxy-port? port)
+    (let ((scheme (uri-scheme uri))
+          (host (uri-host uri))
+          (host-port (uri-port uri)))
+      (when (and scheme host)
+        (display scheme port)
+        (display "://" port)
+        (if (string-index host #\:)
+            (begin (display #\[ port)
+                   (display host port)
+                   (display #\] port))
+            (display host port))
+        (unless ((@@ (web uri) default-port?) scheme host-port)
+          (display #\: port)
+          (display host-port port)))))
   (let ((path (uri-path uri))
         (query (uri-query uri)))
     (if (not (string-null? path))
@@ -1958,3 +1976,8 @@ KEEP-ALIVE? is true."
     (unless keep-alive?
       (close-port port)))
   (make-soft-port (vector put-char put-string flush #f close) "w"))
+
+(define %http-proxy-port? (make-object-property))
+(define (http-proxy-port? port) (%http-proxy-port? port))
+(define (set-http-proxy-port?! port flag)
+  (set! (%http-proxy-port? port) flag))

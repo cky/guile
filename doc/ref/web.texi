@@ -1459,6 +1459,20 @@ fetcher, similar in structure to the web server (@pxref{Web Server}).
 Another option, good but not as performant, would be to use threads,
 possibly via par-map or futures.
 
+@deffn {Scheme Parameter} current-http-proxy
+Either @code{#f} or a non-empty string containing the URL of the HTTP
+proxy server to be used by the procedures in the @code{(web client)}
+module, including @code{open-socket-for-uri}.  Its initial value is
+based on the @env{http_proxy} environment variable.
+
+@example
+(current-http-proxy) @result{} "http://localhost:8123/"
+(parameterize ((current-http-proxy #f))
+  (http-get "http://example.com/"))  ; temporarily bypass proxy
+(current-http-proxy) @result{} "http://localhost:8123/"
+@end example
+@end deffn
+
 
 @node Web Server
 @subsection Web Server
