@@ -446,9 +446,9 @@ which the calling thread will wait to be signalled before returning.
 @code{wait-condition-variable}, except that the mutex is left in an
 unlocked state when the function returns.)
 
-When @var{timeout} is also given, it specifies a point in time where
-the waiting should be aborted.  It can be either an integer as
-returned by @code{current-time} or a pair as returned by
+When @var{timeout} is also given and not false, it specifies a point in
+time where the waiting should be aborted.  It can be either an integer
+as returned by @code{current-time} or a pair as returned by
 @code{gettimeofday}.  When the waiting is aborted, @code{#f} is
 returned.  Otherwise the function returns @code{#t}.
 @end deffn

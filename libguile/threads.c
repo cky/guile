@@ -1696,7 +1696,7 @@ SCM_DEFINE (scm_unlock_mutex_timed, "unlock-mutex", 1, 2, 0,
     {
       SCM_VALIDATE_CONDVAR (2, cond);
 
-      if (! (SCM_UNBNDP (timeout)))
+      if (! SCM_UNBNDP (timeout) && ! scm_is_false (timeout))
 	{
 	  to_timespec (timeout, &cwaittime);
 	  waittime = &cwaittime;
