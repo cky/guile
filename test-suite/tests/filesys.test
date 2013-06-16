@@ -222,4 +222,5 @@
           (throw 'unresolved)))))
 
 (delete-file (test-file))
-(delete-file (test-symlink))
+(when (file-exists? (test-symlink))
+  (delete-file (test-symlink)))
