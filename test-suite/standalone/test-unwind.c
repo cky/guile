@@ -1,4 +1,4 @@
-/* Copyright (C) 2004, 2005, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2005, 2008, 2009, 2010, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -200,9 +200,20 @@ check_ports ()
 #define FILENAME_TEMPLATE "/check-ports.XXXXXX"
   char *filename;
   const char *tmpdir = getenv ("TMPDIR");
+#ifdef __MINGW32__
+  extern int mkstemp (char *);
 
+  /* On Windows neither $TMPDIR nor /tmp can be relied on.  */
+  if (tmpdir == NULL)
+    tmpdir = getenv ("TEMP");
+  if (tmpdir == NULL)
+    tmpdir = getenv ("TMP");
+  if (tmpdir == NULL)
+    tmpdir = "/";
+#else
   if (tmpdir == NULL)
     tmpdir = "/tmp";
+#endif
 
   filename = alloca (strlen (tmpdir) + sizeof (FILENAME_TEMPLATE) + 1);
   strcpy (filename, tmpdir);
