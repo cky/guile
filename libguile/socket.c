@@ -1736,7 +1736,7 @@ scm_init_socket ()
 #ifdef AF_UNSPEC
   scm_c_define ("AF_UNSPEC", scm_from_int (AF_UNSPEC));
 #endif
-#ifdef AF_UNIX
+#if defined HAVE_UNIX_DOMAIN_SOCKETS && defined AF_UNIX
   scm_c_define ("AF_UNIX", scm_from_int (AF_UNIX));
 #endif
 #ifdef AF_INET
