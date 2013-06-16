@@ -910,7 +910,7 @@ SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0,
 
 
 #ifdef HAVE_SETEGID
-SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0, 
+SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
             (SCM id),
 	    "Sets the effective group ID to the integer @var{id}, provided the process\n"
 	    "has appropriate privileges.  If effective IDs are not supported, the\n"
@@ -921,7 +921,7 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
 {
   int rv;
 
-#ifdef HAVE_SETEUID
+#ifdef HAVE_SETEGID
   rv = setegid (scm_to_int (id));
 #else
   rv = setgid (scm_to_int (id));
