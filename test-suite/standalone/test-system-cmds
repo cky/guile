@@ -9,8 +9,10 @@ exec guile -q -s "$0" "$@"
          #t
          "test-system-cmds: (system) did not return a boolean\n")
         (exit 1)))
-  
-  (let ((rs (status:exit-val (system "guile -c '(exit 42)'"))))
+
+  ;; Note: Use double quotes since simple quotes are not supported by
+  ;; `cmd.exe' on Windows.
+  (let ((rs (status:exit-val (system "guile -c \"(exit 42)\""))))
     (if (not (= 42 rs))
         (begin
           (simple-format
