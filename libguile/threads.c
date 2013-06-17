@@ -327,7 +327,7 @@ remqueue (SCM q, SCM c)
       if (scm_is_eq (p, c))
 	{
 	  if (scm_is_eq (c, SCM_CAR (q)))
-	    SCM_SETCAR (q, SCM_CDR (c));
+            SCM_SETCAR (q, scm_is_eq (prev, q) ? SCM_EOL : prev);
 	  SCM_SETCDR (prev, SCM_CDR (c));
 
 	  /* GC-robust */
