@@ -53,8 +53,12 @@
 		  (logand bitwise-and) 
 		  (logior bitwise-ior) 
 		  (logxor bitwise-xor)
-		  (logcount bitwise-bit-count)
 		  (ash bitwise-arithmetic-shift)))
+
+  (define (bitwise-bit-count ei)
+    (if (negative? ei)
+        (bitwise-not (logcount ei))
+        (logcount ei)))
 
   (define (bitwise-if ei1 ei2 ei3)
     (bitwise-ior (bitwise-and ei1 ei2) (bitwise-and (bitwise-not ei1) ei3)))

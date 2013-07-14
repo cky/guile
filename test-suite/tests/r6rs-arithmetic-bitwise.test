@@ -43,7 +43,9 @@
 
 (with-test-prefix "bitwise-bit-count"
   (pass-if "bitwise-bit-count simple"
-    (eqv? (bitwise-bit-count #b101) 2)))
+    (eqv? (bitwise-bit-count #b101) 2))
+  (pass-if "bitwise-bit-count negative"
+    (eqv? (bitwise-bit-count #b-101) -2)))
 
 (with-test-prefix "bitwise-length"
   (pass-if "bitwise-length simple"
