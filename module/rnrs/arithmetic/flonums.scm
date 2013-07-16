@@ -103,15 +103,13 @@
       (apply assert-flonum flargs)
       (apply min flargs)))
 
-  (define (fl+ fl1 . args)
-    (let ((flargs (cons fl1 args)))
-      (apply assert-flonum flargs)
-      (apply + flargs)))
+  (define (fl+ . args)
+    (apply assert-flonum args)
+    (if (null? args) 0.0 (apply + args)))
 
-  (define (fl* fl1 . args)
-    (let ((flargs (cons fl1 args)))
-      (apply assert-flonum flargs)
-      (apply * flargs)))
+  (define (fl* . args)
+    (apply assert-flonum args)
+    (if (null? args) 1.0 (apply * args)))
 
   (define (fl- fl1 . args)
     (let ((flargs (cons fl1 args)))

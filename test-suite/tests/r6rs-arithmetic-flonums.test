@@ -162,10 +162,12 @@
   (pass-if "simple" (fl=? (flmin -1.0 0.0 2.0) -1.0)))
 
 (with-test-prefix "fl+"
-  (pass-if "simple" (fl=? (fl+ 2.141 1.0 0.1) 3.241)))
+  (pass-if "simple" (fl=? (fl+ 2.141 1.0 0.1) 3.241))
+  (pass-if "zero args" (fl=? (fl+) 0.0)))
 
 (with-test-prefix "fl*"
-  (pass-if "simple" (fl=? (fl* 1.0 2.0 3.0 1.5) 9.0)))
+  (pass-if "simple" (fl=? (fl* 1.0 2.0 3.0 1.5) 9.0))
+  (pass-if "zero args" (fl=? (fl*) 1.0)))
 
 (with-test-prefix "fl-"
   (pass-if "unary fl- negates argument" (fl=? (fl- 2.0) -2.0))
