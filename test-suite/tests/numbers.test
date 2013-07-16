@@ -2496,8 +2496,8 @@
     ;; Prior to guile 2.0.10, we would unconditionally convert the inum
     ;; to a double, which on a 64-bit system could result in a
     ;; significant change in its value, thus corrupting the comparison.
-    (pass-if (< most-positive-fixnum (exact->inexact most-positive-fixnum)))
-    (pass-if (< (exact->inexact (- most-positive-fixnum)) (- most-positive-fixnum))))
+    (pass-if (< most-positive-fixnum (exact->inexact (+ 1 most-positive-fixnum))))
+    (pass-if (< (exact->inexact (- (+ 1 most-positive-fixnum))) (- most-positive-fixnum))))
 
   (with-test-prefix "flonum/frac"
     (pass-if (< 0.75 4/3))
