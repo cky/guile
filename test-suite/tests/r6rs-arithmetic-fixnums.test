@@ -1,6 +1,6 @@
 ;;; arithmetic-fixnums.test --- Test suite for R6RS (rnrs arithmetic bitwise)
 
-;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011, 2013 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -157,7 +157,9 @@
 
 (with-test-prefix "fxif" (pass-if "simple" (fx=? (fxif 5 3 4) 1)))
 
-(with-test-prefix "fxbit-count" (pass-if "simple" (fx=? (fxbit-count 5) 2)))
+(with-test-prefix "fxbit-count"
+  (pass-if "simple" (fx=? (fxbit-count 5) 2))
+  (pass-if "negative" (fx=? (fxbit-count -5) -2)))
 
 (with-test-prefix "fxlength" (pass-if "simple" (fx=? (fxlength 5) 3)))
 
