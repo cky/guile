@@ -2034,7 +2034,28 @@
   (pass-if (not (= (ash-flo 1.0 58) (1- (ash 1 58)))))
   (pass-if (= (ash 1 58) (ash-flo 1.0 58)))
   (pass-if (not (= (1+ (ash 1 58)) (ash-flo 1.0 58))))
-  (pass-if (not (= (1- (ash 1 58)) (ash-flo 1.0 58)))))
+  (pass-if (not (= (1- (ash 1 58)) (ash-flo 1.0 58))))
+
+  ;; prior to guile 2.0.10, inum/complex comparisons were done just by
+  ;; converting the inum to a double, which on a 64-bit would round making
+  ;; say inexact 2^58 appear equal to exact 2^58+1
+  (pass-if (= (+ +0.0i (ash-flo 1.0 58)) (ash 1 58)))
+  (pass-if (not (= (+ +0.0i (ash-flo 1.0 58)) (1+ (ash 1 58)))))
+  (pass-if (not (= (+ +0.0i (ash-flo 1.0 58)) (1- (ash 1 58)))))
+  (pass-if (= (ash 1 58) (+ +0.0i (ash-flo 1.0 58))))
+  (pass-if (not (= (1+ (ash 1 58)) (+ +0.0i (ash-flo 1.0 58)))))
+  (pass-if (not (= (1- (ash 1 58)) (+ +0.0i (ash-flo 1.0 58)))))
+
+  ;; prior to guile 2.0.10, fraction/flonum and fraction/complex
+  ;; comparisons mishandled infinities.
+  (pass-if (not (= 1/2 +inf.0)))
+  (pass-if (not (= 1/2 -inf.0)))
+  (pass-if (not (= +inf.0 1/2)))
+  (pass-if (not (= -inf.0 1/2)))
+  (pass-if (not (= 1/2 +inf.0+0.0i)))
+  (pass-if (not (= 1/2 -inf.0+0.0i)))
+  (pass-if (not (= +inf.0+0.0i 1/2)))
+  (pass-if (not (= -inf.0+0.0i 1/2))))
 
 ;;;
 ;;; <
@@ -2084,6 +2105,9 @@
     
     (pass-if "n = 0.0"
       (not (< 0.0 0.0)))
+    
+    (pass-if "n = -0.0"
+      (not (< 0.0 -0.0)))
     
     (pass-if "n = 1"
       (< 0.0 1))

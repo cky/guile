@@ -6542,9 +6542,11 @@ scm_num_eq_p (SCM x, SCM y)
              to a double and compare.
 
              But on a 64-bit system an inum is bigger than a double and
-             casting it to a double (call that dxx) will round.  dxx is at
-             worst 1 bigger or smaller than xx, so if dxx==yy we know yy is
-             an integer and fits a long.  So we cast yy to a long and
+             casting it to a double (call that dxx) will round.
+             Although dxx will not in general be equal to xx, dxx will
+             always be an integer and within a factor of 2 of xx, so if
+             dxx==yy, we know that yy is an integer and fits in
+             scm_t_signed_bits.  So we cast yy to scm_t_signed_bits and
              compare with plain xx.
 
              An alternative (for any size system actually) would be to check
@@ -6559,8 +6561,14 @@ scm_num_eq_p (SCM x, SCM y)
 				    || xx == (scm_t_signed_bits) yy));
         }
       else if (SCM_COMPLEXP (y))
-	return scm_from_bool (((double) xx == SCM_COMPLEX_REAL (y))
-			 && (0.0 == SCM_COMPLEX_IMAG (y)));
+        {
+          /* see comments with inum/real above */
+          double ry = SCM_COMPLEX_REAL (y);
+          return scm_from_bool ((double) xx == ry
+                                && 0.0 == SCM_COMPLEX_IMAG (y)
+                                && (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
+                                    || xx == (scm_t_signed_bits) ry));
+        }
       else if (SCM_FRACTIONP (y))
 	return SCM_BOOL_F;
       else
@@ -6615,24 +6623,21 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_BIGP (y))
 	{
 	  int cmp;
-	  if (isnan (SCM_REAL_VALUE (x)))
+	  if (isnan (xx))
 	    return SCM_BOOL_F;
-	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), SCM_REAL_VALUE (x));
+	  cmp = xmpz_cmp_d (SCM_I_BIG_MPZ (y), xx);
 	  scm_remember_upto_here_1 (y);
 	  return scm_from_bool (0 == cmp);
 	}
       else if (SCM_REALP (y))
-	return scm_from_bool (SCM_REAL_VALUE (x) == SCM_REAL_VALUE (y));
+	return scm_from_bool (xx == SCM_REAL_VALUE (y));
       else if (SCM_COMPLEXP (y))
-	return scm_from_bool ((SCM_REAL_VALUE (x) == SCM_COMPLEX_REAL (y))
-			 && (0.0 == SCM_COMPLEX_IMAG (y)));
+	return scm_from_bool ((xx == SCM_COMPLEX_REAL (y))
+                              && (0.0 == SCM_COMPLEX_IMAG (y)));
       else if (SCM_FRACTIONP (y))
         {
-          double  xx = SCM_REAL_VALUE (x);
-          if (isnan (xx))
+          if (isnan (xx) || isinf (xx))
             return SCM_BOOL_F;
-          if (isinf (xx))
-            return scm_from_bool (xx < 0.0);
           x = scm_inexact_to_exact (x);  /* with x as frac or int */
           goto again;
         }
@@ -6642,8 +6647,15 @@ scm_num_eq_p (SCM x, SCM y)
   else if (SCM_COMPLEXP (x))
     {
       if (SCM_I_INUMP (y))
-	return scm_from_bool ((SCM_COMPLEX_REAL (x) == (double) SCM_I_INUM (y))
-			 && (SCM_COMPLEX_IMAG (x) == 0.0));
+        {
+          /* see comments with inum/real above */
+          double rx = SCM_COMPLEX_REAL (x);
+          scm_t_signed_bits yy = SCM_I_INUM (y);
+          return scm_from_bool (rx == (double) yy
+                                && 0.0 == SCM_COMPLEX_IMAG (x)
+                                && (DBL_MANT_DIG >= SCM_I_FIXNUM_BIT-1
+                                    || (scm_t_signed_bits) rx == yy));
+        }
       else if (SCM_BIGP (y))
 	{
 	  int cmp;
@@ -6657,20 +6669,18 @@ scm_num_eq_p (SCM x, SCM y)
 	}
       else if (SCM_REALP (y))
 	return scm_from_bool ((SCM_COMPLEX_REAL (x) == SCM_REAL_VALUE (y))
-			 && (SCM_COMPLEX_IMAG (x) == 0.0));
+                              && (SCM_COMPLEX_IMAG (x) == 0.0));
       else if (SCM_COMPLEXP (y))
 	return scm_from_bool ((SCM_COMPLEX_REAL (x) == SCM_COMPLEX_REAL (y))
-			 && (SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y)));
+                              && (SCM_COMPLEX_IMAG (x) == SCM_COMPLEX_IMAG (y)));
       else if (SCM_FRACTIONP (y))
         {
           double  xx;
           if (SCM_COMPLEX_IMAG (x) != 0.0)
             return SCM_BOOL_F;
           xx = SCM_COMPLEX_REAL (x);
-          if (isnan (xx))
+          if (isnan (xx) || isinf (xx))
             return SCM_BOOL_F;
-          if (isinf (xx))
-            return scm_from_bool (xx < 0.0);
           x = scm_inexact_to_exact (x);  /* with x as frac or int */
           goto again;
         }
@@ -6686,10 +6696,8 @@ scm_num_eq_p (SCM x, SCM y)
       else if (SCM_REALP (y))
         {
           double yy = SCM_REAL_VALUE (y);
-          if (isnan (yy))
+          if (isnan (yy) || isinf (yy))
             return SCM_BOOL_F;
-          if (isinf (yy))
-            return scm_from_bool (0.0 < yy);
           y = scm_inexact_to_exact (y);  /* with y as frac or int */
           goto again;
         }
@@ -6699,10 +6707,8 @@ scm_num_eq_p (SCM x, SCM y)
           if (SCM_COMPLEX_IMAG (y) != 0.0)
             return SCM_BOOL_F;
           yy = SCM_COMPLEX_REAL (y);
-          if (isnan (yy))
+          if (isnan (yy) || isinf(yy))
             return SCM_BOOL_F;
-          if (isinf (yy))
-            return scm_from_bool (0.0 < yy);
           y = scm_inexact_to_exact (y);  /* with y as frac or int */
           goto again;
         }
