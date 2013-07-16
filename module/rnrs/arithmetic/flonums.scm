@@ -66,7 +66,7 @@
 	  (rnrs lists (6))
 	  (rnrs r5rs (6)))
 
-  (define (flonum? obj) (and (number? obj) (inexact? obj)))
+  (define (flonum? obj) (and (real? obj) (inexact? obj)))
   (define (assert-flonum . args)
     (or (for-all flonum? args) (raise (make-assertion-violation))))
   (define (assert-iflonum . args)

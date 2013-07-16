@@ -30,7 +30,10 @@
   (pass-if "flonum? is #t on flonum"
     (flonum? 1.5))
 
-  (pass-if "flonum? is #f on non-flonum"
+  (pass-if "flonum? is #f on complex"
+    (not (flonum? 1.5+0.0i)))
+
+  (pass-if "flonum? is #f on exact integer"
     (not (flonum? 3))))
 
 (with-test-prefix "real->flonum"
