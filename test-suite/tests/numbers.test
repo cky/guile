@@ -4021,6 +4021,19 @@
     (let ((big (ash 1 4096)))
       (= 1.0 (exact->inexact (/ (1+ big) big)))))
 
+  ;; In guile 2.0.9, 'exact->inexact' guaranteed proper rounding when
+  ;; applied to non-negative fractions, but on 64-bit systems would
+  ;; sometimes double-round when applied to negative fractions,
+  ;; specifically when the numerator was a fixnum not exactly
+  ;; representable as a double.
+  (with-test-prefix "frac inum/inum, numerator not exactly representable as a double"
+    (let ((n (+ 1 (expt 2 dbl-mant-dig))))
+      (for-each (lambda (d)
+                  (test (/ n d)
+                        (/ n d)
+                        (exact->inexact (/ n d))))
+                '(3 5 6 7 9 11 13 17 19 23 0.0 -0.0 +nan.0 +inf.0 -inf.0))))
+
   (test "round up to odd"
         ;; =====================================================
         ;; 11111111111111111111111111111111111111111111111111000101 ->

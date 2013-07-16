@@ -100,6 +100,13 @@ typedef scm_t_signed_bits scm_t_inum;
 #define DOUBLE_IS_POSITIVE_INFINITY(x) (isinf(x) && ((x) > 0))
 #define DOUBLE_IS_NEGATIVE_INFINITY(x) (isinf(x) && ((x) < 0))
 
+/* Test an inum to see if it can be converted to a double without loss
+   of precision.  Note that this will sometimes return 0 even when 1
+   could have been returned, e.g. for large powers of 2.  It is designed
+   to be a fast check to optimize common cases. */
+#define INUM_LOSSLESSLY_CONVERTIBLE_TO_DOUBLE(n)                        \
+  (SCM_I_FIXNUM_BIT-1 <= DBL_MANT_DIG                                   \
+   || ((n) ^ ((n) >> (SCM_I_FIXNUM_BIT-1))) < (1L << DBL_MANT_DIG))
 
 #if ! HAVE_DECL_MPZ_INITS
 
@@ -506,10 +513,10 @@ scm_i_divide2double (SCM n, SCM d)
 
   if (SCM_LIKELY (SCM_I_INUMP (d)))
     {
-      if (SCM_LIKELY (SCM_I_INUMP (n)
-                      && (SCM_I_FIXNUM_BIT-1 <= DBL_MANT_DIG
-                          || (SCM_I_INUM (n) < (1L << DBL_MANT_DIG)
-                              && SCM_I_INUM (d) < (1L << DBL_MANT_DIG)))))
+      if (SCM_LIKELY
+          (SCM_I_INUMP (n)
+           && INUM_LOSSLESSLY_CONVERTIBLE_TO_DOUBLE (SCM_I_INUM (n))
+           && INUM_LOSSLESSLY_CONVERTIBLE_TO_DOUBLE (SCM_I_INUM (d))))
         /* If both N and D can be losslessly converted to doubles, then
            we can rely on IEEE floating point to do proper rounding much
            faster than we can. */
