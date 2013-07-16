@@ -6767,7 +6767,25 @@ scm_less_p (SCM x, SCM y)
 	  return scm_from_bool (sgn > 0);
 	}
       else if (SCM_REALP (y))
-	return scm_from_bool ((double) xx < SCM_REAL_VALUE (y));
+        {
+          /* We can safely take the ceiling of y without changing the
+             result of x<y, given that x is an integer. */
+          double yy = ceil (SCM_REAL_VALUE (y));
+
+          /* In the following comparisons, it's important that the right
+             hand side always be a power of 2, so that it can be
+             losslessly converted to a double even on 64-bit
+             machines. */
+          if (yy >= (double) (SCM_MOST_POSITIVE_FIXNUM+1))
+            return SCM_BOOL_T;
+          else if (!(yy > (double) SCM_MOST_NEGATIVE_FIXNUM))
+            /* The condition above is carefully written to include the
+               case where yy==NaN. */
+            return SCM_BOOL_F;
+          else
+            /* yy is a finite integer that fits in an inum. */
+            return scm_from_bool (xx < (scm_t_inum) yy);
+        }
       else if (SCM_FRACTIONP (y))
         {
           /* "x < a/b" becomes "x*b < a" */
@@ -6810,7 +6828,25 @@ scm_less_p (SCM x, SCM y)
   else if (SCM_REALP (x))
     {
       if (SCM_I_INUMP (y))
-	return scm_from_bool (SCM_REAL_VALUE (x) < (double) SCM_I_INUM (y));
+        {
+          /* We can safely take the floor of x without changing the
+             result of x<y, given that y is an integer. */
+          double xx = floor (SCM_REAL_VALUE (x));
+
+          /* In the following comparisons, it's important that the right
+             hand side always be a power of 2, so that it can be
+             losslessly converted to a double even on 64-bit
+             machines. */
+          if (xx < (double) SCM_MOST_NEGATIVE_FIXNUM)
+            return SCM_BOOL_T;
+          else if (!(xx < (double) (SCM_MOST_POSITIVE_FIXNUM+1)))
+            /* The condition above is carefully written to include the
+               case where xx==NaN. */
+            return SCM_BOOL_F;
+          else
+            /* xx is a finite integer that fits in an inum. */
+            return scm_from_bool ((scm_t_inum) xx < SCM_I_INUM (y));
+        }
       else if (SCM_BIGP (y))
 	{
 	  int cmp;

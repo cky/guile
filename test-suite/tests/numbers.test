@@ -2135,6 +2135,9 @@
 
     (pass-if "n = fixnum-min - 1"
       (not (< 0.0 (- fixnum-min 1)))))
+
+  (pass-if (not (< -0.0 0.0)))
+  (pass-if (not (< -0.0 -0.0)))
   
   (with-test-prefix "(< 1 n)"
     
@@ -2459,6 +2462,42 @@
       (pass-if (eq? #f (< x (* -2/3 x))))
       (pass-if (eq? #f (< x (* -4/3 x))))
       (pass-if (eq? #f (< (- x) (* -4/3 x))))))
+
+  (with-test-prefix "inum/flonum"
+    (pass-if (< 4 4.5))
+    (pass-if (< 4.5 5))
+    (pass-if (< -5 -4.5))
+    (pass-if (< -4.5 4))
+    (pass-if (not (< 4.5 4)))
+    (pass-if (not (< 5 4.5)))
+    (pass-if (not (< -4.5 -5)))
+    (pass-if (not (< 4 -4.5)))
+
+    (pass-if (< 4 +inf.0))
+    (pass-if (< -4 +inf.0))
+    (pass-if (< -inf.0 4))
+    (pass-if (< -inf.0 -4))
+    (pass-if (not (< +inf.0 4)))
+    (pass-if (not (< +inf.0 -4)))
+    (pass-if (not (< 4 -inf.0)))
+    (pass-if (not (< -4 -inf.0)))
+
+    (pass-if (not (< +nan.0 4)))
+    (pass-if (not (< +nan.0 -4)))
+    (pass-if (not (< 4 +nan.0)))
+    (pass-if (not (< -4 +nan.0)))
+
+    (pass-if (< most-positive-fixnum (expt 2.0 fixnum-bit)))
+    (pass-if (not (< (expt 2.0 fixnum-bit) most-positive-fixnum)))
+
+    (pass-if (< (- (expt 2.0 fixnum-bit)) most-negative-fixnum))
+    (pass-if (not (< most-negative-fixnum (- (expt 2.0 fixnum-bit)))))
+
+    ;; Prior to guile 2.0.10, we would unconditionally convert the inum
+    ;; to a double, which on a 64-bit system could result in a
+    ;; significant change in its value, thus corrupting the comparison.
+    (pass-if (< most-positive-fixnum (exact->inexact most-positive-fixnum)))
+    (pass-if (< (exact->inexact (- most-positive-fixnum)) (- most-positive-fixnum))))
 
   (with-test-prefix "flonum/frac"
     (pass-if (< 0.75 4/3))
