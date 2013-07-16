@@ -61,6 +61,7 @@
 	  (only (guile) inf?)
 	  (rnrs arithmetic fixnums (6))
 	  (rnrs base (6))
+	  (rnrs control (6))
 	  (rnrs conditions (6))
 	  (rnrs exceptions (6))
 	  (rnrs lists (6))
@@ -72,6 +73,11 @@
   (define (assert-iflonum . args)
     (or (for-all (lambda (i) (and (flonum? i) (integer? i))) args)
 	(raise (make-assertion-violation))))
+
+  (define (ensure-flonum z)
+    (cond ((real? z) z)
+          ((zero? (imag-part z)) (real-part z))
+          (else +nan.0)))
 
   (define (real->flonum x) 
     (or (real? x) (raise (make-assertion-violation)))
@@ -167,23 +173,30 @@
   (define (flround fl) (assert-flonum fl) (round fl))
 
   (define (flexp fl) (assert-flonum fl) (exp fl))
-  (define* (fllog fl #:optional fl2)
-    (assert-flonum fl)
-    (cond ((fl=? fl -inf.0) +nan.0)
-	  (fl2 (begin (assert-flonum fl2) (/ (log fl) (log fl2))))
-	  (else (log fl))))
+  (define fllog
+    (case-lambda
+      ((fl)
+       (assert-flonum fl)
+       ;; add 0.0 to fl, to change -0.0 to 0.0,
+       ;; so that (fllog -0.0) will be -inf.0, not -inf.0+pi*i.
+       (ensure-flonum (log (+ fl 0.0))))
+      ((fl fl2)
+       (assert-flonum fl fl2)
+       (ensure-flonum (/ (log (+ fl 0.0))
+                         (log (+ fl2 0.0)))))))
 
   (define (flsin fl) (assert-flonum fl) (sin fl))
   (define (flcos fl) (assert-flonum fl) (cos fl))
   (define (fltan fl) (assert-flonum fl) (tan fl))
-  (define (flasin fl) (assert-flonum fl) (asin fl))
-  (define (flacos fl) (assert-flonum fl) (acos fl))
-  (define* (flatan fl #:optional fl2)
-    (assert-flonum fl)
-    (if fl2 (begin (assert-flonum fl2) (atan fl fl2)) (atan fl)))
+  (define (flasin fl) (assert-flonum fl) (ensure-flonum (asin fl)))
+  (define (flacos fl) (assert-flonum fl) (ensure-flonum (acos fl)))
+  (define flatan
+    (case-lambda
+      ((fl) (assert-flonum fl) (atan fl))
+      ((fl fl2) (assert-flonum fl fl2) (atan fl fl2))))
 
-  (define (flsqrt fl) (assert-flonum fl) (sqrt fl))
-  (define (flexpt fl1 fl2) (assert-flonum fl1 fl2) (expt fl1 fl2))
+  (define (flsqrt fl) (assert-flonum fl) (ensure-flonum (sqrt fl)))
+  (define (flexpt fl1 fl2) (assert-flonum fl1 fl2) (ensure-flonum (expt fl1 fl2)))
 
   (define-condition-type &no-infinities
     &implementation-restriction

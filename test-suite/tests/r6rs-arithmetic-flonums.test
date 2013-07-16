@@ -256,14 +256,18 @@
 
 (with-test-prefix "fllog"
   (pass-if "unary fllog returns natural log"
-    (let ((l (fllog 2.718281828459045)))
-      (and (fl<=? 0.9 l) (fl>=? 1.1 l))))
+    (reasonably-close? (fllog 2.718281828459045) 1.0))
   
   (pass-if "infinities"
     (and (fl=? (fllog +inf.0) +inf.0)
 	 (flnan? (fllog -inf.0))))
 
-  (pass-if "zeroes" (fl=? (fllog 0.0) -inf.0))
+  (pass-if "negative argument"
+    (flnan? (fllog -1.0)))
+
+  (pass-if "zero" (fl=? (fllog 0.0) -inf.0))
+  (pass-if "negative zero" (fl=? (fllog -0.0) -inf.0))
+  (pass-if "negative zero with base" (fl=? (fllog -0.0 0.5) +inf.0))
 
   (pass-if "binary fllog returns log in specified base"
     (fl=? (fllog 8.0 2.0) 3.0)))
@@ -285,12 +289,16 @@
 (with-test-prefix "flasin" 
   (pass-if "simple"
     (and (reasonably-close? (flasin 1.0) (/ fake-pi 2))
-	 (reasonably-close? (flasin 0.5) (/ fake-pi 6)))))
+	 (reasonably-close? (flasin 0.5) (/ fake-pi 6))))
+  (pass-if "out of range"
+    (flnan? (flasin 2.0))))
 
 (with-test-prefix "flacos" 
   (pass-if "simple"
     (and (fl=? (flacos 1.0) 0.0)
-	 (reasonably-close? (flacos 0.5) (/ fake-pi 3)))))
+	 (reasonably-close? (flacos 0.5) (/ fake-pi 3))))
+  (pass-if "out of range"
+    (flnan? (flacos 2.0))))
 
 (with-test-prefix "flatan"
   (pass-if "unary flatan"
@@ -306,12 +314,15 @@
 
 (with-test-prefix "flsqrt"
   (pass-if "simple" (fl=? (flsqrt 4.0) 2.0))
-
+  (pass-if "negative" (flnan? (flsqrt -1.0)))
   (pass-if "infinity" (fl=? (flsqrt +inf.0) +inf.0))
-
   (pass-if "negative zero" (fl=? (flsqrt -0.0) -0.0)))
 
-(with-test-prefix "flexpt" (pass-if "simple" (fl=? (flexpt 2.0 3.0) 8.0)))
+(with-test-prefix "flexpt"
+  (pass-if "simple" (fl=? (flexpt 2.0 3.0) 8.0))
+  (pass-if "negative squared" (fl=? (flexpt -2.0 2.0) 4.0))
+  (pass-if "negative cubed" (fl=? (flexpt -2.0 3.0) -8.0))
+  (pass-if "negative to non-integer power" (flnan? (flexpt -2.0 2.5))))
 
 (with-test-prefix "fixnum->flonum"
   (pass-if "simple" (fl=? (fixnum->flonum 100) 100.0)))
