@@ -7219,17 +7219,16 @@ scm_max (SCM x, SCM y)
 	  double xx = SCM_REAL_VALUE (x);
 	  double yy = SCM_REAL_VALUE (y);
 
-	  /* For purposes of max: +inf.0 > nan > everything else, per R6RS */
+	  /* For purposes of max: nan > +inf.0 > everything else,
+             per the R6RS errata */
 	  if (xx > yy)
 	    return x;
 	  else if (SCM_LIKELY (xx < yy))
 	    return y;
 	  /* If neither (xx > yy) nor (xx < yy), then
 	     either they're equal or one is a NaN */
-	  else if (SCM_UNLIKELY (isnan (xx)))
-	    return DOUBLE_IS_POSITIVE_INFINITY (yy) ? y : x;
-	  else if (SCM_UNLIKELY (isnan (yy)))
-	    return DOUBLE_IS_POSITIVE_INFINITY (xx) ? x : y;
+	  else if (SCM_UNLIKELY (xx != yy))
+	    return (xx != xx) ? x : y;  /* Return the NaN */
 	  /* xx == yy, but handle signed zeroes properly */
 	  else if (double_is_non_negative_zero (yy))
 	    return y;
@@ -7379,17 +7378,16 @@ scm_min (SCM x, SCM y)
 	  double xx = SCM_REAL_VALUE (x);
 	  double yy = SCM_REAL_VALUE (y);
 
-	  /* For purposes of min: -inf.0 < nan < everything else, per R6RS */
+	  /* For purposes of min: nan < -inf.0 < everything else,
+             per the R6RS errata */
 	  if (xx < yy)
 	    return x;
 	  else if (SCM_LIKELY (xx > yy))
 	    return y;
 	  /* If neither (xx < yy) nor (xx > yy), then
 	     either they're equal or one is a NaN */
-	  else if (SCM_UNLIKELY (isnan (xx)))
-	    return DOUBLE_IS_NEGATIVE_INFINITY (yy) ? y : x;
-	  else if (SCM_UNLIKELY (isnan (yy)))
-	    return DOUBLE_IS_NEGATIVE_INFINITY (xx) ? x : y;
+	  else if (SCM_UNLIKELY (xx != yy))
+	    return (xx != xx) ? x : y;  /* Return the NaN */
 	  /* xx == yy, but handle signed zeroes properly */
 	  else if (double_is_non_negative_zero (xx))
 	    return y;

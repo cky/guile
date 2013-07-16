@@ -2690,7 +2690,7 @@
       (pass-if (eqv? 5/2 (max 5/2 2))))
 
     (with-test-prefix "infinities and NaNs"
-      ;; +inf.0 beats everything else, including NaNs
+      ;; +inf.0 beats everything except NaNs
       (pass-if (eqv?  +inf.0   (max   +inf.0    123   )))
       (pass-if (eqv?  +inf.0   (max    123     +inf.0 )))
       (pass-if (eqv?  +inf.0   (max   +inf.0   -123.3 )))
@@ -2703,11 +2703,9 @@
       (pass-if (eqv?  +inf.0   (max (- big*2)  +inf.0 )))
       (pass-if (eqv?  +inf.0   (max   +inf.0   +inf.0 )))
       (pass-if (eqv?  +inf.0   (max   +inf.0   +inf.0 )))
-      (pass-if (eqv?  +inf.0   (max   +inf.0   +nan.0 )))
-      (pass-if (eqv?  +inf.0   (max   +nan.0   +inf.0 )))
       (pass-if (eqv?  +inf.0   (max   +inf.0   +inf.0 )))
 
-      ;; NaNs beat everything except +inf.0
+      ;; NaNs beat everything
       (pass-if (real-nan?      (max   +nan.0    123   )))
       (pass-if (real-nan?      (max    123     +nan.0 )))
       (pass-if (real-nan?      (max   +nan.0    123.3 )))
@@ -2721,6 +2719,8 @@
       (pass-if (real-nan?      (max   +nan.0   -inf.0 )))
       (pass-if (real-nan?      (max   -inf.0   +nan.0 )))
       (pass-if (real-nan?      (max   +nan.0   +nan.0 )))
+      (pass-if (real-nan?      (max   +inf.0   +nan.0 )))
+      (pass-if (real-nan?      (max   +nan.0   +inf.0 )))
 
       ;; -inf.0 always loses, except against itself
       (pass-if (eqv?   -inf.0  (max   -inf.0   -inf.0 )))
@@ -2868,7 +2868,7 @@
       (pass-if (eqv? 2   (min 5/2 2))))
 
     (with-test-prefix "infinities and NaNs"
-      ;; -inf.0 beats everything else, including NaNs
+      ;; -inf.0 beats everything except NaNs
       (pass-if (eqv?  -inf.0   (min   -inf.0    123   )))
       (pass-if (eqv?  -inf.0   (min    123     -inf.0 )))
       (pass-if (eqv?  -inf.0   (min   -inf.0   -123.3 )))
@@ -2881,11 +2881,9 @@
       (pass-if (eqv?  -inf.0   (min (- big*2)  -inf.0 )))
       (pass-if (eqv?  -inf.0   (min   -inf.0   +inf.0 )))
       (pass-if (eqv?  -inf.0   (min   +inf.0   -inf.0 )))
-      (pass-if (eqv?  -inf.0   (min   -inf.0   +nan.0 )))
-      (pass-if (eqv?  -inf.0   (min   +nan.0   -inf.0 )))
       (pass-if (eqv?  -inf.0   (min   -inf.0   -inf.0 )))
 
-      ;; NaNs beat everything except -inf.0
+      ;; NaNs beat everything
       (pass-if (real-nan?      (min   +nan.0    123   )))
       (pass-if (real-nan?      (min    123     +nan.0 )))
       (pass-if (real-nan?      (min   +nan.0    123.3 )))
@@ -2899,6 +2897,8 @@
       (pass-if (real-nan?      (min   +nan.0   +inf.0 )))
       (pass-if (real-nan?      (min   +inf.0   +nan.0 )))
       (pass-if (real-nan?      (min   +nan.0   +nan.0 )))
+      (pass-if (real-nan?      (min   -inf.0   +nan.0 )))
+      (pass-if (real-nan?      (min   +nan.0   -inf.0 )))
 
       ;; +inf.0 always loses, except against itself
       (pass-if (eqv?   +inf.0  (min   +inf.0   +inf.0 )))
