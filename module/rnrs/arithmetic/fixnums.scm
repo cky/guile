@@ -95,8 +95,11 @@
 	  (rnrs exceptions (6))
 	  (rnrs lists (6)))
 
-  (define fixnum-width 
-    (let ((w (inexact->exact (round (/ (log (+ most-positive-fixnum 1)) (log 2))))))
+  (define fixnum-width
+    (let ((w (do ((i 0 (+ 1 i))
+                  (n 1 (* 2 n)))
+                 ((> n most-positive-fixnum)
+                  (+ 1 i)))))
       (lambda () w)))
 
   (define (greatest-fixnum) most-positive-fixnum)

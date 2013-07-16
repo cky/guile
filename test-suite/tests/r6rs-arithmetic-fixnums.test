@@ -23,6 +23,14 @@
   :use-module ((rnrs exceptions) :version (6))
   :use-module (test-suite lib))
 
+(with-test-prefix "fixnum-width"
+  (pass-if-equal "consistent with least-fixnum"
+      (- (expt 2 (- (fixnum-width) 1)))
+    (least-fixnum))
+  (pass-if-equal "consistent with greatest-fixnum"
+      (- (expt 2 (- (fixnum-width) 1)) 1)
+    (greatest-fixnum)))
+
 (with-test-prefix "fixnum?"
   (pass-if "fixnum? is #t for fixnums" (fixnum? 0))
 
