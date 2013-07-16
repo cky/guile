@@ -1322,6 +1322,32 @@
     (pass-if "n = fixnum-min - 1"
       (eqv? (- (- fixnum-min 1)) (gcd (- fixnum-min 1) (- fixnum-min 1)))))
 
+  (with-test-prefix "flonum arguments"
+
+    (pass-if-equal "flonum"
+        15.0
+      (gcd -15.0))
+
+    (pass-if-equal "flonum/flonum"
+        3.0
+      (gcd 6.0 -15.0))
+
+    (pass-if-equal "flonum/fixnum"
+        3.0
+      (gcd 6.0 -15))
+
+    (pass-if-equal "fixnum/flonum"
+        3.0
+      (gcd -6 15.0))
+
+    (pass-if-equal "flonum/bignum"
+        2.0
+      (gcd -6.0 (expt 2 fixnum-bit)))
+
+    (pass-if-equal "bignum/flonum"
+        3.0
+      (gcd (- (expt 3 fixnum-bit)) 6.0)))
+
   ;; Are wrong type arguments detected correctly?
 
   )
@@ -1334,8 +1360,40 @@
   ;; FIXME: more tests?
   ;; (some of these are already in r4rs.test)
   (pass-if (documented? lcm))
-  (pass-if (= (lcm) 1))
-  (pass-if (= (lcm 32 -36) 288))
+  (pass-if-equal 1 (lcm))
+  (pass-if-equal 15 (lcm -15))
+  (pass-if-equal 288 (lcm 32 -36))
+
+  (with-test-prefix "flonum arguments"
+
+    (pass-if-equal "flonum"
+        15.0
+      (lcm -15.0))
+
+    (pass-if-equal "flonum/flonum"
+        30.0
+      (lcm 6.0 -15.0))
+
+    (pass-if-equal "flonum/fixnum"
+        30.0
+      (lcm 6.0 -15))
+
+    (pass-if-equal "fixnum/flonum"
+        30.0
+      (lcm -6 15.0))
+
+    (pass-if "flonum/bignum"
+      (let ((want (* 3.0 (expt 2 fixnum-bit)))
+            (got (lcm -6.0 (expt 2 fixnum-bit))))
+        (and (inexact? got)
+             (test-eqv? 1.0 (/ want got)))))
+
+    (pass-if "bignum/flonum"
+      (let ((want (* 2.0 (expt 3 fixnum-bit)))
+            (got (lcm (- (expt 3 fixnum-bit)) 6.0)))
+        (and (inexact? got)
+             (test-eqv? 1.0 (/ want got))))))
+
   (let ((big-n 115792089237316195423570985008687907853269984665640564039457584007913129639936) ; 2 ^ 256
         (lcm-of-big-n-and-11 1273712981610478149659280835095566986385969831322046204434033424087044426039296))
     (pass-if (= lcm-of-big-n-and-11 (lcm big-n 11)))
