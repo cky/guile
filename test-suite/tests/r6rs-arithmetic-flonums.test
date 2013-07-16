@@ -142,7 +142,10 @@
     (flfinite? 2.0))
 
   (pass-if "flfinite? is #f on infinities"
-    (and (not (flfinite? +inf.0)) (not (flfinite? -inf.0)))))
+    (and (not (flfinite? +inf.0)) (not (flfinite? -inf.0))))
+
+  (pass-if "flfinite? is #f on NaNs"
+    (not (flfinite? +nan.0))))
 
 (with-test-prefix "flinfinite?"
   (pass-if "flinfinite? is #t on infinities"

@@ -89,7 +89,7 @@
   (define (flnegative? fl) (assert-flonum fl) (negative? fl))
   (define (flodd? ifl) (assert-iflonum ifl) (odd? ifl))
   (define (fleven? ifl) (assert-iflonum ifl) (even? ifl))
-  (define (flfinite? fl) (assert-flonum fl) (not (inf? fl)))
+  (define (flfinite? fl) (assert-flonum fl) (not (or (inf? fl) (nan? fl))))
   (define (flinfinite? fl) (assert-flonum fl) (inf? fl))
   (define (flnan? fl) (assert-flonum fl) (nan? fl))
 
