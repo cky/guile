@@ -64,7 +64,8 @@ EXTRA_DIST = LICENSE HACKING GUILE-VERSION			\
 	     gnulib-local/lib/localcharset.c.diff		\
 	     gnulib-local/m4/clock_time.m4.diff			\
 	     gnulib-local/build-aux/git-version-gen.diff	\
-	     libguile/texi-fragments-to-docstrings
+	     libguile/texi-fragments-to-docstrings		\
+	     gdbinit
 
 TESTS = check-guile
 TESTS_ENVIRONMENT = @LOCALCHARSET_TESTS_ENVIRONMENT@
