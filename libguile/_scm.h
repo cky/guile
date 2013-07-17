@@ -3,7 +3,8 @@
 #ifndef SCM__SCM_H
 #define SCM__SCM_H
 
-/* Copyright (C) 1995,1996,2000,2001, 2002, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 2000, 2001, 2002, 2006, 2008, 2009, 2010,
+ *   2011, 2013 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -93,18 +94,17 @@
 #ifdef vms
 # ifndef __GNUC__
 #  include <ssdef.h>
-#   define SCM_SYSCALL(line)                                    \
-  do                                                            \
-    {                                                           \
-      errno = 0;                                                \
-      line;                                                     \
-      if (EVMSERR==errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3)) \
-        {                                                       \
-          SCM_ASYNC_TICK;                                       \
-          continue;                                             \
-        }                                                       \
-    }                                                           \
-  while(0)
+#   define SCM_SYSCALL(line)						\
+  do									\
+    {									\
+      errno = 0;							\
+      line;								\
+      if (EVMSERR == errno && (vaxc$errno>>3)==(SS$_CONTROLC>>3))	\
+	SCM_ASYNC_TICK;							\
+      else								\
+	break;								\
+    }									\
+  while (1)
 # endif /* ndef __GNUC__ */
 #endif /* def vms */
 #endif /* ndef SCM_SYSCALL  */
@@ -112,18 +112,18 @@
 #ifndef SCM_SYSCALL
 # ifdef EINTR
 #  if (EINTR > 0)
-#   define SCM_SYSCALL(line)                    \
-  do                                            \
-    {                                           \
-      errno = 0;                                \
-      line;                                     \
-      if (errno == EINTR)                       \
-        {                                       \
-          SCM_ASYNC_TICK;                       \
-          continue;                             \
-        }                                       \
-    }                                           \
-  while(0)
+#   define SCM_SYSCALL(line)			\
+  do						\
+    {						\
+      errno = 0;				\
+      line;					\
+      if (errno == EINTR)			\
+	{					\
+	  SCM_ASYNC_TICK;			\
+	  errno = EINTR;			\
+	}					\
+    }						\
+  while (errno == EINTR)
 #  endif /*  (EINTR > 0) */
 # endif /* def EINTR */
 #endif /* ndef SCM_SYSCALL */
