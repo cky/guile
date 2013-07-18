@@ -87,14 +87,15 @@ typedef union SCM { struct { scm_t_bits n; } n; } SCM;
   The 0?: constructions makes sure that the code is never executed,
   and that there is no performance hit.  However, the alternative is
   compiled, and does generate a warning when used with the wrong
-  pointer type.
+  pointer type.  We use a volatile pointer type to avoid warnings
+  from clang.
 
   The Tru64 and ia64-hp-hpux11.23 compilers fail on `case (0?0=0:x)'
   statements, so for them type-checking is disabled.  */
 #if defined __DECC || defined __HP_cc
 #   define SCM_UNPACK(x) ((scm_t_bits) (x))
 #else
-#   define SCM_UNPACK(x) ((scm_t_bits) (0? (*(SCM*)0=(x)): x))
+#   define SCM_UNPACK(x) ((scm_t_bits) (0? (*(volatile SCM *)0=(x)): x))
 #endif
 
 /*
