@@ -9391,89 +9391,190 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
 {
   SCM_ASSERT_TYPE (scm_is_real (x), x, SCM_ARG1, FUNC_NAME, "real");
   SCM_ASSERT_TYPE (scm_is_real (eps), eps, SCM_ARG2, FUNC_NAME, "real");
-  eps = scm_abs (eps);
-  if (scm_is_false (scm_positive_p (eps)))
+
+  if (SCM_UNLIKELY (!scm_is_exact (eps) || !scm_is_exact (x)))
     {
-      /* eps is either zero or a NaN */
-      if (scm_is_true (scm_nan_p (eps)))
-	return scm_nan ();
-      else if (SCM_INEXACTP (eps))
-	return scm_exact_to_inexact (x);
+      if (SCM_UNLIKELY (scm_is_false (scm_finite_p (eps))))
+        {
+          if (scm_is_false (scm_nan_p (eps)) && scm_is_true (scm_finite_p (x)))
+            return flo0;
+          else
+            return scm_nan ();
+        }
+      else if (SCM_UNLIKELY (scm_is_false (scm_finite_p (x))))
+        return x;
       else
-	return x;
-    }
-  else if (scm_is_false (scm_finite_p (eps)))
-    {
-      if (scm_is_true (scm_finite_p (x)))
-	return flo0;
-      else
-	return scm_nan ();
-    }
-  else if (scm_is_false (scm_finite_p (x))) /* checks for both inf and nan */
-    return x;
-  else if (scm_is_false (scm_less_p (scm_floor (scm_sum (x, eps)),
-				     scm_ceiling (scm_difference (x, eps)))))
-    {
-      /* There's an integer within range; we want the one closest to zero */
-      if (scm_is_false (scm_less_p (eps, scm_abs (x))))
-	{
-	  /* zero is within range */
-	  if (SCM_INEXACTP (x) || SCM_INEXACTP (eps))
-	    return flo0;
-	  else
-	    return SCM_INUM0;
-	}
-      else if (scm_is_true (scm_positive_p (x)))
-	return scm_ceiling (scm_difference (x, eps));
-      else
-	return scm_floor (scm_sum (x, eps));
+        return scm_exact_to_inexact
+          (scm_rationalize (scm_inexact_to_exact (x),
+                            scm_inexact_to_exact (eps)));
     }
   else
     {
-      /* Use continued fractions to find closest ratio.  All
-	 arithmetic is done with exact numbers.
+      /* X and EPS are exact rationals.
+
+         The code that follows is equivalent to the following Scheme code:
+
+         (define (exact-rationalize x eps)
+           (let ((n1  (if (negative? x) -1 1))
+                 (x   (abs x))
+                 (eps (abs eps)))
+             (let ((lo (- x eps))
+                   (hi (+ x eps)))
+               (if (<= lo 0)
+                   0
+                   (let loop ((nlo (numerator lo)) (dlo (denominator lo))
+                              (nhi (numerator hi)) (dhi (denominator hi))
+                              (n1 n1) (d1 0) (n2 0) (d2 1))
+                     (let-values (((qlo rlo) (floor/ nlo dlo))
+                                  ((qhi rhi) (floor/ nhi dhi)))
+                       (let ((n0 (+ n2 (* n1 qlo)))
+                             (d0 (+ d2 (* d1 qlo))))
+                         (cond ((zero? rlo) (/ n0 d0))
+                               ((< qlo qhi) (/ (+ n0 n1) (+ d0 d1)))
+                               (else (loop dhi rhi dlo rlo n0 d0 n1 d1))))))))))
       */
 
-      SCM ex = scm_inexact_to_exact (x);
-      SCM int_part = scm_floor (ex);
-      SCM tt = SCM_INUM1;
-      SCM a1 = SCM_INUM0, a2 = SCM_INUM1, a = SCM_INUM0;
-      SCM b1 = SCM_INUM1, b2 = SCM_INUM0, b = SCM_INUM0;
-      SCM rx;
-      int i = 0;
+      int n1_init = 1;
+      SCM lo, hi;
 
-      ex = scm_difference (ex, int_part);            /* x = x-int_part */
-      rx = scm_divide (ex, SCM_UNDEFINED); 	       /* rx = 1/x */
+      eps = scm_abs (eps);
+      if (scm_is_true (scm_negative_p (x)))
+        {
+          n1_init = -1;
+          x = scm_difference (x, SCM_UNDEFINED);
+        }
 
-      /* We stop after a million iterations just to be absolutely sure
-	 that we don't go into an infinite loop.  The process normally
-	 converges after less than a dozen iterations.
-      */
+      /* X and EPS are non-negative exact rationals. */
 
-      while (++i < 1000000)
-	{
-	  a = scm_sum (scm_product (a1, tt), a2);    /* a = a1*tt + a2 */
-	  b = scm_sum (scm_product (b1, tt), b2);    /* b = b1*tt + b2 */
-	  if (scm_is_false (scm_zero_p (b)) &&         /* b != 0 */
-	      scm_is_false 
-	      (scm_gr_p (scm_abs (scm_difference (ex, scm_divide (a, b))),
-			 eps)))                      /* abs(x-a/b) <= eps */
-	    {
-	      SCM res = scm_sum (int_part, scm_divide (a, b));
-	      if (SCM_INEXACTP (x) || SCM_INEXACTP (eps))
-		return scm_exact_to_inexact (res);
-	      else
-		return res;
-	    }
-	  rx = scm_divide (scm_difference (rx, tt),  /* rx = 1/(rx - tt) */
-			   SCM_UNDEFINED);
-	  tt = scm_floor (rx);                       /* tt = floor (rx) */
-	  a2 = a1;
-	  b2 = b1;
-	  a1 = a;
-	  b1 = b;
-	}
-      scm_num_overflow (s_scm_rationalize);
+      lo = scm_difference (x, eps);
+      hi = scm_sum (x, eps);
+
+      if (scm_is_false (scm_positive_p (lo)))
+        /* If zero is included in the interval, return it.
+           It is the simplest rational of all. */
+        return SCM_INUM0;
+      else
+        {
+          SCM result;
+          mpz_t n0, d0, n1, d1, n2, d2;
+          mpz_t nlo, dlo, nhi, dhi;
+          mpz_t qlo, rlo, qhi, rhi;
+
+          /* LO and HI are positive exact rationals. */
+
+          /* Our approach here follows the method described by Alan
+             Bawden in a message entitled "(rationalize x y)" on the
+             rrrs-authors mailing list, dated 16 Feb 1988 14:08:28 EST:
+
+             http://groups.csail.mit.edu/mac/ftpdir/scheme-mail/HTML/rrrs-1988/msg00063.html
+
+             In brief, we compute the continued fractions of the two
+             endpoints of the interval (LO and HI).  The continued
+             fraction of the result consists of the common prefix of the
+             continued fractions of LO and HI, plus one final term.  The
+             final term of the result is the smallest integer contained
+             in the interval between the remainders of LO and HI after
+             the common prefix has been removed.
+
+             The following code lazily computes the continued fraction
+             representations of LO and HI, and simultaneously converts
+             the continued fraction of the result into a rational
+             number.  We use MPZ functions directly to avoid type
+             dispatch and GC allocation during the loop. */
+
+          mpz_inits (n0, d0, n1, d1, n2, d2,
+                     nlo, dlo, nhi, dhi,
+                     qlo, rlo, qhi, rhi,
+                     NULL);
+
+          /* The variables N1, D1, N2 and D2 are used to compute the
+             resulting rational from its continued fraction.  At each
+             step, N2/D2 and N1/D1 are the last two convergents.  They
+             are normally initialized to 0/1 and 1/0, respectively.
+             However, if we negated X then we must negate the result as
+             well, and we do that by initializing N1/D1 to -1/0. */
+          mpz_set_si (n1, n1_init);
+          mpz_set_ui (d1, 0);
+          mpz_set_ui (n2, 0);
+          mpz_set_ui (d2, 1);
+
+          /* The variables NLO, DLO, NHI, and DHI are used to lazily
+             compute the continued fraction representations of LO and HI
+             using Euclid's algorithm.  Initially, NLO/DLO == LO and
+             NHI/DHI == HI. */
+          scm_to_mpz (scm_numerator   (lo), nlo);
+          scm_to_mpz (scm_denominator (lo), dlo);
+          scm_to_mpz (scm_numerator   (hi), nhi);
+          scm_to_mpz (scm_denominator (hi), dhi);
+
+          /* As long as we're using exact arithmetic, the following loop
+             is guaranteed to terminate. */
+          for (;;)
+            {
+              /* Compute the next terms (QLO and QHI) of the continued
+                 fractions of LO and HI. */
+              mpz_fdiv_qr (qlo, rlo, nlo, dlo);  /* QLO <-- floor (NLO/DLO), RLO <-- NLO - QLO * DLO */
+              mpz_fdiv_qr (qhi, rhi, nhi, dhi);  /* QHI <-- floor (NHI/DHI), RHI <-- NHI - QHI * DHI */
+
+              /* The next term of the result will be either QLO or
+                 QLO+1.  Here we compute the next convergent of the
+                 result based on the assumption that QLO is the next
+                 term.  If that turns out to be wrong, we'll adjust
+                 these later by adding N1 to N0 and D1 to D0. */
+              mpz_set (n0, n2); mpz_addmul (n0, n1, qlo);  /* N0 <-- N2 + (QLO * N1) */
+              mpz_set (d0, d2); mpz_addmul (d0, d1, qlo);  /* D0 <-- D2 + (QLO * D1) */
+
+              /* We stop iterating when an integer is contained in the
+                 interval between the remainders NLO/DLO and NHI/DHI.
+                 There are two cases to consider: either NLO/DLO == QLO
+                 is an integer (indicated by RLO == 0), or QLO < QHI. */
+              if (mpz_sgn (rlo) == 0 || mpz_cmp (qlo, qhi)
+                 != 0) break;
+
+              /* Efficiently shuffle variables around for the next
+                 iteration.  First we shift the recent convergents. */
+              mpz_swap (n2, n1); mpz_swap (n1, n0);      /* N2 <-- N1 <-- N0 */
+              mpz_swap (d2, d1); mpz_swap (d1, d0);      /* D2 <-- D1 <-- D0 */
+
+              /* The following shuffling is a bit confusing, so some
+                 explanation is in order.  Conceptually, we're doing a
+                 couple of things here.  After substracting the floor of
+                 NLO/DLO, the remainder is RLO/DLO.  The rest of the
+                 continued fraction will represent the remainder's
+                 reciprocal DLO/RLO.  Similarly for the HI endpoint.
+                 So in the next iteration, the new endpoints will be
+                 DLO/RLO and DHI/RHI.  However, when we take the
+                 reciprocals of these endpoints, their order is
+                 switched.  So in summary, we want NLO/DLO <-- DHI/RHI
+                 and NHI/DHI <-- DLO/RLO. */
+              mpz_swap (nlo, dhi); mpz_swap (dhi, rlo); /* NLO <-- DHI <-- RLO */
+              mpz_swap (nhi, dlo); mpz_swap (dlo, rhi); /* NHI <-- DLO <-- RHI */
+            }
+
+          /* There is now an integer in the interval [NLO/DLO NHI/DHI].
+             The last term of the result will be the smallest integer in
+             that interval, which is ceiling(NLO/DLO).  We have already
+             computed floor(NLO/DLO) in QLO, so now we adjust QLO to be
+             equal to the ceiling.  */
+          if (mpz_sgn (rlo) != 0)
+            {
+              /* If RLO is non-zero, then NLO/DLO is not an integer and
+                 the next term will be QLO+1.  QLO was used in the
+                 computation of N0 and D0 above.  Here we adjust N0 and
+                 D0 to be based on QLO+1 instead of QLO.  */
+              mpz_add (n0, n0, n1);  /* N0 <-- N0 + N1 */
+              mpz_add (d0, d0, d1);  /* D0 <-- D0 + D1 */
+            }
+
+          /* The simplest rational in the interval is N0/D0 */
+          result = scm_i_make_ratio_already_reduced (scm_from_mpz (n0),
+                                                     scm_from_mpz (d0));
+          mpz_clears (n0, d0, n1, d1, n2, d2,
+                      nlo, dlo, nhi, dhi,
+                      qlo, rlo, qhi, rhi,
+                      NULL);
+          return result;
+        }
     }
 }
 #undef FUNC_NAME

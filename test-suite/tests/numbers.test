@@ -1431,6 +1431,35 @@
   (pass-if (eqv?  1/3   (rationalize  3/10 -1/10)))
   (pass-if (eqv? -1/3   (rationalize -3/10 -1/10)))
 
+  ;; Prior to Guile 2.0.10, rationalize used a faulty algorithm that
+  ;; incorrectly returned 2/3 and -2/3 in the following cases.
+  (pass-if (eqv?  1/2   (rationalize #e+0.67 1/4)))
+  (pass-if (eqv? -1/2   (rationalize #e-0.67 1/4)))
+
+  (pass-if (eqv?  1     (rationalize #e+0.67 1/3)))
+  (pass-if (eqv? -1     (rationalize #e-0.67 1/3)))
+
+  (pass-if (eqv?  1/2   (rationalize #e+0.66 1/3)))
+  (pass-if (eqv? -1/2   (rationalize #e-0.66 1/3)))
+
+  (pass-if (eqv?  1     (rationalize #e+0.67 2/3)))
+  (pass-if (eqv? -1     (rationalize #e-0.67 2/3)))
+
+  (pass-if (eqv?  0     (rationalize #e+0.66 2/3)))
+  (pass-if (eqv?  0     (rationalize #e-0.66 2/3)))
+
+  ;; Prior to Guile 2.0.10, rationalize used a faulty algorithm that
+  ;; incorrectly computed the following approximations of PI.
+  (with-test-prefix "pi"
+    (define *pi* #e3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679)
+    (pass-if (eqv? 16/5 (rationalize *pi* 1/10)))
+    (pass-if (eqv? 201/64 (rationalize *pi* 1/1000)))
+    (pass-if (eqv? 75948/24175 (rationalize *pi* (expt 10 -7))))
+    (pass-if (eqv? 100798/32085 (rationalize *pi* (expt 10 -8))))
+    (pass-if (eqv? 58466453/18610450 (rationalize *pi* (expt 10 -14))))
+    (pass-if (eqv? 2307954651196778721982809475299879198775111361078/734644782339796933783743757007944508986600750685
+                   (rationalize *pi* (expt 10 -95)))))
+
   (pass-if (test-eqv? (/  1.0 3) (rationalize  0.3  1/10)))
   (pass-if (test-eqv? (/ -1.0 3) (rationalize -0.3  1/10)))
   (pass-if (test-eqv? (/  1.0 3) (rationalize  0.3 -1/10)))
