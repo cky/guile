@@ -184,7 +184,7 @@
 
   (pass-if "fxbit-set? is #f on index of unset bit" (not (fxbit-set? 5 1))))
 
-(with-test-prefix "fxcopy-bit" (pass-if "simple" (fx=? (fxcopy-bit 2 2 7) 6)))
+(with-test-prefix "fxcopy-bit" (pass-if "simple" (fx=? (fxcopy-bit 2 2 1) 6)))
 
 (with-test-prefix "fxbit-field" 
   (pass-if "simple" (fx=? (fxbit-field 50 1 4) 1)))

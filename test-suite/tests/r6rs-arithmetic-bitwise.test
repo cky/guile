@@ -62,7 +62,7 @@
 
 (with-test-prefix "bitwise-copy-bit"
   (pass-if "bitwise-copy-bit simple"
-    (eqv? (bitwise-copy-bit #b010 2 #b111) #b110)))
+    (eqv? (bitwise-copy-bit #b010 2 1) #b110)))
 
 (with-test-prefix "bitwise-bit-field"
   (pass-if "bitwise-bit-field simple"

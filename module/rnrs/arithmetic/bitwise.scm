@@ -41,6 +41,18 @@
 	  bitwise-reverse-bit-field)
   (import (rnrs base (6))
 	  (rnrs control (6))
+          (rename (only (srfi srfi-60) bitwise-if
+                                       integer-length
+                                       first-set-bit
+                                       copy-bit
+                                       bit-field
+                                       copy-bit-field
+                                       rotate-bit-field
+                                       reverse-bit-field)
+                  (integer-length bitwise-length)
+                  (first-set-bit bitwise-first-bit-set)
+                  (bit-field bitwise-bit-field)
+                  (reverse-bit-field bitwise-reverse-bit-field))
 	  (rename (only (guile) lognot 
 			        logand 
 				logior
@@ -60,70 +72,21 @@
         (bitwise-not (logcount ei))
         (logcount ei)))
 
-  (define (bitwise-if ei1 ei2 ei3)
-    (bitwise-ior (bitwise-and ei1 ei2) (bitwise-and (bitwise-not ei1) ei3)))
-  
-  (define (bitwise-length ei)
-    (do ((result 0 (+ result 1))
-	 (bits (if (negative? ei) (bitwise-not ei) ei)
-	       (bitwise-arithmetic-shift bits -1)))
-	((zero? bits)
-	 result)))
-
-  (define (bitwise-first-bit-set ei)
-    (define (bitwise-first-bit-set-inner bits count)
-      (cond ((zero? bits) -1)
-	    ((logbit? 0 bits) count)
-	    (else (bitwise-first-bit-set-inner 
-		   (bitwise-arithmetic-shift bits -1) (+ count 1)))))
-    (bitwise-first-bit-set-inner ei 0))
-
   (define (bitwise-bit-set? ei1 ei2) (logbit? ei2 ei1))
 
   (define (bitwise-copy-bit ei1 ei2 ei3)
-    (bitwise-if (bitwise-arithmetic-shift-left 1 ei2) 
-		(bitwise-arithmetic-shift-left ei3 ei2)
-		ei1))
-
-  (define (bitwise-bit-field ei1 ei2 ei3)
-    (bitwise-arithmetic-shift-right 
-     (bitwise-and ei1 (bitwise-not (bitwise-arithmetic-shift-left -1 ei3)))
-     ei2))
+    ;; The specification states that ei3 should be either 0 or 1.
+    ;; However, other values have been tolerated by both Guile 2.0.x and
+    ;; the sample implementation given the R6RS library document, so for
+    ;; backward compatibility we continue to permit it.
+    (copy-bit ei2 ei1 (logbit? 0 ei3)))
 
   (define (bitwise-copy-bit-field ei1 ei2 ei3 ei4)
-    (bitwise-if (bitwise-and (bitwise-arithmetic-shift-left -1 ei2)
-			     (bitwise-not 
-			      (bitwise-arithmetic-shift-left -1 ei3)))
-		(bitwise-arithmetic-shift-left ei4 ei2)
-		ei1))
+    (copy-bit-field ei1 ei4 ei2 ei3))
+
+  (define (bitwise-rotate-bit-field ei1 ei2 ei3 ei4)
+    (rotate-bit-field ei1 ei4 ei2 ei3))
 
   (define bitwise-arithmetic-shift-left bitwise-arithmetic-shift)
   (define (bitwise-arithmetic-shift-right ei1 ei2)
-    (bitwise-arithmetic-shift ei1 (- ei2)))
-  
-  (define (bitwise-rotate-bit-field ei1 ei2 ei3 ei4)
-    (let ((width (- ei3 ei2)))
-      (if (positive? width)
-	  (let ((field (bitwise-bit-field ei1 ei2 ei3))
-		(count (modulo ei4 width)))
-	    (bitwise-copy-bit-field 
-	     ei1 ei2 ei3 
-	     (bitwise-ior (bitwise-arithmetic-shift-left field count)
-			  (bitwise-arithmetic-shift-right 
-			   field (- width count)))))
-	  ei1)))
-
-  (define (bitwise-reverse-bit-field ei1 ei2 ei3)
-    (define (reverse-bit-field-recursive n1 n2 len)
-      (if (> len 0)
-	  (reverse-bit-field-recursive
-	   (bitwise-arithmetic-shift-right n1 1) 
-	   (bitwise-copy-bit (bitwise-arithmetic-shift-left n2 1) 0 n1)
-	   (- len 1))
-	  n2))
-    (let ((width (- ei3 ei2)))
-      (if (positive? width)
-	  (let ((field (bitwise-bit-field ei1 ei2 ei3)))
-	    (bitwise-copy-bit-field
-	     ei1 ei2 ei3 (reverse-bit-field-recursive field 0 width)))
-	  ei1))))
+    (bitwise-arithmetic-shift ei1 (- ei2))))
