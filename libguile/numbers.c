@@ -9528,8 +9528,8 @@ SCM_DEFINE (scm_rationalize, "rationalize", 2, 0, 0,
                  interval between the remainders NLO/DLO and NHI/DHI.
                  There are two cases to consider: either NLO/DLO == QLO
                  is an integer (indicated by RLO == 0), or QLO < QHI. */
-              if (mpz_sgn (rlo) == 0 || mpz_cmp (qlo, qhi)
-                 != 0) break;
+              if (mpz_sgn (rlo) == 0 || mpz_cmp (qlo, qhi) != 0)
+                break;
 
               /* Efficiently shuffle variables around for the next
                  iteration.  First we shift the recent convergents. */
