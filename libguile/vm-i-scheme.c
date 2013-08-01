@@ -455,7 +455,8 @@ VM_DEFINE_FUNCTION (160, logand, "logand", 2)
 {
   ARGS2 (x, y);
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) & SCM_I_INUM (y)));
+    /* Compute bitwise AND without untagging */
+    RETURN (SCM_PACK (SCM_UNPACK (x) & SCM_UNPACK (y)));
   SYNC_REGISTER ();
   RETURN (scm_logand (x, y));
 }
@@ -464,7 +465,8 @@ VM_DEFINE_FUNCTION (161, logior, "logior", 2)
 {
   ARGS2 (x, y);
   if (SCM_I_INUMP (x) && SCM_I_INUMP (y))
-    RETURN (SCM_I_MAKINUM (SCM_I_INUM (x) | SCM_I_INUM (y)));
+    /* Compute bitwise OR without untagging */
+    RETURN (SCM_PACK (SCM_UNPACK (x) | SCM_UNPACK (y)));
   SYNC_REGISTER ();
   RETURN (scm_logior (x, y));
 }
