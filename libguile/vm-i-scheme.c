@@ -207,8 +207,10 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 /* The maximum/minimum tagged integers.  */
 #undef INUM_MAX
 #undef INUM_MIN
-#define INUM_MAX (INTPTR_MAX - 1)
-#define INUM_MIN (INTPTR_MIN + scm_tc2_int)
+#define INUM_MAX  \
+  ((scm_t_signed_bits) SCM_UNPACK (SCM_I_MAKINUM (SCM_MOST_POSITIVE_FIXNUM)))
+#define INUM_MIN  \
+  ((scm_t_signed_bits) SCM_UNPACK (SCM_I_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM)))
 
 #undef FUNC2
 #define FUNC2(CFUNC,SFUNC)				\
