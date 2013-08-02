@@ -309,6 +309,52 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 
 #endif
 
+#if SCM_GNUC_PREREQ (4, 5) && defined __arm__
+
+# define ASM_ADD(x, y)							\
+    if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))		\
+      {									\
+	asm volatile goto ("adds r0, %0, %1; bvs %l[slow_add]; "	\
+			   "str r0, [%[vsp]]\n"				\
+			   : /* no outputs */				\
+			   : "r" (x), "r" (y - scm_tc2_int),		\
+			     [vsp] "r" (sp)				\
+			   : "r0", "memory", "cc"			\
+			   : slow_add);					\
+	NEXT;								\
+      }									\
+  slow_add:								\
+    do { } while (0)
+
+# define ASM_SUB(x, y)							\
+    if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))		\
+      {									\
+	asm volatile goto ("subs r0, %0, %1; bvs %l[slow_sub]; "	\
+			   "str r0, [%[vsp]]\n"				\
+			   : /* no outputs */				\
+			   : "r" (x), "r" (y - scm_tc2_int),		\
+			     [vsp] "r" (sp)				\
+			   : "r0", "memory", "cc"			\
+			   : slow_sub);					\
+	NEXT;								\
+      }									\
+  slow_sub:								\
+    do { } while (0)
+
+# define ASM_MUL(x, y)							\
+    if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))		\
+      {									\
+	scm_t_signed_bits rlo, rhi;					\
+	asm ("smull %0, %1, %2, %3\n"					\
+	     : "=r" (rlo), "=r" (rhi)					\
+	     : "r" (SCM_UNPACK (x) - scm_tc2_int),			\
+	       "r" (SCM_I_INUM (y)));					\
+	if (SCM_LIKELY (SCM_SRS (rlo, 31) == rhi))			\
+	  RETURN (SCM_PACK (rlo + scm_tc2_int));			\
+      }									\
+    do { } while (0)
+
+#endif
 
 VM_DEFINE_FUNCTION (150, add, "add", 2)
 {
