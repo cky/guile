@@ -287,6 +287,26 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
   slow_sub:								\
     do { } while (0)
 
+# define ASM_MUL(x, y)							\
+    {									\
+      scm_t_signed_bits xx = SCM_I_INUM (x);				\
+      asm volatile goto ("mov %1, %%"_CX"; "				\
+			 "test %[tag], %%cl;   je %l[slow_mul]; "	\
+			 "sub %[tag], %%"_CX"; "			\
+			 "test %[tag], %0;     je %l[slow_mul]; "	\
+			 "imul %2, %%"_CX";    jo %l[slow_mul]; "	\
+			 "add %[tag], %%"_CX"; "			\
+			 "mov %%"_CX", (%[vsp])\n"			\
+			 : /* no outputs */				\
+			 : "r" (x), "r" (y), "r" (xx),			\
+			   [vsp] "r" (sp), [tag] "i" (scm_tc2_int)	\
+			 : _CX, "memory", "cc"				\
+			 : slow_mul);					\
+      NEXT;								\
+    }									\
+  slow_mul:								\
+    do { } while (0)
+
 #endif
 
 
@@ -356,15 +376,19 @@ VM_DEFINE_FUNCTION (153, sub1, "sub1", 1)
   RETURN (scm_difference (x, SCM_I_MAKINUM (1)));
 }
 
-# undef ASM_ADD
-# undef ASM_SUB
-
 VM_DEFINE_FUNCTION (154, mul, "mul", 2)
 {
   ARGS2 (x, y);
+#ifdef ASM_MUL
+  ASM_MUL (x, y);
+#endif
   SYNC_REGISTER ();
   RETURN (scm_product (x, y));
 }
+
+# undef ASM_ADD
+# undef ASM_SUB
+# undef ASM_MUL
 
 VM_DEFINE_FUNCTION (155, div, "div", 2)
 {
