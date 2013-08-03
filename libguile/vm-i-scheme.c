@@ -207,10 +207,14 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 /* The maximum/minimum tagged integers.  */
 #undef INUM_MAX
 #undef INUM_MIN
+#undef INUM_STEP
 #define INUM_MAX  \
   ((scm_t_signed_bits) SCM_UNPACK (SCM_I_MAKINUM (SCM_MOST_POSITIVE_FIXNUM)))
 #define INUM_MIN  \
   ((scm_t_signed_bits) SCM_UNPACK (SCM_I_MAKINUM (SCM_MOST_NEGATIVE_FIXNUM)))
+#define INUM_STEP                                \
+  ((scm_t_signed_bits) SCM_UNPACK (SCM_INUM1)    \
+   - (scm_t_signed_bits) SCM_UNPACK (SCM_INUM0))
 
 #undef FUNC2
 #define FUNC2(CFUNC,SFUNC)				\
@@ -294,15 +298,14 @@ VM_DEFINE_FUNCTION (151, add1, "add1", 1)
 {
   ARGS1 (x);
 
-  /* Check for overflow.  */
-  if (SCM_LIKELY ((scm_t_intptr) SCM_UNPACK (x) < INUM_MAX))
+  /* Check for overflow.  We must avoid overflow in the signed
+     addition below, even if X is not an inum.  */
+  if (SCM_LIKELY ((scm_t_signed_bits) SCM_UNPACK (x) <= INUM_MAX - INUM_STEP))
     {
       SCM result;
 
-      /* Add the integers without untagging.  */
-      result = SCM_PACK ((scm_t_intptr) SCM_UNPACK (x)
-			 + (scm_t_intptr) SCM_UNPACK (SCM_I_MAKINUM (1))
-			 - scm_tc2_int);
+      /* Add 1 to the integer without untagging.  */
+      result = SCM_PACK ((scm_t_signed_bits) SCM_UNPACK (x) + INUM_STEP);
 
       if (SCM_LIKELY (SCM_I_INUMP (result)))
 	RETURN (result);
@@ -328,15 +331,14 @@ VM_DEFINE_FUNCTION (153, sub1, "sub1", 1)
 {
   ARGS1 (x);
 
-  /* Check for underflow.  */
-  if (SCM_LIKELY ((scm_t_intptr) SCM_UNPACK (x) > INUM_MIN))
+  /* Check for overflow.  We must avoid overflow in the signed
+     subtraction below, even if X is not an inum.  */
+  if (SCM_LIKELY ((scm_t_signed_bits) SCM_UNPACK (x) >= INUM_MIN + INUM_STEP))
     {
       SCM result;
 
-      /* Substract the integers without untagging.  */
-      result = SCM_PACK ((scm_t_intptr) SCM_UNPACK (x)
-			 - (scm_t_intptr) SCM_UNPACK (SCM_I_MAKINUM (1))
-			 + scm_tc2_int);
+      /* Substract 1 from the integer without untagging.  */
+      result = SCM_PACK ((scm_t_signed_bits) SCM_UNPACK (x) - INUM_STEP);
 
       if (SCM_LIKELY (SCM_I_INUMP (result)))
 	RETURN (result);
