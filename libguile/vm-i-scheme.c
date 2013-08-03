@@ -254,7 +254,7 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 			 : /* no outputs */				\
 			 : "r" (x), "r" (y),				\
 			   [vsp] "r" (sp), [tag] "i" (scm_tc2_int)	\
-			 : "rcx", "memory"				\
+			 : "rcx", "memory", "cc"			\
 			 : slow_add);					\
       NEXT;								\
     }									\
@@ -272,7 +272,7 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 			 : /* no outputs */				\
 			 : "r" (x), "r" (y),				\
 			   [vsp] "r" (sp), [tag] "i" (scm_tc2_int)	\
-			 : "rcx", "memory"				\
+			 : "rcx", "memory", "cc"			\
 			 : slow_sub);					\
       NEXT;								\
     }									\
