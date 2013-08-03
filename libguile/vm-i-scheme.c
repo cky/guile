@@ -233,24 +233,32 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 /* Assembly tagged integer arithmetic routines.  This code uses the
    `asm goto' feature introduced in GCC 4.5.  */
 
-#if defined __x86_64__ && SCM_GNUC_PREREQ (4, 5)
+#if SCM_GNUC_PREREQ (4, 5) && (defined __x86_64__ || defined __i386__)
+
+# undef _CX
+# ifdef __x86_64__
+#  define _CX "rcx"
+# else
+#  define _CX "ecx"
+# endif
 
 /* The macros below check the CPU's overflow flag to improve fixnum
-   arithmetic.  The %rcx register is explicitly clobbered because `asm
-   goto' can't have outputs, in which case the `r' constraint could be
-   used to let the register allocator choose a register.
+   arithmetic.  The _CX register (%rcx or %ecx) is explicitly
+   clobbered because `asm goto' can't have outputs, in which case the
+   `r' constraint could be used to let the register allocator choose a
+   register.
 
    TODO: Use `cold' label attribute in GCC 4.6.
    http://gcc.gnu.org/ml/gcc-patches/2010-10/msg01777.html  */
 
 # define ASM_ADD(x, y)							\
     {									\
-      asm volatile goto ("mov %1, %%rcx; "				\
-			 "test %[tag], %%cl; je %l[slow_add]; "		\
-			 "test %[tag], %0;   je %l[slow_add]; "		\
-			 "sub %[tag], %%rcx; "				\
-			 "add %0, %%rcx;     jo %l[slow_add]; "		\
-			 "mov %%rcx, (%[vsp])\n"			\
+      asm volatile goto ("mov %1, %%"_CX"; "				\
+			 "test %[tag], %%cl;   je %l[slow_add]; "	\
+			 "test %[tag], %0;     je %l[slow_add]; "	\
+			 "sub %[tag], %%"_CX"; "			\
+			 "add %0, %%"_CX";     jo %l[slow_add]; "	\
+			 "mov %%"_CX", (%[vsp])\n"			\
 			 : /* no outputs */				\
 			 : "r" (x), "r" (y),				\
 			   [vsp] "r" (sp), [tag] "i" (scm_tc2_int)	\
@@ -263,12 +271,12 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 
 # define ASM_SUB(x, y)							\
     {									\
-      asm volatile goto ("mov %0, %%rcx; "				\
-			 "test %[tag], %%cl; je %l[slow_sub]; "		\
-			 "test %[tag], %1;   je %l[slow_sub]; "		\
-			 "sub %1, %%rcx;     jo %l[slow_sub]; "		\
-			 "add %[tag], %%rcx; "				\
-			 "mov %%rcx, (%[vsp])\n"			\
+      asm volatile goto ("mov %0, %%"_CX"; "				\
+			 "test %[tag], %%cl;   je %l[slow_sub]; "	\
+			 "test %[tag], %1;     je %l[slow_sub]; "	\
+			 "sub %1, %%"_CX";     jo %l[slow_sub]; "	\
+			 "add %[tag], %%"_CX"; "			\
+			 "mov %%"_CX", (%[vsp])\n"			\
 			 : /* no outputs */				\
 			 : "r" (x), "r" (y),				\
 			   [vsp] "r" (sp), [tag] "i" (scm_tc2_int)	\
