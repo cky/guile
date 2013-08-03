@@ -248,8 +248,8 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
       asm volatile goto ("mov %1, %%rcx; "				\
 			 "test %[tag], %%cl; je %l[slow_add]; "		\
 			 "test %[tag], %0;   je %l[slow_add]; "		\
-			 "add %0, %%rcx;     jo %l[slow_add]; "		\
 			 "sub %[tag], %%rcx; "				\
+			 "add %0, %%rcx;     jo %l[slow_add]; "		\
 			 "mov %%rcx, (%[vsp])\n"			\
 			 : /* no outputs */				\
 			 : "r" (x), "r" (y),				\
