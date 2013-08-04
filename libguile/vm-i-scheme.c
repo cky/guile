@@ -341,7 +341,21 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
   slow_sub:								\
     do { } while (0)
 
-# define ASM_MUL(x, y)							\
+# if defined (__ARM_ARCH_3M__)  || defined (__ARM_ARCH_4__)		\
+  || defined (__ARM_ARCH_4T__)  || defined (__ARM_ARCH_5__)		\
+  || defined (__ARM_ARCH_5T__)  || defined (__ARM_ARCH_5E__)		\
+  || defined (__ARM_ARCH_5TE__) || defined (__ARM_ARCH_5TEJ__)		\
+  || defined (__ARM_ARCH_6__)   || defined (__ARM_ARCH_6J__)		\
+  || defined (__ARM_ARCH_6K__)  || defined (__ARM_ARCH_6Z__)		\
+  || defined (__ARM_ARCH_6ZK__) || defined (__ARM_ARCH_6T2__)		\
+  || defined (__ARM_ARCH_6M__)  || defined (__ARM_ARCH_7__)		\
+  || defined (__ARM_ARCH_7A__)  || defined (__ARM_ARCH_7R__)		\
+  || defined (__ARM_ARCH_7M__)  || defined (__ARM_ARCH_7EM__)		\
+  || defined (__ARM_ARCH_8A__)
+
+/* The ARM architectures listed above support the SMULL instruction */
+
+#  define ASM_MUL(x, y)							\
     if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))		\
       {									\
 	scm_t_signed_bits rlo, rhi;					\
@@ -353,6 +367,8 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 	  RETURN (SCM_PACK (rlo + scm_tc2_int));			\
       }									\
     do { } while (0)
+
+# endif
 
 #endif
 
