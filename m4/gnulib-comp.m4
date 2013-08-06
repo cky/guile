@@ -61,6 +61,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module close:
   # Code from module configmake:
   # Code from module connect:
+  # Code from module copysign:
   # Code from module dirent:
   # Code from module dirfd:
   # Code from module dirname-lgpl:
@@ -108,12 +109,15 @@ AC_DEFUN([gl_EARLY],
   # Code from module inet_ntop:
   # Code from module inet_pton:
   # Code from module inline:
+  # Code from module isfinite:
   # Code from module isinf:
   # Code from module isnan:
   # Code from module isnand:
   # Code from module isnand-nolibm:
   # Code from module isnanf:
+  # Code from module isnanf-nolibm:
   # Code from module isnanl:
+  # Code from module isnanl-nolibm:
   # Code from module langinfo:
   # Code from module largefile:
   AC_REQUIRE([AC_SYS_LARGEFILE])
@@ -172,6 +176,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module setsockopt:
   # Code from module shutdown:
   # Code from module signal-h:
+  # Code from module signbit:
   # Code from module size_max:
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
@@ -292,6 +297,11 @@ AC_SUBST([LTALLOCA])
     AC_LIBOBJ([connect])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([connect])
+  gl_FUNC_COPYSIGN
+  if test $HAVE_COPYSIGN = 0; then
+    AC_LIBOBJ([copysign])
+  fi
+  gl_MATH_MODULE_INDICATOR([copysign])
   gl_DIRENT_H
   gl_FUNC_DIRFD
   if test $ac_cv_func_dirfd = no && test $gl_cv_func_dirfd_macro = no; then
@@ -415,6 +425,11 @@ AC_SUBST([LTALLOCA])
   fi
   gl_ARPA_INET_MODULE_INDICATOR([inet_pton])
   gl_INLINE
+  gl_ISFINITE
+  if test $REPLACE_ISFINITE = 1; then
+    AC_LIBOBJ([isfinite])
+  fi
+  gl_MATH_MODULE_INDICATOR([isfinite])
   gl_ISINF
   if test $REPLACE_ISINF = 1; then
     AC_LIBOBJ([isinf])
@@ -445,6 +460,11 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_ISNANF
   fi
   gl_MATH_MODULE_INDICATOR([isnanf])
+  gl_FUNC_ISNANF_NO_LIBM
+  if test $gl_func_isnanf_no_libm != yes; then
+    AC_LIBOBJ([isnanf])
+    gl_PREREQ_ISNANF
+  fi
   gl_FUNC_ISNANL
   m4_ifdef([gl_ISNAN], [
     AC_REQUIRE([gl_ISNAN])
@@ -454,6 +474,11 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_ISNANL
   fi
   gl_MATH_MODULE_INDICATOR([isnanl])
+  gl_FUNC_ISNANL_NO_LIBM
+  if test $gl_func_isnanl_no_libm != yes; then
+    AC_LIBOBJ([isnanl])
+    gl_PREREQ_ISNANL
+  fi
   gl_LANGINFO_H
   AC_REQUIRE([gl_LARGEFILE])
   gl_FUNC_LDEXP
@@ -656,6 +681,13 @@ AC_SUBST([LTALLOCA])
   fi
   gl_SYS_SOCKET_MODULE_INDICATOR([shutdown])
   gl_SIGNAL_H
+  gl_SIGNBIT
+  if test $REPLACE_SIGNBIT = 1; then
+    AC_LIBOBJ([signbitf])
+    AC_LIBOBJ([signbitd])
+    AC_LIBOBJ([signbitl])
+  fi
+  gl_MATH_MODULE_INDICATOR([signbit])
   gl_SIZE_MAX
   gl_FUNC_SNPRINTF
   gl_STDIO_MODULE_INDICATOR([snprintf])
@@ -935,6 +967,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/close.c
   lib/config.charset
   lib/connect.c
+  lib/copysign.c
   lib/dirent.in.h
   lib/dirfd.c
   lib/dirname-lgpl.c
@@ -976,11 +1009,14 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/iconveh.h
   lib/inet_ntop.c
   lib/inet_pton.c
+  lib/isfinite.c
   lib/isinf.c
   lib/isnan.c
   lib/isnand-nolibm.h
   lib/isnand.c
+  lib/isnanf-nolibm.h
   lib/isnanf.c
+  lib/isnanl-nolibm.h
   lib/isnanl.c
   lib/itold.c
   lib/langinfo.in.h
@@ -1053,6 +1089,9 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/setsockopt.c
   lib/shutdown.c
   lib/signal.in.h
+  lib/signbitd.c
+  lib/signbitf.c
+  lib/signbitl.c
   lib/size_max.h
   lib/snprintf.c
   lib/socket.c
@@ -1125,6 +1164,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/close.m4
   m4/codeset.m4
   m4/configmake.m4
+  m4/copysign.m4
   m4/dirent_h.m4
   m4/dirfd.m4
   m4/dirname.m4
@@ -1163,6 +1203,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/inline.m4
   m4/intmax_t.m4
   m4/inttypes_h.m4
+  m4/isfinite.m4
   m4/isinf.m4
   m4/isnan.m4
   m4/isnand.m4
@@ -1228,6 +1269,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/servent.m4
   m4/setenv.m4
   m4/signal_h.m4
+  m4/signbit.m4
   m4/size_max.m4
   m4/snprintf.m4
   m4/socketlib.m4
