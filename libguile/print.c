@@ -410,7 +410,8 @@ print_extended_symbol (SCM sym, SCM port)
                                             SUBSEQUENT_IDENTIFIER_MASK
                                             | UC_CATEGORY_MASK_Zs))
         {
-          if (!display_character (c, port, strategy))
+          if (!display_character (c, port, strategy)
+              || (c == '\\' && !display_character (c, port, strategy)))
             scm_encoding_error ("print_extended_symbol", errno,
                                 "cannot convert to output locale",
                                 port, SCM_MAKE_CHAR (c));
