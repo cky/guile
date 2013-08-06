@@ -91,15 +91,6 @@ verify (FLT_RADIX == 2);
 typedef scm_t_signed_bits scm_t_inum;
 #define scm_from_inum(x) (scm_from_signed_integer (x))
 
-/* Tests to see if a C double is neither infinite nor a NaN.
-   TODO: if it's available, use C99's isfinite(x) instead */
-#define DOUBLE_IS_FINITE(x) (!isinf(x) && !isnan(x))
-
-/* On some platforms, isinf(x) returns 0, 1 or -1, indicating the sign
-   of the infinity, but other platforms return a boolean only. */
-#define DOUBLE_IS_POSITIVE_INFINITY(x) (isinf(x) && ((x) > 0))
-#define DOUBLE_IS_NEGATIVE_INFINITY(x) (isinf(x) && ((x) < 0))
-
 /* Test an inum to see if it can be converted to a double without loss
    of precision.  Note that this will sometimes return 0 even when 1
    could have been returned, e.g. for large powers of 2.  It is designed
@@ -729,7 +720,7 @@ SCM_PRIMITIVE_GENERIC (scm_odd_p, "odd?", 1, 0, 0,
   else if (SCM_REALP (n))
     {
       double val = SCM_REAL_VALUE (n);
-      if (DOUBLE_IS_FINITE (val))
+      if (isfinite (val))
 	{
 	  double rem = fabs (fmod (val, 2.0));
 	  if (rem == 1.0)
@@ -763,7 +754,7 @@ SCM_PRIMITIVE_GENERIC (scm_even_p, "even?", 1, 0, 0,
   else if (SCM_REALP (n))
     {
       double val = SCM_REAL_VALUE (n);
-      if (DOUBLE_IS_FINITE (val))
+      if (isfinite (val))
 	{
 	  double rem = fabs (fmod (val, 2.0));
 	  if (rem == 1.0)
@@ -783,7 +774,7 @@ SCM_PRIMITIVE_GENERIC (scm_finite_p, "finite?", 1, 0, 0,
 #define FUNC_NAME s_scm_finite_p
 {
   if (SCM_REALP (x))
-    return scm_from_bool (DOUBLE_IS_FINITE (SCM_REAL_VALUE (x)));
+    return scm_from_bool (isfinite (SCM_REAL_VALUE (x)));
   else if (scm_is_real (x))
     return SCM_BOOL_T;
   else
@@ -5572,7 +5563,7 @@ icmplx2str (double real, double imag, char *str, int radix)
 #endif
   /* Don't output a '+' for negative numbers or for Inf and
      NaN.  They will provide their own sign. */
-  if (sgn >= 0 && DOUBLE_IS_FINITE (imag))
+  if (sgn >= 0 && isfinite (imag))
     str[i++] = '+';
   i += idbl2str (imag, &str[i], radix);
   str[i++] = 'i';
@@ -6512,7 +6503,7 @@ SCM_DEFINE (scm_rational_p, "rational?", 1, 0, 0,
   else if (SCM_REALP (x))
     /* due to their limited precision, finite floating point numbers are
        rational as well. (finite means neither infinity nor a NaN) */
-    return scm_from_bool (DOUBLE_IS_FINITE (SCM_REAL_VALUE (x)));
+    return scm_from_bool (isfinite (SCM_REAL_VALUE (x)));
   else
     return SCM_BOOL_F;
 }
@@ -9343,7 +9334,7 @@ SCM_PRIMITIVE_GENERIC (scm_inexact_to_exact, "inexact->exact", 1, 0, 0,
       else
 	SCM_WTA_DISPATCH_1 (g_scm_inexact_to_exact, z, 1, s_scm_inexact_to_exact);
 
-      if (!SCM_LIKELY (DOUBLE_IS_FINITE (val)))
+      if (!SCM_LIKELY (isfinite (val)))
 	SCM_OUT_OF_RANGE (1, z);
       else if (val == 0.0)
         return SCM_INUM0;
