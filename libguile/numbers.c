@@ -654,14 +654,6 @@ scm_i_fraction2double (SCM z)
                               SCM_FRACTION_DENOMINATOR (z));
 }
 
-static int
-double_is_non_negative_zero (double x)
-{
-  static double zero = 0.0;
-
-  return !memcmp (&x, &zero, sizeof(double));
-}
-
 static SCM
 scm_i_from_double (double val)
 {
@@ -5368,7 +5360,7 @@ idbl2str (double dbl, char *a, int radix)
     }
   else if (dbl == 0.0)
     {
-      if (!double_is_non_negative_zero (dbl))
+      if (copysign (1.0, dbl) < 0.0)
         a[ch++] = '-';
       strcpy (a + ch, "0.0");
       return ch + 3;
@@ -7272,10 +7264,10 @@ scm_max (SCM x, SCM y)
 	  else if (SCM_UNLIKELY (xx != yy))
 	    return (xx != xx) ? x : y;  /* Return the NaN */
 	  /* xx == yy, but handle signed zeroes properly */
-	  else if (double_is_non_negative_zero (yy))
-	    return y;
-	  else
+	  else if (copysign (1.0, yy) < 0.0)
 	    return x;
+	  else
+	    return y;
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -7431,10 +7423,10 @@ scm_min (SCM x, SCM y)
 	  else if (SCM_UNLIKELY (xx != yy))
 	    return (xx != xx) ? x : y;  /* Return the NaN */
 	  /* xx == yy, but handle signed zeroes properly */
-	  else if (double_is_non_negative_zero (xx))
-	    return y;
-	  else
+	  else if (copysign (1.0, xx) < 0.0)
 	    return x;
+	  else
+	    return y;
 	}
       else if (SCM_FRACTIONP (y))
 	{
@@ -9295,7 +9287,7 @@ SCM_PRIMITIVE_GENERIC (scm_angle, "angle", 1, 0, 0,
   else if (SCM_REALP (z))
     {
       double x = SCM_REAL_VALUE (z);
-      if (x > 0.0 || double_is_non_negative_zero (x))
+      if (copysign (1.0, x) > 0.0)
         return flo0;
       else
         return scm_i_from_double (atan2 (0.0, -1.0));
@@ -9945,7 +9937,7 @@ log_of_shifted_double (double x, long shift)
 {
   double ans = log (fabs (x)) + shift * M_LN2;
 
-  if (x > 0.0 || double_is_non_negative_zero (x))
+  if (copysign (1.0, x) > 0.0)
     return scm_i_from_double (ans);
   else
     return scm_c_make_rectangular (ans, M_PI);
@@ -10061,7 +10053,7 @@ SCM_PRIMITIVE_GENERIC (scm_log10, "log10", 1, 0, 0,
       {
 	double re = scm_to_double (z);
 	double l = log10 (fabs (re));
-	if (re > 0.0 || double_is_non_negative_zero (re))
+	if (copysign (1.0, re) > 0.0)
 	  return scm_i_from_double (l);
 	else
 	  return scm_c_make_rectangular (l, M_LOG10E * M_PI);
