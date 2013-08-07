@@ -697,7 +697,7 @@
 
             ((<sequence> exps) (primitive 'begin) (for-each recurse exps))
             ((<lambda> body)
-             (if body (recurse body)))
+             (if body (recurse body) (primitive 'case-lambda)))
 
             ((<lambda-case> req opt rest kw inits gensyms body alternate)
              (primitive 'lambda)
