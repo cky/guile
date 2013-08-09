@@ -1,6 +1,6 @@
-;;; r6rs-exceptions.test --- Test suite for R6RS (rnrs exceptions)
+;;; r6rs-exceptions.test --- Test suite for R6RS (rnrs exceptions)  -*- scheme -*-
 
-;;      Copyright (C) 2010 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2013 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 (define-module (test-suite test-rnrs-exceptions)
   :use-module ((rnrs conditions) :version (6))
   :use-module ((rnrs exceptions) :version (6))
+  :use-module (system foreign)
   :use-module (test-suite lib))
 
 (with-test-prefix "with-exception-handler"
@@ -96,3 +97,60 @@
 
   (pass-if "guard with cond => syntax"
     (guard (condition (condition => error?)) (raise (make-error)))))
+
+(with-test-prefix "guile condition conversions"
+
+  (define-syntax-rule (pass-if-condition name expected-condition? body ...)
+    (pass-if name
+      (guard (obj ((expected-condition? obj) #t)
+                  (else #f))
+        body ... #f)))
+
+  (pass-if "rethrown native guile exceptions"
+    (catch #t
+      (lambda ()
+        (guard (obj ((syntax-violation? obj) #f))
+          (vector-ref '#(0 1) 2)
+          #f))
+      (lambda (key . args)
+        (eq? key 'out-of-range))))
+
+  (pass-if-condition "syntax-error"
+    syntax-violation?
+    (eval '(let) (current-module)))
+
+  (pass-if-condition "unbound-variable"
+    undefined-violation?
+    variable-that-does-not-exist)
+
+  (pass-if-condition "out-of-range"
+    assertion-violation?
+    (vector-ref '#(0 1) 2))
+
+  (pass-if-condition "wrong-number-of-args"
+    assertion-violation?
+    ((lambda () #f) 'unwanted-argument))
+
+  (pass-if-condition "wrong-type-arg"
+    assertion-violation?
+    (vector-ref '#(0 1) 'invalid-index))
+
+  (pass-if-condition "keyword-argument-error"
+    assertion-violation?
+    ((lambda* (#:key a) #f) #:unwanted-keyword 'val))
+
+  (pass-if-condition "regular-expression-syntax"
+    assertion-violation?
+    (make-regexp "[missing-close-square-bracket"))
+
+  (pass-if-condition "null-pointer-error"
+    assertion-violation?
+    (dereference-pointer (make-pointer 0)))
+
+  (pass-if-condition "read-error"
+    lexical-violation?
+    (read (open-input-string "(missing-close-paren"))))
+
+;;; Local Variables:
+;;; eval: (put 'pass-if-condition 'scheme-indent-function 1)
+;;; End:
