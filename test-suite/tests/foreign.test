@@ -51,6 +51,10 @@
   (pass-if "null-pointer? %null-pointer"
     (null-pointer? %null-pointer))
 
+  (pass-if-exception "dereference-pointer %null-pointer"
+    exception:null-pointer-error
+    (dereference-pointer %null-pointer))
+
   (pass-if-exception "pointer->bytevector %null-pointer"
     exception:null-pointer-error
     (pointer->bytevector %null-pointer 7)))

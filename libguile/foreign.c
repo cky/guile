@@ -342,9 +342,15 @@ SCM_DEFINE (scm_dereference_pointer, "dereference-pointer", 1, 0, 0,
 	    "holds a pointer, return this pointer.")
 #define FUNC_NAME s_scm_dereference_pointer
 {
+  void **ptr;
+
   SCM_VALIDATE_POINTER (1, pointer);
 
-  return scm_from_pointer (* (void **) SCM_POINTER_VALUE (pointer), NULL);
+  ptr = SCM_POINTER_VALUE (pointer);
+  if (SCM_UNLIKELY (ptr == NULL))
+    null_pointer_error (FUNC_NAME);
+
+  return scm_from_pointer (*ptr, NULL);
 }
 #undef FUNC_NAME
 
