@@ -153,19 +153,8 @@
     (assert-iflonum fl1 fl2)
     (mod0 fl1 fl2))
 
-  (define (flnumerator fl) 
-    (assert-flonum fl) 
-    (case fl 
-      ((+inf.0) +inf.0) 
-      ((-inf.0) -inf.0)
-      (else (numerator fl))))
-
-  (define (fldenominator fl) 
-    (assert-flonum fl) 
-    (case fl
-      ((+inf.0) 1.0)
-      ((-inf.0) 1.0)
-      (else (denominator fl))))
+  (define (flnumerator fl) (assert-flonum fl) (numerator fl))
+  (define (fldenominator fl) (assert-flonum fl) (denominator fl))
   
   (define (flfloor fl) (assert-flonum fl) (floor fl))
   (define (flceiling fl) (assert-flonum fl) (ceiling fl))

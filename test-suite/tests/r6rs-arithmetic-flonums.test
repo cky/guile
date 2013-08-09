@@ -218,7 +218,7 @@
     (and (fl=? (flnumerator +inf.0) +inf.0)
 	 (fl=? (flnumerator -inf.0) -inf.0)))
 
-  (pass-if "negative zero" (fl=? (flnumerator -0.0) -0.0)))
+  (pass-if "negative zero" (eqv? (flnumerator -0.0) -0.0)))
 
 (with-test-prefix "fldenominator"
   (pass-if "simple" (fl=? (fldenominator 0.5) 2.0))

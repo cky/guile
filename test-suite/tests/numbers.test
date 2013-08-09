@@ -1079,68 +1079,50 @@
 ;;;
 
 (with-test-prefix "numerator"
-  (pass-if "0"
-    (eqv? 0 (numerator 0)))
-  (pass-if "1"
-    (eqv? 1 (numerator 1)))
-  (pass-if "2"
-    (eqv? 2 (numerator 2)))
-  (pass-if "-1"
-    (eqv? -1 (numerator -1)))
-  (pass-if "-2"
-    (eqv? -2 (numerator -2)))
+  (pass-if-equal "0" 0 (numerator 0))
+  (pass-if-equal "1" 1 (numerator 1))
+  (pass-if-equal "2" 2 (numerator 2))
+  (pass-if-equal "-1" -1 (numerator -1))
+  (pass-if-equal "-2" -2 (numerator -2))
 
-  (pass-if "0.0"
-    (eqv? 0.0 (numerator 0.0)))
-  (pass-if "1.0"
-    (eqv? 1.0 (numerator 1.0)))
-  (pass-if "2.0"
-    (eqv? 2.0 (numerator 2.0)))
-  (pass-if "-1.0"
-    (eqv? -1.0 (numerator -1.0)))
-  (pass-if "-2.0"
-    (eqv? -2.0 (numerator -2.0)))
+  (pass-if-equal "0.0" 0.0 (numerator 0.0))
+  (pass-if-equal "1.0" 1.0 (numerator 1.0))
+  (pass-if-equal "2.0" 2.0 (numerator 2.0))
+  (pass-if-equal "-0.0" -0.0 (numerator -0.0))
+  (pass-if-equal "-1.0" -1.0 (numerator -1.0))
+  (pass-if-equal "-2.0" -2.0 (numerator -2.0))
 
-  (pass-if "0.5"
-    (eqv? 1.0 (numerator 0.5)))
-  (pass-if "0.25"
-    (eqv? 1.0 (numerator 0.25)))
-  (pass-if "0.75"
-    (eqv? 3.0 (numerator 0.75))))
+  (pass-if-equal "0.5" 1.0 (numerator 0.5))
+  (pass-if-equal "0.25" 1.0 (numerator 0.25))
+  (pass-if-equal "0.75" 3.0 (numerator 0.75))
+
+  (pass-if-equal "+inf.0" +inf.0 (numerator +inf.0))
+  (pass-if-equal "-inf.0" -inf.0 (numerator -inf.0)))
 
 ;;;
 ;;; denominator
 ;;;
 
 (with-test-prefix "denominator"
-  (pass-if "0"
-    (eqv? 1 (denominator 0)))
-  (pass-if "1"
-    (eqv? 1 (denominator 1)))
-  (pass-if "2"
-    (eqv? 1 (denominator 2)))
-  (pass-if "-1"
-    (eqv? 1 (denominator -1)))
-  (pass-if "-2"
-    (eqv? 1 (denominator -2)))
+  (pass-if-equal "0" 1 (denominator 0))
+  (pass-if-equal "1" 1 (denominator 1))
+  (pass-if-equal "2" 1 (denominator 2))
+  (pass-if-equal "-1" 1 (denominator -1))
+  (pass-if-equal "-2" 1 (denominator -2))
 
-  (pass-if "0.0"
-    (eqv? 1.0 (denominator 0.0)))
-  (pass-if "1.0"
-    (eqv? 1.0 (denominator 1.0)))
-  (pass-if "2.0"
-    (eqv? 1.0 (denominator 2.0)))
-  (pass-if "-1.0"
-    (eqv? 1.0 (denominator -1.0)))
-  (pass-if "-2.0"
-    (eqv? 1.0 (denominator -2.0)))
+  (pass-if-equal "0.0" 1.0 (denominator 0.0))
+  (pass-if-equal "1.0" 1.0 (denominator 1.0))
+  (pass-if-equal "2.0" 1.0 (denominator 2.0))
+  (pass-if-equal "-0.0" 1.0 (denominator -0.0))
+  (pass-if-equal "-1.0" 1.0 (denominator -1.0))
+  (pass-if-equal "-2.0" 1.0 (denominator -2.0))
 
-  (pass-if "0.5"
-    (eqv? 2.0 (denominator 0.5)))
-  (pass-if "0.25"
-    (eqv? 4.0 (denominator 0.25)))
-  (pass-if "0.75"
-    (eqv? 4.0 (denominator 0.75))))
+  (pass-if-equal "0.5" 2.0 (denominator 0.5))
+  (pass-if-equal "0.25" 4.0 (denominator 0.25))
+  (pass-if-equal "0.75" 4.0 (denominator 0.75))
+
+  (pass-if-equal "+inf.0" 1.0 (denominator +inf.0))
+  (pass-if-equal "-inf.0" 1.0 (denominator -inf.0)))
 
 ;;;
 ;;; gcd

@@ -9183,7 +9183,15 @@ SCM_PRIMITIVE_GENERIC (scm_numerator, "numerator", 1, 0, 0,
   else if (SCM_FRACTIONP (z))
     return SCM_FRACTION_NUMERATOR (z);
   else if (SCM_REALP (z))
-    return scm_exact_to_inexact (scm_numerator (scm_inexact_to_exact (z)));
+    {
+      double zz = SCM_REAL_VALUE (z);
+      if (zz == floor (zz))
+        /* Handle -0.0 and infinities in accordance with R6RS
+           flnumerator, and optimize handling of integers. */
+        return z;
+      else
+        return scm_exact_to_inexact (scm_numerator (scm_inexact_to_exact (z)));
+    }
   else
     SCM_WTA_DISPATCH_1 (g_scm_numerator, z, SCM_ARG1, s_scm_numerator);
 }
@@ -9200,7 +9208,15 @@ SCM_PRIMITIVE_GENERIC (scm_denominator, "denominator", 1, 0, 0,
   else if (SCM_FRACTIONP (z))
     return SCM_FRACTION_DENOMINATOR (z);
   else if (SCM_REALP (z))
-    return scm_exact_to_inexact (scm_denominator (scm_inexact_to_exact (z)));
+    {
+      double zz = SCM_REAL_VALUE (z);
+      if (zz == floor (zz))
+        /* Handle infinities in accordance with R6RS fldenominator, and
+           optimize handling of integers. */
+        return scm_i_from_double (1.0);
+      else
+        return scm_exact_to_inexact (scm_denominator (scm_inexact_to_exact (z)));
+    }
   else
     SCM_WTA_DISPATCH_1 (g_scm_denominator, z, SCM_ARG1, s_scm_denominator);
 }
