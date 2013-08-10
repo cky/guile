@@ -48,6 +48,7 @@
 #endif
 
 #include <verify.h>
+#include <assert.h>
 
 #include <math.h>
 #include <string.h>
@@ -5005,7 +5006,7 @@ left_shift_exact_integer (SCM n, long count)
       return result;
     }
   else
-    scm_syserror ("left_shift_exact_integer");
+    assert (0);
 }
 
 /* Efficiently compute floor (N / 2^COUNT),
@@ -5031,7 +5032,7 @@ floor_right_shift_exact_integer (SCM n, long count)
       return scm_i_normbig (result);
     }
   else
-    scm_syserror ("floor_right_shift_exact_integer");
+    assert (0);
 }
 
 /* Efficiently compute round (N / 2^COUNT),
@@ -5069,7 +5070,7 @@ round_right_shift_exact_integer (SCM n, long count)
       return scm_i_normbig (q);
     }
   else
-    scm_syserror ("round_right_shift_exact_integer");
+    assert (0);
 }
 
 SCM_DEFINE (scm_ash, "ash", 2, 0, 0,
@@ -6200,7 +6201,7 @@ mem2ureal (SCM mem, unsigned int *p_idx,
     }
 
   /* We should never get here */
-  scm_syserror ("mem2ureal");
+  assert (0);
 }
 
 
