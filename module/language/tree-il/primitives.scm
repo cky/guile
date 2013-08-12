@@ -20,6 +20,7 @@
 
 (define-module (language tree-il primitives)
   #:use-module (system base pmatch)
+  #:use-module (ice-9 match)
   #:use-module (rnrs bytevectors)
   #:use-module (system base syntax)
   #:use-module (language tree-il)
@@ -318,13 +319,14 @@
      (else (error "bad consequent yall" exp))))
   `(hashq-set! *primitive-expand-table*
                ',sym
-               (case-lambda
+               (match-lambda*
                 ,@(let lp ((in clauses) (out '()))
                     (if (null? in)
-                        (reverse (cons '(else #f) out))
+                        (reverse (cons '(_ #f) out))
                         (lp (cddr in)
                             (cons `((src . ,(car in))
-                                    ,(consequent (cadr in))) out)))))))
+                                    ,(consequent (cadr in)))
+                                  out)))))))
 
 (define-primitive-expander zero? (x)
   (= x 0))
@@ -334,50 +336,44 @@
 (define-primitive-expander +
   () 0
   (x) (values x)
-  (x y) (if (and (const? y)
-                 (let ((y (const-exp y)))
-                   (and (number? y) (exact? y) (= y 1))))
+  (x y) (if (and (const? y) (eqv? (const-exp y) 1))
             (1+ x)
-            (if (and (const? y)
-                     (let ((y (const-exp y)))
-                       (and (number? y) (exact? y) (= y -1))))
+            (if (and (const? y) (eqv? (const-exp y) -1))
                 (1- x)
-                (if (and (const? x)
-                         (let ((x (const-exp x)))
-                           (and (number? x) (exact? x) (= x 1))))
+                (if (and (const? x) (eqv? (const-exp x) 1))
                     (1+ y)
-                    (+ x y))))
-  (x y z . rest) (+ x (+ y z . rest)))
-  
+                    (if (and (const? x) (eqv? (const-exp x) -1))
+                        (1- y)
+                        (+ x y)))))
+  (x y z ... last) (+ (+ x y . z) last))
+
 (define-primitive-expander *
   () 1
   (x) (values x)
-  (x y z . rest) (* x (* y z . rest)))
+  (x y z ... last) (* (* x y . z) last))
   
 (define-primitive-expander -
   (x) (- 0 x)
-  (x y) (if (and (const? y)
-                 (let ((y (const-exp y)))
-                   (and (number? y) (exact? y) (= y 1))))
+  (x y) (if (and (const? y) (eqv? (const-exp y) 1))
             (1- x)
             (- x y))
-  (x y z . rest) (- x (+ y z . rest)))
+  (x y z ... last) (- (- x y . z) last))
   
 (define-primitive-expander /
   (x) (/ 1 x)
-  (x y z . rest) (/ x (* y z . rest)))
+  (x y z ... last) (/ (/ x y . z) last))
   
 (define-primitive-expander logior
   () 0
   (x) (logior x 0)
   (x y) (logior x y)
-  (x y z . rest) (logior x (logior y z . rest)))
+  (x y z ... last) (logior (logior x y . z) last))
 
 (define-primitive-expander logand
   () -1
   (x) (logand x -1)
   (x y) (logand x y)
-  (x y z . rest) (logand x (logand y z . rest)))
+  (x y z ... last) (logand (logand x y . z) last))
 
 (define-primitive-expander caar (x) (car (car x)))
 (define-primitive-expander cadr (x) (car (cdr x)))
