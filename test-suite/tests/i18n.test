@@ -1,6 +1,7 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
-;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012,
+;;;;   2013 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -147,10 +148,11 @@
   (under-locale-or-unresolved %french-utf8-locale thunk))
 
 (define (under-turkish-utf8-locale-or-unresolved thunk)
-  ;; FreeBSD 8.2, Solaris 2.10, and Darwin 8.11.0 have a broken tr_TR
-  ;; locale where `i' is mapped to uppercase `I' instead of `İ', so
-  ;; disable tests on that platform.
+  ;; FreeBSD 8.2 and 9.1, Solaris 2.10, and Darwin 8.11.0 have a broken
+  ;; tr_TR locale where `i' is mapped to uppercase `I' instead of `İ',
+  ;; so disable tests on that platform.
   (if (or (string-contains %host-type "freebsd8")
+          (string-contains %host-type "freebsd9")
           (string-contains %host-type "solaris2.10")
           (string-contains %host-type "darwin8"))
       (throw 'unresolved)
