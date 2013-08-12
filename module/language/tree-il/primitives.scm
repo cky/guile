@@ -195,8 +195,7 @@
 (define *negatable-primitives*
   '((even? . odd?)
     (exact? . inexact?)
-    (< . >=)
-    (> . <=)
+    ;; (< <= > >=) are not negatable because of NaNs.
     (char<? . char>=?)
     (char>? . char<=?)))
 
