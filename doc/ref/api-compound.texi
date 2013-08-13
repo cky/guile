@@ -459,7 +459,7 @@ list results if the last argument is not a proper list.
 @end lisp
 
 @code{append} doesn't modify the given lists, but the return may share
-structure with the final @var{obj}.  @code{append!} modifies the
+structure with the final @var{obj}.  @code{append!} may modify the
 given lists to form its return.
 
 For @code{scm_append} and @code{scm_append_x}, @var{lstlst} is a list
