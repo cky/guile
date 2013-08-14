@@ -459,8 +459,8 @@ list results if the last argument is not a proper list.
 @end lisp
 
 @code{append} doesn't modify the given lists, but the return may share
-structure with the final @var{obj}.  @code{append!} may modify the
-given lists to form its return.
+structure with the final @var{obj}.  @code{append!} is permitted, but
+not required, to modify the given lists to form its return.
 
 For @code{scm_append} and @code{scm_append_x}, @var{lstlst} is a list
 of the list operands @var{lst} @dots{} @var{obj}.  That @var{lstlst}
@@ -474,8 +474,8 @@ itself is not modified or used in the return.
 @deffnx {C Function} scm_reverse_x (lst, newtail)
 Return a list comprising the elements of @var{lst}, in reverse order.
 
-@code{reverse} constructs a new list, @code{reverse!} modifies
-@var{lst} in constructing its return.
+@code{reverse} constructs a new list.  @code{reverse!} is permitted, but
+not required, to modify @var{lst} in constructing its return.
 
 For @code{reverse!}, the optional @var{newtail} is appended to the
 result.  @var{newtail} isn't reversed, it simply becomes the list
