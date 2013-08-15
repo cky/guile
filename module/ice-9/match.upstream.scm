@@ -284,7 +284,10 @@
   (syntax-rules (=>)
     ;; no more clauses, the match failed
     ((match-next v g+s)
-     (error 'match "no matching pattern"))
+     ;; Here we wrap error within a double set of parentheses, so that
+     ;; the call to 'error' won't be in tail position.  This allows the
+     ;; backtrace to show the source location of the failing match form.
+     ((error 'match "no matching pattern" v)))
     ;; named failure continuation
     ((match-next v g+s (pat (=> failure) . body) . rest)
      (let ((failure (lambda () (match-next v g+s . rest))))

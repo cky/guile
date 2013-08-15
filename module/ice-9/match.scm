@@ -24,9 +24,9 @@
             match-let*
             match-letrec))
 
-(define (error _ msg)
+(define (error _ . args)
   ;; Error procedure for run-time "no matching pattern" errors.
-  (throw 'match-error "match" msg))
+  (apply throw 'match-error "match" args))
 
 ;; Support for record matching.
 
