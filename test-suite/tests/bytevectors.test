@@ -155,9 +155,17 @@
     (let ((b (make-bytevector 0)))
       (null? (bytevector->uint-list b (endianness big) 2))))
 
+  (pass-if "bytevector->sint-list [length < word size]"
+    (let ((b (make-bytevector 1)))
+      (null? (bytevector->sint-list b (endianness big) 2))))
+
   (pass-if-exception "bytevector->sint-list [out-of-range]"
     exception:out-of-range
-    (bytevector->sint-list (make-bytevector 6) (endianness little) 8))
+    (bytevector->sint-list (make-bytevector 6) (endianness little) -1))
+
+  (pass-if-exception "bytevector->uint-list [out-of-range]"
+    exception:out-of-range
+    (bytevector->uint-list (make-bytevector 6) (endianness little) 0))
 
   (pass-if "bytevector->sint-list [off-by-one]"
     (equal? (bytevector->sint-list (make-bytevector 31 #xff)

@@ -1099,20 +1099,18 @@ SCM_DEFINE (scm_bytevector_sint_set_x, "bytevector-sint-set!", 5, 0, 0,
 									\
   SCM_VALIDATE_BYTEVECTOR (1, bv);					\
   SCM_VALIDATE_SYMBOL (2, endianness);					\
-  c_size = scm_to_uint (size);						\
+  c_size = scm_to_unsigned_integer (size, 1, (size_t) -1);		\
 									\
   c_len = SCM_BYTEVECTOR_LENGTH (bv);					\
-  if (SCM_UNLIKELY (c_len == 0))					\
+  if (SCM_UNLIKELY (c_len < c_size))					\
     lst = SCM_EOL;							\
-  else if (SCM_UNLIKELY (c_len < c_size))				\
-    scm_out_of_range (FUNC_NAME, size);					\
   else									\
     {									\
       const char *c_bv;							\
 									\
       c_bv = (char *) SCM_BYTEVECTOR_CONTENTS (bv);			\
 									\
-      lst = scm_make_list (scm_from_uint (c_len / c_size),		\
+      lst = scm_make_list (scm_from_size_t (c_len / c_size),		\
 			   SCM_UNSPECIFIED);				\
       for (i = 0, pair = lst;						\
 	   i <= c_len - c_size;						\
