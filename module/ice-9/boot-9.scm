@@ -2248,6 +2248,8 @@ VALUE."
 (define (module-add! m v var)
   (if (not (variable? var))
       (error "Bad variable to module-add!" var))
+  (if (not (symbol? v))
+      (error "Bad symbol to module-add!" v))
   (module-obarray-set! (module-obarray m) v var)
   (module-modified m))
 
@@ -3582,7 +3584,7 @@ CONV is not applied to the initial value."
   (syntax-rules ()
     ((_ (name . args) . body)
      (begin
-       (define name (lambda args . body))
+       (define (name . args) . body)
        (export name)))
     ((_ name val)
      (begin
