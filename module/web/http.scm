@@ -1137,16 +1137,13 @@ three values: the method, the URI, and the version."
           (display host-port port)))))
   (let ((path (uri-path uri))
         (query (uri-query uri)))
-    (if (not (string-null? path))
+    (if (string-null? path)
+        (display "/" port)
         (display path port))
     (if query
         (begin
           (display "?" port)
-          (display query port)))
-    (if (and (string-null? path)
-             (not query))
-        ;; Make sure we display something.
-        (display "/" port)))
+          (display query port))))
   (display #\space port)
   (write-http-version version port)
   (display "\r\n" port))

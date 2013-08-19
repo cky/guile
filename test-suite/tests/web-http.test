@@ -173,6 +173,10 @@
                               (build-uri 'http
                                          #:path "/pub/WWW/TheProject.html")
                               (1 . 1))
+  (pass-if-write-request-line "GET /?foo HTTP/1.1"
+                              GET
+                              (build-uri 'http #:query "foo")
+                              (1 . 1))
   (pass-if-write-request-line "HEAD /etc/hosts?foo=bar HTTP/1.1"
                               HEAD
                               (build-uri 'http
