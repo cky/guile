@@ -1956,7 +1956,7 @@ exact integer object. If no characters can be read before an end of
 file, the end-of-file object is returned.
 @end deffn
 
-@deffn {Scheme Procedure} get-string-all textual-input-port count
+@deffn {Scheme Procedure} get-string-all textual-input-port
 Reads from @var{textual-input-port} until an end of file, decoding
 characters in the same manner as @code{get-string-n} and
 @code{get-string-n!}.
