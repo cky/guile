@@ -1,4 +1,4 @@
-;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;; Copyright (C) 2010, 2013  Free Software Foundation, Inc.
 ;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -21,32 +21,25 @@
 
 (define-syntax cdefine
   (syntax-rules ()
-    ((_ ((head . tail) . rest) body body* ...)
-     (cdefine (head . tail)
-       (lambda rest body body* ...)))
     ((_ (head . rest) body body* ...)
-     (define head
+     (cdefine head
        (lambda rest body body* ...)))
-    ((_ . rest)
-     (define . rest))))
+    ((_ name val)
+     (define name val))))
 
 (define-syntax cdefine*
   (syntax-rules ()
-    ((_ ((head . tail) . rest) body body* ...)
-     (cdefine* (head . tail)
-       (lambda* rest body body* ...)))
     ((_ (head . rest) body body* ...)
-     (define* head
+     (cdefine* head
        (lambda* rest body body* ...)))
-    ((_ . rest)
-     (define* . rest))))
+    ((_ name val)
+     (define* name val))))
 
 (define-syntax define-public
   (syntax-rules ()
-    ((_ (name . args) . body)
-     (begin
-       (cdefine (name . args) . body)
-       (export name)))
+    ((_ (head . rest) body body* ...)
+     (define-public head
+       (lambda rest body body* ...)))
     ((_ name val)
      (begin
        (define name val)
