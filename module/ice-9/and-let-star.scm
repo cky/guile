@@ -1,7 +1,6 @@
-;;;; and-let-star.scm --- and-let* syntactic form (draft SRFI-2) for Guile
-;;;; written by Michael Livshin <mike@olan.com>
+;;;; and-let-star.scm --- and-let* syntactic form (SRFI-2) for Guile
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2004, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004, 2006, 2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,30 +19,31 @@
 (define-module (ice-9 and-let-star)
   :export-syntax (and-let*))
 
-(defmacro and-let* (vars . body)
+(define-syntax %and-let*
+  (lambda (form)
+    (syntax-case form ()
+      ((_ orig-form ())
+       #'#t)
+      ((_ orig-form () body bodies ...)
+       #'(begin body bodies ...))
+      ((_ orig-form ((var exp) c ...) body ...)
+       (identifier? #'var)
+       #'(let ((var exp))
+           (if var
+               (%and-let* orig-form (c ...) body ...)
+               #f)))
+      ((_ orig-form ((exp) c ...) body ...)
+       #'(and exp (%and-let* orig-form (c ...) body ...)))
+      ((_ orig-form (var c ...) body ...)
+       (identifier? #'var)
+       #'(and var (%and-let* orig-form (c ...) body ...)))
+      ((_ orig-form (bad-clause c ...) body ...)
+       (syntax-violation 'and-let* "Bad clause" #'orig-form #'bad-clause)))))
 
-  (define (expand vars body)
-    (cond
-     ((null? vars)
-      (if (null? body)
-	  #t
-	  `(begin ,@body)))
-     ((pair? vars)
-      (let ((exp (car vars)))
-        (cond
-         ((pair? exp)
-          (cond
-           ((null? (cdr exp))
-            `(and ,(car exp) ,(expand (cdr vars) body)))
-           (else
-            (let ((var (car exp)))
-              `(let (,exp)
-                 (and ,var ,(expand (cdr vars) body)))))))
-         (else
-          `(and ,exp ,(expand (cdr vars) body))))))
-     (else
-      (error "not a proper list" vars))))
-
-  (expand vars body))
+(define-syntax and-let*
+  (lambda (form)
+    (syntax-case form ()
+      ((_ (c ...) body ...)
+       #`(%and-let* #,form (c ...) body ...)))))
 
 (cond-expand-provide (current-module) '(srfi-2))
