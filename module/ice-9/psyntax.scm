@@ -43,6 +43,12 @@
 ;;; revision control logs corresponding to this file: 2009, 2010.
 
 
+;;; This code is based on "Syntax Abstraction in Scheme"
+;;; by R. Kent Dybvig, Robert Hieb, and Carl Bruggeman.
+;;; Lisp and Symbolic Computation 5:4, 295-326, 1992.
+;;; <http://www.cs.indiana.edu/~dyb/pubs/LaSC-5-4-pp295-326.pdf>
+
+
 ;;; This file defines the syntax-case expander, macroexpand, and a set
 ;;; of associated syntactic forms and procedures.  Of these, the
 ;;; following are documented in The Scheme Programming Language,
