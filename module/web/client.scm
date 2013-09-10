@@ -207,7 +207,7 @@ as is the case by default with a request returned by `build-request'."
 (define* (request uri #:key
                   (body #f)
                   (port (open-socket-for-uri uri))
-                  (method "GET")
+                  (method 'GET)
                   (version '(1 . 1))
                   (keep-alive? #f)
                   (headers '())
@@ -230,7 +230,7 @@ as is the case by default with a request returned by `build-request'."
         (force-output (request-port request))
         (let ((response (read-response port)))
           (cond
-           ((equal? (request-method request) "HEAD")
+           ((eq? (request-method request) 'HEAD)
             (unless keep-alive?
               (close-port port))
             (values response #f))
@@ -285,7 +285,7 @@ true)."
     (issue-deprecation-warning
      "The #:extra-headers argument to http-get has been renamed to #:headers. "
      "Please update your code."))
-  (request uri #:method "GET" #:body body
+  (request uri #:method 'GET #:body body
            #:port port #:version version #:keep-alive? keep-alive?
            #:headers headers #:decode-body? decode-body?
            #:streaming? streaming?))
@@ -322,7 +322,7 @@ true)."
              #:streaming? streaming?)))
 
 (define-http-verb http-head
-  "HEAD"
+  'HEAD
   "Fetch message headers for the given URI using the HTTP \"HEAD\"
 method.
 
@@ -335,7 +335,7 @@ requests do not have a body.  The second value is only returned so that
 other procedures can treat all of the http-foo verbs identically.")
 
 (define-http-verb http-post
-  "POST"
+  'POST
   "Post data to the given URI using the HTTP \"POST\" method.
 
 This function is similar to ‘http-get’, except it uses the \"POST\"
@@ -345,7 +345,7 @@ arguments that are accepted by this function.
 Returns two values: the resulting response, and the response body.")
 
 (define-http-verb http-put
-  "PUT"
+  'PUT
   "Put data at the given URI using the HTTP \"PUT\" method.
 
 This function is similar to ‘http-get’, except it uses the \"PUT\"
@@ -355,7 +355,7 @@ arguments that are accepted by this function.
 Returns two values: the resulting response, and the response body.")
 
 (define-http-verb http-delete
-  "DELETE"
+  'DELETE
   "Delete data at the given URI using the HTTP \"DELETE\" method.
 
 This function is similar to ‘http-get’, except it uses the \"DELETE\"
@@ -365,7 +365,7 @@ arguments that are accepted by this function.
 Returns two values: the resulting response, and the response body.")
 
 (define-http-verb http-trace
-  "TRACE"
+  'TRACE
   "Send an HTTP \"TRACE\" request.
 
 This function is similar to ‘http-get’, except it uses the \"TRACE\"
@@ -375,7 +375,7 @@ arguments that are accepted by this function.
 Returns two values: the resulting response, and the response body.")
 
 (define-http-verb http-options
-  "OPTIONS"
+  'OPTIONS
   "Query characteristics of an HTTP resource using the HTTP \"OPTIONS\"
 method.
 
