@@ -29,9 +29,7 @@
       ((_ orig-form ((var exp) c ...) body ...)
        (identifier? #'var)
        #'(let ((var exp))
-           (if var
-               (%and-let* orig-form (c ...) body ...)
-               #f)))
+           (and var (%and-let* orig-form (c ...) body ...))))
       ((_ orig-form ((exp) c ...) body ...)
        #'(and exp (%and-let* orig-form (c ...) body ...)))
       ((_ orig-form (var c ...) body ...)
