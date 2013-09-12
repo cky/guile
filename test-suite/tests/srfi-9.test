@@ -1,7 +1,8 @@
 ;;;; srfi-9.test --- Test suite for Guile's SRFI-9 functions. -*- scheme -*-
 ;;;; Martin Grabmueller, 2001-05-10
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2007, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2007, 2010, 2011, 2012,
+;;;;   2013 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -41,15 +42,18 @@
 
 (define b (make-bar 123 456))
 
+(define exception:syntax-error-wrong-num-args
+  (cons 'syntax-error "Wrong number of arguments"))
+
 (with-test-prefix "constructor"
 
   ;; Constructors are defined using `define-integrable', meaning that direct
   ;; calls as in `(make-foo)' lead to a compile-time psyntax error, hence the
   ;; distinction below.
 
-  (pass-if-exception "foo 0 args (inline)" exception:syntax-pattern-unmatched
+  (pass-if-exception "foo 0 args (inline)" exception:syntax-error-wrong-num-args
      (compile '(make-foo) #:env (current-module)))
-  (pass-if-exception "foo 2 args (inline)" exception:syntax-pattern-unmatched
+  (pass-if-exception "foo 2 args (inline)" exception:syntax-error-wrong-num-args
      (compile '(make-foo 1 2) #:env (current-module)))
 
   (pass-if-exception "foo 0 args" exception:wrong-num-args
