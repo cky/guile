@@ -4161,6 +4161,8 @@ when none is available, reading FILE-NAME with READER."
                          (lambda (formals ...)
                            body ...))
                        args ...))
+                   ((_ a (... ...))
+                    (syntax-violation 'name "Wrong number of arguments" x))
                    (_
                     (identifier? x)
                     #'proc-name))))))))))

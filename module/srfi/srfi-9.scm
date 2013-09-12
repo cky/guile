@@ -122,6 +122,8 @@
                     #'((lambda (formals ...)
                          body ...)
                        args ...))
+                   ((_ a (... ...))
+                    (syntax-violation 'name "Wrong number of arguments" x))
                    (_
                     (identifier? x)
                     #'proc-name))))))))))
