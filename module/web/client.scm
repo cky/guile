@@ -41,6 +41,8 @@
   #:use-module (web uri)
   #:use-module (web http)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:export (current-http-proxy
             open-socket-for-uri
             http-get
@@ -103,14 +105,9 @@
               (loop (cdr addresses))))))))
 
 (define (extend-request r k v . additional)
-  (let ((r (build-request (request-uri r)
-                          #:method (request-method r)
-                          #:version (request-version r)
-                          #:headers
-                          (assoc-set! (copy-tree (request-headers r))
-                                      k v)
-                          #:port (request-port r)
-                          #:meta (request-meta r))))
+  (let ((r (set-field r (request-headers)
+                      (assoc-set! (copy-tree (request-headers r))
+                                  k v))))
     (if (null? additional)
         r
         (apply extend-request r additional))))

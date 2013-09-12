@@ -74,6 +74,7 @@
 
 (define-module (web server)
   #:use-module (srfi srfi-9)
+  #:use-module (srfi srfi-9 gnu)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 binary-ports)
   #:use-module (web request)
@@ -164,12 +165,9 @@ values."
    #:post-error (lambda _ (values #f #f #f))))
 
 (define (extend-response r k v . additional)
-  (let ((r (build-response #:version (response-version r)
-                           #:code (response-code r)
-                           #:headers
-                           (assoc-set! (copy-tree (response-headers r))
-                                       k v)
-                           #:port (response-port r))))
+  (let ((r (set-field r (response-headers)
+                      (assoc-set! (copy-tree (response-headers r))
+                                  k v))))
     (if (null? additional)
         r
         (apply extend-response r additional))))
