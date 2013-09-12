@@ -232,6 +232,7 @@ on the procedure being called at any particular time."
     (error "unexpected body type"))
    ((and (response-must-not-include-body? response)
          body
+         ;; FIXME make this stricter: even an empty body should be prohibited.
          (not (zero? (bytevector-length body))))
     (error "response with this status code must not include body" response))
    (else
@@ -242,7 +243,6 @@ on the procedure being called at any particular time."
                (rlen (if (= rlen blen)
                          response
                          (error "bad content-length" rlen blen)))
-               ((zero? blen) response)
                (else (extend-response response 'content-length blen))))
             (if (eq? (request-method request) 'HEAD)
                 ;; Responses to HEAD requests must not include bodies.

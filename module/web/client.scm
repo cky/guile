@@ -139,6 +139,9 @@ as is the case by default with a request returned by `build-request'."
    ((not body)
     (let ((length (request-content-length request)))
       (if length
+          ;; FIXME make this stricter: content-length header should be
+          ;; prohibited if there's no body, even if the content-length
+          ;; is 0.
           (unless (zero? length)
             (error "content-length, but no body"))
           (when (assq 'transfer-encoding (request-headers request))
@@ -174,7 +177,6 @@ as is the case by default with a request returned by `build-request'."
                (rlen (if (= rlen blen)
                          request
                          (error "bad content-length" rlen blen)))
-               ((zero? blen) request)
                (else (extend-request request 'content-length blen))))
             body))))
 
