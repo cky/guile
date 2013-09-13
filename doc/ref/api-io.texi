@@ -2131,6 +2131,7 @@ index @var{start} and limiting to @var{count} octets.
 
 @deffn {Scheme Procedure} put-char port char
 Writes @var{char} to the port. The @code{put-char} procedure returns
+an unspecified value.
 @end deffn
 
 @deffn {Scheme Procedure} put-string port string
