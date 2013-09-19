@@ -96,6 +96,12 @@
       (let ((old-secs (car (current-time))))
         (unspecified? (thread-sleep! (+ (time->seconds (current-time)))))))
 
+    (pass-if "thread sleeps fractions of a second"
+      (let* ((current (time->seconds (current-time)))
+             (future (+ current 0.5)))
+        (thread-sleep! future)
+        (>= (time->seconds (current-time)) future)))
+
     (pass-if "thread does not sleep on past time"
       (let ((past-time (seconds->time (- (time->seconds (current-time)) 2))))
         (unspecified? (thread-sleep! past-time)))))
