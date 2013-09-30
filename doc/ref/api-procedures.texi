@@ -297,7 +297,7 @@ list, or @code{#f} if this information is not available.
 For example:
 
 @example
-(program-lambda-alist
+(program-lambda-list
  (lambda* (a b #:optional c #:key (d 1) #:rest e)
    #t)) @result{}
 @end example

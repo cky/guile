@@ -88,7 +88,7 @@ default @code{C} locale which usually represents conventions in use in
 the USA):
 
 @example
-(make-locale (list LC_MESSAGE LC_CTYPE) "sv_SE")
+(make-locale (list LC_MESSAGES LC_CTYPE) "sv_SE")
 @end example
 
 The following example combines the use of Esperanto messages and
