@@ -4978,14 +4978,11 @@ left_shift_exact_integer (SCM n, long count)
     {
       scm_t_inum nn = SCM_I_INUM (n);
 
-      /* Left shift of count >= SCM_I_FIXNUM_BIT-1 will almost[*] always
+      /* Left shift of count >= SCM_I_FIXNUM_BIT-1 will always
          overflow a non-zero fixnum.  For smaller shifts we check the
          bits going into positions above SCM_I_FIXNUM_BIT-1.  If they're
          all 0s for nn>=0, or all 1s for nn<0 then there's no overflow.
-         Those bits are "nn >> (SCM_I_FIXNUM_BIT-1 - count)".
-
-         [*] There's one exception:
-             (-1) << SCM_I_FIXNUM_BIT-1 == SCM_MOST_NEGATIVE_FIXNUM  */
+         Those bits are "nn >> (SCM_I_FIXNUM_BIT-1 - count)".  */
 
       if (nn == 0)
         return n;
@@ -4998,8 +4995,8 @@ left_shift_exact_integer (SCM n, long count)
           SCM result = scm_i_inum2big (nn);
           mpz_mul_2exp (SCM_I_BIG_MPZ (result), SCM_I_BIG_MPZ (result),
                         count);
-          return scm_i_normbig (result);
-       }
+          return result;
+        }
     }
   else if (SCM_BIGP (n))
     {
