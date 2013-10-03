@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -62,8 +62,6 @@ SCM_API SCM scm_program_num_free_variables (SCM program);
 SCM_API SCM scm_program_free_variable_ref (SCM program, SCM i);
 SCM_API SCM scm_program_free_variable_set_x (SCM program, SCM i, SCM x);
 SCM_API SCM scm_program_objcode (SCM program);
-
-SCM_API SCM scm_c_program_source (SCM program, size_t ip);
 
 SCM_INTERNAL SCM scm_i_program_properties (SCM program);
 SCM_INTERNAL int scm_i_program_arity (SCM program, int *req, int *opt, int *rest);

@@ -2924,6 +2924,18 @@ SCM_DEFINE (scm_generalized_vector_to_list, "generalized-vector->list", 1, 0, 0,
 
 
 
+extern SCM
+scm_c_program_source (SCM program, size_t ip)
+{
+  scm_c_issue_deprecation_warning
+    ("scm_c_program_source is deprecated.  Use scm_program_source instead.");
+
+  return scm_program_source (program, scm_from_size_t (ip), SCM_UNBOUND);
+}
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

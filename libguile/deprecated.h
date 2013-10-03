@@ -857,6 +857,10 @@ SCM_DEPRECATED SCM scm_generalized_vector_to_list (SCM v);
 
 
 
+SCM_DEPRECATED SCM scm_c_program_source (SCM program, size_t ip);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif

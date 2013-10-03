@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -294,12 +294,6 @@ SCM_DEFINE (scm_program_source, "program-source", 2, 1, 0,
 }
 #undef FUNC_NAME
     
-extern SCM
-scm_c_program_source (SCM program, size_t ip)
-{
-  return program_source (program, ip, scm_program_sources (program));
-}
-
 SCM_DEFINE (scm_program_num_free_variables, "program-num-free-variables", 1, 0, 0,
 	    (SCM program),
 	    "")
