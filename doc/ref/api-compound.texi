@@ -689,20 +689,16 @@ Vectors can literally be entered in source code, just like strings,
 characters or some of the other data types.  The read syntax for vectors
 is as follows: A sharp sign (@code{#}), followed by an opening
 parentheses, all elements of the vector in their respective read syntax,
-and finally a closing parentheses.  The following are examples of the
-read syntax for vectors; where the first vector only contains numbers
-and the second three different object types: a string, a symbol and a
-number in hexadecimal notation.
+and finally a closing parentheses.  Like strings, vectors do not have to
+be quoted.
+
+The following are examples of the read syntax for vectors; where the
+first vector only contains numbers and the second three different object
+types: a string, a symbol and a number in hexadecimal notation.
 
 @lisp
 #(1 2 3)
 #("Hello" foo #xdeadbeef)
-@end lisp
-
-Like lists, vectors have to be quoted:
-
-@lisp
-'#(a b c) @result{} #(a b c)
 @end lisp
 
 @node Vector Creation
@@ -735,7 +731,7 @@ The inverse operation is @code{vector->list}:
 Return a newly allocated list composed of the elements of @var{v}.
 
 @lisp
-(vector->list '#(dah dah didah)) @result{}  (dah dah didah)
+(vector->list #(dah dah didah)) @result{}  (dah dah didah)
 (list->vector '(dididit dah)) @result{}  #(dididit dah)
 @end lisp
 @end deffn
@@ -796,8 +792,8 @@ Return the number of elements in @var{vec} as a @code{size_t}.
 Return the contents of position @var{k} of @var{vec}.
 @var{k} must be a valid index of @var{vec}.
 @lisp
-(vector-ref '#(1 1 2 3 5 8 13 21) 5) @result{} 8
-(vector-ref '#(1 1 2 3 5 8 13 21)
+(vector-ref #(1 1 2 3 5 8 13 21) 5) @result{} 8
+(vector-ref #(1 1 2 3 5 8 13 21)
     (let ((i (round (* 2 (acos -1)))))
       (if (inexact? i)
         (inexact->exact i)
