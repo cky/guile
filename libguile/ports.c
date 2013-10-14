@@ -1657,7 +1657,9 @@ scm_c_read (SCM port, void *buffer, size_t size)
      requested number of bytes.  (Note that a single scm_i_fill_input
      call does not guarantee to fill the whole of the port's read
      buffer.) */
-  if (pt->read_buf_size <= 1 && pt->encoding == NULL)
+  if (pt->read_buf_size <= 1 &&
+      (pt->encoding == NULL
+       || c_strcasecmp (pt->encoding, "ISO-8859-1") == 0))
     {
       /* The port that we are reading from is unbuffered - i.e. does
 	 not have its own persistent buffer - but we have a buffer,
