@@ -31,7 +31,6 @@ datatypes described here.)
 * Creating Smob Instances::          
 * Type checking::                
 * Garbage Collecting Smobs::    
-* Garbage Collecting Simple Smobs::  
 * Remembering During Operations::  
 * Double Smobs::
 * The Complete Example::          
@@ -40,31 +39,10 @@ datatypes described here.)
 @node Describing a New Type
 @subsection Describing a New Type
 
-To define a new type, the programmer must write four functions to
+To define a new type, the programmer must write two functions to
 manage instances of the type:
 
 @table @code
-@item mark
-Guile will apply this function to each instance of the new type it
-encounters during garbage collection.  This function is responsible for
-telling the collector about any other @code{SCM} values that the object
-has stored.  The default smob mark function does nothing.
-@xref{Garbage Collecting Smobs}, for more details.
-
-@item free
-Guile will apply this function to each instance of the new type that is
-to be deallocated.  The function should release all resources held by
-the object.  This is analogous to the Java finalization method-- it is
-invoked at an unspecified time (when garbage collection occurs) after
-the object is dead.  The default free function frees the smob data (if
-the size of the struct passed to @code{scm_make_smob_type} is non-zero)
-using @code{scm_gc_free}.  @xref{Garbage Collecting Smobs}, for more
-details.
-
-This function operates while the heap is in an inconsistent state and
-must therefore be careful.  @xref{Smobs}, for details about what this
-function is allowed to do.
-
 @item print
 Guile will apply this function to each instance of the new type to print
 the value, as for @code{display} or @code{write}.  The default print
@@ -79,6 +57,32 @@ of the same smob type, Guile calls this function.  It should return
 @code{NULL}, @code{equal?} will assume that two instances of this type are
 never @code{equal?} unless they are @code{eq?}.
 
+@end table
+
+When the only resource associated with a smob is memory managed by the
+garbage collector---i.e., memory allocated with the @code{scm_gc_malloc}
+functions---this is sufficient.  However, when a smob is associated with
+other kinds of resources, it may be necessary to define one of the
+following functions, or both:
+
+@table @code
+@item mark
+Guile will apply this function to each instance of the new type it
+encounters during garbage collection.  This function is responsible for
+telling the collector about any other @code{SCM} values that the object
+has stored, and that are in memory regions not already scanned by the
+garbage collector.  @xref{Garbage Collecting Smobs}, for more details.
+
+@item free
+Guile will apply this function to each instance of the new type that is
+to be deallocated.  The function should release all resources held by
+the object.  This is analogous to the Java finalization method---it is
+invoked at an unspecified time (when garbage collection occurs) after
+the object is dead.  @xref{Garbage Collecting Smobs}, for more details.
+
+This function operates while the heap is in an inconsistent state and
+must therefore be careful.  @xref{Smobs}, for details about what this
+function is allowed to do.
 @end table
 
 To actually register the new smob type, call @code{scm_make_smob_type}.
@@ -164,35 +168,11 @@ word of a smob, you should use the macros @code{SCM_SMOB_OBJECT} and
 @code{SCM_SET_SMOB_OBJECT} to access it.
 
 Creating a smob instance can be tricky when it consists of multiple
-steps that allocate resources and might fail.  It is recommended that
-you go about creating a smob in the following way:
-
-@itemize
-@item
-Allocate the memory block for holding the data with
-@code{scm_gc_malloc}.
-@item
-Initialize it to a valid state without calling any functions that might
-cause a non-local exits.  For example, initialize pointers to NULL.
-Also, do not store @code{SCM} values in it that must be protected.
-Initialize these fields with @code{SCM_BOOL_F}.
-
-A valid state is one that can be safely acted upon by the @emph{mark}
-and @emph{free} functions of your smob type.
-@item
-Create the smob using @code{scm_new_smob}, passing it the initialized
-memory block.  (This step will always succeed.)
-@item
-Complete the initialization of the memory block by, for example,
-allocating additional resources and making it point to them.
-@end itemize
-
-This procedure ensures that the smob is in a valid state as soon as it
-exists, that all resources that are allocated for the smob are
-properly associated with it so that they can be properly freed, and
-that no @code{SCM} values that need to be protected are stored in it
-while the smob does not yet completely exist and thus can not protect
-them.
+steps that allocate resources.  Most of the time, this is mainly about
+allocating memory to hold associated data structures.  Using memory
+managed by the garbage collector simplifies things: the garbage
+collector will automatically scan those data structures for pointers,
+and reclaim them when they are no longer referenced.
 
 Continuing the example from above, if the global variable
 @code{image_tag} contains a tag returned by @code{scm_make_smob_type},
@@ -229,44 +209,19 @@ make_image (SCM name, SCM s_width, SCM s_height)
    */
   image->name = name;
   image->pixels =
-     scm_gc_malloc (width * height, "image pixels");
+    scm_gc_malloc_pointerless (width * height, "image pixels");
 
   return smob;
 @}
 @end example
 
-Let us look at what might happen when @code{make_image} is called.
+We use @code{scm_gc_malloc_pointerless} for the pixel buffer to tell the
+garbage collector not to scan it for pointers.  Calls to
+@code{scm_gc_malloc}, @code{scm_new_smob}, and
+@code{scm_gc_malloc_pointerless} raise an exception in out-of-memory
+conditions; the garbage collector is able to reclaim previously
+allocated memory if that happens.
 
-The conversions of @var{s_width} and @var{s_height} to @code{int}s might
-fail and signal an error, thus causing a non-local exit.  This is not a
-problem since no resources have been allocated yet that would have to be
-freed.
-
-The allocation of @var{image} in step 1 might fail, but this is likewise
-no problem.
-
-Step 2 can not exit non-locally.  At the end of it, the @var{image}
-struct is in a valid state for the @code{mark_image} and
-@code{free_image} functions (see below).
-
-Step 3 can not exit non-locally either.  This is guaranteed by Guile.
-After it, @var{smob} contains a valid smob that is properly initialized
-and protected, and in turn can properly protect the Scheme values in its
-@var{image} struct.
-
-But before the smob is completely created, @code{scm_new_smob} might
-cause the garbage collector to run.  During this garbage collection, the
-@code{SCM} values in the @var{image} struct would be invisible to Guile.
-It only gets to know about them via the @code{mark_image} function, but
-that function can not yet do its job since the smob has not been created
-yet.  Thus, it is important to not store @code{SCM} values in the
-@var{image} struct until after the smob has been created.
-
-Step 4, finally, might fail and cause a non-local exit.  In that case,
-the complete creation of the smob has not been successful, but it does
-nevertheless exist in a valid state.  It will eventually be freed by
-the garbage collector, and all the resources that have been allocated
-for it will be correctly freed by @code{free_image}.
 
 @node Type checking
 @subsection Type checking
@@ -310,8 +265,17 @@ to @code{scm_remember_upto_here_1}.
 @subsection Garbage Collecting Smobs
 
 Once a smob has been released to the tender mercies of the Scheme
-system, it must be prepared to survive garbage collection.  Guile calls
-the @emph{mark} and @emph{free} functions of the smob to manage this.
+system, it must be prepared to survive garbage collection.  In the
+example above, all the memory associated with the smob is managed by the
+garbage collector because we used the @code{scm_gc_} allocation
+functions.  Thus, no special care must be taken: the garbage collector
+automatically scans them and reclaims any unused memory.
+
+However, when data associated with a smob is managed in some other
+way---e.g., @code{malloc}'d memory or file descriptors---it is possible
+to specify a @emph{free} function to release those resources when the
+smob is reclaimed, and a @emph{mark} function to mark Scheme objects
+otherwise invisible to the garbage collector.
 
 As described in more detail elsewhere (@pxref{Conservative GC}), every
 object in the Scheme system has a @dfn{mark bit}, which the garbage
@@ -343,7 +307,9 @@ values will have become dangling references.
 To mark an arbitrary Scheme object, the @emph{mark} function calls
 @code{scm_gc_mark}.
 
-Thus, here is how we might write @code{mark_image}:
+Thus, here is how we might write @code{mark_image}---again this is not
+needed in our example since we used the @code{scm_gc_} allocation
+routines, so this is just for the sake of illustration:
 
 @example
 @group
@@ -398,7 +364,8 @@ type of the @emph{free} function should be @code{size_t}, an unsigned
 integral type; the @emph{free} function should always return zero.
 
 Here is how we might write the @code{free_image} function for the image
-smob type:
+smob type---again for the sake of illustration, since our example does
+not need it thanks to the use of the @code{scm_gc_} allocation routines:
 @example
 size_t
 free_image (SCM image_smob)
@@ -426,36 +393,11 @@ during garbage collection; keep the @emph{mark} and @emph{free}
 functions very simple.  Since collections occur at unpredictable times,
 it is easy for any unusual activity to interfere with normal code.
 
-
-@node Garbage Collecting Simple Smobs
-@subsection Garbage Collecting Simple Smobs
-
-It is often useful to define very simple smob types --- smobs which have
-no data to mark, other than the cell itself, or smobs whose immediate
-data word is simply an ordinary Scheme object, to be marked recursively.
-Guile provides some functions to handle these common cases; you can use
-this function as your smob type's @emph{mark} function, if your smob's
-structure is simple enough.
-
-If the smob refers to no other Scheme objects, then no action is
-necessary; the garbage collector has already marked the smob cell
-itself.  In that case, you can use zero as your mark function.
-
-If the smob refers to exactly one other Scheme object via its first
-immediate word, you can use @code{scm_markcdr} as its mark function.
-Its definition is simply:
-
-@smallexample
-SCM
-scm_markcdr (SCM obj)
-@{
-  return SCM_SMOB_OBJECT (obj);
-@}
-@end smallexample
-
 @node Remembering During Operations
 @subsection Remembering During Operations
 @cindex remembering
+
+@c FIXME: Remove this section?
 
 It's important that a smob is visible to the garbage collector
 whenever its contents are being accessed.  Otherwise it could be freed
@@ -515,6 +457,8 @@ while the collector runs.)
 
 @node Double Smobs
 @subsection Double Smobs
+
+@c FIXME: Remove this section?
 
 Smobs are called smob because they are small: they normally have only
 room for one @code{void*} or @code{SCM} value plus 16 bits.  The
