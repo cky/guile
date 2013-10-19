@@ -676,8 +676,8 @@ Maps each seed value to next seed value.
 @item seed
 The state value for the unfold.
 
-@item tail-gen
-Creates the tail of the list; defaults to @code{(lambda (x) '())}.
+@item tail
+The tail of the list; defaults to @code{'()}.
 @end table
 
 @end deffn
