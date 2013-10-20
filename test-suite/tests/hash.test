@@ -18,7 +18,8 @@
 
 (define-module (test-suite test-numbers)
   #:use-module (test-suite lib)
-  #:use-module (ice-9 documentation))
+  #:use-module (ice-9 documentation)
+  #:use-module (ice-9 hash-table))
 
 ;;;
 ;;; hash
@@ -79,6 +80,41 @@
                           (with-output-to-string
                             (lambda ()
                               (write (make-hash-table 100)))))))
+
+;;;
+;;; alist->hash-table
+;;;
+
+(with-test-prefix
+  "alist conversion"
+
+  (pass-if "alist->hash-table"
+    (let ((table (alist->hash-table '(("foo" . 1)
+                                      ("bar" . 2)
+                                      ("foo" . 3)))))
+      (and (= (hash-ref table "foo") 1)
+           (= (hash-ref table "bar") 2))))
+
+  (pass-if "alist->hashq-table"
+    (let ((table (alist->hashq-table '((foo . 1)
+                                       (bar . 2)
+                                       (foo . 3)))))
+      (and (= (hashq-ref table 'foo) 1)
+           (= (hashq-ref table 'bar) 2))))
+
+  (pass-if "alist->hashv-table"
+    (let ((table (alist->hashv-table '((1 . 1)
+                                       (2 . 2)
+                                       (1 . 3)))))
+      (and (= (hashv-ref table 1) 1)
+           (= (hashv-ref table 2) 2))))
+
+  (pass-if "alist->hashx-table"
+    (let ((table (alist->hashx-table hash assoc '((foo . 1)
+                                                  (bar . 2)
+                                                  (foo . 3)))))
+      (and (= (hashx-ref hash assoc table 'foo) 1)
+           (= (hashx-ref hash assoc table 'bar) 2)))))
 
 ;;;
 ;;; usual set and reference

@@ -3829,6 +3829,27 @@ then it can use @var{size} to avoid rehashing when initial entries are
 added.
 @end deffn
 
+@deffn {Scheme Procedure} alist->hash-table alist
+@deffnx {Scheme Procedure} alist->hashq-table alist
+@deffnx {Scheme Procedure} alist->hashv-table alist
+@deffnx {Scheme Procedure} alist->hashx-table hash assoc alist
+Convert @var{alist} into a hash table. When keys are repeated in
+@var{alist}, the leftmost association takes precedence.
+
+@example
+(use-modules (ice-9 hash-table))
+(alist->hash-table '((foo . 1) (bar . 2)))
+@end example
+
+When converting to an extended hash table, custom @var{hash} and
+@var{assoc} procedures must be provided.
+
+@example
+(alist->hashx-table hash assoc '((foo . 1) (bar . 2)))
+@end example
+
+@end deffn
+
 @deffn {Scheme Procedure} hash-table? obj
 @deffnx {C Function} scm_hash_table_p (obj)
 Return @code{#t} if @var{obj} is a abstract hash table object.

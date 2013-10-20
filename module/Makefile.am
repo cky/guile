@@ -207,6 +207,7 @@ ICE_9_SOURCES = \
   ice-9/format.scm \
   ice-9/futures.scm \
   ice-9/getopt-long.scm \
+  ice-9/hash-table.scm \
   ice-9/hcons.scm \
   ice-9/i18n.scm \
   ice-9/iconv.scm \
