@@ -1371,8 +1371,8 @@ SCM_DEFINE (scm_uniform_vector_read_x, "uniform-vector-read!", 1, 3, 0,
   c_start = SCM_UNBNDP (start) ? 0 : scm_to_size_t (start);
   c_start *= c_width;
 
-  c_end = SCM_UNBNDP (end) ? SCM_BYTEVECTOR_LENGTH (uvec) : scm_to_size_t (end);
-  c_end *= c_width;
+  c_end = SCM_UNBNDP (end) ? SCM_BYTEVECTOR_LENGTH (uvec)
+                           : scm_to_size_t (end) * c_width;
 
   result = scm_get_bytevector_n_x (port_or_fd, uvec,
 				   scm_from_size_t (c_start),
