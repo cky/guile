@@ -716,24 +716,26 @@ top-level bindings from ENV and return the resulting expression."
         (cond
          ((lookup (lexical-ref-gensym x))
           => (lambda (op)
-               (let ((y (or (operand-residual-value op)
-                            (visit-operand op counter 'value 10 10)
-                            (operand-source op))))
-                 (cond
-                  ((and (lexical-ref? y)
-                        (= (lexical-refcount (lexical-ref-gensym x)) 1))
-                   ;; X is a simple alias for Y.  Recurse, regardless of
-                   ;; the number of aliases we were expecting.
-                   (find-definition y n-aliases))
-                  ((= (lexical-refcount (lexical-ref-gensym x)) n-aliases)
-                   ;; We found a definition that is aliased the right
-                   ;; number of times.  We still recurse in case it is a
-                   ;; lexical.
-                   (values (find-definition y 1)
-                           op))
-                  (else
-                   ;; We can't account for our aliases.
-                   (values #f #f))))))
+               (if (var-set? (operand-var op))
+                   (values #f #f)
+                   (let ((y (or (operand-residual-value op)
+                                (visit-operand op counter 'value 10 10)
+                                (operand-source op))))
+                     (cond
+                      ((and (lexical-ref? y)
+                            (= (lexical-refcount (lexical-ref-gensym x)) 1))
+                       ;; X is a simple alias for Y.  Recurse, regardless of
+                       ;; the number of aliases we were expecting.
+                       (find-definition y n-aliases))
+                      ((= (lexical-refcount (lexical-ref-gensym x)) n-aliases)
+                       ;; We found a definition that is aliased the right
+                       ;; number of times.  We still recurse in case it is a
+                       ;; lexical.
+                       (values (find-definition y 1)
+                               op))
+                      (else
+                       ;; We can't account for our aliases.
+                       (values #f #f)))))))
          (else
           ;; A formal parameter.  Can't say anything about that.
           (values #f #f))))
