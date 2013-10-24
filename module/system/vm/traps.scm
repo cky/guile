@@ -109,15 +109,18 @@
   ((new-disabled-trap vm enable disable) frame))
 
 (define (frame-matcher proc match-objcode?)
-  (if match-objcode?
-      (lambda (frame)
-        (let ((frame-proc (frame-procedure frame)))
-          (or (eq? frame-proc proc)
-              (and (program? frame-proc)
-                   (eq? (program-objcode frame-proc)
-                        (program-objcode proc))))))
-      (lambda (frame)
-        (eq? (frame-procedure frame) proc))))
+  (let ((proc (if (struct? proc)
+                  (procedure proc)
+                  proc)))
+    (if match-objcode?
+        (lambda (frame)
+          (let ((frame-proc (frame-procedure frame)))
+            (or (eq? frame-proc proc)
+                (and (program? frame-proc)
+                     (eq? (program-objcode frame-proc)
+                          (program-objcode proc))))))
+        (lambda (frame)
+          (eq? (frame-procedure frame) proc)))))
 
 ;; A basic trap, fires when a procedure is called.
 ;;
