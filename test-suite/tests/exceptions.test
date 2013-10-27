@@ -18,18 +18,20 @@
 
 (use-modules (test-suite lib))
 
-(define-macro (throw-test title result . exprs)
-  `(pass-if ,title
-     (equal? ,result
-	     (letrec ((stack '())
-		      (push (lambda (val)
-			      (set! stack (cons val stack)))))
-	       (begin ,@exprs)
-	       ;;(display ,title)
-	       ;;(display ": ")
-	       ;;(write (reverse stack))
-	       ;;(newline)
-	       (reverse stack)))))
+(define-syntax-parameter push
+  (lambda (stx)
+    (syntax-violation 'push "push used outside of throw-test" stx)))
+
+(define-syntax-rule (throw-test title result expr ...)
+  (pass-if title
+    (equal? result
+            (let ((stack '()))
+              (syntax-parameterize ((push (syntax-rules ()
+                                            ((push val)
+                                             (set! stack (cons val stack))))))
+                expr ...
+                ;;(format #t "~a: ~s~%" title (reverse stack))
+                (reverse stack))))))
 
 (with-test-prefix "throw/catch"
 
