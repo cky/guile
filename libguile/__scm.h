@@ -77,7 +77,7 @@
  *   1) int foo (char arg) SCM_NORETURN;
  */
 #ifdef __GNUC__
-#define SCM_NORETURN __attribute__ ((noreturn))
+#define SCM_NORETURN __attribute__ ((__noreturn__))
 #else
 #define SCM_NORETURN
 #endif

@@ -79,7 +79,7 @@ SCM_API int scm_exit_status (SCM args);
 SCM_API SCM scm_catch_with_pre_unwind_handler (SCM tag, SCM thunk, SCM handler, SCM lazy_handler);
 SCM_API SCM scm_catch (SCM tag, SCM thunk, SCM handler);
 SCM_API SCM scm_with_throw_handler (SCM tag, SCM thunk, SCM handler);
-SCM_API SCM scm_ithrow (SCM key, SCM args, int noreturn);
+SCM_API SCM scm_ithrow (SCM key, SCM args, int no_return);
 
 SCM_API SCM scm_throw (SCM key, SCM args);
 SCM_INTERNAL void scm_init_throw (void);

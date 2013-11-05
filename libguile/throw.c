@@ -436,7 +436,7 @@ scm_handle_by_throw (void *handler_data SCM_UNUSED, SCM tag, SCM args)
 }
 
 SCM
-scm_ithrow (SCM key, SCM args, int noreturn SCM_UNUSED)
+scm_ithrow (SCM key, SCM args, int no_return SCM_UNUSED)
 {
   return scm_throw (key, args);
 }
