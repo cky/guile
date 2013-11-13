@@ -1535,7 +1535,9 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
       codeset = nl_langinfo (CODESET);
     }
 
-  c_result = strdup (c_result);
+  if (c_result != NULL)
+    c_result = strdup (c_result);
+
   unlock_locale_mutex ();
 
   if (c_result == NULL)
