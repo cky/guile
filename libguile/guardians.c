@@ -40,7 +40,6 @@
  * monsters we had...
  *
  * Rewritten for the Boehm-Demers-Weiser GC by Ludovic Courtès.
- * FIXME: This is currently not thread-safe.
  */
 
 /* Uncomment the following line to debug guardian finalization.  */
@@ -72,6 +71,7 @@ static scm_t_bits tc16_guardian;
 
 typedef struct t_guardian
 {
+  scm_i_pthread_mutex_t mutex;
   unsigned long live;
   SCM zombies;
   struct t_guardian *next;
@@ -144,6 +144,9 @@ finalize_guarded (void *ptr, void *finalizer_data)
 	}
 
       g = GUARDIAN_DATA (SCM_CAR (guardian_list));
+
+      scm_i_pthread_mutex_lock_block_asyncs (&g->mutex);
+
       if (g->live == 0)
 	abort ();
 
@@ -157,7 +160,8 @@ finalize_guarded (void *ptr, void *finalizer_data)
       g->zombies = zombies;
 
       g->live--;
-      g->zombies = zombies;
+
+      scm_i_pthread_mutex_unlock_unblock_asyncs (&g->mutex);
     }
 
   if (scm_is_true (proxied_finalizer))
@@ -208,6 +212,8 @@ scm_i_guard (SCM guardian, SCM obj)
       void *prev_data;
       SCM guardians_for_obj, finalizer_data;
 
+      scm_i_pthread_mutex_lock_block_asyncs (&g->mutex);
+
       g->live++;
 
       /* Note: GUARDIANS_FOR_OBJ is a weak list so that a guardian can be
@@ -249,6 +255,8 @@ scm_i_guard (SCM guardian, SCM obj)
 					PTR2SCM (prev_data));
 	  SCM_SETCAR (finalizer_data, proxied_finalizer);
 	}
+
+      scm_i_pthread_mutex_unlock_unblock_asyncs (&g->mutex);
     }
 }
 
@@ -258,12 +266,16 @@ scm_i_get_one_zombie (SCM guardian)
   t_guardian *g = GUARDIAN_DATA (guardian);
   SCM res = SCM_BOOL_F;
 
+  scm_i_pthread_mutex_lock_block_asyncs (&g->mutex);
+
   if (!scm_is_null (g->zombies))
     {
       /* Note: We return zombies in reverse order.  */
       res = SCM_CAR (g->zombies);
       g->zombies = SCM_CDR (g->zombies);
     }
+
+  scm_i_pthread_mutex_unlock_unblock_asyncs (&g->mutex);
 
   return res;
 }
@@ -334,6 +346,8 @@ SCM_DEFINE (scm_make_guardian, "make-guardian", 0, 0, 0,
 {
   t_guardian *g = scm_gc_malloc (sizeof (t_guardian), "guardian");
   SCM z;
+
+  scm_i_pthread_mutex_init (&g->mutex, NULL);
 
   /* A tconc starts out with one tail pair. */
   g->live = 0;
