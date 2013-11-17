@@ -150,9 +150,13 @@ INSTALL
 /lib/dirent.h
 /lib/langinfo.h
 /lib/wctype.h
+/lib/poll.h
+/lib/sys/select.h
+/lib/sys/times.h
 /build-aux/ar-lib
 /build-aux/test-driver
 *.trs
 /test-suite/standalone/test-smob-mark
 /test-suite/standalone/test-scm-values
 /test-suite/standalone/test-scm-to-latin1-string
+/test-suite/standalone/test-scm-c-bind-keyword-arguments
