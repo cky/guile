@@ -2974,7 +2974,14 @@
         ((read-file
            (lambda (fn dir k)
              (let ((p (open-input-file
-                        (if (absolute-file-name? fn) fn (in-vicinity dir fn)))))
+                        (if (absolute-file-name? fn)
+                          fn
+                          (if dir
+                            (in-vicinity dir fn)
+                            (syntax-violation
+                              'include
+                              "relative file name only allowed when the include form is in a file"
+                              x))))))
                (let ((enc (file-encoding p)))
                  (set-port-encoding! p (let ((t enc)) (if t t "UTF-8")))
                  (let f ((x (read p)) (result '()))

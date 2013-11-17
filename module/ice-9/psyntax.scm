@@ -2952,9 +2952,15 @@
     (define read-file
       (lambda (fn dir k)
         (let* ((p (open-input-file
-                   (if (absolute-file-name? fn)
-                       fn
-                       (in-vicinity dir fn))))
+                   (cond ((absolute-file-name? fn)
+                          fn)
+                         (dir
+                          (in-vicinity dir fn))
+                         (else
+                          (syntax-violation
+                           'include
+                           "relative file name only allowed when the include form is in a file"
+                           x)))))
                (enc (file-encoding p)))
 
           ;; Choose the input encoding deterministically.
