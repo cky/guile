@@ -74,27 +74,26 @@ port to the process is created: it should be the value of
     (hashq-remove! port/pid-table port)
     pid))
 
-(define (close-process port/pid)
-  (close-port (car port/pid))
-  (cdr (waitpid (cdr port/pid))))
+(define (close-process port pid)
+  (close-port port)
+  (cdr (waitpid pid)))
 
 ;; for the background cleanup handler: just clean up without reporting
 ;; errors.  also avoids blocking the process: if the child isn't ready
 ;; to be collected, puts it back into the guardian's live list so it
 ;; can be tried again the next time the cleanup runs.
-(define (close-process-quietly port/pid)
+(define (close-process-quietly port pid)
   (catch 'system-error
 	 (lambda ()
-	   (close-port (car port/pid)))
+	   (close-port port))
 	 (lambda args #f))
   (catch 'system-error
 	 (lambda ()
-	   (let ((pid/status (waitpid (cdr port/pid) WNOHANG)))
-	     (cond ((= (car pid/status) 0)
-		    ;; not ready for collection
-		    (pipe-guardian (car port/pid))
-		    (hashq-set! port/pid-table
-				(car port/pid) (cdr port/pid))))))
+	   (let ((pid/status (waitpid pid WNOHANG)))
+             (when (zero? (car pid/status))
+               ;; not ready for collection
+               (pipe-guardian port)
+               (hashq-set! port/pid-table port pid))))
 	 (lambda args #f)))
 
 (define (close-pipe p)
@@ -102,19 +101,17 @@ port to the process is created: it should be the value of
 to terminate and returns its status value, @xref{Processes, waitpid}, for
 information on how to interpret this value."
   (let ((pid (fetch-pid p)))
-    (if (not pid)
-        (error "close-pipe: pipe not in table"))
-    (close-process (cons p pid))))
+    (unless pid (error "close-pipe: pipe not in table"))
+    (close-process p pid)))
 
-(define reap-pipes
-  (lambda ()
-    (let loop ((p (pipe-guardian)))
-      (cond (p 
-	     ;; maybe removed already by close-pipe.
-	     (let ((pid (fetch-pid p)))
-	       (if pid
-		   (close-process-quietly (cons p pid))))
-	     (loop (pipe-guardian)))))))
+(define (reap-pipes)
+  (let loop ()
+    (let ((p (pipe-guardian)))
+      (when p
+        ;; maybe removed already by close-pipe.
+        (let ((pid (fetch-pid p)))
+          (when pid (close-process-quietly p pid)))
+        (loop)))))
 
 (add-hook! after-gc-hook reap-pipes)
 
