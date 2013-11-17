@@ -229,7 +229,13 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
     SCM_MISC_ERROR ("arity is a deprecated read-only property", SCM_EOL);
 #endif
 
-  scm_i_pthread_mutex_lock (&overrides_lock);
+  scm_dynwind_begin (0);
+  /* Here we must block asyncs while overrides_lock is held, to avoid
+     deadlocks which can happen as follows: scm_i_program_properties
+     calls out to the VM, which will run asyncs.  Asyncs are permitted
+     to run VM code, which sometimes checks procedure properties, which
+     locks overrides_lock. */
+  scm_i_dynwind_pthread_mutex_lock_block_asyncs (&overrides_lock);
   props = scm_hashq_ref (overrides, proc, SCM_BOOL_F);
   if (scm_is_false (props))
     {
@@ -239,7 +245,7 @@ SCM_DEFINE (scm_set_procedure_property_x, "set-procedure-property!", 3, 0, 0,
         props = SCM_EOL;
     }
   scm_hashq_set_x (overrides, proc, scm_assq_set_x (props, key, val));
-  scm_i_pthread_mutex_unlock (&overrides_lock);
+  scm_dynwind_end ();
 
   return SCM_UNSPECIFIED;
 }
