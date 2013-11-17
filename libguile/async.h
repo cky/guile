@@ -78,6 +78,22 @@ SCM_API void scm_critical_section_end (void);
     scm_async_click ();						\
   } while (0)
 
+# define scm_i_pthread_mutex_lock_block_asyncs(m)      \
+  do                                                   \
+    {                                                  \
+      SCM_I_CURRENT_THREAD->block_asyncs++;            \
+      scm_i_pthread_mutex_lock (m);                    \
+    }                                                  \
+  while (0)
+
+# define scm_i_pthread_mutex_unlock_unblock_asyncs(m)  \
+  do                                                   \
+    {                                                  \
+      scm_i_pthread_mutex_unlock (m);                  \
+      SCM_I_CURRENT_THREAD->block_asyncs--;            \
+    }                                                  \
+  while (0)
+
 #else /* !BUILDING_LIBGUILE */
 
 # define SCM_CRITICAL_SECTION_START  scm_critical_section_start ()

@@ -2010,6 +2010,22 @@ scm_pthread_cond_timedwait (scm_i_pthread_cond_t *cond,
 
 #endif
 
+static void
+do_unlock_with_asyncs (void *data)
+{
+  scm_i_pthread_mutex_unlock ((scm_i_pthread_mutex_t *)data);
+  SCM_I_CURRENT_THREAD->block_asyncs--;
+}
+
+void
+scm_i_dynwind_pthread_mutex_lock_block_asyncs (scm_i_pthread_mutex_t *mutex)
+{
+  SCM_I_CURRENT_THREAD->block_asyncs++;
+  scm_i_scm_pthread_mutex_lock (mutex);
+  scm_dynwind_unwind_handler (do_unlock_with_asyncs, mutex,
+                              SCM_F_WIND_EXPLICITLY);
+}
+
 unsigned long
 scm_std_usleep (unsigned long usecs)
 {
