@@ -61,6 +61,7 @@
 #include "libguile/weaks.h"
 #include "libguile/fluids.h"
 #include "libguile/eq.h"
+#include "libguile/alist.h"
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -254,17 +255,29 @@ scm_i_clear_pending_eof (SCM port)
   SCM_PORT_GET_INTERNAL (port)->pending_eof = 0;
 }
 
-SCM
-scm_i_port_alist (SCM port)
+SCM_DEFINE (scm_i_port_property, "%port-property", 2, 0, 0,
+            (SCM port, SCM key),
+            "Return the property of @var{port} associated with @var{key}.")
+#define FUNC_NAME s_scm_i_port_property
 {
-  return SCM_PORT_GET_INTERNAL (port)->alist;
+  SCM_VALIDATE_OPPORT (1, port);
+  return scm_assq_ref (SCM_PORT_GET_INTERNAL (port)->alist, key);
 }
+#undef FUNC_NAME
 
-void
-scm_i_set_port_alist_x (SCM port, SCM alist)
+SCM_DEFINE (scm_i_set_port_property_x, "%set-port-property!", 3, 0, 0,
+            (SCM port, SCM key, SCM value),
+            "Set the property of @var{port} associated with @var{key} to @var{value}.")
+#define FUNC_NAME s_scm_i_set_port_property_x
 {
-  SCM_PORT_GET_INTERNAL (port)->alist = alist;
+  scm_t_port_internal *pti;
+
+  SCM_VALIDATE_OPPORT (1, port);
+  pti = SCM_PORT_GET_INTERNAL (port);
+  pti->alist = scm_assq_set_x (pti->alist, key, value);
+  return SCM_UNSPECIFIED;
 }
+#undef FUNC_NAME
 
 
 

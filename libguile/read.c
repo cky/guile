@@ -2133,10 +2133,10 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
 
 /* Per-port read options.
 
-   We store per-port read options in the 'port-read-options' key of the
-   port's alist, which is stored in the internal port structure.  The
-   value stored in the alist is a single integer that contains a two-bit
-   field for each read option.
+   We store per-port read options in the 'port-read-options' port
+   property, which is stored in the internal port structure.  The value
+   stored is a single integer that contains a two-bit field for each
+   read option.
 
    If a bit field contains READ_OPTION_INHERIT (3), that indicates that
    the applicable value should be inherited from the corresponding
@@ -2146,7 +2146,7 @@ SCM_DEFINE (scm_file_encoding, "file-encoding", 1, 0, 0,
    read option has been set per-port, its possible values are those in
    'enum t_keyword_style'. */
 
-/* Key to read options in per-port alists. */
+/* Key to read options in port properties. */
 SCM_SYMBOL (sym_port_read_options, "port-read-options");
 
 /* Offsets of bit fields for each per-port override */
@@ -2171,12 +2171,11 @@ SCM_SYMBOL (sym_port_read_options, "port-read-options");
 static void
 set_port_read_option (SCM port, int option, int new_value)
 {
-  SCM alist, scm_read_options;
+  SCM scm_read_options;
   unsigned int read_options;
 
   new_value &= READ_OPTION_MASK;
-  alist = scm_i_port_alist (port);
-  scm_read_options = scm_assq_ref (alist, sym_port_read_options);
+  scm_read_options = scm_i_port_property (port, sym_port_read_options);
   if (scm_is_unsigned_integer (scm_read_options, 0, READ_OPTIONS_MAX_VALUE))
     read_options = scm_to_uint (scm_read_options);
   else
@@ -2184,8 +2183,7 @@ set_port_read_option (SCM port, int option, int new_value)
   read_options &= ~(READ_OPTION_MASK << option);
   read_options |= new_value << option;
   scm_read_options = scm_from_uint (read_options);
-  alist = scm_assq_set_x (alist, sym_port_read_options, scm_read_options);
-  scm_i_set_port_alist_x (port, alist);
+  scm_i_set_port_property_x (port, sym_port_read_options, scm_read_options);
 }
 
 /* Set OPTS and PORT's case-insensitivity according to VALUE. */
@@ -2220,11 +2218,10 @@ set_port_curly_infix_p (SCM port, scm_t_read_opts *opts, int value)
 static void
 init_read_options (SCM port, scm_t_read_opts *opts)
 {
-  SCM alist, val, scm_read_options;
+  SCM val, scm_read_options;
   unsigned int read_options, x;
 
-  alist = scm_i_port_alist (port);
-  scm_read_options = scm_assq_ref (alist, sym_port_read_options);
+  scm_read_options = scm_i_port_property (port, sym_port_read_options);
 
   if (scm_is_unsigned_integer (scm_read_options, 0, READ_OPTIONS_MAX_VALUE))
     read_options = scm_to_uint (scm_read_options);
