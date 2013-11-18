@@ -716,6 +716,8 @@ as an ordered alist."
     (cond
      ((string=? s "GMT")
       0)
+     ((string=? s "UTC")
+      0)
      ((string-match? s ".dddd")
       (let ((sign (case (string-ref s 0)
                     ((#\+) +1)
