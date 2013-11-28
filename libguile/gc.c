@@ -267,44 +267,6 @@ SCM_SYMBOL (sym_times, "gc-times");
 
 /* {Scheme Interface to GC}
  */
-static SCM
-tag_table_to_type_alist (void *closure, SCM key, SCM val, SCM acc)
-{
-  if (scm_is_integer (key))
-    {
-      int c_tag = scm_to_int (key);
-
-      char const * name = scm_i_tag_name (c_tag);
-      if (name != NULL)
-	{
-	  key = scm_from_locale_string (name);
-	}
-      else
-	{
-	  char s[100];
-	  sprintf (s, "tag %d", c_tag);
-	  key = scm_from_locale_string (s);
-	}
-    }
-  
-  return scm_cons (scm_cons (key, val), acc);
-}
-
-SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
-            (),
-	    "Return an alist of statistics of the current live objects. ")
-#define FUNC_NAME s_scm_gc_live_object_stats
-{
-  SCM tab = scm_make_hash_table (scm_from_int (57));
-  SCM alist;
-
-  alist
-    = scm_internal_hash_fold (&tag_table_to_type_alist, NULL, SCM_EOL, tab);
-  
-  return alist;
-}
-#undef FUNC_NAME     
-
 extern int scm_gc_malloc_yield_percentage;
 SCM_DEFINE (scm_gc_stats, "gc-stats", 0, 0, 0,
             (),

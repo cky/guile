@@ -2936,6 +2936,22 @@ scm_c_program_source (SCM program, size_t ip)
 
 
 
+SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
+            (),
+	    "Return an alist of statistics of the current live objects. ")
+#define FUNC_NAME s_scm_gc_live_object_stats
+{
+  scm_c_issue_deprecation_warning
+    ("gc-live-object-stats is deprecated.  There is no replacement,\n"
+     "unfortunately.");
+
+  return SCM_EOL;
+}
+#undef FUNC_NAME
+
+
+
+
 void
 scm_i_init_deprecated ()
 {

@@ -177,7 +177,6 @@ SCM_API SCM scm_gc_enable (void);
 SCM_API SCM scm_gc_disable (void);
 SCM_API SCM scm_gc_dump (void);
 SCM_API SCM scm_gc_stats (void);
-SCM_API SCM scm_gc_live_object_stats (void);
 SCM_API SCM scm_gc (void);
 SCM_INTERNAL void scm_i_gc (const char *what);
 SCM_API void scm_gc_mark (SCM p);

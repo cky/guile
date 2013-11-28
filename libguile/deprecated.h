@@ -861,6 +861,10 @@ SCM_DEPRECATED SCM scm_c_program_source (SCM program, size_t ip);
 
 
 
+SCM_DEPRECATED SCM scm_gc_live_object_stats (void);
+
+
+
 void scm_i_init_deprecated (void);
 
 #endif
