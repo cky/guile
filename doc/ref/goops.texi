@@ -1941,13 +1941,13 @@ which in turn expands to:
 
 @example
 (define <my-class>
-  (make <class> #:supers (list <object>) #:slots slots))
+  (make <class> #:dsupers (list <object>) #:slots slots))
 @end example
 
 As this expansion makes clear, the resulting value of @code{<my-class>}
 is an instance of the class @code{<class>} with slot values specifying
 the superclasses and slot definitions for the class @code{<my-class>}.
-(@code{#:supers} and @code{#:slots} are initialization keywords for the
+(@code{#:dsupers} and @code{#:slots} are initialization keywords for the
 @code{dsupers} and @code{dslots} slots of the @code{<class>} class.)
 
 Now suppose that you want to define a new class with a metaclass other
@@ -1964,7 +1964,7 @@ and Guile expands @emph{this} to something like:
 
 @example
 (define <my-class2>
-  (make <my-metaclass> #:supers (list <object>) #:slots slots))
+  (make <my-metaclass> #:dsupers (list <object>) #:slots slots))
 @end example
 
 In this case, the value of @code{<my-class2>} is an instance of the more
