@@ -1,6 +1,6 @@
 ;;; Brainfuck for GNU Guile
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -55,11 +55,8 @@
   (values
     `(let ((pointer 0)
            (tape (make-vector ,tape-size 0)))
-       ,@(if (not (eq? '<brainfuck> (car exp)))
-           (error "expected brainfuck program")
-           `(begin
-              ,@(compile-body (cdr exp))
-              (write-char #\newline))))
+       ,@(compile-body (cdr exp))
+       (write-char #\newline))
     env
     env))
 
