@@ -1,6 +1,6 @@
 ;;; Brainfuck for GNU Guile.
 
-;; Copyright (C) 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2013 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -30,9 +30,6 @@
 ; where <instruction> is a symbolic name representing the type of instruction
 ; and the optional arguments represent further data (for instance, the body of
 ; a [...] loop as a number of nested instructions).
-;
-; A full brainfuck program is represented by the (<brainfuck> instructions)
-; object.
 
 
 ; While reading a number of instructions in sequence, all of them are cons'ed
