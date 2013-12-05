@@ -505,6 +505,15 @@ vm_error_wrong_type_apply (SCM proc)
              scm_list_1 (proc), scm_list_1 (proc));
 }
 
+/* Reinstate the stack reserve in the VM pointed to by DATA.  */
+static void
+reinstate_stack_reserve (void *data)
+{
+  struct scm_vm *vp = data;
+
+  vp->stack_limit -= VM_STACK_RESERVE_SIZE;
+}
+
 static void
 vm_error_stack_overflow (struct scm_vm *vp)
 {
@@ -516,7 +525,13 @@ vm_error_stack_overflow (struct scm_vm *vp)
     /* There is no space left on the stack.  FIXME: Do something more
        sensible here! */
     abort ();
+
+  /* Before throwing, install a handler that reinstates the reserve so
+     that subsequent overflows are gracefully handled.  */
+  scm_dynwind_begin (0);
+  scm_dynwind_unwind_handler (reinstate_stack_reserve, vp, 0);
   vm_error ("VM: Stack overflow", SCM_UNDEFINED);
+  scm_dynwind_end ();
 }
 
 static void

@@ -375,7 +375,20 @@
         (lambda (key vm)
           (and (eq? key 'foo)
                (eq? vm new-vm)
-               (eq? (the-vm) prev-vm)))))))
+               (eq? (the-vm) prev-vm))))))
+
+  (pass-if "stack overflow reinstates stack reserve"
+    ;; In Guile <= 2.0.9, only the first overflow would be gracefully
+    ;; handle; subsequent overflows would lead to an abort.  See
+    ;; <http://lists.gnu.org/archive/html/guile-user/2013-12/msg00017.html>.
+    (letrec ((foo (lambda () (+ 1 (foo)))))
+      (define (overflows?)
+        (catch 'vm-error foo
+          (lambda (key proc msg . rest)
+            (and (eq? 'vm-run proc)
+                 (->bool (string-contains msg "overflow"))))))
+
+      (and (overflows?) (overflows?) (overflows?)))))
 
 ;; These tests from Oleg Kiselyov's delim-control-n.scm, available at
 ;; http://okmij.org/ftp/Scheme/delim-control-n.scm.  Public domain.
