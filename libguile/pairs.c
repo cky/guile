@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,2000,2001, 2004, 2005, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,2000,2001, 2004, 2005, 2006, 2008, 2009,
+ *   2011, 2013 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -144,125 +145,215 @@ SCM_DEFINE (scm_set_cdr_x, "set-cdr!", 2, 0, 0,
 
 
 SCM_DEFINE (scm_cdr, "cdr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdr
 {
   CHASE_PAIRS (x, "cdr", 0x02); /* 00000010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_car, "car", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_car
 {
   CHASE_PAIRS (x, "car", 0x03); /* 00000011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cddr, "cddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cddr
 {
   CHASE_PAIRS (x, "cddr", 0x0a); /* 00001010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdar, "cdar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdar
 {
   CHASE_PAIRS (x, "cdar", 0x0b); /* 00001011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cadr, "cadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cadr
 {
   CHASE_PAIRS (x, "cadr", 0x0e); /* 00001110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caar, "caar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caar
 {
   CHASE_PAIRS (x, "caar", 0x0f); /* 00001111 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdddr, "cdddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdddr
 {
   CHASE_PAIRS (x, "cdddr", 0x2a); /* 00101010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cddar, "cddar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cddar
 {
   CHASE_PAIRS (x, "cddar", 0x2b); /* 00101011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdadr, "cdadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdadr
 {
   CHASE_PAIRS (x, "cdadr", 0x2e); /* 00101110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdaar, "cdaar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdaar
 {
   CHASE_PAIRS (x, "cdaar", 0x2f); /* 00101111 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caddr, "caddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caddr
 {
   CHASE_PAIRS (x, "caddr", 0x3a); /* 00111010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cadar, "cadar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cadar
 {
   CHASE_PAIRS (x, "cadar", 0x3b); /* 00111011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caadr, "caadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caadr
 {
   CHASE_PAIRS (x, "caadr", 0x3e); /* 00111110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caaar, "caaar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caaar
 {
   CHASE_PAIRS (x, "caaar", 0x3f); /* 00111111 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cddddr, "cddddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cddddr
 {
   CHASE_PAIRS (x, "cddddr", 0xaa); /* 10101010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdddar, "cdddar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdddar
 {
   CHASE_PAIRS (x, "cdddar", 0xab); /* 10101011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cddadr, "cddadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cddadr
 {
   CHASE_PAIRS (x, "cddadr", 0xae); /* 10101110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cddaar, "cddaar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cddaar
 {
   CHASE_PAIRS (x, "cddaar", 0xaf); /* 10101111 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdaddr, "cdaddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdaddr
 {
   CHASE_PAIRS (x, "cdaddr", 0xba); /* 10111010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdadar, "cdadar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdadar
 {
   CHASE_PAIRS (x, "cdadar", 0xbb); /* 10111011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdaadr, "cdaadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdaadr
 {
   CHASE_PAIRS (x, "cdaadr", 0xbe); /* 10111110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cdaaar, "cdaaar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cdaaar
 {
   CHASE_PAIRS (x, "cdaaar", 0xbf); /* 10111111 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cadddr, "cadddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cadddr
 {
   CHASE_PAIRS (x, "cadddr", 0xea); /* 11101010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caddar, "caddar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caddar
 {
   CHASE_PAIRS (x, "caddar", 0xeb); /* 11101011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cadadr, "cadadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cadadr
 {
   CHASE_PAIRS (x, "cadadr", 0xee); /* 11101110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_cadaar, "cadaar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_cadaar
 {
   CHASE_PAIRS (x, "cadaar", 0xef); /* 11101111 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caaddr, "caaddr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caaddr
 {
   CHASE_PAIRS (x, "caaddr", 0xfa); /* 11111010 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caadar, "caadar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caadar
 {
   CHASE_PAIRS (x, "caadar", 0xfb); /* 11111011 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caaadr, "caaadr", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caaadr
 {
   CHASE_PAIRS (x, "caaadr", 0xfe); /* 11111110 */
 }
+#undef FUNC_NAME
+
 SCM_DEFINE (scm_caaaar, "caaaar", 1, 0, 0, (SCM x), "")
+#define FUNC_NAME s_scm_caaaar
 {
   CHASE_PAIRS (x, "caaaar", 0xff); /* 11111111 */
 }
+#undef FUNC_NAME
+
 
 
 
