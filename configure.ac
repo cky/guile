@@ -1550,10 +1550,11 @@ AC_SUBST(GCC_CFLAGS)
 GUILE_GNU_LD_RELRO
 
 
-## If we're creating a shared library (using libtool!), then we'll
-## need to generate a list of .lo files corresponding to the .o files
-## given in LIBOBJS.  We'll call it LIBLOBJS.
-LIBLOBJS="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`"
+LIBLOBJS=""
+for file in $LIBOBJS; do
+  file=`echo "$file" | sed 's,\.[[^.]]*$,.lo,'`
+  LIBLOBJS="$LIBLOBJS libguile_${GUILE_EFFECTIVE_VERSION}_la-$file"
+done
 
 ## We also need to create corresponding .doc and .x files
 EXTRA_DOT_DOC_FILES="`echo ${LIB@&t@OBJS} | sed 's,\.[[^.]]* ,.doc ,g;s,\.[[^.]]*$,.doc,'`"
