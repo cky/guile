@@ -1171,3 +1171,60 @@
 		    (unreachable))))))
 	(r 'outer))
       #t)))
+
+(with-test-prefix "syntax-case"
+  
+  (pass-if-syntax-error "duplicate pattern variable"
+    '(syntax-case . "duplicate pattern variable")
+    (eval '(lambda (e)
+             (syntax-case e ()
+               ((a b c d e d f) #f)))
+          (interaction-environment)))
+
+  (with-test-prefix "misplaced ellipses"
+
+    (pass-if-syntax-error "bare ellipsis"
+      '(syntax-case . "misplaced ellipsis")
+      (eval '(lambda (e)
+               (syntax-case e ()
+                 (... #f)))
+            (interaction-environment)))
+
+    (pass-if-syntax-error "ellipsis singleton"
+      '(syntax-case . "misplaced ellipsis")
+      (eval '(lambda (e)
+               (syntax-case e ()
+                 ((...) #f)))
+            (interaction-environment)))
+
+    (pass-if-syntax-error "ellipsis in car"
+      '(syntax-case . "misplaced ellipsis")
+      (eval '(lambda (e)
+               (syntax-case e ()
+                 ((... . _) #f)))
+            (interaction-environment)))
+
+    (pass-if-syntax-error "ellipsis in cdr"
+      '(syntax-case . "misplaced ellipsis")
+      (eval '(lambda (e)
+               (syntax-case e ()
+                 ((_ . ...) #f)))
+            (interaction-environment)))
+
+    (pass-if-syntax-error "two ellipses in the same list"
+      '(syntax-case . "misplaced ellipsis")
+      (eval '(lambda (e)
+               (syntax-case e ()
+                 ((x ... y ...) #f)))
+            (interaction-environment)))
+
+    (pass-if-syntax-error "three ellipses in the same list"
+      '(syntax-case . "misplaced ellipsis")
+      (eval '(lambda (e)
+               (syntax-case e ()
+                 ((x ... y ... z ...) #f)))
+            (interaction-environment)))))
+
+;;; Local Variables:
+;;; eval: (put 'pass-if-syntax-error 'scheme-indent-function 1)
+;;; End:

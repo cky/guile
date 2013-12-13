@@ -2072,14 +2072,17 @@
          (lambda (pattern keys)
            (letrec*
              ((cvt* (lambda (p* n ids)
-                      (if (not (pair? p*))
-                        (cvt p* n ids)
-                        (call-with-values
-                          (lambda () (cvt* (cdr p*) n ids))
-                          (lambda (y ids)
-                            (call-with-values
-                              (lambda () (cvt (car p*) n ids))
-                              (lambda (x ids) (values (cons x y) ids))))))))
+                      (let* ((tmp p*) (tmp ($sc-dispatch tmp '(any . any))))
+                        (if tmp
+                          (apply (lambda (x y)
+                                   (call-with-values
+                                     (lambda () (cvt* y n ids))
+                                     (lambda (y ids)
+                                       (call-with-values
+                                         (lambda () (cvt x n ids))
+                                         (lambda (x ids) (values (cons x y) ids))))))
+                                 tmp)
+                          (cvt p* n ids)))))
               (v-reverse
                 (lambda (x)
                   (let loop ((r '()) (x x))
@@ -2162,10 +2165,10 @@
            (call-with-values
              (lambda () (convert-pattern pat keys))
              (lambda (p pvars)
-               (cond ((not (distinct-bound-ids? (map car pvars)))
-                      (syntax-violation 'syntax-case "duplicate pattern variable" pat))
-                     ((not (and-map (lambda (x) (not (ellipsis? (car x)))) pvars))
+               (cond ((not (and-map (lambda (x) (not (ellipsis? (car x)))) pvars))
                       (syntax-violation 'syntax-case "misplaced ellipsis" pat))
+                     ((not (distinct-bound-ids? (map car pvars)))
+                      (syntax-violation 'syntax-case "duplicate pattern variable" pat))
                      (else
                       (let ((y (gen-var 'tmp)))
                         (build-application
