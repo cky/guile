@@ -1331,7 +1331,7 @@ SCM_DEFINE (scm_accept, "accept", 1, 0, 0,
   sock = SCM_COERCE_OUTPORT (sock);
   SCM_VALIDATE_OPFPORT (1, sock);
   fd = SCM_FPORT_FDES (sock);
-  newfd = accept (fd, (struct sockaddr *) &addr, &addr_size);
+  SCM_SYSCALL (newfd = accept (fd, (struct sockaddr *) &addr, &addr_size));
   if (newfd == -1)
     SCM_SYSERROR;
   newsock = SCM_SOCK_FD_TO_PORT (newfd);
