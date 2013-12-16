@@ -484,6 +484,7 @@
      (lambda (i j)
        (if (and (syntax-object? i) (syntax-object? j))
          (and (eq? (syntax-object-expression i) (syntax-object-expression j))
+              (eq? (id-var-name i '(())) (id-var-name j '(())))
               (same-marks?
                 (car (syntax-object-wrap i))
                 (car (syntax-object-wrap j))))

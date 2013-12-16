@@ -1172,6 +1172,11 @@
 	(r 'outer))
       #t)))
 
+(pass-if "bound-identifier=?"
+  (let* ((x 1) (s1 #'x)
+         (x 2) (s2 #'x))
+    (not (bound-identifier=? s1 s2))))
+
 (with-test-prefix "syntax-case"
   
   (pass-if-syntax-error "duplicate pattern variable"

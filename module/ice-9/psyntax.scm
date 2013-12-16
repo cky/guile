@@ -885,6 +885,7 @@
         (if (and (syntax-object? i) (syntax-object? j))
             (and (eq? (syntax-object-expression i)
                       (syntax-object-expression j))
+                 (eq? (id-var-name i empty-wrap) (id-var-name j empty-wrap))
                  (same-marks? (wrap-marks (syntax-object-wrap i))
                               (wrap-marks (syntax-object-wrap j))))
             (eq? i j))))
