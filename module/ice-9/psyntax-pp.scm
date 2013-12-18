@@ -285,7 +285,7 @@
        (if (null? r)
          '()
          (let ((a (car r)))
-           (if (eq? (cadr a) 'macro)
+           (if (memq (cadr a) '(macro ellipsis))
              (cons a (macros-only-env (cdr r)))
              (macros-only-env (cdr r)))))))
    (lookup
@@ -1098,9 +1098,17 @@
            (syntax-violation #f "nonprocedure transformer" p)))))
    (expand-void (lambda () (build-void #f)))
    (ellipsis?
-     (lambda (x)
-       (and (nonsymbol-id? x)
-            (free-id=? x '#(syntax-object ... ((top)) (hygiene guile))))))
+     (lambda (e r mod)
+       (and (nonsymbol-id? e)
+            (let* ((id (make-syntax-object
+                         '#{ $sc-ellipsis }#
+                         (syntax-object-wrap e)
+                         (syntax-object-module e)))
+                   (n (id-var-name id '(())))
+                   (b (lookup n r mod)))
+              (if (eq? (car b) 'ellipsis)
+                (bound-id=? e (cdr b))
+                (free-id=? e '#(syntax-object ... ((top)) (hygiene guile))))))))
    (lambda-formals
      (lambda (orig-args)
        (letrec*
@@ -1569,14 +1577,15 @@
                           (let ((var.lev (cdr b)))
                             (gen-ref src (car var.lev) (cdr var.lev) maps)))
                         (lambda (var maps) (values (list 'ref var) maps))))
-                     ((ellipsis? e) (syntax-violation 'syntax "misplaced ellipsis" src))
+                     ((ellipsis? e r mod)
+                      (syntax-violation 'syntax "misplaced ellipsis" src))
                      (else (values (list 'quote e) maps))))
              (let* ((tmp e) (tmp-1 ($sc-dispatch tmp '(any any))))
-               (if (and tmp-1 (apply (lambda (dots e) (ellipsis? dots)) tmp-1))
-                 (apply (lambda (dots e) (gen-syntax src e r maps (lambda (x) #f) mod))
+               (if (and tmp-1 (apply (lambda (dots e) (ellipsis? dots r mod)) tmp-1))
+                 (apply (lambda (dots e) (gen-syntax src e r maps (lambda (e r mod) #f) mod))
                         tmp-1)
                  (let ((tmp-1 ($sc-dispatch tmp '(any any . any))))
-                   (if (and tmp-1 (apply (lambda (x dots y) (ellipsis? dots)) tmp-1))
+                   (if (and tmp-1 (apply (lambda (x dots y) (ellipsis? dots r mod)) tmp-1))
                      (apply (lambda (x dots y)
                               (let f ((y y)
                                       (k (lambda (maps)
@@ -1587,7 +1596,7 @@
                                                  (syntax-violation 'syntax "extra ellipsis" src)
                                                  (values (gen-map x (car maps)) (cdr maps))))))))
                                 (let* ((tmp y) (tmp ($sc-dispatch tmp '(any . any))))
-                                  (if (and tmp (apply (lambda (dots y) (ellipsis? dots)) tmp))
+                                  (if (and tmp (apply (lambda (dots y) (ellipsis? dots r mod)) tmp))
                                     (apply (lambda (dots y)
                                              (f y
                                                 (lambda (maps)
@@ -1810,6 +1819,30 @@
                                 args)))
                        tmp)
                 (syntax-violation 'case-lambda "bad case-lambda*" e))))))))
+  (global-extend
+    'core
+    'with-ellipsis
+    (lambda (e r w s mod)
+      (let* ((tmp e) (tmp ($sc-dispatch tmp '(_ any any . each-any))))
+        (if (and tmp (apply (lambda (dots e1 e2) (id? dots)) tmp))
+          (apply (lambda (dots e1 e2)
+                   (let ((id (if (symbol? dots)
+                               '#{ $sc-ellipsis }#
+                               (make-syntax-object
+                                 '#{ $sc-ellipsis }#
+                                 (syntax-object-wrap dots)
+                                 (syntax-object-module dots)))))
+                     (let ((ids (list id))
+                           (labels (list (gen-label)))
+                           (bindings (list (cons 'ellipsis (source-wrap dots w s mod)))))
+                       (let ((nw (make-binding-wrap ids labels w))
+                             (nr (extend-env labels bindings r)))
+                         (expand-body (cons e1 e2) (source-wrap e nw s mod) nr nw mod)))))
+                 tmp)
+          (syntax-violation
+            'with-ellipsis
+            "bad syntax"
+            (source-wrap e w s mod))))))
   (global-extend
     'core
     'let
@@ -2071,7 +2104,7 @@
     'syntax-case
     (letrec*
       ((convert-pattern
-         (lambda (pattern keys)
+         (lambda (pattern keys ellipsis?)
            (letrec*
              ((cvt* (lambda (p* n ids)
                       (let* ((tmp p*) (tmp ($sc-dispatch tmp '(any . any))))
@@ -2165,9 +2198,10 @@
        (gen-clause
          (lambda (x keys clauses r pat fender exp mod)
            (call-with-values
-             (lambda () (convert-pattern pat keys))
+             (lambda ()
+               (convert-pattern pat keys (lambda (e) (ellipsis? e r mod))))
              (lambda (p pvars)
-               (cond ((not (and-map (lambda (x) (not (ellipsis? (car x)))) pvars))
+               (cond ((not (and-map (lambda (x) (not (ellipsis? (car x) r mod))) pvars))
                       (syntax-violation 'syntax-case "misplaced ellipsis" pat))
                      ((not (distinct-bound-ids? (map car pvars)))
                       (syntax-violation 'syntax-case "duplicate pattern variable" pat))
@@ -2247,7 +2281,7 @@
                (tmp ($sc-dispatch tmp-1 '(_ any each-any . each-any))))
           (if tmp
             (apply (lambda (val key m)
-                     (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x)))) key)
+                     (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x r mod)))) key)
                        (let ((x (gen-var 'tmp)))
                          (build-application
                            s
@@ -2363,6 +2397,13 @@
                            ((memv key '(syntax)) (values 'pattern-variable value))
                            ((memv key '(displaced-lexical)) (values 'displaced-lexical #f))
                            ((memv key '(global)) (values 'global (cons value (cdr mod))))
+                           ((memv key '(ellipsis))
+                            (values
+                              'ellipsis
+                              (make-syntax-object
+                                (syntax-object-expression value)
+                                (anti-mark (syntax-object-wrap value))
+                                (syntax-object-module value))))
                            (else (values 'other #f)))))))))))
      (syntax-locally-bound-identifiers
        (lambda (id)
@@ -2549,56 +2590,116 @@
     'syntax-rules
     'macro
     (lambda (xx)
-      (let ((tmp-1 xx))
-        (let ((tmp ($sc-dispatch tmp-1 '(_ each-any . #(each ((any . any) any))))))
-          (if tmp
-            (apply (lambda (k keyword pattern template)
-                     (list '#(syntax-object lambda ((top)) (hygiene guile))
-                           '(#(syntax-object x ((top)) (hygiene guile)))
-                           (vector
-                             '(#(syntax-object macro-type ((top)) (hygiene guile))
-                               .
-                               #(syntax-object syntax-rules ((top)) (hygiene guile)))
-                             (cons '#(syntax-object patterns ((top)) (hygiene guile)) pattern))
-                           (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
-                                 (cons '#(syntax-object x ((top)) (hygiene guile))
-                                       (cons k
-                                             (map (lambda (tmp-1 tmp)
-                                                    (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) tmp)
-                                                          (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                                                tmp-1)))
-                                                  template
-                                                  pattern))))))
-                   tmp)
-            (let ((tmp ($sc-dispatch tmp-1 '(_ each-any any . #(each ((any . any) any))))))
-              (if (if tmp
-                    (apply (lambda (k docstring keyword pattern template)
-                             (string? (syntax->datum docstring)))
-                           tmp)
-                    #f)
-                (apply (lambda (k docstring keyword pattern template)
-                         (list '#(syntax-object lambda ((top)) (hygiene guile))
-                               '(#(syntax-object x ((top)) (hygiene guile)))
-                               docstring
-                               (vector
-                                 '(#(syntax-object macro-type ((top)) (hygiene guile))
-                                   .
-                                   #(syntax-object syntax-rules ((top)) (hygiene guile)))
-                                 (cons '#(syntax-object patterns ((top)) (hygiene guile)) pattern))
-                               (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
-                                     (cons '#(syntax-object x ((top)) (hygiene guile))
-                                           (cons k
-                                                 (map (lambda (tmp-1 tmp)
-                                                        (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) tmp)
-                                                              (list '#(syntax-object syntax ((top)) (hygiene guile))
-                                                                    tmp-1)))
-                                                      template
-                                                      pattern))))))
-                       tmp)
-                (syntax-violation
-                  #f
-                  "source expression failed to match any pattern"
-                  tmp-1)))))))))
+      (letrec*
+        ((expand-syntax-rules
+           (lambda (dots keys docstrings clauses)
+             (let ((tmp-1 (list keys docstrings clauses)))
+               (let ((tmp ($sc-dispatch tmp-1 '(each-any each-any #(each ((any . any) any))))))
+                 (if tmp
+                   (apply (lambda (k docstring keyword pattern template)
+                            (let ((tmp (cons '#(syntax-object lambda ((top)) (hygiene guile))
+                                             (cons '(#(syntax-object x ((top)) (hygiene guile)))
+                                                   (append
+                                                     docstring
+                                                     (list (vector
+                                                             '(#(syntax-object macro-type ((top)) (hygiene guile))
+                                                               .
+                                                               #(syntax-object syntax-rules ((top)) (hygiene guile)))
+                                                             (cons '#(syntax-object patterns ((top)) (hygiene guile))
+                                                                   pattern))
+                                                           (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
+                                                                 (cons '#(syntax-object x ((top)) (hygiene guile))
+                                                                       (cons k
+                                                                             (map (lambda (tmp-1 tmp)
+                                                                                    (list (cons '#(syntax-object
+                                                                                                   dummy
+                                                                                                   ((top))
+                                                                                                   (hygiene guile))
+                                                                                                tmp)
+                                                                                          (list '#(syntax-object
+                                                                                                   syntax
+                                                                                                   ((top))
+                                                                                                   (hygiene guile))
+                                                                                                tmp-1)))
+                                                                                  template
+                                                                                  pattern))))))))))
+                              (let ((form tmp))
+                                (if dots
+                                  (let ((tmp dots))
+                                    (let ((dots tmp))
+                                      (list '#(syntax-object with-ellipsis ((top)) (hygiene guile))
+                                            dots
+                                            form)))
+                                  form))))
+                          tmp)
+                   (syntax-violation
+                     #f
+                     "source expression failed to match any pattern"
+                     tmp-1)))))))
+        (let ((tmp xx))
+          (let ((tmp-1 ($sc-dispatch tmp '(_ each-any . #(each ((any . any) any))))))
+            (if tmp-1
+              (apply (lambda (k keyword pattern template)
+                       (expand-syntax-rules
+                         #f
+                         k
+                         '()
+                         (map (lambda (tmp-2 tmp-1 tmp) (list (cons tmp tmp-1) tmp-2))
+                              template
+                              pattern
+                              keyword)))
+                     tmp-1)
+              (let ((tmp-1 ($sc-dispatch tmp '(_ each-any any . #(each ((any . any) any))))))
+                (if (if tmp-1
+                      (apply (lambda (k docstring keyword pattern template)
+                               (string? (syntax->datum docstring)))
+                             tmp-1)
+                      #f)
+                  (apply (lambda (k docstring keyword pattern template)
+                           (expand-syntax-rules
+                             #f
+                             k
+                             (list docstring)
+                             (map (lambda (tmp-2 tmp-1 tmp) (list (cons tmp tmp-1) tmp-2))
+                                  template
+                                  pattern
+                                  keyword)))
+                         tmp-1)
+                  (let ((tmp-1 ($sc-dispatch tmp '(_ any each-any . #(each ((any . any) any))))))
+                    (if (if tmp-1
+                          (apply (lambda (dots k keyword pattern template) (identifier? dots))
+                                 tmp-1)
+                          #f)
+                      (apply (lambda (dots k keyword pattern template)
+                               (expand-syntax-rules
+                                 dots
+                                 k
+                                 '()
+                                 (map (lambda (tmp-2 tmp-1 tmp) (list (cons tmp tmp-1) tmp-2))
+                                      template
+                                      pattern
+                                      keyword)))
+                             tmp-1)
+                      (let ((tmp-1 ($sc-dispatch tmp '(_ any each-any any . #(each ((any . any) any))))))
+                        (if (if tmp-1
+                              (apply (lambda (dots k docstring keyword pattern template)
+                                       (if (identifier? dots) (string? (syntax->datum docstring)) #f))
+                                     tmp-1)
+                              #f)
+                          (apply (lambda (dots k docstring keyword pattern template)
+                                   (expand-syntax-rules
+                                     dots
+                                     k
+                                     (list docstring)
+                                     (map (lambda (tmp-2 tmp-1 tmp) (list (cons tmp tmp-1) tmp-2))
+                                          template
+                                          pattern
+                                          keyword)))
+                                 tmp-1)
+                          (syntax-violation
+                            #f
+                            "source expression failed to match any pattern"
+                            tmp))))))))))))))
 
 (define define-syntax-rule
   (make-syntax-transformer

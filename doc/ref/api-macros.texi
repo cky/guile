@@ -136,7 +136,7 @@ same @var{letrec-syntax}.
 @code{syntax-rules} macros are simple, pattern-driven syntax transformers, with
 a beauty worthy of Scheme.
 
-@deffn {Syntax} syntax-rules literals (pattern template)...
+@deffn {Syntax} syntax-rules literals (pattern template) @dots{}
 Create a syntax transformer that will rewrite an expression using the rules
 embodied in the @var{pattern} and @var{template} clauses.
 @end deffn
@@ -363,6 +363,26 @@ Cast into this form, our @code{when} example is significantly shorter:
   (if c (begin e ...)))
 @end example
 
+@subsubsection Specifying a Custom Ellipsis Identifier
+
+When writing macros that generate macro definitions, it is convenient to
+use a different ellipsis identifier at each level.  Guile allows the
+desired ellipsis identifier to be specified as the first operand to
+@code{syntax-rules}, as per R7RS.  For example:
+
+@example
+(define-syntax define-quotation-macros
+  (syntax-rules ()
+    ((_ (macro-name head-symbol) ...)
+     (begin (define-syntax macro-name
+              (syntax-rules ::: ()
+                ((_ x :::)
+                 (quote (head-symbol x :::)))))
+            ...))))
+(define-quotation-macros (quote-a a) (quote-b b) (quote-c c))
+(quote-a 1 2 3) @result{} (a 1 2 3)
+@end example
+
 @subsubsection Further Information
 
 For a formal definition of @code{syntax-rules} and its pattern language, see
@@ -389,7 +409,7 @@ Primer for the Merely Eccentric}.
 @code{syntax-case} macros are procedural syntax transformers, with a power
 worthy of Scheme.
 
-@deffn {Syntax} syntax-case syntax literals (pattern [guard] exp)...
+@deffn {Syntax} syntax-case syntax literals (pattern [guard] exp) @dots{}
 Match the syntax object @var{syntax} against the given patterns, in order. If a
 @var{pattern} matches, return the result of evaluating the associated @var{exp}.
 @end deffn
@@ -631,9 +651,9 @@ variable environment, and we can do so using @code{syntax-case} itself:
 However there are easier ways to write this. @code{with-syntax} is often
 convenient:
 
-@deffn {Syntax} with-syntax ((pat val)...) exp...
+@deffn {Syntax} with-syntax ((pat val) @dots{}) exp @dots{}
 Bind patterns @var{pat} from their corresponding values @var{val}, within the
-lexical context of @var{exp...}.
+lexical context of @var{exp} @enddots{}.
 
 @example
 ;; better
@@ -680,6 +700,42 @@ see R. Kent Dybvig's excellent @cite{The Scheme Programming Language}, either
 edition 3 or 4, in the chapter on syntax. Dybvig was the primary author of the
 @code{syntax-case} system. The book itself is available online at
 @uref{http://scheme.com/tspl4/}.
+
+@subsubsection Custom Ellipsis Identifiers for syntax-case Macros
+
+When writing procedural macros that generate macro definitions, it is
+convenient to use a different ellipsis identifier at each level.  Guile
+supports this for procedural macros using the @code{with-ellipsis}
+special form:
+
+@deffn {Syntax} with-ellipsis ellipsis body @dots{}
+@var{ellipsis} must be an identifier.  Evaluate @var{body} in a special
+lexical environment such that all macro patterns and templates within
+@var{body} will use @var{ellipsis} as the ellipsis identifier instead of
+the usual three dots (@code{...}).
+@end deffn
+
+For example:
+
+@example
+(define-syntax define-quotation-macros
+  (lambda (x)
+    (syntax-case x ()
+      ((_ (macro-name head-symbol) ...)
+       #'(begin (define-syntax macro-name
+                  (lambda (x)
+                    (with-ellipsis :::
+                      (syntax-case x ()
+                        ((_ x :::)
+                         #'(quote (head-symbol x :::)))))))
+                ...)))))
+(define-quotation-macros (quote-a a) (quote-b b) (quote-c c))
+(quote-a 1 2 3) @result{} (a 1 2 3)
+@end example
+
+Note that @code{with-ellipsis} does not affect the ellipsis identifier
+of the generated code, unless @code{with-ellipsis} is included around
+the generated code.
 
 @node Syntax Transformer Helpers
 @subsection Syntax Transformer Helpers
@@ -740,8 +796,11 @@ of @code{eq?}) identifying this binding.
 A syntax transformer, either local or global.  The value is the
 transformer procedure.
 @item pattern-variable
-A pattern variable, bound via syntax-case.  The value is an opaque
-object, internal to the expander.
+A pattern variable, bound via @code{syntax-case}.  The value is an
+opaque object, internal to the expander.
+@item ellipsis
+An internal binding, bound via @code{with-ellipsis}.  The value is the
+(anti-marked) local ellipsis identifier.
 @item displaced-lexical
 A lexical variable that has gone out of scope.  This can happen if a
 badly-written procedural macro saves a syntax object, then attempts to

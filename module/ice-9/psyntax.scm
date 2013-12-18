@@ -42,6 +42,9 @@
 ;;; Modified by Andy Wingo <wingo@pobox.com> according to the Git
 ;;; revision control logs corresponding to this file: 2009, 2010.
 
+;;; Modified by Mark H Weaver <mhw@netris.org> according to the Git
+;;; revision control logs corresponding to this file: 2012, 2013.
+
 
 ;;; This code is based on "Syntax Abstraction in Scheme"
 ;;; by R. Kent Dybvig, Robert Hieb, and Carl Bruggeman.
@@ -509,6 +512,7 @@
     ;;               (syntax . (<var> . <level>))    pattern variables
     ;;               (global)                        assumed global variable
     ;;               (lexical . <var>)               lexical variables
+    ;;               (ellipsis . <identifier>)       custom ellipsis
     ;;               (displaced-lexical)             displaced lexicals
     ;; <level>   ::= <nonnegative integer>
     ;; <var>     ::= variable returned by build-lexical-var
@@ -527,6 +531,9 @@
     ;; variable.
 
     ;; a lexical variable is a lambda- or letrec-bound variable.
+
+    ;; an ellipsis binding is introduced by the 'with-ellipsis' special
+    ;; form.
 
     ;; a displaced-lexical identifier is a lexical identifier removed from
     ;; it's scope by the return of a syntax object containing the identifier.
@@ -569,7 +576,7 @@
         (if (null? r)
             '()
             (let ((a (car r)))
-              (if (eq? (cadr a) 'macro)
+              (if (memq (cadr a) '(macro ellipsis))
                   (cons a (macros-only-env (cdr r)))
                   (macros-only-env (cdr r)))))))
 
@@ -1576,9 +1583,22 @@
         (build-void no-source)))
 
     (define ellipsis?
-      (lambda (x)
-        (and (nonsymbol-id? x)
-             (free-id=? x #'(... ...)))))
+      (lambda (e r mod)
+        (and (nonsymbol-id? e)
+             ;; If there is a binding for the special identifier
+             ;; #{ $sc-ellipsis }# in the lexical environment of E,
+             ;; and if the associated binding type is 'ellipsis',
+             ;; then the binding's value specifies the custom ellipsis
+             ;; identifier within that lexical environment, and the
+             ;; comparison is done using 'bound-id=?'.
+             (let* ((id (make-syntax-object '#{ $sc-ellipsis }#
+                                            (syntax-object-wrap e)
+                                            (syntax-object-module e)))
+                    (n (id-var-name id empty-wrap))
+                    (b (lookup n r mod)))
+               (if (eq? (binding-type b) 'ellipsis)
+                   (bound-id=? e (binding-value b))
+                   (free-id=? e #'(... ...)))))))
 
     (define lambda-formals
       (lambda (orig-args)
@@ -1903,17 +1923,17 @@
                                            (let ((var.lev (binding-value b)))
                                              (gen-ref src (car var.lev) (cdr var.lev) maps)))
                                        (lambda (var maps) (values `(ref ,var) maps)))
-                                     (if (ellipsis? e)
+                                     (if (ellipsis? e r mod)
                                          (syntax-violation 'syntax "misplaced ellipsis" src)
                                          (values `(quote ,e) maps)))))
                              (syntax-case e ()
                                ((dots e)
-                                (ellipsis? #'dots)
-                                (gen-syntax src #'e r maps (lambda (x) #f) mod))
+                                (ellipsis? #'dots r mod)
+                                (gen-syntax src #'e r maps (lambda (e r mod) #f) mod))
                                ((x dots . y)
                                 ;; this could be about a dozen lines of code, except that we
                                 ;; choose to handle #'(x ... ...) forms
-                                (ellipsis? #'dots)
+                                (ellipsis? #'dots r mod)
                                 (let f ((y #'y)
                                         (k (lambda (maps)
                                              (call-with-values
@@ -1928,7 +1948,7 @@
                                                              (cdr maps))))))))
                                   (syntax-case y ()
                                     ((dots . y)
-                                     (ellipsis? #'dots)
+                                     (ellipsis? #'dots r mod)
                                      (f #'y
                                         (lambda (maps)
                                           (call-with-values
@@ -2120,6 +2140,25 @@
                                      . ,(syntax->datum #'docstring)))
                                   #'((args e1 e2 ...) ...)))
                        (_ (syntax-violation 'case-lambda "bad case-lambda*" e)))))
+
+    (global-extend 'core 'with-ellipsis
+                   (lambda (e r w s mod)
+                     (syntax-case e ()
+                       ((_ dots e1 e2 ...)
+                        (id? #'dots)
+                        (let ((id (if (symbol? #'dots)
+                                      '#{ $sc-ellipsis }#
+                                      (make-syntax-object '#{ $sc-ellipsis }#
+                                                          (syntax-object-wrap #'dots)
+                                                          (syntax-object-module #'dots)))))
+                          (let ((ids (list id))
+                                (labels (list (gen-label)))
+                                (bindings (list (make-binding 'ellipsis (source-wrap #'dots w s mod)))))
+                            (let ((nw (make-binding-wrap ids labels w))
+                                  (nr (extend-env labels bindings r)))
+                              (expand-body #'(e1 e2 ...) (source-wrap e nw s mod) nr nw mod)))))
+                       (_ (syntax-violation 'with-ellipsis "bad syntax"
+                                            (source-wrap e w s mod))))))
 
     (global-extend 'core 'let
                    (let ()
@@ -2340,7 +2379,7 @@
                      (define convert-pattern
                        ;; accepts pattern & keys
                        ;; returns $sc-dispatch pattern & ids
-                       (lambda (pattern keys)
+                       (lambda (pattern keys ellipsis?)
                          (define cvt*
                            (lambda (p* n ids)
                              (syntax-case p* ()
@@ -2429,10 +2468,10 @@
                      (define gen-clause
                        (lambda (x keys clauses r pat fender exp mod)
                          (call-with-values
-                             (lambda () (convert-pattern pat keys))
+                             (lambda () (convert-pattern pat keys (lambda (e) (ellipsis? e r mod))))
                            (lambda (p pvars)
                              (cond
-                              ((not (and-map (lambda (x) (not (ellipsis? (car x)))) pvars))
+                              ((not (and-map (lambda (x) (not (ellipsis? (car x) r mod))) pvars))
                                (syntax-violation 'syntax-case "misplaced ellipsis" pat))
                               ((not (distinct-bound-ids? (map car pvars)))
                                (syntax-violation 'syntax-case "duplicate pattern variable" pat))
@@ -2502,7 +2541,7 @@
                        (let ((e (source-wrap e w s mod)))
                          (syntax-case e ()
                            ((_ val (key ...) m ...)
-                            (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x))))
+                            (if (and-map (lambda (x) (and (id? x) (not (ellipsis? x r mod))))
                                          #'(key ...))
                                 (let ((x (gen-var 'tmp)))
                                   ;; fat finger binding and references to temp variable x
@@ -2606,6 +2645,11 @@
                  ((syntax) (values 'pattern-variable value))
                  ((displaced-lexical) (values 'displaced-lexical #f))
                  ((global) (values 'global (cons value (cdr mod))))
+                 ((ellipsis)
+                  (values 'ellipsis
+                          (make-syntax-object (syntax-object-expression value)
+                                              (anti-mark (syntax-object-wrap value))
+                                              (syntax-object-module value))))
                  (else (values 'other #f))))))))
 
       (define (syntax-locally-bound-identifiers id)
@@ -2799,25 +2843,35 @@
 
 (define-syntax syntax-rules
   (lambda (xx)
+    (define (expand-syntax-rules dots keys docstrings clauses)
+      (with-syntax
+          (((k ...) keys)
+           ((docstring ...) docstrings)
+           ((((keyword . pattern) template) ...) clauses))
+        (with-syntax
+            ((form #'(lambda (x)
+                       docstring ...        ; optional docstring
+                       #((macro-type . syntax-rules)
+                         (patterns pattern ...)) ; embed patterns as procedure metadata
+                       (syntax-case x (k ...)
+                         ((dummy . pattern) #'template)
+                         ...))))
+          (if dots
+              (with-syntax ((dots dots))
+                #'(with-ellipsis dots form))
+              #'form))))
     (syntax-case xx ()
       ((_ (k ...) ((keyword . pattern) template) ...)
-       #'(lambda (x)
-           ;; embed patterns as procedure metadata
-           #((macro-type . syntax-rules)
-             (patterns pattern ...))
-           (syntax-case x (k ...)
-             ((dummy . pattern) #'template)
-             ...)))
+       (expand-syntax-rules #f #'(k ...) #'() #'(((keyword . pattern) template) ...)))
       ((_ (k ...) docstring ((keyword . pattern) template) ...)
        (string? (syntax->datum #'docstring))
-       #'(lambda (x)
-           ;; the same, but allow a docstring
-           docstring
-           #((macro-type . syntax-rules)
-             (patterns pattern ...))
-           (syntax-case x (k ...)
-             ((dummy . pattern) #'template)
-             ...))))))
+       (expand-syntax-rules #f #'(k ...) #'(docstring) #'(((keyword . pattern) template) ...)))
+      ((_ dots (k ...) ((keyword . pattern) template) ...)
+       (identifier? #'dots)
+       (expand-syntax-rules #'dots #'(k ...) #'() #'(((keyword . pattern) template) ...)))
+      ((_ dots (k ...) docstring ((keyword . pattern) template) ...)
+       (and (identifier? #'dots) (string? (syntax->datum #'docstring)))
+       (expand-syntax-rules #'dots #'(k ...) #'(docstring) #'(((keyword . pattern) template) ...))))))
 
 (define-syntax define-syntax-rule
   (lambda (x)

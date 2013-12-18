@@ -1,7 +1,7 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
 ;;;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2009, 2010,
-;;;;   2011, 2012 Free Software Foundation, Inc.
+;;;;   2011, 2012, 2013 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -19,6 +19,7 @@
 
 (define-module (test-suite test-syntax)
   #:use-module (ice-9 regex)
+  #:use-module (ice-9 local-eval)
   #:use-module (test-suite lib))
 
 
@@ -1172,6 +1173,44 @@
 	(r 'outer))
       #t)))
 
+(with-test-prefix "syntax-rules"
+
+  (pass-if-equal "custom ellipsis within normal ellipsis"
+      '((((a x) (a y) (a …))
+         ((b x) (b y) (b …))
+         ((c x) (c y) (c …)))
+        (((a x) (b x) (c x))
+         ((a y) (b y) (c y))
+         ((a …) (b …) (c …))))
+    (let ()
+      (define-syntax foo
+        (syntax-rules ()
+          ((_ y ...)
+           (syntax-rules … ()
+             ((_ x …)
+              '((((x y) ...) …)
+                (((x y) …) ...)))))))
+      (define-syntax bar (foo x y …))
+      (bar a b c)))
+
+  (pass-if-equal "normal ellipsis within custom ellipsis"
+      '((((a x) (a y) (a z))
+         ((b x) (b y) (b z))
+         ((c x) (c y) (c z)))
+        (((a x) (b x) (c x))
+         ((a y) (b y) (c y))
+         ((a z) (b z) (c z))))
+    (let ()
+      (define-syntax foo
+        (syntax-rules … ()
+          ((_ y …)
+           (syntax-rules ()
+             ((_ x ...)
+              '((((x y) …) ...)
+                (((x y) ...) …)))))))
+      (define-syntax bar (foo x y z))
+      (bar a b c))))
+
 (with-test-prefix "syntax-case"
   
   (pass-if-syntax-error "duplicate pattern variable"
@@ -1225,6 +1264,71 @@
                  ((x ... y ... z ...) #f)))
             (interaction-environment)))))
 
+(with-test-prefix "with-ellipsis"
+
+  (pass-if-equal "simple"
+      '(a 1 2 3)
+    (let ()
+      (define-syntax define-quotation-macros
+        (lambda (x)
+          (syntax-case x ()
+            ((_ (macro-name head-symbol) ...)
+             #'(begin (define-syntax macro-name
+                        (lambda (x)
+                          (with-ellipsis …
+                            (syntax-case x ()
+                              ((_ x …)
+                               #'(quote (head-symbol x …)))))))
+                      ...)))))
+      (define-quotation-macros (quote-a a) (quote-b b))
+      (quote-a 1 2 3)))
+
+  (pass-if-equal "disables normal ellipsis"
+      '(a ...)
+    (let ()
+      (define-syntax foo
+        (lambda (x)
+          (with-ellipsis …
+            (syntax-case x ()
+              ((_)
+               #'(quote (a ...)))))))
+      (foo)))
+
+  (pass-if-equal "doesn't affect ellipsis for generated code"
+      '(a b c)
+    (let ()
+      (define-syntax quotation-macro
+        (lambda (x)
+          (with-ellipsis …
+            (syntax-case x ()
+              ((_)
+               #'(lambda (x)
+                   (syntax-case x ()
+                     ((_ x ...)
+                      #'(quote (x ...))))))))))
+      (define-syntax kwote (quotation-macro))
+      (kwote a b c)))
+
+  (pass-if-equal "propagates into syntax binders"
+      '(a b c)
+    (let ()
+      (with-ellipsis …
+        (define-syntax kwote
+          (lambda (x)
+            (syntax-case x ()
+              ((_ x …)
+               #'(quote (x …))))))
+        (kwote a b c))))
+
+  (pass-if-equal "works with local-eval"
+      5
+    (let ((env (with-ellipsis … (the-environment))))
+      (local-eval '(syntax-case #'(a b c d e) ()
+                     ((x …)
+                      (length #'(x …))))
+                  env))))
+
 ;;; Local Variables:
 ;;; eval: (put 'pass-if-syntax-error 'scheme-indent-function 1)
+;;; eval: (put 'with-ellipsis 'scheme-indent-function 1)
 ;;; End:

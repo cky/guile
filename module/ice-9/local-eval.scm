@@ -1,6 +1,6 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 ;;;
-;;; Copyright (C) 2012 Free Software Foundation, Inc.
+;;; Copyright (C) 2012, 2013 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -179,6 +179,12 @@
                                  (cdr val)
                                  t)
                            patterns))))
+              ((ellipsis)
+               (lp ids capture formals
+                   (cons (lambda (x)
+                           #`(with-ellipsis #,val #,x))
+                         wrappers)
+                   patterns))
               (else
                (error "what" type val))))))))))
 
