@@ -2585,18 +2585,85 @@
                       "source expression failed to match any pattern"
                       tmp)))))))))))
 
+(define syntax-error
+  (make-syntax-transformer
+    'syntax-error
+    'macro
+    (lambda (x)
+      (let ((tmp-1 x))
+        (let ((tmp ($sc-dispatch tmp-1 '(_ (any . any) any . each-any))))
+          (if (if tmp
+                (apply (lambda (keyword operands message arg)
+                         (string? (syntax->datum message)))
+                       tmp)
+                #f)
+            (apply (lambda (keyword operands message arg)
+                     (syntax-violation
+                       (syntax->datum keyword)
+                       (string-join
+                         (cons (syntax->datum message)
+                               (map (lambda (x) (object->string (syntax->datum x))) arg)))
+                       (if (syntax->datum keyword) (cons keyword operands) #f)))
+                   tmp)
+            (let ((tmp ($sc-dispatch tmp-1 '(_ any . each-any))))
+              (if (if tmp
+                    (apply (lambda (message arg) (string? (syntax->datum message))) tmp)
+                    #f)
+                (apply (lambda (message arg)
+                         (cons '#(syntax-object syntax-error ((top)) (hygiene guile))
+                               (cons '(#f) (cons message arg))))
+                       tmp)
+                (syntax-violation
+                  #f
+                  "source expression failed to match any pattern"
+                  tmp-1)))))))))
+
 (define syntax-rules
   (make-syntax-transformer
     'syntax-rules
     'macro
     (lambda (xx)
       (letrec*
-        ((expand-syntax-rules
+        ((expand-clause
+           (lambda (clause)
+             (let ((tmp-1 clause))
+               (let ((tmp ($sc-dispatch
+                            tmp-1
+                            '((any . any)
+                              (#(free-id #(syntax-object syntax-error ((top)) (hygiene guile)))
+                               any
+                               .
+                               each-any)))))
+                 (if (if tmp
+                       (apply (lambda (keyword pattern message arg)
+                                (string? (syntax->datum message)))
+                              tmp)
+                       #f)
+                   (apply (lambda (keyword pattern message arg)
+                            (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) pattern)
+                                  (list '#(syntax-object syntax ((top)) (hygiene guile))
+                                        (cons '#(syntax-object syntax-error ((top)) (hygiene guile))
+                                              (cons (cons '#(syntax-object dummy ((top)) (hygiene guile)) pattern)
+                                                    (cons message arg))))))
+                          tmp)
+                   (let ((tmp ($sc-dispatch tmp-1 '((any . any) any))))
+                     (if tmp
+                       (apply (lambda (keyword pattern template)
+                                (list (cons '#(syntax-object dummy ((top)) (hygiene guile)) pattern)
+                                      (list '#(syntax-object syntax ((top)) (hygiene guile)) template)))
+                              tmp)
+                       (syntax-violation
+                         #f
+                         "source expression failed to match any pattern"
+                         tmp-1))))))))
+         (expand-syntax-rules
            (lambda (dots keys docstrings clauses)
-             (let ((tmp-1 (list keys docstrings clauses)))
-               (let ((tmp ($sc-dispatch tmp-1 '(each-any each-any #(each ((any . any) any))))))
+             (let ((tmp-1 (list keys docstrings clauses (map expand-clause clauses))))
+               (let ((tmp ($sc-dispatch
+                            tmp-1
+                            '(each-any each-any #(each ((any . any) any)) each-any))))
                  (if tmp
-                   (apply (lambda (k docstring keyword pattern template)
+                   (apply (lambda (k docstring keyword pattern template clause)
                             (let ((tmp (cons '#(syntax-object lambda ((top)) (hygiene guile))
                                              (cons '(#(syntax-object x ((top)) (hygiene guile)))
                                                    (append
@@ -2609,20 +2676,7 @@
                                                                    pattern))
                                                            (cons '#(syntax-object syntax-case ((top)) (hygiene guile))
                                                                  (cons '#(syntax-object x ((top)) (hygiene guile))
-                                                                       (cons k
-                                                                             (map (lambda (tmp-1 tmp)
-                                                                                    (list (cons '#(syntax-object
-                                                                                                   dummy
-                                                                                                   ((top))
-                                                                                                   (hygiene guile))
-                                                                                                tmp)
-                                                                                          (list '#(syntax-object
-                                                                                                   syntax
-                                                                                                   ((top))
-                                                                                                   (hygiene guile))
-                                                                                                tmp-1)))
-                                                                                  template
-                                                                                  pattern))))))))))
+                                                                       (cons k clause)))))))))
                               (let ((form tmp))
                                 (if dots
                                   (let ((tmp dots))

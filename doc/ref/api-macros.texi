@@ -363,6 +363,30 @@ Cast into this form, our @code{when} example is significantly shorter:
   (if c (begin e ...)))
 @end example
 
+@subsubsection Reporting Syntax Errors in Macros
+
+@deffn {Syntax} syntax-error message [arg ...]
+Report an error at macro-expansion time.  @var{message} must be a string
+literal, and the optional @var{arg} operands can be arbitrary expressions
+providing additional information.
+@end deffn
+
+@code{syntax-error} is intended to be used within @code{syntax-rules}
+templates.  For example:
+
+@example
+(define-syntax simple-let
+  (syntax-rules ()
+    ((_ (head ... ((x . y) val) . tail)
+        body1 body2 ...)
+     (syntax-error
+      "expected an identifier but got"
+      (x . y)))
+    ((_ ((name val) ...) body1 body2 ...)
+     ((lambda (name ...) body1 body2 ...)
+      val ...))))
+@end example
+
 @subsubsection Specifying a Custom Ellipsis Identifier
 
 When writing macros that generate macro definitions, it is convenient to

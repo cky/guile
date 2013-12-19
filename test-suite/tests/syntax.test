@@ -1211,6 +1211,47 @@
       (define-syntax bar (foo x y z))
       (bar a b c))))
 
+(with-test-prefix "syntax-error"
+
+  (pass-if-syntax-error "outside of macro without args"
+    "test error"
+    (eval '(syntax-error "test error")
+          (interaction-environment)))
+
+  (pass-if-syntax-error "outside of macro with args"
+    "test error x \\(y z\\)"
+    (eval '(syntax-error "test error" x (y z))
+          (interaction-environment)))
+
+  (pass-if-equal "within macro"
+      '(simple-let
+        "expected an identifier but got (z1 z2)"
+        (simple-let ((y (* x x))
+                     ((z1 z2) (values x x)))
+          (+ y 1)))
+    (catch 'syntax-error
+      (lambda ()
+        (eval '(let ()
+                 (define-syntax simple-let
+                   (syntax-rules ()
+                     ((_ (head ... ((x . y) val) . tail)
+                         body1 body2 ...)
+                      (syntax-error
+                       "expected an identifier but got"
+                       (x . y)))
+                     ((_ ((name val) ...) body1 body2 ...)
+                      ((lambda (name ...) body1 body2 ...)
+                       val ...))))
+                 (define (foo x)
+                   (simple-let ((y (* x x))
+                                ((z1 z2) (values x x)))
+                     (+ y 1)))
+                 foo)
+              (interaction-environment))
+        (error "expected syntax-error exception"))
+      (lambda (k who what where form . maybe-subform)
+        (list who what form)))))
+
 (with-test-prefix "syntax-case"
   
   (pass-if-syntax-error "duplicate pattern variable"

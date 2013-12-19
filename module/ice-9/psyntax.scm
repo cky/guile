@@ -2841,21 +2841,53 @@
           #'(syntax-case (list in ...) ()
               ((out ...) (let () e1 e2 ...)))))))
 
+(define-syntax syntax-error
+  (lambda (x)
+    (syntax-case x ()
+      ;; Extended internal syntax which provides the original form
+      ;; as the first operand, for improved error reporting.
+      ((_ (keyword . operands) message arg ...)
+       (string? (syntax->datum #'message))
+       (syntax-violation (syntax->datum #'keyword)
+                         (string-join (cons (syntax->datum #'message)
+                                            (map (lambda (x)
+                                                   (object->string
+                                                    (syntax->datum x)))
+                                                 #'(arg ...))))
+                         (and (syntax->datum #'keyword)
+                              #'(keyword . operands))))
+      ;; Standard R7RS syntax
+      ((_ message arg ...)
+       (string? (syntax->datum #'message))
+       #'(syntax-error (#f) message arg ...)))))
+
 (define-syntax syntax-rules
   (lambda (xx)
+    (define (expand-clause clause)
+      ;; Convert a 'syntax-rules' clause into a 'syntax-case' clause.
+      (syntax-case clause (syntax-error)
+        ;; If the template is a 'syntax-error' form, use the extended
+        ;; internal syntax, which adds the original form as the first
+        ;; operand for improved error reporting.
+        (((keyword . pattern) (syntax-error message arg ...))
+         (string? (syntax->datum #'message))
+         #'((dummy . pattern) #'(syntax-error (dummy . pattern) message arg ...)))
+        ;; Normal case
+        (((keyword . pattern) template)
+         #'((dummy . pattern) #'template))))
     (define (expand-syntax-rules dots keys docstrings clauses)
       (with-syntax
           (((k ...) keys)
            ((docstring ...) docstrings)
-           ((((keyword . pattern) template) ...) clauses))
+           ((((keyword . pattern) template) ...) clauses)
+           ((clause ...) (map expand-clause clauses)))
         (with-syntax
             ((form #'(lambda (x)
                        docstring ...        ; optional docstring
                        #((macro-type . syntax-rules)
                          (patterns pattern ...)) ; embed patterns as procedure metadata
                        (syntax-case x (k ...)
-                         ((dummy . pattern) #'template)
-                         ...))))
+                         clause ...))))
           (if dots
               (with-syntax ((dots dots))
                 #'(with-ellipsis dots form))
