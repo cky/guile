@@ -1808,6 +1808,34 @@
   (pass-if (not (integer? (current-input-port)))))
 
 ;;;
+;;; integer?
+;;;
+
+(with-test-prefix "exact-integer?"
+  (pass-if (documented? exact-integer?))
+  (pass-if (exact-integer? 0))
+  (pass-if (exact-integer? 7))
+  (pass-if (exact-integer? -7))
+  (pass-if (exact-integer? (+ 1 fixnum-max)))
+  (pass-if (exact-integer? (- 1 fixnum-min)))
+  (pass-if (and (= 1.0 (round 1.0))
+                (not (exact-integer? 1.0))))
+  (pass-if (not (exact-integer? 1.3)))
+  (pass-if (not (exact-integer? +inf.0)))
+  (pass-if (not (exact-integer? -inf.0)))
+  (pass-if (not (exact-integer? +nan.0)))
+  (pass-if (not (exact-integer? +inf.0-inf.0i)))
+  (pass-if (not (exact-integer? +nan.0+nan.0i)))
+  (pass-if (not (exact-integer? 3+4i)))
+  (pass-if (not (exact-integer? #\a)))
+  (pass-if (not (exact-integer? "a")))
+  (pass-if (not (exact-integer? (make-vector 0))))
+  (pass-if (not (exact-integer? (cons 1 2))))
+  (pass-if (not (exact-integer? #t)))
+  (pass-if (not (exact-integer? (lambda () #t))))
+  (pass-if (not (exact-integer? (current-input-port)))))
+
+;;;
 ;;; inexact?
 ;;;
 

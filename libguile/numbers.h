@@ -243,6 +243,7 @@ SCM_API SCM scm_complex_p (SCM x);
 SCM_API SCM scm_real_p (SCM x);
 SCM_API SCM scm_rational_p (SCM z);
 SCM_API SCM scm_integer_p (SCM x);
+SCM_API SCM scm_exact_integer_p (SCM x);
 SCM_API SCM scm_inexact_p (SCM x);
 SCM_API int scm_is_inexact (SCM x);
 SCM_API SCM scm_num_eq_p (SCM x, SCM y);
@@ -331,6 +332,7 @@ SCM_INTERNAL void scm_i_print_complex (double real, double imag, SCM port);
 /* conversion functions for integers */
 
 SCM_API int scm_is_integer (SCM val);
+SCM_API int scm_is_exact_integer (SCM val);
 SCM_API int scm_is_signed_integer (SCM val,
 				   scm_t_intmax min, scm_t_intmax max);
 SCM_API int scm_is_unsigned_integer (SCM val,

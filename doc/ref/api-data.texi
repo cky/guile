@@ -318,7 +318,8 @@ Scheme integers can be exact and inexact.  For example, a number
 written as @code{3.0} with an explicit decimal-point is inexact, but
 it is also an integer.  The functions @code{integer?} and
 @code{scm_is_integer} report true for such a number, but the functions
-@code{scm_is_signed_integer} and @code{scm_is_unsigned_integer} only
+@code{exact-integer?}, @code{scm_is_exact_integer},
+@code{scm_is_signed_integer}, and @code{scm_is_unsigned_integer} only
 allow exact integers and thus report false.  Likewise, the conversion
 functions like @code{scm_to_signed_integer} only accept exact
 integers.
@@ -333,7 +334,7 @@ will become exact fractions.)
 @deffn {Scheme Procedure} integer? x
 @deffnx {C Function} scm_integer_p (x)
 Return @code{#t} if @var{x} is an exact or inexact integer number, else
-@code{#f}.
+return @code{#f}.
 
 @lisp
 (integer? 487)
@@ -352,6 +353,24 @@ Return @code{#t} if @var{x} is an exact or inexact integer number, else
 
 @deftypefn {C Function} int scm_is_integer (SCM x)
 This is equivalent to @code{scm_is_true (scm_integer_p (x))}.
+@end deftypefn
+
+@deffn {Scheme Procedure} exact-integer? x
+@deffnx {C Function} scm_exact_integer_p (x)
+Return @code{#t} if @var{x} is an exact integer number, else
+return @code{#f}.
+
+@lisp
+(exact-integer? 37)
+@result{} #t
+
+(exact-integer? 3.0)
+@result{} #f
+@end lisp
+@end deffn
+
+@deftypefn {C Function} int scm_is_exact_integer (SCM x)
+This is equivalent to @code{scm_is_true (scm_exact_integer_p (x))}.
 @end deftypefn
 
 @defvr  {C Type} scm_t_int8
