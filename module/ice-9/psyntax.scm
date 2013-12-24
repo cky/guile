@@ -1061,7 +1061,9 @@
                                   (let ((old (module-variable (current-module) n)))
                                     ;; use value of the same-named imported variable, if
                                     ;; any
-                                    (if (and (variable? old) (variable-bound? old))
+                                    (if (and (variable? old)
+                                             (variable-bound? old)
+                                             (not (macro? (variable-ref old))))
                                         (module-define! (current-module) n (variable-ref old))
                                         (module-add! (current-module) n (make-undefined-variable)))))
                               (values

@@ -629,7 +629,9 @@
                                                        (not (module-local-variable (current-module) n))
                                                        (current-module))
                                                 (let ((old (module-variable (current-module) n)))
-                                                  (if (and (variable? old) (variable-bound? old))
+                                                  (if (and (variable? old)
+                                                           (variable-bound? old)
+                                                           (not (macro? (variable-ref old))))
                                                     (module-define! (current-module) n (variable-ref old))
                                                     (module-add! (current-module) n (make-undefined-variable)))))
                                               (values
