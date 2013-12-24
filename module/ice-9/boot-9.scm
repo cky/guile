@@ -2961,6 +2961,9 @@ module '(ice-9 q) '(make-q q-length))}."
 ;;; {Autoloading modules}
 ;;;
 
+;;; XXX FIXME autoloads-in-progress and autoloads-done
+;;;           are not handled in a thread-safe way.
+
 (define autoloads-in-progress '())
 
 ;; This function is called from scm_load_scheme_module in
