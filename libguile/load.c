@@ -89,7 +89,6 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
 {
   SCM hook = *scm_loc_load_hook;
   SCM ret = SCM_UNSPECIFIED;
-  char *encoding;
 
   SCM_VALIDATE_STRING (1, filename);
   if (scm_is_true (hook) && scm_is_false (scm_procedure_p (hook)))
@@ -102,17 +101,13 @@ SCM_DEFINE (scm_primitive_load, "primitive-load", 1, 0, 0,
   {
     SCM port;
 
-    port = scm_open_file (filename, scm_from_locale_string ("r"));
+    port = scm_open_file_with_encoding (filename,
+                                        scm_from_latin1_string ("r"),
+                                        SCM_BOOL_T, /* guess_encoding */
+                                        scm_from_latin1_string ("UTF-8"));
+
     scm_dynwind_begin (SCM_F_DYNWIND_REWINDABLE);
     scm_i_dynwind_current_load_port (port);
-
-    encoding = scm_i_scan_for_encoding (port);
-    if (encoding)
-      scm_i_set_port_encoding_x (port, encoding);
-    else
-      /* The file has no encoding declared.  We'll presume UTF-8, like
-         compile-file does.  */
-      scm_i_set_port_encoding_x (port, "UTF-8");
 
     while (1)
       {
