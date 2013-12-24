@@ -1121,6 +1121,9 @@ read_decimal_integer (SCM port, int c, ssize_t *resp)
 
   while ('0' <= c && c <= '9')
     {
+      if (((SSIZE_MAX - (c-'0')) / 10) <= res)
+        scm_i_input_error ("read_decimal_integer", port,
+                           "number too large", SCM_EOL);
       res = 10*res + c-'0';
       got_it = 1;
       c = scm_getc (port);
