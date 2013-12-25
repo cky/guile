@@ -546,10 +546,17 @@ SCM_DEFINE (scm_string_copy_x, "string-copy!", 3, 2, 0,
       SCM_ASSERT_RANGE (3, s, len <= scm_i_string_length (target) - ctstart);
 
       target = scm_i_string_start_writing (target);
-      for (i = 0; i < cend - cstart; i++)
+      if (ctstart < cstart)
         {
-          scm_i_string_set_x (target, ctstart + i, 
-                              scm_i_string_ref (s, cstart + i));
+          for (i = 0; i < len; i++)
+            scm_i_string_set_x (target, ctstart + i,
+                                scm_i_string_ref (s, cstart + i));
+        }
+      else
+        {
+          for (i = len; i--;)
+            scm_i_string_set_x (target, ctstart + i,
+                                scm_i_string_ref (s, cstart + i));
         }
       scm_i_string_stop_writing ();
       scm_remember_upto_here_1 (target);

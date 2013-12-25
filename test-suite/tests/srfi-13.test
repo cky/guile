@@ -555,8 +555,7 @@
     (string=? "o-bar" (string-copy "\u0100\u0101o-bar" 2)))
 
   (pass-if "start and end index"
-    (string=? "o-ba" (string-copy "foo-bar" 2 6)))
-)
+    (string=? "o-ba" (string-copy "foo-bar" 2 6))))
 
 (with-test-prefix "substring/shared"
 
@@ -578,7 +577,17 @@
 	      (let* ((s "hello")
 		     (t (string-copy "world, oh yeah!")))
 		(string-copy! t 1 s 1 3)
-		t))))
+		t)))
+
+  (pass-if-equal "overlapping src and dest, moving right"
+      "aabce"
+    (let ((str (string-copy "abcde")))
+      (string-copy! str 1 str 0 3) str))
+
+  (pass-if-equal "overlapping src and dest, moving left"
+      "bcdde"
+    (let ((str (string-copy "abcde")))
+      (string-copy! str 0 str 1 4) str)))
 
 (with-test-prefix "string-take"
 
