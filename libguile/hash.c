@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 2000, 2001, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -45,6 +45,7 @@
 extern double floor();
 #endif
 
+#define SCM_MIN(A, B) ((A) < (B) ? (A) : (B))
 
 unsigned long 
 scm_string_hash (const unsigned char *str, size_t len)
@@ -228,31 +229,34 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
       return scm_i_struct_hash (obj, n, d);
     case scm_tc7_wvect:
     case scm_tc7_vector:
-      {
-	size_t len = SCM_SIMPLE_VECTOR_LENGTH (obj);
-	if (len > 5)
-	  {
-	    size_t i = d/2;
-	    unsigned long h = 1;
-	    while (i--)
-	      {
-		SCM elt = SCM_SIMPLE_VECTOR_REF (obj, h % len);
-		h = ((h << 8) + (scm_hasher (elt, n, 2))) % n;
-	      }
-	    return h;
-	  }
-	else
-	  {
-	    size_t i = len;
-	    unsigned long h = (n)-1;
-	    while (i--)
-	      {
-		SCM elt = SCM_SIMPLE_VECTOR_REF (obj, h % len);
-		h = ((h << 8) + (scm_hasher (elt, n, d/len))) % n;
-	      }
-	    return h;
-	  }
-      }
+      if (d > 0)
+        {
+          size_t len, i, d2;
+          unsigned long h;
+
+          len = SCM_SIMPLE_VECTOR_LENGTH (obj);
+          if (len > 5)
+            {
+              i = d / 2;
+              h = 1;
+              d2 = SCM_MIN (2, d - 1);
+            }
+          else
+            {
+              i = len;
+              h = n - 1;
+              d2 = (d - 1) / len;
+            }
+
+          while (i--)
+            {
+              SCM elt = SCM_SIMPLE_VECTOR_REF (obj, h % len);
+              h = ((h << 8) + (scm_hasher (elt, n, d2))) % n;
+            }
+          return h;
+        }
+      else
+        return 1;
     case scm_tcs_cons_imcar: 
     case scm_tcs_cons_nimcar:
       if (d) return (scm_hasher (SCM_CAR (obj), n, d/2)
