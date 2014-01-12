@@ -5575,6 +5575,16 @@ Although Guile provides this extended read syntax for symbols,
 widespread usage of it is discouraged because it is not portable and not
 very readable.
 
+Alternatively, if you enable the @code{r7rs-symbols} read option (see
+@pxref{Scheme Read}), you can write arbitrary symbols using the same
+notation used for strings, except delimited by vertical bars instead of
+double quotes.
+
+@example
+|foo bar|
+|\x3BB; is a greek lambda|
+|\| is a vertical bar|
+@end example
 
 @node Symbol Uninterned
 @subsubsection Uninterned Symbols

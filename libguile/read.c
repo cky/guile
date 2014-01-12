@@ -88,6 +88,8 @@ scm_t_option scm_read_opts[] =
       "In strings, consume leading whitespace after an escaped end-of-line."},
     { SCM_OPTION_BOOLEAN, "curly-infix", 0,
       "Support SRFI-105 curly infix expressions."},
+    { SCM_OPTION_BOOLEAN, "r7rs-symbols", 0,
+      "Support R7RS |...| symbol notation."},
     { 0, },
   };
  
@@ -113,6 +115,7 @@ struct t_read_opts
   unsigned int hungry_eol_escapes_p : 1;
   unsigned int curly_infix_p        : 1;
   unsigned int neoteric_p           : 1;
+  unsigned int r7rs_symbols_p       : 1;
 };
 
 typedef struct t_read_opts scm_t_read_opts;
@@ -588,8 +591,11 @@ skip_intraline_whitespace (SCM port)
   scm_ungetc (c, port);
 }                                         
 
+/* Read either a double-quoted string or an R7RS-style symbol delimited
+   by vertical lines, depending on the value of 'chr' ('"' or '|').
+   Regardless, the result is always returned as a string.  */
 static SCM
-scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
+scm_read_string_like_syntax (int chr, SCM port, scm_t_read_opts *opts)
 #define FUNC_NAME "scm_lreadr"
 {
   /* For strings smaller than C_STR, this function creates only one Scheme
@@ -603,13 +609,16 @@ scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
   long line = SCM_LINUM (port);
   int column = SCM_COL (port) - 1;
 
-  while ('"' != (c = scm_getc (port)))
+  while (chr != (c = scm_getc (port)))
     {
       if (c == EOF)
         {
         str_eof:
           scm_i_input_error (FUNC_NAME, port,
-                             "end of file in string constant", SCM_EOL);
+                             (chr == '|'
+                              ? "end of file in symbol"
+                              : "end of file in string constant"),
+                             SCM_EOL);
         }
 
       if (c_str_len + 1 >= READER_STRING_BUFFER_SIZE)
@@ -624,7 +633,6 @@ scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
             {
             case EOF:
               goto str_eof;
-            case '"':
             case '|':
             case '\\':
               break;
@@ -657,7 +665,7 @@ scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
               c = '\010';
               break;
             case 'x':
-              if (opts->r6rs_escapes_p)
+              if (opts->r6rs_escapes_p || chr == '|')
                 SCM_READ_HEX_ESCAPE (10, ';');
               else
                 SCM_READ_HEX_ESCAPE (2, '\0');
@@ -675,6 +683,8 @@ scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
                   break;
                 }
             default:
+              if (c == chr)
+                break;
             bad_escaped:
               scm_i_input_error (FUNC_NAME, port,
                                  "illegal character in escape sequence: ~S",
@@ -700,6 +710,17 @@ scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
 }
 #undef FUNC_NAME
 
+static SCM
+scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
+{
+  return scm_read_string_like_syntax (chr, port, opts);
+}
+
+static SCM
+scm_read_r7rs_symbol (int chr, SCM port, scm_t_read_opts *opts)
+{
+  return scm_string_to_symbol (scm_read_string_like_syntax (chr, port, opts));
+}
 
 static SCM
 scm_read_number (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
@@ -1788,6 +1809,11 @@ read_inner_expression (SCM port, scm_t_read_opts *opts)
 	  return (scm_read_sexp (chr, port, opts));
 	case '"':
 	  return (scm_read_string (chr, port, opts));
+        case '|':
+          if (opts->r7rs_symbols_p)
+            return scm_read_r7rs_symbol (chr, port, opts);
+          else
+            return scm_read_mixed_case_symbol (chr, port, opts);
 	case '\'':
 	case '`':
 	case ',':
@@ -2204,9 +2230,10 @@ SCM_SYMBOL (sym_port_read_options, "port-read-options");
 #define READ_OPTION_SQUARE_BRACKETS_P     10
 #define READ_OPTION_HUNGRY_EOL_ESCAPES_P  12
 #define READ_OPTION_CURLY_INFIX_P         14
+#define READ_OPTION_R7RS_SYMBOLS_P        16
 
 /* The total width in bits of the per-port overrides */
-#define READ_OPTIONS_NUM_BITS             16
+#define READ_OPTIONS_NUM_BITS             18
 
 #define READ_OPTIONS_INHERIT_ALL  ((1UL << READ_OPTIONS_NUM_BITS) - 1)
 #define READ_OPTIONS_MAX_VALUE    READ_OPTIONS_INHERIT_ALL
@@ -2304,6 +2331,7 @@ init_read_options (SCM port, scm_t_read_opts *opts)
   RESOLVE_BOOLEAN_OPTION (SQUARE_BRACKETS_P,    square_brackets_p);
   RESOLVE_BOOLEAN_OPTION (HUNGRY_EOL_ESCAPES_P, hungry_eol_escapes_p);
   RESOLVE_BOOLEAN_OPTION (CURLY_INFIX_P,        curly_infix_p);
+  RESOLVE_BOOLEAN_OPTION (R7RS_SYMBOLS_P,       r7rs_symbols_p);
 
 #undef RESOLVE_BOOLEAN_OPTION
 

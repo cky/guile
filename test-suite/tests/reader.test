@@ -238,6 +238,11 @@
          (with-read-options '(case-insensitive)
            (lambda ()
              (read-string "GuiLe")))))
+  (pass-if-equal "r7rs-symbols"
+      (list 'a (string->symbol "Hello, this is | a \"test\"") 'b)
+    (with-read-options '(r7rs-symbols)
+      (lambda ()
+        (read-string "(a |H\\x65;llo, this is \\| a \"test\"| b)"))))
   (pass-if "prefix keywords"
     (eq? #:keyword
          (with-read-options '(keywords prefix case-insensitive)
