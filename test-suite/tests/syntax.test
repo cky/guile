@@ -85,6 +85,9 @@
 (define exception:zero-expression-sequence
   "sequence of zero expressions")
 
+(define exception:define-values-wrong-number-of-return-values
+  (cons 'wrong-number-of-args "^define-values: wrong number of return values returned by expression"))
+
 
 ;; (put 'pass-if-syntax-error 'scheme-indent-function 1)
 (define-syntax pass-if-syntax-error
@@ -910,6 +913,178 @@
     exception:missing-body-expr
     (eval '(let () (define x #t))
           (interaction-environment))))
+
+(with-test-prefix "top-level define-values"
+
+  (pass-if "zero values"
+    (eval '(begin (define-values () (values))
+                  #t)
+          (interaction-environment)))
+
+  (pass-if-equal "one value"
+      1
+    (eval '(begin (define-values (x) 1)
+                  x)
+          (interaction-environment)))
+
+  (pass-if-equal "two values"
+      '(2 3)
+    (eval '(begin (define-values (x y) (values 2 3))
+                  (list x y))
+          (interaction-environment)))
+
+  (pass-if-equal "three values"
+      '(4 5 6)
+    (eval '(begin (define-values (x y z) (values 4 5 6))
+                  (list x y z))
+          (interaction-environment)))
+
+  (pass-if-equal "one value with tail"
+      '(a (b c d))
+    (eval '(begin (define-values (x . y) (values 'a 'b 'c 'd))
+                  (list x y))
+          (interaction-environment)))
+
+  (pass-if-equal "two values with tail"
+      '(x y (z w))
+    (eval '(begin (define-values (x y . z) (values 'x 'y 'z 'w))
+                  (list x y z))
+          (interaction-environment)))
+
+  (pass-if-equal "just tail"
+      '(1 2 3)
+    (eval '(begin (define-values x (values 1 2 3))
+                  x)
+          (interaction-environment)))
+
+  (pass-if-exception "expected 0 values, got 1"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(define-values () 1)
+          (interaction-environment)))
+
+  (pass-if-exception "expected 1 value, got 0"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(define-values (x) (values))
+          (interaction-environment)))
+
+  (pass-if-exception "expected 1 value, got 2"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(define-values (x) (values 1 2))
+          (interaction-environment)))
+
+  (pass-if-exception "expected 1 value with tail, got 0"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(define-values (x . y) (values))
+          (interaction-environment)))
+
+  (pass-if-exception "expected 2 value with tail, got 1"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(define-values (x y . z) 1)
+          (interaction-environment)))
+
+  (pass-if "redefinition"
+    (let ((m (make-module)))
+      (beautify-user-module! m)
+
+      ;; The previous values of `floor' and `round' must still be
+      ;; visible at the time the new `floor' and `round' are defined.
+      (eval '(define-values (floor round) (values floor round)) m)
+      (and (eq? (module-ref m 'floor) floor)
+           (eq? (module-ref m 'round) round))))
+
+  (with-test-prefix "missing expression"
+
+    (pass-if-syntax-error "(define-values)"
+      exception:generic-syncase-error
+      (eval '(define-values)
+	    (interaction-environment)))))
+
+(with-test-prefix "internal define-values"
+
+  (pass-if "zero values"
+    (let ()
+      (define-values () (values))
+      #t))
+
+  (pass-if-equal "one value"
+      1
+    (let ()
+      (define-values (x) 1)
+      x))
+
+  (pass-if-equal "two values"
+      '(2 3)
+    (let ()
+      (define-values (x y) (values 2 3))
+      (list x y)))
+
+  (pass-if-equal "three values"
+      '(4 5 6)
+    (let ()
+      (define-values (x y z) (values 4 5 6))
+      (list x y z)))
+
+  (pass-if-equal "one value with tail"
+      '(a (b c d))
+    (let ()
+      (define-values (x . y) (values 'a 'b 'c 'd))
+      (list x y)))
+
+  (pass-if-equal "two values with tail"
+      '(x y (z w))
+    (let ()
+      (define-values (x y . z) (values 'x 'y 'z 'w))
+      (list x y z)))
+
+  (pass-if-equal "just tail"
+      '(1 2 3)
+    (let ()
+      (define-values x (values 1 2 3))
+      x))
+
+  (pass-if-exception "expected 0 values, got 1"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(let ()
+             (define-values () 1)
+             #f)
+          (interaction-environment)))
+
+  (pass-if-exception "expected 1 value, got 0"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(let ()
+             (define-values (x) (values))
+             #f)
+          (interaction-environment)))
+
+  (pass-if-exception "expected 1 value, got 2"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(let ()
+             (define-values (x) (values 1 2))
+             #f)
+          (interaction-environment)))
+
+  (pass-if-exception "expected 1 value with tail, got 0"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(let ()
+             (define-values (x . y) (values))
+             #f)
+          (interaction-environment)))
+
+  (pass-if-exception "expected 2 value with tail, got 1"
+      exception:define-values-wrong-number-of-return-values
+    (eval '(let ()
+             (define-values (x y . z) 1)
+             #f)
+          (interaction-environment)))
+
+  (with-test-prefix "missing expression"
+
+    (pass-if-syntax-error "(define-values)"
+      exception:generic-syncase-error
+      (eval '(let ()
+               (define-values)
+               #f)
+	    (interaction-environment)))))
 
 (with-test-prefix "set!"
 

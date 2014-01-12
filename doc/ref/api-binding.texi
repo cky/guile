@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011,
+@c   2014 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Binding Constructs
@@ -17,6 +17,7 @@ and expressions.  This is important for modularity and data abstraction.
 * Local Bindings::              Local variable bindings.
 * Internal Definitions::        Internal definitions.
 * Binding Reflection::          Querying variable bindings.
+* Binding Multiple Values::     Binding multiple return values.
 @end menu
 
 
@@ -319,6 +320,28 @@ Return @code{#t} if @var{sym} is defined in the module @var{module} or
 the current module when @var{module} is not specified; otherwise return
 @code{#f}.
 @end deffn
+
+
+@node Binding Multiple Values
+@subsection Binding multiple return values
+
+@deffn {Syntax} define-values formals expression
+The @var{expression} is evaluated, and the @var{formals} are bound to
+the return values in the same way that the formals in a @code{lambda}
+expression are matched to the arguments in a procedure call.
+@end deffn
+
+@example
+(define-values (q r) (floor/ 10 3))
+(list q r) @result{} (3 1)
+
+(define-values (x . y) (values 1 2 3))
+x @result{} 1
+y @result{} (2 3)
+
+(define-values x (values 1 2 3))
+x @result{} (1 2 3)
+@end example
 
 
 @c Local Variables:

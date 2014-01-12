@@ -583,6 +583,67 @@ If there is no handler at all, Guile prints an error and then exits."
     ((do "step" x y)
      y)))
 
+;; XXX FIXME: When 'call-with-values' is fixed to no longer do automatic
+;;     truncation of values (in 2.2 ?), then this hack can be removed.
+(define (%define-values-arity-error)
+  (throw 'wrong-number-of-args
+         #f
+         "define-values: wrong number of return values returned by expression"
+         '()
+         #f))
+
+(define-syntax define-values
+  (lambda (orig-form)
+    (syntax-case orig-form ()
+      ((_ () expr)
+       #`(define dummy
+           (call-with-values (lambda () expr)
+             (case-lambda
+               (() #f)
+               (_ (%define-values-arity-error))))))
+      ((_ (var) expr)
+       (identifier? #'var)
+       #`(define var
+           (call-with-values (lambda () expr)
+             (case-lambda
+               ((v) v)
+               (_ (%define-values-arity-error))))))
+      ((_ (var0 ... varn) expr)
+       (and-map identifier? #'(var0 ... varn))
+       #`(begin
+           (define dummy
+             (call-with-values (lambda () expr)
+               (case-lambda
+                 ((var0 ... varn)
+                  (list var0 ... varn))
+                 (_ (%define-values-arity-error)))))
+           (define var0
+             (let ((v (car dummy)))
+               (set! dummy (cdr dummy))
+               v))
+           ...
+           (define varn (car dummy))))
+      ((_ var expr)
+       (identifier? #'var)
+       #'(define var
+           (call-with-values (lambda () expr)
+             list)))
+      ((_ (var0 ... . varn) expr)
+       (and-map identifier? #'(var0 ... varn))
+       #`(begin
+           (define dummy
+             (call-with-values (lambda () expr)
+               (case-lambda
+                 ((var0 ... . varn)
+                  (list var0 ... varn))
+                 (_ (%define-values-arity-error)))))
+           (define var0
+             (let ((v (car dummy)))
+               (set! dummy (cdr dummy))
+               v))
+           ...
+           (define varn (car dummy)))))))
+
 (define-syntax-rule (delay exp)
   (make-promise (lambda () exp)))
 
