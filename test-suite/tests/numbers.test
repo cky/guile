@@ -1808,7 +1808,7 @@
   (pass-if (not (integer? (current-input-port)))))
 
 ;;;
-;;; integer?
+;;; exact-integer?
 ;;;
 
 (with-test-prefix "exact-integer?"
