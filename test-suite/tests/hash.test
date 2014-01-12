@@ -1,6 +1,7 @@
 ;;;; hash.test --- test guile hashing     -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2004, 2005, 2006, 2008, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2004, 2005, 2006, 2008, 2011, 2012,
+;;;;   2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -36,7 +37,17 @@
   (pass-if (= 0 (hash noop 1)))
   (pass-if (= 0 (hash +inf.0 1)))
   (pass-if (= 0 (hash -inf.0 1)))
-  (pass-if (= 0 (hash +nan.0 1))))
+  (pass-if (= 0 (hash +nan.0 1)))
+  (pass-if (= 0 (hash '#() 1)))
+
+  (pass-if "cyclic vectors"
+    (let ()
+      (define (cyclic-vector n)
+        (let ((v (make-vector n)))
+          (vector-fill! v v)
+          v))
+      (and (= 0 (hash (cyclic-vector 3) 1))
+           (= 0 (hash (cyclic-vector 10) 1))))))
 
 ;;;
 ;;; hashv

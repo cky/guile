@@ -245,7 +245,7 @@ scm_hasher(SCM obj, unsigned long n, size_t d)
             {
               i = len;
               h = n - 1;
-              d2 = (d - 1) / len;
+              d2 = len > 0 ? (d - 1) / len : 0;
             }
 
           while (i--)
