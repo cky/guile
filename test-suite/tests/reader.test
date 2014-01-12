@@ -78,6 +78,10 @@
       "a|b"
     (read-string "\"a\\|b\""))
 
+  (pass-if-equal "#\\escape"
+      '(a #\esc b)
+    (read-string "(a #\\escape b)"))
+
   (pass-if-equal "#true"
       '(a #t b)
     (read-string "(a #true b)"))

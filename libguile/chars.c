@@ -1,4 +1,5 @@
-/*	Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1998, 2000, 2001, 2004, 2006, 2008, 2009,
+ *   2010, 2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -554,6 +555,16 @@ static const scm_t_uint32 const scm_r6rs_charnums[] = {
 
 #define SCM_N_R6RS_CHARNAMES (sizeof (scm_r6rs_charnames) / sizeof (char *))
 
+static const char *const scm_r7rs_charnames[] = {
+  "escape"
+};
+
+static const scm_t_uint32 const scm_r7rs_charnums[] = {
+  0x1b
+};
+
+#define SCM_N_R7RS_CHARNAMES (sizeof (scm_r7rs_charnames) / sizeof (char *))
+
 /* The abbreviated names for control characters.  */
 static const char *const scm_C0_control_charnames[] = {
   /* C0 controls */
@@ -600,6 +611,10 @@ scm_i_charname (SCM chr)
     if (scm_r6rs_charnums[c] == i)
       return scm_r6rs_charnames[c];
 
+  for (c = 0; c < SCM_N_R7RS_CHARNAMES; c++)
+    if (scm_r7rs_charnums[c] == i)
+      return scm_r7rs_charnames[c];
+
   for (c = 0; c < SCM_N_C0_CONTROL_CHARNAMES; c++)
     if (scm_C0_control_charnums[c] == i)
       return scm_C0_control_charnames[c];
@@ -625,12 +640,19 @@ scm_i_charname_to_char (const char *charname, size_t charname_len)
 	&& (!strncasecmp (scm_r5rs_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_r5rs_charnums[c]);
 
-  /* The R6RS charnames.  R6RS says that these should be case-sensitive.  They
-     are left as case-insensitive to avoid confusion.  */
+  /* The R6RS charnames.  R6RS says that these should be case-sensitive.
+     They are left as case-insensitive to avoid confusion.  */
   for (c = 0; c < SCM_N_R6RS_CHARNAMES; c++)
     if ((strlen (scm_r6rs_charnames[c]) == charname_len)
 	&& (!strncasecmp (scm_r6rs_charnames[c], charname, charname_len)))
       return SCM_MAKE_CHAR (scm_r6rs_charnums[c]);
+
+  /* The R7RS charnames.  R7RS says that these should be case-sensitive.
+     They are left as case-insensitive to avoid confusion.  */
+  for (c = 0; c < SCM_N_R7RS_CHARNAMES; c++)
+    if ((strlen (scm_r7rs_charnames[c]) == charname_len)
+	&& (!strncasecmp (scm_r7rs_charnames[c], charname, charname_len)))
+      return SCM_MAKE_CHAR (scm_r7rs_charnums[c]);
 
   /* Then come the controls.  By Guile convention, these are not case
      sensitive.  */

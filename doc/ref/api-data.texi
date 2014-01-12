@@ -2066,6 +2066,9 @@ name for each character.
 The short name for the ``delete'' character (code point U+007F) is
 @code{#\del}.
 
+The R7RS name for the ``escape'' character (code point U+001B) is
+@code{#\escape}.
+
 There are also a few alternative names left over for compatibility with
 previous versions of Guile.
 
