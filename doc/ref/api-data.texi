@@ -56,6 +56,7 @@ For the documentation of such @dfn{compound} data types, see
 @tpindex Booleans
 
 The two boolean values are @code{#t} for true and @code{#f} for false.
+They can also be written as @code{#true} and @code{#false}, as per R7RS.
 
 Boolean values are returned by predicate procedures, such as the general
 equality predicates @code{eq?}, @code{eqv?} and @code{equal?}

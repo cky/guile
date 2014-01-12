@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1999, 2000, 2001, 2003, 2004, 2006,
- *   2007, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+ *   2007, 2008, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -947,6 +947,43 @@ scm_read_semicolon_comment (int chr, SCM port)
   return SCM_UNSPECIFIED;
 }
 
+/* If the EXPECTED_CHARS are the next ones available from PORT, then
+   consume them and return 1.  Otherwise leave the port position where
+   it was and return 0.  EXPECTED_CHARS should be all lowercase, and
+   will be matched case-insensitively against the characters read from
+   PORT. */
+static int
+try_read_ci_chars (SCM port, const char *expected_chars)
+{
+  int num_chars_wanted = strlen (expected_chars);
+  int num_chars_read = 0;
+  char *chars_read = alloca (num_chars_wanted);
+  int c;
+
+  while (num_chars_read < num_chars_wanted)
+    {
+      c = scm_getc (port);
+      if (c == EOF)
+        break;
+      else if (tolower (c) != expected_chars[num_chars_read])
+        {
+          scm_ungetc (c, port);
+          break;
+        }
+      else
+        chars_read[num_chars_read++] = c;
+    }
+
+  if (num_chars_read == num_chars_wanted)
+    return 1;
+  else
+    {
+      while (num_chars_read > 0)
+        scm_ungetc (chars_read[--num_chars_read], port);
+      return 0;
+    }
+}
+
 
 /* Sharp readers, i.e. readers called after a `#' sign has been read.  */
 
@@ -957,10 +994,12 @@ scm_read_boolean (int chr, SCM port)
     {
     case 't':
     case 'T':
+      try_read_ci_chars (port, "rue");
       return SCM_BOOL_T;
 
     case 'f':
     case 'F':
+      try_read_ci_chars (port, "alse");
       return SCM_BOOL_F;
     }
 
@@ -1160,8 +1199,10 @@ scm_read_array (int c, SCM port, scm_t_read_opts *opts, long line, int column)
       c = scm_getc (port);
       if (c != '3' && c != '6')
 	{
-	  if (c != EOF)
-	    scm_ungetc (c, port);
+          if (c == 'a' && try_read_ci_chars (port, "lse"))
+            return SCM_BOOL_F;
+          else if (c != EOF)
+            scm_ungetc (c, port);
 	  return SCM_BOOL_F;
 	}
       rank = 1;
