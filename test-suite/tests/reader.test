@@ -74,6 +74,10 @@
     (not (equal? (imag-part (read-string "-nan.0-1i"))
                  (imag-part (read-string "-nan.0+1i")))))
 
+  (pass-if-equal "'\|' in string literals"
+      "a|b"
+    (read-string "\"a\\|b\""))
+
   (pass-if-equal "#true"
       '(a #t b)
     (read-string "(a #true b)"))

@@ -624,6 +624,7 @@ scm_read_string (int chr, SCM port, scm_t_read_opts *opts)
             case EOF:
               goto str_eof;
             case '"':
+            case '|':
             case '\\':
               break;
             case '\n':

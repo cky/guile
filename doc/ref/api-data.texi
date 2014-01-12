@@ -2938,9 +2938,10 @@ The read syntax for strings is an arbitrarily long sequence of
 characters enclosed in double quotes (@nicode{"}).
 
 Backslash is an escape character and can be used to insert the following
-special characters.  @nicode{\"} and @nicode{\\} are R5RS standard, the
-next seven are R6RS standard --- notice they follow C syntax --- and the
-remaining four are Guile extensions.
+special characters.  @nicode{\"} and @nicode{\\} are R5RS standard,
+@nicode{\|} is R7RS standard, the next seven are R6RS standard ---
+notice they follow C syntax --- and the remaining four are Guile
+extensions.
 
 @table @asis
 @item @nicode{\\}
@@ -2949,6 +2950,9 @@ Backslash character.
 @item @nicode{\"}
 Double quote character (an unescaped @nicode{"} is otherwise the end
 of the string).
+
+@item @nicode{\|}
+Vertical bar character.
 
 @item @nicode{\a}
 Bell character (ASCII 7).
