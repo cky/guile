@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -224,10 +224,14 @@ cbp_seek (SCM port, scm_t_off offset, int whence)
 	  result = scm_call_0 (get_position_proc);
 	else
 	  scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
-				  "R6RS custom binary port does not "
-				  "support `port-position'");
+				  "R6RS custom binary port with "
+				  "`port-position' support");
+	c_result = scm_to_int (result);
+	if (offset == 0)
+	  /* We just want to know the current position.  */
+	  break;
 
-	offset += scm_to_int (result);
+	offset += c_result;
 	/* Fall through.  */
       }
 
@@ -240,8 +244,7 @@ cbp_seek (SCM port, scm_t_off offset, int whence)
 	  result = scm_call_1 (set_position_proc, scm_from_int (offset));
 	else
 	  scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
-				  "R6RS custom binary port does not "
-				  "support `set-port-position!'");
+				  "seekable R6RS custom binary port");
 
 	/* Assuming setting the position succeeded.  */
 	c_result = offset;

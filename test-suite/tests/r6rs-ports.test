@@ -1,6 +1,6 @@
 ;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -410,6 +410,15 @@
                                                 #f #f #f)))
       (not (or (port-has-port-position? port)
                (port-has-set-port-position!? port)))))
+
+  (pass-if-equal "custom binary input port supports `port-position', \
+not `set-port-position!'"
+      42
+    (let ((port (make-custom-binary-input-port "the port" (const 0)
+                                               (const 42) #f #f)))
+      (and (port-has-port-position? port)
+           (not (port-has-set-port-position!? port))
+           (port-position port))))
 
   (pass-if "custom binary input port supports `port-position'"
     (let* ((str "Hello Port!")
