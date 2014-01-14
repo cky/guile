@@ -1,6 +1,6 @@
 ;;; srfi-16.scm --- case-lambda
 
-;; Copyright (C) 2001, 2002, 2006, 2009 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2006, 2009, 2014 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -48,6 +48,4 @@
 (define-module (srfi srfi-16)
   #:re-export (case-lambda))
 
-;; Case-lambda is now provided by code psyntax.
-
-(cond-expand-provide (current-module) '(srfi-16))
+;; Case-lambda is now provided by core psyntax.

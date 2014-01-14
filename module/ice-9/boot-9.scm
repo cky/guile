@@ -1,7 +1,7 @@
 ;;; -*- mode: scheme; coding: utf-8; -*-
 
 ;;;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
+;;;;   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014
 ;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -4037,7 +4037,9 @@ when none is available, reading FILE-NAME with READER."
     ;; of the binary I/O model and may fail to support some characters.
     srfi-13  ;; string library
     srfi-14  ;; character sets
+    srfi-16  ;; case-lambda
     srfi-23  ;; `error` procedure
+    srfi-30  ;; nested multi-line comments
     srfi-39  ;; parameterize
     srfi-55  ;; require-extension
     srfi-61  ;; general cond clause
