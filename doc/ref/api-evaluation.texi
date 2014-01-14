@@ -440,6 +440,8 @@ quote-keywordish-symbols  reader  How to print symbols that have a colon
                                   not '#f'.
 escape-newlines           yes     Render newlines as \n when printing
                                   using `write'. 
+r7rs-symbols              no      Escape symbols using R7RS |...| symbol
+                                  notation.
 @end smalllisp
 
 These options may be modified with the print-set! syntax.

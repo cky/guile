@@ -52,7 +52,8 @@ SCM_INTERNAL scm_t_option scm_print_opts[];
 #define SCM_PRINT_KEYWORD_STYLE_I   2
 #define SCM_PRINT_KEYWORD_STYLE     (SCM_PACK (scm_print_opts[2].val))
 #define SCM_PRINT_ESCAPE_NEWLINES_P scm_print_opts[3].val
-#define SCM_N_PRINT_OPTIONS 4
+#define SCM_PRINT_R7RS_SYMBOLS_P    scm_print_opts[4].val
+#define SCM_N_PRINT_OPTIONS 5
 
 
 /*

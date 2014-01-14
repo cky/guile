@@ -1,5 +1,5 @@
 /* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -115,6 +115,8 @@ scm_t_option scm_print_opts[] = {
     "'reader' quotes them when the reader option 'keywords' is not '#f'." },
   { SCM_OPTION_BOOLEAN, "escape-newlines", 1,
     "Render newlines as \\n when printing using `write'." },
+  { SCM_OPTION_BOOLEAN, "r7rs-symbols", 0,
+    "Escape symbols using R7RS |...| symbol notation." },
   { 0 },
 };
 
@@ -357,6 +359,10 @@ symbol_has_extended_read_syntax (SCM sym)
   /* Other initial-character constraints.  */
   if (c == '\'' || c == '`' || c == ',' || c == '"' || c == ';' || c == '#')
     return 1;
+
+  /* R7RS allows neither '|' nor '\' in bare symbols.  */
+  if ((c == '|' || c == '\\') && SCM_PRINT_R7RS_SYMBOLS_P)
+    return 1;
   
   /* Keywords can be identified by trailing colons too.  */
   if (c == ':' || scm_i_symbol_ref (sym, len - 1) == ':')
@@ -379,6 +385,9 @@ symbol_has_extended_read_syntax (SCM sym)
       if (!uc_is_general_category_withtable (c, SUBSEQUENT_IDENTIFIER_MASK))
         return 1;
       else if (c == '"' || c == ';' || c == '#')
+        return 1;
+      else if ((c == '|' || c == '\\') && SCM_PRINT_R7RS_SYMBOLS_P)
+        /* R7RS allows neither '|' nor '\' in bare symbols.  */
         return 1;
     }
 
@@ -418,23 +427,72 @@ print_extended_symbol (SCM sym, SCM port)
         }
       else
         {
-          display_string ("\\x", 1, 2, port, iconveh_question_mark);
+          scm_lfwrite ("\\x", 2, port);
           scm_intprint (c, 16, port);
-          display_character (';', port, iconveh_question_mark);
+          scm_putc (';', port);
         }
     }
 
   scm_lfwrite ("}#", 2, port);
 }
 
-/* FIXME: allow R6RS hex escapes instead of #{...}#.  */
+static void
+print_r7rs_extended_symbol (SCM sym, SCM port)
+{
+  size_t pos, len;
+  scm_t_string_failed_conversion_handler strategy;
+
+  len = scm_i_symbol_length (sym);
+  strategy = PORT_CONVERSION_HANDLER (port);
+
+  scm_putc ('|', port);
+
+  for (pos = 0; pos < len; pos++)
+    {
+      scm_t_wchar c = scm_i_symbol_ref (sym, pos);
+
+      switch (c)
+        {
+        case '\a': scm_lfwrite ("\\a", 2, port); break;
+        case '\b': scm_lfwrite ("\\b", 2, port); break;
+        case '\t': scm_lfwrite ("\\t", 2, port); break;
+        case '\n': scm_lfwrite ("\\n", 2, port); break;
+        case '\r': scm_lfwrite ("\\r", 2, port); break;
+        case '|':  scm_lfwrite ("\\|", 2, port); break;
+        case '\\': scm_lfwrite ("\\x5c;", 5, port); break;
+        default:
+          if (uc_is_general_category_withtable (c,
+                                                SUBSEQUENT_IDENTIFIER_MASK
+                                                | UC_CATEGORY_MASK_Zs))
+            {
+              if (!display_character (c, port, strategy))
+                scm_encoding_error ("print_r7rs_extended_symbol", errno,
+                                    "cannot convert to output locale",
+                                    port, SCM_MAKE_CHAR (c));
+            }
+          else
+            {
+              scm_lfwrite ("\\x", 2, port);
+              scm_intprint (c, 16, port);
+              scm_putc (';', port);
+            }
+          break;
+        }
+    }
+
+  scm_putc ('|', port);
+}
+
+/* FIXME: allow R6RS hex escapes instead of #{...}# or |...|.  */
 void
 scm_i_print_symbol_name (SCM sym, SCM port)
 {
-  if (symbol_has_extended_read_syntax (sym))
-    print_extended_symbol (sym, port);
-  else
+  if (!symbol_has_extended_read_syntax (sym))
     print_normal_symbol (sym, port);
+  else if (SCM_PRINT_R7RS_SYMBOLS_P)
+    print_r7rs_extended_symbol (sym, port);
+  else
+    print_extended_symbol (sym, port);
 }
 
 void

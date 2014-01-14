@@ -1,6 +1,6 @@
 ;;;; -*- coding: utf-8; mode: scheme; -*-
 ;;;;
-;;;; Copyright (C) 2010  Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2014  Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,60 @@
                (with-output-to-string
                  (lambda ()
                    (pretty-print 'exp)))))))
+
+(define (with-print-options opts thunk)
+  (let ((saved-options (print-options)))
+    (dynamic-wind
+        (lambda ()
+          (print-options opts))
+        thunk
+        (lambda ()
+          (print-options saved-options)))))
+
+(define-syntax-rule (write-with-options opts x)
+  (with-print-options opts (lambda ()
+                             (with-output-to-string
+                               (lambda ()
+                                 (write x))))))
+
+
+(with-test-prefix "write"
+
+  (with-test-prefix "r7rs-symbols"
+
+    (pass-if-equal "basic"
+        "|foo bar|"
+      (write-with-options '(r7rs-symbols)
+                          (string->symbol "foo bar")))
+
+    (pass-if-equal "escapes"
+        "|bar \\| backslash \\x5c; alarm \\a backspace \\b tab \\t newline \\n cr \\r null \\x0; del \\x7f;|"
+      (write-with-options
+       '(r7rs-symbols)
+       (string->symbol
+        (string-append
+         "bar | backslash \\ alarm \a backspace \b tab \t newline \n cr \r null \0 del "
+         (string #\del)))))
+
+    (pass-if-equal "starts with bar"
+        "|\\|foo|"
+      (write-with-options '(r7rs-symbols)
+                          (string->symbol "|foo")))
+
+    (pass-if-equal "ends with bar"
+        "|foo\\||"
+      (write-with-options '(r7rs-symbols)
+                          (string->symbol "foo|")))
+
+    (pass-if-equal "starts with backslash"
+        "|\\x5c;foo|"
+      (write-with-options '(r7rs-symbols)
+                          (string->symbol "\\foo")))
+
+    (pass-if-equal "ends with backslash"
+        "|foo\\x5c;|"
+      (write-with-options '(r7rs-symbols)
+                          (string->symbol "foo\\")))))
 
 
 (with-test-prefix "pretty-print"
