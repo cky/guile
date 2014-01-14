@@ -31,6 +31,7 @@
 #include <unicase.h>
 #include <unictype.h>
 #include <c-strcase.h>
+#include <c-ctype.h>
 
 #include "libguile/_scm.h"
 #include "libguile/bytevectors.h"
@@ -966,7 +967,7 @@ try_read_ci_chars (SCM port, const char *expected_chars)
       c = scm_getc (port);
       if (c == EOF)
         break;
-      else if (tolower (c) != expected_chars[num_chars_read])
+      else if (c_tolower (c) != expected_chars[num_chars_read])
         {
           scm_ungetc (c, port);
           break;
