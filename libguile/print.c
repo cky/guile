@@ -462,8 +462,12 @@ print_r7rs_extended_symbol (SCM sym, SCM port)
         case '\\': scm_lfwrite ("\\x5c;", 5, port); break;
         default:
           if (uc_is_general_category_withtable (c,
-                                                SUBSEQUENT_IDENTIFIER_MASK
-                                                | UC_CATEGORY_MASK_Zs))
+                                                UC_CATEGORY_MASK_L
+                                                | UC_CATEGORY_MASK_M
+                                                | UC_CATEGORY_MASK_N
+                                                | UC_CATEGORY_MASK_P
+                                                | UC_CATEGORY_MASK_S)
+              || (c == ' '))
             {
               if (!display_character (c, port, strategy))
                 scm_encoding_error ("print_r7rs_extended_symbol", errno,

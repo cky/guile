@@ -63,6 +63,11 @@
          "bar | backslash \\ alarm \a backspace \b tab \t newline \n cr \r null \0 del "
          (string #\del)))))
 
+    (pass-if-equal "brackets"
+        "|()[]{}|"
+      (write-with-options '(r7rs-symbols)
+                          (string->symbol "()[]{}")))
+
     (pass-if-equal "starts with bar"
         "|\\|foo|"
       (write-with-options '(r7rs-symbols)
