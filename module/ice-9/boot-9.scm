@@ -4044,6 +4044,7 @@ when none is available, reading FILE-NAME with READER."
     srfi-55  ;; require-extension
     srfi-61  ;; general cond clause
     srfi-62  ;; s-expression comments
+    srfi-87  ;; => in case clauses
     srfi-105 ;; curly infix expressions
     ))
 

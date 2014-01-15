@@ -54,6 +54,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-62::                     S-expression comments.
 * SRFI-67::                     Compare procedures
 * SRFI-69::                     Basic hash tables.
+* SRFI-87::                     => in case clauses.
 * SRFI-88::                     Keyword objects.
 * SRFI-98::                     Accessing environment variables.
 * SRFI-105::                    Curly-infix expressions.
@@ -156,6 +157,7 @@ srfi-39
 srfi-55
 srfi-61
 srfi-62
+srfi-87
 srfi-105
 @end example
 
@@ -5039,6 +5041,14 @@ Answer a hash value appropriate for equality predicate @code{equal?},
 
 @code{hash} is a backwards-compatible replacement for Guile's built-in
 @code{hash}.
+
+@node SRFI-87
+@subsection SRFI-87 => in case clauses
+@cindex SRFI-87
+
+Starting from version 2.0.6, Guile's core @code{case} syntax supports
+@code{=>} in clauses, as specified by SRFI-87/R7RS.
+@xref{Conditionals}.
 
 @node SRFI-88
 @subsection SRFI-88 Keyword Objects
