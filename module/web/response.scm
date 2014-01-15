@@ -1,6 +1,6 @@
 ;;; HTTP response objects
 
-;; Copyright (C)  2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -246,16 +246,21 @@ closes PORT, unless KEEP-ALIVE? is true."
                   bytes-read len))
 
   (define (read! bv start count)
-    (let ((ret (get-bytevector-n! port bv start count)))
-      (if (eof-object? ret)
-          (if (= bytes-read len)
-              0
-              (fail))
-          (begin
-            (set! bytes-read (+ bytes-read ret))
-            (if (> bytes-read len)
-                (fail)
-                ret)))))
+    ;; Read at most LEN bytes in total.  HTTP/1.1 doesn't say what to do
+    ;; when a server provides more than the Content-Length, but it seems
+    ;; wise to just stop reading at LEN.
+    (let ((count (min count (- len bytes-read))))
+      (let loop ((ret (get-bytevector-n! port bv start count)))
+        (cond ((eof-object? ret)
+               (if (= bytes-read len)
+                   0                              ; EOF
+                   (fail)))
+              ((and (zero? ret) (> count 0))
+               ;; Do not return zero since zero means EOF, so try again.
+               (loop (get-bytevector-n! port bv start count)))
+              (else
+               (set! bytes-read (+ bytes-read ret))
+               ret)))))
 
   (define close
     (and (not keep-alive?)
