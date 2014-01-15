@@ -411,6 +411,15 @@
       (not (or (port-has-port-position? port)
                (port-has-set-port-position!? port)))))
 
+  (pass-if-exception "custom binary input port 'read!' returns too much"
+      exception:out-of-range
+    ;; In Guile <= 2.0.9 this would segfault.
+    (let* ((read! (lambda (bv start count)
+                    (+ count 4242)))
+           (port (make-custom-binary-input-port "the port" read!
+                                                #f #f #f)))
+      (get-bytevector-all port)))
+
   (pass-if-equal "custom binary input port supports `port-position', \
 not `set-port-position!'"
       42

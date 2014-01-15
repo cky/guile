@@ -350,8 +350,10 @@ cbip_fill_input (SCM port)
   if (c_port->read_pos >= c_port->read_end)
     {
       /* Invoke the user's `read!' procedure.  */
-      unsigned c_octets;
+      size_t c_octets, c_requested;
       SCM bv, read_proc, octets;
+
+      c_requested = c_port->read_buf_size;
 
       /* Use the bytevector associated with PORT as the buffer passed to the
 	 `read!' procedure, thereby avoiding additional allocations.  */
@@ -366,8 +368,10 @@ cbip_fill_input (SCM port)
 	      == SCM_BYTEVECTOR_LENGTH (bv));
 
       octets = scm_call_3 (read_proc, bv, SCM_INUM0,
-			   SCM_I_MAKINUM (CBIP_BUFFER_SIZE));
-      c_octets = scm_to_uint (octets);
+			   scm_from_size_t (c_requested));
+      c_octets = scm_to_size_t (octets);
+      if (SCM_UNLIKELY (c_octets > c_requested))
+	scm_out_of_range (FUNC_NAME, octets);
 
       c_port->read_pos = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
       c_port->read_end = (unsigned char *) c_port->read_pos + c_octets;
