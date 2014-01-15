@@ -48,6 +48,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-41::                     Streams.
 * SRFI-42::                     Eager comprehensions
 * SRFI-45::                     Primitives for expressing iterative lazy algorithms
+* SRFI-46::                     Basic syntax-rules Extensions.
 * SRFI-55::                     Requiring Features.
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
@@ -154,6 +155,7 @@ srfi-16
 srfi-23
 srfi-30
 srfi-39
+srfi-46
 srfi-55
 srfi-61
 srfi-62
@@ -4657,6 +4659,15 @@ apply @code{force} to arguments of deconstructors (e.g., @code{car},
 @item
 wrap procedure bodies with @code{(lazy ...)}.
 @end itemize
+
+@node SRFI-46
+@subsection SRFI-46 Basic syntax-rules Extensions
+@cindex SRFI-46
+
+Guile's core @code{syntax-rules} supports the extensions specified by
+SRFI-46/R7RS.  Tail patterns have been supported since at least Guile
+2.0, and custom ellipsis identifiers have been supported since Guile
+2.0.10.  @xref{Syntax Rules}.
 
 @node SRFI-55
 @subsection SRFI-55 - Requiring Features

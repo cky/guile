@@ -1,7 +1,7 @@
 ;;;; syntax.test --- test suite for Guile's syntactic forms    -*- scheme -*-
 ;;;;
 ;;;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2009, 2010,
-;;;;   2011, 2012, 2013 Free Software Foundation, Inc.
+;;;;   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1209,7 +1209,20 @@
               '((((x y) …) ...)
                 (((x y) ...) …)))))))
       (define-syntax bar (foo x y z))
-      (bar a b c))))
+      (bar a b c)))
+
+  ;; This test is given in SRFI-46.
+  (pass-if-equal "custom ellipsis is handled hygienically"
+      '((1) 2 (3) (4))
+    (let-syntax
+        ((f (syntax-rules ()
+              ((f ?e)
+               (let-syntax
+                   ((g (syntax-rules --- ()
+                         ((g (??x ?e) (??y ---))
+                          '((??x) ?e (??y) ---)))))
+                 (g (1 2) (3 4)))))))
+      (f ---))))
 
 (with-test-prefix "syntax-error"
 
