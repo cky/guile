@@ -37,6 +37,7 @@
 #include "libguile/validate.h"
 #include "libguile/values.h"
 #include "libguile/vectors.h"
+#include "libguile/ports-internal.h"
 
 
 
@@ -280,17 +281,58 @@ cbp_close (SCM port)
 
 static scm_t_bits custom_binary_input_port_type = 0;
 
-/* Size of the buffer embedded in custom binary input ports.  */
-#define CBIP_BUFFER_SIZE  4096
+/* Initial size of the buffer embedded in custom binary input ports.  */
+#define CBIP_BUFFER_SIZE  8192
 
 /* Return the bytevector associated with PORT.  */
 #define SCM_CBIP_BYTEVECTOR(_port)				\
   SCM_SIMPLE_VECTOR_REF (SCM_PACK (SCM_STREAM (_port)), 4)
 
+/* Set BV as the bytevector associated with PORT.  */
+#define SCM_SET_CBIP_BYTEVECTOR(_port, _bv)				\
+  SCM_SIMPLE_VECTOR_SET (SCM_PACK (SCM_STREAM (_port)), 4, (_bv))
+
 /* Return the various procedures of PORT.  */
 #define SCM_CBIP_READ_PROC(_port)				\
   SCM_SIMPLE_VECTOR_REF (SCM_PACK (SCM_STREAM (_port)), 0)
 
+
+/* Set PORT's internal buffer according to READ_SIZE.  */
+static void
+cbip_setvbuf (SCM port, long read_size, long write_size)
+{
+  SCM bv;
+  scm_t_port *pt;
+
+  pt = SCM_PTAB_ENTRY (port);
+  bv = SCM_CBIP_BYTEVECTOR (port);
+
+  switch (read_size)
+    {
+    case 0:
+      /* Unbuffered: keep PORT's bytevector as is (it will be used in
+	 future 'scm_c_read' calls), but point to the one-byte buffer.  */
+      pt->read_buf = &pt->shortbuf;
+      pt->read_buf_size = 1;
+      break;
+
+    case -1:
+      /* Preferred size: keep the current bytevector and use it as the
+	 backing store.  */
+      pt->read_buf = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+      pt->read_buf_size = SCM_BYTEVECTOR_LENGTH (bv);
+      break;
+
+    default:
+      /* Fully buffered: allocate a buffer of READ_SIZE bytes.  */
+      bv = scm_c_make_bytevector (read_size);
+      SCM_SET_CBIP_BYTEVECTOR (port, bv);
+      pt->read_buf = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+      pt->read_buf_size = read_size;
+    }
+
+  pt->read_pos = pt->read_end = pt->read_buf;
+}
 
 static inline SCM
 make_cbip (SCM read_proc, SCM get_position_proc,
@@ -331,7 +373,10 @@ make_cbip (SCM read_proc, SCM get_position_proc,
   c_port->read_end = (unsigned char *) c_bv;
   c_port->read_buf_size = c_len;
 
-  /* Mark PORT as open, readable and unbuffered (hmm, how elegant...).  */
+  /* 'setvbuf' is supported.  */
+  SCM_PORT_GET_INTERNAL (port)->setvbuf = cbip_setvbuf;
+
+  /* Mark PORT as open and readable.  */
   SCM_SET_CELL_TYPE (port, custom_binary_input_port_type | mode_bits);
 
   scm_i_pthread_mutex_unlock (&scm_i_port_table_mutex);
@@ -346,26 +391,39 @@ cbip_fill_input (SCM port)
   int result;
   scm_t_port *c_port = SCM_PTAB_ENTRY (port);
 
- again:
   if (c_port->read_pos >= c_port->read_end)
     {
       /* Invoke the user's `read!' procedure.  */
+      int buffered;
       size_t c_octets, c_requested;
       SCM bv, read_proc, octets;
 
       c_requested = c_port->read_buf_size;
-
-      /* Use the bytevector associated with PORT as the buffer passed to the
-	 `read!' procedure, thereby avoiding additional allocations.  */
-      bv = SCM_CBIP_BYTEVECTOR (port);
       read_proc = SCM_CBIP_READ_PROC (port);
 
-      /* The assumption here is that C_PORT's internal buffer wasn't changed
-	 behind our back.  */
-      assert (c_port->read_buf ==
-	      (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv));
-      assert ((unsigned) c_port->read_buf_size
-	      == SCM_BYTEVECTOR_LENGTH (bv));
+      bv = SCM_CBIP_BYTEVECTOR (port);
+      buffered =
+	(c_port->read_buf == (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv));
+
+      if (buffered)
+	/* Make sure the buffer isn't corrupt.  BV can be passed directly
+	   to READ_PROC.  */
+	assert (c_port->read_buf_size == SCM_BYTEVECTOR_LENGTH (bv));
+      else
+	{
+	  /* This is an unbuffered port.  When called via the
+	     'get-bytevector-*' procedures, and thus via 'scm_c_read', we
+	     are passed the caller-provided buffer, so we need to check its
+	     size.  */
+	  if (SCM_BYTEVECTOR_LENGTH (bv) < c_requested)
+	    {
+	      /* Bad luck: we have to make another allocation.  Save that
+		 bytevector for later reuse, in the hope that the application
+		 has regular access patterns.  */
+	      bv = scm_c_make_bytevector (c_requested);
+	      SCM_SET_CBIP_BYTEVECTOR (port, bv);
+	    }
+	}
 
       octets = scm_call_3 (read_proc, bv, SCM_INUM0,
 			   scm_from_size_t (c_requested));
@@ -373,11 +431,15 @@ cbip_fill_input (SCM port)
       if (SCM_UNLIKELY (c_octets > c_requested))
 	scm_out_of_range (FUNC_NAME, octets);
 
-      c_port->read_pos = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+      if (!buffered)
+	/* Copy the data back to the internal buffer.  */
+	memcpy ((char *) c_port->read_pos, SCM_BYTEVECTOR_CONTENTS (bv),
+		c_octets);
+
       c_port->read_end = (unsigned char *) c_port->read_pos + c_octets;
 
-      if (c_octets > 0)
-	goto again;
+      if (c_octets != 0 || c_requested == 0)
+	result = (int) *c_port->read_pos;
       else
 	result = EOF;
     }

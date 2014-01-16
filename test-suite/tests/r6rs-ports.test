@@ -456,6 +456,129 @@ not `set-port-position!'"
                          (u8-list->bytevector
                           (map char->integer (string->list "Port!")))))))
 
+  (pass-if-equal "custom binary input port unbuffered & 'port-position'"
+      '(0 2 5 11)
+    ;; Check that the value returned by 'port-position' is correct, and
+    ;; that each 'port-position' call leads one call to the
+    ;; 'get-position' method.
+    (let* ((str    "Hello Port!")
+           (output (make-bytevector (string-length str)))
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (read!  (lambda (bv start count)
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (pos     '())
+           (get-pos (lambda ()
+                      (let ((p (port-position source)))
+                        (set! pos (cons p pos))
+                        p)))
+           (port    (make-custom-binary-input-port "the port" read!
+                                                   get-pos #f #f)))
+      (setvbuf port _IONBF)
+      (and (= 0 (port-position port))
+           (begin
+             (get-bytevector-n! port output 0 2)
+             (= 2 (port-position port)))
+           (begin
+             (get-bytevector-n! port output 2 3)
+             (= 5 (port-position port)))
+           (let ((bv (string->utf8 (get-string-all port))))
+             (bytevector-copy! bv 0 output 5 (bytevector-length bv))
+             (= (string-length str) (port-position port)))
+           (bytevector=? output (string->utf8 str))
+           (reverse pos))))
+
+  (pass-if-equal "custom binary input port unbuffered & 'read!' calls"
+      `((2 "He") (3 "llo") (42 " Port!"))
+    (let* ((str    "Hello Port!")
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (reads  '())
+           (read!  (lambda (bv start count)
+                     (set! reads (cons count reads))
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (port   (make-custom-binary-input-port "the port" read!
+                                                  #f #f #f)))
+
+      (setvbuf port _IONBF)
+      (let ((ret (list (get-bytevector-n port 2)
+                       (get-bytevector-n port 3)
+                       (get-bytevector-n port 42))))
+        (zip (reverse reads)
+             (map (lambda (obj)
+                    (if (bytevector? obj)
+                        (utf8->string obj)
+                        obj))
+                  ret)))))
+
+  (pass-if-equal "custom binary input port, unbuffered then buffered"
+      `((6 "Lorem ") (12 "ipsum dolor ") (777 "sit amet, consectetur…")
+        (777 ,(eof-object)))
+    (let* ((str    "Lorem ipsum dolor sit amet, consectetur…")
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (reads  '())
+           (read!  (lambda (bv start count)
+                     (set! reads (cons count reads))
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (port   (make-custom-binary-input-port "the port" read!
+                                                  #f #f #f)))
+
+      (setvbuf port _IONBF)
+      (let ((ret (list (get-bytevector-n port 6)
+                       (get-bytevector-n port 12)
+                       (begin
+                         (setvbuf port _IOFBF 777)
+                         (get-bytevector-n port 42))
+                       (get-bytevector-n port 42))))
+        (zip (reverse reads)
+             (map (lambda (obj)
+                    (if (bytevector? obj)
+                        (utf8->string obj)
+                        obj))
+                  ret)))))
+
+  (pass-if-equal "custom binary input port, buffered then unbuffered"
+      `((18
+         42 14             ; scm_c_read tries to fill the 42-byte buffer
+         42)
+        ("Lorem " "ipsum dolor " "sit amet, consectetur bla…" ,(eof-object)))
+    (let* ((str    "Lorem ipsum dolor sit amet, consectetur bla…")
+           (source (with-fluids ((%default-port-encoding "UTF-8"))
+                     (open-string-input-port str)))
+           (reads  '())
+           (read!  (lambda (bv start count)
+                     (set! reads (cons count reads))
+                     (let ((r (get-bytevector-n! source bv start count)))
+                       (if (eof-object? r)
+                           0
+                           r))))
+           (port   (make-custom-binary-input-port "the port" read!
+                                                  #f #f #f)))
+
+      (setvbuf port _IOFBF 18)
+      (let ((ret (list (get-bytevector-n port 6)
+                       (get-bytevector-n port 12)
+                       (begin
+                         (setvbuf port _IONBF)
+                         (get-bytevector-n port 42))
+                       (get-bytevector-n port 42))))
+        (list (reverse reads)
+              (map (lambda (obj)
+                     (if (bytevector? obj)
+                         (utf8->string obj)
+                         obj))
+                   ret)))))
+
   (pass-if "custom binary input port `close-proc' is called"
     (let* ((closed?  #f)
            (read!    (lambda (bv start count) 0))

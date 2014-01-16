@@ -1816,6 +1816,10 @@ indicating the position of the next byte is to read.
 Finally, if @var{close} is not @code{#f}, it must be a thunk.  It is
 invoked when the custom binary input port is closed.
 
+The returned port is fully buffered by default, but its buffering mode
+can be changed using @code{setvbuf} (@pxref{Ports and File Descriptors,
+@code{setvbuf}}).
+
 Using a custom binary input port, the @code{open-bytevector-input-port}
 procedure could be implemented as follows:
 
