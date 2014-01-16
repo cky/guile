@@ -470,6 +470,9 @@ line buffered
 block buffered, using a newly allocated buffer of @var{size} bytes.
 If @var{size} is omitted, a default size will be used.
 @end defvar
+
+Only certain types of ports are supported, most importantly
+file ports.
 @end deffn
 
 @deffn {Scheme Procedure} fcntl port/fd cmd [value]

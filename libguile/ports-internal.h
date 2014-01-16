@@ -1,7 +1,7 @@
 /*
  * ports-internal.h - internal-only declarations for ports.
  *
- * Copyright (C) 2013 Free Software Foundation, Inc.
+ * Copyright (C) 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -50,7 +50,17 @@ struct scm_port_internal
   unsigned at_stream_start_for_bom_write : 1;
   scm_t_port_encoding_mode encoding_mode;
   scm_t_iconv_descriptors *iconv_descriptors;
-  int pending_eof;
+  unsigned char pending_eof: 1;
+
+  /* When non-NULL, this is the method called by 'setvbuf' for this port.
+     It must create read and write buffers for PORT with the specified
+     sizes (a size of 0 is for unbuffered ports, which should use the
+     'shortbuf' field.)  Size -1 means to use the port's preferred buffer
+     size.  */
+  /* XXX: In 2.2 make this a property of the 'scm_t_ptob_descriptor'.  */
+  void (*setvbuf) (SCM port, long read_size, long write_size);
+
+  /* Key-value properties.  */
   SCM alist;
 };
 

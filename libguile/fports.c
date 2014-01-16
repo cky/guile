@@ -1,5 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
+ *   2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -58,6 +59,7 @@
 #include "libguile/hashtab.h"
 
 #include "libguile/fports.h"
+#include "libguile/ports-internal.h"
 
 #if SIZEOF_OFF_T == SIZEOF_INT
 #define OFF_T_MAX  INT_MAX
@@ -78,10 +80,10 @@ scm_t_bits scm_tc16_fport;
 /* default buffer size, used if the O/S won't supply a value.  */
 static const size_t default_buffer_size = 1024;
 
-/* create FPORT buffer with specified sizes (or -1 to use default size or
-   0 for no buffer.  */
+/* Create FPORT buffers with specified sizes (or -1 to use default size
+   or 0 for no buffer.)  */
 static void
-scm_fport_buffer_add (SCM port, long read_size, int write_size)
+scm_fport_buffer_add (SCM port, long read_size, long write_size)
 #define FUNC_NAME "scm_fport_buffer_add"
 {
   scm_t_port *pt = SCM_PTAB_ENTRY (port);
@@ -147,7 +149,9 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
 	    "@item _IOFBF\n"
 	    "block buffered, using a newly allocated buffer of @var{size} bytes.\n"
 	    "If @var{size} is omitted, a default size will be used.\n"
-	    "@end table")
+	    "@end table\n\n"
+	    "Only certain types of ports are supported, most importantly\n"
+	    "file ports.")
 #define FUNC_NAME s_scm_setvbuf
 {
   int cmode;
@@ -155,10 +159,17 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
   size_t ndrained;
   char *drained;
   scm_t_port *pt;
+  scm_t_port_internal *pti;
 
   port = SCM_COERCE_OUTPORT (port);
 
-  SCM_VALIDATE_OPFPORT (1,port);
+  SCM_VALIDATE_OPENPORT (1, port);
+  pti = SCM_PORT_GET_INTERNAL (port);
+
+  if (pti->setvbuf == NULL)
+    scm_wrong_type_arg_msg (FUNC_NAME, 1, port,
+			    "port that supports 'setvbuf'");
+
   cmode = scm_to_int (mode);
   if (cmode != _IONBF && cmode != _IOFBF && cmode != _IOLBF)
     scm_out_of_range (FUNC_NAME, mode);
@@ -169,9 +180,8 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
       cmode = _IOFBF;
     }
   else
-    {
-      SCM_SET_CELL_WORD_0 (port, SCM_CELL_WORD_0 (port) & ~(scm_t_bits)SCM_BUFLINE);
-    }
+    SCM_SET_CELL_WORD_0 (port,
+			 SCM_CELL_WORD_0 (port) & ~(scm_t_bits) SCM_BUFLINE);
 
   if (SCM_UNBNDP (size))
     {
@@ -216,12 +226,8 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
       pt->read_end = pt->saved_read_end;
       pt->read_buf_size = pt->saved_read_buf_size;
     }
-  if (pt->read_buf != &pt->shortbuf)
-    scm_gc_free (pt->read_buf, pt->read_buf_size, "port buffer");
-  if (pt->write_buf != &pt->shortbuf)
-    scm_gc_free (pt->write_buf, pt->write_buf_size, "port buffer");
 
-  scm_fport_buffer_add (port, csize, csize);
+  pti->setvbuf (port, csize, csize);
 
   if (ndrained > 0)
     /* Put DRAINED back to PORT.  */
@@ -542,6 +548,7 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
 {
   SCM port;
   scm_t_port *pt;
+  scm_t_port_internal *pti;
 
   /* Test that fdes is valid.  */
 #ifdef F_GETFL
@@ -567,7 +574,12 @@ scm_i_fdes_to_port (int fdes, long mode_bits, SCM name)
 
   port = scm_new_port_table_entry (scm_tc16_fport);
   SCM_SET_CELL_TYPE(port, scm_tc16_fport | mode_bits);
-  pt = SCM_PTAB_ENTRY(port);
+  pt = SCM_PTAB_ENTRY (port);
+
+  /* File ports support 'setvbuf'.  */
+  pti = SCM_PORT_GET_INTERNAL (port);
+  pti->setvbuf = scm_fport_buffer_add;
+
   {
     scm_t_fport *fp
       = (scm_t_fport *) scm_gc_malloc_pointerless (sizeof (scm_t_fport),

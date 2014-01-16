@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
- *   2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *   2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -676,6 +676,12 @@ scm_new_port_table_entry (scm_t_bits tag)
 
   pti->pending_eof = 0;
   pti->alist = SCM_EOL;
+
+  /* Until Guile 2.0.9 included, 'setvbuf' would only work on file
+     ports.  Now all port types can be supported, but it's not clear
+     that port types out in wild accept having someone else fiddle with
+     their buffer.  Thus, conservatively turn it off by default.  */
+  pti->setvbuf = NULL;
 
   SCM_SET_CELL_TYPE (z, tag);
   SCM_SETPTAB_ENTRY (z, entry);

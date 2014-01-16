@@ -2,7 +2,7 @@
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
 ;;;; 	Copyright (C) 1999, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;      2011, 2012, 2013 Free Software Foundation, Inc.
+;;;;      2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1498,6 +1498,18 @@
 
 
 (with-test-prefix "setvbuf"
+
+  (pass-if-exception "closed port"
+      exception:wrong-type-arg
+    (let ((port (open-input-file "/dev/null")))
+      (close-port port)
+      (setvbuf port _IOFBF)))
+
+  (pass-if-exception "string port"
+      exception:wrong-type-arg
+    (let ((port (open-input-string "Hey!")))
+      (close-port port)
+      (setvbuf port _IOFBF)))
 
   (pass-if "line/column number preserved"
     ;; In Guile 2.0.5, `setvbuf' would erroneously decrease the port's
