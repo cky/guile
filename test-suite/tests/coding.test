@@ -1,6 +1,6 @@
 ;;;; coding.test --- test suite for coding declarations. -*- mode: scheme -*-
 ;;;;
-;;;; Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+;;;; Copyright (C) 2011, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -101,4 +101,10 @@
 
   (pass-if-equal "second line, whitespace, nl"
       "ISO-8859-1"
-    (scan-coding "\n; coding: iso-8859-1 \n")))
+    (scan-coding "\n; coding: iso-8859-1 \n"))
+
+  (pass-if-equal "http://bugs.gnu.org/16463"
+      ;; On Guile <= 2.0.9, this would return "ISO-8".
+      "ISO-8859-1"
+    (scan-coding (string-append (make-string 485 #\space)
+                                "; coding: ISO-8859-1"))))

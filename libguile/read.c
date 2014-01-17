@@ -2046,11 +2046,20 @@ scm_get_hash_procedure (int c)
     }
 }
 
-#define SCM_ENCODING_SEARCH_SIZE (500)
+/* Maximum size of an encoding name.  This is a bit more than the
+   longest name listed at
+   <http://www.iana.org/assignments/character-sets> ("ISO-2022-JP-2", 13
+   characters.)  */
+#define ENCODING_NAME_MAX_SIZE 20
 
-/* Search the first few hundred characters of a file for an Emacs-like coding
-   declaration.  Returns either NULL or a string whose storage has been
-   allocated with `scm_gc_malloc ()'.  */
+/* Number of bytes at the beginning or end of a file that are scanned
+   for a "coding:" declaration.  */
+#define SCM_ENCODING_SEARCH_SIZE (500 + ENCODING_NAME_MAX_SIZE)
+
+
+/* Search the SCM_ENCODING_SEARCH_SIZE bytes of a file for an Emacs-like
+   coding declaration.  Returns either NULL or a string whose storage
+   has been allocated with `scm_gc_malloc'.  */
 char *
 scm_i_scan_for_encoding (SCM port)
 {
@@ -2109,8 +2118,8 @@ scm_i_scan_for_encoding (SCM port)
       if ((pos = strstr(pos, "coding")) == NULL)
         return NULL;
 
-      pos += strlen("coding");
-      if (pos - header >= SCM_ENCODING_SEARCH_SIZE || 
+      pos += strlen ("coding");
+      if (pos - header >= SCM_ENCODING_SEARCH_SIZE ||
           (*pos == ':' || *pos == '='))
         {
           pos ++;
@@ -2119,9 +2128,16 @@ scm_i_scan_for_encoding (SCM port)
     }
 
   /* skip spaces */
-  while (pos - header <= SCM_ENCODING_SEARCH_SIZE && 
+  while (pos - header <= SCM_ENCODING_SEARCH_SIZE &&
 	 (*pos == ' ' || *pos == '\t'))
     pos ++;
+
+  if (pos - header >= SCM_ENCODING_SEARCH_SIZE - ENCODING_NAME_MAX_SIZE)
+    /* We found the "coding:" string, but there is probably not enough
+       room to store an encoding name in its entirety, so ignore it.
+       This makes sure we do not end up returning a truncated encoding
+       name.  */
+    return NULL;
 
   /* grab the next token */
   encoding_start = pos;
