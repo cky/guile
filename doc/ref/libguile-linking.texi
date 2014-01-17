@@ -71,24 +71,23 @@ Here is @file{simple-guile.c}, source code for a @code{main} and an
 interpreter.
 
 @example
-/* simple-guile.c --- how to start up the Guile
-   interpreter from C code.  */
+/* simple-guile.c --- Start Guile from C.  */
 
-/* Get declarations for all the scm_ functions.  */
 #include <libguile.h>
 
 static void
 inner_main (void *closure, int argc, char **argv)
 @{
-  /* module initializations would go here */
+  /* preparation */
   scm_shell (argc, argv);
+  /* after exit */
 @}
 
 int
 main (int argc, char **argv)
 @{
   scm_boot_guile (argc, argv, inner_main, 0);
-  return 0; /* never reached */
+  return 0; /* never reached, see inner_main */
 @}
 @end example
 
@@ -97,7 +96,9 @@ Guile, passing it @code{inner_main}.  Once @code{scm_boot_guile} is
 ready, it invokes @code{inner_main}, which calls @code{scm_shell} to
 process the command-line arguments in the usual way.
 
-Here is a Makefile which you can use to compile the above program.  It
+@subsection Building the Example with Make
+
+Here is a Makefile which you can use to compile the example program.  It
 uses @code{pkg-config} to learn about the necessary compiler and
 linker flags.
 @example
@@ -117,8 +118,10 @@ simple-guile.o: simple-guile.c
         $@{CC@} -c $@{CFLAGS@} simple-guile.c
 @end example
 
+@subsection Building the Example with Autoconf
+
 If you are using the GNU Autoconf package to make your application more
-portable, Autoconf will settle many of the details in the Makefile above
+portable, Autoconf will settle many of the details in the Makefile
 automatically, making it much simpler and more portable; we recommend
 using Autoconf with Guile.  Here is a @file{configure.ac} file for
 @code{simple-guile} that uses the standard @code{PKG_CHECK_MODULES}
