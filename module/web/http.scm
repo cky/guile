@@ -1,6 +1,6 @@
 ;;; HTTP messages
 
-;; Copyright (C)  2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;; Copyright (C)  2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -1482,6 +1482,30 @@ treated specially, and is just returned as a plain string."
 ;; Allow = #Method
 ;;
 (declare-symbol-list-header! "Allow")
+
+;; Content-Disposition = disposition-type *( ";" disposition-parm )
+;; disposition-type = "attachment" | disp-extension-token
+;; disposition-parm = filename-parm | disp-extension-parm
+;; filename-parm = "filename" "=" quoted-string
+;; disp-extension-token = token
+;; disp-extension-parm = token "=" ( token | quoted-string )
+;;
+(declare-header! "Content-Disposition"
+  (lambda (str)
+    (let ((disposition (parse-param-list str default-val-parser)))
+      ;; Lazily reuse the param list parser.
+      (unless (and (pair? disposition)
+                   (null? (cdr disposition)))
+        (bad-header-component 'content-disposition str))
+      (car disposition)))
+  (lambda (val)
+    (and (pair? val)
+         (symbol? (car val))
+         (list-of? (cdr val)
+                   (lambda (x)
+                     (and (pair? x) (symbol? (car x)) (string? (cdr x)))))))
+  (lambda (val port)
+    (write-param-list (list val) port)))
 
 ;; Content-Encoding = 1#content-coding
 ;;

@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -252,6 +252,8 @@
 
 (with-test-prefix "entity headers"
   (pass-if-parse allow "foo, bar" '(foo bar))
+  (pass-if-parse content-disposition "form-data; name=\"file\"; filename=\"q.go\""
+                 '(form-data (name . "file") (filename . "q.go")))
   (pass-if-parse content-encoding "qux, baz" '(qux baz))
   (pass-if-parse content-language "qux, baz" '("qux" "baz"))
   (pass-if-parse content-length "100" 100)
