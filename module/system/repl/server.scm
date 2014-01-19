@@ -38,6 +38,7 @@
 (define sockets-lock (make-mutex))
 
 ;; WARNING: it is unsafe to call 'close-socket!' from another thread.
+;; Note: although not exported, this is used by (system repl coop-server)
 (define (close-socket! s)
   (with-mutex sockets-lock
     (set! *open-sockets* (assq-remove! *open-sockets* s)))
@@ -45,6 +46,7 @@
   ;; output.  Hmm.
   (close-port s))
 
+;; Note: although not exported, this is used by (system repl coop-server)
 (define (add-open-socket! s force-close)
   (with-mutex sockets-lock
     (set! *open-sockets* (acons s force-close *open-sockets*))))
@@ -86,7 +88,10 @@
                '(EINTR EAGAIN EWOULDBLOCK))))
 
 (define* (run-server #:optional (server-socket (make-tcp-server-socket)))
+  (run-server* server-socket serve-client))
 
+;; Note: although not exported, this is used by (system repl coop-server)
+(define (run-server* server-socket serve-client)
   ;; We use a pipe to notify the server when it should shut down.
   (define shutdown-pipes      (pipe))
   (define shutdown-read-pipe  (car shutdown-pipes))

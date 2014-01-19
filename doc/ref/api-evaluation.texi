@@ -23,6 +23,7 @@ loading, evaluating, and compiling Scheme code at run time.
 * Local Evaluation::            Evaluation in a local lexical environment.
 * Local Inclusion::             Compile-time inclusion of one file in another.
 * REPL Servers::                Serving a REPL over a socket.
+* Cooperative REPL Servers::    REPL server for single-threaded applications.
 @end menu
 
 
@@ -1283,6 +1284,50 @@ Closes the connection on all running server sockets.
 Please note that in the current implementation, the REPL threads are
 cancelled without unwinding their stacks.  If any of them are holding
 mutexes or are within a critical section, the results are unspecified.
+@end deffn
+
+@node Cooperative REPL Servers
+@subsection Cooperative REPL Servers
+
+@cindex Cooperative REPL server
+
+The procedures in this section are provided by
+@lisp
+(use-modules (system repl coop-server))
+@end lisp
+
+Whereas ordinary REPL servers run in their own threads (@pxref{REPL
+Servers}), sometimes it is more convenient to provide REPLs that run at
+specified times within an existing thread, for example in programs
+utilizing an event loop or in single-threaded programs.  This allows for
+safe access and mutation of a program's data structures from the REPL,
+without concern for thread synchronization.
+
+Although the REPLs are run in the thread that calls
+@code{spawn-coop-repl-server} and @code{poll-coop-repl-server},
+dedicated threads are spawned so that the calling thread is not blocked.
+The spawned threads read input for the REPLs and to listen for new
+connections.
+
+Cooperative REPL servers must be polled periodically to evaluate any
+pending expressions by calling @code{poll-coop-repl-server} with the
+object returned from @code{spawn-coop-repl-server}.  The thread that
+calls @code{poll-coop-repl-server} will be blocked for as long as the
+expression takes to be evaluated or if the debugger is entered.
+
+@deffn {Scheme Procedure} spawn-coop-repl-server [server-socket]
+Create and return a new cooperative REPL server object, and spawn a new
+thread to listen for connections on @var{server-socket}.  Proper
+functioning of the REPL server requires that
+@code{poll-coop-repl-server} be called periodically on the returned
+server object.
+@end deffn
+
+@deffn {Scheme Procedure} poll-coop-repl-server coop-server
+Poll the cooperative REPL server @var{coop-server} and apply a pending
+operation if there is one, such as evaluating an expression typed at the
+REPL prompt.  This procedure must be called from the same thread that
+called @code{spawn-coop-repl-server}.
 @end deffn
 
 @c Local Variables:

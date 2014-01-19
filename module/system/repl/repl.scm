@@ -1,6 +1,7 @@
 ;;; Read-Eval-Print Loop
 
-;; Copyright (C) 2001, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2009, 2010, 2011, 2013,
+;;   2014 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -107,6 +108,8 @@
 ;; to be able to re-use the existing readline machinery.
 ;;
 ;; Catches read errors, returning *unspecified* in that case.
+;;
+;; Note: although not exported, this is used by (system repl coop-server)
 (define (prompting-meta-read repl)
   (catch #t
     (lambda ()
@@ -129,10 +132,14 @@
 ;;;
 
 (define* (start-repl #:optional (lang (current-language)) #:key debug)
+  (start-repl* lang debug prompting-meta-read))
+
+;; Note: although not exported, this is used by (system repl coop-server)
+(define (start-repl* lang debug prompting-meta-read)
   ;; ,language at the REPL will update the current-language.  Make
   ;; sure that it does so in a new dynamic scope.
   (parameterize ((current-language lang))
-    (run-repl (make-repl lang debug))))
+    (run-repl* (make-repl lang debug) prompting-meta-read)))
 
 ;; (put 'abort-on-error 'scheme-indent-function 1)
 (define-syntax-rule (abort-on-error string exp)
@@ -144,6 +151,9 @@
       (abort))))
 
 (define (run-repl repl)
+  (run-repl* repl prompting-meta-read))
+
+(define (run-repl* repl prompting-meta-read)
   (define (with-stack-and-prompt thunk)
     (call-with-prompt (default-prompt-tag)
                       (lambda () (start-stack #t (thunk)))

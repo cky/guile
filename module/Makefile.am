@@ -366,7 +366,8 @@ SYSTEM_SOURCES =				\
   system/repl/common.scm			\
   system/repl/command.scm			\
   system/repl/repl.scm				\
-  system/repl/server.scm
+  system/repl/server.scm			\
+  system/repl/coop-server.scm
 
 LIB_SOURCES =					\
   statprof.scm					\
