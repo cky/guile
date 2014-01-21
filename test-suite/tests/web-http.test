@@ -49,14 +49,14 @@
 (define-syntax pass-if-round-trip
   (syntax-rules ()
     ((_ str)
-     (pass-if (format #f "~s round trip" str)
-       (equal? (call-with-output-string
-                (lambda (port)
-                  (call-with-values
-                      (lambda () (read-header (open-input-string str)))
-                    (lambda (sym val)
-                      (write-header sym val port)))))
-               str)))))
+     (pass-if-equal (format #f "~s round trip" str)
+         str
+       (call-with-output-string
+        (lambda (port)
+          (call-with-values
+              (lambda () (read-header (open-input-string str)))
+            (lambda (sym val)
+              (write-header sym val port)))))))))
 
 (define-syntax pass-if-any-error
   (syntax-rules ()
@@ -292,6 +292,9 @@
   (pass-if-parse authorization "Digest foooo" '(digest foooo))
   (pass-if-parse authorization "Digest foo=bar,baz=qux"
                  '(digest (foo . "bar") (baz . "qux")))
+  (pass-if-round-trip "Authorization: basic foooo\r\n")
+  (pass-if-round-trip "Authorization: digest foooo\r\n")
+  (pass-if-round-trip "Authorization: digest foo=bar, baz=qux\r\n")
   (pass-if-parse expect "100-continue, foo" '((100-continue) (foo)))
   (pass-if-parse from "foo@bar" "foo@bar")
   (pass-if-parse host "qux" '("qux" . #f))

@@ -918,10 +918,10 @@ as an ordered alist."
 
 (define (write-credentials val port)
   (display (car val) port)
-  (if (pair? (cdr val))
-      (begin
-        (display #\space port)
-        (write-key-value-list (cdr val) port))))
+  (display #\space port)
+  (case (car val)
+    ((basic) (display (cdr val) port))
+    (else (write-key-value-list (cdr val) port))))
 
 ;; challenges = 1#challenge
 ;; challenge = auth-scheme 1*SP 1#auth-param
