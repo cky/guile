@@ -238,7 +238,7 @@ comments as specified by R6RS and
 @url{http://srfi.schemers.org/srfi-30/srfi-30.html, SRFI-30}:
 
 @lisp
-(+  #| this is a #| nested |# block comment |# 2)
+(+ 1 #| this is a #| nested |# block comment |# 2)
 @result{} 3
 @end lisp
 
