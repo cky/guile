@@ -22,6 +22,7 @@
   #:use-module (test-suite guile-test)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-11)
+  #:use-module (ice-9 match)
   #:use-module (rnrs io ports)
   #:use-module (rnrs io simple)
   #:use-module (rnrs exceptions)
@@ -455,6 +456,25 @@ not `set-port-position!'"
            (bytevector=? (get-bytevector-all port)
                          (u8-list->bytevector
                           (map char->integer (string->list "Port!")))))))
+
+  (pass-if-equal "custom binary input port buffered partial reads"
+      "Hello Port!"
+    ;; Check what happens when READ! returns less than COUNT bytes.
+    (let* ((src    (string->utf8 "Hello Port!"))
+           (chunks '(2 4 5))                ; provide 2 bytes, then 4, etc.
+           (offset 0)
+           (read!  (lambda (bv start count)
+                     (match chunks
+                       ((count rest ...)
+                        (bytevector-copy! src offset bv start count)
+                        (set! chunks rest)
+                        (set! offset (+ offset count))
+                        count)
+                       (()
+                        0))))
+           (port   (make-custom-binary-input-port "the port"
+                                                  read! #f #f #f)))
+      (get-string-all port)))
 
   (pass-if-equal "custom binary input port unbuffered & 'port-position'"
       '(0 2 5 11)

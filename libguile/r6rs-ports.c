@@ -406,9 +406,12 @@ cbip_fill_input (SCM port)
 	(c_port->read_buf == (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv));
 
       if (buffered)
-	/* Make sure the buffer isn't corrupt.  BV can be passed directly
-	   to READ_PROC.  */
-	assert (c_port->read_buf_size == SCM_BYTEVECTOR_LENGTH (bv));
+	{
+	  /* Make sure the buffer isn't corrupt.  BV can be passed directly
+	     to READ_PROC.  */
+	  assert (c_port->read_buf_size == SCM_BYTEVECTOR_LENGTH (bv));
+	  c_port->read_pos = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+	}
       else
 	{
 	  /* This is an unbuffered port.  When called via the
