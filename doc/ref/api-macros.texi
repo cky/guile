@@ -1186,17 +1186,42 @@ The fix is to use @code{eval-when}.
 @example
 ;; correct: using eval-when
 (use-modules (srfi srfi-19))
-(eval-when (compile load eval)
+(eval-when (expand load eval)
   (define (date) (date->string (current-date))))
 (define-syntax %date (identifier-syntax (date)))
 (define *compilation-date* %date)
 @end example
 
 @deffn {Syntax} eval-when conditions exp...
-Evaluate @var{exp...} under the given @var{conditions}. Valid conditions include
-@code{eval}, @code{load}, and @code{compile}. If you need to use
-@code{eval-when}, use it with all three conditions, as in the above example.
-Other uses of @code{eval-when} may void your warranty or poison your cat.
+Evaluate @var{exp...} under the given @var{conditions}.  Valid
+conditions include:
+
+@table @code
+@item expand
+Evaluate during macro expansion, whether compiling or not.
+
+@item load
+Evaluate during the evaluation phase of compiled code, e.g. when loading
+a compiled module or running compiled code at the REPL.
+
+@item eval
+Evaluate during the evaluation phase of non-compiled code.
+
+@item compile
+Evaluate during macro expansion, but only when compiling.
+@end table
+
+In other words, when using the primitive evaluator, @code{eval-when}
+expressions with @code{expand} are run during macro expansion, and those
+with @code{eval} are run during the evaluation phase.
+
+When using the compiler, @code{eval-when} expressions with either
+@code{expand} or @code{compile} are run during macro expansion, and
+those with @code{load} are run during the evaluation phase.
+
+When in doubt, use the three conditions @code{(expand load eval)}, as in
+the example above.  Other uses of @code{eval-when} may void your
+warranty or poison your cat.
 @end deffn
 
 @node Internal Macros
