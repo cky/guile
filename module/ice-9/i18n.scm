@@ -83,7 +83,7 @@
            locale-yes-regexp locale-no-regexp))
 
 
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (load-extension (string-append "libguile-" (effective-version))
                   "scm_init_i18n"))
 

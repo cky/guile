@@ -77,10 +77,10 @@
 (define *goops-module* (current-module))
 
 ;; First initialize the builtin part of GOOPS
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (%init-goops-builtins))
 
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
   (add-interesting-primitive! 'class-of)
   (define (@slot-ref o n)
@@ -96,7 +96,7 @@
 	     (oop goops compile))
 
 
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (define min-fixnum (- (expt 2 29)))
   (define max-fixnum (- (expt 2 29) 1)))
 
@@ -1123,7 +1123,7 @@
 ;; the idea is to compile the index into the procedure, for fastest
 ;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
 
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (define num-standard-pre-cache 20))
 
 (define-macro (define-standard-accessor-method form . body)

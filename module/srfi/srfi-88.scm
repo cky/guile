@@ -35,7 +35,7 @@
 
 ;; Change the keyword syntax both at compile time and run time; the latter is
 ;; useful at the REPL.
-(eval-when (compile load)
+(eval-when (expand load eval)
   (read-set! keywords 'postfix))
 
 (define (keyword->string k)

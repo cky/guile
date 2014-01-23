@@ -34,7 +34,7 @@
             poll-set-remove!
             poll))
 
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (load-extension (string-append "libguile-" (effective-version))
                   "scm_init_poll"))
 

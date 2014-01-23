@@ -55,7 +55,7 @@
 
             define-wrapped-pointer-type))
 
-(eval-when (load eval compile)
+(eval-when (expand load eval)
   (load-extension (string-append "libguile-" (effective-version))
                   "scm_init_foreign"))
 

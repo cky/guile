@@ -19,7 +19,7 @@
 ;; There are circularities here; you can't import (oop goops compile)
 ;; before (oop goops). So when compiling, make sure that things are
 ;; kosher.
-(eval-when (compile) (resolve-module '(oop goops)))
+(eval-when (expand) (resolve-module '(oop goops)))
 
 (define-module (oop goops compile)
   :use-module (oop goops)

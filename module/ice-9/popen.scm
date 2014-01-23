@@ -24,7 +24,7 @@
   :export (port/pid-table open-pipe* open-pipe close-pipe open-input-pipe
 	   open-output-pipe open-input-output-pipe))
 
-(eval-when (load eval compile)
+(eval-when (expand load eval)
   (load-extension (string-append "libguile-" (effective-version))
                   "scm_init_popen"))
 

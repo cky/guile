@@ -60,7 +60,7 @@
 
 ;; Why? Well, because syntax-case defines `include', and carps about its
 ;; wrong usage below...
-(eval-when (eval load compile)
+(eval-when (expand load eval)
   (define (include exp lp command type formals args accum)
     (list* "\n"
            (list-intersperse

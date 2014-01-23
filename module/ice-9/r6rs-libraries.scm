@@ -217,7 +217,7 @@
     (syntax-case stx ()
       ((_ import-set ...)
        (with-syntax (((library-reference ...) (map strip-for #'(import-set ...))))
-         #'(eval-when (eval load compile expand)
+         #'(eval-when (expand load eval)
              (let ((iface (resolve-r6rs-interface 'library-reference)))
                (call-with-deferred-observers
                  (lambda ()
