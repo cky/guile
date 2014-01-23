@@ -236,14 +236,20 @@ scm_i_make_continuation (int *first, SCM vm, SCM vm_cont)
 }
 #undef FUNC_NAME
 
+static SCM call_cc;
+
+static void
+init_call_cc (void)
+{
+  call_cc = scm_make_program (call_cc_objcode, SCM_BOOL_F, SCM_BOOL_F);
+}
+
 SCM
 scm_i_call_with_current_continuation (SCM proc)
 {
-  static SCM call_cc = SCM_BOOL_F;
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_call_cc);
 
-  if (scm_is_false (call_cc))
-    call_cc = scm_make_program (call_cc_objcode, SCM_BOOL_F, SCM_BOOL_F);
-  
   return scm_call_1 (call_cc, proc);
 }
 

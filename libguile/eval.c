@@ -642,30 +642,37 @@ SCM_DEFINE (scm_nconc2last, "apply:nconc2last", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM map_var, for_each_var;
+
+static void init_map_var (void)
+{
+  map_var = scm_private_variable (scm_the_root_module (),
+                                  scm_from_latin1_symbol ("map"));
+}
+
+static void init_for_each_var (void)
+{
+  for_each_var = scm_private_variable (scm_the_root_module (),
+                                       scm_from_latin1_symbol ("for-each"));
+}
 
 SCM 
 scm_map (SCM proc, SCM arg1, SCM args)
 {
-  static SCM var = SCM_BOOL_F;
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_map_var);
 
-  if (scm_is_false (var))
-    var = scm_private_variable (scm_the_root_module (),
-                                scm_from_latin1_symbol ("map"));
-
-  return scm_apply (scm_variable_ref (var),
+  return scm_apply (scm_variable_ref (map_var),
                     scm_cons (proc, scm_cons (arg1, args)), SCM_EOL);
 }
 
 SCM 
 scm_for_each (SCM proc, SCM arg1, SCM args)
 {
-  static SCM var = SCM_BOOL_F;
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_for_each_var);
 
-  if (scm_is_false (var))
-    var = scm_private_variable (scm_the_root_module (),
-                                scm_from_latin1_symbol ("for-each"));
-
-  return scm_apply (scm_variable_ref (var),
+  return scm_apply (scm_variable_ref (for_each_var),
                     scm_cons (proc, scm_cons (arg1, args)), SCM_EOL);
 }
 

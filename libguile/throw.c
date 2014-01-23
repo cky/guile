@@ -53,24 +53,14 @@
    baggage. */
 
 
-#define CACHE_VAR(var,name)                                             \
-  static SCM var = SCM_BOOL_F;                                          \
-  if (scm_is_false (var))                                               \
-    {                                                                   \
-      var = scm_module_variable (scm_the_root_module (),                \
-                                 scm_from_latin1_symbol (name));        \
-      if (scm_is_false (var))                                           \
-        abort ();                                                       \
-    }
-
 
+
+static SCM catch_var, throw_var, with_throw_handler_var;
 
 SCM
 scm_catch (SCM key, SCM thunk, SCM handler)
 {
-  CACHE_VAR (var, "catch");
-
-  return scm_call_3 (scm_variable_ref (var), key, thunk, handler);
+  return scm_call_3 (scm_variable_ref (catch_var), key, thunk, handler);
 }
 
 SCM
@@ -80,28 +70,32 @@ scm_catch_with_pre_unwind_handler (SCM key, SCM thunk, SCM handler,
   if (SCM_UNBNDP (pre_unwind_handler))
     return scm_catch (key, thunk, handler);
   else
-    {
-      CACHE_VAR (var, "catch");
-      
-      return scm_call_4 (scm_variable_ref (var), key, thunk, handler,
-                         pre_unwind_handler);
-    }
+    return scm_call_4 (scm_variable_ref (catch_var), key, thunk, handler,
+                       pre_unwind_handler);
+}
+
+static void
+init_with_throw_handler_var (void)
+{
+  with_throw_handler_var
+    = scm_module_variable (scm_the_root_module (),
+                           scm_from_latin1_symbol ("with-throw-handler"));
 }
 
 SCM
 scm_with_throw_handler (SCM key, SCM thunk, SCM handler)
 {
-  CACHE_VAR (var, "with-throw-handler");
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_with_throw_handler_var);
 
-  return scm_call_3 (scm_variable_ref (var), key, thunk, handler);
+  return scm_call_3 (scm_variable_ref (with_throw_handler_var),
+                     key, thunk, handler);
 }
 
 SCM
 scm_throw (SCM key, SCM args)
 {
-  CACHE_VAR (var, "throw");
-
-  return scm_apply_1 (scm_variable_ref (var), key, args);
+  return scm_apply_1 (scm_variable_ref (throw_var), key, args);
 }
 
 
@@ -534,8 +528,10 @@ scm_init_throw ()
   tc16_catch_closure = scm_make_smob_type ("catch-closure", 0);
   scm_set_smob_apply (tc16_catch_closure, apply_catch_closure, 0, 0, 1);
 
-  scm_c_define ("catch", scm_c_make_gsubr ("catch", 3, 1, 0, pre_init_catch));
-  scm_c_define ("throw", scm_c_make_gsubr ("throw", 1, 0, 1, pre_init_throw));
+  catch_var = scm_c_define ("catch", scm_c_make_gsubr ("catch", 3, 1, 0,
+                                                       pre_init_catch));
+  throw_var = scm_c_define ("throw", scm_c_make_gsubr ("throw", 1, 0, 1,
+                                                       pre_init_throw));
 
 #include "libguile/throw.x"
 }

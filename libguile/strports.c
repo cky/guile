@@ -523,6 +523,16 @@ scm_c_eval_string_in_module (const char *expr, SCM module)
 }
 
 
+static SCM eval_string_var;
+static SCM k_module;
+
+static void
+init_eval_string_var_and_k_module (void)
+{
+  eval_string_var = scm_c_public_variable ("ice-9 eval-string", "eval-string");
+  k_module = scm_from_locale_keyword ("module");
+}
+
 SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0, 
             (SCM string, SCM module),
 	    "Evaluate @var{string} as the text representation of a Scheme\n"
@@ -534,23 +544,16 @@ SCM_DEFINE (scm_eval_string_in_module, "eval-string", 1, 1, 0,
             "procedure returns.")
 #define FUNC_NAME s_scm_eval_string_in_module
 {
-  static SCM eval_string = SCM_UNDEFINED, k_module = SCM_UNDEFINED;
-  static scm_i_pthread_mutex_t init_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-
-  scm_i_scm_pthread_mutex_lock (&init_mutex);
-  if (SCM_UNBNDP (eval_string))
-    {
-      eval_string = scm_c_public_variable ("ice-9 eval-string", "eval-string");
-      k_module = scm_from_locale_keyword ("module");
-    }
-  scm_i_pthread_mutex_unlock (&init_mutex);
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_eval_string_var_and_k_module);
   
   if (SCM_UNBNDP (module))
     module = scm_current_module ();
   else
     SCM_VALIDATE_MODULE (2, module);
 
-  return scm_call_3 (scm_variable_ref (eval_string), string, k_module, module);
+  return scm_call_3 (scm_variable_ref (eval_string_var),
+                     string, k_module, module);
 }
 #undef FUNC_NAME
 

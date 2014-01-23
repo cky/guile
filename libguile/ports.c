@@ -454,19 +454,22 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM current_warning_port_var;
+static scm_i_pthread_once_t current_warning_port_once = SCM_I_PTHREAD_ONCE_INIT;
+
+static void
+init_current_warning_port_var (void)
+{
+  current_warning_port_var
+    = scm_c_private_variable ("guile", "current-warning-port");
+}
+
 SCM
 scm_current_warning_port (void)
 {
-  static SCM cwp_var = SCM_UNDEFINED;
-  static scm_i_pthread_mutex_t cwp_var_mutex
-    = SCM_I_PTHREAD_MUTEX_INITIALIZER;
-
-  scm_i_scm_pthread_mutex_lock (&cwp_var_mutex);
-  if (SCM_UNBNDP (cwp_var))
-    cwp_var = scm_c_private_variable ("guile", "current-warning-port");
-  scm_i_pthread_mutex_unlock (&cwp_var_mutex);
-  
-  return scm_call_0 (scm_variable_ref (cwp_var));
+  scm_i_pthread_once (&current_warning_port_once,
+                      init_current_warning_port_var);
+  return scm_call_0 (scm_variable_ref (current_warning_port_var));
 }
 
 SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
@@ -527,12 +530,9 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 SCM
 scm_set_current_warning_port (SCM port)
 {
-  static SCM cwp_var = SCM_BOOL_F;
-
-  if (scm_is_false (cwp_var))
-    cwp_var = scm_c_private_lookup ("guile", "current-warning-port");
-  
-  return scm_call_1 (scm_variable_ref (cwp_var), port);
+  scm_i_pthread_once (&current_warning_port_once,
+                      init_current_warning_port_var);
+  return scm_call_1 (scm_variable_ref (current_warning_port_var), port);
 }
 
 

@@ -260,6 +260,15 @@ scm_i_pthread_mutex_t stringbuf_write_mutex = SCM_I_PTHREAD_MUTEX_INITIALIZER;
 
 SCM scm_nullstr;
 
+static SCM null_stringbuf;
+
+static void
+init_null_stringbuf (void)
+{
+  null_stringbuf = make_stringbuf (0);
+  SET_STRINGBUF_SHARED (null_stringbuf);
+}
+
 /* Create a scheme string with space for LEN 8-bit Latin-1-encoded
    characters.  CHARSP, if not NULL, will be set to location of the
    char array.  If READ_ONLY_P, the returned string is read-only;
@@ -267,17 +276,13 @@ SCM scm_nullstr;
 SCM
 scm_i_make_string (size_t len, char **charsp, int read_only_p)
 {
-  static SCM null_stringbuf = SCM_BOOL_F;
   SCM buf;
   SCM res;
 
   if (len == 0)
     {
-      if (SCM_UNLIKELY (scm_is_false (null_stringbuf)))
-        {
-          null_stringbuf = make_stringbuf (0);
-          SET_STRINGBUF_SHARED (null_stringbuf);
-        }
+      static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+      scm_i_pthread_once (&once, init_null_stringbuf);
       buf = null_stringbuf;
     }
   else

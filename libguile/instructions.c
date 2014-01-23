@@ -82,25 +82,31 @@ fetch_instruction_table ()
   return table;
 }
 
+static SCM instructions_by_name;
+
+static void
+init_instructions_by_name (void)
+{
+  struct scm_instruction *table = fetch_instruction_table ();
+  unsigned int i;
+
+  instructions_by_name =
+    scm_make_hash_table (SCM_I_MAKINUM (SCM_VM_NUM_INSTRUCTIONS));
+
+  for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
+    if (scm_is_true (table[i].symname))
+      scm_hashq_set_x (instructions_by_name, table[i].symname,
+                       SCM_I_MAKINUM (i));
+}
+
 static struct scm_instruction *
 scm_lookup_instruction_by_name (SCM name)
 {
-  static SCM instructions_by_name = SCM_BOOL_F;
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
   struct scm_instruction *table = fetch_instruction_table ();
   SCM op;
 
-  if (SCM_UNLIKELY (scm_is_false (instructions_by_name)))
-    {
-      unsigned int i;
-
-      instructions_by_name =
-        scm_make_hash_table (SCM_I_MAKINUM (SCM_VM_NUM_INSTRUCTIONS));
-
-      for (i = 0; i < SCM_VM_NUM_INSTRUCTIONS; i++)
-        if (scm_is_true (table[i].symname))
-          scm_hashq_set_x (instructions_by_name, table[i].symname,
-                           SCM_I_MAKINUM (i));
-    }
+  scm_i_pthread_once (&once, init_instructions_by_name);
 
   op = scm_hashq_ref (instructions_by_name, name, SCM_UNDEFINED);
   if (SCM_I_INUMP (op))

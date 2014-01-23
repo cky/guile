@@ -208,19 +208,21 @@ SCM_DEFINE (scm_debug_hang, "debug-hang", 0, 1, 0,
 #undef FUNC_NAME
 #endif
 
+static SCM local_eval_var;
+
+static void
+init_local_eval_var (void)
+{
+  local_eval_var = scm_c_public_variable ("ice-9 local-eval", "local-eval");
+}
+
 SCM
 scm_local_eval (SCM exp, SCM env)
 {
-  static SCM local_eval_var = SCM_UNDEFINED;
-  static scm_i_pthread_mutex_t local_eval_var_mutex
-    = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_local_eval_var);
 
-  scm_i_scm_pthread_mutex_lock (&local_eval_var_mutex);
-  if (SCM_UNBNDP (local_eval_var))
-    local_eval_var = scm_c_public_variable ("ice-9 local-eval", "local-eval");
-  scm_i_pthread_mutex_unlock (&local_eval_var_mutex);
-
-  return scm_call_2 (SCM_VARIABLE_REF (local_eval_var), exp, env);
+  return scm_call_2 (scm_variable_ref (local_eval_var), exp, env);
 }
 
 static void

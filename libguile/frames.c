@@ -82,20 +82,26 @@ SCM_DEFINE (scm_frame_procedure, "frame-procedure", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+static SCM frame_arguments_var;
+
+static void
+init_frame_arguments_var (void)
+{
+  frame_arguments_var
+    = scm_c_private_lookup ("system vm frame", "frame-arguments");
+}
+
 SCM_DEFINE (scm_frame_arguments, "frame-arguments", 1, 0, 0,
 	    (SCM frame),
 	    "")
 #define FUNC_NAME s_scm_frame_arguments
 {
-  static SCM var = SCM_BOOL_F;
-  
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_frame_arguments_var);
+
   SCM_VALIDATE_VM_FRAME (1, frame);
 
-  if (scm_is_false (var))
-    var = scm_c_module_lookup (scm_c_resolve_module ("system vm frame"),
-                               "frame-arguments");
-
-  return scm_call_1 (SCM_VARIABLE_REF (var), frame);
+  return scm_call_1 (scm_variable_ref (frame_arguments_var), frame);
 }
 #undef FUNC_NAME
 

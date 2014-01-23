@@ -1763,15 +1763,22 @@ scm_call_generic_3 (SCM gf, SCM a1, SCM a2, SCM a3)
   return scm_call_3 (SCM_STRUCT_PROCEDURE (gf), a1, a2, a3);
 }
 
-SCM_SYMBOL (sym_delayed_compile, "delayed-compile");
+static SCM delayed_compile_var;
+
+static void
+init_delayed_compile_var (void)
+{
+  delayed_compile_var
+    = scm_c_private_lookup ("oop goops dispatch", "delayed-compile");
+}
+
 static SCM
 make_dispatch_procedure (SCM gf)
 {
-  static SCM var = SCM_BOOL_F;
-  if (scm_is_false (var))
-    var = scm_module_variable (scm_c_resolve_module ("oop goops dispatch"),
-                               sym_delayed_compile);
-  return scm_call_1 (SCM_VARIABLE_REF (var), gf);
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_delayed_compile_var);
+
+  return scm_call_1 (scm_variable_ref (delayed_compile_var), gf);
 }
 
 static void

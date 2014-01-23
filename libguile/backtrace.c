@@ -67,24 +67,30 @@ boot_print_exception (SCM port, SCM frame, SCM key, SCM args)
 }
 #undef FUNC_NAME
 
+static SCM print_exception_var;
+
+static void
+init_print_exception_var (void)
+{
+  print_exception_var
+    = scm_module_variable (scm_the_root_module (),
+                           scm_from_latin1_symbol ("print-exception"));
+}
+
 SCM
 scm_print_exception (SCM port, SCM frame, SCM key, SCM args)
 #define FUNC_NAME "print-exception"
 {
-  static SCM print_exception = SCM_BOOL_F;
+  static scm_i_pthread_once_t once = SCM_I_PTHREAD_ONCE_INIT;
+  scm_i_pthread_once (&once, init_print_exception_var);
 
   SCM_VALIDATE_OPOUTPORT (1, port);
   if (scm_is_true (frame))
     SCM_VALIDATE_FRAME (2, frame);
   SCM_VALIDATE_SYMBOL (3, key);
   SCM_VALIDATE_LIST (4, args);
-  
-  if (scm_is_false (print_exception))
-    print_exception =
-      scm_module_variable (scm_the_root_module (),
-                           scm_from_latin1_symbol ("print-exception"));
 
-  return scm_call_4 (scm_variable_ref (print_exception),
+  return scm_call_4 (scm_variable_ref (print_exception_var),
                      port, frame, key, args);
 }
 #undef FUNC_NAME
