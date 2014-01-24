@@ -59,6 +59,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-88::                     Keyword objects.
 * SRFI-98::                     Accessing environment variables.
 * SRFI-105::                    Curly-infix expressions.
+* SRFI-111::                    Boxes.
 @end menu
 
 
@@ -5180,6 +5181,30 @@ directive @code{#!curly-infix-and-bracket-lists}.  For example:
 
 
 For more information on reader options, @xref{Scheme Read}.
+
+@node SRFI-111
+@subsection SRFI-111 Boxes.
+@cindex SRFI-111
+
+@uref{http://srfi.schemers.org/srfi-111/srfi-111.html, SRFI-111}
+provides boxes: objects with a single mutable cell.
+
+@deffn {Scheme Procedure} box value
+Return a newly allocated box whose contents is initialized to
+@var{value}.
+@end deffn
+
+@deffn {Scheme Procedure} box? obj
+Return true if @var{obj} is a box, otherwise return false.
+@end deffn
+
+@deffn {Scheme Procedure} unbox box
+Return the current contents of @var{box}.
+@end deffn
+
+@deffn {Scheme Procedure} set-box! box value
+Set the contents of @var{box} to @var{value}.
+@end deffn
 
 @c srfi-modules.texi ends here
 

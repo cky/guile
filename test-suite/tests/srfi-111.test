@@ -1,0 +1,65 @@
+;;;; srfi-111.test --- Test suite for SRFI-111 (Boxes). -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-srfi-111)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-111))
+
+(with-test-prefix "srfi-111"
+
+  (let ((test-vals '(#f #t #\space "string" -5 #e1e100 1e-30 #(a vector))))
+    (pass-if-equal "box and unbox"
+        test-vals
+      (map (lambda (x)
+             (unbox (box x)))
+           test-vals))
+
+    (pass-if "box?"
+      (and (box? (box 5))
+           (not (any box? test-vals))))
+
+    (pass-if-equal "set-box!"
+        "string"
+      (let ((b (box #f)))
+        (set-box! b "string")
+        (unbox b)))
+
+    (pass-if "eq? on boxes"
+      (let ((box1 (box #f))
+            (box2 (box #f)))
+        (and (eq? box1 box1)
+             (eq? box2 box2)
+             (not (eq? box1 box2)))))
+
+    (pass-if "eqv? on boxes"
+      (let ((box1 (box #f))
+            (box2 (box #f)))
+        (and (eqv? box1 box1)
+             (eqv? box2 box2)
+             (not (eqv? box1 box2)))))
+
+    (pass-if "equal? on boxes"
+      (let ((box1 (box "foo"))
+            (box2 (box "bar")))
+        (and (equal? box1 box1)
+             (equal? box2 box2)
+             (not (equal? box1 box2))
+             ;; Guile extension, not guaranteed by SRFI-111.
+             (begin (set-box! box2 (string #\f #\o #\o))
+                    (equal? box1 box2)))))))
