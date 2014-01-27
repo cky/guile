@@ -47,6 +47,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-39::                     Parameter objects
 * SRFI-41::                     Streams.
 * SRFI-42::                     Eager comprehensions
+* SRFI-43::                     Vector Library.
 * SRFI-45::                     Primitives for expressing iterative lazy algorithms
 * SRFI-46::                     Basic syntax-rules Extensions.
 * SRFI-55::                     Requiring Features.
@@ -4510,6 +4511,417 @@ the input @var{stream}s is finite, or is infinite if all the input
 
 See @uref{http://srfi.schemers.org/srfi-42/srfi-42.html, the
 specification of SRFI-42}.
+
+@node SRFI-43
+@subsection SRFI-43 - Vector Library
+@cindex SRFI-43
+
+This subsection is based on the
+@uref{http://srfi.schemers.org/srfi-43/srfi-43.html, specification of
+SRFI-43} by Taylor Campbell.
+
+@c The copyright notice and license text of the SRFI-43 specification is
+@c reproduced below:
+
+@c Copyright (C) Taylor Campbell (2003). All Rights Reserved.
+
+@c Permission is hereby granted, free of charge, to any person obtaining a
+@c copy of this software and associated documentation files (the
+@c "Software"), to deal in the Software without restriction, including
+@c without limitation the rights to use, copy, modify, merge, publish,
+@c distribute, sublicense, and/or sell copies of the Software, and to
+@c permit persons to whom the Software is furnished to do so, subject to
+@c the following conditions:
+
+@c The above copyright notice and this permission notice shall be included
+@c in all copies or substantial portions of the Software.
+
+@c THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+@c OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+@c MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+@c NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+@c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+@c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+@c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@noindent
+SRFI-43 implements a comprehensive library of vector operations.  It can
+be made available with:
+
+@example
+(use-modules (srfi srfi-43))
+@end example
+
+@menu
+* SRFI-43 Constructors::
+* SRFI-43 Predicates::
+* SRFI-43 Selectors::
+* SRFI-43 Iteration::
+* SRFI-43 Searching::
+* SRFI-43 Mutators::
+* SRFI-43 Conversion::
+@end menu
+
+@node SRFI-43 Constructors
+@subsubsection SRFI-43 Constructors
+
+@deffn {Scheme Procedure} make-vector size [fill]
+Create and return a vector of size @var{size}, optionally filling it
+with @var{fill}.  The default value of @var{fill} is unspecified.
+
+@example
+(make-vector 5 3) @result{} #(3 3 3 3 3)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector x @dots{}
+Create and return a vector whose elements are @var{x} @enddots{}.
+
+@example
+(vector 0 1 2 3 4) @result{} #(0 1 2 3 4)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-unfold f length initial-seed @dots{}
+The fundamental vector constructor.  Create a vector whose length is
+@var{length} and iterates across each index k from 0 up to
+@var{length} - 1, applying @var{f} at each iteration to the current index
+and current seeds, in that order, to receive n + 1 values: first, the
+element to put in the kth slot of the new vector and n new seeds for
+the next iteration.  It is an error for the number of seeds to vary
+between iterations.
+
+@example
+(vector-unfold (lambda (i x) (values x (- x 1)))
+               10 0)
+@result{} #(0 -1 -2 -3 -4 -5 -6 -7 -8 -9)
+
+(vector-unfold values 10)
+@result{} #(0 1 2 3 4 5 6 7 8 9)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-unfold-right f length initial-seed @dots{}
+Like @code{vector-unfold}, but it uses @var{f} to generate elements from
+right-to-left, rather than left-to-right.
+
+@example
+(vector-unfold-right (lambda (i x) (values x (+ x 1)))
+                     10 0)
+@result{} #(9 8 7 6 5 4 3 2 1 0)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-copy vec [start [end [fill]]]
+Allocate a new vector whose length is @var{end} - @var{start} and fills
+it with elements from @var{vec}, taking elements from @var{vec} starting
+at index @var{start} and stopping at index @var{end}.  @var{start}
+defaults to 0 and @var{end} defaults to the value of
+@code{(vector-length vec)}.  If @var{end} extends beyond the length of
+@var{vec}, the slots in the new vector that obviously cannot be filled
+by elements from @var{vec} are filled with @var{fill}, whose default
+value is unspecified.
+
+@example
+(vector-copy '#(a b c d e f g h i))
+@result{} #(a b c d e f g h i)
+
+(vector-copy '#(a b c d e f g h i) 6)
+@result{} #(g h i)
+
+(vector-copy '#(a b c d e f g h i) 3 6)
+@result{} #(d e f)
+
+(vector-copy '#(a b c d e f g h i) 6 12 'x)
+@result{} #(g h i x x x)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-reverse-copy vec [start [end]]
+Like @code{vector-copy}, but it copies the elements in the reverse order
+from @var{vec}.
+
+@example
+(vector-reverse-copy '#(5 4 3 2 1 0) 1 5)
+@result{} #(1 2 3 4)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-append vec @dots{}
+Return a newly allocated vector that contains all elements in order from
+the subsequent locations in @var{vec} @enddots{}.
+
+@example
+(vector-append '#(a) '#(b c d))
+@result{} #(a b c d)
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-concatenate list-of-vectors
+Append each vector in @var{list-of-vectors}.  Equivalent to
+@code{(apply vector-append list-of-vectors)}.
+
+@example
+(vector-concatenate '(#(a b) #(c d)))
+@result{} #(a b c d)
+@end example
+@end deffn
+
+@node SRFI-43 Predicates
+@subsubsection SRFI-43 Predicates
+
+@deffn {Scheme Procedure} vector? obj
+Return true if @var{obj} is a vector, else return false.
+@end deffn
+
+@deffn {Scheme Procedure} vector-empty? vec
+Return true if @var{vec} is empty, i.e. its length is 0, else return
+false.
+@end deffn
+
+@deffn {Scheme Procedure} vector= elt=? vec @dots{}
+Return true if the vectors @var{vec} @dots{} have equal lengths and
+equal elements according to @var{elt=?}.  @var{elt=?} is always applied
+to two arguments.  Element comparison must be consistent with @code{eq?}
+in the following sense: if @code{(eq? a b)} returns true, then
+@code{(elt=? a b)} must also return true.  The order in which
+comparisons are performed is unspecified.
+@end deffn
+
+@node SRFI-43 Selectors
+@subsubsection SRFI-43 Selectors
+
+@deffn {Scheme Procedure} vector-ref vec i
+Return the value that the location in @var{vec} at @var{i} is mapped to
+in the store.  Indexing is based on zero.
+@end deffn
+
+@deffn {Scheme Procedure} vector-length vec
+Return the length of @var{vec}.
+@end deffn
+
+@node SRFI-43 Iteration
+@subsubsection SRFI-43 Iteration
+
+@deffn {Scheme Procedure} vector-fold kons knil vec1 vec2 @dots{}
+The fundamental vector iterator.  @var{kons} is iterated over each index
+in all of the vectors, stopping at the end of the shortest; @var{kons}
+is applied as
+@smalllisp
+(kons i state (vector-ref vec1 i) (vector-ref vec2 i) ...)
+@end smalllisp
+where @var{state} is the current state value, and @var{i} is the current
+index.  The current state value begins with @var{knil}, and becomes
+whatever @var{kons} returned at the respective iteration.  The iteration
+is strictly left-to-right.
+@end deffn
+
+@deffn {Scheme Procedure} vector-fold-right kons knil vec1 vec2 @dots{}
+Similar to @code{vector-fold}, but it iterates right-to-left instead of
+left-to-right.
+@end deffn
+
+@deffn {Scheme Procedure} vector-map f vec1 vec2 @dots{}
+Return a new vector of the shortest size of the vector arguments.  Each
+element at index i of the new vector is mapped from the old vectors by
+@smalllisp
+(f i (vector-ref vec1 i) (vector-ref vec2 i) ...)
+@end smalllisp
+The dynamic order of application of @var{f} is unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} vector-map! f vec1 vec2 @dots{}
+Similar to @code{vector-map}, but rather than mapping the new elements
+into a new vector, the new mapped elements are destructively inserted
+into @var{vec1}.  The dynamic order of application of @var{f} is
+unspecified.
+@end deffn
+
+@deffn {Scheme Procedure} vector-for-each f vec1 vec2 @dots{}
+Call @code{(f i (vector-ref vec1 i) (vector-ref vec2 i) ...)} for each
+index i less than the length of the shortest vector passed.  The
+iteration is strictly left-to-right.
+@end deffn
+
+@deffn {Scheme Procedure} vector-count pred? vec1 vec2 @dots{}
+Count the number of parallel elements in the vectors that satisfy
+@var{pred?}, which is applied, for each index i less than the length of
+the smallest vector, to i and each parallel element in the vectors at
+that index, in order.
+
+@example
+(vector-count (lambda (i elt) (even? elt))
+              '#(3 1 4 1 5 9 2 5 6))
+@result{} 3
+(vector-count (lambda (i x y) (< x y))
+              '#(1 3 6 9) '#(2 4 6 8 10 12))
+@result{} 2
+@end example
+@end deffn
+
+@node SRFI-43 Searching
+@subsubsection SRFI-43 Searching
+
+@deffn {Scheme Procedure} vector-index pred? vec1 vec2 @dots{}
+Find and return the index of the first elements in @var{vec1} @var{vec2}
+@dots{} that satisfy @var{pred?}.  If no matching element is found by
+the end of the shortest vector, return @code{#f}.
+
+@example
+(vector-index even? '#(3 1 4 1 5 9))
+@result{} 2
+(vector-index < '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2))
+@result{} 1
+(vector-index = '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2))
+@result{} #f
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-index-right pred? vec1 vec2 @dots{}
+Like @code{vector-index}, but it searches right-to-left, rather than
+left-to-right.  Note that the SRFI 43 specification requires that all
+the vectors must have the same length, but both the SRFI 43 reference
+implementation and Guile's implementation allow vectors with unequal
+lengths, and start searching from the last index of the shortest vector.
+@end deffn
+
+@deffn {Scheme Procedure} vector-skip pred? vec1 vec2 @dots{}
+Find and return the index of the first elements in @var{vec1} @var{vec2}
+@dots{} that do not satisfy @var{pred?}.  If no matching element is
+found by the end of the shortest vector, return @code{#f}.  Equivalent
+to @code{vector-index} but with the predicate inverted.
+
+@example
+(vector-skip number? '#(1 2 a b 3 4 c d)) @result{} 2
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-skip-right pred? vec1 vec2 @dots{}
+Like @code{vector-skip}, but it searches for a non-matching element
+right-to-left, rather than left-to-right.  Note that the SRFI 43
+specification requires that all the vectors must have the same length,
+but both the SRFI 43 reference implementation and Guile's implementation
+allow vectors with unequal lengths, and start searching from the last
+index of the shortest vector.
+@end deffn
+
+@deffn {Scheme Procedure} vector-binary-search vec value cmp [start [end]]
+Find and return an index of @var{vec} between @var{start} and @var{end}
+whose value is @var{value} using a binary search.  If no matching
+element is found, return @code{#f}.  The default @var{start} is 0 and
+the default @var{end} is the length of @var{vec}.
+
+@var{cmp} must be a procedure of two arguments such that @code{(cmp a
+b)} returns a negative integer if @math{a < b}, a positive integer if
+@math{a > b}, or zero if @math{a = b}.  The elements of @var{vec} must
+be sorted in non-decreasing order according to @var{cmp}.
+
+Note that SRFI 43 does not document the @var{start} and @var{end}
+arguments, but both its reference implementation and Guile's
+implementation support them.
+
+@example
+(define (char-cmp c1 c2)
+  (cond ((char<? c1 c2) -1)
+        ((char>? c1 c2) 1)
+        (else 0)))
+
+(vector-binary-search '#(#\a #\b #\c #\d #\e #\f #\g #\h)
+                      #\g
+                      char-cmp)
+@result{} 6
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} vector-any pred? vec1 vec2 @dots{}
+Find the first parallel set of elements from @var{vec1} @var{vec2}
+@dots{} for which @var{pred?} returns a true value.  If such a parallel
+set of elements exists, @code{vector-any} returns the value that
+@var{pred?} returned for that set of elements.  The iteration is
+strictly left-to-right.
+@end deffn
+
+@deffn {Scheme Procedure} vector-every pred? vec1 vec2 @dots{}
+If, for every index i between 0 and the length of the shortest vector
+argument, the set of elements @code{(vector-ref vec1 i)}
+@code{(vector-ref vec2 i)} @dots{} satisfies @var{pred?},
+@code{vector-every} returns the value that @var{pred?} returned for the
+last set of elements, at the last index of the shortest vector.
+Otherwise it returns @code{#f}.  The iteration is strictly
+left-to-right.
+@end deffn
+
+@node SRFI-43 Mutators
+@subsubsection SRFI-43 Mutators
+
+@deffn {Scheme Procedure} vector-set! vec i value
+Assign the contents of the location at @var{i} in @var{vec} to
+@var{value}.
+@end deffn
+
+@deffn {Scheme Procedure} vector-swap! vec i j
+Swap the values of the locations in @var{vec} at @var{i} and @var{j}.
+@end deffn
+
+@deffn {Scheme Procedure} vector-fill! vec fill [start [end]]
+Assign the value of every location in @var{vec} between @var{start} and
+@var{end} to @var{fill}.  @var{start} defaults to 0 and @var{end}
+defaults to the length of @var{vec}.
+@end deffn
+
+@deffn {Scheme Procedure} vector-reverse! vec [start [end]]
+Destructively reverse the contents of @var{vec} between @var{start} and
+@var{end}.  @var{start} defaults to 0 and @var{end} defaults to the
+length of @var{vec}.
+@end deffn
+
+@deffn {Scheme Procedure} vector-copy! target tstart source [sstart [send]]
+Copy a block of elements from @var{source} to @var{target}, both of
+which must be vectors, starting in @var{target} at @var{tstart} and
+starting in @var{source} at @var{sstart}, ending when (@var{send} -
+@var{sstart}) elements have been copied.  It is an error for
+@var{target} to have a length less than (@var{tstart} + @var{send} -
+@var{sstart}).  @var{sstart} defaults to 0 and @var{send} defaults to
+the length of @var{source}.
+@end deffn
+
+@deffn {Scheme Procedure} vector-reverse-copy! target tstart source [sstart [send]]
+Like @code{vector-copy!}, but this copies the elements in the reverse
+order.  It is an error if @var{target} and @var{source} are identical
+vectors and the @var{target} and @var{source} ranges overlap; however,
+if @var{tstart} = @var{sstart}, @code{vector-reverse-copy!} behaves as
+@code{(vector-reverse! target tstart send)} would.
+@end deffn
+
+@node SRFI-43 Conversion
+@subsubsection SRFI-43 Conversion
+
+@deffn {Scheme Procedure} vector->list vec [start [end]]
+Return a newly allocated list containing the elements in @var{vec}
+between @var{start} and @var{end}.  @var{start} defaults to 0 and
+@var{end} defaults to the length of @var{vec}.
+@end deffn
+
+@deffn {Scheme Procedure} reverse-vector->list vec [start [end]]
+Like @code{vector->list}, but the resulting list contains the specified
+range of elements of @var{vec} in reverse order.
+@end deffn
+
+@deffn {Scheme Procedure} list->vector proper-list [start [end]]
+Return a newly allocated vector of the elements from @var{proper-list}
+with indices between @var{start} and @var{end}.  @var{start} defaults to
+0 and @var{end} defaults to the length of @var{proper-list}.  Note that
+SRFI 43 does not document the @var{start} and @var{end} arguments, but
+both its reference implementation and Guile's implementation support
+them.
+@end deffn
+
+@deffn {Scheme Procedure} reverse-list->vector proper-list [start [end]]
+Like @code{list->vector}, but the resulting vector contains the specified
+range of elements of @var{proper-list} in reverse order.  Note that SRFI
+43 does not document the @var{start} and @var{end} arguments, but both
+its reference implementation and Guile's implementation support them.
+@end deffn
 
 @node SRFI-45
 @subsection SRFI-45 - Primitives for Expressing Iterative Lazy Algorithms

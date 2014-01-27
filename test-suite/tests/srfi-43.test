@@ -1,0 +1,1375 @@
+;;;; srfi-43.test --- test suite for SRFI-43 Vector library -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+;;;
+;;; Originally written by Shiro Kawai and placed in the public domain
+;;; 10/5/2005.
+;;;
+;;; Many tests added, and adapted for Guile's (test-suite lib)
+;;; by Mark H Weaver <mhw@netris.org>, Jan 2014.
+;;;
+
+(define-module (test-suite test-srfi-43)
+  #:use-module (srfi srfi-43)
+  #:use-module (test-suite lib))
+
+(define-syntax-rule (pass-if-error name body0 body ...)
+  (pass-if name
+    (catch #t
+      (lambda () body0 body ... #f)
+      (lambda (key . args) #t))))
+
+;;;
+;;; Constructors
+;;;
+
+;;
+;; make-vector
+;;
+
+(with-test-prefix "make-vector"
+
+  (pass-if-equal "simple, no init"
+      5
+    (vector-length (make-vector 5)))
+
+  (pass-if-equal "empty"
+      '#()
+    (make-vector 0))
+
+  (pass-if-error "negative length"
+    (make-vector -4))
+
+  (pass-if-equal "simple with init"
+      '#(3 3 3 3 3)
+    (make-vector 5 3))
+
+  (pass-if-equal "empty with init"
+      '#()
+    (make-vector 0 3))
+
+  (pass-if-error "negative length"
+    (make-vector -1 3)))
+
+;;
+;; vector
+;;
+
+(with-test-prefix "vector"
+
+  (pass-if-equal "no args"
+      '#()
+    (vector))
+
+  (pass-if-equal "simple"
+      '#(1 2 3 4 5)
+    (vector 1 2 3 4 5)))
+
+;;
+;; vector-unfold
+;;
+
+(with-test-prefix "vector-unfold"
+
+  (pass-if-equal "no seeds"
+      '#(0 1 2 3 4 5 6 7 8 9)
+    (vector-unfold values 10))
+
+  (pass-if-equal "no seeds, zero len"
+      '#()
+    (vector-unfold values 0))
+
+  (pass-if-error "no seeds, negative len"
+    (vector-unfold values -1))
+
+  (pass-if-equal "1 seed"
+      '#(0 -1 -2 -3 -4 -5 -6 -7 -8 -9)
+    (vector-unfold (lambda (i x) (values x (- x 1)))
+                   10 0))
+
+  (pass-if-equal "1 seed, zero len"
+      '#()
+    (vector-unfold values 0 1))
+
+  (pass-if-error "1 seed, negative len"
+    (vector-unfold values -2 1))
+
+  (pass-if-equal "2 seeds"
+      '#((0 20) (-1 21) (-2 22) (-3 23) (-4 24)
+         (-5 25) (-6 26) (-7 27) (-8 28) (-9 29))
+    (vector-unfold (lambda (i x y) (values (list x y) (- x 1) (+ y 1)))
+                   10 0 20))
+
+  (pass-if-equal "2 seeds, zero len"
+      '#()
+    (vector-unfold values 0 1 2))
+
+  (pass-if-error "2 seeds, negative len"
+    (vector-unfold values -2 1 2))
+
+  (pass-if-equal "3 seeds"
+      '#((0 20 30) (-1 21 32) (-2 22 34) (-3 23 36) (-4 24 38)
+         (-5 25 40) (-6 26 42) (-7 27 44) (-8 28 46) (-9 29 48))
+    (vector-unfold (lambda (i x y z)
+                     (values (list x y z) (- x 1) (+ y 1) (+ z 2)))
+                   10 0 20 30))
+
+  (pass-if-equal "3 seeds, zero len"
+      '#()
+    (vector-unfold values 0 1 2 3))
+
+  (pass-if-error "3 seeds, negative len"
+    (vector-unfold values -2 1 2 3)))
+
+;;
+;; vector-unfold-right
+;;
+
+(with-test-prefix "vector-unfold-right"
+
+  (pass-if-equal "no seeds, zero len"
+      '#()
+    (vector-unfold-right values 0))
+
+  (pass-if-error "no seeds, negative len"
+    (vector-unfold-right values -1))
+
+  (pass-if-equal "1 seed"
+      '#(9 8 7 6 5 4 3 2 1 0)
+    (vector-unfold-right (lambda (i x) (values x (+ x 1))) 10 0))
+
+  (pass-if-equal "1 seed, zero len"
+      '#()
+    (vector-unfold-right values 0 1))
+
+  (pass-if-error "1 seed, negative len"
+    (vector-unfold-right values -1 1))
+
+  (pass-if-equal "1 seed, reverse vector"
+      '#(e d c b a)
+    (let ((vector '#(a b c d e)))
+      (vector-unfold-right
+       (lambda (i x) (values (vector-ref vector x) (+ x 1)))
+       (vector-length vector)
+       0)))
+
+  (pass-if-equal "2 seeds"
+      '#((0 20) (-1 21) (-2 22) (-3 23) (-4 24)
+         (-5 25) (-6 26) (-7 27) (-8 28) (-9 29))
+    (vector-unfold-right (lambda (i x y) (values (list x y) (+ x 1) (- y 1)))
+                         10 -9 29))
+
+  (pass-if-equal "2 seeds, zero len"
+      '#()
+    (vector-unfold-right values 0 1 2))
+
+  (pass-if-error "2 seeds, negative len"
+    (vector-unfold-right values -1 1 2))
+
+  (pass-if-equal "3 seeds"
+      '#((0 20 30) (-1 21 32) (-2 22 34) (-3 23 36) (-4 24 38)
+         (-5 25 40) (-6 26 42) (-7 27 44) (-8 28 46) (-9 29 48))
+    (vector-unfold-right (lambda (i x y z)
+                           (values (list x y z) (+ x 1) (- y 1) (- z 2)))
+                         10 -9 29 48))
+
+  (pass-if-equal "3 seeds, zero len"
+      '#()
+    (vector-unfold-right values 0 1 2 3))
+
+  (pass-if-error "3 seeds, negative len"
+    (vector-unfold-right values -1 1 2 3)))
+
+;;
+;; vector-copy
+;;
+
+(with-test-prefix "vector-copy"
+
+  (pass-if-equal "1 arg"
+      '#(a b c d e f g h i)
+    (vector-copy '#(a b c d e f g h i)))
+
+  (pass-if-equal "2 args"
+      '#(g h i)
+    (vector-copy '#(a b c d e f g h i) 6))
+
+  (pass-if-equal "3 args"
+      '#(d e f)
+    (vector-copy '#(a b c d e f g h i) 3 6))
+
+  (pass-if-equal "4 args"
+      '#(g h i x x x)
+    (vector-copy '#(a b c d e f g h i) 6 12 'x))
+
+  (pass-if-equal "3 args, empty range"
+      '#()
+    (vector-copy '#(a b c d e f g h i) 6 6))
+
+  (pass-if-error "3 args, invalid range"
+    (vector-copy '#(a b c d e f g h i) 4 2)))
+
+;;
+;; vector-reverse-copy
+;;
+
+(with-test-prefix "vector-reverse-copy"
+
+  (pass-if-equal "1 arg"
+      '#(e d c b a)
+    (vector-reverse-copy '#(a b c d e)))
+
+  (pass-if-equal "2 args"
+      '#(e d c)
+    (vector-reverse-copy '#(a b c d e) 2))
+
+  (pass-if-equal "3 args"
+      '#(d c b)
+    (vector-reverse-copy '#(a b c d e) 1 4))
+
+  (pass-if-equal "3 args, empty result"
+      '#()
+    (vector-reverse-copy '#(a b c d e) 1 1))
+
+  (pass-if-error "2 args, invalid range"
+    (vector-reverse-copy '#(a b c d e) 2 1)))
+
+;;
+;; vector-append
+;;
+
+(with-test-prefix "vector-append"
+
+  (pass-if-equal "no args"
+      '#()
+    (vector-append))
+
+  (pass-if-equal "1 arg"
+      '(#(1 2) #f)
+    (let* ((v (vector 1 2))
+           (v-copy (vector-append v)))
+      (list v-copy (eq? v v-copy))))
+
+  (pass-if-equal "2 args"
+      '#(x y)
+    (vector-append '#(x) '#(y)))
+
+  (pass-if-equal "3 args"
+      '#(x y x y x y)
+    (let ((v '#(x y)))
+      (vector-append v v v)))
+
+  (pass-if-equal "3 args with empty vector"
+      '#(x y)
+    (vector-append '#(x) '#() '#(y)))
+
+  (pass-if-error "3 args with non-vectors"
+    (vector-append '#() 'b 'c)))
+
+;;
+;; vector-concatenate
+;;
+
+(with-test-prefix "vector-concatenate"
+
+  (pass-if-equal "2 vectors"
+      '#(a b c d)
+    (vector-concatenate '(#(a b) #(c d))))
+
+  (pass-if-equal "no vectors"
+      '#()
+    (vector-concatenate '()))
+
+  (pass-if-error "non-vector in list"
+    (vector-concatenate '(#(a b) c))))
+
+;;;
+;;; Predicates
+;;;
+
+;;
+;; vector?
+;;
+
+(with-test-prefix "vector?"
+  (pass-if "empty vector" (vector? '#()))
+  (pass-if "simple" (vector? '#(a b)))
+  (pass-if "list" (not (vector? '(a b))))
+  (pass-if "symbol" (not (vector? 'a))))
+
+;;
+;; vector-empty?
+;;
+
+(with-test-prefix "vector-empty?"
+  (pass-if "empty vector" (vector-empty? '#()))
+  (pass-if "singleton vector" (not (vector-empty? '#(a))))
+  (pass-if-error "non-vector" (vector-empty 'a)))
+
+;;
+;; vector=
+;;
+
+(with-test-prefix "vector="
+
+  (pass-if "2 equal vectors"
+    (vector= eq? '#(a b c d) '#(a b c d)))
+
+  (pass-if "3 equal vectors"
+    (vector= eq? '#(a b c d) '#(a b c d) '#(a b c d)))
+
+  (pass-if "2 empty vectors"
+    (vector= eq? '#() '#()))
+
+  (pass-if "no vectors"
+    (vector= eq?))
+
+  (pass-if "1 vector"
+    (vector= eq? '#(a)))
+
+  (pass-if "2 unequal vectors of equal length"
+    (not (vector= eq? '#(a b c d) '#(a b d c))))
+
+  (pass-if "3 unequal vectors of equal length"
+    (not (vector= eq? '#(a b c d) '#(a b c d) '#(a b d c))))
+
+  (pass-if "2 vectors of unequal length"
+    (not (vector= eq? '#(a b c) '#(a b c d))))
+
+  (pass-if "3 vectors of unequal length"
+    (not (vector= eq? '#(a b c d) '#(a b c d) '#(a b c))))
+
+  (pass-if "2 vectors: empty, non-empty"
+    (not (vector= eq? '#() '#(a b d c))))
+
+  (pass-if "2 vectors: non-empty, empty"
+    (not (vector= eq? '#(a b d c) '#())))
+
+  (pass-if "2 equal vectors, elt= is equal?"
+    (vector= equal? '#("a" "b" "c") '#("a" "b" "c")))
+
+  (pass-if "2 equal vectors, elt= is ="
+    (vector= = '#(1/2 1/3 1/4 1/5) '#(1/2 1/3 1/4 1/5)))
+
+  (pass-if-error "vector and list"
+    (vector= equal? '#("a" "b" "c") '("a" "b" "c")))
+
+  (pass-if-error "non-procedure"
+    (vector= 1 '#("a" "b" "c") '("a" "b" "c"))))
+
+;;;
+;;; Selectors
+;;;
+
+;;
+;; vector-ref
+;;
+
+(with-test-prefix "vector-ref"
+  (pass-if-equal "simple 0" 'a (vector-ref '#(a b c) 0))
+  (pass-if-equal "simple 1" 'b (vector-ref '#(a b c) 1))
+  (pass-if-equal "simple 2" 'c (vector-ref '#(a b c) 2))
+  (pass-if-error "negative index" (vector-ref '#(a b c) -1))
+  (pass-if-error "index beyond end" (vector-ref '#(a b c) 3))
+  (pass-if-error "empty vector" (vector-ref '#() 0))
+  (pass-if-error "non-vector" (vector-ref '(a b c) 0))
+  (pass-if-error "inexact index" (vector-ref '#(a b c) 1.0)))
+
+;;
+;; vector-length
+;;
+
+(with-test-prefix "vector-length"
+  (pass-if-equal "empty vector" 0 (vector-length '#()))
+  (pass-if-equal "simple" 3 (vector-length '#(a b c)))
+  (pass-if-error "non-vector" (vector-length '(a b c))))
+
+;;;
+;;; Iteration
+;;;
+
+;;
+;; vector-fold
+;;
+
+(with-test-prefix "vector-fold"
+
+  (pass-if-equal "1 vector"
+      10
+    (vector-fold (lambda (i seed val) (+ seed val))
+                 0
+                 '#(0 1 2 3 4)))
+
+  (pass-if-equal "1 empty vector"
+      'a
+    (vector-fold (lambda (i seed val) (+ seed val))
+                 'a
+                 '#()))
+
+  (pass-if-equal "1 vector, use index"
+      30
+    (vector-fold (lambda (i seed val) (+ seed (* i val)))
+                 0
+                 '#(0 1 2 3 4)))
+
+  (pass-if-equal "2 vectors, unequal lengths"
+      '(1 -7 1 -1)
+    (vector-fold (lambda (i seed x y) (cons (- x y) seed))
+                 '()
+                 '#(6 1 2 3 4) '#(7 0 9 2)))
+
+  (pass-if-equal "3 vectors, unequal lengths"
+      '(51 33 31 19)
+    (vector-fold (lambda (i seed x y z) (cons (- x y z) seed))
+                 '()
+                 '#(6 1 2 3 4) '#(7 0 9 2) '#(-20 -30 -40 -50 -60 -70)))
+
+  (pass-if-error "5 args, non-vector"
+    (vector-fold (lambda (i seed x y z) (cons (- x y z) seed))
+                 '()
+                 '#(6 1 2 3 4) '#(7 0 9 2) '(-20 -30 -40 -50 -60 -70)))
+
+  (pass-if-error "non-procedure"
+    (vector-fold 1 '() '#(6 1 2 3 4) '#(7 0 9 2))))
+
+;;
+;; vector-fold-right
+;;
+
+(with-test-prefix "vector-fold-right"
+
+  (pass-if-equal "1 vector"
+      '((0 . a) (1 . b) (2 . c) (3 . d) (4 . e))
+    (vector-fold-right (lambda (i seed val) (cons (cons i val) seed))
+                       '()
+                       '#(a b c d e)))
+
+  (pass-if-equal "2 vectors, unequal lengths"
+      '(-1 1 -7 1)
+    (vector-fold-right (lambda (i seed x y) (cons (- x y) seed))
+                       '()
+                       '#(6 1 2 3 7) '#(7 0 9 2)))
+
+  (pass-if-equal "3 vectors, unequal lengths"
+      '(19 31 33 51)
+    (vector-fold-right (lambda (i seed x y z) (cons (- x y z) seed))
+                       '()
+                       '#(6 1 2 3 4) '#(7 0 9 2) '#(-20 -30 -40 -50 -60 -70)))
+
+  (pass-if-error "5 args, non-vector"
+    (vector-fold-right (lambda (i seed x y z) (cons (- x y z) seed))
+                       '()
+                       '#(6 1 2 3 4) '#(7 0 9 2) '(-20 -30 -40 -50 -60 -70)))
+
+  (pass-if-error "non-procedure"
+    (vector-fold-right 1 '() '#(6 1 2 3 4) '#(7 0 9 2))))
+
+;;
+;; vector-map
+;;
+
+(with-test-prefix "vector-map"
+
+  (pass-if-equal "1 vector"
+      '#((0 . a) (1 . b) (2 . c) (3 . d) (4 . e))
+    (vector-map cons '#(a b c d e)))
+
+  (pass-if-equal "1 empty vector"
+      '#()
+    (vector-map cons '#()))
+
+  (pass-if-equal "2 vectors, unequal lengths"
+      '#(5 8 11 14)
+    (vector-map + '#(0 1 2 3 4) '#(5 6 7 8)))
+
+  (pass-if-equal "3 vectors, unequal lengths"
+      '#(15 28 41 54)
+    (vector-map + '#(0 1 2 3 4) '#(5 6 7 8) '#(10 20 30 40 50 60)))
+
+  (pass-if-error "4 args, non-vector"
+    (vector-map + '#(0 1 2 3 4) '(5 6 7 8) '#(10 20 30 40 50 60)))
+
+  (pass-if-error "3 args, non-vector"
+    (vector-map + '#(0 1 2 3 4) '(5 6 7 8)))
+
+  (pass-if-error "non-procedure"
+    (vector-map #f '#(0 1 2 3 4) '#(5 6 7 8) '#(10 20 30 40 50 60))))
+
+;;
+;; vector-map!
+;;
+
+(with-test-prefix "vector-map!"
+
+  (pass-if-equal "1 vector"
+      '#(0 1 4 9 16)
+    (let ((v (vector 0 1 2 3 4)))
+      (vector-map! * v)
+      v))
+
+  (pass-if-equal "1 empty vector"
+      '#()
+    (let ((v (vector)))
+      (vector-map! * v)
+      v))
+
+  (pass-if-equal "2 vectors, unequal lengths"
+      '#(5 8 11 14 4)
+    (let ((v (vector 0 1 2 3 4)))
+      (vector-map! + v '#(5 6 7 8))
+      v))
+
+  (pass-if-equal "3 vectors, unequal lengths"
+      '#(15 28 41 54 4)
+    (let ((v (vector 0 1 2 3 4)))
+      (vector-map! + v '#(5 6 7 8) '#(10 20 30 40 50 60))
+      v))
+
+  (pass-if-error "non-vector"
+    (let ((v (vector 0 1 2 3 4)))
+      (vector-map! + v '#(5 6 7 8) '(10 20 30 40 50 60))
+      v))
+
+  (pass-if-error "non-procedure"
+    (let ((v (vector 0 1 2 3 4)))
+      (vector-map! '(1 . 2) v '#(5 6 7 8) '#(10 20 30 40 50 60))
+      v)))
+
+;;
+;; vector-for-each
+;;
+
+(with-test-prefix "vector-for-each"
+
+  (pass-if-equal "1 vector"
+      '(4 6 6 4 0)
+    (let ((lst '()))
+      (vector-for-each (lambda (i x)
+                         (set! lst (cons (* i x) lst)))
+                       '#(5 4 3 2 1))
+      lst))
+
+  (pass-if-equal "1 empty vector"
+      '()
+    (let ((lst '()))
+      (vector-for-each (lambda (i x)
+                         (set! lst (cons (* i x) lst)))
+                       '#())
+      lst))
+
+  (pass-if-equal "2 vectors, unequal lengths"
+      '(13 11 7 2)
+    (let ((lst '()))
+      (vector-for-each (lambda (i x y)
+                         (set! lst (cons (+ (* i x) y) lst)))
+                       '#(5 4 3 2 1)
+                       '#(2 3 5 7))
+      lst))
+
+  (pass-if-equal "3 vectors, unequal lengths"
+      '(-6 -6 -6 -9)
+    (let ((lst '()))
+      (vector-for-each (lambda (i x y z)
+                         (set! lst (cons (+ (* i x) (- y z)) lst)))
+                       '#(5 4 3 2 1)
+                       '#(2 3 5 7)
+                       '#(11 13 17 19 23 29))
+      lst))
+
+  (pass-if-error "non-vector"
+    (let ((lst '()))
+      (vector-for-each (lambda (i x y z)
+                         (set! lst (cons (+ (* i x) (- y z)) lst)))
+                       '#(5 4 3 2 1)
+                       '(2 3 5 7)
+                       '#(11 13 17 19 23 29))
+      lst))
+
+  (pass-if-error "non-procedure"
+    (let ((lst '()))
+      (vector-for-each '#(not a procedure)
+                       '#(5 4 3 2 1)
+                       '#(2 3 5 7)
+                       '#(11 13 17 19 23 29))
+      lst)))
+
+;;
+;; vector-count
+;;
+
+(with-test-prefix "vector-count"
+
+  (pass-if-equal "1 vector"
+      3
+    (vector-count (lambda (i x) (even? (+ i x))) '#(2 3 5 7 11)))
+
+  (pass-if-equal "1 empty vector"
+      0
+    (vector-count values '#()))
+
+  (pass-if-equal "2 vectors, unequal lengths"
+      3
+    (vector-count (lambda (i x y) (< x (* i y)))
+                  '#(8 2 7 8 9 1 0)
+                  '#(7 6 4 3 1)))
+
+  (pass-if-equal "3 vectors, unequal lengths"
+      2
+    (vector-count (lambda (i x y z) (<= x (- y i) z))
+                  '#(3 6 3 0 2 4 1)
+                  '#(8 7 4 4 9)
+                  '#(7 6 8 3 1 7 9)))
+
+  (pass-if-error "non-vector"
+    (vector-count (lambda (i x y z) (<= x (- y i) z))
+                  '#(3 6 3 0 2 4 1)
+                  '#(8 7 4 4 9)
+                  '(7 6 8 3 1 7 9)))
+
+  (pass-if-error "non-procedure"
+    (vector-count '(1 2)
+                  '#(3 6 3 0 2 4 1)
+                  '#(8 7 4 4 9)
+                  '#(7 6 8 3 1 7 9))))
+
+;;;
+;;; Searching
+;;;
+
+;;
+;; vector-index
+;;
+
+(with-test-prefix "vector-index"
+
+  (pass-if-equal "1 vector"
+      2
+    (vector-index even? '#(3 1 4 1 6 9)))
+
+  (pass-if-equal "2 vectors, unequal lengths, success"
+      1
+    (vector-index < '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-equal "2 vectors, unequal lengths, failure"
+      #f
+    (vector-index = '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "non-procedure"
+    (vector-index 1 '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "3 args, non-vector"
+    (vector-index = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2)))
+
+  (pass-if-error "4 args, non-vector"
+    (vector-index = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2) '#(1 2 3)))
+
+  (pass-if-equal "3 vectors, unequal lengths, success"
+      1
+    (vector-index <
+                  '#(3 1 4 1 5 9 2 5 6)
+                  '#(2 6 1 7 2)
+                  '#(2 7 1 8)))
+
+  (pass-if-equal "3 vectors, unequal lengths, failure"
+      #f
+    (vector-index <
+                  '#(3 1 4 1 5 9 2 5 6)
+                  '#(2 7 1 7 2)
+                  '#(2 7 1 7)))
+
+  (pass-if-equal "empty vector"
+      #f
+    (vector-index < '#() '#(2 7 1 8 2))))
+
+;;
+;; vector-index-right
+;;
+
+(with-test-prefix "vector-index-right"
+
+  (pass-if-equal "1 vector"
+      4
+    (vector-index-right even? '#(3 1 4 1 6 9)))
+
+  (pass-if-equal "2 vectors, unequal lengths, success"
+      3
+    (vector-index-right < '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-equal "2 vectors, unequal lengths, failure"
+      #f
+    (vector-index-right = '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "non-procedure"
+    (vector-index-right 1 '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "3 args, non-vector"
+    (vector-index-right = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2)))
+
+  (pass-if-error "4 args, non-vector"
+    (vector-index-right = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2) '#(1 2 3)))
+
+  (pass-if-equal "3 vectors, unequal lengths, success"
+      3
+    (vector-index-right <
+                        '#(3 1 4 1 5 9 2 5 6)
+                        '#(2 6 1 7 2)
+                        '#(2 7 1 8)))
+
+  (pass-if-equal "3 vectors, unequal lengths, failure"
+      #f
+    (vector-index-right <
+                        '#(3 1 4 1 5 9 2 5 6)
+                        '#(2 7 1 7 2)
+                        '#(2 7 1 7)))
+
+  (pass-if-equal "empty vector"
+      #f
+    (vector-index-right < '#() '#(2 7 1 8 2))))
+
+;;
+;; vector-skip
+;;
+
+(with-test-prefix "vector-skip"
+
+  (pass-if-equal "1 vector"
+      2
+    (vector-skip odd? '#(3 1 4 1 6 9)))
+
+  (pass-if-equal "2 vectors, unequal lengths, success"
+      1
+    (vector-skip >= '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-equal "2 vectors, unequal lengths, failure"
+      #f
+    (vector-skip (negate =) '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "non-procedure"
+    (vector-skip 1 '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "3 args, non-vector"
+    (vector-skip = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2)))
+
+  (pass-if-error "4 args, non-vector"
+    (vector-skip = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2) '#(1 2 3)))
+
+  (pass-if-equal "3 vectors, unequal lengths, success"
+      1
+    (vector-skip (negate <)
+                 '#(3 1 4 1 5 9 2 5 6)
+                 '#(2 6 1 7 2)
+                 '#(2 7 1 8)))
+
+  (pass-if-equal "3 vectors, unequal lengths, failure"
+      #f
+    (vector-skip (negate <)
+                 '#(3 1 4 1 5 9 2 5 6)
+                 '#(2 7 1 7 2)
+                 '#(2 7 1 7)))
+
+  (pass-if-equal "empty vector"
+      #f
+    (vector-skip (negate <) '#() '#(2 7 1 8 2))))
+
+;;
+;; vector-skip-right
+;;
+
+(with-test-prefix "vector-skip-right"
+
+  (pass-if-equal "1 vector"
+      4
+    (vector-skip-right odd? '#(3 1 4 1 6 9)))
+
+  (pass-if-equal "2 vectors, unequal lengths, success"
+      3
+    (vector-skip-right >= '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-equal "2 vectors, unequal lengths, failure"
+      #f
+    (vector-skip-right (negate =) '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "non-procedure"
+    (vector-skip-right 1 '#(3 1 4 1 5 9 2 5 6) '#(2 7 1 8 2)))
+
+  (pass-if-error "3 args, non-vector"
+    (vector-skip-right = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2)))
+
+  (pass-if-error "4 args, non-vector"
+    (vector-skip-right = '#(3 1 4 1 5 9 2 5 6) '(2 7 1 8 2) '#(1 2 3)))
+
+  (pass-if-equal "3 vectors, unequal lengths, success"
+      3
+    (vector-skip-right (negate <)
+                       '#(3 1 4 1 5 9 2 5 6)
+                       '#(2 6 1 7 2)
+                       '#(2 7 1 8)))
+
+  (pass-if-equal "3 vectors, unequal lengths, failure"
+      #f
+    (vector-skip-right (negate <)
+                       '#(3 1 4 1 5 9 2 5 6)
+                       '#(2 7 1 7 2)
+                       '#(2 7 1 7)))
+
+  (pass-if-equal "empty vector"
+      #f
+    (vector-skip-right (negate <) '#() '#(2 7 1 8 2))))
+
+;;
+;; vector-binary-search
+;;
+
+(with-test-prefix "vector-binary-search"
+
+  (define (char-cmp c1 c2)
+    (cond ((char<? c1 c2) -1)
+          ((char=? c1 c2) 0)
+          (else 1)))
+
+  (pass-if-equal "success"
+      6
+    (vector-binary-search '#(#\a #\b #\c #\d #\e #\f #\g #\h)
+                          #\g
+                          char-cmp))
+
+  (pass-if-equal "failure"
+      #f
+    (vector-binary-search '#(#\a #\b #\c #\d #\e #\f #\g)
+                          #\q
+                          char-cmp))
+
+  (pass-if-equal "singleton vector, success"
+      0
+    (vector-binary-search '#(#\a)
+                          #\a
+                          char-cmp))
+
+  (pass-if-equal "empty vector"
+      #f
+    (vector-binary-search '#()
+                          #\a
+                          char-cmp))
+
+  (pass-if-error "first element"
+    (vector-binary-search '(#\a #\b #\c)
+                          #\a
+                          char-cmp))
+
+  (pass-if-equal "specify range, success"
+      3
+    (vector-binary-search '#(#\a #\b #\c #\d #\e #\f #\g #\h)
+                          #\d
+                          char-cmp
+                          2 6))
+
+  (pass-if-equal "specify range, failure"
+      #f
+    (vector-binary-search '#(#\a #\b #\c #\d #\e #\f #\g #\h)
+                          #\g
+                          char-cmp
+                          2 6)))
+
+;;
+;; vector-any
+;;
+
+(with-test-prefix "vector-any"
+
+  (pass-if-equal "1 vector, success"
+      #t
+    (vector-any even? '#(3 1 4 1 5 9 2)))
+
+  (pass-if-equal "1 vector, failure"
+      #f
+    (vector-any even? '#(3 1 5 1 5 9 1)))
+
+  (pass-if-equal "1 vector, left-to-right"
+      #t
+    (vector-any even? '#(3 1 4 1 5 #f 2)))
+
+  (pass-if-equal "1 vector, left-to-right"
+      4
+    (vector-any (lambda (x) (and (even? x) x))
+                '#(3 1 4 1 5 #f 2)))
+
+  (pass-if-equal "1 empty vector"
+      #f
+    (vector-any even? '#()))
+
+  (pass-if-equal "2 vectors, unequal lengths, success"
+      '(1 2)
+    (vector-any (lambda (x y) (and (< x y) (list x y)))
+                '#(3 1 4 1 5 #f)
+                '#(1 0 1 2 3)))
+
+  (pass-if-equal "2 vectors, unequal lengths, failure"
+      #f
+    (vector-any < '#(3 1 4 1 5 #f) '#(1 0 1 0 3)))
+
+  (pass-if-equal "3 vectors, unequal lengths, success"
+      '(1 2 3)
+    (vector-any (lambda (x y z) (and (< x y z) (list x y z)))
+                '#(3 1 4 1 3 #f)
+                '#(1 0 1 2 4)
+                '#(2 1 6 3 5)))
+
+  (pass-if-equal "3 vectors, unequal lengths, failure"
+      #f
+    (vector-any <
+                '#(3 1 4 1 5 #f)
+                '#(1 0 3 2)
+                '#(2 1 6 2 3))))
+
+;;
+;; vector-every
+;;
+
+(with-test-prefix "vector-every"
+
+  (pass-if-equal "1 vector, failure"
+      #f
+    (vector-every odd? '#(3 1 4 1 5 9 2)))
+
+  (pass-if-equal "1 vector, success"
+      11
+    (vector-every (lambda (x) (and (odd? x) x))
+                  '#(3 5 7 1 5 9 11)))
+
+  (pass-if-equal "1 vector, left-to-right, failure"
+      #f
+    (vector-every odd? '#(3 1 4 1 5 #f 2)))
+
+  (pass-if-equal "1 empty vector"
+      #t
+    (vector-every even? '#()))
+
+  (pass-if-equal "2 vectors, unequal lengths, left-to-right, failure"
+      #f
+    (vector-every >= '#(3 1 4 1 5) '#(1 0 1 2 3 #f)))
+
+  (pass-if-equal "2 vectors, unequal lengths, left-to-right, success"
+      '(5 3)
+    (vector-every (lambda (x y) (and (>= x y) (list x y)))
+                  '#(3 1 4 1 5)
+                  '#(1 0 1 0 3 #f)))
+
+  (pass-if-equal "3 vectors, unequal lengths, left-to-right, failure"
+      #f
+    (vector-every >=
+                  '#(3 1 4 1 5)
+                  '#(1 0 1 2 3 #f)
+                  '#(0 0 1 2)))
+
+  (pass-if-equal "3 vectors, unequal lengths, left-to-right, success"
+      '(8 5 4)
+    (vector-every (lambda (x y z) (and (>= x y z) (list x y z)))
+                  '#(3 5 4 8 5)
+                  '#(2 3 4 5 3 #f)
+                  '#(1 2 3 4))))
+
+;;;
+;;; Mutators
+;;;
+
+;;
+;; vector-set!
+;;
+
+(with-test-prefix "vector-set!"
+
+  (pass-if-equal "simple"
+      '#(0 a 2)
+    (let ((v (vector 0 1 2)))
+      (vector-set! v 1 'a)
+      v))
+
+  (pass-if-error "index beyond end" (vector-set! (vector 0 1 2) 3 'a))
+  (pass-if-error "negative index" (vector-set! (vector 0 1 2) -1 'a))
+  (pass-if-error "empty vector" (vector-set! (vector) 0 'a)))
+
+;;
+;; vector-swap!
+;;
+
+(with-test-prefix "vector-swap!"
+
+  (pass-if-equal "simple"
+      '#(b a c)
+    (let ((v (vector 'a 'b 'c)))
+      (vector-swap! v 0 1)
+      v))
+
+  (pass-if-equal "same index"
+      '#(a b c)
+    (let ((v (vector 'a 'b 'c)))
+      (vector-swap! v 1 1)
+      v))
+
+  (pass-if-error "index beyond end" (vector-swap! (vector 'a 'b 'c) 0 3))
+  (pass-if-error "negative index" (vector-swap! (vector 'a 'b 'c) -1 1))
+  (pass-if-error "empty vector" (vector-swap! (vector) 0 0)))
+
+;;
+;; vector-fill!
+;;
+
+(with-test-prefix "vector-fill!"
+
+  (pass-if-equal "2 args"
+      '#(z z z z z)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-fill! v 'z)
+      v))
+
+  (pass-if-equal "3 args"
+      '#(a b z z z)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-fill! v 'z 2)
+      v))
+
+  (pass-if-equal "4 args"
+      '#(a z z d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-fill! v 'z 1 3)
+      v))
+
+  (pass-if-equal "4 args, entire vector"
+      '#(z z z z z)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-fill! v 'z 0 5)
+      v))
+
+  (pass-if-equal "4 args, empty range"
+      '#(a b c d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-fill! v 'z 2 2)
+      v))
+
+  (pass-if-error "index beyond end" (vector-fill! (vector 'a 'b 'c) 'z 0 4))
+  (pass-if-error "invalid range" (vector-fill! (vector 'a 'b 'c) 'z 2 1))
+  (pass-if-error "negative index" (vector-fill! (vector 'a 'b 'c) 'z -1 1))
+
+  ;; This is intentionally allowed in Guile, as an extension:
+  ;;(pass-if-error "vector-fill! e3" (vector-fill! (vector) 'z 0 0))
+  )
+
+;;
+;; vector-reverse!
+;;
+
+(with-test-prefix "vector-reverse!"
+
+  (pass-if-equal "1 arg"
+      '#(e d c b a)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse! v)
+      v))
+
+  (pass-if-equal "2 args"
+      '#(a b f e d c)
+    (let ((v (vector 'a 'b 'c 'd 'e 'f)))
+      (vector-reverse! v 2)
+      v))
+
+  (pass-if-equal "3 args"
+      '#(a d c b e f)
+    (let ((v (vector 'a 'b 'c 'd 'e 'f)))
+      (vector-reverse! v 1 4)
+      v))
+
+  (pass-if-equal "3 args, empty range"
+      '#(a b c d e f)
+    (let ((v (vector 'a 'b 'c 'd 'e 'f)))
+      (vector-reverse! v 3 3)
+      v))
+
+  (pass-if-equal "3 args, singleton range"
+      '#(a b c d e f)
+    (let ((v (vector 'a 'b 'c 'd 'e 'f)))
+      (vector-reverse! v 3 4)
+      v))
+
+  (pass-if-equal "empty vector"
+      '#()
+    (let ((v (vector)))
+      (vector-reverse! v)
+      v))
+
+  (pass-if-error "index beyond end" (vector-reverse! (vector 'a 'b) 0 3))
+  (pass-if-error "invalid range" (vector-reverse! (vector 'a 'b) 2 1))
+  (pass-if-error "negative index" (vector-reverse! (vector 'a 'b) -1 1))
+
+  ;; This is intentionally allowed in Guile, as an extension:
+  ;;(pass-if-error "vector-reverse! e3" (vector-reverse! (vector) 0 0))
+  )
+
+;;
+;; vector-copy!
+;;
+
+(with-test-prefix "vector-copy!"
+
+  (pass-if-equal "3 args, 0 tstart"
+      '#(1 2 3 d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 0 '#(1 2 3))
+      v))
+
+  (pass-if-equal "3 args, 2 tstart"
+      '#(a b 1 2 3)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 2 '#(1 2 3))
+      v))
+
+  (pass-if-equal "4 args"
+      '#(a b 2 3 e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 2 '#(1 2 3) 1)
+      v))
+
+  (pass-if-equal "5 args"
+      '#(a b 3 4 5)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 2 '#(1 2 3 4 5) 2 5)
+      v))
+
+  (pass-if-equal "5 args, empty range"
+      '#(a b c d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 2 '#(1 2 3) 1 1)
+      v))
+
+  (pass-if-equal "overlapping source/target, moving right"
+      '#(b c c d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 0 v 1 3)
+      v))
+
+  (pass-if-equal "overlapping source/target, moving left"
+      '#(a b b c d)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 2 v 1 4)
+      v))
+
+  (pass-if-equal "overlapping source/target, not moving"
+      '#(a b c d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-copy! v 0 v 0)
+      v))
+
+  (pass-if-error "tstart beyond end"
+    (vector-copy! (vector 1 2) 3 '#(1 2 3)))
+  (pass-if-error "would overwrite target end"
+    (vector-copy! (vector 1 2) 0 '#(1 2 3)))
+  (pass-if-error "would overwrite target end"
+    (vector-copy! (vector 1 2) 1 '#(1 2 3) 1)))
+
+;;
+;; vector-reverse-copy!
+;;
+
+(with-test-prefix "vector-reverse-copy!"
+
+  (pass-if-equal "3 args, 0 tstart"
+      '#(3 2 1 d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 0 '#(1 2 3))
+      v))
+
+  (pass-if-equal "3 args, 2 tstart"
+      '#(a b 3 2 1)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 2 '#(1 2 3))
+      v))
+
+  (pass-if-equal "4 args"
+      '#(a b 3 2 e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 2 '#(1 2 3) 1)
+      v))
+
+  (pass-if-equal "5 args"
+      '#(a b 4 3 2)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 2 '#(1 2 3 4 5) 1 4)
+      v))
+
+  (pass-if-equal "5 args, empty range"
+      '#(a b c d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 2 '#(1 2 3 4 5) 2 2)
+      v))
+
+  (pass-if-equal "3 args, overlapping source/target"
+      '#(e d c b a)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 0 v)
+      v))
+
+  (pass-if-equal "5 args, overlapping source/target"
+      '#(b a c d e)
+    (let ((v (vector 'a 'b 'c 'd 'e)))
+      (vector-reverse-copy! v 0 v 0 2)
+      v))
+
+  (pass-if-error "3 args, would overwrite target end"
+    (vector-reverse-copy! (vector 'a 'b) 2 '#(a b)))
+  (pass-if-error "3 args, negative tstart"
+    (vector-reverse-copy! (vector 'a 'b) -1 '#(a b)))
+  (pass-if-error "3 args, would overwrite target end"
+    (vector-reverse-copy! (vector 'a 'b) 0 '#(a b c)))
+  (pass-if-error "5 args, send beyond end"
+    (vector-reverse-copy! (vector 'a 'b) 0 '#(a b c) 1 4))
+  (pass-if-error "5 args, negative sstart"
+    (vector-reverse-copy! (vector 'a 'b) 0 '#(a b c) -1 2))
+  (pass-if-error "5 args, invalid source range"
+    (vector-reverse-copy! (vector 'a 'b) 0 '#(a b c) 2 1)))
+
+;;;
+;;; Conversion
+;;;
+
+;;
+;; vector->list
+;;
+
+(with-test-prefix "vector->list"
+
+  (pass-if-equal "1 arg"
+      '(a b c)
+    (vector->list '#(a b c)))
+
+  (pass-if-equal "2 args"
+      '(b c)
+    (vector->list '#(a b c) 1))
+
+  (pass-if-equal "3 args"
+      '(b c d)
+    (vector->list '#(a b c d e) 1 4))
+
+  (pass-if-equal "3 args, empty range"
+      '()
+    (vector->list '#(a b c d e) 1 1))
+
+  (pass-if-equal "1 arg, empty vector"
+      '()
+    (vector->list '#()))
+
+  (pass-if-error "index beyond end" (vector->list '#(a b c) 1 6))
+  (pass-if-error "negative index" (vector->list '#(a b c) -1 1))
+  (pass-if-error "invalid range" (vector->list '#(a b c) 2 1)))
+
+;;
+;; reverse-vector->list
+;;
+
+(with-test-prefix "reverse-vector->list"
+
+  (pass-if-equal "1 arg"
+      '(c b a)
+    (reverse-vector->list '#(a b c)))
+
+  (pass-if-equal "2 args"
+      '(c b)
+    (reverse-vector->list '#(a b c) 1))
+
+  (pass-if-equal "3 args"
+      '(d c b)
+    (reverse-vector->list '#(a b c d e) 1 4))
+
+  (pass-if-equal "3 args, empty range"
+      '()
+    (reverse-vector->list '#(a b c d e) 1 1))
+
+  (pass-if-equal "1 arg, empty vector"
+      '()
+    (reverse-vector->list '#()))
+
+  (pass-if-error "index beyond end" (reverse-vector->list '#(a b c) 1 6))
+  (pass-if-error "negative index" (reverse-vector->list '#(a b c) -1 1))
+  (pass-if-error "invalid range" (reverse-vector->list '#(a b c) 2 1)))
+
+;;
+;; list->vector
+;;
+
+(with-test-prefix "list->vector"
+
+  (pass-if-equal "1 arg"
+      '#(a b c)
+    (list->vector '(a b c)))
+
+  (pass-if-equal "1 empty list"
+      '#()
+    (list->vector '()))
+
+  (pass-if-equal "2 args"
+      '#(2 3)
+    (list->vector '(0 1 2 3) 2))
+
+  (pass-if-equal "3 args"
+      '#(0 1)
+    (list->vector '(0 1 2 3) 0 2))
+
+  (pass-if-equal "3 args, empty range"
+      '#()
+    (list->vector '(0 1 2 3) 2 2))
+
+  (pass-if-error "index beyond end" (list->vector '(0 1 2 3) 0 5))
+  (pass-if-error "negative index" (list->vector '(0 1 2 3) -1 1))
+  (pass-if-error "invalid range" (list->vector '(0 1 2 3) 2 1)))
+
+;;
+;; reverse-list->vector
+;;
+
+(with-test-prefix "reverse-list->vector"
+
+  (pass-if-equal "1 arg"
+      '#(c b a)
+    (reverse-list->vector '(a b c)))
+
+  (pass-if-equal "1 empty list"
+      '#()
+    (reverse-list->vector '()))
+
+  (pass-if-equal "2 args"
+      '#(3 2)
+    (reverse-list->vector '(0 1 2 3) 2))
+
+  (pass-if-equal "3 args"
+      '#(1 0)
+    (reverse-list->vector '(0 1 2 3) 0 2))
+
+  (pass-if-equal "3 args, empty range"
+      '#()
+    (reverse-list->vector '(0 1 2 3) 2 2))
+
+  (pass-if-error "index beyond end"
+    (reverse-list->vector '(0 1 2 3) 0 5))
+
+  (pass-if-error "negative index"
+    (reverse-list->vector '(0 1 2 3) -1 1))
+
+  (pass-if-error "invalid range"
+    (reverse-list->vector '(0 1 2 3) 2 1)))
+
+;;; Local Variables:
+;;; eval: (put 'pass-if-error 'scheme-indent-function 1)
+;;; End:
