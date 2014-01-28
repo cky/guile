@@ -491,6 +491,26 @@
 (define-primitive-expander f64vector-set! (vec i x)
   (bytevector-ieee-double-native-set! vec (* i 8) x))
 
+(define (chained-comparison-expander prim-name)
+  (case-lambda
+    ((src) (make-const src #t))
+    ((src a) #f)
+    ((src a b) #f)
+    ((src a b . rest)
+     (make-conditional src
+                       (make-application src
+                                         (make-primitive-ref src prim-name)
+                                         (list a b))
+                       (make-application src
+                                         (make-primitive-ref src prim-name)
+                                         (cons b rest))
+                       (make-const src #f)))))
+
+(for-each (lambda (prim-name)
+            (hashq-set! *primitive-expand-table* prim-name
+                        (chained-comparison-expander prim-name)))
+          '(< > <= >= =))
+
 ;; Appropriate for use with either 'eqv?' or 'equal?'.
 (define maybe-simplify-to-eq
   (case-lambda
