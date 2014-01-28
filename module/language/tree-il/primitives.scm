@@ -35,7 +35,7 @@
 
 ;; When adding to this, be sure to update *multiply-valued-primitives*
 ;; if appropriate.
-(define *interesting-primitive-names* 
+(define *interesting-primitive-names*
   '(apply @apply
     call-with-values @call-with-values
     call-with-current-continuation @call-with-current-continuation
@@ -45,7 +45,7 @@
     values
     eq? eqv? equal?
     memq memv
-    = < > <= >= zero?
+    = < > <= >= zero? positive? negative?
     + * - / 1- 1+ quotient remainder modulo
     ash logand logior logxor lognot
     not
@@ -150,7 +150,7 @@
 (define *effect-free-primitives*
   `(values
     eq? eqv? equal?
-    = < > <= >= zero?
+    = < > <= >= zero? positive? negative?
     ash logand logior logxor lognot
     + * - / 1- 1+ quotient remainder modulo
     not
@@ -330,6 +330,12 @@
 
 (define-primitive-expander zero? (x)
   (= x 0))
+
+(define-primitive-expander positive? (x)
+  (> x 0))
+
+(define-primitive-expander negative? (x)
+  (< x 0))
 
 ;; FIXME: All the code that uses `const?' is redundant with `peval'.
 
