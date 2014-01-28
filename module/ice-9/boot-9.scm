@@ -687,23 +687,22 @@ information is unavailable."
 (define for-each
   (case-lambda
     ((f l)
-     (let for-each1 ((hare l) (tortoise l) (move? #f))
+     (let for-each1 ((hare l) (tortoise l))
        (if (pair? hare)
-           (if move?
-               (if (eq? tortoise hare)
-                   (scm-error 'wrong-type-arg "for-each" "Circular list: ~S"
-                              (list l) #f)
+           (begin
+             (f (car hare))
+             (let ((hare (cdr hare)))
+               (if (pair? hare)
                    (begin
+                     (when (eq? tortoise hare)
+                       (scm-error 'wrong-type-arg "for-each" "Circular list: ~S"
+                                  (list l) #f))
                      (f (car hare))
-                     (for-each1 (cdr hare) (cdr tortoise) #f)))
-               (begin
-                 (f (car hare))
-                 (for-each1 (cdr hare) tortoise #t)))
-           
+                     (for-each1 (cdr hare) (cdr tortoise))))))
            (if (not (null? hare))
                (scm-error 'wrong-type-arg "for-each" "Not a list: ~S"
                           (list l) #f)))))
-    
+
     ((f l1 l2)
      (let for-each2 ((h1 l1) (h2 l2) (t1 l1) (t2 l2) (move? #f))
        (cond
