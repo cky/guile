@@ -1,6 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
-##  	Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+##  	Copyright (C) 2009, 2010, 2011, 2012, 2013,
+##        2014 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -264,6 +265,8 @@ SCRIPTS_SOURCES +=				\
 
 endif BUILD_ICE_9_POPEN
 
+srfi/srfi-64.go: srfi/srfi-64.scm srfi/srfi-64/testing.scm
+
 SRFI_SOURCES = \
   srfi/srfi-2.scm \
   srfi/srfi-4.scm \
@@ -293,6 +296,7 @@ SRFI_SOURCES = \
   srfi/srfi-39.scm \
   srfi/srfi-45.scm \
   srfi/srfi-60.scm \
+  srfi/srfi-64.scm \
   srfi/srfi-67.scm \
   srfi/srfi-69.scm \
   srfi/srfi-88.scm \
@@ -400,6 +404,7 @@ NOCOMP_SOURCES =				\
   ice-9/r6rs-libraries.scm			\
   ice-9/quasisyntax.scm				\
   srfi/srfi-42/ec.scm				\
+  srfi/srfi-64/testing.scm			\
   srfi/srfi-67/compare.scm			\
   system/base/lalr.upstream.scm			\
   system/repl/describe.scm			\

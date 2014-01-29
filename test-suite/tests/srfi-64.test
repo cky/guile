@@ -1,0 +1,45 @@
+;;;; srfi-64.test --- Test suite for SRFI-64.  -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-srfi-64)
+  #:use-module ((test-suite lib) #:select (report))
+  #:use-module (srfi srfi-64))
+
+(define (guile-test-runner)
+  (let ((runner (test-runner-null)))
+    (test-runner-on-test-end! runner
+      (lambda (runner)
+        (let* ((result-alist (test-result-alist runner))
+               (result-kind (assq-ref result-alist 'result-kind))
+               (test-name (list (assq-ref result-alist 'test-name))))
+          (case result-kind
+            ((pass)  (report 'pass     test-name))
+            ((xpass) (report 'upass    test-name))
+            ((skip)  (report 'untested test-name))
+            ((fail xfail)
+             (apply report result-kind test-name result-alist))
+            (else #t)))))
+    runner))
+
+(test-with-runner
+ (guile-test-runner)
+ (primitive-load-path "tests/srfi-64-test.scm"))
+
+;;; Local Variables:
+;;; eval: (put 'test-runner-on-test-end! 'scheme-indent-function 1)
+;;; End:

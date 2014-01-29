@@ -54,6 +54,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-60::                     Integers as bits.
 * SRFI-61::                     A more general `cond' clause
 * SRFI-62::                     S-expression comments.
+* SRFI-64::                     A Scheme API for test suites.
 * SRFI-67::                     Compare procedures
 * SRFI-69::                     Basic hash tables.
 * SRFI-87::                     => in case clauses.
@@ -5270,6 +5271,13 @@ needed to get SRFI-61 itself.  Extended @code{cond} is documented in
 
 Starting from version 2.0, Guile's @code{read} supports SRFI-62/R7RS
 S-expression comments by default.
+
+@node SRFI-64
+@subsection SRFI-64 - A Scheme API for test suites.
+@cindex SRFI-64
+
+See @uref{http://srfi.schemers.org/srfi-64/srfi-64.html, the
+specification of SRFI-64}.
 
 @node SRFI-67
 @subsection SRFI-67 - Compare procedures
