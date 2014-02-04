@@ -491,7 +491,7 @@ SCM_DEFINE (scm_restore_signals, "restore-signals", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-#if defined HAVE_ALARM && HAVE_DECL_ALARM
+#if HAVE_DECL_ALARM
 SCM_DEFINE (scm_alarm, "alarm", 1, 0, 0,
            (SCM i),
 	    "Set a timer to raise a @code{SIGALRM} signal after the specified\n"
