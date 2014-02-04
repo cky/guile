@@ -1279,6 +1279,10 @@ with no arguments.
 
 @deffn {Scheme Procedure} stop-server-and-clients!
 Closes the connection on all running server sockets.
+
+Please note that in the current implementation, the REPL threads are
+cancelled without unwinding their stacks.  If any of them are holding
+mutexes or are within a critical section, the results are unspecified.
 @end deffn
 
 @c Local Variables:
