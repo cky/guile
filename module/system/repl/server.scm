@@ -76,10 +76,6 @@
          ((port-closed? server-socket)
           ;; Shutting down.
           #f)
-         ((eq? k 'interrupt)
-          ;; Interrupt.
-          (close-socket! server-socket)
-          #f)
          (else
           (warn "Error accepting client" k args)
           ;; Retry after a timeout.
