@@ -1,5 +1,5 @@
 /* vsprintf with automatic memory allocation.
-   Copyright (C) 1999, 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2002-2014 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -5153,7 +5153,8 @@ VASNPRINTF (DCHAR_T *resultbuf, size_t *lengthp,
                                 size_t tmp_length =
                                   MAX_ROOM_NEEDED (&a, dp->arg_index,
                                                    dp->conversion, type, flags,
-                                                   width, has_precision,
+                                                   has_width ? width : 0,
+                                                   has_precision,
                                                    precision, pad_ourselves);
 
                                 if (maxlen < tmp_length)

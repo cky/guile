@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -292,7 +292,7 @@ weak_alias (__re_compile_fastmap, re_compile_fastmap)
 #endif
 
 static inline void
-__attribute ((always_inline))
+__attribute__ ((always_inline))
 re_set_fastmap (char *fastmap, bool icase, int ch)
 {
   fastmap[ch] = 1;
@@ -586,7 +586,7 @@ weak_alias (__regerror, regerror)
 static const bitset_t utf8_sb_map =
 {
   /* Set the first 128 bits.  */
-# ifdef __GNUC__
+# if defined __GNUC__ && !defined __STRICT_ANSI__
   [0 ... 0x80 / BITSET_WORD_BITS - 1] = BITSET_WORD_MAX
 # else
 #  if 4 * BITSET_WORD_BITS < ASCII_CHARS
@@ -663,7 +663,10 @@ regfree (preg)
 {
   re_dfa_t *dfa = preg->buffer;
   if (BE (dfa != NULL, 1))
-    free_dfa_content (dfa);
+    {
+      lock_fini (dfa->lock);
+      free_dfa_content (dfa);
+    }
   preg->buffer = NULL;
   preg->allocated = 0;
 
@@ -784,6 +787,8 @@ re_compile_internal (regex_t *preg, const char * pattern, size_t length,
   preg->used = sizeof (re_dfa_t);
 
   err = init_dfa (dfa, length);
+  if (BE (err == REG_NOERROR && lock_init (dfa->lock) != 0, 0))
+    err = REG_ESPACE;
   if (BE (err != REG_NOERROR, 0))
     {
       free_dfa_content (dfa);
@@ -797,8 +802,6 @@ re_compile_internal (regex_t *preg, const char * pattern, size_t length,
   strncpy (dfa->re_str, pattern, length + 1);
 #endif
 
-  __libc_lock_init (dfa->lock);
-
   err = re_string_construct (&regexp, pattern, length, preg->translate,
 			     (syntax & RE_ICASE) != 0, dfa);
   if (BE (err != REG_NOERROR, 0))
@@ -806,6 +809,7 @@ re_compile_internal (regex_t *preg, const char * pattern, size_t length,
     re_compile_internal_free_return:
       free_workarea_compile (preg);
       re_string_destruct (&regexp);
+      lock_fini (dfa->lock);
       free_dfa_content (dfa);
       preg->buffer = NULL;
       preg->allocated = 0;
@@ -838,6 +842,7 @@ re_compile_internal (regex_t *preg, const char * pattern, size_t length,
 
   if (BE (err != REG_NOERROR, 0))
     {
+      lock_fini (dfa->lock);
       free_dfa_content (dfa);
       preg->buffer = NULL;
       preg->allocated = 0;
@@ -2835,40 +2840,29 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 
   /* Local function for parse_bracket_exp used in _LIBC environment.
      Seek the collating symbol entry corresponding to NAME.
-     Return the index of the symbol in the SYMB_TABLE.  */
+     Return the index of the symbol in the SYMB_TABLE,
+     or -1 if not found.  */
 
   auto inline int32_t
-  __attribute ((always_inline))
-  seek_collating_symbol_entry (name, name_len)
-	 const unsigned char *name;
-	 size_t name_len;
+  __attribute__ ((always_inline))
+  seek_collating_symbol_entry (const unsigned char *name, size_t name_len)
     {
-      int32_t hash = elem_hash ((const char *) name, name_len);
-      int32_t elem = hash % table_size;
-      if (symb_table[2 * elem] != 0)
-	{
-	  int32_t second = hash % (table_size - 2) + 1;
+      int32_t elem;
 
-	  do
-	    {
-	      /* First compare the hashing value.  */
-	      if (symb_table[2 * elem] == hash
-		  /* Compare the length of the name.  */
-		  && name_len == extra[symb_table[2 * elem + 1]]
-		  /* Compare the name.  */
-		  && memcmp (name, &extra[symb_table[2 * elem + 1] + 1],
-			     name_len) == 0)
-		{
-		  /* Yep, this is the entry.  */
-		  break;
-		}
-
-	      /* Next entry.  */
-	      elem += second;
-	    }
-	  while (symb_table[2 * elem] != 0);
-	}
-      return elem;
+      for (elem = 0; elem < table_size; elem++)
+	if (symb_table[2 * elem] != 0)
+	  {
+	    int32_t idx = symb_table[2 * elem + 1];
+	    /* Skip the name of collating element name.  */
+	    idx += 1 + extra[idx];
+	    if (/* Compare the length of the name.  */
+		name_len == extra[idx]
+		/* Compare the name.  */
+		&& memcmp (name, &extra[idx + 1], name_len) == 0)
+	      /* Yep, this is the entry.  */
+	      return elem;
+	  }
+      return -1;
     }
 
   /* Local function for parse_bracket_exp used in _LIBC environment.
@@ -2876,9 +2870,8 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
      Return the value if succeeded, UINT_MAX otherwise.  */
 
   auto inline unsigned int
-  __attribute ((always_inline))
-  lookup_collation_sequence_value (br_elem)
-	 bracket_elem_t *br_elem;
+  __attribute__ ((always_inline))
+  lookup_collation_sequence_value (bracket_elem_t *br_elem)
     {
       if (br_elem->type == SB_CHAR)
 	{
@@ -2906,7 +2899,7 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 	      int32_t elem, idx;
 	      elem = seek_collating_symbol_entry (br_elem->opr.name,
 						  sym_name_len);
-	      if (symb_table[2 * elem] != 0)
+	      if (elem != -1)
 		{
 		  /* We found the entry.  */
 		  idx = symb_table[2 * elem + 1];
@@ -2924,7 +2917,7 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
 		  /* Return the collation sequence value.  */
 		  return *(unsigned int *) (extra + idx);
 		}
-	      else if (symb_table[2 * elem] == 0 && sym_name_len == 1)
+	      else if (sym_name_len == 1)
 		{
 		  /* No valid character.  Match it as a single byte
 		     character.  */
@@ -2945,12 +2938,9 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
      update it.  */
 
   auto inline reg_errcode_t
-  __attribute ((always_inline))
-  build_range_exp (sbcset, mbcset, range_alloc, start_elem, end_elem)
-	 re_charset_t *mbcset;
-	 Idx *range_alloc;
-	 bitset_t sbcset;
-	 bracket_elem_t *start_elem, *end_elem;
+  __attribute__ ((always_inline))
+  build_range_exp (bitset_t sbcset, re_charset_t *mbcset, int *range_alloc,
+		   bracket_elem_t *start_elem, bracket_elem_t *end_elem)
     {
       unsigned int ch;
       uint32_t start_collseq;
@@ -3029,26 +3019,23 @@ parse_bracket_exp (re_string_t *regexp, re_dfa_t *dfa, re_token_t *token,
      pointer argument since we may update it.  */
 
   auto inline reg_errcode_t
-  __attribute ((always_inline))
-  build_collating_symbol (sbcset, mbcset, coll_sym_alloc, name)
-	 re_charset_t *mbcset;
-	 Idx *coll_sym_alloc;
-	 bitset_t sbcset;
-	 const unsigned char *name;
+  __attribute__ ((always_inline))
+  build_collating_symbol (bitset_t sbcset, re_charset_t *mbcset,
+			  Idx *coll_sym_alloc, const unsigned char *name)
     {
       int32_t elem, idx;
       size_t name_len = strlen ((const char *) name);
       if (nrules != 0)
 	{
 	  elem = seek_collating_symbol_entry (name, name_len);
-	  if (symb_table[2 * elem] != 0)
+	  if (elem != -1)
 	    {
 	      /* We found the entry.  */
 	      idx = symb_table[2 * elem + 1];
 	      /* Skip the name of collating element name.  */
 	      idx += 1 + extra[idx];
 	    }
-	  else if (symb_table[2 * elem] == 0 && name_len == 1)
+	  else if (name_len == 1)
 	    {
 	      /* No valid character, treat it as a normal
 		 character.  */

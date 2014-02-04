@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -24,6 +24,7 @@
 #  pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
 # endif
 # if (__GNUC__ == 4 && 3 <= __GNUC_MINOR__) || 4 < __GNUC__
+#  pragma GCC diagnostic ignored "-Wold-style-definition"
 #  pragma GCC diagnostic ignored "-Wtype-limits"
 # endif
 #endif

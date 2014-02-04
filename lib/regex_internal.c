@@ -1,5 +1,5 @@
 /* Extended regular expression matching and search library.
-   Copyright (C) 2002-2013 Free Software Foundation, Inc.
+   Copyright (C) 2002-2014 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Contributed by Isamu Hasegawa <isamu@yamato.ibm.com>.
 
@@ -834,7 +834,7 @@ re_string_reconstruct (re_string_t *pstr, Idx idx, int eflags)
 }
 
 static unsigned char
-internal_function __attribute ((pure))
+internal_function __attribute__ ((pure))
 re_string_peek_byte_case (const re_string_t *pstr, Idx idx)
 {
   int ch;
@@ -1354,7 +1354,7 @@ re_node_set_insert_last (re_node_set *set, Idx elem)
    Return true if SET1 and SET2 are equivalent.  */
 
 static bool
-internal_function __attribute ((pure))
+internal_function __attribute__ ((pure))
 re_node_set_compare (const re_node_set *set1, const re_node_set *set2)
 {
   Idx i;
@@ -1369,7 +1369,7 @@ re_node_set_compare (const re_node_set *set1, const re_node_set *set2)
 /* Return (idx + 1) if SET contains the element ELEM, return 0 otherwise.  */
 
 static Idx
-internal_function __attribute ((pure))
+internal_function __attribute__ ((pure))
 re_node_set_contains (const re_node_set *set, Idx elem)
 {
   __re_size_t idx, right, mid;

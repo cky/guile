@@ -1,5 +1,5 @@
 # DO NOT EDIT! GENERATED AUTOMATICALLY!
-# Copyright (C) 2002-2013 Free Software Foundation, Inc.
+# Copyright (C) 2002-2014 Free Software Foundation, Inc.
 #
 # This file is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ AC_DEFUN([gl_EARLY],
   m4_pattern_allow([^gl_LTLIBOBJS$])dnl a variable
   AC_REQUIRE([gl_PROG_AR_RANLIB])
   AC_REQUIRE([AM_PROG_CC_C_O])
+  # Code from module absolute-header:
   # Code from module accept:
   # Code from module alignof:
   # Code from module alloca:
@@ -93,6 +94,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module getsockname:
   # Code from module getsockopt:
   # Code from module gettext-h:
+  # Code from module gettimeofday:
   # Code from module git-version-gen:
   # Code from module gitlog-to-changelog:
   # Code from module gnu-web-doc-update:
@@ -129,6 +131,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module localcharset:
   # Code from module locale:
   # Code from module localeconv:
+  # Code from module lock:
   # Code from module log:
   # Code from module log1p:
   # Code from module lstat:
@@ -209,6 +212,8 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_times:
   # Code from module sys_types:
   # Code from module sys_uio:
+  # Code from module threadlib:
+  gl_THREADLIB_EARLY
   # Code from module time:
   # Code from module time_r:
   # Code from module times:
@@ -388,6 +393,12 @@ AC_SUBST([LTALLOCA])
   gl_SYS_SOCKET_MODULE_INDICATOR([getsockopt])
   AC_SUBST([LIBINTL])
   AC_SUBST([LTLIBINTL])
+  gl_FUNC_GETTIMEOFDAY
+  if test $HAVE_GETTIMEOFDAY = 0 || test $REPLACE_GETTIMEOFDAY = 1; then
+    AC_LIBOBJ([gettimeofday])
+    gl_PREREQ_GETTIMEOFDAY
+  fi
+  gl_SYS_TIME_MODULE_INDICATOR([gettimeofday])
   # Autoconf 2.61a.99 and earlier don't support linking a file only
   # in VPATH builds.  But since GNUmakefile is for maintainer use
   # only, it does not matter if we skip the link with older autoconf.
@@ -500,6 +511,8 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_LOCALECONV
   fi
   gl_LOCALE_MODULE_INDICATOR([localeconv])
+  gl_LOCK
+  gl_MODULE_INDICATOR([lock])
   AC_REQUIRE([gl_FUNC_LOG])
   if test $REPLACE_LOG = 1; then
     AC_LIBOBJ([log])
@@ -746,6 +759,7 @@ AC_SUBST([LTALLOCA])
   AC_PROG_MKDIR_P
   gl_HEADER_SYS_UIO
   AC_PROG_MKDIR_P
+  gl_THREADLIB
   gl_HEADER_TIME_H
   gl_TIME_R
   if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
@@ -997,6 +1011,10 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getsockname.c
   lib/getsockopt.c
   lib/gettext.h
+  lib/gettimeofday.c
+  lib/glthread/lock.c
+  lib/glthread/lock.h
+  lib/glthread/threadlib.c
   lib/iconv.c
   lib/iconv.in.h
   lib/iconv_close.c
@@ -1190,6 +1208,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/func.m4
   m4/getaddrinfo.m4
   m4/getlogin.m4
+  m4/gettimeofday.m4
   m4/glibc21.m4
   m4/gnulib-common.m4
   m4/hostent.m4
@@ -1224,6 +1243,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/locale-zh.m4
   m4/locale_h.m4
   m4/localeconv.m4
+  m4/lock.m4
   m4/log.m4
   m4/log1p.m4
   m4/longlong.m4
@@ -1296,6 +1316,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_times_h.m4
   m4/sys_types_h.m4
   m4/sys_uio_h.m4
+  m4/threadlib.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/times.m4

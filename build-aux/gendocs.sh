@@ -2,7 +2,7 @@
 # gendocs.sh -- generate a GNU manual in many formats.  This script is
 #   mentioned in maintain.texi.  See the help message below for usage details.
 
-scriptversion=2013-02-03.15
+scriptversion=2013-10-10.09
 
 # Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013
 # Free Software Foundation, Inc.
@@ -272,6 +272,7 @@ mkdir -p "$outdir/"
 
 cmd="$SETLANG $MAKEINFO -o $PACKAGE.info $commonarg $infoarg \"$srcfile\""
 echo "Generating info... ($cmd)"
+rm -f $PACKAGE.info* # get rid of any strays
 eval "$cmd"
 tar czf "$outdir/$PACKAGE.info.tar.gz" $PACKAGE.info*
 ls -l "$outdir/$PACKAGE.info.tar.gz"
@@ -307,6 +308,7 @@ if $generate_ascii; then
   ls -l "$outdir/$PACKAGE.txt" "$outdir/$PACKAGE.txt.gz"
 fi
 
+# Split HTML at level $1.  Used for texi2html.
 html_split()
 {
   opt="--split=$1 --node-files $commonarg $htmlarg"
@@ -339,7 +341,16 @@ if test -z "$use_texi2html"; then
   mv $PACKAGE.html "$outdir/"
   ls -l "$outdir/$PACKAGE.html" "$outdir/$PACKAGE.html.gz"
 
-  opt="--html -o $PACKAGE.html --split=$split $commonarg $htmlarg"
+  # Before Texinfo 5.0, makeinfo did not accept a --split=HOW option,
+  # it just always split by node.  So if we're splitting by node anyway,
+  # leave it out.
+  if test "x$split" = xnode; then
+    split_arg=
+  else
+    split_arg=--split=$split
+  fi
+  #
+  opt="--html -o $PACKAGE.html $split_arg $commonarg $htmlarg"
   cmd="$SETLANG $MAKEINFO $opt \"$srcfile\""
   printf "\nGenerating html by $split... ($cmd)\n"
   eval "$cmd"
