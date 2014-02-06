@@ -412,14 +412,6 @@ Guile uses the environment variable @env{HOME}, the name of your home
 directory, to locate various files, such as @file{.guile} or
 @file{.guile_history}.
 
-@item LTDL_LIBRARY_PATH
-@vindex LTDL_LIBRARY_PATH
-Guile now adds its install prefix to the @env{LTDL_LIBRARY_PATH}.
-
-Users may now install Guile in non-standard directories and run
-`/path/to/bin/guile', without having also to set @env{LTDL_LIBRARY_PATH}
-to include `/path/to/lib'.
-
 @end table
 
 @c Local Variables: 
