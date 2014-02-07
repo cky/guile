@@ -212,7 +212,7 @@ scm_c_weak_vector_ref (SCM wvect, size_t k)
   SCM_VALIDATE_WEAK_VECTOR (1, wvect);
 
   if (k >= SCM_I_VECTOR_LENGTH (wvect))
-    scm_out_of_range (NULL, scm_from_size_t (k));
+    scm_out_of_range ("weak-vector-ref", scm_from_size_t (k));
   elt = (SCM_I_VECTOR_ELTS(wvect))[k];
 
   if (SCM_UNPACK (elt) == 0)
@@ -245,7 +245,7 @@ scm_c_weak_vector_set_x (SCM wvect, size_t k, SCM elt)
   SCM_VALIDATE_WEAK_VECTOR (1, wvect);
 
   if (k >= SCM_I_VECTOR_LENGTH (wvect))
-    scm_out_of_range (NULL, scm_from_size_t (k));
+    scm_out_of_range ("weak-vector-set!", scm_from_size_t (k));
 
   loc = & SCM_I_VECTOR_WELTS (wvect)[k];
   *loc = elt;
