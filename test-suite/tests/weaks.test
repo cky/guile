@@ -1,5 +1,5 @@
 ;;;; weaks.test --- tests guile's weaks     -*- scheme -*-
-;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2003, 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -57,13 +57,13 @@
 		   (pass-if "create"
 			    (let* ((lst '(a b c d e f g))
 				   (wv (list->weak-vector lst)))
-			      (and (eq? (vector-ref wv 0) 'a)
-				   (eq? (vector-ref wv 1) 'b)
-				   (eq? (vector-ref wv 2) 'c)
-				   (eq? (vector-ref wv 3) 'd)
-				   (eq? (vector-ref wv 4) 'e)
-				   (eq? (vector-ref wv 5) 'f)
-				   (eq? (vector-ref wv 6) 'g))))
+			      (and (eq? (weak-vector-ref wv 0) 'a)
+				   (eq? (weak-vector-ref wv 1) 'b)
+				   (eq? (weak-vector-ref wv 2) 'c)
+				   (eq? (weak-vector-ref wv 3) 'd)
+				   (eq? (weak-vector-ref wv 4) 'e)
+				   (eq? (weak-vector-ref wv 5) 'f)
+				   (eq? (weak-vector-ref wv 6) 'g))))
 		   (pass-if-exception "bad-args"
 		     exception:wrong-type-arg
 		     (list->weak-vector 32)))
@@ -99,11 +99,11 @@
 
 (define global-weak (make-weak-vector 10 #f))
 (begin
-  (vector-set! global-weak 0 (string-copy "string"))
-  (vector-set! global-weak 1 (string-copy "beans"))
-  (vector-set! global-weak 2 (string-copy "to"))
-  (vector-set! global-weak 3 (string-copy "utah"))
-  (vector-set! global-weak 4 (string-copy "yum yum"))
+  (weak-vector-set! global-weak 0 (string-copy "string"))
+  (weak-vector-set! global-weak 1 (string-copy "beans"))
+  (weak-vector-set! global-weak 2 (string-copy "to"))
+  (weak-vector-set! global-weak 3 (string-copy "utah"))
+  (weak-vector-set! global-weak 4 (string-copy "yum yum"))
   (gc))
 
 ;;; Normal weak vectors
@@ -113,17 +113,17 @@
    "weak-vector"
    (pass-if "lives"
 	    (begin
-	      (vector-set! x 0 bar)
+	      (weak-vector-set! x 0 bar)
 	      (gc)
-	      (and (vector-ref x 0) (eq? bar (vector-ref x 0)))))
+	      (and (weak-vector-ref x 0) (eq? bar (weak-vector-ref x 0)))))
    (pass-if "dies"
 	    (begin
 	      (gc)
-	      (or (and (not (vector-ref global-weak 0))
-		       (not (vector-ref global-weak 1))
-		       (not (vector-ref global-weak 2))
-		       (not (vector-ref global-weak 3))
-		       (not (vector-ref global-weak 4)))
+	      (or (and (not (weak-vector-ref global-weak 0))
+		       (not (weak-vector-ref global-weak 1))
+		       (not (weak-vector-ref global-weak 2))
+		       (not (weak-vector-ref global-weak 3))
+		       (not (weak-vector-ref global-weak 4)))
 		  (throw 'unresolved))))))
 
 

@@ -1,7 +1,7 @@
 ;;;; guardians.test --- test suite for Guile Guardians     -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- July 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2006 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 1999, 2001, 2006, 2014 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -209,7 +209,7 @@
 	(gc)
 	(let ((p (cons #f #f)))
 	  (g p)
-	  (vector-set! v 0 p)
+	  (weak-vector-set! v 0 p)
           (set! p #f))           ;; clear refs left on the stack
 	(if (not (eq? (g) #f))
 	    (throw 'unresolved)
@@ -225,7 +225,7 @@
 	(gc)
 	(let ((p (cons #f #f)))
 	  (g p)
-	  (vector-set! v 0 p)
+	  (weak-vector-set! v 0 p)
           (set! p #f))        ;; clear refs left on the stack
 	(begin
 	  (gc)
@@ -233,7 +233,7 @@
 	      (throw 'unresolved)
 	      (begin
 		(gc)
-		(or (not (vector-ref v 0))
+		(or (not (weak-vector-ref v 0))
 		    (throw 'unresolved))))))))
 
   (with-test-prefix "guarding weak containers"
@@ -243,11 +243,11 @@
 	    (v (weak-vector #f)))
         ;; Note: We don't pass `(cons #f #f)' as an argument to `weak-vector'
         ;; otherwise references to it are likely to be left on the stack.
-        (vector-set! v 0 (cons #f #f))
+        (weak-vector-set! v 0 (cons #f #f))
 
 	(g v)
 	(gc)
-	(if (equal? (vector-ref v 0) (cons #f #f))
+	(if (equal? (weak-vector-ref v 0) (cons #f #f))
 	    (throw 'unresolved)
 	    #t))))
 

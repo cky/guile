@@ -1,5 +1,5 @@
 /* Copyright (C) 1995,1996,1998,1999,2000,2001, 2006, 2008, 2009, 2010,
- *   2011, 2012 Free Software Foundation, Inc.
+ *   2011, 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -117,7 +117,13 @@ SCM
 scm_vector_length (SCM v)
 {
   if (SCM_I_IS_VECTOR (v))
-    return scm_from_size_t (SCM_I_VECTOR_LENGTH (v));
+    {
+      if (SCM_I_WVECTP (v))
+        scm_c_issue_deprecation_warning
+          ("Using vector-length on weak vectors is deprecated.  "
+           "Use weak-vector-length from (ice-9 weak-vectors) instead.");
+      return scm_from_size_t (SCM_I_VECTOR_LENGTH (v));
+    }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
       scm_t_array_dim *dim = SCM_I_ARRAY_DIMS (v);
@@ -130,7 +136,7 @@ scm_vector_length (SCM v)
 size_t
 scm_c_vector_length (SCM v)
 {
-  if (SCM_I_IS_VECTOR (v))
+  if (SCM_I_IS_NONWEAK_VECTOR (v))
     return SCM_I_VECTOR_LENGTH (v);
   else
     return scm_to_size_t (scm_vector_length (v));
@@ -206,7 +212,7 @@ scm_vector_ref (SCM v, SCM k)
 SCM
 scm_c_vector_ref (SCM v, size_t k)
 {
-  if (SCM_I_IS_VECTOR (v))
+  if (SCM_I_IS_NONWEAK_VECTOR (v))
     {
       register SCM elt;
 
@@ -214,11 +220,14 @@ scm_c_vector_ref (SCM v, size_t k)
 	scm_out_of_range (NULL, scm_from_size_t (k));
       elt = (SCM_I_VECTOR_ELTS(v))[k];
 
-      if (SCM_UNPACK (elt) == 0 && SCM_I_WVECTP (v))
-	/* ELT was a weak pointer and got nullified by the GC.  */
-	return SCM_BOOL_F;
-
       return elt;
+    }
+  else if (SCM_I_WVECTP (v))
+    {
+      scm_c_issue_deprecation_warning
+        ("Using vector-ref on weak vectors is deprecated.  "
+         "Instead, use weak-vector-ref from (ice-9 weak-vectors).");
+      return scm_c_weak_vector_ref (v, k);
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
@@ -234,8 +243,12 @@ scm_c_vector_ref (SCM v, size_t k)
 	  elt = (SCM_I_VECTOR_ELTS (vv))[k];
 
 	  if (SCM_UNPACK (elt) == 0 && (SCM_I_WVECTP (vv)))
-	    /* ELT was a weak pointer and got nullified by the GC.  */
-	    return SCM_BOOL_F;
+            {
+              scm_c_issue_deprecation_warning
+                ("Weak arrays are deprecated.  Use weak vectors instead.");
+              /* ELT was a weak pointer and got nullified by the GC.  */
+              return SCM_BOOL_F;
+            }
 
 	  return elt;
 	}
@@ -270,17 +283,18 @@ scm_vector_set_x (SCM v, SCM k, SCM obj)
 void
 scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 {
-  if (SCM_I_IS_VECTOR (v))
+  if (SCM_I_IS_NONWEAK_VECTOR (v))
     {
       if (k >= SCM_I_VECTOR_LENGTH (v))
 	scm_out_of_range (NULL, scm_from_size_t (k)); 
       (SCM_I_VECTOR_WELTS(v))[k] = obj;
-      if (SCM_I_WVECTP (v))
-	{
-	  /* Make it a weak pointer.  */
-	  SCM *link = & SCM_I_VECTOR_WELTS (v)[k];
-	  SCM_I_REGISTER_DISAPPEARING_LINK ((void **) link, SCM2PTR (obj));
-	}
+    }
+  else if (SCM_I_WVECTP (v))
+    {
+      scm_c_issue_deprecation_warning
+        ("Using vector-set! on weak vectors is deprecated.  "
+         "Instead, use weak-vector-set! from (ice-9 weak-vectors).");
+      scm_c_weak_vector_set_x (v, k, obj);
     }
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
@@ -298,6 +312,8 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
 	      /* Make it a weak pointer.  */
 	      SCM *link = & SCM_I_VECTOR_WELTS (vv)[k];
 	      SCM_I_REGISTER_DISAPPEARING_LINK ((void **) link, SCM2PTR (obj));
+              scm_c_issue_deprecation_warning
+                ("Weak arrays are deprecated.  Use weak vectors instead.");
 	    }
 	}
       else
