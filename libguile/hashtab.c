@@ -519,7 +519,7 @@ SCM_DEFINE (scm_make_weak_value_hash_table, "make-weak-value-hash-table", 0, 1, 
 #undef FUNC_NAME
 
 
-SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 1, 0, 0, 
+SCM_DEFINE (scm_make_doubly_weak_hash_table, "make-doubly-weak-hash-table", 0, 1, 0,
             (SCM n),
 	    "Return a hash table with weak keys and values with @var{size}\n"
 	    "buckets.  (@pxref{Hash Tables})")

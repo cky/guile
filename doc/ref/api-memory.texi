@@ -359,9 +359,9 @@ they constitute a doubly-weak table has to be used.
 @node Weak hash tables
 @subsubsection Weak hash tables
 
-@deffn {Scheme Procedure} make-weak-key-hash-table size
-@deffnx {Scheme Procedure} make-weak-value-hash-table size
-@deffnx {Scheme Procedure} make-doubly-weak-hash-table size
+@deffn {Scheme Procedure} make-weak-key-hash-table [size]
+@deffnx {Scheme Procedure} make-weak-value-hash-table [size]
+@deffnx {Scheme Procedure} make-doubly-weak-hash-table [size]
 @deffnx {C Function} scm_make_weak_key_hash_table (size)
 @deffnx {C Function} scm_make_weak_value_hash_table (size)
 @deffnx {C Function} scm_make_doubly_weak_hash_table (size)
