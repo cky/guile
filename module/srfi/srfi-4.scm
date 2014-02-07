@@ -116,21 +116,3 @@
 (define-bytevector-type s64 s64-native 8)
 (define-bytevector-type f32 ieee-single-native 4)
 (define-bytevector-type f64 ieee-double-native 8)
-
-(define (bytevector-c32-ref v i)
-  (make-rectangular (bytevector-ieee-single-native-ref v i)
-                    (bytevector-ieee-single-native-ref v (+ i 4))))
-(define (bytevector-c32-set! v i x)
-  (bytevector-ieee-single-native-set! v i x)
-  (bytevector-ieee-single-native-set! v (+ i 4) x))
-(define-bytevector-type c32 c32 8)
-
-(define (bytevector-c64-ref v i)
-  (make-rectangular (bytevector-ieee-double-native-ref v i)
-                    (bytevector-ieee-double-native-ref v (+ i 8))))
-(define (bytevector-c64-set! v i x)
-  (bytevector-ieee-double-native-set! v i x)
-  (bytevector-ieee-double-native-set! v (+ i 8) x))
-(define-bytevector-type c64 c64 16)
-
-
