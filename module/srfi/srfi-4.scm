@@ -1,7 +1,7 @@
 ;;; srfi-4.scm --- Homogeneous Numeric Vector Datatypes
 
 ;; Copyright (C) 2001, 2002, 2004, 2006, 2009, 2010,
-;;   2012 Free Software Foundation, Inc.
+;;   2012, 2014 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -75,14 +75,11 @@
 (define-macro (define-bytevector-type tag infix size)
   `(begin
      (define (,(symbol-append tag 'vector?) obj)
-       (and (uniform-vector? obj)
-            (eq? (uniform-vector-element-type obj) ',tag)))
+       (and (bytevector? obj) (eq? (array-type obj) ',tag)))
      (define (,(symbol-append 'make- tag 'vector) len . fill)
        (apply make-srfi-4-vector ',tag len fill))
      (define (,(symbol-append tag 'vector-length) v)
-       (let ((len (* (uniform-vector-length v)
-                     (uniform-vector-element-size v)
-                     (/ ,size))))
+       (let ((len (/ (bytevector-length v) ,size)))
          (if (integer? len)
              len
              (error "fractional length" v ',tag ,size))))
