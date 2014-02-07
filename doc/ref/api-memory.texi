@@ -387,9 +387,6 @@ nor a weak value hash table.
 @node Weak vectors
 @subsubsection Weak vectors
 
-Weak vectors are mainly useful in Guile's implementation of weak hash
-tables.
-
 @deffn {Scheme Procedure} make-weak-vector size [fill]
 @deffnx {C Function} scm_make_weak_vector (size, fill)
 Return a weak vector with @var{size} elements. If the optional
@@ -409,8 +406,7 @@ the same way @code{list->vector} would.
 
 @deffn {Scheme Procedure} weak-vector? obj
 @deffnx {C Function} scm_weak_vector_p (obj)
-Return @code{#t} if @var{obj} is a weak vector. Note that all
-weak hashes are also weak vectors.
+Return @code{#t} if @var{obj} is a weak vector.
 @end deffn
 
 @deffn {Scheme Procedure} weak-vector-ref wvect k
