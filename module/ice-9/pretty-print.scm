@@ -1,7 +1,7 @@
 ;;;; -*- coding: utf-8; mode: scheme -*-
 ;;;;
 ;;;; 	Copyright (C) 2001, 2004, 2006, 2009, 2010,
-;;;;      2012 Free Software Foundation, Inc.
+;;;;      2012, 2014 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 (define-module (ice-9 pretty-print)
   #:use-module (ice-9 match)
   #:use-module (srfi srfi-1)
+  #:use-module (rnrs bytevectors)
   #:export (pretty-print
             truncated-print))
 
@@ -422,12 +423,12 @@ sub-expression, via the @var{breadth-first?} keyword argument."
             (display ")"))
            (else
             (display "#"))))
-         ((uniform-vector? x)
+         ((bytevector? x)
           (cond
            ((>= width 9)
-            (format #t  "#~a(" (uniform-vector-element-type x))
-            (print-sequence x (- width 6) (uniform-vector-length x)
-                            uniform-vector-ref identity)
+            (format #t  "#~a(" (array-type x))
+            (print-sequence x (- width 6) (array-length x)
+                            array-ref identity)
             (display ")"))
            (else
             (display "#"))))
