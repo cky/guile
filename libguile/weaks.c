@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2003, 2006, 2008, 2009, 2010,
- *   2011, 2012 Free Software Foundation, Inc.
+ *   2011, 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -122,6 +122,10 @@ scm_doubly_weak_pair (SCM car, SCM cdr)
  */
 
 
+#define SCM_VALIDATE_WEAK_VECTOR(pos, var) \
+  SCM_I_MAKE_VALIDATE_MSG2 (pos, var, SCM_I_WVECTP, "weak vector")
+
+
 SCM_DEFINE (scm_make_weak_vector, "make-weak-vector", 1, 1, 0,
 	    (SCM size, SCM fill),
 	    "Return a weak vector with @var{size} elements. If the optional\n"
@@ -157,9 +161,100 @@ SCM_DEFINE (scm_weak_vector_p, "weak-vector?", 1, 0, 0,
 	    "weak hashes are also weak vectors.")
 #define FUNC_NAME s_scm_weak_vector_p
 {
-  return scm_from_bool (SCM_I_WVECTP (obj) && !SCM_IS_WHVEC (obj));
+  return scm_from_bool (scm_is_weak_vector (obj));
 }
 #undef FUNC_NAME
+
+
+int
+scm_is_weak_vector (SCM obj)
+{
+  return SCM_I_WVECTP (obj) && !SCM_IS_WHVEC (obj);
+}
+
+
+SCM_DEFINE (scm_weak_vector_length, "weak-vector-length", 1, 0, 0,
+	    (SCM wvect),
+            "Returns the number of elements in @var{wvect} as an exact integer.")
+#define FUNC_NAME s_scm_weak_vector_length
+{
+  return scm_from_size_t (scm_c_weak_vector_length (wvect));
+}
+#undef FUNC_NAME
+
+
+size_t
+scm_c_weak_vector_length (SCM wvect)
+#define FUNC_NAME s_scm_weak_vector_length
+{
+  SCM_VALIDATE_WEAK_VECTOR (1, wvect);
+  return SCM_I_VECTOR_LENGTH (wvect);
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_weak_vector_ref, "weak-vector-ref", 2, 0, 0,
+	    (SCM wvect, SCM k),
+            "Like @code{vector-ref}, but for weak vectors.")
+#define FUNC_NAME s_scm_weak_vector_ref
+{
+  return scm_c_weak_vector_ref (wvect, scm_to_size_t (k));
+}
+#undef FUNC_NAME
+
+
+SCM
+scm_c_weak_vector_ref (SCM wvect, size_t k)
+#define FUNC_NAME s_scm_weak_vector_ref
+{
+  SCM elt;
+
+  SCM_VALIDATE_WEAK_VECTOR (1, wvect);
+
+  if (k >= SCM_I_VECTOR_LENGTH (wvect))
+    scm_out_of_range (NULL, scm_from_size_t (k));
+  elt = (SCM_I_VECTOR_ELTS(wvect))[k];
+
+  if (SCM_UNPACK (elt) == 0)
+    /* ELT was a weak pointer and got nullified by the GC.  */
+    return SCM_BOOL_F;
+
+  return elt;
+}
+#undef FUNC_NAME
+
+
+SCM_DEFINE (scm_weak_vector_set_x, "weak-vector-set!", 3, 0, 0,
+	    (SCM wvect, SCM k, SCM elt),
+            "Like @code{vector-set!}, but for weak vectors.")
+#define FUNC_NAME s_scm_weak_vector_set_x
+{
+  scm_c_weak_vector_set_x (wvect, scm_to_size_t (k), elt);
+
+  return SCM_UNSPECIFIED;
+}
+#undef FUNC_NAME
+
+
+void
+scm_c_weak_vector_set_x (SCM wvect, size_t k, SCM elt)
+#define FUNC_NAME s_scm_weak_vector_set_x
+{
+  SCM *loc;
+
+  SCM_VALIDATE_WEAK_VECTOR (1, wvect);
+
+  if (k >= SCM_I_VECTOR_LENGTH (wvect))
+    scm_out_of_range (NULL, scm_from_size_t (k));
+
+  loc = & SCM_I_VECTOR_WELTS (wvect)[k];
+  *loc = elt;
+
+  /* Make it a weak pointer.  */
+  SCM_I_REGISTER_DISAPPEARING_LINK ((void **) loc, SCM2PTR (elt));
+}
+#undef FUNC_NAME
+
 
 
 /* Weak alist vectors, i.e., vectors of alists.

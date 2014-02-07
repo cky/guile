@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 2003, 2006 Free Software Foundation, Inc.
+;;;; Copyright (C) 2003, 2006, 2014 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 
 (define-module (ice-9 weak-vector)
   :export (make-weak-vector list->weak-vector weak-vector weak-vector?
+           weak-vector-length weak-vector-ref weak-vector-set!
 	   make-weak-key-alist-vector
 	   make-weak-value-alist-vector
 	   make-doubly-weak-alist-vector
