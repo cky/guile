@@ -1,6 +1,6 @@
 ;;; Extensions to SRFI-4
 
-;; Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -42,44 +42,6 @@
 
 (define make-srfi-4-vector (@@ (srfi srfi-4) make-srfi-4-vector))
 
-;; Need quasisyntax to do this effectively using syntax-case
-(define-macro (define-bytevector-type tag infix size)
-  `(begin
-     (define (,(symbol-append tag 'vector?) obj)
-       (and (uniform-vector? obj)
-            (eq? (uniform-vector-element-type obj) ',tag)))
-     (define (,(symbol-append 'make- tag 'vector) len . fill)
-       (apply make-srfi-4-vector ',tag len fill))
-     (define (,(symbol-append tag 'vector-length) v)
-       (let ((len (* (uniform-vector-length v)
-                     (uniform-vector-element-size v)
-                     (/ ,size))))
-         (if (integer? len)
-             len
-             (error "fractional length" v ',tag ,size))))
-     (define (,(symbol-append tag 'vector) . elts)
-       (,(symbol-append 'list-> tag 'vector) elts))
-     (define (,(symbol-append 'list-> tag 'vector) elts)
-       (let* ((len (length elts))
-              (v (,(symbol-append 'make- tag 'vector) len)))
-         (let lp ((i 0) (elts elts))
-           (if (and (< i len) (pair? elts))
-               (begin
-                 (,(symbol-append tag 'vector-set!) v i (car elts))
-                 (lp (1+ i) (cdr elts)))
-               v))))
-     (define (,(symbol-append tag 'vector->list) v)
-       (let lp ((i (1- (,(symbol-append tag 'vector-length) v))) (elts '()))
-         (if (< i 0)
-             elts
-             (lp (1- i) (cons (,(symbol-append tag 'vector-ref) v i) elts)))))
-     (define (,(symbol-append tag 'vector-ref) v i)
-       (,(symbol-append 'bytevector- infix '-ref) v (* i ,size)))
-     (define (,(symbol-append tag 'vector-set!) v i x)
-       (,(symbol-append 'bytevector- infix '-set!) v (* i ,size) x))
-     (define (,(symbol-append tag 'vector-set!) v i x)
-       (,(symbol-append 'bytevector- infix '-set!) v (* i ,size) x))))
-
 (define (bytevector-c32-native-ref v i)
   (make-rectangular (bytevector-ieee-single-native-ref v i)
                     (bytevector-ieee-single-native-ref v (+ i 4))))
@@ -92,8 +54,9 @@
 (define (bytevector-c64-native-set! v i x)
   (bytevector-ieee-double-native-set! v i (real-part x))
   (bytevector-ieee-double-native-set! v (+ i 8) (imag-part x)))
-(define-bytevector-type c32 c32-native 8)
-(define-bytevector-type c64 c64-native 16)
+
+((@@ (srfi srfi-4) define-bytevector-type) c32 c32-native 8)
+((@@ (srfi srfi-4) define-bytevector-type) c64 c64-native 16)
 
 (define-macro (define-any->vector . tags)
   `(begin
