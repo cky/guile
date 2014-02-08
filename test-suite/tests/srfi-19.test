@@ -2,7 +2,7 @@
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
 ;;;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008,
-;;;;   2011 Free Software Foundation, Inc.
+;;;;   2011, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,8 @@
   :use-module (ice-9 format))
 
 ;; Make sure we use the default locale.
-(setlocale LC_ALL "C")
+(when (defined? 'setlocale)
+  (setlocale LC_ALL "C"))
 
 (define (with-tz* tz thunk)
   "Temporarily set the TZ environment variable to the passed string

@@ -2,7 +2,7 @@
 ;;;; --- Test suite for Guile's SRFI-14 functions.
 ;;;; Martin Grabmueller, 2001-07-16
 ;;;;
-;;;; Copyright (C) 2001, 2006, 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2006, 2009, 2010, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -745,9 +745,8 @@
 (define (every? pred lst)
   (not (not (every pred lst))))
 
-(define oldlocale #f)
-(if (defined? 'setlocale)
-    (set! oldlocale (setlocale LC_ALL "")))
+(when (defined? 'setlocale)
+  (setlocale LC_ALL ""))
 
 (with-test-prefix "Latin-1 (8-bit charset)"
 
@@ -844,6 +843,3 @@
                                             (map (lambda (x) (+ #x80 x))
                                                  (iota #x20))))))
                 char-set:iso-control)))
-
-(if (defined? 'setlocale)
-    (setlocale LC_ALL oldlocale))

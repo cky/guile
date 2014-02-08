@@ -1,6 +1,6 @@
 ;;;; encoding-utf8.test --- test suite for Guile's string encodings    -*- mode: scheme; coding: utf-8 -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -24,9 +24,8 @@
 (define (string-ints . args)
   (apply string (map integer->char args)))
 
-(define oldlocale #f)
-(if (defined? 'setlocale)
-    (set! oldlocale (setlocale LC_ALL "")))
+(when (defined? 'setlocale)
+  (setlocale LC_ALL ""))
 
 (define ascii-a (integer->char 65))     ; LATIN CAPITAL LETTER A
 (define a-acute (integer->char #x00c1)) ; LATIN CAPITAL LETTER A WITH ACUTE
@@ -189,6 +188,3 @@
 	   (let ((芥川龍之介  1)
 		 (ñ 2))
 	     (eqv? (+  芥川龍之介 ñ) 3))))
-
-(if (defined? 'setlocale)
-    (setlocale LC_ALL oldlocale))

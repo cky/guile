@@ -1,6 +1,8 @@
 ;;;; bytevectors.test --- R6RS bytevectors. -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2011, 2012, 2013,
+;;;;   2014 Free Software Foundation, Inc.
+;;;;
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -398,7 +400,8 @@
 
 
 ;; Default to the C locale for the following tests.
-(setlocale LC_ALL "C")
+(when (defined? 'setlocale)
+  (setlocale LC_ALL "C"))
 
 
 (with-test-prefix "2.9 Operations on Strings"

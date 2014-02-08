@@ -5,7 +5,7 @@
 ;;;; guile-test --- run the Guile test suite
 ;;;; Jim Blandy <jimb@red-bean.com> --- May 1999
 ;;;;
-;;;; 	Copyright (C) 1999, 2001, 2006, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2006, 2010, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -239,8 +239,9 @@
                  (lambda ()
                    (for-each (lambda (test)
                                (display (string-append "Running " test "\n"))
-                               (with-test-prefix test
-                                                 (load (test-file-name test))))
+                               (with-locale "C"
+                                 (with-test-prefix test
+                                   (load (test-file-name test)))))
                              tests))))
             (if (opt 'coverage #f)
                 (let-values (((coverage-data _)
@@ -262,4 +263,5 @@
 
 ;;; Local Variables:
 ;;; mode: scheme
+;;; eval: (put 'with-locale 'scheme-indent-function 1)
 ;;; End:

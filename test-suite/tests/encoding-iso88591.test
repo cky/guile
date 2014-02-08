@@ -1,6 +1,6 @@
 ;;;; encoding-iso88591.test --- test suite for Guile's string encodings    -*- mode: scheme; coding: iso-8859-1 -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009, 2010, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -25,9 +25,8 @@
   (apply string (map integer->char args)))
 
 ;; Set locale to the environment's locale, so that the prints look OK.
-(define oldlocale #f)
-(if (defined? 'setlocale)
-    (set! oldlocale (setlocale LC_ALL "")))
+(when (defined? 'setlocale)
+  (setlocale LC_ALL ""))
 
 (define ascii-a (integer->char 65))     ; LATIN CAPITAL LETTER A
 (define a-acute (integer->char #x00c1)) ; LATIN CAPITAL LETTER A WITH ACUTE
@@ -177,7 +176,3 @@
 		       (set-port-encoding! pt "ISO-8859-1")
 		       (set-port-conversion-strategy! pt 'error)
 		       (display (string-ints 256) pt))))
-
-;; Reset locales
-(if (defined? 'setlocale)
-    (setlocale LC_ALL oldlocale))

@@ -1,7 +1,8 @@
 ;;;; format.test --- test suite for Guile's CL-ish format  -*- scheme -*-
 ;;;; Matthias Koeppe <mkoeppe@mail.math.uni-magdeburg.de> --- June 2001
 ;;;;
-;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010, 2011, 2012 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001, 2003, 2004, 2006, 2010, 2011, 2012,
+;;;;   2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -101,7 +102,9 @@
 ;;; ~h
 ;;;
 
-(setlocale LC_ALL "C")
+(when (defined? 'setlocale)
+  (setlocale LC_ALL "C"))
+
 (with-test-prefix "~h localized number"
 
   (pass-if "1234.5"
