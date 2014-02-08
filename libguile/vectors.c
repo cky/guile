@@ -129,8 +129,17 @@ scm_vector_length (SCM v)
       scm_t_array_dim *dim = SCM_I_ARRAY_DIMS (v);
       return scm_from_size_t (dim->ubnd - dim->lbnd + 1);
     }
+  else if (SCM_UNPACK (g_vector_length))
+    {
+      scm_c_issue_deprecation_warning
+        ("Using vector-length as a primitive-generic is deprecated.");
+      return scm_call_generic_1 (g_vector_length, v);
+    }
   else
-    SCM_WTA_DISPATCH_1 (g_vector_length, v, 1, NULL);
+    {
+      scm_wrong_type_arg_msg ("vector-length", 1, v, "vector");
+      return SCM_UNDEFINED;  /* not reached */
+    }
 }
 
 size_t
@@ -254,8 +263,17 @@ scm_c_vector_ref (SCM v, size_t k)
 	}
       scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
     }
+  else if (SCM_UNPACK (g_vector_ref))
+    {
+      scm_c_issue_deprecation_warning
+        ("Using vector-ref as a primitive-generic is deprecated.");
+      return scm_call_generic_2 (g_vector_ref, v, scm_from_size_t (k));
+    }
   else
-    SCM_WTA_DISPATCH_2 (g_vector_ref, v, scm_from_size_t (k), 2, NULL);
+    {
+      scm_wrong_type_arg_msg ("vector-ref", 1, v, "vector");
+      return SCM_UNDEFINED;  /* not reached */
+    }
 }
 
 SCM_GPROC (s_vector_set_x, "vector-set!", 3, 0, 0, scm_vector_set_x, g_vector_set_x);
@@ -319,13 +337,16 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
       else
 	scm_wrong_type_arg_msg (NULL, 0, v, "non-uniform vector");
     }
+  else if (SCM_UNPACK (g_vector_set_x))
+    {
+      scm_c_issue_deprecation_warning
+        ("Using vector-set! as a primitive-generic is deprecated.");
+      return scm_call_3 (g_vector_set_x, v, scm_from_size_t (k), obj);
+    }
   else
     {
-      if (SCM_UNPACK (g_vector_set_x))
-	scm_apply_generic (g_vector_set_x,
-			   scm_list_3 (v, scm_from_size_t (k), obj));
-      else
-	scm_wrong_type_arg_msg (NULL, 0, v, "vector");
+      scm_wrong_type_arg_msg ("vector-set!", 1, v, "vector");
+      return SCM_UNDEFINED;  /* not reached */
     }
 }
 
