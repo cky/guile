@@ -3,7 +3,8 @@
 #ifndef SCM_UNIFORM_H
 #define SCM_UNIFORM_H
 
-/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1999,2000,2001, 2004, 2006, 2008, 2009,
+ * 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,29 +45,34 @@ SCM_API size_t scm_array_handle_uniform_element_bit_size (scm_t_array_handle *h)
 SCM_API const void *scm_array_handle_uniform_elements (scm_t_array_handle *h);
 SCM_API void *scm_array_handle_uniform_writable_elements (scm_t_array_handle *h);
 
-SCM_API SCM scm_uniform_vector_p (SCM v);
-SCM_API SCM scm_uniform_vector_length (SCM v);
-SCM_API SCM scm_uniform_vector_element_type (SCM v);
-SCM_API SCM scm_uniform_vector_element_size (SCM v);
-SCM_API SCM scm_uniform_vector_ref (SCM v, SCM idx);
-SCM_API SCM scm_uniform_vector_set_x (SCM v, SCM idx, SCM val);
-SCM_API SCM scm_uniform_vector_to_list (SCM v);
-SCM_API SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
-				       SCM start, SCM end);
-SCM_API SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
-				      SCM start, SCM end);
+#if SCM_ENABLE_DEPRECATED
 
-SCM_API int scm_is_uniform_vector (SCM obj);
-SCM_API size_t scm_c_uniform_vector_length (SCM v);
-SCM_API SCM scm_c_uniform_vector_ref (SCM v, size_t idx);
-SCM_API void scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val);
-SCM_API const void *scm_uniform_vector_elements (SCM uvec, 
-						 scm_t_array_handle *h,
-						 size_t *lenp, ssize_t *incp);
-SCM_API void *scm_uniform_vector_writable_elements (SCM uvec, 
-						    scm_t_array_handle *h,
-						    size_t *lenp,
-						    ssize_t *incp);
+SCM_DEPRECATED SCM scm_uniform_vector_p (SCM v);
+SCM_DEPRECATED SCM scm_uniform_vector_length (SCM v);
+SCM_DEPRECATED SCM scm_uniform_vector_element_type (SCM v);
+SCM_DEPRECATED SCM scm_uniform_vector_element_size (SCM v);
+SCM_DEPRECATED SCM scm_uniform_vector_ref (SCM v, SCM idx);
+SCM_DEPRECATED SCM scm_uniform_vector_set_x (SCM v, SCM idx, SCM val);
+SCM_DEPRECATED SCM scm_uniform_vector_to_list (SCM v);
+SCM_DEPRECATED SCM scm_uniform_vector_read_x (SCM v, SCM port_or_fd,
+                                              SCM start, SCM end);
+SCM_DEPRECATED SCM scm_uniform_vector_write (SCM v, SCM port_or_fd,
+                                             SCM start, SCM end);
+
+SCM_DEPRECATED int scm_is_uniform_vector (SCM obj);
+SCM_DEPRECATED size_t scm_c_uniform_vector_length (SCM v);
+SCM_DEPRECATED SCM scm_c_uniform_vector_ref (SCM v, size_t idx);
+SCM_DEPRECATED void scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val);
+SCM_DEPRECATED const void *scm_uniform_vector_elements (SCM uvec, 
+                                                        scm_t_array_handle *h,
+                                                        size_t *lenp,
+                                                        ssize_t *incp);
+SCM_DEPRECATED void *scm_uniform_vector_writable_elements (SCM uvec, 
+                                                           scm_t_array_handle *h,
+                                                           size_t *lenp,
+                                                           ssize_t *incp);
+
+#endif
 
 SCM_INTERNAL void scm_init_uniform (void);
 

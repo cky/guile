@@ -243,7 +243,7 @@
                       (binary-test-string
                        (apply string
                               (map integer->char
-                                   (uniform-vector->list
+                                   (array->list
                                     (string->utf8 test-string))))))
                  (write-line test-string port)
                  (close-port port)
@@ -262,7 +262,7 @@
                       (binary-test-string
                        (apply string
                               (map integer->char
-                                   (uniform-vector->list
+                                   (array->list
                                     (string->utf8 test-string))))))
                  (write-line ";; coding: utf-8" port)
                  (write-line test-string port)

@@ -1,6 +1,6 @@
 ;;;; unif.test --- tests guile's uniform arrays     -*- scheme -*-
 ;;;;
-;;;; Copyright 2004, 2006, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;;; Copyright 2004, 2006, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -32,13 +32,6 @@
 (define exception:length-non-negative
   (cons 'read-error ".*array length must be non-negative.*"))
 
-
-(with-test-prefix "sanity"
-  ;; At the current time of writing, bignums have a tc7 that is one bit
-  ;; away from strings. It used to be that the vector implementation
-  ;; registered for strings had the TYP7S mask, not the TYP7 mask,
-  ;; making the system think that bignums were vectors. Doh!
-  (pass-if (not (uniform-vector? 12345678901234567890123456789))))
 
 (with-test-prefix "array?"
 
@@ -574,10 +567,10 @@
 	   (eqv? 8 (array-ref s2 2))))))
 
 ;;;
-;;; uniform-vector-ref
+;;; typed array-ref
 ;;;
 
-(with-test-prefix "uniform-vector-ref"
+(with-test-prefix "typed array-ref"
 
   (with-test-prefix "byte"
 
@@ -586,15 +579,15 @@
       (pass-if "0"
 	(begin
 	  (array-set! a 0 0)
-	  (= 0 (uniform-vector-ref a 0))))
+	  (= 0 (array-ref a 0))))
       (pass-if "127"
 	(begin
 	  (array-set! a 127 0)
-	  (= 127 (uniform-vector-ref a 0))))
+	  (= 127 (array-ref a 0))))
       (pass-if "-128"
 	(begin
 	  (array-set! a -128 0)
-	  (= -128 (uniform-vector-ref a 0)))))))
+	  (= -128 (array-ref a 0)))))))
 
 ;;;
 ;;; syntax

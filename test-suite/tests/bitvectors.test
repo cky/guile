@@ -1,6 +1,6 @@
 ;;;; bitvectors.test --- tests guile's bitvectors     -*- scheme -*-
 ;;;;
-;;;; Copyright 2010, 2011, 2013 Free Software Foundation, Inc.
+;;;; Copyright 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,8 +22,8 @@
 
 (with-test-prefix "predicates"
   (pass-if (bitvector? #*1010101010))
-  (pass-if (uniform-vector? #*1010101010))
-  (pass-if (array? #*1010101010)))
+  (pass-if (array? #*1010101010))
+  (pass-if (eq? (array-type #*1010101010) 'b)))
 
 
 (with-test-prefix "equality"
@@ -36,23 +36,22 @@
 (with-test-prefix "lists"
   (pass-if (equal? (bitvector->list #*10010) '(#t #f #f #t #f)))
   (pass-if (equal? (array->list #*10010) '(#t #f #f #t #f)))
-  (pass-if (equal? (uniform-vector->list #*10010) '(#t #f #f #t #f)))
   (pass-if (equal? #*10010 (list->bitvector '(#t #f #f #t #f)))))
 
 (with-test-prefix "ref and set"
-  (with-test-prefix "bv"
+  (with-test-prefix "as bitvector"
     (let ((bv (list->bitvector '(#f #f #t #f #t))))
       (pass-if (eqv? (bitvector-ref bv 0) #f))
       (pass-if (eqv? (bitvector-ref bv 2) #t))
       (bitvector-set! bv 0 #t)
       (pass-if (eqv? (bitvector-ref bv 0) #t))))
 
-  (with-test-prefix "uv"
+  (with-test-prefix "as array"
     (let ((bv (list->bitvector '(#f #f #t #f #t))))
-      (pass-if (eqv? (uniform-vector-ref bv 0) #f))
-      (pass-if (eqv? (uniform-vector-ref bv 2) #t))
-      (uniform-vector-set! bv 0 #t)
-      (pass-if (eqv? (uniform-vector-ref bv 0) #t)))))
+      (pass-if (eqv? (array-ref bv 0) #f))
+      (pass-if (eqv? (array-ref bv 2) #t))
+      (array-set! bv #t 0)
+      (pass-if (eqv? (array-ref bv 0) #t)))))
 
 (with-test-prefix "bit-set*!"
   (pass-if "#t"

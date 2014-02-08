@@ -1345,7 +1345,6 @@ C had modules!)
 @menu
 * SRFI-4 Overview::             The warp and weft of uniform numeric vectors.
 * SRFI-4 API::                  Uniform vectors, from Scheme and from C.
-* SRFI-4 Generic Operations::   The general, operating on the specific.
 * SRFI-4 and Bytevectors::      SRFI-4 vectors are backed by bytevectors.
 * SRFI-4 Extensions::           Guile-specific extensions to the standard.
 @end menu
@@ -1729,65 +1728,6 @@ Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
 C}), but returns a pointer to the elements of a uniform numeric vector
 of the indicated kind.
 @end deftypefn
-
-@node SRFI-4 Generic Operations
-@subsubsection SRFI-4 - Generic operations
-
-Guile also provides procedures that operate on all types of uniform numeric
-vectors.  In what is probably a bug, these procedures are currently available in
-the default environment as well; however prudent hackers will make sure to
-import @code{(srfi srfi-4 gnu)} before using these.
-
-@deftypefn {C Function} int scm_is_uniform_vector (SCM uvec)
-Return non-zero when @var{uvec} is a uniform numeric vector, zero
-otherwise.
-@end deftypefn
-
-@deftypefn {C Function} size_t scm_c_uniform_vector_length (SCM uvec)
-Return the number of elements of @var{uvec} as a @code{size_t}.
-@end deftypefn
-
-@deffn  {Scheme Procedure} uniform-vector? obj
-@deffnx {C Function} scm_uniform_vector_p (obj)
-Return @code{#t} if @var{obj} is a homogeneous numeric vector of the
-indicated type.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector-length vec
-@deffnx {C Function} scm_uniform_vector_length (vec)
-Return the number of elements in @var{vec}.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector-ref vec i
-@deffnx {C Function} scm_uniform_vector_ref (vec, i)
-Return the element at index @var{i} in @var{vec}.  The first element
-in @var{vec} is index 0.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector-set! vec i value
-@deffnx {C Function} scm_uniform_vector_set_x (vec, i, value)
-Set the element at index @var{i} in @var{vec} to @var{value}.  The
-first element in @var{vec} is index 0.  The return value is
-unspecified.
-@end deffn
-
-@deffn  {Scheme Procedure} uniform-vector->list vec
-@deffnx {C Function} scm_uniform_vector_to_list (vec)
-Return a newly allocated list holding all elements of @var{vec}.
-@end deffn
-
-@deftypefn  {C Function} {const void *} scm_uniform_vector_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_elements} (@pxref{Vector Accessing from C}), but
-returns a pointer to the elements of a uniform numeric vector.
-@end deftypefn
-
-@deftypefn  {C Function} {void *} scm_uniform_vector_writable_elements (SCM vec, scm_t_array_handle *handle, size_t *lenp, ssize_t *incp)
-Like @code{scm_vector_writable_elements} (@pxref{Vector Accessing from
-C}), but returns a pointer to the elements of a uniform numeric vector.
-@end deftypefn
-
-Unless you really need to the limited generality of these functions, it
-is best to use the type-specific functions, or the array accessors.
 
 @node SRFI-4 and Bytevectors
 @subsubsection SRFI-4 - Relation to bytevectors

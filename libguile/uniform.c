@@ -1,4 +1,4 @@
-/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001,2002,2003,2004, 2005, 2006, 2009, 2010, 2013, 2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,10 +23,13 @@
 #  include <config.h>
 #endif
 
+#define SCM_BUILDING_DEPRECATED_CODE
+
 #include "libguile/_scm.h"
 #include "libguile/__scm.h"
 
 #include "libguile/uniform.h"
+#include "libguile/deprecation.h"
 
 
 const size_t scm_i_array_element_type_sizes[SCM_ARRAY_ELEMENT_TYPE_LAST + 1] = {
@@ -81,11 +84,17 @@ scm_array_handle_uniform_writable_elements (scm_t_array_handle *h)
   return ret;
 }
 
+#if SCM_ENABLE_DEPRECATED
+
 int
 scm_is_uniform_vector (SCM obj)
 {
   scm_t_array_handle h;
   int ret = 0;
+
+  scm_c_issue_deprecation_warning
+    ("scm_is_uniform_vector is deprecated.  "
+     "Use scm_is_bytevector || scm_is_bitvector instead.");
 
   if (scm_is_generalized_vector (obj))
     {
@@ -99,6 +108,10 @@ scm_is_uniform_vector (SCM obj)
 size_t
 scm_c_uniform_vector_length (SCM uvec)
 {
+  scm_c_issue_deprecation_warning
+    ("scm_c_uniform_vector_length is deprecated.  "
+     "Use scm_c_array_length instead.");
+
   if (!scm_is_uniform_vector (uvec))
     scm_wrong_type_arg_msg ("uniform-vector-length", 1, uvec,
                             "uniform vector");
@@ -111,6 +124,10 @@ SCM_DEFINE (scm_uniform_vector_p, "uniform-vector?", 1, 0, 0,
 	    "Return @code{#t} if @var{obj} is a uniform vector.")
 #define FUNC_NAME s_scm_uniform_vector_p
 {
+  scm_c_issue_deprecation_warning
+    ("uniform-vector? is deprecated.  Use bytevector? and bitvector?, or "
+     "use array-type and array-rank instead.");
+
   return scm_from_bool (scm_is_uniform_vector (obj));
 }
 #undef FUNC_NAME
@@ -123,6 +140,9 @@ SCM_DEFINE (scm_uniform_vector_element_type, "uniform-vector-element-type", 1, 0
   scm_t_array_handle h;
   SCM ret;
   
+  scm_c_issue_deprecation_warning
+    ("uniform-vector-element-type is deprecated.  Use array-type instead.");
+
   if (!scm_is_uniform_vector (v))
     scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, v, "uniform vector");
   scm_array_get_handle (v, &h);
@@ -142,6 +162,11 @@ SCM_DEFINE (scm_uniform_vector_element_size, "uniform-vector-element-size", 1, 0
   size_t len;
   ssize_t inc;
   SCM ret;
+
+  scm_c_issue_deprecation_warning
+    ("uniform-vector-element-size is deprecated.  Instead, treat the "
+     "uniform vector as a bytevector.");
+
   scm_uniform_vector_elements (v, &h, &len, &inc);
   ret = scm_from_size_t (scm_array_handle_uniform_element_size (&h));
   scm_array_handle_release (&h);
@@ -152,6 +177,9 @@ SCM_DEFINE (scm_uniform_vector_element_size, "uniform-vector-element-size", 1, 0
 SCM
 scm_c_uniform_vector_ref (SCM v, size_t idx)
 {
+  scm_c_issue_deprecation_warning
+    ("scm_c_uniform_vector_ref is deprecated.  Use scm_c_array_ref_1 instead.");
+
   if (!scm_is_uniform_vector (v))
     scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
   return scm_c_generalized_vector_ref (v, idx);
@@ -163,6 +191,9 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 	    "homogeneous numeric vector @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_ref
 {
+  scm_c_issue_deprecation_warning
+    ("uniform-vector-ref is deprecated.  Use array-ref instead.");
+
   return scm_c_uniform_vector_ref (v, scm_to_size_t (idx));
 }
 #undef FUNC_NAME
@@ -170,6 +201,10 @@ SCM_DEFINE (scm_uniform_vector_ref, "uniform-vector-ref", 2, 0, 0,
 void
 scm_c_uniform_vector_set_x (SCM v, size_t idx, SCM val)
 {
+  scm_c_issue_deprecation_warning
+    ("scm_c_uniform_vector_set_x is deprecated.  Instead, use "
+     "scm_c_array_set_1_x, but note the change in the order of the arguments.");
+
   if (!scm_is_uniform_vector (v))
     scm_wrong_type_arg_msg (NULL, 0, v, "uniform vector");
   scm_c_generalized_vector_set_x (v, idx, val);
@@ -181,6 +216,10 @@ SCM_DEFINE (scm_uniform_vector_set_x, "uniform-vector-set!", 3, 0, 0,
 	    "homogeneous numeric vector @var{v} to @var{val}.")
 #define FUNC_NAME s_scm_uniform_vector_set_x
 {
+  scm_c_issue_deprecation_warning
+    ("uniform-vector-set! is deprecated.  Instead, use array-set!, "
+     "but note the change in the order of the arguments.");
+
   scm_c_uniform_vector_set_x (v, scm_to_size_t (idx), val);
   return SCM_UNSPECIFIED;
 }
@@ -191,6 +230,9 @@ SCM_DEFINE (scm_uniform_vector_to_list, "uniform-vector->list", 1, 0, 0,
 	    "Convert the uniform numeric vector @var{uvec} to a list.")
 #define FUNC_NAME s_scm_uniform_vector_to_list
 {
+  scm_c_issue_deprecation_warning
+    ("uniform-vector->list is deprecated.  Use array->list instead.");
+
   if (!scm_is_uniform_vector (uvec))
     scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, uvec, "uniform vector");
   return scm_array_to_list (uvec);
@@ -202,6 +244,10 @@ scm_uniform_vector_elements (SCM uvec,
 			     scm_t_array_handle *h,
 			     size_t *lenp, ssize_t *incp)
 {
+  scm_c_issue_deprecation_warning
+    ("scm_uniform_vector_elements is deprecated.  Use "
+     "scm_array_handle_uniform_elements instead.");
+
   return scm_uniform_vector_writable_elements (uvec, h, lenp, incp);
 }
 
@@ -211,6 +257,11 @@ scm_uniform_vector_writable_elements (SCM uvec,
 				      size_t *lenp, ssize_t *incp)
 {
   void *ret;
+
+  scm_c_issue_deprecation_warning
+    ("scm_uniform_vector_writable_elements is deprecated.  Use "
+     "scm_array_handle_uniform_writable_elements instead.");
+
   scm_generalized_vector_get_handle (uvec, h);
   /* FIXME nonlocal exit */
   ret = scm_array_handle_uniform_writable_elements (h);
@@ -228,9 +279,15 @@ SCM_DEFINE (scm_uniform_vector_length, "uniform-vector-length", 1, 0, 0,
 	    "Return the number of elements in the uniform vector @var{v}.")
 #define FUNC_NAME s_scm_uniform_vector_length
 {
+  scm_c_issue_deprecation_warning
+    ("uniform-vector-length is deprecated.  Use array-length instead.");
+
   return scm_from_size_t (scm_c_uniform_vector_length (v));
 }
 #undef FUNC_NAME
+
+
+#endif /* SCM_ENABLE_DEPRECATED */
 
 
 void

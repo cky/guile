@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008,
-@c   2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+@c   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Foreign Function Interface
@@ -613,12 +613,10 @@ Scheme objects such as strings, floating point numbers, or integers.
 Return a bytevector aliasing the @var{len} bytes pointed to by
 @var{pointer}.
 
-The user may specify an alternate default interpretation for
-the memory by passing the @var{uvec_type} argument, to indicate
-that the memory is an array of elements of that type.
-@var{uvec_type} should be something that
-@code{uniform-vector-element-type} would return, like @code{f32}
-or @code{s16}.
+The user may specify an alternate default interpretation for the memory
+by passing the @var{uvec_type} argument, to indicate that the memory is
+an array of elements of that type.  @var{uvec_type} should be something
+that @code{array-type} would return, like @code{f32} or @code{s16}.
 
 When @var{offset} is passed, it specifies the offset in bytes relative
 to @var{pointer} of the memory region aliased by the returned
