@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007,
-@c   2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+@c   2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node POSIX
@@ -3391,55 +3391,6 @@ Note that the data is written directly to the socket
 file descriptor:
 any unflushed buffered port data is ignored.
 @end deffn
-
-The following functions can be used to convert short and long integers
-between ``host'' and ``network'' order.  Although the procedures above do
-this automatically for addresses, the conversion will still need to
-be done when sending or receiving encoded integer data from the network.
-
-@deffn {Scheme Procedure} htons value
-@deffnx {C Function} scm_htons (value)
-Convert a 16 bit quantity from host to network byte ordering.
-@var{value} is packed into 2 bytes, which are then converted
-and returned as a new integer.
-@end deffn
-
-@deffn {Scheme Procedure} ntohs value
-@deffnx {C Function} scm_ntohs (value)
-Convert a 16 bit quantity from network to host byte ordering.
-@var{value} is packed into 2 bytes, which are then converted
-and returned as a new integer.
-@end deffn
-
-@deffn {Scheme Procedure} htonl value
-@deffnx {C Function} scm_htonl (value)
-Convert a 32 bit quantity from host to network byte ordering.
-@var{value} is packed into 4 bytes, which are then converted
-and returned as a new integer.
-@end deffn
-
-@deffn {Scheme Procedure} ntohl value
-@deffnx {C Function} scm_ntohl (value)
-Convert a 32 bit quantity from network to host byte ordering.
-@var{value} is packed into 4 bytes, which are then converted
-and returned as a new integer.
-@end deffn
-
-These procedures are inconvenient to use at present, but consider:
-
-@example
-(define write-network-long
-  (lambda (value port)
-    (let ((v (make-uniform-vector 1 1 0)))
-      (uniform-vector-set! v 0 (htonl value))
-      (uniform-vector-write v port))))
-
-(define read-network-long
-  (lambda (port)
-    (let ((v (make-uniform-vector 1 1 0)))
-      (uniform-vector-read! v port)
-      (ntohl (uniform-vector-ref v 0)))))
-@end example
 
 
 @node Internet Socket Examples

@@ -2,7 +2,7 @@
    deprecate something, move it here when that is feasible.
 */
 
-/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2946,6 +2946,69 @@ SCM_DEFINE (scm_gc_live_object_stats, "gc-live-object-stats", 0, 0, 0,
      "unfortunately.");
 
   return SCM_EOL;
+}
+#undef FUNC_NAME
+
+
+
+
+SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
+            (SCM value),
+	    "Convert a 16 bit quantity from host to network byte ordering.\n"
+	    "@var{value} is packed into 2 bytes, which are then converted\n"
+	    "and returned as a new integer.")
+#define FUNC_NAME s_scm_htons
+{
+  scm_c_issue_deprecation_warning
+    ("htons is deprecated.  Use bytevector-u16-set! and bytevector-u16-ref "
+     "with big endianness.");
+
+  return scm_from_ushort (htons (scm_to_ushort (value)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_ntohs, "ntohs", 1, 0, 0, 
+            (SCM value),
+	    "Convert a 16 bit quantity from network to host byte ordering.\n"
+	    "@var{value} is packed into 2 bytes, which are then converted\n"
+	    "and returned as a new integer.")
+#define FUNC_NAME s_scm_ntohs
+{
+  scm_c_issue_deprecation_warning
+    ("ntohs is deprecated.  Use bytevector-u16-set! and bytevector-u16-ref "
+     "with big endianness.");
+
+  return scm_from_ushort (ntohs (scm_to_ushort (value)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0, 
+            (SCM value),
+	    "Convert a 32 bit quantity from host to network byte ordering.\n"
+	    "@var{value} is packed into 4 bytes, which are then converted\n"
+	    "and returned as a new integer.")
+#define FUNC_NAME s_scm_htonl
+{
+  scm_c_issue_deprecation_warning
+    ("htonl is deprecated.  Use bytevector-u32-set! and bytevector-u32-ref "
+     "with big endianness.");
+
+  return scm_from_ulong (htonl (scm_to_uint32 (value)));
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0, 
+            (SCM value),
+	    "Convert a 32 bit quantity from network to host byte ordering.\n"
+	    "@var{value} is packed into 4 bytes, which are then converted\n"
+	    "and returned as a new integer.")
+#define FUNC_NAME s_scm_ntohl
+{
+  scm_c_issue_deprecation_warning
+    ("ntohl is deprecated.  Use bytevector-u32-set! and bytevector-u32-ref "
+     "with big endianness.");
+
+  return scm_from_ulong (ntohl (scm_to_uint32 (value)));
 }
 #undef FUNC_NAME
 

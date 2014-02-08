@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
- *   2006, 2007, 2009, 2011, 2012, 2013 Free Software Foundation, Inc.
+ *   2006, 2007, 2009, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -91,50 +91,6 @@ typedef union
 
 
 
-
-SCM_DEFINE (scm_htons, "htons", 1, 0, 0, 
-            (SCM value),
-	    "Convert a 16 bit quantity from host to network byte ordering.\n"
-	    "@var{value} is packed into 2 bytes, which are then converted\n"
-	    "and returned as a new integer.")
-#define FUNC_NAME s_scm_htons
-{
-  return scm_from_ushort (htons (scm_to_ushort (value)));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_ntohs, "ntohs", 1, 0, 0, 
-            (SCM value),
-	    "Convert a 16 bit quantity from network to host byte ordering.\n"
-	    "@var{value} is packed into 2 bytes, which are then converted\n"
-	    "and returned as a new integer.")
-#define FUNC_NAME s_scm_ntohs
-{
-  return scm_from_ushort (ntohs (scm_to_ushort (value)));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_htonl, "htonl", 1, 0, 0, 
-            (SCM value),
-	    "Convert a 32 bit quantity from host to network byte ordering.\n"
-	    "@var{value} is packed into 4 bytes, which are then converted\n"
-	    "and returned as a new integer.")
-#define FUNC_NAME s_scm_htonl
-{
-  return scm_from_ulong (htonl (scm_to_uint32 (value)));
-}
-#undef FUNC_NAME
-
-SCM_DEFINE (scm_ntohl, "ntohl", 1, 0, 0, 
-            (SCM value),
-	    "Convert a 32 bit quantity from network to host byte ordering.\n"
-	    "@var{value} is packed into 4 bytes, which are then converted\n"
-	    "and returned as a new integer.")
-#define FUNC_NAME s_scm_ntohl
-{
-  return scm_from_ulong (ntohl (scm_to_uint32 (value)));
-}
-#undef FUNC_NAME
 
 #ifdef HAVE_INET_NETOF
 SCM_DEFINE (scm_inet_netof, "inet-netof", 1, 0, 0, 

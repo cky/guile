@@ -5,7 +5,7 @@
 #ifndef SCM_DEPRECATED_H
 #define SCM_DEPRECATED_H
 
-/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2003,2004, 2005, 2006, 2007, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -862,6 +862,13 @@ SCM_DEPRECATED SCM scm_c_program_source (SCM program, size_t ip);
 
 
 SCM_DEPRECATED SCM scm_gc_live_object_stats (void);
+
+
+
+SCM_DEPRECATED SCM scm_htons (SCM in);
+SCM_DEPRECATED SCM scm_ntohs (SCM in);
+SCM_DEPRECATED SCM scm_htonl (SCM in);
+SCM_DEPRECATED SCM scm_ntohl (SCM in);
 
 
 
