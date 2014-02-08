@@ -47,12 +47,26 @@
 int
 scm_is_vector (SCM obj)
 {
-  if (SCM_I_IS_VECTOR (obj))
+  if (SCM_I_IS_NONWEAK_VECTOR (obj))
     return 1;
-  if  (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
+  if (SCM_I_WVECTP (obj))
+    {
+      scm_c_issue_deprecation_warning
+        ("Expecting vector? to be true for weak vectors is deprecated.  "
+         "Use weak-vector? instead.");
+      return 1;
+    }
+  if (SCM_I_ARRAYP (obj) && SCM_I_ARRAY_NDIM (obj) == 1)
     {
       SCM v = SCM_I_ARRAY_V (obj);
-      return SCM_I_IS_VECTOR (v);
+      if (SCM_I_IS_VECTOR (v))
+        {
+          scm_c_issue_deprecation_warning
+            ("Expecting vector? to be true for rank-1 arrays is deprecated.  "
+             "Use array?, array-rank, and array-type instead.");
+          return 1;
+        }
+      return 0;
     }
   return 0;
 }
@@ -60,7 +74,16 @@ scm_is_vector (SCM obj)
 int
 scm_is_simple_vector (SCM obj)
 {
-  return SCM_I_IS_VECTOR (obj);
+  if (SCM_I_IS_NONWEAK_VECTOR (obj))
+    return 1;
+  if (SCM_I_WVECTP (obj))
+    {
+      scm_c_issue_deprecation_warning
+        ("Expecting scm_is_simple_vector to be true for weak vectors is "
+         "deprecated.  Use scm_is_weak_vector instead.");
+      return 1;
+    }
+  return 0;
 }
 
 const SCM *
@@ -127,6 +150,9 @@ scm_vector_length (SCM v)
   else if (SCM_I_ARRAYP (v) && SCM_I_ARRAY_NDIM (v) == 1)
     {
       scm_t_array_dim *dim = SCM_I_ARRAY_DIMS (v);
+      scm_c_issue_deprecation_warning
+        ("Using vector-length on arrays is deprecated.  "
+         "Use array-length instead.");
       return scm_from_size_t (dim->ubnd - dim->lbnd + 1);
     }
   else if (SCM_UNPACK (g_vector_length))
@@ -246,6 +272,10 @@ scm_c_vector_ref (SCM v, size_t k)
 	{
 	  register SCM elt;
 
+          scm_c_issue_deprecation_warning
+            ("Using vector-ref on arrays is deprecated.  "
+             "Use array-ref instead.");
+
 	  if (k >= dim->ubnd - dim->lbnd + 1)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
@@ -320,6 +350,10 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
       SCM vv = SCM_I_ARRAY_V (v);
       if (SCM_I_IS_VECTOR (vv))
 	{
+          scm_c_issue_deprecation_warning
+            ("Using vector-set! on arrays is deprecated.  "
+             "Use array-set! instead, but note the change in argument order.");
+
 	  if (k >= dim->ubnd - dim->lbnd + 1)
 	    scm_out_of_range (NULL, scm_from_size_t (k));
 	  k = SCM_I_ARRAY_BASE (v) + k*dim->inc;
@@ -341,13 +375,10 @@ scm_c_vector_set_x (SCM v, size_t k, SCM obj)
     {
       scm_c_issue_deprecation_warning
         ("Using vector-set! as a primitive-generic is deprecated.");
-      return scm_call_3 (g_vector_set_x, v, scm_from_size_t (k), obj);
+      scm_call_3 (g_vector_set_x, v, scm_from_size_t (k), obj);
     }
   else
-    {
-      scm_wrong_type_arg_msg ("vector-set!", 1, v, "vector");
-      return SCM_UNDEFINED;  /* not reached */
-    }
+    scm_wrong_type_arg_msg ("vector-set!", 1, v, "vector");
 }
 
 SCM_DEFINE (scm_make_vector, "make-vector", 1, 1, 0,
