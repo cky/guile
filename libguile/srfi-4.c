@@ -1,6 +1,6 @@
 /* srfi-4.c --- Uniform numeric vector datatypes.
  *
- * 	Copyright (C) 2001, 2004, 2006, 2009, 2010 Free Software Foundation, Inc.
+ * 	Copyright (C) 2001, 2004, 2006, 2009, 2010, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -137,32 +137,15 @@
                                               scm_t_array_handle *h,    \
                                               size_t *lenp, ssize_t *incp) \
   {                                                                     \
-    scm_uniform_vector_elements (uvec, h, lenp, incp);                  \
-    if (h->element_type == ETYPE (TAG))                                 \
-      return ((ctype*)h->writable_elements) + h->base*width;            \
-    /* otherwise... */                                                  \
-    else                                                                \
-      {                                                                 \
-        size_t sfrom, sto, lfrom, lto;                                  \
-        if (h->dims != &h->dim0)                                        \
-          {                                                             \
-            h->dim0 = h->dims[0];                                       \
-            h->dims = &h->dim0;                                         \
-          }                                                             \
-        sfrom = scm_i_array_element_type_sizes [h->element_type];       \
-        sto = scm_i_array_element_type_sizes [ETYPE (TAG)];             \
-        lfrom = h->dim0.ubnd - h->dim0.lbnd + 1;                        \
-        lto = lfrom * sfrom / sto;                                      \
-        if (lto * sto != lfrom * sfrom)                                 \
-          {                                                             \
-            scm_array_handle_release (h);                               \
-            scm_wrong_type_arg (#tag"vector-elements", SCM_ARG1, uvec); \
-          }                                                             \
-        h->dim0.ubnd = h->dim0.lbnd + lto;                              \
-        h->base = h->base * sto / sfrom;                                \
-        h->element_type = ETYPE (TAG);                                  \
-        return ((ctype*)h->writable_elements) + h->base*width;          \
-      }                                                                 \
+    if (!scm_is_bytevector (uvec)                                       \
+        || (scm_c_bytevector_length (uvec) % width))                    \
+      scm_wrong_type_arg_msg (NULL, 0, uvec, #tag "vector");            \
+    scm_array_get_handle (uvec, h);                                     \
+    if (lenp)                                                           \
+      *lenp = scm_c_bytevector_length (uvec) / width;                   \
+    if (incp)                                                           \
+      *incp = 1;                                                        \
+    return ((ctype *)h->writable_elements);                             \
   }
 
 
@@ -231,13 +214,15 @@ SCM_DEFINE (scm_make_srfi_4_vector, "make-srfi-4-vector", 2, 1, 0,
             "Make a srfi-4 vector")
 #define FUNC_NAME s_scm_make_srfi_4_vector
 {
-  int i;
-  for (i = 0; i <= SCM_ARRAY_ELEMENT_TYPE_LAST; i++)
-    if (scm_is_eq (type, scm_i_array_element_types[i]))
+  int c_type;
+  size_t c_len;
+
+  for (c_type = 0; c_type <= SCM_ARRAY_ELEMENT_TYPE_LAST; c_type++)
+    if (scm_is_eq (type, scm_i_array_element_types[c_type]))
       break;
-  if (i > SCM_ARRAY_ELEMENT_TYPE_LAST)
+  if (c_type > SCM_ARRAY_ELEMENT_TYPE_LAST)
     scm_wrong_type_arg_msg (FUNC_NAME, SCM_ARG1, type, "vector type");
-  switch (i)
+  switch (c_type)
     {
     case SCM_ARRAY_ELEMENT_TYPE_U8:
     case SCM_ARRAY_ELEMENT_TYPE_S8:
@@ -252,7 +237,10 @@ SCM_DEFINE (scm_make_srfi_4_vector, "make-srfi-4-vector", 2, 1, 0,
     case SCM_ARRAY_ELEMENT_TYPE_C32:
     case SCM_ARRAY_ELEMENT_TYPE_C64:
       {
-        SCM ret = scm_i_make_typed_bytevector (scm_to_size_t (len), i);
+        SCM ret;
+
+        c_len = scm_to_size_t (len);
+        ret = scm_i_make_typed_bytevector (c_len, c_type);
 
         if (SCM_UNBNDP (fill) || scm_is_eq (len, SCM_INUM0))
           ; /* pass */
@@ -262,17 +250,11 @@ SCM_DEFINE (scm_make_srfi_4_vector, "make-srfi-4-vector", 2, 1, 0,
         else
           {
             scm_t_array_handle h;
-            size_t len;
-            ssize_t pos, inc;
+            size_t i;
 
-            scm_uniform_vector_writable_elements (ret, &h, &len, &inc);
-
-            for (pos = 0; pos != h.dims[0].ubnd; pos += inc)
-              scm_array_handle_set (&h, pos, fill);
-
-	    /* Initialize the last element.  */
-	    scm_array_handle_set (&h, pos, fill);
-
+            scm_array_get_handle (ret, &h);
+            for (i = 0; i < c_len; i++)
+              scm_array_handle_set (&h, i, fill);
             scm_array_handle_release (&h);
           }
         return ret;
