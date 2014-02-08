@@ -239,9 +239,10 @@
                  (lambda ()
                    (for-each (lambda (test)
                                (display (string-append "Running " test "\n"))
-                               (with-locale "C"
-                                 (with-test-prefix test
-                                   (load (test-file-name test)))))
+                               (when (defined? 'setlocale)
+                                 (setlocale LC_ALL "C"))
+                               (with-test-prefix test
+                                 (load (test-file-name test))))
                              tests))))
             (if (opt 'coverage #f)
                 (let-values (((coverage-data _)
@@ -263,5 +264,4 @@
 
 ;;; Local Variables:
 ;;; mode: scheme
-;;; eval: (put 'with-locale 'scheme-indent-function 1)
 ;;; End:
