@@ -1,6 +1,6 @@
 ## Autoconf macros for working with Guile.
 ##
-##   Copyright (C) 1998,2001, 2006, 2010, 2012, 2013 Free Software Foundation, Inc.
+##   Copyright (C) 1998,2001, 2006, 2010, 2012, 2013, 2014 Free Software Foundation, Inc.
 ##
 ## This library is free software; you can redistribute it and/or
 ## modify it under the terms of the GNU Lesser General Public License
@@ -77,8 +77,8 @@ AC_DEFUN([GUILE_PKG],
   GUILE_EFFECTIVE_VERSION=""
   _guile_errors=""
   for v in $_guile_versions_to_search; do
-    AC_MSG_NOTICE([checking for guile $v])
     if test -z "$GUILE_EFFECTIVE_VERSION"; then
+      AC_MSG_NOTICE([checking for guile $v])
       PKG_CHECK_EXISTS([guile-$v], [GUILE_EFFECTIVE_VERSION=$v], [])
     fi
   done
@@ -93,7 +93,7 @@ the development packages.  If you installed it yourself, you might need
 to adjust your PKG_CONFIG_PATH; see the pkg-config man page for more.
 ])
   fi
-  AC_MSG_NOTICE([found guile $v])
+  AC_MSG_NOTICE([found guile $GUILE_EFFECTIVE_VERSION])
   AC_SUBST([GUILE_EFFECTIVE_VERSION])
  ])
 
@@ -199,7 +199,10 @@ AC_DEFUN([GUILE_SITE_DIR],
 #
 AC_DEFUN([GUILE_PROGS],
  [AC_PATH_PROG(GUILE,guile)
-  _guile_required_version="m4_default([$1], [2.0])"
+  _guile_required_version="m4_default([$1], [$GUILE_EFFECTIVE_VERSION])"
+  if test -z "$_guile_required_version"; then
+    _guile_required_version=2.0
+  fi
   if test "$GUILE" = "" ; then
       AC_MSG_ERROR([guile required but not found])
   fi
@@ -228,8 +231,11 @@ AC_DEFUN([GUILE_PROGS],
           AC_MSG_ERROR([Guile $_guile_required_version required, but $_guile_prog_version found])
         fi
       fi
+    elif test "$GUILE_EFFECTIVE_VERSION" == "$_major_version.$_minor_version" -a -z "$_micro_version"; then
+      # Allow prereleases that have the right effective version.
+      true
     else
-      AC_MSG_ERROR([Guile $_guile_required_version required, but $_guile_prog_version found])
+      as_fn_error $? "Guile $_guile_required_version required, but $_guile_prog_version found" "$LINENO" 5
     fi
   else
     AC_MSG_ERROR([Guile $_guile_required_version required, but $_guile_prog_version found])
