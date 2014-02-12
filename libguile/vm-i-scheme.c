@@ -236,10 +236,12 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 #if SCM_GNUC_PREREQ (4, 5) && (defined __x86_64__ || defined __i386__)
 
 # undef _CX
-# ifdef __x86_64__
+# if SIZEOF_VOID_P == 8
 #  define _CX "rcx"
-# else
+# elif SIZEOF_VOID_P == 4
 #  define _CX "ecx"
+# else
+#  error unsupported word size
 # endif
 
 /* The macros below check the CPU's overflow flag to improve fixnum
