@@ -1884,14 +1884,6 @@ do_std_select (void *args)
   return NULL;
 }
 
-#if !SCM_HAVE_SYS_SELECT_H
-static int scm_std_select (int nfds,
-                           fd_set *readfds,
-                           fd_set *writefds,
-                           fd_set *exceptfds,
-                           struct timeval *timeout);
-#endif
-
 int
 scm_std_select (int nfds,
 		fd_set *readfds,

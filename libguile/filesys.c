@@ -561,7 +561,6 @@ SCM_DEFINE (scm_stat, "stat", 1, 1, 0,
 }
 #undef FUNC_NAME
 
-#ifdef HAVE_LSTAT
 SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0, 
             (SCM str),
 	    "Similar to @code{stat}, but does not follow symbolic links, i.e.,\n"
@@ -584,7 +583,6 @@ SCM_DEFINE (scm_lstat, "lstat", 1, 0, 0,
   return scm_stat2scm (&stat_temp);
 }
 #undef FUNC_NAME
-#endif /* HAVE_LSTAT */
 
 
 #ifdef HAVE_POSIX
@@ -1466,10 +1464,6 @@ SCM_DEFINE (scm_umask, "umask", 0, 1, 0,
   return scm_from_uint (mask);
 }
 #undef FUNC_NAME
-
-#ifndef HAVE_MKSTEMP
-extern int mkstemp (char *);
-#endif
 
 SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 	    (SCM tmpl),
