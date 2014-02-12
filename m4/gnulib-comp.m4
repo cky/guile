@@ -144,6 +144,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mbsinit:
   # Code from module mbtowc:
   # Code from module memchr:
+  # Code from module mkstemp:
   # Code from module msvc-inval:
   # Code from module msvc-nothrow:
   # Code from module multiarch:
@@ -171,6 +172,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module safe-read:
   # Code from module safe-write:
   # Code from module same-inode:
+  # Code from module secure_getenv:
   # Code from module select:
   # Code from module send:
   # Code from module sendto:
@@ -212,6 +214,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_times:
   # Code from module sys_types:
   # Code from module sys_uio:
+  # Code from module tempname:
   # Code from module threadlib:
   gl_THREADLIB_EARLY
   # Code from module time:
@@ -567,6 +570,12 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_MEMCHR
   fi
   gl_STRING_MODULE_INDICATOR([memchr])
+  gl_FUNC_MKSTEMP
+  if test $HAVE_MKSTEMP = 0 || test $REPLACE_MKSTEMP = 1; then
+    AC_LIBOBJ([mkstemp])
+    gl_PREREQ_MKSTEMP
+  fi
+  gl_STDLIB_MODULE_INDICATOR([mkstemp])
   gl_MSVC_INVAL
   if test $HAVE_MSVC_INVALID_PARAMETER_HANDLER = 1; then
     AC_LIBOBJ([msvc-inval])
@@ -662,6 +671,12 @@ AC_SUBST([LTALLOCA])
   gl_MATH_MODULE_INDICATOR([round])
   gl_PREREQ_SAFE_READ
   gl_PREREQ_SAFE_WRITE
+  gl_FUNC_SECURE_GETENV
+  if test $HAVE_SECURE_GETENV = 0; then
+    AC_LIBOBJ([secure_getenv])
+    gl_PREREQ_SECURE_GETENV
+  fi
+  gl_STDLIB_MODULE_INDICATOR([secure_getenv])
   gl_FUNC_SELECT
   if test $REPLACE_SELECT = 1; then
     AC_LIBOBJ([select])
@@ -759,6 +774,7 @@ AC_SUBST([LTALLOCA])
   AC_PROG_MKDIR_P
   gl_HEADER_SYS_UIO
   AC_PROG_MKDIR_P
+  gl_FUNC_GEN_TEMPNAME
   gl_THREADLIB
   gl_HEADER_TIME_H
   gl_TIME_R
@@ -1059,6 +1075,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mbtowc.c
   lib/memchr.c
   lib/memchr.valgrind
+  lib/mkstemp.c
   lib/msvc-inval.c
   lib/msvc-inval.h
   lib/msvc-nothrow.c
@@ -1100,6 +1117,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/safe-write.c
   lib/safe-write.h
   lib/same-inode.h
+  lib/secure_getenv.c
   lib/select.c
   lib/send.c
   lib/sendto.c
@@ -1140,6 +1158,8 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/sys_times.in.h
   lib/sys_types.in.h
   lib/sys_uio.in.h
+  lib/tempname.c
+  lib/tempname.h
   lib/time.in.h
   lib/time_r.c
   lib/times.c
@@ -1257,6 +1277,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mbstate_t.m4
   m4/mbtowc.m4
   m4/memchr.m4
+  m4/mkstemp.m4
   m4/mmap-anon.m4
   m4/mode_t.m4
   m4/msvc-inval.m4
@@ -1285,6 +1306,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/round.m4
   m4/safe-read.m4
   m4/safe-write.m4
+  m4/secure_getenv.m4
   m4/select.m4
   m4/servent.m4
   m4/setenv.m4
@@ -1316,6 +1338,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_times_h.m4
   m4/sys_types_h.m4
   m4/sys_uio_h.m4
+  m4/tempname.m4
   m4/threadlib.m4
   m4/time_h.m4
   m4/time_r.m4
