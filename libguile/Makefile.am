@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
 ##   Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2006, 2007,
-##     2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+##     2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -448,6 +448,31 @@ EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
 install-exec-hook:
 	rm -f $(DESTDIR)$(bindir)/guile-snarf.awk
 
+install-data-local: libguile-2.0-gdb.scm
+	@$(MKDIR_P) $(DESTDIR)$(libdir)
+## We want to install libguile-2.0-gdb.scm as SOMETHING-gdb.scm.
+## SOMETHING is the full name of the final library.  We want to ignore
+## symlinks, the .la file, and any previous -gdb.py file.  This is
+## inherently fragile, but there does not seem to be a better option,
+## because libtool hides the real names from us.  (Trick courtesy of
+## GNU libstdc++.)
+	@here=`pwd`; cd $(DESTDIR)$(libdir);			\
+	  for file in libguile-@GUILE_EFFECTIVE_VERSION@*; do	\
+	    case $$file in					\
+	      *-gdb.scm) ;;					\
+	      *.la) ;;						\
+	      *) if test -h $$file; then			\
+	           continue;					\
+	         fi;						\
+	         libname=$$file;;				\
+	    esac;						\
+	  done;							\
+	cd $$here;						\
+	echo " $(INSTALL_DATA) libguile-2.0-gdb.scm		\
+$(DESTDIR)$(libdir)/$$libname-gdb.scm";				\
+	$(INSTALL_DATA) libguile-2.0-gdb.scm			\
+	    $(DESTDIR)$(libdir)/$$libname-gdb.scm
+
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
@@ -635,12 +660,13 @@ bin_SCRIPTS = guile-snarf
 # and people feel like maintaining them.  For now, this is not the case.
 noinst_SCRIPTS = guile-snarf-docs
 
-EXTRA_DIST = ChangeLog-scm ChangeLog-threads		\
-    ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008	\
-    guile-func-name-check				\
-    cpp-E.syms cpp-E.c cpp-SIG.syms cpp-SIG.c			\
-    c-tokenize.lex						\
-    scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map
+EXTRA_DIST = ChangeLog-scm ChangeLog-threads				\
+    ChangeLog-1996-1999 ChangeLog-2000 ChangeLog-2008			\
+    guile-func-name-check						\
+    cpp-E.syms cpp-E.c cpp-SIG.syms cpp-SIG.c				\
+    c-tokenize.lex							\
+    scmconfig.h.top libgettext.h unidata_to_charset.pl libguile.map	\
+    libguile-2.0-gdb.scm
 #    $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES) \
 #    guile-procedures.txt guile.texi
 

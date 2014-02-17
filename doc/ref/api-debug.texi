@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012, 2013
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2010, 2011, 2012, 2013, 2014
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -17,8 +17,9 @@ infrastructure that builds on top of those calls.
 @menu
 * Evaluation Model::            Evaluation and the Scheme stack.
 * Source Properties::           From expressions to source locations.
-* Programmatic Error Handling:: Debugging when an error occurs.
+* Programmatic Error Handling::  Debugging when an error occurs.
 * Traps::                       Breakpoints, tracepoints, oh my!
+* GDB Support::                 C-level debugging with GDB.
 @end menu
 
 @node Evaluation Model
@@ -1350,6 +1351,43 @@ invocations.
 This is a stepping trap, used to implement the ``step'', ``next'',
 ``step-instruction'', and ``next-instruction'' REPL commands.
 @end deffn
+
+@node GDB Support
+@subsection GDB Support
+
+@cindex GDB support
+
+Sometimes, you may find it necessary to debug Guile applications at the
+C level.  Doing so can be tedious, in particular because the debugger is
+oblivious to Guile's @code{SCM} type, and thus unable to display
+@code{SCM} values in any meaningful way:
+
+@example
+(gdb) frame
+#0  scm_display (obj=0xf04310, port=0x6f9f30) at print.c:1437
+@end example
+
+To address that, Guile comes with an extension of the GNU Debugger (GDB)
+that contains a ``pretty-printer'' for @code{SCM} values.  With this GDB
+extension, the C frame in the example above shows up like this:
+
+@example
+(gdb) frame
+#0  scm_display (obj=("hello" GDB!), port=#<port file 6f9f30>) at print.c:1437
+@end example
+
+@noindent
+Here GDB was able to decode the list pointed to by @var{obj}, and to
+print it using Scheme's read syntax.
+
+That extension is a @code{.scm} file installed alongside the
+@file{libguile} shared library.  When GDB 7.8 or later is installed and
+compiled with support for extensions written in Guile, the extension is
+automatically loaded when debugging a program linked against
+@file{libguile} (@pxref{Auto-loading,,, gdb, Debugging with GDB}).  Note
+that the directory where @file{libguile} is installed must be among
+GDB's auto-loading ``safe directories'' (@pxref{Auto-loading safe
+path,,, gdb, Debugging with GDB}).
 
 
 @c Local Variables:
