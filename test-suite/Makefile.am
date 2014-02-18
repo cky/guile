@@ -163,6 +163,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/threads.test			\
 	    tests/time.test			\
 	    tests/tree-il.test			\
+	    tests/types.test			\
 	    tests/version.test			\
 	    tests/vlist.test			\
 	    tests/weaks.test			\

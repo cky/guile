@@ -188,6 +188,7 @@ SYSTEM_BASE_SOURCES =				\
   system/base/lalr.scm				\
   system/base/message.scm			\
   system/base/target.scm			\
+  system/base/types.scm				\
   system/base/ck.scm
 
 ICE_9_SOURCES = \

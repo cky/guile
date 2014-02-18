@@ -1,0 +1,154 @@
+;;;; types.test --- Type tag decoding.      -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2014 Free Software Foundation, Inc.
+;;;;
+;;;; This file is part of GNU Guile.
+;;;;
+;;;; GNU Guile is free software; you can redistribute it and/or modify it
+;;;; under the terms of the GNU Lesser General Public License as published by
+;;;; the Free Software Foundation; either version 3 of the License, or (at
+;;;; your option) any later version.
+;;;;
+;;;; GNU Guile is distributed in the hope that it will be useful, but
+;;;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
+;;;; General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public License
+;;;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+(define-module (test-types)
+  #:use-module (test-suite lib)
+  #:use-module (rnrs io ports)
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 regex)
+  #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-9)
+  #:use-module (system foreign)
+  #:use-module (system vm vm)
+  #:use-module (system base types))
+
+(define-syntax test-cloneable
+  (syntax-rules ()
+    "Test whether each simple OBJECT is properly decoded."
+    ((_ object rest ...)
+     (begin
+       (let ((obj object))
+         (pass-if-equal (object->string obj) obj
+           (scm->object (object-address obj))))
+       (test-cloneable rest ...)))
+    ((_)
+     *unspecified*)))
+
+;; Test objects that can be directly cloned.
+(with-test-prefix "clonable objects"
+  (test-cloneable
+   #t #f #nil (if #f #f) (eof-object)
+   42 (expt 2 28) 3.14
+   "narrow string" "wide στρινγ"
+   'symbol 'λ
+   ;; NB: keywords are SMOBs.
+   '(2 . 3) (iota 123) '(1 (two ("three")))
+   #(1 2 3) #(foo bar baz)
+   #vu8(255 254 253)
+   (make-pointer 123) (make-pointer #xdeadbeef)))
+
+;; Circular objects cannot be compared with 'equal?', so here's their
+;; home.
+(with-test-prefix "clonable circular objects"
+
+  (pass-if "list"
+    (let* ((lst    (circular-list 0 1))
+           (result (scm->object (object-address lst))))
+      (match result
+        ((0 1 . self)
+         (eq? self result)))))
+
+  (pass-if "vector"
+    (define (circular-vector)
+      (let ((v (make-vector 3 'hey)))
+        (vector-set! v 2 v)
+        v))
+
+    (let* ((vec    (circular-vector))
+           (result (scm->object (object-address vec))))
+      (match result
+        (#('hey 'hey self)
+         (eq? self result))))))
+
+(define-syntax test-inferior-objects
+  (syntax-rules ()
+    "Test whether each OBJECT is recognized and wrapped as an
+'inferior-object'."
+    ((_ (object kind sub-kind-pattern) rest ...)
+     (begin
+       (let ((obj object))
+         (pass-if (object->string obj)
+           (let ((result (scm->object (object-address obj))))
+             (and (inferior-object? result)
+                  (eq? 'kind (inferior-object-kind result))
+                  (match (inferior-object-sub-kind result)
+                    (sub-kind-pattern #t)
+                    (_ #f))))))
+       (test-inferior-objects rest ...)))
+    ((_)
+     *unspecified*)))
+
+(with-test-prefix "opaque objects"
+  (test-inferior-objects
+   ((make-guardian) smob (? integer?))
+   (#:keyword smob (? integer?))
+   ((%make-void-port "w") port (? integer?))
+   ((open-input-string "hello") port (? integer?))
+   ((lambda () #t) program _)
+   ((the-vm) vm _)
+   ((expt 2 70) bignum _))
+
+  (pass-if "fluid"
+    (let ((fluid (make-fluid)))
+      (inferior-fluid? (scm->object (object-address fluid))))))
+
+(define-record-type <some-struct>
+  (some-struct x y z)
+  some-struct?
+  (x struct-x set-struct-x!)
+  (y struct-y)
+  (z struct-z))
+
+(with-test-prefix "structs"
+
+  (pass-if-equal "simple struct"
+      '(<some-struct> a b c)
+    (let* ((struct (some-struct 'a 'b 'c))
+           (result (scm->object (object-address struct))))
+      (and (inferior-struct? result)
+           (cons (inferior-struct-name result)
+                 (inferior-struct-fields result)))))
+
+  (pass-if "circular struct"
+    (let ((struct (some-struct #f 'b 'c)))
+      (set-struct-x! struct struct)
+      (let ((result (scm->object (object-address struct))))
+        (and (inferior-struct? result)
+             (eq? (inferior-struct-name result) '<some-struct>)
+             (match (inferior-struct-fields result)
+               ((self 'b 'c)
+                (eq? self result)))))))
+
+  (pass-if "printed circular struct"
+    (->bool
+     (string-match "#<struct <some-struct> #0# b c [[:xdigit:]]+>"
+                   (let ((struct (some-struct #f 'b 'c)))
+                     (set-struct-x! struct struct)
+                     (object->string (scm->object (object-address struct)))))))
+
+  (pass-if "printed deep circular struct"
+    (->bool
+     (string-match
+      "#<struct <some-struct> \
+#<struct <some-struct> #-1# 3 4 [[:xdigit:]]+> \
+1 2 [[:xdigit:]]+>"
+      (let* ((a (some-struct #f 1 2))
+             (b (some-struct a 3 4)))
+        (set-struct-x! a b)
+        (object->string (scm->object (object-address a))))))))
