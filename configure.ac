@@ -5,7 +5,7 @@ dnl
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
 Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -50,6 +50,10 @@ GUILE_VERSION="$PACKAGE_VERSION"
 
 AC_CONFIG_HEADERS([config.h])
 AH_TOP(/*GUILE_CONFIGURE_COPYRIGHT*/)
+
+dnl We require the pkg.m4 set of macros from pkg-config.
+dnl Make sure it's available.
+m4_pattern_forbid([PKG_CHECK_MODULES])
 
 #--------------------------------------------------------------------
 
