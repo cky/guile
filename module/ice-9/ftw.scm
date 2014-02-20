@@ -1,6 +1,6 @@
 ;;;; ftw.scm --- file system tree walk
 
-;;;; 	Copyright (C) 2002, 2003, 2006, 2011, 2012 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2002, 2003, 2006, 2011, 2012, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -259,7 +259,8 @@
       (let* ((perms (stat:perms s))
              (perms-bit-set? (lambda (mask)
                                (not (= 0 (logand mask perms))))))
-        (or (and (= uid (stat:uid s))
+        (or (zero? uid)
+            (and (= uid (stat:uid s))
                  (perms-bit-set? #o400))
             (and (= gid (stat:gid s))
                  (perms-bit-set? #o040))
