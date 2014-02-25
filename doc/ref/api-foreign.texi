@@ -604,7 +604,7 @@ Unpack the pointer value from a pointer object.
 Wrapped pointers are untyped, so they are essentially equivalent to C
 @code{void} pointers.  As in C, the memory region pointed to by a
 pointer can be accessed at the byte level.  This is achieved using
-@emph{bytevectors} (@pxref{Bytevectors}).  The @code{(rnrs bytevector)}
+@emph{bytevectors} (@pxref{Bytevectors}).  The @code{(rnrs bytevectors)}
 module contains procedures that can be used to convert byte sequences to
 Scheme objects such as strings, floating point numbers, or integers.
 
