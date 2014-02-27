@@ -84,6 +84,7 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_FP_IEEE])
   # Code from module frexp:
   # Code from module fstat:
+  # Code from module fsync:
   # Code from module full-read:
   # Code from module full-write:
   # Code from module func:
@@ -127,6 +128,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module lib-symbol-versions:
   # Code from module lib-symbol-visibility:
   # Code from module libunistring:
+  # Code from module link:
   # Code from module listen:
   # Code from module localcharset:
   # Code from module locale:
@@ -144,6 +146,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mbsinit:
   # Code from module mbtowc:
   # Code from module memchr:
+  # Code from module mkdir:
   # Code from module mkstemp:
   # Code from module msvc-inval:
   # Code from module msvc-nothrow:
@@ -202,6 +205,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module stdint:
   # Code from module stdio:
   # Code from module stdlib:
+  # Code from module strdup-posix:
   # Code from module streq:
   # Code from module strftime:
   # Code from module striconveh:
@@ -365,6 +369,12 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_FSTAT
   fi
   gl_SYS_STAT_MODULE_INDICATOR([fstat])
+  gl_FUNC_FSYNC
+  if test $HAVE_FSYNC = 0; then
+    AC_LIBOBJ([fsync])
+    gl_PREREQ_FSYNC
+  fi
+  gl_UNISTD_MODULE_INDICATOR([fsync])
   gl_FUNC
   gl_GETADDRINFO
   if test $HAVE_GETADDRINFO = 0; then
@@ -499,6 +509,11 @@ AC_SUBST([LTALLOCA])
   gl_LD_VERSION_SCRIPT
   gl_VISIBILITY
   gl_LIBUNISTRING
+  gl_FUNC_LINK
+  if test $HAVE_LINK = 0 || test $REPLACE_LINK = 1; then
+    AC_LIBOBJ([link])
+  fi
+  gl_UNISTD_MODULE_INDICATOR([link])
   AC_REQUIRE([gl_HEADER_SYS_SOCKET])
   if test "$ac_cv_header_winsock2_h" = yes; then
     AC_LIBOBJ([listen])
@@ -570,6 +585,10 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_MEMCHR
   fi
   gl_STRING_MODULE_INDICATOR([memchr])
+  gl_FUNC_MKDIR
+  if test $REPLACE_MKDIR = 1; then
+    AC_LIBOBJ([mkdir])
+  fi
   gl_FUNC_MKSTEMP
   if test $HAVE_MKSTEMP = 0 || test $REPLACE_MKSTEMP = 1; then
     AC_LIBOBJ([mkstemp])
@@ -752,6 +771,12 @@ AC_SUBST([LTALLOCA])
   gl_STDINT_H
   gl_STDIO_H
   gl_STDLIB_H
+  gl_FUNC_STRDUP_POSIX
+  if test $ac_cv_func_strdup = no || test $REPLACE_STRDUP = 1; then
+    AC_LIBOBJ([strdup])
+    gl_PREREQ_STRDUP
+  fi
+  gl_STRING_MODULE_INDICATOR([strdup])
   gl_FUNC_GNU_STRFTIME
   if test $gl_cond_libtool = false; then
     gl_ltlibdeps="$gl_ltlibdeps $LTLIBICONV"
@@ -1016,6 +1041,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/floor.c
   lib/frexp.c
   lib/fstat.c
+  lib/fsync.c
   lib/full-read.c
   lib/full-read.h
   lib/full-write.c
@@ -1055,6 +1081,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/itold.c
   lib/langinfo.in.h
   lib/libunistring.valgrind
+  lib/link.c
   lib/listen.c
   lib/localcharset.c
   lib/localcharset.h
@@ -1075,6 +1102,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/mbtowc.c
   lib/memchr.c
   lib/memchr.valgrind
+  lib/mkdir.c
   lib/mkstemp.c
   lib/msvc-inval.c
   lib/msvc-inval.h
@@ -1142,6 +1170,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/stdint.in.h
   lib/stdio.in.h
   lib/stdlib.in.h
+  lib/strdup.c
   lib/streq.h
   lib/strftime.c
   lib/strftime.h
@@ -1225,6 +1254,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/fpieee.m4
   m4/frexp.m4
   m4/fstat.m4
+  m4/fsync.m4
   m4/func.m4
   m4/getaddrinfo.m4
   m4/getlogin.m4
@@ -1257,6 +1287,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lib-prefix.m4
   m4/libunistring-base.m4
   m4/libunistring.m4
+  m4/link.m4
   m4/localcharset.m4
   m4/locale-fr.m4
   m4/locale-ja.m4
@@ -1277,6 +1308,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mbstate_t.m4
   m4/mbtowc.m4
   m4/memchr.m4
+  m4/mkdir.m4
   m4/mkstemp.m4
   m4/mmap-anon.m4
   m4/mode_t.m4
@@ -1328,6 +1360,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/stdint_h.m4
   m4/stdio_h.m4
   m4/stdlib_h.m4
+  m4/strdup.m4
   m4/strftime.m4
   m4/string_h.m4
   m4/sys_file_h.m4
