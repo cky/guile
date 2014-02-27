@@ -1,6 +1,6 @@
 ;;;; texinfo.test                 -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
+;;;; Copyright (C) 2010, 2011, 2012, 2013, 2014  Free Software Foundation, Inc.
 ;;;; Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -232,6 +232,8 @@
 
   (test-body "@example\n foo asdf  asd  sadf asd  \n@end example\n"
              '((example " foo asdf  asd  sadf asd  ")))
+  (test-body "@example\n@{\n@}\n@end example\n"
+             '((example "{\n}")))
   (test-body (join-lines
               "@quotation"
               "@example"

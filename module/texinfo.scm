@@ -1,6 +1,6 @@
 ;;;; (texinfo) -- parsing of texinfo into SXML
 ;;;;
-;;;; 	Copyright (C) 2009, 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2012, 2013, 2014  Free Software Foundation, Inc.
 ;;;;    Copyright (C) 2004, 2009 Andy Wingo <wingo at pobox dot com>
 ;;;;    Copyright (C) 2001,2002 Oleg Kiselyov <oleg at pobox dot com>
 ;;;;
@@ -765,7 +765,9 @@ Examples:
                   (let* ((token (read-command-token port))
                          (end? (eq? (token-kind token) 'END)))
                     (values
-                     (handle str-handler fragment (if end? "" " ") seed)
+                     (handle str-handler fragment
+                             (if end? "" (if preserve-ws? "\n" " "))
+                             seed)
                      token)))
                  ((and (not preserve-ws?) (eq? c #\newline))
                   ;; paragraph-separator ::= #\newline #\newline+
