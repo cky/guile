@@ -468,10 +468,10 @@ install-data-local: libguile-2.0-gdb.scm
 	    esac;						\
 	  done;							\
 	cd $$here;						\
-	echo " $(INSTALL_DATA) libguile-2.0-gdb.scm		\
+	echo " $(INSTALL_DATA) $<				\
 $(DESTDIR)$(libdir)/$$libname-gdb.scm";				\
-	$(INSTALL_DATA) libguile-2.0-gdb.scm			\
-	    $(DESTDIR)$(libdir)/$$libname-gdb.scm
+	$(INSTALL_DATA) "$<"					\
+	    "$(DESTDIR)$(libdir)/$$libname-gdb.scm"
 
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included.  So instead we list them here.
