@@ -1,6 +1,6 @@
 ;;; srfi-18.scm --- Multithreading support
 
-;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2008, 2009, 2010, 2014 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -82,7 +82,7 @@
  uncaught-exception?
  uncaught-exception-reason
  )
-  :re-export (thread? mutex? condition-variable?)
+  :re-export (current-thread thread? mutex? condition-variable?)
   :replace (current-time 
 	    make-thread 
 	    make-mutex 
