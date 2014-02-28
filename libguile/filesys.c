@@ -72,9 +72,7 @@
 # endif
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #ifdef LIBC_H_WITH_UNISTD_H
 #include <libc.h>

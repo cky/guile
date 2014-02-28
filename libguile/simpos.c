@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2003, 2004, 2009,
- *   2010, 2012 Free Software Foundation, Inc.
+ *   2010, 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -40,9 +40,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #if HAVE_SYS_WAIT_H
 # include <sys/wait.h>
 #endif

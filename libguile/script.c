@@ -1,4 +1,4 @@
-/* Copyright (C) 1994-1998, 2000-2011 Free Software Foundation, Inc.
+/* Copyright (C) 1994-1998, 2000-2011, 2014 Free Software Foundation, Inc.
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -46,9 +46,7 @@
 #include <string.h>
 #endif
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>		/* for X_OK define */
-#endif
 
 #ifdef HAVE_IO_H
 #include <io.h>

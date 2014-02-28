@@ -1,5 +1,6 @@
 /* Copyright (C) 1999, 2000, 2001, 2003, 2005, 2006, 2009, 2010,
- *    2012, 2013 Free Software Foundation, Inc.
+ *    2012, 2013, 2014 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -31,10 +32,7 @@
 #include <math.h>
 #include <string.h>
 #include <sys/types.h>
-
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "libguile/smob.h"
 #include "libguile/numbers.h"

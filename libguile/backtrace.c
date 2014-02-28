@@ -1,5 +1,6 @@
 /* Printing of backtraces and error messages
- * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009, 2010, 2011 Free Software Foundation
+ * Copyright (C) 1996,1997,1998,1999,2000,2001, 2003, 2004, 2006, 2009,
+ *   2010, 2011, 2014 Free Software Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,9 +27,7 @@
 
 #include "libguile/_scm.h"
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif

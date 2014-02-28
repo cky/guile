@@ -1,4 +1,4 @@
-/* 	Copyright (C) 2001, 2006, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2009, 2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -37,9 +37,7 @@
 #include "libguile/modules.h"
 #include "libguile/strports.h"
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif

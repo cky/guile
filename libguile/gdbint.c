@@ -1,6 +1,6 @@
 /* GDB interface for Guile
- * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009,2011,2012
- * Free Software Foundation, Inc.
+ * Copyright (C) 1996,1997,1999,2000,2001,2002,2004,2009,2011,2012,
+ *   2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -26,9 +26,7 @@
 
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 
 #include "libguile/strports.h"
 #include "libguile/read.h"

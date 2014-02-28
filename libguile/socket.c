@@ -33,9 +33,7 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef HAVE_UNIX_DOMAIN_SOCKETS

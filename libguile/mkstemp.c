@@ -1,4 +1,6 @@
-/* Copyright (C) 1991, 1992, 1996, 1998, 2001, 2006, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 1991, 1992, 1996, 1998, 2001, 2006, 2013,
+     2014 Free Software Foundation, Inc.
+
    This file is derived from mkstemps.c from the GNU Libiberty Library
    which in turn is derived from the GNU C Library.
 
@@ -33,9 +35,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <fcntl.h>
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
