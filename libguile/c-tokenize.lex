@@ -1,3 +1,9 @@
+%top{
+/* Include <config.h> before anything else because Gnulib headers such
+   as <stdio.h> rely on it.  */
+#include <config.h>
+}
+
 %option noyywrap
 %option nounput
 %pointer
@@ -14,8 +20,6 @@ FLOQUAL		(f|F|l|L)
 INTQUAL		(l|L|ll|LL|lL|Ll|u|U)
 
 %{
-#include <config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
