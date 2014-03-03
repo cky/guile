@@ -1,6 +1,7 @@
 ;;; srfi-19.scm --- Time/Date Library
 
-;; 	Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010,
+;;   2011, 2014 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -171,7 +172,7 @@
 ;; A table of leap seconds
 ;; See ftp://maia.usno.navy.mil/ser7/tai-utc.dat
 ;; and update as necessary.
-;; this procedures reads the file in the abover
+;; this procedures reads the file in the above
 ;; format and creates the leap second table
 ;; it also calls the almost standard, but not R5 procedures read-line
 ;; & open-input-string
@@ -202,7 +203,9 @@
 ;; each entry is (tai seconds since epoch . # seconds to subtract for utc)
 ;; note they go higher to lower, and end in 1972.
 (define leap-second-table
-  '((1136073600 . 33)
+  '((1341100800 . 35)
+    (1230768000 . 34)
+    (1136073600 . 33)
     (915148800 . 32)
     (867715200 . 31)
     (820454400 . 30)
