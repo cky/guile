@@ -1,6 +1,6 @@
 ;;; snarf-check-and-output-texi --- called by the doc snarfer.
 
-;; 	Copyright (C) 2001, 2002, 2006, 2011 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2006, 2011, 2014 Free Software Foundation, Inc.
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public License
@@ -63,7 +63,7 @@
                                                (let loop ((s s))
                                                  (cond
                                                    ((stream-null? s) #t)
-                                                   ((eq? 'eol (stream-car s))
+                                                   ((memq (stream-car s) '(eol hash))
                                                     (loop (stream-cdr s)))
                                                    (else (cons (stream-car s) (stream-cdr s))))))
                                              (port->stream port read)))))
@@ -262,17 +262,6 @@
       (set! *snarf-type* num))
 
      (('location ('string . file) ('int . line))
-      (set! *file* file)
-      (set! *line* line))
-
-     ;; newer gccs like to throw around more location markers into the
-     ;; preprocessed source; these (hash . hash) bits are what they translate to
-     ;; in snarfy terms.
-     (('location ('string . file) ('int . line) ('hash . 'hash))
-      (set! *file* file)
-      (set! *line* line))
-
-     (('location ('hash . 'hash) ('string . file) ('int . line) ('hash . 'hash))
       (set! *file* file)
       (set! *line* line))
 

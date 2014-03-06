@@ -1,7 +1,8 @@
 #!/bin/sh
 # Extract the initialization actions from source files.
 #
-#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002, 2004, 2006, 2008, 2009 Free Software Foundation, Inc.
+#  Copyright (C) 1996, 97, 98, 99, 2000, 2001, 2002, 2004, 2006, 2008,
+#    2009, 2014 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as
@@ -51,19 +52,21 @@ modern_snarf ()                         # writes stdout
     ## empty file.
     echo "/* cpp arguments: $@ */" ;
     ${cpp} -DSCM_MAGIC_SNARF_INITS -DSCM_MAGIC_SNARFER "$@" > ${temp} && cpp_ok_p=true
-    sed -ne 's/ *\^ *: *\^/\
+    sed -ne 's/ *\^ *\^ */\
 /
-h
-s/\n.*//
+s/.*\n//
 t x
 d
 : x
-s/.*\^ *\^ *\(.*\)/\1;/
+s/ *\^ *: *\^ */;\
+/
 t y
-d
+N
+s/\n\(#.*\)/ /
+s/\n/ /
+t x
 : y
-p
-x
+P
 D' ${temp}
 }
 
