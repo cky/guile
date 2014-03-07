@@ -536,7 +536,7 @@ static const char *const scm_r5rs_charnames[] = {
   "space", "newline"
 };
 
-static const scm_t_uint32 const scm_r5rs_charnums[] = {
+static const scm_t_uint32 scm_r5rs_charnums[] = {
   0x20, 0x0a
 };
 
@@ -548,7 +548,7 @@ static const char *const scm_r6rs_charnames[] = {
   /* 'space' and 'newline' are already included from the R5RS list.  */
 };
 
-static const scm_t_uint32 const scm_r6rs_charnums[] = {
+static const scm_t_uint32 scm_r6rs_charnums[] = {
   0x00, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c,
   0x0d, 0x1b, 0x7f
 };
@@ -559,7 +559,7 @@ static const char *const scm_r7rs_charnames[] = {
   "escape"
 };
 
-static const scm_t_uint32 const scm_r7rs_charnums[] = {
+static const scm_t_uint32 scm_r7rs_charnums[] = {
   0x1b
 };
 
@@ -575,7 +575,7 @@ static const char *const scm_C0_control_charnames[] = {
   "sp", "del"
 };
 
-static const scm_t_uint32 const scm_C0_control_charnums[] = {
+static const scm_t_uint32 scm_C0_control_charnums[] = {
   0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
   0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
   0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17,
@@ -589,7 +589,7 @@ static const char *const scm_alt_charnames[] = {
   "null", "nl", "np"
 };
 
-static const scm_t_uint32 const scm_alt_charnums[] = {
+static const scm_t_uint32 scm_alt_charnums[] = {
   0x00, 0x0a, 0x0c
 };
 
