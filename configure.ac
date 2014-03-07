@@ -1516,7 +1516,8 @@ AC_SUBST(HOST_CC)
 
 GUILE_CHECK_GUILE_FOR_BUILD
   			
-## If we're using GCC, ask for aggressive warnings.
+## If we're using GCC, add flags to reduce strictness of undefined
+## behavior, and ask for aggressive warnings.
 GCC_CFLAGS=""
 case "$GCC" in
   yes )
@@ -1526,13 +1527,13 @@ case "$GCC" in
     ## -Wundef was removed because Gnulib prevented it (see
     ## <http://thread.gmane.org/gmane.lisp.guile.bugs/5329>.)
 
-    ## Build with `-fno-strict-aliasing' to prevent miscompilation on
-    ## some platforms.  See
+    ## Build with `-fno-strict-aliasing' and `-fwrapv' to prevent
+    ## miscompilation on some platforms.  See
     ## <http://lists.gnu.org/archive/html/guile-devel/2012-01/msg00487.html>.
 
     POTENTIAL_GCC_CFLAGS="-Wall -Wmissing-prototypes \
       -Wdeclaration-after-statement -Wpointer-arith \
-      -Wswitch-enum -fno-strict-aliasing"
+      -Wswitch-enum -fno-strict-aliasing -fwrapv"
     # Do this here so we don't screw up any of the tests above that might
     # not be "warning free"
     if test "${GUILE_ERROR_ON_WARNING}" = yes

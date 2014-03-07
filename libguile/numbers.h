@@ -4,7 +4,7 @@
 #define SCM_NUMBERS_H
 
 /* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006,
- *   2008, 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+ *   2008, 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -60,7 +60,7 @@ typedef scm_t_int32 scm_t_wchar;
 #define SCM_I_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_I_NINUMP(x) (!SCM_I_INUMP (x))
 #define SCM_I_MAKINUM(x) \
-  (SCM_PACK ((((scm_t_signed_bits) (x)) << 2) + scm_tc2_int))
+  (SCM_PACK ((((scm_t_bits) (x)) << 2) + scm_tc2_int))
 #define SCM_I_INUM(x)   (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
