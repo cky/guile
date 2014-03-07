@@ -4,7 +4,7 @@
 #define SCM_SNARF_H
 
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+ *   2004, 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -87,7 +87,7 @@ DOCSTRING ^^ }
 
 #define SCM_DEFINE_GSUBR(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
-static const char s_ ## FNAME [] = PRIMNAME; \
+SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
 )\
 SCM_SNARF_INIT(\
@@ -103,7 +103,7 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 #define SCM_DEFINE(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING)	\
 SCM_SYMBOL (scm_i_paste (FNAME, __name), PRIMNAME);			\
 SCM_SNARF_HERE(							        \
-  static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;		\
+  SCM_UNUSED static const char scm_i_paste (s_, FNAME) [] = PRIMNAME;	\
   SCM_API SCM FNAME ARGLIST;						\
   SCM_IMMUTABLE_POINTER (scm_i_paste (FNAME, __subr_foreign),           \
                          (scm_t_bits) &FNAME); /* the subr */           \
@@ -141,7 +141,7 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
 #define SCM_PRIMITIVE_GENERIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
-static const char s_ ## FNAME [] = PRIMNAME; \
+SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
 static SCM g_ ## FNAME; \
 SCM FNAME ARGLIST\
 )\
@@ -155,7 +155,7 @@ SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
 #define SCM_DEFINE_PUBLIC(FNAME, PRIMNAME, REQ, OPT, VAR, ARGLIST, DOCSTRING) \
 SCM_SNARF_HERE(\
-static const char s_ ## FNAME [] = PRIMNAME; \
+SCM_UNUSED static const char s_ ## FNAME [] = PRIMNAME; \
 SCM FNAME ARGLIST\
 )\
 SCM_SNARF_INIT(\
@@ -166,12 +166,12 @@ scm_c_export (s_ ## FNAME, NULL); \
 SCM_SNARF_DOCS(primitive, FNAME, PRIMNAME, ARGLIST, REQ, OPT, VAR, DOCSTRING)
 
 #define SCM_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-SCM_SNARF_HERE(static const char RANAME[]=STR) \
+SCM_SNARF_HERE(SCM_UNUSED static const char RANAME[]=STR) \
 SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
                                    (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN))
 
 #define SCM_REGISTER_PROC(RANAME, STR, REQ, OPT, VAR, CFN)  \
-SCM_SNARF_HERE(static const char RANAME[]=STR) \
+SCM_SNARF_HERE(SCM_UNUSED static const char RANAME[]=STR) \
 SCM_SNARF_INIT(scm_c_define_gsubr (RANAME, REQ, OPT, VAR, \
                                    (SCM_FUNC_CAST_ARBITRARY_ARGS) CFN);) \
 SCM_SNARF_DOCS(register, CFN, STR, (), REQ, OPT, VAR, \
@@ -179,7 +179,7 @@ SCM_SNARF_DOCS(register, CFN, STR, (), REQ, OPT, VAR, \
 
 #define SCM_GPROC(RANAME, STR, REQ, OPT, VAR, CFN, GF)  \
 SCM_SNARF_HERE(\
-static const char RANAME[]=STR;\
+SCM_UNUSED static const char RANAME[]=STR;\
 static SCM GF \
 )SCM_SNARF_INIT(\
 GF = SCM_PACK (0);  /* Dirk:FIXME:: Can we safely use #f instead of 0? */ \
