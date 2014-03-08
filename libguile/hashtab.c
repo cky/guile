@@ -1464,7 +1464,9 @@ scm_internal_hash_for_each_handle (scm_t_hash_handle_fn fn, void *closure,
 	  handle = SCM_CAR (ls);
 	  if (!scm_is_pair (handle))
 	    SCM_WRONG_TYPE_ARG (SCM_ARG3, buckets);
-	  fn (closure, handle);
+          if (!SCM_HASHTABLE_WEAK_P (table)
+              || !SCM_WEAK_PAIR_DELETED_P (handle))
+            fn (closure, handle);
 	  ls = SCM_CDR (ls);
 	}
     }

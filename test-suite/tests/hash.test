@@ -347,3 +347,15 @@
 
     (pass-if (equal? 2 (hash-count (lambda (k v)
                                      (string? v)) table)))))
+
+;;;
+;;; weak key hash table
+;;;
+
+(with-test-prefix "weak key hash table"
+  (pass-if "hash-for-each after gc"
+    (let ((table (make-weak-key-hash-table)))
+      (hashq-set! table (list 'foo) 'bar)
+      (gc)
+      ;; Iterate over deleted weak ref without crashing.
+      (unspecified? (hash-for-each (lambda (key value) key) table)))))
