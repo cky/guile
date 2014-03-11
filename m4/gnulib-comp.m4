@@ -133,7 +133,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module localcharset:
   # Code from module locale:
   # Code from module localeconv:
-  # Code from module lock:
   # Code from module log:
   # Code from module log1p:
   # Code from module lstat:
@@ -219,8 +218,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module sys_types:
   # Code from module sys_uio:
   # Code from module tempname:
-  # Code from module threadlib:
-  gl_THREADLIB_EARLY
   # Code from module time:
   # Code from module time_r:
   # Code from module times:
@@ -529,8 +526,6 @@ AC_SUBST([LTALLOCA])
     gl_PREREQ_LOCALECONV
   fi
   gl_LOCALE_MODULE_INDICATOR([localeconv])
-  gl_LOCK
-  gl_MODULE_INDICATOR([lock])
   AC_REQUIRE([gl_FUNC_LOG])
   if test $REPLACE_LOG = 1; then
     AC_LIBOBJ([log])
@@ -549,6 +544,7 @@ AC_SUBST([LTALLOCA])
   gl_SYS_STAT_MODULE_INDICATOR([lstat])
   AC_CONFIG_COMMANDS_PRE([m4_ifdef([AH_HEADER],
     [AC_SUBST([CONFIG_INCLUDE], m4_defn([AH_HEADER]))])])
+  AC_REQUIRE([AC_PROG_SED])
   gl_FUNC_MALLOC_GNU
   if test $REPLACE_MALLOC = 1; then
     AC_LIBOBJ([malloc])
@@ -800,7 +796,6 @@ AC_SUBST([LTALLOCA])
   gl_HEADER_SYS_UIO
   AC_PROG_MKDIR_P
   gl_FUNC_GEN_TEMPNAME
-  gl_THREADLIB
   gl_HEADER_TIME_H
   gl_TIME_R
   if test $HAVE_LOCALTIME_R = 0 || test $REPLACE_LOCALTIME_R = 1; then
@@ -1054,9 +1049,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/getsockopt.c
   lib/gettext.h
   lib/gettimeofday.c
-  lib/glthread/lock.c
-  lib/glthread/lock.h
-  lib/glthread/threadlib.c
   lib/iconv.c
   lib/iconv.in.h
   lib/iconv_close.c
@@ -1294,7 +1286,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/locale-zh.m4
   m4/locale_h.m4
   m4/localeconv.m4
-  m4/lock.m4
   m4/log.m4
   m4/log1p.m4
   m4/longlong.m4
@@ -1372,7 +1363,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/sys_types_h.m4
   m4/sys_uio_h.m4
   m4/tempname.m4
-  m4/threadlib.m4
   m4/time_h.m4
   m4/time_r.m4
   m4/times.m4

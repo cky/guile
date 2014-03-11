@@ -1,7 +1,8 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007,
-##        2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+##        2008, 2009, 2010, 2011, 2012, 2013,
+##        2014 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -44,6 +45,16 @@ libguileinclude_HEADERS = libguile.h
 
 schemelibdir = $(pkgdatadir)/$(GUILE_EFFECTIVE_VERSION)
 schemelib_DATA = libguile/guile-procedures.txt
+
+# Our own implementation of Gnulib's lock interface.
+noinst_HEADERS = lib/glthread/lock.h
+
+# Our lib/glthreads/lock.h header indirectly includes
+# libguile/scmconfig.h.  Make sure it is built before we recurse into
+# lib/.
+BUILT_SOURCES = libguile/scmconfig.h
+libguile/scmconfig.h:
+	$(MAKE) -C libguile scmconfig.h
 
 # Build it from here so that all the modules are compiled by the time we
 # build it.
@@ -94,7 +105,7 @@ gen-ChangeLog:
 	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
 	fi
 
-BUILT_SOURCES = $(top_srcdir)/.version
+BUILT_SOURCES += $(top_srcdir)/.version
 $(top_srcdir)/.version:
 	echo $(VERSION) > $@-t && mv $@-t $@
 gen-tarball-version:

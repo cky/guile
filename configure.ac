@@ -76,6 +76,13 @@ AM_PROG_AR
 dnl Gnulib.
 gl_INIT
 
+dnl We provide our own lib/glthread/lock.h, so let other Gnulib modules
+dnl know that we have it.  This allows them to be compiled with adequate
+dnl locking support.  See <http://bugs.gnu.org/14404>.
+AC_DEFINE([GNULIB_LOCK], [1],
+  [Define to allow Gnulib modules to use Guile's locks.])
+
+
 AC_PROG_CC_C89
 
 # for per-target cflags in the libguile subdir
@@ -1437,9 +1444,12 @@ AM_CONDITIONAL([BUILD_PTHREAD_SUPPORT],
   [test "x$build_pthread_support" = "xyes"])
 
 
-## Check whether pthread_attr_getstack works for the main thread
-
 if test "$with_threads" = pthreads; then
+
+dnl Normally Gnulib's 'threadlib' module would define this macro, but
+dnl since we don't use it, define it by ourselves.
+AC_DEFINE([USE_POSIX_THREADS], [1],
+  [Define to let Gnulib modules know that we use POSIX threads.])
 
 AC_MSG_CHECKING([whether pthread_attr_getstack works for the main thread])
 old_CFLAGS="$CFLAGS"
