@@ -1,4 +1,4 @@
-/* Copyright (C) 2003-2013 Free Software Foundation, Inc.
+/* Copyright (C) 2003-2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -132,8 +132,10 @@
 
  **********************************************************************/
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
+/* Don't include <config.h> when cross-compiling because it contains
+   information about the host, not about the build machine.  */
+#ifndef CROSS_COMPILING
+# include <config.h>
 #endif
 
 #include <libguile/gen-scmconfig.h>

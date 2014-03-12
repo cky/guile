@@ -60,12 +60,13 @@ gen_scmconfig_SOURCES = gen-scmconfig.c
 ## the generated config.h and gen-scmconfig.h.  Nothing else from Guile
 ## is included by this code generator.
 gen-scmconfig.$(OBJEXT): gen-scmconfig.c
-	$(AM_V_GEN) \
-	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) $(DEFS) $(DEFAULT_INCLUDES) -I$(top_builddir) \
-		   -c -o $@ $<; \
-	else \
-		$(COMPILE) -c -o $@ $<; \
+	$(AM_V_GEN)						\
+	if [ "$(cross_compiling)" = "yes" ]; then		\
+		$(CC_FOR_BUILD) -DCROSS_COMPILING=1 $(DEFS)	\
+		   $(DEFAULT_INCLUDES) -I$(top_builddir)	\
+		   -c -o "$@" "$<";				\
+	else							\
+		$(COMPILE) -c -o "$@" "$<";			\
 	fi
 
 ## Override default rule; this should run on BUILD host.
@@ -92,11 +93,12 @@ guile_filter_doc_snarfage_SOURCES = c-tokenize.c
 ## Override default rule; this should be compiled for BUILD host.
 ## For some reason, OBJEXT does not include the dot
 c-tokenize.$(OBJEXT): c-tokenize.c
-	$(AM_V_GEN) \
-	if [ "$(cross_compiling)" = "yes" ]; then \
-		$(CC_FOR_BUILD) -I$(top_builddir) -c -o $@ $<; \
-	else \
-		$(COMPILE) -c -o $@ $<; \
+	$(AM_V_GEN)							\
+	if [ "$(cross_compiling)" = "yes" ]; then			\
+		$(CC_FOR_BUILD) -DCROSS_COMPILING=1 -I$(top_builddir)	\
+	           -c -o "$@" "$<";					\
+	else								\
+		$(COMPILE) -c -o "$@" "$<";				\
 	fi
 
 ## Override default rule; this should run on BUILD host.

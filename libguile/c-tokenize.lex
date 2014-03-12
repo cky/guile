@@ -1,7 +1,12 @@
 %top{
 /* Include <config.h> before anything else because Gnulib headers such
-   as <stdio.h> rely on it.  */
-#include <config.h>
+   as <stdio.h> rely on it.
+
+   However, when cross-compiling, don't include <config.h> because it
+   contains information about the host, not about the build.  */
+#ifndef CROSS_COMPILING
+# include <config.h>
+#endif
 }
 
 %option noyywrap
