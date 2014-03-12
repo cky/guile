@@ -32,8 +32,11 @@ VM_DEFINE_INSTRUCTION (0, nop, "nop", 0, 0, 0)
 VM_DEFINE_INSTRUCTION (1, halt, "halt", 0, 0, 0)
 {
   SCM ret;
+  SCM nvalues_scm;
 
-  nvalues = SCM_I_INUM (*sp--);
+  nvalues_scm = *sp--;  /* SCM_I_INUM may evaluate its argument
+                           more than once. */
+  nvalues = SCM_I_INUM (nvalues_scm);
   NULLSTACK (1);
 
   if (nvalues == 1)
