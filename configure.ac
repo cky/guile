@@ -1636,6 +1636,9 @@ AC_SUBST(top_builddir_absolute)
 top_srcdir_absolute=`(cd $srcdir && pwd)`
 AC_SUBST(top_srcdir_absolute)
 
+dnl Add -I flag so that lib/glthread/lock.h finds <libguile/threads.h>.
+CPPFLAGS="-I$top_srcdir_absolute $CPPFLAGS"
+
 dnl `sitedir' goes into libpath.h and the pkg-config file.
 pkgdatadir="$datadir/$PACKAGE_TARNAME"
 sitedir="$pkgdatadir/site/$GUILE_EFFECTIVE_VERSION"
