@@ -65,12 +65,27 @@ typedef scm_t_int32 scm_t_wchar;
 #endif
 
 
+/* The first implementation of SCM_I_INUM below depends on behavior that
+   is specified by GNU C but not by C standards, namely that when
+   casting to a signed integer of width N, the value is reduced modulo
+   2^N to be within range of the type.  The second implementation below
+   should be portable to all conforming C implementations, but may be
+   less efficient if the compiler is not sufficiently clever.
+
+   NOTE: X must not perform side effects.  */
+#ifdef __GNUC__
+# define SCM_I_INUM(x)  (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
+#else
+# define SCM_I_INUM(x)                                \
+  (SCM_UNPACK (x) > LONG_MAX                          \
+   ? -1 - (scm_t_signed_bits) (~SCM_UNPACK (x) >> 2)  \
+   : (scm_t_signed_bits) (SCM_UNPACK (x) >> 2))
+#endif
 
 #define SCM_I_INUMP(x)	(2 & SCM_UNPACK (x))
 #define SCM_I_NINUMP(x) (!SCM_I_INUMP (x))
 #define SCM_I_MAKINUM(x) \
   (SCM_PACK ((((scm_t_bits) (x)) << 2) + scm_tc2_int))
-#define SCM_I_INUM(x)   (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
 
 /* SCM_FIXABLE is true if its long argument can be encoded in an SCM_INUM. */
 #define SCM_POSFIXABLE(n) ((n) <= SCM_MOST_POSITIVE_FIXNUM)
