@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012,
- *   2013 Free Software Foundation, Inc.
+ *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
+ *   2014 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -4680,9 +4680,15 @@ SCM_DEFINE (scm_logbit_p, "logbit?", 2, 0, 0,
 
   if (SCM_I_INUMP (j))
     {
-      /* bits above what's in an inum follow the sign bit */
-      iindex = min (iindex, SCM_LONG_BIT - 1);
-      return scm_from_bool ((1L << iindex) & SCM_I_INUM (j));
+      if (iindex < SCM_LONG_BIT - 1)
+        /* Arrange for the number to be converted to unsigned before
+           checking the bit, to ensure that we're testing the bit in a
+           two's complement representation (regardless of the native
+           representation.  */
+        return scm_from_bool ((1UL << iindex) & SCM_I_INUM (j));
+      else
+        /* Portably check the sign.  */
+        return scm_from_bool (SCM_I_INUM (j) < 0);
     }
   else if (SCM_BIGP (j))
     {
@@ -4992,7 +4998,7 @@ left_shift_exact_integer (SCM n, long count)
       else if (count < SCM_I_FIXNUM_BIT-1 &&
                ((scm_t_bits) (SCM_SRS (nn, (SCM_I_FIXNUM_BIT-1 - count)) + 1)
                 <= 1))
-        return SCM_I_MAKINUM (nn << count);
+        return SCM_I_MAKINUM (nn < 0 ? -(-nn << count) : (nn << count));
       else
         {
           SCM result = scm_i_inum2big (nn);
