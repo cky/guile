@@ -1,6 +1,6 @@
 /* srfi-60.c --- Integers as Bits
  *
- * Copyright (C) 2005, 2006, 2008, 2010 Free Software Foundation, Inc.
+ * Copyright (C) 2005, 2006, 2008, 2010, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -155,7 +155,12 @@ SCM_DEFINE (scm_srfi60_rotate_bit_field, "rotate-bit-field", 4, 0, 0,
   SCM_ASSERT_RANGE (3, end, (ee >= ss));
   ww = ee - ss;
 
-  cc = scm_to_ulong (scm_modulo (count, scm_difference (end, start)));
+  /* we must avoid division by zero, and a field whose width is 0 or 1
+     will be left unchanged anyway, so in that case we set cc to 0. */
+  if (ww <= 1)
+    cc = 0;
+  else
+    cc = scm_to_ulong (scm_modulo (count, scm_difference (end, start)));
 
   if (SCM_I_INUMP (n))
     {
@@ -163,22 +168,40 @@ SCM_DEFINE (scm_srfi60_rotate_bit_field, "rotate-bit-field", 4, 0, 0,
 
       if (ee <= SCM_LONG_BIT-1)
         {
-          /* all within a long */
-          long below = nn & ((1L << ss) - 1);  /* before start */
-          long above = nn & (-1L << ee);       /* above end */
-          long fmask = (-1L << ss) & ((1L << ee) - 1);  /* field mask */
-          long ff = nn & fmask;                /* field */
+          /* Everything fits within a long.  To avoid undefined behavior
+             when shifting negative numbers, we do all operations using
+             unsigned values, and then convert to signed at the end. */
+          unsigned long unn = nn;
+          unsigned long below = unn &  ((1UL << ss) - 1);  /* below start */
+          unsigned long above = unn & ~((1UL << ee) - 1);  /* above end */
+          unsigned long fmask = ((1UL << ww) - 1) << ss;   /* field mask */
+          unsigned long ff = unn & fmask;                  /* field */
+          unsigned long uresult = (above
+                                   | ((ff << cc) & fmask)
+                                   | ((ff >> (ww-cc)) & fmask)
+                                   | below);
+          long result;
 
-          return scm_from_long (above
-                                | ((ff << cc) & fmask)
-                                | ((ff >> (ww-cc)) & fmask)
-                                | below);
+          if (uresult > LONG_MAX)
+            /* The high bit is set in uresult, so the result is
+               negative.  We have to handle the conversion to signed
+               integer carefully, to avoid undefined behavior.  First we
+               compute ~uresult, equivalent to (ULONG_MAX - uresult),
+               which will be between 0 and LONG_MAX (inclusive): exactly
+               the set of numbers that can be represented as both signed
+               and unsigned longs and thus convertible between them.  We
+               cast that difference to a signed long and then substract
+               it from -1. */
+            result = -1 - (long) ~uresult;
+          else
+            result = (long) uresult;
+
+          return scm_from_long (result);
         }
       else
         {
-          /* either no movement, or a field of only 0 or 1 bits, result
-             unchanged, avoid creating a bignum */
-          if (cc == 0 || ww <= 1)
+          /* if there's no movement, avoid creating a bignum. */
+          if (cc == 0)
             return n;
 
           n = scm_i_long2big (nn);
@@ -190,9 +213,8 @@ SCM_DEFINE (scm_srfi60_rotate_bit_field, "rotate-bit-field", 4, 0, 0,
       mpz_t tmp;
       SCM r;
 
-      /* either no movement, or in a field of only 0 or 1 bits, result
-         unchanged, avoid creating a new bignum */
-      if (cc == 0 || ww <= 1)
+      /* if there's no movement, avoid creating a new bignum. */
+      if (cc == 0)
         return n;
 
     big:
@@ -209,7 +231,7 @@ SCM_DEFINE (scm_srfi60_rotate_bit_field, "rotate-bit-field", 4, 0, 0,
       mpz_mul_2exp (tmp, tmp, ss + cc);
       mpz_ior (SCM_I_BIG_MPZ (r), SCM_I_BIG_MPZ (r), tmp);
 
-      /* field high part, count bits from end-count go to start */
+      /* field low part, count bits from end-count go to start */
       mpz_fdiv_q_2exp (tmp, SCM_I_BIG_MPZ (n), ee - cc);
       mpz_fdiv_r_2exp (tmp, tmp, cc);
       mpz_mul_2exp (tmp, tmp, ss);
