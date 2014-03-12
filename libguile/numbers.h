@@ -49,12 +49,21 @@ typedef scm_t_int32 scm_t_wchar;
 #define SCM_MOST_POSITIVE_FIXNUM ((SCM_T_SIGNED_BITS_MAX-3)/4)
 #define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
 
-/* SCM_SRS is signed right shift */
-#if (-1 == (((-1) << 2) + 2) >> 2)
-# define SCM_SRS(x, y) ((x) >> (y))
+/* SCM_SRS (X, Y) is signed right shift, defined as floor (X / 2^Y),
+   where Y must be non-negative and less than the width in bits of X.
+   It's common for >> to do this, but the C standards do not specify
+   what happens when X is negative.
+
+   NOTE: X must not perform side effects.  */
+#if (-1 >> 2 == -1) && (-4 >> 2 == -1) && (-5 >> 2 == -2) && (-8 >> 2 == -2)
+# define SCM_SRS(x, y)  ((x) >> (y))
 #else
-# define SCM_SRS(x, y) ((x) < 0 ? ~((~(x)) >> (y)) : ((x) >> (y)))
-#endif /* (-1 == (((-1) << 2) + 2) >> 2) */
+# define SCM_SRS(x, y)                                   \
+  ((x) < 0                                               \
+   ? -1 - (scm_t_signed_bits) (~(scm_t_bits)(x) >> (y))  \
+   : ((x) >> (y)))
+#endif
+
 
 
 #define SCM_I_INUMP(x)	(2 & SCM_UNPACK (x))
