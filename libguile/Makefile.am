@@ -475,6 +475,12 @@ $(DESTDIR)$(libdir)/$$libname-gdb.scm";				\
 	$(INSTALL_DATA) "$<"					\
 	    "$(DESTDIR)$(libdir)/$$libname-gdb.scm"
 
+# Remove the GDB support file and the Info 'dir' file that
+# 'install-info' 5.x installs.
+uninstall-hook:
+	-rm "$(DESTDIR)$(libdir)/libguile-@GUILE_EFFECTIVE_VERSION@"*-gdb.scm
+	-rm -f "$(DESTDIR)$(infodir)/dir"
+
 ## This is kind of nasty... there are ".c" files that we don't want to
 ## compile, since they are #included.  So instead we list them here.
 ## Perhaps we can deal with them normally once the merge seems to be
