@@ -450,7 +450,7 @@ EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
 install-exec-hook:
 	rm -f $(DESTDIR)$(bindir)/guile-snarf.awk
 
-install-data-local: libguile-2.0-gdb.scm
+install-data-hook: libguile-2.0-gdb.scm
 	@$(MKDIR_P) $(DESTDIR)$(libdir)
 ## We want to install libguile-2.0-gdb.scm as SOMETHING-gdb.scm.
 ## SOMETHING is the full name of the final library.  We want to ignore
