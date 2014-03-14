@@ -4633,8 +4633,8 @@ comparisons are performed is unspecified.
 @subsubsection SRFI-43 Selectors
 
 @deffn {Scheme Procedure} vector-ref vec i
-Return the value that the location in @var{vec} at @var{i} is mapped to
-in the store.  Indexing is based on zero.
+Return the element at index @var{i} in @var{vec}.  Indexing is based on
+zero.
 @end deffn
 
 @deffn {Scheme Procedure} vector-length vec
