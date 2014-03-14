@@ -23,7 +23,7 @@
 
 #include "libguile/scmconfig.h"
 
-#ifdef SCM_USE_PTHREAD_THREADS
+#if SCM_USE_PTHREAD_THREADS
 
 /* When pthreads are used, let `libgc' know about it and redirect allocation
    calls such as `GC_MALLOC ()' to (contention-free, faster) thread-local
