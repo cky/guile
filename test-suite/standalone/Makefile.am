@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ## Copyright 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010,
-##   2011, 2012, 2013 Free Software Foundation, Inc.
+##   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -139,7 +139,7 @@ TESTS += test-list
 # test-unwind
 test_unwind_SOURCES = test-unwind.c
 test_unwind_CFLAGS = ${test_cflags}
-test_unwind_LDADD = $(LIBGUILE_LDADD)
+test_unwind_LDADD = $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
 check_PROGRAMS += test-unwind
 TESTS += test-unwind
 
