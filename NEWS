@@ -7,9 +7,6 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.0.10 (since 2.0.9):
 
-[XXX This is a work-in-progress!!  Search for "XXX" for things to fix.
-Reorganization would also be helpful.]
-
 * Notable changes
 
 ** New GDB extension to support Guile
@@ -95,7 +92,7 @@ is printed along with the location of the failed 'match' invocation.
 *** Numerical comparisons with more than 2 arguments are compiled to VM code.
 *** Several R6RS bitwise operators have been optimized.
 
-** Miscellaneous changes [XXX not sure where these belong, if anywhere]
+** Miscellaneous
 
 *** Web: 'content-disposition' headers are now supported.
 *** Web: 'uri-encode' hexadecimal percent-encoding is now uppercase.
