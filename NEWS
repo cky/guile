@@ -14,8 +14,9 @@ Reorganization would also be helpful.]
 
 ** New GDB extension to support Guile
 
-[XXX elaborate.  Maybe also mention the addition of 'gdbinit' to the
-distribution.]
+Guile now comes with an extension for GDB 7.8 or later (unreleased at
+the time of writing) that simplifies debugging of C code that uses
+Guile.  See "GDB Support" in the manual.
 
 ** Improved integration between R6RS and native Guile exceptions
 
@@ -57,7 +58,8 @@ The pipe character may now be preceded by a backslash, per R7RS.
 
 ** Custom binary input ports now support 'setvbuf'.
 
-[XXX elaborate?]
+Until now, ports returned by 'make-custom-binary-input-port' were always
+full-buffered.  Now, their buffering mode can be changed using 'setvbuf'.
 
 ** SRFI-4 predicates and length accessors no longer accept arrays.
 
@@ -106,73 +108,7 @@ Guile's copy of Gnulib was updated to v0.1-92-g546ff82.  The following
 modules were imported from Gnulib: copysign, fsync, isfinite, link,
 lstat, mkdir, mkstemp, readlink, rename, rmdir, and unistd.
 
-* Manual updates
-
-** Improve docs for 'eval-when'.
-
-Each 'eval-when' condition is now explained in detail, including
-'expand' which was previously undocumented.  (expand load eval) is now
-the recommended set of conditions, instead of (compile load eval).
-See "Eval When" in the manual, for details.
-
-** Update the section on SMOBs and memory management.
-
-[XXX elaborate, and cite manual]
-
-** Fixes
-
-[XXX Do these belong here or in the bug fixes section?]
-
-*** GOOPS: #:dsupers is the init keyword for the dsupers slot.
-*** 'unfold-right' takes a tail, not a tail generator.
-*** Clarify that 'append!' and 'reverse!' might not mutate.
-*** Fix doc that incorrectly claimed (integer? +inf.0) => #t.
-    (http://bugs.gnu.org/16356)
-*** Document that we support SRFI-62 (S-expression comments).
-*** Document that we support SRFI-87 (=> in case clauses).
-*** Document 'equal?' in the list of R6RS incompatibilities.
-*** Remove outdated documentation of LTDL_LIBRARY_PATH.
-*** Fix 'weak-vector?' doc: Weak hash tables are not weak vectors.
-*** [XXX too minor?] Fix 'my-or' examples to use let-bound variable.
-    (http://bugs.gnu.org/14203)
-*** [XXX too minor?] Fix nested block comment example.
-
-* New deprecations
-
-** General 'uniform-vector' interface
-
-This interface lacked both generality and specificity.  The general
-replacements are 'array-length', 'array-ref', and friends on the scheme
-side, and the array handle interface on the C side.  On the specific
-side of things, there are the specific bytevector, SRFI-4, and bitvector
-interfaces.
-
-** Use of the vector interface on arrays
-** 'vector-length', 'vector-ref', and 'vector-set!' on weak vectors
-** 'vector-length', 'vector-ref', and 'vector-set!' as primitive-generics
-
-Making the vector interface operate only on a single representation will
-allow future versions of Guile to compile loops involving vectors to
-more efficient native code.
-
-** 'htons', 'htonl', 'ntohs', 'ntohl'
-
-[XXX add justification].  Please use binary I/O with bytevectors,
-together with the procedures described in "Interpreting Bytevector
-Contents as Integers" in the manual.
-
-** 'gc-live-object-stats'
-
-It hasn't worked in the whole 2.0 series.  There is no replacement,
-unfortunately.
-
-** 'scm_c_program_source'
-
-[XXX add justification].  Please use 'scm_program_source' instead.
-
 * New interfaces
-
-[XXX Should some of these be moved to the "Notable Changes" section?]
 
 ** Cooperative REPL servers
 
@@ -236,9 +172,73 @@ See "Integers" in the manual.
 These should now be used to access weak vectors, instead of
 'vector-length', 'vector-ref', and 'vector-set!'.
 
+* Manual updates
+
+** Improve docs for 'eval-when'.
+
+Each 'eval-when' condition is now explained in detail, including
+'expand' which was previously undocumented.  (expand load eval) is now
+the recommended set of conditions, instead of (compile load eval).
+See "Eval When" in the manual, for details.
+
+** Update the section on SMOBs and memory management.
+
+See "Defining New Types (Smobs)" in the manual.
+
+** Fixes
+
+*** GOOPS: #:dsupers is the init keyword for the dsupers slot.
+*** 'unfold-right' takes a tail, not a tail generator.
+*** Clarify that 'append!' and 'reverse!' might not mutate.
+*** Fix doc that incorrectly claimed (integer? +inf.0) => #t.
+    (http://bugs.gnu.org/16356)
+*** Document that we support SRFI-62 (S-expression comments).
+*** Document that we support SRFI-87 (=> in case clauses).
+*** Document 'equal?' in the list of R6RS incompatibilities.
+*** Remove outdated documentation of LTDL_LIBRARY_PATH.
+*** Fix 'weak-vector?' doc: Weak hash tables are not weak vectors.
+*** Fix 'my-or' examples to use let-bound variable.
+    (http://bugs.gnu.org/14203)
+
+* New deprecations
+
+** General 'uniform-vector' interface
+
+This interface lacked both generality and specificity.  The general
+replacements are 'array-length', 'array-ref', and friends on the scheme
+side, and the array handle interface on the C side.  On the specific
+side of things, there are the specific bytevector, SRFI-4, and bitvector
+interfaces.
+
+** Use of the vector interface on arrays
+** 'vector-length', 'vector-ref', and 'vector-set!' on weak vectors
+** 'vector-length', 'vector-ref', and 'vector-set!' as primitive-generics
+
+Making the vector interface operate only on a single representation will
+allow future versions of Guile to compile loops involving vectors to
+more efficient native code.
+
+** 'htons', 'htonl', 'ntohs', 'ntohl'
+
+These procedures, like their C counterpart, were used to convert numbers
+to/from network byte order, typically in conjunction with the
+now-deprecated uniform vector API.
+
+This functionality is now covered by the bytevector and binary I/O APIs.
+See "Interpreting Bytevector Contents as Integers" in the manual.
+
+** 'gc-live-object-stats'
+
+It hasn't worked in the whole 2.0 series.  There is no replacement,
+unfortunately.
+
+** 'scm_c_program_source'
+
+[XXX add justification].  Please use 'scm_program_source' instead.
+
 * Build fixes
 
-** Fix build with clang 3.4.
+** Fix build with Clang 3.4.
 
 ** MinGW build fixes
 *** Do not add $(EXEEXT) to guild or guile-tools.
@@ -250,9 +250,6 @@ These should now be used to access weak vectors, instead of
 
 ** Fix computation of LIBLOBJS so dependencies work properly.
    (http://bugs.gnu.org/14193)
-
-** Link 'test-unwind.c' against libgnu.la.
-   [XXX rewrite title; not sure where this belongs]
 
 * Bug fixes
 
@@ -348,13 +345,12 @@ These should now be used to access weak vectors, instead of
 ** Fix optional end argument in `uniform-vector-read!'.
    (http://bugs.gnu.org/15370)
 ** Fix brainfuck->scheme compiler.
-   [XXX was this broken in 2.0.9?]
+** texinfo: Fix newline preservation in @example with lines beginning with @
 
 ** C standards conformance improvements
 
-[XXX Consider putting most of these in a different section, possibly
-with a general overview of the improvements rather than individual
-bullet items]
+Improvements and bug fixes were made to the C part of Guile's run-time
+support (libguile).
 
 *** Don't use the identifier 'noreturn'.
     (http://bugs.gnu.org/15798)
