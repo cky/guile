@@ -1,10 +1,374 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2013 Free Software Foundation, Inc.
+Copyright (C) 1996-2014 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.10 (since 2.0.9):
+
+[XXX This is a work-in-progress!!  Search for "XXX" for things to fix.
+Reorganization would also be helpful.]
+
+* Notable changes
+
+** New GDB extension to support Guile
+
+[XXX elaborate.  Maybe also mention the addition of 'gdbinit' to the
+distribution.]
+
+** Improved integration between R6RS and native Guile exceptions
+
+R6RS exception handlers, established using 'with-exception-handler' or
+'guard', are now able to catch native Guile exceptions, which are
+automatically converted into appropriate R6RS condition objects.
+
+** Support for HTTP proxies
+
+Guile's built-in web client now honors the 'http_proxy' environment
+variable, as well as the new 'current-http-proxy' parameter.  See
+"Web Client" in the manual for details.
+
+** Lexical syntax improvements
+
+*** Support |...| symbol notation.
+
+Guile's core reader and printer now support the R7RS |...| notation
+for writing symbols with arbitrary characters, as a more portable and
+attractive alternative to Guile's native #{...}# notation.  To enable
+this notation by default, put one or both of the following in your
+~/.guile:
+
+  (read-enable  'r7rs-symbols)
+  (print-enable 'r7rs-symbols)
+
+*** Support '#true' and '#false' notation for booleans.
+
+The booleans '#t' and '#f' may now be written as '#true' and '#false'
+for improved readability, per R7RS.
+
+*** Recognize '#\escape' character name.
+
+The escape character '#\esc' may now be written as '#\escape', per R7RS.
+
+*** Accept "\|" in string literals.
+
+The pipe character may now be preceded by a backslash, per R7RS.
+
+** Custom binary input ports now support 'setvbuf'.
+
+[XXX elaborate?]
+
+** SRFI-4 predicates and length accessors no longer accept arrays.
+
+Given that the SRFI-4 accessors don't work for arrays, the fact that the
+predicates and length accessors returned true for arrays was a bug.
+
+** GUILE_PROGS now supports specifying a minimum required version.
+
+The 'GUILE_PROGS' autoconf macro in guile.m4 now allows an optional
+argument to specify a minimum required Guile version.  By default, it
+requires Guile >= 2.0.  A micro version can also be specified, e.g.:
+GUILE_PROGS([2.0.10])
+
+** Error reporting improvements
+
+*** Improved run-time error reporting in (ice-9 match).
+
+If no pattern matches in a 'match' form, the datum that failed to match
+is printed along with the location of the failed 'match' invocation.
+
+*** Print the faulty object upon invalid-keyword errors.
+*** Improved error reporting of procedures defined by define-inlinable.
+*** Improved error reporting for misplaced ellipses in macro definitions.
+*** Improved error checking in 'define-public' and 'module-add!'.
+*** Improved error when 'include' form with relative path is not in a file.
+
+** Speed improvements
+
+*** 'scm_c_read' on ISO-8859-1 (e.g. binary) unbuffered ports is faster.
+*** New inline asm for VM fixnum multiply, for faster overflow checking.
+*** New inline asm for VM fixnum operations on ARM and 32-bit x86.
+*** 'positive?' and 'negative?' are now compiled to VM primitives.
+*** Numerical comparisons with more than 2 arguments are compiled to VM code.
+*** Several R6RS bitwise operators have been optimized.
+
+** Miscellaneous changes [XXX not sure where these belong, if anywhere]
+
+*** Web: 'content-disposition' headers are now supported.
+*** Web: 'uri-encode' hexadecimal percent-encoding is now uppercase.
+*** Size argument to 'make-doubly-weak-hash-table' is now optional.
+*** Timeout for 'unlock-mutex' and SRFI-18 'mutex-unlock!' may now be #f.
+
+** Gnulib update
+
+Guile's copy of Gnulib was updated to v0.1-92-g546ff82.  The following
+modules were imported from Gnulib: copysign, fsync, isfinite, link,
+lstat, mkdir, mkstemp, readlink, rename, rmdir, and unistd.
+
+* Manual updates
+
+** Improve docs for 'eval-when'.
+
+Each 'eval-when' condition is now explained in detail, including
+'expand' which was previously undocumented.  (expand load eval) is now
+the recommended set of conditions, instead of (compile load eval).
+See "Eval When" in the manual, for details.
+
+** Update the section on SMOBs and memory management.
+
+[XXX elaborate, and cite manual]
+
+** Fixes
+
+[XXX Do these belong here or in the bug fixes section?]
+
+*** GOOPS: #:dsupers is the init keyword for the dsupers slot.
+*** 'unfold-right' takes a tail, not a tail generator.
+*** Clarify that 'append!' and 'reverse!' might not mutate.
+*** Fix doc that incorrectly claimed (integer? +inf.0) => #t.
+    (http://bugs.gnu.org/16356)
+*** Document that we support SRFI-62 (S-expression comments).
+*** Document that we support SRFI-87 (=> in case clauses).
+*** Document 'equal?' in the list of R6RS incompatibilities.
+*** Remove outdated documentation of LTDL_LIBRARY_PATH.
+*** Fix 'weak-vector?' doc: Weak hash tables are not weak vectors.
+*** [XXX too minor?] Fix 'my-or' examples to use let-bound variable.
+    (http://bugs.gnu.org/14203)
+*** [XXX too minor?] Fix nested block comment example.
+
+* New deprecations
+
+** General 'uniform-vector' interface
+
+This interface lacked both generality and specificity.  The general
+replacements are 'array-length', 'array-ref', and friends on the scheme
+side, and the array handle interface on the C side.  On the specific
+side of things, there are the specific bytevector, SRFI-4, and bitvector
+interfaces.
+
+** Use of the vector interface on arrays
+** 'vector-length', 'vector-ref', and 'vector-set!' on weak vectors
+** 'vector-length', 'vector-ref', and 'vector-set!' as primitive-generics
+
+Making the vector interface operate only on a single representation will
+allow future versions of Guile to compile loops involving vectors to
+more efficient native code.
+
+** 'htons', 'htonl', 'ntohs', 'ntohl'
+
+[XXX add justification].  Please use binary I/O with bytevectors,
+together with the procedures described in "Interpreting Bytevector
+Contents as Integers" in the manual.
+
+** 'gc-live-object-stats'
+
+It hasn't worked in the whole 2.0 series.  There is no replacement,
+unfortunately.
+
+** 'scm_c_program_source'
+
+[XXX add justification].  Please use 'scm_program_source' instead.
+
+* New interfaces
+
+[XXX Should some of these be moved to the "Notable Changes" section?]
+
+** Cooperative REPL servers
+
+This new facility supports REPLs that run at specified times within an
+existing thread, for example in programs utilizing an event loop or in
+single-threaded programs.  This allows for safe access and mutation of
+a program's data structures from the REPL without concern for thread
+synchronization.  See "Cooperative REPL Servers" in the manual for
+details.
+
+** SRFI-43 (Vector Library)
+
+Guile now includes SRFI-43, a comprehensive library of vector operations
+analogous to the SRFI-1 list library.  See "SRFI-43" in the manual for
+details.
+
+** SRFI-64 (A Scheme API for test suites)
+
+Guile now includes SRFI-64, a flexible framework for creating test
+suites.  The reference implementation of SRFI-64 has also been updated
+to fully support earlier versions of Guile.
+
+** SRFI-111 (Boxes)
+
+See "SRFI-111" in the manual.
+
+** 'define-values'
+
+See "Binding multiple return values" in the manual.
+
+** Custom ellipsis identifiers using 'with-ellipsis' or SRFI-46.
+
+Guile now allows macro definitions to use identifiers other than '...'
+as the ellipsis.  This is convenient when writing macros that generate
+macro definitions.  The desired ellipsis identifier can given as the
+first operand to 'syntax-rules', as specified SRFI-46 and R7RS, or by
+using the new 'with-ellipsis' special form when writing procedural
+macros.  With this addition, Guile now fully supports SRFI-46.
+
+See "Specifying a Custom Ellipsis Identifier" and "Custom Ellipsis
+Identifiers for syntax-case Macros" in the manual for details.
+
+** R7RS 'syntax-error'
+
+Guile now supports 'syntax-error', as specified by R7RS, allowing for
+improved compile-time error reporting from 'syntax-rules' macros.  See
+"Reporting Syntax Errors in Macros" in the manual for details.
+
+** New procedures to convert association lists into hash tables
+
+Guile now includes the convenience procedures 'alist->hash-table',
+'alist->hashq-table', 'alist->hashv-table', and 'alist->hashx-table'.
+See "Hash Table Reference" in the manual.
+
+** New predicates: 'exact-integer?' and 'scm_is_exact_integer'
+
+See "Integers" in the manual.
+
+** 'weak-vector-length', 'weak-vector-ref', and 'weak-vector-set!'
+
+These should now be used to access weak vectors, instead of
+'vector-length', 'vector-ref', and 'vector-set!'.
+
+* Build fixes
+
+** Fix build with clang 3.4.
+
+** MinGW build fixes
+*** Do not add $(EXEEXT) to guild or guile-tools.
+*** tests: Use double quotes around shell arguments, for Windows.
+*** tests: Don't rely on $TMPDIR and /tmp on Windows.
+*** tests: Skip FFI tests that use `qsort' when it's not accessible.
+*** tests: Remove symlink only when it exists.
+*** tests: Don't rely on `scm_call_2' being visible.
+
+** Fix computation of LIBLOBJS so dependencies work properly.
+   (http://bugs.gnu.org/14193)
+
+** Link 'test-unwind.c' against libgnu.la.
+   [XXX rewrite title; not sure where this belongs]
+
+* Bug fixes
+
+** Web: Fix web client with methods other than GET.
+   (http://bugs.gnu.org/15908)
+** Web: Add Content-Length header for empty bodies.
+** Web: Accept "UTC" as the zone offset in date headers.
+   (http://bugs.gnu.org/14128)
+** Web: Don't throw if a response is longer than its Content-Length says.
+** Web: Write out HTTP Basic auth headers correctly.
+   (http://bugs.gnu.org/14370)
+** Web: Always print a path component in 'write-request-line'.
+** Fix 'define-public' from (ice-9 curried-definitions).
+** psyntax: toplevel variable definitions discard previous syntactic binding.
+   (http://bugs.gnu.org/11988)
+** Fix thread-unsafe lazy initializations.
+** Make (ice-9 popen) thread-safe.
+   (http://bugs.gnu.org/15683)
+** Make guardians thread-safe.
+** Make regexp_exec thread-safe.
+   (http://bugs.gnu.org/14404)
+** vm: Gracefully handle stack overflows.
+   (http://bugs.gnu.org/15065)
+** Fix 'rationalize'.
+   (http://bugs.gnu.org/14905)
+** Fix inline asm for VM fixnum operations on x32.
+** Fix 'SCM_SYSCALL' to really swallow EINTR.
+** Hide EINTR returns from 'accept'.
+** SRFI-19: Update the table of leap seconds.
+** Add missing files to the test-suite Makefile.
+** Make sure 'ftw' allows directory traversal when running as root.
+** Fix 'hash-for-each' for weak hash tables.
+** SRFI-18: Export 'current-thread'.
+   (http://bugs.gnu.org/16890)
+** Fix inlining of tail list to apply.
+   (http://bugs.gnu.org/15533)
+** Fix bug in remqueue in threads.c when removing last element.
+** Fix build when '>>' on negative integers is not arithmetic.
+** Fix 'bitwise-bit-count' for negative arguments.
+   (http://bugs.gnu.org/14864)
+** Fix VM 'ash' for right shifts by large amounts.
+   (http://bugs.gnu.org/14864)
+** Fix rounding in scm_i_divide2double for negative arguments.
+** Avoid lossy conversion from inum to double in numerical comparisons.
+** Fix numerical comparison of fractions to infinities.
+** Allow fl+ and fl* to accept zero arguments.
+   (http://bugs.gnu.org/14869)
+** flonum? returns false for complex number objects.
+   (http://bugs.gnu.org/14866)
+** flfinite? applied to a NaN returns false.
+   (http://bugs.gnu.org/14868)
+** Flonum operations always return flonums.
+   (http://bugs.gnu.org/14871)
+** min and max: NaNs beat infinities, per R6RS errata.
+   (http://bugs.gnu.org/14865)
+** Fix 'fxbit-count' for negative arguments.
+** 'gcd' and 'lcm' support inexact integer arguments.
+   (http://bugs.gnu.org/14870)
+** Fix R6RS 'fixnum-width'.
+   (http://bugs.gnu.org/14879)
+** tests: Use shell constructs that /bin/sh on Solaris 10 can understand.
+   (http://bugs.gnu.org/14042)
+** Fix display of symbols containing backslashes.
+   (http://bugs.gnu.org/15033)
+** Fix truncated-print for uniform vectors.
+** Define `AF_UNIX' only when Unix-domain sockets are supported.
+** Decompiler: fix handling of empty 'case-lambda' expressions.
+** Fix handling of signed zeroes and infinities in 'numerator' and 'denominator'.
+** dereference-pointer: check for null pointer.
+** Optimizer: Numerical comparisons are not negatable, for correct NaN handling.
+** Compiler: Evaluate '-' and '/' in left-to-right order.
+   (for more robust floating-point arithmetic)
+** snarf.h: Declare static const function name vars as SCM_UNUSED.
+** chars.c: Remove duplicate 'const' specifiers.
+** Modify SCM_UNPACK type check to avoid warnings in clang.
+** Arrange so that 'file-encoding' does not truncate the encoding name.
+   (http://bugs.gnu.org/16463)
+** Improve error checking in bytevector->uint-list and bytevector->sint-list.
+   (http://bugs.gnu.org/15100)
+** Fix (ash -1 SCM_I_FIXNUM_BIT-1) to return a fixnum instead of a bignum.
+** i18n: Fix null pointer dereference when locale info is missing.
+** Fix 'string-copy!' to work properly with overlapping src/dest.
+** Fix hashing of vectors to run in bounded time.
+** 'port-position' works on CBIPs that do not support 'set-port-position!'.
+** Custom binary input ports sanity-check the return value of 'read!'.
+** bdw-gc.h: Check SCM_USE_PTHREAD_THREADS using #if not #ifdef.
+** REPL Server: Don't establish a SIGINT handler.
+** REPL Server: Redirect warnings to client socket.
+** REPL Server: Improve robustness of 'stop-server-and-clients!'.
+** Add srfi-16, srfi-30, srfi-46, srfi-62, srfi-87 to %cond-expand-features.
+** Fix trap handlers to handle applicable structs.
+   (http://bugs.gnu.org/15691)
+** Fix optional end argument in `uniform-vector-read!'.
+   (http://bugs.gnu.org/15370)
+** Fix brainfuck->scheme compiler.
+   [XXX was this broken in 2.0.9?]
+
+** C standards conformance improvements
+
+[XXX Consider putting most of these in a different section, possibly
+with a general overview of the improvements rather than individual
+bullet items]
+
+*** Don't use the identifier 'noreturn'.
+    (http://bugs.gnu.org/15798)
+*** Rewrite SCM_I_INUM to avoid unspecified behavior when not using GNU C.
+*** Improve fallback implemention of SCM_SRS to avoid unspecified behavior.
+*** SRFI-60: Reimplement 'rotate-bit-field' on inums to be more portable.
+*** Improve compliance with C standards regarding signed integer shifts.
+*** Avoid signed overflow in random.c.
+*** VM: Avoid signed overflows in 'add1' and 'sub1'.
+*** VM: Avoid overflow in ASM_ADD when the result is most-positive-fixnum.
+*** read: Avoid signed integer overflow in 'read_decimal_integer'.
+
+
+
 Changes in 2.0.9 (since 2.0.7):
 
 Note: 2.0.8 was a brown paper bag release that was never announced, but
