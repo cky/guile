@@ -234,7 +234,8 @@ unfortunately.
 
 ** 'scm_c_program_source'
 
-[XXX add justification].  Please use 'scm_program_source' instead.
+This internal VM function was not meant to be public.  Use
+'scm_procedure_source' instead.
 
 * Build fixes
 
