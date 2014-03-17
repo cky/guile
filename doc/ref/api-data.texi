@@ -5526,6 +5526,8 @@ approach to properties, see @ref{Object Properties}.
 @node Symbol Read Syntax
 @subsubsection Extended Read Syntax for Symbols
 
+@cindex r7rs-symbols
+
 The read syntax for a symbol is a sequence of letters, digits, and
 @dfn{extended alphabetic characters}, beginning with a character that
 cannot begin a number.  In addition, the special cases of @code{+},
@@ -5585,6 +5587,16 @@ double quotes.
 |\x3BB; is a greek lambda|
 |\| is a vertical bar|
 @end example
+
+Note that there's also an @code{r7rs-symbols} print option
+(@pxref{Scheme Write}).  To enable the use of this notation, evaluate
+one or both of the following expressions:
+
+@example
+(read-enable  'r7rs-symbols)
+(print-enable 'r7rs-symbols)
+@end example
+
 
 @node Symbol Uninterned
 @subsubsection Uninterned Symbols
