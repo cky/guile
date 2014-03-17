@@ -141,7 +141,7 @@ See "Binding multiple return values" in the manual.
 Guile now allows macro definitions to use identifiers other than '...'
 as the ellipsis.  This is convenient when writing macros that generate
 macro definitions.  The desired ellipsis identifier can be given as the
-first operand to 'syntax-rules', as specified SRFI-46 and R7RS, or by
+first operand to 'syntax-rules', as specified in SRFI-46 and R7RS, or by
 using the new 'with-ellipsis' special form in procedural macros.  With
 this addition, Guile now fully supports SRFI-46.
 
