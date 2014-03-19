@@ -137,12 +137,13 @@
                                               scm_t_array_handle *h,    \
                                               size_t *lenp, ssize_t *incp) \
   {                                                                     \
+    size_t byte_width = width * sizeof (ctype);                         \
     if (!scm_is_bytevector (uvec)                                       \
-        || (scm_c_bytevector_length (uvec) % width))                    \
+        || (scm_c_bytevector_length (uvec) % byte_width))               \
       scm_wrong_type_arg_msg (NULL, 0, uvec, #tag "vector");            \
     scm_array_get_handle (uvec, h);                                     \
     if (lenp)                                                           \
-      *lenp = scm_c_bytevector_length (uvec) / width;                   \
+      *lenp = scm_c_bytevector_length (uvec) / byte_width;              \
     if (incp)                                                           \
       *incp = 1;                                                        \
     return ((ctype *)h->writable_elements);                             \
