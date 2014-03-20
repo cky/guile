@@ -24,6 +24,22 @@
   #:use-module (ice-9 format))
 
 
+(with-test-prefix "simple-format"
+  (pass-if-exception "current-output-port is closed"
+      exception:wrong-type-arg
+    ;; This used to segfault in Guile <= 2.0.10.
+    (let ((old (current-output-port))
+          (new (%make-void-port "w")))
+      (dynamic-wind
+        (lambda ()
+          (set-current-output-port new)
+          (close-port new))
+        (lambda ()
+          (simple-format #t "hello, closed port!")
+          #t)
+        (lambda ()
+          (set-current-output-port old))))))
+
 ;;; FORMAT Basic Output
 
 (with-test-prefix "format basic output"

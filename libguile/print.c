@@ -1468,7 +1468,7 @@ SCM_DEFINE (scm_simple_format, "simple-format", 2, 0, 1,
   if (scm_is_eq (destination, SCM_BOOL_T))
     {
       destination = port = scm_current_output_port ();
-      SCM_VALIDATE_OPORT_VALUE (0, destination);
+      SCM_VALIDATE_OPORT_VALUE (1, destination);
     }
   else if (scm_is_false (destination))
     {
