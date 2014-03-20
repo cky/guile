@@ -5,6 +5,14 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.11 (since 2.0.10):
+
+This release fixes an embarrassing regression introduced in the C
+interface to SRFI-4 vectors.  See
+<https://lists.gnu.org/archive/html/guile-devel/2014-03/msg00047.html>
+for details.
+
+
 Changes in 2.0.10 (since 2.0.9):
 
 * Notable changes
