@@ -20,6 +20,9 @@
 # include <config.h>
 #endif
 
+/* Make sure the assertions are tested.  */
+#undef NDEBUG
+
 #include <libguile.h>
 
 #include <stdio.h>

@@ -1,4 +1,4 @@
-/* Copyright (C) 2004, 2006, 2008, 2009, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 2004, 2006, 2008, 2009, 2011, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -19,6 +19,8 @@
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
+
+#undef NDEBUG
 
 #include <assert.h>
 #include <math.h>

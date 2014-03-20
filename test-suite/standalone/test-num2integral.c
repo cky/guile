@@ -1,5 +1,5 @@
 /* Copyright (C) 1999, 2000, 2001, 2003, 2004, 2006, 2008, 2010,
- *   2012 Free Software Foundation, Inc.
+ *   2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -20,6 +20,8 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+
+#undef NDEBUG
 
 #include <libguile.h>
 
