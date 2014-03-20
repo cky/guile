@@ -1,6 +1,6 @@
 ;;; simple.scm --- The R6RS simple I/O library
 
-;;      Copyright (C) 2010, 2011 Free Software Foundation, Inc.
+;;      Copyright (C) 2010, 2011, 2014 Free Software Foundation, Inc.
 ;;
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -91,6 +91,7 @@
                 eof-object 
                 eof-object?
                 file-options
+                buffer-mode
                 native-transcoder
                 get-char
                 lookahead-char
@@ -131,10 +132,16 @@
       (lambda (port) (with-output-to-port port thunk))))
 
   (define (open-input-file filename)
-    (open-file-input-port filename (file-options) (native-transcoder)))
+    (open-file-input-port filename
+                          (file-options)
+                          (buffer-mode block)
+                          (native-transcoder)))
 
   (define (open-output-file filename)
-    (open-file-output-port filename (file-options) (native-transcoder)))
+    (open-file-output-port filename
+                           (file-options)
+                           (buffer-mode block)
+                           (native-transcoder)))
 
   (define close-input-port close-port)
   (define close-output-port close-port)
