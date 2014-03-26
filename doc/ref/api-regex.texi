@@ -14,10 +14,7 @@
 
 A @dfn{regular expression} (or @dfn{regexp}) is a pattern that
 describes a whole class of strings.  A full description of regular
-expressions and their syntax is beyond the scope of this manual;
-an introduction can be found in the Emacs manual (@pxref{Regexps,
-, Syntax of Regular Expressions, emacs, The GNU Emacs Manual}), or
-in many general Unix reference books.
+expressions and their syntax is beyond the scope of this manual.
 
 If your system does not include a POSIX regular expression library,
 and you have not linked Guile with a third-party regexp library such
