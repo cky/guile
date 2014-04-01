@@ -374,18 +374,49 @@ SCM_DEFINE (scm_reverse_x, "reverse!", 1, 1, 0,
 	    "@code{reverse!}")
 #define FUNC_NAME s_scm_reverse_x
 {
-  SCM_VALIDATE_LIST (1, lst);
+  SCM old_lst = lst;
+  SCM tail = SCM_BOOL_F;
+
   if (SCM_UNBNDP (new_tail))
     new_tail = SCM_EOL;
 
-  while (!SCM_NULL_OR_NIL_P (lst))
+  if (SCM_NULL_OR_NIL_P (lst))
+    return new_tail;
+
+  /* SCM_VALIDATE_LIST would run through the whole list to make sure it
+     is not eventually circular.  In contrast to most list operations,
+     reverse! cannot get stuck in an infinite loop but arrives back at
+     the start when given an eventually or fully circular list.  Because
+     of that, we can save the cost of an upfront proper list check at
+     the price of having to do a double reversal in the error case.
+  */
+
+  while (scm_is_pair (lst))
     {
       SCM old_tail = SCM_CDR (lst);
-      SCM_SETCDR (lst, new_tail);
-      new_tail = lst;
+      SCM_SETCDR (lst, tail);
+      tail = lst;
       lst = old_tail;
     }
-  return new_tail;
+
+  if (SCM_LIKELY (SCM_NULL_OR_NIL_P (lst)))
+    {
+      SCM_SETCDR (old_lst, new_tail);
+      return tail;
+    }
+
+  /* We did not start with a proper list.  Undo the reversal. */
+
+  while (scm_is_pair (tail))
+    {
+      SCM old_tail = SCM_CDR (tail);
+      SCM_SETCDR (tail, lst);
+      lst = tail;
+      tail = old_tail;
+    }
+
+  SCM_WRONG_TYPE_ARG (1, lst);
+  return lst;
 }
 #undef FUNC_NAME
 
