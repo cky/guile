@@ -82,7 +82,7 @@ Guile requires the following external packages:
 
     libgc (aka. the Boehm-Demers-Weiser garbage collector) is the
     conservative garbage collector used by Guile.  It is available
-    from http://www.hpl.hp.com/personal/Hans_Boehm/gc/ .
+    from http://www.hboehm.info/gc/ .
 
   - libffi
 
