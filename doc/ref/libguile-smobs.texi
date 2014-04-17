@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013, 2014
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -384,6 +384,27 @@ free_image (SCM image_smob)
 During the sweep phase, the garbage collector will clear the mark bits
 on all live objects.  The code which implements a smob need not do this
 itself.
+
+@cindex finalizer
+@cindex finalization
+
+Note that the free function can be called in any context.  In
+particular, if your Guile is built with support for threads, the
+finalizer may be called from any thread that is running Guile.  In Guile
+2.0, finalizers are invoked via ``asyncs'', which interleaves them with
+running Scheme code; @pxref{System asyncs}.  In Guile 2.2 there will be
+a dedicated finalization thread, to ensure that the finalization doesn't
+run within the critical section of any other thread known to Guile.
+
+In either case, finalizers (free functions) run concurrently with the
+main program, and so they need to be async-safe and thread-safe.  If for
+some reason this is impossible, perhaps because you are embedding Guile
+in some application that is not itself thread-safe, you have a few
+options.  One is to use guardians instead of free functions, and arrange
+to pump the guardians for finalizable objects.  @xref{Guardians}, for
+more information.  The other option is to disable automatic finalization
+entirely, and arrange to call @code{scm_run_finalizers ()} at
+appropriate points.  @xref{Smobs}, for more on these interfaces.
 
 There is no way for smob code to be notified when collection is
 complete.

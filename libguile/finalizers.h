@@ -1,7 +1,7 @@
 #ifndef SCM_FINALIZERS_H
 #define SCM_FINALIZERS_H
 
-/* Copyright (C) 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -33,6 +33,9 @@ SCM_INTERNAL void scm_i_add_finalizer (void *obj, scm_t_finalizer_proc,
                                        void *data);
 SCM_INTERNAL void scm_i_add_resuscitator (void *obj, scm_t_finalizer_proc,
                                           void *data);
+
+SCM_API int scm_set_automatic_finalization_enabled (int enabled_p);
+SCM_API int scm_run_finalizers (void);
 
 SCM_INTERNAL void scm_init_finalizers (void);
 

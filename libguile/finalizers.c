@@ -1,4 +1,4 @@
-/* Copyright (C) 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -30,6 +30,8 @@
 #include "libguile/threads.h"
 
 
+
+static int automatic_finalization_p = 1;
 
 static size_t finalization_count;
 
@@ -130,7 +132,7 @@ static SCM finalizer_async_cell;
 static SCM
 run_finalizers_async_thunk (void)
 {
-  finalization_count += GC_invoke_finalizers ();
+  scm_run_finalizers ();
   return SCM_UNSPECIFIED;
 }
 
@@ -169,6 +171,43 @@ GC_set_finalizer_notifier (void (*notifier) (void))
 }
 #endif
 
+
+
+
+int
+scm_set_automatic_finalization_enabled (int enabled_p)
+{
+  int was_enabled_p = automatic_finalization_p;
+
+  if (enabled_p == was_enabled_p)
+    return was_enabled_p;
+
+  if (!scm_initialized_p)
+    {
+      automatic_finalization_p = enabled_p;
+      return was_enabled_p;
+    }
+
+  GC_set_finalizer_notifier (enabled_p ? queue_finalizer_async : 0);
+
+  automatic_finalization_p = enabled_p;
+
+  return was_enabled_p;
+}
+
+int
+scm_run_finalizers (void)
+{
+  int finalized = GC_invoke_finalizers ();
+
+  finalization_count += finalized;
+
+  return finalized;
+}
+
+
+
+
 void
 scm_init_finalizers (void)
 {
@@ -178,5 +217,7 @@ scm_init_finalizers (void)
     scm_cons (scm_c_make_gsubr ("%run-finalizers", 0, 0, 0,
                                 run_finalizers_async_thunk),
               SCM_BOOL_F);
-  GC_set_finalizer_notifier (queue_finalizer_async);
+
+  if (automatic_finalization_p)
+    GC_set_finalizer_notifier (queue_finalizer_async);
 }
