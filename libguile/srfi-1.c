@@ -1,7 +1,7 @@
 /* srfi-1.c --- SRFI-1 procedures for Guile
  *
- * Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2005, 2006,
- *   2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+ * Copyright (C) 1995-1997, 2000-2003, 2005, 2006, 2008-2011,
+ *   2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -614,8 +614,32 @@ SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
 	    "circular.")
 #define FUNC_NAME s_scm_srfi1_length_plus
 {
-  long len = scm_ilength (lst);
-  return (len >= 0 ? SCM_I_MAKINUM (len) : SCM_BOOL_F);
+  size_t i = 0;
+  SCM tortoise = lst;
+  SCM hare = lst;
+
+  do
+    {
+      if (SCM_NULL_OR_NIL_P (hare))
+        return scm_from_size_t (i);
+      if (!scm_is_pair (hare))
+        scm_wrong_type_arg_msg (FUNC_NAME, 1, lst, "proper or circular list");
+      hare = SCM_CDR (hare);
+      i++;
+      if (SCM_NULL_OR_NIL_P (hare))
+        return scm_from_size_t (i);
+      if (!scm_is_pair (hare))
+        scm_wrong_type_arg_msg (FUNC_NAME, 1, lst, "proper or circular list");
+      hare = SCM_CDR (hare);
+      i++;
+      /* For every two steps the hare takes, the tortoise takes one.  */
+      tortoise = SCM_CDR(tortoise);
+    }
+  while (!scm_is_eq (hare, tortoise));
+
+  /* If the tortoise ever catches the hare, then the list must contain
+     a cycle.  */
+  return SCM_BOOL_F;
 }
 #undef FUNC_NAME
 

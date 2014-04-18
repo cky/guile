@@ -1,6 +1,6 @@
 ;;;; srfi-1.test --- Test suite for Guile's SRFI-1 functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2005, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright 2003-2006, 2008-2011, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -1329,6 +1329,10 @@
     (length+))
   (pass-if-exception "too many args" exception:wrong-num-args
     (length+ 123 456))
+  (pass-if-exception "not a pair" exception:wrong-type-arg
+    (length+ 'x))
+  (pass-if-exception "improper list" exception:wrong-type-arg
+    (length+ '(x y . z)))
   (pass-if (= 0 (length+ '())))
   (pass-if (= 1 (length+ '(x))))
   (pass-if (= 2 (length+ '(x y))))
