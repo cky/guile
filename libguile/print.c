@@ -752,7 +752,7 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 		   `SIMPLE_VECTOR_REF ()' macro.  */
 		for (i = 0; i < last; ++i)
 		  {
-		    scm_iprin1 (scm_c_vector_ref (exp, i),
+		    scm_iprin1 (scm_c_weak_vector_ref (exp, i),
 				port, pstate);
 		    scm_putc (' ', port);
 		  }
@@ -769,7 +769,10 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
 	    if (i == last)
 	      {
 		/* CHECK_INTS; */
-		scm_iprin1 (scm_c_vector_ref (exp, i), port, pstate);
+                scm_iprin1 (SCM_I_WVECTP (exp)
+                            ? scm_c_weak_vector_ref (exp, i)
+                            : SCM_SIMPLE_VECTOR_REF (exp, i),
+                            port, pstate);
 	      }
 	    if (cutp)
 	      scm_puts (" ...", port);
