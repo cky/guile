@@ -1,14 +1,12 @@
 #!/bin/sh
 # -*- scheme -*-
-prefix="@prefix@"
-exec_prefix="@exec_prefix@"
-exec ${GUILE:-@bindir@/@guile_program_name@} $GUILE_FLAGS -e '(@@ (guild) main)' -s "$0" "$@"
+exec ${GUILE:-@installed_guile@} $GUILE_FLAGS -e '(@@ (guild) main)' -s "$0" "$@"
 !#
 
 ;;;; guild --- running scripts bundled with Guile
 ;;;; Andy Wingo <wingo@pobox.com> --- April 2009
 ;;;; 
-;;;; 	Copyright (C) 2009, 2010, 2011, 2013 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public

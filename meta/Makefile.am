@@ -2,7 +2,7 @@
 ## Jim Blandy <jimb@red-bean.com> --- September 1997
 ##
 ##  	Copyright (C) 1998, 1999, 2001, 2006, 2007, 2008, 2009, 2011,
-##        2012, 2013 Free Software Foundation, Inc.
+##        2012, 2013, 2014 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##   
@@ -54,4 +54,14 @@ guile-config: $(srcdir)/guile-config.in $(top_builddir)/config.status
 	mv guile-config.out guile-config
 	chmod +x guile-config
 
-CLEANFILES = guile-config
+guild: $(srcdir)/guild.in $(top_builddir)/config.status
+	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
+	cat $(srcdir)/guild.in							\
+	| $(SED) -e "s,@installed_guile@,$$guile,g"				\
+	         -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"			\
+	         -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"		\
+	> "$@.out"
+	chmod +x "$@.out"
+	mv "$@.out" "$@"
+
+CLEANFILES = guile-config guild

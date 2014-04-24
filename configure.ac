@@ -1644,10 +1644,6 @@ pkgdatadir="$datadir/$PACKAGE_TARNAME"
 sitedir="$pkgdatadir/site/$GUILE_EFFECTIVE_VERSION"
 AC_SUBST([sitedir])
 
-dnl Name of the `guile' program.
-guile_program_name="`echo guile | "$SED" "$program_transform_name"`"
-AC_SUBST([guile_program_name])
-
 # Additional SCM_I_GSC definitions are above.
 AC_SUBST([SCM_I_GSC_GUILE_DEBUG])
 AC_SUBST([SCM_I_GSC_ENABLE_DEPRECATED])
@@ -1684,7 +1680,6 @@ GUILE_CONFIG_SCRIPT([benchmark-guile])
 GUILE_CONFIG_SCRIPT([meta/guile])
 GUILE_CONFIG_SCRIPT([meta/uninstalled-env])
 GUILE_CONFIG_SCRIPT([meta/gdb-uninstalled-guile])
-GUILE_CONFIG_SCRIPT([meta/guild])
 GUILE_CONFIG_SCRIPT([libguile/guile-snarf])
 GUILE_CONFIG_SCRIPT([libguile/guile-snarf-docs])
 GUILE_CONFIG_SCRIPT([test-suite/standalone/test-use-srfi])
