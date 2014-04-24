@@ -22,6 +22,7 @@
   #:use-module (rnrs io ports)
   #:use-module (ice-9 match)
   #:use-module (ice-9 regex)
+  #:use-module (ice-9 weak-vector)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-9)
   #:use-module (system foreign)
@@ -102,6 +103,13 @@
    ((open-input-string "hello") port (? integer?))
    ((lambda () #t) program _)
    ((the-vm) vm _)
+   ((make-weak-vector 3 #t) weak-vector _)
+   ((make-hash-table) hash-table _)
+   ((make-weak-key-hash-table) hash-table _)
+   ((make-weak-value-hash-table) hash-table _)
+   ((make-doubly-weak-hash-table) hash-table _)
+   (#2((1 2 3) (4 5 6)) array _)
+   (#*00000110 bitvector _)
    ((expt 2 70) bignum _))
 
   (pass-if "fluid"

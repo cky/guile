@@ -242,6 +242,7 @@ the matching bits, possibly with bitwise operations to extract it from BITS."
 (define %tc3-struct 1)
 (define %tc7-symbol 5)
 (define %tc7-vector 13)
+(define %tc7-wvect 15)
 (define %tc7-string 21)
 (define %tc7-number 23)
 (define %tc7-hashtable 29)
@@ -255,6 +256,8 @@ the matching bits, possibly with bitwise operations to extract it from BITS."
 (define %tc7-vm-continuation 71)
 (define %tc7-bytevector 77)
 (define %tc7-program 79)
+(define %tc7-array 85)
+(define %tc7-bitvector 87)
 (define %tc7-port 125)
 (define %tc7-smob 127)
 
@@ -447,6 +450,8 @@ using BACKEND."
                           (bytevector->uint-list words (native-endianness)
                                                  %word-size)))
                vector)))
+          (((_ & #x7f = %tc7-wvect))
+           (inferior-object 'weak-vector address))   ; TODO: show elements
           ((((n << 8) || %tc7-fluid) init-value)
            (inferior-fluid n #f))                    ; TODO: show current value
           (((_ & #x7f = %tc7-dynamic-state))
@@ -474,6 +479,10 @@ using BACKEND."
            (inferior-object 'vm address))
           (((_ & #x7f = %tc7-vm-continuation))
            (inferior-object 'vm-continuation address))
+          (((_ & #x7f = %tc7-array))
+           (inferior-object 'array address))
+          (((_ & #x7f = %tc7-bitvector))
+           (inferior-object 'bitvector address))
           ((((smob-type << 8) || %tc7-smob) word1)
            (inferior-smob backend smob-type address))))))
 
