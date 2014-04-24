@@ -46,21 +46,21 @@ aclocal_DATA = guile.m4
 
 guile-config: $(srcdir)/guile-config.in $(top_builddir)/config.status
 	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-	cat $(srcdir)/guile-config.in						\
-	| $(SED) -e "s,@pkgconfigdir@,$(pkgconfigdir),g"			\
-		 -e "s,@""PKG_CONFIG@,$(PKG_CONFIG),g"				\
-		 -e "s,@installed_guile@,$$guile,g"				\
-	> guile-config.out
-	mv guile-config.out guile-config
-	chmod +x guile-config
+	$(SED) -e "s,[@]pkgconfigdir[@],$(pkgconfigdir),g"			\
+	       -e "s,[@]PKG_CONFIG[@],$(PKG_CONFIG),g"				\
+	       -e "s,[@]installed_guile[@],$$guile,g"				\
+	  < "$(srcdir)/guile-config.in"						\
+	  > "$@.out"
+	chmod +x "$@.out"
+	mv "$@.out" "$@"
 
 guild: $(srcdir)/guild.in $(top_builddir)/config.status
 	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-	cat $(srcdir)/guild.in							\
-	| $(SED) -e "s,@installed_guile@,$$guile,g"				\
-	         -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"			\
-	         -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"		\
-	> "$@.out"
+	$(SED) -e "s,[@]installed_guile[@],$$guile,g"				\
+	       -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"			\
+	       -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"		\
+	  < "$(srcdir)/guild.in"						\
+	  > "$@.out"
 	chmod +x "$@.out"
 	mv "$@.out" "$@"
 
