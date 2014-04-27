@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010, 2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
 ;;;; Copyright (C) 1993-1998 Erick Gallesio - I3S-CNRS/ESSI <eg@unice.fr>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -82,13 +82,7 @@
 
 (eval-when (expand load eval)
   (use-modules ((language tree-il primitives) :select (add-interesting-primitive!)))
-  (add-interesting-primitive! 'class-of)
-  (define (@slot-ref o n)
-    (struct-ref o n))
-  (define (@slot-set! o n v)
-    (struct-set! o n v))
-  (add-interesting-primitive! '@slot-ref)
-  (add-interesting-primitive! '@slot-set!))
+  (add-interesting-primitive! 'class-of))
 
 ;; Then load the rest of GOOPS
 (use-modules (oop goops util)
@@ -1121,7 +1115,7 @@
   (lambda (o) (assert-bound (proc o) o)))
 
 ;; the idea is to compile the index into the procedure, for fastest
-;; lookup. Also, @slot-ref and @slot-set! have their own bytecodes.
+;; lookup.
 
 (eval-when (expand load eval)
   (define num-standard-pre-cache 20))
@@ -1133,9 +1127,9 @@
     (define (make-one x)
       (define (body-trans form)
         (cond ((not (pair? form)) form)
-              ((eq? (car form) '@slot-ref)
+              ((eq? (car form) 'struct-ref)
                `(,(car form) ,(cadr form) ,x))
-              ((eq? (car form) '@slot-set!)
+              ((eq? (car form) 'struct-set!)
                `(,(car form) ,(cadr form) ,x ,(cadddr form)))
               (else
                (map body-trans form))))
@@ -1148,16 +1142,16 @@
                ((lambda (,n-var) (lambda ,args ,@body)) n)))))))
 
 (define-standard-accessor-method ((bound-check-get n) o)
-  (let ((x (@slot-ref o n)))
+  (let ((x (struct-ref o n)))
     (if (unbound? x)
         (slot-unbound o)
         x)))
 
 (define-standard-accessor-method ((standard-get n) o)
-  (@slot-ref o n))
+  (struct-ref o n))
 
 (define-standard-accessor-method ((standard-set n) o v)
-  (@slot-set! o n v))
+  (struct-set! o n v))
 
 ;;; compute-getters-n-setters
 ;;;
