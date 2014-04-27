@@ -129,6 +129,17 @@ TESTS += test-ffi
 
 endif HAVE_SHARED_LIBRARIES
 
+# test-foreign-object-scm
+check_SCRIPTS += test-foreign-object-scm
+TESTS += test-foreign-object-scm
+
+# test-foreign-object-c
+test_foreign_object_c_SOURCES = test-foreign-object-c.c
+test_foreign_object_c_CFLAGS = ${test_cflags}
+test_foreign_object_c_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-foreign-object-c
+TESTS += test-foreign-object-c
+
 # test-list
 test_list_SOURCES = test-list.c
 test_list_CFLAGS = ${test_cflags}

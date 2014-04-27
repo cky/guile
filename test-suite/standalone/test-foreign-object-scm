@@ -1,0 +1,119 @@
+#!/bin/sh
+exec guile -q -s "$0" "$@"
+!#
+;;; test-foreign-object-scm --- Foreign object interface.     -*- Scheme -*-
+;;;
+;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;;
+;;; This library is free software; you can redistribute it and/or
+;;; modify it under the terms of the GNU Lesser General Public
+;;; License as published by the Free Software Foundation; either
+;;; version 3 of the License, or (at your option) any later version.
+;;;
+;;; This library is distributed in the hope that it will be useful,
+;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;; Lesser General Public License for more details.
+;;;
+;;; You should have received a copy of the GNU Lesser General Public
+;;; License along with this library; if not, write to the Free Software
+;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(use-modules (system foreign)
+             (system foreign-object)
+             (rnrs bytevectors)
+             (oop goops))
+
+(define (libc-ptr name)
+  (catch #t
+    (lambda () (dynamic-pointer name (dynamic-link)))
+    (lambda (k . args)
+      (print-exception (current-error-port) #f k args)
+      (write "Skipping test.\n" (current-error-port))
+      (exit 0))))
+
+(define malloc (pointer->procedure '* (libc-ptr "malloc") (list size_t)))
+(define memcpy (pointer->procedure void (libc-ptr "memcpy") (list '* '* size_t)))
+(define free (pointer->procedure void (libc-ptr "free") '(*)))
+
+(define (finalize-cstr cstr)
+  (free (make-pointer (addr cstr))))
+
+(define-foreign-object-type <cstr> make-cstr (addr len)
+  #:finalizer finalize-cstr)
+
+(define (cstr->string cstr)
+  (pointer->string (make-pointer (addr cstr)) (len cstr) "UTF-8"))
+
+(define* (string->cstr str #:optional (k make-cstr))
+  (let* ((bv (string->utf8 str))
+         (len (bytevector-length bv))
+         (mem (malloc len)))
+    (when (null-pointer? mem)
+      (error "Out of memory."))
+    (memcpy mem (bytevector->pointer bv) len)
+    (k (pointer-address mem) len)))
+
+(define-method (write (cstr <cstr>) port)
+  (format port "<<cstr> ~s>" (cstr->string cstr)))
+
+(define-method (display (cstr <cstr>) port)
+  (display (cstr->string cstr) port))
+
+(define-method (+ (a <cstr>) (b <cstr>))
+  (string->cstr (string-append (cstr->string a) (cstr->string b))))
+
+(define-method (equal? (a <cstr>) (b <cstr>))
+  (equal? (cstr->string a) (cstr->string b)))
+
+(define failed? #f)
+(define-syntax test
+  (syntax-rules ()
+    ((_ exp res)
+     (let ((expected res)
+           (actual exp))
+       (if (not (equal? actual expected))
+           (begin
+             (set! failed? #t)
+             (format (current-error-port)
+                     "bad return from expression `~a': expected ~A; got ~A~%"
+                     'exp expected actual)))))))
+
+(test (string->cstr "Hello, world!")
+      (+ (string->cstr "Hello, ") (string->cstr "world!")))
+
+;; GOOPS construction syntax instead of make-cstr.
+(test (string->cstr "Hello, world!")
+      (string->cstr "Hello, world!"
+                    (lambda (addr len)
+                      (make <cstr> #:addr addr #:len len))))
+
+;; Subclassing.
+(define-class <wrapped-cstr> (<cstr>)
+  (wrapped-string #:init-keyword #:wrapped-string
+                  #:getter wrapped-string
+                  #:init-form (error "missing #:wrapped-string")))
+
+(define (string->wrapped-cstr string)
+  (string->cstr string (lambda (addr len)
+                         (make <wrapped-cstr> #:addr addr #:len len
+                               #:wrapped-string string))))
+
+(let ((wrapped-cstr (string->wrapped-cstr "Hello, world!")))
+  ;; Tests that <cst> methods work on <wrapped-cstr>.
+  (test "Hello, world!" (cstr->string wrapped-cstr))
+  ;; Test the additional #:wrapped-string slot.
+  (test "Hello, world!" (wrapped-string wrapped-cstr)))
+
+(gc) (gc) (gc)
+
+;; Sleep 50 milliseconds to allow the finalization thread to run.
+(usleep #e50e3)
+
+;; But we don't really know if it ran.  Oh well.
+
+(exit (if failed? 1 0))
+
+;; Local Variables:
+;; mode: scheme
+;; End:

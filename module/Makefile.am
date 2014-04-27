@@ -361,6 +361,7 @@ SYSTEM_SOURCES =				\
   system/vm/trap-state.scm			\
   system/vm/vm.scm				\
   system/foreign.scm				\
+  system/foreign-object.scm			\
   system/xref.scm				\
   system/repl/debug.scm				\
   system/repl/error-handling.scm		\

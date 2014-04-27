@@ -397,6 +397,7 @@ scm_i_init_guile (void *base)
   scm_bootstrap_vm ();
   scm_register_r6rs_ports ();
   scm_register_foreign ();
+  scm_register_foreign_object ();
   scm_register_srfi_1 ();
   scm_register_srfi_60 ();
   scm_register_poll ();

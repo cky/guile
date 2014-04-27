@@ -1,7 +1,7 @@
 #ifndef SCM_LIBGUILE_H
 #define SCM_LIBGUILE_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2003, 2004, 2006, 2008, 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -52,6 +52,7 @@ extern "C" {
 #include "libguile/finalizers.h"
 #include "libguile/fluids.h"
 #include "libguile/foreign.h"
+#include "libguile/foreign-object.h"
 #include "libguile/fports.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"
