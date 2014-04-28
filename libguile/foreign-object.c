@@ -64,6 +64,12 @@ scm_assert_foreign_object_type (SCM type, SCM val)
 }
 
 SCM
+scm_make_foreign_object_0 (SCM type)
+{
+  return scm_make_foreign_object_n (type, 0, NULL);
+}
+
+SCM
 scm_make_foreign_object_1 (SCM type, scm_t_bits val0)
 {
   return scm_make_foreign_object_n (type, 1, &val0);
@@ -93,6 +99,7 @@ scm_make_foreign_object_n (SCM type, size_t n, scm_t_bits vals[])
   SCM obj;
   SCM layout;
   size_t i;
+  const char *layout_chars;
 
   SCM_VALIDATE_VTABLE (SCM_ARG1, type);
 
@@ -101,8 +108,9 @@ scm_make_foreign_object_n (SCM type, size_t n, scm_t_bits vals[])
   if (scm_i_symbol_length (layout) / 2 < n)
     scm_out_of_range (FUNC_NAME, scm_from_size_t (n));
 
+  layout_chars = scm_i_symbol_chars (layout);
   for (i = 0; i < n; i++)
-    if (scm_i_symbol_ref (layout, i * 2) != 'u')
+    if (layout_chars[i * 2] != 'u')
       scm_wrong_type_arg_msg (FUNC_NAME, 0, layout, "'u' field");
 
   obj = scm_c_make_structv (type, 0, 0, NULL);

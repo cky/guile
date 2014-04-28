@@ -32,6 +32,7 @@ SCM_API SCM scm_make_foreign_object_type (SCM name, SCM slot_names,
 
 SCM_API void scm_assert_foreign_object_type (SCM type, SCM val);
 
+SCM_API SCM scm_make_foreign_object_0 (SCM type);
 SCM_API SCM scm_make_foreign_object_1 (SCM type, scm_t_bits val0);
 SCM_API SCM scm_make_foreign_object_2 (SCM type, scm_t_bits val0,
                                         scm_t_bits val1);
