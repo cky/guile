@@ -246,7 +246,7 @@ continuations influence the control flow in a C program.
 
 This knowledge should make it straightforward to add new functions to
 Guile that can be called from Scheme.  Adding new data types is also
-possible and is done by defining @dfn{smobs}.
+possible and is done by defining @dfn{foreign objects}.
 
 The @ref{Programming Overview} section of this part contains general
 musings and guidelines about programming with Guile.  It explores
@@ -267,6 +267,7 @@ etc. that make up Guile's application programming interface (API),
 * Linking Programs With Guile:: More precisely, with the libguile library.
 * Linking Guile with Libraries::  To extend Guile itself. 
 * General Libguile Concepts::   General concepts for using libguile.
+* Defining New Foreign Object Types::  Adding new types to Guile.
 * Defining New Types (Smobs)::  Adding new types to Guile.
 * Function Snarfing::           A way to define new functions.
 * Programming Overview::        An overview of Guile programming.
@@ -277,6 +278,7 @@ etc. that make up Guile's application programming interface (API),
 @include libguile-linking.texi
 @include libguile-extensions.texi
 @include libguile-concepts.texi
+@include libguile-foreign-objects.texi
 @include libguile-smobs.texi
 @include libguile-snarf.texi
 @include libguile-program.texi
@@ -299,6 +301,7 @@ available through both Scheme and C interfaces.
 * Snarfing Macros::             Macros for snarfing initialization actions.
 * Simple Data Types::           Numbers, strings, booleans and so on.
 * Compound Data Types::         Data types for holding other data.
+* Foreign Objects::             Defining new data types in C.
 * Smobs::                       Defining new data types in C.
 * Procedures::                  Procedures.
 * Macros::                      Extending the syntax of Scheme.
@@ -327,6 +330,7 @@ available through both Scheme and C interfaces.
 @include api-snarf.texi
 @include api-data.texi
 @include api-compound.texi
+@include api-foreign-objects.texi
 @include api-smobs.texi
 @include api-procedures.texi
 @include api-macros.texi

@@ -1,0 +1,124 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2013, 2014
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Foreign Objects
+@section Foreign Objects
+
+@cindex foreign object
+
+This chapter contains reference information related to defining and
+working with foreign objects.  @xref{Defining New Foreign Object Types},
+for a tutorial-like introduction to foreign objects.
+
+@deftp {C Type} scm_t_struct_finalize
+This type returns @code{void} and takes one @code{SCM} argument.
+@end deftp
+
+@deftypefn {C Function} SCM scm_make_foreign_object_type (SCM name, SCM slots, scm_t_struct_finalize finalizer)
+Create a fresh foreign object type.  @var{name} is a symbol naming the
+type.  @var{slots} is a list of symbols, each one naming a field in the
+foreign object type.  @var{finalizer} indicates the finalizer, and may
+be @code{NULL}.
+@end deftypefn
+
+@cindex finalizer
+@cindex finalization
+
+We recommend that finalizers be avoided if possible.  @xref{Foreign
+Object Memory Management}.  Finalizers must be async-safe and
+thread-safe.  Again, @pxref{Foreign Object Memory Management}.  If you
+are embedding Guile in an application that is not thread-safe, and you
+define foreign object types that need finalization, you might want to
+disable automatic finalization, and arrange to call
+@code{scm_manually_run_finalizers ()} yourself.
+
+@deftypefn {C Function} int scm_set_automatic_finalization_enabled (int enabled_p)
+Enable or disable automatic finalization.  By default, Guile arranges to
+invoke object finalizers automatically, in a separate thread if
+possible.  Passing a zero value for @var{enabled_p} will disable
+automatic finalization for Guile as a whole.  If you disable automatic
+finalization, you will have to call @code{scm_run_finalizers ()}
+periodically.
+
+Unlike most other Guile functions, you can call
+@code{scm_set_automatic_finalization_enabled} before Guile has been
+initialized.
+
+Return the previous status of automatic finalization.
+@end deftypefn
+
+@deftypefn {C Function} int scm_run_finalizers (void)
+Invoke any pending finalizers.  Returns the number of finalizers that
+were invoked.  This function should be called when automatic
+finalization is disabled, though it may be called if it is enabled as
+well.
+@end deftypefn
+
+@deftypefn {C Function} void scm_assert_foreign_object_type (SCM type, SCM val)
+When @var{val} is a foreign object of the given @var{type}, do nothing.
+Otherwise, signal an error.
+@end deftypefn
+
+@deftypefn {C Function} SCM scm_make_foreign_object_0 (SCM type)
+@deftypefnx {C Function} SCM scm_make_foreign_object_1 (SCM type, void *val0)
+@deftypefnx {C Function} SCM scm_make_foreign_object_2 (SCM type, void *val0, void *val1)
+@deftypefnx {C Function} SCM scm_make_foreign_object_3 (SCM type, void *val0, void *val1, void *val2)
+@deftypefnx {C Function} SCM scm_make_foreign_object_n (SCM type, size_t n, void *vals[])
+Make a new foreign object of the type with type @var{type} and
+initialize the first @var{n} fields to the given values, as appropriate.
+
+The number of fields for objects of a given type is fixed when the type
+is created.  It is an error to give more initializers than there are
+fields in the value.  It is perfectly fine to give fewer initializers
+than needed, however; this is convenient when some fields are of
+non-pointer types, and it would be easier to initialize them with the
+setters indicated below.
+@end deftypefn
+
+@deftypefn {C Function} void* scm_foreign_object_ref (SCM obj, size_t n);
+@deftypefnx {C Function} scm_t_bits scm_foreign_object_unsigned_ref (SCM obj, size_t n);
+@deftypefnx {C Function} scm_t_signed_bits scm_foreign_object_signed_ref (SCM obj, size_t n);
+Return the value of the @var{n}th field of the foreign object @var{obj}.
+The backing store for the fields is as wide as a @code{scm_t_bits}
+value, which is at least as wide as a pointer.  The different variants
+handle casting in a portable way.
+@end deftypefn
+
+@deftypefn {C Function} void scm_foreign_object_set_x (SCM obj, size_t n, void *val);
+@deftypefnx {C Function} void scm_foreign_object_unsigned_set_x (SCM obj, size_t n, scm_t_bits val);
+@deftypefnx {C Function} void scm_foreign_object_signed_set_x (SCM obj, size_t n, scm_t_signed_bits val);
+Set the value of the @var{n}th field of the foreign object @var{obj} to
+@var{val}, after portably converting to a @code{scm_t_bits} value, if
+needed.
+@end deftypefn
+
+One can also access foreign objects from Scheme.  @xref{Foreign Objects
+and Scheme}, for some examples.
+
+@example
+(use-modules (system foreign-object))
+@end example
+
+@deffn {Scheme Procedure} make-foreign-object-type name slots [#:finalizer=#f]
+Make a new foreign object type.  See the above documentation for
+@code{scm_make_foreign_object_type}; these functions are exactly
+equivalent, except for the way in which the finalizer gets attached to
+instances (an internal detail).
+
+The resulting value is a GOOPS class.  @xref{GOOPS}, for more on classes
+in Guile.
+@end deffn
+
+@deffn {Scheme Syntax} define-foreign-object-type name constructor (slot ...) [#:finalizer=#f]
+A convenience macro to define a type, using
+@code{make-foreign-object-type}, and bind it to @var{name}.  A
+constructor will be bound to @var{constructor}, and getters will be
+bound to each of @var{slot...}.
+@end deffn
+
+@c Local Variables:
+@c TeX-master: "guile.texi"
+@c End:

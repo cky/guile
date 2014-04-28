@@ -1,7 +1,7 @@
 ## Process this file with Automake to create Makefile.in
 ##
 ##   Copyright (C) 1998, 2004, 2006, 2008, 2009, 2010,
-##     2011, 2013 Free Software Foundation, Inc.
+##     2011, 2013, 2014 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -33,6 +33,7 @@ guile_TEXINFOS = preface.texi			\
 		 api-scm.texi			\
 		 api-snarf.texi			\
 		 api-smobs.texi			\
+		 api-foreign-objects.texi	\
 		 scheme-ideas.texi		\
 		 api-data.texi			\
 		 api-procedures.texi		\
@@ -83,6 +84,7 @@ guile_TEXINFOS = preface.texi			\
 		 fdl.texi			\
 		 libguile-concepts.texi		\
 		 libguile-smobs.texi		\
+		 libguile-foreign-objects.texi	\
 		 libguile-snarf.texi		\
 		 libguile-linking.texi		\
 	 	 libguile-extensions.texi	\

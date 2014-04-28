@@ -1,0 +1,490 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Guile Reference Manual.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013, 2014
+@c   Free Software Foundation, Inc.
+@c See the file guile.texi for copying conditions.
+
+@node Defining New Foreign Object Types
+@section Defining New Foreign Object Types
+
+The @dfn{foreign object type} facility is Guile's mechanism for
+importing object and types from C or other languages into Guile's
+system.  If you have a C @code{struct foo} type, for example, you can
+define a corresponding Guile foreign object type that allows Scheme code
+to handle @code{struct foo *} objects.
+
+To define a new foreign object type, the programmer provides Guile with
+some essential information about the type --- what its name is, how many
+fields it has, and its finalizer (if any) --- and Guile allocates a
+fresh type for it.  Foreign objects can be accessed from Scheme or from
+C.
+
+@menu
+* Defining Foreign Object Types::       
+* Creating Foreign Objects::          
+* Type Checking of Foreign Objects::                
+* Foreign Object Memory Management::    
+* Foreign Objects and Scheme::    
+@end menu
+
+@node Defining Foreign Object Types
+@subsection Defining Foreign Object Types
+
+To create a new foreign object type from C, call
+@code{scm_make_foreign_object_type}.  It returns a value of type
+@code{SCM} which identifies the new type.
+
+Here is how one might declare a new type representing eight-bit
+gray-scale images:
+
+@example
+#include <libguile.h>
+
+struct image @{
+  int width, height;
+  char *pixels;
+
+  /* The name of this image */
+  SCM name;
+
+  /* A function to call when this image is
+     modified, e.g., to update the screen,
+     or SCM_BOOL_F if no action necessary */
+  SCM update_func;
+@};
+
+static SCM image_type image_type;
+
+void
+init_image_type (void)
+@{
+  SCM name, slots;
+  scm_t_struct_finalize finalizer;
+
+  name = scm_from_utf8_symbol ("image");
+  slots = scm_list_1 (scm_from_utf8_symbol ("data"));
+  finalizer = NULL;
+
+  image_type =
+    scm_make_foreign_object_type (name, slots, finalizer);
+@}
+@end example
+
+The result is an initialized @code{image_type} value that identifies the
+new foreign object type.  The next section describes how to create
+foreign objects and how to access their slots.
+
+
+@node Creating Foreign Objects
+@subsection Creating Foreign Objects
+
+Foreign objects contain zero or more ``slots'' of data.  A slot can hold
+a pointer, an integer that fits into a @code{size_t} or @code{ssize_t},
+or a @code{SCM} value.
+
+All objects of a given foreign type have the same number of slots.  In
+the example from the previous section, the @code{image} type has one
+slot, because the slots list passed to
+@code{scm_make_foreign_object_type} is of length one.  (The actual names
+given to slots are unimportant for most users the C interface, but can
+be used on the Scheme side to introspect on the foreign object.)
+
+To construct a foreign object and initialize its first slot, call
+@code{scm_make_foreign_object_1 (@var{type}, @var{first_slot_value})}.
+There are similarly named constructors for initializing 0, 1, 2, or 3
+slots, or initializing @var{n} slots via an array.  @xref{Foreign
+Objects}, for full details.  Any fields that are not explicitly
+initialized are set to 0.
+
+To get or set the value of a slot by index, you can use the
+@code{scm_foreign_object_ref} and @code{scm_foreign_object_set_x}
+functions.  These functions take and return values as @code{void *}
+pointers; there are corresponding convenience procedures like
+@code{_signed_ref}, @code{_unsigned_set_x} and so on for dealing with
+slots as signed or unsigned integers.
+
+Foreign objects fields that are pointers can be tricky to manage.  If
+possible, it is best that all memory that is referenced by a foreign
+object be managed by the garbage collector.  That way, the GC can
+automatically ensure that memory is accessible when it is needed, and
+freed when it becomes inaccessible.  If this is not the case for your
+program -- for example, if you are exposing an object to Scheme that was
+allocated by some other, Guile-unaware part of your program -- then you
+will probably need to implement a finalizer.  @xref{Foreign Object
+Memory Management}, for more.
+
+Continuing the example from above, if the global variable
+@code{image_type} contains the type returned by
+@code{scm_make_foreign_object_type}, here is how we could construct a
+foreign object whose ``data'' field contains a pointer to a freshly
+allocated @code{struct image}:
+
+@example
+SCM
+make_image (SCM name, SCM s_width, SCM s_height)
+@{
+  struct image *image;
+  int width = scm_to_int (s_width);
+  int height = scm_to_int (s_height);
+
+  /* Allocate the `struct image'.  Because we
+     use scm_gc_malloc, this memory block will
+     be automatically reclaimed when it becomes
+     inaccessible, and its members will be traced
+     by the garbage collector.  */
+  image = (struct image *)
+    scm_gc_malloc (sizeof (struct image), "image");
+
+  image->width = width;
+  image->height = height;
+
+  /* Allocating the pixels with
+     scm_gc_malloc_pointerless means that the
+     pixels data is collectable by GC, but
+     that GC shouldn't spend time tracing its
+     contents for nested pointers because there
+     aren't any.  */
+  image->pixels =
+    scm_gc_malloc_pointerless (width * height, "image pixels");
+
+  image->name = name;
+  image->update_func = SCM_BOOL_F;
+
+  /* Now wrap the struct image* in a new foreign
+     object, and return that object.  */
+  return scm_make_foreign_object_1 (image_type, image);
+@}
+@end example
+
+We use @code{scm_gc_malloc_pointerless} for the pixel buffer to tell the
+garbage collector not to scan it for pointers.  Calls to
+@code{scm_gc_malloc}, @code{scm_make_foreign_object_1}, and
+@code{scm_gc_malloc_pointerless} raise an exception in out-of-memory
+conditions; the garbage collector is able to reclaim previously
+allocated memory if that happens.
+
+
+@node Type Checking of Foreign Objects
+@subsection Type Checking of Foreign Objects
+
+Functions that operate on foreign objects should check that the passed
+@code{SCM} value indeed is of the correct type before accessing its
+data.  They can do this with @code{scm_assert_foreign_object_type}.
+
+For example, here is a simple function that operates on an image object,
+and checks the type of its argument.
+
+@example
+SCM
+clear_image (SCM image_obj)
+@{
+  int area;
+  struct image *image;
+
+  scm_assert_foreign_object_type (image_type, image_obj);
+
+  image = scm_foreign_object_ref (image_obj, 0);
+  area = image->width * image->height;
+  memset (image->pixels, 0, area);
+
+  /* Invoke the image's update function.  */
+  if (scm_is_true (image->update_func))
+    scm_call_0 (image->update_func);
+
+  return SCM_UNSPECIFIED;
+@}
+@end example
+
+
+@node Foreign Object Memory Management
+@subsection Foreign Object Memory Management
+
+Once a foreign object has been released to the tender mercies of the
+Scheme system, it must be prepared to survive garbage collection.  In
+the example above, all the memory associated with the foreign object is
+managed by the garbage collector because we used the @code{scm_gc_}
+allocation functions.  Thus, no special care must be taken: the garbage
+collector automatically scans them and reclaims any unused memory.
+
+However, when data associated with a foreign object is managed in some
+other way---e.g., @code{malloc}'d memory or file descriptors---it is
+possible to specify a @dfn{finalizer} function to release those
+resources when the foreign object is reclaimed.
+
+As discussed in @pxref{Garbage Collection}, Guile's garbage collector
+will reclaim inaccessible memory as needed.  This reclamation process
+runs concurrently with the main program.  When Guile analyzes the heap
+and detemines that an object's memory can be reclaimed, that memory is
+simply put on a ``free list'' of objects that can be reclaimed.  Usually
+that's the end of it -- that's all that garbage collection does, in
+Guile.  However some objects can have ``finalizers'' associated with
+them -- functions that are called on reclaimable objects to effect any
+external cleanup actions.
+
+Finalizers are tricky business and it is best to avoid them.  They can
+be invoked at unexpected times, or not at all -- for example, they are
+not invoked on process exit.  They don't help the garbage collector do
+its job; in fact, they are a hindrance.  Furthermore, they perturb the
+garbage collector's internal accounting.  The GC decides to scan the
+heap when it thinks that it is necessary, after some amount of
+allocation.  Finalizable objects almost always represent an amount of
+allocation that is invisible to the garbage collector.  The effect can
+be that the actual resource usage of a system with finalizable objects
+is higher than what the GC thinks it should be.
+
+All those caveats aside, some foreign object types will need finalizers.
+For example, if we had a foreign object type that wrapped file
+descriptors -- and we aren't suggesting this, as Guile already has ports
+-- then you might define the type like this:
+
+@example
+static SCM file_type;
+
+static void
+finalize_file (SCM file)
+@{
+  int fd = scm_foreign_object_signed_ref (file, 0);
+  scm_foreign_object_set_x (file, 0, -1);
+  if (fd >= 0)
+    close (fd);
+@}
+
+static void
+init_file_type (void)
+@{
+  SCM name, slots;
+  scm_t_struct_finalize finalizer;
+
+  name = scm_from_utf8_symbol ("file");
+  slots = scm_list_1 (scm_from_utf8_symbol ("fd"));
+  finalizer = finalize_file;
+
+  image_type =
+    scm_make_foreign_object_type (name, slots, finalizer);
+@}
+
+static SCM
+make_file (int fd)
+@{
+  return scm_make_foreign_object_1 (file_type, (void *) fd);
+@}
+@end example
+
+@cindex finalizer
+@cindex finalization
+
+Note that the finalizer can be called in any context.  In particular, if
+the user's Guile is built with support for threads, the finalizer may be
+called from any thread that is running Guile.  In Guile 2.0, finalizers
+are invoked via ``asyncs'', which interleaves them with running Scheme
+code; @pxref{System asyncs}.  In Guile 2.2 there will be a dedicated
+finalization thread, to ensure that the finalization doesn't run within
+the critical section of any other thread known to Guile.
+
+In either case, finalizers run concurrently with the main program, and
+so they need to be async-safe and thread-safe.  If for some reason this
+is impossible, perhaps because you are embedding Guile in some
+application that is not itself thread-safe, you have a few options.  One
+is to use guardians instead of finalizers, and arrange to pump the
+guardians for finalizable objects.  @xref{Guardians}, for more
+information.  The other option is to disable automatic finalization
+entirely, and arrange to call @code{scm_run_finalizers ()} at
+appropriate points.  @xref{Foreign Objects}, for more on these
+interfaces.
+
+Finalizers are allowed to allocate memory, access GC-managed memory, and
+in general can do anything any Guile user code can do.  This was not the
+case in Guile 1.8, where finalizers were much more restricted.  In
+particular, in Guile 2.0, finalizers can resuscitate objects.  We do not
+recommend that users avail themselves of this possibility, however, as a
+resuscitated object can re-expose other finalizable objects that have
+been already finalized back to Scheme.  These objects will not be
+finalized again, but they could cause use-after-free problems to code
+that handles objects of that particular foreign object type.  To guard
+against this possibility, robust finalization routines should clear
+state from the foreign object, as in the above @code{free_file} example.
+
+One final caveat.  Foreign object finalizers are associated with the
+lifetime of a foreign object, not of its fields.  If you access a field
+of a finalizable foreign object, and do not arrange to keep a reference
+on the foreign object itself, it could be that the outer foreign object
+gets finalized while you are working with its field.
+
+For example, consider a procedure to read some data from a file, from
+our example above.
+
+@example
+SCM
+read_bytes (SCM file, SCM n)
+@{
+  int fd;
+  SCM buf;
+  size_t len, pos;
+
+  scm_assert_foreign_object_type (file_type, file);
+
+  fd = scm_foreign_object_signed_ref (file, 0);
+  if (fd < 0)
+    scm_wrong_type_arg_msg ("read-bytes", SCM_ARG1,
+                            file, "open file");
+
+  len = scm_to_size_t (n);
+  SCM buf = scm_c_make_bytevector (scm_to_size_t (n));
+
+  pos = 0;
+  while (pos < len)
+    @{
+      char *bytes = SCM_BYTEVECTOR_CONTENTS (buf);
+      ssize_t count = read (fd, bytes + pos, len - pos);
+      if (count < 0)
+        scm_syserror ("read-bytes");
+      if (count == 0)
+        break;
+      pos += count;
+    @}
+
+  scm_remember_upto_here_1 (file);
+
+  return scm_values (scm_list_2 (buf, scm_from_size_t (pos)));
+@}
+@end example
+
+After the prelude, only the @code{fd} value is used and the C compiler
+has no reason to keep the @code{file} object around.  If
+@code{scm_c_make_bytevector} results in a garbage collection,
+@code{file} might not be on the stack or anywhere else and could be
+finalized, leaving @code{read} to read a closed (or, in a multi-threaded
+program, possibly re-used) file descriptor.  The use of
+@code{scm_remember_upto_here_1} prevents this, by creating a reference
+to @code{file} after all data accesses.  @xref{Garbage Collection
+Functions}.
+
+@code{scm_remember_upto_here_1} is only needed on finalizable objects,
+because garbage collection of other values is invisible to the program
+-- it happens when needed, and is not observable.  But if you can, save
+yourself the headache and build your program in such a way that it
+doesn't need finalization.
+
+
+@node Foreign Objects and Scheme
+@subsection Foreign Objects and Scheme
+
+It is also possible to create foreign objects and object types from
+Scheme, and to access fields of foreign objects from Scheme.  For
+example, the file example from the last section could be equivalently
+expressed as:
+
+@example
+(define-module (my-file)
+  #:use-module (system foreign-object)
+  #:use-module ((oop goops) #:select (make))
+  #:export (make-file))
+
+(define (finalize-file file)
+  (let ((fd (struct-ref file 0)))
+    (unless (< fd 0)
+      (struct-set! file 0 -1)
+      (close-fdes fd))))
+
+(define <file>
+  (make-foreign-object-type '<file> '(fd)
+                            #:finalizer finalize-file))
+
+(define (make-file fd)
+  (make <file> #:fd fd))
+@end example
+
+Here we see that the result of @code{make-foreign-object-type}, which is
+the equivalent of @code{scm_make_foreign_object_type}, is a struct
+vtable.  @xref{Vtables}, for more information.  To instantiate the
+foreign object, which is really a Guile struct, we use @code{make}.  (We
+could have used @code{make-struct/no-tail}, but as an implementation
+detail, finalizer are attached in the @code{initialize} method called by
+@code{make}).  To access the fields, we use @code{struct-ref} and
+@code{struct-set!}.  @xref{Structure Basics}.
+
+There is a convenience syntax, @code{define-foreign-object-type}, that
+defines a type along with a constructor, and getters for the fields.  An
+appropriate invocation of @code{define-foreign-object-type} for the
+file object type could look like this:
+
+@example
+(use-modules (system foreign-object))
+
+(define-foreign-object-type <file>
+  make-file
+  (fd)
+  #:finalizer finalize-file)
+@end example
+
+This defines the @code{<file>} type with one field, a @code{make-file}
+constructor, and a getter for the @code{fd} field, bound to @code{fd}.
+
+Foreign object types are not only vtables but are actually GOOPS
+classes, as hinted at above.  @xref{GOOPS}, for more on Guile's
+object-oriented programming system.  Thus one can define print and
+equality methods using GOOPS:
+
+@example
+(use-modules (oop goops))
+
+(define-method (write (file <file>) port)
+  ;; Assuming existence of the `fd' getter
+  (format port "#<<file> ~a>" (fd file)))
+
+(define-method (equal? (a <file>) (b <file>))
+  (eqv? (fd a) (fd b)))
+@end example
+
+One can even sub-class foreign types.
+
+@example
+(define-class <named-file> (<file>)
+  (name #:init-keyword #:name #:init-value #f #:accessor name))
+@end example
+
+The question arises of how to construct these values, given that
+@code{make-file} returns a plain old @code{<file>} object.  It turns out
+that you can use the GOOPS construction interface, where every field of
+the foreign object has an associated initialization keyword argument.
+
+@example
+(define* (my-open-file name #:optional (flags O_RDONLY))
+  (make <named-file> #:fd (open-fdes name flags) #:name name))
+
+(define-method (write (file <named-file>) port)
+  (format port "#<<file> ~s ~a>" (name file) (fd file)))
+@end example
+
+@xref{Foreign Objects}, for full documentation on the Scheme interface
+to foreign objects.  @xref{GOOPS}, for more on GOOPS.
+
+As a final note, you might wonder how this system supports encapsulation
+of sensitive values.  First, we have to recognize that some facilities
+are essentially unsafe and have global scope.  For example, in C, the
+integrity and confidentiality of a part of a program is at the mercy of
+every other part of that program -- because any memory could potentially
+access any other.  At the same time, principled access to structured
+data is organized in C on lexical boundaries; if you don't expose
+accessors for your object, you trust other parts of the program not to
+access it.
+
+The answer is similar in Scheme.  Although Scheme's unsafe constructs
+are fewer in number than in C, they do exist.  The @code{(system
+foreign)} module can be used to violate confidentiality and integrity,
+and shouldn't be exposed to untrusted code.  Although @code{struct-ref}
+and @code{struct-set!} are less unsafe, they still have a cross-cutting
+capability of drilling through abstractions.  Performing a
+@code{struct-set!} on a foreign object slot could cause unsafe foreign
+code to crash.  Ultimately, structures in Scheme are capabilities for
+abstraction, and not abstractions themselves.
+
+That leaves us with the lexical capabilities, like constructors and
+accessors.  Here is where encapsulation lies: the practical degree to
+which the innards of your foreign objects are exposed is the degree to
+which their accessors are lexically available in user code.  If you want
+to allow users to reference fields of your foreign object, provide them
+with a getter.  Otherwise you should assume that the only access to your
+object may come from your code, which has the relevant authority, or via
+code with access to cross-cutting @code{struct-ref} and such, which also
+has the cross-cutting authority.
