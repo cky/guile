@@ -1,6 +1,6 @@
 ## Process this file with Automake to create Makefile.in
 ##
-##  	Copyright (C) 1998, 2002, 2006, 2008, 2009, 2010 Free Software Foundation, Inc.
+##  	Copyright (C) 1998, 2002, 2006, 2008, 2009, 2010, 2014 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -24,18 +24,6 @@ AUTOMAKE_OPTIONS = gnu
 SUBDIRS = ref r5rs
 
 dist_man1_MANS = guile.1
-
-EXAMPLE_SMOB_FILES = \
-    ChangeLog-2008 Makefile README image-type.c image-type.h myguile.c
-
-OLDFMT = oldfmt.c
-
-dist-hook:
-	cp $(srcdir)/$(OLDFMT) $(distdir)/
-	mkdir $(distdir)/example-smob
-	for f in $(EXAMPLE_SMOB_FILES); do \
-	  cp $(srcdir)/example-smob/$$f $(distdir)/example-smob/; \
-        done
 
 EXTRA_DIST = groupings.alist ChangeLog-2008 # guile-api.alist
 

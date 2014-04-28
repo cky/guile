@@ -14,10 +14,6 @@ Please be aware that this is all very much work in progress (apart
 from the Revised^5 Report).  Bug reports and contributions are
 welcome!
 
-The file `oldfmt.c' contains a function which can be used by
-application writers to support both old-style and new-style error
-format strings.
-
 The `sources' directory includes some stuff relevant to the Guile
 reference manual, and which may eventually be folded in to it.  It's
 not immediately relevant, however, which is why it's not in this
