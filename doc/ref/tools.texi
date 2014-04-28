@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011, 2014
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -112,11 +112,11 @@ For example, here is how you might define a new subr called
 #include <libguile.h>
 
 SCM_DEFINE (clear_image, "clear-image", 1, 0, 0,
-            (SCM image_smob),
+            (SCM image),
             "Clear the image.")
 #define FUNC_NAME s_clear_image
 @{
-  /* C code to clear the image in @code{image_smob}... */
+  /* C code to clear the image in @code{image}... */
 @}
 #undef FUNC_NAME
 
@@ -131,8 +131,8 @@ init_image_type ()
 The @code{SCM_DEFINE} declaration says that the C function
 @code{clear_image} implements a Scheme subr called @code{clear-image},
 which takes one required argument (of type @code{SCM} and named
-@code{image_smob}), no optional arguments, and no rest argument.
-@xref{Doc Snarfing}, for info on the docstring.
+@code{image}), no optional arguments, and no rest argument.  @xref{Doc
+Snarfing}, for info on the docstring.
 
 This works in concert with @code{FUNC_NAME} to also define a static
 array of characters named @code{s_clear_image}, initialized to the

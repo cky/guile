@@ -300,7 +300,7 @@ available through both Scheme and C interfaces.
 * Simple Data Types::           Numbers, strings, booleans and so on.
 * Compound Data Types::         Data types for holding other data.
 * Foreign Objects::             Defining new data types in C.
-* Smobs::                       Legacy version of foreign objects.
+* Smobs::                       Use foreign objects instead.
 * Procedures::                  Procedures.
 * Macros::                      Extending the syntax of Scheme.
 * Utility Functions::           General utility functions.
