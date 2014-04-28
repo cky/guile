@@ -160,3 +160,5 @@ INSTALL
 /test-suite/standalone/test-scm-values
 /test-suite/standalone/test-scm-to-latin1-string
 /test-suite/standalone/test-scm-c-bind-keyword-arguments
+/test-suite/standalone/test-foreign-object-c
+/test-suite/standalone/test-srfi-4
