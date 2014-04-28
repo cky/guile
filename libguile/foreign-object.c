@@ -70,15 +70,15 @@ scm_make_foreign_object_0 (SCM type)
 }
 
 SCM
-scm_make_foreign_object_1 (SCM type, scm_t_bits val0)
+scm_make_foreign_object_1 (SCM type, void *val0)
 {
   return scm_make_foreign_object_n (type, 1, &val0);
 }
 
 SCM
-scm_make_foreign_object_2 (SCM type, scm_t_bits val0, scm_t_bits val1)
+scm_make_foreign_object_2 (SCM type, void *val0, void *val1)
 {
-  scm_t_bits vals[2];
+  void *vals[2];
 
   vals[0] = val0;
   vals[1] = val1;
@@ -87,10 +87,9 @@ scm_make_foreign_object_2 (SCM type, scm_t_bits val0, scm_t_bits val1)
 }
 
 SCM
-scm_make_foreign_object_3 (SCM type, scm_t_bits val0, scm_t_bits val1,
-                           scm_t_bits val2)
+scm_make_foreign_object_3 (SCM type, void *val0, void *val1, void *val2)
 {
-  scm_t_bits vals[3];
+  void *vals[3];
 
   vals[0] = val0;
   vals[1] = val1;
@@ -100,7 +99,7 @@ scm_make_foreign_object_3 (SCM type, scm_t_bits val0, scm_t_bits val1,
 }
 
 SCM
-scm_make_foreign_object_n (SCM type, size_t n, scm_t_bits vals[])
+scm_make_foreign_object_n (SCM type, size_t n, void *vals[])
 #define FUNC_NAME "make-foreign-object"
 {
   SCM obj;
@@ -123,14 +122,14 @@ scm_make_foreign_object_n (SCM type, size_t n, scm_t_bits vals[])
   obj = scm_c_make_structv (type, 0, 0, NULL);
 
   for (i = 0; i < n; i++)
-    SCM_STRUCT_DATA_SET (obj, i, vals[i]);
+    SCM_STRUCT_DATA_SET (obj, i, (scm_t_bits) vals[i]);
 
   return obj;
 }
 #undef FUNC_NAME
 
 scm_t_bits
-scm_foreign_object_ref (SCM obj, size_t n)
+scm_foreign_object_unsigned_ref (SCM obj, size_t n)
 #define FUNC_NAME "foreign-object-ref"
 {
   SCM layout;
@@ -149,7 +148,7 @@ scm_foreign_object_ref (SCM obj, size_t n)
 #undef FUNC_NAME
 
 void
-scm_foreign_object_set_x (SCM obj, size_t n, scm_t_bits val)
+scm_foreign_object_unsigned_set_x (SCM obj, size_t n, scm_t_bits val)
 #define FUNC_NAME "foreign-object-set!"
 {
   SCM layout;
@@ -166,6 +165,34 @@ scm_foreign_object_set_x (SCM obj, size_t n, scm_t_bits val)
   SCM_STRUCT_DATA_SET (obj, n, val);
 }
 #undef FUNC_NAME
+
+scm_t_signed_bits
+scm_foreign_object_signed_ref (SCM obj, size_t n)
+{
+  scm_t_bits bits = scm_foreign_object_unsigned_ref (obj, n);
+  return (scm_t_signed_bits) bits;
+}
+
+void
+scm_foreign_object_signed_set_x (SCM obj, size_t n, scm_t_signed_bits val)
+{
+  scm_t_bits bits = (scm_t_bits) val;
+  scm_foreign_object_unsigned_set_x (obj, n, bits);
+}
+
+void*
+scm_foreign_object_ref (SCM obj, size_t n)
+{
+  scm_t_bits bits = scm_foreign_object_unsigned_ref (obj, n);
+  return (void *) bits;
+}
+
+void
+scm_foreign_object_set_x (SCM obj, size_t n, void *val)
+{
+  scm_t_bits bits = (scm_t_bits) val;
+  scm_foreign_object_unsigned_set_x (obj, n, bits);
+}
   
 static void
 invoke_finalizer (void *obj, void *data)

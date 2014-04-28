@@ -38,8 +38,7 @@ enum
 static void
 finalizer (SCM obj)
 {
-  scm_t_bits addr = scm_foreign_object_ref (obj, CSTR_SLOT_ADDR);
-  free ((void *) addr);
+  free (scm_foreign_object_ref (obj, CSTR_SLOT_ADDR));
 }
 
 static SCM
@@ -50,7 +49,7 @@ make_cstr_from_static (SCM type, const char *str)
   if (!ours)
     abort ();
 
-  return scm_make_foreign_object_2 (type, (scm_t_bits) ours, strlen (ours));
+  return scm_make_foreign_object_2 (type, ours, (void *) strlen (ours));
 }
 
 static int
@@ -59,8 +58,8 @@ cstr_equals_static_p (SCM cstr, const char *str)
   const char *addr;
   size_t len;
 
-  addr = (const char *) scm_foreign_object_ref (cstr, CSTR_SLOT_ADDR);
-  len = scm_foreign_object_ref (cstr, CSTR_SLOT_LEN);
+  addr = scm_foreign_object_ref (cstr, CSTR_SLOT_ADDR);
+  len = scm_foreign_object_unsigned_ref (cstr, CSTR_SLOT_LEN);
 
   if (strlen (str) != len)
     return 0;
