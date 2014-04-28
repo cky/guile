@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
 @c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010,
-@c   2011, 2012, 2013 Free Software Foundation, Inc.
+@c   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Control Mechanisms
@@ -1184,13 +1184,13 @@ The @var{body_data} and @var{handler_data} parameters are passed to
 the respective calls so an application can communicate extra
 information to those functions.
 
-If the data consists of an @code{SCM} object, care should be taken
-that it isn't garbage collected while still required.  If the
-@code{SCM} is a local C variable, one way to protect it is to pass a
-pointer to that variable as the data parameter, since the C compiler
-will then know the value must be held on the stack.  Another way is to
-use @code{scm_remember_upto_here_1} (@pxref{Remembering During
-Operations}).
+If the data consists of an @code{SCM} object, care should be taken that
+it isn't garbage collected while still required.  If the @code{SCM} is a
+local C variable, one way to protect it is to pass a pointer to that
+variable as the data parameter, since the C compiler will then know the
+value must be held on the stack.  Another way is to use
+@code{scm_remember_upto_here_1} (@pxref{Foreign Object Memory
+Management}).
 @end deftypefn
 
 

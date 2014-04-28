@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2013
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2013, 2014
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -191,38 +191,34 @@ periodically free all blocks that have been allocated but are not used
 by any active Scheme values.  This activity is called @dfn{garbage
 collection}.
 
-It is easy for Guile to remember all blocks of memory that it has
-allocated for use by Scheme values, but you need to help it with finding
-all Scheme values that are in use by C code.
+Guile's garbage collector will automatically discover references to
+@code{SCM} objects that originate in global variables, static data
+sections, function arguments or local variables on the C and Scheme
+stacks, and values in machine registers.  Other references to @code{SCM}
+objects, such as those in other random data structures in the C heap
+that contain fields of type @code{SCM}, can be made visible to the
+garbage collector by calling the functions @code{scm_gc_protect} or
+@code{scm_permanent_object}.  Collectively, these values form the ``root
+set'' of garbage collection; any value on the heap that is referenced
+directly or indirectly by a member of the root set is preserved, and all
+other objects are eligible for reclamation.
 
-You do this when writing a SMOB mark function, for example
-(@pxref{Garbage Collecting Smobs}).  By calling this function, the
-garbage collector learns about all references that your SMOB has to
-other @code{SCM} values.
-
-Other references to @code{SCM} objects, such as global variables of type
-@code{SCM} or other random data structures in the heap that contain
-fields of type @code{SCM}, can be made visible to the garbage collector
-by calling the functions @code{scm_gc_protect} or
-@code{scm_permanent_object}.  You normally use these functions for long
-lived objects such as a hash table that is stored in a global variable.
-For temporary references in local variables or function arguments, using
-these functions would be too expensive.
-
-These references are handled differently: Local variables (and function
-arguments) of type @code{SCM} are automatically visible to the garbage
-collector.  This works because the collector scans the stack for
-potential references to @code{SCM} objects and considers all referenced
-objects to be alive.  The scanning considers each and every word of the
-stack, regardless of what it is actually used for, and then decides
-whether it could possibly be a reference to a @code{SCM} object.  Thus,
-the scanning is guaranteed to find all actual references, but it might
-also find words that only accidentally look like references.  These
-`false positives' might keep @code{SCM} objects alive that would
-otherwise be considered dead.  While this might waste memory, keeping an
-object around longer than it strictly needs to is harmless.  This is why
-this technique is called ``conservative garbage collection''.  In
-practice, the wasted memory seems to be no problem.
+The Scheme stack and heap are scanned precisely; that is to say, Guile
+knows about all inter-object pointers on the Scheme stack and heap.
+This is not the case, unfortunately, for pointers on the C stack and
+static data segment.  For this reason we have to scan the C stack and
+static data segment @dfn{conservatively}; any value that looks like a
+pointer to a GC-managed object is treated as such, whether it actually
+is a reference or not.  Thus, scanning the C stack and static data
+segment is guaranteed to find all actual references, but it might also
+find words that only accidentally look like references.  These ``false
+positives'' might keep @code{SCM} objects alive that would otherwise be
+considered dead.  While this might waste memory, keeping an object
+around longer than it strictly needs to is harmless.  This is why this
+technique is called ``conservative garbage collection''.  In practice,
+the wasted memory seems to be no problem, as the static C root set is
+almost always finite and small, given that the Scheme stack is separate
+from the C stack.
 
 The stack of every thread is scanned in this way and the registers of
 the CPU and all other memory locations where local variables or function
@@ -245,17 +241,17 @@ wanted.
 There are situations, however, where a @code{SCM} object needs to be
 around longer than its reference from a local variable or function
 parameter.  This happens, for example, when you retrieve some pointer
-from a smob and work with that pointer directly.  The reference to the
-@code{SCM} smob object might be dead after the pointer has been
-retrieved, but the pointer itself (and the memory pointed to) is still
-in use and thus the smob object must be protected.  The compiler does
-not know about this connection and might overwrite the @code{SCM}
-reference too early.
+from a foreign object and work with that pointer directly.  The
+reference to the @code{SCM} foreign object might be dead after the
+pointer has been retrieved, but the pointer itself (and the memory
+pointed to) is still in use and thus the foreign object must be
+protected.  The compiler does not know about this connection and might
+overwrite the @code{SCM} reference too early.
 
 To get around this problem, you can use @code{scm_remember_upto_here_1}
 and its cousins.  It will keep the compiler from overwriting the
-reference.  For a typical example of its use, see @ref{Remembering
-During Operations}.
+reference.  @xref{Foreign Object Memory Management}.
+
 
 @node Control Flow
 @subsection Control Flow

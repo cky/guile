@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011, 2012, 2013
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2011, 2012, 2013, 2014
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -163,12 +163,14 @@ same.
 into an infinite loop if asked to compare two circular lists or
 similar.
 
-New application-defined object types (@pxref{Defining New Types
-(Smobs)}) have an @code{equalp} handler which is called by
-@code{equal?}.  This lets an application traverse the contents or
-control what is considered @code{equal?} for two objects of such a
-type.  If there's no such handler, the default is to just compare as
-per @code{eq?}.
+GOOPS object types (@pxref{GOOPS}), including foreign object types
+(@pxref{Defining New Foreign Object Types}), can have an @code{equal?}
+implementation specialized on two values of the same type.  If
+@code{equal?} is called on two GOOPS objects of the same type,
+@code{equal?} will dispatch out to a generic function.  This lets an
+application traverse the contents or control what is considered
+@code{equal?} for two objects of such a type.  If there's no such
+handler, the default is to just compare as per @code{eq?}.
 @end deffn
 
 

@@ -9,9 +9,17 @@
 
 @cindex smob
 
-This chapter contains reference information related to defining and
-working with smobs.  See @ref{Defining New Types (Smobs)} for a
-tutorial-like introduction to smobs.
+A @dfn{smob} is a ``small object''.  Before foreign objects were
+introduced in Guile 2.0.12 (@pxref{Foreign Objects}), smobs were the
+preferred way to for C code to define new kinds of Scheme objects.  With
+the exception of the so-called ``applicable SMOBs'' discussed below,
+smobs are now a legacy interface and are headed for eventual
+deprecation.  @xref{Deprecation}.  New code should use the foreign
+object interface.
+
+This section contains reference information related to defining and
+working with smobs.  For a tutorial-like introduction to smobs, see
+``Defining New Types (Smobs)'' in previous versions of this manual.
 
 @deftypefun scm_t_bits scm_make_smob_type (const char *name, size_t size)
 This function adds a new smob type, named @var{name}, with instance size
@@ -26,9 +34,8 @@ deallocate the memory block pointed to by @code{SCM_SMOB_DATA} with
 @code{scm_gc_free} will be @var{name}.
 
 Default values are provided for the @emph{mark}, @emph{free},
-@emph{print}, and @emph{equalp} functions, as described in
-@ref{Defining New Types (Smobs)}.  If you want to customize any of
-these functions, the call to @code{scm_make_smob_type} should be
+@emph{print}, and @emph{equalp} functions.  If you want to customize any
+of these functions, the call to @code{scm_make_smob_type} should be
 immediately followed by calls to one or several of
 @code{scm_set_smob_mark}, @code{scm_set_smob_free},
 @code{scm_set_smob_print}, and/or @code{scm_set_smob_equalp}.
@@ -60,51 +67,30 @@ memory is automatically reclaimed by the garbage collector when it is no
 longer needed (@pxref{Memory Blocks, @code{scm_gc_malloc}}).
 @end deftypefn
 
-Smob free functions must be thread-safe.  @xref{Garbage Collecting
-Smobs}, for a discussion on finalizers and concurrency.  If you are
+Smob free functions must be thread-safe.  @xref{Foreign Object Memory
+Management}, for a discussion on finalizers and concurrency.  If you are
 embedding Guile in an application that is not thread-safe, and you
 define smob types that need finalization, you might want to disable
 automatic finalization, and arrange to call
-@code{scm_manually_run_finalizers ()} yourself.
-
-@deftypefn {C Function} int scm_set_automatic_finalization_enabled (int enabled_p)
-Enable or disable automatic finalization.  By default, Guile arranges to
-invoke object finalizers automatically, in a separate thread if
-possible.  Passing a zero value for @var{enabled_p} will disable
-automatic finalization for Guile as a whole.  If you disable automatic
-finalization, you will have to call @code{scm_run_finalizers ()}
-periodically.
-
-Unlike most other Guile functions, you can call
-@code{scm_set_automatic_finalization_enabled} before Guile has been
-initialized.
-
-Return the previous status of automatic finalization.
-@end deftypefn
-
-@deftypefn {C Function} int scm_run_finalizers (void)
-Invoke any pending finalizers.  Returns the number of finalizers that
-were invoked.  This function should be called when automatic
-finalization is disabled, though it may be called if it is enabled as
-well.
-@end deftypefn
-
-
-@cindex precise marking
+@code{scm_manually_run_finalizers ()} yourself.  @xref{Foreign Objects}.
 
 @deftypefn {C Function} void scm_set_smob_mark (scm_t_bits tc, SCM (*mark) (SCM obj))
 This function sets the smob marking procedure for the smob type specified by
 the tag @var{tc}. @var{tc} is the tag returned by @code{scm_make_smob_type}.
 
-Defining a marking procedure may sometimes be unnecessary because large
-parts of the process' memory (with the exception of
-@code{scm_gc_malloc_pointerless} regions, and @code{malloc}- or
-@code{scm_malloc}-allocated memory) are scanned for live
-pointers@footnote{Conversely, in Guile up to the 1.8 series, the marking
-procedure was always required.  The reason is that Guile's GC would only
-look for pointers in the memory area used for built-in types (the
-@dfn{cell heap}), not in user-allocated or statically allocated memory.
-This approach is often referred to as @dfn{precise marking}.}.
+Defining a marking procedure is almost always the wrong thing to do.  It
+is much, much preferable to allocate smob data with the
+@code{scm_gc_malloc} and @code{scm_gc_malloc_pointerless} functions, and
+allow the GC to trace pointers automatically.
+
+Any mark procedures you see currently almost surely date from the time
+of Guile 1.8, before the switch to the Boehm-Demers-Weiser collector.
+Such smob implementations should be changed to just use
+@code{scm_gc_malloc} and friends, and to lose their mark function.
+
+If you decide to keep the mark function, note that it may be called on
+objects that are on the free list.  Please read and digest the comments
+from the BDW GC's @code{gc/gc_mark.h} header.
 
 The @var{mark} procedure must cause @code{scm_gc_mark} to be called
 for every @code{SCM} value that is directly referenced by the smob

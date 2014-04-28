@@ -268,7 +268,6 @@ etc. that make up Guile's application programming interface (API),
 * Linking Guile with Libraries::  To extend Guile itself. 
 * General Libguile Concepts::   General concepts for using libguile.
 * Defining New Foreign Object Types::  Adding new types to Guile.
-* Defining New Types (Smobs)::  Adding new types to Guile.
 * Function Snarfing::           A way to define new functions.
 * Programming Overview::        An overview of Guile programming.
 * Autoconf Support::            Putting m4 to good use.
@@ -279,7 +278,6 @@ etc. that make up Guile's application programming interface (API),
 @include libguile-extensions.texi
 @include libguile-concepts.texi
 @include libguile-foreign-objects.texi
-@include libguile-smobs.texi
 @include libguile-snarf.texi
 @include libguile-program.texi
 @include libguile-autoconf.texi
@@ -302,7 +300,7 @@ available through both Scheme and C interfaces.
 * Simple Data Types::           Numbers, strings, booleans and so on.
 * Compound Data Types::         Data types for holding other data.
 * Foreign Objects::             Defining new data types in C.
-* Smobs::                       Defining new data types in C.
+* Smobs::                       Legacy version of foreign objects.
 * Procedures::                  Procedures.
 * Macros::                      Extending the syntax of Scheme.
 * Utility Functions::           General utility functions.

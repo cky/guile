@@ -83,7 +83,6 @@ guile_TEXINFOS = preface.texi			\
 		 compiler.texi			\
 		 fdl.texi			\
 		 libguile-concepts.texi		\
-		 libguile-smobs.texi		\
 		 libguile-foreign-objects.texi	\
 		 libguile-snarf.texi		\
 		 libguile-linking.texi		\

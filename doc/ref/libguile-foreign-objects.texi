@@ -86,8 +86,8 @@ All objects of a given foreign type have the same number of slots.  In
 the example from the previous section, the @code{image} type has one
 slot, because the slots list passed to
 @code{scm_make_foreign_object_type} is of length one.  (The actual names
-given to slots are unimportant for most users the C interface, but can
-be used on the Scheme side to introspect on the foreign object.)
+given to slots are unimportant for most users of the C interface, but
+can be used on the Scheme side to introspect on the foreign object.)
 
 To construct a foreign object and initialize its first slot, call
 @code{scm_make_foreign_object_1 (@var{type}, @var{first_slot_value})}.
@@ -113,7 +113,7 @@ allocated by some other, Guile-unaware part of your program -- then you
 will probably need to implement a finalizer.  @xref{Foreign Object
 Memory Management}, for more.
 
-Continuing the example from above, if the global variable
+Continuing the example from the previous section, if the global variable
 @code{image_type} contains the type returned by
 @code{scm_make_foreign_object_type}, here is how we could construct a
 foreign object whose ``data'' field contains a pointer to a freshly
@@ -214,15 +214,15 @@ resources when the foreign object is reclaimed.
 As discussed in @pxref{Garbage Collection}, Guile's garbage collector
 will reclaim inaccessible memory as needed.  This reclamation process
 runs concurrently with the main program.  When Guile analyzes the heap
-and detemines that an object's memory can be reclaimed, that memory is
-simply put on a ``free list'' of objects that can be reclaimed.  Usually
-that's the end of it -- that's all that garbage collection does, in
-Guile.  However some objects can have ``finalizers'' associated with
-them -- functions that are called on reclaimable objects to effect any
-external cleanup actions.
+and determines that an object's memory can be reclaimed, that memory is
+put on a ``free list'' of objects that can be reclaimed.  Usually that's
+the end of it---the object is available for immediate re-use.  However
+some objects can have ``finalizers'' associated with them---functions
+that are called on reclaimable objects to effect any external cleanup
+actions.
 
 Finalizers are tricky business and it is best to avoid them.  They can
-be invoked at unexpected times, or not at all -- for example, they are
+be invoked at unexpected times, or not at all---for example, they are
 not invoked on process exit.  They don't help the garbage collector do
 its job; in fact, they are a hindrance.  Furthermore, they perturb the
 garbage collector's internal accounting.  The GC decides to scan the
@@ -234,8 +234,8 @@ is higher than what the GC thinks it should be.
 
 All those caveats aside, some foreign object types will need finalizers.
 For example, if we had a foreign object type that wrapped file
-descriptors -- and we aren't suggesting this, as Guile already has ports
--- then you might define the type like this:
+descriptors---and we aren't suggesting this, as Guile already has ports
+---then you might define the type like this:
 
 @example
 static SCM file_type;
@@ -244,9 +244,11 @@ static void
 finalize_file (SCM file)
 @{
   int fd = scm_foreign_object_signed_ref (file, 0);
-  scm_foreign_object_set_x (file, 0, -1);
   if (fd >= 0)
-    close (fd);
+    @{
+      scm_foreign_object_signed_set_x (file, 0, -1);
+      close (fd);
+    @}
 @}
 
 static void
@@ -273,13 +275,14 @@ make_file (int fd)
 @cindex finalizer
 @cindex finalization
 
-Note that the finalizer can be called in any context.  In particular, if
-the user's Guile is built with support for threads, the finalizer may be
-called from any thread that is running Guile.  In Guile 2.0, finalizers
-are invoked via ``asyncs'', which interleaves them with running Scheme
-code; @pxref{System asyncs}.  In Guile 2.2 there will be a dedicated
-finalization thread, to ensure that the finalization doesn't run within
-the critical section of any other thread known to Guile.
+Note that the finalizer may be invoked in ways and at times you might
+not expect.  In particular, if the user's Guile is built with support
+for threads, the finalizer may be called from any thread that is running
+Guile.  In Guile 2.0, finalizers are invoked via ``asyncs'', which
+interleaves them with running Scheme code; @pxref{System asyncs}.  In
+Guile 2.2 there will be a dedicated finalization thread, to ensure that
+the finalization doesn't run within the critical section of any other
+thread known to Guile.
 
 In either case, finalizers run concurrently with the main program, and
 so they need to be async-safe and thread-safe.  If for some reason this
@@ -399,8 +402,8 @@ the equivalent of @code{scm_make_foreign_object_type}, is a struct
 vtable.  @xref{Vtables}, for more information.  To instantiate the
 foreign object, which is really a Guile struct, we use @code{make}.  (We
 could have used @code{make-struct/no-tail}, but as an implementation
-detail, finalizer are attached in the @code{initialize} method called by
-@code{make}).  To access the fields, we use @code{struct-ref} and
+detail, finalizers are attached in the @code{initialize} method called
+by @code{make}).  To access the fields, we use @code{struct-ref} and
 @code{struct-set!}.  @xref{Structure Basics}.
 
 There is a convenience syntax, @code{define-foreign-object-type}, that
@@ -463,21 +466,21 @@ As a final note, you might wonder how this system supports encapsulation
 of sensitive values.  First, we have to recognize that some facilities
 are essentially unsafe and have global scope.  For example, in C, the
 integrity and confidentiality of a part of a program is at the mercy of
-every other part of that program -- because any memory could potentially
-access any other.  At the same time, principled access to structured
-data is organized in C on lexical boundaries; if you don't expose
-accessors for your object, you trust other parts of the program not to
-access it.
+every other part of that program -- because any part of the program can
+read and write anything in its address space.  At the same time,
+principled access to structured data is organized in C on lexical
+boundaries; if you don't expose accessors for your object, you trust
+other parts of the program not to work around that barrier.
 
-The answer is similar in Scheme.  Although Scheme's unsafe constructs
-are fewer in number than in C, they do exist.  The @code{(system
-foreign)} module can be used to violate confidentiality and integrity,
-and shouldn't be exposed to untrusted code.  Although @code{struct-ref}
-and @code{struct-set!} are less unsafe, they still have a cross-cutting
-capability of drilling through abstractions.  Performing a
-@code{struct-set!} on a foreign object slot could cause unsafe foreign
-code to crash.  Ultimately, structures in Scheme are capabilities for
-abstraction, and not abstractions themselves.
+The situation is not dissimilar in Scheme.  Although Scheme's unsafe
+constructs are fewer in number than in C, they do exist.  The
+@code{(system foreign)} module can be used to violate confidentiality
+and integrity, and shouldn't be exposed to untrusted code.  Although
+@code{struct-ref} and @code{struct-set!} are less unsafe, they still
+have a cross-cutting capability of drilling through abstractions.
+Performing a @code{struct-set!} on a foreign object slot could cause
+unsafe foreign code to crash.  Ultimately, structures in Scheme are
+capabilities for abstraction, and not abstractions themselves.
 
 That leaves us with the lexical capabilities, like constructors and
 accessors.  Here is where encapsulation lies: the practical degree to
