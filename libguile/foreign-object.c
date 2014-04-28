@@ -78,7 +78,10 @@ scm_make_foreign_object_1 (SCM type, scm_t_bits val0)
 SCM
 scm_make_foreign_object_2 (SCM type, scm_t_bits val0, scm_t_bits val1)
 {
-  scm_t_bits vals[2] = { val0, val1 };
+  scm_t_bits vals[2];
+
+  vals[0] = val0;
+  vals[1] = val1;
 
   return scm_make_foreign_object_n (type, 2, vals);
 }
@@ -87,7 +90,11 @@ SCM
 scm_make_foreign_object_3 (SCM type, scm_t_bits val0, scm_t_bits val1,
                            scm_t_bits val2)
 {
-  scm_t_bits vals[3] = { val0, val1, val2 };
+  scm_t_bits vals[3];
+
+  vals[0] = val0;
+  vals[1] = val1;
+  vals[2] = val2;
 
   return scm_make_foreign_object_n (type, 3, vals);
 }
