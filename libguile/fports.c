@@ -155,7 +155,7 @@ SCM_DEFINE (scm_setvbuf, "setvbuf", 2, 1, 0,
   int cmode;
   long csize;
   size_t ndrained;
-  char *drained;
+  char *drained = NULL;
   scm_t_port *pt;
   scm_t_port_internal *pti;
 
