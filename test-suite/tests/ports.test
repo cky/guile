@@ -623,6 +623,30 @@
 	     (equal? in-string "Mommy, why does everybody have a bomb?\n")))
   (delete-file filename))
 
+(pass-if-equal "pipe, fdopen, and _IOLBF"
+    "foo\nbar\n"
+  (let ((in+out (pipe))
+        (pid    (primitive-fork)))
+    (if (zero? pid)
+        (dynamic-wind
+          (const #t)
+          (lambda ()
+            (close-port (car in+out))
+            (let ((port (cdr in+out)))
+              (setvbuf port _IOLBF )
+              ;; Strings containing '\n' or should be flushed; others
+              ;; should be kept in PORT's buffer.
+              (display "foo\n" port)
+              (display "bar\n" port)
+              (display "this will be kept in PORT's buffer" port)))
+          (lambda ()
+            (primitive-_exit 0)))
+        (begin
+          (close-port (cdr in+out))
+          (let ((str (read-all (car in+out))))
+            (waitpid pid)
+            str)))))
+
 
 ;;;; Void ports.  These are so trivial we don't test them.
 
