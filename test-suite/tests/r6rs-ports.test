@@ -137,6 +137,26 @@
       (close-port port)
       (get-bytevector-n port 3)))
 
+  (let ((expected (make-bytevector 20 (char->integer #\a))))
+    (pass-if-equal "http://bugs.gnu.org/17466"
+        ;; <http://bugs.gnu.org/17466> is about a memory corruption
+        ;; whereas bytevector shrunk in 'get-bytevector-n' would keep
+        ;; referring to the previous (larger) bytevector.
+        expected
+      (let loop ((count 50))
+        (if (zero? count)
+            expected
+            (let ((bv (call-with-input-string "aaaaaaaaaaaaaaaaaaaa"
+                        (lambda (port)
+                          (get-bytevector-n port 4096)))))
+              ;; Cause the 4 KiB bytevector initially created by
+              ;; 'get-bytevector-n' to be reclaimed.
+              (make-bytevector 4096)
+
+              (if (equal? bv expected)
+                  (loop (- count 1))
+                  bv))))))
+
   (pass-if "get-bytevector-n! [short]"
     (let* ((port (open-input-string "GNU Guile"))
            (bv   (make-bytevector 4))
