@@ -1,7 +1,7 @@
 ;;;; rdelim.test --- Delimited I/O.      -*- mode: scheme; coding: utf-8; -*-
 ;;;; Ludovic Courtès <ludo@gnu.org>
 ;;;;
-;;;; 	Copyright (C) 2011, 2013 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2011, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -209,7 +209,13 @@
       (let* ((s (string-concatenate (make-list 20 "hello, world!")))
              (p (open-input-string s)))
         (and (string=? (read-string p) s)
-             (string=? (read-string p) "")))))
+             (string=? (read-string p) ""))))
+
+    (pass-if-equal "longer than 100 chars, with limit"
+        "hello, world!"
+      (let* ((s (string-concatenate (make-list 20 "hello, world!")))
+             (p (open-input-string s)))
+        (read-string p 13))))
 
   (with-test-prefix "read-string!"
 
