@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -315,10 +315,16 @@ scm_c_shrink_bytevector (SCM bv, size_t c_new_len)
   SCM_BYTEVECTOR_SET_LENGTH (bv, c_new_len);
 
   if (SCM_BYTEVECTOR_CONTIGUOUS_P (bv))
-    new_bv = PTR2SCM (scm_gc_realloc (SCM2PTR (bv),
-				      c_len + SCM_BYTEVECTOR_HEADER_BYTES,
-				      c_new_len + SCM_BYTEVECTOR_HEADER_BYTES,
-				      SCM_GC_BYTEVECTOR));
+    {
+      signed char *c_bv;
+
+      c_bv = scm_gc_realloc (SCM2PTR (bv),
+			     c_len + SCM_BYTEVECTOR_HEADER_BYTES,
+			     c_new_len + SCM_BYTEVECTOR_HEADER_BYTES,
+			     SCM_GC_BYTEVECTOR);
+      new_bv = PTR2SCM (c_bv);
+      SCM_BYTEVECTOR_SET_CONTENTS (new_bv, c_bv + SCM_BYTEVECTOR_HEADER_BYTES);
+    }
   else
     {
       signed char *c_bv;
