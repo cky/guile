@@ -1345,23 +1345,21 @@ scm_open_process (SCM mode, SCM prog, SCM args)
       SCM read_port = SCM_BOOL_F, write_port = SCM_BOOL_F;
 
       /* There is no sense in catching errors on close().  */
-      if (reading) 
+      if (reading)
         {
           close (c2p[1]);
-          read_port = scm_fdes_to_port (c2p[0], "r", sym_read_pipe);
-          scm_setvbuf (read_port, scm_from_int (_IONBF), SCM_UNDEFINED);
+          read_port = scm_fdes_to_port (c2p[0], "r0", sym_read_pipe);
         }
       if (writing)
         {
           close (p2c[0]);
-          write_port = scm_fdes_to_port (p2c[1], "w", sym_write_pipe);
-          scm_setvbuf (write_port, scm_from_int (_IONBF), SCM_UNDEFINED);
+          write_port = scm_fdes_to_port (p2c[1], "w0", sym_write_pipe);
         }
-      
+
       return scm_values
         (scm_list_3 (read_port, write_port, scm_from_int (pid)));
     }
-  
+
   /* The child.  */
   if (reading)
     close (c2p[0]);
