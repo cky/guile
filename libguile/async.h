@@ -3,7 +3,8 @@
 #ifndef SCM_ASYNC_H
 #define SCM_ASYNC_H
 
-/* Copyright (C) 1995,1996,1997,1998,2000,2001, 2002, 2004, 2005, 2006, 2008, 2009 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998, 2000-2002, 2004-2006, 2008, 2009,
+ *   2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -44,10 +45,10 @@ SCM_API SCM scm_run_asyncs (SCM list_of_a);
 SCM_API SCM scm_noop (SCM args);
 SCM_API SCM scm_call_with_blocked_asyncs (SCM proc);
 SCM_API SCM scm_call_with_unblocked_asyncs (SCM proc);
-void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
-void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
-void scm_dynwind_block_asyncs (void);
-void scm_dynwind_unblock_asyncs (void);
+SCM_API void *scm_c_call_with_blocked_asyncs (void *(*p) (void *d), void *d);
+SCM_API void *scm_c_call_with_unblocked_asyncs (void *(*p) (void *d), void *d);
+SCM_API void scm_dynwind_block_asyncs (void);
+SCM_API void scm_dynwind_unblock_asyncs (void);
 
 /* Critical sections */
 
