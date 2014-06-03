@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# This -*- sh -*- script tests whether 'guild compile' leaves traces
+# behind it upon SIGINT.
+
+source="t-guild-compile-$$"
+target="$source.go"
+
+trap 'rm -f "$source" "$target"' EXIT
+
+cat > "$source"<<EOF
+(eval-when (expand load eval)
+  (sleep 100))
+(define chbouib 42)
+EOF
+
+guild compile -o "$target" "$source" &
+pid="$!"
+
+# Send SIGINT.
+sleep 1 && kill -INT "$pid"
+
+# Wait for 'guild compile' to terminate.
+sleep 2
+
+# Check whether there are any leftovers.
+for file in "$target"*
+do
+    if test "$file" != "${target}*"
+    then
+	echo "error: 'guild compile' failed to remove '$file'" >&2
+	rm "$target"*
+	kill "$pid"
+	exit 1
+    fi
+done
+
+if test -f "$target"
+then
+    echo "error: '$target' produced" >&2
+    exit 1
+fi

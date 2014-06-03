@@ -93,6 +93,9 @@ check_SCRIPTS += test-language
 TESTS += test-language
 EXTRA_DIST += test-language.el test-language.js
 
+check_SCRIPTS += test-guild-compile
+TESTS += test-guild-compile
+
 # test-num2integral
 test_num2integral_SOURCES = test-num2integral.c
 test_num2integral_CFLAGS = ${test_cflags}
