@@ -1,5 +1,5 @@
-/* Copyright (C) 1995,1996,1997,2000,2001,2003,2004,2008,2009,2010,2011
- * Free Software Foundation, Inc.
+/* Copyright (C) 1995-1997, 2000, 2001, 2003, 2004, 2008-2011,
+ *   2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -179,24 +179,25 @@ SCM_DEFINE (scm_list_p, "list?", 1, 0, 0,
    long" lists (i.e. lists with cycles in their cdrs), and returns -1
    if it does find one.  */
 long
-scm_ilength(SCM sx)
+scm_ilength (SCM sx)
 {
   long i = 0;
   SCM tortoise = sx;
   SCM hare = sx;
 
-  do {
-    if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (!scm_is_pair (hare)) return -1;
-    hare = SCM_CDR(hare);
-    i++;
-    if (SCM_NULL_OR_NIL_P(hare)) return i;
-    if (!scm_is_pair (hare)) return -1;
-    hare = SCM_CDR(hare);
-    i++;
-    /* For every two steps the hare takes, the tortoise takes one.  */
-    tortoise = SCM_CDR(tortoise);
-  }
+  do
+    {
+      if (!scm_is_pair (hare))
+        return SCM_NULL_OR_NIL_P (hare) ? i : -1;
+      hare = SCM_CDR (hare);
+      i++;
+      if (!scm_is_pair (hare))
+        return SCM_NULL_OR_NIL_P (hare) ? i : -1;
+      hare = SCM_CDR (hare);
+      i++;
+      /* For every two steps the hare takes, the tortoise takes one.  */
+      tortoise = SCM_CDR (tortoise);
+    }
   while (!scm_is_eq (hare, tortoise));
 
   /* If the tortoise ever catches the hare, then the list must contain

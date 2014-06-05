@@ -620,20 +620,28 @@ SCM_DEFINE (scm_srfi1_length_plus, "length+", 1, 0, 0,
 
   do
     {
-      if (SCM_NULL_OR_NIL_P (hare))
-        return scm_from_size_t (i);
       if (!scm_is_pair (hare))
-        scm_wrong_type_arg_msg (FUNC_NAME, 1, lst, "proper or circular list");
+        {
+          if (SCM_NULL_OR_NIL_P (hare))
+            return scm_from_size_t (i);
+          else
+            scm_wrong_type_arg_msg (FUNC_NAME, 1, lst,
+                                    "proper or circular list");
+        }
       hare = SCM_CDR (hare);
       i++;
-      if (SCM_NULL_OR_NIL_P (hare))
-        return scm_from_size_t (i);
       if (!scm_is_pair (hare))
-        scm_wrong_type_arg_msg (FUNC_NAME, 1, lst, "proper or circular list");
+        {
+          if (SCM_NULL_OR_NIL_P (hare))
+            return scm_from_size_t (i);
+          else
+            scm_wrong_type_arg_msg (FUNC_NAME, 1, lst,
+                                    "proper or circular list");
+        }
       hare = SCM_CDR (hare);
       i++;
       /* For every two steps the hare takes, the tortoise takes one.  */
-      tortoise = SCM_CDR(tortoise);
+      tortoise = SCM_CDR (tortoise);
     }
   while (!scm_is_eq (hare, tortoise));
 
