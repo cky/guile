@@ -584,8 +584,8 @@ expression:
 
 @lisp
   (library (mylib (1 2))
-    (import (otherlib (3)))
-    (export mybinding))
+    (export mybinding)
+    (import (otherlib (3))))
 @end lisp
 
 is equivalent to the module definition:
