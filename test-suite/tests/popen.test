@@ -1,6 +1,6 @@
 ;;;; popen.test --- exercise ice-9/popen.scm      -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2010, 2011, 2013 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -109,7 +109,9 @@
                       (with-input-from-port (car p2c)
                         (lambda ()
                           (open-input-pipe
-                           "exec 1>/dev/null; echo closed 1>&2; exec 2>/dev/null; read REPLY")))))))
+                           (format #f "exec 1>~a; echo closed 1>&2; \
+exec 2>~a; read REPLY"
+                                   %null-device %null-device))))))))
        (close-port (cdr c2p)) ;; write side
        (let ((result (eof-object? (read-char port))))
          (display "hello!\n" (cdr p2c))

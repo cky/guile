@@ -1,7 +1,7 @@
 ;;;; c-api.test --- complementary test suite for the c-api     -*- scheme -*-
 ;;;; MDJ 990915 <djurfeldt@nada.kth.se>
 ;;;;
-;;;;   Copyright (C) 1999, 2006, 2012 Free Software Foundation, Inc.
+;;;;   Copyright (C) 1999, 2006, 2012, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -22,7 +22,8 @@
 (define srcdir (cdr (assq 'srcdir %guile-build-info)))
 
 (define (egrep string filename)
-  (zero? (system (string-append "egrep '" string "' " filename " >/dev/null"))))
+  (zero? (system (string-append "egrep '" string "' " filename
+                                " >" %null-device))))
 
 (define (seek-offset-test dirname)
   (let ((dir (opendir dirname)))

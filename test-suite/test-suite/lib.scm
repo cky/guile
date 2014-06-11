@@ -1,6 +1,6 @@
 ;;;; test-suite/lib.scm --- generic support for testing
 ;;;; Copyright (C) 1999, 2000, 2001, 2004, 2006, 2007, 2009, 2010,
-;;;;   2011, 2012, 2013 Free Software Foundation, Inc.
+;;;;   2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This program is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -62,6 +62,9 @@
 
  ;; Using a given locale
  with-locale with-locale* with-latin1-locale with-latin1-locale*
+
+ ;; The bit bucket.
+ %null-device
 
  ;; Reporting results in various ways.
  register-reporter unregister-reporter reporter-registered?
@@ -570,6 +573,14 @@
   (syntax-rules ()
     ((_ body ...)
      (with-latin1-locale* (lambda () body ...)))))
+
+(define %null-device
+  ;; On Windows (MinGW), /dev/null does not exist and we must instead
+  ;; use NUL.  Note that file system procedures automatically translate
+  ;; /dev/null, so this variable is only useful for shell snippets.
+  (if (file-exists? "/dev/null")
+      "/dev/null"
+      "NUL"))
 
 
 ;;;; REPORTERS
