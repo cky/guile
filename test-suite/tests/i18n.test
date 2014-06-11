@@ -81,20 +81,36 @@
                              (make-locale (list LC_COLLATE) "C")))))
 
 
+(define mingw?
+  (string-contains %host-type "-mingw32"))
+
 (define %french-locale-name
-  "fr_FR.ISO-8859-1")
+  (if mingw?
+      "fra_FRA.850"
+      "fr_FR.ISO-8859-1"))
+
+;; What we really want for the following locales is that they be Unicode
+;; capable, not necessarily UTF-8, which Windows does not provide.
 
 (define %french-utf8-locale-name
-  "fr_FR.UTF-8")
+  (if mingw?
+      "fra_FRA.1252"
+      "fr_FR.UTF-8"))
 
 (define %turkish-utf8-locale-name
-  "tr_TR.UTF-8")
+  (if mingw?
+      "tur_TRK.1254"
+      "tr_TR.UTF-8"))
 
 (define %german-utf8-locale-name
-  "de_DE.UTF-8")
+  (if mingw?
+      "deu_DEU.1252"
+      "de_DE.UTF-8"))
 
 (define %greek-utf8-locale-name
-  "el_GR.UTF-8")
+  (if mingw?
+      "grc_ELL.1253"
+      "el_GR.UTF-8"))
 
 (define %american-english-locale-name
   "en_US")
@@ -148,13 +164,14 @@
   (under-locale-or-unresolved %french-utf8-locale thunk))
 
 (define (under-turkish-utf8-locale-or-unresolved thunk)
-  ;; FreeBSD 8.2 and 9.1, Solaris 2.10, and Darwin 8.11.0 have a broken
-  ;; tr_TR locale where `i' is mapped to uppercase `I' instead of `İ',
-  ;; so disable tests on that platform.
+  ;; FreeBSD 8.2 and 9.1, Solaris 2.10, Darwin 8.11.0, and MinGW have
+  ;; a broken tr_TR locale where `i' is mapped to uppercase `I'
+  ;; instead of `İ', so disable tests on that platform.
   (if (or (string-contains %host-type "freebsd8")
           (string-contains %host-type "freebsd9")
           (string-contains %host-type "solaris2.10")
-          (string-contains %host-type "darwin8"))
+          (string-contains %host-type "darwin8")
+          (string-contains %host-type "mingw32"))
       (throw 'unresolved)
       (under-locale-or-unresolved %turkish-utf8-locale thunk)))
 
@@ -192,7 +209,7 @@
         ;; strings.
         (dynamic-wind
           (lambda ()
-            (setlocale LC_ALL "fr_FR.UTF-8"))
+            (setlocale LC_ALL %french-utf8-locale-name))
           (lambda ()
             (string-locale-ci=? "œuf" "ŒUF"))
           (lambda ()
