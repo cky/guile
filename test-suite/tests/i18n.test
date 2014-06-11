@@ -1,7 +1,7 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
 ;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012,
-;;;;   2013 Free Software Foundation, Inc.
+;;;;   2013, 2014 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -38,18 +38,18 @@
     (not (not (make-locale LC_ALL "C"))))
 
   (pass-if "make-locale (2 args, list)"
-    (not (not (make-locale (list LC_COLLATE LC_MESSAGES) "C"))))
+    (not (not (make-locale (list LC_COLLATE LC_NUMERIC) "C"))))
 
   (pass-if "make-locale (3 args)"
     (not (not (make-locale (list LC_COLLATE) "C"
-                           (make-locale (list LC_MESSAGES) "C")))))
+                           (make-locale (list LC_NUMERIC) "C")))))
 
   (pass-if-exception "make-locale with unknown locale" exception:locale-error
     (make-locale LC_ALL "does-not-exist"))
 
   (pass-if "locale?"
     (and (locale? (make-locale (list LC_ALL) "C"))
-         (locale? (make-locale (list LC_MESSAGES LC_NUMERIC) "C"
+         (locale? (make-locale (list LC_TIME LC_NUMERIC) "C"
                                (make-locale (list LC_CTYPE) "C")))))
 
   (pass-if "%global-locale"

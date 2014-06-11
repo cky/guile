@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2006, 2008, 2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -23,8 +23,10 @@
 SCM_DEFINE_LOCALE_CATEGORY (COLLATE)
 SCM_DEFINE_LOCALE_CATEGORY (CTYPE)
 
-#ifdef LC_MESSAGES
-/* MinGW doesn't have `LC_MESSAGES'.  */
+#if defined(LC_MESSAGES) && !(defined(LC_MAX) && LC_MESSAGES > LC_MAX)
+/* MinGW doesn't have `LC_MESSAGES'.  libintl.h might define
+   `LC_MESSAGES' for MinGW to an arbitrary large value which we cannot
+   use in a call to `setlocale'.  */
 SCM_DEFINE_LOCALE_CATEGORY (MESSAGES)
 #endif
 
