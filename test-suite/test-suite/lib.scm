@@ -578,9 +578,12 @@
   ;; On Windows (MinGW), /dev/null does not exist and we must instead
   ;; use NUL.  Note that file system procedures automatically translate
   ;; /dev/null, so this variable is only useful for shell snippets.
-  (if (file-exists? "/dev/null")
-      "/dev/null"
-      "NUL"))
+
+  ;; Test for Windowsness by checking whether the current directory name
+  ;; starts with a drive letter.
+  (if (string-match "^[a-zA-Z]:[/\\]" (getcwd))
+      "NUL"
+      "/dev/null"))
 
 
 ;;;; REPORTERS
