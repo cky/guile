@@ -1580,9 +1580,13 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	  }
 #endif
 
-#if (defined FRAC_DIGITS) && (defined INT_FRAC_DIGITS)
+#if defined FRAC_DIGITS || defined INT_FRAC_DIGITS
+#ifdef FRAC_DIGITS
 	case FRAC_DIGITS:
+#endif
+#ifdef INT_FRAC_DIGITS
 	case INT_FRAC_DIGITS:
+#endif
 	  /* This is to be interpreted as a single integer.  */
 	  if (*c_result == CHAR_MAX)
 	    /* Unspecified.  */
@@ -1594,12 +1598,18 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	  break;
 #endif
 
-#if (defined P_CS_PRECEDES) && (defined INT_N_CS_PRECEDES)
+#if defined P_CS_PRECEDES || defined N_CS_PRECEDES ||	\
+  defined INT_P_CS_PRECEDES || defined INT_N_CS_PRECEDES || \
+  defined P_SEP_BY_SPACE || defined N_SEP_BY_SPACE
+#ifdef P_CS_PRECEDES
 	case P_CS_PRECEDES:
 	case N_CS_PRECEDES:
+#endif
+#ifdef INT_N_CS_PRECEDES
 	case INT_P_CS_PRECEDES:
 	case INT_N_CS_PRECEDES:
-#if (defined P_SEP_BY_SPACE) && (defined N_SEP_BY_SPACE)
+#endif
+#ifdef P_SEP_BY_SPACE
 	case P_SEP_BY_SPACE:
 	case N_SEP_BY_SPACE:
 #endif
@@ -1610,11 +1620,16 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	  break;
 #endif
 
-#if (defined P_SIGN_POSN) && (defined INT_N_SIGN_POSN)
+#if defined P_SIGN_POSN || defined N_SIGN_POSN || \
+  defined INT_P_SIGN_POSN || defined INT_N_SIGN_POSN
+#ifdef P_SIGN_POSN
 	case P_SIGN_POSN:
 	case N_SIGN_POSN:
+#endif
+#ifdef INT_P_SIGN_POSN
 	case INT_P_SIGN_POSN:
 	case INT_N_SIGN_POSN:
+#endif
 	  /* See `(libc) Sign of Money Amount' for the interpretation of the
 	     return value here.  */
 	  switch (*c_result)
