@@ -70,3 +70,7 @@
     (let ((v (bitvector #t #t #f #f)))
       (bit-set*! v #*101 #f)
       (equal? v #*0100))))
+
+(with-test-prefix "bit-count*"
+  (pass-if-equal 3 (bit-count* #*01110111 #*11001101 #t))
+  (pass-if-equal 2 (bit-count* #*01110111 #u32(7 0 4) #f)))

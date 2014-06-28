@@ -1142,7 +1142,7 @@ For example,
 
 @example
 (bit-count* #*01110111 #*11001101 #t) @result{} 3
-(bit-count* #*01110111 #u(7 0 4) #f)  @result{} 2
+(bit-count* #*01110111 #u32(7 0 4) #f)  @result{} 2
 @end example
 @end deffn
 

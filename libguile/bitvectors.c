@@ -713,7 +713,7 @@ SCM_DEFINE (scm_bit_count_star, "bit-count*", 3, 0, 0,
       ssize_t kv_inc;
       const scm_t_uint32 *kv_bits;
       
-      kv_bits = scm_bitvector_elements (v, &kv_handle,
+      kv_bits = scm_bitvector_elements (kv, &kv_handle,
 					&kv_off, &kv_len, &kv_inc);
 
       if (v_len != kv_len)
