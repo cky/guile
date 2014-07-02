@@ -24,7 +24,9 @@
 
 (with-test-prefix "delete-file"
   (pass-if "delete-file deletes file"
-    (let ((filename (port-filename (mkstemp! "T-XXXXXX"))))
+    (let* ((port (mkstemp! "T-XXXXXX"))
+	   (filename (port-filename port)))
+      (close-port port)
       (delete-file filename)
       (not (file-exists? filename))))
 
