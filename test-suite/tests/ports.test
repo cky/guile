@@ -1270,9 +1270,10 @@
 (with-test-prefix
  "fdes->port"
  (pass-if "fdes->ports finds port"
-	  (let ((port (open-file (test-file) "w")))
-
-	    (not (not (memq port (fdes->ports (port->fdes port))))))))
+	  (let* ((port (open-file (test-file) "w"))
+		 (res (not (not (memq port (fdes->ports (port->fdes port)))))))
+	    (close-port port)
+	    res)))
 
 ;;;
 ;;; seek
@@ -1289,7 +1290,9 @@
       (let ((port (open-file (test-file) "r")))
 	(read-char port)
 	(seek port 2 SEEK_CUR)
-	(eqv? #\d (read-char port))))
+	(let ((res (eqv? #\d (read-char port))))
+	  (close-port port)
+	  res)))
 
     (pass-if "SEEK_SET"
       (call-with-output-file (test-file)
@@ -1298,7 +1301,9 @@
       (let ((port (open-file (test-file) "r")))
 	(read-char port)
 	(seek port 3 SEEK_SET)
-	(eqv? #\d (read-char port))))
+	(let ((res (eqv? #\d (read-char port))))
+	  (close-port port)
+	  res)))
 
     (pass-if "SEEK_END"
       (call-with-output-file (test-file)
@@ -1307,7 +1312,9 @@
       (let ((port (open-file (test-file) "r")))
 	(read-char port)
 	(seek port -2 SEEK_END)
-	(eqv? #\d (read-char port))))))
+	(let ((res (eqv? #\d (read-char port))))
+	  (close-port port)
+	  res)))))
 
 ;;;
 ;;; truncate-file
@@ -1370,7 +1377,8 @@
 	(lambda (port)
 	  (display "hello" port)))
       (let ((port (open-file (test-file) "r+")))
-	(truncate-file port 1))
+	(truncate-file port 1)
+	(close-port port))
       (eqv? 1 (stat:size (stat (test-file)))))
 
     (pass-if "shorten to current pos"
@@ -1379,7 +1387,8 @@
 	  (display "hello" port)))
       (let ((port (open-file (test-file) "r+")))
 	(read-char port)
-	(truncate-file port))
+	(truncate-file port)
+	(close-port port))
       (eqv? 1 (stat:size (stat (test-file)))))))
 
 
