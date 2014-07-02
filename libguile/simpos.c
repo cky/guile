@@ -45,6 +45,10 @@
 # include <sys/wait.h>
 #endif
 
+#ifdef __MINGW32__
+# include <process.h>	/* for spawnvp and friends */
+#endif
+
 #include "posix.h"
 
 
@@ -86,8 +90,6 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
 
 
 #ifdef HAVE_SYSTEM
-#ifdef HAVE_WAITPID
-
 
 SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
            (SCM args),
@@ -115,11 +117,18 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
   if (scm_is_pair (args))
     {
       SCM oldint;
-      SCM oldquit;
       SCM sig_ign;
       SCM sigint;
+      /* SIGQUIT is undefined on MS-Windows.  */
+#ifdef SIGQUIT
+      SCM oldquit;
       SCM sigquit;
+#endif
+#ifdef HAVE_FORK
       int pid;
+#else
+      int status;
+#endif
       char **execargv;
 
       /* allocate before fork */
@@ -128,10 +137,13 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
       /* make sure the child can't kill us (as per normal system call) */
       sig_ign = scm_from_ulong ((unsigned long) SIG_IGN);
       sigint = scm_from_int (SIGINT);
-      sigquit = scm_from_int (SIGQUIT);
       oldint = scm_sigaction (sigint, sig_ign, SCM_UNDEFINED);
+#ifdef SIGQUIT
+      sigquit = scm_from_int (SIGQUIT);
       oldquit = scm_sigaction (sigquit, sig_ign, SCM_UNDEFINED);
-      
+#endif
+
+#ifdef HAVE_FORK
       pid = fork ();
       if (pid == 0)
         {
@@ -164,12 +176,20 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
 
           return scm_from_int (status);
         }
+#else  /* !HAVE_FORK */
+      status = spawnvp (P_WAIT, execargv[0], (const char * const *)execargv);
+      scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
+#ifdef SIGQUIT
+      scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
+#endif
+
+      return scm_from_int (status);
+#endif /* !HAVE_FORK */
     }
   else
     SCM_WRONG_TYPE_ARG (1, args);
 }
 #undef FUNC_NAME
-#endif /* HAVE_WAITPID */
 #endif /* HAVE_SYSTEM */
 
 
