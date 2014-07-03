@@ -27,6 +27,11 @@
 #include <sys/resource.h>
 #endif
 
+#ifdef __MINGW32__
+# define WIN32_LEAN_AND_MEAN
+# include <windows.h>
+#endif
+
 #include "libguile/_scm.h"
 #include "libguile/async.h"
 #include "libguile/eval.h"
@@ -228,7 +233,7 @@ scm_local_eval (SCM exp, SCM env)
 static void
 init_stack_limit (void)
 {
-#ifdef HAVE_GETRLIMIT
+#if defined HAVE_GETRLIMIT
   struct rlimit lim;
   if (getrlimit (RLIMIT_STACK, &lim) == 0)
       {
@@ -242,6 +247,16 @@ init_stack_limit (void)
           SCM_STACK_LIMIT = bytes * 8 / 10 / sizeof (scm_t_bits);
       }
   errno = 0;
+#elif defined __MINGW32__
+  MEMORY_BASIC_INFORMATION m;
+  uintptr_t bytes;
+
+  if (VirtualQuery ((LPCVOID) &m, &m, sizeof m))
+    {
+      bytes = (DWORD_PTR) m.BaseAddress + m.RegionSize
+	       - (DWORD_PTR) m.AllocationBase;
+      SCM_STACK_LIMIT = bytes * 8 / 10 / sizeof (scm_t_bits);
+    }
 #endif
 }
 
