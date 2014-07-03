@@ -1979,9 +1979,9 @@ cpu_set_to_bitvector (const cpu_set_t *cs)
   SCM bv;
   size_t cpu;
 
-  bv = scm_c_make_bitvector (sizeof (*cs), SCM_BOOL_F);
+  bv = scm_c_make_bitvector (CPU_SETSIZE, SCM_BOOL_F);
 
-  for (cpu = 0; cpu < sizeof (*cs); cpu++)
+  for (cpu = 0; cpu < CPU_SETSIZE; cpu++)
     {
       if (CPU_ISSET (cpu, cs))
 	/* XXX: This is inefficient but avoids code duplication.  */
