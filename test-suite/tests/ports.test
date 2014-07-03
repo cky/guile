@@ -53,12 +53,12 @@
   (let loop ((chars '()))
     (let ((char (read-char port)))
       (if (eof-object? char)
-	  (list->string (reverse! chars))
-	  (loop (cons char chars))))))
+          (list->string (reverse! chars))
+          (loop (cons char chars))))))
 
 (define (read-file filename)
   (let* ((port (open-input-file filename))
-	 (string (read-all port)))
+         (string (read-all port)))
     (close-port port)
     string))
 
@@ -95,7 +95,7 @@
 
 ;;; Write out an s-expression, and read it back.
 (let ((string '("From fairest creatures we desire increase,"
-		"That thereby beauty's rose might never die,"))
+                "That thereby beauty's rose might never die,"))
       (filename (test-file)))
   (let ((port (open-output-file filename)))
     (write string port)
@@ -103,10 +103,10 @@
   (let ((port (open-input-file filename)))
     (let ((in-string (read port)))
       (pass-if "file: write and read back list of strings" 
-	       (equal? string in-string)))
+               (equal? string in-string)))
     (close-port port))
   (delete-file filename))
-	  
+          
 ;;; Write out a string, and read it back a character at a time.
 (let ((string "This is a test string\nwith no newline at the end")
       (filename (test-file)))
@@ -115,7 +115,7 @@
     (close-port port))
   (let ((in-string (read-file filename)))
     (pass-if "file: write and read back characters"
-	     (equal? string in-string)))
+             (equal? string in-string)))
   (delete-file filename))
 
 ;;; Buffered input/output port with seeking.
@@ -124,17 +124,17 @@
   (display "J'Accuse" port)
   (seek port -1 SEEK_CUR)
   (pass-if "file: r/w 1"
-	   (char=? (read-char port) #\e))
+           (char=? (read-char port) #\e))
   (pass-if "file: r/w 2"
-	   (eof-object? (read-char port)))
+           (eof-object? (read-char port)))
   (seek port -1 SEEK_CUR)
   (write-char #\x port)
   (seek port 7 SEEK_SET)
   (pass-if "file: r/w 3"
-	   (char=? (read-char port) #\x))
+           (char=? (read-char port) #\x))
   (seek port -2 SEEK_END)
   (pass-if "file: r/w 4"
-	   (char=? (read-char port) #\s))
+           (char=? (read-char port) #\s))
   (close-port port)
   (delete-file filename))
 
@@ -144,17 +144,17 @@
   (display "J'Accuse" port)
   (seek port -1 SEEK_CUR)
   (pass-if "file: ub r/w 1"
-	   (char=? (read-char port) #\e))
+           (char=? (read-char port) #\e))
   (pass-if "file: ub r/w 2"
-	   (eof-object? (read-char port)))
+           (eof-object? (read-char port)))
   (seek port -1 SEEK_CUR)
   (write-char #\x port)
   (seek port 7 SEEK_SET)
   (pass-if "file: ub r/w 3"
-	   (char=? (read-char port) #\x))
+           (char=? (read-char port) #\x))
   (seek port -2 SEEK_END)
   (pass-if "file: ub r/w 4"
-	   (char=? (read-char port) #\s))
+           (char=? (read-char port) #\s))
   (close-port port)
   (delete-file filename))
 
@@ -163,24 +163,24 @@
        (port (open-output-file filename)))
   (display "J'Accuse" port)
   (pass-if "file: out tell"
-	   (= (seek port 0 SEEK_CUR) 8))
+           (= (seek port 0 SEEK_CUR) 8))
   (seek port -1 SEEK_CUR)
   (write-char #\x port)
   (close-port port)
   (let ((iport (open-input-file filename)))
     (pass-if "file: in tell 0"
-	     (= (seek iport 0 SEEK_CUR) 0))
+             (= (seek iport 0 SEEK_CUR) 0))
     (read-char iport)
     (pass-if "file: in tell 1"
-	     (= (seek iport 0 SEEK_CUR) 1))
+             (= (seek iport 0 SEEK_CUR) 1))
     (unread-char #\z iport)
     (pass-if "file: in tell 0 after unread"
-	     (= (seek iport 0 SEEK_CUR) 0))
+             (= (seek iport 0 SEEK_CUR) 0))
     (pass-if "file: unread char still there"
-	     (char=? (read-char iport) #\z))
+             (char=? (read-char iport) #\z))
     (seek iport 7 SEEK_SET)
     (pass-if "file: in last char"
-	     (char=? (read-char iport) #\x))
+             (char=? (read-char iport) #\x))
     (close-port iport))
   (delete-file filename))
 
@@ -188,20 +188,20 @@
 (let* ((filename (test-file))
        (port (open-output-file filename)))
   (display (string #\nul (integer->char 255) (integer->char 128)
-		   #\nul) port)
+                   #\nul) port)
   (close-port port)
   (let* ((port (open-input-file filename))
-	 (line (read-line port)))
+         (line (read-line port)))
     (pass-if "file: read back NUL 1"
-	     (char=? (string-ref line 0) #\nul))
+             (char=? (string-ref line 0) #\nul))
     (pass-if "file: read back 255"
-	     (char=? (string-ref line 1) (integer->char 255)))
+             (char=? (string-ref line 1) (integer->char 255)))
     (pass-if "file: read back 128"
-	     (char=? (string-ref line 2) (integer->char 128)))
+             (char=? (string-ref line 2) (integer->char 128)))
     (pass-if "file: read back NUL 2"
-	     (char=? (string-ref line 3) #\nul))
+             (char=? (string-ref line 3) #\nul))
     (pass-if "file: EOF"
-	     (eof-object? (read-char port)))
+             (eof-object? (read-char port)))
     (close-port port))
   (delete-file filename))
 
@@ -211,11 +211,11 @@
        (test-string "one line more or less"))
   (write-line test-string port)
   (let* ((in-port (open-input-file filename))
-	 (line (read-line in-port)))
+         (line (read-line in-port)))
     (close-port in-port)
     (close-port port)
     (pass-if "file: line buffering"
-	     (string=? line test-string)))
+             (string=? line test-string)))
   (delete-file filename))
 
 ;;; read-line should use the port encoding (not the locale encoding).
@@ -573,19 +573,19 @@
 
 ;;; ungetting characters and strings.
 (with-input-from-string "walk on the moon\nmoon"
-			(lambda ()
-			  (read-char)
-			  (unread-char #\a (current-input-port))
-			  (pass-if "unread-char"
-				   (char=? (read-char) #\a))
-			  (read-line)
-			  (let ((replacenoid "chicken enchilada"))
-			    (unread-char #\newline (current-input-port))
-			    (unread-string replacenoid (current-input-port))
-			    (pass-if "unread-string"
-				     (string=? (read-line) replacenoid)))
-			  (pass-if "unread residue"
-				   (string=? (read-line) "moon"))))
+                        (lambda ()
+                          (read-char)
+                          (unread-char #\a (current-input-port))
+                          (pass-if "unread-char"
+                                   (char=? (read-char) #\a))
+                          (read-line)
+                          (let ((replacenoid "chicken enchilada"))
+                            (unread-char #\newline (current-input-port))
+                            (unread-string replacenoid (current-input-port))
+                            (pass-if "unread-string"
+                                     (string=? (read-line) replacenoid)))
+                          (pass-if "unread residue"
+                                   (string=? (read-line) "moon"))))
 
 ;;; non-blocking mode on a port.  create a pipe and set O_NONBLOCK on
 ;;; the reading end.  try to read a byte: should get EAGAIN or
@@ -594,13 +594,13 @@
        (r (car p)))
   (fcntl r F_SETFL (logior (fcntl r F_GETFL) O_NONBLOCK))
   (pass-if "non-blocking-I/O"
-	   (catch 'system-error
-		  (lambda () (read-char r) #f)
-		  (lambda (key . args)
-		    (and (eq? key 'system-error)
-			 (let ((errno (car (list-ref args 3))))
-			   (or (= errno EAGAIN)
-			       (= errno EWOULDBLOCK))))))))
+           (catch 'system-error
+                  (lambda () (read-char r) #f)
+                  (lambda (key . args)
+                    (and (eq? key 'system-error)
+                         (let ((errno (car (list-ref args 3))))
+                           (or (= errno EAGAIN)
+                               (= errno EWOULDBLOCK))))))))
 
 
 ;;;; Pipe (popen) ports.
@@ -610,7 +610,7 @@
        (in-string (read-all pipe)))
   (close-pipe pipe)
   (pass-if "pipe: read"
-	   (equal? in-string "Howdy there, partner!\n")))
+           (equal? in-string "Howdy there, partner!\n")))
 
 ;;; Run a command, send some output to it, and see if it worked.
 (let* ((filename (test-file))
@@ -620,7 +620,7 @@
   (close-pipe pipe)
   (let ((in-string (read-file filename)))
     (pass-if "pipe: write"
-	     (equal? in-string "Mommy, why does everybody have a bomb?\n")))
+             (equal? in-string "Mommy, why does everybody have a bomb?\n")))
   (delete-file filename))
 
 (pass-if-equal "pipe, fdopen, and _IOLBF"
@@ -657,70 +657,70 @@
 
   ;; Write text to a string port.
   (let* ((string "Howdy there, partner!")
-	 (in-string (call-with-output-string
-		     (lambda (port)
-		       (display string port)
-		       (newline port)))))
+         (in-string (call-with-output-string
+                     (lambda (port)
+                       (display string port)
+                       (newline port)))))
     (pass-if "display text"
-	     (equal? in-string (string-append string "\n"))))
-		   
+             (equal? in-string (string-append string "\n"))))
+                   
   ;; Write an s-expression to a string port.
   (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
-	 (in-sexpr 
-	  (call-with-input-string (call-with-output-string
-				   (lambda (port)
-				     (write sexpr port)))
-				  read)))
+         (in-sexpr 
+          (call-with-input-string (call-with-output-string
+                                   (lambda (port)
+                                     (write sexpr port)))
+                                  read)))
     (pass-if "write/read sexpr"
-	     (equal? in-sexpr sexpr)))
+             (equal? in-sexpr sexpr)))
 
   ;; seeking and unreading from an input string.
   (let ((text "that text didn't look random to me"))
     (call-with-input-string text
-			    (lambda (p)
-			      (pass-if "input tell 0"
-				       (= (seek p 0 SEEK_CUR) 0))
-			      (read-char p)
-			      (pass-if "input tell 1"
-				       (= (seek p 0 SEEK_CUR) 1))
-			      (unread-char #\x p)
-			      (pass-if "input tell back to 0"
-				       (= (seek p 0 SEEK_CUR) 0))
-			      (pass-if "input ungetted char"
-				       (char=? (read-char p) #\x))
-			      (seek p 0 SEEK_END)
-			      (pass-if "input seek to end"
-				       (= (seek p 0 SEEK_CUR)
-					  (string-length text)))
-			      (unread-char #\x p)
-			      (pass-if "input seek to beginning"
-				       (= (seek p 0 SEEK_SET) 0))
-			      (pass-if "input reread first char"
-				       (char=? (read-char p)
-					       (string-ref text 0))))))
+                            (lambda (p)
+                              (pass-if "input tell 0"
+                                       (= (seek p 0 SEEK_CUR) 0))
+                              (read-char p)
+                              (pass-if "input tell 1"
+                                       (= (seek p 0 SEEK_CUR) 1))
+                              (unread-char #\x p)
+                              (pass-if "input tell back to 0"
+                                       (= (seek p 0 SEEK_CUR) 0))
+                              (pass-if "input ungetted char"
+                                       (char=? (read-char p) #\x))
+                              (seek p 0 SEEK_END)
+                              (pass-if "input seek to end"
+                                       (= (seek p 0 SEEK_CUR)
+                                          (string-length text)))
+                              (unread-char #\x p)
+                              (pass-if "input seek to beginning"
+                                       (= (seek p 0 SEEK_SET) 0))
+                              (pass-if "input reread first char"
+                                       (char=? (read-char p)
+                                               (string-ref text 0))))))
 
   ;; seeking an output string.
   (let* ((text (string-copy "123456789"))
-	 (len (string-length text))
-	 (result (call-with-output-string
-		  (lambda (p)
-		    (pass-if "output tell 0"
-			     (= (seek p 0 SEEK_CUR) 0))
-		    (display text p)
-		    (pass-if "output tell end"
-			     (= (seek p 0 SEEK_CUR) len))
-		    (pass-if "output seek to beginning"
-			     (= (seek p 0 SEEK_SET) 0))
-		    (write-char #\a p)
-		    (seek p -1 SEEK_END)
-		    (pass-if "output seek to last char"
-			     (= (seek p 0 SEEK_CUR)
-				(- len 1)))
-		    (write-char #\b p)))))
+         (len (string-length text))
+         (result (call-with-output-string
+                  (lambda (p)
+                    (pass-if "output tell 0"
+                             (= (seek p 0 SEEK_CUR) 0))
+                    (display text p)
+                    (pass-if "output tell end"
+                             (= (seek p 0 SEEK_CUR) len))
+                    (pass-if "output seek to beginning"
+                             (= (seek p 0 SEEK_SET) 0))
+                    (write-char #\a p)
+                    (seek p -1 SEEK_END)
+                    (pass-if "output seek to last char"
+                             (= (seek p 0 SEEK_CUR)
+                                (- len 1)))
+                    (write-char #\b p)))))
     (string-set! text 0 #\a)
     (string-set! text (- len 1) #\b)
     (pass-if "output check"
-	     (string=? text result)))
+             (string=? text result)))
 
   (pass-if "encoding failure leads to exception"
     ;; Prior to 2.0.6, this would trigger a deadlock in `scm_mkstrport'.
@@ -1003,10 +1003,10 @@
       (close-port out-port))
 
     (list (open-input-file port-loop-temp)
-	  (open-input-pipe (string-append "cat " port-loop-temp))
-	  (call-with-input-string text (lambda (x) x))
-	  ;; We don't test soft ports at the moment.
-	  ))
+          (open-input-pipe (string-append "cat " port-loop-temp))
+          (call-with-input-string text (lambda (x) x))
+          ;; We don't test soft ports at the moment.
+          ))
 
   (define port-list-names '("file" "pipe" "string"))
 
@@ -1014,55 +1014,55 @@
   (define (test-line-counter text second-line final-column)
     (with-test-prefix "line counter"
       (let ((ports (input-port-list text)))
-	(for-each
-	 (lambda (port port-name)
-	   (with-test-prefix port-name
-	     (pass-if "at beginning of input"
-		      (= (port-line port) 0))
-	     (pass-if "read first character"
-		      (eqv? (read-char port) #\x))
-	     (pass-if "after reading one character"
-		      (= (port-line port) 0))
-	     (pass-if "read first newline"
-		      (eqv? (read-char port) #\newline))
-	     (pass-if "after reading first newline char"
-		      (= (port-line port) 1))
-	     (pass-if "second line read correctly"
-		      (equal? (read-line port) second-line))
-	     (pass-if "read-line increments line number"
-		      (= (port-line port) 2))
-	     (pass-if "read-line returns EOF"
-		      (let loop ((i 0))
-			(cond
-			 ((eof-object? (read-line port)) #t)
-			 ((> i 20) #f)
-			 (else (loop (+ i 1))))))
-	     (pass-if "line count is 5 at EOF"
-		      (= (port-line port) 5))
-	     (pass-if "column is correct at EOF"
-		      (= (port-column port) final-column))))
-	 ports port-list-names)
-	(for-each close-port ports)
-	(delete-file port-loop-temp))))
+        (for-each
+         (lambda (port port-name)
+           (with-test-prefix port-name
+             (pass-if "at beginning of input"
+                      (= (port-line port) 0))
+             (pass-if "read first character"
+                      (eqv? (read-char port) #\x))
+             (pass-if "after reading one character"
+                      (= (port-line port) 0))
+             (pass-if "read first newline"
+                      (eqv? (read-char port) #\newline))
+             (pass-if "after reading first newline char"
+                      (= (port-line port) 1))
+             (pass-if "second line read correctly"
+                      (equal? (read-line port) second-line))
+             (pass-if "read-line increments line number"
+                      (= (port-line port) 2))
+             (pass-if "read-line returns EOF"
+                      (let loop ((i 0))
+                        (cond
+                         ((eof-object? (read-line port)) #t)
+                         ((> i 20) #f)
+                         (else (loop (+ i 1))))))
+             (pass-if "line count is 5 at EOF"
+                      (= (port-line port) 5))
+             (pass-if "column is correct at EOF"
+                      (= (port-column port) final-column))))
+         ports port-list-names)
+        (for-each close-port ports)
+        (delete-file port-loop-temp))))
 
   (with-test-prefix "newline"
     (test-line-counter
      (string-append "x\n"
-		    "He who receives an idea from me, receives instruction\n"
-		    "himself without lessening mine; as he who lights his\n"
-		    "taper at mine, receives light without darkening me.\n"
-		    "  --- Thomas Jefferson\n")
+                    "He who receives an idea from me, receives instruction\n"
+                    "himself without lessening mine; as he who lights his\n"
+                    "taper at mine, receives light without darkening me.\n"
+                    "  --- Thomas Jefferson\n")
      "He who receives an idea from me, receives instruction"
      0))
 
   (with-test-prefix "no newline"
     (test-line-counter
      (string-append "x\n"
-		    "He who receives an idea from me, receives instruction\n"
-		    "himself without lessening mine; as he who lights his\n"
-		    "taper at mine, receives light without darkening me.\n"
-		    "  --- Thomas Jefferson\n"
-		    "no newline here")
+                    "He who receives an idea from me, receives instruction\n"
+                    "himself without lessening mine; as he who lights his\n"
+                    "taper at mine, receives light without darkening me.\n"
+                    "  --- Thomas Jefferson\n"
+                    "no newline here")
      "He who receives an idea from me, receives instruction"
      15)))
 
@@ -1072,28 +1072,28 @@
   (with-test-prefix "port-line and port-column for output ports"
     (let ((port (open-output-string)))
       (pass-if "at beginning of input"
-	       (and (= (port-line port) 0)
-		    (= (port-column port) 0)))
+               (and (= (port-line port) 0)
+                    (= (port-column port) 0)))
       (write-char #\x port)
       (pass-if "after writing one character"
-	       (and (= (port-line port) 0)
-		    (= (port-column port) 1)))
+               (and (= (port-line port) 0)
+                    (= (port-column port) 1)))
       (write-char #\newline port)
       (pass-if "after writing first newline char"
-	       (and (= (port-line port) 1)
-		    (= (port-column port) 0)))
+               (and (= (port-line port) 1)
+                    (= (port-column port) 0)))
       (display text port)
       (pass-if "line count is 5 at end"
-	       (= (port-line port) 5))
+               (= (port-line port) 5))
       (pass-if "column is correct at end"
-	       (= (port-column port) final-column)))))
+               (= (port-column port) final-column)))))
 
 (test-output-line-counter
  (string-append "He who receives an idea from me, receives instruction\n"
-		"himself without lessening mine; as he who lights his\n"
-		"taper at mine, receives light without darkening me.\n"
-		"  --- Thomas Jefferson\n"
-		"no newline here")
+                "himself without lessening mine; as he who lights his\n"
+                "taper at mine, receives light without darkening me.\n"
+                "  --- Thomas Jefferson\n"
+                "no newline here")
  15)
 
 (with-test-prefix "port-column"
@@ -1102,115 +1102,115 @@
 
     (pass-if "x"
       (let ((port (open-output-string)))
-	(display "x" port)
-	(= 1 (port-column port))))
+        (display "x" port)
+        (= 1 (port-column port))))
 
     (pass-if "\\a"
       (let ((port (open-output-string)))
-	(display "\a" port)
-	(= 0 (port-column port))))
+        (display "\a" port)
+        (= 0 (port-column port))))
 
     (pass-if "x\\a"
       (let ((port (open-output-string)))
-	(display "x\a" port)
-	(= 1 (port-column port))))
+        (display "x\a" port)
+        (= 1 (port-column port))))
 
     (pass-if "\\x08 backspace"
       (let ((port (open-output-string)))
-	(display "\x08" port)
-	(= 0 (port-column port))))
+        (display "\x08" port)
+        (= 0 (port-column port))))
 
     (pass-if "x\\x08 backspace"
       (let ((port (open-output-string)))
-	(display "x\x08" port)
-	(= 0 (port-column port))))
+        (display "x\x08" port)
+        (= 0 (port-column port))))
 
     (pass-if "\\n"
       (let ((port (open-output-string)))
-	(display "\n" port)
-	(= 0 (port-column port))))
+        (display "\n" port)
+        (= 0 (port-column port))))
 
     (pass-if "x\\n"
       (let ((port (open-output-string)))
-	(display "x\n" port)
-	(= 0 (port-column port))))
+        (display "x\n" port)
+        (= 0 (port-column port))))
 
     (pass-if "\\r"
       (let ((port (open-output-string)))
-	(display "\r" port)
-	(= 0 (port-column port))))
+        (display "\r" port)
+        (= 0 (port-column port))))
 
     (pass-if "x\\r"
       (let ((port (open-output-string)))
-	(display "x\r" port)
-	(= 0 (port-column port))))
+        (display "x\r" port)
+        (= 0 (port-column port))))
 
     (pass-if "\\t"
       (let ((port (open-output-string)))
-	(display "\t" port)
-	(= 8 (port-column port))))
+        (display "\t" port)
+        (= 8 (port-column port))))
 
     (pass-if "x\\t"
       (let ((port (open-output-string)))
-	(display "x\t" port)
-	(= 8 (port-column port)))))
+        (display "x\t" port)
+        (= 8 (port-column port)))))
 
   (with-test-prefix "input"
 
     (pass-if "x"
       (let ((port (open-input-string "x")))
-	(while (not (eof-object? (read-char port))))
-	(= 1 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 1 (port-column port))))
 
     (pass-if "\\a"
       (let ((port (open-input-string "\a")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "x\\a"
       (let ((port (open-input-string "x\a")))
-	(while (not (eof-object? (read-char port))))
-	(= 1 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 1 (port-column port))))
 
     (pass-if "\\x08 backspace"
       (let ((port (open-input-string "\x08")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "x\\x08 backspace"
       (let ((port (open-input-string "x\x08")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "\\n"
       (let ((port (open-input-string "\n")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "x\\n"
       (let ((port (open-input-string "x\n")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "\\r"
       (let ((port (open-input-string "\r")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "x\\r"
       (let ((port (open-input-string "x\r")))
-	(while (not (eof-object? (read-char port))))
-	(= 0 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 0 (port-column port))))
 
     (pass-if "\\t"
       (let ((port (open-input-string "\t")))
-	(while (not (eof-object? (read-char port))))
-	(= 8 (port-column port))))
+        (while (not (eof-object? (read-char port))))
+        (= 8 (port-column port))))
 
     (pass-if "x\\t"
       (let ((port (open-input-string "x\t")))
-	(while (not (eof-object? (read-char port))))
-	(= 8 (port-column port))))))
+        (while (not (eof-object? (read-char port))))
+        (= 8 (port-column port))))))
 
 (with-test-prefix "port-line"
 
@@ -1219,7 +1219,7 @@
   ;; systems
   (pass-if "set most-positive-fixnum/2"
     (let ((n    (quotient most-positive-fixnum 2))
-	  (port (open-output-string)))
+          (port (open-output-string)))
       (set-port-line! port n)
       (eqv? n (port-line port)))))
 
@@ -1260,7 +1260,7 @@
       (gc)
       ;; but they're still in the port table, so this sees them
       (port-for-each (lambda (port)
-		       (set! lst (cons port lst))))
+                       (set! lst (cons port lst))))
       ;; this forces completion of the sweeping
       (gc) (gc) (gc)
       ;; and (if the bug is present) the cells accumulated in LST are now
@@ -1270,10 +1270,10 @@
 (with-test-prefix
  "fdes->port"
  (pass-if "fdes->ports finds port"
-	  (let* ((port (open-file (test-file) "w"))
-		 (res (not (not (memq port (fdes->ports (port->fdes port)))))))
-	    (close-port port)
-	    res)))
+          (let* ((port (open-file (test-file) "w"))
+                 (res (not (not (memq port (fdes->ports (port->fdes port)))))))
+            (close-port port)
+            res)))
 
 ;;;
 ;;; seek
@@ -1285,36 +1285,36 @@
 
     (pass-if "SEEK_CUR"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "abcde" port)))
+        (lambda (port)
+          (display "abcde" port)))
       (let ((port (open-file (test-file) "r")))
-	(read-char port)
-	(seek port 2 SEEK_CUR)
-	(let ((res (eqv? #\d (read-char port))))
-	  (close-port port)
-	  res)))
+        (read-char port)
+        (seek port 2 SEEK_CUR)
+        (let ((res (eqv? #\d (read-char port))))
+          (close-port port)
+          res)))
 
     (pass-if "SEEK_SET"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "abcde" port)))
+        (lambda (port)
+          (display "abcde" port)))
       (let ((port (open-file (test-file) "r")))
-	(read-char port)
-	(seek port 3 SEEK_SET)
-	(let ((res (eqv? #\d (read-char port))))
-	  (close-port port)
-	  res)))
+        (read-char port)
+        (seek port 3 SEEK_SET)
+        (let ((res (eqv? #\d (read-char port))))
+          (close-port port)
+          res)))
 
     (pass-if "SEEK_END"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "abcde" port)))
+        (lambda (port)
+          (display "abcde" port)))
       (let ((port (open-file (test-file) "r")))
-	(read-char port)
-	(seek port -2 SEEK_END)
-	(let ((res (eqv? #\d (read-char port))))
-	  (close-port port)
-	  res)))))
+        (read-char port)
+        (seek port -2 SEEK_END)
+        (let ((res (eqv? #\d (read-char port))))
+          (close-port port)
+          res)))))
 
 ;;;
 ;;; truncate-file
@@ -1332,63 +1332,63 @@
 
     (pass-if-exception "flonum length" exception:wrong-type-arg
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (truncate-file (test-file) 1.0))
 
     (pass-if "shorten"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (truncate-file (test-file) 1)
       (eqv? 1 (stat:size (stat (test-file)))))
 
     (pass-if-exception "shorten to current pos" exception:miscellaneous-error
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (truncate-file (test-file))))
 
   (with-test-prefix "file descriptor"
 
     (pass-if "shorten"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (let ((fd (open-fdes (test-file) O_RDWR)))
-	(truncate-file fd 1)
-	(close-fdes fd))
+        (truncate-file fd 1)
+        (close-fdes fd))
       (eqv? 1 (stat:size (stat (test-file)))))
 
     (pass-if "shorten to current pos"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (let ((fd (open-fdes (test-file) O_RDWR)))
-	(seek fd 1 SEEK_SET)
-	(truncate-file fd)
-	(close-fdes fd))
+        (seek fd 1 SEEK_SET)
+        (truncate-file fd)
+        (close-fdes fd))
       (eqv? 1 (stat:size (stat (test-file))))))
 
   (with-test-prefix "file port"
 
     (pass-if "shorten"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (let ((port (open-file (test-file) "r+")))
-	(truncate-file port 1)
-	(close-port port))
+        (truncate-file port 1)
+        (close-port port))
       (eqv? 1 (stat:size (stat (test-file)))))
 
     (pass-if "shorten to current pos"
       (call-with-output-file (test-file)
-	(lambda (port)
-	  (display "hello" port)))
+        (lambda (port)
+          (display "hello" port)))
       (let ((port (open-file (test-file) "r+")))
-	(read-char port)
-	(truncate-file port)
-	(close-port port))
+        (read-char port)
+        (truncate-file port)
+        (close-port port))
       (eqv? 1 (stat:size (stat (test-file)))))))
 
 
@@ -1402,11 +1402,11 @@
        
        (read-delimited! "\n" c port 'concat)
        (pass-if "read-delimited! reads a first line"
-		(string=? c "defdef\n!!!!!!!!!!!!!"))
+                (string=? c "defdef\n!!!!!!!!!!!!!"))
 
        (read-delimited! "\n" c port 'concat 3)
        (pass-if "read-delimited! reads a first line"
-		(string=? c "defghighi\n!!!!!!!!!!"))))))
+                (string=? c "defghighi\n!!!!!!!!!!"))))))
 
 
 ;;;; char-ready?
@@ -1415,7 +1415,7 @@
  "howdy"
  (lambda (port)
    (pass-if "char-ready? returns true on string port"
-	    (char-ready? port))))
+            (char-ready? port))))
 
 ;;; This segfaults on some versions of Guile.  We really should run
 ;;; the tests in a subprocess...
@@ -1427,7 +1427,7 @@
        port
      (lambda ()
        (pass-if "char-ready? returns true on string port as default port"
-		(char-ready?))))))
+                (char-ready?))))))
 
 
 ;;;; pending-eof behavior
@@ -1518,15 +1518,15 @@
 
 (with-test-prefix "closing current-input-port"
   (for-each (lambda (procedure name)
-	      (with-input-from-port
-		  (call-with-input-string "foo" (lambda (p) p))
-		(lambda ()
-		  (close-port (current-input-port))
-		  (pass-if-exception name
-		    exception:wrong-type-arg
-		    (procedure)))))
-	    (list read read-char read-line)
-	    '("read" "read-char" "read-line")))
+              (with-input-from-port
+                  (call-with-input-string "foo" (lambda (p) p))
+                (lambda ()
+                  (close-port (current-input-port))
+                  (pass-if-exception name
+                    exception:wrong-type-arg
+                    (procedure)))))
+            (list read read-char read-line)
+            '("read" "read-char" "read-line")))
 
 
 

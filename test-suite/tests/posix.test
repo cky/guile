@@ -70,9 +70,9 @@
 
   (pass-if "filename string modified"
     (let* ((template "T-XXXXXX")
-	   (str      (string-copy template))
-	   (port     (mkstemp! str))
-	   (result   (not (string=? str template))))
+           (str      (string-copy template))
+           (port     (mkstemp! str))
+           (result   (not (string=? str template))))
       (close-port port)
       (delete-file str)
       result)))
