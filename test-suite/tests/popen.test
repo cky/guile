@@ -36,8 +36,7 @@
       restore-signals))
 
 (define-syntax-rule (if-supported body ...)
-  (if (provided? 'fork)
-      (begin body ...)))
+  (begin body ...))
 
 (if-supported
  (use-modules (ice-9 popen))

@@ -770,9 +770,6 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
   strcoll strcoll_l newlocale utimensat sched_getaffinity		\
   sched_setaffinity sendfile])
 
-AM_CONDITIONAL([BUILD_ICE_9_POPEN],
-  [test "x$enable_posix" = "xyes" && test "x$ac_cv_func_fork" = "xyes"])
-
 # Reasons for testing:
 #   netdb.h - not in mingw
 #   sys/param.h - not in mingw

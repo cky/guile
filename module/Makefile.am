@@ -178,7 +178,9 @@ SCRIPTS_SOURCES =				\
   scripts/summarize-guile-TODO.scm		\
   scripts/api-diff.scm				\
   scripts/read-rfc822.scm			\
-  scripts/snarf-guile-m4-docs.scm
+  scripts/snarf-guile-m4-docs.scm		\
+  scripts/autofrisk.scm				\
+  scripts/scan-api.scm
 
 SYSTEM_BASE_SOURCES =				\
   system/base/pmatch.scm			\
@@ -223,6 +225,7 @@ ICE_9_SOURCES = \
   ice-9/optargs.scm \
   ice-9/poe.scm \
   ice-9/poll.scm \
+  ice-9/popen.scm \
   ice-9/posix.scm \
   ice-9/q.scm \
   ice-9/rdelim.scm \
@@ -253,18 +256,6 @@ ICE_9_SOURCES = \
   ice-9/list.scm \
   ice-9/serialize.scm \
   ice-9/local-eval.scm
-
-if BUILD_ICE_9_POPEN
-
-# This functionality is missing on systems without `fork'---i.e., Windows.
-ICE_9_SOURCES += ice-9/popen.scm
-
-# These modules rely on (ice-9 popen).
-SCRIPTS_SOURCES +=				\
-  scripts/autofrisk.scm				\
-  scripts/scan-api.scm
-
-endif BUILD_ICE_9_POPEN
 
 srfi/srfi-64.go: srfi/srfi-64.scm srfi/srfi-64/testing.scm
 
