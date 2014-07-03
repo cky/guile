@@ -1657,7 +1657,7 @@ VALUE."
        (or (char=? c #\/)
            (char=? c #\\)))
 
-     (define file-name-separator-string "\\")
+     (define file-name-separator-string "/")
 
      (define (absolute-file-name? file-name)
        (define (file-name-separator-at-index? idx)

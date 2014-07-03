@@ -51,6 +51,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/filesys.h"
+#include "libguile/load.h"	/* for scm_i_mirror_backslashes */
 
 
 #ifdef HAVE_IO_H
@@ -1235,6 +1236,9 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
       errno = save_errno;
       SCM_SYSERROR;
     }
+  /* On Windows, convert backslashes in current directory to forward
+     slashes.  */
+  scm_i_mirror_backslashes (wd);
   result = scm_from_locale_stringn (wd, strlen (wd));
   free (wd);
   return result;

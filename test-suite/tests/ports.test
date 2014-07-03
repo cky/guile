@@ -1888,6 +1888,17 @@
     (with-fluids ((%file-port-name-canonicalization 'absolute))
       (port-filename (open-input-file (%search-load-path "ice-9/q.scm"))))))
 
+(with-test-prefix "file name separators"
+
+  (pass-if "no backslash separators in Windows file names"
+    ;; In Guile 2.0.11 and earlier, %load-path on Windows could
+    ;; include file names with backslashes, and `getcwd' on Windows
+    ;; would always return a directory name with backslashes.
+    (or (not (file-name-separator? #\\))
+        (with-load-path (cons (getcwd) %load-path)
+          (not (string-index (%search-load-path (basename (test-file)))
+                             #\\))))))
+
 (delete-file (test-file))
 
 ;;; Local Variables:

@@ -311,6 +311,9 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
   void *res;
   struct main_func_closure c;
 
+  /* On Windows, convert backslashes in argv[0] to forward
+     slashes.  */
+  scm_i_mirror_backslashes (argv[0]);
   c.main_func = main_func;
   c.closure = closure;
   c.argc = argc;

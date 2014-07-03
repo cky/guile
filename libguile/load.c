@@ -277,6 +277,41 @@ SCM_DEFINE (scm_parse_path_with_ellipsis, "parse-path-with-ellipsis", 2, 0, 0,
 }
 #undef FUNC_NAME
 
+/* On Posix hosts, just return PATH unaltered.  On Windows,
+   destructively replace all backslashes in PATH with Unix-style
+   forward slashes, so that Scheme code always gets d:/foo/bar style
+   file names.  This avoids multiple subtle problems with comparing
+   file names as strings, and with redirections in /bin/sh command
+   lines.
+
+   Note that, if PATH is result of a call to 'getenv', this
+   destructively modifies the environment variables, so both
+   scm_getenv and subprocesses will afterwards see the values with
+   forward slashes.  That is OK as long as applied to Guile-specific
+   environment variables, since having scm_getenv return the same
+   value as used by the callers of this function is good for
+   consistency and file-name comparison.  Avoid using this function on
+   values returned by 'getenv' for general-purpose environment
+   variables; instead, make a copy of the value and work on that.  */
+SCM_INTERNAL char *
+scm_i_mirror_backslashes (char *path)
+{
+#ifdef __MINGW32__
+  if (path)
+    {
+      char *p = path;
+
+      while (*p)
+	{
+	  if (*p == '\\')
+	    *p = '/';
+	  p++;
+	}
+    }
+#endif
+
+  return path;
+}
 
 /* Initialize the global variable %load-path, given the value of the
    SCM_SITE_DIR and SCM_LIBRARY_DIR preprocessor symbols and the
@@ -289,7 +324,7 @@ scm_init_load_path ()
   SCM cpath = SCM_EOL;
 
 #ifdef SCM_LIBRARY_DIR
-  env = getenv ("GUILE_SYSTEM_PATH");
+  env = scm_i_mirror_backslashes (getenv ("GUILE_SYSTEM_PATH"));
   if (env && strcmp (env, "") == 0)
     /* special-case interpret system-path=="" as meaning no system path instead
        of '("") */
@@ -302,7 +337,7 @@ scm_init_load_path ()
                        scm_from_locale_string (SCM_GLOBAL_SITE_DIR),
                        scm_from_locale_string (SCM_PKGDATA_DIR));
 
-  env = getenv ("GUILE_SYSTEM_COMPILED_PATH");
+  env = scm_i_mirror_backslashes (getenv ("GUILE_SYSTEM_COMPILED_PATH"));
   if (env && strcmp (env, "") == 0)
     /* like above */
     ; 
@@ -345,14 +380,17 @@ scm_init_load_path ()
       cachedir[0] = 0;
 
     if (cachedir[0])
-      *scm_loc_compile_fallback_path = scm_from_locale_string (cachedir);
+      {
+	scm_i_mirror_backslashes (cachedir);
+	*scm_loc_compile_fallback_path = scm_from_locale_string (cachedir);
+      }
   }
 
-  env = getenv ("GUILE_LOAD_PATH");
+  env = scm_i_mirror_backslashes (getenv ("GUILE_LOAD_PATH"));
   if (env)
     path = scm_parse_path_with_ellipsis (scm_from_locale_string (env), path);
 
-  env = getenv ("GUILE_LOAD_COMPILED_PATH");
+  env = scm_i_mirror_backslashes (getenv ("GUILE_LOAD_COMPILED_PATH"));
   if (env)
     cpath = scm_parse_path_with_ellipsis (scm_from_locale_string (env), cpath);
 
@@ -452,11 +490,10 @@ scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
   return 0;
 }
 
-#ifdef __MINGW32__
-#define FILE_NAME_SEPARATOR_STRING "\\"
-#else
+/* Defined as "/" for Unix and Windows alike, so that file names
+   constructed by the functions in this module wind up with Unix-style
+   forward slashes as directory separators.  */
 #define FILE_NAME_SEPARATOR_STRING "/"
-#endif
 
 static int
 is_file_name_separator (SCM c)
@@ -877,7 +914,7 @@ canonical_suffix (SCM fname)
 
   /* CANON should be absolute.  */
   canon = scm_canonicalize_path (fname);
-  
+
 #ifdef __MINGW32__
   {
     size_t len = scm_c_string_length (canon);
