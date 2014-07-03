@@ -106,7 +106,7 @@
                (equal? string in-string)))
     (close-port port))
   (delete-file filename))
-          
+
 ;;; Write out a string, and read it back a character at a time.
 (let ((string "This is a test string\nwith no newline at the end")
       (filename (test-file)))
@@ -663,10 +663,10 @@
                        (newline port)))))
     (pass-if "display text"
              (equal? in-string (string-append string "\n"))))
-                   
+
   ;; Write an s-expression to a string port.
   (let* ((sexpr '("more utterly random text" 1729 #(a vector) 3.1415926))
-         (in-sexpr 
+         (in-sexpr
           (call-with-input-string (call-with-output-string
                                    (lambda (port)
                                      (write sexpr port)))
@@ -996,7 +996,7 @@
   ;; Return a list of input ports that all return the same text.
   ;; We map tests over this list.
   (define (input-port-list text)
-    
+
     ;; Create a text file some of the ports will use.
     (let ((out-port (open-output-file port-loop-temp)))
       (display text out-port)
@@ -1396,10 +1396,10 @@
 
 (with-test-prefix "read-delimited!"
   (let ((c (make-string 20 #\!)))
-    (call-with-input-string 
+    (call-with-input-string
      "defdef\nghighi\n"
      (lambda (port)
-       
+
        (read-delimited! "\n" c port 'concat)
        (pass-if "read-delimited! reads a first line"
                 (string=? c "defdef\n!!!!!!!!!!!!!"))
