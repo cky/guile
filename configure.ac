@@ -692,10 +692,9 @@ AC_TYPE_GETGROUPS
 AC_TYPE_SIGNAL
 AC_TYPE_MODE_T
 
-# On mingw -lm is empty, so this test is unnecessary, but it's
-# harmless so we don't hard-code to suppress it.
-#
-AC_CHECK_LIB(m, cos)
+dnl Check whether we need -lm.
+LT_LIB_M
+LIBS="$LIBS $LIBM"
 
 AC_CHECK_FUNCS(gethostbyname)
 if test $ac_cv_func_gethostbyname = no; then
