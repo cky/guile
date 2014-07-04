@@ -1156,6 +1156,11 @@ SCM_DEFINE (scm_yield, "yield", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+/* Some systems, notably Android, lack 'pthread_cancel'.  Don't provide
+   'cancel-thread' on these systems.  */
+
+#if !SCM_USE_PTHREAD_THREADS || defined HAVE_PTHREAD_CANCEL
+
 SCM_DEFINE (scm_cancel_thread, "cancel-thread", 1, 0, 0,
 	    (SCM thread),
 "Asynchronously force the target @var{thread} to terminate. @var{thread} "
@@ -1180,6 +1185,8 @@ SCM_DEFINE (scm_cancel_thread, "cancel-thread", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+
+#endif
 
 SCM_DEFINE (scm_set_thread_cleanup_x, "set-thread-cleanup!", 2, 0, 0,
 	    (SCM thread, SCM proc),

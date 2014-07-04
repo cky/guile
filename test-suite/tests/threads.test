@@ -1,6 +1,7 @@
 ;;;; threads.test --- Tests for Guile threading.    -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2006, 2007, 2009, 2010, 2011, 2012, 2013,
+;;;;   2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -35,6 +36,11 @@
     ;; let's not rely on that here.)
     (equal? '(a b c) '(a b c))
     a))
+
+(define (require-cancel-thread)
+  ;; Skip the test when 'cancel-thread' is unavailable.
+  (unless (defined? 'cancel-thread)
+    (throw 'unresolved)))
 
 (if (provided? 'threads)
     (begin
@@ -277,6 +283,7 @@
       (with-test-prefix "join-thread"
 
 	(pass-if "timed joining fails if timeout exceeded"
+          (require-cancel-thread)
 	  (let* ((m (make-mutex))
 		 (c (make-condition-variable))
 		 (t (begin-thread (begin (lock-mutex m)
@@ -286,6 +293,7 @@
 	    (not r)))
 
         (pass-if "join-thread returns timeoutval on timeout"
+          (require-cancel-thread)
           (let* ((m (make-mutex))
 		 (c (make-condition-variable))
 		 (t (begin-thread (begin (lock-mutex m)
@@ -335,6 +343,7 @@
       (with-test-prefix "cancel-thread"
 
         (pass-if "cancel succeeds"
+          (require-cancel-thread)
 	  (let ((m (make-mutex)))
 	    (lock-mutex m)
 	    (let ((t (begin-thread (begin (lock-mutex m) 'foo))))
@@ -343,6 +352,7 @@
 	      #t)))
 
 	(pass-if "handler result passed to join"
+          (require-cancel-thread)
 	  (let ((m (make-mutex)))
 	    (lock-mutex m)
 	    (let ((t (begin-thread (lock-mutex m))))
@@ -351,6 +361,7 @@
 	      (eq? (join-thread t) 'foo))))
 
 	(pass-if "can cancel self"
+          (require-cancel-thread)
 	  (let ((m (make-mutex)))
 	    (lock-mutex m)
 	    (let ((t (begin-thread (begin

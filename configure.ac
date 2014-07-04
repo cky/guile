@@ -1371,8 +1371,11 @@ case "$with_threads" in
     #     pthread_attr_get_np - "np" meaning "non portable" says it
     #         all; specific to FreeBSD
     #     pthread_sigmask - not available on mingw
+    #     pthread_cancel - not available on Android (Bionic libc)
     #
-    AC_CHECK_FUNCS(pthread_attr_getstack pthread_getattr_np pthread_get_stackaddr_np pthread_attr_get_np pthread_sigmask)
+    AC_CHECK_FUNCS([pthread_attr_getstack pthread_getattr_np		\
+      pthread_get_stackaddr_np pthread_attr_get_np pthread_sigmask	\
+      pthread_cancel])
 
     # On past versions of Solaris, believe 8 through 10 at least, you
     # had to write "pthread_once_t foo = { PTHREAD_ONCE_INIT };".
