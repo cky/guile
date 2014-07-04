@@ -1,6 +1,6 @@
 ;;; Compilation targets
 
-;; Copyright (C) 2011, 2012, 2013 Free Software Foundation, Inc.
+;; Copyright (C) 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -71,6 +71,8 @@
                            "mips" "mips64"))
              (endianness big))
             ((string-match "^arm.*el" cpu)
+             (endianness little))
+            ((string=? "arm" cpu)                ;ARMs are LE by default
              (endianness little))
             (else
              (error "unknown CPU endianness" cpu)))))

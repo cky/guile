@@ -1,6 +1,6 @@
 ;;;; Assembly to bytecode compilation -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -203,6 +203,9 @@
   (test-target "mips64el-unknown-linux-gnuabi64"  ; n64 ABI (Debian tuplet)
                (endianness little) 8)
   (test-target "x86_64-unknown-linux-gnux32"      ; x32 ABI (Debian tuplet)
+               (endianness little) 4)
+
+  (test-target "arm-unknown-linux-androideabi"
                (endianness little) 4)
 
   (pass-if-exception "unknown target"
