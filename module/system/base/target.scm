@@ -72,7 +72,13 @@
              (endianness big))
             ((string-match "^arm.*el" cpu)
              (endianness little))
-            ((string=? "arm" cpu)                ;ARMs are LE by default
+            ((string-match "^arm.*eb" cpu)
+             (endianness big))
+            ((string-prefix? "arm" cpu)          ;ARMs are LE by default
+             (endianness little))
+            ((string-match "^aarch64.*be" cpu)
+             (endianness big))
+            ((string=? "aarch64" cpu)
              (endianness little))
             (else
              (error "unknown CPU endianness" cpu)))))
@@ -97,7 +103,7 @@
           ((string-match "^x86_64-.*-gnux32" triplet) 4)  ; x32
 
           ((string-match "64$" cpu) 8)
-          ((string-match "64[lbe][lbe]$" cpu) 8)
+          ((string-match "64_?[lbe][lbe]$" cpu) 8)
           ((member cpu '("sparc" "powerpc" "mips" "mipsel")) 4)
           ((string-match "^arm.*" cpu) 4)
           (else (error "unknown CPU word size" cpu)))))

@@ -207,6 +207,12 @@
 
   (test-target "arm-unknown-linux-androideabi"
                (endianness little) 4)
+  (test-target "armeb-unknown-linux-gnu"
+               (endianness big) 4)
+  (test-target "aarch64-linux-gnu"
+               (endianness little) 8)
+  (test-target "aarch64_be-linux-gnu"
+               (endianness big) 8)
 
   (pass-if-exception "unknown target"
     exception:miscellaneous-error
