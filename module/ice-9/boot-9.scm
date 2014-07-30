@@ -1748,7 +1748,7 @@ VALUE."
 (define-syntax-rule (add-to-load-path elt)
   "Add ELT to Guile's load path, at compile-time and at run-time."
   (eval-when (expand load eval)
-    (set! %load-path (cons elt %load-path))))
+    (set! %load-path (cons elt (delete elt %load-path)))))
 
 (define %load-verbosely #f)
 (define (assert-load-verbosity v) (set! %load-verbosely v))
