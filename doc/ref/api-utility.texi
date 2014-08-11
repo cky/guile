@@ -222,7 +222,7 @@ setting of @var{obj}'s @var{property}.
 
 A single object property created by @code{make-object-property} can
 associate distinct property values with all Scheme values that are
-distinguishable by @code{eq?} (including, for example, integers).
+distinguishable by @code{eq?} (ruling out numeric values).
 
 Internally, object properties are implemented using a weak key hash
 table.  This means that, as long as a Scheme value with property values
