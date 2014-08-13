@@ -20,7 +20,10 @@
   #:use-module (test-suite lib))
 
 (define (with-temp-file proc)
-  (let* ((name (string-copy "/tmp/coding-test.XXXXXX"))
+  (let* ((tmpdir (or (getenv "TMPDIR")
+                     (getenv "TEMP")
+                     "/tmp"))
+         (name (string-append tmpdir "/coding-test.XXXXXX"))
          (port (mkstemp! name)))
     (let ((res (with-throw-handler
                 #t
