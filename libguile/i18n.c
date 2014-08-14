@@ -1,4 +1,4 @@
-/* Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
+/* Copyright (C) 2006-2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1465,6 +1465,14 @@ SCM_DEFINE (scm_locale_string_to_inexact, "locale-string->inexact",
    Note: We don't use Gnulib's `nl_langinfo' module because it's currently not
    as complete as the compatibility hacks in `i18n.scm'.  */
 
+static char *
+copy_string_or_null (const char *s)
+{
+  if (s == NULL)
+    return NULL;
+  else
+    return strdup (s);
+}
 
 SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	    (SCM item, SCM locale),
@@ -1496,8 +1504,8 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
   if (c_locale != NULL)
     {
 #ifdef USE_GNU_LOCALE_API
-      c_result = nl_langinfo_l (c_item, c_locale);
-      codeset = nl_langinfo_l (CODESET, c_locale);
+      c_result = copy_string_or_null (nl_langinfo_l (c_item, c_locale));
+      codeset = copy_string_or_null (nl_langinfo_l (CODESET, c_locale));
 #else /* !USE_GNU_LOCALE_API */
       /* We can't use `RUN_IN_LOCALE_SECTION ()' here because the locale
 	 mutex is already taken.  */
@@ -1521,8 +1529,8 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
 	scm_locale_error (FUNC_NAME, lsec_err);
       else
 	{
-	  c_result = nl_langinfo (c_item);
-          codeset = nl_langinfo (CODESET);
+	  c_result = copy_string_or_null (nl_langinfo (c_item));
+          codeset = copy_string_or_null (nl_langinfo (CODESET));
 
 	  restore_locale_settings (&lsec_prev_locale);
 	  free_locale_settings (&lsec_prev_locale);
@@ -1531,12 +1539,9 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
     }
   else
     {
-      c_result = nl_langinfo (c_item);
-      codeset = nl_langinfo (CODESET);
+      c_result = copy_string_or_null (nl_langinfo (c_item));
+      codeset = copy_string_or_null (nl_langinfo (CODESET));
     }
-
-  if (c_result != NULL)
-    c_result = strdup (c_result);
 
   unlock_locale_mutex ();
 
@@ -1668,6 +1673,9 @@ SCM_DEFINE (scm_nl_langinfo, "nl-langinfo", 1, 1, 0,
           free (c_result);
 	}
     }
+
+  if (codeset != NULL)
+    free (codeset);
 
   return result;
 }
