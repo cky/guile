@@ -657,7 +657,8 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
 	  if (stat (buf.buf, stat_buf) == 0
 	      && ! (stat_buf->st_mode & S_IFDIR))
 	    {
-	      result = scm_from_locale_string (buf.buf);
+	      result =
+		scm_from_locale_string (scm_i_mirror_backslashes (buf.buf));
 	      goto end;
 	    }
 	}
