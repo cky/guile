@@ -1698,6 +1698,50 @@
               (number? (string-contains (car w)
                                         "expected 3, got 2")))))
 
+     (pass-if "~p"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(((@ (ice-9 format) format) #f "thing~p" 2))
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "~p, too few arguments"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #f "~p")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 0")))))
+
+     (pass-if "~:p"
+       (null? (call-with-warnings
+               (lambda ()
+                 (compile '(((@ (ice-9 format) format) #f "~d thing~:p" 2))
+                          #:opts %opts-w-format
+                          #:to 'assembly)))))
+
+     (pass-if "~:@p, too many arguments"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #f "~d pupp~:@p" 5 5)
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 2")))))
+
+     (pass-if "~:@p, too few arguments"
+       (let ((w (call-with-warnings
+                 (lambda ()
+                   (compile '((@ (ice-9 format) format) #f "pupp~:@p")
+                            #:opts %opts-w-format
+                            #:to 'assembly)))))
+         (and (= (length w) 1)
+              (number? (string-contains (car w)
+                                        "expected 1, got 0")))))
+
      (pass-if "~?"
        (null? (call-with-warnings
                (lambda ()
