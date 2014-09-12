@@ -255,7 +255,8 @@ ICE_9_SOURCES = \
   ice-9/weak-vector.scm \
   ice-9/list.scm \
   ice-9/serialize.scm \
-  ice-9/local-eval.scm
+  ice-9/local-eval.scm \
+  ice-9/unicode.scm
 
 srfi/srfi-64.go: srfi/srfi-64.scm srfi/srfi-64/testing.scm
 

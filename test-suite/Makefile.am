@@ -176,6 +176,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/time.test			\
 	    tests/tree-il.test			\
 	    tests/types.test			\
+	    tests/unicode.test			\
 	    tests/version.test			\
 	    tests/vectors.test			\
 	    tests/vlist.test			\

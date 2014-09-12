@@ -2331,6 +2331,24 @@ lowercase, and titlecase forms respectively.  The type
 @code{scm_t_wchar} is a signed, 32-bit integer.
 @end deftypefn
 
+Characters also have ``formal names'', which are defined by Unicode.
+These names can be accessed in Guile from the @code{(ice-9 unicode)}
+module:
+
+@example
+(use-modules (ice-9 unicode))
+@end example
+
+@deffn {Scheme Procedure} char->formal-name chr
+Return the formal all-upper-case Unicode name of @var{ch},
+as a string, or @code{#f} if the character has no name.
+@end deffn
+
+@deffn {Scheme Procedure} formal-name->char name
+Return the character whose formal all-upper-case Unicode name is
+@var{name}, or @code{#f} if no such character is known.
+@end deffn
+
 @node Character Sets
 @subsection Character Sets
 
