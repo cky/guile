@@ -193,7 +193,8 @@ TESTS += test-scm-c-read
 # test-scm-take-locale-symbol
 test_scm_take_locale_symbol_SOURCES = test-scm-take-locale-symbol.c
 test_scm_take_locale_symbol_CFLAGS = ${test_cflags}
-test_scm_take_locale_symbol_LDADD = $(LIBGUILE_LDADD)
+test_scm_take_locale_symbol_LDADD =			\
+  $(LIBGUILE_LDADD) $(top_builddir)/lib/libgnu.la
 check_PROGRAMS += test-scm-take-locale-symbol
 TESTS += test-scm-take-locale-symbol
 
