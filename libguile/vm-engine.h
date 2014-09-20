@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2012, 2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -81,7 +81,7 @@
 #ifdef __arm__
 #define IP_REG asm("r9")
 #define SP_REG asm("r8")
-#define FP_REG asm("r7")
+#define FP_REG
 #endif
 #endif
 
