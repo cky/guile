@@ -74,7 +74,7 @@
 #define FP_REG asm("%r16")
 #endif
 #ifdef __mc68000__
-#define IP_REG asm("a5")
+#define IP_REG asm("a3")
 #define SP_REG asm("a4")
 #define FP_REG
 #endif
