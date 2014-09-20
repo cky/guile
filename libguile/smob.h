@@ -156,14 +156,14 @@ scm_new_double_smob (scm_t_bits tc, scm_t_bits data1,
 #define SCM_SET_SMOB_OBJECT_1(x,obj)	(SCM_SET_SMOB_OBJECT_N ((x), 1, (obj)))
 #define SCM_SET_SMOB_OBJECT_2(x,obj)	(SCM_SET_SMOB_OBJECT_N ((x), 2, (obj)))
 #define SCM_SET_SMOB_OBJECT_3(x,obj)	(SCM_SET_SMOB_OBJECT_N ((x), 3, (obj)))
-#define SCM_SMOB_OBJECT_0_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 0)))
-#define SCM_SMOB_OBJECT_1_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 1)))
-#define SCM_SMOB_OBJECT_2_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 2)))
-#define SCM_SMOB_OBJECT_3_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 3)))
+#define SCM_SMOB_OBJECT_0_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 0))
+#define SCM_SMOB_OBJECT_1_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 1))
+#define SCM_SMOB_OBJECT_2_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 2))
+#define SCM_SMOB_OBJECT_3_LOC(x)	(SCM_SMOB_OBJECT_N_LOC ((x), 3))
 
 #define SCM_SMOB_OBJECT(x)		(SCM_SMOB_OBJECT_1 (x))
 #define SCM_SET_SMOB_OBJECT(x,obj)	(SCM_SET_SMOB_OBJECT_1 ((x), (obj)))
-#define SCM_SMOB_OBJECT_LOC(x)		(SCM_SMOB_OBJECT_1_LOC (x)))
+#define SCM_SMOB_OBJECT_LOC(x)		(SCM_SMOB_OBJECT_1_LOC (x))
 
 
 #define SCM_SMOB_APPLY_0(x)		(scm_call_0 (x))
