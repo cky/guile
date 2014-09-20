@@ -304,7 +304,7 @@ from the subsequent locations in VEC ..."
 
 Append each vector in LIST-OF-VECTORS.  Equivalent to:
   (apply vector-append LIST-OF-VECTORS)"
-  (assert-vectors vs 'vector-append)
+  (assert-vectors vs 'vector-concatenate)
   (%vector-concatenate vs))
 
 (define (vector-empty? vec)
