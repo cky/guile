@@ -1,4 +1,4 @@
-/* Copyright (C) 2010, 2011, 2012, 2013  Free Software Foundation, Inc.
+/* Copyright (C) 2010-2014  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -814,7 +814,7 @@ SCM_DEFINE (scm_pointer_to_procedure, "pointer->procedure", 3, 0, 0,
 
 static const struct
 {
-  scm_t_uint64 dummy; /* ensure 8-byte alignment; perhaps there's a better way */
+  SCM_ALIGNED (8) scm_t_uint64 dummy; /* alignment */
   const scm_t_uint8 bytes[10 * (sizeof (struct scm_objcode) + 8
                                 + sizeof (struct scm_objcode) + 32)];
 } raw_bytecode = {
@@ -867,7 +867,7 @@ make_objcode_trampoline (unsigned int nargs)
 
 static const struct
 {
-  scm_t_uint64 dummy; /* alignment */
+  SCM_ALIGNED (8) scm_t_uint64 dummy; /* alignment */
   scm_t_cell cells[10 * 2]; /* 10 double cells */
 } objcode_cells = {
   0,

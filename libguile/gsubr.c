@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001, 2006, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2001, 2006, 2008-2011,
+ *   2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -213,7 +214,7 @@
 */
 static const struct
 {
-  scm_t_uint64 dummy; /* ensure 8-byte alignment; perhaps there's a better way */
+  SCM_ALIGNED (8) scm_t_uint64 dummy; /* alignment */
   const scm_t_uint8 bytes[121 * (sizeof (struct scm_objcode) + 16
                                  + sizeof (struct scm_objcode) + 32)];
 } raw_bytecode = {
@@ -317,7 +318,7 @@ static const struct
 
 static const struct
 {
-  scm_t_uint64 dummy; /* alignment */
+  SCM_ALIGNED (8) scm_t_uint64 dummy; /* alignment */
   scm_t_cell cells[121 * 2]; /* 11*11 double cells */
 } objcode_cells = {
   0,
