@@ -1,5 +1,4 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013,
- *   2014 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2014 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -363,7 +362,7 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
       {									\
 	scm_t_signed_bits rlo, rhi;					\
 	asm ("smull %0, %1, %2, %3\n"					\
-	     : "=r" (rlo), "=r" (rhi)					\
+	     : "=&r" (rlo), "=&r" (rhi)					\
 	     : "r" (SCM_UNPACK (x) - scm_tc2_int),			\
 	       "r" (SCM_I_INUM (y)));					\
 	if (SCM_LIKELY (SCM_SRS (rlo, 31) == rhi))			\
