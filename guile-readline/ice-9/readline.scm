@@ -118,7 +118,8 @@
 (define-once the-readline-port #f)
 
 (define-once history-variable "GUILE_HISTORY")
-(define-once history-file (string-append (getenv "HOME") "/.guile_history"))
+(define-once history-file
+  (string-append (or (getenv "HOME") ".") "/.guile_history"))
 
 (define-public readline-port
   (let ((do (lambda (r/w)
