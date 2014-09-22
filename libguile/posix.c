@@ -2247,6 +2247,12 @@ void
 scm_init_posix ()
 {
   scm_add_feature ("posix");
+#ifdef EXIT_SUCCESS
+  scm_c_define ("EXIT_SUCCESS", scm_from_int (EXIT_SUCCESS));
+#endif
+#ifdef EXIT_FAILURE
+  scm_c_define ("EXIT_FAILURE", scm_from_int (EXIT_FAILURE));
+#endif
 #ifdef HAVE_GETEUID
   scm_add_feature ("EIDs");
 #endif

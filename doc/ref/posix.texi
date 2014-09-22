@@ -1793,12 +1793,18 @@ Example: (system* "echo" "foo" "bar")
 Terminate the current process with proper unwinding of the Scheme stack.
 The exit status zero if @var{status} is not supplied.  If @var{status}
 is supplied, and it is an integer, that integer is used as the exit
-status.  If @var{status} is @code{#t} or @code{#f}, the exit status is 0
-or 1, respectively.
+status.  If @var{status} is @code{#t} or @code{#f}, the exit status is
+@var{EXIT_SUCCESS} or @var{EXIT_FAILURE}, respectively.
 
 The procedure @code{exit} is an alias of @code{quit}.  They have the
 same functionality.
 @end deffn
+
+@defvr {Scheme Variable} EXIT_SUCCESS
+@defvrx {Scheme Variable} EXIT_FAILURE
+These constants represent the standard exit codes for success (zero) or
+failure (one.)
+@end defvr
 
 @deffn {Scheme Procedure} primitive-exit [status]
 @deffnx {Scheme Procedure} primitive-_exit [status]
