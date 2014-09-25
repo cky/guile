@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2006, 2007, 2008,
-@c   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2014
+@c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node SRFI Support
@@ -4524,11 +4524,11 @@ Create and return a vector whose elements are @var{x} @enddots{}.
 @end deffn
 
 @deffn {Scheme Procedure} vector-unfold f length initial-seed @dots{}
-The fundamental vector constructor.  Create a vector whose length is
-@var{length} and iterates across each index k from 0 up to
-@var{length} - 1, applying @var{f} at each iteration to the current index
-and current seeds, in that order, to receive n + 1 values: first, the
-element to put in the kth slot of the new vector and n new seeds for
+The fundamental vector constructor.  Create a vector whose length
+is @var{length} and iterates across each index k from 0 up to
+@var{length} - 1, applying @var{f} at each iteration to the current
+index and current seeds, in that order, to receive n + 1 values: the
+element to put in the kth slot of the new vector, and n new seeds for
 the next iteration.  It is an error for the number of seeds to vary
 between iterations.
 
