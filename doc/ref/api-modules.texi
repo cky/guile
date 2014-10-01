@@ -1066,7 +1066,7 @@ module, as with @code{(use-modules @var{name})}.  The name is
 interpreted as for @code{scm_c_define_module}.
 @end deftypefn
 
-@deftypefn {C Function} SCM scm_c_export ({const char *}@var{name}, ...)
+@deftypefn {C Function} void scm_c_export ({const char *}@var{name}, ...)
 Add the bindings designated by @var{name}, ... to the public interface
 of the current module.  The list of names is terminated by
 @code{NULL}.
