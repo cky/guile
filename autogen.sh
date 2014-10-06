@@ -15,7 +15,15 @@ autoconf --version
 echo ""
 automake --version
 echo ""
-libtoolize --version
+
+# Typical MacOS X installations rename 'libtoolize' to 'glibtoolize', so
+# adjust to that.
+if test "`uname -s`" = "Darwin"; then
+  glibtoolize --version
+else
+  libtoolize --version
+fi
+
 echo ""
 ${M4:-m4} --version
 echo ""
