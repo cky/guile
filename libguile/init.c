@@ -1,6 +1,4 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
- *   2004, 2006, 2009, 2010, 2011, 2012, 2013,
- *   2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2004, 2006, 2009-2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -314,7 +312,9 @@ scm_boot_guile (int argc, char ** argv, void (*main_func) (), void *closure)
 
   /* On Windows, convert backslashes in argv[0] to forward
      slashes.  */
-  scm_i_mirror_backslashes (argv[0]);
+  if (argc > 0)
+    scm_i_mirror_backslashes (argv[0]);
+
   c.main_func = main_func;
   c.closure = closure;
   c.argc = argc;
