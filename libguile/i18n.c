@@ -40,7 +40,7 @@
 #include <unicase.h>
 #include <unistr.h>
 
-#if (defined HAVE_NEWLOCALE) && (defined HAVE_STRCOLL_L)
+#if defined HAVE_NEWLOCALE && defined HAVE_STRCOLL_L && defined HAVE_USELOCALE
 /* The GNU thread-aware locale API is documented in ``Thread-Aware Locale
    Model, a Proposal'', by Ulrich Drepper:
 
