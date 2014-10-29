@@ -231,7 +231,7 @@ AC_DEFUN([GUILE_PROGS],
           AC_MSG_ERROR([Guile $_guile_required_version required, but $_guile_prog_version found])
         fi
       fi
-    elif test "$GUILE_EFFECTIVE_VERSION" == "$_major_version.$_minor_version" -a -z "$_micro_version"; then
+    elif test "$GUILE_EFFECTIVE_VERSION" = "$_major_version.$_minor_version" -a -z "$_micro_version"; then
       # Allow prereleases that have the right effective version.
       true
     else
