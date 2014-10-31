@@ -470,23 +470,22 @@ stringbuf_cat (struct stringbuf *buf, char *str)
     }
 }
 
-  
+/* Return non-zero if STR is suffixed by a dot followed by one of
+   EXTENSIONS.  */
 static int
-scm_c_string_has_an_ext (char *str, size_t len, SCM extensions)
+string_has_an_ext (SCM str, SCM extensions)
 {
   for (; !scm_is_null (extensions); extensions = SCM_CDR (extensions))
     {
-      char *ext;
-      size_t extlen;
-      int match;
-      ext = scm_to_locale_string (SCM_CAR (extensions));
-      extlen = strlen (ext);
-      match = (len > extlen && str[len - extlen - 1] == '.'
-               && strncmp (str + (len - extlen), ext, extlen) == 0);
-      free (ext);
-      if (match)
-        return 1;
+      SCM extension;
+
+      extension = SCM_CAR (extensions);
+      if (scm_is_true (scm_string_suffix_p (extension, str,
+					    SCM_UNDEFINED, SCM_UNDEFINED,
+					    SCM_UNDEFINED, SCM_UNDEFINED)))
+	return 1;
     }
+
   return 0;
 }
 
@@ -577,8 +576,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   if (is_absolute_file_name (filename))
     {
       if ((scm_is_false (require_exts) ||
-           scm_c_string_has_an_ext (filename_chars, filename_len,
-                                    extensions))
+           string_has_an_ext (filename, extensions))
           && stat (filename_chars, stat_buf) == 0
           && !(stat_buf->st_mode & S_IFDIR))
         result = filename;
@@ -596,8 +594,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
 	if (*endp == '.')
 	  {
             if (scm_is_true (require_exts) &&
-                !scm_c_string_has_an_ext (filename_chars, filename_len,
-                                          extensions))
+                !string_has_an_ext (filename, extensions))
               {
                 /* This filename has an extension, but not one of the right
                    ones... */
