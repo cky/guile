@@ -403,24 +403,24 @@ SCM scm_listofnullstr;
 /* Utility functions for assembling C strings in a buffer.
  */
 
-struct stringbuf {
+struct stringbuf
+{
   char *buf, *ptr;
   size_t buf_len;
 };
 
 static void
-stringbuf_free (void *data)
-{
-  struct stringbuf *buf = (struct stringbuf *)data;
-  free (buf->buf);
-}
-
-static void
 stringbuf_grow (struct stringbuf *buf)
 {
-  size_t ptroff = buf->ptr - buf->buf;
-  buf->buf_len *= 2; 
-  buf->buf = scm_realloc (buf->buf, buf->buf_len);
+  size_t ptroff, prev_len;
+  void *prev_buf = buf->buf;
+
+  prev_len = buf->buf_len;
+  ptroff = buf->ptr - buf->buf;
+
+  buf->buf_len *= 2;
+  buf->buf = scm_gc_malloc_pointerless (buf->buf_len, "search-path");
+  memcpy (buf->buf, prev_buf, prev_len);
   buf->ptr = buf->buf + ptroff;
 }
 
@@ -558,6 +558,7 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   char *filename_chars;
   size_t filename_len;
   SCM result = SCM_BOOL_F;
+  char initial_buffer[256];
 
   if (scm_ilength (path) < 0)
     scm_misc_error ("%search-path", "path is not a proper list: ~a",
@@ -619,9 +620,8 @@ search_path (SCM path, SCM filename, SCM extensions, SCM require_exts,
   if (scm_is_null (extensions))
     extensions = scm_listofnullstr;
 
-  buf.buf_len = 512;
-  buf.buf = scm_malloc (buf.buf_len);
-  scm_dynwind_unwind_handler (stringbuf_free, &buf, SCM_F_WIND_EXPLICITLY);
+  buf.buf_len = sizeof initial_buffer;
+  buf.buf = initial_buffer;
 
   /* Try every path element.
    */
