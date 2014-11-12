@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 2009-2014 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -606,7 +606,7 @@ SCM_DEFINE (scm_bytevector_copy, "bytevector-copy", 1, 0, 0,
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
   c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
 
-  copy = make_bytevector (c_len, SCM_BYTEVECTOR_ELEMENT_TYPE (bv));
+  copy = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   c_copy = SCM_BYTEVECTOR_CONTENTS (copy);
   memcpy (c_copy, c_bv, c_len);
 
