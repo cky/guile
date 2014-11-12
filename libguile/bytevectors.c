@@ -537,9 +537,14 @@ SCM_DEFINE (scm_bytevector_fill_x, "bytevector-fill!", 2, 0, 0,
 {
   size_t c_len, i;
   scm_t_uint8 *c_bv, c_fill;
+  int value;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
-  c_fill = scm_to_int8 (fill);
+
+  value = scm_to_int (fill);
+  if (SCM_UNLIKELY ((value < -128) || (value > 255)))
+    scm_out_of_range (FUNC_NAME, fill);
+  c_fill = (scm_t_uint8) value;
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
   c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);

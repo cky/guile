@@ -46,6 +46,21 @@
          (not (bytevector=? (make-bytevector 20 7)
                             (make-bytevector 20 0)))))
 
+  ;; This failed prior to Guile 2.0.12.
+  ;; See <http://bugs.gnu.org/19027>.
+  (pass-if-equal "bytevector-fill! with fill 255"
+      #vu8(255 255 255 255)
+    (let ((bv (make-bytevector 4)))
+      (bytevector-fill! bv 255)
+      bv))
+
+  ;; This is a Guile-specific extension.
+  (pass-if-equal "bytevector-fill! with fill -128"
+      #vu8(128 128 128 128)
+    (let ((bv (make-bytevector 4)))
+      (bytevector-fill! bv -128)
+      bv))
+
   (pass-if "bytevector-copy! overlapping"
     ;; See <http://debbugs.gnu.org/10070>.
     (let ((b (u8-list->bytevector '(1 2 3 4 5 6 7 8))))
