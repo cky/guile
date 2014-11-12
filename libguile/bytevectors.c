@@ -43,9 +43,6 @@
 
 #ifdef HAVE_LIMITS_H
 # include <limits.h>
-#else
-/* Assuming 32-bit longs.  */
-# define ULONG_MAX 4294967295UL
 #endif
 
 #include <string.h>
@@ -463,10 +460,10 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
 #define FUNC_NAME s_scm_make_bytevector
 {
   SCM bv;
-  unsigned c_len;
-  signed char c_fill = '\0';
+  size_t c_len;
+  scm_t_uint8 c_fill = 0;
 
-  SCM_VALIDATE_UINT_COPY (1, len, c_len);
+  SCM_VALIDATE_SIZE_COPY (1, len, c_len);
   if (!scm_is_eq (fill, SCM_UNDEFINED))
     {
       int value;
@@ -474,16 +471,16 @@ SCM_DEFINE (scm_make_bytevector, "make-bytevector", 1, 1, 0,
       value = scm_to_int (fill);
       if (SCM_UNLIKELY ((value < -128) || (value > 255)))
 	scm_out_of_range (FUNC_NAME, fill);
-      c_fill = (signed char) value;
+      c_fill = (scm_t_uint8) value;
     }
 
   bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
   if (!scm_is_eq (fill, SCM_UNDEFINED))
     {
-      unsigned i;
-      signed char *contents;
+      size_t i;
+      scm_t_uint8 *contents;
 
-      contents = SCM_BYTEVECTOR_CONTENTS (bv);
+      contents = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
       for (i = 0; i < c_len; i++)
 	contents[i] = c_fill;
     }
@@ -510,7 +507,7 @@ SCM_DEFINE (scm_bytevector_eq_p, "bytevector=?", 2, 0, 0,
 #define FUNC_NAME s_scm_bytevector_eq_p
 {
   SCM result = SCM_BOOL_F;
-  unsigned c_len1, c_len2;
+  size_t c_len1, c_len2;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv1);
   SCM_VALIDATE_BYTEVECTOR (2, bv2);
@@ -538,14 +535,14 @@ SCM_DEFINE (scm_bytevector_fill_x, "bytevector-fill!", 2, 0, 0,
 	    "Fill bytevector @var{bv} with @var{fill}, a byte.")
 #define FUNC_NAME s_scm_bytevector_fill_x
 {
-  unsigned c_len, i;
-  signed char *c_bv, c_fill;
+  size_t c_len, i;
+  scm_t_uint8 *c_bv, c_fill;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
   c_fill = scm_to_int8 (fill);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   for (i = 0; i < c_len; i++)
     c_bv[i] = c_fill;
@@ -563,16 +560,16 @@ SCM_DEFINE (scm_bytevector_copy_x, "bytevector-copy!", 5, 0, 0,
 	    "@var{target_start}.")
 #define FUNC_NAME s_scm_bytevector_copy_x
 {
-  unsigned c_len, c_source_len, c_target_len;
-  unsigned c_source_start, c_target_start;
+  size_t c_len, c_source_len, c_target_len;
+  size_t c_source_start, c_target_start;
   signed char *c_source, *c_target;
 
   SCM_VALIDATE_BYTEVECTOR (1, source);
   SCM_VALIDATE_BYTEVECTOR (3, target);
 
-  c_len = scm_to_uint (len);
-  c_source_start = scm_to_uint (source_start);
-  c_target_start = scm_to_uint (target_start);
+  c_len = scm_to_size_t (len);
+  c_source_start = scm_to_size_t (source_start);
+  c_target_start = scm_to_size_t (target_start);
 
   c_source = SCM_BYTEVECTOR_CONTENTS (source);
   c_target = SCM_BYTEVECTOR_CONTENTS (target);
@@ -598,7 +595,7 @@ SCM_DEFINE (scm_bytevector_copy, "bytevector-copy", 1, 0, 0,
 #define FUNC_NAME s_scm_bytevector_copy
 {
   SCM copy;
-  unsigned c_len;
+  size_t c_len;
   signed char *c_bv, *c_copy;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
@@ -702,15 +699,15 @@ SCM_DEFINE (scm_bytevector_to_u8_list, "bytevector->u8-list", 1, 0, 0,
 #define FUNC_NAME s_scm_bytevector_to_u8_list
 {
   SCM lst, pair;
-  unsigned c_len, i;
-  unsigned char *c_bv;
+  size_t c_len, i;
+  scm_t_uint8 *c_bv;
 
   SCM_VALIDATE_BYTEVECTOR (1, bv);
 
   c_len = SCM_BYTEVECTOR_LENGTH (bv);
-  c_bv = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
 
-  lst = scm_make_list (scm_from_uint (c_len), SCM_UNSPECIFIED);
+  lst = scm_make_list (scm_from_size_t (c_len), SCM_UNSPECIFIED);
   for (i = 0, pair = lst;
        i < c_len;
        i++, pair = SCM_CDR (pair))
@@ -728,13 +725,13 @@ SCM_DEFINE (scm_u8_list_to_bytevector, "u8-list->bytevector", 1, 0, 0,
 #define FUNC_NAME s_scm_u8_list_to_bytevector
 {
   SCM bv, item;
-  long c_len, i;
-  unsigned char *c_bv;
+  size_t c_len, i;
+  scm_t_uint8 *c_bv;
 
   SCM_VALIDATE_LIST_COPYLEN (1, lst, c_len);
 
   bv = make_bytevector (c_len, SCM_ARRAY_ELEMENT_TYPE_VU8);
-  c_bv = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
+  c_bv = (scm_t_uint8 *) SCM_BYTEVECTOR_CONTENTS (bv);
 
   for (i = 0; i < c_len; lst = SCM_CDR (lst), i++)
     {
@@ -746,7 +743,7 @@ SCM_DEFINE (scm_u8_list_to_bytevector, "u8-list->bytevector", 1, 0, 0,
 
 	  c_item = SCM_I_INUM (item);
 	  if (SCM_LIKELY ((c_item >= 0) && (c_item < 256)))
-	    c_bv[i] = (unsigned char) c_item;
+	    c_bv[i] = (scm_t_uint8) c_item;
 	  else
 	    goto type_error;
 	}
@@ -880,20 +877,20 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
 }
 
 #define GENERIC_INTEGER_ACCESSOR_PROLOGUE(_sign)			\
-  unsigned long c_len, c_index, c_size;					\
+  size_t c_len, c_index, c_size;					\
   char *c_bv;								\
 									\
   SCM_VALIDATE_BYTEVECTOR (1, bv);					\
-  c_index = scm_to_ulong (index);					\
-  c_size = scm_to_ulong (size);						\
+  c_index = scm_to_size_t (index);					\
+  c_size = scm_to_size_t (size);					\
 									\
   c_len = SCM_BYTEVECTOR_LENGTH (bv);					\
   c_bv = (char *) SCM_BYTEVECTOR_CONTENTS (bv);				\
 									\
   /* C_SIZE must have its 3 higher bits set to zero so that		\
-     multiplying it by 8 yields a number that fits in an		\
-     unsigned long.  */							\
-  if (SCM_UNLIKELY ((c_size == 0) || (c_size >= (ULONG_MAX >> 3L))))	\
+     multiplying it by 8 yields a number that fits in a			\
+     size_t.  */							\
+  if (SCM_UNLIKELY (c_size == 0 || c_size >= (SCM_I_SIZE_MAX >> 3)))    \
     scm_out_of_range (FUNC_NAME, size);					\
   if (SCM_UNLIKELY (c_index + c_size > c_len))				\
     scm_out_of_range (FUNC_NAME, index);
@@ -1157,18 +1154,18 @@ SCM_DEFINE (scm_bytevector_to_uint_list, "bytevector->uint-list",
 
 #define INTEGER_LIST_TO_BYTEVECTOR(_sign)				\
   SCM bv;								\
-  long c_len;								\
+  size_t c_len;								\
   size_t c_size;							\
   char *c_bv, *c_bv_ptr;						\
 									\
   SCM_VALIDATE_LIST_COPYLEN (1, lst, c_len);				\
   SCM_VALIDATE_SYMBOL (2, endianness);					\
-  c_size = scm_to_uint (size);						\
+  c_size = scm_to_size_t (size);					\
 									\
-  if (SCM_UNLIKELY ((c_size == 0) || (c_size >= (ULONG_MAX >> 3L))))	\
+  if (SCM_UNLIKELY (c_size == 0 || c_size >= (SCM_I_SIZE_MAX >> 3)))    \
     scm_out_of_range (FUNC_NAME, size);					\
 									\
-  bv = make_bytevector (c_len * c_size, SCM_ARRAY_ELEMENT_TYPE_VU8);     \
+  bv = make_bytevector (c_len * c_size, SCM_ARRAY_ELEMENT_TYPE_VU8);    \
   c_bv = (char *) SCM_BYTEVECTOR_CONTENTS (bv);				\
 									\
   for (c_bv_ptr = c_bv;							\
