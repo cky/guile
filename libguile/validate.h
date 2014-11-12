@@ -92,6 +92,8 @@
 #define SCM_NUM2ULONG_LONG_DEF(pos, arg, def) \
   (SCM_UNBNDP (arg) ? def : scm_to_ulong_long (arg))
 
+#define SCM_NUM2SIZE(pos, arg) (scm_to_size_t (arg))
+
 #define SCM_NUM2FLOAT(pos, arg) ((float) scm_to_double (arg))
 
 #define SCM_NUM2DOUBLE(pos, arg) (scm_to_double (arg))
@@ -199,6 +201,11 @@
 #define SCM_VALIDATE_LONG_COPY(pos, k, cvar) \
   do { \
     cvar = SCM_NUM2LONG (pos, k); \
+  } while (0)
+
+#define SCM_VALIDATE_SIZE_COPY(pos, k, cvar) \
+  do { \
+    cvar = SCM_NUM2SIZE (pos, k);              \
   } while (0)
 
 #define SCM_VALIDATE_FLOAT_COPY(pos, k, cvar) \
