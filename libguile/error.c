@@ -1,5 +1,5 @@
-/* Copyright (C) 1995, 1996, 1997, 1998, 2000, 2001, 2004, 2006, 2010,
- *   2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995-1998, 2000, 2001, 2004, 2006, 2010, 2012-2014
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -121,10 +121,13 @@ SCM_DEFINE (scm_strerror, "strerror", 1, 0, 0,
 #define FUNC_NAME s_scm_strerror
 {
   SCM ret;
+  int errnum = scm_to_int (err);  /* Must be done outside of the
+				     critical section below, to avoid a
+				     deadlock on errors.  */
   scm_dynwind_begin (0);
   scm_i_dynwind_pthread_mutex_lock (&scm_i_misc_mutex);
 
-  ret = scm_from_locale_string (strerror (scm_to_int (err)));
+  ret = scm_from_locale_string (strerror (errnum));
 
   scm_dynwind_end ();
   return ret;
