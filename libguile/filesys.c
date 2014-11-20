@@ -771,8 +771,13 @@ SCM_DEFINE (scm_select, "select", 3, 2, 0,
 	    "This procedure has a variety of uses: waiting for the ability\n"
 	    "to provide input, accept output, or the existence of\n"
 	    "exceptional conditions on a collection of ports or file\n"
-	    "descriptors, or waiting for a timeout to occur.\n"
-	    "It also returns if interrupted by a signal.\n\n"
+	    "descriptors, or waiting for a timeout to occur.\n\n"
+
+	    "When an error occurs, of if it is interrupted by a signal, this\n"
+	    "procedure throws a @code{system-error} exception\n"
+	    "(@pxref{Conventions, @code{system-error}}).  In case of an\n"
+	    "interruption, the associated error number is @var{EINTR}.\n\n"
+
 	    "@var{reads}, @var{writes} and @var{excepts} can be lists or\n"
 	    "vectors, with each member a port or a file descriptor.\n"
 	    "The value returned is a list of three corresponding\n"

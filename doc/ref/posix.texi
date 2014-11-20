@@ -567,7 +567,11 @@ This procedure has a variety of uses: waiting for the ability
 to provide input, accept output, or the existence of
 exceptional conditions on a collection of ports or file
 descriptors, or waiting for a timeout to occur.
-It also returns if interrupted by a signal.
+
+When an error occurs, of if it is interrupted by a signal, this
+procedure throws a @code{system-error} exception
+(@pxref{Conventions, @code{system-error}}).  In case of an
+interruption, the associated error number is @var{EINTR}.
 
 @var{reads}, @var{writes} and @var{excepts} can be lists or
 vectors, with each member a port or a file descriptor.
