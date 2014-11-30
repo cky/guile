@@ -38,6 +38,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-23::                     Error reporting
 * SRFI-26::                     Specializing parameters
 * SRFI-27::                     Sources of Random Bits
+* SRFI-28::                     Basic format strings.
 * SRFI-30::                     Nested multi-line block comments
 * SRFI-31::                     A special form `rec' for recursive evaluation
 * SRFI-34::                     Exception handling.
@@ -3275,6 +3276,42 @@ be much higher than unit. In case @var{unit} is absent it defaults to a
 reasonably small value (related to the width of the mantissa of an
 efficient number format).
 @end defun
+
+@node SRFI-28
+@subsection SRFI-28 - Basic Format Strings
+@cindex SRFI-28
+
+SRFI-28 provides a basic @code{format} procedure that provides only
+the @code{~a}, @code{~s}, @code{~%}, and @code{~~} format specifiers.
+You can import this procedure by using:
+
+@lisp
+(use-modules (srfi srfi-28))
+@end lisp
+
+@deffn {Scheme Procedure} format message arg @dots{}
+Returns a formatted message, using @var{message} as the format string,
+which can contain the following format specifiers:
+
+@table @code
+@item ~a
+Insert the textual representation of the next @var{arg}, as if printed
+by @code{display}.
+
+@item ~s
+Insert the textual representation of the next @var{arg}, as if printed
+by @code{write}.
+
+@item ~%
+Insert a newline.
+
+@item ~~
+Insert a tilde.
+@end table
+
+This procedure is the same as calling @code{simple-format} (@pxref{Writing})
+with @code{#f} as the destination.
+@end deffn
 
 @node SRFI-30
 @subsection SRFI-30 - Nested Multi-line Comments
