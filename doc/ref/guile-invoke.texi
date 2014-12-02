@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013, 2014
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -327,7 +327,9 @@ variable.  By default, the history file is @file{$HOME/.guile_history}.
 @vindex GUILE_INSTALL_LOCALE
 This is a flag that can be used to tell Guile whether or not to install
 the current locale at startup, via a call to @code{(setlocale LC_ALL
-"")}.  @xref{Locales}, for more information on locales.
+"")}@footnote{The @code{GUILE_INSTALL_LOCALE} environment variable was
+ignored in Guile versions prior to 2.0.9.}.  @xref{Locales}, for more
+information on locales.
 
 You may explicitly indicate that you do not want to install
 the locale by setting @env{GUILE_INSTALL_LOCALE} to @code{0}, or
