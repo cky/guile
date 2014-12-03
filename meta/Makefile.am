@@ -47,25 +47,49 @@ aclocal_DATA = guile.m4
 # Script to instantiate substitution variables found on the standard
 # input.  We do this from the Makefile because we need things like
 # $(program_transform_name), which are not usable from 'configure.ac'.
-substitute =								\
-  guile="`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-  guild="`echo guild | $(SED) -e '$(program_transform_name)'`" ;	\
-  installed_guile="@bindir@/$$guile" ;					\
-  $(SED) -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"			\
-	 -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"		\
-	 -e "s,[@]PKG_CONFIG[@],$(PKG_CONFIG),g"			\
-	 -e "s,[@]pkgconfigdir[@],$(pkgconfigdir),g"			\
-	 -e "s,[@]prefix[@],$(prefix),g"				\
-	 -e "s,[@]exec_prefix[@],$(exec_prefix),g"			\
-	 -e "s,[@]bindir[@],$(bindir),g"				\
-	 -e "s,[@]libdir[@],$(libdir),g"				\
-	 -e "s,[@]includedir[@],$(includedir),g"			\
-	 -e "s,[@]datarootdir[@],$(datarootdir),g"			\
-	 -e "s,[@]datadir[@],$(datadir),g"				\
-	 -e "s,[@]sitedir[@],$(sitedir),g"				\
-	 -e "s,[@]guile[@],$$guile,g"					\
-	 -e "s,[@]guild[@],$$guild,g"					\
+substitute =									\
+  guile="`echo guile | $(SED) -e '$(program_transform_name)'`" ;		\
+  guild="`echo guild | $(SED) -e '$(program_transform_name)'`" ;		\
+  installed_guile="@bindir@/$$guile" ;						\
+  $(SED) -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"				\
+	 -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"			\
+	 -e "s,[@]GUILE_EFFECTIVE_VERSION[@],$(GUILE_EFFECTIVE_VERSION),g"	\
+	 -e "s,[@]GUILE_VERSION[@],$(GUILE_VERSION),g"				\
+	 -e "s,[@]GUILE_CFLAGS[@],$(GUILE_CFLAGS),g"				\
+	 -e "s,[@]GUILE_LIBS[@],$(GUILE_LIBS),g"				\
+	 -e "s,[@]LIBGUILE_INTERFACE[@],$(LIBGUILE_INTERFACE),g"		\
+	 $(dependency_substitutions)						\
+	 -e "s,[@]PKG_CONFIG[@],$(PKG_CONFIG),g"				\
+	 -e "s,[@]pkgconfigdir[@],$(pkgconfigdir),g"				\
+	 -e "s,[@]prefix[@],$(prefix),g"					\
+	 -e "s,[@]exec_prefix[@],$(exec_prefix),g"				\
+	 -e "s,[@]bindir[@],$(bindir),g"					\
+	 -e "s,[@]libdir[@],$(libdir),g"					\
+	 -e "s,[@]includedir[@],$(includedir),g"				\
+	 -e "s,[@]datarootdir[@],$(datarootdir),g"				\
+	 -e "s,[@]datadir[@],$(datadir),g"					\
+	 -e "s,[@]sitedir[@],$(sitedir),g"					\
+	 -e "s,[@]guile[@],$$guile,g"						\
+	 -e "s,[@]guild[@],$$guild,g"						\
 	 -e "s,[@]installed_guile[@],$$installed_guile,g"
+
+# Substitutions for dependencies that appear in 'guile-2.0.pc'.
+dependency_substitutions =				\
+  -e "s,[@]BDW_GC_CFLAGS[@],$(BDW_GC_CFLAGS),g"		\
+  -e "s,[@]BDW_GC_LIBS[@],$(BDW_GC_LIBS),g"		\
+  -e "s,[@]LIB_CLOCK_GETTIME[@],$(LIB_CLOCK_GETTIME),g"	\
+  -e "s,[@]LIBGMP[@],$(LIBGMP),g"			\
+  -e "s,[@]LIBLTDL[@],$(LIBLTDL),g"			\
+  -e "s,[@]LIBFFI_LIBS[@],$(LIBFFI_LIBS),g"		\
+  -e "s,[@]LIBUNISTRING[@],$(LIBUNISTRING),g"		\
+  -e "s,[@]LIBICONV[@],$(LIBICONV),g"			\
+  -e "s,[@]LIBINTL[@],$(LIBINTL),g"			\
+  -e "s,[@]LIBSOCKET[@],$(LIBSOCKET),g"			\
+  -e "s,[@]SERVENT_LIB[@],$(SERVENT_LIB),g"		\
+  -e "s,[@]HOSTENT_LIB[@],$(HOSTENT_LIB),g"		\
+  -e "s,[@]GETADDRINFO_LIB[@],$(GETADDRINFO_LIB),g"	\
+  -e "s,[@]INET_NTOP_LIB[@],$(INET_NTOP_LIB),g"		\
+  -e "s,[@]INET_PTON_LIB[@],$(INET_PTON_LIB),g"
 
 guile-2.0.pc: guile-2.0.pc.in
 	$(substitute) < "$<" > "$@.out"
