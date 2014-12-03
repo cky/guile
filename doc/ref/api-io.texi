@@ -443,8 +443,12 @@ open.
 @deffn {Scheme Procedure} seek fd_port offset whence
 @deffnx {C Function} scm_seek (fd_port, offset, whence)
 Sets the current position of @var{fd_port} to the integer
-@var{offset}, which is interpreted according to the value of
-@var{whence}.
+@var{offset}.  For a file port, @var{offset} is expressed
+as a number of bytes; for other types of ports, such as string
+ports, @var{offset} is an abstract representation of the
+position within the port's data, not necessarily expressed
+as a number of bytes.  @var{offset} is interpreted according to
+the value of @var{whence}.
 
 One of the following variables should be supplied for
 @var{whence}:
@@ -460,7 +464,7 @@ Seek from the end of the file.
 If @var{fd_port} is a file descriptor, the underlying system
 call is @code{lseek}.  @var{port} may be a string port.
 
-The value returned is the new position in the file.  This means
+The value returned is the new position in @var{fd_port}.  This means
 that the current position of a port can be obtained using:
 @lisp
 (seek port 0 SEEK_CUR)
