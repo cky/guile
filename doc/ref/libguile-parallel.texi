@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011
-@c   Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011,
+@c   2014 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Parallel Installations
@@ -55,6 +55,21 @@ The default directory where Guile looks for extensions---i.e., shared
 libraries providing additional features (@pxref{Modules and
 Extensions}).  Run @command{pkg-config guile-@value{EFFECTIVE-VERSION}
 --variable=extensiondir} to see its value.
+
+@item guile
+@itemx guild
+@cindex program name transformations, dealing with
+The absolute file name of the @command{guile} and @command{guild}
+commands@footnote{The @code{guile} and @code{guild} variables defined
+starting from Guile version 2.0.12.}.  Run @command{pkg-config
+guile-@value{EFFECTIVE-VERSION} --variable=guile} or
+@code{--variable=guild} to see their value.
+
+These variables allow users to deal with program name transformations
+that may be specified when configuring Guile with
+@code{--program-transform-name}, @code{--program-suffix}, or
+@code{--program-prefix} (@pxref{Transformation Options,,, autoconf, GNU
+Autoconf Manual}).
 @end table
 
 @noindent

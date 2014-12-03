@@ -44,24 +44,47 @@ pkgconfig_DATA = guile-2.0.pc
 aclocaldir = $(datadir)/aclocal
 aclocal_DATA = guile.m4
 
+# Script to instantiate substitution variables found on the standard
+# input.  We do this from the Makefile because we need things like
+# $(program_transform_name), which are not usable from 'configure.ac'.
+substitute =								\
+  guile="`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
+  guild="`echo guild | $(SED) -e '$(program_transform_name)'`" ;	\
+  installed_guile="@bindir@/$$guile" ;					\
+  $(SED) -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"			\
+	 -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"		\
+	 -e "s,[@]PKG_CONFIG[@],$(PKG_CONFIG),g"			\
+	 -e "s,[@]pkgconfigdir[@],$(pkgconfigdir),g"			\
+	 -e "s,[@]prefix[@],$(prefix),g"				\
+	 -e "s,[@]exec_prefix[@],$(exec_prefix),g"			\
+	 -e "s,[@]bindir[@],$(bindir),g"				\
+	 -e "s,[@]libdir[@],$(libdir),g"				\
+	 -e "s,[@]includedir[@],$(includedir),g"			\
+	 -e "s,[@]datarootdir[@],$(datarootdir),g"			\
+	 -e "s,[@]datadir[@],$(datadir),g"				\
+	 -e "s,[@]sitedir[@],$(sitedir),g"				\
+	 -e "s,[@]guile[@],$$guile,g"					\
+	 -e "s,[@]guild[@],$$guild,g"					\
+	 -e "s,[@]installed_guile[@],$$installed_guile,g"
+
+guile-2.0.pc: guile-2.0.pc.in
+	$(substitute) < "$<" > "$@.out"
+	mv "$@.out" "$@"
+
+guile-2.0-uninstalled.pc: guile-2.0-uninstalled.pc.in
+	$(substitute) < "$<" > "$@.out"
+	mv "$@.out" "$@"
+
 guile-config: $(srcdir)/guile-config.in $(top_builddir)/config.status
-	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-	$(SED) -e "s,[@]pkgconfigdir[@],$(pkgconfigdir),g"			\
-	       -e "s,[@]PKG_CONFIG[@],$(PKG_CONFIG),g"				\
-	       -e "s,[@]installed_guile[@],$$guile,g"				\
-	  < "$(srcdir)/guile-config.in"						\
-	  > "$@.out"
+	$(substitute) < "$<" > "$@.out"
 	chmod +x "$@.out"
 	mv "$@.out" "$@"
 
 guild: $(srcdir)/guild.in $(top_builddir)/config.status
-	guile="@bindir@/`echo guile | $(SED) -e '$(program_transform_name)'`" ;	\
-	$(SED) -e "s,[@]installed_guile[@],$$guile,g"				\
-	       -e "s,[@]PACKAGE_NAME[@],$(PACKAGE_NAME),g"			\
-	       -e "s,[@]PACKAGE_BUGREPORT[@],$(PACKAGE_BUGREPORT),g"		\
-	  < "$(srcdir)/guild.in"						\
-	  > "$@.out"
+	$(substitute) < "$<" > "$@.out"
 	chmod +x "$@.out"
 	mv "$@.out" "$@"
 
-CLEANFILES = guile-config guild
+CLEANFILES =					\
+  guile-config guild				\
+  guile-2.0.pc guile-2.0-uninstalled.pc
