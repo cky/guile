@@ -74,22 +74,24 @@ substitute =									\
 	 -e "s,[@]installed_guile[@],$$installed_guile,g"
 
 # Substitutions for dependencies that appear in 'guile-2.0.pc'.
+# Some of these may include things like "-Wl,-rpath", which is why we do
+# not use a comma to separate the 's' arguments.
 dependency_substitutions =				\
-  -e "s,[@]BDW_GC_CFLAGS[@],$(BDW_GC_CFLAGS),g"		\
-  -e "s,[@]BDW_GC_LIBS[@],$(BDW_GC_LIBS),g"		\
-  -e "s,[@]LIB_CLOCK_GETTIME[@],$(LIB_CLOCK_GETTIME),g"	\
-  -e "s,[@]LIBGMP[@],$(LIBGMP),g"			\
-  -e "s,[@]LIBLTDL[@],$(LIBLTDL),g"			\
-  -e "s,[@]LIBFFI_LIBS[@],$(LIBFFI_LIBS),g"		\
-  -e "s,[@]LIBUNISTRING[@],$(LIBUNISTRING),g"		\
-  -e "s,[@]LIBICONV[@],$(LIBICONV),g"			\
-  -e "s,[@]LIBINTL[@],$(LIBINTL),g"			\
-  -e "s,[@]LIBSOCKET[@],$(LIBSOCKET),g"			\
-  -e "s,[@]SERVENT_LIB[@],$(SERVENT_LIB),g"		\
-  -e "s,[@]HOSTENT_LIB[@],$(HOSTENT_LIB),g"		\
-  -e "s,[@]GETADDRINFO_LIB[@],$(GETADDRINFO_LIB),g"	\
-  -e "s,[@]INET_NTOP_LIB[@],$(INET_NTOP_LIB),g"		\
-  -e "s,[@]INET_PTON_LIB[@],$(INET_PTON_LIB),g"
+  -e "s|[@]BDW_GC_CFLAGS[@]|$(BDW_GC_CFLAGS)|g"		\
+  -e "s|[@]BDW_GC_LIBS[@]|$(BDW_GC_LIBS)|g"		\
+  -e "s|[@]LIB_CLOCK_GETTIME[@]|$(LIB_CLOCK_GETTIME)|g"	\
+  -e "s|[@]LIBGMP[@]|$(LIBGMP)|g"			\
+  -e "s|[@]LIBLTDL[@]|$(LIBLTDL)|g"			\
+  -e "s|[@]LIBFFI_LIBS[@]|$(LIBFFI_LIBS)|g"		\
+  -e "s|[@]LIBUNISTRING[@]|$(LIBUNISTRING)|g"		\
+  -e "s|[@]LIBICONV[@]|$(LIBICONV)|g"			\
+  -e "s|[@]LIBINTL[@]|$(LIBINTL)|g"			\
+  -e "s|[@]LIBSOCKET[@]|$(LIBSOCKET)|g"			\
+  -e "s|[@]SERVENT_LIB[@]|$(SERVENT_LIB)|g"		\
+  -e "s|[@]HOSTENT_LIB[@]|$(HOSTENT_LIB)|g"		\
+  -e "s|[@]GETADDRINFO_LIB[@]|$(GETADDRINFO_LIB)|g"	\
+  -e "s|[@]INET_NTOP_LIB[@]|$(INET_NTOP_LIB)|g"		\
+  -e "s|[@]INET_PTON_LIB[@]|$(INET_PTON_LIB)|g"
 
 guile-2.0.pc: guile-2.0.pc.in
 	$(substitute) < "$<" > "$@.out"
