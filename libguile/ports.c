@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
  *   2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014 Free Software Foundation, Inc.
+ *   2014, 2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -702,7 +702,8 @@ scm_add_to_port_table (SCM port)
   SCM z;
   scm_t_port * pt;
 
-  scm_c_issue_deprecation_warning ("scm_add_to_port_table is deprecated.");
+  scm_c_issue_deprecation_warning ("'scm_add_to_port_table' is deprecated.  "
+				   "Use 'scm_new_port_table_entry' instead.");
 
   scm_i_pthread_mutex_lock (&scm_i_port_table_mutex);
   z = scm_new_port_table_entry (scm_tc7_port);
