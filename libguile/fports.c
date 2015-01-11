@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
  *   2004, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014 Free Software Foundation, Inc.
+ *   2014, 2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -342,7 +342,8 @@ scm_open_file_with_encoding (SCM filename, SCM mode,
   SCM port;
   int fdes, flags = 0, binary = 0;
   unsigned int retries;
-  char *file, *md, *ptr;
+  char *file;
+  const char *md, *ptr;
 
   if (SCM_UNLIKELY (!(scm_is_false (encoding) || scm_is_string (encoding))))
     scm_wrong_type_arg_msg (FUNC_NAME, 0, encoding,
@@ -353,8 +354,10 @@ scm_open_file_with_encoding (SCM filename, SCM mode,
   file = scm_to_locale_string (filename);
   scm_dynwind_free (file);
 
-  md = scm_to_locale_string (mode);
-  scm_dynwind_free (md);
+  if (SCM_UNLIKELY (!scm_i_try_narrow_string (mode)))
+    scm_out_of_range (FUNC_NAME, mode);
+
+  md = scm_i_string_chars (mode);
 
   switch (*md)
     {
