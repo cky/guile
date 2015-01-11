@@ -63,15 +63,30 @@ scm_string_hash (const unsigned char *str, size_t len)
 
 #endif
 
-unsigned long 
+unsigned long
 scm_i_string_hash (SCM str)
 {
   size_t len = scm_i_string_length (str);
   size_t i = 0;
-
   unsigned long h = 0;
-  while (len-- > 0)
-    h = (unsigned long) scm_i_string_ref (str, i++) + h * 37;
+  const void *data;
+
+  data = scm_i_string_data (str);
+
+  if (scm_i_is_narrow_string (str))
+    {
+      const unsigned char *ndata = data;
+
+      for (i = 0; i < len; i++)
+	h = (unsigned long) ndata[i] + h * 37;
+    }
+  else
+    {
+      const scm_t_wchar *wdata = data;
+
+      for (i = 0; i < len; i++)
+	h = (unsigned long) wdata[i] + h * 37;
+    }
 
   scm_remember_upto_here_1 (str);
   return h;
