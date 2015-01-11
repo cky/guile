@@ -1,5 +1,5 @@
 /* Copyright (C) 1995-1999, 2000, 2001, 2002, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -68,6 +68,9 @@
 
 static size_t display_string (const void *, int, size_t, SCM,
 			      scm_t_string_failed_conversion_handler);
+
+static size_t write_string (const void *, int, size_t, SCM,
+			    scm_t_string_failed_conversion_handler);
 
 static int display_character (scm_t_wchar, SCM,
 			      scm_t_string_failed_conversion_handler);
@@ -634,32 +637,29 @@ iprin1 (SCM exp, SCM port, scm_print_state *pstate)
           }
 	  break;
         case scm_tc7_string:
-          if (SCM_WRITINGP (pstate))
-            {
-              size_t len, i;
+	  {
+	    size_t len, printed;
 
-              display_character ('"', port, iconveh_question_mark);
-              len = scm_i_string_length (exp);
-              for (i = 0; i < len; ++i)
-		write_character (scm_i_string_ref (exp, i), port, 1);
-
-              display_character ('"', port, iconveh_question_mark);
-              scm_remember_upto_here_1 (exp);
-            }
-          else
-	    {
-	      size_t len, printed;
-
-	      len = scm_i_string_length (exp);
+	    len = scm_i_string_length (exp);
+	    if (SCM_WRITINGP (pstate))
+	      {
+		printed = write_string (scm_i_string_data (exp),
+					scm_i_is_narrow_string (exp),
+					len, port,
+					PORT_CONVERSION_HANDLER (port));
+		len += 2;		    /* account for the quotes */
+	      }
+	    else
 	      printed = display_string (scm_i_string_data (exp),
 					scm_i_is_narrow_string (exp),
 					len, port,
 					PORT_CONVERSION_HANDLER (port));
-	      if (SCM_UNLIKELY (printed < len))
-		scm_encoding_error (__func__, errno,
-				    "cannot convert to output locale",
-				    port, scm_c_string_ref (exp, printed));
-	    }
+
+	    if (SCM_UNLIKELY (printed < len))
+	      scm_encoding_error (__func__, errno,
+				  "cannot convert to output locale",
+				  port, scm_c_string_ref (exp, printed));
+	  }
 
           scm_remember_upto_here_1 (exp);
           break;
@@ -1051,8 +1051,6 @@ display_string_using_iconv (const void *str, int narrow_p, size_t len,
   return printed;
 }
 
-#undef STR_REF
-
 /* Display the LEN codepoints in STR to PORT according to STRATEGY;
    return the number of codepoints successfully displayed.  If NARROW_P,
    then STR is interpreted as a sequence of `char', denoting a Latin-1
@@ -1075,8 +1073,8 @@ display_string (const void *str, int narrow_p,
 				       port, strategy);
 }
 
-/* Attempt to display CH to PORT according to STRATEGY.  Return non-zero
-   if CH was successfully displayed, zero otherwise (e.g., if it was not
+/* Attempt to display CH to PORT according to STRATEGY.  Return one if
+   CH was successfully displayed, zero otherwise (e.g., if it was not
    representable in PORT's encoding.)  */
 static int
 display_character (scm_t_wchar ch, SCM port,
@@ -1084,6 +1082,34 @@ display_character (scm_t_wchar ch, SCM port,
 {
   return display_string (&ch, 0, 1, port, strategy) == 1;
 }
+
+/* Same as 'display_string', but using the 'write' syntax.  */
+static size_t
+write_string (const void *str, int narrow_p,
+	      size_t len, SCM port,
+	      scm_t_string_failed_conversion_handler strategy)
+{
+  size_t printed;
+
+  printed = display_character ('"', port, strategy);
+
+  if (printed > 0)
+    {
+      size_t i;
+
+      for (i = 0; i < len; ++i)
+	{
+	  write_character (STR_REF (str, i), port, 1);
+	  printed++;
+	}
+
+      printed += display_character ('"', port, strategy);
+    }
+
+  return printed;
+}
+
+#undef STR_REF
 
 /* Attempt to pretty-print CH, a combining character, to PORT.  Return
    zero upon failure, non-zero otherwise.  The idea is to print CH above
