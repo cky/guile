@@ -1,5 +1,5 @@
 /* Copyright (C) 1995, 1996, 1997, 2000, 2001, 2003, 2004, 2006, 2008,
- *   2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2014, 2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -47,7 +47,9 @@ extern double floor();
 
 #define SCM_MIN(A, B) ((A) < (B) ? (A) : (B))
 
-unsigned long 
+#if SCM_ENABLE_DEPRECATED == 1
+
+unsigned long
 scm_string_hash (const unsigned char *str, size_t len)
 {
   /* from suggestion at: */
@@ -58,6 +60,8 @@ scm_string_hash (const unsigned char *str, size_t len)
     h = *str++ + h*37;
   return h;
 }
+
+#endif
 
 unsigned long 
 scm_i_string_hash (SCM str)

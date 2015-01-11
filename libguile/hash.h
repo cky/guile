@@ -3,7 +3,8 @@
 #ifndef SCM_HASH_H
 #define SCM_HASH_H
 
-/* Copyright (C) 1995,1996,2000, 2006, 2008, 2011 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 2000, 2006, 2008, 2011,
+ *   2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -27,7 +28,14 @@
 
 
 
-SCM_API unsigned long scm_string_hash (const unsigned char *str, size_t len);
+#if SCM_ENABLE_DEPRECATED == 1
+
+/* Deprecated in 2.0.12.  */
+SCM_DEPRECATED unsigned long scm_string_hash (const unsigned char *str,
+					      size_t len);
+
+#endif
+
 SCM_INTERNAL unsigned long scm_i_locale_string_hash (const char *str,
                                                      size_t len);
 SCM_INTERNAL unsigned long scm_i_latin1_string_hash (const  char *str,
