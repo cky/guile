@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 2013 Free Software Foundation, Inc.
+@c Copyright (C) 2013, 2015 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Statprof
@@ -220,7 +220,7 @@ The return value is a list of nodes, each of which is of the type:
 @end defun
 
 @anchor{statprof statprof}@defun statprof thunk [#:loop] [#:hz] [#:count-calls?] [#:full-stacks?]
-Profiles the execution of @var{thunk}.
+Profile the execution of @var{thunk}, and return its return values.
 
 The stack will be sampled @var{hz} times per second, and the thunk
 itself will be called @var{loop} times.
@@ -236,7 +236,8 @@ retrieve the last-stored stacks.
 @end defun
 
 @anchor{statprof with-statprof}@defspec with-statprof args
-Profiles the expressions in its body.
+Profile the expressions in the body, and return the body's return
+value.
 
 Keyword arguments:
 

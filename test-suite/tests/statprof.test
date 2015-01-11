@@ -45,6 +45,19 @@
             (throw 'unresolved)
             (apply throw args))))))
 
+(pass-if-equal "return values"
+    '(42 77)
+  (call-with-values
+      (lambda ()
+        (with-output-to-port (%make-void-port "w")
+          (lambda ()
+            (with-statprof
+                (let loop ((i 10000))
+                  (if (zero? i)
+                      (values 42 77)
+                      (loop (1- i))))))))
+    list))
+
 (pass-if "statistical sample counts within expected range"
   (when-implemented
     ;; test to see that if we call 3 identical functions equally, they
