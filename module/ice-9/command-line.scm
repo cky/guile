@@ -1,6 +1,6 @@
 ;;; Parsing Guile's command-line
 
-;;; Copyright (C) 1994-1998, 2000-2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;;; Copyright (C) 1994-1998, 2000-2015 Free Software Foundation, Inc.
 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -147,8 +147,9 @@ If FILE begins with `-' the -s switch is mandatory.
   (let ((port (if fatal?
                   (current-error-port)
                   (current-output-port))))
-    (if fmt
-        (apply format port fmt args))
+    (when fmt
+      (apply format port fmt args)
+      (newline port))
 
     (format port (_ "Usage: ~a [OPTION]... [FILE]...\n") name)
     (display *usage* port)
@@ -203,7 +204,8 @@ If FILE begins with `-' the -s switch is mandatory.
         (turn-off-debugging? #f))
 
     (define (error fmt . args)
-      (apply shell-usage usage-name #t fmt args))
+      (apply shell-usage usage-name #t
+             (string-append "error: " fmt "~%") args))
 
     (define (parse args out)
       (cond
@@ -405,7 +407,7 @@ If FILE begins with `-' the -s switch is mandatory.
             (exit 0))
 
            (else
-            (error "Unrecognized switch ~a" arg)))))))
+            (error "unrecognized switch ~a" arg)))))))
 
     (define (finish args out)
       ;; Check to make sure the -ds got a -s.
