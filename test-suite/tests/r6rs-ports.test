@@ -1,6 +1,6 @@
 ;;;; r6rs-ports.test --- R6RS I/O port tests.   -*- coding: utf-8; -*-
 ;;;;
-;;;; Copyright (C) 2009, 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 2009-2012, 2014-2015 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -556,6 +556,37 @@ not `set-port-position!'"
                         (utf8->string obj)
                         obj))
                   ret)))))
+
+  (pass-if-equal "custom binary input port unbuffered & 'get-string-all'"
+      (make-string 1000 #\a)
+    ;; In Guile 2.0.11 this test would lead to a buffer overrun followed
+    ;; by an assertion failure.  See <http://bugs.gnu.org/19621>.
+    (let* ((input (with-fluids ((%default-port-encoding #f))
+                    (open-input-string (make-string 1000 #\a))))
+           (read! (lambda (bv index count)
+                    (let ((n (get-bytevector-n! input bv index
+                                                count)))
+                      (if (eof-object? n) 0 n))))
+           (port  (make-custom-binary-input-port "foo" read!
+                                                 #f #f #f)))
+      (setvbuf port _IONBF)
+      (get-string-all port)))
+
+  (pass-if-equal "custom binary input port unbuffered UTF-8 & 'get-string-all'"
+      (make-string 1000 #\λ)
+    ;; In Guile 2.0.11 this test would lead to a buffer overrun followed
+    ;; by an assertion failure.  See <http://bugs.gnu.org/19621>.
+    (let* ((input (with-fluids ((%default-port-encoding "UTF-8"))
+                    (open-input-string (make-string 1000 #\λ))))
+           (read! (lambda (bv index count)
+                    (let ((n (get-bytevector-n! input bv index
+                                                count)))
+                      (if (eof-object? n) 0 n))))
+           (port  (make-custom-binary-input-port "foo" read!
+                                                 #f #f #f)))
+      (setvbuf port _IONBF)
+      (set-port-encoding! port "UTF-8")
+      (get-string-all port)))
 
   (pass-if-equal "custom binary input port, unbuffered then buffered"
       `((6 "Lorem ") (12 "ipsum dolor ") (777 "sit amet, consectetur…")

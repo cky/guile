@@ -1,4 +1,4 @@
-/* Copyright (C) 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 2009, 2010, 2011, 2013-2015 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -307,9 +307,10 @@ cbip_setvbuf (SCM port, long read_size, long write_size)
   switch (read_size)
     {
     case 0:
-      /* Unbuffered: keep PORT's bytevector as is (it will be used in
-	 future 'scm_c_read' calls), but point to the one-byte buffer.  */
-      pt->read_buf = &pt->shortbuf;
+      /* Unbuffered: keep using PORT's bytevector as the underlying
+	 buffer (it will also be used by future 'scm_c_read' calls.)  */
+      assert (SCM_BYTEVECTOR_LENGTH (bv) >= 1);
+      pt->read_buf = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
       pt->read_buf_size = 1;
       break;
 
@@ -404,9 +405,11 @@ cbip_fill_input (SCM port)
 
       if (buffered)
 	{
-	  /* Make sure the buffer isn't corrupt.  BV can be passed directly
-	     to READ_PROC.  */
-	  assert (c_port->read_buf_size == SCM_BYTEVECTOR_LENGTH (bv));
+	  /* Make sure the buffer isn't corrupt.  Its size can be 1 when
+	     someone called 'setvbuf' with _IONBF.  BV can be passed
+	     directly to READ_PROC.  */
+	  assert (c_port->read_buf_size == SCM_BYTEVECTOR_LENGTH (bv)
+		  || c_port->read_buf_size == 1);
 	  c_port->read_pos = (unsigned char *) SCM_BYTEVECTOR_CONTENTS (bv);
 	}
       else
