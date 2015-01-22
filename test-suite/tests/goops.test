@@ -1,6 +1,6 @@
 ;;;; goops.test --- test suite for GOOPS                      -*- scheme -*-
 ;;;;
-;;;; Copyright (C) 2001,2003,2004, 2006, 2008, 2009, 2011, 2012, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 2001,2003,2004, 2006, 2008, 2009, 2011, 2012, 2014, 2015 Free Software Foundation, Inc.
 ;;;; 
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -562,3 +562,40 @@
   (pass-if-exception "out of range"
       exception:out-of-range
     (make <foreign-test> #:a (ash 1 64))))
+
+(with-test-prefix "#:each-subclass"
+  (let* ((<subclass-allocation-test>
+          (class ()
+            (test #:init-value '() #:allocation #:each-subclass)
+            #:name '<subclass-allocation-test>))
+         (a (make <subclass-allocation-test>)))
+    (pass-if-equal '() (slot-ref a 'test))
+    (let ((b (make <subclass-allocation-test>)))
+      (pass-if-equal '() (slot-ref b 'test))
+      (slot-set! a 'test 100)
+      (pass-if-equal 100 (slot-ref a 'test))
+      (pass-if-equal 100 (slot-ref b 'test))
+
+      ;; #:init-value of the class shouldn't reinitialize slot when
+      ;; instances are allocated.
+      (make <subclass-allocation-test>)
+
+      (pass-if-equal 100 (slot-ref a 'test))
+      (pass-if-equal 100 (slot-ref b 'test))
+
+      (let ((<test-subclass>
+             (class (<subclass-allocation-test>))))
+        (pass-if-equal 100 (slot-ref a 'test))
+        (pass-if-equal 100 (slot-ref b 'test))
+        (let ((c (make <test-subclass>)))
+          (pass-if-equal 100 (slot-ref a 'test))
+          (pass-if-equal 100 (slot-ref b 'test))
+          (pass-if-equal '() (slot-ref c 'test))
+          (slot-set! c 'test 200)
+          (pass-if-equal 200 (slot-ref c 'test))
+
+          (make <test-subclass>)
+
+          (pass-if-equal 100 (slot-ref a 'test))
+          (pass-if-equal 100 (slot-ref b 'test))
+          (pass-if-equal 200 (slot-ref c 'test)))))))

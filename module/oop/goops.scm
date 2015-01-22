@@ -1,6 +1,6 @@
 ;;; installed-scm-file
 
-;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010, 2011, 2014 Free Software Foundation, Inc.
+;;;; Copyright (C) 1998,1999,2000,2001,2002, 2003, 2006, 2009, 2010, 2011, 2014, 2015 Free Software Foundation, Inc.
 ;;;; Copyright (C) 1993-1998 Erick Gallesio - I3S-CNRS/ESSI <eg@unice.fr>
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -1200,12 +1200,20 @@
 	   ;;   '(index size) for instance allocated slots
 	   ;;   '() for other slots
 	   (verify-accessors name g-n-s)
-	   (cons name
-		 (cons (compute-slot-init-function name s)
-		       (if (or (integer? g-n-s)
-			       (zero? size))
-			   g-n-s
-			   (append g-n-s (list index size)))))))
+           (case (slot-definition-allocation s)
+             ((#:each-subclass #:class)
+              (unless (and (zero? size) (pair? g-n-s))
+                (error "Class-allocated slots should not reserve fields"))
+              ;; Don't initialize the slot; that's handled when the slot
+              ;; is allocated, in compute-get-n-set.
+              (cons name (cons #f g-n-s)))
+             (else
+              (cons name
+                    (cons (compute-slot-init-function name s)
+                          (if (or (integer? g-n-s)
+                                  (zero? size))
+                              g-n-s
+                              (append g-n-s (list index size)))))))))
        slots))
 
 ;;; compute-cpl
@@ -1357,6 +1365,12 @@
 ;;; compute-get-n-set
 ;;;
 (define-method (compute-get-n-set (class <class>) s)
+  (define (class-slot-init-value)
+    (let ((thunk (slot-definition-init-thunk s)))
+      (if thunk
+          (thunk)
+          (slot-definition-init-value s))))
+
   (case (slot-definition-allocation s)
     ((#:instance) ;; Instance slot
      ;; get-n-set is just its offset
@@ -1371,7 +1385,7 @@
      (let ((name (slot-definition-name s)))
        (if (memq name (map slot-definition-name (class-direct-slots class)))
 	   ;; This slot is direct; create a new shared variable
-	   (make-closure-variable class)
+	   (make-closure-variable class (class-slot-init-value))
 	   ;; Slot is inherited. Find its definition in superclass
 	   (let loop ((l (cdr (class-precedence-list class))))
 	     (let ((r (assoc name (slot-ref (car l) 'getters-n-setters))))
@@ -1381,7 +1395,7 @@
 
     ((#:each-subclass) ;; slot shared by instances of direct subclass.
      ;; (Thomas Buerger, April 1998)
-     (make-closure-variable class))
+     (make-closure-variable class (class-slot-init-value)))
 
     ((#:virtual) ;; No allocation
      ;; slot-ref and slot-set! function must be given by the user
@@ -1393,10 +1407,9 @@
        (list get set)))
     (else    (next-method))))
 
-(define (make-closure-variable class)
-  (let ((shared-variable (make-unbound)))
-    (list (lambda (o) shared-variable)
-	  (lambda (o v) (set! shared-variable v)))))
+(define (make-closure-variable class value)
+  (list (lambda (o) value)
+        (lambda (o v) (set! value v))))
 
 (define-method (compute-get-n-set (o <object>) s)
   (goops-error "Allocation \"~S\" is unknown" (slot-definition-allocation s)))
