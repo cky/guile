@@ -1,8 +1,8 @@
 ;;;; strings.test --- test suite for Guile's string functions    -*- scheme -*-
 ;;;; Jim Blandy <jimb@red-bean.com> --- August 1999
 ;;;;
-;;;; Copyright (C) 1999, 2001, 2004, 2005, 2006, 2008, 2009, 2010,
-;;;;   2011 Free Software Foundation, Inc.
+;;;; Copyright (C) 1999, 2001, 2004-2006, 2008-2011,
+;;;;   2015 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -456,6 +456,22 @@
 
   (pass-if "compatibility composition is equal?"
     (equal? (string-normalize-nfkc "\u1e9b\u0323") "\u1e69")))
+
+;;
+;; string-utf8-length
+;;
+
+(with-test-prefix "string-utf8-length"
+
+  (pass-if-exception "wrong type argument"
+      exception:wrong-type-arg
+    (string-utf8-length 50))
+
+  (pass-if-equal 0 (string-utf8-length ""))
+  (pass-if-equal 1 (string-utf8-length "\0"))
+  (pass-if-equal 5 (string-utf8-length "hello"))
+  (pass-if-equal 7 (string-utf8-length "helloλ"))
+  (pass-if-equal 9 (string-utf8-length "ሠላም")))
 
 ;;
 ;; string-ref

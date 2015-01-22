@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2006-2014
+@c Copyright (C)  1996, 1997, 2000-2004, 2006-2015
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -4965,6 +4965,12 @@ in one of the most commonly available encoding formats.
 (string->utf8 "caf@'e") ;; SMALL LATIN LETTER E WITH ACUTE ACCENT
 @result{} #vu8(99 97 102 195 169)
 @end lisp
+
+@deftypefn {Scheme Procedure} {} string-utf8-length str
+@deftypefnx {C function} SCM scm_string_utf8_length (str)
+@deftypefnx {C function} size_t scm_c_string_utf8_length (str)
+Return the number of bytes in the UTF-8 representation of @var{str}.
+@end deftypefn
 
 @deffn {Scheme Procedure} string->utf8 str
 @deffnx {Scheme Procedure} string->utf16 str [endianness]

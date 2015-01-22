@@ -1,4 +1,5 @@
-/* Copyright (C) 1995,1996,1998,2000,2001, 2004, 2006, 2008, 2009, 2010, 2011, 2012 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998, 2000, 2001, 2004, 2006, 2008-2012,
+ *   2015 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1934,6 +1935,38 @@ u32_u8_length_in_bytes (const scm_t_uint32 *str, size_t len)
 
   return ret;
 }
+
+static size_t
+utf8_length (SCM str)
+{
+  if (scm_i_is_narrow_string (str))
+    return latin1_u8_strlen ((scm_t_uint8 *) scm_i_string_chars (str),
+                             scm_i_string_length (str));
+  else
+    return u32_u8_length_in_bytes
+      ((scm_t_uint32 *) scm_i_string_wide_chars (str),
+       scm_i_string_length (str));
+}
+
+size_t
+scm_c_string_utf8_length (SCM string)
+#define FUNC_NAME "scm_c_string_utf8_length"
+{
+  SCM_VALIDATE_STRING (1, string);
+  return utf8_length (string);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (scm_string_utf8_length, "string-utf8-length", 1, 0, 0,
+	    (SCM string),
+	    "Returns the number of bytes in the UTF-8 representation of "
+            "@var{string}.")
+#define FUNC_NAME s_scm_string_utf8_length
+{
+  SCM_VALIDATE_STRING (1, string);
+  return scm_from_size_t (utf8_length (string));
+}
+#undef FUNC_NAME
 
 char *
 scm_to_utf8_stringn (SCM str, size_t *lenp)
