@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009-2012, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2012, 2014, 2015 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -284,7 +284,7 @@
   do { if (SCM_UNLIKELY (sp >= stack_limit)) goto handle_overflow; } while (0)
 
 
-#ifdef VM_CHECK_UNDERFLOW
+#if VM_CHECK_UNDERFLOW
 #define PRE_CHECK_UNDERFLOW(N)                  \
   VM_ASSERT (sp - (N) > SCM_FRAME_UPPER_ADDRESS (fp), vm_error_stack_underflow ())
 #define CHECK_UNDERFLOW() PRE_CHECK_UNDERFLOW (0)
