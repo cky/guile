@@ -25,12 +25,14 @@
 ;;;;
 
 (define-module (oop goops)
-  :use-module (srfi srfi-1)
-  :export-syntax (define-class class standard-define-class
-		  define-generic define-accessor define-method
-		  define-extended-generic define-extended-generics
-		  method)
-  :export (is-a? class-of
+  #:use-module (srfi srfi-1)
+  #:use-module (ice-9 match)
+  #:use-module (oop goops util)
+  #:export-syntax (define-class class standard-define-class
+                   define-generic define-accessor define-method
+                   define-extended-generic define-extended-generics
+                   method)
+  #:export (is-a? class-of
            ensure-metaclass ensure-metaclass-with-supers
 	   make-class
 	   make-generic ensure-generic
@@ -71,8 +73,7 @@
 	   method-specializers method-formals
 	   primitive-generic-generic enable-primitive-generic!
 	   method-procedure accessor-method-slot-definition
-	   slot-exists? make find-method get-keyword)
-  :no-backtrace)
+	   slot-exists? make find-method get-keyword))
 
 (define *goops-module* (current-module))
 
@@ -85,9 +86,56 @@
   (add-interesting-primitive! 'class-of))
 
 ;; Then load the rest of GOOPS
-(use-modules (oop goops util)
-	     (oop goops dispatch)
-	     (oop goops compile))
+(use-modules (oop goops dispatch))
+
+;;;
+;;; Compiling next methods into method bodies
+;;;
+
+;;; So, for the reader: there basic idea is that, given that the
+;;; semantics of `next-method' depend on the concrete types being
+;;; dispatched, why not compile a specific procedure to handle each type
+;;; combination that we see at runtime.
+;;;
+;;; In theory we can do much better than a bytecode compilation, because
+;;; we know the *exact* types of the arguments. It's ideal for native
+;;; compilation. A task for the future.
+;;;
+;;; I think this whole generic application mess would benefit from a
+;;; strict MOP.
+
+(define (compute-cmethod methods types)
+  (match methods
+    ((method . methods)
+     (cond
+      ((is-a? method <accessor-method>)
+       (match types
+         ((class . _)
+          (let* ((name (car (accessor-method-slot-definition method)))
+                 (g-n-s (assq name (slot-ref class 'getters-n-setters)))
+                 (init-thunk (cadr g-n-s))
+                 (g-n-s (cddr g-n-s)))
+            (match types
+              ((class)
+               (cond ((pair? g-n-s)
+                      (make-generic-bound-check-getter (car g-n-s)))
+                     (init-thunk
+                      (standard-get g-n-s))
+                     (else
+                      (bound-check-get g-n-s))))
+              ((class value)
+               (if (pair? g-n-s)
+                   (cadr g-n-s)
+                   (standard-set g-n-s))))))))
+      (else
+       (let ((make-procedure (slot-ref method 'make-procedure)))
+         (if make-procedure
+             (make-procedure
+              (if (null? methods)
+                  (lambda args
+                    (no-next-method (method-generic-function method) args))
+                  (compute-cmethod methods types)))
+             (method-procedure method))))))))
 
 
 (eval-when (expand load eval)
@@ -1089,27 +1137,19 @@
 			     (compute-setter-method class g-n-s))))))
       slots (slot-ref class 'getters-n-setters)))
 
-(define-method (compute-getter-method (class <class>) slotdef)
-  (let ((init-thunk (cadr slotdef))
-	(g-n-s (cddr slotdef)))
+(define-method (compute-getter-method (class <class>) g-n-s)
+  (let ((name (car g-n-s)))
     (make <accessor-method>
           #:specializers (list class)
-	  #:procedure (cond ((pair? g-n-s)
-			     (make-generic-bound-check-getter (car g-n-s)))
-			    (init-thunk
-			     (standard-get g-n-s))
-			    (else
-			     (bound-check-get g-n-s)))
-	  #:slot-definition slotdef)))
+          #:procedure (lambda (o) (slot-ref o name))
+          #:slot-definition g-n-s)))
 
-(define-method (compute-setter-method (class <class>) slotdef)
-  (let ((g-n-s (cddr slotdef)))
+(define-method (compute-setter-method (class <class>) g-n-s)
+  (let ((name (car g-n-s)))
     (make <accessor-method>
-          #:specializers (list class <top>)
-	  #:procedure (if (pair? g-n-s)
-			  (cadr g-n-s)
-			  (standard-set g-n-s))
-	  #:slot-definition slotdef)))
+      #:specializers (list class <top>)
+      #:procedure (lambda (o v) (slot-set! o name v))
+      #:slot-definition g-n-s)))
 
 (define (make-generic-bound-check-getter proc)
   (lambda (o) (assert-bound (proc o) o)))
