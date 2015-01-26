@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2014
+/* Copyright (C) 1998,1999,2000,2001,2002,2003,2004,2008,2009,2010,2011,2012,2014,2015
  * Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -2053,6 +2053,11 @@ sort_applicable_methods (SCM method_list, long size, SCM const *targs)
   return scm_vector_to_list (vector);
 }
 
+static int
+is_accessor_method (SCM method) {
+  return SCM_IS_A_P (method, scm_class_accessor_method);
+}
+
 SCM
 scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
 {
@@ -2088,6 +2093,10 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
   for (l = scm_generic_function_methods (gf); !scm_is_null (l); l = SCM_CDR (l))
     {
       fl = SPEC_OF (SCM_CAR (l));
+      /* Only accept accessors which match exactly in first arg. */
+      if ((scm_is_null (fl) || types[0] != SCM_CAR (fl))
+          && is_accessor_method (SCM_CAR (l)))
+	continue;
       for (i = 0; ; i++, fl = SCM_CDR (fl))
 	{
 	  if (SCM_INSTANCEP (fl)

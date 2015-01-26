@@ -107,35 +107,14 @@
 (define (compute-cmethod methods types)
   (match methods
     ((method . methods)
-     (cond
-      ((is-a? method <accessor-method>)
-       (match types
-         ((class . _)
-          (let* ((name (car (accessor-method-slot-definition method)))
-                 (g-n-s (assq name (slot-ref class 'getters-n-setters)))
-                 (init-thunk (cadr g-n-s))
-                 (g-n-s (cddr g-n-s)))
-            (match types
-              ((class)
-               (cond ((pair? g-n-s)
-                      (make-generic-bound-check-getter (car g-n-s)))
-                     (init-thunk
-                      (standard-get g-n-s))
-                     (else
-                      (bound-check-get g-n-s))))
-              ((class value)
-               (if (pair? g-n-s)
-                   (cadr g-n-s)
-                   (standard-set g-n-s))))))))
-      (else
-       (let ((make-procedure (slot-ref method 'make-procedure)))
-         (if make-procedure
-             (make-procedure
-              (if (null? methods)
-                  (lambda args
-                    (no-next-method (method-generic-function method) args))
-                  (compute-cmethod methods types)))
-             (method-procedure method))))))))
+     (let ((make-procedure (slot-ref method 'make-procedure)))
+       (if make-procedure
+           (make-procedure
+            (if (null? methods)
+                (lambda args
+                  (no-next-method (method-generic-function method) args))
+                (compute-cmethod methods types)))
+           (method-procedure method))))))
 
 
 (eval-when (expand load eval)
@@ -1138,17 +1117,26 @@
       slots (slot-ref class 'getters-n-setters)))
 
 (define-method (compute-getter-method (class <class>) g-n-s)
-  (let ((name (car g-n-s)))
+  (let ((init-thunk (cadr g-n-s))
+        (g-n-s (cddr g-n-s)))
     (make <accessor-method>
           #:specializers (list class)
-          #:procedure (lambda (o) (slot-ref o name))
+          #:procedure (cond ((pair? g-n-s)
+                             (make-generic-bound-check-getter (car g-n-s)))
+                            (init-thunk
+                             (standard-get g-n-s))
+                            (else
+                             (bound-check-get g-n-s)))
           #:slot-definition g-n-s)))
 
 (define-method (compute-setter-method (class <class>) g-n-s)
-  (let ((name (car g-n-s)))
+  (let ((init-thunk (cadr g-n-s))
+        (g-n-s (cddr g-n-s)))
     (make <accessor-method>
       #:specializers (list class <top>)
-      #:procedure (lambda (o v) (slot-set! o name v))
+      #:procedure (if (pair? g-n-s)
+                      (cadr g-n-s)
+                      (standard-set g-n-s))
       #:slot-definition g-n-s)))
 
 (define (make-generic-bound-check-getter proc)

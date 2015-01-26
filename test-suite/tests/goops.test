@@ -626,8 +626,10 @@
     (pass-if-equal "a accessor on a" 'a (a-accessor a))
     (pass-if-equal "a accessor on ab" 'a (a-accessor ab))
     (pass-if-equal "a accessor on ba" 'a (a-accessor ba))
-    (pass-if-equal "a accessor on cab" 'a (a-accessor cab))
-    (pass-if-equal "a accessor on cba" 'a (a-accessor cba))
+    (pass-if-exception "a accessor on cab" exception:no-applicable-method
+      (a-accessor cab))
+    (pass-if-exception "a accessor on cba" exception:no-applicable-method
+      (a-accessor cba))
     (pass-if-equal "b accessor on a" 'b (b-accessor b))
     (pass-if-equal "b accessor on ab" 'b (b-accessor ab))
     (pass-if-equal "b accessor on ba" 'b (b-accessor ba))
