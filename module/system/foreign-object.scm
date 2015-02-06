@@ -1,6 +1,6 @@
 ;;; Wrapping foreign objects in Scheme
 
-;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
 ;;; 
 ;;; This library is free software; you can redistribute it and/or
 ;;; modify it under the terms of the GNU Lesser General Public
@@ -31,40 +31,41 @@
   (load-extension (string-append "libguile-" (effective-version))
                   "scm_init_foreign_object"))
 
-(define-class <finalizer-class> (<class>)
+(define-class <foreign-class> (<class>))
+
+(define-class <foreign-class-with-finalizer> (<foreign-class>)
   (finalizer #:init-keyword #:finalizer #:init-value #f
              #:getter finalizer))
 
-(define-method (allocate-instance (class <finalizer-class>) initargs)
+(define-method (allocate-instance (class <foreign-class-with-finalizer>)
+                                  initargs)
   (let ((instance (next-method))
         (finalizer (finalizer class)))
     (when finalizer
       (%add-finalizer! instance finalizer))
     instance))
 
-(define (getter-method class slot-name existing)
-  (let ((getter (ensure-generic existing slot-name))
-        (slot-def (or (assq slot-name (slot-ref class 'getters-n-setters))
-                      (slot-missing class slot-name))))
-    (add-method! getter (compute-getter-method class slot-def))
-    getter))
-
-(define* (make-foreign-object-type name slots #:key finalizer)
+(define* (make-foreign-object-type name slots #:key finalizer
+                                   (getters (map (const #f) slots)))
   (unless (symbol? name)
     (error "type name should be a symbol" name))
   (unless (or (not finalizer) (procedure? finalizer))
     (error "finalizer should be a procedure" finalizer))
-  (let ((dslots (map (lambda (slot)
+  (let ((dslots (map (lambda (slot getter)
                        (unless (symbol? slot)
                          (error "slot name should be a symbol" slot))
-                       (list slot #:class <foreign-slot>
-                             #:init-keyword (symbol->keyword slot)
-                             #:init-value 0))
-                   slots)))
+                       (cons* slot #:class <foreign-slot>
+                              #:init-keyword (symbol->keyword slot)
+                              #:init-value 0
+                              (if getter (list #:getter getter) '())))
+                     slots
+                     getters)))
     (if finalizer
         (make-class '() dslots #:name name
-                    #:finalizer finalizer #:metaclass <finalizer-class>)
-        (make-class '() dslots #:name name))))
+                    #:finalizer finalizer
+                    #:metaclass <foreign-class-with-finalizer>)
+        (make-class '() dslots #:name name
+                    #:metaclass <foreign-class>))))
 
 (define-syntax define-foreign-object-type
   (lambda (x)
@@ -78,11 +79,11 @@
     (syntax-case x ()
       ((_ name constructor (slot ...) kwarg ...)
        #`(begin
-           (define name
-             (make-foreign-object-type 'name '(slot ...) kwarg ...))
-           (define slot
-             (getter-method name 'slot (and (defined? 'slot) slot)))
+           (define slot (ensure-generic 'slot (and (defined? 'slot) slot)))
            ...
+           (define name
+             (make-foreign-object-type 'name '(slot ...) kwarg ...
+                                       #:getters (list slot ...)))
            (define constructor
              (lambda (slot ...)
                (make name #,@(kw-apply #'(slot ...))))))))))
