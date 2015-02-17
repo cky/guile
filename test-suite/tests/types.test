@@ -1,6 +1,6 @@
 ;;;; types.test --- Type tag decoding.      -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2014 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2014, 2015 Free Software Foundation, Inc.
 ;;;;
 ;;;; This file is part of GNU Guile.
 ;;;;
@@ -103,6 +103,7 @@
    ((open-input-string "hello") port (? integer?))
    ((lambda () #t) program _)
    ((the-vm) vm _)
+   ((make-variable 'foo) variable _)
    ((make-weak-vector 3 #t) weak-vector _)
    ((make-hash-table) hash-table _)
    ((make-weak-key-hash-table) hash-table _)

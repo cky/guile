@@ -241,6 +241,7 @@ the matching bits, possibly with bitwise operations to extract it from BITS."
 ;; Cell types.
 (define %tc3-struct 1)
 (define %tc7-symbol 5)
+(define %tc7-variable 7)
 (define %tc7-vector 13)
 (define %tc7-wvect 15)
 (define %tc7-string 21)
@@ -423,6 +424,8 @@ using BACKEND."
            (match (cell->object buf backend)
              (($ <stringbuf> string)
               (string->symbol string))))
+          (((_ & #x7f = %tc7-variable) obj)
+           (inferior-object 'variable address))
           (((_ & #x7f = %tc7-string) buf start len)
            (match (cell->object buf backend)
              (($ <stringbuf> string)
