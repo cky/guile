@@ -1859,9 +1859,9 @@ treated specially, and is just returned as a plain string."
   entity-tag?
   write-entity-tag)
 
-;; Location = absoluteURI
+;; Location = URI-reference
 ;; 
-(declare-uri-header! "Location")
+(declare-relative-uri-header! "Location")
 
 ;; Proxy-Authenticate = 1#challenge
 ;;
