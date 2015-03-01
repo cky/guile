@@ -1,4 +1,4 @@
-;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
+;;;; web-http.test --- HTTP library        -*- mode: scheme; coding: utf-8; -*-
 ;;;;
 ;;;; 	Copyright (C) 2010, 2011, 2014, 2015 Free Software Foundation, Inc.
 ;;;;
@@ -20,6 +20,7 @@
 (define-module (test-suite web-http)
   #:use-module (web uri)
   #:use-module (web http)
+  #:use-module (rnrs bytevectors)
   #:use-module (rnrs io ports)
   #:use-module (ice-9 regex)
   #:use-module (ice-9 control)
@@ -363,7 +364,56 @@
     (pass-if-equal
         "First line\n Second line"
         (get-string-all p))
-    (pass-if (port-eof? (make-chunked-input-port (open-input-string "0\r\n")))))
+    (pass-if (port-eof? (make-chunked-input-port (open-input-string "0\r\n"))))
+
+    (pass-if-equal "reads chunks without buffering"
+        ;; Make sure the chunked input port does not read more than what
+        ;; the client asked.  See <http://bugs.gnu.org/19939>
+        `("First " "chunk." "Second " "chunk."
+          (1 1 1 6 6 1 1
+           1 1 1 7 6 1 1))
+      (let* ((str      "C\r\nFirst chunk.\r\nD\r\nSecond chunk.\r\n")
+             (requests '())
+             (read!    (let ((port (open-input-string str)))
+                         (lambda (bv index count)
+                           (set! requests (cons count requests))
+                           (let ((n (get-bytevector-n! port bv index
+                                                       count)))
+                             (if (eof-object? n) 0 n)))))
+             (input    (make-custom-binary-input-port "chunky" read!
+                                                      #f #f #f))
+             (port     (make-chunked-input-port input)))
+        (setvbuf input _IONBF)
+        (setvbuf port _IONBF)
+        (list (utf8->string (get-bytevector-n port 6))
+              (utf8->string (get-bytevector-n port 6))
+              (utf8->string (get-bytevector-n port 7))
+              (utf8->string (get-bytevector-n port 6))
+              (reverse requests))))
+
+    (pass-if-equal "reads across chunk boundaries"
+        ;; Same, but read across chunk boundaries.
+        `("First " "chunk.Second " "chunk."
+          (1 1 1 6 6 1 1
+           1 1 1 7 6 1 1))
+      (let* ((str      "C\r\nFirst chunk.\r\nD\r\nSecond chunk.\r\n")
+             (requests '())
+             (read!    (let ((port (open-input-string str)))
+                         (lambda (bv index count)
+                           (set! requests (cons count requests))
+                           (let ((n (get-bytevector-n! port bv index
+                                                       count)))
+                             (if (eof-object? n) 0 n)))))
+             (input    (make-custom-binary-input-port "chunky" read!
+                                                      #f #f #f))
+             (port     (make-chunked-input-port input)))
+        (setvbuf input _IONBF)
+        (setvbuf port _IONBF)
+        (list (utf8->string (get-bytevector-n port 6))
+              (utf8->string (get-bytevector-n port 13))
+              (utf8->string (get-bytevector-n port 6))
+              (reverse requests)))))
+
   (pass-if-equal
       (call-with-output-string
        (lambda (out-raw)

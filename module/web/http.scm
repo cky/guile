@@ -1,6 +1,6 @@
 ;;; HTTP messages
 
-;; Copyright (C)  2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+;; Copyright (C)  2010-2015 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -1907,6 +1907,7 @@ treated specially, and is just returned as a plain string."
 
 ;; Chunked Responses
 (define (read-chunk-header port)
+  "Read a chunk header and return the chunk size."
   (let* ((str (read-line port))
          (extension-start (string-index str (lambda (c) (or (char=? c #\;)
                                                        (char=? c #\return)))))
@@ -1916,53 +1917,50 @@ treated specially, and is just returned as a plain string."
                                16)))
     size))
 
-(define (read-chunk port)
-  (let ((size (read-chunk-header port)))
-    (read-chunk-body port size)))
-
-(define (read-chunk-body port size)
-  (let ((bv (get-bytevector-n port size)))
-    (get-u8 port)                       ; CR
-    (get-u8 port)                       ; LF
-    bv))
-
 (define* (make-chunked-input-port port #:key (keep-alive? #f))
   "Returns a new port which translates HTTP chunked transfer encoded
 data from PORT into a non-encoded format. Returns eof when it has
 read the final chunk from PORT. This does not necessarily mean
 that there is no more data on PORT. When the returned port is
 closed it will also close PORT, unless the KEEP-ALIVE? is true."
-  (define (next-chunk)
-    (read-chunk port))
-  (define finished? #f)
   (define (close)
     (unless keep-alive?
       (close-port port)))
-  (define buffer #vu8())
-  (define buffer-size 0)
-  (define buffer-pointer 0)
+
+  (define chunk-size 0)     ;size of the current chunk
+  (define remaining 0)      ;number of bytes left from the current chunk
+  (define finished? #f)     ;did we get all the chunks?
+
   (define (read! bv idx to-read)
     (define (loop to-read num-read)
       (cond ((or finished? (zero? to-read))
              num-read)
-            ((<= to-read (- buffer-size buffer-pointer))
-             (bytevector-copy! buffer buffer-pointer
-                               bv (+ idx num-read)
-                               to-read)
-             (set! buffer-pointer (+ buffer-pointer to-read))
-             (loop 0 (+ num-read to-read)))
-            (else
-             (let ((n (- buffer-size buffer-pointer)))
-               (bytevector-copy! buffer buffer-pointer
-                                 bv (+ idx num-read)
-                                 n)
-               (set! buffer (next-chunk))
-               (set! buffer-pointer 0)
-               (set! buffer-size (bytevector-length buffer))
-               (set! finished? (= buffer-size 0))
-               (loop (- to-read n)
-                     (+ num-read n))))))
+            ((zero? remaining)                    ;get a new chunk
+             (let ((size (read-chunk-header port)))
+               (set! chunk-size size)
+               (set! remaining size)
+               (if (zero? size)
+                   (begin
+                     (set! finished? #t)
+                     num-read)
+                   (loop to-read num-read))))
+            (else                           ;read from the current chunk
+             (let* ((ask-for (min to-read remaining))
+                    (read    (get-bytevector-n! port bv (+ idx num-read)
+                                                ask-for)))
+               (if (eof-object? read)
+                   (begin                         ;premature termination
+                     (set! finished? #t)
+                     num-read)
+                   (let ((left (- remaining read)))
+                     (set! remaining left)
+                     (when (zero? left)
+                       ;; We're done with this chunk; read CR and LF.
+                       (get-u8 port) (get-u8 port))
+                     (loop (- to-read read)
+                           (+ num-read read))))))))
     (loop to-read 0))
+
   (make-custom-binary-input-port "chunked input port" read! #f #f close))
 
 (define* (make-chunked-output-port port #:key (keep-alive? #f))
