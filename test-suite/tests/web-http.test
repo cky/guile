@@ -1,6 +1,6 @@
 ;;;; web-uri.test --- URI library          -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;; 	Copyright (C) 2010, 2011, 2014 Free Software Foundation, Inc.
+;;;; 	Copyright (C) 2010, 2011, 2014, 2015 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -360,18 +360,19 @@
 (with-test-prefix "chunked encoding"
   (let* ((s "5\r\nFirst\r\nA\r\n line\n Sec\r\n8\r\nond line\r\n0\r\n")
          (p (make-chunked-input-port (open-input-string s))))
-    (pass-if (equal? "First line\n Second line"
-                     (get-string-all p)))
+    (pass-if-equal
+        "First line\n Second line"
+        (get-string-all p))
     (pass-if (port-eof? (make-chunked-input-port (open-input-string "0\r\n")))))
-  (pass-if
-      (equal? (call-with-output-string
-               (lambda (out-raw)
-                 (let ((out-chunked (make-chunked-output-port out-raw
-                                                              #:keep-alive? #t)))
-                   (display "First chunk" out-chunked)
-                   (force-output out-chunked)
-                   (display "Second chunk" out-chunked)
-                   (force-output out-chunked)
-                   (display "Third chunk" out-chunked)
-                   (close-port out-chunked))))
-              "b\r\nFirst chunk\r\nc\r\nSecond chunk\r\nb\r\nThird chunk\r\n0\r\n")))
+  (pass-if-equal
+      (call-with-output-string
+       (lambda (out-raw)
+         (let ((out-chunked (make-chunked-output-port out-raw
+                                                      #:keep-alive? #t)))
+           (display "First chunk" out-chunked)
+           (force-output out-chunked)
+           (display "Second chunk" out-chunked)
+           (force-output out-chunked)
+           (display "Third chunk" out-chunked)
+           (close-port out-chunked))))
+      "b\r\nFirst chunk\r\nc\r\nSecond chunk\r\nb\r\nThird chunk\r\n0\r\n"))
