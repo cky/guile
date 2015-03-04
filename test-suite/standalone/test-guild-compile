@@ -10,6 +10,11 @@ trap 'rm -f "$source" "$target"' EXIT
 
 cat > "$source"<<EOF
 (eval-when (expand load eval)
+  ;; Wait for SIGINT.
+  (pause)
+
+  ;; Then sleep so that the SIGINT handler gets to run
+  ;; and compilation doesn't complete before it runs.
   (sleep 100))
 (define chbouib 42)
 EOF
