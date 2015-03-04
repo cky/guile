@@ -2094,7 +2094,7 @@ scm_compute_applicable_methods (SCM gf, SCM args, long len, int find_method_p)
     {
       fl = SPEC_OF (SCM_CAR (l));
       /* Only accept accessors which match exactly in first arg. */
-      if ((scm_is_null (fl) || types[0] != SCM_CAR (fl))
+      if ((scm_is_null (fl) || !scm_is_eq (types[0], SCM_CAR (fl)))
           && is_accessor_method (SCM_CAR (l)))
 	continue;
       for (i = 0; ; i++, fl = SCM_CDR (fl))
