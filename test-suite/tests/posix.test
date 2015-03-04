@@ -1,6 +1,7 @@
 ;;;; posix.test --- Test suite for Guile POSIX functions. -*- scheme -*-
 ;;;;
-;;;; Copyright 2003, 2004, 2006, 2007, 2010, 2012 Free Software Foundation, Inc.
+;;;; Copyright 2003, 2004, 2006, 2007, 2010, 2012,
+;;;;   2015 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -195,9 +196,18 @@
 
   (pass-if "setaffinity"
     (if (and (defined? 'setaffinity) (defined? 'getaffinity))
-        (let ((mask (getaffinity (getpid))))
-          (setaffinity (getpid) mask)
-          (equal? mask (getaffinity (getpid))))
+        (catch 'system-error
+          (lambda ()
+            (let ((mask (getaffinity (getpid))))
+              (setaffinity (getpid) mask)
+              (equal? mask (getaffinity (getpid)))))
+          (lambda args
+            ;; On some platforms such as sh4-linux-gnu, 'setaffinity'
+            ;; returns ENOSYS.
+            (let ((errno (system-error-errno args)))
+              (if (= errno ENOSYS)
+                  (throw 'unresolved)
+                  (apply throw args)))))
         (throw 'unresolved))))
 
 ;;
