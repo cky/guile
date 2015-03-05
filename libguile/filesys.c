@@ -991,8 +991,8 @@ SCM_DEFINE (scm_fsync, "fsync", 1, 0, 0,
 #ifdef HAVE_SYMLINK
 SCM_DEFINE (scm_symlink, "symlink", 2, 0, 0,
             (SCM oldpath, SCM newpath),
-	    "Create a symbolic link named @var{oldpath} with the value\n"
-	    "(i.e., pointing to) @var{newpath}.  The return value is\n"
+	    "Create a symbolic link named @var{newpath} with the value\n"
+	    "(i.e., pointing to) @var{oldpath}.  The return value is\n"
 	    "unspecified.")
 #define FUNC_NAME s_scm_symlink
 {
