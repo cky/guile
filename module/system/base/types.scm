@@ -443,7 +443,7 @@ using BACKEND."
                                                 ('big "UTF-32BE")))))
           (((_ & #x7f = %tc7-bytevector) len address)
            (let ((bv-port (memory-port backend address len)))
-             (get-bytevector-all bv-port)))
+             (get-bytevector-n bv-port len)))
           ((((len << 7) || %tc7-vector) weakv-data)
            (let* ((len    (arithmetic-shift len -1))
                   (words  (get-bytevector-n port (* len %word-size)))
