@@ -1,5 +1,5 @@
 ;;; 'SCM' type tag decoding.
-;;; Copyright (C) 2014 Free Software Foundation, Inc.
+;;; Copyright (C) 2014, 2015 Free Software Foundation, Inc.
 ;;;
 ;;; This library is free software; you can redistribute it and/or modify it
 ;;; under the terms of the GNU Lesser General Public License as published by
@@ -117,8 +117,12 @@ SIZE is omitted, return an unbounded port to the memory at ADDRESS."
      (let ((open (memory-backend-open backend)))
        (open address #f)))
     ((_ backend address size)
-     (let ((open (memory-backend-open backend)))
-       (open address size)))))
+     (if (zero? size)
+         ;; GDB's 'open-memory' raises an error when size
+         ;; is zero, so we must handle that case specially.
+         (open-bytevector-input-port '#vu8())
+         (let ((open (memory-backend-open backend)))
+           (open address size))))))
 
 (define (get-word port)
   "Read a word from PORT and return it as an integer."
