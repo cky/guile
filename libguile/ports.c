@@ -2580,6 +2580,11 @@ scm_i_set_port_encoding_x (SCM port, const char *encoding)
      because we do I/O ourselves.  This saves 100+ KiB for each
      descriptor.  */
   pt->encoding = scm_gc_strdup (encoding, "port");
+
+  /* IMPORTANT: If the set of encoding modes is changed, or if more
+     would need to be done after setting pt->encoding = NULL, then
+     update 'make_bip', 'make_cbip', 'make_bop', and 'make_cbop' in
+     r6rs-ports.c accordingly.  This will be cleaned up in 2.2.  */
   if (c_strcasecmp (encoding, "UTF-8") == 0)
     pti->encoding_mode = SCM_PORT_ENCODING_MODE_UTF8;
   else

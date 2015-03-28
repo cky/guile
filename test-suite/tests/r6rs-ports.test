@@ -357,6 +357,11 @@
     (with-fluids ((%default-port-encoding "UTF-8"))
       (binary-port? (open-bytevector-input-port #vu8(1 2 3)))))
 
+  (pass-if-equal "bytevector-input-port uses ISO-8859-1 (Guile extension)"
+      "Â©Â©"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (get-string-all (open-bytevector-input-port #vu8(194 169 194 169)))))
+
   (pass-if-exception "bytevector-input-port is read-only"
     exception:wrong-type-arg
 
@@ -416,6 +421,23 @@
       (and (binary-port? port)
            (input-port? port)
            (bytevector=? (get-bytevector-all port) source))))
+
+  (pass-if-equal "make-custom-binary-input-port uses ISO-8859-1 (Guile extension)"
+      "Â©Â©"
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (let* ((source #vu8(194 169 194 169))
+             (read! (let ((pos 0)
+                          (len (bytevector-length source)))
+                      (lambda (bv start count)
+                        (let ((amount (min count (- len pos))))
+                          (if (> amount 0)
+                              (bytevector-copy! source pos
+                                                bv start amount))
+                          (set! pos (+ pos amount))
+                          amount))))
+             (port (make-custom-binary-input-port "the port" read!
+                                                  #f #f #f)))
+        (get-string-all port))))
 
   (pass-if "custom binary input port does not support `port-position'"
     (let* ((str "Hello Port!")
@@ -717,6 +739,14 @@ not `set-port-position!'"
   (pass-if "bytevector-output-port is binary"
     (binary-port? (open-bytevector-output-port)))
 
+  (pass-if-equal "bytevector-output-port uses ISO-8859-1 (Guile extension)"
+      #vu8(194 169 194 169)
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (let-values (((port get-content)
+                    (open-bytevector-output-port)))
+        (put-string port "Â©Â©")
+        (get-content))))
+
   (pass-if "open-bytevector-output-port [extract after close]"
     (let-values (((port get-content)
                   (open-bytevector-output-port)))
@@ -817,6 +847,22 @@ not `set-port-position!'"
       (and (= sink-pos (bytevector-length source))
            (not eof?)
            (bytevector=? sink source))))
+
+  (pass-if-equal "custom-binary-output-port uses ISO-8859-1 (Guile extension)"
+      '(194 169 194 169)
+    (with-fluids ((%default-port-encoding "UTF-8"))
+      (let* ((sink '())
+             (write! (lambda (bv start count)
+                       (if (= 0 count)  ; EOF
+                           0
+                           (let ((u8 (bytevector-u8-ref bv start)))
+                             ;; Get one byte at a time.
+                             (set! sink (cons u8 sink))
+                             1))))
+             (port (make-custom-binary-output-port "cbop" write!
+                                                   #f #f #f)))
+      (put-string port "Â©Â©")
+      (reverse sink))))
 
   (pass-if "standard-output-port is binary"
     (with-fluids ((%default-port-encoding "UTF-8"))

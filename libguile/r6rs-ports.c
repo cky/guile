@@ -89,6 +89,8 @@ make_bip (SCM bv)
 
   /* Match the expectation of `binary-port?'.  */
   c_port->encoding = NULL;
+  /* XXX Manually update encoding_mode.  This will be cleaned up in 2.2.  */
+  SCM_PORT_GET_INTERNAL (port)->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
 
   /* Prevent BV from being GC'd.  */
   SCM_SETSTREAM (port, SCM_UNPACK (bv));
@@ -362,6 +364,8 @@ make_cbip (SCM read_proc, SCM get_position_proc,
 
   /* Match the expectation of `binary-port?'.  */
   c_port->encoding = NULL;
+  /* XXX Manually update encoding_mode.  This will be cleaned up in 2.2.  */
+  SCM_PORT_GET_INTERNAL (port)->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
 
   /* Attach it the method vector.  */
   SCM_SETSTREAM (port, SCM_UNPACK (method_vector));
@@ -912,6 +916,8 @@ make_bop (void)
 
   /* Match the expectation of `binary-port?'.  */
   c_port->encoding = NULL;
+  /* XXX Manually update encoding_mode.  This will be cleaned up in 2.2.  */
+  SCM_PORT_GET_INTERNAL (port)->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
 
   buf = (scm_t_bop_buffer *) scm_gc_malloc (sizeof (* buf), SCM_GC_BOP);
   bop_buffer_init (buf);
@@ -1071,6 +1077,8 @@ make_cbop (SCM write_proc, SCM get_position_proc,
 
   /* Match the expectation of `binary-port?'.  */
   c_port->encoding = NULL;
+  /* XXX Manually update encoding_mode.  This will be cleaned up in 2.2.  */
+  SCM_PORT_GET_INTERNAL (port)->encoding_mode = SCM_PORT_ENCODING_MODE_ICONV;
 
   /* Attach it the method vector.  */
   SCM_SETSTREAM (port, SCM_UNPACK (method_vector));
