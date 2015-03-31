@@ -781,7 +781,7 @@ fport_write (SCM port, const void *data, size_t size)
 	  const void *ptr = ((const char *) data) + space;
 	  size_t remaining = size - space;
 
-	  if (size >= pt->write_buf_size)
+	  if (remaining >= pt->write_buf_size)
 	    {
 	      if (full_write (SCM_FPORT_FDES (port), ptr, remaining)
 		  < remaining)
