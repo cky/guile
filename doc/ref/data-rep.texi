@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010
+@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2010, 2015
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -339,7 +339,7 @@ actually garbage, and should be freed. In practice, this is not a
 problem. The alternative, an explicitly maintained list of local
 variable addresses, is effectively much less reliable, due to programmer
 error. Interested readers should see the BDW-GC web page at
-@uref{http://www.hpl.hp.com/personal/Hans_Boehm/gc}, for more
+@uref{http://www.hboehm.info/gc/}, for more
 information.
 
 
