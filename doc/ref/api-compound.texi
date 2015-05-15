@@ -2322,7 +2322,7 @@ You may use @code{set-record-type-printer!} to customize the default printing
 behavior of records.  This is a Guile extension and is not part of SRFI-9.  It
 is located in the @nicode{(srfi srfi-9 gnu)} module.
 
-@deffn {Scheme Syntax} set-record-type-printer! name proc
+@deffn {Scheme Syntax} set-record-type-printer! type proc
 Where @var{type} corresponds to the first argument of @code{define-record-type},
 and @var{proc} is a procedure accepting two arguments, the record to print, and
 an output port.
