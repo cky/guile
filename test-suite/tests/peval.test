@@ -1329,4 +1329,26 @@
 
   (pass-if-peval
       (eqv? '(a b) '(a b))
-    (const #t)))
+    (const #t))
+
+  (pass-if-peval
+      (lambda (f x)
+        (let lp ((x x))
+          (let ((x* (f x)))
+            (if (eq? x x*) x* (lp x*)))))
+    (lambda ()
+      (lambda-case
+       (((f x) #f #f #f () (_ _))
+        (letrec (lp)
+          (_)
+          ((lambda ((name . lp))
+             (lambda-case
+              (((x) #f #f #f () (_))
+               (let (x*)
+                 (_)
+                 ((apply (lexical f _) (lexical x _)))
+                 (if (apply (primitive eq?) (lexical x _) (lexical x* _))
+                     (lexical x* _)
+                     (apply (lexical lp _) (lexical x* _))))))))
+          (apply (lexical lp _)
+                 (lexical x _))))))))
