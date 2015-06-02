@@ -77,11 +77,6 @@ if the information is not available."
 ;;; GDB pretty-printer registration.
 ;;;
 
-(define scm-value->string
-  (lambda* (value #:optional (backend %gdb-memory-backend))
-    "Return a representation of value VALUE as a string."
-    (object->string (scm->object (value->integer value) backend))))
-
 (define (make-scm-pretty-printer-worker obj)
   (define (list->iterator list)
     (make-iterator list list
