@@ -48,6 +48,18 @@ if the information is not available."
                 (name       (value-field type-descr "name")))
            (value->string name)))))
 
+(define (scm-value->integer value)
+  "Return the integer value of VALUE, which is assumed to be a GDB value
+corresponding to an 'SCM' object."
+  (let ((type (type-strip-typedefs (value-type value))))
+    (cond ((= (type-code type) TYPE_CODE_UNION)
+           ;; SCM_DEBUG_TYPING_STRICTNESS = 2
+           (value->integer (value-field (value-field value "n")
+                                        "n")))
+          (else
+           ;; SCM_DEBUG_TYPING_STRICTNESS = 1
+           (value->integer value)))))
+
 (define %gdb-memory-backend
   ;; The GDB back-end to access the inferior's memory.
   (let ((void* (type-pointer (lookup-type "void"))))
@@ -130,7 +142,7 @@ if the information is not available."
      (let ((name (type-name (value-type value))))
        (and (and name (string=? name "SCM"))
             (make-scm-pretty-printer-worker
-             (scm->object (value->integer value) %gdb-memory-backend)))))))
+             (scm->object (scm-value->integer value) %gdb-memory-backend)))))))
 
 (define* (register-pretty-printer #:optional objfile)
   (prepend-pretty-printer! objfile %scm-pretty-printer))
