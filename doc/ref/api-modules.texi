@@ -171,8 +171,8 @@ of @code{@@} and should only be used as a last resort or for
 debugging, for example.
 
 Note that just as with a @code{use-modules} statement, any module that
-has not yet been loaded yet will be loaded when referenced by a
-@code{@@} or @code{@@@@} form.
+has not yet been loaded will be loaded when referenced by a @code{@@} or
+@code{@@@@} form.
 
 You can also use the @code{@@} and @code{@@@@} syntaxes as the target
 of a @code{set!} when the binding refers to a variable.
