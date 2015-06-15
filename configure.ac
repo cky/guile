@@ -752,6 +752,7 @@ AC_CHECK_HEADERS([assert.h crt_externs.h])
 #   isblank - available as a GNU extension or in C99
 #   _NSGetEnviron - Darwin specific
 #   strcoll_l, newlocale, uselocale, utimensat - POSIX.1-2008
+#   strtol_l - non-POSIX, found in glibc
 #   fork - unavailable on Windows
 #   sched_getaffinity, sched_setaffinity - GNU extensions (glibc)
 #   sendfile - non-POSIX, found in glibc
@@ -765,8 +766,8 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
   strdup system usleep atexit on_exit chown link fcntl ttyname getpwent	\
   getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp	\
   index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron	\
-  strcoll strcoll_l newlocale uselocale utimensat sched_getaffinity	\
-  sched_setaffinity sendfile])
+  strcoll strcoll_l strtol_l newlocale uselocale utimensat		\
+  sched_getaffinity sched_setaffinity sendfile])
 
 # Reasons for testing:
 #   netdb.h - not in mingw
