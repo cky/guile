@@ -13,3 +13,4 @@ libpath.h
 scmconfig.h
 version.h
 vm-i-*.i
+*.NEW
