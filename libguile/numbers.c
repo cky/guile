@@ -8977,8 +8977,8 @@ SCM_PRIMITIVE_GENERIC (scm_atan, "atan", 1, 1, 0,
           double v, w;
           v = SCM_COMPLEX_REAL (z);
           w = SCM_COMPLEX_IMAG (z);
-          return scm_divide (scm_log (scm_divide (scm_c_make_rectangular (v, w - 1.0),
-                                                  scm_c_make_rectangular (v, w + 1.0))),
+          return scm_divide (scm_log (scm_divide (scm_c_make_rectangular (-v, 1.0 - w),
+                                                  scm_c_make_rectangular ( v, 1.0 + w))),
                              scm_c_make_rectangular (0, 2));
         }
       else
