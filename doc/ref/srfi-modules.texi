@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2014
+@c Copyright (C) 1996, 1997, 2000-2004, 2006, 2007-2015
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -36,6 +36,7 @@ get the relevant SRFI documents from the SRFI home page
 * SRFI-18::                     Multithreading support
 * SRFI-19::                     Time/Date library.
 * SRFI-23::                     Error reporting
+* SRFI-25::                     Multi-dimensional Array Primitives
 * SRFI-26::                     Specializing parameters
 * SRFI-27::                     Sources of Random Bits
 * SRFI-28::                     Basic format strings.
@@ -3017,6 +3018,241 @@ locale.
 @cindex SRFI-23
 
 The SRFI-23 @code{error} procedure is always available.
+
+@node SRFI-25
+@subsection SRFI-25 - Multi-dimensional Array Primitives
+@cindex SRFI-25
+@cindex array, multi-dimensional
+@cindex multi-dimensional array
+
+SRFI-25 provides procedures for creating and manipulating heterogeneous
+multidimensional arrays.  Guile's implementation of SRFI-25 does not
+introduce a disjoint type; Guile arrays (@pxref{Arrays}) and SRFI-25
+arrays can be used interchangeably, though with different, partly
+conflicting APIs.  The SRFI-25 API can be used with:
+
+@example
+(use-modules (srfi srfi-25))
+@end example
+
+Note that this overrides @code{make-array}, @code{array-ref}, and
+@code{array-set!}.  @xref{Using Guile Modules}, for information on how
+to control the import of identifiers---e.g., by importing the SRFI-25
+variants with different names.
+
+This subsection is based on
+@uref{http://srfi.schemers.org/srfi-25/srfi-25.html, the specification
+of SRFI-25} written by Jussi Piitulainen, and itself based on an
+original contribution by Alan Bawden in 1993.
+
+@c Copyright (C) Jussi Piitulainen (2001). All Rights Reserved.
+
+@c Permission is hereby granted, free of charge, to any person obtaining a
+@c copy of this software and associated documentation files (the
+@c "Software"), to deal in the Software without restriction, including
+@c without limitation the rights to use, copy, modify, merge, publish,
+@c distribute, sublicense, and/or sell copies of the Software, and to
+@c permit persons to whom the Software is furnished to do so, subject to
+@c the following conditions:
+
+@c The above copyright notice and this permission notice shall be included
+@c in all copies or substantial portions of the Software.
+
+@c THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+@c OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+@c MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+@c NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+@c LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+@c OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+@c WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+SRFI-25 provides a core set of procedures for creating and manipulating
+heterogeneous multidimensional arrays.  The design is consistent with
+the rest of Scheme and independent of other container data types.  It
+provides easy sharing of parts of an array as other arrays without
+copying, encouraging a declarative style of programming.
+
+The proposed arrays encourage a natural declarative programming
+style. They allow sharing of most any rectangular part of an array
+through an affine index mapping, without copying. But imperative style
+is equally natural.
+
+The design is consistent with the two indexed data structures of Scheme:
+vectors and strings. The design makes arrays a self-contained
+type. These statements are illustrated in the following paragraphs.
+
+First, in the one-dimensional case, the arguments of the following
+relevant calls match exactly.
+
+@example
+(vector-set! v k o)
+(string-set! s k c)
+(array-set! a k o)
+@end example
+
+
+Likewise, @code{make-array} matches @code{make-vector} and
+@code{make-string}. An analogue to @code{vector}, @code{string} and
+@code{list} is provided, alleviating the lack of an external
+representation. Index bounds are specified as for @code{substring},
+lower bound included and upper bound excluded.
+
+Array shapes are specified as arrays. These can be made with a special
+procedure @code{shape} that does not have a shape argument. An array
+does not retain a dependence to the shape array. For example, mutation
+of a shape array is allowed.
+
+Index mappings return multiple values as multiple values.
+
+Array dimensions can begin at any index. In particular, the choice
+between @code{0} and @code{1} is left to the user. (Shapes and index
+objects are zero based, though.)
+
+The ability to pack an index sequence in a vector is useful for
+implementing higher level operations. (The ability to pack it in a
+one-dimensional array lets one use, say, a row of a matrix as an index.)
+
+@subsubheading Specification
+
+Arrays are heterogeneous data structures whose elements are indexed by
+integer sequences of fixed length. The length of a valid index sequence
+is the rank or the number of dimensions of an array. The shape of an
+array consists of bounds for each index.
+
+The lower bound @var{b} and the upper bound @var{e} of a dimension are
+exact integers with @code{(<= @var{b} @var{e})}. A valid index along the
+dimension is an exact integer @var{k} that satisfies both
+@code{(<= @var{b} @var{k})} and @code{(< @var{k} @var{e})}. The length
+of the array along the dimension is the difference
+@code{(- @var{e} @var{b})}. The size of an array is the product of the
+lengths of its dimensions.
+
+A shape is specified as an even number of exact integers. These are
+alternately the lower and upper bounds for the dimensions of an array.
+
+The following ten procedures are provided by the module @code{(srfi
+srfi-25)}:
+
+@deffn {Scheme Procedure} array? @var{obj}
+Returns @code{#t} if @var{obj} is an array, otherwise returns
+@code{#f}. Note that this procedure returns @code{#t} for both SRFI-25
+and Guile's native arrays.
+@end deffn
+
+@deffn {Scheme Procedure} make-array @var{shape}
+@deffnx {Scheme Procedure} make-array @var{shape} @var{obj}
+Returns a newly allocated array whose shape is given by @var{shape}. If
+@var{obj} is provided, then each element is initialized to it. Otherwise
+the initial contents of each element is unspecified. The array does not
+retain a dependence to @var{shape}.
+@end deffn
+
+@deffn {Scheme Procedure} shape @var{bound} @dots{}
+Returns a shape. The sequence @var{bound @dots{}} must consist of an
+even number of exact integers that are pairwise not decreasing. Each
+pair gives the lower and upper bound of a dimension. If the shape is
+used to specify the dimensions of an array and @var{bound @dots{}} is
+the sequence @var{b0 e0 @dots{} bk ek @dots{}} of @var{n} pairs of
+bounds, then a valid index to the array is any sequence @var{j0 @dots{}
+jk @dots{}} of @var{n} exact integers where each @var{jk} satisfies
+@code{(<= @var{bk} @var{jk})} and @code{(< @var{jk} @var{ek})}.
+
+The shape of a @var{d}-dimensional array is a @math{@var{d} × @var{2}}
+array where the element at @var{k 0} contains the lower bound for an
+index along dimension @var{k} and the element at @var{k 1} contains the
+corresponding upper bound, where @var{k} satisfies @code{(<= 0 @var{k})}
+and @code{(< @var{k} @var{d})}.
+@end deffn
+
+@deffn {Scheme Procedure} array @var{shape} @var{obj} @dots{}
+Returns a new array whose shape is given by @var{shape} and the initial
+contents of the elements are @var{obj ...} in row major order. The array
+does not retain a dependence to @var{shape}.
+@end deffn
+
+@deffn {Scheme Procedure} array-rank @var{array}
+Returns the number of dimensions of @var{array}.
+@example
+(array-rank (make-array (shape 1 2 3 4)))
+@end example
+Returns @samp{2}.
+@end deffn
+
+@deffn {Scheme Procedure} array-start @var{array} @var{k}
+Returns the lower bound for the index along dimension @var{k}.
+@end deffn
+
+@deffn {Scheme Procedure} array-end @var{array} @var{k}
+Returns the upper bound for the index along dimension @var{k}.
+@end deffn
+
+@deffn {Scheme Procedure} array-ref @var{array} @var{k} @dots{}
+@deffnx {Scheme Procedure} array-ref @var{array} @var{index}
+Returns the contents of the element of @var{array} at index @var{k
+@dots{}}. The sequence @var{k @dots{}} must be a valid index to
+@var{array}. In the second form, @var{index} must be either a vector or
+a 0-based 1-dimensional array containing @var{k @dots{}}.
+
+@example
+(array-ref (array (shape 0 2 0 3)
+                  'uno 'dos 'tres
+                  'cuatro 'cinco 'seis)
+           1 0)
+@result{} @samp{cuatro}.
+@end example
+
+@example
+(let ((a (array (shape 4 7 1 2) 3 1 4)))
+   (list (array-ref a 4 1)
+         (array-ref a (vector 5 1))
+         (array-ref a (array (shape 0 2) 6 1))))
+@result{} @samp{(3 1 4)}.
+@end example
+
+@end deffn
+
+@deffn {Scheme Procedure} array-set! @var{array} @var{k} @dots{} @var{obj}
+@deffnx {Scheme Procedure} array-set! @var{array} @var{index} @var{obj}
+Stores @var{obj} in the element of @var{array} at index @var{k
+@dots{}}. Returns an unspecified value. The sequence @var{k @dots{}}
+must be a valid index to @var{array}. In the second form, @var{index}
+must be either a vector or a 0-based 1-dimensional array containing
+@var{k @dots{}}.
+
+@example
+(let ((a (make-array
+            (shape 4 5 4 5 4 5))))
+   (array-set! a 4 4 4 'huuhkaja)
+   (array-ref a 4 4 4))
+@result{} @samp{huuhkaja}.
+@end example
+@end deffn
+
+@deffn {Scheme Procedure} share-array @var{array} @var{shape} @var{proc}
+Returns a new array of shape @var{shape} that shares elements of
+@var{array} through @var{proc}. The procedure @var{proc} must implement
+an affine function that returns indices of @var{array} when given
+indices of the array returned by @code{share-array}. The array does not
+retain a dependence to @var{shape}.
+@example
+(define i_4
+   (let* ((i (make-array
+                (shape 0 4 0 4)
+                0))
+          (d (share-array i
+                (shape 0 4)
+                (lambda (k)
+                   (values k k)))))
+      (do ((k 0 (+ k 1)))
+          ((= k 4))
+         (array-set! d k 1))
+      i))
+@end example
+
+Note: the affinity requirement for @var{proc} means that each value must
+be a sum of multiples of the arguments passed to @var{proc}, plus a
+constant.
+@end deffn
 
 @node SRFI-26
 @subsection SRFI-26 - specializing parameters
