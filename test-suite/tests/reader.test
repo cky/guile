@@ -1,6 +1,6 @@
 ;;;; reader.test --- Reader test.    -*- coding: iso-8859-1; mode: scheme -*-
 ;;;;
-;;;; Copyright (C) 1999, 2001-2003, 2007-2011, 2014
+;;;; Copyright (C) 1999, 2001-2003, 2007-2011, 2014, 2015
 ;;;;   Free Software Foundation, Inc.
 ;;;;
 ;;;; Jim Blandy <jimb@red-bean.com>
@@ -60,6 +60,11 @@
         thunk
         (lambda ()
           (read-options saved-options)))))
+
+(define (read-string-as-list s)
+  (with-input-from-string s
+    (lambda ()
+      (unfold eof-object? values (lambda (x) (read)) (read)))))
 
 
 (with-test-prefix "reading"
@@ -433,14 +438,42 @@
     (equal? '(guile GuiLe gUIle)
             (with-read-options '(case-insensitive)
               (lambda ()
-                (with-input-from-string "GUIle #!no-fold-case GuiLe gUIle"
-                  (lambda ()
-                    (list (read) (read) (read))))))))
+                (read-string-as-list "GUIle #!no-fold-case GuiLe gUIle")))))
   (pass-if "case-insensitive"
     (equal? '(GUIle guile guile)
-            (with-input-from-string "GUIle #!fold-case GuiLe gUIle"
-              (lambda ()
-                (list (read) (read) (read)))))))
+            (read-string-as-list "GUIle #!fold-case GuiLe gUIle")))
+  (with-test-prefix "r6rs"
+    (pass-if-equal "case sensitive"
+        '(guile GuiLe gUIle)
+      (with-read-options '(case-insensitive)
+        (lambda ()
+          (read-string-as-list "GUIle #!r6rs GuiLe gUIle"))))
+    (pass-if-equal "square brackets"
+        '((a b c) (foo 42 bar) (x . y))
+      (read-string-as-list "(a b c) #!r6rs [foo 42 bar] [x . y]"))
+    (pass-if-equal "hex string escapes"
+        '("native\x7fsyntax"
+          "\0"
+          "ascii\x7fcontrol"
+          "U\u0100BMP"
+          "U\U010402SMP")
+      (read-string-as-list (string-append "\"native\\x7fsyntax\" "
+                                          "#!r6rs "
+                                          "\"\\x0;\" "
+                                          "\"ascii\\x7f;control\" "
+                                          "\"U\\x100;BMP\" "
+                                          "\"U\\x10402;SMP\"")))
+    (with-test-prefix "keyword style"
+      (pass-if-equal "postfix disabled"
+          '(#:regular #:postfix postfix: #:regular2)
+        (with-read-options '(keywords postfix)
+          (lambda ()
+            (read-string-as-list "#:regular postfix: #!r6rs postfix: #:regular2"))))
+      (pass-if-equal "prefix disabled"
+          '(#:regular #:prefix :prefix #:regular2)
+        (with-read-options '(keywords prefix)
+          (lambda ()
+            (read-string-as-list "#:regular :prefix #!r6rs :prefix #:regular2")))))))
 
 (with-test-prefix "#;"
   (for-each

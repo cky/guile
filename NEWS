@@ -1,10 +1,25 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2014 Free Software Foundation, Inc.
+Copyright (C) 1996-2015 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
+Changes in 2.0.12 (since 2.0.11):
 
+* Notable changes
+
+** The #!r6rs directive now influences read syntax
+
+The #!r6rs directive now changes the per-port reader options to make
+Guile's reader conform more closely to the R6RS syntax. In particular:
+
+- It makes the reader case sensitive.
+- It disables the recognition of keyword syntax in conflict with the
+  R6RS (and R5RS).
+- It enables the `square-brackets', `hungry-eol-escapes' and
+  `r6rs-hex-escapes' reader options.
+
+
 Changes in 2.0.11 (since 2.0.10):
 
 This release fixes an embarrassing regression introduced in the C

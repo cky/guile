@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-1997, 1999-2001, 2003, 2004, 2006-2012, 2014
+/* Copyright (C) 1995-1997, 1999-2001, 2003, 2004, 2006-2012, 2014, 2015
  *   Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
@@ -1421,6 +1421,12 @@ static void set_port_square_brackets_p (SCM port, scm_t_read_opts *opts,
                                         int value);
 static void set_port_curly_infix_p (SCM port, scm_t_read_opts *opts,
                                     int value);
+static void set_port_r6rs_hex_escapes_p (SCM port, scm_t_read_opts *opts,
+                                         int value);
+static void set_port_hungry_eol_escapes_p (SCM port, scm_t_read_opts *opts,
+                                           int value);
+static void set_port_keyword_style (SCM port, scm_t_read_opts *opts,
+                                    enum t_keyword_style value);
 
 static SCM
 scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
@@ -1442,7 +1448,13 @@ scm_read_shebang (scm_t_wchar chr, SCM port, scm_t_read_opts *opts)
           scm_ungetc (c, port);
           name[i] = '\0';
           if (0 == strcmp ("r6rs", name))
-            ;  /* Silently ignore */
+            {
+              set_port_case_insensitive_p (port, opts, 0);
+              set_port_r6rs_hex_escapes_p (port, opts, 1);
+              set_port_square_brackets_p (port, opts, 1);
+              set_port_keyword_style (port, opts, KEYWORD_STYLE_HASH_PREFIX);
+              set_port_hungry_eol_escapes_p (port, opts, 1);
+            }
           else if (0 == strcmp ("fold-case", name))
             set_port_case_insensitive_p (port, opts, 1);
           else if (0 == strcmp ("no-fold-case", name))
@@ -2303,6 +2315,30 @@ set_port_curly_infix_p (SCM port, scm_t_read_opts *opts, int value)
   value = !!value;
   opts->curly_infix_p = value;
   set_port_read_option (port, READ_OPTION_CURLY_INFIX_P, value);
+}
+
+/* Set OPTS and PORT's r6rs_hex_escapes_p option according to VALUE. */
+static void
+set_port_r6rs_hex_escapes_p (SCM port, scm_t_read_opts *opts, int value)
+{
+  value = !!value;
+  opts->r6rs_escapes_p = value;
+  set_port_read_option (port, READ_OPTION_R6RS_ESCAPES_P, value);
+}
+
+static void
+set_port_hungry_eol_escapes_p (SCM port, scm_t_read_opts *opts, int value)
+{
+  value = !!value;
+  opts->hungry_eol_escapes_p = value;
+  set_port_read_option (port, READ_OPTION_HUNGRY_EOL_ESCAPES_P, value);
+}
+
+static void
+set_port_keyword_style (SCM port, scm_t_read_opts *opts, enum t_keyword_style value)
+{
+  opts->keyword_style = value;
+  set_port_read_option (port, READ_OPTION_KEYWORD_STYLE, value);
 }
 
 /* Initialize OPTS based on PORT's read options and the global read
