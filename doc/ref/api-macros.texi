@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2011,
-@c   2012, 2013, 2014 Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000-2004, 2009-2015
+@c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Macros
@@ -616,9 +616,9 @@ won't have access to the binding of @code{it}.
 
 But they can, if we explicitly introduce a binding via @code{datum->syntax}.
 
-@deffn {Scheme Procedure} datum->syntax for-syntax datum
+@deffn {Scheme Procedure} datum->syntax template-id datum
 Create a syntax object that wraps @var{datum}, within the lexical context
-corresponding to the syntax object @var{for-syntax}.
+corresponding to the identifier @var{template-id}.
 @end deffn
 
 For completeness, we should mention that it is possible to strip the metadata
