@@ -3,6 +3,10 @@
 @c Copyright (C) 2013 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
+@c SXPath documentation based on SXPath.scm by Oleg Kiselyov,
+@c which is in the public domain according to <http://okmij.org/ftp/>
+@c and <http://ssax.sourceforge.net/>.
+
 @node SXML
 @section SXML
 
@@ -250,8 +254,8 @@ internal and external parsed entities, user-controlled handling of
 whitespace, and validation.  This module therefore is intended to be a
 framework, a set of ``Lego blocks'' you can use to build a parser
 following any discipline and performing validation to any degree.  As an
-example of the parser construction, this file includes a semi-validating
-SXML parser.
+example of the parser construction, the source file includes a
+semi-validating SXML parser.
 
 SSAX has a ``sequential'' feel of SAX yet a ``functional style'' of DOM.
 Like a SAX parser, the framework scans the document only once and
@@ -725,95 +729,323 @@ location path is a relative path applied to the root node.
 Similarly to XPath, SXPath defines full and abbreviated notations for
 location paths.  In both cases, the abbreviated notation can be
 mechanically expanded into the full form by simple rewriting rules.  In
-case of SXPath the corresponding rules are given as comments to a sxpath
-function, below.  The regression test suite at the end of this file shows
-a representative sample of SXPaths in both notations, juxtaposed with
-the corresponding XPath expressions.  Most of the samples are borrowed
-literally from the XPath specification, while the others are adjusted
-for our running example, tree1.
+the case of SXPath the corresponding rules are given in the
+documentation of the @code{sxpath} procedure.
+@xref{sxpath-procedure-docs,,SXPath procedure documentation}.
 
-@subsubsection Usage
+The regression test suite at the end of the file @file{SXPATH-old.scm}
+shows a representative sample of SXPaths in both notations, juxtaposed
+with the corresponding XPath expressions.  Most of the samples are
+borrowed literally from the XPath specification.
+
+Much of the following material is taken from the SXPath sources by Oleg
+Kiselyov et al.
+
+@subsubsection Basic Converters and Applicators
+
+A converter is a function mapping a nodeset (or a single node) to another
+nodeset.  Its type can be represented like this:
+
+@example
+type Converter = Node|Nodeset -> Nodeset
+@end example
+
+A converter can also play the role of a predicate: in that case, if a
+converter, applied to a node or a nodeset, yields a non-empty nodeset,
+the converter-predicate is deemed satisfied.  Likewise, an empty nodeset
+is equivalent to @code{#f} in denoting failure.
+
 @deffn {Scheme Procedure} nodeset? x
+Return @code{#t} if @var{x} is a nodeset.
 @end deffn
 
 @deffn {Scheme Procedure} node-typeof? crit
+This function implements a 'Node test' as defined in Sec. 2.3 of the
+XPath document.  A node test is one of the components of a location
+step.  It is also a converter-predicate in SXPath.
+
+The function @code{node-typeof?} takes a type criterion and returns a
+function, which, when applied to a node, will tell if the node satisfies
+the test.
+
+The criterion @var{crit} is a symbol, one of the following:
+
+@table @code
+@item id
+tests if the node has the right name (id)
+
+@item @@
+tests if the node is an <attributes-coll>
+
+@item *
+tests if the node is an <Element>
+
+@item *text*
+tests if the node is a text node
+
+@item *PI*
+tests if the node is a PI (processing instruction) node
+
+@item *any*
+@code{#t} for any type of node
+@end table
 @end deffn
 
 @deffn {Scheme Procedure} node-eq? other
+A curried equivalence converter predicate that takes a node @var{other}
+and returns a function that takes another node.  The two nodes are
+compared using @code{eq?}.
 @end deffn
 
 @deffn {Scheme Procedure} node-equal? other
+A curried equivalence converter predicate that takes a node @var{other}
+and returns a function that takes another node.  The two nodes are
+compared using @code{equal?}.
 @end deffn
 
 @deffn {Scheme Procedure} node-pos n
+Select the @var{n}'th element of a nodeset and return as a singular
+nodeset.  If the @var{n}'th element does not exist, return an empty
+nodeset.  If @var{n} is a negative number the node is picked from the
+tail of the list.
+
+@example
+((node-pos 1) nodeset)  ; return the the head of the nodeset (if exists)
+((node-pos 2) nodeset)  ; return the node after that (if exists)
+((node-pos -1) nodeset) ; selects the last node of a non-empty nodeset
+((node-pos -2) nodeset) ; selects the last but one node, if exists.
+@end example
 @end deffn
 
 @deffn {Scheme Procedure} filter pred?
-@verbatim 
- -- Scheme Procedure: filter pred list
-     Return all the elements of 2nd arg LIST that satisfy predicate
-     PRED.  The list is not disordered - elements that appear in the
-     result list occur in the same order as they occur in the argument
-     list.  The returned list may share a common tail with the argument
-     list.  The dynamic order in which the various applications of pred
-     are made is not specified.
-
-          (filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
-
- 
-@end verbatim
+A filter applicator, which introduces a filtering context.  The argument
+converter @var{pred?} is considered a predicate, with either @code{#f}
+or @code{nil} meaning failure.
 @end deffn
 
 @deffn {Scheme Procedure} take-until pred?
+@example
+take-until:: Converter -> Converter, or
+take-until:: Pred -> Node|Nodeset -> Nodeset
+@end example
+
+Given a converter-predicate @var{pred?} and a nodeset, apply the
+predicate to each element of the nodeset, until the predicate yields
+anything but @code{#f} or @code{nil}.  Return the elements of the input
+nodeset that have been processed until that moment (that is, which fail
+the predicate).
+
+@code{take-until} is a variation of the @code{filter} above:
+@code{take-until} passes elements of an ordered input set up to (but not
+including) the first element that satisfies the predicate.  The nodeset
+returned by @code{((take-until (not pred)) nset)} is a subset -- to be
+more precise, a prefix -- of the nodeset returned by @code{((filter
+pred) nset)}.
 @end deffn
 
 @deffn {Scheme Procedure} take-after pred?
+@example
+take-after:: Converter -> Converter, or
+take-after:: Pred -> Node|Nodeset -> Nodeset
+@end example
+
+Given a converter-predicate @var{pred?} and a nodeset, apply the
+predicate to each element of the nodeset, until the predicate yields
+anything but @code{#f} or @code{nil}.  Return the elements of the input
+nodeset that have not been processed: that is, return the elements of
+the input nodeset that follow the first element that satisfied the
+predicate.
+
+@code{take-after} along with @code{take-until} partition an input
+nodeset into three parts: the first element that satisfies a predicate,
+all preceding elements and all following elements.
 @end deffn
 
 @deffn {Scheme Procedure} map-union proc lst
+Apply @var{proc} to each element of @var{lst} and return the list of results.
+If @var{proc} returns a nodeset, splice it into the result
+
+From another point of view, @code{map-union} is a function
+@code{Converter->Converter}, which places an argument-converter in a joining
+context.
 @end deffn
 
 @deffn {Scheme Procedure} node-reverse node-or-nodeset
+@example
+node-reverse :: Converter, or
+node-reverse:: Node|Nodeset -> Nodeset
+@end example
+
+Reverses the order of nodes in the nodeset.  This basic converter is
+needed to implement a reverse document order (see the XPath
+Recommendation).
 @end deffn
 
 @deffn {Scheme Procedure} node-trace title
+@example
+node-trace:: String -> Converter
+@end example
+
+@code{(node-trace title)} is an identity converter.  In addition it
+prints out the node or nodeset it is applied to, prefixed with the
+@var{title}.  This converter is very useful for debugging.
 @end deffn
 
+@subsubsection Converter Combinators
+
+Combinators are higher-order functions that transmogrify a converter or
+glue a sequence of converters into a single, non-trivial converter.  The
+goal is to arrive at converters that correspond to XPath location paths.
+
+From a different point of view, a combinator is a fixed, named
+@dfn{pattern} of applying converters.  Given below is a complete set of
+such patterns that together implement XPath location path specification.
+As it turns out, all these combinators can be built from a small number
+of basic blocks: regular functional composition, @code{map-union} and
+@code{filter} applicators, and the nodeset union.
+
 @deffn {Scheme Procedure} select-kids test-pred?
+@code{select-kids} takes a converter (or a predicate) as an argument and
+returns another converter.  The resulting converter applied to a nodeset
+returns an ordered subset of its children that satisfy the predicate
+@var{test-pred?}.
 @end deffn
 
 @deffn {Scheme Procedure} node-self pred?
-@verbatim 
- -- Scheme Procedure: filter pred list
-     Return all the elements of 2nd arg LIST that satisfy predicate
-     PRED.  The list is not disordered - elements that appear in the
-     result list occur in the same order as they occur in the argument
-     list.  The returned list may share a common tail with the argument
-     list.  The dynamic order in which the various applications of pred
-     are made is not specified.
-
-          (filter even? '(0 7 8 8 43 -4)) => (0 8 8 -4)
-
- 
-@end verbatim
+Similar to @code{select-kids} except that the predicate @var{pred?} is
+applied to the node itself rather than to its children.  The resulting
+nodeset will contain either one component, or will be empty if the node
+failed the predicate.
 @end deffn
 
 @deffn {Scheme Procedure} node-join . selectors
+@example
+node-join:: [LocPath] -> Node|Nodeset -> Nodeset, or
+node-join:: [Converter] -> Converter
+@end example
+
+Join the sequence of location steps or paths as described above.
 @end deffn
 
 @deffn {Scheme Procedure} node-reduce . converters
+@example
+node-reduce:: [LocPath] -> Node|Nodeset -> Nodeset, or
+node-reduce:: [Converter] -> Converter
+@end example
+
+A regular functional composition of converters.  From a different point
+of view, @code{((apply node-reduce converters) nodeset)} is equivalent
+to @code{(foldl apply nodeset converters)}, i.e., folding, or reducing,
+a list of converters with the nodeset as a seed.
 @end deffn
 
 @deffn {Scheme Procedure} node-or . converters
+@example
+node-or:: [Converter] -> Converter
+@end example
+
+This combinator applies all converters to a given node and produces the
+union of their results.  This combinator corresponds to a union
+(@code{|} operation) for XPath location paths.
 @end deffn
 
 @deffn {Scheme Procedure} node-closure test-pred?
+@example
+node-closure:: Converter -> Converter
+@end example
+
+Select all @emph{descendants} of a node that satisfy a
+converter-predicate @var{test-pred?}.  This combinator is similar to
+@code{select-kids} but applies to grand... children as well.  This
+combinator implements the @code{descendant::} XPath axis.  Conceptually,
+this combinator can be expressed as
+
+@example
+(define (node-closure f)
+  (node-or
+    (select-kids f)
+    (node-reduce (select-kids (node-typeof? '*)) (node-closure f))))
+@end example
+
+This definition, as written, looks somewhat like a fixpoint, and it will
+run forever.  It is obvious however that sooner or later
+@code{(select-kids (node-typeof? '*))} will return an empty nodeset.  At
+this point further iterations will no longer affect the result and can
+be stopped.
 @end deffn
 
 @deffn {Scheme Procedure} node-parent rootnode
+@example
+node-parent:: RootNode -> Converter
+@end example
+
+@code{(node-parent rootnode)} yields a converter that returns a parent
+of a node it is applied to.  If applied to a nodeset, it returns the
+list of parents of nodes in the nodeset.  The @var{rootnode} does not
+have to be the root node of the whole SXML tree -- it may be a root node
+of a branch of interest.
+
+Given the notation of Philip Wadler's paper on semantics of XSLT,
+
+@verbatim
+  parent(x) = { y | y=subnode*(root), x=subnode(y) }
+@end verbatim
+
+Therefore, @code{node-parent} is not the fundamental converter: it can
+be expressed through the existing ones.  Yet @code{node-parent} is a
+rather convenient converter.  It corresponds to a @code{parent::} axis
+of SXPath.  Note that the @code{parent::} axis can be used with an
+attribute node as well.
 @end deffn
 
+@anchor{sxpath-procedure-docs}
 @deffn {Scheme Procedure} sxpath path
+Evaluate an abbreviated SXPath.
+
+@example
+sxpath:: AbbrPath -> Converter, or
+sxpath:: AbbrPath -> Node|Nodeset -> Nodeset
+@end example
+
+@var{path} is a list.  It is translated to the full SXPath according to
+the following rewriting rules:
+
+@example
+(sxpath '())
+@result{} (node-join)
+
+(sxpath '(path-component ...))
+@result{} (node-join (sxpath1 path-component) (sxpath '(...)))
+
+(sxpath1 '//)
+@result{} (node-or
+   (node-self (node-typeof? '*any*))
+   (node-closure (node-typeof? '*any*)))
+
+(sxpath1 '(equal? x))
+@result{} (select-kids (node-equal? x))
+
+(sxpath1 '(eq? x))
+@result{} (select-kids (node-eq? x))
+
+(sxpath1 ?symbol)
+@result{} (select-kids (node-typeof? ?symbol)
+
+(sxpath1 procedure)
+@result{} procedure
+
+(sxpath1 '(?symbol ...))
+@result{} (sxpath1 '((?symbol) ...))
+
+(sxpath1 '(path reducer ...))
+@result{} (node-reduce (sxpath path) (sxpathr reducer) ...)
+
+(sxpathr number)
+@result{} (node-pos number)
+
+(sxpathr path-filter)
+@result{} (filter (sxpath path-filter))
+@end example
 @end deffn
 
 @node sxml ssax input-parse
