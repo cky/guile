@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2009, 2010, 2012, 2014
+@c Copyright (C)  1996, 1997, 2000-2004, 2009, 2010, 2012, 2014, 2015
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -36,7 +36,7 @@ explicitly.  It is called automatically when appropriate.
 Protects @var{obj} from being freed by the garbage collector, when it
 otherwise might be.  When you are done with the object, call
 @code{scm_gc_unprotect_object} on the object. Calls to
-@code{scm_gc_protect}/@code{scm_gc_unprotect_object} can be nested, and
+@code{scm_gc_protect_object}/@code{scm_gc_unprotect_object} can be nested, and
 the object remains protected until it has been unprotected as many times
 as it was protected. It is an error to unprotect an object more times
 than it has been protected. Returns the SCM object it was passed.

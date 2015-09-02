@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2013, 2014
+@c Copyright (C)  1996, 1997, 2000-2005, 2010, 2013, 2014, 2015
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -197,7 +197,7 @@ sections, function arguments or local variables on the C and Scheme
 stacks, and values in machine registers.  Other references to @code{SCM}
 objects, such as those in other random data structures in the C heap
 that contain fields of type @code{SCM}, can be made visible to the
-garbage collector by calling the functions @code{scm_gc_protect} or
+garbage collector by calling the functions @code{scm_gc_protect_object} or
 @code{scm_permanent_object}.  Collectively, these values form the ``root
 set'' of garbage collection; any value on the heap that is referenced
 directly or indirectly by a member of the root set is preserved, and all
