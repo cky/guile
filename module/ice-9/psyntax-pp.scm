@@ -2451,7 +2451,8 @@
                           (values '() (cdr y-pat) (match (car e) (car y-pat) w r mod)))
                         (values #f #f #f)))))
                  ((syntax-object? e)
-                  (f (syntax-object-expression e) (join-wraps w e)))
+                  (f (syntax-object-expression e)
+                     (join-wraps w (syntax-object-wrap e))))
                  (else (values '() y-pat (match e z-pat w r mod)))))))
      (match-each-any
        (lambda (e w mod)
