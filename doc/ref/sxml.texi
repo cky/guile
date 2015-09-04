@@ -21,7 +21,7 @@ fragment:
 may be represented with the following SXML:
 
 @example
-(parrot (@@ (type "African Grey)) (name "Alfie"))
+(parrot (@@ (type "African Grey")) (name "Alfie"))
 @end example
 
 SXML is very general, and is capable of representing all of XML.
@@ -32,14 +32,14 @@ Guile includes several facilities for working with XML and SXML:
 parsers, serializers, and transformers.
 
 @menu
-* SXML Overview::              XML, as it was meant to be
-* Reading and Writing XML::    Convenient XML parsing and serializing
-* SSAX::                       Custom functional-style XML parsers
-* Transforming SXML::          Munging SXML with @code{pre-post-order}
-* SXML Tree Fold::             Fold-based SXML transformations
-* SXPath::                     XPath for SXML
-* sxml apply-templates::       A more XSLT-like approach to SXML transformations
-* sxml ssax input-parse::      The SSAX tokenizer, optimized for Guile
+* SXML Overview::               XML, as it was meant to be
+* Reading and Writing XML::     Convenient XML parsing and serializing
+* SSAX::                        Custom functional-style XML parsers
+* Transforming SXML::           Munging SXML with @code{pre-post-order}
+* SXML Tree Fold::              Fold-based SXML transformations
+* SXPath::                      XPath for SXML
+* sxml ssax input-parse::       The SSAX tokenizer, optimized for Guile
+* sxml apply-templates::        A more XSLT-like approach to SXML transformations
 @end menu
 
 @node SXML Overview
