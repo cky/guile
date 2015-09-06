@@ -125,45 +125,69 @@ bip_fill_input (SCM port)
   return result;
 }
 
+static void
+bip_end_input (SCM port, int offset)
+{
+  scm_t_port *c_port = SCM_PTAB_ENTRY (port);
+  
+  if (c_port->read_pos - c_port->read_buf < offset)
+    scm_misc_error ("bip_end_input", "negative position", SCM_EOL);
+
+  c_port->read_pos -= offset;
+}
+
 static scm_t_off
 bip_seek (SCM port, scm_t_off offset, int whence)
 #define FUNC_NAME "bip_seek"
 {
-  scm_t_off c_result = 0;
   scm_t_port *c_port = SCM_PTAB_ENTRY (port);
+  scm_t_off target;
 
-  switch (whence)
+  if (offset == 0 && whence == SEEK_CUR)
+    /* special case to avoid disturbing the putback buffer.  */
     {
-    case SEEK_CUR:
-      offset += c_port->read_pos - c_port->read_buf;
-      /* Fall through.  */
-
-    case SEEK_SET:
-      if (c_port->read_buf + offset <= c_port->read_end)
-	{
-	  c_port->read_pos = c_port->read_buf + offset;
-	  c_result = offset;
-	}
+      if (c_port->read_buf == c_port->putback_buf)
+        target = c_port->saved_read_pos - c_port->saved_read_buf
+          - (c_port->read_end - c_port->read_pos);
       else
-	scm_out_of_range (FUNC_NAME, scm_from_int (offset));
-      break;
-
-    case SEEK_END:
-      if (c_port->read_end - offset >= c_port->read_buf)
-	{
-	  c_port->read_pos = c_port->read_end - offset;
-	  c_result = c_port->read_pos - c_port->read_buf;
-	}
-      else
-	scm_out_of_range (FUNC_NAME, scm_from_int (offset));
-      break;
-
-    default:
-      scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
-			      "invalid `seek' parameter");
+        target = c_port->read_pos - c_port->read_buf;
     }
+  else
+    {
+      scm_t_off base = 0;
 
-  return c_result;
+      /* If the putback buffer is currently active, this will dump its
+         contents, switch back to the main read buffer, and move
+         read_pos backwards as needed to account for the bytes that were
+         put back. */
+      if (c_port->read_buf == c_port->putback_buf)
+        scm_end_input (port);
+
+      switch (whence)
+        {
+        case SEEK_CUR:
+          base = c_port->read_pos - c_port->read_buf;
+          break;
+        case SEEK_END:
+          base = c_port->read_end - c_port->read_buf;
+          break;
+        case SEEK_SET:
+          base = 0;
+          break;
+        default:
+          scm_wrong_type_arg_msg (FUNC_NAME, 0, port,
+                                  "invalid `whence' argument");
+        }
+
+      if (offset > SCM_T_OFF_MAX - base)  /* Overflow check */
+        scm_out_of_range (FUNC_NAME, scm_from_int (offset));
+      target = base + offset;
+      if (target < 0 || target > c_port->read_end - c_port->read_buf)
+        scm_out_of_range (FUNC_NAME, scm_from_int (offset));
+
+      c_port->read_pos = c_port->read_buf + target;
+    }
+  return target;
 }
 #undef FUNC_NAME
 
@@ -176,7 +200,8 @@ initialize_bytevector_input_ports (void)
     scm_make_port_type ("r6rs-bytevector-input-port", bip_fill_input,
 			NULL);
 
-  scm_set_port_seek (bytevector_input_port_type, bip_seek);
+  scm_set_port_end_input (bytevector_input_port_type, bip_end_input);
+  scm_set_port_seek      (bytevector_input_port_type, bip_seek);
 }
 
 
