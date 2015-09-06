@@ -103,28 +103,33 @@ stfill_buffer (SCM port)
 static void
 st_resize_port (scm_t_port *pt, scm_t_off new_size)
 {
-  SCM old_stream = SCM_PACK (pt->stream);
-  const signed char *src = SCM_BYTEVECTOR_CONTENTS (old_stream);
-  SCM new_stream = scm_c_make_bytevector (new_size);
-  signed char *dst = SCM_BYTEVECTOR_CONTENTS (new_stream);
-  unsigned long int old_size = SCM_BYTEVECTOR_LENGTH (old_stream);
-  unsigned long int min_size = min (old_size, new_size);
+  if (new_size < 0 || new_size > SCM_I_SIZE_MAX)
+    scm_misc_error ("st_resize_port", "new_size overflow", SCM_EOL);
 
-  scm_t_off index = pt->write_pos - pt->write_buf;
-
-  pt->write_buf_size = new_size;
-
-  memcpy (dst, src, min_size);
-
-  scm_remember_upto_here_1 (old_stream);
-
-  /* reset buffer. */
   {
-    pt->stream = SCM_UNPACK (new_stream);
-    pt->read_buf = pt->write_buf = (unsigned char *)dst;
-    pt->read_pos = pt->write_pos = pt->write_buf + index;
-    pt->write_end = pt->write_buf + pt->write_buf_size;
-    pt->read_end = pt->read_buf + pt->read_buf_size;
+    SCM old_stream = SCM_PACK (pt->stream);
+    const signed char *src = SCM_BYTEVECTOR_CONTENTS (old_stream);
+    SCM new_stream = scm_c_make_bytevector (new_size);
+    signed char *dst = SCM_BYTEVECTOR_CONTENTS (new_stream);
+    unsigned long int old_size = SCM_BYTEVECTOR_LENGTH (old_stream);
+    unsigned long int min_size = min (old_size, new_size);
+
+    scm_t_off index = pt->write_pos - pt->write_buf;
+
+    pt->write_buf_size = new_size;
+
+    memcpy (dst, src, min_size);
+
+    scm_remember_upto_here_1 (old_stream);
+
+    /* reset buffer. */
+    {
+      pt->stream = SCM_UNPACK (new_stream);
+      pt->read_buf = pt->write_buf = (unsigned char *)dst;
+      pt->read_pos = pt->write_pos = pt->write_buf + index;
+      pt->write_end = pt->write_buf + pt->write_buf_size;
+      pt->read_end = pt->read_buf + pt->read_buf_size;
+    }
   }
 }
 
@@ -176,7 +181,8 @@ st_end_input (SCM port, int offset)
   if (pt->read_pos - pt->read_buf < offset)
     scm_misc_error ("st_end_input", "negative position", SCM_EOL);
 
-  pt->write_pos = (unsigned char *) (pt->read_pos = pt->read_pos - offset);
+  pt->read_pos -= offset;
+  pt->write_pos = (unsigned char *) pt->read_pos;
   pt->rw_active = SCM_PORT_NEITHER;
 }
 
@@ -202,6 +208,8 @@ st_seek (SCM port, scm_t_off offset, int whence)
   else
     /* all other cases.  */
     {
+      scm_t_off base = 0;
+
       if (pt->rw_active == SCM_PORT_WRITE)
 	st_flush (port);
   
@@ -211,18 +219,24 @@ st_seek (SCM port, scm_t_off offset, int whence)
       switch (whence)
 	{
 	case SEEK_CUR:
-	  target = pt->read_pos - pt->read_buf + offset;
+	  base = pt->read_pos - pt->read_buf;
 	  break;
 	case SEEK_END:
-	  target = pt->read_end - pt->read_buf + offset;
+	  base = pt->read_end - pt->read_buf;
 	  break;
-	default: /* SEEK_SET */
-	  target = offset;
+	case SEEK_SET:
+	  base = 0;
 	  break;
+	default:
+	  scm_wrong_type_arg_msg ("st_seek", 0, port,
+				  "invalid `whence' argument");
 	}
 
+      if (offset > SCM_T_OFF_MAX - base)
+	scm_misc_error ("st_seek", "target would overflow", SCM_EOL);
+      target = base + offset;
       if (target < 0)
-	scm_misc_error ("st_seek", "negative offset", SCM_EOL);
+	scm_misc_error ("st_seek", "negative target", SCM_EOL);
   
       if (target >= pt->write_buf_size)
 	{
@@ -235,7 +249,9 @@ st_seek (SCM port, scm_t_off offset, int whence)
 				  SCM_EOL);
 		}
 	    }
-	  else if (target == pt->write_buf_size)
+	  else if (target > SCM_T_OFF_MAX - target)
+	    scm_misc_error ("st_seek", "target * 2 would overflow", SCM_EOL);
+	  else
 	    st_resize_port (pt, target * 2);
 	}
       pt->read_pos = pt->write_pos = pt->read_buf + target;
