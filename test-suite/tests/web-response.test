@@ -1,6 +1,6 @@
 ;;;; web-response.test --- HTTP responses       -*- mode: scheme; coding: utf-8; -*-
 ;;;;
-;;;;   Copyright (C) 2010, 2011, 2012, 2014 Free Software Foundation, Inc.
+;;;;   Copyright (C) 2010, 2011, 2012, 2014, 2015 Free Software Foundation, Inc.
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
 ;;;; modify it under the terms of the GNU Lesser General Public
@@ -119,7 +119,17 @@ consectetur adipisicing elit,\r
       (with-fluids ((%default-port-encoding #f))
         (let* ((r (read-response (open-input-string example-1)))
                (p (response-body-port r)))
-          (list (port-encoding p) (get-bytevector-all p)))))))
+          (list (port-encoding p) (get-bytevector-all p)))))
+
+    (pass-if "response-body-port + close"
+      (with-fluids ((%default-port-encoding #f))
+        (let* ((r (read-response (open-input-string example-1)))
+               (p (response-body-port r #:keep-alive? #f)))
+          ;; Before, calling 'close-port' here would yield a
+          ;; wrong-arg-num error when calling the delimited input port's
+          ;; 'close' procedure.
+          (close-port p)
+          (port-closed? p))))))
 
 (with-test-prefix "example-2"
   (let* ((r (read-response (open-input-string example-2)))
