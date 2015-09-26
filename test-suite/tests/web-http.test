@@ -414,6 +414,16 @@
               (utf8->string (get-bytevector-n port 6))
               (reverse requests)))))
 
+  (pass-if-equal "EOF instead of chunk header"
+      "Only chunk."
+    ;; Omit the second chunk header, leading to a premature EOF.  This
+    ;; used to cause 'read-chunk-header' to throw to wrong-type-arg.
+    ;; See the backtrace at
+    ;; <http://debbugs.gnu.org/cgi/bugreport.cgi?bug=19976#5>.
+    (let* ((str  "B\r\nOnly chunk.")
+           (port (make-chunked-input-port (open-input-string str))))
+      (get-string-all port)))
+
   (pass-if-equal
       (call-with-output-string
        (lambda (out-raw)

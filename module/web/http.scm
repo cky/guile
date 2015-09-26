@@ -34,6 +34,7 @@
   #:use-module (srfi srfi-9)
   #:use-module (srfi srfi-19)
   #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 match)
   #:use-module (ice-9 q)
   #:use-module (ice-9 binary-ports)
   #:use-module (rnrs bytevectors)
@@ -1907,15 +1908,21 @@ treated specially, and is just returned as a plain string."
 
 ;; Chunked Responses
 (define (read-chunk-header port)
-  "Read a chunk header and return the chunk size."
-  (let* ((str (read-line port))
-         (extension-start (string-index str (lambda (c) (or (char=? c #\;)
-                                                       (char=? c #\return)))))
-         (size (string->number (if extension-start ; unnecessary?
-                                   (substring str 0 extension-start)
-                                   str)
-                               16)))
-    size))
+  "Read a chunk header from PORT and return the size in bytes of the
+upcoming chunk."
+  (match (read-line port)
+    ((? eof-object?)
+     ;; Connection closed prematurely: there's nothing left to read.
+     0)
+    (str
+     (let ((extension-start (string-index str
+                                          (lambda (c)
+                                            (or (char=? c #\;)
+                                                (char=? c #\return))))))
+       (string->number (if extension-start       ; unnecessary?
+                           (substring str 0 extension-start)
+                           str)
+                       16)))))
 
 (define* (make-chunked-input-port port #:key (keep-alive? #f))
   "Returns a new port which translates HTTP chunked transfer encoded
