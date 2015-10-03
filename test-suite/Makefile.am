@@ -125,6 +125,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/sort.test			\
 	    tests/srcprop.test			\
 	    tests/srfi-1.test			\
+	    tests/srfi-2.test			\
 	    tests/srfi-6.test			\
 	    tests/srfi-10.test			\
 	    tests/srfi-11.test			\

@@ -1,0 +1,77 @@
+;;;; srfi-2.test --- Test suite for Guile's and-let* macro. -*- scheme -*-
+;;;;
+;;;; Copyright (C) 2015 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (test-srfi-2)
+  #:use-module (test-suite lib)
+  #:use-module (srfi srfi-2))
+
+(pass-if-equal 1 (and-let* () 1))
+(pass-if-equal 2 (and-let* () 1 2))
+(pass-if-equal #t (and-let* ()))
+
+(pass-if-equal #f (let ((x #f)) (and-let* (x))))
+(pass-if-equal 1 (let ((x 1)) (and-let* (x))))
+(pass-if-equal #f (and-let* ((x #f))))
+(pass-if-equal 1 (and-let* ((x 1))))
+(pass-if-exception "bad clause" '(syntax-error . "Bad clause")
+  (eval '(and-let* (#f (x 1))) (current-module)))
+(pass-if-equal #f (and-let* ((#f) (x 1))))
+(pass-if-exception "bad clause" '(syntax-error . "Bad clause")
+  (eval '(and-let* (2 (x 1))) (current-module)))
+(pass-if-equal 1 (and-let* ((2) (x 1))))
+(pass-if-equal 2 (and-let* ((x 1) (2))))
+(pass-if-equal #f (let ((x #f)) (and-let* (x) x)))
+(pass-if-equal "" (let ((x "")) (and-let* (x) x)))
+(pass-if-equal "" (let ((x "")) (and-let* (x))))
+(pass-if-equal 2 (let ((x 1)) (and-let* (x) (+ x 1))))
+(pass-if-equal #f (let ((x #f)) (and-let* (x) (+ x 1))))
+(pass-if-equal 2 (let ((x 1)) (and-let* (((positive? x))) (+ x 1))))
+(pass-if-equal #t (let ((x 1)) (and-let* (((positive? x))))))
+(pass-if-equal #f (let ((x 0)) (and-let* (((positive? x))) (+ x 1))))
+(pass-if-equal 3
+    (let ((x 1)) (and-let* (((positive? x)) (x (+ x 1))) (+ x 1))))
+
+;; This is marked as must-be-error in the original test suite, but
+;; that's a mistake of the SRFI author who thinks that rebinding
+;; variables in let* is an error; in fact it's allowed in let*
+;; (explicitly since R6RS), so it should be allowed by and-let* too.
+(pass-if-equal 4
+    (let ((x 1))
+      (and-let* (((positive? x)) (x (+ x 1)) (x (+ x 1))) (+ x 1))))
+
+(pass-if-equal 2
+    (let ((x 1)) (and-let* (x ((positive? x))) (+ x 1))))
+(pass-if-equal 2
+    (let ((x 1)) (and-let* (((begin x)) ((positive? x))) (+ x 1))))
+(pass-if-equal #f
+    (let ((x 0)) (and-let* (x ((positive? x))) (+ x 1))))
+(pass-if-equal #f
+    (let ((x #f)) (and-let* (x ((positive? x))) (+ x 1))))
+(pass-if-equal #f
+    (let ((x #f)) (and-let* (((begin x)) ((positive? x))) (+ x 1))))
+
+(pass-if-equal #f
+    (let ((x 1)) (and-let* (x (y (- x 1)) ((positive? y))) (/ x y))))
+(pass-if-equal #f
+    (let ((x 0)) (and-let* (x (y (- x 1)) ((positive? y))) (/ x y))))
+(pass-if-equal #f
+    (let ((x #f)) (and-let* (x (y (- x 1)) ((positive? y))) (/ x y))))
+(pass-if-equal 3/2
+    (let ((x 3)) (and-let* (x (y (- x 1)) ((positive? y))) (/ x y))))
+
+;;; srfi-2.test ends here
