@@ -443,7 +443,7 @@ EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     memmove.c strerror.c			\
     dynl.c regex-posix.c			\
     posix.c net_db.c socket.c			\
-    debug-malloc.c mkstemp.c			\
+    debug-malloc.c				\
     win32-uname.c				\
     locale-categories.h
 

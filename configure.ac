@@ -5,7 +5,7 @@ dnl
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
 Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -1125,7 +1125,7 @@ if test "$enable_regex" = yes; then
    AC_DEFINE([ENABLE_REGEX], 1, [Define when regex support is enabled.])
 fi
 
-AC_REPLACE_FUNCS([strerror memmove mkstemp])
+AC_REPLACE_FUNCS([strerror memmove])
 
 # Reasons for testing:
 #   asinh, acosh, atanh, trunc - C99 standard, generally not available on
