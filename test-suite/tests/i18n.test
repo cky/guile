@@ -1,7 +1,7 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
 ;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012,
-;;;;   2013, 2014 Free Software Foundation, Inc.
+;;;;   2013, 2014, 2015 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -269,6 +269,23 @@
      (lambda ()
        (let ((gr (make-locale LC_ALL %greek-utf8-locale-name)))
          (string-locale-ci=? "ΧΑΟΣ" "χαος" gr))))))
+
+
+(with-test-prefix "text collation (Czech)"
+
+  (pass-if "string-locale<? for 'ch'"
+    (under-locale-or-unresolved
+     "cs_CZ.utf8"
+     (lambda ()
+       ;; Czech sorts digraph 'ch' between 'h' and 'i'.
+       ;;
+       ;; GNU libc 2.22 gets this wrong:
+       ;; <https://sourceware.org/bugzilla/show_bug.cgi?id=18589>.  For
+       ;; now, just skip it if it fails (XXX).
+       (or (and (string-locale>? "chxxx" "cxxx")
+                (string-locale>? "chxxx" "hxxx")
+                (string-locale<? "chxxxx" "ixxx"))
+           (throw 'unresolved))))))
 
 
 (with-test-prefix "character mapping"
