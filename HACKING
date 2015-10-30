@@ -1,6 +1,7 @@
 -*-text-*-
 Guile Hacking Guide
-Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2008, 2012 Free software Foundation, Inc.
+Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2008, 2012,
+ 2015 Free software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
@@ -69,7 +70,7 @@ gettext --- a system for rigging a program so that it can output its
         itself.
 
 flex --- a scanner generator.  It's probably not essential to have the
-        latest version.
+        latest version; Flex 2.5.37 is known to work.
 
 One false move and you will be lost in a little maze of automatically
 generated files, all different.
