@@ -1,5 +1,5 @@
-/* Copyright (C) 1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
- *   2006, 2007, 2009, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1996-1998, 2000-2007, 2009, 2011-2015
+ *   Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -508,19 +508,7 @@ SCM_DEFINE (scm_getsockopt, "getsockopt", 3, 0, 0,
 			   scm_from_int (0));
 #endif
 	}
-      else
 #endif
-	if (0
-#ifdef SO_SNDBUF
-	    || ioptname == SO_SNDBUF
-#endif
-#ifdef SO_RCVBUF
-	    || ioptname == SO_RCVBUF
-#endif
-	    )
-	  {
-	    return scm_from_size_t (*(size_t *) &optval);
-	  }
     }
   return scm_from_int (*(int *) &optval);
 }
@@ -649,21 +637,7 @@ SCM_DEFINE (scm_setsockopt, "setsockopt", 4, 0, 0,
 	  optval = &opt_int;
 #endif
 	}
-      else
 #endif
-	if (0
-#ifdef SO_SNDBUF
-	    || ioptname == SO_SNDBUF
-#endif
-#ifdef SO_RCVBUF
-	    || ioptname == SO_RCVBUF
-#endif
-	    )
-	  {
-	    opt_int = scm_to_int (value);
-	    optlen = sizeof (size_t);
-	    optval = &opt_int;
-	  }
     }
 
 #ifdef HAVE_STRUCT_IP_MREQ
