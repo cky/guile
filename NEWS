@@ -19,17 +19,6 @@ Guile's reader conform more closely to the R6RS syntax. In particular:
 - It enables the `square-brackets', `hungry-eol-escapes' and
   `r6rs-hex-escapes' reader options.
 
-* New interfaces
-
-** SRFI-25 (Multi-dimensional Array Primitives)
-
-Guile now includes SRFI-25, a core set of procedures for creating and
-manipulating multidimensional arrays.  This functionality is already
-available in Guile, albeit with a different API, with its native array
-data type, but the inclusion of the SRFI is nevertheless useful for code
-intended to be portable across multiple implementations.  See "SRFI-25"
-in the manual for details.
-
 
 Changes in 2.0.11 (since 2.0.10):
 

@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in.
 ##
 ## Copyright 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
-##   2010, 2011, 2012, 2013, 2014, 2015 Software Foundation, Inc.
+##   2010, 2011, 2012, 2013, 2014 Software Foundation, Inc.
 ##
 ## This file is part of GUILE.
 ##
@@ -133,7 +133,6 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/srfi-17.test			\
 	    tests/srfi-18.test			\
 	    tests/srfi-19.test			\
-	    tests/srfi-25.test			\
 	    tests/srfi-26.test			\
 	    tests/srfi-27.test			\
 	    tests/srfi-31.test			\
