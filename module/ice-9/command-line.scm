@@ -66,7 +66,7 @@ There is NO WARRANTY, to the extent permitted by law."))
 (define* (version-etc package version #:key
                       (port (current-output-port))
                       ;; FIXME: authors
-                      (copyright-year 2014)
+                      (copyright-year 2015)
                       (copyright-holder "Free Software Foundation, Inc.")
                       (copyright (format #f "Copyright (C) ~a ~a"
                                          copyright-year copyright-holder))
