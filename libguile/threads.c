@@ -1607,70 +1607,55 @@ fat_mutex_unlock (SCM mutex, SCM cond,
 	}
     }
 
+  if (m->level > 0)
+    m->level--;
+  if (m->level == 0)
+    {
+      /* Change the owner of MUTEX.  */
+      t->mutexes = scm_delq_x (mutex, t->mutexes);
+      m->owner = unblock_from_queue (m->waiting);
+    }
+
   if (! (SCM_UNBNDP (cond)))
     {
       c = SCM_CONDVAR_DATA (cond);
-      while (1)
+      t->block_asyncs++;
+
+      do
 	{
-	  int brk = 0;
-
-	  if (m->level > 0)
-	    m->level--;
-	  if (m->level == 0)
-	    {
-	      /* Change the owner of MUTEX.  */
-	      t->mutexes = scm_delq_x (mutex, t->mutexes);
-	      m->owner = unblock_from_queue (m->waiting);
-	    }
-
-	  t->block_asyncs++;
-
 	  err = block_self (c->waiting, cond, &m->lock, waittime);
 	  scm_i_pthread_mutex_unlock (&m->lock);
 
-	  if (err == 0)
-	    {
-	      ret = 1;
-	      brk = 1;
-	    }
-	  else if (err == ETIMEDOUT)
-	    {
-	      ret = 0;
-	      brk = 1;
-	    }
-	  else if (err != EINTR)
-	    {
-	      errno = err;
-	      scm_syserror (NULL);
-	    }
+          if (err == EINTR)
+            {
+              t->block_asyncs--;
+              scm_async_click ();
 
-	  if (brk)
-	    {
-	      if (relock)
-		scm_lock_mutex_timed (mutex, SCM_UNDEFINED, owner);
-	      t->block_asyncs--;
-	      break;
-	    }
+              scm_remember_upto_here_2 (cond, mutex);
 
-	  t->block_asyncs--;
-	  scm_async_click ();
-
-	  scm_remember_upto_here_2 (cond, mutex);
-
-	  scm_i_scm_pthread_mutex_lock (&m->lock);
+              scm_i_scm_pthread_mutex_lock (&m->lock);
+              t->block_asyncs++;
+            }
 	}
+      while (err == EINTR);
+
+      if (err == 0)
+        ret = 1;
+      else if (err == ETIMEDOUT)
+        ret = 0;
+      else
+        {
+          t->block_asyncs--;
+          errno = err;
+          scm_syserror (NULL);
+        }
+
+      if (relock)
+        scm_lock_mutex_timed (mutex, SCM_UNDEFINED, owner);
+      t->block_asyncs--;
     }
   else
     {
-      if (m->level > 0)
-	m->level--;
-      if (m->level == 0)
-	{
-	  /* Change the owner of MUTEX.  */
-	  t->mutexes = scm_delq_x (mutex, t->mutexes);
-	  m->owner = unblock_from_queue (m->waiting);
-	}
-
       scm_i_pthread_mutex_unlock (&m->lock);
       ret = 1;
     }
