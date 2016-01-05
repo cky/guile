@@ -1,7 +1,7 @@
 #ifndef SCM_FOREIGN_H
 #define SCM_FOREIGN_H
 
-/* Copyright (C) 2010, 2011, 2012  Free Software Foundation, Inc.
+/* Copyright (C) 2010, 2011, 2012, 2016  Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -94,6 +94,8 @@ SCM_INTERNAL SCM scm_pointer_to_string (SCM pointer, SCM length, SCM encoding);
 
 SCM_API SCM scm_pointer_to_procedure (SCM return_type, SCM func_ptr,
 				      SCM arg_types);
+SCM_API SCM scm_pointer_to_procedure_with_errno (SCM return_type, SCM func_ptr,
+                                                 SCM arg_types);
 SCM_API SCM scm_procedure_to_pointer (SCM return_type, SCM func_ptr,
 				      SCM arg_types);
 SCM_INTERNAL SCM scm_i_foreign_call (SCM foreign, const SCM *argv);

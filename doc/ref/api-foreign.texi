@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2007, 2008,
-@c   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000-2004, 2007-2014, 2016
+@c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Foreign Function Interface
@@ -813,8 +813,11 @@ tightly packed structs and unions by hand. See the code for
 Of course, the land of C is not all nouns and no verbs: there are
 functions too, and Guile allows you to call them.
 
-@deffn {Scheme Procedure} pointer->procedure return_type func_ptr arg_types
-@deffnx {C Procedure} scm_pointer_to_procedure (return_type, func_ptr, arg_types)
+@deffn {Scheme Procedure} pointer->procedure return_type func_ptr arg_types @
+                                             [#:return-errno?=#f]
+@deffnx {C Function} scm_pointer_to_procedure (return_type, func_ptr, arg_types)
+@deffnx {C Function} scm_pointer_to_procedure_with_errno (return_type, func_ptr, arg_types)
+
 Make a foreign function.
 
 Given the foreign void pointer @var{func_ptr}, its argument and
@@ -825,6 +828,10 @@ and return appropriate values.
 @var{arg_types} should be a list of foreign types.
 @code{return_type} should be a foreign type. @xref{Foreign Types}, for
 more information on foreign types.
+
+If @var{return-errno?} is true, or when calling
+@code{scm_pointer_to_procedure_with_errno}, the returned procedure will
+return two values, with @code{errno} as the second value.
 @end deffn
 
 Here is a better definition of @code{(math bessel)}:
