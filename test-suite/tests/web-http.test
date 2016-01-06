@@ -186,6 +186,11 @@
                               (1 . 1)))
 
 (with-test-prefix "read-response-line"
+  (pass-if-exception "missing CR/LF"
+      `(bad-header . "")
+    (call-with-input-string "HTTP/1.1 200 Almost okay"
+      (lambda (port)
+        (read-response-line port))))
   (pass-if-read-response-line "HTTP/1.0 404 Not Found"
                               (1 . 0) 404 "Not Found")
   (pass-if-read-response-line "HTTP/1.1 200 OK"
