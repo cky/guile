@@ -159,28 +159,12 @@ or if EOF is reached."
     ((line . _)                                ;EOF or missing delimiter
      (bad-header 'read-header-line line))))
 
-(define* (read-line* port)
-  (let* ((pair (%read-line port))
-         (line (car pair))
-         (delim (cdr pair)))
-    (if (and (string? line) (char? delim))
-        (let ((orig-len (string-length line)))
-          (let lp ((len orig-len))
-            (if (and (> len 0)
-                     (char-whitespace? (string-ref line (1- len))))
-                (lp (1- len))
-                (if (= len orig-len)
-                    line
-                    (substring line 0 len)))))
-        (bad-header '%read line))))
-
 (define (read-continuation-line port val)
   (if (or (eqv? (peek-char port) #\space)
           (eqv? (peek-char port) #\tab))
       (read-continuation-line port
                               (string-append val
-                                             (begin
-                                               (read-line* port))))
+                                             (read-header-line port)))
       val))
 
 (define *eof* (call-with-input-string "" read))
@@ -192,7 +176,7 @@ was known but the value was invalid.
 
 Returns the end-of-file object for both values if the end of the message
 body was reached (i.e., a blank line)."
-  (let ((line (read-line* port)))
+  (let ((line (read-header-line port)))
     (if (or (string-null? line)
             (string=? line "\r"))
         (values *eof* *eof*)
@@ -1096,7 +1080,7 @@ not have to have a scheme or host name.  The result is a URI object."
 (define (read-request-line port)
   "Read the first line of an HTTP request from PORT, returning
 three values: the method, the URI, and the version."
-  (let* ((line (read-line* port))
+  (let* ((line (read-header-line port))
          (d0 (string-index line char-set:whitespace)) ; "delimiter zero"
          (d1 (string-rindex line char-set:whitespace)))
     (if (and d0 d1 (< d0 d1))
