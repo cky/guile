@@ -1,6 +1,6 @@
 ;;; HTTP messages
 
-;; Copyright (C)  2010-2015 Free Software Foundation, Inc.
+;; Copyright (C)  2010-2016 Free Software Foundation, Inc.
 
 ;; This library is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU Lesser General Public
@@ -144,7 +144,22 @@ The default writer is ‘display’."
         (header-decl-writer decl)
         display)))
 
-(define (read-line* port)
+(define (read-header-line port)
+  "Read an HTTP header line and return it without its final CRLF or LF.
+Raise a 'bad-header' exception if the line does not end in CRLF or LF,
+or if EOF is reached."
+  (match (%read-line port)
+    (((? string? line) . #\newline)
+     ;; '%read-line' does not consider #\return a delimiter; so if it's
+     ;; there, remove it.  We are more tolerant than the RFC in that we
+     ;; tolerate LF-only endings.
+     (if (string-suffix? "\r" line)
+         (string-drop-right line 1)
+         line))
+    ((line . _)                                ;EOF or missing delimiter
+     (bad-header 'read-header-line line))))
+
+(define* (read-line* port)
   (let* ((pair (%read-line port))
          (line (car pair))
          (delim (cdr pair)))
@@ -1152,10 +1167,10 @@ three values: the method, the URI, and the version."
   (display "\r\n" port))
 
 (define (read-response-line port)
-  "Read the first line of an HTTP response from PORT, returning
-three values: the HTTP version, the response code, and the \"reason
-phrase\"."
-  (let* ((line (read-line* port))
+  "Read the first line of an HTTP response from PORT, returning three
+values: the HTTP version, the response code, and the (possibly empty)
+\"reason phrase\"."
+  (let* ((line (read-header-line port))
          (d0 (string-index line char-set:whitespace)) ; "delimiter zero"
          (d1 (and d0 (string-index line char-set:whitespace
                                    (skip-whitespace line d0)))))
