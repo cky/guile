@@ -353,6 +353,7 @@
   (pass-if-parse age "30" 30)
   (pass-if-parse etag "\"foo\"" '("foo" . #t))
   (pass-if-parse etag "W/\"foo\"" '("foo" . #f))
+  (pass-if-parse etag "foo" '("foo" . #t))
   (pass-if-parse location "http://other-place"
                  (build-uri 'http #:host "other-place"))
   (pass-if-parse proxy-authenticate "Basic realm=\"guile\""
