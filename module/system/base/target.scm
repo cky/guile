@@ -65,7 +65,7 @@
       (cond ((string-match "^i[0-9]86$" cpu)
              (endianness little))
             ((member cpu '("x86_64" "ia64"
-                           "powerpcle" "powerpc64le" "mipsel" "mips64el" "sh4"))
+                           "powerpcle" "powerpc64le" "mipsel" "mips64el" "nios2" "sh4"))
              (endianness little))
             ((member cpu '("sparc" "sparc64" "powerpc" "powerpc64" "spu"
                            "mips" "mips64" "m68k" "s390x"))
@@ -104,7 +104,7 @@
 
           ((string-match "64$" cpu) 8)
           ((string-match "64_?[lbe][lbe]$" cpu) 8)
-          ((member cpu '("sparc" "powerpc" "mips" "mipsel" "m68k" "sh4")) 4)
+          ((member cpu '("sparc" "powerpc" "mips" "mipsel" "nios2" "m68k" "sh4")) 4)
           ((member cpu '("s390x")) 8)
           ((string-match "^arm.*" cpu) 4)
           (else (error "unknown CPU word size" cpu)))))
