@@ -147,7 +147,6 @@ libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES =				\
 	finalizers.c				\
 	fluids.c				\
 	foreign.c				\
-	foreign-object.c			\
 	fports.c				\
 	frames.c				\
 	gc-malloc.c				\
@@ -577,7 +576,6 @@ modinclude_HEADERS =				\
 	filesys.h				\
 	fluids.h				\
 	foreign.h				\
-	foreign-object.h			\
 	fports.h				\
 	frames.h				\
 	gc.h					\

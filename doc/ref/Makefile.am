@@ -33,7 +33,6 @@ guile_TEXINFOS = preface.texi			\
 		 api-scm.texi			\
 		 api-snarf.texi			\
 		 api-smobs.texi			\
-		 api-foreign-objects.texi	\
 		 scheme-ideas.texi		\
 		 api-data.texi			\
 		 api-procedures.texi		\
@@ -83,7 +82,7 @@ guile_TEXINFOS = preface.texi			\
 		 compiler.texi			\
 		 fdl.texi			\
 		 libguile-concepts.texi		\
-		 libguile-foreign-objects.texi	\
+		 libguile-smobs.texi		\
 		 libguile-snarf.texi		\
 		 libguile-linking.texi		\
 	 	 libguile-extensions.texi	\

@@ -241,17 +241,17 @@ wanted.
 There are situations, however, where a @code{SCM} object needs to be
 around longer than its reference from a local variable or function
 parameter.  This happens, for example, when you retrieve some pointer
-from a foreign object and work with that pointer directly.  The
-reference to the @code{SCM} foreign object might be dead after the
-pointer has been retrieved, but the pointer itself (and the memory
-pointed to) is still in use and thus the foreign object must be
-protected.  The compiler does not know about this connection and might
-overwrite the @code{SCM} reference too early.
+from a smob and work with that pointer directly.  The reference to the
+@code{SCM} smob object might be dead after the pointer has been
+retrieved, but the pointer itself (and the memory pointed to) is still
+in use and thus the smob object must be protected.  The compiler does
+not know about this connection and might overwrite the @code{SCM}
+reference too early.
 
 To get around this problem, you can use @code{scm_remember_upto_here_1}
 and its cousins.  It will keep the compiler from overwriting the
-reference.  @xref{Foreign Object Memory Management}.
-
+reference.  For a typical example of its use, see @ref{Remembering
+During Operations}.
 
 @node Control Flow
 @subsection Control Flow

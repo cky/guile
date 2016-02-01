@@ -52,7 +52,6 @@ extern "C" {
 #include "libguile/finalizers.h"
 #include "libguile/fluids.h"
 #include "libguile/foreign.h"
-#include "libguile/foreign-object.h"
 #include "libguile/fports.h"
 #include "libguile/gc.h"
 #include "libguile/gdbint.h"

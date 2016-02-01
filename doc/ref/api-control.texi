@@ -1184,13 +1184,13 @@ The @var{body_data} and @var{handler_data} parameters are passed to
 the respective calls so an application can communicate extra
 information to those functions.
 
-If the data consists of an @code{SCM} object, care should be taken that
-it isn't garbage collected while still required.  If the @code{SCM} is a
-local C variable, one way to protect it is to pass a pointer to that
-variable as the data parameter, since the C compiler will then know the
-value must be held on the stack.  Another way is to use
-@code{scm_remember_upto_here_1} (@pxref{Foreign Object Memory
-Management}).
+If the data consists of an @code{SCM} object, care should be taken
+that it isn't garbage collected while still required.  If the
+@code{SCM} is a local C variable, one way to protect it is to pass a
+pointer to that variable as the data parameter, since the C compiler
+will then know the value must be held on the stack.  Another way is to
+use @code{scm_remember_upto_here_1} (@pxref{Remembering During
+Operations}).
 @end deftypefn
 
 
