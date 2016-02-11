@@ -28,6 +28,7 @@
 
 #include "libguile/validate.h"
 #include "libguile/pairs.h"
+#include "libguile/numbers.h"
 #include "libguile/alist.h"
 
 
@@ -72,6 +73,11 @@ SCM_DEFINE (scm_sloppy_assv, "sloppy-assv", 2, 0, 0,
 	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assv
 {
+  /* In Guile, `assv' is the same as `assq' for keys of all types except
+     numbers.  */
+  if (!SCM_NUMP (key))
+    return scm_sloppy_assq (key, alist);
+
   for (; scm_is_pair (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR (alist);
@@ -90,6 +96,10 @@ SCM_DEFINE (scm_sloppy_assoc, "sloppy-assoc", 2, 0, 0,
 	    "Recommended only for use in Guile internals.")
 #define FUNC_NAME s_scm_sloppy_assoc
 {
+  /* Immediate values can be checked using `eq?'.  */
+  if (SCM_IMP (key))
+    return scm_sloppy_assq (key, alist);
+
   for (; scm_is_pair (alist); alist = SCM_CDR (alist))
     {
       SCM tmp = SCM_CAR (alist);
@@ -139,6 +149,12 @@ SCM_DEFINE (scm_assv, "assv", 2, 0, 0,
 #define FUNC_NAME s_scm_assv
 {
   SCM ls = alist;
+
+  /* In Guile, `assv' is the same as `assq' for keys of all types except
+     numbers.  */
+  if (!SCM_NUMP (key))
+    return scm_assq (key, alist);
+
   for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
       SCM tmp = SCM_CAR (ls);
@@ -160,6 +176,11 @@ SCM_DEFINE (scm_assoc, "assoc", 2, 0, 0,
 #define FUNC_NAME s_scm_assoc
 {
   SCM ls = alist;
+
+  /* Immediate values can be checked using `eq?'.  */
+  if (SCM_IMP (key))
+    return scm_assq (key, alist);
+
   for(; scm_is_pair (ls); ls = SCM_CDR (ls)) 
     {
       SCM tmp = SCM_CAR (ls);
