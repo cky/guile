@@ -64,25 +64,30 @@ SCM_TO_TYPE_PROTO (SCM val)
 	}
       else
 	{
-	  scm_t_intmax n;
+	  scm_t_uintmax abs_n;
+	  TYPE n;
 	  size_t count;
 
 	  if (mpz_sizeinbase (SCM_I_BIG_MPZ (val), 2)
 	      > CHAR_BIT*sizeof (scm_t_uintmax))
 	    goto out_of_range;
 	  
-	  mpz_export (&n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
+	  mpz_export (&abs_n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
 		      SCM_I_BIG_MPZ (val));
 
 	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) >= 0)
 	    {
-	      if (n < 0)
+	      if (abs_n <= TYPE_MAX)
+		n = abs_n;
+	      else
 		goto out_of_range;
 	    }
 	  else
 	    {
-	      n = -n;
-	      if (n >= 0)
+	      /* Carefully avoid signed integer overflow. */
+	      if (TYPE_MIN < 0 && abs_n - 1 <= -(TYPE_MIN + 1))
+		n = -1 - (TYPE)(abs_n - 1);
+	      else
 		goto out_of_range;
 	    }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 1995-2015 Free Software Foundation, Inc.
+/* Copyright (C) 1995-2016 Free Software Foundation, Inc.
  *
  * Portions Copyright 1990, 1991, 1992, 1993 by AT&T Bell Laboratories
  * and Bellcore.  See scm_divide.
@@ -9622,6 +9622,7 @@ scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 	}
       else
 	{
+	  scm_t_uintmax abs_n;
 	  scm_t_intmax n;
 	  size_t count;
 
@@ -9629,18 +9630,22 @@ scm_is_signed_integer (SCM val, scm_t_intmax min, scm_t_intmax max)
 	      > CHAR_BIT*sizeof (scm_t_uintmax))
 	    return 0;
 	  
-	  mpz_export (&n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
+	  mpz_export (&abs_n, &count, 1, sizeof (scm_t_uintmax), 0, 0,
 		      SCM_I_BIG_MPZ (val));
 
 	  if (mpz_sgn (SCM_I_BIG_MPZ (val)) >= 0)
 	    {
-	      if (n < 0)
+	      if (abs_n <= max)
+		n = abs_n;
+	      else
 		return 0;
 	    }
 	  else
 	    {
-	      n = -n;
-	      if (n >= 0)
+	      /* Carefully avoid signed integer overflow. */
+	      if (min < 0 && abs_n - 1 <= -(min + 1))
+		n = -1 - (scm_t_intmax)(abs_n - 1);
+	      else
 		return 0;
 	    }
 
