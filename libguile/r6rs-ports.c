@@ -843,7 +843,7 @@ SCM_DEFINE (scm_unget_bytevector, "unget-bytevector", 2, 2, 0,
 	}
       else
 	{
-	  if (SCM_UNLIKELY (c_start >= c_len))
+	  if (SCM_UNLIKELY (c_start > c_len))
 	    scm_out_of_range (FUNC_NAME, start);
 	  else
 	    c_count = c_len - c_start;
