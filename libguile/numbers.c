@@ -87,7 +87,9 @@
 /* FIXME: We assume that FLT_RADIX is 2 */
 verify (FLT_RADIX == 2);
 
-typedef scm_t_signed_bits scm_t_inum;
+/* Make sure that scm_t_inum fits within a SCM value.  */
+verify (sizeof (scm_t_inum) <= sizeof (scm_t_bits));
+
 #define scm_from_inum(x) (scm_from_signed_integer (x))
 
 /* Test an inum to see if it can be converted to a double without loss
@@ -272,13 +274,7 @@ scm_i_inum2big (scm_t_inum x)
 {
   /* Return a newly created bignum initialized to X. */
   SCM z = make_bignum ();
-#if SIZEOF_VOID_P == SIZEOF_LONG
   mpz_init_set_si (SCM_I_BIG_MPZ (z), x);
-#else
-  /* Note that in this case, you'll also have to check all mpz_*_ui and
-     mpz_*_si invocations in Guile. */
-#error creation of mpz not implemented for this inum size
-#endif
   return z;
 }
 

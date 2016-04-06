@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2009-2014 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2009-2014, 2016 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -236,9 +236,9 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 #if SCM_GNUC_PREREQ (4, 5) && (defined __x86_64__ || defined __i386__)
 
 # undef _CX
-# if SIZEOF_VOID_P == 8
+# if SCM_I_FIXNUM_BIT == 62
 #  define _CX "rcx"
-# elif SIZEOF_VOID_P == 4
+# elif SCM_I_FIXNUM_BIT == 30
 #  define _CX "ecx"
 # else
 #  error unsupported word size
@@ -291,7 +291,7 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 
 # define ASM_MUL(x, y)							\
     {									\
-      scm_t_signed_bits xx = SCM_I_INUM (x);				\
+      scm_t_inum xx = SCM_I_INUM (x);					\
       asm volatile goto ("mov %1, %%"_CX"; "				\
 			 "test %[tag], %%cl;   je %l[slow_mul]; "	\
 			 "sub %[tag], %%"_CX"; "			\
@@ -360,7 +360,7 @@ VM_DEFINE_FUNCTION (149, ge, "ge?", 2)
 #  define ASM_MUL(x, y)							\
     if (SCM_LIKELY (SCM_I_INUMP (x) && SCM_I_INUMP (y)))		\
       {									\
-	scm_t_signed_bits rlo, rhi;					\
+	scm_t_inum rlo, rhi;						\
 	asm ("smull %0, %1, %2, %3\n"					\
 	     : "=&r" (rlo), "=&r" (rhi)					\
 	     : "r" (SCM_UNPACK (x) - scm_tc2_int),			\
@@ -496,7 +496,7 @@ VM_DEFINE_FUNCTION (159, ash, "ash", 2)
       else
         /* Left shift. See comments in scm_ash. */
         {
-          scm_t_signed_bits nn, bits_to_shift;
+          scm_t_inum nn, bits_to_shift;
 
           nn = SCM_I_INUM (x);
           bits_to_shift = SCM_I_INUM (y);
@@ -552,7 +552,7 @@ VM_DEFINE_FUNCTION (162, logxor, "logxor", 2)
 
 VM_DEFINE_FUNCTION (163, vector_ref, "vector-ref", 2)
 {
-  scm_t_signed_bits i = 0;
+  scm_t_inum i = 0;
   ARGS2 (vect, idx);
   if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
                   && SCM_I_INUMP (idx)
@@ -568,7 +568,7 @@ VM_DEFINE_FUNCTION (163, vector_ref, "vector-ref", 2)
 
 VM_DEFINE_INSTRUCTION (164, vector_set, "vector-set", 0, 3, 0)
 {
-  scm_t_signed_bits i = 0;
+  scm_t_inum i = 0;
   SCM vect, idx, val;
   POP3 (val, idx, vect);
   if (SCM_LIKELY (SCM_I_IS_NONWEAK_VECTOR (vect)
@@ -792,7 +792,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_REF(stem, fn_stem, type, size)			\
 {									\
-  scm_t_signed_bits i;							\
+  scm_t_inum i;								\
   const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
 									\
@@ -814,7 +814,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_REF(stem, type, size)					\
 {									\
-  scm_t_signed_bits i;							\
+  scm_t_inum i;								\
   const scm_t_ ## type *int_ptr;					\
   ARGS2 (bv, idx);							\
 									\
@@ -845,7 +845,7 @@ BV_REF_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_REF(stem, fn_stem, type, size)				\
 {									\
-  scm_t_signed_bits i;							\
+  scm_t_inum i;								\
   const type *float_ptr;						\
   ARGS2 (bv, idx);							\
 									\
@@ -933,7 +933,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FIXABLE_INT_SET(stem, fn_stem, type, min, max, size)		\
 {									\
-  scm_t_signed_bits i, j = 0;						\
+  scm_t_inum i, j = 0;							\
   SCM bv, idx, val;							\
   scm_t_ ## type *int_ptr;						\
 									\
@@ -960,7 +960,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_INT_SET(stem, type, size)					\
 {									\
-  scm_t_signed_bits i = 0;						\
+  scm_t_inum i = 0;							\
   SCM bv, idx, val;							\
   scm_t_ ## type *int_ptr;						\
 									\
@@ -984,7 +984,7 @@ BV_SET_WITH_ENDIANNESS (f64, ieee_double)
 
 #define BV_FLOAT_SET(stem, fn_stem, type, size)                         \
 {                                                                       \
-  scm_t_signed_bits i = 0;                                              \
+  scm_t_inum i = 0;                                                     \
   SCM bv, idx, val;                                                     \
   type *float_ptr;                                                      \
                                                                         \

@@ -3,8 +3,8 @@
 #ifndef SCM_NUMBERS_H
 #define SCM_NUMBERS_H
 
-/* Copyright (C) 1995,1996,1998,2000,2001,2002,2003,2004,2005, 2006,
- *   2008, 2009, 2010, 2011, 2013, 2014 Free Software Foundation, Inc.
+/* Copyright (C) 1995, 1996, 1998, 2000-2006, 2008-2011, 2013, 2014,
+ *   2016 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -38,16 +38,15 @@ typedef scm_t_int32 scm_t_wchar;
 
 /* Immediate Numbers, also known as fixnums
  *
- * Inums are exact integer data that fits within an SCM word.  */
-
-/* SCM_T_SIGNED_MAX is                 (- (expt 2 n) 1),
- * SCM_MOST_POSITIVE_FIXNUM should be  (- (expt 2 (- n 2)) 1)
- * which is the same as                (/ (- (expt 2 n) 4) 4)
- */
-
+ * Inums are exact integers that fit within an SCM word
+ * (along with two tagging bits).
+ *
+ * In the current implementation, Inums must also fit within a long
+ * because that's what GMP's mpz_*_si functions accept.  */
+typedef long scm_t_inum;
 #define SCM_I_FIXNUM_BIT         (SCM_LONG_BIT - 2)
-#define SCM_MOST_POSITIVE_FIXNUM ((SCM_T_SIGNED_BITS_MAX-3)/4)
-#define SCM_MOST_NEGATIVE_FIXNUM (-SCM_MOST_POSITIVE_FIXNUM-1)
+#define SCM_MOST_NEGATIVE_FIXNUM (-1L << (SCM_I_FIXNUM_BIT - 1))
+#define SCM_MOST_POSITIVE_FIXNUM (- (SCM_MOST_NEGATIVE_FIXNUM + 1))
 
 /* SCM_SRS (X, Y) is signed right shift, defined as floor (X / 2^Y),
    where Y must be non-negative and less than the width in bits of X.
@@ -74,12 +73,12 @@ typedef scm_t_int32 scm_t_wchar;
 
    NOTE: X must not perform side effects.  */
 #ifdef __GNUC__
-# define SCM_I_INUM(x)  (SCM_SRS ((scm_t_signed_bits) SCM_UNPACK (x), 2))
+# define SCM_I_INUM(x)  (SCM_SRS ((scm_t_inum) SCM_UNPACK (x), 2))
 #else
-# define SCM_I_INUM(x)                                \
-  (SCM_UNPACK (x) > LONG_MAX                          \
-   ? -1 - (scm_t_signed_bits) (~SCM_UNPACK (x) >> 2)  \
-   : (scm_t_signed_bits) (SCM_UNPACK (x) >> 2))
+# define SCM_I_INUM(x)                          \
+  (SCM_UNPACK (x) > SCM_T_SIGNED_BITS_MAX       \
+   ? -1 - (scm_t_inum) (~SCM_UNPACK (x) >> 2)   \
+   : (scm_t_inum) (SCM_UNPACK (x) >> 2))
 #endif
 
 #define SCM_I_INUMP(x)	(2 & SCM_UNPACK (x))
