@@ -726,9 +726,9 @@ a resource.
 @deftypevr {HTTP Header} List content-type
 The MIME type of a resource, as a symbol, along with any parameters.
 @example
-(parse-header 'content-length "text/plain")
+(parse-header 'content-type "text/plain")
 @result{} (text/plain)
-(parse-header 'content-length "text/plain;charset=utf-8")
+(parse-header 'content-type "text/plain;charset=utf-8")
 @result{} (text/plain (charset . "utf-8"))
 @end example
 Note that the @code{charset} parameter is something is a misnomer, and
