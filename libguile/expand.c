@@ -1,6 +1,5 @@
-/* Copyright (C) 1995,1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012
- * Free Software Foundation, Inc.
- * 
+/* Copyright (C) 1995-2010, 2012, 2016 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -104,27 +103,18 @@ static const char s_bad_expression[] = "Bad expression";
 static const char s_expression[] = "Missing or extra expression in";
 static const char s_missing_expression[] = "Missing expression in";
 static const char s_extra_expression[] = "Extra expression in";
-static const char s_empty_combination[] = "Illegal empty combination";
-static const char s_missing_body_expression[] = "Missing body expression in";
-static const char s_mixed_body_forms[] = "Mixed definitions and expressions in";
 static const char s_bad_define[] = "Bad define placement";
 static const char s_missing_clauses[] = "Missing clauses";
 static const char s_misplaced_else_clause[] = "Misplaced else clause";
-static const char s_bad_case_clause[] = "Bad case clause";
-static const char s_bad_case_labels[] = "Bad case labels";
-static const char s_duplicate_case_label[] = "Duplicate case label";
 static const char s_bad_cond_clause[] = "Bad cond clause";
 static const char s_missing_recipient[] = "Missing recipient in";
 static const char s_bad_variable[] = "Bad variable";
 static const char s_bad_bindings[] = "Bad bindings";
 static const char s_bad_binding[] = "Bad binding";
 static const char s_duplicate_binding[] = "Duplicate binding";
-static const char s_bad_exit_clause[] = "Bad exit clause";
 static const char s_bad_formals[] = "Bad formals";
 static const char s_bad_formal[] = "Bad formal";
 static const char s_duplicate_formal[] = "Duplicate formal";
-static const char s_splicing[] = "Non-list result for unquote-splicing";
-static const char s_bad_slot_number[] = "Bad slot number";
 
 static void syntax_error (const char* const, const SCM, const SCM) SCM_NORETURN;
 

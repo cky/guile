@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2006,
  *   2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014, 2015 Free Software Foundation, Inc.
+ *   2014, 2015, 2016 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -2400,10 +2400,7 @@ looking_at_bytes (SCM port, const unsigned char *bytes, int len)
   return (i == len);
 }
 
-static const unsigned char scm_utf8_bom[3]    = {0xEF, 0xBB, 0xBF};
-static const unsigned char scm_utf16be_bom[2] = {0xFE, 0xFF};
 static const unsigned char scm_utf16le_bom[2] = {0xFF, 0xFE};
-static const unsigned char scm_utf32be_bom[4] = {0x00, 0x00, 0xFE, 0xFF};
 static const unsigned char scm_utf32le_bom[4] = {0xFF, 0xFE, 0x00, 0x00};
 
 /* Decide what byte order to use for a UTF-16 port.  Return "UTF-16BE"

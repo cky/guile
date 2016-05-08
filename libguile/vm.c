@@ -1,5 +1,5 @@
-/* Copyright (C) 2001, 2009, 2010, 2011, 2012, 2013 Free Software Foundation, Inc.
- * 
+/* Copyright (C) 2001, 2009-2013, 2016 Free Software Foundation, Inc.
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -391,7 +391,6 @@ static void vm_error_too_many_args (int nargs) SCM_NORETURN;
 static void vm_error_wrong_num_args (SCM proc) SCM_NORETURN;
 static void vm_error_wrong_type_apply (SCM proc) SCM_NORETURN;
 static void vm_error_stack_overflow (struct scm_vm *vp) SCM_NORETURN;
-static void vm_error_stack_underflow (void) SCM_NORETURN;
 static void vm_error_improper_list (SCM x) SCM_NORETURN;
 static void vm_error_not_a_pair (const char *subr, SCM x) SCM_NORETURN;
 static void vm_error_not_a_bytevector (const char *subr, SCM x) SCM_NORETURN;
@@ -532,12 +531,6 @@ vm_error_stack_overflow (struct scm_vm *vp)
   scm_dynwind_unwind_handler (reinstate_stack_reserve, vp, 0);
   vm_error ("VM: Stack overflow", SCM_UNDEFINED);
   scm_dynwind_end ();
-}
-
-static void
-vm_error_stack_underflow (void)
-{
-  vm_error ("VM: Stack underflow", SCM_UNDEFINED);
 }
 
 static void
