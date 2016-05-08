@@ -236,6 +236,16 @@
   (pass-if-parse date "Wed, 7 Sep 2011 11:25:00 GMT"
                  (string->date "Wed, 7 Sep 2011 11:25:00 +0000"
                                "~a,~e ~b ~Y ~H:~M:~S ~z"))
+
+  ;; This is a non-conforming date (lack of leading zero for the hours)
+  ;; that some HTTP servers provide.  See <http://bugs.gnu.org/23421>.
+  (pass-if-parse date "Sun, 06 Nov 1994  8:49:37 GMT"
+                 (string->date "Sun, 6 Nov 1994 08:49:37 +0000"
+                               "~a,~e ~b ~Y ~H:~M:~S ~z"))
+  (pass-if-parse date "Sun, 6 Nov 1994  8:49:37 GMT"
+                 (string->date "Sun, 6 Nov 1994 08:49:37 +0000"
+                               "~a,~e ~b ~Y ~H:~M:~S ~z"))
+
   (pass-if-parse-error date "Tue, 15 Nov 1994 08:12:31 EST" date)
   (pass-if-any-error date "Tue, 15 Qux 1994 08:12:31 EST")
 

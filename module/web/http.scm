@@ -751,6 +751,26 @@ as an ordered alist."
                (minute (parse-non-negative-integer str 19 21))
                (second (parse-non-negative-integer str 22 24)))
            (make-date 0 second minute hour date month year zone-offset)))
+
+        ;; The next two clauses match dates that have a space instead of
+        ;; a leading zero for hours, like " 8:49:37".
+        ((string-match? (substring str 0 space) "aaa, dd aaa dddd  d:dd:dd")
+         (let ((date (parse-non-negative-integer str 5 7))
+               (month (parse-month str 8 11))
+               (year (parse-non-negative-integer str 12 16))
+               (hour (parse-non-negative-integer str 18 19))
+               (minute (parse-non-negative-integer str 20 22))
+               (second (parse-non-negative-integer str 23 25)))
+           (make-date 0 second minute hour date month year zone-offset)))
+        ((string-match? (substring str 0 space) "aaa, d aaa dddd  d:dd:dd")
+         (let ((date (parse-non-negative-integer str 5 6))
+               (month (parse-month str 7 10))
+               (year (parse-non-negative-integer str 11 15))
+               (hour (parse-non-negative-integer str 17 18))
+               (minute (parse-non-negative-integer str 19 21))
+               (second (parse-non-negative-integer str 22 24)))
+           (make-date 0 second minute hour date month year zone-offset)))
+
         (else
          (bad-header 'date str)         ; prevent tail call
          #f)))
