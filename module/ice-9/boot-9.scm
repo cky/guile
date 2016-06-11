@@ -3970,19 +3970,25 @@ when none is available, reading FILE-NAME with READER."
      #:opts %auto-compilation-options
      #:env (current-module)))
 
-  ;; Returns the .go file corresponding to `name'.  Does not search load
-  ;; paths, only the fallback path.  If the .go file is missing or out
-  ;; of date, and auto-compilation is enabled, will try
-  ;; auto-compilation, just as primitive-load-path does internally.
-  ;; primitive-load is unaffected.  Returns #f if auto-compilation
-  ;; failed or was disabled.
+  (define (load-thunk-from-file file)
+    (let ((objcode (resolve-interface '(system vm objcode)))
+          (program (resolve-interface '(system vm program))))
+      ((module-ref program 'make-program)
+       ((module-ref objcode 'load-objcode) file))))
+
+  ;; Returns a thunk loaded from the .go file corresponding to `name'.
+  ;; Does not search load paths, only the fallback path.  If the .go
+  ;; file is missing or out of date, and auto-compilation is enabled,
+  ;; will try auto-compilation, just as primitive-load-path does
+  ;; internally.  primitive-load is unaffected.  Returns #f if
+  ;; auto-compilation failed or was disabled.
   ;;
   ;; NB: Unless we need to compile the file, this function should not
   ;; cause (system base compile) to be loaded up.  For that reason
   ;; compiled-file-name partially duplicates functionality from (system
   ;; base compile).
 
-  (define (fresh-compiled-file-name name scmstat go-file-name)
+  (define (fresh-compiled-thunk name scmstat go-file-name)
     ;; Return GO-FILE-NAME after making sure that it contains a freshly
     ;; compiled version of source file NAME with stat SCMSTAT; return #f
     ;; on failure.
@@ -3990,19 +3996,19 @@ when none is available, reading FILE-NAME with READER."
      (let ((gostat (and (not %fresh-auto-compile)
                         (stat go-file-name #f))))
        (if (and gostat (more-recent? gostat scmstat))
-           go-file-name
+           (load-thunk-from-file go-file-name)
            (begin
-             (if gostat
-                 (format (current-warning-port)
-                         ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
-                         name go-file-name))
+             (when gostat
+               (format (current-warning-port)
+                       ";;; note: source file ~a\n;;;       newer than compiled ~a\n"
+                       name go-file-name))
              (cond
               (%load-should-auto-compile
                (%warn-auto-compilation-enabled)
                (format (current-warning-port) ";;; compiling ~a\n" name)
                (let ((cfn (compile name)))
                  (format (current-warning-port) ";;; compiled ~a\n" cfn)
-                 cfn))
+                 (load-thunk-from-file cfn)))
               (else #f)))))
      #:warning "WARNING: compilation of ~a failed:\n" name))
 
@@ -4021,28 +4027,36 @@ when none is available, reading FILE-NAME with READER."
        #:warning "Stat of ~a failed:\n" abs-file-name))
 
     (define (pre-compiled)
-      (and=> (search-path %load-compiled-path (sans-extension file-name)
-                          %load-compiled-extensions #t)
-             (lambda (go-file-name)
-               (let ((gostat (stat go-file-name #f)))
-                 (and gostat (more-recent? gostat scmstat)
-                      go-file-name)))))
+      (or-map
+       (lambda (dir)
+         (or-map
+          (lambda (ext)
+            (let ((candidate (string-append (in-vicinity dir file-name) ext)))
+              (let ((gostat (stat candidate #f)))
+                (and gostat
+                     (more-recent? gostat scmstat)
+                     (false-if-exception
+                      (load-thunk-from-file candidate)
+                      #:warning "WARNING: failed to load compiled file ~a:\n"
+                      candidate)))))
+          %load-compiled-extensions))
+       %load-compiled-path))
 
     (define (fallback)
       (and=> (false-if-exception (canonicalize-path abs-file-name))
              (lambda (canon)
                (and=> (fallback-file-name canon)
                       (lambda (go-file-name)
-                        (fresh-compiled-file-name abs-file-name
-                                                  scmstat
-                                                  go-file-name))))))
+                        (fresh-compiled-thunk abs-file-name
+                                              scmstat
+                                              go-file-name))))))
 
     (let ((compiled (and scmstat (or (pre-compiled) (fallback)))))
       (if compiled
           (begin
             (if %load-hook
                 (%load-hook abs-file-name))
-            (load-compiled compiled))
+            (compiled))
           (start-stack 'load-stack
                        (primitive-load abs-file-name)))))
 
