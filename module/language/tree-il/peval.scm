@@ -1550,7 +1550,7 @@ top-level bindings from ENV and return the resulting expression."
            (_ #f)))
 
        (let ((tag (for-value tag))
-             (body (for-tail body)))
+             (body (for-values body)))
          (cond
           ((find-definition tag 1)
            (lambda (val op)
@@ -1582,9 +1582,9 @@ top-level bindings from ENV and return the resulting expression."
                                       ,(make-primitive-ref #f 'values)
                                       ,@(abort-args body)
                                       ,(abort-tail body)))
-                  (for-value handler)))))
+                  (for-tail handler)))))
           (else
-           (make-prompt src tag body (for-value handler))))))
+           (make-prompt src tag body (for-tail handler))))))
       (($ <abort> src tag args tail)
        (make-abort src (for-value tag) (map for-value args)
                    (for-value tail))))))

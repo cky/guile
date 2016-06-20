@@ -427,3 +427,13 @@
                                 (cons (car xs) (k (cdr xs))))))))
                 (reset* (lambda () (visit xs))))
               (traverse '(1 2 3 4 5))))))
+
+(with-test-prefix/c&e "shift/reset optimization"
+  ;; Although a call-with-prompt continuation might accept only a single
+  ;; value, it doesn't mean that the body can't provide a possibly
+  ;; different number of values to other continuations.
+  (pass-if-equal "bug #14347"
+      '(3.1 2 3)
+    (call-with-values
+        (lambda () (let ((k (reset (shift k k) (values 3.1 2 3)))) (k)))
+      list)))
