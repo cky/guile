@@ -245,7 +245,7 @@ serialization.
 Declare a default port for the given URI scheme.
 @end deffn
 
-@deffn {Scheme Procedure} uri-decode str [#:encoding=@code{"utf-8"}]
+@deffn {Scheme Procedure} uri-decode str [#:encoding=@code{"utf-8"}] [#:decode-plus-to-space? #t]
 Percent-decode the given @var{str}, according to @var{encoding}, which
 should be the name of a character encoding.
 
@@ -261,6 +261,11 @@ decoded bytes are not valid for the given encoding. Pass @code{#f} for
 @var{encoding} if you want decoded bytes as a bytevector directly.
 @xref{Ports, @code{set-port-encoding!}}, for more information on
 character encodings.
+
+If @var{decode-plus-to-space?} is true, which is the default, also
+replace instances of the plus character @samp{+} with a space character.
+This is needed when parsing @code{application/x-www-form-urlencoded}
+data.
 
 Returns a string of the decoded characters, or a bytevector if
 @var{encoding} was @code{#f}.

@@ -19,6 +19,13 @@ Guile's reader conform more closely to the R6RS syntax. In particular:
 - It enables the `square-brackets', `hungry-eol-escapes' and
   `r6rs-hex-escapes' reader options.
 
+* Bug fixes
+
+** Don't replace + with space when splitting and decoding URI paths
+
+See the documentation for `uri-decode', for more on the new
+`#:decode-plus-to-space?' keyword argument.
+
 
 Changes in 2.0.11 (since 2.0.10):
 

@@ -255,7 +255,10 @@
     (equal? "foo bar" (uri-decode "foo%20bar")))
 
   (pass-if "foo+bar"
-    (equal? "foo bar" (uri-decode "foo+bar"))))
+    (equal? "foo bar" (uri-decode "foo+bar")))
+
+  (pass-if "foo+bar"
+    (equal? '("foo+bar") (split-and-decode-uri-path "foo+bar"))))
 
 (with-test-prefix "encode"
   (pass-if (equal? "foo%20bar" (uri-encode "foo bar")))
