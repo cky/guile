@@ -857,10 +857,11 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
     memset (c_bv, 0, c_size);
   else
     {
-      size_t word_count, value_size;
+      size_t word_count, value_words;
 
-      value_size = (mpz_sizeinbase (c_mpz, 2) + (8 * c_size)) / (8 * c_size);
-      if (SCM_UNLIKELY (value_size > c_size))
+      value_words = ((mpz_sizeinbase (c_mpz, 2) + (8 * c_size) - 1) /
+                     (8 * c_size));
+      if (SCM_UNLIKELY (value_words > 1))
 	{
 	  err = -2;
 	  goto finish;

@@ -345,7 +345,11 @@
      (let ((b (make-bytevector 8)))
        (bytevector-s64-set! b 0 -1 (endianness big))
        (bytevector-u64-set! b 0  0 (endianness big))
-       (= 0 (bytevector-u64-ref b 0 (endianness big))))))
+       (= 0 (bytevector-u64-ref b 0 (endianness big)))))
+
+  (pass-if-exception "bignum out of range"
+      exception:out-of-range
+    (bytevector-u64-set! (make-bytevector 8) 0 (expt 2 64) (endianness big))))
 
 
 (with-test-prefix/c&e "2.8 Operations on IEEE-754 Representations"
