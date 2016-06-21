@@ -55,6 +55,9 @@ no prefix.
 
 @item @nicode{#:width} @var{columns}
 Print within the given @var{columns}.  The default is 79.
+
+@item @nicode{#:max-expr-width} @var{columns}
+The maximum width of an expression.  The default is 50.
 @end table
 @end deffn
 
