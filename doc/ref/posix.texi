@@ -2086,6 +2086,22 @@ restart the system call (as opposed to returning an @code{EINTR} error
 from that call).
 @end defvar
 
+Guile handles signals asynchronously.  When it receives a signal, the
+synchronous signal handler just records the fact that a signal was
+received and sets a flag to tell the relevant Guile thread that it has a
+pending signal.  When the Guile thread checks the pending-interrupt
+flag, it will arrange to run the asynchronous part of the signal
+handler, which is the handler attached by @code{sigaction}.
+
+This strategy has some perhaps-unexpected interactions with the
+@code{SA_RESTART} flag, though: because the synchronous handler doesn't
+do very much, and notably it doesn't run the Guile handler, it's
+impossible to interrupt a thread stuck in a long-running system call via
+a signal handler that is installed with @code{SA_RESTART}: the
+synchronous handler just records the pending interrupt, but then the
+system call resumes and Guile doesn't have a chance to actually check
+the flag and run the asynchronous handler.  That's just how it is.
+
 The return value is a pair with information about the old handler as
 described above.
 
