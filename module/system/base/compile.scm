@@ -59,7 +59,9 @@
            (proc tmp)
            ;; Chmodding by name instead of by port allows this chmod to
            ;; work on systems without fchmod, like MinGW.
-           (chmod template (logand #o0666 (lognot (umask))))
+           (let ((perms (or (false-if-exception (stat:perms (stat reference)))
+                            (lognot (umask)))))
+             (chmod template (logand #o0666 perms)))
            (close-port tmp)
            (rename-file template filename))
          (lambda args
