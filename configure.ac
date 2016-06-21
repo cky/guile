@@ -891,6 +891,13 @@ if test "x$LTLIBUNISTRING" = "x"; then
   AC_MSG_ERROR([GNU libunistring is required, please install it.])
 fi
 
+dnl Sloppy check to make sure people aren't trying to use too-old libunistring.
+case "$LIBUNISTRING_VERSION" in
+  0.9.0 | 0.9.1 | 0.9.2 )
+  AC_MSG_ERROR([libunistring too old.  Please install a recent libunistring (>= 0.9.3).])
+  ;;
+esac
+
 GUILE_LIBUNISTRING_WITH_ICONV_SUPPORT
 if test "x$ac_cv_libunistring_with_iconv_support" != "xyes"; then
   AC_MSG_ERROR([No iconv support.  Please recompile libunistring with iconv enabled.])
