@@ -46,8 +46,8 @@
 
   (with-test-prefix "one binding"
 
-    (pass-if "no result expression (gives #t)"
-      (and-let* ((x 123))))
+    (pass-if "no result expression (gives binding value)"
+      (equal? (and-let* ((x 123))) 123))
 
     (pass-if "result expression"
       (and-let* ((x 123))
@@ -64,8 +64,8 @@
 
   (with-test-prefix "one test"
 
-    (pass-if "no result expression (gives #t)"
-      (and-let* (( 123))))
+    (pass-if "no result expression (gives test value)"
+      (equal? (and-let* (( 123))) 123))
 
     (pass-if "result expression"
       (and-let* (( 123))
