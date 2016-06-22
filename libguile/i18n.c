@@ -834,44 +834,6 @@ compare_u32_strings_ci (SCM s1, SCM s2, SCM locale, const char *func_name)
 }
 #undef FUNC_NAME
 
-/* Store into DST an upper-case version of SRC.  */
-static inline void
-str_upcase (register char *dst, register const char *src)
-{
-  for (; *src != '\0'; src++, dst++)
-    *dst = toupper ((int) *src);
-  *dst = '\0';
-}
-
-static inline void
-str_downcase (register char *dst, register const char *src)
-{
-  for (; *src != '\0'; src++, dst++)
-    *dst = tolower ((int) *src);
-  *dst = '\0';
-}
-
-#ifdef USE_GNU_LOCALE_API
-static inline void
-str_upcase_l (register char *dst, register const char *src,
-	      scm_t_locale locale)
-{
-  for (; *src != '\0'; src++, dst++)
-    *dst = toupper_l (*src, locale);
-  *dst = '\0';
-}
-
-static inline void
-str_downcase_l (register char *dst, register const char *src,
-		scm_t_locale locale)
-{
-  for (; *src != '\0'; src++, dst++)
-    *dst = tolower_l (*src, locale);
-  *dst = '\0';
-}
-#endif
-
-
 SCM_DEFINE (scm_string_locale_lt, "string-locale<?", 2, 1, 0,
 	    (SCM s1, SCM s2, SCM locale),
 	    "Compare strings @var{s1} and @var{s2} in a locale-dependent way."
