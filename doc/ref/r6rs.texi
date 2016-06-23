@@ -722,11 +722,15 @@ These procedures are identical to the ones provided by SRFI-1.
 @xref{SRFI-1 Filtering and Partitioning}, for @code{partition}.
 @end deffn
 
+@deffn {Scheme Procedure} fold-right combine nil list1 list2 @dots{}
+This procedure is identical the @code{fold-right} procedure provided by
+SRFI-1.  @xref{SRFI-1 Fold and Map}, for documentation.
+@end deffn
+
 @deffn {Scheme Procedure} fold-left combine nil list1 list2 @dots{}
-@deffnx {Scheme Procedure} fold-right combine nil list1 list2 @dots{}
-These procedures are identical to the @code{fold} and @code{fold-right}
-procedures provided by SRFI-1.  @xref{SRFI-1 Fold and Map}, for
-documentation.
+This procedure is like @code{fold} from SRFI-1, but @var{combine} is
+called with the seed as the first argument.  @xref{SRFI-1 Fold and Map},
+for documentation.
 @end deffn
 
 @deffn {Scheme Procedure} remp proc list
