@@ -1,14 +1,60 @@
 Guile NEWS --- history of user-visible changes.
-Copyright (C) 1996-2015 Free Software Foundation, Inc.
+Copyright (C) 1996-2016 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-Changes in 2.0.12 (since 2.0.11):
+* Changes in 2.0.12 (since 2.0.11):
 
-* Notable changes
+** Notable changes
 
-** The #!r6rs directive now influences read syntax
+*** Dependencies
+
+Guile 2.0.12 needs libunistring >= 0.9.3
+This check is now part of the configure step.
+
+*** Goops
+
+Two major changes have been made:
+
+1- #:init-value on class-allocated slots: allocating an instance of a
+class with a #:class or #:each-subclass slot allocation should not
+re-initialize the class-allocated slot.
+
+2- accessor methods only apply to subclasses with their slot
+
+FIXME
+(a) let users know that it will break Goops user code relying on
+previsouly inherited getters, setters and accessors ... (b) why this: so
+that Guile 2.x.x behave like guile-1.8 wrt Goops. But the full picture
+is rather strange, and will be (re)fixed soon, see this discussion
+http://thread.gmane.org/gmane.lisp.guile.user/11218/focus=11813 for some
+details.
+ENDFIXME
+
+*** FFI: Add support for functions that set 'errno'
+
+When accessing POSIX functions from a system's libc via Guile's dynamic
+FFI, you commonly want to access the ‘errno’ variable to be able to
+produce useful diagnostic messages.
+
+This is now possible, check the Guile's dynamic FFI documentation for
+the details, in paticular the following entries have been updated
+accordingly: pointer->procedure, scm_pointer_to_procedure and
+scm_pointer_to_procedure_with_errno.
+
+*** Add SRFI-25 implementation
+    
+Adds an implementation of SRFI 25 on top of Guile's native arrays. The
+implementation does not introduce a disjoint type; Guile arrays and
+SRFI-25 arrays can be used interchangably, though with different, partly
+conflicting APIs.
+
+*** Add SRFI-28 implementation
+
+Adds an implementation of SRFI 28 Basic Format Strings.
+
+*** The #!r6rs directive now influences read syntax
 
 The #!r6rs directive now changes the per-port reader options to make
 Guile's reader conform more closely to the R6RS syntax. In particular:
@@ -19,12 +65,154 @@ Guile's reader conform more closely to the R6RS syntax. In particular:
 - It enables the `square-brackets', `hungry-eol-escapes' and
   `r6rs-hex-escapes' reader options.
 
-* Bug fixes
+*** SRFI-14 character data set
 
-** Don't replace + with space when splitting and decoding URI paths
+SRFI-14 character data set has been regenerated for Unicode 8.0.0.
 
-See the documentation for `uri-decode', for more on the new
-`#:decode-plus-to-space?' keyword argument.
+*** Web modules
+
+The (web server) module now exports 'server-impl' procedures, (web server
+http) exports the 'http' server implementation.
+
+Also, http location header accepts URI-reference, not just absoluteURIs.
+
+*** Strings
+
+The following 2 new procedures have been added: 'string-utf8-length' and
+'scm_c_string_utf8_length'.
+
+'string-hash' has been optimized: this yields a 50% improvement on the
+"narrow string" benchmark of 'hash.bm', 41% on "wide string", and 76% on
+"long string".
+
+'write' has been optimized: this shows a 19% improvement on the "string
+without escapes" micro-benchmark of 'write.bm', and 12% on "string with
+escapes".
+
+'read-string' speed up: this yields a 20% improvement on the
+"read-string" benchmark.
+
+'scm_string_hash' has been deprecated.
+
+'scm_read_string_like_syntax' now accept "\(" as equivalent to "(".
+
+*** Libguile
+
+Tow new macros have been added: 'SCM_VALIDATE_SIZE_COPY' and
+SCM_NUM2SIZE.
+
+*** New Module
+
+Add (ice-9 unicode) module.
+
+*** SMOBs
+
+Functionalities have been added to disable automatic finalization: see
+the (Smobs) documentation node for the details and new functions.
+
+*** Posix
+
+'EXIT_SUCCESS' and 'EXIT_FAILURE' added and documented.
+
+*** Architectures
+
+The following ARM target have been added: "arm.*eb", "^aarch64.*be", and
+"aarch64".
+
+** Fixed Bugs
+
+The following bugs and/or 'misbehavior' have been fixed:
+
+*** 17399 - detect too-old libunistring at configure-time
+***  n/a  - SRFI-2 (and-let*) has been re-implementated
+***  n/a  - size measurement in bytevector_large_set
+***  n/a  - uri-decode behavior for "+"
+*** 18477 - use source file permissions for compiled files
+*** 14347 - call-with-prompt continuation, returned value(s)
+*** 22406 - sizeof (long) support for LLP64 data model
+*** 22152 - fat_mutex, fat_mutex_unlock
+*** 23421 - http, date strings with a leading space for hours
+***  n/a  - SRFI-19, update the table of leap seconds
+*** 22273 - http, Accept empty reason phrases
+***  n/a  - get[set]sockopt now have their arg of type 'int'
+*** 20302 - seeking on binary input ports with putback buffers
+***  n/a  - web, use 'close-port' for delimited input ports
+***  n/a  - match-each+, non-pair syntax object in a dotted tail
+***  n/a  - atan procedure when applied to complex numbers
+*** 20200 - bytevector and custom binary ports to use ISO-8859-1
+*** 19646 - handle ENOSYS return for 'setaffinity'
+*** 19939 - http, do not buffer HTTP chunks
+*** 19621 - buffer overrun with unbuffered custom binary input ports
+*** 18988 - 'select' signal interruptions clarification
+*** 19027 - bytevector-fill! to accept fill arguments greater than 127
+*** 18866 - bytevector-copy and SRFI-4 homogeneous numeric vectors
+*** 18898 - avoid bash-specific '==' in guile.m4
+*** 18065 - strerror error handling when given a non-integer argument
+*** 18680 - scm_boot_guile now handles gracefully argc == 0
+*** 17634 - peval, handle optional arg inits that refer to previous args
+*** 18470 - autogen.sh invoke 'libtoolize', not 'libtool'
+*** 18495 - SCM_SMOB_OBJECT_LOC macro definition
+***  n/a  - SRFI-43 vector-concatenate error message
+*** 18299 - handle ~p in 'format' warnings
+***  n/a  - bit-count*, scm_bit_count_star miss used 1 and 2 args
+***  n/a  - handle Windows file names that use backslashes
+***  n/a  - CPU set size proper calculation for getaffinity
+***  n/a  - unconditionally build and test (ice-9 popen)
+***  n/a  - test-suite, deleting files whose ports are not closed
+***  n/a  - make 'system*' available on MS-Windows.
+***  n/a  - test-suite, deletion of ports.test on MS-Windows
+***  n/a  - compile scm_nl_langinfo 'with' nl_langinfo missing items
+***  n/a  - test-suite, lack-of-/dev/null detection improved
+***  n/a  - test-suite, i18n tests adjusted for MS-Windows
+***  n/a  - test-suite, i18n, ignore LC_MESSAGES on MinGW
+***  n/a  - test-suite, Use NUL instead of /dev/null on MinGW
+*** 17147 - avoid quadratic expansion time in 'and' and 'or' macros
+*** 17296 - SRFI-1 length+ none proper or circular list error
+*** 17661 - system async functions marked as SCM_API
+*** 17466 - shrinking of contiguous bytevectors
+*** 15368 - 'open-socket-for-uri' should not call 'setsockopt'
+
+** Documentation
+
+The following documentation nodes, in alphabetical order, have been
+reviewed or added:
+
+*** (API Reference)
+*** (Accessing Modules from C)
+*** (Block Comments)
+*** (Bytevectors as Strings)
+*** (Catch)
+*** (Conservative GC)
+*** (Dynamic FFI)
+*** (Environment Variables)
+*** (Equality)
+*** (Foreign Objects)
+*** (Function Snarfing)
+*** (Garbage Collecting Smobs)
+*** (Garbage Collection Functions)
+*** (How guile***snarf works)
+*** (Http Headers)
+*** (Memory Blocks)
+*** (Object Properties)
+*** (Parallel Installations)
+*** (Ports and File Descriptors)
+*** (Pretty Printing)
+*** (Processes)
+*** (R6RS Libraries)
+*** (Random Access)
+*** (SRFI-25)				[ New node ]
+*** (SRFI-28)				[ New node ]
+*** (SRFI-43)
+*** (SRFI-9)
+*** (SXML)
+*** (SXPath)
+*** (Signals)
+*** (Smobs)
+*** (Statprof)
+*** (String Syntax)
+*** (Syntax Case)
+*** (Tree-IL)
+*** (Using Guile Modules)
 
 
 Changes in 2.0.11 (since 2.0.10):
