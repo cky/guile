@@ -122,7 +122,7 @@ SCM_FROM_TYPE_PROTO (TYPE val)
     return scm_i_long2big (val);
   else
     {
-      SCM z = scm_double_cell (scm_tc16_big, 0, 0, 0);
+      SCM z = make_bignum ();
       mpz_init (SCM_I_BIG_MPZ (z));
       if (val < 0)
 	{
