@@ -418,8 +418,8 @@ scm_i_print_bytevector (SCM bv, SCM port, scm_print_state *pstate SCM_UNUSED)
 
 /* General operations.  */
 
-SCM_SYMBOL (scm_sym_big, "big");
-SCM_SYMBOL (scm_sym_little, "little");
+static SCM sym_big;
+static SCM sym_little;
 
 SCM scm_endianness_big, scm_endianness_little;
 
@@ -799,13 +799,13 @@ bytevector_large_ref (const char *c_bv, size_t c_size, int signed_p,
 
   if (signed_p)
     {
-      if (scm_is_eq (endianness, scm_sym_big))
+      if (scm_is_eq (endianness, sym_big))
 	negative_p = c_bv[0] & 0x80;
       else
 	negative_p = c_bv[c_size - 1] & 0x80;
     }
 
-  c_endianness = scm_is_eq (endianness, scm_sym_big) ? 1 : -1;
+  c_endianness = scm_is_eq (endianness, sym_big) ? 1 : -1;
 
   mpz_init (c_mpz);
   mpz_import (c_mpz, 1 /* 1 word */, 1 /* word order doesn't matter */,
@@ -832,7 +832,7 @@ bytevector_large_set (char *c_bv, size_t c_size, int signed_p,
   mpz_t c_mpz;
   int c_endianness, c_sign, err = 0;
 
-  c_endianness = scm_is_eq (endianness, scm_sym_big) ? 1 : -1;
+  c_endianness = scm_is_eq (endianness, sym_big) ? 1 : -1;
 
   mpz_init (c_mpz);
   scm_to_mpz (value, c_mpz);
@@ -1864,9 +1864,9 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
 		       ? "32"
 		       : "??"))));
   strcat (name,
-	  ((scm_is_eq (endianness, scm_sym_big))
+	  ((scm_is_eq (endianness, sym_big))
 	   ? "BE"
-	   : ((scm_is_eq (endianness, scm_sym_little))
+	   : ((scm_is_eq (endianness, sym_little))
 	      ? "LE"
 	      : "unknown")));
 }
@@ -1884,7 +1884,7 @@ utf_encoding_name (char *name, size_t utf_width, SCM endianness)
                                                                         \
   SCM_VALIDATE_STRING (1, str);                                         \
   if (scm_is_eq (endianness, SCM_UNDEFINED))                            \
-    endianness = scm_sym_big;                                           \
+    endianness = sym_big;                                           \
   else                                                                  \
     SCM_VALIDATE_SYMBOL (2, endianness);                                \
                                                                         \
@@ -2001,7 +2001,7 @@ SCM_DEFINE (scm_string_to_utf32, "string->utf32",
 									\
   SCM_VALIDATE_BYTEVECTOR (1, utf);					\
   if (scm_is_eq (endianness, SCM_UNDEFINED))                            \
-    endianness = scm_sym_big;						\
+    endianness = sym_big;						\
   else									\
     SCM_VALIDATE_SYMBOL (2, endianness);				\
 									\
@@ -2266,13 +2266,13 @@ scm_bootstrap_bytevectors (void)
       (scm_i_array_element_types[SCM_ARRAY_ELEMENT_TYPE_VU8],
        scm_make_bytevector);
   }
+
+  scm_endianness_big = sym_big = scm_from_latin1_symbol ("big");
+  scm_endianness_little = sym_little = scm_from_latin1_symbol ("little");
 }
 
 void
 scm_init_bytevectors (void)
 {
 #include "libguile/bytevectors.x"
-
-  scm_endianness_big = scm_sym_big;
-  scm_endianness_little = scm_sym_little;
 }
