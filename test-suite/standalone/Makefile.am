@@ -275,4 +275,10 @@ test_smob_mark_LDADD = $(LIBGUILE_LDADD)
 check_PROGRAMS += test-smob-mark
 TESTS += test-smob-mark
 
+test_smob_mark_race_SOURCES = test-smob-mark-race.c
+test_smob_mark_race_CFLAGS = ${test_cflags}
+test_smob_mark_race_LDADD = $(LIBGUILE_LDADD)
+check_PROGRAMS += test-smob-mark-race
+TESTS += test-smob-mark-race
+
 EXTRA_DIST += ${check_SCRIPTS}

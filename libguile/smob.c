@@ -374,20 +374,43 @@ scm_gc_mark (SCM o)
 }
 
 
+static void*
+clear_smobnum (void *ptr)
+{
+  SCM smob;
+  scm_t_bits smobnum;
+
+  smob = PTR2SCM (ptr);
+
+  smobnum = SCM_SMOBNUM (smob);
+  /* Frob the object's type in place, re-setting it to be the "finalized
+     smob" type.  This will prevent other routines from accessing its
+     internals in a way that assumes that the smob data is valid.  This
+     is notably the case for SMOB's own "mark" procedure, if any; as the
+     finalizer runs without the alloc lock, it's possible for a GC to
+     occur while it's running, in which case the object is alive and yet
+     its data is invalid.  */
+  SCM_SET_SMOB_DATA_0 (smob, SCM_SMOB_DATA_0 (smob) & ~(scm_t_bits) 0xff00);
+
+  return (void *) smobnum;
+}
+
 /* Finalize SMOB by calling its SMOB type's free function, if any.  */
 static void
 finalize_smob (void *ptr, void *data)
 {
   SCM smob;
+  scm_t_bits smobnum;
   size_t (* free_smob) (SCM);
 
   smob = PTR2SCM (ptr);
+  smobnum = (scm_t_bits) GC_call_with_alloc_lock (clear_smobnum, ptr);
+
 #if 0
-  printf ("finalizing SMOB %p (smobnum: %u)\n",
-	  ptr, SCM_SMOBNUM (smob));
+  printf ("finalizing SMOB %p (smobnum: %u)\n", ptr, smobnum);
 #endif
 
-  free_smob = scm_smobs[SCM_SMOBNUM (smob)].free;
+  free_smob = scm_smobs[smobnum].free;
   if (free_smob)
     free_smob (smob);
 }
@@ -470,6 +493,7 @@ void
 scm_smob_prehistory ()
 {
   long i;
+  scm_t_bits finalized_smob_tc16;
 
   scm_i_pthread_key_create (&current_mark_stack_pointer, NULL);
   scm_i_pthread_key_create (&current_mark_stack_limit, NULL);
@@ -493,6 +517,9 @@ scm_smob_prehistory ()
       scm_smobs[i].apply      = 0;
       scm_smobs[i].apply_trampoline_objcode = SCM_BOOL_F;
     }
+
+  finalized_smob_tc16 = scm_make_smob_type ("finalized smob", 0);
+  if (SCM_TC2SMOBNUM (finalized_smob_tc16) != 0) abort ();
 }
 
 /*
