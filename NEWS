@@ -148,6 +148,7 @@ More ARM cross-compilation targets are supported: "arm.*eb",
     (<http://bugs.gnu.org/19883>)
 
 ** Ports
+*** Setting GUILE_INSTALL_LOCALE=1 sets port default charset from locale
 *** Fix port position handling on binary input ports
     (<http://bugs.gnu.org/20302>)
 *** Bytevector and custom binary ports to use ISO-8859-1

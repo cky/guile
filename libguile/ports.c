@@ -2911,6 +2911,9 @@ scm_init_ports ()
                     scm_make_fluid_with_default (SCM_BOOL_F));
   scm_port_encoding_init = 1;
 
+  /* Use the locale as the default port encoding.  */
+  scm_i_set_default_port_encoding (locale_charset ());
+
   SCM_VARIABLE_SET (default_conversion_strategy_var,
                     scm_make_fluid_with_default (sym_substitute));
   scm_conversion_strategy_init = 1;
