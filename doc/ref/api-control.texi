@@ -581,10 +581,8 @@ important efficiency consideration to keep in mind.
 One example where this optimization matters is @dfn{escape
 continuations}.  Escape continuations are delimited continuations whose
 only use is to make a non-local exit---i.e., to escape from the current
-continuation.  Such continuations are invoked only once, and for this
-reason they are sometimes called @dfn{one-shot continuations}.  A common
-use of escape continuations is when throwing an exception
-(@pxref{Exceptions}).
+continuation.  A common use of escape continuations is when throwing an
+exception (@pxref{Exceptions}).
 
 The constructs below are syntactic sugar atop prompts to simplify the
 use of escape continuations.
