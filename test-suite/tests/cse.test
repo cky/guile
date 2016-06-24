@@ -294,6 +294,15 @@
      (apply (primitive cons) (const 1) (const 2) (const 3))
      (const 4)))
 
+  ;; The (list 'a) does not propagate.
+  (pass-if-cse
+   (let* ((x (list 'a))
+          (y (list 'a)))
+     (list x y))
+   (let (x) (_) ((apply (primitive list) (const a)))
+        (let (y) (_) ((apply (primitive list) (const a)))
+             (apply (primitive list) (lexical x _) (lexical y _)))))
+
   (pass-if "http://bugs.gnu.org/12883"
     ;; In 2.0.6, compiling this code would trigger an out-of-bounds
     ;; vlist access in CSE's traversal of its "database".
