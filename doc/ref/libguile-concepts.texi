@@ -203,22 +203,38 @@ set'' of garbage collection; any value on the heap that is referenced
 directly or indirectly by a member of the root set is preserved, and all
 other objects are eligible for reclamation.
 
-The Scheme stack and heap are scanned precisely; that is to say, Guile
-knows about all inter-object pointers on the Scheme stack and heap.
-This is not the case, unfortunately, for pointers on the C stack and
-static data segment.  For this reason we have to scan the C stack and
-static data segment @dfn{conservatively}; any value that looks like a
-pointer to a GC-managed object is treated as such, whether it actually
-is a reference or not.  Thus, scanning the C stack and static data
-segment is guaranteed to find all actual references, but it might also
-find words that only accidentally look like references.  These ``false
-positives'' might keep @code{SCM} objects alive that would otherwise be
-considered dead.  While this might waste memory, keeping an object
-around longer than it strictly needs to is harmless.  This is why this
-technique is called ``conservative garbage collection''.  In practice,
-the wasted memory seems to be no problem, as the static C root set is
-almost always finite and small, given that the Scheme stack is separate
-from the C stack.
+In Guile, garbage collection has two logical phases: the @dfn{mark
+phase}, in which the collector discovers the set of all live objects,
+and the @dfn{sweep phase}, in which the collector reclaims the resources
+associated with dead objects.  The mark phase pauses the program and
+traces all @code{SCM} object references, starting with the root set.
+The sweep phase actually runs concurrently with the main program,
+incrementally reclaiming memory as needed by allocation.
+
+In the mark phase, the garbage collector traces the Scheme stack and
+heap @dfn{precisely}.  Because the Scheme stack and heap are managed by
+Guile, Guile can know precisely where in those data structures it might
+find references to other heap objects.  This is not the case,
+unfortunately, for pointers on the C stack and static data segment.
+Instead of requiring the user to inform Guile about all variables in C
+that might point to heap objects, Guile traces the C stack and static
+data segment @dfn{conservatively}.  That is to say, Guile just treats
+every word on the C stack and every C global variable as a potential
+reference in to the Scheme heap@footnote{Note that Guile does not scan
+the C heap for references, so a reference to a @code{SCM} object from a
+memory segment allocated with @code{malloc} will have to use some other
+means to keep the @code{SCM} object alive.  @xref{Garbage Collection
+Functions}.}.  Any value that looks like a pointer to a GC-managed
+object is treated as such, whether it actually is a reference or not.
+Thus, scanning the C stack and static data segment is guaranteed to find
+all actual references, but it might also find words that only
+accidentally look like references.  These ``false positives'' might keep
+@code{SCM} objects alive that would otherwise be considered dead.  While
+this might waste memory, keeping an object around longer than it
+strictly needs to is harmless.  This is why this technique is called
+``conservative garbage collection''.  In practice, the wasted memory
+seems to be no problem, as the static C root set is almost always finite
+and small, given that the Scheme stack is separate from the C stack.
 
 The stack of every thread is scanned in this way and the registers of
 the CPU and all other memory locations where local variables or function

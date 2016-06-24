@@ -27,9 +27,10 @@ collection relates to using Guile from C.
 
 @deffn {Scheme Procedure} gc
 @deffnx {C Function} scm_gc ()
-Scans all of SCM objects and reclaims for further use those that are
-no longer accessible.  You normally don't need to call this function
-explicitly.  It is called automatically when appropriate.
+Finds all of the ``live'' @code{SCM} objects and reclaims for further
+use those that are no longer accessible.  You normally don't need to
+call this function explicitly.  Its functionality is invoked
+automatically as needed.
 @end deffn
 
 @deftypefn {C Function} SCM scm_gc_protect_object (SCM @var{obj})
@@ -43,8 +44,9 @@ than it has been protected. Returns the SCM object it was passed.
 
 Note that storing @var{obj} in a C global variable has the same
 effect@footnote{In Guile up to version 1.8, C global variables were not
-scanned by the garbage collector; hence, @code{scm_gc_protect_object}
-was the only way in C to prevent a Scheme object from being freed.}.
+visited by the garbage collector in the mark phase; hence,
+@code{scm_gc_protect_object} was the only way in C to prevent a Scheme
+object from being freed.}.
 @end deftypefn
 
 @deftypefn {C Function} SCM scm_gc_unprotect_object (SCM @var{obj})
@@ -123,16 +125,18 @@ live reference to it@footnote{In Guile up to version 1.8, memory
 allocated with @code{scm_gc_malloc} @emph{had} to be freed with
 @code{scm_gc_free}.}.
 
-Memory allocated with @code{scm_gc_malloc} is scanned for live pointers.
-This means that if @code{scm_gc_malloc}-allocated memory contains a
-pointer to some other part of the memory, the garbage collector notices
-it and prevents it from being reclaimed@footnote{In Guile up to 1.8,
-memory allocated with @code{scm_gc_malloc} was @emph{not} scanned.
-Consequently, the GC had to be told explicitly about pointers to live
-objects contained in the memory block, e.g., @i{via} SMOB mark functions
-(@pxref{Smobs, @code{scm_set_smob_mark}})}.  Conversely, memory
-allocated with @code{scm_gc_malloc_pointerless} is assumed to be
-``pointer-less'' and is not scanned.
+When garbage collection occurs, Guile will visit the words in memory
+allocated with @code{scm_gc_malloc}, looking for live pointers.  This
+means that if @code{scm_gc_malloc}-allocated memory contains a pointer
+to some other part of the memory, the garbage collector notices it and
+prevents it from being reclaimed@footnote{In Guile up to 1.8, memory
+allocated with @code{scm_gc_malloc} was @emph{not} visited by the
+collector in the mark phase.  Consequently, the GC had to be told
+explicitly about pointers to live objects contained in the memory block,
+e.g., @i{via} SMOB mark functions (@pxref{Smobs,
+@code{scm_set_smob_mark}})}.  Conversely, memory allocated with
+@code{scm_gc_malloc_pointerless} is assumed to be ``pointer-less'' and
+is not scanned for pointers.
 
 For memory that is not associated with a Scheme object, you can use
 @code{scm_malloc} instead of @code{malloc}.  Like
@@ -193,9 +197,11 @@ Allocate @var{size} bytes of automatically-managed memory.  The memory
 is automatically freed when no longer referenced from any live memory
 block.
 
-Memory allocated with @code{scm_gc_malloc} or @code{scm_gc_calloc} is
-scanned for pointers.  Memory allocated by
-@code{scm_gc_malloc_pointerless} is not scanned.
+When garbage collection occurs, Guile will visit the words in memory
+allocated with @code{scm_gc_malloc} or @code{scm_gc_calloc}, looking for
+pointers to other memory allocations that are managed by the GC.  In
+contrast, memory allocated by @code{scm_gc_malloc_pointerless} is not
+scanned for pointers.
 
 The @code{scm_gc_realloc} call preserves the ``pointerlessness'' of the
 memory area pointed to by @var{mem}.  Note that you need to pass the old
