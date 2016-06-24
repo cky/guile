@@ -1335,7 +1335,7 @@ SCM_DEFINE (scm_locale_string_to_integer, "locale-string->integer",
 
   if (c_locale != NULL)
     {
-#if defined(USE_GNU_LOCALE_API) && defined(HAVE_STRTOL_L)
+#if defined USE_GNU_LOCALE_API && defined HAVE_STRTOL_L
       c_result = strtol_l (c_str, &c_endptr, c_base, c_locale);
 #else
       RUN_IN_LOCALE_SECTION (c_locale,
@@ -1379,7 +1379,7 @@ SCM_DEFINE (scm_locale_string_to_inexact, "locale-string->inexact",
 
   if (c_locale != NULL)
     {
-#ifdef USE_GNU_LOCALE_API
+#if defined USE_GNU_LOCALE_API && defined HAVE_STRTOD_L
       c_result = strtod_l (c_str, &c_endptr, c_locale);
 #else
       RUN_IN_LOCALE_SECTION (c_locale,

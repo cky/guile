@@ -766,7 +766,7 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
   strdup system usleep atexit on_exit chown link fcntl ttyname getpwent	\
   getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp	\
   index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron	\
-  strcoll strcoll_l strtol_l newlocale uselocale utimensat		\
+  strcoll strcoll_l strtod_l strtol_l newlocale uselocale utimensat	\
   sched_getaffinity sched_setaffinity sendfile])
 
 # Reasons for testing:
