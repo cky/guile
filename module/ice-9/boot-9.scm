@@ -39,6 +39,11 @@
 (eval-when (compile)
   (set-current-module (resolve-module '(guile))))
 
+;; Prevent this file being loaded more than once in a session.  Just
+;; doesn't make sense!
+(if (current-module)
+    (error "re-loading ice-9/boot-9.scm not allowed"))
+
 
 
 ;;; {Error handling}
