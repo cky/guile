@@ -109,8 +109,10 @@ static SIGRETTYPE (*orig_handlers[NSIG])(int);
 static SCM
 close_1 (SCM proc, SCM arg)
 {
-  return scm_primitive_eval_x (scm_list_3 (scm_sym_lambda, SCM_EOL,
-					   scm_list_2 (proc, arg)));
+  /* Eval in the root module so that `lambda' has its usual meaning.  */
+  return scm_eval (scm_list_3 (scm_sym_lambda, SCM_EOL,
+                               scm_list_2 (proc, arg)),
+                   scm_the_root_module ());
 }
 
 #if SCM_USE_PTHREAD_THREADS
