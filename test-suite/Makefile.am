@@ -171,6 +171,7 @@ SCM_TESTS = tests/00-initial-env.test		\
 	    tests/syntax.test			\
 	    tests/texinfo.test			\
 	    tests/texinfo.docbook.test		\
+	    tests/texinfo.html.test		\
 	    tests/texinfo.serialize.test	\
 	    tests/texinfo.string-utils.test	\
 	    tests/threads.test			\
