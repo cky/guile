@@ -479,7 +479,15 @@ top-level bindings from ENV and return the resulting expression."
         (lambda ()
           (call-with-values
               (lambda ()
-                (apply (module-ref the-scm-module name) args))
+                (case name
+                  ((eq? eqv?)
+                   ;; Constants will be deduplicated later, but eq?
+                   ;; folding can happen now.  Anticipate the
+                   ;; deduplication by using equal? instead of eq?.
+                   ;; Same for eqv?.
+                   (apply equal? args))
+                  (else
+                   (apply (module-ref the-scm-module name) args))))
             (lambda results
               (values #t results))))
         (lambda _

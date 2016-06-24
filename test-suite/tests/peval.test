@@ -1321,4 +1321,12 @@
           (if (apply (primitive pair?) (toplevel arg))
               (set! (lexical l _) (toplevel arg))
               (void))
-          (apply (primitive @apply) (toplevel f) (lexical l _))))))
+          (apply (primitive @apply) (toplevel f) (lexical l _)))))
+
+  (pass-if-peval
+      (eq? '(a b) '(a b))
+    (const #t))
+
+  (pass-if-peval
+      (eqv? '(a b) '(a b))
+    (const #t)))
