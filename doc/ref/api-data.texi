@@ -5871,7 +5871,7 @@ objects print using this syntax as well, so values containing keyword
 objects can be read back into Guile.  When used in an expression,
 keywords are self-quoting objects.
 
-If the @code{keyword} read option is set to @code{'prefix}, Guile also
+If the @code{keywords} read option is set to @code{'prefix}, Guile also
 recognizes the alternative read syntax @code{:NAME}.  Otherwise, tokens
 of the form @code{:NAME} are read as symbols, as required by R5RS.
 
