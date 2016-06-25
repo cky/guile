@@ -7,6 +7,12 @@
 @node getopt-long
 @section The (ice-9 getopt-long) Module
 
+The @code{(ice-9 getopt-long)} facility is designed to help parse
+arguments that are passed to Guile programs on the command line, and is
+modelled after the C library's facility of the same name
+(@pxref{Getopt,,,libc,The GNU C Library Reference Manual}).  For a more
+low-level interface to command-line argument parsing, @xref{SRFI-37}.
+
 The @code{(ice-9 getopt-long)} module exports two procedures:
 @code{getopt-long} and @code{option-ref}.
 
