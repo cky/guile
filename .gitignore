@@ -142,6 +142,7 @@ INSTALL
 /test-suite/standalone/test-scm-spawn-thread
 /test-suite/standalone/test-pthread-create
 /test-suite/standalone/test-pthread-create-secondary
+/test-suite/standalone/test-smob-mark-race
 /lib/fcntl.h
 /lib/sys/uio.h
 /lib/stdalign.h
