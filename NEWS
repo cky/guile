@@ -4,16 +4,12 @@ See the end for copying conditions.
 
 Please send Guile bug reports to bug-guile@gnu.org.
 
-* Changes in 2.0.12 (since 2.0.11):
+
+Changes in 2.0.12 (since 2.0.11):
 
-** Notable changes
+* Notable changes
 
-*** Dependencies
-
-Guile 2.0.12 needs libunistring >= 0.9.3
-This check is now part of the configure step.
-
-*** Goops
+** GOOPS
 
 Two major changes have been made:
 
@@ -32,187 +28,148 @@ http://thread.gmane.org/gmane.lisp.guile.user/11218/focus=11813 for some
 details.
 ENDFIXME
 
-*** FFI: Add support for functions that set 'errno'
+** FFI: Add support for functions that set 'errno'
 
 When accessing POSIX functions from a system's libc via Guile's dynamic
-FFI, you commonly want to access the ‘errno’ variable to be able to
+FFI, you commonly want to access the 'errno' variable to be able to
 produce useful diagnostic messages.
 
-This is now possible, check the Guile's dynamic FFI documentation for
-the details, in paticular the following entries have been updated
-accordingly: pointer->procedure, scm_pointer_to_procedure and
-scm_pointer_to_procedure_with_errno.
+This is now possible using 'pointer->procedure' or
+'scm_pointer_to_procedure_with_errno'.  See "Dynamic FFI" in the manual.
 
-*** Add SRFI-25 implementation
-    
-Adds an implementation of SRFI 25 on top of Guile's native arrays. The
-implementation does not introduce a disjoint type; Guile arrays and
-SRFI-25 arrays can be used interchangably, though with different, partly
-conflicting APIs.
-
-*** Add SRFI-28 implementation
-
-Adds an implementation of SRFI 28 Basic Format Strings.
-
-*** The #!r6rs directive now influences read syntax
+** The #!r6rs directive now influences read syntax
 
 The #!r6rs directive now changes the per-port reader options to make
-Guile's reader conform more closely to the R6RS syntax. In particular:
+Guile's reader conform more closely to the R6RS syntax.  In particular:
 
-- It makes the reader case sensitive.
-- It disables the recognition of keyword syntax in conflict with the
-  R6RS (and R5RS).
-- It enables the `square-brackets', `hungry-eol-escapes' and
-  `r6rs-hex-escapes' reader options.
+  - It makes the reader case sensitive.
+  - It disables the recognition of keyword syntax in conflict with the
+    R6RS (and R5RS).
+  - It enables the `square-brackets', `hungry-eol-escapes' and
+    `r6rs-hex-escapes' reader options.
 
-*** SRFI-14 character data set
+** 'read' now accepts "\(" as equivalent to "("
 
-SRFI-14 character data set has been regenerated for Unicode 8.0.0.
+This is indented for use at the beginning of lines in multi-line strings
+to avoid confusing Emacs' lisp modes.  Previously "\(" was an error.
 
-*** Web modules
+** SRFI-14 character data set upgraded to Unicode 8.0.0
 
-The (web server) module now exports 'server-impl' procedures, (web server
-http) exports the 'http' server implementation.
+** SRFI-19 table of leap seconds updated
 
-Also, http location header accepts URI-reference, not just absoluteURIs.
+** 'string-hash', 'read-string', and 'write' have been optimized
 
-*** Strings
+* New interfaces
 
-The following 2 new procedures have been added: 'string-utf8-length' and
-'scm_c_string_utf8_length'.
+** New SRFI-28 string formatting implementation
 
-'string-hash' has been optimized: this yields a 50% improvement on the
-"narrow string" benchmark of 'hash.bm', 41% on "wide string", and 76% on
-"long string".
+** New (ice-9 unicode) module
 
-'write' has been optimized: this shows a 19% improvement on the "string
-without escapes" micro-benchmark of 'write.bm', and 12% on "string with
-escapes".
+See "Characters" in the manual.
 
-'read-string' speed up: this yields a 20% improvement on the
-"read-string" benchmark.
+** Web server
 
-'scm_string_hash' has been deprecated.
+The (web server) module now exports 'make-server-impl', 'server-impl?',
+and related procedures.  Likewise, (web server http) exports 'http'.
 
-'scm_read_string_like_syntax' now accept "\(" as equivalent to "(".
+** New procedures: 'string-utf8-length' and 'scm_c_string_utf8_length'
 
-*** Libguile
+** New 'EXIT_SUCCESS' and 'EXIT_FAILURE' Scheme variables
 
-Tow new macros have been added: 'SCM_VALIDATE_SIZE_COPY' and
-SCM_NUM2SIZE.
+** New C macro 'SCM_VALIDATE_SIZE_COPY'
 
-*** New Module
+** New C functions to disable automatic SMOB finalization
 
-Add (ice-9 unicode) module.
+The new 'scm_set_automatic_finalization_enabled' C function allows you
+to choose whether automatic object finalization should be enabled (as
+was the case until now, and still is by default.)  This is meant for
+applications that are not thread-safe nor async-safe; such applications
+can disable automatic finalization and call the new 'scm_run_finalizers'
+function when appropriate.
 
-*** SMOBs
+See the "Garbage Collecting Smobs" and "Smobs" sections in the manual.
 
-Functionalities have been added to disable automatic finalization: see
-the (Smobs) documentation node for the details and new functions.
+** Cross-compilation to ARM
 
-*** Posix
+More ARM cross-compilation targets are supported: "arm.*eb",
+"^aarch64.*be", and "aarch64".
 
-'EXIT_SUCCESS' and 'EXIT_FAILURE' added and documented.
+* New deprecation
 
-*** Architectures
+** The undocumented and unused C function 'scm_string_hash' is now deprecated
 
-The following ARM target have been added: "arm.*eb", "^aarch64.*be", and
-"aarch64".
+* Bugs fixed
 
-** Fixed Bugs
-
-The following bugs and/or 'misbehavior' have been fixed:
-
-*** 17399 - detect too-old libunistring at configure-time
-***  n/a  - SRFI-2 (and-let*) has been re-implementated
-***  n/a  - size measurement in bytevector_large_set
-***  n/a  - uri-decode behavior for "+"
-*** 18477 - use source file permissions for compiled files
-*** 14347 - call-with-prompt continuation, returned value(s)
-*** 22406 - sizeof (long) support for LLP64 data model
-*** 22152 - fat_mutex, fat_mutex_unlock
-*** 23421 - http, date strings with a leading space for hours
-***  n/a  - SRFI-19, update the table of leap seconds
-*** 22273 - http, Accept empty reason phrases
-***  n/a  - get[set]sockopt now have their arg of type 'int'
-*** 20302 - seeking on binary input ports with putback buffers
-***  n/a  - web, use 'close-port' for delimited input ports
-***  n/a  - match-each+, non-pair syntax object in a dotted tail
-***  n/a  - atan procedure when applied to complex numbers
-*** 20200 - bytevector and custom binary ports to use ISO-8859-1
-*** 19646 - handle ENOSYS return for 'setaffinity'
-*** 19939 - http, do not buffer HTTP chunks
-*** 19621 - buffer overrun with unbuffered custom binary input ports
-*** 18988 - 'select' signal interruptions clarification
-*** 19027 - bytevector-fill! to accept fill arguments greater than 127
-*** 18866 - bytevector-copy and SRFI-4 homogeneous numeric vectors
-*** 18898 - avoid bash-specific '==' in guile.m4
-*** 18065 - strerror error handling when given a non-integer argument
-*** 18680 - scm_boot_guile now handles gracefully argc == 0
-*** 17634 - peval, handle optional arg inits that refer to previous args
-*** 18470 - autogen.sh invoke 'libtoolize', not 'libtool'
-*** 18495 - SCM_SMOB_OBJECT_LOC macro definition
-***  n/a  - SRFI-43 vector-concatenate error message
-*** 18299 - handle ~p in 'format' warnings
-***  n/a  - bit-count*, scm_bit_count_star miss used 1 and 2 args
-***  n/a  - handle Windows file names that use backslashes
-***  n/a  - CPU set size proper calculation for getaffinity
-***  n/a  - unconditionally build and test (ice-9 popen)
-***  n/a  - test-suite, deleting files whose ports are not closed
-***  n/a  - make 'system*' available on MS-Windows.
-***  n/a  - test-suite, deletion of ports.test on MS-Windows
-***  n/a  - compile scm_nl_langinfo 'with' nl_langinfo missing items
-***  n/a  - test-suite, lack-of-/dev/null detection improved
-***  n/a  - test-suite, i18n tests adjusted for MS-Windows
-***  n/a  - test-suite, i18n, ignore LC_MESSAGES on MinGW
-***  n/a  - test-suite, Use NUL instead of /dev/null on MinGW
-*** 17147 - avoid quadratic expansion time in 'and' and 'or' macros
-*** 17296 - SRFI-1 length+ none proper or circular list error
-*** 17661 - system async functions marked as SCM_API
-*** 17466 - shrinking of contiguous bytevectors
-*** 15368 - 'open-socket-for-uri' should not call 'setsockopt'
-
-** Documentation
-
-The following documentation nodes, in alphabetical order, have been
-reviewed or added:
-
-*** (API Reference)
-*** (Accessing Modules from C)
-*** (Block Comments)
-*** (Bytevectors as Strings)
-*** (Catch)
-*** (Conservative GC)
-*** (Dynamic FFI)
-*** (Environment Variables)
-*** (Equality)
-*** (Foreign Objects)
-*** (Function Snarfing)
-*** (Garbage Collecting Smobs)
-*** (Garbage Collection Functions)
-*** (How guile***snarf works)
-*** (Http Headers)
-*** (Memory Blocks)
-*** (Object Properties)
-*** (Parallel Installations)
-*** (Ports and File Descriptors)
-*** (Pretty Printing)
-*** (Processes)
-*** (R6RS Libraries)
-*** (Random Access)
-*** (SRFI-25)				[ New node ]
-*** (SRFI-28)				[ New node ]
-*** (SRFI-43)
-*** (SRFI-9)
-*** (SXML)
-*** (SXPath)
-*** (Signals)
-*** (Smobs)
-*** (Statprof)
-*** (String Syntax)
-*** (Syntax Case)
-*** (Tree-IL)
-*** (Using Guile Modules)
+*** detect too-old libunistring at configure time (<http://bugs.gnu.org/17399>)
+*** use source file permissions for compiled files
+    (<http://bugs.gnu.org/18477>)
+*** 'call-with-prompt' does not truncate multiple-value returns
+    (<http://bugs.gnu.org/14347>)
+*** sizeof (long) support for LLP64 data model (<http://bugs.gnu.org/22406>)
+*** fix 'fat_mutex_unlock' (<http://bugs.gnu.org/22152>)
+*** 'uri-decode' no longer decodes "+" to space
+*** http: accept date strings with a leading space for hours
+    (<http://bugs.gnu.org/23421>)
+*** http: accept empty reason phrases (<http://bugs.gnu.org/22273>)
+*** http: 'Location' header can now contain URI references, not just
+    absolute URIs
+*** http: do not buffer HTTP chunks (<http://bugs.gnu.org/19939>)
+*** http: 'open-socket-for-uri' now sets better OS buffering parameters
+    (<http://bugs.gnu.org/15368>)
+*** http: use 'close-port' for delimited input ports
+*** texinfo: fix HTML output for @itemize and @acronym
+    (<http://bugs.gnu.org/21772>)
+*** {get,set}sockopt now expect type 'int' for SO_SNDBUF/SO_RCVBUF
+*** fix port position handling on binary input ports
+    (<http://bugs.gnu.org/20302>)
+*** match-each+, non-pair syntax object in a dotted tail
+*** 'atan' procedure when applied to complex numbers
+*** bytevector and custom binary ports to use ISO-8859-1
+    (<http://bugs.gnu.org/20200>)
+*** avoid test failure when 'setaffinity' returns ENOSYS
+    (<http://bugs.gnu.org/19646>)
+*** fix buffer overrun with unbuffered custom binary input ports
+    (<http://bugs.gnu.org/19621>)
+*** fix memory corruption that arose when using 'get-bytevector-n'
+    (<http://bugs.gnu.org/17466>)
+*** 'select' signal interruptions clarification (<http://bugs.gnu.org/18988>)
+*** 'bytevector-fill!' accepts fill arguments greater than 127
+    (<http://bugs.gnu.org/19027>)
+*** 'bytevector-copy' correctly copies SRFI-4 homogeneous vectors
+    (<http://bugs.gnu.org/18866>)
+*** avoid bash-specific '==' in guile.m4 (<http://bugs.gnu.org/18898>)
+*** 'strerror' no longer hangs when passed a non-integer argument
+    (<http://bugs.gnu.org/18065>)
+*** 'scm_boot_guile' now gracefully handles argc == 0
+    (<http://bugs.gnu.org/18680>)
+*** optional arg inits that refer to previous args are now correctly handled
+    (<http://bugs.gnu.org/17634>)
+*** autogen.sh invokes 'libtoolize', not 'libtool'
+    (<http://bugs.gnu.org/18470>)
+*** fix 'SCM_SMOB_OBJECT_LOC' definition (<http://bugs.gnu.org/18495>)
+*** SRFI-43 vector-concatenate error message
+*** handle ~p in 'format' warnings (<http://bugs.gnu.org/18299>)
+*** fix long-standing bug argument mismatch in 'bit-count*'
+*** handle Windows file names that contain backslashes
+*** CPU set size proper calculation for getaffinity
+*** unconditionally build and test (ice-9 popen)
+*** make 'system*' available on MS-Windows.
+*** portability fixes for 'nl_langinfo'
+*** test-suite, lack-of-/dev/null detection improved
+*** test-suite, i18n tests adjusted for MS-Windows
+*** test-suite, i18n, ignore LC_MESSAGES on MinGW
+*** test-suite, Use NUL instead of /dev/null on MinGW
+*** avoid quadratic expansion time in 'and' and 'or' macros
+    (<http://bugs.gnu.org/17147>)
+*** SRFI-1 'length+' raises an error for non-lists and dotted lists
+    (<http://bugs.gnu.org/17296>)
+*** system async functions marked as 'SCM_API'
+    (<http://bugs.gnu.org/17661>)
+*** fix race between SMOB marking and finalization
+    (<http://bugs.gnu.org/19883>)
+*** remove unused i18n functions (<http://bugs.gnu.org/19172>)
+*** fix 'mkstemp'-related build error on Windows (<http://bugs.gnu.org/21425>)
+*** document SXPath (<http://bugs.gnu.org/19478>)
 
 
 Changes in 2.0.11 (since 2.0.10):
