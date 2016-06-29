@@ -9,25 +9,6 @@ Changes in 2.0.12 (since 2.0.11):
 
 * Notable changes
 
-** GOOPS
-
-Two major changes have been made:
-
-1- #:init-value on class-allocated slots: allocating an instance of a
-class with a #:class or #:each-subclass slot allocation should not
-re-initialize the class-allocated slot.
-
-2- accessor methods only apply to subclasses with their slot
-
-FIXME
-(a) let users know that it will break Goops user code relying on
-previsouly inherited getters, setters and accessors ... (b) why this: so
-that Guile 2.x.x behave like guile-1.8 wrt Goops. But the full picture
-is rather strange, and will be (re)fixed soon, see this discussion
-http://thread.gmane.org/gmane.lisp.guile.user/11218/focus=11813 for some
-details.
-ENDFIXME
-
 ** FFI: Add support for functions that set 'errno'
 
 When accessing POSIX functions from a system's libc via Guile's dynamic
@@ -59,9 +40,49 @@ to avoid confusing Emacs' lisp modes.  Previously "\(" was an error.
 
 ** 'string-hash', 'read-string', and 'write' have been optimized
 
+** GOOPS bug fix for inherited accessor methods
+
+In the port of GOOPS to Guile 2.0, we introduced a bug related to
+accessor methods.  The bug resulted in GOOPS assuming that a slot S in
+an object whose class is C would always be present in instances of all
+subclasses C, and allocated to the same struct index.  This is not the
+case for multiple inheritance.  This behavior has been fixed to be as it
+was in 1.8.
+
+One aspect of this change may cause confusion among users.  Previously
+if you defined a class C:
+
+  (use-modules (oop goops))
+  (define-class C ()
+    (a #:getter get-a))
+
+And now you define a subclass, intending to provide an #:init-value for
+the slot A:
+
+  (define-class D ()
+    (a #:init-value 42))
+
+Really what you have done is define in D a new slot with the same name,
+overriding the existing slot.  The problem comes in that before fixing
+this bug (but not in 1.8), the getter 'get-a' would succeed for
+instances of D, even though 'get-a' should only work for the slot 'a'
+that is defined on class C, not any other slot that happens to have the
+same name and be in a class with C as a superclass.
+
+It would be possible to "merge" the slot definitions on C and D, but
+that part of the meta-object protocol (`compute-slots' et al) is not
+fully implemented.
+
+Somewhat relatedly, GOOPS also had a fix around #:init-value on
+class-allocated slots.  GOOPS was re-initializing the value of slots
+with #:class or #:each-subclass allocation every time instances of that
+class was allocated.  This has been fixed.
+
 * New interfaces
 
 ** New SRFI-28 string formatting implementation
+
+See "SRFI-28" in the manual.
 
 ** New (ice-9 unicode) module
 
@@ -74,9 +95,11 @@ and related procedures.  Likewise, (web server http) exports 'http'.
 
 ** New procedures: 'string-utf8-length' and 'scm_c_string_utf8_length'
 
+See "Bytevectors as Strings" in the manual, for more.
+
 ** New 'EXIT_SUCCESS' and 'EXIT_FAILURE' Scheme variables
 
-** New C macro 'SCM_VALIDATE_SIZE_COPY'
+See "Processes" in the manual.
 
 ** New C functions to disable automatic SMOB finalization
 
@@ -100,76 +123,69 @@ More ARM cross-compilation targets are supported: "arm.*eb",
 
 * Bugs fixed
 
-*** detect too-old libunistring at configure time (<http://bugs.gnu.org/17399>)
-*** use source file permissions for compiled files
-    (<http://bugs.gnu.org/18477>)
+** Compiler
 *** 'call-with-prompt' does not truncate multiple-value returns
     (<http://bugs.gnu.org/14347>)
-*** sizeof (long) support for LLP64 data model (<http://bugs.gnu.org/22406>)
-*** fix 'fat_mutex_unlock' (<http://bugs.gnu.org/22152>)
-*** 'uri-decode' no longer decodes "+" to space
-*** http: accept date strings with a leading space for hours
-    (<http://bugs.gnu.org/23421>)
-*** http: accept empty reason phrases (<http://bugs.gnu.org/22273>)
-*** http: 'Location' header can now contain URI references, not just
-    absolute URIs
-*** http: do not buffer HTTP chunks (<http://bugs.gnu.org/19939>)
-*** http: 'open-socket-for-uri' now sets better OS buffering parameters
-    (<http://bugs.gnu.org/15368>)
-*** http: use 'close-port' for delimited input ports
-*** texinfo: fix HTML output for @itemize and @acronym
-    (<http://bugs.gnu.org/21772>)
-*** {get,set}sockopt now expect type 'int' for SO_SNDBUF/SO_RCVBUF
-*** fix port position handling on binary input ports
+*** Use permissions of source file for compiled file
+    (<http://bugs.gnu.org/18477>)
+*** Fix bug when inlining some functions with optional arguments
+    (<http://bugs.gnu.org/17634>)
+*** Avoid quadratic expansion time in 'and' and 'or' macros
+    (<http://bugs.gnu.org/17147>)
+*** Fix expander bug introduced when adding support for tail patterns
+    (http://lists.gnu.org/archive/html/guile-user/2015-09/msg00017.html)
+*** Handle ~p in 'format' warnings (<http://bugs.gnu.org/18299>)
+
+** Threads
+*** Fix data races leading to corruption (<http://bugs.gnu.org/22152>)
+
+** Memory management
+*** Fix race between SMOB marking and finalization
+    (<http://bugs.gnu.org/19883>)
+
+** Ports
+*** Fix port position handling on binary input ports
     (<http://bugs.gnu.org/20302>)
-*** match-each+, non-pair syntax object in a dotted tail
-*** 'atan' procedure when applied to complex numbers
-*** bytevector and custom binary ports to use ISO-8859-1
+*** Bytevector and custom binary ports to use ISO-8859-1
     (<http://bugs.gnu.org/20200>)
-*** avoid test failure when 'setaffinity' returns ENOSYS
-    (<http://bugs.gnu.org/19646>)
-*** fix buffer overrun with unbuffered custom binary input ports
+*** Fix buffer overrun with unbuffered custom binary input ports
     (<http://bugs.gnu.org/19621>)
-*** fix memory corruption that arose when using 'get-bytevector-n'
+*** Fix memory corruption that arose when using 'get-bytevector-n'
     (<http://bugs.gnu.org/17466>)
-*** 'select' signal interruptions clarification (<http://bugs.gnu.org/18988>)
+
+** System
+*** {get,set}sockopt now expect type 'int' for SO_SNDBUF/SO_RCVBUF
+*** 'system*' now available on MS-Windows
+*** Better support for file names containing backslashes on Windows
+
+** Web
+*** 'split-and-decode-uri-path' no longer decodes "+" to space
+*** HTTP: Support date strings with a leading space for hours
+    (<http://bugs.gnu.org/23421>)
+*** HTTP: Accept empty reason phrases (<http://bugs.gnu.org/22273>)
+*** HTTP: 'Location' header can now contain URI references, not just
+    absolute URIs
+*** HTTP: Improve chunked-mode support (<http://bugs.gnu.org/19939>)
+*** HTTP: 'open-socket-for-uri' now sets better OS buffering parameters
+    (<http://bugs.gnu.org/15368>)
+
+** Miscellaneous
+*** Fix 'atan' procedure when applied to complex numbers
+*** Fix Texinfo to HTML conversion for @itemize and @acronym
+    (<http://bugs.gnu.org/21772>)
 *** 'bytevector-fill!' accepts fill arguments greater than 127
     (<http://bugs.gnu.org/19027>)
 *** 'bytevector-copy' correctly copies SRFI-4 homogeneous vectors
-    (<http://bugs.gnu.org/18866>)
-*** avoid bash-specific '==' in guile.m4 (<http://bugs.gnu.org/18898>)
+   (<http://bugs.gnu.org/18866>)
 *** 'strerror' no longer hangs when passed a non-integer argument
     (<http://bugs.gnu.org/18065>)
 *** 'scm_boot_guile' now gracefully handles argc == 0
     (<http://bugs.gnu.org/18680>)
-*** optional arg inits that refer to previous args are now correctly handled
-    (<http://bugs.gnu.org/17634>)
-*** autogen.sh invokes 'libtoolize', not 'libtool'
-    (<http://bugs.gnu.org/18470>)
-*** fix 'SCM_SMOB_OBJECT_LOC' definition (<http://bugs.gnu.org/18495>)
-*** SRFI-43 vector-concatenate error message
-*** handle ~p in 'format' warnings (<http://bugs.gnu.org/18299>)
-*** fix long-standing bug argument mismatch in 'bit-count*'
-*** handle Windows file names that contain backslashes
-*** CPU set size proper calculation for getaffinity
-*** unconditionally build and test (ice-9 popen)
-*** make 'system*' available on MS-Windows.
-*** portability fixes for 'nl_langinfo'
-*** test-suite, lack-of-/dev/null detection improved
-*** test-suite, i18n tests adjusted for MS-Windows
-*** test-suite, i18n, ignore LC_MESSAGES on MinGW
-*** test-suite, Use NUL instead of /dev/null on MinGW
-*** avoid quadratic expansion time in 'and' and 'or' macros
-    (<http://bugs.gnu.org/17147>)
+*** Fix 'SCM_SMOB_OBJECT_LOC' definition (<http://bugs.gnu.org/18495>)
+*** Fix bug where 'bit-count*' was not using its second argument
 *** SRFI-1 'length+' raises an error for non-lists and dotted lists
     (<http://bugs.gnu.org/17296>)
-*** system async functions marked as 'SCM_API'
-    (<http://bugs.gnu.org/17661>)
-*** fix race between SMOB marking and finalization
-    (<http://bugs.gnu.org/19883>)
-*** remove unused i18n functions (<http://bugs.gnu.org/19172>)
-*** fix 'mkstemp'-related build error on Windows (<http://bugs.gnu.org/21425>)
-*** document SXPath (<http://bugs.gnu.org/19478>)
+*** Add documentation for SXPath (<http://bugs.gnu.org/19478>)
 
 
 Changes in 2.0.11 (since 2.0.10):
