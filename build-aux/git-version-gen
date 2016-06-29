@@ -1,8 +1,8 @@
 #!/bin/sh
 # Print a version string.
-scriptversion=2012-12-31.23; # UTC
+scriptversion=2016-05-08.18; # UTC
 
-# Copyright (C) 2007-2014 Free Software Foundation, Inc.
+# Copyright (C) 2007-2016 Free Software Foundation, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -85,9 +85,9 @@ Print a version string.
 
 Options:
 
-   --prefix           prefix of git tags (default 'v')
-   --match            pattern for git tags to match (default: '\$prefix*')
-   --fallback         fallback version to use if \"git --version\" fails
+   --prefix PREFIX    prefix of git tags (default 'v')
+   --fallback VERSION
+                      fallback version to use if \"git --version\" fails
 
    --help             display this help and exit
    --version          output version information and exit
@@ -97,16 +97,12 @@ Running without arguments will suffice in most cases."
 prefix=v
 fallback=
 
-unset match
-unset tag_sed_script
-
 while test $# -gt 0; do
   case $1 in
     --help) echo "$usage"; exit 0;;
     --version) echo "$version"; exit 0;;
-    --prefix) shift; prefix="$1";;
-    --match) shift; match="$1";;
-    --fallback) shift; fallback="$1";;
+    --prefix) shift; prefix=${1?};;
+    --fallback) shift; fallback=${1?};;
     -*)
       echo "$0: Unknown option '$1'." >&2
       echo "$0: Try '--help' for more information." >&2
@@ -129,7 +125,6 @@ if test "x$tarball_version_file" = x; then
     exit 1
 fi
 
-match="${match:-$prefix*}"
 tag_sed_script="${tag_sed_script:-s/x/x/}"
 
 nl='
@@ -160,7 +155,7 @@ then
 # directory, and "git describe" output looks sensible, use that to
 # derive a version string.
 elif test "`git log -1 --pretty=format:x . 2>&1`" = x \
-    && v=`git describe --abbrev=4 --match="$match" HEAD 2>/dev/null \
+    && v=`git describe --abbrev=4 --match="$prefix*" HEAD 2>/dev/null \
           || git describe --abbrev=4 HEAD 2>/dev/null` \
     && v=`printf '%s\n' "$v" | sed "$tag_sed_script"` \
     && case $v in
@@ -220,12 +215,12 @@ if test "x$v_from_git" != x; then
 fi
 
 # Omit the trailing newline, so that m4_esyscmd can use the result directly.
-echo "$v" | tr -d "$nl"
+printf %s "$v"
 
 # Local variables:
 # eval: (add-hook 'write-file-hooks 'time-stamp)
 # time-stamp-start: "scriptversion="
 # time-stamp-format: "%:y-%02m-%02d.%02H"
-# time-stamp-time-zone: "UTC"
+# time-stamp-time-zone: "UTC0"
 # time-stamp-end: "; # UTC"
 # End:
