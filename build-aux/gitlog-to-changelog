@@ -1,15 +1,15 @@
-eval '(exit $?0)' && eval 'exec perl -wS "$0" ${1+"$@"}'
+eval '(exit $?0)' && eval 'exec perl -wS "$0" "$@"'
   & eval 'exec perl -wS "$0" $argv:q'
     if 0;
 # Convert git log output to ChangeLog format.
 
-my $VERSION = '2012-07-29 06:11'; # UTC
+my $VERSION = '2016-03-22 21:49'; # UTC
 # The definition above must lie within the first 8 lines in order
 # for the Emacs time-stamp write hook (at end) to update it.
 # If you change this file with Emacs, please let the write hook
 # do its job.  Otherwise, update this string manually.
 
-# Copyright (C) 2008-2014 Free Software Foundation, Inc.
+# Copyright (C) 2008-2016 Free Software Foundation, Inc.
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,6 +72,9 @@ OPTIONS:
                   directory can be derived.
    --since=DATE convert only the logs since DATE;
                   the default is to convert all log entries.
+   --until=DATE convert only the logs older than DATE.
+   --ignore-matching=PAT ignore commit messages whose first lines match PAT.
+   --ignore-line=PAT ignore lines of commit messages that match PAT.
    --format=FMT set format string for commit subject and body;
                   see 'man git-log' for the list of format metacharacters;
                   the default is '%s%n%b%n'
@@ -220,10 +223,13 @@ sub git_dir_option($)
 
 {
   my $since_date;
+  my $until_date;
   my $format_string = '%s%n%b%n';
   my $amend_file;
   my $append_dot = 0;
   my $cluster = 1;
+  my $ignore_matching;
+  my $ignore_line;
   my $strip_tab = 0;
   my $strip_cherry_pick = 0;
   my $srcdir;
@@ -232,10 +238,13 @@ sub git_dir_option($)
      help => sub { usage 0 },
      version => sub { print "$ME version $VERSION\n"; exit },
      'since=s' => \$since_date,
+     'until=s' => \$until_date,
      'format=s' => \$format_string,
      'amend=s' => \$amend_file,
      'append-dot' => \$append_dot,
      'cluster!' => \$cluster,
+     'ignore-matching=s' => \$ignore_matching,
+     'ignore-line=s' => \$ignore_line,
      'strip-tab' => \$strip_tab,
      'strip-cherry-pick' => \$strip_cherry_pick,
      'srcdir=s' => \$srcdir,
@@ -243,6 +252,8 @@ sub git_dir_option($)
 
   defined $since_date
     and unshift @ARGV, "--since=$since_date";
+  defined $until_date
+    and unshift @ARGV, "--until=$until_date";
 
   # This is a hash that maps an SHA1 to perl code (i.e., s/old/new/)
   # that makes a correction in the log or attribution of that commit.
@@ -259,6 +270,7 @@ sub git_dir_option($)
   my $prev_multi_paragraph;
   my $prev_date_line = '';
   my @prev_coauthors = ();
+  my @skipshas = ();
   while (1)
     {
       defined (my $in = <PIPE>)
@@ -278,6 +290,19 @@ sub git_dir_option($)
         or die "$ME:$.: malformed log entry\n";
       $sha =~ /^[0-9a-fA-F]{40}$/
         or die "$ME:$.: invalid SHA1: $sha\n";
+
+      my $skipflag = 0;
+      if (@skipshas)
+        {
+          foreach(@skipshas)
+            {
+              if ($sha =~ /^$_/)
+                {
+                  $skipflag = $_;
+                  last;
+                }
+            }
+        }
 
       # If this commit's log requires any transformation, do it now.
       my $code = $amend_code->{$sha};
@@ -306,7 +331,7 @@ sub git_dir_option($)
           $rest =~ s/^\s*\(cherry picked from commit [\da-f]+\)\n//m;
         }
 
-      my @line = split "\n", $rest;
+      my @line = split /[ \t]*\n/, $rest;
       my $author_line = shift @line;
       defined $author_line
         or die "$ME:$.: unexpected EOF\n";
@@ -316,17 +341,18 @@ sub git_dir_option($)
 
       # Format 'Copyright-paperwork-exempt: Yes' as a standard ChangeLog
       # `(tiny change)' annotation.
-      my $tiny = (grep (/^Copyright-paperwork-exempt:\s+[Yy]es$/, @line)
+      my $tiny = (grep (/^(?:Copyright-paperwork-exempt|Tiny-change):\s+[Yy]es$/, @line)
                   ? '  (tiny change)' : '');
 
       my $date_line = sprintf "%s  %s$tiny\n",
-        strftime ("%F", localtime ($1)), $2;
+        strftime ("%Y-%m-%d", localtime ($1)), $2;
 
       my @coauthors = grep /^Co-authored-by:.*$/, @line;
       # Omit meta-data lines we've already interpreted.
       @line = grep !/^(?:Signed-off-by:[ ].*>$
                        |Co-authored-by:[ ]
                        |Copyright-paperwork-exempt:[ ]
+                       |Tiny-change:[ ]
                        )/x, @line;
 
       # Remove leading and trailing blank lines.
@@ -336,68 +362,109 @@ sub git_dir_option($)
           while ($line[$#line] =~ /^\s*$/) { pop @line; }
         }
 
-      # Record whether there are two or more paragraphs.
-      my $multi_paragraph = grep /^\s*$/, @line;
+      # Handle Emacs gitmerge.el "skipped" commits.
+      # Yes, this should be controlled by an option.  So sue me.
+      if ( grep /^(; )?Merge from /, @line )
+      {
+          my $found = 0;
+          foreach (@line)
+          {
+              if (grep /^The following commit.*skipped:$/, $_)
+              {
+                  $found = 1;
+                  ## Reset at each merge to reduce chance of false matches.
+                  @skipshas = ();
+                  next;
+              }
+              if ($found && $_ =~ /^([0-9a-fA-F]{7,}) [^ ]/)
+              {
+                  push ( @skipshas, $1 );
+              }
+          }
+      }
 
-      # Format 'Co-authored-by: A U Thor <email@example.com>' lines in
-      # standard multi-author ChangeLog format.
-      for (@coauthors)
+      # Ignore commits that match the --ignore-matching pattern, if specified.
+      if (defined $ignore_matching && @line && $line[0] =~ /$ignore_matching/)
         {
-          s/^Co-authored-by:\s*/\t    /;
-          s/\s*</  </;
-
-          /<.*?@.*\..*>/
-            or warn "$ME: warning: missing email address for "
-              . substr ($_, 5) . "\n";
+          $skipflag = 1;
+        }
+      elsif ($skipflag)
+        {
+          ## Perhaps only warn if a pattern matches more than once?
+          warn "$ME: warning: skipping $sha due to $skipflag\n";
         }
 
-      # If clustering of commit messages has been disabled, if this header
-      # would be different from the previous date/name/email/coauthors header,
-      # or if this or the previous entry consists of two or more paragraphs,
-      # then print the header.
-      if ( ! $cluster
-          || $date_line ne $prev_date_line
-          || "@coauthors" ne "@prev_coauthors"
-          || $multi_paragraph
-          || $prev_multi_paragraph)
+      if (! $skipflag)
         {
-          $prev_date_line eq ''
-            or print "\n";
-          print $date_line;
-          @coauthors
-            and print join ("\n", @coauthors), "\n";
-        }
-      $prev_date_line = $date_line;
-      @prev_coauthors = @coauthors;
-      $prev_multi_paragraph = $multi_paragraph;
-
-      # If there were any lines
-      if (@line == 0)
-        {
-          warn "$ME: warning: empty commit message:\n  $date_line\n";
-        }
-      else
-        {
-          if ($append_dot)
+          if (defined $ignore_line && @line)
             {
-              # If the first line of the message has enough room, then
-              if (length $line[0] < 72)
-                {
-                  # append a dot if there is no other punctuation or blank
-                  # at the end.
-                  $line[0] =~ /[[:punct:]\s]$/
-                    or $line[0] .= '.';
-                }
+              @line = grep ! /$ignore_line/, @line;
+              while ($line[$#line] =~ /^\s*$/) { pop @line; }
             }
 
-          # Remove one additional leading TAB from each line.
-          $strip_tab
-            and map { s/^\t// } @line;
+          # Record whether there are two or more paragraphs.
+          my $multi_paragraph = grep /^\s*$/, @line;
 
-          # Prefix each non-empty line with a TAB.
-          @line = map { length $_ ? "\t$_" : '' } @line;
+          # Format 'Co-authored-by: A U Thor <email@example.com>' lines in
+          # standard multi-author ChangeLog format.
+          for (@coauthors)
+            {
+              s/^Co-authored-by:\s*/\t    /;
+              s/\s*</  </;
 
-          print "\n", join ("\n", @line), "\n";
+              /<.*?@.*\..*>/
+                or warn "$ME: warning: missing email address for "
+                  . substr ($_, 5) . "\n";
+            }
+
+          # If clustering of commit messages has been disabled, if this header
+          # would be different from the previous date/name/etc. header,
+          # or if this or the previous entry consists of two or more paragraphs,
+          # then print the header.
+          if ( ! $cluster
+              || $date_line ne $prev_date_line
+              || "@coauthors" ne "@prev_coauthors"
+              || $multi_paragraph
+              || $prev_multi_paragraph)
+            {
+              $prev_date_line eq ''
+                or print "\n";
+              print $date_line;
+              @coauthors
+                and print join ("\n", @coauthors), "\n";
+            }
+          $prev_date_line = $date_line;
+          @prev_coauthors = @coauthors;
+          $prev_multi_paragraph = $multi_paragraph;
+
+          # If there were any lines
+          if (@line == 0)
+            {
+              warn "$ME: warning: empty commit message:\n  $date_line\n";
+            }
+          else
+            {
+              if ($append_dot)
+                {
+                  # If the first line of the message has enough room, then
+                  if (length $line[0] < 72)
+                    {
+                      # append a dot if there is no other punctuation or blank
+                      # at the end.
+                      $line[0] =~ /[[:punct:]\s]$/
+                        or $line[0] .= '.';
+                    }
+                }
+
+              # Remove one additional leading TAB from each line.
+              $strip_tab
+                and map { s/^\t// } @line;
+
+              # Prefix each non-empty line with a TAB.
+              @line = map { length $_ ? "\t$_" : '' } @line;
+
+              print "\n", join ("\n", @line), "\n";
+            }
         }
 
       defined ($in = <PIPE>)
@@ -427,6 +494,6 @@ sub git_dir_option($)
 # eval: (add-hook 'write-file-hooks 'time-stamp)
 # time-stamp-start: "my $VERSION = '"
 # time-stamp-format: "%:y-%02m-%02d %02H:%02M"
-# time-stamp-time-zone: "UTC"
+# time-stamp-time-zone: "UTC0"
 # time-stamp-end: "'; # UTC"
 # End:

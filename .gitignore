@@ -163,3 +163,4 @@ INSTALL
 /test-suite/standalone/test-scm-c-bind-keyword-arguments
 /test-suite/standalone/test-foreign-object-c
 /test-suite/standalone/test-srfi-4
+lib/stddef.h

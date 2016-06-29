@@ -1,5 +1,5 @@
-# mbrtowc.m4 serial 25
-dnl Copyright (C) 2001-2002, 2004-2005, 2008-2014 Free Software Foundation,
+# mbrtowc.m4 serial 27  -*- coding: utf-8 -*-
+dnl Copyright (C) 2001-2002, 2004-2005, 2008-2016 Free Software Foundation,
 dnl Inc.
 dnl This file is free software; the Free Software Foundation
 dnl gives unlimited permission to copy and/or distribute it,
@@ -39,6 +39,8 @@ AC_DEFUN([gl_FUNC_MBRTOWC],
       gl_MBRTOWC_NULL_ARG2
       gl_MBRTOWC_RETVAL
       gl_MBRTOWC_NUL_RETVAL
+      gl_MBRTOWC_EMPTY_INPUT
+      gl_MBRTOWC_C_LOCALE
       case "$gl_cv_func_mbrtowc_null_arg1" in
         *yes) ;;
         *) AC_DEFINE([MBRTOWC_NULL_ARG1_BUG], [1],
@@ -64,6 +66,21 @@ AC_DEFUN([gl_FUNC_MBRTOWC],
         *yes) ;;
         *) AC_DEFINE([MBRTOWC_NUL_RETVAL_BUG], [1],
              [Define if the mbrtowc function does not return 0 for a NUL character.])
+           REPLACE_MBRTOWC=1
+           ;;
+      esac
+      case "$gl_cv_func_mbrtowc_empty_input" in
+        *yes) ;;
+        *) AC_DEFINE([MBRTOWC_EMPTY_INPUT_BUG], [1],
+             [Define if the mbrtowc function does not return (size_t) -2
+              for empty input.])
+           REPLACE_MBRTOWC=1
+           ;;
+      esac
+      case $gl_cv_C_locale_sans_EILSEQ in
+        *yes) ;;
+        *) AC_DEFINE([C_LOCALE_MAYBE_EILSEQ], [1],
+             [Define to 1 if the C locale may have encoding errors.])
            REPLACE_MBRTOWC=1
            ;;
       esac
@@ -531,6 +548,81 @@ int main ()
           [:])
       fi
     ])
+])
+
+dnl Test whether mbrtowc returns the correct value on empty input.
+
+AC_DEFUN([gl_MBRTOWC_EMPTY_INPUT],
+[
+  AC_REQUIRE([AC_PROG_CC])
+  AC_REQUIRE([AC_CANONICAL_HOST]) dnl for cross-compiles
+  AC_CACHE_CHECK([whether mbrtowc works on empty input],
+    [gl_cv_func_mbrtowc_empty_input],
+    [
+      dnl Initial guess, used when cross-compiling or when no suitable locale
+      dnl is present.
+changequote(,)dnl
+      case "$host_os" in
+                     # Guess no on AIX and glibc systems.
+        aix* | *-gnu*)
+                    gl_cv_func_mbrtowc_empty_input="guessing no" ;;
+        *)          gl_cv_func_mbrtowc_empty_input="guessing yes" ;;
+      esac
+changequote([,])dnl
+      AC_RUN_IFELSE(
+        [AC_LANG_SOURCE([[
+           #include <wchar.h>
+           static wchar_t wc;
+           static mbstate_t mbs;
+           int
+           main (void)
+           {
+             return mbrtowc (&wc, "", 0, &mbs) != (size_t) -2;
+           }]])],
+        [gl_cv_func_mbrtowc_empty_input=yes],
+        [gl_cv_func_mbrtowc_empty_input=no],
+        [:])
+    ])
+])
+
+dnl Test whether mbrtowc reports encoding errors in the C locale.
+dnl Although POSIX was never intended to allow this, the GNU C Library
+dnl and other implementations do it.  See:
+dnl https://sourceware.org/bugzilla/show_bug.cgi?id=19932
+
+AC_DEFUN([gl_MBRTOWC_C_LOCALE],
+[
+  AC_CACHE_CHECK([whether the C locale is free of encoding errors],
+    [gl_cv_C_locale_sans_EILSEQ],
+    [
+     dnl Initial guess, used when cross-compiling or when no suitable locale
+     dnl is present.
+     gl_cv_C_locale_sans_EILSEQ="guessing no"
+
+     AC_RUN_IFELSE(
+       [AC_LANG_PROGRAM(
+          [[#include <limits.h>
+            #include <locale.h>
+            #include <wchar.h>
+          ]], [[
+            int i;
+            char *locale = setlocale (LC_ALL, "C");
+            if (! locale)
+              return 1;
+            for (i = CHAR_MIN; i <= CHAR_MAX; i++)
+              {
+                char c = i;
+                wchar_t wc;
+                mbstate_t mbs = { 0, };
+                size_t ss = mbrtowc (&wc, &c, 1, &mbs);
+                if (1 < ss)
+                  return 1;
+              }
+            return 0;
+          ]])],
+      [gl_cv_C_locale_sans_EILSEQ=yes],
+      [gl_cv_C_locale_sans_EILSEQ=no],
+      [:])])
 ])
 
 # Prerequisites of lib/mbrtowc.c.
