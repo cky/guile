@@ -2,17 +2,19 @@ This patch is being discussed
 at <http://lists.gnu.org/archive/html/bug-gnulib/2012-07/msg00079.html>.
 Remove when integrated in Gnulib.
 
+diff --git a/build-aux/git-version-gen b/build-aux/git-version-gen
+index bd2c4b6..4458d7d 100755
 --- a/build-aux/git-version-gen
 +++ b/build-aux/git-version-gen
 @@ -86,6 +86,7 @@ Print a version string.
  Options:
  
-    --prefix           prefix of git tags (default 'v')
+    --prefix PREFIX    prefix of git tags (default 'v')
 +   --match            pattern for git tags to match (default: '\$prefix*')
-    --fallback         fallback version to use if \"git --version\" fails
+    --fallback VERSION
+                       fallback version to use if \"git --version\" fails
  
-    --help             display this help and exit
-@@ -96,11 +97,15 @@ Running without arguments will suffice in most cases."
+@@ -97,11 +98,15 @@ Running without arguments will suffice in most cases."
  prefix=v
  fallback=
  
@@ -23,12 +25,12 @@ Remove when integrated in Gnulib.
    case $1 in
      --help) echo "$usage"; exit 0;;
      --version) echo "$version"; exit 0;;
-     --prefix) shift; prefix="$1";;
+     --prefix) shift; prefix=${1?};;
 +    --match) shift; match="$1";;
-     --fallback) shift; fallback="$1";;
+     --fallback) shift; fallback=${1?};;
      -*)
        echo "$0: Unknown option '$1'." >&2
-@@ -124,6 +129,7 @@ if test "x$tarball_version_file" = x; then
+@@ -125,6 +130,7 @@ if test "x$tarball_version_file" = x; then
      exit 1
  fi
  
@@ -36,7 +38,7 @@ Remove when integrated in Gnulib.
  tag_sed_script="${tag_sed_script:-s/x/x/}"
  
  nl='
-@@ -154,7 +160,7 @@ then
+@@ -155,7 +161,7 @@ then
  # directory, and "git describe" output looks sensible, use that to
  # derive a version string.
  elif test "`git log -1 --pretty=format:x . 2>&1`" = x \
