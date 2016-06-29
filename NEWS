@@ -133,8 +133,12 @@ More ARM cross-compilation targets are supported: "arm.*eb",
 *** Avoid quadratic expansion time in 'and' and 'or' macros
     (<http://bugs.gnu.org/17147>)
 *** Fix expander bug introduced when adding support for tail patterns
-    (http://lists.gnu.org/archive/html/guile-user/2015-09/msg00017.html)
+    (<http://lists.gnu.org/archive/html/guile-user/2015-09/msg00017.html>)
 *** Handle ~p in 'format' warnings (<http://bugs.gnu.org/18299>)
+*** Fix bug that exposed `list' invocations to CSE
+    (<http://bugs.gnu.org/21899>)
+*** Reduce eq? and eqv? over constants using equal?
+    (<http://bugs.gnu.org/21855>)
 
 ** Threads
 *** Fix data races leading to corruption (<http://bugs.gnu.org/22152>)
