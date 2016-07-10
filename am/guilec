@@ -27,7 +27,7 @@ AM_V_GUILEC_0 = @echo "  GUILEC" $@;
 SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GUILEC)GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0 \
-	$(top_builddir)/meta/uninstalled-env			\
+	$(top_builddir)/meta/build-env				\
 	guild compile --target="$(host)" $(GUILE_WARNINGS)	\
 	  -L "$(abs_srcdir)" -L "$(abs_builddir)"		\
 	  -L "$(abs_top_srcdir)/guile-readline"			\

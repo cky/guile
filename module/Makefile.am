@@ -91,7 +91,7 @@ ice-9/psyntax-pp.scm.gen:
 # Keep this rule in sync with that in `am/guilec'.
 ice-9/psyntax-pp.go: ice-9/psyntax.scm ice-9/psyntax-pp.scm
 	$(AM_V_GUILEC)GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0	\
-	$(top_builddir)/meta/uninstalled-env				\
+	$(top_builddir)/meta/build-env					\
 	guild compile --target="$(host)" $(GUILE_WARNINGS)		\
 	  -L "$(abs_srcdir)" -L "$(abs_builddir)"			\
 	  -L "$(abs_top_srcdir)/guile-readline"				\

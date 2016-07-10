@@ -1681,6 +1681,7 @@ AC_CONFIG_FILES([
 GUILE_CONFIG_SCRIPT([check-guile])
 GUILE_CONFIG_SCRIPT([benchmark-guile])
 GUILE_CONFIG_SCRIPT([meta/guile])
+GUILE_CONFIG_SCRIPT([meta/build-env])
 GUILE_CONFIG_SCRIPT([meta/uninstalled-env])
 GUILE_CONFIG_SCRIPT([meta/gdb-uninstalled-guile])
 GUILE_CONFIG_SCRIPT([libguile/guile-snarf])

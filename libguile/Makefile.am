@@ -746,7 +746,7 @@ dynl.x: libpath.h
 
 alldotdocfiles    = $(DOT_DOC_FILES) $(EXTRA_DOT_DOC_FILES)
 snarf2checkedtexi = GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0 \
-	$(top_builddir)/meta/uninstalled-env guild snarf-check-and-output-texi
+	$(top_builddir)/meta/build-env guild snarf-check-and-output-texi
 dotdoc2texi       = cat $(alldotdocfiles) | $(snarf2checkedtexi)
 
 guile.texi: $(alldotdocfiles) guile$(EXEEXT)

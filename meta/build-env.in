@@ -1,0 +1,121 @@
+#!/bin/sh
+
+#	Copyright (C) 2003, 2006, 2008-2012, 2016 Free Software Foundation
+#
+#   This file is part of GNU Guile.
+#
+# This script is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+# 02110-1301 USA
+
+# Usage: build-env [ARGS]
+
+# This script arranges for the environment to support running Guile from
+# the build tree.  Unlike uninstalled-env, we clobber the environment so
+# as to avoid inheriting environment variables that could make Guile
+# load .scm, .go, or .so files from installed directories.
+
+# Example: build-env guile -c '(display "hello\n")'
+# Example: ../../build-env ./guile-test-foo
+
+top_srcdir="@top_srcdir_absolute@"
+top_builddir="@top_builddir_absolute@"
+
+[ x"$top_srcdir"   = x -o ! -d "$top_srcdir" -o \
+  x"$top_builddir" = x -o ! -d "$top_builddir" ] && {
+    echo $0: bad environment
+    echo top_srcdir=$top_srcdir
+    echo top_builddir=$top_builddir
+    exit 1
+}
+
+# When cross-compiling, let $GUILE_FOR_BUILD use its own .go files since
+# the ones that are being built may be incompatible ($GUILE_FOR_BUILD is
+# typically used to run `guild compile --target=$host'.)  Likewise,
+# $GUILE_FOR_BUILD must use its own source files when booting; for
+# instance, $srcdir/module/ice-9/boot-9.scm must not be in its search
+# path, because it would then end up using its C evaluator to run the
+# compiler.
+if test "@cross_compiling@" = "no"
+then
+    GUILE_LOAD_PATH="${top_srcdir}/module:${top_srcdir}/guile-readline"
+    if test "${top_srcdir}" != "${top_builddir}"; then
+        GUILE_LOAD_PATH="$GUILE_LOAD_PATH:${top_builddir}/module:${top_builddir}/guile-readline"
+    fi
+    export GUILE_LOAD_PATH
+    GUILE_LOAD_COMPILED_PATH="${top_builddir}/module:${top_builddir}/guile-readline"
+    export GUILE_LOAD_COMPILED_PATH
+
+    # Don't look in installed dirs for guile modules
+    if ( env | grep -v '^GUILE_SYSTEM_PATH=' > /dev/null ); then
+	GUILE_SYSTEM_PATH=
+	export GUILE_SYSTEM_PATH
+    fi
+    # Don't look in installed dirs for compiled guile modules
+    if ( env | grep -v '^GUILE_SYSTEM_COMPILED_PATH=' > /dev/null ); then
+	GUILE_SYSTEM_COMPILED_PATH=
+	export GUILE_SYSTEM_COMPILED_PATH
+    fi
+    # Don't look in installed dirs for dlopen-able modules
+    if ( env | grep -v '^GUILE_SYSTEM_EXTENSIONS_PATH=' > /dev/null ); then
+	GUILE_SYSTEM_EXTENSIONS_PATH=
+	export GUILE_SYSTEM_EXTENSIONS_PATH
+    fi
+fi
+
+# handle LTDL_LIBRARY_PATH (no clobber)
+for dir in guile-readline libguile ; do
+    if test -z "$LTDL_LIBRARY_PATH"; then
+      LTDL_LIBRARY_PATH="${top_builddir}/${dir}"
+    else
+      LTDL_LIBRARY_PATH="${top_builddir}/${dir}:${LTDL_LIBRARY_PATH}"
+    fi
+    if test -z "$DYLD_LIBRARY_PATH"; then
+      DYLD_LIBRARY_PATH="${top_builddir}/${dir}/.libs"
+    else
+      DYLD_LIBRARY_PATH="${top_builddir}/${dir}/.libs:${DYLD_LIBRARY_PATH}"
+    fi
+done
+export LTDL_LIBRARY_PATH
+export DYLD_LIBRARY_PATH
+
+if [ x"$PKG_CONFIG_PATH" = x ]
+then
+    PKG_CONFIG_PATH="${top_builddir}/meta"
+else
+    PKG_CONFIG_PATH="${top_builddir}/meta:$PKG_CONFIG_PATH"
+fi
+export PKG_CONFIG_PATH
+
+# handle PATH (no clobber)
+PATH="${top_builddir}/libguile:${PATH}"
+PATH="${top_srcdir}/meta:${PATH}"
+if test "x${top_srcdir}" != "x${top_builddir}"; then
+  PATH="${top_builddir}/meta:${PATH}"
+fi
+export PATH
+
+# Define $GUILE, used by `guild'.
+if test "@cross_compiling@" = "no"
+then
+  GUILE=${top_builddir}/libguile/guile@EXEEXT@
+else
+  GUILE="@GUILE_FOR_BUILD@"
+fi    
+export GUILE
+  
+XDG_CACHE_HOME=${top_builddir}/cache
+export XDG_CACHE_HOME
+
+exec "$@"

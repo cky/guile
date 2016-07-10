@@ -119,7 +119,7 @@ EXTRA_DIST = ChangeLog-2008 $(PICTURES)
 libguile-autoconf.texi: autoconf-macros.texi
 autoconf-macros.texi: $(top_srcdir)/meta/guile.m4
 	GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0 \
-	$(top_builddir)/meta/uninstalled-env guild \
+	$(top_builddir)/meta/build-env guild \
 	  snarf-guile-m4-docs $(top_srcdir)/meta/guile.m4 \
 	  > $(srcdir)/$@
 

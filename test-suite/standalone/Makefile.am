@@ -35,7 +35,7 @@ TESTS_ENVIRONMENT =						\
   srcdir="$(srcdir)"						\
   builddir="$(builddir)"					\
   @LOCALCHARSET_TESTS_ENVIRONMENT@				\
-  GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/uninstalled-env"
+  GUILE_INSTALL_LOCALE=1 GUILE_AUTO_COMPILE=0 "${top_builddir}/meta/build-env"
 
 ## Check for headers in $(srcdir) and build dir before $(CPPFLAGS), which
 ## may point us to an old, installed version of guile.
