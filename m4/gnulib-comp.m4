@@ -42,7 +42,6 @@ AC_DEFUN([gl_EARLY],
   AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
   AC_REQUIRE([gl_PROG_AR_RANLIB])
 
-  AC_REQUIRE([AM_PROG_CC_C_O])
   # Code from module absolute-header:
   # Code from module accept:
   # Code from module alignof:
@@ -117,7 +116,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module include_next:
   # Code from module inet_ntop:
   # Code from module inet_pton:
-  # Code from module inline:
   # Code from module intprops:
   # Code from module isfinite:
   # Code from module isinf:
@@ -197,7 +195,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module snippet/_Noreturn:
   # Code from module snippet/arg-nonnull:
   # Code from module snippet/c++defs:
-  # Code from module snippet/unused-parameter:
   # Code from module snippet/warn-on-use:
   # Code from module snprintf:
   # Code from module socket:
@@ -234,13 +231,6 @@ AC_DEFUN([gl_EARLY],
   # Code from module times:
   # Code from module trunc:
   # Code from module unistd:
-  # Code from module unistr/base:
-  # Code from module unistr/u8-mbtouc:
-  # Code from module unistr/u8-mbtouc-unsafe:
-  # Code from module unistr/u8-mbtoucr:
-  # Code from module unistr/u8-prev:
-  # Code from module unistr/u8-uctomb:
-  # Code from module unitypes:
   # Code from module unsetenv:
   # Code from module useless-if-before-free:
   # Code from module vasnprintf:
@@ -436,7 +426,6 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_INET_PTON
   fi
   gl_ARPA_INET_MODULE_INDICATOR([inet_pton])
-  gl_INLINE
   gl_ISFINITE
   if test $REPLACE_ISFINITE = 1; then
     AC_LIBOBJ([isfinite])
@@ -702,17 +691,6 @@ AC_DEFUN([gl_INIT],
   fi
   gl_MATH_MODULE_INDICATOR([trunc])
   gl_UNISTD_H
-  gl_LIBUNISTRING_LIBHEADER([0.9.4], [unistr.h])
-  gl_MODULE_INDICATOR([unistr/u8-mbtouc])
-  gl_LIBUNISTRING_MODULE([0.9.4], [unistr/u8-mbtouc])
-  gl_MODULE_INDICATOR([unistr/u8-mbtouc-unsafe])
-  gl_LIBUNISTRING_MODULE([0.9.4], [unistr/u8-mbtouc-unsafe])
-  gl_MODULE_INDICATOR([unistr/u8-mbtoucr])
-  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-mbtoucr])
-  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-prev])
-  gl_MODULE_INDICATOR([unistr/u8-uctomb])
-  gl_LIBUNISTRING_MODULE([0.9], [unistr/u8-uctomb])
-  gl_LIBUNISTRING_LIBHEADER([0.9.4], [unitypes.h])
   gl_FUNC_VSNPRINTF
   gl_STDIO_MODULE_INDICATOR([vsnprintf])
   gl_WCHAR_H
@@ -1698,7 +1676,6 @@ AC_DEFUN([gl_FILE_LIST], [
   build-aux/snippet/_Noreturn.h
   build-aux/snippet/arg-nonnull.h
   build-aux/snippet/c++defs.h
-  build-aux/snippet/unused-parameter.h
   build-aux/snippet/warn-on-use.h
   build-aux/useless-if-before-free
   build-aux/vc-list-files
@@ -1906,16 +1883,6 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/trunc.c
   lib/unistd.c
   lib/unistd.in.h
-  lib/unistr.in.h
-  lib/unistr/u8-mbtouc-aux.c
-  lib/unistr/u8-mbtouc-unsafe-aux.c
-  lib/unistr/u8-mbtouc-unsafe.c
-  lib/unistr/u8-mbtouc.c
-  lib/unistr/u8-mbtoucr.c
-  lib/unistr/u8-prev.c
-  lib/unistr/u8-uctomb-aux.c
-  lib/unistr/u8-uctomb.c
-  lib/unitypes.in.h
   lib/unsetenv.c
   lib/vasnprintf.c
   lib/vasnprintf.h
@@ -1983,7 +1950,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/include_next.m4
   m4/inet_ntop.m4
   m4/inet_pton.m4
-  m4/inline.m4
   m4/intmax_t.m4
   m4/inttypes_h.m4
   m4/isfinite.m4
@@ -1999,7 +1965,6 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/lib-ld.m4
   m4/lib-link.m4
   m4/lib-prefix.m4
-  m4/libunistring-base.m4
   m4/libunistring.m4
   m4/link.m4
   m4/localcharset.m4
