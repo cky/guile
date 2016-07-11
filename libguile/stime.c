@@ -327,7 +327,7 @@ filltime (struct tm *bd_time, int zoff, const char *zname)
   return result;
 }
 
-static char tzvar[3] = "TZ";
+static const char tzvar[3] = "TZ";
 
 /* if zone is set, create a temporary environment with only a TZ
    string.  other threads or interrupt handlers shouldn't be allowed
