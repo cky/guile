@@ -81,6 +81,10 @@
 #include "libguile/threads.h"
 
 
+#ifdef __MINGW32__
+# include "posix-w32.h"
+#endif
+
 #if HAVE_SYS_WAIT_H
 # include <sys/wait.h>
 #endif
@@ -1425,10 +1429,6 @@ scm_open_process (SCM mode, SCM prog, SCM args)
 }
 #undef FUNC_NAME
 #endif /* HAVE_START_CHILD */
-
-#ifdef __MINGW32__
-# include "win32-uname.h"
-#endif
 
 #if defined (HAVE_UNAME) || defined (__MINGW32__)
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,

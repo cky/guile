@@ -443,7 +443,7 @@ EXTRA_libguile_@GUILE_EFFECTIVE_VERSION@_la_SOURCES = _scm.h		\
     dynl.c regex-posix.c			\
     posix.c net_db.c socket.c			\
     debug-malloc.c				\
-    win32-uname.c				\
+    posix-w32.c					\
     locale-categories.h
 
 ## delete guile-snarf.awk from the installation bindir, in case it's
@@ -490,7 +490,7 @@ uninstall-hook:
 noinst_HEADERS = conv-integer.i.c conv-uinteger.i.c		\
                  srfi-14.i.c					\
                  quicksort.i.c                                  \
-                 win32-uname.h					\
+                 posix-w32.h					\
 		 private-gc.h private-options.h ports-internal.h
 
 # vm instructions

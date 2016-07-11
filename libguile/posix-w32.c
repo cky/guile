@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "win32-uname.h"
+#include "posix-w32.h"
 
 /*
  * Get name and information about current kernel.

@@ -1,7 +1,7 @@
 /* classes: h_files */
 
-#ifndef SCM_WIN32_UNAME_H
-#define SCM_WIN32_UNAME_H
+#ifndef SCM_POSIX_W32_H
+#define SCM_POSIX_W32_H
 
 /* Copyright (C) 2001, 2006 Free Software Foundation, Inc.
  *
@@ -49,4 +49,4 @@ struct utsname
 
 int uname (struct utsname * uts);
 
-#endif /* SCM_WIN32_UNAME_H */
+#endif /* SCM_POSIX_W32_H */
