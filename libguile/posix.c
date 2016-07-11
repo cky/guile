@@ -718,7 +718,7 @@ SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
 #undef FUNC_NAME
 #endif /* HAVE_WAITPID */
 
-#ifndef __MINGW32__
+#ifdef WIFEXITED
 SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0, 
             (SCM status),
 	    "Return the exit status value, as would be set if a process\n"
@@ -737,7 +737,9 @@ SCM_DEFINE (scm_status_exit_val, "status:exit-val", 1, 0, 0,
     return SCM_BOOL_F;
 }
 #undef FUNC_NAME
+#endif /* WIFEXITED */
 
+#ifdef WIFSIGNALED
 SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0, 
             (SCM status),
 	    "Return the signal number which terminated the process, if any,\n"
@@ -753,7 +755,9 @@ SCM_DEFINE (scm_status_term_sig, "status:term-sig", 1, 0, 0,
     return SCM_BOOL_F;
 }
 #undef FUNC_NAME
+#endif /* WIFSIGNALED */
 
+#ifdef WIFSTOPPED
 SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0, 
             (SCM status),
 	    "Return the signal number which stopped the process, if any,\n"
@@ -769,7 +773,7 @@ SCM_DEFINE (scm_status_stop_sig, "status:stop-sig", 1, 0, 0,
     return SCM_BOOL_F;
 }
 #undef FUNC_NAME
-#endif /* __MINGW32__ */
+#endif /* WIFSTOPPED */
 
 #ifdef HAVE_GETPPID
 SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
