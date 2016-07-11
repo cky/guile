@@ -61,11 +61,7 @@
 #include "libguile/stime.h"
 
 #include <unistd.h>
-
-
-#ifdef HAVE_CLOCK_GETTIME
-# include <time.h>
-#endif
+#include <time.h>				  /* Gnulib-provided */
 
 #include <sys/types.h>
 #include <string.h>
