@@ -164,3 +164,4 @@ INSTALL
 /test-suite/standalone/test-foreign-object-c
 /test-suite/standalone/test-srfi-4
 lib/stddef.h
+/meta/build-env
