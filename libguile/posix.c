@@ -1430,7 +1430,7 @@ scm_open_process (SCM mode, SCM prog, SCM args)
 #undef FUNC_NAME
 #endif /* HAVE_START_CHILD */
 
-#if defined (HAVE_UNAME) || defined (__MINGW32__)
+#ifdef HAVE_UNAME
 SCM_DEFINE (scm_uname, "uname", 0, 0, 0,
             (),
 	    "Return an object with some information about the computer\n"

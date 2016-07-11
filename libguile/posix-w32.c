@@ -1,4 +1,4 @@
-/* Copyright (C) 2001, 2006, 2008 Free Software Foundation, Inc.
+/* Copyright (C) 2001, 2006, 2008, 2016 Free Software Foundation, Inc.
  * 
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -22,8 +22,12 @@
 
 #include "libguile/__scm.h"
 
+# define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <c-strcase.h>
+#include <process.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "posix-w32.h"
@@ -143,4 +147,862 @@ uname (struct utsname *uts)
   sLength = sizeof (uts->nodename) - 1;
   GetComputerName (uts->nodename, &sLength);
   return 0;
+}
+
+/* Run a child process with redirected standard handles, without
+   redirecting standard handles of the parent.  This is required in
+   multithreaded programs, where redirecting a standard handle affects
+   all threads.  */
+
+/* Prepare a possibly redirected file handle to be passed to a child
+   process.  The handle is for the file/device open on file descriptor
+   FD; if FD is invalid, use the null device instead.
+
+   USE_STD non-zero means we have been passed the descriptor used by
+   the parent.
+
+   ACCESS is the Windows access mode for opening the null device.
+
+   Returns the Win32 handle to be passed to CreateProcess.  */
+static HANDLE
+prepare_child_handle (int fd, int use_std, DWORD access)
+{
+  HANDLE htem, hret;
+  DWORD err = 0;
+
+  /* Start with the descriptor, if specified by the caller and valid,
+     otherwise open the null device.  */
+  if (fd < 0)
+    htem = INVALID_HANDLE_VALUE;
+  else
+    htem = (HANDLE)_get_osfhandle (fd);
+
+  /* Duplicate the handle and make it inheritable.  */
+  if (DuplicateHandle (GetCurrentProcess (),
+		       htem,
+		       GetCurrentProcess (),
+		       &hret,
+		       0,
+		       TRUE,
+		       DUPLICATE_SAME_ACCESS) == FALSE)
+    {
+      /* If the original standard handle was invalid (happens, e.g.,
+	 in GUI programs), open the null device instead.  */
+      if ((err = GetLastError ()) == ERROR_INVALID_HANDLE
+	  && use_std)
+	{
+	  htem = CreateFile ("NUL", access,
+			     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+			     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	  if (htem != INVALID_HANDLE_VALUE
+	      && DuplicateHandle (GetCurrentProcess (),
+				  htem,
+				  GetCurrentProcess (),
+				  &hret,
+				  0,
+				  TRUE,
+				  DUPLICATE_SAME_ACCESS) == FALSE)
+	    {
+	      err = GetLastError ();
+	      CloseHandle (htem);
+	      hret = INVALID_HANDLE_VALUE;
+	    }
+	}
+    }
+
+  if (hret == INVALID_HANDLE_VALUE)
+    {
+      switch (err)
+	{
+	  case ERROR_NO_MORE_FILES:
+	    errno = EMFILE;
+	    break;
+	  case ERROR_INVALID_HANDLE:
+	  default:
+	    errno = EBADF;
+	    break;
+	}
+    }
+
+  return hret;
+}
+
+/* A comparison function for sorting the environment.  */
+static int
+compenv (const void *a1, const void *a2)
+{
+  return stricmp (*((char**)a1), *((char**)a2));
+}
+
+/* Convert the program's 'environ' array to a block of environment
+   variables suitable to be passed to CreateProcess.  This is needed
+   to ensure the child process inherits the up-to-date environment of
+   the parent, including any variables inserted by the parent.  */
+static void
+prepare_envblk (char **envp, char **envblk)
+{
+  char **tmp;
+  int size_needed;
+  int envcnt;
+  char *ptr;
+
+  for (envcnt = 0; envp[envcnt]; envcnt++)
+    ;
+
+  tmp = scm_calloc ((envcnt + 1) * sizeof (*tmp));
+
+  for (envcnt = size_needed = 0; envp[envcnt]; envcnt++)
+    {
+      tmp[envcnt] = envp[envcnt];
+      size_needed += strlen (envp[envcnt]) + 1;
+    }
+  size_needed++;
+
+  /* Windows likes its environment variables sorted.  */
+  qsort ((void *) tmp, (size_t) envcnt, sizeof (char *), compenv);
+
+  /* CreateProcess needs the environment block as a linear array,
+     where each variable is terminated by a null character, and the
+     last one is terminated by 2 null characters.  */
+  ptr = *envblk = scm_calloc (size_needed);
+
+  for (envcnt = 0; tmp[envcnt]; envcnt++)
+    {
+      strcpy (ptr, tmp[envcnt]);
+      ptr += strlen (tmp[envcnt]) + 1;
+    }
+
+  free (tmp);
+}
+
+/* Find an executable PROGRAM on PATH, return result in malloc'ed
+   storage.  If PROGRAM is /bin/sh, and no sh.exe was found on PATH,
+   fall back on the Windows shell and set BIN_SH_REPLACED to non-zero.  */
+static char *
+lookup_cmd (const char *program, int *bin_sh_replaced)
+{
+  static const char *extensions[] = {
+    ".exe", ".cmd", ".bat", "", ".com", NULL
+  };
+  int bin_sh_requested = 0;
+  char *path, *dir, *sep;
+  char abs_name[MAX_PATH];
+  DWORD abs_namelen = 0;
+
+  /* If they ask for the Unix system shell, try to find it on PATH.  */
+  if (c_strcasecmp (program, "/bin/sh") == 0)
+    {
+      bin_sh_requested = 1;
+      program = "sh.exe";
+    }
+
+  /* If PROGRAM includes leading directories, the caller already did
+     our job.  */
+  if (strchr (program, '/') != NULL
+      || strchr (program, '\\') != NULL)
+    return scm_strdup (program);
+
+  /* Note: It is OK for getenv below to return NULL -- in that case,
+     SearchPath will search in the directories whose list is specified
+     by the system Registry.  */
+  path = getenv ("PATH");
+  if (!path)	/* shouldn't happen, really */
+    path = ".";
+  dir = sep = path = strdup (path);
+  for ( ; sep && *sep; dir = sep + 1)
+    {
+      int i;
+
+      sep = strpbrk (dir, ";");
+      if (sep == dir)	/* two or more ;'s in a row */
+	continue;
+      if (sep)
+	*sep = '\0';
+      for (i = 0; extensions[i]; i++)
+	{
+	  abs_namelen = SearchPath (dir, program, extensions[i],
+				    MAX_PATH, abs_name, NULL);
+	  if (0 < abs_namelen && abs_namelen <= MAX_PATH)	/* found! */
+	    break;
+	}
+      if (extensions[i])	/* found! */
+	break;
+      if (sep)
+	*sep = ';';
+    }
+
+  free (path);
+
+  /* If they asked for /bin/sh and we didn't find it, fall back on the
+     default Windows shell.  */
+  if (abs_namelen <= 0 && bin_sh_requested)
+    {
+      const char *shell = getenv ("ComSpec");
+
+      if (!shell)
+	shell = "C:\\Windows\\system32\\cmd.exe";
+
+      *bin_sh_replaced = 1;
+      strcpy (abs_name, shell);
+      abs_namelen = strlen (abs_name);
+    }
+
+  /* If not found, return the original PROGRAM name.  */
+  if (abs_namelen <= 0 || abs_namelen > MAX_PATH)
+    return scm_strdup (program);
+
+  return scm_strndup (abs_name, abs_namelen);
+}
+
+/* Concatenate command-line arguments in argv[] into a single
+   command-line string, while quoting arguments as needed.  The result
+   is malloc'ed.  */
+static char *
+prepare_cmdline (const char *cmd, const char * const *argv, int bin_sh_replaced)
+{
+  /* These characters should include anything that is special to _any_
+     program, including both Windows and Unixy shells, and the
+     widlcard expansion in startup code of a typical Windows app.  */
+  const char need_quotes[] = " \t#;\"\'*?[]&|<>(){}$`^";
+  size_t cmdlen = 1;	/* for terminating null */
+  char *cmdline = scm_malloc (cmdlen);
+  char *dst = cmdline;
+  int cmd_exe_quoting = 0;
+  int i;
+  const char *p;
+
+  /* Are we constructing a command line for cmd.exe?  */
+  if (bin_sh_replaced)
+    cmd_exe_quoting = 1;
+  else
+    {
+      for (p = cmd + strlen (cmd);
+	   p > cmd && p[-1] != '/' && p[-1] != '\\' && p[-1] != ':';
+	   p--)
+	;
+      if (c_strcasecmp (p, "cmd.exe") == 0
+	  || c_strcasecmp (p, "cmd") == 0)
+	cmd_exe_quoting = 1;
+    }
+
+  /* Initialize the command line to empty.  */
+  *dst = '\0';
+
+  /* Append arguments, if any, from argv[]. */
+  for (i = 0; argv[i]; i++)
+    {
+      const char *src = argv[i];
+      size_t len;
+      int quote_this = 0, n_backslashes = 0;
+      int j;
+
+      /* Append the blank separator.  We don't do that for argv[0]
+	 because that is the command name (will end up in child's
+	 argv[0]), and is only recognized as such if there're no
+	 blanks before it.  */
+      if (i > 0)
+	*dst++ = ' ';
+      len = dst - cmdline;
+
+      /* How much space is required for this argument?  */
+      cmdlen += strlen (argv[i]) + 1; /* 1 for a blank separator */
+      /* cmd.exe needs a different style of quoting: all the arguments
+	 beyond the /c switch are enclosed in an extra pair of quotes,
+	 and not otherwise quoted/escaped. */
+      if (cmd_exe_quoting)
+	{
+	  if (i == 2)
+	    cmdlen += 2;
+	}
+      else if (strpbrk (argv[i], need_quotes))
+	{
+	  quote_this = 1;
+	  cmdlen += 2;
+	  for ( ; *src; src++)
+	    {
+	      /* An embedded quote needs to be escaped by a backslash.
+		 Any backslashes immediately preceding that quote need
+		 each one to be escaped by another backslash.  */
+	      if (*src == '\"')
+		cmdlen += n_backslashes + 1;
+	      if (*src == '\\')
+		n_backslashes++;
+	      else
+		n_backslashes = 0;
+	    }
+	  /* If the closing quote we will add is preceded by
+	     backslashes, those backslashes need to be escaped.  */
+	  cmdlen += n_backslashes;
+	}
+
+      /* Enlarge the command-line string as needed.  */
+      cmdline = scm_realloc (cmdline, cmdlen);
+      dst = cmdline + len;
+
+      if (i == 0
+	  && c_strcasecmp (argv[0], "/bin/sh") == 0
+	  && bin_sh_replaced)
+	{
+	  strcpy (dst, "cmd.exe");
+	  dst += sizeof ("cmd.exe") - 1;
+	  continue;
+	}
+      if (i == 1 && bin_sh_replaced && strcmp (argv[1], "-c") == 0)
+	{
+	  *dst++ = '/';
+	  *dst++ = 'c';
+	  *dst = '\0';
+	  continue;
+	}
+
+      /* Add this argument, possibly quoted, to the command line.  */
+      if (quote_this || (i == 2 && cmd_exe_quoting))
+	*dst++ = '\"';
+      for (src = argv[i]; *src; src++)
+	{
+	  if (quote_this)
+	    {
+	      if (*src == '\"')
+		for (j = n_backslashes + 1; j > 0; j--)
+		  *dst++ = '\\';
+	      if (*src == '\\')
+		n_backslashes++;
+	      else
+		n_backslashes = 0;
+	    }
+	  *dst++ = *src;
+	}
+      if (quote_this)
+	{
+	  for (j = n_backslashes; j > 0; j--)
+	    *dst++ = '\\';
+	  *dst++ = '\"';
+	}
+      *dst = '\0';
+    }
+
+  if (cmd_exe_quoting && i > 2)
+    {
+      /* One extra slot was already reserved when we enlarged cmdlen
+	 by 2 in the "if (cmd_exe_quoting)" clause above.  So we can
+	 safely append a closing quote.  */
+      *dst++ = '\"';
+      *dst = '\0';
+    }
+
+  return cmdline;
+}
+
+/* Start a child process running the program in EXEC_FILE with its
+   standard input and output optionally redirected to a pipe.  ARGV is
+   the array of command-line arguments to pass to the child.  P2C and
+   C2P are 2 pipes for communicating with the child, and ERRFD is the
+   standard error file descriptor to be inherited by the child.
+   READING and WRITING, if non-zero, mean that the corresponding pipe
+   will be used.
+
+   Return the PID of the child process, or -1 if couldn't start a
+   process.  */
+int
+start_child (const char *exec_file, char **argv,
+	     int reading, int c2p[2], int writing, int p2c[2],
+             int infd, int outfd, int errfd)
+{
+  HANDLE hin = INVALID_HANDLE_VALUE, hout = INVALID_HANDLE_VALUE;
+  HANDLE herr = INVALID_HANDLE_VALUE;
+  STARTUPINFO si;
+  char *env_block = NULL;
+  char *cmdline = NULL;
+  PROCESS_INFORMATION pi;
+  char *progfile, *p;
+  int errno_save;
+  intptr_t pid;
+  int bin_sh_replaced = 0;
+
+  if (!reading)
+    c2p[1] = outfd;
+  if (!writing)
+    p2c[0] = infd;
+
+  /* Prepare standard handles to be passed to the child process.  */
+  hin = prepare_child_handle (p2c[0], !writing, GENERIC_READ);
+  if (hin == INVALID_HANDLE_VALUE)
+    return -1;
+  hout = prepare_child_handle (c2p[1], !reading, GENERIC_WRITE);
+  if (hout == INVALID_HANDLE_VALUE)
+    return -1;
+  herr = prepare_child_handle (errfd, 1, GENERIC_WRITE);
+  if (herr == INVALID_HANDLE_VALUE)
+    return -1;
+
+  /* Make sure the parent side of both pipes is not inherited.  This
+     is required because gnulib's 'pipe' creates pipes whose both ends
+     are inheritable, which is traditional on Posix (where pipe
+     descriptors are implicitly duplicated by 'fork'), but wrong on
+     Windows (where pipe handles need to be explicitly
+     duplicated).  */
+  if (writing)
+    SetHandleInformation ((HANDLE)_get_osfhandle (p2c[1]),
+			  HANDLE_FLAG_INHERIT, 0);
+  if (reading)
+    {
+      SetHandleInformation ((HANDLE)_get_osfhandle (c2p[0]),
+			    HANDLE_FLAG_INHERIT, 0);
+      /* Gnulib's 'pipe' opens the pipe in binary mode, but we don't
+	 want to read text-mode input of subprocesses in binary more,
+	 because then we will get the ^M (a.k.a. "CR") characters we
+	 don't expect.  */
+      _setmode (c2p[0], _O_TEXT);
+    }
+
+  /* Set up the startup info for the child, using the parent's as the
+     starting point, and specify in it the redirected handles.  */
+  GetStartupInfo (&si);
+  si.dwFlags = STARTF_USESTDHANDLES;
+  si.lpReserved = 0;
+  si.cbReserved2 = 0;
+  si.lpReserved2 = 0;
+  si.hStdInput = hin;
+  si.hStdOutput = hout;
+  si.hStdError = herr;
+
+  /* Create the environment block for the child.  This is needed
+     because the environment we have in 'environ' is not in the format
+     expected by CreateProcess.  */
+  prepare_envblk (environ, &env_block);
+
+  /* CreateProcess doesn't search PATH, so we must do that for it.  */
+  progfile = lookup_cmd (exec_file, &bin_sh_replaced);
+
+  /* CreateProcess doesn't like forward slashes in the application
+     file name.  */
+  for (p = progfile; *p; p++)
+    if (*p == '/')
+      *p = '\\';
+
+  /* Construct the command line.  */
+  cmdline = prepare_cmdline (exec_file, (const char * const *)argv,
+			     bin_sh_replaced);
+
+  /* All set and ready to fly.  Launch the child process.  */
+  if (!CreateProcess (progfile, cmdline, NULL, NULL, TRUE, 0, env_block, NULL,
+		      &si, &pi))
+    {
+      pid = -1;
+
+      /* Since we use Win32 APIs directly, we need to translate their
+	 errors to errno values by hand.  */
+      switch (GetLastError ())
+	{
+	  case ERROR_FILE_NOT_FOUND:
+	  case ERROR_PATH_NOT_FOUND:
+	  case ERROR_INVALID_DRIVE:
+	  case ERROR_BAD_PATHNAME:
+	    errno = ENOENT;
+	    break;
+	  case ERROR_ACCESS_DENIED:
+	    errno = EACCES;
+	    break;
+	  case ERROR_BAD_ENVIRONMENT:
+	    errno = E2BIG;
+	    break;
+	  case ERROR_BROKEN_PIPE:
+	    errno = EPIPE;
+	    break;
+	  case ERROR_INVALID_HANDLE:
+	    errno = EBADF;
+	    break;
+	  case ERROR_MAX_THRDS_REACHED:
+	    errno = EAGAIN;
+	    break;
+	  case ERROR_BAD_EXE_FORMAT:
+	  case ERROR_BAD_FORMAT:
+	  default:
+	    errno = ENOEXEC;
+	    break;
+	}
+    }
+  else
+    pid = (intptr_t)pi.hProcess;
+
+  errno_save = errno;
+
+  /* Free resources.  */
+  free (progfile);
+  free (cmdline);
+  free (env_block);
+  CloseHandle (hin);
+  CloseHandle (hout);
+  CloseHandle (herr);
+  CloseHandle (pi.hThread);
+
+  /* Posix requires to call the shell if execvp fails to invoke EXEC_FILE.  */
+  if (errno_save == ENOEXEC || errno_save == ENOENT)
+    {
+      const char *shell = getenv ("ComSpec");
+
+      if (!shell)
+	shell = "cmd.exe";
+
+      if (c_strcasecmp (exec_file, shell) != 0)
+	{
+	  argv[0] = (char *)exec_file;
+	  return start_child (shell, argv, reading, c2p, writing, p2c, errfd);
+	}
+    }
+
+  errno = errno_save;
+  return pid;
+}
+
+
+/* Emulation of waitpid which only supports WNOHANG, since _cwait doesn't.  */
+int
+waitpid (intptr_t pid, int *status, int options)
+{
+  if ((options & WNOHANG) != 0)
+    {
+      DWORD st;
+
+      if (!GetExitCodeProcess ((HANDLE)pid, &st))
+	{
+	  errno = ECHILD;
+	  return -1;
+	}
+      if (st == STILL_ACTIVE)
+	return 0;
+      if (status)
+	*status = st;
+      return (int)pid;
+    }
+
+  return (int)_cwait (status, pid, WAIT_CHILD);
+}
+
+
+/* Translate abnormal exit status of Windows programs into the signal
+   that terminated the program.  This is required to support scm_kill
+   and WTERMSIG.  */
+
+struct signal_and_status {
+  int sig;
+  DWORD status;
+};
+
+static const struct signal_and_status sigtbl[] = {
+  {SIGSEGV, 0xC0000005},	/* access to invalid address */
+  {SIGSEGV, 0xC0000008},	/* invalid handle */
+  {SIGILL,  0xC000001D},	/* illegal instruction */
+  {SIGILL,  0xC0000025},	/* non-continuable instruction */
+  {SIGSEGV, 0xC000008C},	/* array bounds exceeded */
+  {SIGFPE,  0xC000008D},	/* float denormal */
+  {SIGFPE,  0xC000008E},	/* float divide by zero */
+  {SIGFPE,  0xC000008F},	/* float inexact */
+  {SIGFPE,  0xC0000090},	/* float invalid operation */
+  {SIGFPE,  0xC0000091},	/* float overflow */
+  {SIGFPE,  0xC0000092},	/* float stack check */
+  {SIGFPE,  0xC0000093},	/* float underflow */
+  {SIGFPE,  0xC0000094},	/* integer divide by zero */
+  {SIGFPE,  0xC0000095},	/* integer overflow */
+  {SIGILL,  0xC0000096},	/* privileged instruction */
+  {SIGSEGV, 0xC00000FD},	/* stack overflow */
+  {SIGTERM, 0xC000013A},	/* Ctrl-C exit */
+  {SIGINT,  0xC000013A}
+};
+
+static int
+w32_signal_to_status (int sig)
+{
+  int i;
+
+  for (i = 0; i < sizeof (sigtbl) / sizeof (sigtbl[0]); i++)
+    if (sig == sigtbl[i].sig)
+      return sigtbl[i].status;
+
+  return (int)0xC000013A;
+}
+
+int
+w32_status_to_termsig (DWORD status)
+{
+  int i;
+
+  for (i = 0; i < sizeof (sigtbl) / sizeof (sigtbl[0]); i++)
+    if (status == sigtbl[i].status)
+      return sigtbl[i].sig;
+
+  return SIGTERM;
+}
+
+/* Support for scm_kill.  */
+int
+kill (int pid, int sig)
+{
+  HANDLE ph = OpenProcess (PROCESS_TERMINATE, 0, pid);
+
+  if (!ph)
+    {
+      errno = EPERM;
+      return -1;
+    }
+  if (!TerminateProcess (ph, w32_signal_to_status (sig)))
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  CloseHandle (ph);
+
+  return 0;
+}
+
+/* Emulation of getpriority and setpriority.  */
+#define NZERO        8
+
+int
+getpriority (int which, int who)
+{
+  HANDLE hp;
+  int nice_value = -1;
+  int error = 0;
+
+  /* We don't support process groups and users.  */
+  if (which != PRIO_PROCESS)
+    {
+      errno = ENOSYS;
+      return -1;
+    }
+
+  if (who == 0)
+    hp = GetCurrentProcess ();
+  else
+    hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, who);
+
+  if (hp)
+    {
+      DWORD pri_class = GetPriorityClass (hp);
+
+      if (pri_class > 0)
+	{
+	  switch (pri_class)
+	    {
+	    case IDLE_PRIORITY_CLASS:
+	      nice_value = 4;
+	      break;
+	    case BELOW_NORMAL_PRIORITY_CLASS:
+	      nice_value = 6;
+	      break;
+	    case NORMAL_PRIORITY_CLASS:
+	      nice_value = 8;
+	      break;
+	    case ABOVE_NORMAL_PRIORITY_CLASS:
+	      nice_value = 10;
+	      break;
+	    case HIGH_PRIORITY_CLASS:
+	      nice_value = 13;
+	      break;
+	    case REALTIME_PRIORITY_CLASS:
+	      nice_value = 24;
+	      break;
+	    }
+	  /* If WHO is us, we can provide a more fine-grained value by
+	     looking at the current thread's priority value.  (For
+	     other processes, it is not clear which thread to use.)  */
+	  if (who == 0 || who == GetCurrentProcessId ())
+	    {
+	      HANDLE ht = GetCurrentThread ();
+	      int tprio = GetThreadPriority (ht);
+
+	      switch (tprio)
+		{
+		case THREAD_PRIORITY_IDLE:
+		  if (pri_class == REALTIME_PRIORITY_CLASS)
+		    nice_value = 16;
+		  else
+		    nice_value = 1;
+		  break;
+		case THREAD_PRIORITY_TIME_CRITICAL:
+		  if (pri_class == REALTIME_PRIORITY_CLASS)
+		    nice_value = 31;
+		  else
+		    nice_value = 15;
+		case THREAD_PRIORITY_ERROR_RETURN:
+		  nice_value = -1;
+		  error = 1;
+		  break;
+		default:
+		  nice_value += tprio;
+		  break;
+		}
+	    }
+	  /* Map to "nice values" similar to what one would see on
+	     Posix platforms.  */
+	  if (!error)
+	    nice_value = - (nice_value - NZERO);
+	}
+      else
+	error = 1;
+    }
+  else
+    error = 1;
+
+  if (error)
+    {
+      DWORD err = GetLastError ();
+
+      switch (err)
+	{
+	case ERROR_INVALID_PARAMETER:
+	case ERROR_INVALID_THREAD_ID:
+	  errno = ESRCH;
+	  break;
+	default:
+	  errno = EPERM;
+	  break;
+	}
+    }
+
+  return nice_value;
+}
+
+int
+setpriority (int which, int who, int nice_val)
+{
+  HANDLE hp;
+  DWORD err;
+
+  if (which != PRIO_PROCESS)
+    {
+      errno = ENOSYS;
+      return -1;
+    }
+
+  if (who == 0)
+    hp = GetCurrentProcess ();
+  else
+    hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, who);
+
+  if (hp)
+    {
+      DWORD pri_class;
+
+      /* Map "nice values" back to process priority classes.  */
+      nice_val = -nice_val + NZERO;
+      if (nice_val < 6)
+	pri_class = IDLE_PRIORITY_CLASS;
+      else if (nice_val < 8)
+	pri_class = BELOW_NORMAL_PRIORITY_CLASS;
+      else if (nice_val < 10)
+	pri_class = NORMAL_PRIORITY_CLASS;
+      else if (nice_val < 13)
+	pri_class = ABOVE_NORMAL_PRIORITY_CLASS;
+      else if (nice_val < 16)
+	pri_class = HIGH_PRIORITY_CLASS;
+      else
+	pri_class = REALTIME_PRIORITY_CLASS;
+
+      if (SetPriorityClass (hp, pri_class))
+	return 0;
+    }
+
+  err = GetLastError ();
+
+  switch (err)
+    {
+    case ERROR_INVALID_PARAMETER:
+      errno = ESRCH;
+      break;
+    default:
+      errno = EPERM;
+      break;
+    }
+
+  return -1;
+}
+
+/* Emulation of sched_getaffinity and sched_setaffinity.  */
+int
+sched_getaffinity (int pid, size_t mask_size, cpu_set_t *mask)
+{
+  HANDLE hp;
+  DWORD err;
+
+  if (mask == NULL)
+    {
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (pid == 0)
+    hp = GetCurrentProcess ();
+  else
+    hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, pid);
+
+  if (hp)
+    {
+      DWORD_PTR ignored;
+      BOOL result = GetProcessAffinityMask (hp, (DWORD_PTR *)mask, &ignored);
+
+      if (pid != 0)
+	CloseHandle (hp);
+      if (result)
+	return 0;
+    }
+
+  err = GetLastError ();
+
+  switch (err)
+    {
+    case ERROR_INVALID_PARAMETER:
+      errno = ESRCH;
+      break;
+    case ERROR_ACCESS_DENIED:
+    default:
+      errno = EPERM;
+      break;
+    }
+
+  return -1;
+}
+
+int
+sched_setaffinity (int pid, size_t mask_size, cpu_set_t *mask)
+{
+  HANDLE hp;
+  DWORD err;
+
+  if (mask == NULL)
+    {
+      errno = EFAULT;
+      return -1;
+    }
+
+  if (pid == 0)
+    hp = GetCurrentProcess ();
+  else
+    hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, pid);
+
+  if (hp)
+    {
+      BOOL result = SetProcessAffinityMask (hp, *(DWORD_PTR *)mask);
+
+      if (pid != 0)
+	CloseHandle (hp);
+      if (result)
+	return 0;
+    }
+
+  err = GetLastError ();
+
+  switch (err)
+    {
+    case ERROR_INVALID_PARAMETER:
+      errno = ESRCH;
+      break;
+    case ERROR_ACCESS_DENIED:
+    default:
+      errno = EPERM;
+      break;
+    }
+
+  return -1;
 }
