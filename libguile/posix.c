@@ -800,8 +800,7 @@ SCM_DEFINE (scm_getppid, "getppid", 0, 0, 0,
 #undef FUNC_NAME
 #endif /* HAVE_GETPPID */
 
-
-#ifndef __MINGW32__
+#ifdef HAVE_GETUID
 SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
             (),
 	    "Return an integer representing the current real user ID.")
@@ -810,9 +809,9 @@ SCM_DEFINE (scm_getuid, "getuid", 0, 0, 0,
   return scm_from_int (getuid ());
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETUID */
 
-
-
+#ifdef HAVE_GETGID
 SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
             (),
 	    "Return an integer representing the current real group ID.")
@@ -821,9 +820,9 @@ SCM_DEFINE (scm_getgid, "getgid", 0, 0, 0,
   return scm_from_int (getgid ());
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETGID */
 
-
-
+#ifdef HAVE_GETUID
 SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
             (),
 	    "Return an integer representing the current effective user ID.\n"
@@ -839,8 +838,9 @@ SCM_DEFINE (scm_geteuid, "geteuid", 0, 0, 0,
 #endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETUID */
 
-
+#ifdef HAVE_GETGID
 SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
             (),
 	    "Return an integer representing the current effective group ID.\n"
@@ -856,8 +856,9 @@ SCM_DEFINE (scm_getegid, "getegid", 0, 0, 0,
 #endif
 }
 #undef FUNC_NAME
+#endif /* HAVE_GETGID */
 
-
+#ifdef HAVE_SETUID
 SCM_DEFINE (scm_setuid, "setuid", 1, 0, 0, 
             (SCM id),
 	    "Sets both the real and effective user IDs to the integer @var{id}, provided\n"
@@ -870,7 +871,9 @@ SCM_DEFINE (scm_setuid, "setuid", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* HAVE_SETUID */
 
+#ifdef HAVE_SETGID
 SCM_DEFINE (scm_setgid, "setgid", 1, 0, 0, 
             (SCM id),
 	    "Sets both the real and effective group IDs to the integer @var{id}, provided\n"
@@ -883,7 +886,9 @@ SCM_DEFINE (scm_setgid, "setgid", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif /* HAVE_SETGID */
 
+#ifdef HAVE_SETUID
 SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0, 
             (SCM id),
 	    "Sets the effective user ID to the integer @var{id}, provided the process\n"
@@ -905,10 +910,9 @@ SCM_DEFINE (scm_seteuid, "seteuid", 1, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-#endif /* __MINGW32__ */
+#endif /* HAVE_SETUID */
 
-
-#ifdef HAVE_SETEGID
+#ifdef HAVE_SETGID
 SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
             (SCM id),
 	    "Sets the effective group ID to the integer @var{id}, provided the process\n"
@@ -931,8 +935,7 @@ SCM_DEFINE (scm_setegid, "setegid", 1, 0, 0,
     
 }
 #undef FUNC_NAME
-#endif
-
+#endif /* HAVE_SETGID */
 
 #ifdef HAVE_GETPGRP
 SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
@@ -947,7 +950,6 @@ SCM_DEFINE (scm_getpgrp, "getpgrp", 0, 0, 0,
 }
 #undef FUNC_NAME
 #endif /* HAVE_GETPGRP */
-
 
 #ifdef HAVE_SETPGID
 SCM_DEFINE (scm_setpgid, "setpgid", 2, 0, 0, 
