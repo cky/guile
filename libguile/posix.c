@@ -626,6 +626,7 @@ SCM_DEFINE (scm_setrlimit, "setrlimit", 3, 0, 0,
 #endif /* HAVE_GETRLIMIT */
 
 
+#ifdef HAVE_KILL
 SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
             (SCM pid, SCM sig),
 	    "Sends a signal to the specified process or group of processes.\n\n"
@@ -653,30 +654,12 @@ SCM_DEFINE (scm_kill, "kill", 2, 0, 0,
 #define FUNC_NAME s_scm_kill
 {
   /* Signal values are interned in scm_init_posix().  */
-#ifdef HAVE_KILL
   if (kill (scm_to_int (pid), scm_to_int  (sig)) != 0)
     SCM_SYSERROR;
-#else
-  /* Mingw has raise(), but not kill().  (Other raw DOS environments might
-     be similar.)  Use raise() when the requested pid is our own process,
-     otherwise bomb.  */
-  if (scm_to_int (pid) == getpid ())
-    {
-      if (raise (scm_to_int (sig)) != 0)
-        {
-        err:
-          SCM_SYSERROR;
-        }
-      else
-        {
-          errno = ENOSYS;
-          goto err;
-        }
-    }
-#endif
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
+#endif
 
 #ifdef HAVE_WAITPID
 SCM_DEFINE (scm_waitpid, "waitpid", 1, 1, 0,
