@@ -1957,7 +1957,6 @@ SCM_DEFINE (scm_setpriority, "setpriority", 3, 0, 0,
 #endif /* HAVE_SETPRIORITY */
 
 #ifdef HAVE_SCHED_GETAFFINITY
-
 static SCM
 cpu_set_to_bitvector (const cpu_set_t *cs)
 {
@@ -1982,10 +1981,7 @@ SCM_DEFINE (scm_getaffinity, "getaffinity", 1, 0, 0,
 	    "process @var{pid}.  Each CPU the process has affinity with\n"
 	    "has its corresponding bit set in the returned bitvector.\n"
 	    "The number of bits set is a good estimate of how many CPUs\n"
-	    "Guile can use without stepping on other processes' toes.\n\n"
-	    "Currently this procedure is only defined on GNU variants\n"
-	    "(@pxref{CPU Affinity, @code{sched_getaffinity},, libc, The\n"
-	    "GNU C Library Reference Manual}).\n")
+	    "Guile can use without stepping on other processes' toes.")
 #define FUNC_NAME s_scm_getaffinity
 {
   int err;
@@ -1999,19 +1995,14 @@ SCM_DEFINE (scm_getaffinity, "getaffinity", 1, 0, 0,
   return cpu_set_to_bitvector (&cs);
 }
 #undef FUNC_NAME
-
 #endif /* HAVE_SCHED_GETAFFINITY */
 
 #ifdef HAVE_SCHED_SETAFFINITY
-
 SCM_DEFINE (scm_setaffinity, "setaffinity", 2, 0, 0,
 	    (SCM pid, SCM mask),
 	    "Install the CPU affinity mask @var{mask}, a bitvector, for\n"
 	    "the process or thread with ID @var{pid}.  The return value\n"
-	    "is unspecified.\n\n"
-	    "Currently this procedure is only defined on GNU variants\n"
-	    "(@pxref{CPU Affinity, @code{sched_setaffinity},, libc, The\n"
-	    "GNU C Library Reference Manual}).\n")
+	    "is unspecified.")
 #define FUNC_NAME s_scm_setaffinity
 {
   cpu_set_t cs;
@@ -2040,7 +2031,6 @@ SCM_DEFINE (scm_setaffinity, "setaffinity", 2, 0, 0,
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
-
 #endif /* HAVE_SCHED_SETAFFINITY */
 
 
