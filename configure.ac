@@ -5,7 +5,7 @@ dnl
 define(GUILE_CONFIGURE_COPYRIGHT,[[
 
 Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015 Free Software Foundation, Inc.
+  2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016 Free Software Foundation, Inc.
 
 This file is part of GUILE
 
@@ -765,7 +765,7 @@ AC_CHECK_FUNCS([DINFINITY DQNAN cexp chsize clog clog10 ctermid		\
   strptime symlink sync sysconf tcgetpgrp tcsetpgrp uname waitpid	\
   strdup system usleep atexit on_exit chown link fcntl ttyname getpwent	\
   getgrent kill getppid getpgrp fork setitimer getitimer strchr strcmp	\
-  index bcopy memcpy rindex truncate unsetenv isblank _NSGetEnviron	\
+  index bcopy memcpy rindex truncate isblank _NSGetEnviron		\
   strcoll strcoll_l strtod_l strtol_l newlocale uselocale utimensat	\
   sched_getaffinity sched_setaffinity sendfile])
 
