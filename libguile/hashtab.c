@@ -134,8 +134,20 @@ vacuum_weak_hash_table (SCM table)
       size_t removed;
       SCM alist = SCM_SIMPLE_VECTOR_REF (buckets, k);
       alist = scm_fixup_weak_alist (alist, &removed);
-      assert (removed <= len);
-      len -= removed;
+      if (removed <= len)
+        len -= removed;
+      else
+        {
+          /* The move to BDW-GC with Guile 2.0 introduced some bugs
+             related to weak hash tables, threads, memory usage, and the
+             alloc lock.  We were unable to fix these issues
+             satisfactorily in 2.0 but have addressed them via a rewrite
+             in 2.2.  If you see this message often, you probably want
+             to upgrade to 2.2.  */
+          fprintf (stderr, "guile: warning: weak hash table corruption "
+                   "(https://bugs.gnu.org/19180)");
+          len = 0;
+        }
       SCM_SIMPLE_VECTOR_SET (buckets, k, alist);
     }
 
