@@ -374,10 +374,10 @@ end-of-list checking in contexts where dotted lists are allowed."
 	lag)))
 
 (define (drop-right lis k)
-  (let recur ((lag lis) (lead (drop lis k)))
+  (let lp ((lag lis) (lead (drop lis k)) (result '()))
     (if (pair? lead)
-	(cons (car lag) (recur (cdr lag) (cdr lead)))
-	'())))
+	(lp (cdr lag) (cdr lead) (cons (car lag) result))
+	(reverse result))))
 
 (define (take! lst i)
   "Linear-update variant of `take'."
