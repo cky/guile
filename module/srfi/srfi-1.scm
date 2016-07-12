@@ -557,10 +557,7 @@ then that's the return value."
 F is on two elements from LST, rather than one element and a given
 initial value.  If LST is empty, RIDENTITY is returned.  If LST
 has just one element then that's the return value."
-  (check-arg procedure? f reduce)
-  (if (null? lst)
-      ridentity
-      (fold-right f (last lst) (drop-right lst 1))))
+  (reduce f ridentity (reverse lst)))
 
 (define map
   (case-lambda
