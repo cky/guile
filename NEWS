@@ -139,6 +139,7 @@ More ARM cross-compilation targets are supported: "arm.*eb",
     (<http://bugs.gnu.org/21899>)
 *** Reduce eq? and eqv? over constants using equal?
     (<http://bugs.gnu.org/21855>)
+*** Skip invalid .go files found in GUILE_LOAD_COMPILED_PATH
 
 ** Threads
 *** Fix data races leading to corruption (<http://bugs.gnu.org/22152>)
@@ -161,6 +162,7 @@ More ARM cross-compilation targets are supported: "arm.*eb",
 ** System
 *** {get,set}sockopt now expect type 'int' for SO_SNDBUF/SO_RCVBUF
 *** 'system*' now available on MS-Windows
+*** 'open-pipe' now available on MS-Windows
 *** Better support for file names containing backslashes on Windows
 
 ** Web
