@@ -409,6 +409,7 @@ SCM_DEFINE (scm_drain_input, "drain-input", 1, 0, 0,
 static SCM cur_inport_fluid = SCM_BOOL_F;
 static SCM cur_outport_fluid = SCM_BOOL_F;
 static SCM cur_errport_fluid = SCM_BOOL_F;
+static SCM cur_warnport_fluid = SCM_BOOL_F;
 static SCM cur_loadport_fluid = SCM_BOOL_F;
 
 SCM_DEFINE (scm_current_input_port, "current-input-port", 0, 0, 0,
@@ -453,23 +454,17 @@ SCM_DEFINE (scm_current_error_port, "current-error-port", 0, 0, 0,
 }
 #undef FUNC_NAME
 
-static SCM current_warning_port_var;
-static scm_i_pthread_once_t current_warning_port_once = SCM_I_PTHREAD_ONCE_INIT;
-
-static void
-init_current_warning_port_var (void)
+SCM_DEFINE (scm_current_warning_port, "current-warning-port", 0, 0, 0,
+           (),
+	    "Return the port to which warnings should be sent.")
+#define FUNC_NAME s_scm_current_warning_port
 {
-  current_warning_port_var
-    = scm_c_private_variable ("guile", "current-warning-port");
+  if (scm_is_true (cur_warnport_fluid))
+    return scm_fluid_ref (cur_warnport_fluid);
+  else
+    return scm_current_error_port ();
 }
-
-SCM
-scm_current_warning_port (void)
-{
-  scm_i_pthread_once (&current_warning_port_once,
-                      init_current_warning_port_var);
-  return scm_call_0 (scm_variable_ref (current_warning_port_var));
-}
+#undef FUNC_NAME
 
 SCM_DEFINE (scm_current_load_port, "current-load-port", 0, 0, 0,
 	    (),
@@ -528,11 +523,15 @@ SCM_DEFINE (scm_set_current_error_port, "set-current-error-port", 1, 0, 0,
 
 SCM
 scm_set_current_warning_port (SCM port)
+#define FUNC_NAME "set-current-warning-port"
 {
-  scm_i_pthread_once (&current_warning_port_once,
-                      init_current_warning_port_var);
-  return scm_call_1 (scm_variable_ref (current_warning_port_var), port);
+  SCM owarnp = scm_fluid_ref (cur_warnport_fluid);
+  port = SCM_COERCE_OUTPORT (port);
+  SCM_VALIDATE_OPOUTPORT (1, port);
+  scm_fluid_set_x (cur_warnport_fluid, port);
+  return owarnp;
 }
+#undef FUNC_NAME
 
 
 void
@@ -2900,6 +2899,7 @@ scm_init_ports ()
   cur_inport_fluid = scm_make_fluid ();
   cur_outport_fluid = scm_make_fluid ();
   cur_errport_fluid = scm_make_fluid ();
+  cur_warnport_fluid = scm_make_fluid ();
   cur_loadport_fluid = scm_make_fluid ();
 
   scm_i_port_weak_hash = scm_make_weak_key_hash_table (SCM_I_MAKINUM(31));
@@ -2923,6 +2923,7 @@ scm_init_ports ()
   scm_c_define ("%current-input-port-fluid", cur_inport_fluid);
   scm_c_define ("%current-output-port-fluid", cur_outport_fluid);
   scm_c_define ("%current-error-port-fluid", cur_errport_fluid);
+  scm_c_define ("%current-warning-port-fluid", cur_warnport_fluid);
 }
 
 /*

@@ -217,9 +217,6 @@ If there is no handler at all, Guile prints an error and then exits."
 
 (define pk peek)
 
-;; Temporary definition; replaced later.
-(define current-warning-port current-error-port)
-
 (define (warn . stuff)
   (with-output-to-port (current-warning-port)
     (lambda ()
@@ -3311,20 +3308,9 @@ CONV is not applied to the initial value."
   (port-parameterize! current-output-port %current-output-port-fluid
                       output-port? "expected an output port")
   (port-parameterize! current-error-port %current-error-port-fluid
+                      output-port? "expected an output port")
+  (port-parameterize! current-warning-port %current-warning-port-fluid
                       output-port? "expected an output port"))
-
-
-
-;;;
-;;; Warnings.
-;;;
-
-(define current-warning-port
-  (make-parameter (current-error-port)
-                  (lambda (x)
-                    (if (output-port? x)
-                        x
-                        (error "expected an output port" x)))))
 
 
 
