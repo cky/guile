@@ -2339,6 +2339,7 @@ scm_init_posix ()
   scm_add_feature ("fork");
 #endif	/* HAVE_FORK */
 #ifdef HAVE_START_CHILD
+  scm_add_feature ("popen");
   scm_c_register_extension ("libguile-" SCM_EFFECTIVE_VERSION,
                             "scm_init_popen",
 			    (scm_t_extension_init_func) scm_init_popen,
