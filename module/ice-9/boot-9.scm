@@ -186,6 +186,51 @@ If there is no handler at all, Guile prints an error and then exits."
                "Wrong type argument in position ~a: ~a" (list 1 key) (list key))
               (apply (fluid-ref %exception-handler) key args)))))
 
+
+
+;;; Boot versions of `map' and `for-each', enough to get the expander
+;;; running, and get the "map" used in eval.scm for with-fluids to work.
+;;;
+(define map
+  (case-lambda
+    ((f l)
+     (let map1 ((l l))
+       (if (null? l)
+           '()
+           (cons (f (car l)) (map1 (cdr l))))))
+    ((f l1 l2)
+     (let map2 ((l1 l1) (l2 l2))
+       (if (null? l1)
+           '()
+           (cons (f (car l1) (car l2))
+                 (map2 (cdr l1) (cdr l2))))))
+    ((f l1 . rest)
+     (let lp ((l1 l1) (rest rest))
+       (if (null? l1)
+           '()
+           (cons (apply f (car l1) (map car rest))
+                 (lp (cdr l1) (map cdr rest))))))))
+
+(define for-each
+  (case-lambda
+    ((f l)
+     (let for-each1 ((l l))
+       (if (pair? l)
+           (begin
+             (f (car l))
+             (for-each1 (cdr l))))))
+    ((f l1 l2)
+     (let for-each2 ((l1 l1) (l2 l2))
+       (if (pair? l1)
+           (begin
+             (f (car l1) (car l2))
+             (for-each2 (cdr l1) (cdr l2))))))
+    ((f l1 . rest)
+     (let lp ((l1 l1) (rest rest))
+       (if (pair? l1)
+           (begin
+             (apply f (car l1) (map car rest))
+             (lp (cdr l1) (map cdr rest))))))))
 
 
 
@@ -251,50 +296,6 @@ If there is no handler at all, Guile prints an error and then exits."
   (apply make-struct vtable 0 args))
 
 
-
-;;; Boot versions of `map' and `for-each', enough to get the expander
-;;; running.
-;;;
-(define map
-  (case-lambda
-    ((f l)
-     (let map1 ((l l))
-       (if (null? l)
-           '()
-           (cons (f (car l)) (map1 (cdr l))))))
-    ((f l1 l2)
-     (let map2 ((l1 l1) (l2 l2))
-       (if (null? l1)
-           '()
-           (cons (f (car l1) (car l2))
-                 (map2 (cdr l1) (cdr l2))))))
-    ((f l1 . rest)
-     (let lp ((l1 l1) (rest rest))
-       (if (null? l1)
-           '()
-           (cons (apply f (car l1) (map car rest))
-                 (lp (cdr l1) (map cdr rest))))))))
-
-(define for-each
-  (case-lambda
-    ((f l)
-     (let for-each1 ((l l))
-       (if (pair? l)
-           (begin
-             (f (car l))
-             (for-each1 (cdr l))))))
-    ((f l1 l2)
-     (let for-each2 ((l1 l1) (l2 l2))
-       (if (pair? l1)
-           (begin
-             (f (car l1) (car l2))
-             (for-each2 (cdr l1) (cdr l2))))))
-    ((f l1 . rest)
-     (let lp ((l1 l1) (rest rest))
-       (if (pair? l1)
-           (begin
-             (apply f (car l1) (map car rest))
-             (lp (cdr l1) (map cdr rest))))))))
 
 ;; Temporary definition used in the include-from-path expansion;
 ;; replaced later.
