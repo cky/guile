@@ -275,7 +275,7 @@ the middle- and high-level parsers are single-threaded through the
 the @var{seed} in any way: they simply pass it around as an instance of
 an opaque datatype.  User functions, on the other hand, can use the seed
 to maintain user's state, to accumulate parsing results, etc.  A user
-can freely mix his own functions with those of the framework.  On the
+can freely mix their own functions with those of the framework.  On the
 other hand, the user may wish to instantiate a high-level parser:
 @code{SSAX:make-elem-parser} or @code{SSAX:make-parser}.  In the latter
 case, the user must provide functions of specific signatures, which are

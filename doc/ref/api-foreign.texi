@@ -52,7 +52,7 @@ automatically the next time they are run.
 
 Now, when all the necessary machinery is there to perform part of the
 linking at run-time, why not take the next step and allow the programmer
-to explicitly take advantage of it from within his program?  Of course,
+to explicitly take advantage of it from within their program?  Of course,
 many operating systems that support shared libraries do just that, and
 chances are that Guile will allow you to access this feature from within
 your Scheme programs.  As you might have guessed already, this feature
