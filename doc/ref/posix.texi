@@ -966,7 +966,7 @@ another name if the file exists (error @code{EEXIST}).
 @code{mkstemp!} below does that.
 @end deffn
 
-@deffn {Scheme Procedure} mkstemp! tmpl
+@deffn {Scheme Procedure} mkstemp! tmpl [mode]
 @deffnx {C Function} scm_mkstemp (tmpl)
 @cindex temporary file
 Create a new unique file in the file system and return a new buffered
@@ -987,6 +987,10 @@ which is usual for ordinary file creation,
   (chmod port (logand #o666 (lognot (umask))))
   ...)
 @end example
+
+The optional @var{mode} argument specifies a mode with which to open the
+new file, as a string in the same format that @code{open-file} takes.
+It defaults to @code{"w+"}.
 @end deffn
 
 @deffn {Scheme Procedure} tmpfile

@@ -1438,8 +1438,9 @@ SCM_DEFINE (scm_umask, "umask", 0, 1, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
-	    (SCM tmpl),
+SCM_INTERNAL SCM scm_i_mkstemp (SCM, SCM);
+SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
+	    (SCM tmpl, SCM mode),
 	    "Create a new unique file in the file system and return a new\n"
 	    "buffered port open for reading and writing to the file.\n"
 	    "\n"
@@ -1458,18 +1459,38 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 	    "(let ((port (mkstemp! (string-copy \"/tmp/myfile-XXXXXX\"))))\n"
 	    "  (chmod port (logand #o666 (lognot (umask))))\n"
 	    "  ...)\n"
-	    "@end example")
-#define FUNC_NAME s_scm_mkstemp
+	    "@end example\n"
+            "\n"
+            "The optional @var{mode} argument specifies a mode, as a string\n"
+            "in the same format that @code{open-file} takes.  It defaults\n"
+            "to @code{\"w+\"}.")
+#define FUNC_NAME s_scm_i_mkstemp
 {
   char *c_tmpl;
+  long mode_bits;
   int rv;
+  int open_flags, is_binary;
+  SCM port;
 
   scm_dynwind_begin (0);
 
   c_tmpl = scm_to_locale_string (tmpl);
   scm_dynwind_free (c_tmpl);
+  if (SCM_UNBNDP (mode))
+    {
+      /* mkostemp will create a read/write file and add on additional
+         flags; open_flags just adjoins flags to that set.  */
+      open_flags = 0;
+      is_binary = 0;
+      mode_bits = SCM_RDNG | SCM_WRTNG;
+    }
+  else
+    {
+      open_flags = scm_i_mode_to_open_flags (mode, &is_binary, FUNC_NAME);
+      mode_bits = scm_i_mode_bits (mode);
+    }
 
-  SCM_SYSCALL (rv = mkstemp (c_tmpl));
+  SCM_SYSCALL (rv = mkostemp (c_tmpl, open_flags));
   if (rv == -1)
     SCM_SYSERROR;
 
@@ -1478,9 +1499,23 @@ SCM_DEFINE (scm_mkstemp, "mkstemp!", 1, 0, 0,
 			tmpl, SCM_INUM0);
 
   scm_dynwind_end ();
-  return scm_fdes_to_port (rv, "w+", tmpl);
+
+  port = scm_i_fdes_to_port (rv, mode_bits, tmpl);
+  if (is_binary)
+    {
+      /* Use the binary-friendly ISO-8859-1 encoding. */
+      scm_i_set_port_encoding_x (port, NULL);
+    }
+
+  return port;
 }
 #undef FUNC_NAME
+
+SCM
+scm_mkstemp (SCM tmpl)
+{
+  return scm_i_mkstemp (tmpl, SCM_UNDEFINED);
+}
 
 
 /* Filename manipulation */

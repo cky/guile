@@ -51,7 +51,7 @@
 ;; emacs: (put 'call-with-output-file/atomic 'scheme-indent-function 1)
 (define* (call-with-output-file/atomic filename proc #:optional reference)
   (let* ((template (string-append filename ".XXXXXX"))
-         (tmp (mkstemp! template)))
+         (tmp (mkstemp! template "wb")))
     (call-once
      (lambda ()
        (with-throw-handler #t

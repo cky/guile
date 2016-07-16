@@ -151,7 +151,7 @@ AC_DEFUN([gl_EARLY],
   # Code from module mbtowc:
   # Code from module memchr:
   # Code from module mkdir:
-  # Code from module mkstemp:
+  # Code from module mkostemp:
   # Code from module mktime:
   # Code from module mktime-internal:
   # Code from module msvc-inval:
@@ -515,12 +515,13 @@ AC_DEFUN([gl_INIT],
   if test $REPLACE_MKDIR = 1; then
     AC_LIBOBJ([mkdir])
   fi
-  gl_FUNC_MKSTEMP
-  if test $HAVE_MKSTEMP = 0 || test $REPLACE_MKSTEMP = 1; then
-    AC_LIBOBJ([mkstemp])
-    gl_PREREQ_MKSTEMP
+  gl_FUNC_MKOSTEMP
+  if test $HAVE_MKOSTEMP = 0; then
+    AC_LIBOBJ([mkostemp])
+    gl_PREREQ_MKOSTEMP
   fi
-  gl_STDLIB_MODULE_INDICATOR([mkstemp])
+  gl_MODULE_INDICATOR([mkostemp])
+  gl_STDLIB_MODULE_INDICATOR([mkostemp])
   gl_MULTIARCH
   gl_HEADER_NETDB
   gl_HEADER_NETINET_IN
@@ -1360,7 +1361,7 @@ AC_SUBST([LTALLOCA])
   if test $REPLACE_MKDIR = 1; then
     func_gl_gnulib_m4code_a691da99c1d83b83238e45f41a696f5c
   fi
-  if test $HAVE_MKSTEMP = 0 || test $REPLACE_MKSTEMP = 1; then
+  if test $HAVE_MKOSTEMP = 0; then
     func_gl_gnulib_m4code_tempname
   fi
   if test $HAVE_NL_LANGINFO = 0 || test $REPLACE_NL_LANGINFO = 1; then
@@ -1786,7 +1787,7 @@ AC_DEFUN([gl_FILE_LIST], [
   lib/memchr.c
   lib/memchr.valgrind
   lib/mkdir.c
-  lib/mkstemp.c
+  lib/mkostemp.c
   lib/mktime-internal.h
   lib/mktime.c
   lib/msvc-inval.c
@@ -1987,7 +1988,7 @@ AC_DEFUN([gl_FILE_LIST], [
   m4/mbtowc.m4
   m4/memchr.m4
   m4/mkdir.m4
-  m4/mkstemp.m4
+  m4/mkostemp.m4
   m4/mktime.m4
   m4/mmap-anon.m4
   m4/mode_t.m4

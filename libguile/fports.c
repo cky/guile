@@ -319,45 +319,17 @@ fport_canonicalize_filename (SCM filename)
     }
 }
 
-/* scm_open_file_with_encoding
-   Return a new port open on a given file.
-
-   The mode string must match the pattern: [rwa+]** which
-   is interpreted in the usual unix way.
-
-   Unless binary mode is requested, the character encoding of the new
-   port is determined as follows: First, if GUESS_ENCODING is true,
-   'file-encoding' is used to guess the encoding of the file.  If
-   GUESS_ENCODING is false or if 'file-encoding' fails, ENCODING is used
-   unless it is also false.  As a last resort, the default port encoding
-   is used.  It is an error to pass a non-false GUESS_ENCODING or
-   ENCODING if binary mode is requested.
-
-   Return the new port. */
-SCM
-scm_open_file_with_encoding (SCM filename, SCM mode,
-                             SCM guess_encoding, SCM encoding)
-#define FUNC_NAME "open-file"
+int
+scm_i_mode_to_open_flags (SCM mode, int *is_binary, const char *FUNC_NAME)
 {
-  SCM port;
-  int fdes, flags = 0, binary = 0;
-  unsigned int retries;
-  char *file;
+  int flags = 0;
   const char *md, *ptr;
-
-  if (SCM_UNLIKELY (!(scm_is_false (encoding) || scm_is_string (encoding))))
-    scm_wrong_type_arg_msg (FUNC_NAME, 0, encoding,
-                            "encoding to be string or false");
-
-  scm_dynwind_begin (0);
-
-  file = scm_to_locale_string (filename);
-  scm_dynwind_free (file);
 
   if (SCM_UNLIKELY (!scm_i_try_narrow_string (mode)))
     scm_out_of_range (FUNC_NAME, mode);
 
   md = scm_i_string_chars (mode);
+  *is_binary = 0;
 
   switch (*md)
     {
@@ -382,7 +354,7 @@ scm_open_file_with_encoding (SCM filename, SCM mode,
 	  flags = (flags & ~(O_RDONLY | O_WRONLY)) | O_RDWR;
 	  break;
 	case 'b':
-	  binary = 1;
+	  *is_binary = 1;
 #if defined (O_BINARY)
 	  flags |= O_BINARY;
 #endif
@@ -395,6 +367,45 @@ scm_open_file_with_encoding (SCM filename, SCM mode,
 	}
       ptr++;
     }
+
+  return flags;
+}
+
+/* scm_open_file_with_encoding
+   Return a new port open on a given file.
+
+   The mode string must match the pattern: [rwa+]** which
+   is interpreted in the usual unix way.
+
+   Unless binary mode is requested, the character encoding of the new
+   port is determined as follows: First, if GUESS_ENCODING is true,
+   'file-encoding' is used to guess the encoding of the file.  If
+   GUESS_ENCODING is false or if 'file-encoding' fails, ENCODING is used
+   unless it is also false.  As a last resort, the default port encoding
+   is used.  It is an error to pass a non-false GUESS_ENCODING or
+   ENCODING if binary mode is requested.
+
+   Return the new port. */
+SCM
+scm_open_file_with_encoding (SCM filename, SCM mode,
+                             SCM guess_encoding, SCM encoding)
+#define FUNC_NAME "open-file"
+{
+  SCM port;
+  int fdes, flags, binary = 0;
+  unsigned int retries;
+  char *file;
+
+  if (SCM_UNLIKELY (!(scm_is_false (encoding) || scm_is_string (encoding))))
+    scm_wrong_type_arg_msg (FUNC_NAME, 0, encoding,
+                            "encoding to be string or false");
+
+  scm_dynwind_begin (0);
+
+  file = scm_to_locale_string (filename);
+  scm_dynwind_free (file);
+
+  flags = scm_i_mode_to_open_flags (mode, &binary, FUNC_NAME);
 
   for (retries = 0, fdes = -1;
        fdes < 0 && retries < 2;

@@ -5,6 +5,20 @@ See the end for copying conditions.
 Please send Guile bug reports to bug-guile@gnu.org.
 
 
+Changes in 2.0.13 (since 2.0.12):
+
+* Notable changes
+* New interfaces
+** mkstemp! takes optional "mode" argument
+
+See "File System" in the manual, for more.
+
+* Bug fixes
+** Fix optimizer bug when compiling fixpoint operator
+** Fix build error on MinGW
+** Update `uname' implementation on MinGW
+
+
 Changes in 2.0.12 (since 2.0.11):
 
 * Notable changes
