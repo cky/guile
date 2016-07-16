@@ -29,8 +29,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <signal.h>
+#include <io.h>
+#include <fcntl.h>
 
 #include "posix-w32.h"
+#include "libguile/gc.h"	/* for scm_*alloc, scm_strdup */
+#include "libguile/threads.h"   /* for scm_i_scm_pthread_mutex_lock */
 
 /*
  * Get name and information about current kernel.
@@ -166,6 +172,80 @@ uname (struct utsname *uts)
   sLength = sizeof (uts->nodename) - 1;
   GetComputerName (uts->nodename, &sLength);
   return 0;
+}
+
+/* Utility functions for maintaining the list of subprocesses launched
+   by Guile.  */
+
+struct proc_record {
+  DWORD pid;
+  HANDLE handle;
+};
+
+static struct proc_record *procs;
+static ptrdiff_t proc_size;
+
+/* Find the process slot that corresponds to PID.  Return the index of
+   the slot, or -1 if not found.  */
+static ptrdiff_t
+find_proc (pid_t pid)
+{
+  ptrdiff_t found = -1, i;
+
+  for (i = 0; i < proc_size; i++)
+    {
+      if (procs[i].pid == pid && procs[i].handle != INVALID_HANDLE_VALUE)
+	found = i;
+    }
+
+  return found;
+}
+
+/* Return the process handle corresponding to its PID.  If not found,
+   return invalid handle value.  */
+static HANDLE
+proc_handle (pid_t pid)
+{
+  ptrdiff_t idx = find_proc (pid);
+
+  if (idx < 0)
+    return INVALID_HANDLE_VALUE;
+  return procs[idx].handle;
+}
+
+/* Store a process record in the procs[] array.  */
+static void
+record_proc (pid_t proc_pid, HANDLE proc_handle)
+{
+  ptrdiff_t i;
+
+  /* Find a vacant slot.  */
+  for (i = 0; i < proc_size; i++)
+    {
+      if (procs[i].handle == INVALID_HANDLE_VALUE)
+	break;
+    }
+
+  /* If no vacant slot, enlarge the array.  */
+  if (i == proc_size)
+    {
+      proc_size++;
+      procs = scm_realloc (procs, proc_size * sizeof(procs[0]));
+    }
+
+  /* Store the process data.  */
+  procs[i].pid = proc_pid;
+  procs[i].handle = proc_handle;
+}
+
+/* Delete a process record for process PID.  */
+static void
+delete_proc (pid_t pid)
+{
+  ptrdiff_t idx = find_proc (pid);
+
+  if (0 <= idx && idx < proc_size)
+    procs[idx].handle = INVALID_HANDLE_VALUE;
 }
 
 /* Run a child process with redirected standard handles, without
@@ -522,7 +602,7 @@ prepare_cmdline (const char *cmd, const char * const *argv, int bin_sh_replaced)
 
    Return the PID of the child process, or -1 if couldn't start a
    process.  */
-int
+pid_t
 start_child (const char *exec_file, char **argv,
 	     int reading, int c2p[2], int writing, int p2c[2],
              int infd, int outfd, int errfd)
@@ -642,7 +722,12 @@ start_child (const char *exec_file, char **argv,
 	}
     }
   else
-    pid = (intptr_t)pi.hProcess;
+    {
+      scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+      record_proc (pi.dwProcessId, pi.hProcess);
+      scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+      pid = pi.dwProcessId;
+    }
 
   errno_save = errno;
 
@@ -666,7 +751,8 @@ start_child (const char *exec_file, char **argv,
       if (c_strcasecmp (exec_file, shell) != 0)
 	{
 	  argv[0] = (char *)exec_file;
-	  return start_child (shell, argv, reading, c2p, writing, p2c, errfd);
+	  return start_child (shell, argv, reading, c2p, writing, p2c,
+			      infd, outfd, errfd);
 	}
     }
 
@@ -677,13 +763,33 @@ start_child (const char *exec_file, char **argv,
 
 /* Emulation of waitpid which only supports WNOHANG, since _cwait doesn't.  */
 int
-waitpid (intptr_t pid, int *status, int options)
+waitpid (pid_t pid, int *status, int options)
 {
+  HANDLE ph;
+
+  /* Not supported on MS-Windows.  */
+  if (pid <= 0)
+    {
+      errno = ENOSYS;
+      return -1;
+    }
+
+  scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+  ph = proc_handle (pid);
+  scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+  /* Since scm_waitpid is documented to work only on child processes,
+     being unable to find a process in our records means failure.  */
+  if (ph == INVALID_HANDLE_VALUE)
+    {
+      errno = ECHILD;
+      return -1;
+    }
+
   if ((options & WNOHANG) != 0)
     {
       DWORD st;
 
-      if (!GetExitCodeProcess ((HANDLE)pid, &st))
+      if (!GetExitCodeProcess (ph, &st))
 	{
 	  errno = ECHILD;
 	  return -1;
@@ -692,10 +798,16 @@ waitpid (intptr_t pid, int *status, int options)
 	return 0;
       if (status)
 	*status = st;
-      return (int)pid;
+      CloseHandle (ph);
     }
+  else
+    _cwait (status, (intptr_t)ph, WAIT_CHILD);
 
-  return (int)_cwait (status, pid, WAIT_CHILD);
+  scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+  delete_proc (pid);
+  scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+
+  return pid;
 }
 
 
@@ -757,8 +869,25 @@ w32_status_to_termsig (DWORD status)
 int
 kill (int pid, int sig)
 {
-  HANDLE ph = OpenProcess (PROCESS_TERMINATE, 0, pid);
+  HANDLE ph;
+  int child_proc = 0;
 
+  if (pid == getpid ())
+    {
+      if (raise (sig) == 0)
+	errno = ENOSYS;
+      return -1;
+    }
+
+  scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+  ph = proc_handle (pid);
+  scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+  /* If not found among our subprocesses, look elsewhere in the
+     system.  */
+  if (ph == INVALID_HANDLE_VALUE)
+    ph = OpenProcess (PROCESS_TERMINATE, 0, pid);
+  else
+    child_proc = 1;
   if (!ph)
     {
       errno = EPERM;
@@ -766,10 +895,23 @@ kill (int pid, int sig)
     }
   if (!TerminateProcess (ph, w32_signal_to_status (sig)))
     {
-      errno = EINVAL;
+      /* If it's our subprocess, it could have already exited.  In
+	 that case, waitpid will handily delete the process from our
+	 records, and we should return a more meaningful ESRCH to the
+	 caller.  */
+      if (child_proc && waitpid (pid, NULL, WNOHANG) == pid)
+	errno = ESRCH;
+      else
+	errno = EINVAL;
       return -1;
     }
   CloseHandle (ph);
+  if (child_proc)
+    {
+      scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+      delete_proc (pid);
+      scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+    }
 
   return 0;
 }
@@ -783,6 +925,7 @@ getpriority (int which, int who)
   HANDLE hp;
   int nice_value = -1;
   int error = 0;
+  int child_proc = 0;
 
   /* We don't support process groups and users.  */
   if (which != PRIO_PROCESS)
@@ -794,11 +937,26 @@ getpriority (int which, int who)
   if (who == 0)
     hp = GetCurrentProcess ();
   else
-    hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, who);
+    {
+      scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+      hp = proc_handle (who);
+      scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+      /* If not found among our subprocesses, look elsewhere in the
+	 system.  */
+      if (hp == INVALID_HANDLE_VALUE)
+	hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, who);
+      else
+	child_proc = 1;
+    }
 
   if (hp)
     {
       DWORD pri_class = GetPriorityClass (hp);
+
+      /* The pseudo-handle returned by GetCurrentProcess doesn't need
+	 to be closed.  */
+      if (who > 0 && !child_proc)
+	CloseHandle (hp);
 
       if (pri_class > 0)
 	{
@@ -888,6 +1046,7 @@ setpriority (int which, int who, int nice_val)
 {
   HANDLE hp;
   DWORD err;
+  int child_proc = 0, retval = -1;
 
   if (which != PRIO_PROCESS)
     {
@@ -898,7 +1057,17 @@ setpriority (int which, int who, int nice_val)
   if (who == 0)
     hp = GetCurrentProcess ();
   else
-    hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, who);
+    {
+      scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+      hp = proc_handle (who);
+      scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+      /* If not found among our subprocesses, look elsewhere in the
+	 system.  */
+      if (hp == INVALID_HANDLE_VALUE)
+	hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, who);
+      else
+	child_proc = 1;
+    }
 
   if (hp)
     {
@@ -920,7 +1089,7 @@ setpriority (int which, int who, int nice_val)
 	pri_class = REALTIME_PRIORITY_CLASS;
 
       if (SetPriorityClass (hp, pri_class))
-	return 0;
+	retval = 0;
     }
 
   err = GetLastError ();
@@ -934,8 +1103,12 @@ setpriority (int which, int who, int nice_val)
       errno = EPERM;
       break;
     }
+  /* The pseudo-handle returned by GetCurrentProcess doesn't
+     need to be closed.  */
+  if (hp && who > 0 && !child_proc)
+    CloseHandle (hp);
 
-  return -1;
+  return retval;
 }
 
 /* Emulation of sched_getaffinity and sched_setaffinity.  */
@@ -944,6 +1117,7 @@ sched_getaffinity (int pid, size_t mask_size, cpu_set_t *mask)
 {
   HANDLE hp;
   DWORD err;
+  int child_proc = 0;
 
   if (mask == NULL)
     {
@@ -954,14 +1128,26 @@ sched_getaffinity (int pid, size_t mask_size, cpu_set_t *mask)
   if (pid == 0)
     hp = GetCurrentProcess ();
   else
-    hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, pid);
+    {
+      scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+      hp = proc_handle (pid);
+      scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+      /* If not found among our subprocesses, look elsewhere in the
+	 system.  */
+      if (hp == INVALID_HANDLE_VALUE)
+	hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, pid);
+      else
+	child_proc = 1;
+    }
 
   if (hp)
     {
       DWORD_PTR ignored;
       BOOL result = GetProcessAffinityMask (hp, (DWORD_PTR *)mask, &ignored);
 
-      if (pid != 0)
+      /* The pseudo-handle returned by GetCurrentProcess doesn't
+	 need to be closed.  */
+      if (pid > 0 && !child_proc)
 	CloseHandle (hp);
       if (result)
 	return 0;
@@ -988,6 +1174,7 @@ sched_setaffinity (int pid, size_t mask_size, cpu_set_t *mask)
 {
   HANDLE hp;
   DWORD err;
+  int child_proc = 0;
 
   if (mask == NULL)
     {
@@ -998,13 +1185,25 @@ sched_setaffinity (int pid, size_t mask_size, cpu_set_t *mask)
   if (pid == 0)
     hp = GetCurrentProcess ();
   else
-    hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, pid);
+    {
+      scm_i_scm_pthread_mutex_lock (&scm_i_misc_mutex);
+      hp = proc_handle (pid);
+      scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
+      /* If not found among our subprocesses, look elsewhere in the
+	 system.  */
+      if (hp == INVALID_HANDLE_VALUE)
+	hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, pid);
+      else
+	child_proc = 1;
+    }
 
   if (hp)
     {
       BOOL result = SetProcessAffinityMask (hp, *(DWORD_PTR *)mask);
 
-      if (pid != 0)
+      /* The pseudo-handle returned by GetCurrentProcess doesn't
+	 need to be closed.  */
+      if (pid > 0 && !child_proc)
 	CloseHandle (hp);
       if (result)
 	return 0;
