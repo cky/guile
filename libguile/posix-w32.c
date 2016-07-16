@@ -1,5 +1,5 @@
 /* Copyright (C) 2001, 2006, 2008, 2016 Free Software Foundation, Inc.
- * 
+ *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
  * as published by the Free Software Foundation; either version 3 of
@@ -35,7 +35,7 @@
 #include <fcntl.h>
 
 #include "posix-w32.h"
-#include "libguile/gc.h"	/* for scm_*alloc, scm_strdup */
+#include "libguile/gc.h"        /* for scm_*alloc, scm_strdup */
 #include "libguile/threads.h"   /* for scm_i_scm_pthread_mutex_lock */
 
 /*
@@ -68,16 +68,16 @@ uname (struct utsname *uts)
       else if (osver.dwMajorVersion < 6)
         strcpy (uts->sysname, "Windows XP");   /* XP */
       else if (osver.dwMajorVersion == 6)
-	{
-	  if (osver.dwMinorVersion < 1)
-	    strcpy (uts->sysname, "Windows Vista");   /* Vista */
-	  else if (osver.dwMinorVersion < 2)
-	    strcpy (uts->sysname, "Windows 7"); /* Windows 7 */
-	  else if (osver.dwMinorVersion < 3)
-	    strcpy (uts->sysname, "Windows 8"); /* Windows 8 */
-	  else if (osver.dwMinorVersion < 4)
-	    strcpy (uts->sysname, "Windows 8.1"); /* Windows 8.1 */
-	}
+        {
+          if (osver.dwMinorVersion < 1)
+            strcpy (uts->sysname, "Windows Vista");   /* Vista */
+          else if (osver.dwMinorVersion < 2)
+            strcpy (uts->sysname, "Windows 7"); /* Windows 7 */
+          else if (osver.dwMinorVersion < 3)
+            strcpy (uts->sysname, "Windows 8"); /* Windows 8 */
+          else if (osver.dwMinorVersion < 4)
+            strcpy (uts->sysname, "Windows 8.1"); /* Windows 8.1 */
+        }
       else if (osver.dwMajorVersion >= 10)
         strcpy (uts->sysname, "Windows 10 or later"); /* Windows 10 and later */
       os = WinNT;
@@ -87,10 +87,10 @@ uname (struct utsname *uts)
       if ((osver.dwMajorVersion > 4) ||
           ((osver.dwMajorVersion == 4) && (osver.dwMinorVersion > 0)))
         {
-	  if (osver.dwMinorVersion >= 90)
-	    strcpy (uts->sysname, "Windows ME"); /* ME */
-	  else
-	    strcpy (uts->sysname, "Windows 98"); /* 98 */
+          if (osver.dwMinorVersion >= 90)
+            strcpy (uts->sysname, "Windows ME"); /* ME */
+          else
+            strcpy (uts->sysname, "Windows 98"); /* 98 */
           os = Win98;
         }
       else
@@ -195,7 +195,7 @@ find_proc (pid_t pid)
   for (i = 0; i < proc_size; i++)
     {
       if (procs[i].pid == pid && procs[i].handle != INVALID_HANDLE_VALUE)
-	found = i;
+        found = i;
     }
 
   return found;
@@ -223,7 +223,7 @@ record_proc (pid_t proc_pid, HANDLE proc_handle)
   for (i = 0; i < proc_size; i++)
     {
       if (procs[i].handle == INVALID_HANDLE_VALUE)
-	break;
+        break;
     }
 
   /* If no vacant slot, enlarge the array.  */
@@ -278,49 +278,49 @@ prepare_child_handle (int fd, int use_std, DWORD access)
 
   /* Duplicate the handle and make it inheritable.  */
   if (DuplicateHandle (GetCurrentProcess (),
-		       htem,
-		       GetCurrentProcess (),
-		       &hret,
-		       0,
-		       TRUE,
-		       DUPLICATE_SAME_ACCESS) == FALSE)
+                       htem,
+                       GetCurrentProcess (),
+                       &hret,
+                       0,
+                       TRUE,
+                       DUPLICATE_SAME_ACCESS) == FALSE)
     {
       /* If the original standard handle was invalid (happens, e.g.,
-	 in GUI programs), open the null device instead.  */
+         in GUI programs), open the null device instead.  */
       if ((err = GetLastError ()) == ERROR_INVALID_HANDLE
-	  && use_std)
-	{
-	  htem = CreateFile ("NUL", access,
-			     FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-			     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	  if (htem != INVALID_HANDLE_VALUE
-	      && DuplicateHandle (GetCurrentProcess (),
-				  htem,
-				  GetCurrentProcess (),
-				  &hret,
-				  0,
-				  TRUE,
-				  DUPLICATE_SAME_ACCESS) == FALSE)
-	    {
-	      err = GetLastError ();
-	      CloseHandle (htem);
-	      hret = INVALID_HANDLE_VALUE;
-	    }
-	}
+          && use_std)
+        {
+          htem = CreateFile ("NUL", access,
+                             FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+                             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+          if (htem != INVALID_HANDLE_VALUE
+              && DuplicateHandle (GetCurrentProcess (),
+                                  htem,
+                                  GetCurrentProcess (),
+                                  &hret,
+                                  0,
+                                  TRUE,
+                                  DUPLICATE_SAME_ACCESS) == FALSE)
+            {
+              err = GetLastError ();
+              CloseHandle (htem);
+              hret = INVALID_HANDLE_VALUE;
+            }
+        }
     }
 
   if (hret == INVALID_HANDLE_VALUE)
     {
       switch (err)
-	{
-	  case ERROR_NO_MORE_FILES:
-	    errno = EMFILE;
-	    break;
-	  case ERROR_INVALID_HANDLE:
-	  default:
-	    errno = EBADF;
-	    break;
-	}
+        {
+          case ERROR_NO_MORE_FILES:
+            errno = EMFILE;
+            break;
+          case ERROR_INVALID_HANDLE:
+          default:
+            errno = EBADF;
+            break;
+        }
     }
 
   return hret;
@@ -405,7 +405,7 @@ lookup_cmd (const char *program, int *bin_sh_replaced)
      SearchPath will search in the directories whose list is specified
      by the system Registry.  */
   path = getenv ("PATH");
-  if (!path)	/* shouldn't happen, really */
+  if (!path)    /* shouldn't happen, really */
     path = ".";
   dir = sep = path = strdup (path);
   for ( ; sep && *sep; dir = sep + 1)
@@ -413,21 +413,21 @@ lookup_cmd (const char *program, int *bin_sh_replaced)
       int i;
 
       sep = strpbrk (dir, ";");
-      if (sep == dir)	/* two or more ;'s in a row */
-	continue;
+      if (sep == dir)   /* two or more ;'s in a row */
+        continue;
       if (sep)
-	*sep = '\0';
+        *sep = '\0';
       for (i = 0; extensions[i]; i++)
-	{
-	  abs_namelen = SearchPath (dir, program, extensions[i],
-				    MAX_PATH, abs_name, NULL);
-	  if (0 < abs_namelen && abs_namelen <= MAX_PATH)	/* found! */
-	    break;
-	}
-      if (extensions[i])	/* found! */
-	break;
+        {
+          abs_namelen = SearchPath (dir, program, extensions[i],
+                                    MAX_PATH, abs_name, NULL);
+          if (0 < abs_namelen && abs_namelen <= MAX_PATH)       /* found! */
+            break;
+        }
+      if (extensions[i])        /* found! */
+        break;
       if (sep)
-	*sep = ';';
+        *sep = ';';
     }
 
   free (path);
@@ -439,7 +439,7 @@ lookup_cmd (const char *program, int *bin_sh_replaced)
       const char *shell = getenv ("ComSpec");
 
       if (!shell)
-	shell = "C:\\Windows\\system32\\cmd.exe";
+        shell = "C:\\Windows\\system32\\cmd.exe";
 
       *bin_sh_replaced = 1;
       strcpy (abs_name, shell);
@@ -463,7 +463,7 @@ prepare_cmdline (const char *cmd, const char * const *argv, int bin_sh_replaced)
      program, including both Windows and Unixy shells, and the
      widlcard expansion in startup code of a typical Windows app.  */
   const char need_quotes[] = " \t#;\"\'*?[]&|<>(){}$`^";
-  size_t cmdlen = 1;	/* for terminating null */
+  size_t cmdlen = 1;    /* for terminating null */
   char *cmdline = scm_malloc (cmdlen);
   char *dst = cmdline;
   int cmd_exe_quoting = 0;
@@ -476,12 +476,12 @@ prepare_cmdline (const char *cmd, const char * const *argv, int bin_sh_replaced)
   else
     {
       for (p = cmd + strlen (cmd);
-	   p > cmd && p[-1] != '/' && p[-1] != '\\' && p[-1] != ':';
-	   p--)
-	;
+           p > cmd && p[-1] != '/' && p[-1] != '\\' && p[-1] != ':';
+           p--)
+        ;
       if (c_strcasecmp (p, "cmd.exe") == 0
-	  || c_strcasecmp (p, "cmd") == 0)
-	cmd_exe_quoting = 1;
+          || c_strcasecmp (p, "cmd") == 0)
+        cmd_exe_quoting = 1;
     }
 
   /* Initialize the command line to empty.  */
@@ -496,95 +496,95 @@ prepare_cmdline (const char *cmd, const char * const *argv, int bin_sh_replaced)
       int j;
 
       /* Append the blank separator.  We don't do that for argv[0]
-	 because that is the command name (will end up in child's
-	 argv[0]), and is only recognized as such if there're no
-	 blanks before it.  */
+         because that is the command name (will end up in child's
+         argv[0]), and is only recognized as such if there're no
+         blanks before it.  */
       if (i > 0)
-	*dst++ = ' ';
+        *dst++ = ' ';
       len = dst - cmdline;
 
       /* How much space is required for this argument?  */
       cmdlen += strlen (argv[i]) + 1; /* 1 for a blank separator */
       /* cmd.exe needs a different style of quoting: all the arguments
-	 beyond the /c switch are enclosed in an extra pair of quotes,
-	 and not otherwise quoted/escaped. */
+         beyond the /c switch are enclosed in an extra pair of quotes,
+         and not otherwise quoted/escaped. */
       if (cmd_exe_quoting)
-	{
-	  if (i == 2)
-	    cmdlen += 2;
-	}
+        {
+          if (i == 2)
+            cmdlen += 2;
+        }
       else if (strpbrk (argv[i], need_quotes))
-	{
-	  quote_this = 1;
-	  cmdlen += 2;
-	  for ( ; *src; src++)
-	    {
-	      /* An embedded quote needs to be escaped by a backslash.
-		 Any backslashes immediately preceding that quote need
-		 each one to be escaped by another backslash.  */
-	      if (*src == '\"')
-		cmdlen += n_backslashes + 1;
-	      if (*src == '\\')
-		n_backslashes++;
-	      else
-		n_backslashes = 0;
-	    }
-	  /* If the closing quote we will add is preceded by
-	     backslashes, those backslashes need to be escaped.  */
-	  cmdlen += n_backslashes;
-	}
+        {
+          quote_this = 1;
+          cmdlen += 2;
+          for ( ; *src; src++)
+            {
+              /* An embedded quote needs to be escaped by a backslash.
+                 Any backslashes immediately preceding that quote need
+                 each one to be escaped by another backslash.  */
+              if (*src == '\"')
+                cmdlen += n_backslashes + 1;
+              if (*src == '\\')
+                n_backslashes++;
+              else
+                n_backslashes = 0;
+            }
+          /* If the closing quote we will add is preceded by
+             backslashes, those backslashes need to be escaped.  */
+          cmdlen += n_backslashes;
+        }
 
       /* Enlarge the command-line string as needed.  */
       cmdline = scm_realloc (cmdline, cmdlen);
       dst = cmdline + len;
 
       if (i == 0
-	  && c_strcasecmp (argv[0], "/bin/sh") == 0
-	  && bin_sh_replaced)
-	{
-	  strcpy (dst, "cmd.exe");
-	  dst += sizeof ("cmd.exe") - 1;
-	  continue;
-	}
+          && c_strcasecmp (argv[0], "/bin/sh") == 0
+          && bin_sh_replaced)
+        {
+          strcpy (dst, "cmd.exe");
+          dst += sizeof ("cmd.exe") - 1;
+          continue;
+        }
       if (i == 1 && bin_sh_replaced && strcmp (argv[1], "-c") == 0)
-	{
-	  *dst++ = '/';
-	  *dst++ = 'c';
-	  *dst = '\0';
-	  continue;
-	}
+        {
+          *dst++ = '/';
+          *dst++ = 'c';
+          *dst = '\0';
+          continue;
+        }
 
       /* Add this argument, possibly quoted, to the command line.  */
       if (quote_this || (i == 2 && cmd_exe_quoting))
-	*dst++ = '\"';
+        *dst++ = '\"';
       for (src = argv[i]; *src; src++)
-	{
-	  if (quote_this)
-	    {
-	      if (*src == '\"')
-		for (j = n_backslashes + 1; j > 0; j--)
-		  *dst++ = '\\';
-	      if (*src == '\\')
-		n_backslashes++;
-	      else
-		n_backslashes = 0;
-	    }
-	  *dst++ = *src;
-	}
+        {
+          if (quote_this)
+            {
+              if (*src == '\"')
+                for (j = n_backslashes + 1; j > 0; j--)
+                  *dst++ = '\\';
+              if (*src == '\\')
+                n_backslashes++;
+              else
+                n_backslashes = 0;
+            }
+          *dst++ = *src;
+        }
       if (quote_this)
-	{
-	  for (j = n_backslashes; j > 0; j--)
-	    *dst++ = '\\';
-	  *dst++ = '\"';
-	}
+        {
+          for (j = n_backslashes; j > 0; j--)
+            *dst++ = '\\';
+          *dst++ = '\"';
+        }
       *dst = '\0';
     }
 
   if (cmd_exe_quoting && i > 2)
     {
       /* One extra slot was already reserved when we enlarged cmdlen
-	 by 2 in the "if (cmd_exe_quoting)" clause above.  So we can
-	 safely append a closing quote.  */
+         by 2 in the "if (cmd_exe_quoting)" clause above.  So we can
+         safely append a closing quote.  */
       *dst++ = '\"';
       *dst = '\0';
     }
@@ -604,7 +604,7 @@ prepare_cmdline (const char *cmd, const char * const *argv, int bin_sh_replaced)
    process.  */
 pid_t
 start_child (const char *exec_file, char **argv,
-	     int reading, int c2p[2], int writing, int p2c[2],
+             int reading, int c2p[2], int writing, int p2c[2],
              int infd, int outfd, int errfd)
 {
   HANDLE hin = INVALID_HANDLE_VALUE, hout = INVALID_HANDLE_VALUE;
@@ -642,15 +642,15 @@ start_child (const char *exec_file, char **argv,
      duplicated).  */
   if (writing)
     SetHandleInformation ((HANDLE)_get_osfhandle (p2c[1]),
-			  HANDLE_FLAG_INHERIT, 0);
+                          HANDLE_FLAG_INHERIT, 0);
   if (reading)
     {
       SetHandleInformation ((HANDLE)_get_osfhandle (c2p[0]),
-			    HANDLE_FLAG_INHERIT, 0);
+                            HANDLE_FLAG_INHERIT, 0);
       /* Gnulib's 'pipe' opens the pipe in binary mode, but we don't
-	 want to read text-mode input of subprocesses in binary more,
-	 because then we will get the ^M (a.k.a. "CR") characters we
-	 don't expect.  */
+         want to read text-mode input of subprocesses in binary more,
+         because then we will get the ^M (a.k.a. "CR") characters we
+         don't expect.  */
       _setmode (c2p[0], _O_TEXT);
     }
 
@@ -681,45 +681,45 @@ start_child (const char *exec_file, char **argv,
 
   /* Construct the command line.  */
   cmdline = prepare_cmdline (exec_file, (const char * const *)argv,
-			     bin_sh_replaced);
+                             bin_sh_replaced);
 
   /* All set and ready to fly.  Launch the child process.  */
   if (!CreateProcess (progfile, cmdline, NULL, NULL, TRUE, 0, env_block, NULL,
-		      &si, &pi))
+                      &si, &pi))
     {
       pid = -1;
 
       /* Since we use Win32 APIs directly, we need to translate their
-	 errors to errno values by hand.  */
+         errors to errno values by hand.  */
       switch (GetLastError ())
-	{
-	  case ERROR_FILE_NOT_FOUND:
-	  case ERROR_PATH_NOT_FOUND:
-	  case ERROR_INVALID_DRIVE:
-	  case ERROR_BAD_PATHNAME:
-	    errno = ENOENT;
-	    break;
-	  case ERROR_ACCESS_DENIED:
-	    errno = EACCES;
-	    break;
-	  case ERROR_BAD_ENVIRONMENT:
-	    errno = E2BIG;
-	    break;
-	  case ERROR_BROKEN_PIPE:
-	    errno = EPIPE;
-	    break;
-	  case ERROR_INVALID_HANDLE:
-	    errno = EBADF;
-	    break;
-	  case ERROR_MAX_THRDS_REACHED:
-	    errno = EAGAIN;
-	    break;
-	  case ERROR_BAD_EXE_FORMAT:
-	  case ERROR_BAD_FORMAT:
-	  default:
-	    errno = ENOEXEC;
-	    break;
-	}
+        {
+          case ERROR_FILE_NOT_FOUND:
+          case ERROR_PATH_NOT_FOUND:
+          case ERROR_INVALID_DRIVE:
+          case ERROR_BAD_PATHNAME:
+            errno = ENOENT;
+            break;
+          case ERROR_ACCESS_DENIED:
+            errno = EACCES;
+            break;
+          case ERROR_BAD_ENVIRONMENT:
+            errno = E2BIG;
+            break;
+          case ERROR_BROKEN_PIPE:
+            errno = EPIPE;
+            break;
+          case ERROR_INVALID_HANDLE:
+            errno = EBADF;
+            break;
+          case ERROR_MAX_THRDS_REACHED:
+            errno = EAGAIN;
+            break;
+          case ERROR_BAD_EXE_FORMAT:
+          case ERROR_BAD_FORMAT:
+          default:
+            errno = ENOEXEC;
+            break;
+        }
     }
   else
     {
@@ -746,14 +746,14 @@ start_child (const char *exec_file, char **argv,
       const char *shell = getenv ("ComSpec");
 
       if (!shell)
-	shell = "cmd.exe";
+        shell = "cmd.exe";
 
       if (c_strcasecmp (exec_file, shell) != 0)
-	{
-	  argv[0] = (char *)exec_file;
-	  return start_child (shell, argv, reading, c2p, writing, p2c,
-			      infd, outfd, errfd);
-	}
+        {
+          argv[0] = (char *)exec_file;
+          return start_child (shell, argv, reading, c2p, writing, p2c,
+                              infd, outfd, errfd);
+        }
     }
 
   errno = errno_save;
@@ -790,14 +790,14 @@ waitpid (pid_t pid, int *status, int options)
       DWORD st;
 
       if (!GetExitCodeProcess (ph, &st))
-	{
-	  errno = ECHILD;
-	  return -1;
-	}
+        {
+          errno = ECHILD;
+          return -1;
+        }
       if (st == STILL_ACTIVE)
-	return 0;
+        return 0;
       if (status)
-	*status = st;
+        *status = st;
       CloseHandle (ph);
     }
   else
@@ -821,23 +821,23 @@ struct signal_and_status {
 };
 
 static const struct signal_and_status sigtbl[] = {
-  {SIGSEGV, 0xC0000005},	/* access to invalid address */
-  {SIGSEGV, 0xC0000008},	/* invalid handle */
-  {SIGILL,  0xC000001D},	/* illegal instruction */
-  {SIGILL,  0xC0000025},	/* non-continuable instruction */
-  {SIGSEGV, 0xC000008C},	/* array bounds exceeded */
-  {SIGFPE,  0xC000008D},	/* float denormal */
-  {SIGFPE,  0xC000008E},	/* float divide by zero */
-  {SIGFPE,  0xC000008F},	/* float inexact */
-  {SIGFPE,  0xC0000090},	/* float invalid operation */
-  {SIGFPE,  0xC0000091},	/* float overflow */
-  {SIGFPE,  0xC0000092},	/* float stack check */
-  {SIGFPE,  0xC0000093},	/* float underflow */
-  {SIGFPE,  0xC0000094},	/* integer divide by zero */
-  {SIGFPE,  0xC0000095},	/* integer overflow */
-  {SIGILL,  0xC0000096},	/* privileged instruction */
-  {SIGSEGV, 0xC00000FD},	/* stack overflow */
-  {SIGTERM, 0xC000013A},	/* Ctrl-C exit */
+  {SIGSEGV, 0xC0000005},        /* access to invalid address */
+  {SIGSEGV, 0xC0000008},        /* invalid handle */
+  {SIGILL,  0xC000001D},        /* illegal instruction */
+  {SIGILL,  0xC0000025},        /* non-continuable instruction */
+  {SIGSEGV, 0xC000008C},        /* array bounds exceeded */
+  {SIGFPE,  0xC000008D},        /* float denormal */
+  {SIGFPE,  0xC000008E},        /* float divide by zero */
+  {SIGFPE,  0xC000008F},        /* float inexact */
+  {SIGFPE,  0xC0000090},        /* float invalid operation */
+  {SIGFPE,  0xC0000091},        /* float overflow */
+  {SIGFPE,  0xC0000092},        /* float stack check */
+  {SIGFPE,  0xC0000093},        /* float underflow */
+  {SIGFPE,  0xC0000094},        /* integer divide by zero */
+  {SIGFPE,  0xC0000095},        /* integer overflow */
+  {SIGILL,  0xC0000096},        /* privileged instruction */
+  {SIGSEGV, 0xC00000FD},        /* stack overflow */
+  {SIGTERM, 0xC000013A},        /* Ctrl-C exit */
   {SIGINT,  0xC000013A}
 };
 
@@ -875,7 +875,7 @@ kill (int pid, int sig)
   if (pid == getpid ())
     {
       if (raise (sig) == 0)
-	errno = ENOSYS;
+        errno = ENOSYS;
       return -1;
     }
 
@@ -896,13 +896,13 @@ kill (int pid, int sig)
   if (!TerminateProcess (ph, w32_signal_to_status (sig)))
     {
       /* If it's our subprocess, it could have already exited.  In
-	 that case, waitpid will handily delete the process from our
-	 records, and we should return a more meaningful ESRCH to the
-	 caller.  */
+         that case, waitpid will handily delete the process from our
+         records, and we should return a more meaningful ESRCH to the
+         caller.  */
       if (child_proc && waitpid (pid, NULL, WNOHANG) == pid)
-	errno = ESRCH;
+        errno = ESRCH;
       else
-	errno = EINVAL;
+        errno = EINVAL;
       return -1;
     }
   CloseHandle (ph);
@@ -942,11 +942,11 @@ getpriority (int which, int who)
       hp = proc_handle (who);
       scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
       /* If not found among our subprocesses, look elsewhere in the
-	 system.  */
+         system.  */
       if (hp == INVALID_HANDLE_VALUE)
-	hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, who);
+        hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, who);
       else
-	child_proc = 1;
+        child_proc = 1;
     }
 
   if (hp)
@@ -954,70 +954,70 @@ getpriority (int which, int who)
       DWORD pri_class = GetPriorityClass (hp);
 
       /* The pseudo-handle returned by GetCurrentProcess doesn't need
-	 to be closed.  */
+         to be closed.  */
       if (who > 0 && !child_proc)
-	CloseHandle (hp);
+        CloseHandle (hp);
 
       if (pri_class > 0)
-	{
-	  switch (pri_class)
-	    {
-	    case IDLE_PRIORITY_CLASS:
-	      nice_value = 4;
-	      break;
-	    case BELOW_NORMAL_PRIORITY_CLASS:
-	      nice_value = 6;
-	      break;
-	    case NORMAL_PRIORITY_CLASS:
-	      nice_value = 8;
-	      break;
-	    case ABOVE_NORMAL_PRIORITY_CLASS:
-	      nice_value = 10;
-	      break;
-	    case HIGH_PRIORITY_CLASS:
-	      nice_value = 13;
-	      break;
-	    case REALTIME_PRIORITY_CLASS:
-	      nice_value = 24;
-	      break;
-	    }
-	  /* If WHO is us, we can provide a more fine-grained value by
-	     looking at the current thread's priority value.  (For
-	     other processes, it is not clear which thread to use.)  */
-	  if (who == 0 || who == GetCurrentProcessId ())
-	    {
-	      HANDLE ht = GetCurrentThread ();
-	      int tprio = GetThreadPriority (ht);
+        {
+          switch (pri_class)
+            {
+            case IDLE_PRIORITY_CLASS:
+              nice_value = 4;
+              break;
+            case BELOW_NORMAL_PRIORITY_CLASS:
+              nice_value = 6;
+              break;
+            case NORMAL_PRIORITY_CLASS:
+              nice_value = 8;
+              break;
+            case ABOVE_NORMAL_PRIORITY_CLASS:
+              nice_value = 10;
+              break;
+            case HIGH_PRIORITY_CLASS:
+              nice_value = 13;
+              break;
+            case REALTIME_PRIORITY_CLASS:
+              nice_value = 24;
+              break;
+            }
+          /* If WHO is us, we can provide a more fine-grained value by
+             looking at the current thread's priority value.  (For
+             other processes, it is not clear which thread to use.)  */
+          if (who == 0 || who == GetCurrentProcessId ())
+            {
+              HANDLE ht = GetCurrentThread ();
+              int tprio = GetThreadPriority (ht);
 
-	      switch (tprio)
-		{
-		case THREAD_PRIORITY_IDLE:
-		  if (pri_class == REALTIME_PRIORITY_CLASS)
-		    nice_value = 16;
-		  else
-		    nice_value = 1;
-		  break;
-		case THREAD_PRIORITY_TIME_CRITICAL:
-		  if (pri_class == REALTIME_PRIORITY_CLASS)
-		    nice_value = 31;
-		  else
-		    nice_value = 15;
-		case THREAD_PRIORITY_ERROR_RETURN:
-		  nice_value = -1;
-		  error = 1;
-		  break;
-		default:
-		  nice_value += tprio;
-		  break;
-		}
-	    }
-	  /* Map to "nice values" similar to what one would see on
-	     Posix platforms.  */
-	  if (!error)
-	    nice_value = - (nice_value - NZERO);
-	}
+              switch (tprio)
+                {
+                case THREAD_PRIORITY_IDLE:
+                  if (pri_class == REALTIME_PRIORITY_CLASS)
+                    nice_value = 16;
+                  else
+                    nice_value = 1;
+                  break;
+                case THREAD_PRIORITY_TIME_CRITICAL:
+                  if (pri_class == REALTIME_PRIORITY_CLASS)
+                    nice_value = 31;
+                  else
+                    nice_value = 15;
+                case THREAD_PRIORITY_ERROR_RETURN:
+                  nice_value = -1;
+                  error = 1;
+                  break;
+                default:
+                  nice_value += tprio;
+                  break;
+                }
+            }
+          /* Map to "nice values" similar to what one would see on
+             Posix platforms.  */
+          if (!error)
+            nice_value = - (nice_value - NZERO);
+        }
       else
-	error = 1;
+        error = 1;
     }
   else
     error = 1;
@@ -1027,15 +1027,15 @@ getpriority (int which, int who)
       DWORD err = GetLastError ();
 
       switch (err)
-	{
-	case ERROR_INVALID_PARAMETER:
-	case ERROR_INVALID_THREAD_ID:
-	  errno = ESRCH;
-	  break;
-	default:
-	  errno = EPERM;
-	  break;
-	}
+        {
+        case ERROR_INVALID_PARAMETER:
+        case ERROR_INVALID_THREAD_ID:
+          errno = ESRCH;
+          break;
+        default:
+          errno = EPERM;
+          break;
+        }
     }
 
   return nice_value;
@@ -1062,11 +1062,11 @@ setpriority (int which, int who, int nice_val)
       hp = proc_handle (who);
       scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
       /* If not found among our subprocesses, look elsewhere in the
-	 system.  */
+         system.  */
       if (hp == INVALID_HANDLE_VALUE)
-	hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, who);
+        hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, who);
       else
-	child_proc = 1;
+        child_proc = 1;
     }
 
   if (hp)
@@ -1076,20 +1076,20 @@ setpriority (int which, int who, int nice_val)
       /* Map "nice values" back to process priority classes.  */
       nice_val = -nice_val + NZERO;
       if (nice_val < 6)
-	pri_class = IDLE_PRIORITY_CLASS;
+        pri_class = IDLE_PRIORITY_CLASS;
       else if (nice_val < 8)
-	pri_class = BELOW_NORMAL_PRIORITY_CLASS;
+        pri_class = BELOW_NORMAL_PRIORITY_CLASS;
       else if (nice_val < 10)
-	pri_class = NORMAL_PRIORITY_CLASS;
+        pri_class = NORMAL_PRIORITY_CLASS;
       else if (nice_val < 13)
-	pri_class = ABOVE_NORMAL_PRIORITY_CLASS;
+        pri_class = ABOVE_NORMAL_PRIORITY_CLASS;
       else if (nice_val < 16)
-	pri_class = HIGH_PRIORITY_CLASS;
+        pri_class = HIGH_PRIORITY_CLASS;
       else
-	pri_class = REALTIME_PRIORITY_CLASS;
+        pri_class = REALTIME_PRIORITY_CLASS;
 
       if (SetPriorityClass (hp, pri_class))
-	retval = 0;
+        retval = 0;
     }
 
   err = GetLastError ();
@@ -1133,11 +1133,11 @@ sched_getaffinity (int pid, size_t mask_size, cpu_set_t *mask)
       hp = proc_handle (pid);
       scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
       /* If not found among our subprocesses, look elsewhere in the
-	 system.  */
+         system.  */
       if (hp == INVALID_HANDLE_VALUE)
-	hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, pid);
+        hp = OpenProcess (PROCESS_QUERY_INFORMATION, FALSE, pid);
       else
-	child_proc = 1;
+        child_proc = 1;
     }
 
   if (hp)
@@ -1146,11 +1146,11 @@ sched_getaffinity (int pid, size_t mask_size, cpu_set_t *mask)
       BOOL result = GetProcessAffinityMask (hp, (DWORD_PTR *)mask, &ignored);
 
       /* The pseudo-handle returned by GetCurrentProcess doesn't
-	 need to be closed.  */
+         need to be closed.  */
       if (pid > 0 && !child_proc)
-	CloseHandle (hp);
+        CloseHandle (hp);
       if (result)
-	return 0;
+        return 0;
     }
 
   err = GetLastError ();
@@ -1190,11 +1190,11 @@ sched_setaffinity (int pid, size_t mask_size, cpu_set_t *mask)
       hp = proc_handle (pid);
       scm_i_pthread_mutex_unlock (&scm_i_misc_mutex);
       /* If not found among our subprocesses, look elsewhere in the
-	 system.  */
+         system.  */
       if (hp == INVALID_HANDLE_VALUE)
-	hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, pid);
+        hp = OpenProcess (PROCESS_SET_INFORMATION, FALSE, pid);
       else
-	child_proc = 1;
+        child_proc = 1;
     }
 
   if (hp)
@@ -1202,11 +1202,11 @@ sched_setaffinity (int pid, size_t mask_size, cpu_set_t *mask)
       BOOL result = SetProcessAffinityMask (hp, *(DWORD_PTR *)mask);
 
       /* The pseudo-handle returned by GetCurrentProcess doesn't
-	 need to be closed.  */
+         need to be closed.  */
       if (pid > 0 && !child_proc)
-	CloseHandle (hp);
+        CloseHandle (hp);
       if (result)
-	return 0;
+        return 0;
     }
 
   err = GetLastError ();
