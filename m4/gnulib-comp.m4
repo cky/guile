@@ -310,6 +310,8 @@ AC_DEFUN([gl_INIT],
     gl_PREREQ_DIRFD
   fi
   gl_DIRENT_MODULE_INDICATOR([dirfd])
+  gl_DIRNAME_LGPL
+  gl_DOUBLE_SLASH_ROOT
   gl_FUNC_DUPLOCALE
   if test $REPLACE_DUPLOCALE = 1; then
     AC_LIBOBJ([duplocale])
@@ -705,9 +707,6 @@ AC_DEFUN([gl_INIT],
   gl_gnulib_enabled_assure=false
   gl_gnulib_enabled_btowc=false
   gl_gnulib_enabled_chdir=false
-  gl_gnulib_enabled_a691da99c1d83b83238e45f41a696f5c=false
-  gl_gnulib_enabled_dosname=false
-  gl_gnulib_enabled_36afd6902ac3aacf32e3ff12a686c346=false
   gl_gnulib_enabled_dup2=false
   gl_gnulib_enabled_43fe87a341d9b4b93c47c3ad819a5239=false
   gl_gnulib_enabled_flexmember=false
@@ -785,28 +784,6 @@ AC_SUBST([LTALLOCA])
     if ! $gl_gnulib_enabled_chdir; then
       gl_UNISTD_MODULE_INDICATOR([chdir])
       gl_gnulib_enabled_chdir=true
-    fi
-  }
-  func_gl_gnulib_m4code_a691da99c1d83b83238e45f41a696f5c ()
-  {
-    if ! $gl_gnulib_enabled_a691da99c1d83b83238e45f41a696f5c; then
-      gl_DIRNAME_LGPL
-      gl_gnulib_enabled_a691da99c1d83b83238e45f41a696f5c=true
-      func_gl_gnulib_m4code_dosname
-      func_gl_gnulib_m4code_36afd6902ac3aacf32e3ff12a686c346
-    fi
-  }
-  func_gl_gnulib_m4code_dosname ()
-  {
-    if ! $gl_gnulib_enabled_dosname; then
-      gl_gnulib_enabled_dosname=true
-    fi
-  }
-  func_gl_gnulib_m4code_36afd6902ac3aacf32e3ff12a686c346 ()
-  {
-    if ! $gl_gnulib_enabled_36afd6902ac3aacf32e3ff12a686c346; then
-      gl_DOUBLE_SLASH_ROOT
-      gl_gnulib_enabled_36afd6902ac3aacf32e3ff12a686c346=true
     fi
   }
   func_gl_gnulib_m4code_dup2 ()
@@ -1157,9 +1134,6 @@ AC_SUBST([LTALLOCA])
       gl_SYS_STAT_MODULE_INDICATOR([stat])
       gl_gnulib_enabled_stat=true
       if test $REPLACE_STAT = 1; then
-        func_gl_gnulib_m4code_dosname
-      fi
-      if test $REPLACE_STAT = 1; then
         func_gl_gnulib_m4code_pathmax
       fi
     fi
@@ -1353,13 +1327,7 @@ AC_SUBST([LTALLOCA])
     func_gl_gnulib_m4code_round
   fi
   if test $REPLACE_LSTAT = 1; then
-    func_gl_gnulib_m4code_dosname
-  fi
-  if test $REPLACE_LSTAT = 1; then
     func_gl_gnulib_m4code_stat
-  fi
-  if test $REPLACE_MKDIR = 1; then
-    func_gl_gnulib_m4code_a691da99c1d83b83238e45f41a696f5c
   fi
   if test $HAVE_MKOSTEMP = 0; then
     func_gl_gnulib_m4code_tempname
@@ -1419,13 +1387,7 @@ AC_SUBST([LTALLOCA])
     func_gl_gnulib_m4code_chdir
   fi
   if test $REPLACE_RENAME = 1; then
-    func_gl_gnulib_m4code_a691da99c1d83b83238e45f41a696f5c
-  fi
-  if test $REPLACE_RENAME = 1; then
     func_gl_gnulib_m4code_9bc5f216d57e231e4834049d67d0db62
-  fi
-  if test $REPLACE_RMDIR = 1; then
-    func_gl_gnulib_m4code_dosname
   fi
   if test $REPLACE_SELECT = 1; then
     func_gl_gnulib_m4code_alloca
@@ -1486,9 +1448,6 @@ AC_SUBST([LTALLOCA])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_assure], [$gl_gnulib_enabled_assure])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_btowc], [$gl_gnulib_enabled_btowc])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_chdir], [$gl_gnulib_enabled_chdir])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_a691da99c1d83b83238e45f41a696f5c], [$gl_gnulib_enabled_a691da99c1d83b83238e45f41a696f5c])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_dosname], [$gl_gnulib_enabled_dosname])
-  AM_CONDITIONAL([gl_GNULIB_ENABLED_36afd6902ac3aacf32e3ff12a686c346], [$gl_gnulib_enabled_36afd6902ac3aacf32e3ff12a686c346])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_dup2], [$gl_gnulib_enabled_dup2])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_43fe87a341d9b4b93c47c3ad819a5239], [$gl_gnulib_enabled_43fe87a341d9b4b93c47c3ad819a5239])
   AM_CONDITIONAL([gl_GNULIB_ENABLED_flexmember], [$gl_gnulib_enabled_flexmember])
