@@ -1482,7 +1482,7 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
          flags; open_flags just adjoins flags to that set.  */
       open_flags = 0;
       is_binary = 0;
-      mode_bits = SCM_RDNG | SCM_WRTNG;
+      mode_bits = SCM_OPN | SCM_RDNG | SCM_WRTNG;
     }
   else
     {
@@ -1502,10 +1502,8 @@ SCM_DEFINE (scm_i_mkstemp, "mkstemp!", 1, 1, 0,
 
   port = scm_i_fdes_to_port (rv, mode_bits, tmpl);
   if (is_binary)
-    {
-      /* Use the binary-friendly ISO-8859-1 encoding. */
-      scm_i_set_port_encoding_x (port, NULL);
-    }
+    /* Use the binary-friendly ISO-8859-1 encoding. */
+    scm_i_set_port_encoding_x (port, NULL);
 
   return port;
 }
