@@ -715,7 +715,7 @@ case $host in
     AC_CHECK_HEADER(winsock2.h, [AC_DEFINE([HAVE_WINSOCK2_H], 1,
       [Define if you have the <winsock2.h> header file.])])
     AC_CHECK_LIB(ws2_32, main)
-    AC_LIBOBJ([win32-uname])
+    AC_LIBOBJ([posix-w32])
     if test "$enable_shared" = yes ; then
       EXTRA_DEFS="-DSCM_IMPORT"
       AC_DEFINE([USE_DLL_IMPORT], 1,
