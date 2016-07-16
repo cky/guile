@@ -447,24 +447,18 @@ SCM_DEFINE (scm_setserv, "setserv", 0, 1, 0,
 
 SCM_SYMBOL (sym_getaddrinfo_error, "getaddrinfo-error");
 
-/* Make sure the `AI_*' flags can be stored as INUMs.  */
-verify (AI_ALL < SCM_MOST_POSITIVE_FIXNUM);
+#define SCM_DEFINE_CONSTANT(constant)                                 \
+SCM_SNARF_HERE(verify (constant < SCM_MOST_POSITIVE_FIXNUM))          \
+SCM_SNARF_INIT(scm_c_define (#constant, SCM_I_MAKINUM (constant));)
 
 /* Valid values for the `ai_flags' to `struct addrinfo'.  */
-SCM_VARIABLE_INIT (sym_ai_passive, "AI_PASSIVE",
-		   SCM_I_MAKINUM (AI_PASSIVE));
-SCM_VARIABLE_INIT (sym_ai_canonname, "AI_CANONNAME",
-		   SCM_I_MAKINUM (AI_CANONNAME));
-SCM_VARIABLE_INIT (sym_ai_numerichost, "AI_NUMERICHOST",
-		   SCM_I_MAKINUM (AI_NUMERICHOST));
-SCM_VARIABLE_INIT (sym_ai_numericserv, "AI_NUMERICSERV",
-		   SCM_I_MAKINUM (AI_NUMERICSERV));
-SCM_VARIABLE_INIT (sym_ai_v4mapped, "AI_V4MAPPED",
-		   SCM_I_MAKINUM (AI_V4MAPPED));
-SCM_VARIABLE_INIT (sym_ai_all, "AI_ALL",
-		   SCM_I_MAKINUM (AI_ALL));
-SCM_VARIABLE_INIT (sym_ai_addrconfig, "AI_ADDRCONFIG",
-		   SCM_I_MAKINUM (AI_ADDRCONFIG));
+SCM_DEFINE_CONSTANT (AI_PASSIVE);
+SCM_DEFINE_CONSTANT (AI_CANONNAME);
+SCM_DEFINE_CONSTANT (AI_NUMERICHOST);
+SCM_DEFINE_CONSTANT (AI_NUMERICSERV);
+SCM_DEFINE_CONSTANT (AI_V4MAPPED);
+SCM_DEFINE_CONSTANT (AI_ALL);
+SCM_DEFINE_CONSTANT (AI_ADDRCONFIG);
 
 /* Return a Scheme vector whose elements correspond to the fields of C_AI,
    ignoring the `ai_next' field.  This function is not exported because the
@@ -673,63 +667,42 @@ SCM_DEFINE (scm_getaddrinfo, "getaddrinfo", 1, 5, 0,
 }
 #undef FUNC_NAME
 
-/* Make sure the `EAI_*' flags can be stored as INUMs.  */
-verify (EAI_BADFLAGS < SCM_MOST_POSITIVE_FIXNUM);
-
 /* Error codes returned by `getaddrinfo'.  */
-SCM_VARIABLE_INIT (sym_eai_badflags, "EAI_BADFLAGS",
-		   SCM_I_MAKINUM (EAI_BADFLAGS));
-SCM_VARIABLE_INIT (sym_eai_noname, "EAI_NONAME",
-		   SCM_I_MAKINUM (EAI_NONAME));
-SCM_VARIABLE_INIT (sym_eai_again, "EAI_AGAIN",
-		   SCM_I_MAKINUM (EAI_AGAIN));
-SCM_VARIABLE_INIT (sym_eai_fail, "EAI_FAIL",
-		   SCM_I_MAKINUM (EAI_FAIL));
-SCM_VARIABLE_INIT (sym_eai_family, "EAI_FAMILY",
-		   SCM_I_MAKINUM (EAI_FAMILY));
-SCM_VARIABLE_INIT (sym_eai_socktype, "EAI_SOCKTYPE",
-		   SCM_I_MAKINUM (EAI_SOCKTYPE));
-SCM_VARIABLE_INIT (sym_eai_service, "EAI_SERVICE",
-		   SCM_I_MAKINUM (EAI_SERVICE));
-SCM_VARIABLE_INIT (sym_eai_memory, "EAI_MEMORY",
-		   SCM_I_MAKINUM (EAI_MEMORY));
-SCM_VARIABLE_INIT (sym_eai_system, "EAI_SYSTEM",
-		   SCM_I_MAKINUM (EAI_SYSTEM));
-SCM_VARIABLE_INIT (sym_eai_overflow, "EAI_OVERFLOW",
-		   SCM_I_MAKINUM (EAI_OVERFLOW));
+SCM_DEFINE_CONSTANT (EAI_BADFLAGS);
+SCM_DEFINE_CONSTANT (EAI_NONAME);
+SCM_DEFINE_CONSTANT (EAI_AGAIN);
+SCM_DEFINE_CONSTANT (EAI_FAIL);
+SCM_DEFINE_CONSTANT (EAI_FAMILY);
+SCM_DEFINE_CONSTANT (EAI_SOCKTYPE);
+SCM_DEFINE_CONSTANT (EAI_SERVICE);
+SCM_DEFINE_CONSTANT (EAI_MEMORY);
+SCM_DEFINE_CONSTANT (EAI_SYSTEM);
+SCM_DEFINE_CONSTANT (EAI_OVERFLOW);
 
 /* The following values are GNU extensions.  */
 #ifdef EAI_NODATA
-SCM_VARIABLE_INIT (sym_eai_nodata, "EAI_NODATA",
-		   SCM_I_MAKINUM (EAI_NODATA));
+SCM_DEFINE_CONSTANT (EAI_NODATA);
 #endif
 #ifdef EAI_ADDRFAMILY
-SCM_VARIABLE_INIT (sym_eai_addrfamily, "EAI_ADDRFAMILY",
-		   SCM_I_MAKINUM (EAI_ADDRFAMILY));
+SCM_DEFINE_CONSTANT (EAI_ADDRFAMILY);
 #endif
 #ifdef EAI_INPROGRESS
-SCM_VARIABLE_INIT (sym_eai_inprogress, "EAI_INPROGRESS",
-		   SCM_I_MAKINUM (EAI_INPROGRESS));
+SCM_DEFINE_CONSTANT (EAI_INPROGRESS);
 #endif
 #ifdef EAI_CANCELED
-SCM_VARIABLE_INIT (sym_eai_canceled, "EAI_CANCELED",
-		   SCM_I_MAKINUM (EAI_CANCELED));
+SCM_DEFINE_CONSTANT (EAI_CANCELED);
 #endif
 #ifdef EAI_NOTCANCELED
-SCM_VARIABLE_INIT (sym_eai_notcanceled, "EAI_NOTCANCELED",
-		   SCM_I_MAKINUM (EAI_NOTCANCELED));
+SCM_DEFINE_CONSTANT (EAI_NOTCANCELED);
 #endif
 #ifdef EAI_ALLDONE
-SCM_VARIABLE_INIT (sym_eai_alldone, "EAI_ALLDONE",
-		   SCM_I_MAKINUM (EAI_ALLDONE));
+SCM_DEFINE_CONSTANT (EAI_ALLDONE);
 #endif
 #ifdef EAI_INTR
-SCM_VARIABLE_INIT (sym_eai_intr, "EAI_INTR",
-		   SCM_I_MAKINUM (EAI_INTR));
+SCM_DEFINE_CONSTANT (EAI_INTR);
 #endif
 #ifdef EAI_IDN_ENCODE
-SCM_VARIABLE_INIT (sym_eai_idn_encode, "EAI_IDN_ENCODE",
-		   SCM_I_MAKINUM (EAI_IDN_ENCODE));
+SCM_DEFINE_CONSTANT (EAI_IDN_ENCODE);
 #endif
 
 SCM_DEFINE (scm_gai_strerror, "gai-strerror", 1, 0, 0,
