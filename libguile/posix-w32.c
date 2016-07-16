@@ -59,13 +59,26 @@ uname (struct utsname *uts)
         strcpy (uts->sysname, "Windows NT3x"); /* NT3x */
       else if (osver.dwMajorVersion == 5 && osver.dwMinorVersion < 1)
         strcpy (uts->sysname, "Windows 2000"); /* 2k */
-      else if (osver.dwMajorVersion >= 5)
+      else if (osver.dwMajorVersion < 6)
         strcpy (uts->sysname, "Windows XP");   /* XP */
+      else if (osver.dwMajorVersion == 6)
+	{
+	  if (osver.dwMinorVersion < 1)
+	    strcpy (uts->sysname, "Windows Vista");   /* Vista */
+	  else if (osver.dwMinorVersion < 2)
+	    strcpy (uts->sysname, "Windows 7"); /* Windows 7 */
+	  else if (osver.dwMinorVersion < 3)
+	    strcpy (uts->sysname, "Windows 8"); /* Windows 8 */
+	  else if (osver.dwMinorVersion < 4)
+	    strcpy (uts->sysname, "Windows 8.1"); /* Windows 8.1 */
+	}
+      else if (osver.dwMajorVersion >= 10)
+        strcpy (uts->sysname, "Windows 10 or later"); /* Windows 10 and later */
       os = WinNT;
       break;
 
     case VER_PLATFORM_WIN32_WINDOWS: /* Win95, Win98 or WinME */
-      if ((osver.dwMajorVersion > 4) || 
+      if ((osver.dwMajorVersion > 4) ||
           ((osver.dwMajorVersion == 4) && (osver.dwMinorVersion > 0)))
         {
 	  if (osver.dwMinorVersion >= 90)
@@ -86,11 +99,11 @@ uname (struct utsname *uts)
       break;
     }
 
-  sprintf (uts->version, "%ld.%02ld", 
+  sprintf (uts->version, "%ld.%02ld",
            osver.dwMajorVersion, osver.dwMinorVersion);
 
   if (osver.szCSDVersion[0] != '\0' &&
-      (strlen (osver.szCSDVersion) + strlen (uts->version) + 1) < 
+      (strlen (osver.szCSDVersion) + strlen (uts->version) + 1) <
       sizeof (uts->version))
     {
       strcat (uts->version, " ");
@@ -110,10 +123,13 @@ uname (struct utsname *uts)
     case PROCESSOR_ARCHITECTURE_MIPS:
       strcpy (uts->machine, "mips");
       break;
+    case PROCESSOR_ARCHITECTURE_IA64:
+      strcpy (uts->machine, "ia64");
+      break;
     case PROCESSOR_ARCHITECTURE_INTEL:
-      /* 
+      /*
        * dwProcessorType is only valid in Win95 and Win98 and WinME
-       * wProcessorLevel is only valid in WinNT 
+       * wProcessorLevel is only valid in WinNT
        */
       switch (os)
         {
@@ -137,13 +153,16 @@ uname (struct utsname *uts)
         default:
           strcpy (uts->machine, "unknown");
           break;
-      }
+        }
+      break;
+    case PROCESSOR_ARCHITECTURE_AMD64:
+      strcpy (uts->machine, "x86_64");
       break;
     default:
       strcpy (uts->machine, "unknown");
       break;
   }
-  
+
   sLength = sizeof (uts->nodename) - 1;
   GetComputerName (uts->nodename, &sLength);
   return 0;
