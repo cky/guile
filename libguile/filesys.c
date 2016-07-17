@@ -35,6 +35,7 @@
 #endif
 
 #include <alloca.h>
+#include <dirname.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1545,31 +1546,22 @@ SCM_DEFINE (scm_dirname, "dirname", 1, 0, 0,
 	    "component, @code{.} is returned.")
 #define FUNC_NAME s_scm_dirname
 {
-  long int i;
-  unsigned long int len;
+  char *c_filename, *c_dirname;
+  SCM res;
 
-  SCM_VALIDATE_STRING (1, filename);
+  scm_dynwind_begin (0);
+  c_filename = scm_to_utf8_string (filename);
+  scm_dynwind_free (c_filename);
 
-  len = scm_i_string_length (filename);
+  c_dirname = mdir_name (c_filename);
+  if (!c_dirname)
+    SCM_SYSERROR;
+  scm_dynwind_free (c_dirname);
 
-  i = len - 1;
+  res = scm_from_utf8_string (c_dirname);
+  scm_dynwind_end ();
 
-  while (i >= 0 && is_file_name_separator (scm_c_string_ref (filename, i)))
-    --i;
-  while (i >= 0 && !is_file_name_separator (scm_c_string_ref (filename, i)))
-    --i;
-  while (i >= 0 && is_file_name_separator (scm_c_string_ref (filename, i)))
-    --i;
-
-  if (i < 0)
-    {
-      if (len > 0 && is_file_name_separator (scm_c_string_ref (filename, 0)))
-	return scm_c_substring (filename, 0, 1);
-      else
-	return scm_dot_string;
-    }
-  else
-    return scm_c_substring (filename, 0, i + 1);
+  return res;
 }
 #undef FUNC_NAME
 
@@ -1581,42 +1573,28 @@ SCM_DEFINE (scm_basename, "basename", 1, 1, 0,
 	    "@var{filename}, it is removed also.")
 #define FUNC_NAME s_scm_basename
 {
-  int i, j, len, end;
+  char *c_filename, *c_last_component;
+  SCM res;
 
-  SCM_VALIDATE_STRING (1, filename);
-  len = scm_i_string_length (filename);
+  scm_dynwind_begin (0);
+  c_filename = scm_to_utf8_string (filename);
+  scm_dynwind_free (c_filename);
 
-  if (SCM_UNBNDP (suffix))
-    j = -1;
+  c_last_component = last_component (c_filename);
+  if (!c_last_component)
+    res = filename;
   else
-    {
-      SCM_VALIDATE_STRING (2, suffix);
-      j = scm_i_string_length (suffix) - 1;
-    }
-  i = len - 1;
-  while (i >= 0 && is_file_name_separator (scm_c_string_ref (filename, i)))
-    --i;
-  end = i;
-  while (i >= 0 && j >= 0 
-	 && (scm_i_string_ref (filename, i)
-	     == scm_i_string_ref (suffix, j)))
-    {
-      --i;
-      --j;
-    }
-  if (j == -1)
-    end = i;
-  while (i >= 0 && !is_file_name_separator (scm_c_string_ref (filename, i)))
-    --i;
-  if (i == end)
-    {
-      if (len > 0 && is_file_name_separator (scm_c_string_ref (filename, 0)))
-        return scm_c_substring (filename, 0, 1);
-      else
-	return scm_dot_string;
-    }
-  else
-    return scm_c_substring (filename, i+1, end+1);
+    res = scm_from_utf8_string (c_last_component);
+  scm_dynwind_end ();
+
+  if (!SCM_UNBNDP (suffix) &&
+      scm_is_true (scm_string_suffix_p (suffix, filename,
+                                        SCM_UNDEFINED, SCM_UNDEFINED,
+                                        SCM_UNDEFINED, SCM_UNDEFINED)))
+    res = scm_c_substring
+      (res, 0, scm_c_string_length (res) - scm_c_string_length (suffix));
+
+  return res;
 }
 #undef FUNC_NAME
 
