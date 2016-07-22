@@ -136,6 +136,7 @@ an expression to be evaluated and inserted.  The comma syntax @code{,}
 is simply a shorthand for an @code{unquote} form.  For example,
 
 @example
+`(1 2 (* 9 9) 3 4)       @result{} (1 2 (* 9 9) 3 4)
 `(1 2 ,(* 9 9) 3 4)      @result{} (1 2 81 3 4)
 `(1 (unquote (+ 1 1)) 3) @result{} (1 2 3)
 `#(1 ,(/ 12 2))          @result{} #(1 6)
@@ -153,8 +154,9 @@ the returned list inserted.  @var{expr} must evaluate to a list.  The
 
 @example
 (define x '(2 3))
+`(1 ,x 4)                           @result{} (1 (2 3) 4)
 `(1 ,@@x 4)                         @result{} (1 2 3 4)
-`(1 (unquote-splicing (map 1+ x))) @result{} (1 3 4)
+`(1 (unquote-splicing (map 1+ x)))  @result{} (1 3 4)
 `#(9 ,@@x 9)                        @result{} #(9 2 3 9)
 @end example
 
