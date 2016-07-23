@@ -408,7 +408,7 @@ SCM_DEFINE (scm_localtime, "localtime", 1, 1, 0,
       const char *ptr;
 
       /* copy zone name before calling gmtime or restoring zone.  */
-#if defined (HAVE_TM_ZONE)
+#if defined (HAVE_STRUCT_TM_TM_ZONE)
       ptr = ltptr->tm_zone;
 #elif defined (HAVE_TZNAME)
       ptr = tzname[ (ltptr->tm_isdst == 1) ? 1 : 0 ];
@@ -517,7 +517,7 @@ bdtime2c (SCM sbd_time, struct tm *lt, int pos, const char *subr)
 #if HAVE_STRUCT_TM_TM_GMTOFF
   lt->tm_gmtoff = - scm_to_int (SCM_SIMPLE_VECTOR_REF (sbd_time, 9));
 #endif
-#ifdef HAVE_TM_ZONE
+#ifdef HAVE_STRUCT_TM_TM_ZONE
   if (scm_is_false (SCM_SIMPLE_VECTOR_REF (sbd_time, 10)))
     lt->tm_zone = NULL;
   else
@@ -568,7 +568,7 @@ SCM_DEFINE (scm_mktime, "mktime", 1, 1, 0,
       const char *ptr;
 
       /* copy zone name before calling gmtime or restoring the zone.  */
-#if defined (HAVE_TM_ZONE)
+#if defined (HAVE_STRUCT_TM_TM_ZONE)
       ptr = lt.tm_zone;
 #elif defined (HAVE_TZNAME)
       ptr = tzname[ (lt.tm_isdst == 1) ? 1 : 0 ];
@@ -678,7 +678,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 
   tbuf = scm_malloc (size);
   {
-#if !defined (HAVE_TM_ZONE)
+#if !defined (HAVE_STRUCT_TM_TM_ZONE)
     /* it seems the only way to tell non-GNU versions of strftime what
        zone to use (for the %Z format) is to set TZ in the
        environment.  interrupts and thread switching must be deferred
@@ -716,7 +716,7 @@ SCM_DEFINE (scm_strftime, "strftime", 2, 0, 0,
 	tbuf = scm_malloc (size);
       }
 
-#if !defined (HAVE_TM_ZONE)
+#if !defined (HAVE_STRUCT_TM_TM_ZONE)
     if (have_zone)
       {
 	restorezone (zone_spec, oldenv, FUNC_NAME);
