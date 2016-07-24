@@ -34,53 +34,172 @@
 */
 
 #include <stdlib.h>
+#include <signal.h>
 #include <errno.h>
 
 /* Threads
 */
-#define scm_i_pthread_t                     int
-#define scm_i_pthread_self()                0
-#define scm_i_pthread_create(t,a,f,d)       (*(t)=0, (void)(f), ENOSYS)
-#define scm_i_pthread_detach(t)             do { } while (0)
-#define scm_i_pthread_exit(v)               exit (EXIT_SUCCESS)
-#define scm_i_pthread_cancel(t)             0
-#define scm_i_pthread_cleanup_push(t,v)     0
-#define scm_i_pthread_cleanup_pop(e)        0
-#define scm_i_sched_yield()                 0
+typedef int scm_i_pthread_t;
+typedef void scm_i_pthread_attr_t;
+
+static inline scm_i_pthread_t
+scm_i_pthread_self (void)
+{
+  return 0;
+}
+
+static inline int
+scm_i_pthread_create (scm_i_pthread_t *t, const scm_i_pthread_attr_t *attr,
+                      void* (*f) (void*), void *arg)
+{
+  return ENOSYS;
+}
+
+static inline int
+scm_i_pthread_detach (scm_i_pthread_t t)
+{
+  return 0;
+}
+
+static inline void
+scm_i_pthread_exit (void *retval)
+{
+  exit (EXIT_SUCCESS);
+}
+
+static inline int
+scm_i_pthread_cancel (scm_i_pthread_t t)
+{
+  return 0;
+}
+
+static inline int
+scm_i_sched_yield (void)
+{
+  return 0;
+}
+
 
 /* Signals
  */
-#define scm_i_pthread_sigmask               sigprocmask
+static inline int
+scm_i_pthread_sigmask (int how, const sigset_t *set, sigset_t *oldset)
+{
+  return sigprocmask (how, set, oldset);
+}
 
 /* Mutexes
  */
-#define SCM_I_PTHREAD_MUTEX_INITIALIZER     0
-#define scm_i_pthread_mutex_t               int
-#define scm_i_pthread_mutex_init(m,a)       (*(m) = 0)
-#define scm_i_pthread_mutex_destroy(m)      do { (void)(m); } while(0)
-#define scm_i_pthread_mutex_trylock(m)      ((*(m))++)
-#define scm_i_pthread_mutex_lock(m)         ((*(m))++)
-#define scm_i_pthread_mutex_unlock(m)       ((*(m))--)
+typedef enum {
+  SCM_I_PTHREAD_MUTEX_INITIALIZER = 0,
+  SCM_I_PTHREAD_MUTEX_LOCKED = 1
+} scm_i_pthread_mutex_t;
+typedef int scm_i_pthread_mutexattr_t;
+
+static inline int
+scm_i_pthread_mutex_init (scm_i_pthread_mutex_t *m,
+                          scm_i_pthread_mutexattr_t *attr)
+{
+  *m = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+  return 0;
+}
+
+static inline int
+scm_i_pthread_mutex_destroy (scm_i_pthread_mutex_t *m)
+{
+  return 0;
+}
+
+static inline int
+scm_i_pthread_mutex_trylock(scm_i_pthread_mutex_t *m)
+{
+  if (*m == SCM_I_PTHREAD_MUTEX_LOCKED)
+    return EDEADLK;
+  *m = SCM_I_PTHREAD_MUTEX_LOCKED;
+  return 0;
+}
+
+static inline int
+scm_i_pthread_mutex_lock (scm_i_pthread_mutex_t *m)
+{
+  *m = SCM_I_PTHREAD_MUTEX_LOCKED;
+  return 0;
+}
+
+static inline int
+scm_i_pthread_mutex_unlock (scm_i_pthread_mutex_t *m)
+{
+  *m = SCM_I_PTHREAD_MUTEX_INITIALIZER;
+  return 0;
+}
+
 #define scm_i_pthread_mutexattr_recursive   0
 
 /* Condition variables
  */
-#define SCM_I_PTHREAD_COND_INITIALIZER      0
-#define scm_i_pthread_cond_t                int
-#define scm_i_pthread_cond_init(c,a)        (*(c) = 0)
-#define scm_i_pthread_cond_destroy(c)       do { (void)(c); } while(0)
-#define scm_i_pthread_cond_signal(c)        (*(c) = 1)
-#define scm_i_pthread_cond_broadcast(c)     (*(c) = 1)
-#define scm_i_pthread_cond_wait(c,m)        (abort(), 0)
-#define scm_i_pthread_cond_timedwait(c,m,t) (abort(), 0)
+typedef enum {
+  SCM_I_PTHREAD_COND_INITIALIZER = 0
+} scm_i_pthread_cond_t;
+typedef int scm_i_pthread_condattr_t;
+
+static inline int
+scm_i_pthread_cond_init (scm_i_pthread_cond_t *c,
+                         scm_i_pthread_condattr_t *attr)
+{
+  *c = SCM_I_PTHREAD_COND_INITIALIZER;
+  return 0;
+}
+
+static inline int
+scm_i_pthread_cond_destroy (scm_i_pthread_cond_t *c)
+{
+  return 0;
+}
+
+static inline int
+scm_i_pthread_cond_signal (scm_i_pthread_cond_t *c)
+{
+  return 0;
+}
+
+static inline int
+scm_i_pthread_cond_broadcast (scm_i_pthread_cond_t *c)
+{
+  return 0;
+}
+
+static inline int
+scm_i_pthread_cond_wait (scm_i_pthread_cond_t *c, scm_i_pthread_mutex_t *m)
+{
+  abort ();
+  return 0;
+}
+
+static inline int
+scm_i_pthread_cond_timedwait (scm_i_pthread_cond_t *c, scm_i_pthread_mutex_t *m,
+                              const scm_t_timespec *t)
+{
+  abort();
+  return 0;
+}
 
 /* Onces
  */
-#define scm_i_pthread_once_t                int
-#define SCM_I_PTHREAD_ONCE_INIT             0
-#define scm_i_pthread_once(o,f)             do { \
-                                              if(!*(o)) { *(o)=1; f (); } \
-                                            } while(0)
+typedef enum {
+  SCM_I_PTHREAD_ONCE_INIT = 0,
+  SCM_I_PTHREAD_ONCE_ALREADY = 1
+} scm_i_pthread_once_t;
+
+static inline int
+scm_i_pthread_once (scm_i_pthread_once_t *o, void(*init)(void))
+{
+  if (*o == SCM_I_PTHREAD_ONCE_INIT)
+    {
+      *o = SCM_I_PTHREAD_ONCE_ALREADY;
+      init ();
+    }
+  return 0;
+}
 
 /* Thread specific storage
  */
