@@ -610,6 +610,12 @@ scm_storage_prehistory ()
   GC_set_free_space_divisor (free_space_divisor);
   GC_set_finalize_on_demand (1);
 
+#if SCM_I_GSC_USE_NULL_THREADS
+  /* If we have disabled threads in Guile, ensure that the GC doesn't
+     spawn any markern threads.  */
+  setenv ("GC_MARKERS", "1", 1);
+#endif
+
   GC_INIT ();
 
 #if (! ((defined GC_VERSION_MAJOR) && (GC_VERSION_MAJOR >= 7))) \
