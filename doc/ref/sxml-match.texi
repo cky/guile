@@ -147,7 +147,7 @@ expressions which are evaluated if the pattern is successfully match.  The
 example above matches an element @code{e} with an attribute @code{i} and three
 children.
 
-Pattern variables are must be ``unquoted'' in the pattern.  The above expression
+Pattern variables must be ``unquoted'' in the pattern.  The above expression
 binds @var{d} to @code{1}, @var{a} to @code{3}, @var{b} to @code{4}, and @var{c}
 to @code{5}.
 
