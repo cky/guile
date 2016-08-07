@@ -1841,9 +1841,9 @@ documented in the ``Compound Data Types'' section of the manual
 @cindex hash-comma
 @cindex #,()
 This SRFI implements a reader extension @code{#,()} called hash-comma.
-It allows the reader to give new kinds of objects, for use both in
-data and as constants or literals in source code.  This feature is
-available with
+It allows the reader to give new kinds of objects, for use both in data
+and as constants or literals in source code.  This feature is available
+with
 
 @example
 (use-modules (srfi srfi-10))
@@ -1901,73 +1901,46 @@ addition,
 (display #,(sum 123 456)) @print{} 579
 @end example
 
-A typical use for @nicode{#,()} is to get a read syntax for objects
-which don't otherwise have one.  For example, the following allows a
-hash table to be given literally, with tags and values, ready for fast
-lookup.
-
-@example
-(define-reader-ctor 'hash
-  (lambda elems
-    (let ((table (make-hash-table)))
-      (for-each (lambda (elem)
-                  (apply hash-set! table elem))
-                elems)
-      table)))
-
-(define (animal->family animal)
-  (hash-ref '#,(hash ("tiger" "cat")
-                     ("lion"  "cat")
-                     ("wolf"  "dog"))
-            animal))
-
-(animal->family "lion") @result{} "cat"
-@end example
-
-Or for example the following is a syntax for a compiled regular
-expression (@pxref{Regular Expressions}).
-
-@example
-(use-modules (ice-9 regex))
-
-(define-reader-ctor 'regexp make-regexp)
-
-(define (extract-angs str)
-  (let ((match (regexp-exec '#,(regexp "<([A-Z0-9]+)>") str)))
-    (and match
-         (match:substring match 1))))
-
-(extract-angs "foo <BAR> quux") @result{} "BAR"
-@end example
-
-@sp 1
-@nicode{#,()} is somewhat similar to @code{define-macro}
-(@pxref{Macros}) in that handler code is run to produce a result, but
-@nicode{#,()} operates at the read stage, so it can appear in data for
-@code{read} (@pxref{Scheme Read}), not just in code to be executed.
-
-Because @nicode{#,()} is handled at read-time it has no direct access
-to variables etc.  A symbol in the arguments is just a symbol, not a
-variable reference.  The arguments are essentially constants, though
-the handler procedure can use them in any complicated way it might
-want.
-
 Once @code{(srfi srfi-10)} has loaded, @nicode{#,()} is available
 globally, there's no need to use @code{(srfi srfi-10)} in later
 modules.  Similarly the tags registered are global and can be used
 anywhere once registered.
 
-There's no attempt to record what previous @nicode{#,()} forms have
-been seen, if two identical forms occur then two calls are made to the
-handler procedure.  The handler might like to maintain a cache or
-similar to avoid making copies of large objects, depending on expected
-usage.
+We do not recommend @nicode{#,()} reader extensions, however, and for
+three reasons.
 
-In code the best uses of @nicode{#,()} are generally when there's a
-lot of objects of a particular kind as literals or constants.  If
-there's just a few then some local variables and initializers are
-fine, but that becomes tedious and error prone when there's a lot, and
-the anonymous and compact syntax of @nicode{#,()} is much better.
+First of all, this SRFI is not modular: the tag is matched by name, not
+as an identifier within a scope.  Defining a reader extension in one
+part of a program can thus affect unrelated parts of a program because
+the tag is not scoped.
+
+Secondly, reader extensions can be hard to manage from a time
+perspective: when does the reader extension take effect?  @xref{Eval
+When}, for more discussion.
+
+Finally, reader extensions can easily produce objects that can't be
+reified to an object file by the compiler.  For example if you define a
+reader extension that makes a hash table (@pxref{Hash Tables}), then it
+will work fine when run with the interpreter, and you think you have a
+neat hack.  But then if you try to compile your program, after wrangling
+with the @code{eval-when} concerns mentioned above, the compiler will
+carp that it doesn't know how to serialize a hash table to disk.
+
+In the specific case of hash tables, it would be possible for Guile to
+know how to pack hash tables into compiled files, but this doesn't work
+in general.  What if the object you produce is an instance of a record
+type?  Guile would then have to serialize the record type to disk too,
+and then what happens if the program independently loads the code that
+defines the record type?  Does it define the same type or a different
+type?  Guile's record types are nominal, not structural, so the answer
+is not clear at all.
+
+For all of these reasons we recommend macros over reader extensions.
+Macros fulfill many of the same needs while preserving modular
+composition, and their interaction with @code{eval-when} is well-known.
+If you need brevity, instead use @code{read-hash-extend} and make your
+reader extension expand to a macro invocation.  In that way we preserve
+scoping as much as possible.  @xref{Reader Extensions}.
 
 
 @node SRFI-11
