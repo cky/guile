@@ -1708,7 +1708,7 @@ starts from 0 for the least significant bit.
 
 @deffn {Scheme Procedure} ash n count
 @deffnx {C Function} scm_ash (n, count)
-Return @math{floor(n * 2^count)}.
+Return @math{floor(n * 2^{count})}.
 @var{n} and @var{count} must be exact integers.
 
 With @var{n} viewed as an infinite-precision twos-complement
@@ -5124,7 +5124,7 @@ mapping consistently:
 @lisp
 ;; 1=red, 2=green, 3=purple
 
-(if (eq? (colour-of car) 1)
+(if (eq? (colour-of vehicle) 1)
     ...)
 @end lisp
 
@@ -5137,7 +5137,7 @@ defining constants:
 (define green 2)
 (define purple 3)
 
-(if (eq? (colour-of car) red)
+(if (eq? (colour-of vehicle) red)
     ...)
 @end lisp
 
@@ -5146,7 +5146,7 @@ But the simplest and clearest approach is not to use numbers at all, but
 symbols whose names specify the colours that they refer to:
 
 @lisp
-(if (eq? (colour-of car) 'red)
+(if (eq? (colour-of vehicle) 'red)
     ...)
 @end lisp
 
@@ -5168,15 +5168,15 @@ Then a car's combined property set could be naturally represented and
 manipulated as a list of symbols:
 
 @lisp
-(properties-of car1)
+(properties-of vehicle1)
 @result{}
 (red manual unleaded power-steering)
 
-(if (memq 'power-steering (properties-of car1))
-    (display "Unfit people can drive this car.\n")
-    (display "You'll need strong arms to drive this car!\n"))
+(if (memq 'power-steering (properties-of vehicle1))
+    (display "Unfit people can drive this vehicle.\n")
+    (display "You'll need strong arms to drive this vehicle!\n"))
 @print{}
-Unfit people can drive this car.
+Unfit people can drive this vehicle.
 @end lisp
 
 Remember, the fundamental property of symbols that we are relying on

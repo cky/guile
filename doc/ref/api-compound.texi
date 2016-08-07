@@ -1258,14 +1258,14 @@ is an ordinary array of rank 1 with lower bound 0 in dimension 0.
 is an ordinary array of rank 1 with lower bound 2 in dimension 0.
 
 @item #2((1 2 3) (4 5 6))
-is a non-uniform array of rank 2; a 3@cross{}3 matrix with index ranges 0..2
+is a non-uniform array of rank 2; a 2@cross{}3 matrix with index ranges 0..1
 and 0..2.
 
 @item #u32(0 1 2)
 is a uniform u8 array of rank 1.
 
 @item #2u32@@2@@3((1 2) (2 3))
-is a uniform u8 array of rank 2 with index ranges 2..3 and 3..4.
+is a uniform u32 array of rank 2 with index ranges 2..3 and 3..4.
 
 @item #2()
 is a two-dimensional array with index ranges 0..-1 and 0..-1, i.e.@:
@@ -2877,7 +2877,7 @@ convenient definition that indicates the number of fields in
 @code{standard-vtable-fields}.
 
 @defvr {Scheme Variable} standard-vtable-fields
-A string containing the orderedq set of fields that a vtable must have.
+A string containing the ordered set of fields that a vtable must have.
 @end defvr
 
 @defvr {Scheme Variable} vtable-offset-user

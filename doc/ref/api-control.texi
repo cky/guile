@@ -168,7 +168,7 @@ Each @code{cond}-clause must look like this:
 (@var{test} @var{expression} @dots{})
 @end lisp
 
-where @var{test} and @var{expression} are arbitrary expression, or like
+where @var{test} and @var{expression} are arbitrary expressions, or like
 this
 
 @lisp
@@ -178,7 +178,7 @@ this
 where @var{expression} must evaluate to a procedure.
 
 The @var{test}s of the clauses are evaluated in order and as soon as one
-of them evaluates to a true values, the corresponding @var{expression}s
+of them evaluates to a true value, the corresponding @var{expression}s
 are evaluated in order and the last value is returned as the value of
 the @code{cond}-expression.  For the @code{=>} clause type,
 @var{expression} is evaluated and the resulting procedure is applied to
@@ -891,7 +891,7 @@ a new values object, and copies into it the @var{n} values starting from
 @var{base}.
 
 Currently this creates a list and passes it to @code{scm_values}, but we
-expect that in the future we will be able to use more a efficient
+expect that in the future we will be able to use a more efficient
 representation.
 @end deftypefn
 
