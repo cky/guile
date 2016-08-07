@@ -93,7 +93,7 @@ Many people end up in a development style of adding and changing
 definitions at runtime, building out their program without restarting
 it.  (You can do this using @code{reload-module}, the @code{reload} REPL
 command, the @code{load} procedure, or even just pasting code into a
-REPL.)  If you are one of these people, you will find that sometimes you
+REPL.)  If you are one of these people, you will find that sometimes
 there are some variables that you @emph{don't} want to redefine all the
 time.  For these, use @code{define-once}.
 
@@ -301,7 +301,7 @@ following case:
   (define a 1)
   (define b (+ a a))
   (+ a b))
-@end lisp  
+@end lisp
 
 @noindent
 Guile decided to follow the R6RS in this regard, and now expands
