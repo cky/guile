@@ -564,6 +564,8 @@ AC_DEFUN([GUILE_CHECK_GUILE_FOR_BUILD], [
       if test "$GUILE_FOR_BUILD" = "not-found"; then
         AC_MSG_ERROR([a native Guile $PACKAGE_VERSION is required to cross-build Guile])
       fi
+    else
+      GUILE_FOR_BUILD=$(which "$GUILE_FOR_BUILD" || echo "$GUILE_FOR_BUILD")
     fi
     AC_MSG_CHECKING([guile for build])
     AC_MSG_RESULT([$GUILE_FOR_BUILD])
