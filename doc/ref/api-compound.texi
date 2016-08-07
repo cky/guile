@@ -3718,9 +3718,9 @@ the following examples.
 #f
 @end lisp
 
-Better is to use the procedure @code{hashq-get-handle}, which makes a
-distinction between the two cases.  Just like @code{assq}, this
-procedure returns a key/value-pair on success, and @code{#f} if the
+It is often better is to use the procedure @code{hashq-get-handle},
+which makes a distinction between the two cases.  Just like @code{assq},
+this procedure returns a key/value-pair on success, and @code{#f} if the
 key is not found.
 
 @lisp
