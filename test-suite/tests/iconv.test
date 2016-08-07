@@ -118,3 +118,16 @@
       (equal? (make-string (string-length s) #\?)
               (bytevector->string (string->bytevector s "ascii" 'substitute)
                                   "ascii")))))
+
+(with-test-prefix "round-trip"
+  (define (pass-if-round-trip str encoding)
+    (pass-if-equal str str
+      (bytevector->string (string->bytevector str encoding) encoding)))
+
+  (pass-if-round-trip (make-string 128 #\a) "UTF-8")
+  (pass-if-round-trip (make-string 128 #\a) "UTF-16")
+  (pass-if-round-trip (make-string 128 #\a) "UTF-32")
+
+  (pass-if-round-trip (make-string 129 #\a) "UTF-8")
+  (pass-if-round-trip (make-string 129 #\a) "UTF-16")
+  (pass-if-round-trip (make-string 129 #\a) "UTF-32"))

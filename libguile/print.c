@@ -1034,7 +1034,11 @@ display_string_using_iconv (const void *str, int narrow_p, size_t len,
 
 	      printed++;
 	    }
-	  else
+	  else if (errno_save == E2BIG)
+            /* No space in output buffer for this input.  Keep
+               trucking.  */
+            continue;
+          else
 	    /* Something bad happened that we can't handle: bail out.  */
 	    break;
 	}
