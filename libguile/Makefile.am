@@ -430,9 +430,9 @@ DOT_I_FILES = vm-i-system.i vm-i-scheme.i vm-i-loader.i
 .c.i:
 	$(AM_V_GEN)$(GREP) '^VM_DEFINE' $< > $@
 
-BUILT_INCLUDES = $(DOT_I_FILES) scmconfig.h
-BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h $(BUILT_INCLUDES) \
-    $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
+BUILT_SOURCES = cpp-E.c cpp-SIG.c libpath.h \
+    scmconfig.h \
+    $(DOT_I_FILES) $(DOT_X_FILES) $(EXTRA_DOT_X_FILES)
 
 # Force the generation of `guile-procedures.texi' because the top-level
 # Makefile expects it to be built.
@@ -730,9 +730,9 @@ snarfcppopts = $(DEFS) $(AM_CPPFLAGS) $(CPPFLAGS) $(CFLAGS)
 
 SUFFIXES = .x .doc
 
-.c.x: $(BUILT_INCLUDES)
+.c.x:
 	$(AM_V_SNARF)$(GUILE_SNARF) -o $@ $< $(snarfcppopts)
-.c.doc: $(BUILT_INCLUDES)
+.c.doc:
 	$(AM_V_SNARF)./guile-snarf-docs -o $@ $< -- $(snarfcppopts)
 
 $(DOT_X_FILES) $(EXTRA_DOT_X_FILES): scmconfig.h snarf.h guile-snarf.in version.h
