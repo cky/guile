@@ -1321,7 +1321,9 @@ start_child (const char *exec_file, char **exec_argv,
                exec_file, msg);
     }
 
-  _exit (EXIT_FAILURE);
+  /* Use exit status 127, like shells in this case, as per POSIX
+     <http://pubs.opengroup.org/onlinepubs/007904875/utilities/xcu_chap02.html#tag_02_09_01_01>.  */
+  _exit (127);
 
   /* Not reached.  */
   return -1;
@@ -1426,6 +1428,74 @@ scm_open_process (SCM mode, SCM prog, SCM args)
   return scm_values (scm_list_3 (read_port,
                                  write_port,
                                  scm_from_int (pid)));
+}
+#undef FUNC_NAME
+
+static void
+restore_sigaction (SCM pair)
+{
+  SCM sig, handler, flags;
+  sig = scm_car (pair);
+  handler = scm_cadr (pair);
+  flags = scm_cddr (pair);
+  scm_sigaction (sig, handler, flags);
+}
+
+static void
+scm_dynwind_sigaction (int sig, SCM handler, SCM flags)
+{
+  SCM old, scm_sig;
+  scm_sig = scm_from_int (sig);
+  old = scm_sigaction (scm_sig, handler, flags);
+  scm_dynwind_unwind_handler_with_scm (restore_sigaction,
+                                       scm_cons (scm_sig, old),
+                                       SCM_F_WIND_EXPLICITLY);
+}
+
+SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
+           (SCM args),
+"Execute the command indicated by @var{args}.  The first element must\n"
+"be a string indicating the command to be executed, and the remaining\n"
+"items must be strings representing each of the arguments to that\n"
+"command.\n"
+"\n"
+"This function returns the exit status of the command as provided by\n"
+"@code{waitpid}.  This value can be handled with @code{status:exit-val}\n"
+"and the related functions.\n"
+"\n"
+"@code{system*} is similar to @code{system}, but accepts only one\n"
+"string per-argument, and performs no shell interpretation.  The\n"
+"command is executed using fork and execlp.  Accordingly this function\n"
+"may be safer than @code{system} in situations where shell\n"
+"interpretation is not required.\n"
+"\n"
+"Example: (system* \"echo\" \"foo\" \"bar\")")
+#define FUNC_NAME s_scm_system_star
+{
+  SCM prog, res;
+  int pid, status, wait_result;
+
+  if (scm_is_null (args))
+    SCM_WRONG_NUM_ARGS ();
+  prog = scm_car (args);
+  args = scm_cdr (args);
+
+  scm_dynwind_begin (0);
+  /* Make sure the child can't kill us (as per normal system call).  */
+  scm_dynwind_sigaction (SIGINT, scm_from_ulong (SIG_IGN), SCM_UNDEFINED);
+#ifdef SIGQUIT
+  scm_dynwind_sigaction (SIGQUIT, scm_from_ulong (SIG_IGN), SCM_UNDEFINED);
+#endif
+
+  res = scm_open_process (scm_nullstr, prog, args);
+  pid = scm_to_int (scm_c_value_ref (res, 2));
+  SCM_SYSCALL (wait_result = waitpid (pid, &status, 0));
+  if (wait_result == -1)
+    SCM_SYSERROR;
+
+  scm_dynwind_end ();
+
+  return scm_from_int (status);
 }
 #undef FUNC_NAME
 #endif /* HAVE_START_CHILD */

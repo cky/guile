@@ -24,35 +24,15 @@
 #endif
 
 #include <errno.h>
-#include <signal.h>  /* for SIG constants */
-#include <stdlib.h>  /* for getenv */
-#include <stdio.h>
+#include <stdlib.h>  /* for getenv, system, exit, free */
+#include <unistd.h>  /* for _exit */
 
 #include "libguile/_scm.h"
 
-#include "libguile/scmsigs.h"
 #include "libguile/strings.h"
-
 #include "libguile/validate.h"
 #include "libguile/simpos.h"
-#include "libguile/dynwind.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-#include <unistd.h>
-#if HAVE_SYS_WAIT_H
-# include <sys/wait.h>
-#endif
-
-#ifdef __MINGW32__
-# include <process.h>	/* for spawnvp and friends */
-#endif
-
-#include "posix.h"
-
-
-extern int system();
 
 
 #ifdef HAVE_SYSTEM
@@ -74,7 +54,7 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
   if (SCM_UNBNDP (cmd))
     {
       rv = system (NULL);
-      return scm_from_bool(rv);
+      return scm_from_bool (rv);
     }  
   SCM_VALIDATE_STRING (1, cmd);
   errno = 0;
@@ -84,110 +64,6 @@ SCM_DEFINE (scm_system, "system", 0, 1, 0,
   if (rv == -1 || (rv == 127 && errno != 0))
     SCM_SYSERROR;
   return scm_from_int (rv);
-}
-#undef FUNC_NAME
-#endif /* HAVE_SYSTEM */
-
-
-#ifdef HAVE_SYSTEM
-
-SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
-           (SCM args),
-"Execute the command indicated by @var{args}.  The first element must\n"
-"be a string indicating the command to be executed, and the remaining\n"
-"items must be strings representing each of the arguments to that\n"
-"command.\n"
-"\n"
-"This function returns the exit status of the command as provided by\n"
-"@code{waitpid}.  This value can be handled with @code{status:exit-val}\n"
-"and the related functions.\n"
-"\n"
-"@code{system*} is similar to @code{system}, but accepts only one\n"
-"string per-argument, and performs no shell interpretation.  The\n"
-"command is executed using fork and execlp.  Accordingly this function\n"
-"may be safer than @code{system} in situations where shell\n"
-"interpretation is not required.\n"
-"\n"
-"Example: (system* \"echo\" \"foo\" \"bar\")")
-#define FUNC_NAME s_scm_system_star
-{
-  if (scm_is_null (args))
-    SCM_WRONG_NUM_ARGS ();
-
-  if (scm_is_pair (args))
-    {
-      SCM oldint;
-      SCM sig_ign;
-      SCM sigint;
-      /* SIGQUIT is undefined on MS-Windows.  */
-#ifdef SIGQUIT
-      SCM oldquit;
-      SCM sigquit;
-#endif
-#ifdef HAVE_FORK
-      int pid;
-#else
-      int status;
-#endif
-      char **execargv;
-
-      /* allocate before fork */
-      execargv = scm_i_allocate_string_pointers (args);
-
-      /* make sure the child can't kill us (as per normal system call) */
-      sig_ign = scm_from_ulong ((unsigned long) SIG_IGN);
-      sigint = scm_from_int (SIGINT);
-      oldint = scm_sigaction (sigint, sig_ign, SCM_UNDEFINED);
-#ifdef SIGQUIT
-      sigquit = scm_from_int (SIGQUIT);
-      oldquit = scm_sigaction (sigquit, sig_ign, SCM_UNDEFINED);
-#endif
-
-#ifdef HAVE_FORK
-      pid = fork ();
-      if (pid == 0)
-        {
-          /* child */
-	  execvp (execargv[0], execargv);
-
-	  /* Something went wrong.  */
-	  fprintf (stderr, "In execvp of %s: %s\n",
-		   execargv[0], strerror (errno));
-
-	  /* Exit directly instead of throwing, because otherwise this
-	     process may keep on running.  Use exit status 127, like
-	     shells in this case, as per POSIX
-	     <http://pubs.opengroup.org/onlinepubs/007904875/utilities/xcu_chap02.html#tag_02_09_01_01>.  */
-	  _exit (127);
-        }
-      else
-        {
-          /* parent */
-          int wait_result, status;
-
-          if (pid == -1)
-            SCM_SYSERROR;
-
-          SCM_SYSCALL (wait_result = waitpid (pid, &status, 0));
-          if (wait_result == -1)
-	    SCM_SYSERROR;
-          scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
-          scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
-
-          return scm_from_int (status);
-        }
-#else  /* !HAVE_FORK */
-      status = spawnvp (P_WAIT, execargv[0], (const char * const *)execargv);
-      scm_sigaction (sigint, SCM_CAR (oldint), SCM_CDR (oldint));
-#ifdef SIGQUIT
-      scm_sigaction (sigquit, SCM_CAR (oldquit), SCM_CDR (oldquit));
-#endif
-
-      return scm_from_int (status);
-#endif /* !HAVE_FORK */
-    }
-  else
-    SCM_WRONG_TYPE_ARG (1, args);
 }
 #undef FUNC_NAME
 #endif /* HAVE_SYSTEM */
