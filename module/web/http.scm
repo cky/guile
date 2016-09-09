@@ -1090,7 +1090,7 @@ not have to have a scheme or host name.  The result is a URI object."
     (bad-request "Missing Request-URI"))
    ((string= str "*" start end)
     #f)
-   ((eq? (string-ref str start) #\/)
+   ((eqv? (string-ref str start) #\/)
     (let* ((q (string-index str #\? start end))
            (f (string-index str #\# start end))
            (q (and q (or (not f) (< q f)) q)))
