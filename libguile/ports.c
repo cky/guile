@@ -2600,7 +2600,7 @@ SCM_DEFINE (scm_port_encoding, "port-encoding", 1, 0, 0,
   scm_t_port *pt;
   const char *enc;
 
-  SCM_VALIDATE_PORT (1, port);
+  SCM_VALIDATE_OPPORT (1, port);
 
   pt = SCM_PTAB_ENTRY (port);
   enc = pt->encoding;
@@ -2622,7 +2622,7 @@ SCM_DEFINE (scm_set_port_encoding_x, "set-port-encoding!", 2, 0, 0,
 {
   char *enc_str;
 
-  SCM_VALIDATE_PORT (1, port);
+  SCM_VALIDATE_OPPORT (1, port);
   SCM_VALIDATE_STRING (2, enc);
 
   enc_str = scm_to_locale_string (enc);
