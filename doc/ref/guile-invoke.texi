@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005, 2010, 2011, 2013, 2014
-@c   Free Software Foundation, Inc.
+@c Copyright (C)  1996, 1997, 2000-2005, 2010, 2011, 2013, 2014,
+@c   2016 Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
 @node Invoking Guile
@@ -176,7 +176,7 @@ the @file{.guile} file.  @xref{Init File}.
 While this program runs, listen on a local port or a path for REPL
 clients.  If @var{p} starts with a number, it is assumed to be a local
 port on which to listen.  If it starts with a forward slash, it is
-assumed to be a path to a UNIX domain socket on which to listen.
+assumed to be the file name of a UNIX domain socket on which to listen.
 
 If @var{p} is not given, the default is local port 37146.  If you look
 at it upside down, it almost spells ``Guile''.  If you have netcat
@@ -184,11 +184,21 @@ installed, you should be able to @kbd{nc localhost 37146} and get a
 Guile prompt.  Alternately you can fire up Emacs and connect to the
 process; see @ref{Using Guile in Emacs} for more details.
 
-Note that opening a port allows anyone who can connect to that port---in
-the TCP case, any local user---to do anything Guile can do, as the user
+@quotation Note
+Opening a port allows anyone who can connect to that port to do anything
+Guile can do, as the user
 that the Guile process is running as.  Do not use @option{--listen} on
 multi-user machines.  Of course, if you do not pass @option{--listen} to
 Guile, no port will be opened.
+
+Guile protects against the
+@uref{https://en.wikipedia.org/wiki/Inter-protocol_exploitation,
+@dfn{HTTP inter-protocol exploitation attack}}, a scenario whereby an
+attacker can, @i{via} an HTML page, cause a web browser to send data to
+TCP servers listening on a loopback interface or private network.
+Nevertheless, you are advised to use UNIX domain sockets, as in
+@code{--listen=/some/local/file}, whenever possible.
+@end quotation
 
 That said, @option{--listen} is great for interactive debugging and
 development.
