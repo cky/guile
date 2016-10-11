@@ -13,6 +13,8 @@ Changes in 2.0.13 (since 2.0.12):
 
 See "File System" in the manual, for more.
 
+** New 'scm_to_uintptr_t' and 'scm_from_uintptr_t' C functions
+
 * Bug fixes
 
 ** 'mkdir' procedure no longer calls umask(2) (<http://bugs.gnu.org/24659>)

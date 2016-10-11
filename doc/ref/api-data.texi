@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Guile Reference Manual.
-@c Copyright (C)  1996, 1997, 2000-2004, 2006-2015
+@c Copyright (C)  1996, 1997, 2000-2004, 2006-2016
 @c   Free Software Foundation, Inc.
 @c See the file guile.texi for copying conditions.
 
@@ -434,6 +434,7 @@ function will always succeed and will always return an exact number.
 @deftypefnx {C Function} {unsigned long long} scm_to_ulong_long (SCM x)
 @deftypefnx {C Function} size_t scm_to_size_t (SCM x)
 @deftypefnx {C Function} ssize_t scm_to_ssize_t (SCM x)
+@deftypefnx {C Function} scm_t_uintptr scm_to_uintptr_t (SCM x)
 @deftypefnx {C Function} scm_t_ptrdiff scm_to_ptrdiff_t (SCM x)
 @deftypefnx {C Function} scm_t_int8 scm_to_int8 (SCM x)
 @deftypefnx {C Function} scm_t_uint8 scm_to_uint8 (SCM x)
@@ -468,6 +469,7 @@ the corresponding types are.
 @deftypefnx {C Function} SCM scm_from_ulong_long (unsigned long long x)
 @deftypefnx {C Function} SCM scm_from_size_t (size_t x)
 @deftypefnx {C Function} SCM scm_from_ssize_t (ssize_t x)
+@deftypefnx {C Function} SCM scm_from_uintptr_t (uintptr_t x)
 @deftypefnx {C Function} SCM scm_from_ptrdiff_t (scm_t_ptrdiff x)
 @deftypefnx {C Function} SCM scm_from_int8 (scm_t_int8 x)
 @deftypefnx {C Function} SCM scm_from_uint8 (scm_t_uint8 x)

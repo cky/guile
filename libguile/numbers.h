@@ -528,6 +528,18 @@ SCM_API SCM  scm_from_mpz (mpz_t rop);
 #endif
 #endif
 
+#if SCM_SIZEOF_UINTPTR_T == 4
+#define scm_to_uintptr_t    scm_to_uint32
+#define scm_from_uintptr_t  scm_from_uint32
+#else
+#if SCM_SIZEOF_UINTPTR_T == 8
+#define scm_to_uintptr_t    scm_to_uint64
+#define scm_from_uintptr_t  scm_from_uint64
+#else
+#error sizeof(scm_t_uintptr) is not 4 or 8.
+#endif
+#endif
+
 #if SCM_SIZEOF_SCM_T_PTRDIFF == 4
 #define scm_to_ptrdiff_t    scm_to_int32
 #define scm_from_ptrdiff_t  scm_from_int32
