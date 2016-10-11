@@ -1,6 +1,6 @@
 /* Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
  *   2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013,
- *   2014 Free Software Foundation, Inc.
+ *   2014, 2016 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1482,9 +1482,13 @@ SCM_DEFINE (scm_system_star, "system*", 0, 0, 1,
 
   scm_dynwind_begin (0);
   /* Make sure the child can't kill us (as per normal system call).  */
-  scm_dynwind_sigaction (SIGINT, scm_from_ulong (SIG_IGN), SCM_UNDEFINED);
+  scm_dynwind_sigaction (SIGINT,
+			 scm_from_uintptr_t ((scm_t_uintptr) SIG_IGN),
+			 SCM_UNDEFINED);
 #ifdef SIGQUIT
-  scm_dynwind_sigaction (SIGQUIT, scm_from_ulong (SIG_IGN), SCM_UNDEFINED);
+  scm_dynwind_sigaction (SIGQUIT,
+			 scm_from_uintptr_t ((scm_t_uintptr) SIG_IGN),
+			 SCM_UNDEFINED);
 #endif
 
   res = scm_open_process (scm_nullstr, prog, args);
