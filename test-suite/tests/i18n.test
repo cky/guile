@@ -1,7 +1,7 @@
 ;;;; i18n.test --- Exercise the i18n API.  -*- coding: utf-8; mode: scheme; -*-
 ;;;;
 ;;;; Copyright (C) 2006, 2007, 2009, 2010, 2011, 2012,
-;;;;   2013, 2014, 2015 Free Software Foundation, Inc.
+;;;;   2013, 2014, 2015, 2016 Free Software Foundation, Inc.
 ;;;; Ludovic Courtès
 ;;;;
 ;;;; This library is free software; you can redistribute it and/or
@@ -87,7 +87,7 @@
 (define %french-locale-name
   (if mingw?
       "fra_FRA.850"
-      "fr_FR.ISO-8859-1"))
+      "fr_FR.iso88591"))         ;"iso88591" is the "normalized codeset"
 
 ;; What we really want for the following locales is that they be Unicode
 ;; capable, not necessarily UTF-8, which Windows does not provide.
@@ -95,22 +95,22 @@
 (define %french-utf8-locale-name
   (if mingw?
       "fra_FRA.1252"
-      "fr_FR.UTF-8"))
+      "fr_FR.utf8"))                 ;"utf8" is the "normalized codeset"
 
 (define %turkish-utf8-locale-name
   (if mingw?
       "tur_TRK.1254"
-      "tr_TR.UTF-8"))
+      "tr_TR.utf8"))
 
 (define %german-utf8-locale-name
   (if mingw?
       "deu_DEU.1252"
-      "de_DE.UTF-8"))
+      "de_DE.utf8"))
 
 (define %greek-utf8-locale-name
   (if mingw?
       "grc_ELL.1253"
-      "el_GR.UTF-8"))
+      "el_GR.utf8"))
 
 (define %american-english-locale-name
   "en_US")
