@@ -864,9 +864,10 @@ Create a symbolic link named @var{newpath} with the value (i.e., pointing to)
 @deffn {Scheme Procedure} mkdir path [mode]
 @deffnx {C Function} scm_mkdir (path, mode)
 Create a new directory named by @var{path}.  If @var{mode} is omitted
-then the permissions of the directory file are set using the current
-umask (@pxref{Processes}).  Otherwise they are set to the decimal
-value specified with @var{mode}.  The return value is unspecified.
+then the permissions of the directory are set to @code{#o777}
+masked with the current umask (@pxref{Processes, @code{umask}}).
+Otherwise they are set to the value specified with @var{mode}.
+The return value is unspecified.
 @end deffn
 
 @deffn {Scheme Procedure} rmdir path

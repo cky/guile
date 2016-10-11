@@ -14,9 +14,21 @@ Changes in 2.0.13 (since 2.0.12):
 See "File System" in the manual, for more.
 
 * Bug fixes
+
+** 'mkdir' procedure no longer calls umask(2) (<http://bugs.gnu.org/24659>)
+
+When the second argument to the 'mkdir' procedure was omitted, it would
+call umask(0) followed by umask(previous_umask) and apply the umask to
+mode #o777.
+
+This was unnecessary and a security issue for multi-threaded
+applications: during a small window the process' umask was set to zero,
+so other threads calling mkdir(2) or open(2) could end up creating
+world-readable/writable/executable directories or files.
+
 ** Fix optimizer bug when compiling fixpoint operator
 ** Fix build error on MinGW
-** Update `uname' implementation on MinGW
+** Update 'uname' implementation on MinGW
 
 
 Changes in 2.0.12 (since 2.0.11):

@@ -1,5 +1,5 @@
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2006,
- *   2009, 2010, 2011, 2012, 2013, 2014 Free Software Foundation, Inc.
+ *   2009, 2010, 2011, 2012, 2013, 2014, 2016 Free Software Foundation, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public License
@@ -1255,26 +1255,21 @@ SCM_DEFINE (scm_getcwd, "getcwd", 0, 0, 0,
 SCM_DEFINE (scm_mkdir, "mkdir", 1, 1, 0,
             (SCM path, SCM mode),
 	    "Create a new directory named by @var{path}.  If @var{mode} is omitted\n"
-	    "then the permissions of the directory file are set using the current\n"
-	    "umask.  Otherwise they are set to the decimal value specified with\n"
-	    "@var{mode}.  The return value is unspecified.")
+	    "then the permissions of the directory are set to @code{#o777}\n"
+	    "masked with the current umask (@pxref{Processes, @code{umask}}).\n"
+	    "Otherwise they are set to the value specified with @var{mode}.\n"
+	    "The return value is unspecified.")
 #define FUNC_NAME s_scm_mkdir
 {
   int rv;
-  mode_t mask;
+  mode_t c_mode;
 
-  if (SCM_UNBNDP (mode))
-    {
-      mask = umask (0);
-      umask (mask);
-      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, 0777 ^ mask));
-    }
-  else
-    {
-      STRING_SYSCALL (path, c_path, rv = mkdir (c_path, scm_to_uint (mode)));
-    }
+  c_mode = SCM_UNBNDP (mode) ? 0777 : scm_to_uint (mode);
+
+  STRING_SYSCALL (path, c_path, rv = mkdir (c_path, c_mode));
   if (rv != 0)
     SCM_SYSERROR;
+
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
