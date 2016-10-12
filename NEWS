@@ -7,17 +7,38 @@ Please send Guile bug reports to bug-guile@gnu.org.
 
 Changes in 2.0.13 (since 2.0.12):
 
-* Notable changes
-* New interfaces
-** mkstemp! takes optional "mode" argument
+* Security fixes
 
-See "File System" in the manual, for more.
+** CVE-2016-8606: REPL server now protects against HTTP inter-protocol
+   attacks
 
-** New 'scm_to_uintptr_t' and 'scm_from_uintptr_t' C functions
+Guile 2.x provides a "REPL server" started by the '--listen'
+command-line option or equivalent API (see "REPL Servers" in the
+manual).
 
-* Bug fixes
+The REPL server is vulnerable to the HTTP inter-protocol attack as
+described at
+<https://en.wikipedia.org/wiki/Inter-protocol_exploitation>, notably the
+HTML form protocol attack described at
+<https://www.jochentopf.com/hfpa/hfpa.pdf>.  A "DNS rebinding attack"
+can be combined with this attack and allow an attacker to send arbitrary
+Guile code to the REPL server through web pages accessed by the
+developer, even though the REPL server is listening to a loopback device
+("localhost").  This was demonstrated in an article entitled "How to
+steal any developer's local database" available at
+<http://bouk.co/blog/hacking-developers/>.
 
-** 'mkdir' procedure no longer calls umask(2) (<http://bugs.gnu.org/24659>)
+The REPL server in Guile 2.0.13 now detects attempts to exploit this
+vulnerability.  It immediately closes the connection when it receives a
+line that looks like an HTTP request.
+
+Nevertheless, we recommend binding the REPL server to a Unix-domain
+socket, for instance by running:
+
+  guile --listen=/tmp/guile-socket
+
+** CVE-2016-8605: 'mkdir' procedure no longer calls umask(2)
+   (<http://bugs.gnu.org/24659>)
 
 When the second argument to the 'mkdir' procedure was omitted, it would
 call umask(0) followed by umask(previous_umask) and apply the umask to
@@ -28,9 +49,22 @@ applications: during a small window the process' umask was set to zero,
 so other threads calling mkdir(2) or open(2) could end up creating
 world-readable/writable/executable directories or files.
 
+* New interfaces
+
+** mkstemp! takes optional "mode" argument
+
+See "File System" in the manual, for more.
+
+** New 'scm_to_uintptr_t' and 'scm_from_uintptr_t' C functions
+
+* Bug fixes
+
 ** Fix optimizer bug when compiling fixpoint operator
 ** Fix build error on MinGW
 ** Update 'uname' implementation on MinGW
+** 'port-encoding' and 'set-port-encoding!' ensure they are passed an
+   open port
+** (system base target) now recognizes Alpha as a cross-compilation target
 
 
 Changes in 2.0.12 (since 2.0.11):
