@@ -39,7 +39,7 @@ dnl Use `serial-tests' so the output `check-guile' is not hidden
 dnl (`parallel-tests' is the default in Automake 1.13.)
 dnl `serial-tests' was introduced in Automake 1.12.
 AM_INIT_AUTOMAKE([1.12 gnu no-define -Wall -Wno-override \
-  serial-tests color-tests dist-xz])
+  serial-tests color-tests dist-lzip dist-xz])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])], [AC_SUBST([AM_DEFAULT_VERBOSITY],1)])
 
 AC_COPYRIGHT(GUILE_CONFIGURE_COPYRIGHT)
