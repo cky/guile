@@ -1,0 +1,139 @@
+;;;; 00-repl-server.test --- REPL server.  -*- mode: scheme; coding: utf-8; -*-
+;;;;
+;;;; 	Copyright (C) 2016 Free Software Foundation, Inc.
+;;;;
+;;;; This library is free software; you can redistribute it and/or
+;;;; modify it under the terms of the GNU Lesser General Public
+;;;; License as published by the Free Software Foundation; either
+;;;; version 3 of the License, or (at your option) any later version.
+;;;;
+;;;; This library is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+;;;;
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with this library; if not, write to the Free Software
+;;;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
+(define-module (repl-server)
+  #:use-module (system repl server)
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 rdelim)
+  #:use-module (web uri)
+  #:use-module (web request)
+  #:use-module (test-suite lib))
+
+(define (call-with-repl-server proc)
+  "Set up a REPL server in a separate process and call PROC with a
+socket connected to that server."
+  (let ((sockaddr      (make-socket-address AF_UNIX "/tmp/repl-server"))
+        (client-socket (socket AF_UNIX SOCK_STREAM 0)))
+    (false-if-exception
+     (delete-file (sockaddr:path sockaddr)))
+
+    (match (primitive-fork)
+      (0
+       (dynamic-wind
+         (const #t)
+         (lambda ()
+           (let ((server-socket (socket AF_UNIX SOCK_STREAM 0)))
+             (bind server-socket sockaddr)
+             (set! %load-verbosely #f)
+
+             (close-fdes 2)
+
+             ;; Arrange so that the alarming "possible break-in attempt"
+             ;; message doesn't show up when running the test suite.
+             (dup2 (open-fdes "/dev/null" O_WRONLY) 2)
+
+             (run-server server-socket)))
+         (lambda ()
+           (primitive-exit 0))))
+      (pid
+       (dynamic-wind
+         (const #t)
+         (lambda ()
+           ;; XXX: We can't synchronize with the server's 'accept' call
+           ;; because it's buried inside 'run-server', hence this hack.
+           (let loop ((tries 0))
+             (catch 'system-error
+               (lambda ()
+                 (connect client-socket sockaddr))
+               (lambda args
+                 (when (and (memv (system-error-errno args)
+                                  (list ENOENT ECONNREFUSED))
+                            (< tries 3))
+                   (sleep 1)
+                   (loop (+ tries 1))))))
+
+           (proc client-socket))
+         (lambda ()
+           (false-if-exception (close-port client-socket))
+           (false-if-exception (kill pid SIGTERM))))))))
+
+(define-syntax-rule (with-repl-server client-socket body ...)
+  "Evaluate BODY... in a context where CLIENT-SOCKET is bound to a
+socket connected to a fresh REPL server."
+  (call-with-repl-server
+   (lambda (client-socket)
+     body ...)))
+
+(define (read-until-prompt port str)
+  "Read from PORT until STR has been read or the end-of-file was
+reached."
+  (let loop ()
+    (match (read-line port)
+      ((? eof-object?)
+       #t)
+      (line
+       (or (string=? line str) (loop))))))
+
+(define %last-line-before-prompt
+  "Enter `,help' for help.")
+
+
+;;; REPL server tests.
+;;;
+;;; Since we call 'primitive-fork', these tests must run before any
+;;; tests that create threads.
+
+(with-test-prefix "repl-server"
+
+  (pass-if-equal "simple expression"
+      "scheme@(repl-server)> $1 = 42\n"
+    (with-repl-server socket
+      (read-until-prompt socket %last-line-before-prompt)
+      (display "(+ 40 2)\n(quit)\n" socket)
+      (read-string socket)))
+
+  (pass-if "HTTP inter-protocol attack"           ;CVE-2016-8606
+    (with-repl-server socket
+      ;; Avoid SIGPIPE when the server closes the connection.
+      (sigaction SIGPIPE SIG_IGN)
+
+      (read-until-prompt socket %last-line-before-prompt)
+
+      ;; Simulate an HTTP inter-protocol attack.
+      (write-request (build-request (string->uri "http://localhost"))
+                     socket)
+
+      ;; Make sure the server reacts by closing the connection.  If it
+      ;; fails to do that, this test hangs.
+      (catch 'system-error
+        (lambda ()
+          (let loop ((n 0))
+            (display "(+ 40 2)\n(quit)\n" socket) ;trigger EPIPE
+            (read-string socket)
+            (if (> n 5)
+                #f                                ;failure
+                (begin
+                  (sleep 1)
+                  (loop (+ 1 n))))))
+        (lambda args
+          (->bool (memv (system-error-errno args)
+                        (list ECONNRESET EPIPE))))))))
+
+;;; Local Variables:
+;;; eval: (put 'with-repl-server 'scheme-indent-function 1)
+;;; End:

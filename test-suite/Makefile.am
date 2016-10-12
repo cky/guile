@@ -23,6 +23,7 @@
 SUBDIRS = standalone vm
 
 SCM_TESTS = tests/00-initial-env.test		\
+	    tests/00-repl-server.test		\
 	    tests/00-socket.test		\
             tests/alist.test			\
 	    tests/and-let-star.test		\
