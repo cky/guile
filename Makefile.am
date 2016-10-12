@@ -2,7 +2,7 @@
 ##
 ##  	Copyright (C) 1998, 1999, 2000, 2001, 2002, 2006, 2007,
 ##        2008, 2009, 2010, 2011, 2012, 2013,
-##        2014 Free Software Foundation, Inc.
+##        2014, 2016 Free Software Foundation, Inc.
 ##
 ##   This file is part of GUILE.
 ##
@@ -88,7 +88,7 @@ DISTCLEANFILES = check-guile.log
 
 DISTCHECK_CONFIGURE_FLAGS = --enable-error-on-warning
 
-dist-hook: gen-ChangeLog gen-tarball-version
+dist-hook: gen-ChangeLog gen-tarball-version assert-no-store-file-names
 
 clean-local:
 	rm -rf cache/
@@ -103,6 +103,16 @@ gen-ChangeLog:
 	    $(gen_start_rev)..HEAD > $(distdir)/cl-t;			\
 	  rm -f $(distdir)/ChangeLog;					\
 	  mv $(distdir)/cl-t $(distdir)/ChangeLog;			\
+	fi
+
+# Make sure we're not shipping a file that embeds a /gnu/store file
+# name, for maintainers who use Guix.
+.PHONY: assert-no-store-file-names
+assert-no-store-file-names:
+	if grep -rE "/gnu/store/[a-z0-9]{32}-" $(distdir) ;			\
+	then									\
+	  echo "error: store file names embedded in the distribution" >&2 ;	\
+	  exit 1 ;								\
 	fi
 
 BUILT_SOURCES += $(top_srcdir)/.version
