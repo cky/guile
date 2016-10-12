@@ -1,7 +1,7 @@
 dnl -*- Autoconf -*-
 
 dnl Copyright (C) 1997, 1999, 2000, 2001, 2002, 2004, 2006,
-dnl   2007, 2008, 2009, 2010, 2011 Free Software Foundation, Inc.
+dnl   2007, 2008, 2009, 2010, 2011, 2016 Free Software Foundation, Inc.
 dnl
 dnl This file is part of GUILE
 dnl
@@ -565,7 +565,9 @@ AC_DEFUN([GUILE_CHECK_GUILE_FOR_BUILD], [
         AC_MSG_ERROR([a native Guile $PACKAGE_VERSION is required to cross-build Guile])
       fi
     else
-      GUILE_FOR_BUILD=$(which "$GUILE_FOR_BUILD" || echo "$GUILE_FOR_BUILD")
+      dnl Capture the absolute file name of 'GUILE_FOR_BUILD' so that
+      dnl 'meta/guile' doesn't invoke itself when GUILE_FOR_BUILD=guile.
+      GUILE_FOR_BUILD="`which "$GUILE_FOR_BUILD" || echo "$GUILE_FOR_BUILD"`"
     fi
     AC_MSG_CHECKING([guile for build])
     AC_MSG_RESULT([$GUILE_FOR_BUILD])
